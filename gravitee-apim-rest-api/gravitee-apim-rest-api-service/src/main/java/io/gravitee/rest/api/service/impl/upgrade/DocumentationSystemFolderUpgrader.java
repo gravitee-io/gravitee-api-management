@@ -91,7 +91,7 @@ public class DocumentationSystemFolderUpgrader extends EnvironmentUpgrader {
             List<String> apiIds = apiRepository.searchIds(apiCriteriaList, pageable, null).getContent();
 
             while (!apiIds.isEmpty()) {
-                apiIds.forEach(apiId -> pageService.createSystemFolder(executionContext, apiId, SystemFolderType.ASIDE, 0));
+                apiIds.forEach(apiId -> pageService.createSystemFolder(executionContext, apiId, SystemFolderType.ASIDE, 0, false));
                 pageable = new PageableBuilder().pageNumber(page++).pageSize(size).build();
                 apiIds = apiRepository.searchIds(apiCriteriaList, pageable, null).getContent();
             }
@@ -106,7 +106,7 @@ public class DocumentationSystemFolderUpgrader extends EnvironmentUpgrader {
         newFolder.setParentId(parentId);
         newFolder.setVisibility(Visibility.PUBLIC);
 
-        return pageService.createPage(executionContext, newFolder);
+        return pageService.createPage(executionContext, null, newFolder, true);
     }
 
     private void createLink(
@@ -137,7 +137,7 @@ public class DocumentationSystemFolderUpgrader extends EnvironmentUpgrader {
 
         newLink.setConfiguration(configuration);
 
-        pageService.createPage(executionContext, newLink);
+        pageService.createPage(executionContext, null, newLink, true);
     }
 
     @Override

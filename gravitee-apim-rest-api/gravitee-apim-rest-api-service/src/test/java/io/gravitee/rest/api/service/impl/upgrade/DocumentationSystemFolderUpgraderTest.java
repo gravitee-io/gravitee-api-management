@@ -15,12 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -77,7 +72,7 @@ public class DocumentationSystemFolderUpgraderTest {
         verify(pageService, never()).createPage(any(ExecutionContext.class), any(NewPageEntity.class));
         verify(apiRepository, never()).searchIds(any(), any(), any());
         verify(pageService, never())
-            .createSystemFolder(any(ExecutionContext.class), anyString(), any(SystemFolderType.class), any(Integer.class));
+            .createSystemFolder(any(ExecutionContext.class), anyString(), any(SystemFolderType.class), any(Integer.class), anyBoolean());
     }
 
     @Test
@@ -92,10 +87,10 @@ public class DocumentationSystemFolderUpgraderTest {
         verify(pageService, times(1)).initialize(executionContext);
         verify(pageService, times(1))
             .search(eq(ENV_ID), argThat(pageQuery -> pageQuery.getType() == null && !pageQuery.getHomepage() && pageQuery.getRootParent()));
-        verify(pageService, times(1)).createPage(any(ExecutionContext.class), any(NewPageEntity.class));
+        verify(pageService, times(1)).createPage(any(ExecutionContext.class), isNull(), any(NewPageEntity.class), eq(true));
         verify(apiRepository, times(1)).searchIds(any(), any(), any());
         verify(pageService, never())
-            .createSystemFolder(any(ExecutionContext.class), anyString(), any(SystemFolderType.class), any(Integer.class));
+            .createSystemFolder(any(ExecutionContext.class), anyString(), any(SystemFolderType.class), any(Integer.class), anyBoolean());
     }
 
     @Test
@@ -111,7 +106,9 @@ public class DocumentationSystemFolderUpgraderTest {
         when(
             pageService.createPage(
                 eq(executionContext),
-                argThat(newPageEntity -> newPageEntity.getType() == PageType.FOLDER && newPageEntity.getParentId().equals("top-footer-id"))
+                isNull(),
+                argThat(newPageEntity -> newPageEntity.getType() == PageType.FOLDER && newPageEntity.getParentId().equals("top-footer-id")),
+                eq(true)
             )
         )
             .thenReturn(documentationFolderPage);
@@ -135,10 +132,10 @@ public class DocumentationSystemFolderUpgraderTest {
         verify(pageService, times(1)).initialize(executionContext);
         verify(pageService, times(1))
             .search(eq(ENV_ID), argThat(pageQuery -> pageQuery.getType() == null && !pageQuery.getHomepage() && pageQuery.getRootParent()));
-        verify(pageService, times(3)).createPage(any(ExecutionContext.class), any(NewPageEntity.class));
+        verify(pageService, times(3)).createPage(any(ExecutionContext.class), isNull(), any(NewPageEntity.class), eq(true));
         verify(apiRepository, times(1)).searchIds(any(), any(), any());
         verify(pageService, never())
-            .createSystemFolder(any(ExecutionContext.class), anyString(), any(SystemFolderType.class), any(Integer.class));
+            .createSystemFolder(any(ExecutionContext.class), anyString(), any(SystemFolderType.class), any(Integer.class), eq(false));
     }
 
     @Test
@@ -158,9 +155,9 @@ public class DocumentationSystemFolderUpgraderTest {
         verify(pageService, times(1)).initialize(executionContext);
         verify(pageService, times(1))
             .search(eq(ENV_ID), argThat(pageQuery -> pageQuery.getType() == null && !pageQuery.getHomepage() && pageQuery.getRootParent()));
-        verify(pageService, times(1)).createPage(any(ExecutionContext.class), any(NewPageEntity.class));
+        verify(pageService, times(1)).createPage(any(ExecutionContext.class), isNull(), any(NewPageEntity.class), eq(true));
         verify(apiRepository, times(3)).searchIds(any(), any(), any());
         verify(pageService, times(2))
-            .createSystemFolder(any(ExecutionContext.class), anyString(), any(SystemFolderType.class), any(Integer.class));
+            .createSystemFolder(any(ExecutionContext.class), anyString(), any(SystemFolderType.class), any(Integer.class), eq(false));
     }
 }

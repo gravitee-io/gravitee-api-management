@@ -54,6 +54,8 @@ public interface PageService {
 
     PageEntity createPage(ExecutionContext executionContext, String apiId, NewPageEntity page);
 
+    PageEntity createPage(ExecutionContext executionContext, String apiId, NewPageEntity page, boolean indexLocally);
+
     PageEntity createPage(ExecutionContext executionContext, NewPageEntity page);
 
     PageEntity update(ExecutionContext executionContext, String pageId, UpdatePageEntity updatePageEntity);
@@ -88,7 +90,13 @@ public interface PageService {
 
     PageEntity createAsideFolder(ExecutionContext executionContext, String apiId);
 
-    PageEntity createSystemFolder(ExecutionContext executionContext, String apiId, SystemFolderType systemFolderType, int order);
+    PageEntity createSystemFolder(
+        ExecutionContext executionContext,
+        String apiId,
+        SystemFolderType systemFolderType,
+        int order,
+        boolean indexLocally
+    );
 
     PageEntity createWithDefinition(ExecutionContext executionContext, String apiId, String toString);
 

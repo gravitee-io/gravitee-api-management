@@ -830,10 +830,26 @@ public class PageServiceImpl extends AbstractService implements PageService, App
 
     @Override
     public PageEntity createPage(final ExecutionContext executionContext, final String apiId, NewPageEntity newPageEntity) {
-        return this.createPage(executionContext, apiId, newPageEntity, null);
+        return this.createPage(executionContext, apiId, newPageEntity, null, false);
     }
 
-    private PageEntity createPage(final ExecutionContext executionContext, String apiId, NewPageEntity newPageEntity, String pageId) {
+    @Override
+    public PageEntity createPage(
+        final ExecutionContext executionContext,
+        final String apiId,
+        NewPageEntity newPageEntity,
+        boolean indexLocally
+    ) {
+        return this.createPage(executionContext, apiId, newPageEntity, null, indexLocally);
+    }
+
+    private PageEntity createPage(
+        final ExecutionContext executionContext,
+        String apiId,
+        NewPageEntity newPageEntity,
+        String pageId,
+        boolean indexLocally
+    ) {
         try {
             logger.debug("Create page {} for API {}", newPageEntity, apiId);
 
@@ -958,7 +974,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             }
 
             // add document in search engine
-            index(executionContext, pageEntity);
+            index(executionContext, pageEntity, indexLocally);
 
             return pageEntity;
         } catch (TechnicalException | FetcherException ex) {
@@ -1355,7 +1371,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             if (pageToUpdate.isPublished() && !page.isPublished()) {
                 searchEngineService.delete(executionContext, convert(pageToUpdate));
             } else {
-                index(executionContext, pageEntity);
+                index(executionContext, pageEntity, false);
             }
 
             return pageEntity;
@@ -1522,9 +1538,9 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         }
     }
 
-    private void index(ExecutionContext executionContext, PageEntity pageEntity) {
+    private void index(ExecutionContext executionContext, PageEntity pageEntity, boolean indexLocally) {
         if (pageEntity.isPublished()) {
-            searchEngineService.index(executionContext, pageEntity, false);
+            searchEngineService.index(executionContext, pageEntity, indexLocally);
         }
     }
 
@@ -2608,15 +2624,15 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     public Map<SystemFolderType, String> initialize(ExecutionContext executionContext) {
         Map<SystemFolderType, String> result = new HashMap<>();
 
-        result.put(SystemFolderType.HEADER, createSystemFolder(executionContext, null, SystemFolderType.HEADER, 1).getId());
-        result.put(SystemFolderType.TOPFOOTER, createSystemFolder(executionContext, null, SystemFolderType.TOPFOOTER, 2).getId());
-        result.put(SystemFolderType.FOOTER, createSystemFolder(executionContext, null, SystemFolderType.FOOTER, 3).getId());
+        result.put(SystemFolderType.HEADER, createSystemFolder(executionContext, null, SystemFolderType.HEADER, 1, true).getId());
+        result.put(SystemFolderType.TOPFOOTER, createSystemFolder(executionContext, null, SystemFolderType.TOPFOOTER, 2, true).getId());
+        result.put(SystemFolderType.FOOTER, createSystemFolder(executionContext, null, SystemFolderType.FOOTER, 3, true).getId());
         return result;
     }
 
     @Override
     public PageEntity createAsideFolder(final ExecutionContext executionContext, String apiId) {
-        return createSystemFolder(executionContext, apiId, SystemFolderType.ASIDE, 0);
+        return createSystemFolder(executionContext, apiId, SystemFolderType.ASIDE, 0, false);
     }
 
     @Override
@@ -2624,7 +2640,8 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         final ExecutionContext executionContext,
         String apiId,
         SystemFolderType systemFolderType,
-        int order
+        int order,
+        boolean indexLocally
     ) {
         NewPageEntity newSysFolder = new NewPageEntity();
         newSysFolder.setName(systemFolderType.folderName());
@@ -2632,7 +2649,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         newSysFolder.setPublished(true);
         newSysFolder.setType(PageType.SYSTEM_FOLDER);
         newSysFolder.setVisibility(Visibility.PUBLIC);
-        return createPage(executionContext, apiId, newSysFolder);
+        return createPage(executionContext, apiId, newSysFolder, indexLocally);
     }
 
     @Override
@@ -2673,7 +2690,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         try {
             final NewPageEntity newPage = convertToEntity(pageDefinition);
             JsonNode jsonNode = objectMapper.readTree(pageDefinition);
-            return createPage(executionContext, apiId, newPage, (jsonNode.get("id") != null ? jsonNode.get("id").asText() : null));
+            return createPage(executionContext, apiId, newPage, (jsonNode.get("id") != null ? jsonNode.get("id").asText() : null), false);
         } catch (JsonProcessingException e) {
             logger.error("An error occurs while trying to JSON deserialize the Page {}", pageDefinition, e);
             throw new TechnicalManagementException("An error occurs while trying to JSON deserialize the Page definition.");
@@ -2780,7 +2797,13 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                     update(executionContext, pageEntityToImport.getId(), pageConverter.toUpdatePageEntity(pageEntityToImport));
             } catch (PageNotFoundException e) {
                 createdOrUpdatedPage =
-                    createPage(executionContext, apiId, pageConverter.toNewPageEntity(pageEntityToImport), pageEntityToImport.getId());
+                    createPage(
+                        executionContext,
+                        apiId,
+                        pageConverter.toNewPageEntity(pageEntityToImport),
+                        pageEntityToImport.getId(),
+                        false
+                    );
             }
 
             if (child.children != null && !child.children.isEmpty()) {
@@ -2802,7 +2825,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             pageEntityToImport.setParentId(parentId);
 
             String newId = UuidString.generateForEnvironment(executionContext.getEnvironmentId(), apiId, pageEntityToImport.getId());
-            createPage(executionContext, apiId, pageConverter.toNewPageEntity(pageEntityToImport, true), newId);
+            createPage(executionContext, apiId, pageConverter.toNewPageEntity(pageEntityToImport, true), newId, false);
             idsMap.put(pageEntityToImport.getId(), newId);
 
             if (child.children != null && !child.children.isEmpty()) {
