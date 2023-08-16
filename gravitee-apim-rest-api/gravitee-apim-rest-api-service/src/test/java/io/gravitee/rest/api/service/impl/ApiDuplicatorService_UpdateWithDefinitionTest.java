@@ -34,6 +34,7 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.ApiIdsCalculatorService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.PlanConverter;
@@ -45,8 +46,6 @@ import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
-
-import io.gravitee.rest.api.service.ApiIdsCalculatorService;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
@@ -305,7 +304,7 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         mockApiIdRecalculation();
         apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), apiEntity.getId(), toBeImport);
 
-        verify(pageService, never()).duplicatePages(eq(GraviteeContext.getExecutionContext()), anyList(), eq(API_ID));
+        verify(pageService, never()).createOrUpdatePages(eq(GraviteeContext.getExecutionContext()), anyList(), eq(API_ID));
         verify(membershipService, never())
             .addRoleToMemberOnReference(
                 GraviteeContext.getExecutionContext(),
@@ -436,12 +435,13 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
     }
 
     private void mockApiIdRecalculation() {
-        when(apiIdsCalculatorService.recalculateApiDefinitionIds(any(), any(), any())).thenAnswer(invocationOnMock -> {
-            // In this case, the ApiIdsCalculator service would have completed the api id
-            final ImportApiJsonNode apiJsonNode = invocationOnMock.getArgument(1, ImportApiJsonNode.class);
-            apiJsonNode.setId(invocationOnMock.getArgument(2, String.class));
-            return apiJsonNode;
-        });
+        when(apiIdsCalculatorService.recalculateApiDefinitionIds(any(), any(), any()))
+            .thenAnswer(invocationOnMock -> {
+                // In this case, the ApiIdsCalculator service would have completed the api id
+                final ImportApiJsonNode apiJsonNode = invocationOnMock.getArgument(1, ImportApiJsonNode.class);
+                apiJsonNode.setId(invocationOnMock.getArgument(2, String.class));
+                return apiJsonNode;
+            });
     }
 
     @Test

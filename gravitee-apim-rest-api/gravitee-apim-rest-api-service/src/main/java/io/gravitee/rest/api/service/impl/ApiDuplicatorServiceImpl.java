@@ -19,7 +19,9 @@ import static io.gravitee.rest.api.model.permissions.RolePermission.API_DEFINITI
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -44,7 +46,7 @@ import io.gravitee.rest.api.model.api.DuplicateApiEntity;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.model.permissions.RoleScope;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.ApiDuplicatorService;
 import io.gravitee.rest.api.service.ApiIdsCalculatorService;
 import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.ApiService;
@@ -53,6 +55,7 @@ import io.gravitee.rest.api.service.HttpClientService;
 import io.gravitee.rest.api.service.MediaService;
 import io.gravitee.rest.api.service.MembershipDuplicateService;
 import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.service.PageDuplicateService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.PlanService;
@@ -102,6 +105,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     private final MembershipDuplicateService membershipDuplicateService;
     private final RoleService roleService;
     private final PageService pageService;
+    private final PageDuplicateService pageDuplicateService;
     private final PlanService planService;
     private final GroupService groupService;
     private final UserService userService;
@@ -121,6 +125,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         MembershipDuplicateService membershipDuplicateService,
         RoleService roleService,
         PageService pageService,
+        PageDuplicateService pageDuplicateService,
         PlanService planService,
         GroupService groupService,
         UserService userService,
@@ -139,6 +144,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         this.membershipDuplicateService = membershipDuplicateService;
         this.roleService = roleService;
         this.pageService = pageService;
+        this.pageDuplicateService = pageDuplicateService;
         this.planService = planService;
         this.groupService = groupService;
         this.userService = userService;
@@ -261,12 +267,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         final Map<String, String> pagesIdsMap = new HashMap<>();
 
         if (!duplicateApiEntity.getFilteredFields().contains(API_DEFINITION_FIELD_PAGES)) {
-            final List<PageEntity> pages = pageService.search(
-                executionContext.getEnvironmentId(),
-                new PageQuery.Builder().api(apiId).build(),
-                true
-            );
-            pagesIdsMap.putAll(pageService.duplicatePages(executionContext, pages, duplicatedApi.getId()));
+            pagesIdsMap.putAll(pageDuplicateService.duplicatePages(executionContext, apiId, duplicatedApi.getId()));
         }
 
         if (!duplicateApiEntity.getFilteredFields().contains(API_DEFINITION_FIELD_PLANS)) {

@@ -834,11 +834,12 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         return this.createPage(executionContext, apiId, newPageEntity, null);
     }
 
-    private PageEntity createPage(final ExecutionContext executionContext, String apiId, NewPageEntity newPageEntity, String pageId) {
+    @Override
+    public PageEntity createPage(final ExecutionContext executionContext, String apiId, NewPageEntity newPageEntity, String newPageId) {
         try {
             logger.debug("Create page {} for API {}", newPageEntity, apiId);
 
-            String id = pageId != null && UUID.fromString(pageId) != null ? pageId : UuidString.generateRandom();
+            String id = newPageId != null && UUID.fromString(newPageId) != null ? newPageId : UuidString.generateRandom();
 
             PageType newPageType = newPageEntity.getType();
 
@@ -1567,8 +1568,9 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             ClassLoader fetcherCL = fetcherPlugin.fetcher().getClassLoader();
             Fetcher fetcher;
             if (fetcherPlugin.configuration().isAssignableFrom(FilepathAwareFetcherConfiguration.class)) {
-                Class<? extends FetcherConfiguration> fetcherConfigurationClass =
-                    (Class<? extends FetcherConfiguration>) fetcherCL.loadClass(fetcherPlugin.configuration().getName());
+                Class<? extends FetcherConfiguration> fetcherConfigurationClass = (Class<? extends FetcherConfiguration>) fetcherCL.loadClass(
+                    fetcherPlugin.configuration().getName()
+                );
                 Class<? extends FilesFetcher> fetcherClass = (Class<? extends FilesFetcher>) fetcherCL.loadClass(fetcherPlugin.clazz());
                 FetcherConfiguration fetcherConfigurationInstance = fetcherConfigurationFactory.create(
                     fetcherConfigurationClass,
@@ -1576,8 +1578,9 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 );
                 fetcher = fetcherClass.getConstructor(fetcherConfigurationClass).newInstance(fetcherConfigurationInstance);
             } else {
-                Class<? extends FetcherConfiguration> fetcherConfigurationClass =
-                    (Class<? extends FetcherConfiguration>) fetcherCL.loadClass(fetcherPlugin.configuration().getName());
+                Class<? extends FetcherConfiguration> fetcherConfigurationClass = (Class<? extends FetcherConfiguration>) fetcherCL.loadClass(
+                    fetcherPlugin.configuration().getName()
+                );
                 Class<? extends Fetcher> fetcherClass = (Class<? extends Fetcher>) fetcherCL.loadClass(fetcherPlugin.clazz());
                 FetcherConfiguration fetcherConfigurationInstance = fetcherConfigurationFactory.create(
                     fetcherConfigurationClass,
@@ -2735,13 +2738,6 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         }
     }
 
-    @Override
-    public Map<String, String> duplicatePages(ExecutionContext executionContext, List<PageEntity> pages, String apiId) {
-        final PageServiceImpl.PageEntityTreeNode pageEntityTreeNode = new PageServiceImpl.PageEntityTreeNode(new PageEntity());
-        pageEntityTreeNode.appendListToTree(pages);
-        return duplicateChildrenPages(executionContext, apiId, null, pageEntityTreeNode.children);
-    }
-
     private NewPageEntity convertToEntity(String pageDefinition) throws JsonProcessingException {
         return objectMapper
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
@@ -2790,30 +2786,6 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         }
     }
 
-    private Map<String, String> duplicateChildrenPages(
-        final ExecutionContext executionContext,
-        String apiId,
-        String parentId,
-        List<PageEntityTreeNode> children
-    ) {
-        Map<String, String> idsMap = new HashMap<>();
-
-        for (final PageServiceImpl.PageEntityTreeNode child : children) {
-            PageEntity pageEntityToImport = child.data;
-            pageEntityToImport.setParentId(parentId);
-
-            String newId = UuidString.generateForEnvironment(executionContext.getEnvironmentId(), apiId, pageEntityToImport.getId());
-            createPage(executionContext, apiId, pageConverter.toNewPageEntity(pageEntityToImport, true), newId);
-            idsMap.put(pageEntityToImport.getId(), newId);
-
-            if (child.children != null && !child.children.isEmpty()) {
-                idsMap.putAll(this.duplicateChildrenPages(executionContext, apiId, newId, child.children));
-            }
-        }
-
-        return idsMap;
-    }
-
     private enum PageSituation {
         ROOT,
         IN_ROOT,
@@ -2857,7 +2829,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             return null;
         }
 
-        public void appendListToTree(List<PageEntity> pagesList) {
+        public PageEntityTreeNode appendListToTree(List<PageEntity> pagesList) {
             List<PageEntity> orphans = new ArrayList<>();
             for (PageEntity newPage : pagesList) {
                 if (newPage.getParentId() == null || newPage.getParentId().isEmpty()) {
@@ -2874,6 +2846,8 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             if (!orphans.isEmpty() && orphans.size() < pagesList.size()) {
                 appendListToTree(orphans);
             }
+
+            return this;
         }
     }
 }
