@@ -255,7 +255,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         );
 
         if (!duplicateApiEntity.getFilteredFields().contains(API_DEFINITION_FIELD_MEMBERS)) {
-            membershipDuplicateService.duplicateMemberships(executionContext, apiId, duplicatedApi.getId());
+            membershipDuplicateService.duplicateMemberships(executionContext, apiId, duplicatedApi.getId(), getAuthenticatedUsername());
         }
 
         final Map<String, String> pagesIdsMap = new HashMap<>();

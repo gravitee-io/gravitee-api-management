@@ -20,5 +20,13 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 
 public interface MembershipDuplicateService {
-    List<MemberEntity> duplicateMemberships(ExecutionContext executionContext, String sourceApiId, String duplicatedApiId);
+    /**
+     * Duplicate memberships of an API.
+     * @param executionContext The execution context.
+     * @param sourceApiId The source API id.
+     * @param duplicatedApiId The duplicated API id.
+     * @param userId The user id triggering the duplication.
+     * @return The list of duplicated memberships.
+     */
+    List<MemberEntity> duplicateMemberships(ExecutionContext executionContext, String sourceApiId, String duplicatedApiId, String userId);
 }
