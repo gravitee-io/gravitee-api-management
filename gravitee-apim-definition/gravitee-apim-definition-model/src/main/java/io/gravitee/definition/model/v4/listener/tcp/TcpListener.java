@@ -39,4 +39,8 @@ public class TcpListener extends Listener {
     public TcpListener() {
         super(ListenerType.TCP);
     }
+
+    protected TcpListener(TcpListenerBuilder<?, ?> b) {
+        super(ListenerType.TCP, b);
+    }
 }

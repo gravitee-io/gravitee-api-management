@@ -15,7 +15,9 @@
  */
 package io.gravitee.definition.model.v4.listener;
 
-import static io.gravitee.definition.model.v4.listener.Listener.*;
+import static io.gravitee.definition.model.v4.listener.Listener.HTTP_LABEL;
+import static io.gravitee.definition.model.v4.listener.Listener.SUBSCRIPTION_LABEL;
+import static io.gravitee.definition.model.v4.listener.Listener.TCP_LABEL;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
@@ -82,5 +84,17 @@ public abstract class Listener implements Serializable {
 
     protected Listener(ListenerType type) {
         this.type = type;
+    }
+
+    protected Listener(ListenerType type, ListenerBuilder<?, ?> b) {
+        this.type = type;
+        this.entrypoints = b.entrypoints;
+        this.servers = b.servers;
+    }
+
+    protected Listener(ListenerBuilder<?, ?> b) {
+        this.type = b.type;
+        this.entrypoints = b.entrypoints;
+        this.servers = b.servers;
     }
 }
