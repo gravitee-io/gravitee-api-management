@@ -49,6 +49,7 @@ public class PageDuplicateServiceTest {
 
     private static final String ORGANIZATION_ID = "my-org";
     private static final String ENVIRONMENT_ID = "my-env";
+    private static final String USER_ID = "user-id";
 
     @Mock
     private PageService pageService;
@@ -110,7 +111,7 @@ public class PageDuplicateServiceTest {
         when(pageService.search(GraviteeContext.getCurrentEnvironment(), new PageQuery.Builder().api(API_ID).build(), true))
             .thenReturn(List.of(page1, page2, page3));
 
-        pageDuplicateService.duplicatePages(GraviteeContext.getExecutionContext(), API_ID, DUPLICATE_API_ID);
+        pageDuplicateService.duplicatePages(GraviteeContext.getExecutionContext(), API_ID, DUPLICATE_API_ID, USER_ID);
 
         verify(pageService, times(3)).createPage(any(), eq(DUPLICATE_API_ID), newPageCaptor.capture(), any());
 
@@ -121,9 +122,11 @@ public class PageDuplicateServiceTest {
         assertThat(newPageCaptor.getAllValues())
             .hasSize(3)
             .containsExactly(
-                pageConverter.toNewPageEntity(page1.toBuilder().id(newIdPage1).crossId(null).build()),
-                pageConverter.toNewPageEntity(page2.toBuilder().id(newIdPage2).crossId(null).build()),
-                pageConverter.toNewPageEntity(page3.toBuilder().id(newIdPage3).crossId(null).parentId(newIdPage2).build())
+                pageConverter.toNewPageEntity(page1.toBuilder().id(newIdPage1).crossId(null).lastContributor(USER_ID).build()),
+                pageConverter.toNewPageEntity(page2.toBuilder().id(newIdPage2).crossId(null).lastContributor(USER_ID).build()),
+                pageConverter.toNewPageEntity(
+                    page3.toBuilder().id(newIdPage3).crossId(null).lastContributor(USER_ID).parentId(newIdPage2).build()
+                )
             );
     }
 
@@ -136,7 +139,12 @@ public class PageDuplicateServiceTest {
         when(pageService.search(GraviteeContext.getCurrentEnvironment(), new PageQuery.Builder().api(API_ID).build(), true))
             .thenReturn(List.of(page1, page2, page3));
 
-        Map<String, String> pagesIds = pageDuplicateService.duplicatePages(GraviteeContext.getExecutionContext(), API_ID, DUPLICATE_API_ID);
+        Map<String, String> pagesIds = pageDuplicateService.duplicatePages(
+            GraviteeContext.getExecutionContext(),
+            API_ID,
+            DUPLICATE_API_ID,
+            USER_ID
+        );
 
         String newIdPage1 = UuidString.generateForEnvironment(ENVIRONMENT_ID, DUPLICATE_API_ID, page1.getId());
         String newIdPage2 = UuidString.generateForEnvironment(ENVIRONMENT_ID, DUPLICATE_API_ID, page2.getId());

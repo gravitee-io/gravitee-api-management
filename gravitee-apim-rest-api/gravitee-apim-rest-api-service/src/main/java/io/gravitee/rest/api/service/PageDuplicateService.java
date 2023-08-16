@@ -23,9 +23,10 @@ public interface PageDuplicateService {
      * Duplicate pages of an API.
      *
      * @param executionContext The current execution context
-     * @param sourceApiId The source API id
-     * @param duplicatedApiId The duplicated API id
+     * @param sourceApiId      The source API id
+     * @param duplicatedApiId  The duplicated API id
+     * @param userId           The user id triggering the duplication
      * @return The mapping between of old page IDs - new IDs
      */
-    Map<String, String> duplicatePages(ExecutionContext executionContext, String sourceApiId, String duplicatedApiId);
+    Map<String, String> duplicatePages(ExecutionContext executionContext, String sourceApiId, String duplicatedApiId, String userId);
 }
