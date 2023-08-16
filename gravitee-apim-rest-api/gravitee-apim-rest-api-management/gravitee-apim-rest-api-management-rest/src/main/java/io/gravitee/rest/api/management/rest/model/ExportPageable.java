@@ -27,12 +27,12 @@ public class ExportPageable {
 
     @QueryParam("size")
     @DefaultValue("20")
-    @Min(value = 1, message = "Page size should not be lesser than 1")
+    @Min(value = 1, message = "Page size should not be less than 1")
     private int size = DEFAULT_PAGE_SIZE;
 
     @QueryParam("page")
     @DefaultValue("1")
-    @Min(value = 1, message = "Page number should not be lesser than 1")
+    @Min(value = 1, message = "Page number should not be less than 1")
     private int page = DEFAULT_PAGE_NUMBER;
 
     public int getSize() {
