@@ -19,6 +19,7 @@ import static java.lang.String.format;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.rest.model.ExportPageable;
 import io.gravitee.rest.api.management.rest.model.Pageable;
 import io.gravitee.rest.api.management.rest.model.Subscription;
 import io.gravitee.rest.api.management.rest.model.wrapper.SubscriptionEntityPageResult;
@@ -213,8 +214,15 @@ public class ApiSubscriptionsResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_LOG, acls = RolePermissionAction.READ) })
-    public Response exportApiSubscriptionsLogsAsCSV(@BeanParam SubscriptionParam subscriptionParam, @Valid @BeanParam Pageable pageable) {
-        final SubscriptionEntityPageResult subscriptions = getApiSubscriptions(subscriptionParam, pageable, null);
+    public Response exportApiSubscriptionsLogsAsCSV(
+        @BeanParam SubscriptionParam subscriptionParam,
+        @Valid @BeanParam ExportPageable exportPageable
+    ) {
+        Pageable subscriptionsPageable = new Pageable();
+        subscriptionsPageable.setPage(exportPageable.getPage());
+        subscriptionsPageable.setSize(exportPageable.getSize());
+
+        final SubscriptionEntityPageResult subscriptions = getApiSubscriptions(subscriptionParam, subscriptionsPageable, null);
         return Response
             .ok(subscriptionService.exportAsCsv(subscriptions.getData(), subscriptions.getMetadata()))
             .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=subscriptions-%s-%s.csv", api, System.currentTimeMillis()))
