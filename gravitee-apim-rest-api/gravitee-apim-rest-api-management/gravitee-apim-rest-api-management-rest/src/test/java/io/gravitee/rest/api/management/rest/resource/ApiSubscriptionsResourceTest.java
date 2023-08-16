@@ -352,4 +352,15 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
             .extracting(SubscriptionQuery::getStatuses)
             .isEqualTo(List.of(SubscriptionStatus.PENDING, SubscriptionStatus.REJECTED, SubscriptionStatus.ACCEPTED));
     }
+
+    @Test
+    public void shouldExportMoreThan100SubscriptionsInCSV() {
+        when(subscriptionService.search(any(ExecutionContext.class), any(SubscriptionQuery.class), any(), anyBoolean(), anyBoolean()))
+            .thenReturn(new Page<>(List.of(new SubscriptionEntity()), 1, 1, 1));
+        when(subscriptionService.getMetadata(any(ExecutionContext.class), any())).thenReturn(mock(Metadata.class));
+
+        final Response response = envTarget("/export").queryParam("size", "10000").queryParam("page", "1").request().get();
+
+        assertEquals(OK_200, response.getStatus());
+    }
 }
