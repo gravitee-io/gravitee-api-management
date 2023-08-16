@@ -960,7 +960,9 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             }
 
             // add document in search engine
-            index(executionContext, pageEntity);
+            if (PageType.isIndexable(PageType.valueOf(pageEntity.getType()))) {
+                index(executionContext, pageEntity);
+            }
 
             return pageEntity;
         } catch (TechnicalException | FetcherException ex) {
