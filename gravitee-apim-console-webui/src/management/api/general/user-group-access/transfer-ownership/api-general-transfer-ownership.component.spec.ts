@@ -49,190 +49,254 @@ describe('ApiGeneralTransferOwnershipComponent', () => {
 
   const apiId = 'apiId';
 
-  beforeEach(async () => {
-    TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule, ApiGeneralUserGroupModule],
-      providers: [
-        { provide: UIRouterStateParams, useValue: { apiId } },
-        {
-          provide: 'Constants',
-          useFactory: () => {
-            const constants = CONSTANTS_TESTING;
-            set(constants, 'env.settings.api.primaryOwnerMode', 'HYBRID');
-            return constants;
+  describe('Hybrid mode', () => {
+    beforeEach(async () => {
+      TestBed.configureTestingModule({
+        imports: [NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule, ApiGeneralUserGroupModule],
+        providers: [
+          { provide: UIRouterStateParams, useValue: { apiId } },
+          {
+            provide: 'Constants',
+            useFactory: () => {
+              const constants = CONSTANTS_TESTING;
+              set(constants, 'env.settings.api.primaryOwnerMode', 'HYBRID');
+              return constants;
+            },
           },
+        ],
+      }).overrideProvider(InteractivityChecker, {
+        useValue: {
+          isFocusable: () => true, // This checks focus trap, set it to true to  avoid the warning
         },
-      ],
-    }).overrideProvider(InteractivityChecker, {
-      useValue: {
-        isFocusable: () => true, // This checks focus trap, set it to true to  avoid the warning
-      },
+      });
+
+      fixture = TestBed.createComponent(ApiGeneralTransferOwnershipComponent);
+      httpTestingController = TestBed.inject(HttpTestingController);
+
+      loader = await TestbedHarnessEnvironment.loader(fixture);
+      rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
+
+      fixture.detectChanges();
     });
 
-    fixture = TestBed.createComponent(ApiGeneralTransferOwnershipComponent);
-    httpTestingController = TestBed.inject(HttpTestingController);
+    afterEach(() => {
+      jest.clearAllMocks();
+      httpTestingController.verify();
+    });
 
-    loader = await TestbedHarnessEnvironment.loader(fixture);
-    rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
+    it('should transfer ownership to user', async () => {
+      const api = fakeBaseApi({ id: apiId });
+      expectApiGetRequest(api);
+      expectGroupsGetRequest([]);
+      expectApiRoleGetRequest([
+        fakeRole({ name: 'ROLE_1', default: false }),
+        fakeRole({ name: 'DEFAULT_ROLE', default: true }),
+        fakeRole({ name: 'PRIMARY_OWNER' }),
+      ]);
+      expectApiMembersGetRequest();
 
-    fixture.detectChanges();
+      // Select User mode
+      const userOrGroupRadio = await loader.getHarness(MatButtonToggleGroupHarness.with({ selector: '[formControlName="userOrGroup"]' }));
+      const otherUserButton = await userOrGroupRadio.getToggles({ text: 'Other user' });
+      await otherUserButton[0].check();
+
+      // Search and select user
+      const userSelect = await loader.getHarness(GioFormUserAutocompleteHarness);
+      await userSelect.setSearchText('Joe');
+      respondToUserSearchRequest('Joe', [fakeSearchableUser({ displayName: 'Joe' })]);
+      await userSelect.selectOption({ text: 'Joe' });
+      respondToUserSearchRequest('Joe', [fakeSearchableUser({ displayName: 'Joe' })]);
+
+      // Select role
+      const roleSelect = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="roleId"]' }));
+      await roleSelect.open();
+      const roleOptions = await roleSelect.getOptions();
+      expect(roleOptions.length).toBe(2);
+      // Check that the default role is selected
+      expect(await roleSelect.getValueText()).toBe('DEFAULT_ROLE');
+      await roleSelect.clickOptions({ text: 'ROLE_1' });
+
+      // Submit
+      const transferBtn = await loader.getHarness(MatButtonHarness.with({ text: /Transfer/ }));
+      await transferBtn.click();
+
+      // Confirm dialog
+      const dialog = await rootLoader.getHarness(MatDialogHarness);
+      await (await dialog.getHarness(MatButtonHarness.with({ text: /^Transfer/ }))).click();
+
+      // Check request
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/_transfer-ownership`,
+        method: 'POST',
+      });
+      expect(req.request.body).toEqual({
+        userId: '1d4fae8c-3705-43ab-8fae-8c370543abf3',
+        userReference: expect.any(String),
+        poRole: 'ROLE_1',
+        userType: 'USER',
+      });
+    });
+
+    it('should transfer ownership to api members', async () => {
+      const api = fakeBaseApi({ id: apiId });
+      expectApiGetRequest(api);
+      expectGroupsGetRequest([]);
+      expectApiRoleGetRequest([
+        fakeRole({ name: 'ROLE_1', default: false }),
+        fakeRole({ name: 'DEFAULT_ROLE', default: true }),
+        fakeRole({ name: 'PRIMARY_OWNER' }),
+      ]);
+      const members: ApiMember[] = [{ id: '1', displayName: 'Joe', role: 'USER' }];
+      expectApiMembersGetRequest(members);
+
+      // Select User mode
+      const userOrGroupRadio = await loader.getHarness(MatButtonToggleGroupHarness.with({ selector: '[formControlName="userOrGroup"]' }));
+      const otherUserButton = await userOrGroupRadio.getToggles({ text: 'API member' });
+      await otherUserButton[0].check();
+
+      // Search and select user
+      const userSelect = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="user"]' }));
+      await userSelect.clickOptions({ text: 'Joe' });
+
+      // Select role
+      const roleSelect = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="roleId"]' }));
+      await roleSelect.open();
+      const roleOptions = await roleSelect.getOptions();
+      expect(roleOptions.length).toBe(2);
+      // Check that the default role is selected
+      expect(await roleSelect.getValueText()).toBe('DEFAULT_ROLE');
+      await roleSelect.clickOptions({ text: 'ROLE_1' });
+
+      // Submit
+      const transferBtn = await loader.getHarness(MatButtonHarness.with({ text: /Transfer/ }));
+      await transferBtn.click();
+
+      // Confirm dialog
+      const dialog = await rootLoader.getHarness(MatDialogHarness);
+      await (await dialog.getHarness(MatButtonHarness.with({ text: /^Transfer/ }))).click();
+
+      // Check request
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/_transfer-ownership`,
+        method: 'POST',
+      });
+      expect(req.request.body).toEqual({
+        userId: '1',
+        userReference: undefined,
+        poRole: 'ROLE_1',
+        userType: 'USER',
+      });
+    });
+
+    it('should transfer ownership to group', async () => {
+      const api = fakeBaseApi({ id: apiId });
+      expectApiGetRequest(api);
+      expectGroupsGetRequest([
+        fakeGroup({ id: 'group1', name: 'Group 1', apiPrimaryOwner: true }),
+        fakeGroup({ id: 'group2', name: 'Group null', apiPrimaryOwner: null }),
+      ]);
+      expectApiRoleGetRequest([
+        fakeRole({ name: 'ROLE_1', default: false }),
+        fakeRole({ name: 'DEFAULT_ROLE', default: true }),
+        fakeRole({ name: 'PRIMARY_OWNER' }),
+      ]);
+      expectApiMembersGetRequest();
+
+      // Select Group mode
+      const userOrGroupRadio = await loader.getHarness(MatButtonToggleGroupHarness.with({ selector: '[formControlName="userOrGroup"]' }));
+      const otherUserButton = await userOrGroupRadio.getToggles({ text: 'Group' });
+      await otherUserButton[0].check();
+
+      // Select group
+      const groupSelect = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="groupId"]' }));
+      await groupSelect.open();
+      const options = await groupSelect.getOptions();
+      expect(options.length).toBe(1);
+      await groupSelect.clickOptions({ text: 'Group 1' });
+
+      // Not select role -> use default role
+
+      // Submit
+      const transferBtn = await loader.getHarness(MatButtonHarness.with({ text: /Transfer/ }));
+      await transferBtn.click();
+
+      // Confirm dialog
+      const dialog = await rootLoader.getHarness(MatDialogHarness);
+      await (await dialog.getHarness(MatButtonHarness.with({ text: /^Transfer/ }))).click();
+
+      // Check request
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/_transfer-ownership`,
+        method: 'POST',
+      });
+      expect(req.request.body).toEqual({
+        userId: 'group1',
+        userReference: null,
+        poRole: 'DEFAULT_ROLE',
+        userType: 'GROUP',
+      });
+    });
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-    httpTestingController.verify();
-  });
+  describe('Group mode', () => {
+    beforeEach(async () => {
+      TestBed.configureTestingModule({
+        imports: [NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule, ApiGeneralUserGroupModule],
+        providers: [
+          { provide: UIRouterStateParams, useValue: { apiId } },
+          {
+            provide: 'Constants',
+            useFactory: () => {
+              const constants = CONSTANTS_TESTING;
+              set(constants, 'env.settings.api.primaryOwnerMode', 'GROUP');
+              return constants;
+            },
+          },
+        ],
+      }).overrideProvider(InteractivityChecker, {
+        useValue: {
+          isFocusable: () => true, // This checks focus trap, set it to true to  avoid the warning
+        },
+      });
 
-  it('should transfer ownership to user', async () => {
-    const api = fakeBaseApi({ id: apiId });
-    expectApiGetRequest(api);
-    expectGroupsGetRequest([]);
-    expectApiRoleGetRequest([
-      fakeRole({ name: 'ROLE_1', default: false }),
-      fakeRole({ name: 'DEFAULT_ROLE', default: true }),
-      fakeRole({ name: 'PRIMARY_OWNER' }),
-    ]);
-    expectApiMembersGetRequest();
+      fixture = TestBed.createComponent(ApiGeneralTransferOwnershipComponent);
+      httpTestingController = TestBed.inject(HttpTestingController);
 
-    // Select User mode
-    const userOrGroupRadio = await loader.getHarness(MatButtonToggleGroupHarness.with({ selector: '[formControlName="userOrGroup"]' }));
-    const otherUserButton = await userOrGroupRadio.getToggles({ text: 'Other user' });
-    await otherUserButton[0].check();
+      loader = await TestbedHarnessEnvironment.loader(fixture);
+      rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
 
-    // Search and select user
-    const userSelect = await loader.getHarness(GioFormUserAutocompleteHarness);
-    await userSelect.setSearchText('Joe');
-    respondToUserSearchRequest('Joe', [fakeSearchableUser({ displayName: 'Joe' })]);
-    await userSelect.selectOption({ text: 'Joe' });
-    respondToUserSearchRequest('Joe', [fakeSearchableUser({ displayName: 'Joe' })]);
-
-    // Select role
-    const roleSelect = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="roleId"]' }));
-    await roleSelect.open();
-    const roleOptions = await roleSelect.getOptions();
-    expect(roleOptions.length).toBe(2);
-    // Check that the default role is selected
-    expect(await roleSelect.getValueText()).toBe('DEFAULT_ROLE');
-    await roleSelect.clickOptions({ text: 'ROLE_1' });
-
-    // Submit
-    const transferBtn = await loader.getHarness(MatButtonHarness.with({ text: /Transfer/ }));
-    await transferBtn.click();
-
-    // Confirm dialog
-    const dialog = await rootLoader.getHarness(MatDialogHarness);
-    await (await dialog.getHarness(MatButtonHarness.with({ text: /^Transfer/ }))).click();
-
-    // Check request
-    const req = httpTestingController.expectOne({
-      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/_transfer-ownership`,
-      method: 'POST',
+      fixture.detectChanges();
     });
-    expect(req.request.body).toEqual({
-      userId: '1d4fae8c-3705-43ab-8fae-8c370543abf3',
-      userReference: expect.any(String),
-      poRole: 'ROLE_1',
-      userType: 'USER',
+
+    afterEach(() => {
+      jest.clearAllMocks();
+      httpTestingController.verify();
     });
-  });
 
-  it('should transfer ownership to api members', async () => {
-    const api = fakeBaseApi({ id: apiId });
-    expectApiGetRequest(api);
-    expectGroupsGetRequest([]);
-    expectApiRoleGetRequest([
-      fakeRole({ name: 'ROLE_1', default: false }),
-      fakeRole({ name: 'DEFAULT_ROLE', default: true }),
-      fakeRole({ name: 'PRIMARY_OWNER' }),
-    ]);
-    const members: ApiMember[] = [{ id: '1', displayName: 'Joe', role: 'USER' }];
-    expectApiMembersGetRequest(members);
+    it('should only allow transfer ownership to group', async () => {
+      const api = fakeBaseApi({ id: apiId });
+      expectApiGetRequest(api);
+      expectGroupsGetRequest([
+        { id: '1', name: 'group1', apiPrimaryOwner: true },
+        { id: '2', name: 'group2', apiPrimaryOwner: true },
+      ]);
+      expectApiRoleGetRequest([
+        fakeRole({ name: 'ROLE_1', default: false }),
+        fakeRole({ name: 'DEFAULT_ROLE', default: true }),
+        fakeRole({ name: 'PRIMARY_OWNER' }),
+      ]);
+      expectApiMembersGetRequest();
 
-    // Select User mode
-    const userOrGroupRadio = await loader.getHarness(MatButtonToggleGroupHarness.with({ selector: '[formControlName="userOrGroup"]' }));
-    const otherUserButton = await userOrGroupRadio.getToggles({ text: 'API member' });
-    await otherUserButton[0].check();
+      fixture.detectChanges();
 
-    // Search and select user
-    const userSelect = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="user"]' }));
-    await userSelect.clickOptions({ text: 'Joe' });
-
-    // Select role
-    const roleSelect = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="roleId"]' }));
-    await roleSelect.open();
-    const roleOptions = await roleSelect.getOptions();
-    expect(roleOptions.length).toBe(2);
-    // Check that the default role is selected
-    expect(await roleSelect.getValueText()).toBe('DEFAULT_ROLE');
-    await roleSelect.clickOptions({ text: 'ROLE_1' });
-
-    // Submit
-    const transferBtn = await loader.getHarness(MatButtonHarness.with({ text: /Transfer/ }));
-    await transferBtn.click();
-
-    // Confirm dialog
-    const dialog = await rootLoader.getHarness(MatDialogHarness);
-    await (await dialog.getHarness(MatButtonHarness.with({ text: /^Transfer/ }))).click();
-
-    // Check request
-    const req = httpTestingController.expectOne({
-      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/_transfer-ownership`,
-      method: 'POST',
-    });
-    expect(req.request.body).toEqual({
-      userId: '1',
-      userReference: undefined,
-      poRole: 'ROLE_1',
-      userType: 'USER',
-    });
-  });
-
-  it('should transfer ownership to group', async () => {
-    const api = fakeBaseApi({ id: apiId });
-    expectApiGetRequest(api);
-    expectGroupsGetRequest([
-      fakeGroup({ id: 'group1', name: 'Group 1', apiPrimaryOwner: true }),
-      fakeGroup({ id: 'group2', name: 'Group null', apiPrimaryOwner: null }),
-    ]);
-    expectApiRoleGetRequest([
-      fakeRole({ name: 'ROLE_1', default: false }),
-      fakeRole({ name: 'DEFAULT_ROLE', default: true }),
-      fakeRole({ name: 'PRIMARY_OWNER' }),
-    ]);
-    expectApiMembersGetRequest();
-
-    // Select Group mode
-    const userOrGroupRadio = await loader.getHarness(MatButtonToggleGroupHarness.with({ selector: '[formControlName="userOrGroup"]' }));
-    const otherUserButton = await userOrGroupRadio.getToggles({ text: 'Group' });
-    await otherUserButton[0].check();
-
-    // Select group
-    const groupSelect = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="groupId"]' }));
-    await groupSelect.open();
-    const options = await groupSelect.getOptions();
-    expect(options.length).toBe(1);
-    await groupSelect.clickOptions({ text: 'Group 1' });
-
-    // Not select role -> use default role
-
-    // Submit
-    const transferBtn = await loader.getHarness(MatButtonHarness.with({ text: /Transfer/ }));
-    await transferBtn.click();
-
-    // Confirm dialog
-    const dialog = await rootLoader.getHarness(MatDialogHarness);
-    await (await dialog.getHarness(MatButtonHarness.with({ text: /^Transfer/ }))).click();
-
-    // Check request
-    const req = httpTestingController.expectOne({
-      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/_transfer-ownership`,
-      method: 'POST',
-    });
-    expect(req.request.body).toEqual({
-      userId: 'group1',
-      userReference: null,
-      poRole: 'DEFAULT_ROLE',
-      userType: 'GROUP',
+      // No toggle from selection mode
+      expect((await loader.getAllHarnesses(MatButtonToggleGroupHarness.with({ selector: '[formControlName=groupId]' }))).length).toEqual(0);
+      // Only one select with groups
+      const groupOptions = await loader.getHarness(MatSelectHarness).then(async (harness) => {
+        await harness.open();
+        return await harness.getOptions();
+      });
+      expect(await Promise.all(groupOptions.map(async (opt) => await opt.getText()))).toEqual(['group1', 'group2']);
     });
   });
 

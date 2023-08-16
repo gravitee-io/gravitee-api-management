@@ -159,7 +159,7 @@ export class ApiGeneralTransferOwnershipComponent implements OnInit {
   private initForm(defaultRolePO: Role) {
     this.form = new FormGroup(
       {
-        userOrGroup: new FormControl('apiMember'),
+        userOrGroup: new FormControl(this.mode === 'GROUP' ? 'group' : 'apiMember'),
         user: new FormControl(),
         groupId: new FormControl(),
         roleId: new FormControl(defaultRolePO.name),
