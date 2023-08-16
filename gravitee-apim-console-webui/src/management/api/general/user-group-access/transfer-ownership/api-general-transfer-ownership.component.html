@@ -20,10 +20,10 @@
     <div class="card__header">
       <div>
         <h3>Transfer ownership</h3>
-        <p>Select your preferred method for granting complete API access</p>
       </div>
     </div>
     <ng-container *ngIf="mode && mode !== 'GROUP'">
+      <p>Select your preferred method for granting complete API access</p>
       <mat-button-toggle-group aria-label="Select User or Group" class="card__userOrGroup__toggle-group" formControlName="userOrGroup">
         <mat-button-toggle class="card__userOrGroup__toggle" value="apiMember"> API member </mat-button-toggle>
         <mat-button-toggle class="card__userOrGroup__toggle" value="user"> Other user </mat-button-toggle>
