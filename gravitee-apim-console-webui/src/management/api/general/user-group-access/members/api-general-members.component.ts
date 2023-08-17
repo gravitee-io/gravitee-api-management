@@ -85,8 +85,6 @@ export class ApiGeneralMembersComponent implements OnInit {
   ngOnInit(): void {
     this.apiId = this.ajsStateParams.apiId;
 
-    this.isReadOnly = !this.permissionService.hasAnyMatching(['api-member-u']);
-
     // Display the trash icon if the user is allowed to delete a member
     if (this.permissionService.hasAnyMatching(['api-member-d']) && !this.displayedColumns.includes('delete')) {
       this.displayedColumns.push('delete');
@@ -216,6 +214,7 @@ export class ApiGeneralMembersComponent implements OnInit {
   }
 
   private initForm(api: Api) {
+    this.isReadOnly = !this.permissionService.hasAnyMatching(['api-member-u']) || api.definitionVersion === 'V1';
     this.form = new FormGroup({
       isNotificationsEnabled: new FormControl({
         value: !api.disableMembershipNotifications,
