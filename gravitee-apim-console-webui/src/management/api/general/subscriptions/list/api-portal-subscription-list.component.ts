@@ -149,7 +149,10 @@ export class ApiPortalSubscriptionListComponent implements OnInit, OnDestroy {
         tap((api) => {
           this.api = api;
           this.isKubernetesOrigin = api.definitionContext?.origin === 'KUBERNETES';
-          this.canUpdate = this.permissionService.hasAnyMatching(['api-subscription-u']) && !this.isKubernetesOrigin;
+          this.canUpdate =
+            this.permissionService.hasAnyMatching(['api-subscription-u']) &&
+            !this.isKubernetesOrigin &&
+            this.api.definitionVersion !== 'V1';
         }),
         switchMap(() => this.apiPlanService.list(this.ajsStateParams.apiId, null, null, null, 1, 9999)),
         tap((plansResponse) => (this.plans = plansResponse.data)),

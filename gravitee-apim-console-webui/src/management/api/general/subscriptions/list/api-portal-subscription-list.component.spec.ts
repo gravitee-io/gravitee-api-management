@@ -40,6 +40,7 @@ import {
   ApiSubscribersResponse,
   ApiSubscriptionsResponse,
   BaseApplication,
+  fakeApiV1,
   fakeApiV4,
   fakeBaseApplication,
   fakePlanV4,
@@ -592,9 +593,19 @@ describe('ApiPortalSubscriptionListComponent', () => {
       flush();
     }));
 
-    it('API created with the kubernetes operator should be able to create subscription', fakeAsync(async () => {
+    it('API created with the kubernetes operator should not be able to create subscription', fakeAsync(async () => {
       await init();
       await initComponent([], fakeApiV4({ id: API_ID, definitionContext: { origin: 'KUBERNETES' } }));
+
+      const harness = await loader.getHarness(ApiPortalSubscriptionListHarness);
+      const createSubBtn = await harness.getCreateSubscriptionButton();
+      expect(await createSubBtn).toBeDefined();
+      expect(await createSubBtn.isDisabled()).toEqual(false);
+    }));
+
+    it('V1 API should not be able to create subscription', fakeAsync(async () => {
+      await init();
+      await initComponent([], fakeApiV1({ id: API_ID }));
 
       const harness = await loader.getHarness(ApiPortalSubscriptionListHarness);
       const createSubBtn = await harness.getCreateSubscriptionButton();
