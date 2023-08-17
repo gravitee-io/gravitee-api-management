@@ -16,8 +16,8 @@
 
 -->
 <ng-container *ngIf="groupsTableData">
-  <mat-card class="endpoints-group-card">
-    <ng-container *ngFor="let group of groupsTableData; let i = index">
+  <ng-container *ngFor="let group of groupsTableData; let i = index">
+    <mat-card class="endpoints-group-card">
       <div class="endpoints-group-card__header">
         <div class="endpoints-group-card__header__title">
           <span class="mat-h4">{{ group?.name }}</span>
@@ -33,17 +33,10 @@
 
         <div class="endpoints-group-card__header__actions">
           <button
-            *gioPermission="{ anyOf: ['api-definition-u'] }"
-            mat-stroked-button
-            aria-label="Edit endpoint group"
-            (click)="editEndpointGroup(i)"
-          >
-            Configure group defaults
-          </button>
-          <button
             id="{{ 'moveUpBtn-' + i }}"
             *ngIf="groupsTableData?.length > 1 && i !== 0"
             mat-stroked-button
+            class="endpoints-group-card__header__actions__button"
             aria-label="Reorder element to a higher position"
             (click)="reorderEndpointGroup(i, i - 1)"
           >
@@ -53,10 +46,19 @@
             id="{{ 'moveDownBtn-' + i }}"
             *ngIf="groupsTableData?.length > 1 && i !== groupsTableData.length - 1"
             mat-stroked-button
+            class="endpoints-group-card__header__actions__button"
             aria-label="Reorder element to a lower position"
             (click)="reorderEndpointGroup(i + 1, i)"
           >
             <mat-icon svgIcon="gio:arrow-down"></mat-icon>
+          </button>
+          <button
+            *gioPermission="{ anyOf: ['api-definition-u'] }"
+            mat-stroked-button
+            aria-label="Edit endpoint group"
+            (click)="editEndpointGroup(i)"
+          >
+            <mat-icon svgIcon="gio:edit-pencil"></mat-icon>Edit
           </button>
           <ng-container *gioPermission="{ anyOf: ['api-definition-u'] }">
             <button
@@ -147,6 +149,15 @@
           >Add endpoint</a
         >
       </mat-card-content>
-    </ng-container>
-  </mat-card>
+    </mat-card>
+  </ng-container>
 </ng-container>
+<button
+  *gioPermission="{ anyOf: ['api-definition-u'] }"
+  mat-flat-button
+  color="primary"
+  aria-label="Add endpoint group"
+  (click)="addEndpointGroup()"
+>
+  Add endpoint group
+</button>

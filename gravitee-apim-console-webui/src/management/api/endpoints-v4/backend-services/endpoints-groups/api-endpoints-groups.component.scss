@@ -45,9 +45,17 @@
       flex-direction: row;
       justify-content: flex-end;
 
-      .mat-stroked-button,
-      .mat-flat-button {
+      .mat-stroked-button {
         margin-right: 8px;
+      }
+
+      &__button {
+        display: flex;
+        justify-content: center;
+
+        mat-icon {
+          margin: 0;
+        }
       }
     }
   }
