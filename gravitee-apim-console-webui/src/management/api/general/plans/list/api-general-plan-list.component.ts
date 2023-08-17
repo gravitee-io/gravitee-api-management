@@ -39,11 +39,11 @@ import { Api, PLAN_STATUS, Plan, PlanStatus, ApiV4 } from '../../../../../entiti
 import { ApiPlanV2Service } from '../../../../../services-ngx/api-plan-v2.service';
 
 @Component({
-  selector: 'api-portal-plan-list',
-  template: require('./api-portal-plan-list.component.html'),
-  styles: [require('./api-portal-plan-list.component.scss')],
+  selector: 'api-general-plan-list',
+  template: require('./api-general-plan-list.component.html'),
+  styles: [require('./api-general-plan-list.component.scss')],
 })
-export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
+export class ApiGeneralPlanListComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   private api: Api;
   public displayedColumns = ['name', 'type', 'status', 'deploy-on', 'actions'];

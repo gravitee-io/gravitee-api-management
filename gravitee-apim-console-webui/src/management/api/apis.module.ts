@@ -30,8 +30,8 @@ import { ApiProxyModule } from './proxy/api-proxy.module';
 import { ApiV4PolicyStudioModule } from './policy-studio-v4/api-v4-policy-studio.module';
 import { ApiNgNavigationComponent } from './api-ng-navigation/api-ng-navigation.component';
 import { ApiGeneralInfoComponent } from './general/details/api-general-info.component';
-import { ApiPortalPlanEditComponent } from './general/plans/edit/api-portal-plan-edit.component';
-import { ApiPortalPlanListComponent } from './general/plans/list/api-portal-plan-list.component';
+import { ApiGeneralPlanEditComponent } from './general/plans/edit/api-general-plan-edit.component';
+import { ApiGeneralPlanListComponent } from './general/plans/list/api-general-plan-list.component';
 import { ApiPortalSubscriptionListComponent } from './general/subscriptions/list/api-portal-subscription-list.component';
 import { ApiV4PolicyStudioDesignComponent } from './policy-studio-v4/design/api-v4-policy-studio-design.component';
 import { ApisGeneralModule } from './general/apis-general.module';
@@ -182,7 +182,7 @@ const states: Ng2StateDeclaration[] = [
         dynamic: true,
       },
     },
-    component: ApiPortalPlanListComponent,
+    component: ApiGeneralPlanListComponent,
   },
   {
     name: 'management.apis.ng.plan',
@@ -193,7 +193,7 @@ const states: Ng2StateDeclaration[] = [
   {
     name: 'management.apis.ng.plan.new',
     url: '/new?{selectedPlanMenuItem:string}',
-    component: ApiPortalPlanEditComponent,
+    component: ApiGeneralPlanEditComponent,
     data: {
       useAngularMaterial: true,
       docs: null,
@@ -210,7 +210,7 @@ const states: Ng2StateDeclaration[] = [
   {
     name: 'management.apis.ng.plan.edit',
     url: '/:planId/edit',
-    component: ApiPortalPlanEditComponent,
+    component: ApiGeneralPlanEditComponent,
     data: {
       useAngularMaterial: true,
       docs: null,

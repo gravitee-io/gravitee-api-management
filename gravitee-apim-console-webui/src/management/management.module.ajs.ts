@@ -478,7 +478,7 @@ import { SettingsNavigationComponent } from './configuration/settings-navigation
 import { ApplicationNavigationComponent } from './application/details/application-navigation/application-navigation.component';
 import { ApiNavigationComponent } from './api/api-navigation/api-navigation.component';
 import { ApiProxyHealthCheckComponent } from './api/proxy/health-check/api-proxy-health-check.component';
-import { ApiPortalPlanListComponent } from './api/general/plans/list/api-portal-plan-list.component';
+import { ApiGeneralPlanListComponent } from './api/general/plans/list/api-general-plan-list.component';
 import { IfMatchEtagInterceptor } from '../shared/interceptors/if-match-etag.interceptor';
 import { ApiLogsConfigurationComponent } from './api/analytics/logs/configuration/api-logs-configuration.component';
 import { ApiCreationV4Component } from './api/creation-v4/api-creation-v4.component';
@@ -491,7 +491,7 @@ import { SearchAndSelectController } from '../components/search-and-select/searc
 import { ApiGeneralTransferOwnershipComponent } from './api/general/user-group-access/transfer-ownership/api-general-transfer-ownership.component';
 import AlertTabsController from '../components/alerts/alertTabs/alert-tabs-component';
 import AlertsActivityController from '../components/alerts/activity/alerts-activity.controller';
-import { ApiPortalPlanEditComponent } from './api/general/plans/edit/api-portal-plan-edit.component';
+import { ApiGeneralPlanEditComponent } from './api/general/plans/edit/api-general-plan-edit.component';
 import { ApiPortalDocumentationMetadataComponent } from './api/general/documentation/metadata/api-portal-documentation-metadata.component';
 import { ApiV2Service } from '../services-ngx/api-v2.service';
 import { OrgNavigationComponent } from '../organization/configuration/navigation/org-navigation.component';
@@ -659,7 +659,7 @@ graviteeManagementModule.factory('ngGioLicenseService', downgradeInjectable(GioL
 
 graviteeManagementModule.controller('ApiAdminController', ApiAdminController);
 graviteeManagementModule.directive('ngApiPortalDetails', downgradeComponent({ component: ApiGeneralInfoComponent }));
-graviteeManagementModule.directive('ngApiPortalPlanList', downgradeComponent({ component: ApiPortalPlanListComponent }));
+graviteeManagementModule.directive('ngApiPortalPlanList', downgradeComponent({ component: ApiGeneralPlanListComponent }));
 graviteeManagementModule.directive('ngApiPortalSubscriptionList', downgradeComponent({ component: ApiPortalSubscriptionListComponent }));
 graviteeManagementModule.directive('ngApiPortalSubscriptionEdit', downgradeComponent({ component: ApiPortalSubscriptionEditComponent }));
 graviteeManagementModule.directive(
@@ -841,7 +841,7 @@ graviteeManagementModule.component('gvDashboardTimeframe', DashboardTimeframeCom
 graviteeManagementModule.controller('DashboardTimeframeController', DashboardTimeframeController);
 
 // Plan
-graviteeManagementModule.directive('ngApiPortalPlanEdit', downgradeComponent({ component: ApiPortalPlanEditComponent }));
+graviteeManagementModule.directive('ngApiPortalPlanEdit', downgradeComponent({ component: ApiGeneralPlanEditComponent }));
 graviteeManagementModule.component('apiPlan', ApiPlanComponent);
 graviteeManagementModule.directive('ngApiPortalGroups', downgradeComponent({ component: ApiGeneralGroupsComponent }));
 

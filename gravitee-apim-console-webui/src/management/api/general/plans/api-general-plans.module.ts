@@ -28,16 +28,16 @@ import { MatCardModule } from '@angular/material/card';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatMenuModule } from '@angular/material/menu';
 
-import { ApiPortalPlanListComponent } from './list/api-portal-plan-list.component';
-import { ApiPortalPlanEditComponent } from './edit/api-portal-plan-edit.component';
+import { ApiGeneralPlanListComponent } from './list/api-general-plan-list.component';
+import { ApiGeneralPlanEditComponent } from './edit/api-general-plan-edit.component';
 
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
 import { ApiPlanFormModule } from '../../component/plan/api-plan-form.module';
 import { GioGoBackButtonModule } from '../../../../shared/components/gio-go-back-button/gio-go-back-button.module';
 
 @NgModule({
-  declarations: [ApiPortalPlanListComponent, ApiPortalPlanEditComponent],
-  exports: [ApiPortalPlanListComponent, ApiPortalPlanEditComponent],
+  declarations: [ApiGeneralPlanListComponent, ApiGeneralPlanEditComponent],
+  exports: [ApiGeneralPlanListComponent, ApiGeneralPlanEditComponent],
   imports: [
     CommonModule,
     DragDropModule,

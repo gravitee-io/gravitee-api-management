@@ -29,7 +29,7 @@ import { castArray, set } from 'lodash';
 import { MatMenuHarness } from '@angular/material/menu/testing';
 import { UIRouterGlobals } from '@uirouter/core';
 
-import { ApiPortalPlanListComponent } from './api-portal-plan-list.component';
+import { ApiGeneralPlanListComponent } from './api-general-plan-list.component';
 
 import { ApiGeneralPlansModule } from '../api-general-plans.module';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
@@ -49,15 +49,15 @@ import {
   PLAN_STATUS,
 } from '../../../../../entities/management-api-v2';
 
-describe('ApiPortalPlanListComponent', () => {
+describe('ApiGeneralPlanListComponent', () => {
   const API_ID = 'api#1';
   const anAPi = fakeApiV2({ id: API_ID });
   const fakeUiRouter = { go: jest.fn() };
   const currentUser = new DeprecatedUser();
   currentUser.userPermissions = ['api-plan-u', 'api-plan-r', 'api-plan-d'];
 
-  let fixture: ComponentFixture<ApiPortalPlanListComponent>;
-  let component: ApiPortalPlanListComponent;
+  let fixture: ComponentFixture<ApiGeneralPlanListComponent>;
+  let component: ApiGeneralPlanListComponent;
   let loader: HarnessLoader;
   let rootLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
@@ -588,7 +588,7 @@ describe('ApiPortalPlanListComponent', () => {
 
   async function initComponent(plans: Plan[], api: Api = anAPi) {
     await TestBed.overrideProvider(UIRouterStateParams, { useValue: { apiId: api.id } }).compileComponents();
-    fixture = TestBed.createComponent(ApiPortalPlanListComponent);
+    fixture = TestBed.createComponent(ApiGeneralPlanListComponent);
     component = fixture.componentInstance;
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();

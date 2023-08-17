@@ -24,7 +24,7 @@ import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { UIRouterGlobals } from '@uirouter/core';
 
-import { ApiPortalPlanEditComponent } from './api-portal-plan-edit.component';
+import { ApiGeneralPlanEditComponent } from './api-general-plan-edit.component';
 
 import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { User } from '../../../../../entities/user';
@@ -46,7 +46,7 @@ import {
   PlanV2,
 } from '../../../../../entities/management-api-v2';
 
-describe('ApiPortalPlanEditComponent', () => {
+describe('ApiGeneralPlanEditComponent', () => {
   const API_ID = 'my-api';
   const currentUser = new User();
   const fakeUiRouter = { go: jest.fn() };
@@ -54,7 +54,7 @@ describe('ApiPortalPlanEditComponent', () => {
 
   currentUser.userPermissions = ['api-plan-u'];
 
-  let fixture: ComponentFixture<ApiPortalPlanEditComponent>;
+  let fixture: ComponentFixture<ApiGeneralPlanEditComponent>;
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
@@ -80,7 +80,7 @@ describe('ApiPortalPlanEditComponent', () => {
       ],
     });
 
-    fixture = TestBed.createComponent(ApiPortalPlanEditComponent);
+    fixture = TestBed.createComponent(ApiGeneralPlanEditComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
     TestbedHarnessEnvironment.documentRootLoader(fixture);
 
