@@ -35,7 +35,7 @@ import { Role } from '../../../../../entities/role/role';
 import { fakeRole } from '../../../../../entities/role/role.fixture';
 import { User } from '../../../../../entities/user';
 import { fakeSearchableUser } from '../../../../../entities/user/searchableUser.fixture';
-import { ApiV4, fakeApiV4, fakeGroup, fakeGroupsResponse, MembersResponse } from '../../../../../entities/management-api-v2';
+import { Api, fakeApiV1, fakeApiV4, fakeGroup, fakeGroupsResponse, MembersResponse } from '../../../../../entities/management-api-v2';
 
 describe('ApiGeneralMembersComponent', () => {
   let fixture: ComponentFixture<ApiGeneralMembersComponent>;
@@ -335,14 +335,43 @@ describe('ApiGeneralMembersComponent', () => {
     });
   });
 
-  function expectRequests(api: ApiV4, members: MembersResponse = { data: [] }) {
+  describe('V1 API', () => {
+    it('should be in readonly mode', async () => {
+      const api = fakeApiV1({ id: apiId });
+      const members: MembersResponse = {
+        data: [
+          {
+            id: '1',
+            displayName: 'Existing User',
+            roles: [{ name: 'PRIMARY_OWNER', scope: 'API' }],
+          },
+          {
+            id: '2',
+            displayName: 'User',
+            roles: [{ name: 'USER', scope: 'API' }],
+          },
+        ],
+      };
+      expectRequests(api, members);
+
+      // Cannot add member
+      expect(await harness.canAddMember()).toBeFalsy();
+
+      // Expect member to be added
+      expect(await harness.getMembersName()).toEqual(['Existing User', 'User']);
+      // Expect default role to be selected
+      expect(await harness.canSelectMemberRole(1)).toBeFalsy();
+    });
+  });
+
+  function expectRequests(api: Api, members: MembersResponse = { data: [] }) {
     expectApiGetRequest(api);
     expectGetGroupsListRequest(api.groups);
     expectApiMembersGetRequest(members);
     expectGetGroupMembersRequest();
   }
 
-  function expectApiGetRequest(api: ApiV4) {
+  function expectApiGetRequest(api: Api) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}`, method: 'GET' }).flush(api);
     fixture.detectChanges();
   }

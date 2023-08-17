@@ -57,6 +57,12 @@ export class ApiGeneralMembersHarness extends ComponentHarness {
     return roleCell[0].getHarness(MatSelectHarness);
   }
 
+  async canSelectMemberRole(rowIndex: number): Promise<boolean> {
+    return this.getMemberRoleSelectForRowIndex(rowIndex).then(async (select) => {
+      return !(await select.isDisabled());
+    });
+  }
+
   async getMemberRoleSelectOptions(rowIndex: number, options: OptionHarnessFilters = {}): Promise<MatOptionHarness[]> {
     return this.getMemberRoleSelectForRowIndex(rowIndex).then(async (select) => {
       await select.open();
@@ -103,7 +109,9 @@ export class ApiGeneralMembersHarness extends ComponentHarness {
   async clickOnSave(): Promise<void> {
     return this.getSaveBarElement().then((sb) => sb.clickSubmit());
   }
-
+  async canAddMember(): Promise<boolean> {
+    return await this.locatorFor(MatButtonHarness.with({ text: /Add members/ }))().then((b) => !b.isDisabled());
+  }
   async addMember(user: SearchableUser, httpTestingController: HttpTestingController): Promise<void> {
     await this.locatorFor(MatButtonHarness.with({ text: /Add members/ }))().then((b) => b.click());
 
