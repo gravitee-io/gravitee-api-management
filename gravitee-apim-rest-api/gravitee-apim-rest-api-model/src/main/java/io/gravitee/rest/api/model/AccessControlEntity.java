@@ -16,11 +16,13 @@
 package io.gravitee.rest.api.model;
 
 import java.util.Objects;
+import lombok.Builder;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Builder(toBuilder = true)
 public class AccessControlEntity {
 
     private String referenceId;

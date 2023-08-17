@@ -21,12 +21,14 @@ import jakarta.validation.constraints.Size;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import lombok.EqualsAndHashCode;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author Guillaume GILLON
  * @author GraviteeSource Team
  */
+@EqualsAndHashCode(callSuper = true)
 public class NewPageEntity extends FetchablePageEntity {
 
     /**
