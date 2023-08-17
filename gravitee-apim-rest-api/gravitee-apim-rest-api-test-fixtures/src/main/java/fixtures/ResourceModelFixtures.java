@@ -15,31 +15,29 @@
  */
 package fixtures;
 
-import io.gravitee.rest.api.management.v2.rest.model.Resource;
-import java.util.LinkedHashMap;
-import java.util.Map;
+public class ResourceModelFixtures {
 
-@SuppressWarnings("ALL")
-public class ResourceFixtures {
+    private ResourceModelFixtures() {}
 
-    private ResourceFixtures() {}
-
-    private static final Resource.ResourceBuilder BASE_RESOURCE = Resource
+    private static final io.gravitee.definition.model.plugins.resources.Resource.ResourceBuilder BASE_RESOURCE_ENTITY_V2 = io.gravitee.definition.model.plugins.resources.Resource
         .builder()
         .name("role-name")
         .type("resource-type")
         .enabled(true)
-        .configuration(new LinkedHashMap<>(Map.of("key", "value")));
+        .configuration("{\"key\":\"value\"}");
 
-    public static Resource aResource() {
-        return BASE_RESOURCE.build();
-    }
+    private static final io.gravitee.definition.model.v4.resource.Resource.ResourceBuilder BASE_RESOURCE_ENTITY_V4 = io.gravitee.definition.model.v4.resource.Resource
+        .builder()
+        .name("role-name")
+        .type("resource-type")
+        .enabled(true)
+        .configuration("{\"key\":\"value\"}");
 
     public static io.gravitee.definition.model.plugins.resources.Resource aResourceEntityV2() {
-        return ResourceModelFixtures.aResourceEntityV2();
+        return BASE_RESOURCE_ENTITY_V2.build();
     }
 
     public static io.gravitee.definition.model.v4.resource.Resource aResourceEntityV4() {
-        return ResourceModelFixtures.aResourceEntityV4();
+        return BASE_RESOURCE_ENTITY_V4.build();
     }
 }

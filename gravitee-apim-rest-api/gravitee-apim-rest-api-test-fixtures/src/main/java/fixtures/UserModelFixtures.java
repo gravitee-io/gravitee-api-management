@@ -15,22 +15,20 @@
  */
 package fixtures;
 
-import io.gravitee.rest.api.model.ApplicationEntity;
-import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.model.UserEntity;
 
-/**
- * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
- * @author GraviteeSource Team
- */
-public class ApplicationFixtures {
+public class UserModelFixtures {
 
-    private ApplicationFixtures() {}
+    private UserModelFixtures() {}
 
-    public static ApplicationListItem anApplicationListItem() {
-        return ApplicationModelFixtures.anApplicationListItem();
-    }
+    private static final UserEntity.UserEntityBuilder USER_ENTITY = UserEntity
+        .builder()
+        .id("id")
+        .firstname("John")
+        .lastname("Doe")
+        .email("john@doe.com");
 
-    public static ApplicationEntity anApplicationEntity() {
-        return ApplicationModelFixtures.anApplicationEntity();
+    public static UserEntity aUserEntity() {
+        return USER_ENTITY.build();
     }
 }
