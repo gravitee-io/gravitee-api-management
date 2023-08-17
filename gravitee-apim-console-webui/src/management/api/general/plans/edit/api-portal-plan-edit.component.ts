@@ -72,7 +72,10 @@ export class ApiPortalPlanEditComponent implements OnInit, OnDestroy {
       .pipe(
         tap((api) => {
           this.api = api;
-          this.isReadOnly = !this.permissionService.hasAnyMatching(['api-plan-u']) || this.api.definitionContext?.origin === 'KUBERNETES';
+          this.isReadOnly =
+            !this.permissionService.hasAnyMatching(['api-plan-u']) ||
+            this.api.definitionContext?.origin === 'KUBERNETES' ||
+            this.api.definitionVersion === 'V1';
         }),
         switchMap(() =>
           this.mode === 'edit' ? this.planService.get(this.ajsStateParams.apiId, this.ajsStateParams.planId) : of(undefined),
