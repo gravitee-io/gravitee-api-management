@@ -15,39 +15,53 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.model.Membership;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.GroupEntity;
+import io.gravitee.rest.api.model.MembershipMemberType;
+import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.RoleEntity;
+import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.EmailService;
+import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.service.RoleService;
+import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.NotAuthorizedMembershipException;
 import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Optional;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
+import java.util.Set;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class MembershipService_AddRoleToMemberOnReferenceTest {
 
     private static final String API_ID = "api-id-1";
     private static final String APPLICATION_ID = "application-id-1";
     private static final String GROUP_ID = "group-id-1";
 
-    @InjectMocks
-    private MembershipService membershipService = new MembershipServiceImpl();
+    private MembershipService membershipService;
 
     @Mock
     private MembershipRepository membershipRepository;
@@ -67,11 +81,27 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
     @Mock
     private AuditService auditService;
 
-    @Mock
-    private IdentityService identityService;
-
-    @Mock
-    private NotifierService notifierService;
+    @BeforeEach
+    public void setUp() throws Exception {
+        membershipService =
+            new MembershipServiceImpl(
+                null,
+                userService,
+                null,
+                null,
+                null,
+                emailService,
+                membershipRepository,
+                roleService,
+                null,
+                null,
+                null,
+                null,
+                null,
+                groupService,
+                auditService
+            );
+    }
 
     @Test
     public void shouldAddApiGroupMembership() throws Exception {
@@ -102,7 +132,7 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
                 GROUP_ID
             )
         )
-            .thenReturn(new HashSet<>(Arrays.asList(newMembership)), Collections.emptySet());
+            .thenReturn(Set.of(newMembership), Collections.emptySet());
         when(membershipRepository.create(any())).thenReturn(newMembership);
 
         membershipService.addRoleToMemberOnReference(
@@ -154,7 +184,7 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
                 GROUP_ID
             )
         )
-            .thenReturn(new HashSet<>(Arrays.asList(newMembership)), Collections.emptySet());
+            .thenReturn(Set.of(newMembership), Collections.emptySet());
         when(membershipRepository.create(any())).thenReturn(newMembership);
 
         membershipService.addRoleToMemberOnReference(
@@ -177,42 +207,54 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
         verify(emailService, times(1)).sendAsyncEmailNotification(eq(GraviteeContext.getExecutionContext()), any());
     }
 
-    @Test(expected = RoleNotFoundException.class)
+    @Test
     public void shouldDisallowAddUnknownRoleOnApi() throws Exception {
         when(roleService.findByScopeAndName(any(), any(), any())).thenReturn(Optional.empty());
-        membershipService.addRoleToMemberOnReference(
-            GraviteeContext.getExecutionContext(),
-            new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
-            new MembershipService.MembershipMember("xxxxx", null, MembershipMemberType.USER),
-            new MembershipService.MembershipRole(RoleScope.ENVIRONMENT, "name")
-        );
+
+        assertThatThrownBy(() ->
+                membershipService.addRoleToMemberOnReference(
+                    GraviteeContext.getExecutionContext(),
+                    new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
+                    new MembershipService.MembershipMember("xxxxx", null, MembershipMemberType.USER),
+                    new MembershipService.MembershipRole(RoleScope.ENVIRONMENT, "name")
+                )
+            )
+            .isInstanceOf(RoleNotFoundException.class);
     }
 
-    @Test(expected = RoleNotFoundException.class)
+    @Test
     public void shouldDisallowAddUnknownRoleOnApplication() throws Exception {
         when(roleService.findByScopeAndName(any(), any(), any())).thenReturn(Optional.empty());
-        membershipService.addRoleToMemberOnReference(
-            GraviteeContext.getExecutionContext(),
-            new MembershipService.MembershipReference(MembershipReferenceType.APPLICATION, APPLICATION_ID),
-            new MembershipService.MembershipMember("xxxxx", null, MembershipMemberType.USER),
-            new MembershipService.MembershipRole(RoleScope.ENVIRONMENT, "name")
-        );
+
+        assertThatThrownBy(() ->
+                membershipService.addRoleToMemberOnReference(
+                    GraviteeContext.getExecutionContext(),
+                    new MembershipService.MembershipReference(MembershipReferenceType.APPLICATION, APPLICATION_ID),
+                    new MembershipService.MembershipMember("xxxxx", null, MembershipMemberType.USER),
+                    new MembershipService.MembershipRole(RoleScope.ENVIRONMENT, "name")
+                )
+            )
+            .isInstanceOf(RoleNotFoundException.class);
     }
 
-    @Test(expected = NotAuthorizedMembershipException.class)
+    @Test
     public void shouldDisallowAddEnvironmentRoleOnGroup() throws Exception {
         RoleEntity role = mock(RoleEntity.class);
         when(role.getScope()).thenReturn(io.gravitee.rest.api.model.permissions.RoleScope.ENVIRONMENT);
         when(roleService.findByScopeAndName(any(), any(), any())).thenReturn(Optional.of(role));
-        membershipService.addRoleToMemberOnReference(
-            GraviteeContext.getExecutionContext(),
-            new MembershipService.MembershipReference(MembershipReferenceType.GROUP, GROUP_ID),
-            new MembershipService.MembershipMember("xxxxx", null, MembershipMemberType.USER),
-            new MembershipService.MembershipRole(RoleScope.ENVIRONMENT, "name")
-        );
+
+        assertThatThrownBy(() ->
+                membershipService.addRoleToMemberOnReference(
+                    GraviteeContext.getExecutionContext(),
+                    new MembershipService.MembershipReference(MembershipReferenceType.GROUP, GROUP_ID),
+                    new MembershipService.MembershipMember("xxxxx", null, MembershipMemberType.USER),
+                    new MembershipService.MembershipRole(RoleScope.ENVIRONMENT, "name")
+                )
+            )
+            .isInstanceOf(NotAuthorizedMembershipException.class);
     }
 
-    @Test(expected = NotAuthorizedMembershipException.class)
+    @Test
     public void shouldDisallowAddAPIPrimaryOwnerRoleOnGroupIfAlreadyOnePrimaryOwner() throws Exception {
         RoleEntity role = mock(RoleEntity.class);
         when(role.getScope()).thenReturn(io.gravitee.rest.api.model.permissions.RoleScope.API);
@@ -227,25 +269,33 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
             )
         )
             .thenReturn(Collections.singleton(mock(Membership.class)));
-        membershipService.addRoleToMemberOnReference(
-            GraviteeContext.getExecutionContext(),
-            new MembershipService.MembershipReference(MembershipReferenceType.GROUP, GROUP_ID),
-            new MembershipService.MembershipMember("xxxxx", null, MembershipMemberType.USER),
-            new MembershipService.MembershipRole(RoleScope.API, "PRIMARY_OWNER")
-        );
+
+        assertThatThrownBy(() ->
+                membershipService.addRoleToMemberOnReference(
+                    GraviteeContext.getExecutionContext(),
+                    new MembershipService.MembershipReference(MembershipReferenceType.GROUP, GROUP_ID),
+                    new MembershipService.MembershipMember("xxxxx", null, MembershipMemberType.USER),
+                    new MembershipService.MembershipRole(RoleScope.API, "PRIMARY_OWNER")
+                )
+            )
+            .isInstanceOf(NotAuthorizedMembershipException.class);
     }
 
-    @Test(expected = NotAuthorizedMembershipException.class)
+    @Test
     public void shouldDisallowAddApplicationPrimaryOwnerRoleOnGroup() throws Exception {
         RoleEntity role = mock(RoleEntity.class);
         when(role.getScope()).thenReturn(io.gravitee.rest.api.model.permissions.RoleScope.APPLICATION);
         when(role.getName()).thenReturn("PRIMARY_OWNER");
         when(roleService.findByScopeAndName(any(), any(), any())).thenReturn(Optional.of(role));
-        membershipService.addRoleToMemberOnReference(
-            GraviteeContext.getExecutionContext(),
-            new MembershipService.MembershipReference(MembershipReferenceType.GROUP, GROUP_ID),
-            new MembershipService.MembershipMember("xxxxx", null, MembershipMemberType.USER),
-            new MembershipService.MembershipRole(RoleScope.APPLICATION, "PRIMARY_OWNER")
-        );
+
+        assertThatThrownBy(() ->
+                membershipService.addRoleToMemberOnReference(
+                    GraviteeContext.getExecutionContext(),
+                    new MembershipService.MembershipReference(MembershipReferenceType.GROUP, GROUP_ID),
+                    new MembershipService.MembershipMember("xxxxx", null, MembershipMemberType.USER),
+                    new MembershipService.MembershipRole(RoleScope.APPLICATION, "PRIMARY_OWNER")
+                )
+            )
+            .isInstanceOf(NotAuthorizedMembershipException.class);
     }
 }

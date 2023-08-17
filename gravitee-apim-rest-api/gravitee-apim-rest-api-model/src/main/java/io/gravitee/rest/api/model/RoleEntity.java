@@ -21,11 +21,17 @@ import io.gravitee.rest.api.model.permissions.SystemRole;
 import jakarta.validation.constraints.NotNull;
 import java.util.Map;
 import java.util.Objects;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Builder(toBuilder = true)
+@AllArgsConstructor
+@NoArgsConstructor
 public class RoleEntity {
 
     @NotNull

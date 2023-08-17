@@ -15,7 +15,11 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.model.Membership;
@@ -33,24 +37,22 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class MembershipService_GetMembersTest {
 
     private static final String API_ID = "api-id-1";
 
-    @InjectMocks
-    private MembershipService membershipService = new MembershipServiceImpl();
+    private MembershipService membershipService;
 
     @Mock
     private MembershipRepository membershipRepository;
@@ -60,6 +62,28 @@ public class MembershipService_GetMembersTest {
 
     @Mock
     private RoleService roleService;
+
+    @BeforeEach
+    public void setUp() throws Exception {
+        membershipService =
+            new MembershipServiceImpl(
+                null,
+                userService,
+                null,
+                null,
+                null,
+                null,
+                membershipRepository,
+                roleService,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+            );
+    }
 
     @Test
     public void shouldGetEmptyMembersWithMembership() throws Exception {
@@ -75,8 +99,7 @@ public class MembershipService_GetMembersTest {
             "PRIMARY_OWNER"
         );
 
-        Assert.assertNotNull(members);
-        Assert.assertTrue("members must be empty", members.isEmpty());
+        assertThat(members).as("members must be empty").isEmpty();
         verify(membershipRepository, times(1))
             .findByReferencesAndRoleId(MembershipReferenceType.API, Collections.singletonList(API_ID), "PRIMARY_OWNER");
     }
@@ -116,8 +139,7 @@ public class MembershipService_GetMembersTest {
             "API_PRIMARY_OWNER"
         );
 
-        Assert.assertNotNull(members);
-        Assert.assertFalse("members must not be empty", members.isEmpty());
+        assertThat(members).as("members must not be empty").isNotEmpty();
         verify(membershipRepository, times(1))
             .findByReferencesAndRoleId(MembershipReferenceType.API, Collections.singletonList(API_ID), "API_PRIMARY_OWNER");
         verify(userService, times(1)).findByIds(GraviteeContext.getExecutionContext(), memberIds, false);
@@ -153,8 +175,7 @@ public class MembershipService_GetMembersTest {
             null
         );
 
-        Assert.assertNotNull(members);
-        Assert.assertFalse("members must not be empty", members.isEmpty());
+        assertThat(members).as("members must not be empty").isNotEmpty();
         verify(membershipRepository, times(1))
             .findByReferencesAndRoleId(MembershipReferenceType.API, Collections.singletonList(API_ID), null);
         verify(userService, times(1)).findByIds(GraviteeContext.getExecutionContext(), memberIds, false);
