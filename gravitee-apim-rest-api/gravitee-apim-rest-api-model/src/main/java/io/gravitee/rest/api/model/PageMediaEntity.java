@@ -17,6 +17,7 @@ package io.gravitee.rest.api.model;
 
 import java.util.Date;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.NoArgsConstructor;
 
 /**
@@ -25,6 +26,7 @@ import lombok.NoArgsConstructor;
  */
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder(toBuilder = true)
 public class PageMediaEntity {
 
     private String mediaHash;
