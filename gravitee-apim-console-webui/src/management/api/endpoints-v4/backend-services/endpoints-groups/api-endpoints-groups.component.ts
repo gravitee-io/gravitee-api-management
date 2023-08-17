@@ -40,6 +40,7 @@ export class ApiEndpointsGroupsComponent implements OnInit, OnDestroy {
   public groupsTableData: EndpointGroup[];
   public plugins: Map<string, ConnectorPlugin>;
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+  public isReordering = false;
 
   constructor(
     @Inject(UIRouterState) private readonly ajsState: StateService,
@@ -146,6 +147,7 @@ export class ApiEndpointsGroupsComponent implements OnInit, OnDestroy {
   }
 
   public reorderEndpointGroup(oldIndex: number, newIndex: number): void {
+    this.isReordering = true;
     this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
@@ -153,14 +155,18 @@ export class ApiEndpointsGroupsComponent implements OnInit, OnDestroy {
           api.endpointGroups.splice(newIndex, 0, api.endpointGroups.splice(oldIndex, 1)[0]);
           return this.apiService.update(api.id, { ...api } as UpdateApi);
         }),
-        catchError(({ error }) => {
-          this.snackBarService.error(error.message);
-          return EMPTY;
-        }),
         tap(() => this.ngOnInit()),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe();
+      .subscribe({
+        next: () => {
+          this.isReordering = false;
+        },
+        error: ({ error }) => {
+          this.isReordering = false;
+          this.snackBarService.error(error.message);
+        },
+      });
   }
 
   public editEndpointGroup(groupIndex: number): void {
