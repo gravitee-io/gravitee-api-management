@@ -40,7 +40,7 @@ import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/test
 import { UIRouterStateParams, CurrentUserService, UIRouterState } from '../../../../ajs-upgraded-providers';
 import { User } from '../../../../entities/user';
 import { Category } from '../../../../entities/category/Category';
-import { Api, fakeApiV2, fakeApiV4 } from '../../../../entities/management-api-v2';
+import { Api, fakeApiV1, fakeApiV2, fakeApiV4 } from '../../../../entities/management-api-v2';
 
 describe('ApiGeneralInfoComponent', () => {
   const API_ID = 'apiId';
@@ -104,6 +104,65 @@ describe('ApiGeneralInfoComponent', () => {
 
   afterEach(() => {
     httpTestingController.verify({ ignoreCancelled: true });
+  });
+
+  describe('API V1', () => {
+    it('should not be editable', async () => {
+      const api = fakeApiV1({
+        id: API_ID,
+        name: '👴🏻 Old API',
+        apiVersion: '1.0.0',
+        labels: ['label1', 'label2'],
+        categories: ['category1'],
+      });
+      expectApiGetRequest(api);
+      expectCategoriesGetRequest([
+        { id: 'category1', name: 'Category 1', key: 'category1' },
+        { id: 'category2', name: 'Category 2', key: 'category2' },
+      ]);
+
+      // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
+      await waitImageCheck();
+
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      expect(await saveBar.isVisible()).toBe(false);
+
+      const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="name"]' }));
+      expect(await nameInput.isDisabled()).toEqual(true);
+
+      const versionInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="version"]' }));
+      expect(await versionInput.isDisabled()).toEqual(true);
+
+      const descriptionInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="description"]' }));
+      expect(await descriptionInput.isDisabled()).toEqual(true);
+
+      const picturePicker = await loader.getHarness(GioFormFilePickerInputHarness.with({ selector: '[formControlName="picture"]' }));
+      expect(await picturePicker.isDisabled()).toEqual(true);
+
+      const backgroundPicker = await loader.getHarness(GioFormFilePickerInputHarness.with({ selector: '[formControlName="background"]' }));
+      expect(await backgroundPicker.isDisabled()).toEqual(true);
+
+      const labelsInput = await loader.getHarness(GioFormTagsInputHarness.with({ selector: '[formControlName="labels"]' }));
+      expect(await labelsInput.isDisabled()).toEqual(true);
+
+      const categoriesInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="categories"]' }));
+      expect(await categoriesInput.isDisabled()).toEqual(true);
+      expectLicenseGetRequest();
+
+      await Promise.all(
+        [/Import/, /Duplicate/, /Promote/].map(async (btnText) => {
+          const button = await loader.getHarness(MatButtonHarness.with({ text: btnText }));
+          expect(await button.isDisabled()).toEqual(true);
+        }),
+      );
+
+      await Promise.all(
+        [/Stop the API/, /Unpublish/, /Make Private/, /Deprecate/, /Delete/].map(async (btnText) => {
+          const button = await loader.getHarness(MatButtonHarness.with({ text: btnText }));
+          expect(await button.isDisabled()).toEqual(true);
+        }),
+      );
+    });
   });
 
   describe('API V2', () => {
@@ -502,6 +561,7 @@ describe('ApiGeneralInfoComponent', () => {
       await waitImageCheck();
 
       const button = await loader.getHarness(MatButtonHarness.with({ text: /Duplicate/ }));
+      expect(await button.isDisabled()).toBeFalsy();
       await button.click();
       expectLicenseGetRequest();
 
