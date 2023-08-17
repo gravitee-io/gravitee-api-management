@@ -497,8 +497,8 @@ import { ApiV2Service } from '../services-ngx/api-v2.service';
 import { OrgNavigationComponent } from '../organization/configuration/navigation/org-navigation.component';
 import { ClientRegistrationProviderComponent } from './configuration/client-registration-providers/client-registration-provider/client-registration-provider.component';
 import { GioPermissionService } from '../shared/components/gio-permission/gio-permission.service';
-import { ApiPortalSubscriptionListComponent } from './api/general/subscriptions/list/api-portal-subscription-list.component';
-import { ApiPortalSubscriptionEditComponent } from './api/general/subscriptions/edit/api-portal-subscription-edit.component';
+import { ApiGeneralSubscriptionListComponent } from './api/general/subscriptions/list/api-general-subscription-list.component';
+import { ApiGeneralSubscriptionEditComponent } from './api/general/subscriptions/edit/api-general-subscription-edit.component';
 import { ApiAnalyticsOverviewComponentAjs } from './api/analytics/overview/analytics-overview.component.ajs';
 import { ApiEventsComponent } from './api/audit/events/api-events.component';
 
@@ -660,8 +660,8 @@ graviteeManagementModule.factory('ngGioLicenseService', downgradeInjectable(GioL
 graviteeManagementModule.controller('ApiAdminController', ApiAdminController);
 graviteeManagementModule.directive('ngApiPortalDetails', downgradeComponent({ component: ApiGeneralInfoComponent }));
 graviteeManagementModule.directive('ngApiPortalPlanList', downgradeComponent({ component: ApiGeneralPlanListComponent }));
-graviteeManagementModule.directive('ngApiPortalSubscriptionList', downgradeComponent({ component: ApiPortalSubscriptionListComponent }));
-graviteeManagementModule.directive('ngApiPortalSubscriptionEdit', downgradeComponent({ component: ApiPortalSubscriptionEditComponent }));
+graviteeManagementModule.directive('ngApiPortalSubscriptionList', downgradeComponent({ component: ApiGeneralSubscriptionListComponent }));
+graviteeManagementModule.directive('ngApiPortalSubscriptionEdit', downgradeComponent({ component: ApiGeneralSubscriptionEditComponent }));
 graviteeManagementModule.directive(
   'ngApiPortalDocumentationMetadata',
   downgradeComponent({ component: ApiPortalDocumentationMetadataComponent }),

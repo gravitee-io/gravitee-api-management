@@ -9,7 +9,7 @@ $foreground: map.get(gio.$mat-theme, foreground);
   @include gio-layout.gio-responsive-content-container;
 }
 
-::ng-deep api-portal-subscription-list {
+::ng-deep api-general-subscription-list {
   .subscriptions__filters__field > .mat-form-field-wrapper {
     margin-bottom: -1.25em;
   }

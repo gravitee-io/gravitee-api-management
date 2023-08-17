@@ -94,11 +94,11 @@ interface ApiKeyVM {
 }
 
 @Component({
-  selector: 'api-portal-subscription-detail',
-  template: require('./api-portal-subscription-edit.component.html'),
-  styles: [require('./api-portal-subscription-edit.component.scss')],
+  selector: 'api-general-subscription-detail',
+  template: require('./api-general-subscription-edit.component.html'),
+  styles: [require('./api-general-subscription-edit.component.scss')],
 })
-export class ApiPortalSubscriptionEditComponent implements OnInit {
+export class ApiGeneralSubscriptionEditComponent implements OnInit {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   subscription: SubscriptionDetailVM;
   apiKeys: ApiKeyVM[];

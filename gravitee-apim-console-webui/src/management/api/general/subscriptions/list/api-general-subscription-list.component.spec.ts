@@ -27,8 +27,8 @@ import { UIRouterGlobals } from '@uirouter/core';
 import { set } from 'lodash';
 import { MatButtonHarness } from '@angular/material/button/testing';
 
-import { ApiPortalSubscriptionListComponent } from './api-portal-subscription-list.component';
-import { ApiPortalSubscriptionListHarness } from './api-portal-subscription-list.harness';
+import { ApiGeneralSubscriptionListComponent } from './api-general-subscription-list.component';
+import { ApiGeneralSubscriptionListHarness } from './api-general-subscription-list.harness';
 
 import { ApiGeneralSubscriptionsModule } from '../api-general-subscriptions.module';
 import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
@@ -57,13 +57,13 @@ import { PlanSecurityType } from '../../../../../entities/plan';
 import { ApplicationSubscription } from '../../../../../entities/subscription/subscription';
 
 @Component({
-  template: ` <api-portal-subscription-list #apiPortalSubscriptionList></api-portal-subscription-list> `,
+  template: ` <api-general-subscription-list #apiGeneralSubscriptionList></api-general-subscription-list> `,
 })
 class TestComponent {
-  @ViewChild('apiPortalSubscriptionList') apiPortalSubscriptionList: ApiPortalSubscriptionListComponent;
+  @ViewChild('apiGeneralSubscriptionList') apiGeneralSubscriptionList: ApiGeneralSubscriptionListComponent;
 }
 
-describe('ApiPortalSubscriptionListComponent', () => {
+describe('ApiGeneralSubscriptionListComponent', () => {
   const API_ID = 'api_1';
   const PLAN_ID = 'plan_1';
   const APPLICATION_ID = 'application_1';
@@ -126,7 +126,7 @@ describe('ApiPortalSubscriptionListComponent', () => {
 
     it('should display default filters', fakeAsync(async () => {
       await initComponent([]);
-      const harness = await loader.getHarness(ApiPortalSubscriptionListHarness);
+      const harness = await loader.getHarness(ApiGeneralSubscriptionListHarness);
 
       const planSelectInput = await harness.getPlanSelectInput();
       expect(await planSelectInput.isDisabled()).toEqual(false);
@@ -151,7 +151,7 @@ describe('ApiPortalSubscriptionListComponent', () => {
         status: 'CLOSED,REJECTED',
         apiKey: 'apiKey_1',
       });
-      const harness = await loader.getHarness(ApiPortalSubscriptionListHarness);
+      const harness = await loader.getHarness(ApiGeneralSubscriptionListHarness);
 
       const planSelectInput = await harness.getPlanSelectInput();
       expect(await planSelectInput.isDisabled()).toEqual(false);
@@ -177,7 +177,7 @@ describe('ApiPortalSubscriptionListComponent', () => {
         status: 'CLOSED,REJECTED',
         apiKey: 'apiKey_1',
       });
-      const harness = await loader.getHarness(ApiPortalSubscriptionListHarness);
+      const harness = await loader.getHarness(ApiGeneralSubscriptionListHarness);
 
       const resetFilterButton = await harness.getResetFilterButton();
       await resetFilterButton.click();
@@ -338,7 +338,7 @@ describe('ApiPortalSubscriptionListComponent', () => {
 
     it('should search closed subscription', fakeAsync(async () => {
       await initComponent([fakeSubscription()]);
-      const harness = await loader.getHarness(ApiPortalSubscriptionListHarness);
+      const harness = await loader.getHarness(ApiGeneralSubscriptionListHarness);
 
       const statusSelectInput = await getEmptyFilterForm(harness);
       await statusSelectInput.clickOptions({ text: 'Closed' });
@@ -364,7 +364,7 @@ describe('ApiPortalSubscriptionListComponent', () => {
     it('should search and not find any subscription', fakeAsync(async () => {
       await initComponent([fakeSubscription()]);
 
-      const harness = await loader.getHarness(ApiPortalSubscriptionListHarness);
+      const harness = await loader.getHarness(ApiGeneralSubscriptionListHarness);
 
       const statusSelectInput = await getEmptyFilterForm(harness);
       await statusSelectInput.clickOptions({ text: 'Rejected' });
@@ -389,7 +389,7 @@ describe('ApiPortalSubscriptionListComponent', () => {
       const application = fakeApplication();
 
       await initComponent([], fakeApiV4({ id: API_ID, listeners: [] }), [planV4]);
-      const harness = await loader.getHarness(ApiPortalSubscriptionListHarness);
+      const harness = await loader.getHarness(ApiGeneralSubscriptionListHarness);
 
       const createSubBtn = await harness.getCreateSubscriptionButton();
       expect(await createSubBtn).toBeDefined();
@@ -444,7 +444,7 @@ describe('ApiPortalSubscriptionListComponent', () => {
       const application = fakeApplication();
 
       await initComponent([], fakeApiV4({ id: API_ID, listeners: [] }), [planV4]);
-      const harness = await loader.getHarness(ApiPortalSubscriptionListHarness);
+      const harness = await loader.getHarness(ApiGeneralSubscriptionListHarness);
 
       const createSubBtn = await harness.getCreateSubscriptionButton();
       expect(await createSubBtn).toBeDefined();
@@ -494,7 +494,7 @@ describe('ApiPortalSubscriptionListComponent', () => {
       const application = fakeApplication();
 
       await initComponent([], fakeApiV4({ id: API_ID, listeners: [] }), [planV4]);
-      const harness = await loader.getHarness(ApiPortalSubscriptionListHarness);
+      const harness = await loader.getHarness(ApiGeneralSubscriptionListHarness);
 
       const createSubBtn = await harness.getCreateSubscriptionButton();
       expect(await createSubBtn).toBeDefined();
@@ -528,7 +528,7 @@ describe('ApiPortalSubscriptionListComponent', () => {
       const application = fakeApplication({ id: 'my-app' });
 
       await initComponent([], fakeApiV4({ id: API_ID, listeners: [] }), [planV4]);
-      const harness = await loader.getHarness(ApiPortalSubscriptionListHarness);
+      const harness = await loader.getHarness(ApiGeneralSubscriptionListHarness);
 
       const createSubBtn = await harness.getCreateSubscriptionButton();
       expect(await createSubBtn).toBeDefined();
@@ -574,7 +574,7 @@ describe('ApiPortalSubscriptionListComponent', () => {
       await init();
       await initComponent([], fakeApiV4({ id: API_ID, listeners: [] }));
 
-      const harness = await loader.getHarness(ApiPortalSubscriptionListHarness);
+      const harness = await loader.getHarness(ApiGeneralSubscriptionListHarness);
       const createSubBtn = await harness.getCreateSubscriptionButton();
       expect(await createSubBtn).toBeDefined();
       expect(await createSubBtn.isDisabled()).toEqual(false);
@@ -597,7 +597,7 @@ describe('ApiPortalSubscriptionListComponent', () => {
       await init();
       await initComponent([], fakeApiV4({ id: API_ID, definitionContext: { origin: 'KUBERNETES' } }));
 
-      const harness = await loader.getHarness(ApiPortalSubscriptionListHarness);
+      const harness = await loader.getHarness(ApiGeneralSubscriptionListHarness);
       const createSubBtn = await harness.getCreateSubscriptionButton();
       expect(await createSubBtn).toBeDefined();
       expect(await createSubBtn.isDisabled()).toEqual(false);
@@ -607,10 +607,10 @@ describe('ApiPortalSubscriptionListComponent', () => {
       await init();
       await initComponent([], fakeApiV1({ id: API_ID }));
 
-      const harness = await loader.getHarness(ApiPortalSubscriptionListHarness);
+      const harness = await loader.getHarness(ApiGeneralSubscriptionListHarness);
       const createSubBtn = await harness.getCreateSubscriptionButton();
       expect(await createSubBtn).toBeDefined();
-      expect(await createSubBtn.isDisabled()).toEqual(false);
+      expect(await createSubBtn.isDisabled()).toEqual(true);
     }));
   });
 
@@ -621,7 +621,7 @@ describe('ApiPortalSubscriptionListComponent', () => {
     it('should not export subscriptions if no subscription', fakeAsync(async () => {
       await initComponent([]);
 
-      const harness = await loader.getHarness(ApiPortalSubscriptionListHarness);
+      const harness = await loader.getHarness(ApiGeneralSubscriptionListHarness);
       const exportBtn = await harness.getExportButton();
       expect(await exportBtn.isDisabled()).toEqual(true);
     }));
@@ -642,7 +642,7 @@ describe('ApiPortalSubscriptionListComponent', () => {
         apiKey: '12345678',
       });
 
-      const harness = await loader.getHarness(ApiPortalSubscriptionListHarness);
+      const harness = await loader.getHarness(ApiGeneralSubscriptionListHarness);
       const exportBtn = await harness.getExportButton();
       expect(await exportBtn.isDisabled()).toEqual(false);
 
@@ -696,10 +696,10 @@ describe('ApiPortalSubscriptionListComponent', () => {
     fixture.detectChanges();
     tick(400);
 
-    expect(fixture.componentInstance.apiPortalSubscriptionList.isLoadingData).toEqual(false);
-    expect(fixture.componentInstance.apiPortalSubscriptionList.canUpdate).toEqual(permissions.includes('api-subscription-u'));
-    expect(fixture.componentInstance.apiPortalSubscriptionList.subscriptionsTableDS).toBeDefined();
-    expect(fixture.componentInstance.apiPortalSubscriptionList.subscriptionsTableDS.length).toEqual(subscriptions.length);
+    expect(fixture.componentInstance.apiGeneralSubscriptionList.isLoadingData).toEqual(false);
+    expect(fixture.componentInstance.apiGeneralSubscriptionList.canUpdate).toEqual(permissions.includes('api-subscription-u'));
+    expect(fixture.componentInstance.apiGeneralSubscriptionList.subscriptionsTableDS).toBeDefined();
+    expect(fixture.componentInstance.apiGeneralSubscriptionList.subscriptionsTableDS.length).toEqual(subscriptions.length);
   }
 
   async function computeSubscriptionsTableCells() {
@@ -713,7 +713,7 @@ describe('ApiPortalSubscriptionListComponent', () => {
     return { headerCells, rowCells };
   }
 
-  async function getEmptyFilterForm(harness: ApiPortalSubscriptionListHarness) {
+  async function getEmptyFilterForm(harness: ApiGeneralSubscriptionListHarness) {
     const statusSelectInput = await harness.getStatusSelectInput();
     expect(await statusSelectInput.isDisabled()).toEqual(false);
 

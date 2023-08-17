@@ -43,8 +43,8 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 
 import { ApiPortalSubscriptionCreationDialogComponent } from './components/dialogs/creation/api-portal-subscription-creation-dialog.component';
 import { ApiPortalSubscriptionTransferDialogComponent } from './components/dialogs/transfer/api-portal-subscription-transfer-dialog.component';
-import { ApiPortalSubscriptionEditComponent } from './edit/api-portal-subscription-edit.component';
-import { ApiPortalSubscriptionListComponent } from './list/api-portal-subscription-list.component';
+import { ApiGeneralSubscriptionEditComponent } from './edit/api-general-subscription-edit.component';
+import { ApiGeneralSubscriptionListComponent } from './list/api-general-subscription-list.component';
 import { ApiPortalSubscriptionChangeEndDateDialogComponent } from './components/dialogs/change-end-date/api-portal-subscription-change-end-date-dialog.component';
 import { ApiPortalSubscriptionValidateDialogComponent } from './components/dialogs/validate/api-portal-subscription-validate-dialog.component';
 import { ApiKeyValidationComponent } from './components/api-key-validation/api-key-validation.component';
@@ -57,8 +57,8 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
 
 @NgModule({
   declarations: [
-    ApiPortalSubscriptionEditComponent,
-    ApiPortalSubscriptionListComponent,
+    ApiGeneralSubscriptionEditComponent,
+    ApiGeneralSubscriptionListComponent,
     ApiPortalSubscriptionChangeEndDateDialogComponent,
     ApiPortalSubscriptionCreationDialogComponent,
     ApiPortalSubscriptionTransferDialogComponent,
@@ -70,7 +70,7 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
 
     ApiKeyValidationComponent,
   ],
-  exports: [ApiPortalSubscriptionEditComponent, ApiPortalSubscriptionListComponent, ApiKeyValidationComponent],
+  exports: [ApiGeneralSubscriptionEditComponent, ApiGeneralSubscriptionListComponent, ApiKeyValidationComponent],
   imports: [
     CommonModule,
     FormsModule,
