@@ -17,7 +17,7 @@ import { ComponentHarness } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 
-export class ApiPortalSubscriptionEditHarness extends ComponentHarness {
+export class ApiGeneralSubscriptionEditHarness extends ComponentHarness {
   static hostSelector = '#subscription-edit';
 
   protected getSubscriptionDetail = (attr: string) => this.locatorFor(`#subscription-${attr}`)();

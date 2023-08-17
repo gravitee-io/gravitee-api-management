@@ -32,10 +32,10 @@ import { ApiNgNavigationComponent } from './api-ng-navigation/api-ng-navigation.
 import { ApiGeneralInfoComponent } from './general/details/api-general-info.component';
 import { ApiGeneralPlanEditComponent } from './general/plans/edit/api-general-plan-edit.component';
 import { ApiGeneralPlanListComponent } from './general/plans/list/api-general-plan-list.component';
-import { ApiPortalSubscriptionListComponent } from './general/subscriptions/list/api-portal-subscription-list.component';
+import { ApiGeneralSubscriptionListComponent } from './general/subscriptions/list/api-general-subscription-list.component';
 import { ApiV4PolicyStudioDesignComponent } from './policy-studio-v4/design/api-v4-policy-studio-design.component';
 import { ApisGeneralModule } from './general/apis-general.module';
-import { ApiPortalSubscriptionEditComponent } from './general/subscriptions/edit/api-portal-subscription-edit.component';
+import { ApiGeneralSubscriptionEditComponent } from './general/subscriptions/edit/api-general-subscription-edit.component';
 import { ApiEndpointsModule } from './endpoints-v4/api-endpoints.module';
 import { ApiEntrypointsV4GeneralComponent } from './entrypoints-v4/api-entrypoints-v4-general.component';
 import { ApiEntrypointsV4Module } from './entrypoints-v4/api-entrypoints-v4.module';
@@ -222,7 +222,7 @@ const states: Ng2StateDeclaration[] = [
   {
     name: 'management.apis.ng.subscriptions',
     url: '/subscriptions?page&size&plan&application&status&apiKey',
-    component: ApiPortalSubscriptionListComponent,
+    component: ApiGeneralSubscriptionListComponent,
     data: {
       useAngularMaterial: true,
       docs: null,
@@ -274,7 +274,7 @@ const states: Ng2StateDeclaration[] = [
   {
     name: 'management.apis.ng.subscription.edit',
     url: '/:subscriptionId',
-    component: ApiPortalSubscriptionEditComponent,
+    component: ApiGeneralSubscriptionEditComponent,
     data: {
       useAngularMaterial: true,
       docs: null,

@@ -51,11 +51,11 @@ type SubscriptionsTableDS = {
 };
 
 @Component({
-  selector: 'api-portal-subscription-list',
-  template: require('./api-portal-subscription-list.component.html'),
-  styles: [require('./api-portal-subscription-list.component.scss')],
+  selector: 'api-general-subscription-list',
+  template: require('./api-general-subscription-list.component.html'),
+  styles: [require('./api-general-subscription-list.component.scss')],
 })
-export class ApiPortalSubscriptionListComponent implements OnInit, OnDestroy {
+export class ApiGeneralSubscriptionListComponent implements OnInit, OnDestroy {
   public displayedColumns = ['plan', 'application', 'createdAt', 'processedAt', 'startingAt', 'endAt', 'status', 'actions'];
   public subscriptionsTableDS: SubscriptionsTableDS[] = [];
   public nbTotalSubscriptions = 0;
@@ -101,7 +101,7 @@ export class ApiPortalSubscriptionListComponent implements OnInit, OnDestroy {
     },
   });
 
-  private api: Api;
+  public api: Api;
 
   public isLoadingData = true;
   public canUpdate = false;
