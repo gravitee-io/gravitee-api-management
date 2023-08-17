@@ -39,6 +39,7 @@
             class="endpoints-group-card__header__actions__button"
             aria-label="Reorder element to a higher position"
             (click)="reorderEndpointGroup(i, i - 1)"
+            [disabled]="isReordering"
           >
             <mat-icon svgIcon="gio:arrow-up"></mat-icon>
           </button>
@@ -49,6 +50,7 @@
             class="endpoints-group-card__header__actions__button"
             aria-label="Reorder element to a lower position"
             (click)="reorderEndpointGroup(i + 1, i)"
+            [disabled]="isReordering"
           >
             <mat-icon svgIcon="gio:arrow-down"></mat-icon>
           </button>
