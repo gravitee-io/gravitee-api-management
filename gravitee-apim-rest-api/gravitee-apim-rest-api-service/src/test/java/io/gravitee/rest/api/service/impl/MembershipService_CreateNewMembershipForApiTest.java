@@ -19,10 +19,12 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.DELETE;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
@@ -38,10 +40,8 @@ import io.gravitee.rest.api.model.permissions.OrganizationPermission;
 import io.gravitee.rest.api.model.permissions.Permission;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.providers.User;
-import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.IdentityService;
-import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -53,20 +53,18 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class MembershipService_CreateNewMembershipForApiTest {
 
     private static final String API_ID = "api-id-1";
 
-    @InjectMocks
-    private MembershipService membershipService = new MembershipServiceImpl();
+    private MembershipServiceImpl membershipService;
 
     @Mock
     private MembershipRepository membershipRepository;
@@ -89,9 +87,29 @@ public class MembershipService_CreateNewMembershipForApiTest {
     @Mock
     private ApiRepository apiRepository;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         reset(membershipRepository, apiSearchService, userService, auditService, roleService, identityService);
+
+        membershipService =
+            new MembershipServiceImpl(
+                identityService,
+                userService,
+                null,
+                null,
+                null,
+                null,
+                membershipRepository,
+                roleService,
+                null,
+                null,
+                apiSearchService,
+                null,
+                apiRepository,
+                null,
+                auditService
+            );
+
         mockRole();
         mockApi();
     }
@@ -125,10 +143,10 @@ public class MembershipService_CreateNewMembershipForApiTest {
             "OWNER"
         );
 
-        assertNotNull(createdMember);
+        assertThat(createdMember).isNotNull();
     }
 
-    @Test(expected = MembershipAlreadyExistsException.class)
+    @Test
     public void should_not_create_membership_for_existing_user_with_existing_membership() throws Exception {
         String existingUserId = "existing-user-id";
         mockExistingUser(existingUserId);
@@ -149,7 +167,10 @@ public class MembershipService_CreateNewMembershipForApiTest {
         )
             .thenReturn(Set.of(existingMembership));
 
-        membershipService.createNewMembershipForApi(GraviteeContext.getExecutionContext(), API_ID, existingUserId, null, "OWNER");
+        assertThatThrownBy(() ->
+                membershipService.createNewMembershipForApi(GraviteeContext.getExecutionContext(), API_ID, existingUserId, null, "OWNER")
+            )
+            .isInstanceOf(MembershipAlreadyExistsException.class);
     }
 
     @Test
@@ -181,7 +202,7 @@ public class MembershipService_CreateNewMembershipForApiTest {
             "OWNER"
         );
 
-        assertNotNull(createdMember);
+        assertThat(createdMember).isNotNull();
     }
 
     private void mockExistingUser(String existingUserId) {
@@ -200,7 +221,8 @@ public class MembershipService_CreateNewMembershipForApiTest {
         role.setName("OWNER");
         role.setId("API_OWNER");
         role.setPermissions(perms);
-        when(roleService.findByScopeAndName(RoleScope.API, "OWNER", GraviteeContext.getCurrentOrganization()))
+        lenient()
+            .when(roleService.findByScopeAndName(RoleScope.API, "OWNER", GraviteeContext.getCurrentOrganization()))
             .thenReturn(Optional.of(role));
         when(roleService.findById("API_OWNER")).thenReturn(role);
     }

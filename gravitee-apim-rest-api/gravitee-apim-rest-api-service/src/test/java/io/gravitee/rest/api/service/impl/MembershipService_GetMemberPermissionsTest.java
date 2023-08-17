@@ -15,9 +15,13 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static java.util.Arrays.asList;
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
@@ -35,19 +39,25 @@ import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.v4.ApiSearchService;
-import java.util.*;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class MembershipService_GetMemberPermissionsTest {
 
     private static final String API_ID = "api-id-1";
@@ -56,8 +66,7 @@ public class MembershipService_GetMemberPermissionsTest {
     private static final String ROLENAME = "ROLE";
     private static final String ROLENAME2 = "ROLE2";
 
-    @InjectMocks
-    private MembershipService membershipService = new MembershipServiceImpl();
+    private MembershipService membershipService;
 
     @Mock
     private MembershipRepository membershipRepository;
@@ -66,13 +75,32 @@ public class MembershipService_GetMemberPermissionsTest {
     private UserService userService;
 
     @Mock
-    private ApiSearchService apiSearchService;
-
-    @Mock
     private RoleService roleService;
 
     @Mock
     private ApiRepository apiRepository;
+
+    @BeforeEach
+    public void setUp() throws Exception {
+        membershipService =
+            new MembershipServiceImpl(
+                null,
+                userService,
+                null,
+                null,
+                null,
+                null,
+                membershipRepository,
+                roleService,
+                null,
+                null,
+                null,
+                null,
+                apiRepository,
+                null,
+                null
+            );
+    }
 
     @Test
     public void shouldGetNoPermissionsIfNotMemberAndWithNoGroup() throws Exception {
@@ -96,8 +124,7 @@ public class MembershipService_GetMemberPermissionsTest {
             USERNAME
         );
 
-        assertNotNull(permissions);
-        assertTrue(permissions.isEmpty());
+        assertThat(permissions).isEmpty();
         verify(membershipRepository, times(1))
             .findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
                 USERNAME,
@@ -116,7 +143,7 @@ public class MembershipService_GetMemberPermissionsTest {
 
         Membership membership = mock(Membership.class);
         doReturn("API_" + ROLENAME).when(membership).getRoleId();
-        doReturn(new HashSet<>(asList(membership)))
+        doReturn(new HashSet<>(List.of(membership)))
             .when(membershipRepository)
             .findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
                 USERNAME,
@@ -145,7 +172,7 @@ public class MembershipService_GetMemberPermissionsTest {
             USERNAME
         );
 
-        assertNotNull(permissions);
+        assertThat(permissions).isNotNull();
         assertPermissions(rolePerms, permissions);
         verify(membershipRepository, times(1))
             .findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
@@ -183,7 +210,7 @@ public class MembershipService_GetMemberPermissionsTest {
 
         Membership membership = mock(Membership.class);
         doReturn("API_" + ROLENAME).when(membership).getRoleId();
-        doReturn(new HashSet<>(asList(membership)))
+        doReturn(new HashSet<>(List.of(membership)))
             .when(membershipRepository)
             .findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
                 USERNAME,
@@ -213,7 +240,7 @@ public class MembershipService_GetMemberPermissionsTest {
             USERNAME
         );
 
-        assertNotNull(permissions);
+        assertThat(permissions).isNotNull();
         assertPermissions(rolePerms, permissions);
         verify(membershipRepository, times(1))
             .findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
@@ -242,7 +269,7 @@ public class MembershipService_GetMemberPermissionsTest {
 
         Membership membershipUser = mock(Membership.class);
         doReturn("API_" + ROLENAME).when(membershipUser).getRoleId();
-        doReturn(new HashSet<>(asList(membershipUser)))
+        doReturn(new HashSet<>(List.of(membershipUser)))
             .when(membershipRepository)
             .findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
                 USERNAME,
@@ -253,7 +280,7 @@ public class MembershipService_GetMemberPermissionsTest {
 
         Membership membershipGroup = mock(Membership.class);
         doReturn("API_" + ROLENAME2).when(membershipGroup).getRoleId();
-        doReturn(new HashSet<>(asList(membershipGroup)))
+        doReturn(new HashSet<>(List.of(membershipGroup)))
             .when(membershipRepository)
             .findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
                 USERNAME,
@@ -293,7 +320,7 @@ public class MembershipService_GetMemberPermissionsTest {
             USERNAME
         );
 
-        assertNotNull(permissions);
+        assertThat(permissions).isNotNull();
         Map<String, char[]> expectedPermissions = new HashMap<>();
         expectedPermissions.put(
             ApiPermission.DOCUMENTATION.getName(),
@@ -327,14 +354,14 @@ public class MembershipService_GetMemberPermissionsTest {
     }
 
     private void assertPermissions(Map<String, char[]> expected, Map<String, char[]> actual) {
-        assertEquals("there must be " + expected.size() + " permission", expected.size(), actual.size());
+        assertThat(actual).as("there must be " + expected.size() + " permission").hasSameSizeAs(expected);
         for (Map.Entry<String, char[]> expectedEntry : expected.entrySet()) {
-            assertTrue("must contains perm:" + expectedEntry.getKey(), actual.containsKey(expectedEntry.getKey()));
+            assertThat(actual).as("must contains perm:" + expectedEntry.getKey()).containsKey(expectedEntry.getKey());
             Arrays.sort(expectedEntry.getValue());
             String expectedCRUD = new String(expectedEntry.getValue());
             Arrays.sort(actual.get(expectedEntry.getKey()));
             String actualCRUD = new String(actual.get(expectedEntry.getKey()));
-            assertEquals("CRUD is OK", expectedCRUD, actualCRUD);
+            assertThat(actualCRUD).as("CRUD is OK").isEqualTo(expectedCRUD);
         }
     }
 }
