@@ -40,6 +40,7 @@ import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import {
   Api,
   ApiPlansResponse,
+  fakeApiV1,
   fakeApiV2,
   fakeApiV4,
   fakePlanV2,
@@ -536,6 +537,33 @@ describe('ApiPortalPlanListComponent', () => {
       const kubernetesApi = fakeApiV2({ id: API_ID, definitionContext: { origin: 'KUBERNETES' } });
       const plan = fakePlanV2({ apiId: API_ID, tags: ['tag1', 'tag2'] });
       await initComponent([plan], kubernetesApi);
+
+      expect(component.isReadOnly).toBe(true);
+
+      await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="View the plan details"]' })).then((btn) => btn.click());
+
+      expect(await loader.getAllHarnesses(MatButtonHarness.with({ selector: '[aria-label="Add new plan"]' }))).toHaveLength(0);
+      expect(fakeUiRouter.go).toBeCalledWith('management.apis.ng.plan.edit', { planId: plan.id });
+
+      const { headerCells, rowCells } = await computePlansTableCells();
+      expect(headerCells).toEqual([
+        {
+          name: 'Name',
+          status: 'Status',
+          'deploy-on': 'Deploy on',
+          type: 'Type',
+          actions: '',
+        },
+      ]);
+      expect(rowCells).toEqual([['Default plan', 'API_KEY', 'PUBLISHED', 'tag1, tag2', '']]);
+    });
+  });
+
+  describe('V1 API tests', () => {
+    it('should access plan in read only', async () => {
+      const v1Api = fakeApiV1({ id: API_ID });
+      const plan = fakePlanV2({ apiId: API_ID, tags: ['tag1', 'tag2'] });
+      await initComponent([plan], v1Api);
 
       expect(component.isReadOnly).toBe(true);
 
