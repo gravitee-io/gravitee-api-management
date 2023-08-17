@@ -16,13 +16,9 @@
 package io.gravitee.rest.api.model;
 
 import static io.gravitee.rest.api.model.PageType.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.Assert.*;
 
-import java.util.stream.Stream;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.Test;
 
 /**
  * @author GraviteeSource Team
@@ -158,26 +154,5 @@ public class PageTypeTest {
     @Test
     public void matchesExtension_should_return_false_when_it_doesnt_matches() {
         assertFalse(MARKDOWN.matchesExtension("mxd"));
-    }
-
-    @ParameterizedTest
-    @MethodSource("providePageType")
-    public void shouldCheckIfIsIndexable(final PageType type, boolean expected) {
-        assertEquals(expected, PageType.isIndexable(type));
-    }
-
-    private static Stream<Arguments> providePageType() {
-        return Stream.of(
-            Arguments.of(ASCIIDOC, true),
-            Arguments.of(ASYNCAPI, true),
-            Arguments.of(MARKDOWN, true),
-            Arguments.of(MARKDOWN_TEMPLATE, true),
-            Arguments.of(SWAGGER, true),
-            Arguments.of(FOLDER, false),
-            Arguments.of(LINK, false),
-            Arguments.of(ROOT, false),
-            Arguments.of(SYSTEM_FOLDER, false),
-            Arguments.of(TRANSLATION, true)
-        );
     }
 }

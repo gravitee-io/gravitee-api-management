@@ -70,8 +70,4 @@ public enum PageType {
             .findFirst()
             .orElse(null);
     }
-
-    public static boolean isIndexable(PageType pageType) {
-        return !List.of(FOLDER, LINK, ROOT, SYSTEM_FOLDER).contains(pageType);
-    }
 }

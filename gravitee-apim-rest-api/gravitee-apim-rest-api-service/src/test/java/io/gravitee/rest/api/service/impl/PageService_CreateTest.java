@@ -214,7 +214,6 @@ public class PageService_CreateTest {
         createdPage.setReferenceId("DEFAULT");
         createdPage.setReferenceType(PageReferenceType.ENVIRONMENT);
         createdPage.setVisibility("PUBLIC");
-        createdPage.setType(PageType.FOLDER.toString());
         doReturn(createdPage).when(pageRepository).create(any());
 
         final PageEntity createdFolder = pageService.createPage(new ExecutionContext("DEFAULT", "DEFAULT"), newFolder);
@@ -312,7 +311,6 @@ public class PageService_CreateTest {
         createdPage.setReferenceId("DEFAULT");
         createdPage.setReferenceType(PageReferenceType.ENVIRONMENT);
         createdPage.setVisibility("PUBLIC");
-        createdPage.setType(PageType.LINK.toString());
         doReturn(createdPage).when(pageRepository).create(any());
 
         pageService.createPage(new ExecutionContext("DEFAULT", "DEFAULT"), newFolder);
@@ -345,7 +343,6 @@ public class PageService_CreateTest {
         createdPage.setReferenceId("DEFAULT");
         createdPage.setReferenceType(PageReferenceType.ENVIRONMENT);
         createdPage.setVisibility("PUBLIC");
-        createdPage.setType(PageType.LINK.toString());
         doReturn(createdPage).when(pageRepository).create(any());
 
         pageService.createPage(new ExecutionContext("DEFAULT", "DEFAULT"), newLink);
