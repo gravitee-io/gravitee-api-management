@@ -30,11 +30,11 @@ import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
 import { ApiPlanV2Service } from '../../../../../services-ngx/api-plan-v2.service';
 
 @Component({
-  selector: 'api-portal-plan-edit',
-  template: require('./api-portal-plan-edit.component.html'),
-  styles: [require('./api-portal-plan-edit.component.scss')],
+  selector: 'api-general-plan-edit',
+  template: require('./api-general-plan-edit.component.html'),
+  styles: [require('./api-general-plan-edit.component.scss')],
 })
-export class ApiPortalPlanEditComponent implements OnInit, OnDestroy {
+export class ApiGeneralPlanEditComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   public mode: 'create' | 'edit' = 'create';
