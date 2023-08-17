@@ -21,6 +21,8 @@ import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 @SuppressWarnings("ALL")
 public class PrimaryOwnerFixtures {
 
+    private PrimaryOwnerFixtures() {}
+
     private static final PrimaryOwner.PrimaryOwnerBuilder BASE_PRIMARY_OWNER = PrimaryOwner
         .builder()
         .id("primary-owner-id")
@@ -28,18 +30,11 @@ public class PrimaryOwnerFixtures {
         .email("primary-owner@email.com")
         .type(PrimaryOwner.TypeEnum.USER);
 
-    private static final PrimaryOwnerEntity.PrimaryOwnerEntityBuilder BASE_PRIMARY_OWNER_ENTITY = PrimaryOwnerEntity
-        .builder()
-        .id("primary-owner-id")
-        .displayName("primary-owner-displayName")
-        .email("primary-owner-email")
-        .type("USER");
-
     public static PrimaryOwner aPrimaryOwner() {
         return BASE_PRIMARY_OWNER.build();
     }
 
     public static PrimaryOwnerEntity aPrimaryOwnerEntity() {
-        return BASE_PRIMARY_OWNER_ENTITY.build();
+        return PrimaryOwnerModelFixtures.aPrimaryOwnerEntity();
     }
 }

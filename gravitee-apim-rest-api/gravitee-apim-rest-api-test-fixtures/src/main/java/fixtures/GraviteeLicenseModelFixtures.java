@@ -15,13 +15,21 @@
  */
 package fixtures;
 
-import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.v4.license.GraviteeLicenseEntity;
+import io.gravitee.rest.api.model.v4.license.GraviteeLicenseEntity.GraviteeLicenseEntityBuilder;
+import java.util.Set;
 
-public class UserFixtures {
+public class GraviteeLicenseModelFixtures {
 
-    private UserFixtures() {}
+    private GraviteeLicenseModelFixtures() {}
 
-    public static UserEntity aUserEntity() {
-        return UserModelFixtures.aUserEntity();
+    private static final GraviteeLicenseEntityBuilder BASE_GRAVITEE_LICENSE_ENTITY = GraviteeLicenseEntity
+        .builder()
+        .tier("tier-galaxy")
+        .features(Set.of("feature-datadog-reporter"))
+        .packs(Set.of("pack-observability"));
+
+    public static GraviteeLicenseEntity aGraviteeLicenseEntity() {
+        return BASE_GRAVITEE_LICENSE_ENTITY.build();
     }
 }

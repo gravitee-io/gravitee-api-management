@@ -15,20 +15,19 @@
  */
 package fixtures;
 
-import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.rest.api.management.v2.rest.model.HttpListener;
 import io.gravitee.rest.api.management.v2.rest.model.ListenerType;
 import io.gravitee.rest.api.management.v2.rest.model.PathV4;
 import io.gravitee.rest.api.management.v2.rest.model.SubscriptionListener;
 import io.gravitee.rest.api.management.v2.rest.model.TcpListener;
 import java.util.List;
-import java.util.Set;
 
 @SuppressWarnings("ALL")
 public class ListenerFixtures {
 
+    private ListenerFixtures() {}
+
     private static final PathV4.PathV4Builder BASE_PATH_V4 = PathV4.builder().host("my.fake.host").path("/test").overrideAccess(true);
-    private static final Path.PathBuilder BASE_MODEL_PATH_V4 = Path.builder().host("my.fake.host").path("/test").overrideAccess(true);
 
     private static final HttpListener.HttpListenerBuilder BASE_HTTP_LISTENER = HttpListener
         .builder()
@@ -55,34 +54,6 @@ public class ListenerFixtures {
         .entrypoints(List.of(EntrypointFixtures.anEntrypointV4()))
         .servers(List.of("my-server1", "my-server2"));
 
-    private static final io.gravitee.definition.model.v4.listener.http.HttpListener.HttpListenerBuilder BASE_MODEL_HTTP_LISTENER =
-        io.gravitee.definition.model.v4.listener.http.HttpListener
-            .builder()
-            // Listener
-            .type(io.gravitee.definition.model.v4.listener.ListenerType.HTTP)
-            .entrypoints(List.of(EntrypointFixtures.aModelEntrypointV4()))
-            .servers(List.of("my-server1", "my-server2"))
-            // HttpListener specific
-            .paths(List.of(BASE_MODEL_PATH_V4.build()))
-            .pathMappings(Set.of("/test"))
-            .cors(CorsFixtures.aModelCors());
-
-    private static final io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener.SubscriptionListenerBuilder BASE_MODEL_SUBSCRIPTION_LISTENER =
-        io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener
-            .builder()
-            // BaseListener
-            .type(io.gravitee.definition.model.v4.listener.ListenerType.SUBSCRIPTION)
-            .entrypoints(List.of(EntrypointFixtures.aModelEntrypointV4()))
-            .servers(List.of("my-server1", "my-server2"));
-
-    private static final io.gravitee.definition.model.v4.listener.tcp.TcpListener.TcpListenerBuilder BASE_MODEL_TCP_LISTENER =
-        io.gravitee.definition.model.v4.listener.tcp.TcpListener
-            .builder()
-            // BaseListener
-            .type(io.gravitee.definition.model.v4.listener.ListenerType.TCP)
-            .entrypoints(List.of(EntrypointFixtures.aModelEntrypointV4()))
-            .servers(List.of("my-server1", "my-server2"));
-
     public static HttpListener aHttpListener() {
         return BASE_HTTP_LISTENER.build();
     }
@@ -96,14 +67,14 @@ public class ListenerFixtures {
     }
 
     public static io.gravitee.definition.model.v4.listener.http.HttpListener aModelHttpListener() {
-        return BASE_MODEL_HTTP_LISTENER.build();
+        return ListenerModelFixtures.aModelHttpListener();
     }
 
     public static io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener aModelSubscriptionListener() {
-        return BASE_MODEL_SUBSCRIPTION_LISTENER.build();
+        return ListenerModelFixtures.aModelSubscriptionListener();
     }
 
     public static io.gravitee.definition.model.v4.listener.tcp.TcpListener aModelTcpListener() {
-        return BASE_MODEL_TCP_LISTENER.build();
+        return ListenerModelFixtures.aModelTcpListener();
     }
 }

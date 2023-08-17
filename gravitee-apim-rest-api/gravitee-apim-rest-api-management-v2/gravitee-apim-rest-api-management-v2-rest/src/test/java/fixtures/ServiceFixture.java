@@ -21,6 +21,8 @@ import java.util.Map;
 
 public class ServiceFixture {
 
+    private ServiceFixture() {}
+
     private static final EndpointDiscoveryService.EndpointDiscoveryServiceBuilder BASE_ENDPOINT_DISCOVERY_SERVICE = EndpointDiscoveryService
         .builder()
         .enabled(true)

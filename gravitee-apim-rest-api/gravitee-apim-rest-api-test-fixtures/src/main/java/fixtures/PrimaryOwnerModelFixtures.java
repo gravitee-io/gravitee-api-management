@@ -15,22 +15,20 @@
  */
 package fixtures;
 
-import io.gravitee.rest.api.model.ApplicationEntity;
-import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 
-/**
- * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
- * @author GraviteeSource Team
- */
-public class ApplicationFixtures {
+public class PrimaryOwnerModelFixtures {
 
-    private ApplicationFixtures() {}
+    private PrimaryOwnerModelFixtures() {}
 
-    public static ApplicationListItem anApplicationListItem() {
-        return ApplicationModelFixtures.anApplicationListItem();
-    }
+    private static final PrimaryOwnerEntity.PrimaryOwnerEntityBuilder BASE_PRIMARY_OWNER_ENTITY = PrimaryOwnerEntity
+        .builder()
+        .id("primary-owner-id")
+        .displayName("primary-owner-displayName")
+        .email("primary-owner-email")
+        .type("USER");
 
-    public static ApplicationEntity anApplicationEntity() {
-        return ApplicationModelFixtures.anApplicationEntity();
+    public static PrimaryOwnerEntity aPrimaryOwnerEntity() {
+        return BASE_PRIMARY_OWNER_ENTITY.build();
     }
 }

@@ -15,34 +15,24 @@
  */
 package fixtures;
 
-import io.gravitee.rest.api.management.v2.rest.model.Cors;
 import java.util.Set;
 
-/**
- * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
- * @author GraviteeSource Team
- */
-@SuppressWarnings("ALL")
-public class CorsFixtures {
+public class CorsModelFixtures {
 
-    private CorsFixtures() {}
+    private CorsModelFixtures() {}
 
-    private static final Cors.CorsBuilder BASE_CORS = Cors
+    private static final io.gravitee.definition.model.Cors.CorsBuilder BASE_MODEL_CORS = io.gravitee.definition.model.Cors
         .builder()
-        .allowCredentials(true)
-        .allowHeaders(Set.of("header1", "header2"))
-        .allowMethods(Set.of("method1", "method2"))
-        .allowOrigin(Set.of("origin1", "origin2"))
+        .accessControlAllowCredentials(true)
+        .accessControlAllowHeaders(Set.of("header1", "header2"))
+        .accessControlAllowMethods(Set.of("method1", "method2"))
+        .accessControlAllowOrigin(Set.of("origin1", "origin2"))
         .enabled(true)
-        .exposeHeaders(Set.of("exposeHeader1", "exposeHeader2"))
-        .maxAge(10)
+        .accessControlExposeHeaders(Set.of("exposeHeader1", "exposeHeader2"))
+        .accessControlMaxAge(10)
         .runPolicies(true);
 
-    public static Cors aCors() {
-        return BASE_CORS.build();
-    }
-
     public static io.gravitee.definition.model.Cors aModelCors() {
-        return CorsModelFixtures.aModelCors();
+        return BASE_MODEL_CORS.build();
     }
 }
