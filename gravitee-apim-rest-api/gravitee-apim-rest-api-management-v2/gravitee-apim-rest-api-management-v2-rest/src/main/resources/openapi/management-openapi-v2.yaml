@@ -1997,6 +1997,7 @@ components:
                 - definitionVersion
         ApiV1:
             type: object
+            title: "ApiV1"
             allOf:
                 - $ref: "#/components/schemas/GenericApi"
                 - properties:
@@ -2034,6 +2035,7 @@ components:
                               $ref: "#/components/schemas/ApiEntrypoint"
         ApiV2:
             type: object
+            title: "ApiV2"
             allOf:
                 - $ref: "#/components/schemas/GenericApi"
                 - properties:
@@ -2070,6 +2072,7 @@ components:
                               $ref: "#/components/schemas/ApiEntrypoint"
         ApiV4:
             type: object
+            title: "ApiV4"
             allOf:
                 - $ref: "#/components/schemas/GenericApi"
                 - properties:
@@ -2151,6 +2154,7 @@ components:
                     V4: CreateApiV4
         CreateApiV2:
             type: object
+            title: "CreateApiV2"
             allOf:
                 - $ref: "#/components/schemas/CreateGenericApi"
                 - properties:
@@ -2173,6 +2177,7 @@ components:
                   required: [contextPath, endpoint]
         CreateApiV4:
             type: object
+            title: "CreateApiV4"
             allOf:
                 - $ref: "#/components/schemas/CreateGenericApi"
                 - properties:
@@ -2342,6 +2347,7 @@ components:
                     V4: UpdateApiV4
         UpdateApiV2:
             type: object
+            title: "UpdateApiV2"
             allOf:
                 - $ref: "#/components/schemas/UpdateGenericApi"
                 - properties:
@@ -2367,6 +2373,7 @@ components:
                   required: [contextPath, endpoint]
         UpdateApiV4:
             type: object
+            title: "UpdateApiV4"
             allOf:
                 - $ref: "#/components/schemas/UpdateGenericApi"
                 - properties:
@@ -2461,6 +2468,7 @@ components:
             readOnly: true
         ChannelSelector:
             type: object
+            title: "ChannelSelector"
             required:
                 - type
                 - channel
@@ -2493,6 +2501,7 @@ components:
                           uniqueItems: true
         ConditionSelector:
             type: object
+            title: "ConditionSelector"
             required:
                 - type
                 - condition
@@ -2827,6 +2836,7 @@ components:
                 - DEFAULT
         HttpListener:
             type: object
+            title: "HttpListener"
             required:
                 - type
             allOf:
@@ -2861,6 +2871,7 @@ components:
                 - OTHER
         HttpSelector:
             type: object
+            title: "HttpSelector"
             required:
                 - type
                 - path
@@ -3180,6 +3191,7 @@ components:
                     V4: PlanV4
         PlanV4:
             type: object
+            title: "PlanV4"
             allOf:
                 - $ref: "#/components/schemas/GenericPlan"
                 - properties:
@@ -3317,6 +3329,7 @@ components:
                 - definitionVersion
         CreatePlanV2:
             type: object
+            title: "CreatePlanV2"
             allOf:
                 - $ref: "#/components/schemas/CreateGenericPlan"
                 - properties:
@@ -3327,6 +3340,7 @@ components:
 
         CreatePlanV4:
             type: object
+            title: "CreatePlanV4"
             allOf:
                 - $ref: "#/components/schemas/CreateGenericPlan"
                 - properties:
@@ -3424,6 +3438,7 @@ components:
                 - definitionVersion
         UpdatePlanV2:
             type: object
+            title: "UpdatePlanV2"
             allOf:
                 - $ref: "#/components/schemas/UpdateGenericPlan"
                 - properties:
@@ -3440,6 +3455,7 @@ components:
 
         UpdatePlanV4:
             type: object
+            title: "UpdatePlanV4"
             allOf:
                 - $ref: "#/components/schemas/UpdateGenericPlan"
                 - properties:
@@ -4067,9 +4083,11 @@ components:
                           type: string
                           description: The message condition of the step
         SubscriptionListener:
+            title: "SubscriptionListener"
             allOf:
                 - $ref: "#/components/schemas/BaseListener"
         TcpListener:
+            title: "TcpListener"
             allOf:
                 - $ref: "#/components/schemas/BaseListener"
 
@@ -4187,6 +4205,7 @@ components:
             required:
                 - type
         HttpEndpointV2:
+            title: "HttpEndpointV2"
             allOf:
                 - $ref: "#/components/schemas/BaseEndpointV2"
                 - properties:
@@ -4478,6 +4497,7 @@ components:
                         $ref: "#/components/schemas/HttpHeader"
         HttpDynamicPropertyProviderConfiguration:
             type: object
+            title: "HttpDynamicPropertyProviderConfiguration"
             properties:
                 url:
                     type: string
@@ -4587,6 +4607,7 @@ components:
             required:
                 - type
         JKSKeyStore:
+            title: "JKSKeyStore"
             allOf:
                 - $ref: "#/components/schemas/BaseKeyStore"
                 - properties:
@@ -4608,6 +4629,7 @@ components:
                           description: The key password of the key store
 
         PEMKeyStore:
+            title: "PEMKeyStore"
             allOf:
                 - $ref: "#/components/schemas/BaseKeyStore"
                 - properties:
@@ -4626,6 +4648,7 @@ components:
                           type: string
                           description: The content of the key store
         PKCS12KeyStore:
+            title: "PKCS12KeyStore"
             allOf:
                 - $ref: "#/components/schemas/BaseKeyStore"
                 - properties:
@@ -4646,6 +4669,7 @@ components:
                           type: string
                           description: The key password of the key store
         NoneKeyStore:
+            title: "NoneKeyStore"
             allOf:
                 - $ref: "#/components/schemas/BaseKeyStore"
 
@@ -4700,6 +4724,7 @@ components:
                     $ref: "#/components/schemas/Operator"
         PlanV2:
             type: object
+            title: "PlanV2"
             allOf:
                 - $ref: "#/components/schemas/GenericPlan"
                 - properties:
@@ -4798,6 +4823,7 @@ components:
                     PKCS12: "#/components/schemas/PKCS12TrustStore"
                     NONE: "#/components/schemas/NoneTrustStore"
         JKSTrustStore:
+            title: "JKSTrustStore"
             allOf:
                 - $ref: "#/components/schemas/BaseTrustStore"
                 - properties:
@@ -4815,6 +4841,7 @@ components:
                           type: string
                           description: The password of the trust store
         PEMTrustStore:
+            title: "PEMTrustStore"
             allOf:
                 - $ref: "#/components/schemas/BaseTrustStore"
                 - properties:
@@ -4826,6 +4853,7 @@ components:
                           type: string
                           description: The content of the trust store
         PKCS12TrustStore:
+            title: "PKCS12TrustStore"
             allOf:
                 - $ref: "#/components/schemas/BaseTrustStore"
                 - properties:
@@ -4843,6 +4871,7 @@ components:
                           type: string
                           description: The password of the trust store
         NoneTrustStore:
+            title: "NoneTrustStore"
             allOf:
                 - $ref: "#/components/schemas/BaseTrustStore"
 
