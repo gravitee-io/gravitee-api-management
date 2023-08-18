@@ -19,7 +19,7 @@ import { GioLicenseService } from '@gravitee/ui-particles-angular';
 
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
 import { ApiCreationPayload } from '../../models/ApiCreationPayload';
-import { UTMTags } from '../../../../../shared/components/gio-license/gio-license-data';
+import { ApimFeature, UTMTags } from '../../../../../shared/components/gio-license/gio-license-data';
 import { Constants } from '../../../../../entities/Constants';
 
 @Component({
@@ -70,6 +70,6 @@ export class Step5SummaryComponent implements OnInit {
   }
 
   public onRequestUpgrade($event: MouseEvent) {
-    this.licenseService.openDialog({ feature: UTMTags.API_CREATION_MESSAGE_SUMMARY }, $event);
+    this.licenseService.openDialog({ feature: ApimFeature.APIM_EN_MESSAGE_REACTOR, context: UTMTags.API_CREATION_MESSAGE_SUMMARY }, $event);
   }
 }
