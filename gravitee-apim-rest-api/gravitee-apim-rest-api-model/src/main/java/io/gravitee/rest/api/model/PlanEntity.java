@@ -27,6 +27,7 @@ import java.util.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
+import lombok.With;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -36,6 +37,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
+@With
 public class PlanEntity implements GenericPlanEntity {
 
     private String id;

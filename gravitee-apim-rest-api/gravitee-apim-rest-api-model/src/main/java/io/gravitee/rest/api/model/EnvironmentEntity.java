@@ -18,12 +18,19 @@ package io.gravitee.rest.api.model;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.util.List;
-import java.util.Objects;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Builder(toBuilder = true)
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class EnvironmentEntity {
 
     private String id;
@@ -42,108 +49,4 @@ public class EnvironmentEntity {
     private String organizationId;
 
     private List<String> domainRestrictions;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getOrganizationId() {
-        return organizationId;
-    }
-
-    public void setOrganizationId(String organizationId) {
-        this.organizationId = organizationId;
-    }
-
-    public List<String> getDomainRestrictions() {
-        return domainRestrictions;
-    }
-
-    public void setDomainRestrictions(List<String> domainRestrictions) {
-        this.domainRestrictions = domainRestrictions;
-    }
-
-    public List<String> getHrids() {
-        return hrids;
-    }
-
-    public void setHrids(List<String> hrids) {
-        this.hrids = hrids;
-    }
-
-    public String getCockpitId() {
-        return cockpitId;
-    }
-
-    public void setCockpitId(String cockpitId) {
-        this.cockpitId = cockpitId;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        EnvironmentEntity that = (EnvironmentEntity) o;
-        return (
-            Objects.equals(id, that.id) &&
-            Objects.equals(cockpitId, that.cockpitId) &&
-            Objects.equals(hrids, that.hrids) &&
-            Objects.equals(name, that.name) &&
-            Objects.equals(description, that.description) &&
-            Objects.equals(organizationId, that.organizationId) &&
-            Objects.equals(domainRestrictions, that.domainRestrictions)
-        );
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, cockpitId, hrids, name, description, organizationId, domainRestrictions);
-    }
-
-    @Override
-    public String toString() {
-        return (
-            "EnvironmentEntity{" +
-            "id='" +
-            id +
-            '\'' +
-            ", cockpitId='" +
-            cockpitId +
-            '\'' +
-            ", hrids=" +
-            hrids +
-            ", name='" +
-            name +
-            '\'' +
-            ", description='" +
-            description +
-            '\'' +
-            ", organizationId='" +
-            organizationId +
-            '\'' +
-            ", domainRestrictions=" +
-            domainRestrictions +
-            '}'
-        );
-    }
 }
