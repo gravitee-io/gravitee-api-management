@@ -28,7 +28,7 @@ import { ApiCreationStepService } from '../../services/api-creation-step.service
 import { ConnectorVM, fromConnector } from '../../models/ConnectorVM';
 import { IconService } from '../../../../../services-ngx/icon.service';
 import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
-import { UTMTags } from '../../../../../shared/components/gio-license/gio-license-data';
+import { ApimFeature, UTMTags } from '../../../../../shared/components/gio-license/gio-license-data';
 
 @Component({
   selector: 'step-2-entrypoints-1-list',
@@ -134,6 +134,9 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
   }
 
   public onRequestUpgrade($event: MouseEvent) {
-    this.licenseService.openDialog({ feature: UTMTags.API_CREATION_MESSAGE_ENTRYPOINT }, $event);
+    this.licenseService.openDialog(
+      { feature: ApimFeature.APIM_EN_MESSAGE_REACTOR, context: UTMTags.API_CREATION_MESSAGE_ENTRYPOINT },
+      $event,
+    );
   }
 }
