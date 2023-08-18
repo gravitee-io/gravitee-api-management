@@ -306,7 +306,6 @@ import AlertTriggerApplicationQuotaComponent from '../components/alerts/alert/tr
 import AlertTriggerProjectionsComponent from '../components/alerts/alert/triggers/projections/trigger-projections.component';
 import AlertTriggerProjectionComponent from '../components/alerts/alert/triggers/projections/trigger-projection.component';
 import AlertTriggerTimeframesComponent from '../components/alerts/alert/triggers/trigger-timeframe.component';
-import AlertEnginePromotionComponent from '../components/alerts/alertEnginePromotion/alert-engine-promotion-component';
 
 import CircularPercentageComponent from '../components/circularPercentage/circularPercentage.component';
 import CircularPercentageController from '../components/circularPercentage/circularPercentage.controller';
@@ -455,8 +454,12 @@ import { CockpitService } from '../services-ngx/cockpit.service';
 
 import { upgradeModule } from '@uirouter/angular-hybrid';
 import uiRouter from '@uirouter/angularjs';
+<<<<<<< HEAD
 import { ConfigureLoggingDialogController } from './api/analytics/logs/configure-logging.dialog';
 import { GioBannerComponent, GioLicenseService } from '@gravitee/ui-particles-angular';
+=======
+import { GioBannerComponent } from '@gravitee/ui-particles-angular';
+>>>>>>> f1ab9e10c7 (feat: align Alert Engine CTA with other OS)
 import { GioPendoService } from '@gravitee/ui-analytics';
 import ApplicationSubscriptionsListComponent from '../management/application/details/subscriptions/application-subscriptions-list.component';
 import ApplicationSubscriptionsListController from '../management/application/details/subscriptions/application-subscriptions-list.controller';
@@ -658,8 +661,6 @@ graviteeManagementModule.directive('ngApiProxyFailover', downgradeComponent({ co
 // Pendo Analytics
 graviteeManagementModule.factory('ngGioPendoService', downgradeInjectable(GioPendoService));
 graviteeManagementModule.controller('ApisStatusDashboardController', ApisStatusDashboardController);
-
-graviteeManagementModule.factory('ngGioLicenseService', downgradeInjectable(GioLicenseService));
 
 graviteeManagementModule.controller('ApiAdminController', ApiAdminController);
 graviteeManagementModule.directive('ngApiPortalDetails', downgradeComponent({ component: ApiPortalDetailsComponent }));
@@ -997,7 +998,6 @@ graviteeManagementModule.component('gvAlertTriggerApplicationQuota', AlertTrigge
 graviteeManagementModule.component('gvAlertTriggerProjections', AlertTriggerProjectionsComponent);
 graviteeManagementModule.component('gvAlertTriggerProjection', AlertTriggerProjectionComponent);
 graviteeManagementModule.component('gvAlertTriggerTimeframe', AlertTriggerTimeframesComponent);
-graviteeManagementModule.component('alertEnginePromotion', AlertEnginePromotionComponent);
 
 // CircularPercentageComponent
 graviteeManagementModule.component('circularPercentage', CircularPercentageComponent);

@@ -17,14 +17,12 @@
 import { IPromise, IScope } from 'angular';
 import { StateService } from '@uirouter/core';
 import '@gravitee/ui-components/wc/gv-chart-bar';
-import { GioLicenseService } from '@gravitee/ui-particles-angular';
 
 import { ITimeframe, TimeframeRanges } from '../../quick-time-range/quick-time-range.component';
 import { Alert, Scope } from '../../../entities/alert';
 import AlertService, { IAlertTriggerAnalytics } from '../../../services/alert.service';
 import UserService from '../../../services/user.service';
 import { Constants } from '../../../entities/Constants';
-import { UTMTags } from '../../../shared/components/gio-license/gio-license-data';
 
 class AlertsDashboardComponent implements ng.IComponentController {
   private static INFO_COLOR = '#54a3ff';
@@ -43,7 +41,6 @@ class AlertsDashboardComponent implements ng.IComponentController {
   private hasAlertingPlugin: boolean;
   private series: IPromise<unknown>;
   private options: any;
-  public trialUrl: string;
 
   /* @ngInject */
   constructor(
@@ -52,12 +49,10 @@ class AlertsDashboardComponent implements ng.IComponentController {
     private UserService: UserService,
     private $state: StateService,
     private Constants: Constants,
-    private ngGioLicenseService: GioLicenseService,
   ) {}
 
   $onInit() {
     this.timeframe = TimeframeRanges.LAST_MINUTE;
-    this.trialUrl = this.ngGioLicenseService.getTrialURL({ feature: 'alert_engine', context: UTMTags.CONTEXT_API_ANALYTICS });
     this.options = {
       name: 'Severity',
       data: [
@@ -177,10 +172,6 @@ class AlertsDashboardComponent implements ng.IComponentController {
       case 'CRITICAL':
         return AlertsDashboardComponent.CRITICAL_COLOR;
     }
-  }
-
-  isAlertEngineEnabled() {
-    return this.Constants.org.settings.alertEngine.enabled;
   }
 }
 
