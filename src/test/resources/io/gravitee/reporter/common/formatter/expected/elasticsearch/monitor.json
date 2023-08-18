@@ -1,0 +1,78 @@
+{
+  "@timestamp": "2023-08-18T11:20:18.550Z",
+  "type": "monitor",
+  "date": "2023.08.18",
+  "os": {
+    "cpu": {
+      "percent": 35,
+      "load_average": {
+        "1m": 4.77197265625
+      }
+    },
+    "mem": {
+      "total_in_bytes": 34359738368,
+      "free_in_bytes": 49741824,
+      "used_in_bytes": 34309996544,
+      "free_percent": 0,
+      "used_percent": 100
+    }
+  },
+  "process": {
+    "timestamp": 1692357618550,
+    "open_file_descriptors": 377,
+    "max_file_descriptors": 10240,
+    "cpu": {
+      "percent": 0
+    }
+  },
+  "jvm": {
+    "timestamp": 1692357618550,
+    "uptime_in_millis": 604500,
+    "mem": {
+      "heap_used_in_bytes": 75249824,
+      "heap_used_percent": 0,
+      "heap_committed_in_bytes": 209715200,
+      "heap_max_in_bytes": 8589934592,
+      "non_heap_used_in_bytes": 123611376,
+      "non_heap_committed_in_bytes": 126484480,
+      "pools": {
+        "young": {
+          "used_in_bytes": 16777216,
+          "max_in_bytes": 0,
+          "peak_used_in_bytes": 130023424,
+          "peak_max_in_bytes": 0
+        },
+        "old": {
+          "used_in_bytes": 50743808,
+          "max_in_bytes": 8589934592,
+          "peak_used_in_bytes": 50743808,
+          "peak_max_in_bytes": 8589934592
+        },
+        "survivor": {
+          "used_in_bytes": 7728800,
+          "max_in_bytes": 0,
+          "peak_used_in_bytes": 13753744,
+          "peak_max_in_bytes": 0
+        }
+      }
+    },
+    "threads": {
+      "count": 114,
+      "peak_count": 116
+    },
+    "gc": {
+      "collectors": {
+        "young": {
+          "collection_count": 19,
+          "collection_time_in_millis": 69
+        },
+        "old": {
+          "collection_count": 0,
+          "collection_time_in_millis": 0
+        }
+      }
+    }
+  },
+  "gateway": "gateway-id",
+  "hostname": "gravitee.test"
+}

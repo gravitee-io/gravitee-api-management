@@ -1,0 +1,49 @@
+{
+  "timestamp": 1692357451748,
+  "api": "ff3c6c48-53e0-41d6-bc6c-4853e011d656",
+  "requestId": "a01b8b77-ccd6-4dd7-9b8b-77ccd6fdd7e2",
+  "clientRequest": {
+    "method": "GET",
+    "headers": {
+      "Accept": ["*/*"],
+      "User-Agent": ["curl/7.88.1"],
+      "X-Gravitee-Transaction-Id": ["a01b8b77-ccd6-4dd7-9b8b-77ccd6fdd7e2"],
+      "Host": ["localhost:8082"],
+      "X-Gravitee-Request-Id": ["a01b8b77-ccd6-4dd7-9b8b-77ccd6fdd7e2"]
+    },
+    "uri": "/test"
+  },
+  "proxyRequest": {
+    "method": "GET",
+    "headers": {
+      "Accept": ["*/*"],
+      "User-Agent": ["curl/7.88.1"],
+      "X-Gravitee-Transaction-Id": ["a01b8b77-ccd6-4dd7-9b8b-77ccd6fdd7e2"],
+      "Host": ["api.gravitee.io"],
+      "X-Gravitee-Request-Id": ["a01b8b77-ccd6-4dd7-9b8b-77ccd6fdd7e2"]
+    },
+    "uri": "https://api.gravitee.io/echo"
+  },
+  "clientResponse": {
+    "status": 200,
+    "headers": {
+      "X-Gravitee-Transaction-Id": ["a01b8b77-ccd6-4dd7-9b8b-77ccd6fdd7e2"],
+      "Content-Length": ["275"],
+      "Sozu-Id": ["01H845TR2G8XRS2E0AMCH3B31C"],
+      "X-Gravitee-Request-Id": ["a01b8b77-ccd6-4dd7-9b8b-77ccd6fdd7e2"],
+      "Content-Type": ["application/json"]
+    },
+    "body": "{\"headers\":{\"Accept\":\"*/*\",\"Host\":\"api.gravitee.io\",\"User-Agent\":\"curl/7.88.1\",\"X-Gravitee-Request-Id\":\"44dce1dd-b94b-4e30-9ce1-ddb94b0e3036\",\"X-Gravitee-Transaction-Id\":\"a01b8b77-ccd6-4dd7-9b8b-77ccd6fdd7e2\",\"accept-encoding\":\"deflate, gzip\"},\"query_params\":{},\"bodySize\":0}"
+  },
+  "proxyResponse": {
+    "status": 200,
+    "headers": {
+      "X-Gravitee-Transaction-Id": ["a01b8b77-ccd6-4dd7-9b8b-77ccd6fdd7e2"],
+      "Content-Length": ["275"],
+      "Sozu-Id": ["01H845TR2G8XRS2E0AMCH3B31C"],
+      "X-Gravitee-Request-Id": ["44dce1dd-b94b-4e30-9ce1-ddb94b0e3036"],
+      "Content-Type": ["application/json"]
+    },
+    "body": "{\"headers\":{\"Accept\":\"*/*\",\"Host\":\"api.gravitee.io\",\"User-Agent\":\"curl/7.88.1\",\"X-Gravitee-Request-Id\":\"44dce1dd-b94b-4e30-9ce1-ddb94b0e3036\",\"X-Gravitee-Transaction-Id\":\"a01b8b77-ccd6-4dd7-9b8b-77ccd6fdd7e2\",\"accept-encoding\":\"deflate, gzip\"},\"query_params\":{},\"bodySize\":0}"
+  }
+}

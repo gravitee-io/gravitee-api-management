@@ -1,0 +1,28 @@
+{
+  "timestamp": 1692357381941,
+  "proxyResponseTimeMs": 150,
+  "proxyLatencyMs": 6,
+  "apiResponseTimeMs": 144,
+  "requestId": "13f5ae30-068b-4e2d-b5ae-30068bae2d2d",
+  "api": "ff3c6c48-53e0-41d6-bc6c-4853e011d656",
+  "application": "91f077b0-1204-49e4-b077-b0120419e4f6",
+  "transactionId": "13f5ae30-068b-4e2d-b5ae-30068bae2d2d",
+  "plan": "e115ea63-7cef-4646-95ea-637cef7646ec",
+  "localAddress": "127.0.0.1",
+  "remoteAddress": "127.0.0.1",
+  "httpMethod": "GET",
+  "host": "localhost:8082",
+  "uri": "/test",
+  "requestContentLength": 0,
+  "responseContentLength": 275,
+  "status": 200,
+  "endpoint": "https://api.gravitee.io/echo",
+  "path": "",
+  "userAgent": "curl/7.88.1",
+  "securityType": "API_KEY",
+  "securityToken": "21b560b2-59b8-4a4b-921a-32b3731fdec4",
+  "subscription": "04975880-f147-43bc-9758-80f147e3bcbb",
+  "customMetrics": {
+    "zone": "europe-north1-a"
+  }
+}
