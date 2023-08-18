@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.management.v2.rest.filter;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -30,18 +32,19 @@ import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.core.UriInfo;
 import java.io.IOException;
 import java.util.Collections;
-import org.assertj.core.api.Assertions;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@ExtendWith(MockitoExtension.class)
 public class GraviteeContextRequestFilterTest {
 
     protected GraviteeContextRequestFilter cut;
@@ -63,7 +66,7 @@ public class GraviteeContextRequestFilterTest {
 
     private static final String ORGANIZATION_ID = "ORG_ID";
 
-    @Before
+    @BeforeEach
     public void before() {
         cut = new GraviteeContextRequestFilter(environmentService);
         when(containerRequestContext.getSecurityContext()).thenReturn(securityContext);
@@ -81,7 +84,7 @@ public class GraviteeContextRequestFilterTest {
         when(uriInfo.getPathParameters()).thenReturn(pathParameters);
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         GraviteeContext.cleanContext();
     }
@@ -90,8 +93,8 @@ public class GraviteeContextRequestFilterTest {
     public void shouldFindOnlyOrgInSecurityContext() throws IOException {
         cut.filter(containerRequestContext);
 
-        Assertions.assertThat(GraviteeContext.getCurrentEnvironment()).isNull();
-        Assertions.assertThat(GraviteeContext.getCurrentOrganization()).isEqualTo(ORGANIZATION_ID);
+        assertThat(GraviteeContext.getCurrentEnvironment()).isNull();
+        assertThat(GraviteeContext.getCurrentOrganization()).isEqualTo(ORGANIZATION_ID);
     }
 
     @Test
@@ -100,8 +103,8 @@ public class GraviteeContextRequestFilterTest {
 
         cut.filter(containerRequestContext);
 
-        Assertions.assertThat(GraviteeContext.getCurrentEnvironment()).isNull();
-        Assertions.assertThat(GraviteeContext.getCurrentOrganization()).isNull();
+        assertThat(GraviteeContext.getCurrentEnvironment()).isNull();
+        assertThat(GraviteeContext.getCurrentOrganization()).isNull();
     }
 
     @Test
@@ -110,8 +113,8 @@ public class GraviteeContextRequestFilterTest {
 
         cut.filter(containerRequestContext);
 
-        Assertions.assertThat(GraviteeContext.getCurrentEnvironment()).isNull();
-        Assertions.assertThat(GraviteeContext.getCurrentOrganization()).isEqualTo(ORGANIZATION_ID);
+        assertThat(GraviteeContext.getCurrentEnvironment()).isNull();
+        assertThat(GraviteeContext.getCurrentOrganization()).isEqualTo(ORGANIZATION_ID);
     }
 
     @Test
@@ -123,14 +126,14 @@ public class GraviteeContextRequestFilterTest {
 
         when(securityContext.getUserPrincipal()).thenReturn(principal);
 
-        Assert.assertThrows(IllegalStateException.class, () -> cut.filter(containerRequestContext));
+        assertThatThrownBy(() -> cut.filter(containerRequestContext)).isInstanceOf(IllegalStateException.class);
     }
 
     @Test
     public void shouldFailIfOrganizationParamDoesNotMatch() {
         pathParameters.put("orgId", Collections.singletonList("test-org"));
 
-        Assert.assertThrows(BadRequestException.class, () -> cut.filter(containerRequestContext));
+        assertThatThrownBy(() -> cut.filter(containerRequestContext)).isInstanceOf(BadRequestException.class);
     }
 
     @Test
@@ -143,8 +146,8 @@ public class GraviteeContextRequestFilterTest {
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION_ID, "env-param")).thenReturn(environmentEntity);
         cut.filter(containerRequestContext);
 
-        Assertions.assertThat(GraviteeContext.getCurrentEnvironment()).isEqualTo("env-param");
-        Assertions.assertThat(GraviteeContext.getCurrentOrganization()).isEqualTo(ORGANIZATION_ID);
+        assertThat(GraviteeContext.getCurrentEnvironment()).isEqualTo("env-param");
+        assertThat(GraviteeContext.getCurrentOrganization()).isEqualTo(ORGANIZATION_ID);
     }
 
     @Test
@@ -154,7 +157,7 @@ public class GraviteeContextRequestFilterTest {
 
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION_ID, ENVIRONMENT_ID)).thenThrow(new IllegalStateException());
 
-        Assert.assertThrows(IllegalStateException.class, () -> cut.filter(containerRequestContext));
+        assertThatThrownBy(() -> cut.filter(containerRequestContext)).isInstanceOf(IllegalStateException.class);
     }
 
     @Test
@@ -165,6 +168,6 @@ public class GraviteeContextRequestFilterTest {
         when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION_ID, ENVIRONMENT_ID))
             .thenThrow(new EnvironmentNotFoundException(ENVIRONMENT_ID));
 
-        Assert.assertThrows(EnvironmentNotFoundException.class, () -> cut.filter(containerRequestContext));
+        assertThatThrownBy(() -> cut.filter(containerRequestContext)).isInstanceOf(EnvironmentNotFoundException.class);
     }
 }

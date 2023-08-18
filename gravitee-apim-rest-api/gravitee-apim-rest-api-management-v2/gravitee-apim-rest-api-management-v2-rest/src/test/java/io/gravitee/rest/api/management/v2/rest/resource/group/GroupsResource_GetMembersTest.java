@@ -35,8 +35,9 @@ import jakarta.ws.rs.core.Response;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 public class GroupsResource_GetMembersTest extends AbstractResourceTest {
@@ -49,11 +50,8 @@ public class GroupsResource_GetMembersTest extends AbstractResourceTest {
         return "/environments/" + ENVIRONMENT + "/groups/" + GROUP + "/members";
     }
 
-    @Before
+    @BeforeEach
     public void init() throws TechnicalException {
-        Mockito.reset(membershipService, groupService);
-        GraviteeContext.cleanContext();
-
         EnvironmentEntity environmentEntity = new EnvironmentEntity();
         environmentEntity.setId(ENVIRONMENT);
         environmentEntity.setOrganizationId(ORGANIZATION);
@@ -62,6 +60,12 @@ public class GroupsResource_GetMembersTest extends AbstractResourceTest {
 
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
+    }
+
+    @AfterEach
+    void tearDown() {
+        Mockito.reset(membershipService, groupService);
+        GraviteeContext.cleanContext();
     }
 
     @Test

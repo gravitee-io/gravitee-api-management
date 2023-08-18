@@ -47,9 +47,8 @@ import jakarta.ws.rs.core.Response;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -66,7 +65,7 @@ public class ApiResource_GetApiSubscribersTest extends ApiResourceTest {
     @Autowired
     SubscriptionService subscriptionService;
 
-    @Before
+    @BeforeEach
     public void init() throws TechnicalException {
         super.init();
         Mockito.reset(applicationService, subscriptionService);

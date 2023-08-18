@@ -35,8 +35,8 @@ import java.util.Map;
 import java.util.Set;
 import org.assertj.core.api.Assertions;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 public class PoliciesResourceTest extends AbstractResourceTest {
 
@@ -47,8 +47,8 @@ public class PoliciesResourceTest extends AbstractResourceTest {
 
     private static final String FAKE_POLICY_ID = "my_policy";
 
-    @Before
-    public void init() {
+    @AfterEach
+    void tearDown() {
         reset(policyPluginService);
         GraviteeContext.cleanContext();
     }

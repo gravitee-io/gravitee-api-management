@@ -15,14 +15,15 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.common.http.HttpStatusCode;
@@ -30,8 +31,27 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.listener.entrypoint.Qos;
-import io.gravitee.rest.api.management.v2.rest.mapper.ApiMapper;
-import io.gravitee.rest.api.management.v2.rest.model.*;
+import io.gravitee.rest.api.management.v2.rest.model.ApiType;
+import io.gravitee.rest.api.management.v2.rest.model.ApiV4;
+import io.gravitee.rest.api.management.v2.rest.model.ChannelSelector;
+import io.gravitee.rest.api.management.v2.rest.model.ConditionSelector;
+import io.gravitee.rest.api.management.v2.rest.model.CreateApiV4;
+import io.gravitee.rest.api.management.v2.rest.model.EndpointGroupV4;
+import io.gravitee.rest.api.management.v2.rest.model.EndpointV4;
+import io.gravitee.rest.api.management.v2.rest.model.Entrypoint;
+import io.gravitee.rest.api.management.v2.rest.model.FlowV4;
+import io.gravitee.rest.api.management.v2.rest.model.GenericApi;
+import io.gravitee.rest.api.management.v2.rest.model.HttpListener;
+import io.gravitee.rest.api.management.v2.rest.model.HttpMethod;
+import io.gravitee.rest.api.management.v2.rest.model.HttpSelector;
+import io.gravitee.rest.api.management.v2.rest.model.Listener;
+import io.gravitee.rest.api.management.v2.rest.model.ListenerType;
+import io.gravitee.rest.api.management.v2.rest.model.Operator;
+import io.gravitee.rest.api.management.v2.rest.model.PathV4;
+import io.gravitee.rest.api.management.v2.rest.model.Selector;
+import io.gravitee.rest.api.management.v2.rest.model.StepV4;
+import io.gravitee.rest.api.management.v2.rest.model.SubscriptionListener;
+import io.gravitee.rest.api.management.v2.rest.model.TcpListener;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -44,12 +64,11 @@ import io.vertx.core.json.Json;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 public class ApisResource_CreateApiTest extends AbstractResourceTest {
@@ -61,7 +80,7 @@ public class ApisResource_CreateApiTest extends AbstractResourceTest {
         return "/environments/" + ENVIRONMENT + "/apis";
     }
 
-    @Before
+    @BeforeEach
     public void init() {
         GraviteeContext.cleanContext();
         GraviteeContext.setCurrentOrganization(ORGANIZATION);

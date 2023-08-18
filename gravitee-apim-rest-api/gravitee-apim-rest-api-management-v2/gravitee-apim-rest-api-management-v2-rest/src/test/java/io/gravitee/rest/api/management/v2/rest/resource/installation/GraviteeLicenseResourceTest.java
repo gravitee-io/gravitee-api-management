@@ -24,7 +24,7 @@ import io.gravitee.rest.api.management.v2.rest.model.GraviteeLicense;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import java.util.Set;
 import javax.inject.Inject;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)

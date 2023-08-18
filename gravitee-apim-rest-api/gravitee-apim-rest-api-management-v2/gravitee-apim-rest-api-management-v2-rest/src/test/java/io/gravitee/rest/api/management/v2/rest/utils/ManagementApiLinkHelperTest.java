@@ -15,14 +15,14 @@
  */
 package io.gravitee.rest.api.management.v2.rest.utils;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.UriBuilder;
 import java.util.Date;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class ManagementApiLinkHelperTest {
 
@@ -34,7 +34,7 @@ public class ManagementApiLinkHelperTest {
     private static final String BASE_URL_APIS_APIID_PICTURE = BASE_URL_APIS_APIID + "/picture?hash=" + UPDATED_AT.getTime();
     private static final String BASE_URL_APIS_APIID_BACKGROUND = BASE_URL_APIS_APIID + "/background?hash=" + UPDATED_AT.getTime();
 
-    @Before
+    @BeforeEach
     public void setUp() {
         GraviteeContext.cleanContext();
     }
@@ -47,7 +47,7 @@ public class ManagementApiLinkHelperTest {
 
         String apiPictureURL = ManagementApiLinkHelper.apiPictureURL(UriBuilder.fromPath(BASE_URL), api);
         String apiBackgroundURL = ManagementApiLinkHelper.apiBackgroundURL(UriBuilder.fromPath(BASE_URL), api);
-        assertEquals(BASE_URL_APIS_APIID_PICTURE, apiPictureURL);
-        assertEquals(BASE_URL_APIS_APIID_BACKGROUND, apiBackgroundURL);
+        assertThat(apiPictureURL).isEqualTo(BASE_URL_APIS_APIID_PICTURE);
+        assertThat(apiBackgroundURL).isEqualTo(BASE_URL_APIS_APIID_BACKGROUND);
     }
 }

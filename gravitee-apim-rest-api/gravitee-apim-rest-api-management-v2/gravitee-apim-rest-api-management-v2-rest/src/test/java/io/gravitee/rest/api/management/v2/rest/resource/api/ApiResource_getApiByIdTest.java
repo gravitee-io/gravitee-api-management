@@ -15,9 +15,17 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api;
 
-import static io.gravitee.common.http.HttpStatusCode.*;
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
+import static io.gravitee.common.http.HttpStatusCode.OK_200;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -53,15 +61,24 @@ import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.service.ApiServices;
 import io.gravitee.definition.model.v4.service.Service;
-import io.gravitee.rest.api.management.v2.rest.model.*;
+import io.gravitee.rest.api.management.v2.rest.model.ApiV2;
+import io.gravitee.rest.api.management.v2.rest.model.ApiV4;
+import io.gravitee.rest.api.management.v2.rest.model.EndpointGroupV4;
+import io.gravitee.rest.api.management.v2.rest.model.GenericApi;
+import io.gravitee.rest.api.management.v2.rest.model.ServiceV4;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import jakarta.ws.rs.core.Response;
-import java.util.*;
-import org.junit.Test;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -212,8 +229,7 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
         assertEquals(true, dynamicPropertyConfiguration.getEnabled());
         assertEquals(true, dynamicPropertyConfiguration.getOverrideConfiguration());
         assertNotNull(dynamicPropertyConfiguration.getConfiguration());
-        assertEquals("dynamic-property",dynamicPropertyConfiguration.getType());
-
+        assertEquals("dynamic-property", dynamicPropertyConfiguration.getType());
     }
 
     @Test
@@ -255,7 +271,6 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
 
         final ApiV2 responseApi = response.readEntity(ApiV2.class);
 
-
         assertNotNull(responseApi);
         assertEquals(API, responseApi.getName());
         assertNotNull(responseApi.getLinks());
@@ -282,14 +297,17 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
         assertNotNull(responseApi.getServices().getDynamicProperty().getConfiguration());
         assertEquals(true, responseApi.getServices().getDynamicProperty().getEnabled());
 
-        var httpDynamicProperty = responseApi.getServices().getDynamicProperty().getConfiguration().getHttpDynamicPropertyProviderConfiguration();
+        var httpDynamicProperty = responseApi
+            .getServices()
+            .getDynamicProperty()
+            .getConfiguration()
+            .getHttpDynamicPropertyProviderConfiguration();
         assertNotNull(httpDynamicProperty);
         assertEquals("GET", httpDynamicProperty.getMethod().getValue());
         assertNotNull(httpDynamicProperty.getBody());
         assertNotNull(httpDynamicProperty.getSpecification());
         assertEquals(false, httpDynamicProperty.getUseSystemProxy());
         assertEquals("https://api.gravitee.io/echo", httpDynamicProperty.getUrl());
-
     }
 
     @Test
@@ -412,20 +430,22 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
 
         flow.setSelectors(List.of(httpSelector, channelSelector, conditionSelector));
         apiEntity.setFlows(List.of(flow));
-        
+
         Service dynamicProperty = new Service();
-        dynamicProperty.setConfiguration("{\n" +
-                "        \"enabled\": true,\n" +
-                "        \"schedule\": \"*/10 * * * * *\",\n" +
-                "        \"provider\": \"HTTP\",\n" +
-                "        \"configuration\": {\n" +
-                "          \"url\": \"https://api.gravitee.io/echo\",\n" +
-                "          \"specification\": \"[{\\n    \\\"operation\\\": \\\"shift\\\",\\n    \\\"spec\\\": {\\n      \\\"rating\\\": {\\n        \\\"primary\\\": {\\n          \\\"value\\\": \\\"Rating\\\",\\n          \\\"max\\\": \\\"RatingRange\\\"\\n        },\\n        \\\"*\\\": {\\n          \\\"max\\\": \\\"SecondaryRatings.&1.Range\\\",\\n          \\\"value\\\": \\\"SecondaryRatings.&1.Value\\\",\\n          \\\"$\\\": \\\"SecondaryRatings.&1.Id\\\"\\n        }\\n      }\\n    }\\n  },\\n  {\\n    \\\"operation\\\": \\\"default\\\",\\n    \\\"spec\\\": {\\n      \\\"Range\\\": 5,\\n      \\\"SecondaryRatings\\\": {\\n        \\\"*\\\": {\\n          \\\"Range\\\": 5\\n        }\\n      }\\n    }\\n  }\\n]\",\n" +
-                "          \"useSystemProxy\": false,\n" +
-                "          \"method\": \"GET\",\n" +
-                "          \"body\": \"{\\n    \\\"rating\\\": {\\n      \\\"primary\\\": {\\n        \\\"value\\\": 3\\n      },\\n      \\\"quality\\\": {\\n        \\\"value\\\": 3\\n      }\\n    }\\n  }\"\n" +
-                "        }\n" +
-                "      }");
+        dynamicProperty.setConfiguration(
+            "{\n" +
+            "        \"enabled\": true,\n" +
+            "        \"schedule\": \"*/10 * * * * *\",\n" +
+            "        \"provider\": \"HTTP\",\n" +
+            "        \"configuration\": {\n" +
+            "          \"url\": \"https://api.gravitee.io/echo\",\n" +
+            "          \"specification\": \"[{\\n    \\\"operation\\\": \\\"shift\\\",\\n    \\\"spec\\\": {\\n      \\\"rating\\\": {\\n        \\\"primary\\\": {\\n          \\\"value\\\": \\\"Rating\\\",\\n          \\\"max\\\": \\\"RatingRange\\\"\\n        },\\n        \\\"*\\\": {\\n          \\\"max\\\": \\\"SecondaryRatings.&1.Range\\\",\\n          \\\"value\\\": \\\"SecondaryRatings.&1.Value\\\",\\n          \\\"$\\\": \\\"SecondaryRatings.&1.Id\\\"\\n        }\\n      }\\n    }\\n  },\\n  {\\n    \\\"operation\\\": \\\"default\\\",\\n    \\\"spec\\\": {\\n      \\\"Range\\\": 5,\\n      \\\"SecondaryRatings\\\": {\\n        \\\"*\\\": {\\n          \\\"Range\\\": 5\\n        }\\n      }\\n    }\\n  }\\n]\",\n" +
+            "          \"useSystemProxy\": false,\n" +
+            "          \"method\": \"GET\",\n" +
+            "          \"body\": \"{\\n    \\\"rating\\\": {\\n      \\\"primary\\\": {\\n        \\\"value\\\": 3\\n      },\\n      \\\"quality\\\": {\\n        \\\"value\\\": 3\\n      }\\n    }\\n  }\"\n" +
+            "        }\n" +
+            "      }"
+        );
         dynamicProperty.setType("dynamic-property");
         dynamicProperty.setEnabled(true);
         dynamicProperty.setOverrideConfiguration(true);
@@ -460,34 +480,36 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
         httpConfiguration.setMethod(HttpMethod.GET);
         httpConfiguration.setUrl("https://api.gravitee.io/echo");
         httpConfiguration.setUseSystemProxy(false);
-        httpConfiguration.setSpecification("[{\n" +
-                "    \"operation\": \"shift\",\n" +
-                "    \"spec\": {\n" +
-                "      \"rating\": {\n" +
-                "        \"primary\": {\n" +
-                "          \"value\": \"Rating\",\n" +
-                "          \"max\": \"RatingRange\"\n" +
-                "        },\n" +
-                "        \"*\": {\n" +
-                "          \"max\": \"SecondaryRatings.&1.Range\",\n" +
-                "          \"value\": \"SecondaryRatings.&1.Value\",\n" +
-                "          \"$\": \"SecondaryRatings.&1.Id\"\n" +
-                "        }\n" +
-                "      }\n" +
-                "    }\n" +
-                "  },\n" +
-                "  {\n" +
-                "    \"operation\": \"default\",\n" +
-                "    \"spec\": {\n" +
-                "      \"Range\": 5,\n" +
-                "      \"SecondaryRatings\": {\n" +
-                "        \"*\": {\n" +
-                "          \"Range\": 5\n" +
-                "        }\n" +
-                "      }\n" +
-                "    }\n" +
-                "  }\n" +
-                "]");
+        httpConfiguration.setSpecification(
+            "[{\n" +
+            "    \"operation\": \"shift\",\n" +
+            "    \"spec\": {\n" +
+            "      \"rating\": {\n" +
+            "        \"primary\": {\n" +
+            "          \"value\": \"Rating\",\n" +
+            "          \"max\": \"RatingRange\"\n" +
+            "        },\n" +
+            "        \"*\": {\n" +
+            "          \"max\": \"SecondaryRatings.&1.Range\",\n" +
+            "          \"value\": \"SecondaryRatings.&1.Value\",\n" +
+            "          \"$\": \"SecondaryRatings.&1.Id\"\n" +
+            "        }\n" +
+            "      }\n" +
+            "    }\n" +
+            "  },\n" +
+            "  {\n" +
+            "    \"operation\": \"default\",\n" +
+            "    \"spec\": {\n" +
+            "      \"Range\": 5,\n" +
+            "      \"SecondaryRatings\": {\n" +
+            "        \"*\": {\n" +
+            "          \"Range\": 5\n" +
+            "        }\n" +
+            "      }\n" +
+            "    }\n" +
+            "  }\n" +
+            "]"
+        );
         dynamicPropertyService.setConfiguration(httpConfiguration);
         services.setDynamicPropertyService(dynamicPropertyService);
         apiEntity.setServices(services);

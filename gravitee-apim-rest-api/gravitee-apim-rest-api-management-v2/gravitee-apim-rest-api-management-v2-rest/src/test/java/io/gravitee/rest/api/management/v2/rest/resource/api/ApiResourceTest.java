@@ -15,16 +15,16 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doReturn;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import java.util.*;
-import org.junit.After;
-import org.junit.Before;
+import java.util.Optional;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.mockito.Mockito;
 
 /**
@@ -36,7 +36,7 @@ public abstract class ApiResourceTest extends AbstractResourceTest {
     protected static final String API = "my-api";
     protected static final String ENVIRONMENT = "my-env";
 
-    @Before
+    @BeforeEach
     public void init() throws TechnicalException {
         Mockito.reset(
             apiSearchServiceV4,
@@ -68,7 +68,7 @@ public abstract class ApiResourceTest extends AbstractResourceTest {
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         GraviteeContext.cleanContext();
     }

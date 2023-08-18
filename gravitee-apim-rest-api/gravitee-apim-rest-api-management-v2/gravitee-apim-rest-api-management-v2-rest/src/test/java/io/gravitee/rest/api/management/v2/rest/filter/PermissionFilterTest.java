@@ -15,11 +15,20 @@
  */
 package io.gravitee.rest.api.management.v2.rest.filter;
 
-import static io.gravitee.rest.api.model.permissions.RolePermission.*;
+import static io.gravitee.rest.api.model.permissions.RolePermission.API_ANALYTICS;
+import static io.gravitee.rest.api.model.permissions.RolePermission.APPLICATION_ANALYTICS;
+import static io.gravitee.rest.api.model.permissions.RolePermission.ENVIRONMENT_API;
+import static io.gravitee.rest.api.model.permissions.RolePermission.ORGANIZATION_TENANT;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.DELETE;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.rest.api.management.v2.rest.security.Permission;
 import io.gravitee.rest.api.management.v2.rest.security.Permissions;
@@ -32,25 +41,23 @@ import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.core.UriInfo;
 import java.util.Collections;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@ExtendWith(MockitoExtension.class)
 public class PermissionFilterTest {
 
     @InjectMocks
     protected PermissionsFilter permissionFilter;
-
-    @Mock
-    protected SecurityContext securityContext;
 
     @Mock
     protected PermissionService permissionService;
@@ -69,14 +76,13 @@ public class PermissionFilterTest {
 
     private static final String ORGANIZATION_ID = "ORG_ID";
 
-    @Before
+    @BeforeEach
     public void setUp() {
-        MockitoAnnotations.openMocks(this);
         GraviteeContext.setCurrentOrganization(ORGANIZATION_ID);
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT_ID);
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         GraviteeContext.cleanContext();
     }
@@ -96,19 +102,13 @@ public class PermissionFilterTest {
         when(containerRequestContext.getUriInfo()).thenReturn(uriInfo);
     }
 
-    @Test(expected = ForbiddenAccessException.class)
+    @Test
     public void shouldThrowForbiddenExceptionWhenNoApiPermissions() {
         initApiMock();
-        when(permissionService.hasPermission(any(), any(), any())).thenReturn(false);
+        when(permissionService.hasPermission(any(), eq(API_ANALYTICS), eq(API_ID), eq(UPDATE))).thenReturn(false);
 
-        try {
-            permissionFilter.filter(permissions, containerRequestContext, GraviteeContext.getExecutionContext());
-        } catch (ForbiddenAccessException e) {
-            verify(permissionService, times(1)).hasPermission(any(), eq(API_ANALYTICS), eq(API_ID), eq(UPDATE));
-            throw e;
-        }
-
-        Assert.fail("Should throw a ForbiddenAccessException");
+        assertThatThrownBy(() -> permissionFilter.filter(permissions, containerRequestContext, GraviteeContext.getExecutionContext()))
+            .isInstanceOf(ForbiddenAccessException.class);
     }
 
     @Test
@@ -134,19 +134,13 @@ public class PermissionFilterTest {
         when(containerRequestContext.getUriInfo()).thenReturn(uriInfo);
     }
 
-    @Test(expected = ForbiddenAccessException.class)
+    @Test
     public void shouldThrowForbiddenExceptionWhenNoApplicationPermissions() {
         initApplicationMock();
-        when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
+        when(permissionService.hasPermission(any(), eq(APPLICATION_ANALYTICS), eq(APPLICATION_ID), eq(UPDATE))).thenReturn(false);
 
-        try {
-            permissionFilter.filter(permissions, containerRequestContext, GraviteeContext.getExecutionContext());
-        } catch (ForbiddenAccessException e) {
-            verify(permissionService, times(1)).hasPermission(any(), eq(APPLICATION_ANALYTICS), eq(APPLICATION_ID), eq(UPDATE));
-            throw e;
-        }
-
-        Assert.fail("Should throw a ForbiddenAccessException");
+        assertThatThrownBy(() -> permissionFilter.filter(permissions, containerRequestContext, GraviteeContext.getExecutionContext()))
+            .isInstanceOf(ForbiddenAccessException.class);
     }
 
     @Test
@@ -169,22 +163,16 @@ public class PermissionFilterTest {
         when(perm.acls()).thenReturn(new RolePermissionAction[] { UPDATE });
         when(permissions.value()).thenReturn(new Permission[] { perm });
         UriInfo uriInfo = mock(UriInfo.class);
-        when(containerRequestContext.getUriInfo()).thenReturn(uriInfo);
+        lenient().when(containerRequestContext.getUriInfo()).thenReturn(uriInfo);
     }
 
-    @Test(expected = ForbiddenAccessException.class)
+    @Test
     public void shouldThrowForbiddenExceptionWhenNoManagementPermissions() {
         initManagementMocks();
-        when(permissionService.hasPermission(any(), any(), any())).thenReturn(false);
+        when(permissionService.hasPermission(any(), eq(ENVIRONMENT_API), eq(ENVIRONMENT_ID), eq(UPDATE))).thenReturn(false);
 
-        try {
-            permissionFilter.filter(permissions, containerRequestContext, GraviteeContext.getExecutionContext());
-        } catch (ForbiddenAccessException e) {
-            verify(permissionService, times(1)).hasPermission(any(), eq(ENVIRONMENT_API), eq(ENVIRONMENT_ID), eq(UPDATE));
-            throw e;
-        }
-
-        Assert.fail("Should throw a ForbiddenAccessException");
+        assertThatThrownBy(() -> permissionFilter.filter(permissions, containerRequestContext, GraviteeContext.getExecutionContext()))
+            .isInstanceOf(ForbiddenAccessException.class);
     }
 
     @Test
@@ -209,22 +197,16 @@ public class PermissionFilterTest {
         when(perm.acls()).thenReturn(new RolePermissionAction[] { DELETE });
         when(permissions.value()).thenReturn(new Permission[] { perm });
         UriInfo uriInfo = mock(UriInfo.class);
-        when(containerRequestContext.getUriInfo()).thenReturn(uriInfo);
+        lenient().when(containerRequestContext.getUriInfo()).thenReturn(uriInfo);
     }
 
-    @Test(expected = ForbiddenAccessException.class)
+    @Test
     public void shouldThrowForbiddenExceptionWhenNoOrganizationPermissions() {
         initOrganizationMocks();
-        when(permissionService.hasPermission(any(), any(), any())).thenReturn(false);
+        when(permissionService.hasPermission(any(), eq(ORGANIZATION_TENANT), eq(ORGANIZATION_ID), eq(DELETE))).thenReturn(false);
 
-        try {
-            permissionFilter.filter(permissions, containerRequestContext, GraviteeContext.getExecutionContext());
-        } catch (ForbiddenAccessException e) {
-            verify(permissionService, times(1)).hasPermission(any(), eq(ORGANIZATION_TENANT), eq(ORGANIZATION_ID), eq(DELETE));
-            throw e;
-        }
-
-        Assert.fail("Should throw a ForbiddenAccessException");
+        assertThatThrownBy(() -> permissionFilter.filter(permissions, containerRequestContext, GraviteeContext.getExecutionContext()))
+            .isInstanceOf(ForbiddenAccessException.class);
     }
 
     @Test
@@ -245,11 +227,11 @@ public class PermissionFilterTest {
         when(orgPerm.acls()).thenReturn(new RolePermissionAction[] { DELETE });
         Permission envPerm = mock(Permission.class);
         when(envPerm.value()).thenReturn(ENVIRONMENT_API);
-        when(envPerm.acls()).thenReturn(new RolePermissionAction[] { UPDATE });
+        lenient().when(envPerm.acls()).thenReturn(new RolePermissionAction[] { UPDATE });
         when(permissions.value()).thenReturn(new Permission[] { envPerm, orgPerm });
 
         UriInfo uriInfo = mock(UriInfo.class);
-        when(containerRequestContext.getUriInfo()).thenReturn(uriInfo);
+        lenient().when(containerRequestContext.getUriInfo()).thenReturn(uriInfo);
 
         when(permissionService.hasPermission(any(), eq(ORGANIZATION_TENANT), any(), any())).thenReturn(true);
 

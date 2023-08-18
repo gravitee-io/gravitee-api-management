@@ -15,7 +15,8 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.plugin;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
@@ -36,8 +37,8 @@ import java.util.Map;
 import java.util.Set;
 import org.assertj.core.api.Assertions;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -52,8 +53,8 @@ public class EntrypointsResourceTest extends AbstractResourceTest {
         return "/plugins/entrypoints";
     }
 
-    @Before
-    public void init() {
+    @AfterEach
+    void tearDown() {
         reset(entrypointConnectorPluginService);
         GraviteeContext.cleanContext();
     }
