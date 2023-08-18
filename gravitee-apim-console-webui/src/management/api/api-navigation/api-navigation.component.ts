@@ -41,6 +41,11 @@ interface GroupItem {
   items: MenuItem[];
 }
 
+const alertEngineLicenseOptions: LicenseOptions = {
+  feature: ApimFeature.ALERT_ENGINE,
+  context: UTMTags.CONTEXT_API_NOTIFICATIONS,
+};
+
 @Component({
   selector: 'api-navigation',
   template: require('./api-navigation.component.html'),
@@ -354,6 +359,8 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
         displayName: 'Alerts',
         targetRoute: 'management.apis.detail.analytics.alerts',
         baseRoute: 'management.apis.detail.analytics.alerts',
+        license: alertEngineLicenseOptions,
+        iconRight$: this.getMenuItemIconRight$(alertEngineLicenseOptions),
       });
     }
     if (analyticsGroup.items.length > 0) {
@@ -361,9 +368,13 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
     }
   }
 
+  private getMenuItemIconRight$(licenseOptions: LicenseOptions) {
+    return this.gioLicenseService.isMissingFeature$(licenseOptions).pipe(map((notAllowed) => (notAllowed ? 'gio:lock' : null)));
+  }
+
   private appendAuditGroup() {
     const license = { feature: ApimFeature.APIM_AUDIT_TRAIL, context: UTMTags.CONTEXT_API };
-    const iconRight$ = this.gioLicenseService.isMissingFeature$(license).pipe(map((notAllowed) => (notAllowed ? 'gio:lock' : null)));
+    const iconRight$ = this.getMenuItemIconRight$(license);
 
     const auditGroup: GroupItem = {
       title: 'Audit',
@@ -417,6 +428,8 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
         displayName: 'Alerts',
         targetRoute: 'management.apis.detail.alerts.list',
         baseRoute: 'management.apis.detail.alerts',
+        license: alertEngineLicenseOptions,
+        iconRight$: this.getMenuItemIconRight$(alertEngineLicenseOptions),
       });
     }
 

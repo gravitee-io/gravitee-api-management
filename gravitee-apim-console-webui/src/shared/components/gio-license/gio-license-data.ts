@@ -23,6 +23,7 @@ export enum ApimFeature {
   APIM_POLICY_V2 = 'apim-policy-v2',
   APIM_SCHEMA_REGISTRY_PROVIDER = 'apim-en-schema-registry-provider',
   APIM_EN_MESSAGE_REACTOR = 'apim-en-message-reactor',
+  ALERT_ENGINE = 'alert-engine',
 }
 
 export enum UTMTags {
@@ -103,5 +104,10 @@ export const FeatureInfoData: Record<ApimFeature, FeatureInfo> = {
     image: 'assets/gio-ee-unlock-dialog/ee-upgrade.svg',
     description:
       'Explore Gravitee enterprise functionality, such as support for event brokers, asynchronous APIs, and Webhook subscriptions.',
+  },
+  [ApimFeature.ALERT_ENGINE]: {
+    image: 'assets/gio-ee-unlock-dialog/alert-engine.png',
+    description:
+      'Alert Engine allows you to isolate, understand and remediate for API performance and security risks before they cause a problem for your customers.',
   },
 };
