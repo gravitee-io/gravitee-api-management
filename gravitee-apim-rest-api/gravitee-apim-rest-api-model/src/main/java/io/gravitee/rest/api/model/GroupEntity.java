@@ -21,11 +21,21 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Builder(toBuilder = true)
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
 public class GroupEntity {
 
     private String id;
@@ -65,126 +75,6 @@ public class GroupEntity {
 
     @JsonProperty("primary_owner")
     private boolean primaryOwner;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public List<GroupEventRuleEntity> getEventRules() {
-        return eventRules;
-    }
-
-    public void setEventRules(List<GroupEventRuleEntity> eventRules) {
-        this.eventRules = eventRules;
-    }
-
-    public boolean isManageable() {
-        return manageable;
-    }
-
-    public void setManageable(boolean manageable) {
-        this.manageable = manageable;
-    }
-
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Date getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Date updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public Map<RoleScope, String> getRoles() {
-        return roles;
-    }
-
-    public void setRoles(Map<RoleScope, String> roles) {
-        this.roles = roles;
-    }
-
-    public Integer getMaxInvitation() {
-        return maxInvitation;
-    }
-
-    public void setMaxInvitation(Integer maxInvitation) {
-        this.maxInvitation = maxInvitation;
-    }
-
-    public boolean isLockApiRole() {
-        return lockApiRole;
-    }
-
-    public void setLockApiRole(boolean lockApiRole) {
-        this.lockApiRole = lockApiRole;
-    }
-
-    public boolean isLockApplicationRole() {
-        return lockApplicationRole;
-    }
-
-    public void setLockApplicationRole(boolean lockApplicationRole) {
-        this.lockApplicationRole = lockApplicationRole;
-    }
-
-    public boolean isSystemInvitation() {
-        return systemInvitation;
-    }
-
-    public void setSystemInvitation(boolean systemInvitation) {
-        this.systemInvitation = systemInvitation;
-    }
-
-    public boolean isEmailInvitation() {
-        return emailInvitation;
-    }
-
-    public void setEmailInvitation(boolean emailInvitation) {
-        this.emailInvitation = emailInvitation;
-    }
-
-    public boolean isDisableMembershipNotifications() {
-        return disableMembershipNotifications;
-    }
-
-    public void setDisableMembershipNotifications(boolean disableMembershipNotifications) {
-        this.disableMembershipNotifications = disableMembershipNotifications;
-    }
-
-    public String getApiPrimaryOwner() {
-        return apiPrimaryOwner;
-    }
-
-    public void setApiPrimaryOwner(String apiPrimaryOwner) {
-        this.apiPrimaryOwner = apiPrimaryOwner;
-    }
-
-    public boolean isPrimaryOwner() {
-        return primaryOwner;
-    }
-
-    public void setPrimaryOwner(boolean primaryOwner) {
-        this.primaryOwner = primaryOwner;
-    }
 
     @Override
     public boolean equals(Object o) {

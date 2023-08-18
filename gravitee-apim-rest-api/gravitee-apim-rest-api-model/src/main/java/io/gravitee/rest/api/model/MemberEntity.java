@@ -24,6 +24,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.With;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -36,6 +37,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
+@With
 public class MemberEntity {
 
     private String id;
