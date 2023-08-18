@@ -15,13 +15,7 @@
     limitations under the License.
 
 -->
-<div ng-if="$ctrl.isAlertEngineEnabled() == false">
-  <div class="gv-sub-content dashboard-promo-content">
-    <alert-engine-promotion trial-url="$ctrl.trialUrl" />
-  </div>
-</div>
-
-<div ng-if="$ctrl.isAlertEngineEnabled() == true">
+<div>
   <div class="gv-sub-content" ng-if="!$ctrl.hasAlertingPlugin">
     <gravitee-empty-state
       icon="alarm_off"

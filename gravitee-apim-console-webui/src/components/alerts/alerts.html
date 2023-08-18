@@ -15,12 +15,8 @@
     limitations under the License.
 
 -->
-<div class="gv-sub-content" ng-class="{'ae-promo-content': $ctrl.isAlertEngineEnabled() == false}">
-  <div ng-if="$ctrl.isAlertEngineEnabled() == false">
-    <alert-engine-promotion trial-url="$ctrl.trialUrl" />
-  </div>
-
-  <div ng-if="$ctrl.isAlertEngineEnabled() == true">
+<div class="gv-sub-content">
+  <div>
     <div class="gv-forms gv-forms-fluid" layout="column">
       <div class="gv-form">
         <h1>Alerts</h1>
@@ -128,7 +124,7 @@
     </div>
   </div>
 </div>
-<div ng-if="$ctrl.alerts.length > 0 && $ctrl.isAlertEngineEnabled() == true">
+<div ng-if="$ctrl.alerts.length > 0">
   <md-button
     ng-if="$ctrl.hasPermissionForCurrentScope('alert-c')"
     class="md-fab md-fab-bottom-right"

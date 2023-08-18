@@ -316,10 +316,20 @@ export class ApiNgV1V2MenuService implements ApiMenuService {
       });
     }
     if (this.constants.org.settings.alert?.enabled && this.permissionService.hasAnyMatching(['api-alert-r'])) {
+      const alertEngineLicenseOptions = {
+        feature: ApimFeature.ALERT_ENGINE,
+        context: UTMTags.CONTEXT_ENVIRONMENT,
+      };
+      const alertEngineIconRight$ = this.gioLicenseService
+        .isMissingFeature$(alertEngineLicenseOptions)
+        .pipe(map((notAllowed) => (notAllowed ? 'gio:lock' : null)));
+
       analyticsGroup.items.push({
         displayName: 'Alerts',
         targetRoute: 'management.apis.ng.analytics-alerts-v2',
         baseRoute: 'management.apis.ng.analytics-alerts-v2',
+        license: alertEngineLicenseOptions,
+        iconRight$: alertEngineIconRight$,
       });
     }
     if (analyticsGroup.items.length > 0) {

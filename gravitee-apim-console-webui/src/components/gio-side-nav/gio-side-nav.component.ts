@@ -75,9 +75,15 @@ export class GioSideNavComponent implements OnInit {
       feature: ApimFeature.APIM_AUDIT_TRAIL,
       context: UTMTags.CONTEXT_ENVIRONMENT,
     };
-    const auditIconRight$ = this.gioLicenseService
-      .isMissingFeature$(auditLicenseOptions)
-      .pipe(map((notAllowed) => (notAllowed ? 'gio:lock' : null)));
+
+    const auditIconRight$ = this.getMenuItemIconRight$(auditLicenseOptions);
+
+    const alertEngineLicenseOptions: LicenseOptions = {
+      feature: ApimFeature.ALERT_ENGINE,
+      context: UTMTags.CONTEXT_ENVIRONMENT,
+    };
+    const alertEngineIconRight$ = this.getMenuItemIconRight$(alertEngineLicenseOptions);
+
     const mainMenuItems: MenuItem[] = [
       { icon: 'gio:home', targetRoute: 'management.dashboard.home', baseRoute: 'management.dashboard', displayName: 'Dashboard' },
       { icon: 'gio:upload-cloud', targetRoute: 'management.apis.ng-list', baseRoute: 'management.apis', displayName: 'APIs' },
@@ -127,6 +133,8 @@ export class GioSideNavComponent implements OnInit {
         targetRoute: 'management.alerts.list',
         baseRoute: 'management.alerts',
         permissions: ['environment-alert-r'],
+        licenseOptions: alertEngineLicenseOptions,
+        iconRight$: alertEngineIconRight$,
       });
     }
 
@@ -170,6 +178,10 @@ export class GioSideNavComponent implements OnInit {
     });
 
     return this.filterMenuByPermission(mainMenuItems);
+  }
+
+  private getMenuItemIconRight$(licenseOptions: LicenseOptions) {
+    return this.gioLicenseService.isMissingFeature$(licenseOptions).pipe(map((notAllowed) => (notAllowed ? 'gio:lock' : null)));
   }
 
   private buildFooterMenuItems(): MenuItem[] {
