@@ -17,22 +17,29 @@ package io.gravitee.rest.api.management.v2.rest.resource.api;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.management.v2.rest.model.Member;
 import io.gravitee.rest.api.management.v2.rest.model.MembersResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.MemberEntity;
+import io.gravitee.rest.api.model.MembershipMemberType;
+import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class ApiMembersResource_GetTest extends AbstractResourceTest {
 
@@ -44,7 +51,7 @@ public class ApiMembersResource_GetTest extends AbstractResourceTest {
         return "/environments/" + ENVIRONMENT + "/apis/" + apiId + "/members";
     }
 
-    @Before
+    @BeforeEach
     public void init() {
         reset(membershipService);
         GraviteeContext.cleanContext();

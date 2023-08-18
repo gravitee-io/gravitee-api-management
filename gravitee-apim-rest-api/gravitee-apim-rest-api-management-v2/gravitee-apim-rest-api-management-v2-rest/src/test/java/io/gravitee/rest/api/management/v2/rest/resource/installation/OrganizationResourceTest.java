@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.installation;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.eq;
@@ -30,8 +31,9 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
+import org.assertj.core.api.SoftAssertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class OrganizationResourceTest extends AbstractResourceTest {
 
@@ -43,7 +45,7 @@ public class OrganizationResourceTest extends AbstractResourceTest {
         return "/organizations";
     }
 
-    @Before
+    @BeforeEach
     public void init() {
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
         GraviteeContext.setCurrentEnvironment(null);
@@ -63,13 +65,14 @@ public class OrganizationResourceTest extends AbstractResourceTest {
         doReturn(organizationEntity).when(organizationService).findById(eq(ORGANIZATION));
 
         final Response response = rootTarget(ORGANIZATION).request().get();
-        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
 
         var body = response.readEntity(Organization.class);
-        assertNotNull(body);
-
-        assertEquals(ORGANIZATION, body.getId());
-        assertEquals("org-name", body.getName());
-        assertEquals("A nice description", body.getDescription());
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(body).isNotNull();
+            soft.assertThat(body.getId()).isEqualTo(ORGANIZATION);
+            soft.assertThat(body.getName()).isEqualTo("org-name");
+            soft.assertThat(body.getDescription()).isEqualTo("A nice description");
+        });
     }
 }

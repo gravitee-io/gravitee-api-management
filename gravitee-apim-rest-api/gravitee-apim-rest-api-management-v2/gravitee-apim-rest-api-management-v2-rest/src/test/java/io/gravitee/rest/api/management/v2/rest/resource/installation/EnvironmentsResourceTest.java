@@ -15,38 +15,22 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.installation;
 
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
 
-import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
-import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
-import io.gravitee.definition.model.v4.listener.http.HttpListener;
-import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.rest.api.management.v2.rest.model.Environment;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
-import io.gravitee.rest.api.model.permissions.RolePermission;
-import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.model.v4.api.ApiEntity;
-import io.gravitee.rest.api.model.v4.api.NewApiEntity;
-import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import jakarta.ws.rs.client.Entity;
-import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mockito;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -61,10 +45,14 @@ public class EnvironmentsResourceTest extends AbstractResourceTest {
         return "/environments";
     }
 
-    @Before
+    @BeforeEach
     public void init() {
-        GraviteeContext.cleanContext();
         GraviteeContext.setCurrentEnvironment(FAKE_ENVIRONMENT_ID);
+    }
+
+    @AfterEach
+    void tearDown() {
+        GraviteeContext.cleanContext();
     }
 
     @Test

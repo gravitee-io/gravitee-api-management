@@ -37,7 +37,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class ApiSubscriptionsResource_PauseTest extends ApiSubscriptionsResourceTest {
 

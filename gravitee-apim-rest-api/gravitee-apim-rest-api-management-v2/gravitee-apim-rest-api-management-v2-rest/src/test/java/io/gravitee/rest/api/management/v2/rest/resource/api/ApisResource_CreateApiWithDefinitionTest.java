@@ -15,11 +15,19 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api;
 
-import static io.gravitee.common.http.HttpStatusCode.*;
+import static io.gravitee.common.http.HttpStatusCode.CREATED_201;
+import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static jakarta.ws.rs.client.Entity.json;
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -28,23 +36,64 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import fixtures.PropertyFixtures;
 import fixtures.ResourceFixtures;
-import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.rest.api.management.v2.rest.model.*;
+import io.gravitee.rest.api.management.v2.rest.model.AccessControl;
+import io.gravitee.rest.api.management.v2.rest.model.Analytics;
+import io.gravitee.rest.api.management.v2.rest.model.Api;
+import io.gravitee.rest.api.management.v2.rest.model.ApiServices;
+import io.gravitee.rest.api.management.v2.rest.model.ApiV4;
+import io.gravitee.rest.api.management.v2.rest.model.ChannelSelector;
+import io.gravitee.rest.api.management.v2.rest.model.ConditionSelector;
+import io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion;
+import io.gravitee.rest.api.management.v2.rest.model.Dlq;
+import io.gravitee.rest.api.management.v2.rest.model.EndpointGroupV4;
+import io.gravitee.rest.api.management.v2.rest.model.EndpointV4;
+import io.gravitee.rest.api.management.v2.rest.model.Entrypoint;
+import io.gravitee.rest.api.management.v2.rest.model.ExportApiV4;
+import io.gravitee.rest.api.management.v2.rest.model.FlowV4;
+import io.gravitee.rest.api.management.v2.rest.model.HttpListener;
+import io.gravitee.rest.api.management.v2.rest.model.HttpMethod;
+import io.gravitee.rest.api.management.v2.rest.model.HttpSelector;
+import io.gravitee.rest.api.management.v2.rest.model.Listener;
+import io.gravitee.rest.api.management.v2.rest.model.ListenerType;
+import io.gravitee.rest.api.management.v2.rest.model.Media;
+import io.gravitee.rest.api.management.v2.rest.model.Member;
+import io.gravitee.rest.api.management.v2.rest.model.Metadata;
 import io.gravitee.rest.api.management.v2.rest.model.MetadataFormat;
+import io.gravitee.rest.api.management.v2.rest.model.Operator;
+import io.gravitee.rest.api.management.v2.rest.model.Page;
+import io.gravitee.rest.api.management.v2.rest.model.PageMedia;
+import io.gravitee.rest.api.management.v2.rest.model.PageSource;
 import io.gravitee.rest.api.management.v2.rest.model.PageType;
+import io.gravitee.rest.api.management.v2.rest.model.PathV4;
+import io.gravitee.rest.api.management.v2.rest.model.PlanSecurity;
 import io.gravitee.rest.api.management.v2.rest.model.PlanSecurityType;
 import io.gravitee.rest.api.management.v2.rest.model.PlanStatus;
 import io.gravitee.rest.api.management.v2.rest.model.PlanType;
+import io.gravitee.rest.api.management.v2.rest.model.PlanV4;
+import io.gravitee.rest.api.management.v2.rest.model.PlanValidation;
+import io.gravitee.rest.api.management.v2.rest.model.Qos;
+import io.gravitee.rest.api.management.v2.rest.model.Revision;
+import io.gravitee.rest.api.management.v2.rest.model.Role;
+import io.gravitee.rest.api.management.v2.rest.model.Selector;
+import io.gravitee.rest.api.management.v2.rest.model.StepV4;
+import io.gravitee.rest.api.management.v2.rest.model.SubscriptionListener;
+import io.gravitee.rest.api.management.v2.rest.model.TcpListener;
 import io.gravitee.rest.api.management.v2.rest.model.Visibility;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.ApiMetadataEntity;
+import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.MediaEntity;
+import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.MembershipMemberType;
+import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.PageEntity;
+import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
@@ -55,10 +104,16 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.Response;
 import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
-import java.util.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 public class ApisResource_CreateApiWithDefinitionTest extends AbstractResourceTest {
@@ -71,7 +126,7 @@ public class ApisResource_CreateApiWithDefinitionTest extends AbstractResourceTe
         return "/environments/" + ENVIRONMENT_ID + "/apis/_import/definition";
     }
 
-    @Before
+    @BeforeEach
     public void init() throws TechnicalException {
         reset(apiServiceV4);
         GraviteeContext.cleanContext();
@@ -360,15 +415,12 @@ public class ApisResource_CreateApiWithDefinitionTest extends AbstractResourceTe
         apiEntity.setId(API_ID);
         apiEntity.setName(API_ID);
         apiEntity.setApiVersion("v1.0");
-        io.gravitee.definition.model.v4.listener.http.HttpListener httpListener =
-            new io.gravitee.definition.model.v4.listener.http.HttpListener();
+        io.gravitee.definition.model.v4.listener.http.HttpListener httpListener = new io.gravitee.definition.model.v4.listener.http.HttpListener();
         httpListener.setPaths(List.of(new Path("my.fake.host", "/test")));
         httpListener.setPathMappings(Set.of("/test"));
 
-        io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener subscriptionListener =
-            new io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener();
-        io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint entrypoint =
-            new io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint();
+        io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener subscriptionListener = new io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener();
+        io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint entrypoint = new io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint();
         entrypoint.setType("Entrypoint type");
         entrypoint.setQos(io.gravitee.definition.model.v4.listener.entrypoint.Qos.AT_LEAST_ONCE);
         entrypoint.setDlq(new io.gravitee.definition.model.v4.listener.entrypoint.Dlq("my-endpoint"));
@@ -376,8 +428,7 @@ public class ApisResource_CreateApiWithDefinitionTest extends AbstractResourceTe
         subscriptionListener.setEntrypoints(List.of(entrypoint));
         subscriptionListener.setType(io.gravitee.definition.model.v4.listener.ListenerType.SUBSCRIPTION);
 
-        io.gravitee.definition.model.v4.listener.tcp.TcpListener tcpListener =
-            new io.gravitee.definition.model.v4.listener.tcp.TcpListener();
+        io.gravitee.definition.model.v4.listener.tcp.TcpListener tcpListener = new io.gravitee.definition.model.v4.listener.tcp.TcpListener();
         tcpListener.setType(io.gravitee.definition.model.v4.listener.ListenerType.TCP);
         tcpListener.setEntrypoints(List.of(entrypoint));
 
@@ -423,21 +474,18 @@ public class ApisResource_CreateApiWithDefinitionTest extends AbstractResourceTe
         flow.setRequest(List.of(step));
         flow.setTags(Set.of("tag1", "tag2"));
 
-        io.gravitee.definition.model.v4.flow.selector.HttpSelector httpSelector =
-            new io.gravitee.definition.model.v4.flow.selector.HttpSelector();
+        io.gravitee.definition.model.v4.flow.selector.HttpSelector httpSelector = new io.gravitee.definition.model.v4.flow.selector.HttpSelector();
         httpSelector.setPath("/test");
         httpSelector.setMethods(Set.of(io.gravitee.common.http.HttpMethod.GET, io.gravitee.common.http.HttpMethod.POST));
         httpSelector.setPathOperator(io.gravitee.definition.model.flow.Operator.STARTS_WITH);
 
-        io.gravitee.definition.model.v4.flow.selector.ChannelSelector channelSelector =
-            new io.gravitee.definition.model.v4.flow.selector.ChannelSelector();
+        io.gravitee.definition.model.v4.flow.selector.ChannelSelector channelSelector = new io.gravitee.definition.model.v4.flow.selector.ChannelSelector();
         channelSelector.setChannel("my-channel");
         channelSelector.setChannelOperator(io.gravitee.definition.model.flow.Operator.STARTS_WITH);
         channelSelector.setOperations(Set.of(io.gravitee.definition.model.v4.flow.selector.ChannelSelector.Operation.SUBSCRIBE));
         channelSelector.setEntrypoints(Set.of("my-entrypoint"));
 
-        io.gravitee.definition.model.v4.flow.selector.ConditionSelector conditionSelector =
-            new io.gravitee.definition.model.v4.flow.selector.ConditionSelector();
+        io.gravitee.definition.model.v4.flow.selector.ConditionSelector conditionSelector = new io.gravitee.definition.model.v4.flow.selector.ConditionSelector();
         conditionSelector.setCondition("my-condition");
 
         flow.setSelectors(List.of(httpSelector, channelSelector, conditionSelector));

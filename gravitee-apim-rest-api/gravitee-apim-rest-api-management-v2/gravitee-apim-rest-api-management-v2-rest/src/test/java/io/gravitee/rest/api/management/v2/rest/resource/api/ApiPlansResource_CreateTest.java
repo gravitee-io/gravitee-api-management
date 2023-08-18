@@ -19,11 +19,17 @@ import static io.gravitee.common.http.HttpStatusCode.CREATED_201;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.argThat;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import fixtures.PlanFixtures;
-import io.gravitee.rest.api.management.v2.rest.model.*;
+import io.gravitee.rest.api.management.v2.rest.model.CreatePlanV2;
+import io.gravitee.rest.api.management.v2.rest.model.CreatePlanV4;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
+import io.gravitee.rest.api.management.v2.rest.model.PlanV2;
+import io.gravitee.rest.api.management.v2.rest.model.PlanV4;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.plan.NewPlanEntity;
@@ -31,7 +37,7 @@ import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class ApiPlansResource_CreateTest extends ApiPlansResourceTest {
 

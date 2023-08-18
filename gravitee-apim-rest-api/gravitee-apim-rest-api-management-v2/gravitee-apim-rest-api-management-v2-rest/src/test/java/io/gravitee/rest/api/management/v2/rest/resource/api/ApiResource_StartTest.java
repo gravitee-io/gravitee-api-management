@@ -18,7 +18,15 @@ package io.gravitee.rest.api.management.v2.rest.resource.api;
 import static io.gravitee.rest.api.model.WorkflowType.REVIEW;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import fixtures.ApiFixtures;
 import io.gravitee.common.component.Lifecycle;
@@ -39,9 +47,9 @@ import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
-import java.util.*;
-import org.junit.Before;
-import org.junit.Test;
+import java.util.ArrayList;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class ApiResource_StartTest extends ApiResourceTest {
 
@@ -51,7 +59,7 @@ public class ApiResource_StartTest extends ApiResourceTest {
     }
 
     @Override
-    @Before
+    @BeforeEach
     public void init() throws TechnicalException {
         super.init();
         reset(apiLicenseService);

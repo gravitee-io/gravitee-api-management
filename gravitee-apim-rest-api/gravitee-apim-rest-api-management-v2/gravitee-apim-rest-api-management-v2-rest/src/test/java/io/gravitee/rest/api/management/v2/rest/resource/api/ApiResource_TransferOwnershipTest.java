@@ -15,20 +15,6 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api;
 
-import io.gravitee.rest.api.management.v2.rest.model.ApiTransferOwnership;
-import io.gravitee.rest.api.management.v2.rest.model.MembershipMemberType;
-import io.gravitee.rest.api.model.RoleEntity;
-import io.gravitee.rest.api.model.permissions.RoleScope;
-import io.gravitee.rest.api.service.MembershipService;
-import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.GraviteeContext;
-import jakarta.ws.rs.client.Entity;
-import jakarta.ws.rs.core.Response;
-import org.junit.Test;
-
-import java.util.List;
-import java.util.Optional;
-
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.NO_CONTENT_204;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,6 +24,18 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import io.gravitee.rest.api.management.v2.rest.model.ApiTransferOwnership;
+import io.gravitee.rest.api.management.v2.rest.model.MembershipMemberType;
+import io.gravitee.rest.api.model.RoleEntity;
+import io.gravitee.rest.api.model.permissions.RoleScope;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.GraviteeContext;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.Response;
+import java.util.List;
+import java.util.Optional;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -66,16 +64,17 @@ public class ApiResource_TransferOwnershipTest extends ApiResourceTest {
         apiTransferOwnership.setPoRole(null);
         try (Response response = rootTarget().request().post(Entity.json(apiTransferOwnership))) {
             verify(roleService, never()).findByScopeAndName(any(), any(), any());
-            verify(membershipService).transferApiOwnership(
-                   any(ExecutionContext.class),
-                   eq(API),
-                   argThat(arg ->
-                          arg.getMemberId().equals(apiTransferOwnership.getUserId())
-                          && arg.getReference().equals(apiTransferOwnership.getUserReference())
-                          && arg.getMemberType().name().equals(apiTransferOwnership.getUserType().name())
-                   ),
-                   eq(List.of())
-            );
+            verify(membershipService)
+                .transferApiOwnership(
+                    any(ExecutionContext.class),
+                    eq(API),
+                    argThat(arg ->
+                        arg.getMemberId().equals(apiTransferOwnership.getUserId()) &&
+                        arg.getReference().equals(apiTransferOwnership.getUserReference()) &&
+                        arg.getMemberType().name().equals(apiTransferOwnership.getUserType().name())
+                    ),
+                    eq(List.of())
+                );
             assertThat(NO_CONTENT_204).isEqualTo(response.getStatus());
         }
     }
@@ -88,24 +87,21 @@ public class ApiResource_TransferOwnershipTest extends ApiResourceTest {
         roleEntity.setId("role");
         roleEntity.setName("a-role-from-db");
         when(roleService.findByScopeAndName(RoleScope.API, apiTransferOwnership.getPoRole(), GraviteeContext.getCurrentOrganization()))
-               .thenReturn(
-                      Optional.of(
-                             roleEntity
-                      )
-               );
+            .thenReturn(Optional.of(roleEntity));
 
         try (Response response = rootTarget().request().post(Entity.json(apiTransferOwnership))) {
             verify(roleService).findByScopeAndName(any(), any(), any());
-            verify(membershipService).transferApiOwnership(
-                   any(ExecutionContext.class),
-                   eq(API),
-                   argThat(arg ->
-                          arg.getMemberId().equals(apiTransferOwnership.getUserId())
-                                 && arg.getReference().equals(apiTransferOwnership.getUserReference())
-                                 && arg.getMemberType().name().equals(apiTransferOwnership.getUserType().name())
-                   ),
-                   eq(List.of(roleEntity))
-            );
+            verify(membershipService)
+                .transferApiOwnership(
+                    any(ExecutionContext.class),
+                    eq(API),
+                    argThat(arg ->
+                        arg.getMemberId().equals(apiTransferOwnership.getUserId()) &&
+                        arg.getReference().equals(apiTransferOwnership.getUserReference()) &&
+                        arg.getMemberType().name().equals(apiTransferOwnership.getUserType().name())
+                    ),
+                    eq(List.of(roleEntity))
+                );
             assertThat(NO_CONTENT_204).isEqualTo(response.getStatus());
         }
     }

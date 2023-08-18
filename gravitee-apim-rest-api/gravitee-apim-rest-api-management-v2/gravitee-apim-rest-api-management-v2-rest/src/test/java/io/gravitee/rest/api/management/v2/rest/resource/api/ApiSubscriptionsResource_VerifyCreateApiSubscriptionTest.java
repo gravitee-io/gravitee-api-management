@@ -15,8 +15,12 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api;
 
-import static io.gravitee.common.http.HttpStatusCode.*;
-import static org.junit.Assert.*;
+import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
+import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
+import static io.gravitee.common.http.HttpStatusCode.OK_200;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
@@ -31,9 +35,8 @@ import io.gravitee.rest.api.service.ApiKeyService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
-import org.junit.Before;
-import org.junit.Test;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class ApiSubscriptionsResource_VerifyCreateApiSubscriptionTest extends ApiSubscriptionsResourceTest {
@@ -46,7 +49,7 @@ public class ApiSubscriptionsResource_VerifyCreateApiSubscriptionTest extends Ap
         return "/environments/" + ENVIRONMENT + "/apis/" + API + "/subscriptions/_verify";
     }
 
-    @Before
+    @BeforeEach
     public void before() {
         reset(apiKeyService);
     }

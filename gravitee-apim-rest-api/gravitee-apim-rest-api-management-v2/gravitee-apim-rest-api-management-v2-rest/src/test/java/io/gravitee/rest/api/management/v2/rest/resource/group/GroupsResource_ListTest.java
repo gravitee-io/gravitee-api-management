@@ -15,6 +15,13 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.group;
 
+import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
+import static io.gravitee.common.http.HttpStatusCode.OK_200;
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.management.v2.rest.model.GroupsResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
@@ -26,32 +33,23 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.Response;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mockito;
-
 import java.util.*;
-
-import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
-import static io.gravitee.common.http.HttpStatusCode.OK_200;
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.when;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 public class GroupsResource_ListTest extends AbstractResourceTest {
 
     private static final String ENVIRONMENT = "my-env";
+
     @Override
     protected String contextPath() {
         return "/environments/" + ENVIRONMENT + "/groups";
     }
 
-    @Before
+    @BeforeEach
     public void init() throws TechnicalException {
-        Mockito.reset(groupService);
-        GraviteeContext.cleanContext();
-
         EnvironmentEntity environmentEntity = new EnvironmentEntity();
         environmentEntity.setId(ENVIRONMENT);
         environmentEntity.setOrganizationId(ORGANIZATION);
@@ -62,9 +60,23 @@ public class GroupsResource_ListTest extends AbstractResourceTest {
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
     }
 
+    @AfterEach
+    void tearDown() {
+        Mockito.reset(groupService);
+        GraviteeContext.cleanContext();
+    }
+
     @Test
     public void should_control_permissions() {
-        when(permissionService.hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.ENVIRONMENT_GROUP), eq(ENVIRONMENT), eq(RolePermissionAction.READ))).thenReturn(false);
+        when(
+            permissionService.hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(RolePermission.ENVIRONMENT_GROUP),
+                eq(ENVIRONMENT),
+                eq(RolePermissionAction.READ)
+            )
+        )
+            .thenReturn(false);
 
         final Response response = rootTarget().queryParam("perPage", 10).queryParam("page", 1).request().get();
         assertEquals(FORBIDDEN_403, response.getStatus());

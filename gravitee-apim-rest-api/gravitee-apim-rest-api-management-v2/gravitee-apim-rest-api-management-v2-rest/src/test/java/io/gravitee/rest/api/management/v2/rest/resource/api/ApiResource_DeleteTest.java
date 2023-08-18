@@ -29,7 +29,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import jakarta.ws.rs.core.Response;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class ApiResource_DeleteTest extends ApiResourceTest {
 

@@ -28,8 +28,8 @@ import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import java.util.Optional;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -57,7 +57,7 @@ public abstract class ApiSubscriptionsResourceTest extends AbstractResourceTest 
     @Autowired
     protected UserService userService;
 
-    @Before
+    @BeforeEach
     public void init() throws TechnicalException {
         Mockito.reset(subscriptionService, applicationService, planSearchService, parameterService, apiKeyService);
         GraviteeContext.cleanContext();
@@ -77,7 +77,7 @@ public abstract class ApiSubscriptionsResourceTest extends AbstractResourceTest 
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         GraviteeContext.cleanContext();
     }

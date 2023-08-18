@@ -15,20 +15,17 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api;
 
-import static io.gravitee.common.http.HttpStatusCode.*;
+import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
+import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
+import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 import fixtures.PlanFixtures;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.model.Api;
-import io.gravitee.rest.api.management.v2.rest.model.*;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
-import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
-import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.management.v2.rest.model.PlanV2;
+import io.gravitee.rest.api.management.v2.rest.model.PlanV4;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
@@ -36,11 +33,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import jakarta.ws.rs.core.Response;
-import java.util.Optional;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mockito;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class ApiPlansResource_GetTest extends ApiPlansResourceTest {

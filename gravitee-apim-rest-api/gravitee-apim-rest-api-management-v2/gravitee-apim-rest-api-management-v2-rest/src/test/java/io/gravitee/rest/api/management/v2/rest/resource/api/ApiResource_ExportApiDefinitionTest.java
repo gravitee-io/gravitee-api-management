@@ -15,9 +15,15 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api;
 
-import static io.gravitee.common.http.HttpStatusCode.*;
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
+import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
+import static io.gravitee.common.http.HttpStatusCode.OK_200;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -49,11 +55,26 @@ import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.service.ApiServices;
-import io.gravitee.rest.api.management.v2.rest.model.*;
+import io.gravitee.rest.api.management.v2.rest.model.ApiV4;
+import io.gravitee.rest.api.management.v2.rest.model.ExportApiV4;
+import io.gravitee.rest.api.management.v2.rest.model.Media;
+import io.gravitee.rest.api.management.v2.rest.model.Member;
+import io.gravitee.rest.api.management.v2.rest.model.Metadata;
+import io.gravitee.rest.api.management.v2.rest.model.Page;
 import io.gravitee.rest.api.management.v2.rest.model.PageType;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.management.v2.rest.model.PlanV4;
+import io.gravitee.rest.api.management.v2.rest.model.PlanValidation;
+import io.gravitee.rest.api.management.v2.rest.model.Role;
+import io.gravitee.rest.api.model.AccessControlEntity;
+import io.gravitee.rest.api.model.ApiMetadataEntity;
+import io.gravitee.rest.api.model.MediaEntity;
+import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MetadataFormat;
+import io.gravitee.rest.api.model.PageEntity;
+import io.gravitee.rest.api.model.PageMediaEntity;
+import io.gravitee.rest.api.model.PageSourceEntity;
+import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -68,9 +89,15 @@ import jakarta.ws.rs.core.Response;
 import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.util.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)

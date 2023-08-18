@@ -15,7 +15,8 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.plugin;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
@@ -23,7 +24,7 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.ConnectorMode;
 import io.gravitee.definition.model.v4.listener.entrypoint.Qos;
-import io.gravitee.rest.api.management.v2.rest.model.*;
+import io.gravitee.rest.api.management.v2.rest.model.ConnectorPlugin;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
@@ -31,11 +32,12 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.PluginNotFoundException;
 import jakarta.ws.rs.core.GenericType;
 import jakarta.ws.rs.core.Response;
-import java.util.*;
+import java.util.Map;
+import java.util.Set;
 import org.assertj.core.api.Assertions;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -50,8 +52,8 @@ public class EndpointsResourceTest extends AbstractResourceTest {
 
     private static final String FAKE_ENDPOINT_ID = "my_endpoint";
 
-    @Before
-    public void init() {
+    @AfterEach
+    void tearDown() {
         reset(endpointConnectorPluginService);
         GraviteeContext.cleanContext();
     }
