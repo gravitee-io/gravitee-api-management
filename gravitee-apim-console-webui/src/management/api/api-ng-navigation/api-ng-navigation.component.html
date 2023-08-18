@@ -92,8 +92,11 @@
         <gio-banner *ngFor="let banner of banners" [type]="banner.type">
           {{ banner.title }}
           <div *ngIf="banner.action" gioBannerAction>
-            <button mat-stroked-button color="basic" (click)="banner.action.onClick()">{{ banner.action.btnText }}</button>
+            <button mat-stroked-button color="basic" (click)="banner.action.onClick(); btn.disabled = true" #btn>
+              {{ banner.action.btnText }}
+            </button>
           </div>
+          <div gioBannerBody *ngIf="banner.body" [innerHTML]="banner.body"></div>
         </gio-banner>
       </div>
 

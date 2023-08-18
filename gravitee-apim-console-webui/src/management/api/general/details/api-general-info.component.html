@@ -15,39 +15,6 @@
     limitations under the License.
 
 -->
-<gio-banner-warning *ngIf="updateState === 'TO_UPDATE'" class="details-card__update-banner">
-  <div>API version out-of-date</div>
-  <button
-    gioBannerAction
-    mat-raised-button
-    (click)="updateApiVersion()"
-    type="button"
-    aria-label="Button to update api version"
-    matTooltip="Update api version"
-    color="basic"
-  >
-    <mat-icon svgIcon="gio:up-circle"></mat-icon> Update API version
-  </button>
-  <div gioBannerBody>
-    <div>We no longer support path-based APIs. To continue using all features, you will need to update your API.</div>
-    <a href="https://www.gravitee.io/blog/gravitee-api-definitions" target="_blank" rel="noopener">Learn more</a>
-  </div>
-</gio-banner-warning>
-
-<gio-banner-warning *ngIf="updateState == 'IN_PROGRESS'" class="details-card__update-banner">
-  <div>Updating your API version</div>
-  <button gioBannerAction mat-raised-button type="button" aria-label="Updating" color="basic" disabled>
-    <mat-icon class="details-card__update-banner__refresh-icon" svgIcon="gio:refresh-ccw"></mat-icon> Updating
-  </button>
-  <span gioBannerBody>In a few seconds the page will reload automatically</span>
-</gio-banner-warning>
-
-<gio-banner-info *ngIf="updateState === 'UPDATED'" class="details-card__update-banner">
-  <div>Your API is up-to-date!</div>
-  <button gioBannerAction (click)="reloadApi()" mat-raised-button type="button" aria-label="Continue" color="primary">Continue</button>
-  <span gioBannerBody>Gravitee will reload to apply your new API Version</span>
-</gio-banner-info>
-
 <form *ngIf="apiDetailsForm" [formGroup]="parentForm" autocomplete="off" gioFormFocusInvalid>
   <mat-card class="details-card" [formGroup]="apiDetailsForm">
     <div class="details-card__header">

@@ -89,7 +89,6 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
 
   public isReadOnly = false;
   public isKubernetesOrigin = false;
-  public updateState: 'TO_UPDATE' | 'IN_PROGRESS' | 'UPDATED' | undefined;
 
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
@@ -137,7 +136,6 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
 
           this.apiId = api.id;
           this.api = api;
-          this.updateState = api.definitionVersion == null || api.definitionVersion === 'V1' ? 'TO_UPDATE' : undefined;
 
           this.apiCategories = categories;
           this.apiOwner = api.primaryOwner.displayName;
@@ -399,28 +397,6 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
     } else {
       return api.lifecycleState === 'CREATED' || api.lifecycleState === 'PUBLISHED' || api.lifecycleState === 'UNPUBLISHED';
     }
-  }
-
-  public updateApiVersion() {
-    this.updateState = 'IN_PROGRESS';
-    this.legacyApiService
-      .migrateApiToPolicyStudio(this.apiId)
-      .pipe(
-        tap(() => {
-          this.updateState = 'UPDATED';
-        }),
-        catchError(({ error }) => {
-          this.snackBarService.error(error.message);
-          this.updateState = 'TO_UPDATE';
-          return EMPTY;
-        }),
-        takeUntil(this.unsubscribe$),
-      )
-      .subscribe();
-  }
-
-  public reloadApi() {
-    this.ajsState.go('management.apis.ng.general', { apiId: this.apiId }, { reload: true });
   }
 }
 

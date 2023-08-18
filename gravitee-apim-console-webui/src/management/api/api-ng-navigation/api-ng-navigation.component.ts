@@ -17,7 +17,7 @@ import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { StateService } from '@uirouter/core';
 import { IScope } from 'angular';
 import { castArray, flatMap } from 'lodash';
-import { takeUntil, map } from 'rxjs/operators';
+import { map, takeUntil } from 'rxjs/operators';
 import { GIO_DIALOG_WIDTH, GioMenuService } from '@gravitee/ui-particles-angular';
 import { Observable, Subject } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
@@ -38,6 +38,8 @@ import UserService from '../../../services/user.service';
 import { Constants } from '../../../entities/Constants';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import { Api } from '../../../entities/management-api-v2';
+import { ApiService } from '../../../services-ngx/api.service';
+import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 
 type TopBanner = {
   title: string;
@@ -65,6 +67,30 @@ export class ApiNgNavigationComponent implements OnInit, OnDestroy {
   public banners$: Observable<TopBanner[]> = this.apiV2Service.getLastApiFetch(this.ajsStateParams.apiId).pipe(
     map((api) => {
       const banners = [];
+
+      if (api.definitionVersion == null || api.definitionVersion === 'V1') {
+        banners.push({
+          title: 'API version out-of-date',
+          type: 'warning',
+          body:
+            '<div>We no longer support path-based APIs. To continue using all features, you will need to update your API.</div>\n' +
+            '<a href="https://www.gravitee.io/blog/gravitee-api-definitions" target="_blank" rel="noopener">Learn more</a>\n',
+          action: {
+            btnText: 'Update API version',
+            onClick: () => {
+              this.legacyApiService
+                .migrateApiToPolicyStudio(this.currentApi.id)
+                .pipe(takeUntil(this.unsubscribe$))
+                .subscribe({
+                  next: () => this.ajsState.reload(),
+                  error: ({ error }) => {
+                    this.snackBarService.error(error.message);
+                  },
+                });
+            },
+          },
+        });
+      }
 
       const isApiReviewer = this.permissionService.hasAnyMatching(['api-reviews-u']);
       // Only for API reviewer
@@ -237,9 +263,11 @@ export class ApiNgNavigationComponent implements OnInit, OnDestroy {
     @Inject(AjsRootScope) private readonly ajsRootScope: IScope,
     private readonly gioMenuService: GioMenuService,
     private readonly apiV2Service: ApiV2Service,
+    private readonly legacyApiService: ApiService,
     private readonly matDialog: MatDialog,
     private readonly apiNgV1V2MenuService: ApiNgV1V2MenuService,
     private readonly apiNgV4MenuService: ApiNgV4MenuService,
+    private readonly snackBarService: SnackBarService,
   ) {}
 
   ngOnInit() {
