@@ -28,7 +28,7 @@ import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../..
 import { GioUiRouterTestingModule } from '../../../shared/testing/gio-uirouter-testing-module';
 import { User as DeprecatedUser } from '../../../entities/user';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
-import { fakeApiV4 } from '../../../entities/management-api-v2';
+import { fakeApiV1, fakeApiV4 } from '../../../entities/management-api-v2';
 
 describe('ApiNgNavigationComponent', () => {
   const API_ID = 'apiId';
@@ -97,6 +97,27 @@ describe('ApiNgNavigationComponent', () => {
             fakeApiV4({
               id: API_ID,
               deploymentState: 'NEED_REDEPLOY',
+            }),
+          );
+      });
+      it('should display "API version out-of-date" banner', async (done) => {
+        apiNgNavigationComponent.banners$.subscribe((banners) => {
+          expect(banners.length).toEqual(1);
+          expect(banners[0]).toMatchObject({
+            title: 'API version out-of-date',
+            type: 'warning',
+          });
+          done();
+        });
+
+        httpTestingController
+          .expectOne({
+            url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`,
+            method: 'GET',
+          })
+          .flush(
+            fakeApiV1({
+              id: API_ID,
             }),
           );
       });
