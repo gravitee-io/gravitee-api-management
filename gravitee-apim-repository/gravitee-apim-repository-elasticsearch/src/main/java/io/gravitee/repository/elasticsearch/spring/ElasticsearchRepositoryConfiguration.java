@@ -54,7 +54,15 @@ import org.springframework.context.annotation.Import;
  * @author GraviteeSource Team
  */
 @Configuration
-@Import({ AnalyticsConfiguration.class, HealthCheckConfiguration.class, LogConfiguration.class, MonitoringConfiguration.class })
+@Import(
+    {
+        AnalyticsConfiguration.class,
+        HealthCheckConfiguration.class,
+        LogConfiguration.class,
+        io.gravitee.repository.elasticsearch.v4.log.spring.LogConfiguration.class,
+        MonitoringConfiguration.class,
+    }
+)
 public class ElasticsearchRepositoryConfiguration {
 
     private final Logger logger = LoggerFactory.getLogger(ElasticsearchRepositoryConfiguration.class);

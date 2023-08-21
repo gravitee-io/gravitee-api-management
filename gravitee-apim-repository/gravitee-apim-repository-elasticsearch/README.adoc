@@ -2,7 +2,7 @@
 = APIM Elasticsearch Repository
 
 == Testing
-By default, unit tests are run with a TestContainer version of ElasticSearch 7.17.7, but sometimes it can be useful to run them against other version of ElasticSearch.
+By default, unit tests are run with a TestContainer version of ElasticSearch 8.7.0, but sometimes it can be useful to run them against other version of ElasticSearch.
 To do so you can use the following commands:
 
 * ES 7.x: `mvn clean test -Delasticsearch.version=7.17.8`

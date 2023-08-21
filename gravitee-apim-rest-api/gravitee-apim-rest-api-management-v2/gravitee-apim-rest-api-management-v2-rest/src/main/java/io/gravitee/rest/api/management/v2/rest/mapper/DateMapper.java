@@ -20,6 +20,7 @@ import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.Objects;
 import org.mapstruct.Mapper;
+import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
 @Mapper
@@ -38,5 +39,10 @@ public interface DateMapper {
             return null;
         }
         return Date.from(offsetDateTime.toInstant());
+    }
+
+    @Named("mapTimestamp")
+    default OffsetDateTime mapTimestamp(String timestamp) {
+        return OffsetDateTime.parse(timestamp);
     }
 }

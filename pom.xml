@@ -119,6 +119,7 @@
         <jmh.version>1.33</jmh.version>
         <jcstress.version>0.15</jcstress.version>
         <jsonassert.version>1.5.0</jsonassert.version>
+        <json-unit.version>3.0.0</json-unit.version>
         <json-patch.version>1.13</json-patch.version>
         <json-path.version>2.6.0</json-path.version>
         <json-smart.version>2.4.11</json-smart.version>
@@ -624,6 +625,12 @@
                 <groupId>org.skyscreamer</groupId>
                 <artifactId>jsonassert</artifactId>
                 <version>${jsonassert.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>net.javacrumbs.json-unit</groupId>
+                <artifactId>json-unit-assertj</artifactId>
+                <version>${json-unit.version}</version>
+                <scope>test</scope>
             </dependency>
 
             <dependency>
