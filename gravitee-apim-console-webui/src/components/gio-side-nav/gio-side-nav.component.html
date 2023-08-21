@@ -27,26 +27,22 @@
       ></gio-menu-selector>
     </gio-menu-header>
     <gio-menu-list>
-      <gio-menu-item
-        *ngFor="let item of mainMenuItems"
-        tabIndex="1"
-        [title]="item.displayName"
-        [icon]="item.icon"
-        (click)="navigateTo(item.targetRoute)"
-        [active]="isActive(item.baseRoute)"
-        >{{ item.displayName }}</gio-menu-item
+      <ng-container *ngFor="let item of mainMenuItems">
+        <a [uiSref]="item.targetRoute">
+          <gio-menu-item tabIndex="1" [title]="item.displayName" [icon]="item.icon" [active]="isActive(item.baseRoute)">{{
+            item.displayName
+          }}</gio-menu-item></a
+        ></ng-container
       >
     </gio-menu-list>
 
     <gio-menu-footer *ngIf="footerMenuItems.length > 0">
-      <gio-menu-item
-        *ngFor="let item of footerMenuItems"
-        tabIndex="1"
-        [title]="item.displayName"
-        [icon]="item.icon"
-        (click)="navigateTo(item.targetRoute)"
-        [active]="isActive(item.baseRoute)"
-        >{{ item.displayName }}</gio-menu-item
+      <ng-container *ngFor="let item of footerMenuItems">
+        <a [uiSref]="item.targetRoute">
+          <gio-menu-item tabIndex="1" [title]="item.displayName" [icon]="item.icon" [active]="isActive(item.baseRoute)">{{
+            item.displayName
+          }}</gio-menu-item></a
+        ></ng-container
       >
     </gio-menu-footer>
   </gio-menu>

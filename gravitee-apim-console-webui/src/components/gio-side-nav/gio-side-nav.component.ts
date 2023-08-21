@@ -152,13 +152,7 @@ export class GioSideNavComponent implements OnInit {
   }
 
   private filterMenuByPermission(menuItems: MenuItem[]): MenuItem[] {
-    return menuItems
-      .filter((item) => !item.permissions || this.permissionService.hasAnyMatching(item.permissions))
-      .filter((item) => (item.permissions?.includes('environment-alert-r') ? this.constants.org?.settings?.alert?.enabled : true)); // Dirty hack to remove the "Alert" menu item if the alert feature is not enabled
-  }
-
-  navigateTo(route: string) {
-    this.ajsState.go(route);
+    return menuItems.filter((item) => !item.permissions || this.permissionService.hasAnyMatching(item.permissions));
   }
 
   isActive(route: string): boolean {

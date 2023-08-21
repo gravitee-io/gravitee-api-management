@@ -35,37 +35,29 @@
         </button>
       </span>
       <ng-container *ngFor="let menuItem of this.subMenuItems">
-        <gio-submenu-item
-          *ngIf="!menuItem?.targetRoute && menuItem?.tabs?.length > 0"
-          tabIndex="1"
-          (click)="navigateTo(menuItem?.tabs[0]?.targetRoute)"
-          [active]="isTabActive(menuItem?.tabs)"
-          >{{ menuItem?.displayName }}</gio-submenu-item
-        >
-        <gio-submenu-item
-          *ngIf="menuItem?.targetRoute"
-          tabIndex="1"
-          (click)="navigateTo(menuItem?.targetRoute)"
-          [active]="isActive(menuItem?.baseRoute)"
-          >{{ menuItem?.displayName }}</gio-submenu-item
+        <ng-container *ngIf="!menuItem?.targetRoute && menuItem?.tabs?.length > 0">
+          <a [uiSref]="menuItem?.tabs[0]?.targetRoute">
+            <gio-submenu-item tabIndex="1" [active]="isTabActive(menuItem?.tabs)">{{ menuItem?.displayName }}</gio-submenu-item></a
+          >
+        </ng-container>
+        <ng-container *ngIf="menuItem?.targetRoute">
+          <a [uiSref]="menuItem?.targetRoute">
+            <gio-submenu-item tabIndex="1" [active]="isActive(menuItem?.baseRoute)">{{ menuItem?.displayName }}</gio-submenu-item></a
+          ></ng-container
         >
       </ng-container>
       <ng-container *ngFor="let group of this.groupItems">
         <gio-submenu-group [title]="group.title" *ngIf="group.title">
           <ng-container *ngFor="let subItem of group.items">
-            <gio-submenu-item
-              *ngIf="!subItem?.targetRoute && subItem?.tabs?.length > 0"
-              tabIndex="1"
-              (click)="navigateTo(subItem?.tabs[0]?.targetRoute)"
-              [active]="isTabActive(subItem?.tabs)"
-              >{{ subItem?.displayName }}</gio-submenu-item
+            <ng-container *ngIf="!subItem?.targetRoute && subItem?.tabs?.length > 0">
+              <a [uiSref]="subItem?.tabs[0]?.targetRoute">
+                <gio-submenu-item tabIndex="1" [active]="isTabActive(subItem?.tabs)">{{ subItem?.displayName }}</gio-submenu-item></a
+              ></ng-container
             >
-            <gio-submenu-item
-              *ngIf="subItem?.targetRoute"
-              tabIndex="1"
-              (click)="navigateTo(subItem?.targetRoute)"
-              [active]="isActive(subItem?.baseRoute)"
-              >{{ subItem?.displayName }}</gio-submenu-item
+            <ng-container *ngIf="subItem?.targetRoute">
+              <a [uiSref]="subItem?.targetRoute">
+                <gio-submenu-item tabIndex="1" [active]="isActive(subItem?.baseRoute)">{{ subItem?.displayName }}</gio-submenu-item></a
+              ></ng-container
             >
           </ng-container>
         </gio-submenu-group>
