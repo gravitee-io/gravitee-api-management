@@ -16,11 +16,12 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { GioSubmenuModule } from '@gravitee/ui-particles-angular';
+import { UIRouterModule } from '@uirouter/angular';
 
 import { SettingsNavigationComponent } from './settings-navigation.component';
 
 @NgModule({
-  imports: [CommonModule, GioSubmenuModule],
+  imports: [CommonModule, GioSubmenuModule, UIRouterModule],
   declarations: [SettingsNavigationComponent],
   exports: [SettingsNavigationComponent],
   entryComponents: [SettingsNavigationComponent],

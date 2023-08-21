@@ -109,10 +109,6 @@ export class ApplicationNavigationComponent implements OnInit, OnDestroy {
     return [];
   }
 
-  navigateTo(route: string) {
-    this.ajsState.go(route);
-  }
-
   isActive(route: string): boolean {
     return this.ajsState.includes(route);
   }

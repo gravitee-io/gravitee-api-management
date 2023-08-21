@@ -26,6 +26,10 @@
   justify-content: flex-start;
   height: 100%;
 
+  a {
+    text-decoration: none;
+  }
+
   &__menu {
     display: flex;
     flex-direction: column;

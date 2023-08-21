@@ -418,10 +418,6 @@ export class ApiNavigationComponent implements OnInit {
     return items.filter((item) => item.tabs).find((item) => this.isTabActive(item.tabs));
   }
 
-  navigateTo(route: string) {
-    this.ajsState.go(route);
-  }
-
   isActive(baseRoute: MenuItem['baseRoute']): boolean {
     return castArray(baseRoute).some((baseRoute) => this.ajsState.includes(baseRoute));
   }
