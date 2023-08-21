@@ -20,12 +20,10 @@
     <gio-submenu class="application-navigation__submenu">
       <div gioSubmenuTitle class="application-navigation__submenu__title">{{ this.applicationName }}</div>
       <ng-container *ngFor="let item of this.subMenuItems">
-        <gio-submenu-item
-          *ngIf="item.targetRoute"
-          tabIndex="1"
-          (click)="navigateTo(item.targetRoute)"
-          [active]="isActive(item.baseRoute)"
-          >{{ item.displayName }}</gio-submenu-item
+        <ng-container *ngIf="item.targetRoute">
+          <a [uiSref]="item.targetRoute">
+            <gio-submenu-item tabIndex="1" [active]="isActive(item.baseRoute)">{{ item.displayName }}</gio-submenu-item>
+          </a></ng-container
         >
       </ng-container>
     </gio-submenu>
