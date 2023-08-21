@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.elasticsearch;
+package io.gravitee.repository.elasticsearch.analytics;
 
 import static io.gravitee.repository.analytics.query.DateRangeBuilder.lastDays;
 import static io.gravitee.repository.analytics.query.IntervalBuilder.hours;
@@ -34,6 +34,7 @@ import io.gravitee.repository.analytics.query.groupby.GroupByResponse;
 import io.gravitee.repository.analytics.query.groupby.GroupByResponse.Bucket;
 import io.gravitee.repository.analytics.query.response.histogram.DateHistogramResponse;
 import io.gravitee.repository.analytics.query.stats.StatsResponse;
+import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepositoryTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
