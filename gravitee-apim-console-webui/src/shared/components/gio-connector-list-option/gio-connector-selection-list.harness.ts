@@ -15,8 +15,8 @@
  */
 import { ListOptionHarnessFilters, MatSelectionListHarness } from '@angular/material/list/testing';
 
-export class GioSelectionListHarness extends MatSelectionListHarness {
-  static hostSelector = '.gio-selection-list';
+export class GioConnectorSelectionListHarness extends MatSelectionListHarness {
+  static hostSelector = '.gio-connector-list';
 
   async selectOptionsByIds(ids: string[]): Promise<void> {
     const filters: ListOptionHarnessFilters[] = ids.map((id) => ({ selector: `[ng-reflect-value=${id}]` }));

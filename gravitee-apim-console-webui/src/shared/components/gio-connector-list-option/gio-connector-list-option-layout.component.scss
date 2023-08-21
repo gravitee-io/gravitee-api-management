@@ -5,20 +5,45 @@
 $typography: map.get(gio.$mat-theme, typography);
 
 ::ng-deep {
-  // ⚠️ Complete mat-selection-list styles to have custom style
-  mat-selection-list.gio-selection-list {
+  // ⚠️ Complete mat-selection-list & mat-radio-group styles to have custom style
+  mat-selection-list.gio-connector-list,
+  mat-radio-group.gio-connector-list {
     display: flex;
     flex-direction: column;
     gap: 16px;
 
-    mat-list-option.mat-list-option {
+    mat-list-option.mat-list-option,
+    mat-radio-button.mat-radio-button {
       height: auto;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       border: 2px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker20');
       border-radius: 4px;
+    }
+
+    .gio-connector__selected {
+      border: 2px solid mat.get-color-from-palette(gio.$mat-accent-palette, 'default') !important;
+    }
+
+    /**
+    mat-selection-list
+     */
+    mat-list-option.mat-list-option {
       padding: 16px 0;
+    }
+
+    /**
+    mat-radio-group
+     */
+    mat-radio-button.mat-radio-button {
+      padding: 0 16px;
+    }
+    label.mat-radio-label {
+      gap: 8px;
+    }
+    span.mat-radio-label-content {
+      width: 100%;
     }
   }
 }
@@ -30,7 +55,7 @@ $typography: map.get(gio.$mat-theme, typography);
   gap: 16px;
   justify-content: space-between;
 }
-.gio-list-option {
+.gio-connector {
   &__description {
     flex: 1 1 100%;
 
@@ -45,6 +70,7 @@ $typography: map.get(gio.$mat-theme, typography);
       // TODO: make available to module components + integrate in step 1, stepper html
       color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
       margin: 0;
+      white-space: pre-line;
     }
   }
 }

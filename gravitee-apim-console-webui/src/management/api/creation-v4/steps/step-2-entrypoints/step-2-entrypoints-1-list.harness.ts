@@ -16,12 +16,12 @@
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 
-import { GioSelectionListHarness } from '../../../../../shared/components/gio-selection-list-option/gio-selection-list.harness';
+import { GioConnectorSelectionListHarness } from '../../../../../shared/components/gio-connector-list-option/gio-connector-selection-list.harness';
 
 export class Step2Entrypoints1ListHarness extends ComponentHarness {
   static hostSelector = 'step-2-entrypoints-1-list';
 
-  private readonly selectionList = this.locatorFor(GioSelectionListHarness);
+  private readonly selectionList = this.locatorFor(GioConnectorSelectionListHarness);
 
   protected getButtonByText = (text: string) =>
     this.locatorFor(
@@ -30,7 +30,7 @@ export class Step2Entrypoints1ListHarness extends ComponentHarness {
       }),
     )();
 
-  async getEntrypoints(): Promise<GioSelectionListHarness> {
+  async getEntrypoints(): Promise<GioConnectorSelectionListHarness> {
     return this.selectionList();
   }
 

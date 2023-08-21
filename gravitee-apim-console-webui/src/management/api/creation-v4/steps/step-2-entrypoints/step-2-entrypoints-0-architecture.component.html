@@ -25,62 +25,51 @@
   </div>
 
   <form *ngIf="form" [formGroup]="form">
-    <mat-selection-list class="gio-selection-list" disableRipple="true" multiple="false" formControlName="type">
-      <mat-list-option
+    <mat-radio-group class="gio-connector-list" formControlName="type">
+      <mat-radio-button
+        data-testid="api_creation_proxy_checkbox"
         value="PROXY"
-        #syncOption
-        [class.api-creation-v4__list-option__selected]="form.controls['type'].value?.includes('PROXY')"
+        [class.gio-connector__selected]="form.controls['type'].value === 'PROXY'"
       >
-        <div class="option">
-          <!-- Note for migration: Angular Material 15 automatically add radio -->
-          <mat-radio-button [checked]="syncOption?.selected" data-testid="api_creation_proxy_checkbox"></mat-radio-button>
-          <gio-selection-list-option-layout>
-            <gio-selection-list-option-layout-title> Proxy upstream Protocol </gio-selection-list-option-layout-title>
+        <gio-connector-list-option-layout>
+          <gio-connector-list-option-layout-title> Proxy upstream Protocol </gio-connector-list-option-layout-title>
 
-            <gio-selection-list-option-layout-body>
-              <div>
-                This mode puts a proxy in front of upstream services. It passes the response through the gateway with policies on request
-                and response phases.
-              </div>
-              <div class="option__badges">
-                Can proxy
-                <span class="gio-badge-neutral gio-caption-2"> REST API </span>
-                <span class="gio-badge-neutral gio-caption-2"> SOAP API </span>
-                <span class="gio-badge-neutral gio-caption-2"> WebSocket Server </span>
-                <span class="gio-badge-neutral gio-caption-2"> gRPC Service </span>
-              </div>
-            </gio-selection-list-option-layout-body>
-          </gio-selection-list-option-layout>
-        </div>
-      </mat-list-option>
-      <mat-list-option
-        value="MESSAGE"
-        #asyncOption
-        [class.api-creation-v4__list-option__selected]="form.controls['type'].value?.includes('MESSAGE')"
-      >
-        <div class="option">
-          <!-- Note form migration: Angular Material 15 automatically add radio -->
-          <mat-radio-button [checked]="asyncOption?.selected"></mat-radio-button>
-          <gio-selection-list-option-layout>
-            <gio-selection-list-option-layout-title>
-              <div class="option__badges">Introspect Messages from Event-Driven Backend <span class="gio-badge-primary">NEW</span></div>
-            </gio-selection-list-option-layout-title>
+          <gio-connector-list-option-layout-body>
+            <p>
+              This mode puts a proxy in front of upstream services. It passes the response through the gateway with policies on request and
+              response phases.
+            </p>
+            <div class="option__badges">
+              Can proxy
+              <span class="gio-badge-neutral gio-caption-2"> REST API </span>
+              <span class="gio-badge-neutral gio-caption-2"> SOAP API </span>
+              <span class="gio-badge-neutral gio-caption-2"> WebSocket Server </span>
+              <span class="gio-badge-neutral gio-caption-2"> gRPC Service </span>
+            </div>
+          </gio-connector-list-option-layout-body>
+        </gio-connector-list-option-layout>
+      </mat-radio-button>
 
-            <gio-selection-list-option-layout-body>
-              <div>
-                This mode produces and consumes messages to event-driven services and allows for message transformation in between via
-                message policies and multiple entrypoints.
-              </div>
-              <div class="option__badges">
-                Can expose
-                <span class="gio-badge-neutral gio-caption-2">Kafka</span>
-                <span class="gio-badge-neutral gio-caption-2">MQTT</span>
-                <span class="gio-badge-neutral gio-caption-2">RabbitMQ</span>
-                <span class="gio-badge-neutral gio-caption-2">Solace</span>
-              </div>
-            </gio-selection-list-option-layout-body>
-          </gio-selection-list-option-layout>
-        </div>
+      <mat-radio-button value="MESSAGE" [class.gio-connector__selected]="form.controls['type'].value === 'MESSAGE'">
+        <gio-connector-list-option-layout>
+          <gio-connector-list-option-layout-title>
+            <div class="option__badges">Introspect Messages from Event-Driven Backend <span class="gio-badge-primary">NEW</span></div>
+          </gio-connector-list-option-layout-title>
+
+          <gio-connector-list-option-layout-body>
+            <p>
+              This mode produces and consumes messages to event-driven services and allows for message transformation in between via message
+              policies and multiple entrypoints.
+            </p>
+            <div class="option__badges">
+              Can expose
+              <span class="gio-badge-neutral gio-caption-2">Kafka</span>
+              <span class="gio-badge-neutral gio-caption-2">MQTT</span>
+              <span class="gio-badge-neutral gio-caption-2">RabbitMQ</span>
+              <span class="gio-badge-neutral gio-caption-2">Solace</span>
+            </div>
+          </gio-connector-list-option-layout-body>
+        </gio-connector-list-option-layout>
         <div *ngIf="shouldUpgrade$ | async">
           <gio-banner type="error" icon="gio:universe" class="license__banner">
             This configuration requires an enterprise license
@@ -93,8 +82,8 @@
             </div>
           </gio-banner>
         </div>
-      </mat-list-option>
-    </mat-selection-list>
+      </mat-radio-button>
+    </mat-radio-group>
 
     <div class="api-creation-v4__step__footer">
       <button mat-stroked-button type="button" (click)="goBack()">Previous</button>

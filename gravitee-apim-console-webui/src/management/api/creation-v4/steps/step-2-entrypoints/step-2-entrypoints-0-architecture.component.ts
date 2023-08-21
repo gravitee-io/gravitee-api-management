@@ -37,7 +37,7 @@ import { UTMTags, ApimFeature } from '../../../../../shared/components/gio-licen
 export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();
   private httpProxyEntrypoint: ConnectorPlugin;
-  private initialValue: { type: ApiType[] };
+  private initialValue: { type: ApiType };
 
   public form: FormGroup;
   private licenseOptions = { feature: ApimFeature.APIM_EN_MESSAGE_REACTOR, context: UTMTags.API_CREATION_TRY_MESSAGE };
@@ -66,7 +66,7 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
         this.httpProxyEntrypoint = entrypoints.find((e) => e.id === 'http-proxy');
 
         this.form = this.formBuilder.group({
-          type: this.formBuilder.control(currentStepPayload.type ? [currentStepPayload.type] : null, [Validators.required]),
+          type: this.formBuilder.control(currentStepPayload.type ?? null, [Validators.required]),
         });
 
         this.initialValue = this.form.getRawValue();
@@ -84,7 +84,7 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
 
   save() {
     const previousType = this.stepService.payload.type;
-    const selectedType = this.form.value.type[0];
+    const selectedType = this.form.value.type;
 
     if (previousType && selectedType !== previousType) {
       // When changing the type, all previously filled steps must be deleted to restart from scratch.
@@ -101,14 +101,14 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
         .subscribe((confirmed) => {
           if (confirmed) {
             this.stepService.removeAllNextSteps();
-            this.form.value.type[0] === 'PROXY' ? this.doSaveSync() : this.doSaveAsync();
+            this.form.value.type === 'PROXY' ? this.doSaveSync() : this.doSaveAsync();
           } else {
             this.form.setValue(this.initialValue);
           }
         });
       return;
     }
-    this.form.value.type[0] === 'PROXY' ? this.doSaveSync() : this.doSaveAsync();
+    this.form.value.type === 'PROXY' ? this.doSaveSync() : this.doSaveAsync();
   }
 
   private doSaveSync() {

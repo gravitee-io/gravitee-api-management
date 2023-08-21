@@ -4,23 +4,7 @@
 
 $typography: map.get(gio.$mat-theme, typography);
 
-::ng-deep {
-  step-2-entrypoints-0-architecture {
-    // Note for migration: Angular Material 15 automatically add radio. Try to remove this
-    mat-selection-list.gio-selection-list {
-      mat-list-option.mat-list-item.mat-list-option > div > div.mat-list-text {
-        overflow: unset;
-      }
-    }
-  }
-}
-
 .option {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 16px;
-
   &__badges {
     display: flex;
     flex-direction: row;
@@ -31,13 +15,9 @@ $typography: map.get(gio.$mat-theme, typography);
       text-transform: none;
     }
   }
-
-  gio-selection-list-option-layout {
-    flex: 1 1 auto;
-    margin: 0;
-  }
 }
 
 .license__banner {
-  padding: 20px 0 0 40px;
+  padding: 20px 0;
+  white-space: pre-line;
 }
