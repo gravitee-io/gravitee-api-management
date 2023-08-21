@@ -57,6 +57,7 @@ public class GraviteeManagementV2Application extends ResourceConfig {
         register(GroupsResource.class);
         register(PoliciesResource.class);
         register(ApiMembersResource.class);
+        register(ApiLogsResource.class);
 
         register(MultiPartFeature.class);
 
