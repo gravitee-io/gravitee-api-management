@@ -17,11 +17,16 @@ import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { GioLicenseModule, GioMenuModule, GioSubmenuModule } from '@gravitee/ui-particles-angular';
 import { MatSelectModule } from '@angular/material/select';
+import { UIRouterModule } from '@uirouter/angular';
 
 import { GioSideNavComponent } from './gio-side-nav.component';
 
 @NgModule({
+<<<<<<< HEAD
   imports: [CommonModule, GioMenuModule, MatSelectModule, GioSubmenuModule, GioLicenseModule],
+=======
+  imports: [CommonModule, GioMenuModule, MatSelectModule, UIRouterModule],
+>>>>>>> 470ea5521c (fix: enable right click on menu items)
   declarations: [GioSideNavComponent],
   exports: [GioSideNavComponent],
   entryComponents: [GioSideNavComponent],

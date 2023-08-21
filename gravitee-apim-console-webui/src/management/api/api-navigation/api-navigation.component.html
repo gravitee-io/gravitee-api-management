@@ -30,6 +30,7 @@
         separator="pipe"
       ></api-navigation-title>
       <ng-container *ngFor="let menuItem of this.subMenuItems">
+<<<<<<< HEAD
         <gio-submenu-item
           *ngIf="!menuItem?.targetRoute && menuItem?.tabs?.length > 0"
           tabIndex="1"
@@ -47,11 +48,23 @@
           [gioLicense]="menuItem?.license"
           [iconRight]="menuItem?.iconRight$ | async"
           >{{ menuItem?.displayName }}</gio-submenu-item
+=======
+        <ng-container *ngIf="!menuItem?.targetRoute && menuItem?.tabs?.length > 0">
+          <a [uiSref]="menuItem?.tabs[0]?.targetRoute">
+            <gio-submenu-item tabIndex="1" [active]="isTabActive(menuItem?.tabs)">{{ menuItem?.displayName }}</gio-submenu-item></a
+          >
+        </ng-container>
+        <ng-container *ngIf="menuItem?.targetRoute">
+          <a [uiSref]="menuItem?.targetRoute">
+            <gio-submenu-item tabIndex="1" [active]="isActive(menuItem?.baseRoute)">{{ menuItem?.displayName }}</gio-submenu-item></a
+          ></ng-container
+>>>>>>> 470ea5521c (fix: enable right click on menu items)
         >
       </ng-container>
       <ng-container *ngFor="let group of this.groupItems">
         <gio-submenu-group [title]="group.title" *ngIf="group.title">
           <ng-container *ngFor="let subItem of group.items">
+<<<<<<< HEAD
             <gio-submenu-item
               *ngIf="!subItem?.targetRoute && subItem?.tabs?.length > 0"
               tabIndex="1"
@@ -70,6 +83,18 @@
               [active]="isActive(subItem?.baseRoute)"
               >{{ subItem?.displayName }}
             </gio-submenu-item>
+=======
+            <ng-container *ngIf="!subItem?.targetRoute && subItem?.tabs?.length > 0">
+              <a [uiSref]="subItem?.tabs[0]?.targetRoute">
+                <gio-submenu-item tabIndex="1" [active]="isTabActive(subItem?.tabs)">{{ subItem?.displayName }}</gio-submenu-item></a
+              ></ng-container
+            >
+            <ng-container *ngIf="subItem?.targetRoute">
+              <a [uiSref]="subItem?.targetRoute">
+                <gio-submenu-item tabIndex="1" [active]="isActive(subItem?.baseRoute)">{{ subItem?.displayName }}</gio-submenu-item></a
+              ></ng-container
+            >
+>>>>>>> 470ea5521c (fix: enable right click on menu items)
           </ng-container>
         </gio-submenu-group>
       </ng-container>

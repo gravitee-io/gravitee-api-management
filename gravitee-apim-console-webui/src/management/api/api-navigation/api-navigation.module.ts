@@ -17,6 +17,7 @@ import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { GioBreadcrumbModule, GioIconsModule, GioLicenseModule, GioSubmenuModule } from '@gravitee/ui-particles-angular';
 import { MatButtonModule } from '@angular/material/button';
+import { UIRouterModule } from '@uirouter/angular';
 
 import { ApiNavigationComponent } from './api-navigation.component';
 import { ApiNavigationTitleModule } from './api-navigation-title/api-navigation-title.module';
@@ -30,8 +31,12 @@ import { ApiNavigationTabsModule } from './api-navigation-tabs/api-navigation-ta
     ApiNavigationTabsModule,
     GioIconsModule,
     MatButtonModule,
+<<<<<<< HEAD
     GioBreadcrumbModule,
     GioLicenseModule,
+=======
+    UIRouterModule,
+>>>>>>> 470ea5521c (fix: enable right click on menu items)
   ],
   declarations: [ApiNavigationComponent],
   exports: [ApiNavigationComponent],

@@ -51,6 +51,13 @@ $textColor: map.get(gio.$mat-dove-palette, default);
     display: flex;
     flex-direction: column;
     flex: 1 1 auto;
+<<<<<<< HEAD
     height: 100%;
+=======
+
+    a {
+      text-decoration: none;
+    }
+>>>>>>> 470ea5521c (fix: enable right click on menu items)
   }
 }

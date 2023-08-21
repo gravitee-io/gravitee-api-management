@@ -183,10 +183,6 @@ export class SettingsNavigationComponent implements OnInit {
     });
   }
 
-  navigateTo(route: string) {
-    this.ajsState.go(route);
-  }
-
   isActive(route: string): boolean {
     return this.ajsState.includes(route);
   }

@@ -15,12 +15,21 @@
  */
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
+<<<<<<< HEAD
 import { GioBreadcrumbModule, GioSubmenuModule } from '@gravitee/ui-particles-angular';
+=======
+import { GioSubmenuModule } from '@gravitee/ui-particles-angular';
+import { UIRouterModule } from '@uirouter/angular';
+>>>>>>> 470ea5521c (fix: enable right click on menu items)
 
 import { SettingsNavigationComponent } from './settings-navigation.component';
 
 @NgModule({
+<<<<<<< HEAD
   imports: [CommonModule, GioSubmenuModule, GioBreadcrumbModule],
+=======
+  imports: [CommonModule, GioSubmenuModule, UIRouterModule],
+>>>>>>> 470ea5521c (fix: enable right click on menu items)
   declarations: [SettingsNavigationComponent],
   exports: [SettingsNavigationComponent],
   entryComponents: [SettingsNavigationComponent],

@@ -186,10 +186,13 @@ export class GioSideNavComponent implements OnInit {
 
   private filterMenuByPermission(menuItems: MenuItem[]): MenuItem[] {
     return menuItems.filter((item) => !item.permissions || this.permissionService.hasAnyMatching(item.permissions));
+<<<<<<< HEAD
   }
 
   navigateTo(route: string) {
     this.ajsState.go(route);
+=======
+>>>>>>> 470ea5521c (fix: enable right click on menu items)
   }
 
   isActive(route: string): boolean {

@@ -16,6 +16,7 @@
 
 -->
 <div class="application-navigation">
+<<<<<<< HEAD
   <div class="application-navigation__menu">
     <gio-submenu class="application-navigation__submenu">
       <div gioSubmenuTitle class="application-navigation__submenu__title">{{ this.applicationName }}</div>
@@ -41,4 +42,16 @@
 
     <ng-content></ng-content>
   </div>
+=======
+  <gio-submenu class="application-navigation__menu">
+    <div gioSubmenuTitle class="application-navigation__menu__title">{{ this.applicationName }}</div>
+    <ng-container *ngFor="let item of this.subMenuItems">
+      <a [uiSref]="item.targetRoute">
+        <gio-submenu-item *ngIf="item.targetRoute" tabIndex="1" [active]="isActive(item.baseRoute)">{{
+          item.displayName
+        }}</gio-submenu-item></a
+      >
+    </ng-container>
+  </gio-submenu>
+>>>>>>> 470ea5521c (fix: enable right click on menu items)
 </div>
