@@ -26,11 +26,8 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Flow;
-import java.util.concurrent.TimeUnit;
 
 public class DatabaseHydrator {
 
@@ -49,7 +46,7 @@ public class DatabaseHydrator {
 
     @PostConstruct
     public void indexSampleData() {
-        List<String> indexTypes = List.of("health", "request", "monitor", "log");
+        List<String> indexTypes = List.of("health", "request", "monitor", "log", "v4-log", "v4-metrics");
         createTemplate(indexTypes).andThen(Single.defer(() -> client.bulk(prepareData(indexTypes), true))).ignoreElement().blockingAwait();
     }
 
