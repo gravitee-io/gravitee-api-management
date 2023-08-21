@@ -15,11 +15,11 @@
  */
 package io.gravitee.repository.elasticsearch;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.platform.repository.api.Scope;
 import io.gravitee.repository.elasticsearch.spring.ElasticsearchRepositoryConfiguration;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author GraviteeSource Team
@@ -30,23 +30,23 @@ public class ElasticsearchRepositoryProviderTest {
 
     @Test
     public void shouldReturnElasticsearchType() {
-        assertEquals("elasticsearch", provider.type());
+        assertThat(provider.type()).isEqualTo("elasticsearch");
     }
 
     @Test
     public void shouldReturnAnalyticsScope() {
-        assertArrayEquals(new Scope[] { Scope.ANALYTICS }, provider.scopes());
+        assertThat(provider.scopes()).containsExactly(Scope.ANALYTICS);
     }
 
     @Test
     public void shouldReturnElasticSearchConfigurationClass() {
         Class<?> configClass = provider.configuration(Scope.ANALYTICS);
-        assertEquals(ElasticsearchRepositoryConfiguration.class, configClass);
+        assertThat(configClass).isEqualTo(ElasticsearchRepositoryConfiguration.class);
     }
 
     @Test
     public void shouldReturnNullClass() {
         Class<?> configClass = provider.configuration(Scope.MANAGEMENT);
-        assertNull(configClass);
+        assertThat(configClass).isNull();
     }
 }

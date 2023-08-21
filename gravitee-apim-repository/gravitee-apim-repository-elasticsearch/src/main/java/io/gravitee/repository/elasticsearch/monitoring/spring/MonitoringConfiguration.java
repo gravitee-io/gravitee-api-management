@@ -16,7 +16,6 @@
 package io.gravitee.repository.elasticsearch.monitoring.spring;
 
 import io.gravitee.repository.elasticsearch.monitoring.ElasticsearchMonitoringRepository;
-import io.gravitee.repository.monitoring.MonitoringRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -28,7 +27,7 @@ import org.springframework.context.annotation.Configuration;
 public class MonitoringConfiguration {
 
     @Bean
-    public MonitoringRepository monitoringRepository() {
+    public ElasticsearchMonitoringRepository monitoringRepository() {
         return new ElasticsearchMonitoringRepository();
     }
 }
