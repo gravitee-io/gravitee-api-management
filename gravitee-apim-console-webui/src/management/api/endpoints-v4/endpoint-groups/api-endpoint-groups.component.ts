@@ -21,21 +21,21 @@ import { combineLatest, EMPTY, Subject } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { StateService } from '@uirouter/angular';
 
-import { EndpointGroup, toEndpoints } from './api-endpoints-groups.adapter';
+import { EndpointGroup, toEndpoints } from './api-endpoint-groups.adapter';
 
-import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
-import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
-import { ApiV4, ConnectorPlugin, UpdateApi } from '../../../../../entities/management-api-v2';
-import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
-import { IconService } from '../../../../../services-ngx/icon.service';
-import { UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
+import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
+import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
+import { ApiV4, ConnectorPlugin, UpdateApi } from '../../../../entities/management-api-v2';
+import { ConnectorPluginsV2Service } from '../../../../services-ngx/connector-plugins-v2.service';
+import { IconService } from '../../../../services-ngx/icon.service';
+import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 
 @Component({
-  selector: 'api-endpoints-groups',
-  template: require('./api-endpoints-groups.component.html'),
-  styles: [require('./api-endpoints-groups.component.scss')],
+  selector: 'api-endpoint-groups',
+  template: require('./api-endpoint-groups.component.html'),
+  styles: [require('./api-endpoint-groups.component.scss')],
 })
-export class ApiEndpointsGroupsComponent implements OnInit, OnDestroy {
+export class ApiEndpointGroupsComponent implements OnInit, OnDestroy {
   public endpointsDisplayedColumns = ['name', 'options', 'weight', 'actions'];
   public groupsTableData: EndpointGroup[];
   public plugins: Map<string, ConnectorPlugin>;
@@ -170,7 +170,7 @@ export class ApiEndpointsGroupsComponent implements OnInit, OnDestroy {
   }
 
   public editEndpointGroup(groupIndex: number): void {
-    this.ajsState.go('management.apis.ng.endpoints-group', { groupIndex });
+    this.ajsState.go('management.apis.ng.endpoint-group', { groupIndex });
   }
 
   addEndpointGroup() {

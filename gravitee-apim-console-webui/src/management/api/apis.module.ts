@@ -39,7 +39,7 @@ import { ApiPortalSubscriptionEditComponent } from './general/subscriptions/edit
 import { ApiEndpointsModule } from './endpoints-v4/api-endpoints.module';
 import { ApiEntrypointsV4GeneralComponent } from './entrypoints-v4/api-entrypoints-v4-general.component';
 import { ApiEntrypointsV4Module } from './entrypoints-v4/api-entrypoints-v4.module';
-import { ApiEndpointComponent } from './endpoints-v4/backend-services/endpoint/api-endpoint.component';
+import { ApiEndpointComponent } from './endpoints-v4/endpoint/api-endpoint.component';
 import { ApiEntrypointsV4EditComponent } from './entrypoints-v4/edit/api-entrypoints-v4-edit.component';
 import { ApiPropertiesComponent } from './proxy/properties-ng/api-properties.component';
 import { ApiResourcesComponent } from './proxy/resources-ng/api-resources.component';
@@ -54,7 +54,7 @@ import { ApiProxyDeploymentsComponent } from './proxy/deployments/api-proxy-depl
 import { ApiProxyResponseTemplatesListComponent } from './proxy/response-templates/list/api-proxy-response-templates-list.component';
 import { ApiProxyResponseTemplatesEditComponent } from './proxy/response-templates/edit/api-proxy-response-templates-edit.component';
 import { ApiProxyEndpointListComponent } from './proxy/endpoints/list/api-proxy-endpoint-list.component';
-import { ApiEndpointsGroupsComponent } from './endpoints-v4/backend-services/endpoints-groups/api-endpoints-groups.component';
+import { ApiEndpointGroupsComponent } from './endpoints-v4/endpoint-groups/api-endpoint-groups.component';
 import { ApiProxyGroupEndpointEditComponent } from './proxy/endpoints/groups/endpoint/edit/api-proxy-group-endpoint-edit.component';
 import { ApiProxyGroupEditComponent } from './proxy/endpoints/groups/edit/api-proxy-group-edit.component';
 import { ApiProxyFailoverComponent } from './proxy/failover/api-proxy-failover.component';
@@ -74,7 +74,7 @@ import { ApiV1PropertiesComponent } from './proxy/properties-v1/properties.compo
 import { ApiV1ResourcesComponent } from './proxy/resources-v1/resources.component';
 import { ApiV1PoliciesComponent } from './design/policies/policies.component';
 import { ApiEventsComponent } from './audit/events/api-events.component';
-import { ApiEndpointsGroupComponent } from './endpoints-v4/backend-services/endpoints-group/api-endpoints-group.component';
+import { ApiEndpointGroupComponent } from './endpoints-v4/endpoint-group/api-endpoint-group.component';
 
 import { NotificationsComponent } from '../../components/notifications/notifications.component';
 import { Scope } from '../../entities/scope';
@@ -1349,9 +1349,9 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'management.apis.ng.endpoints',
-    url: '/endpoints',
-    component: ApiEndpointsGroupsComponent,
+    name: 'management.apis.ng.endpoint-groups',
+    url: '/endpoints/groups',
+    component: ApiEndpointGroupsComponent,
     data: {
       useAngularMaterial: true,
       apiPermissions: {
@@ -1363,9 +1363,9 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'management.apis.ng.endpoints-group',
-    url: '/groups/:groupIndex',
-    component: ApiEndpointsGroupComponent,
+    name: 'management.apis.ng.endpoint-group',
+    url: '/endpoints/groups/:groupIndex',
+    component: ApiEndpointGroupComponent,
     data: {
       useAngularMaterial: true,
       apiPermissions: {
@@ -1379,7 +1379,7 @@ const states: Ng2StateDeclaration[] = [
 
   {
     name: 'management.apis.ng.endpoint-new',
-    url: '/groups/:groupIndex/endpoint/new',
+    url: '/endpoints/groups/:groupIndex/endpoints/new',
     component: ApiEndpointComponent,
     data: {
       useAngularMaterial: true,
@@ -1393,7 +1393,7 @@ const states: Ng2StateDeclaration[] = [
   },
   {
     name: 'management.apis.ng.endpoint-edit',
-    url: '/groups/:groupIndex/endpoint/:endpointIndex/edit',
+    url: '/endpoints/groups/:groupIndex/endpoints/:endpointIndex',
     component: ApiEndpointComponent,
     data: {
       useAngularMaterial: true,

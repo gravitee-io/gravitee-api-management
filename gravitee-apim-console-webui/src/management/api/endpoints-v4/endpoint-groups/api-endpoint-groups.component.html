@@ -17,9 +17,9 @@
 -->
 <ng-container *ngIf="groupsTableData">
   <ng-container *ngFor="let group of groupsTableData; let i = index">
-    <mat-card class="endpoints-group-card">
-      <div class="endpoints-group-card__header">
-        <div class="endpoints-group-card__header__title">
+    <mat-card class="endpoint-group-card">
+      <div class="endpoint-group-card__header">
+        <div class="endpoint-group-card__header__title">
           <span class="mat-h4">{{ group?.name }}</span>
           <span *ngIf="plugins?.get(group.type)" class="gio-badge-primary">
             <mat-icon [svgIcon]="plugins?.get(group.type)?.icon"></mat-icon>
@@ -31,12 +31,12 @@
           </span>
         </div>
 
-        <div class="endpoints-group-card__header__actions">
+        <div class="endpoint-group-card__header__actions">
           <button
             id="{{ 'moveUpBtn-' + i }}"
             *ngIf="groupsTableData?.length > 1 && i !== 0"
             mat-stroked-button
-            class="endpoints-group-card__header__actions__button"
+            class="endpoint-group-card__header__actions__button"
             aria-label="Reorder element to a higher position"
             (click)="reorderEndpointGroup(i, i - 1)"
             [disabled]="isReordering"
@@ -47,7 +47,7 @@
             id="{{ 'moveDownBtn-' + i }}"
             *ngIf="groupsTableData?.length > 1 && i !== groupsTableData.length - 1"
             mat-stroked-button
-            class="endpoints-group-card__header__actions__button"
+            class="endpoint-group-card__header__actions__button"
             aria-label="Reorder element to a lower position"
             (click)="reorderEndpointGroup(i + 1, i)"
             [disabled]="isReordering"
@@ -111,7 +111,7 @@
           <ng-container matColumnDef="actions">
             <th mat-header-cell *matHeaderCellDef id="actions">Actions</th>
             <td mat-cell *matCellDef="let element; let j = index">
-              <div class="endpoints-group-card__table__actions" *gioPermission="{ anyOf: ['api-definition-u'] }">
+              <div class="endpoint-group-card__table__actions" *gioPermission="{ anyOf: ['api-definition-u'] }">
                 <a mat-icon-button aria-label="Edit endpoint" matTooltip="Edit endpoint" (click)="editEndpoint(i, j)">
                   <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
                 </a>

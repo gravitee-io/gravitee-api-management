@@ -24,14 +24,14 @@ import { GioIconsModule } from '@gravitee/ui-particles-angular';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 
-import { ApiEndpointsGroupsComponent } from './api-endpoints-groups.component';
+import { ApiEndpointGroupsComponent } from './api-endpoint-groups.component';
 
 import { ApiEndpointModule } from '../endpoint/api-endpoint.module';
-import { GioPermissionModule } from '../../../../../shared/components/gio-permission/gio-permission.module';
+import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
 
 @NgModule({
-  declarations: [ApiEndpointsGroupsComponent],
-  exports: [ApiEndpointsGroupsComponent],
+  declarations: [ApiEndpointGroupsComponent],
+  exports: [ApiEndpointGroupsComponent],
   imports: [
     CommonModule,
     MatCardModule,
@@ -46,4 +46,4 @@ import { GioPermissionModule } from '../../../../../shared/components/gio-permis
     GioPermissionModule,
   ],
 })
-export class ApiEndpointsGroupsModule {}
+export class ApiEndpointGroupsModule {}

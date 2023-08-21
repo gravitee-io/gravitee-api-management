@@ -21,16 +21,16 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { FormsModule } from '@angular/forms';
 
-import { ApiEndpointsGroupComponent } from './api-endpoints-group.component';
-import { ApiEndpointsGroupHarness } from './api-endpoints-group.harness';
-import { ApiEndpointsGroupModule } from './api-endpoints-group.module';
+import { ApiEndpointGroupComponent } from './api-endpoint-group.component';
+import { ApiEndpointGroupHarness } from './api-endpoint-group.harness';
+import { ApiEndpointGroupModule } from './api-endpoint-group.module';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
-import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
-import { User as DeprecatedUser } from '../../../../../entities/user';
-import { ApiV4, EndpointGroupV4, fakeApiV4 } from '../../../../../entities/management-api-v2';
-import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
-import { fakeEndpointGroupV4 } from '../../../../../entities/management-api-v2/api/v4/endpointGroupV4.fixture';
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+import { User as DeprecatedUser } from '../../../../entities/user';
+import { ApiV4, EndpointGroupV4, fakeApiV4 } from '../../../../entities/management-api-v2';
+import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
+import { fakeEndpointGroupV4 } from '../../../../entities/management-api-v2/api/v4/endpointGroupV4.fixture';
 
 /**
  * Test data
@@ -91,10 +91,10 @@ function expectApiPutRequest(api: ApiV4, fixture: ComponentFixture<any>, httpTes
   return httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'PUT' });
 }
 
-describe('ApiEndpointsGroupComponent', () => {
-  let fixture: ComponentFixture<ApiEndpointsGroupComponent>;
+describe('ApiEndpointGroupComponent', () => {
+  let fixture: ComponentFixture<ApiEndpointGroupComponent>;
   let httpTestingController: HttpTestingController;
-  let componentHarness: ApiEndpointsGroupHarness;
+  let componentHarness: ApiEndpointGroupHarness;
   let api: ApiV4;
 
   const initComponent = async (testApi: ApiV4) => {
@@ -107,7 +107,7 @@ describe('ApiEndpointsGroupComponent', () => {
     api = testApi;
 
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiEndpointsGroupModule, MatIconTestingModule, FormsModule],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiEndpointGroupModule, MatIconTestingModule, FormsModule],
       providers: [
         { provide: UIRouterState, useValue: FAKE_UI_ROUTER },
         { provide: UIRouterStateParams, useValue: routerParams },
@@ -121,9 +121,9 @@ describe('ApiEndpointsGroupComponent', () => {
     });
 
     await TestBed.compileComponents();
-    fixture = TestBed.createComponent(ApiEndpointsGroupComponent);
+    fixture = TestBed.createComponent(ApiEndpointGroupComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
-    componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiEndpointsGroupHarness);
+    componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiEndpointGroupHarness);
 
     expectApiGetRequest(api, fixture, httpTestingController);
 
@@ -252,7 +252,7 @@ describe('ApiEndpointsGroupComponent', () => {
       });
 
       it('THEN the endpoint groups list page should be the next page expected to be shown', async () => {
-        expect(routerSpy).toHaveBeenCalledWith('management.apis.ng.endpoints', undefined, undefined);
+        expect(routerSpy).toHaveBeenCalledWith('management.apis.ng.endpoint-groups', undefined, undefined);
       });
     });
   });

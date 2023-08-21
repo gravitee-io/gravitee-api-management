@@ -34,16 +34,16 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { MatOptionModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
 
-import { ApiEndpointsGroupComponent } from './api-endpoints-group.component';
-import { ApiEndpointsGroupGeneralComponent } from './general/api-endpoints-group-general.component';
-import { ApiEndpointsGroupConfigurationComponent } from './configuration/api-endpoints-group-configuration.component';
+import { ApiEndpointGroupComponent } from './api-endpoint-group.component';
+import { ApiEndpointGroupGeneralComponent } from './general/api-endpoint-group-general.component';
+import { ApiEndpointGroupConfigurationComponent } from './configuration/api-endpoint-group-configuration.component';
 
-import { GioGoBackButtonModule } from '../../../../../shared/components/gio-go-back-button/gio-go-back-button.module';
-import { GioPermissionModule } from '../../../../../shared/components/gio-permission/gio-permission.module';
+import { GioGoBackButtonModule } from '../../../../shared/components/gio-go-back-button/gio-go-back-button.module';
+import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
 
 @NgModule({
-  declarations: [ApiEndpointsGroupComponent, ApiEndpointsGroupGeneralComponent, ApiEndpointsGroupConfigurationComponent],
-  exports: [ApiEndpointsGroupComponent],
+  declarations: [ApiEndpointGroupComponent, ApiEndpointGroupGeneralComponent, ApiEndpointGroupConfigurationComponent],
+  exports: [ApiEndpointGroupComponent],
   imports: [
     CommonModule,
     GioPermissionModule,
@@ -65,4 +65,4 @@ import { GioPermissionModule } from '../../../../../shared/components/gio-permis
     MatSelectModule,
   ],
 })
-export class ApiEndpointsGroupModule {}
+export class ApiEndpointGroupModule {}

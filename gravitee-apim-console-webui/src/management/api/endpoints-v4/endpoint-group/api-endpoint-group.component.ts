@@ -19,19 +19,19 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { switchMap, takeUntil } from 'rxjs/operators';
 import { Observable, Subject } from 'rxjs';
 
-import { Api, ApiV4, UpdateApiV4 } from '../../../../../entities/management-api-v2';
-import { UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
-import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
-import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
-import { isUniqueAndDoesNotMatchDefaultValue } from '../../../../../shared/utils';
-import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
+import { Api, ApiV4, UpdateApiV4 } from '../../../../entities/management-api-v2';
+import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
+import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
+import { isUniqueAndDoesNotMatchDefaultValue } from '../../../../shared/utils';
+import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 
 @Component({
-  selector: 'api-endpoints-group',
-  template: require('./api-endpoints-group.component.html'),
-  styles: [require('./api-endpoints-group.component.scss')],
+  selector: 'api-endpoint-group',
+  template: require('./api-endpoint-group.component.html'),
+  styles: [require('./api-endpoint-group.component.scss')],
 })
-export class ApiEndpointsGroupComponent implements OnInit, OnDestroy {
+export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();
   private SUCCESSFUL_ENDPOINT_CONFIGURATION_SAVE_MESSAGE = 'Configuration successfully saved!';
 

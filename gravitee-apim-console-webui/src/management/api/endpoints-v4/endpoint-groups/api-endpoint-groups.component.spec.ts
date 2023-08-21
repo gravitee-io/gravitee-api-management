@@ -21,16 +21,16 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 
-import { ApiEndpointsGroupsComponent } from './api-endpoints-groups.component';
-import { ApiEndpointsGroupsHarness } from './api-endpoints-groups.harness';
-import { ApiEndpointsGroupsModule } from './api-endpoints-groups.module';
+import { ApiEndpointGroupsComponent } from './api-endpoint-groups.component';
+import { ApiEndpointGroupsHarness } from './api-endpoint-groups.harness';
+import { ApiEndpointGroupsModule } from './api-endpoint-groups.module';
 
-import { ApiV4, EndpointGroupV4, fakeApiV4, fakeConnectorPlugin } from '../../../../../entities/management-api-v2';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
-import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
-import { User as DeprecatedUser } from '../../../../../entities/user';
+import { ApiV4, EndpointGroupV4, fakeApiV4, fakeConnectorPlugin } from '../../../../entities/management-api-v2';
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+import { User as DeprecatedUser } from '../../../../entities/user';
 
-describe('ApiEndpointsGroupsComponent', () => {
+describe('ApiEndpointGroupsComponent', () => {
   const API_ID = 'apiId';
   const group1: EndpointGroupV4 = {
     name: 'default-group',
@@ -73,17 +73,17 @@ describe('ApiEndpointsGroupsComponent', () => {
   };
   const fakeUiRouter = { go: jest.fn() };
 
-  let fixture: ComponentFixture<ApiEndpointsGroupsComponent>;
+  let fixture: ComponentFixture<ApiEndpointGroupsComponent>;
   let httpTestingController: HttpTestingController;
   let rootLoader: HarnessLoader;
-  let componentHarness: ApiEndpointsGroupsHarness;
+  let componentHarness: ApiEndpointGroupsHarness;
 
   const initComponent = async (api: ApiV4, permissions: string[] = ['api-definition-u', 'api-definition-c', 'api-definition-r']) => {
     const currentUser = new DeprecatedUser();
     currentUser.userPermissions = permissions;
 
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiEndpointsGroupsModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiEndpointGroupsModule, MatIconTestingModule],
       providers: [
         { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
         { provide: UIRouterState, useValue: fakeUiRouter },
@@ -95,9 +95,9 @@ describe('ApiEndpointsGroupsComponent', () => {
       },
     });
 
-    fixture = TestBed.createComponent(ApiEndpointsGroupsComponent);
+    fixture = TestBed.createComponent(ApiEndpointGroupsComponent);
 
-    componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiEndpointsGroupsHarness);
+    componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiEndpointGroupsHarness);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
@@ -186,7 +186,7 @@ describe('ApiEndpointsGroupsComponent', () => {
 
         await componentHarness.clickEditEndpointGroup(0);
 
-        expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.ng.endpoints-group', { groupIndex: 0 });
+        expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.ng.endpoint-group', { groupIndex: 0 });
       });
     });
   });

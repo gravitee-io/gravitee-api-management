@@ -28,10 +28,10 @@ import { ApiEndpointComponent } from './api-endpoint.component';
 import { ApiEndpointModule } from './api-endpoint.module';
 import { ApiEndpointHarness } from './api-endpoint.harness';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
-import { ApiV4, fakeApiV4, fakeConnectorPlugin } from '../../../../../entities/management-api-v2';
-import { UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
-import { GioUiRouterTestingModule } from '../../../../../shared/testing/gio-uirouter-testing-module';
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { ApiV4, fakeApiV4, fakeConnectorPlugin } from '../../../../entities/management-api-v2';
+import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+import { GioUiRouterTestingModule } from '../../../../shared/testing/gio-uirouter-testing-module';
 
 @Component({
   template: `<api-endpoint #apiEndpoint></api-endpoint>`,

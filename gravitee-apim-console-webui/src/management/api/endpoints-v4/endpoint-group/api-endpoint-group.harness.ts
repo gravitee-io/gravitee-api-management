@@ -20,8 +20,8 @@ import { MatInputHarness } from '@angular/material/input/testing';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { MatSelectHarness } from '@angular/material/select/testing';
 
-export class ApiEndpointsGroupHarness extends ComponentHarness {
-  static hostSelector = 'api-endpoints-group';
+export class ApiEndpointGroupHarness extends ComponentHarness {
+  static hostSelector = 'api-endpoint-group';
 
   private getBackButton = this.locatorFor(MatButtonHarness.with({ selector: '[mattooltip="Go back"]' }));
   private getGeneralTab = this.locatorFor(MatTabHarness.with({ label: 'General' }));
