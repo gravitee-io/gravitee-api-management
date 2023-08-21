@@ -28,6 +28,10 @@ $textColor: map.get(gio.$mat-dove-palette, default);
   justify-content: flex-start;
   height: 100%;
 
+  a {
+    text-decoration: none;
+  }
+
   &__menu {
     display: flex;
     flex-direction: column;

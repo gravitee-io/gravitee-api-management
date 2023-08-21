@@ -188,10 +188,6 @@ export class GioSideNavComponent implements OnInit {
     return menuItems.filter((item) => !item.permissions || this.permissionService.hasAnyMatching(item.permissions));
   }
 
-  navigateTo(route: string) {
-    this.ajsState.go(route);
-  }
-
   isActive(route: string): boolean {
     return this.ajsState.includes(route);
   }
