@@ -691,14 +691,14 @@ describe('ApiCreationV4Component', () => {
         expectEntrypointsGetRequest(httpProxyEntrypoint);
 
         // Change architecture to async
-        expect(await step20ArchitectureHarness.getArchitecture().then((s) => s.getListValues({ selected: true }))).toEqual(['PROXY']);
+        expect(await step20ArchitectureHarness.getArchitecture().then((s) => s.getValue())).toEqual('PROXY');
         await step20ArchitectureHarness.fillAndValidate('MESSAGE');
 
         // check confirmation dialog and cancel
         const dialogHarness = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
         expect(await dialogHarness).toBeTruthy();
         await dialogHarness.cancel();
-        expect(await step20ArchitectureHarness.getArchitecture().then((s) => s.getListValues({ selected: true }))).toEqual(['PROXY']);
+        expect(await step20ArchitectureHarness.getArchitecture().then((s) => s.getValue())).toEqual('PROXY');
 
         await step20ArchitectureHarness.clickValidate();
         expectEndpointGetRequest({ id: 'http-proxy', name: 'HTTP Proxy' });
@@ -765,7 +765,7 @@ describe('ApiCreationV4Component', () => {
         expectEntrypointsGetRequest(httpProxyEntrypoint);
 
         // Change architecture to async
-        expect(await step20ArchitectureHarness.getArchitecture().then((s) => s.getListValues({ selected: true }))).toEqual(['PROXY']);
+        expect(await step20ArchitectureHarness.getArchitecture().then((s) => s.getValue())).toEqual('PROXY');
         await step20ArchitectureHarness.fillAndValidate('MESSAGE');
 
         // check confirmation dialog and confirm
@@ -1312,7 +1312,7 @@ describe('ApiCreationV4Component', () => {
         fixture.detectChanges();
 
         const step2Harness0Architecture = await harnessLoader.getHarness(Step2Entrypoints0ArchitectureHarness);
-        expect(await step2Harness0Architecture.getArchitecture().then((s) => s.getListValues({ selected: true }))).toEqual(['MESSAGE']);
+        expect(await step2Harness0Architecture.getArchitecture().then((s) => s.getValue())).toEqual('MESSAGE');
         await step2Harness0Architecture.fillAndValidate('MESSAGE');
 
         const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
