@@ -15,19 +15,21 @@
  */
 package io.gravitee.repository.elasticsearch.configuration;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import io.gravitee.elasticsearch.config.Endpoint;
 import io.gravitee.repository.elasticsearch.spring.YamlPropertySourceFactory;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(loader = AnnotationConfigContextLoader.class)
 public class ElasticsearchRepositoryConfigurationTest {
 
@@ -46,22 +48,17 @@ public class ElasticsearchRepositoryConfigurationTest {
 
     @Test
     public void shouldHaveEndpoints() {
-        Assert.assertNotNull(configuration.getEndpoints());
-        Assert.assertEquals(1, configuration.getEndpoints().size());
-        Assert.assertEquals("http://localhost:9200", configuration.getEndpoints().get(0).getUrl());
+        assertThat(configuration.getEndpoints()).hasSize(1).extracting(Endpoint::getUrl).containsExactly("http://localhost:9200");
     }
 
     @Test
     public void shouldHaveCrossClusterMapping() {
-        Assert.assertNotNull(configuration.getCrossClusterMapping());
-        Assert.assertEquals(2, configuration.getCrossClusterMapping().size());
-        Assert.assertTrue(configuration.hasCrossClusterMapping());
-        Assert.assertEquals("cluster1", configuration.getCrossClusterMapping().get("tenant1"));
+        assertThat(configuration.hasCrossClusterMapping()).isTrue();
+        assertThat(configuration.getCrossClusterMapping()).hasSize(2).containsEntry("tenant1", "cluster1");
     }
 
     @Test
     public void shouldHaveClientTimeout() {
-        Assert.assertNotNull(configuration.getRequestTimeout());
-        Assert.assertEquals(30000, configuration.getRequestTimeout().longValue());
+        assertThat(configuration.getRequestTimeout()).isNotNull().isEqualTo(30000L);
     }
 }

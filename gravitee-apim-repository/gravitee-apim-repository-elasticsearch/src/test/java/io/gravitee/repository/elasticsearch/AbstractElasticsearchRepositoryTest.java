@@ -16,15 +16,15 @@
 package io.gravitee.repository.elasticsearch;
 
 import io.gravitee.repository.elasticsearch.spring.ElasticsearchRepositoryConfigurationTest;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = { ElasticsearchRepositoryConfigurationTest.class })
 public abstract class AbstractElasticsearchRepositoryTest {}
