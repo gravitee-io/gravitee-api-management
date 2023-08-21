@@ -18,8 +18,8 @@
 <form *ngIf="!!generalForm" [formGroup]="generalForm" autocomplete="off" gioFormFocusInvalid>
   <mat-card>
     <!-- Name -->
-    <div class="card__endpoints-group-name">
-      <mat-form-field class="card__endpoints-group-name__form-field">
+    <div class="card__endpoint-group-name">
+      <mat-form-field class="card__endpoint-group-name__form-field">
         <mat-label>Name</mat-label>
         <input type="text" aria-label="Endpoints group name input" matInput formControlName="name" required />
         <mat-error *ngIf="generalForm.get('name').hasError('required')"> Name is required. </mat-error>
@@ -31,11 +31,11 @@
     </div>
 
     <!-- Load balancing algorithm -->
-    <div class="card__endpoints-group-lb">
-      <p class="card__endpoints-group-lb__hint">
+    <div class="card__endpoint-group-lb">
+      <p class="card__endpoint-group-lb__hint">
         You can configure load balancing by creating a logical group of endpoints and specifying a load balancing algorithm for them.
       </p>
-      <mat-form-field class="card__endpoints-group-lb__form-field">
+      <mat-form-field class="card__endpoint-group-lb__form-field">
         <mat-label>Load balancing algorithm</mat-label>
         <mat-select aria-label="Load balancing algorithm" formControlName="loadBalancerType" required>
           <mat-option *ngFor="let loadBalancerType of loadBalancerTypes" [value]="loadBalancerType">{{ loadBalancerType }}</mat-option>

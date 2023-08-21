@@ -16,14 +16,14 @@
 import { Component, Input } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 
-import { LOAD_BALANCER_TYPES } from '../../../../../../entities/management-api-v2';
+import { LOAD_BALANCER_TYPES } from '../../../../../entities/management-api-v2';
 
 @Component({
-  selector: 'api-endpoints-group-general',
-  template: require('./api-endpoints-group-general.component.html'),
-  styles: [require('./api-endpoints-group-general.component.scss')],
+  selector: 'api-endpoint-group-general',
+  template: require('./api-endpoint-group-general.component.html'),
+  styles: [require('./api-endpoint-group-general.component.scss')],
 })
-export class ApiEndpointsGroupGeneralComponent {
+export class ApiEndpointGroupGeneralComponent {
   @Input() generalForm: FormGroup;
   public loadBalancerTypes = LOAD_BALANCER_TYPES;
 }

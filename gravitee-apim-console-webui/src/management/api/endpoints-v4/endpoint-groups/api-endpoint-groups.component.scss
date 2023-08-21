@@ -1,5 +1,5 @@
 @use 'sass:map';
-@use '../../../../../scss/gio-layout' as gio-layout;
+@use 'src/scss/gio-layout' as gio-layout;
 @use '@angular/material' as mat;
 @use '@gravitee/ui-particles-angular' as gio;
 
@@ -8,7 +8,7 @@
   overflow: visible;
 }
 
-.endpoints-group-card {
+.endpoint-group-card {
   margin-bottom: 24px;
 
   &__header {

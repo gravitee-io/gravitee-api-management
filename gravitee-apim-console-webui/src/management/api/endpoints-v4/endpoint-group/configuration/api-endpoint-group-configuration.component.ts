@@ -19,13 +19,13 @@ import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { GioJsonSchema } from '@gravitee/ui-particles-angular';
 
-import { ConnectorPluginsV2Service } from '../../../../../../services-ngx/connector-plugins-v2.service';
+import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
 
 @Component({
-  selector: 'api-endpoints-group-configuration',
-  template: require('./api-endpoints-group-configuration.component.html'),
+  selector: 'api-endpoint-group-configuration',
+  template: require('./api-endpoint-group-configuration.component.html'),
 })
-export class ApiEndpointsGroupConfigurationComponent implements OnInit, OnDestroy {
+export class ApiEndpointGroupConfigurationComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   @Input() configurationForm: FormGroup;

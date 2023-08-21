@@ -18,8 +18,8 @@ import { MatTableHarness } from '@angular/material/table/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 
-export class ApiEndpointsGroupsHarness extends ComponentHarness {
-  static hostSelector = 'api-endpoints-groups';
+export class ApiEndpointGroupsHarness extends ComponentHarness {
+  static hostSelector = 'api-endpoint-groups';
 
   private getDeleteEndpointGroupButtons = this.locatorForAll(MatButtonHarness.with({ selector: '[aria-label="Delete endpoints group"]' }));
   private getDeleteEndpointButtons = this.locatorForAll(MatButtonHarness.with({ selector: '[aria-label="Delete endpoint"]' }));

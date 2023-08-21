@@ -31,7 +31,7 @@ import { MatTabsModule } from '@angular/material/tabs';
 
 import { ApiEndpointComponent } from './api-endpoint.component';
 
-import { GioGoBackButtonModule } from '../../../../../shared/components/gio-go-back-button/gio-go-back-button.module';
+import { GioGoBackButtonModule } from '../../../../shared/components/gio-go-back-button/gio-go-back-button.module';
 
 @NgModule({
   declarations: [ApiEndpointComponent],

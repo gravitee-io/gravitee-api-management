@@ -16,25 +16,25 @@
 
 -->
 <div class="back-button">
-  <gio-go-back-button [ajsGo]="{ to: 'management.apis.ng.endpoints' }"></gio-go-back-button>
+  <gio-go-back-button [ajsGo]="{ to: 'management.apis.ng.endpoint-groups' }"></gio-go-back-button>
   Go back to endpoint groups
 </div>
 <form *ngIf="groupForm" autocomplete="off" gioFormFocusInvalid [formGroup]="groupForm">
-  <mat-card class="endpoints-group-card">
+  <mat-card class="endpoint-group-card">
     <mat-tab-group animationDuration="0ms">
       <mat-tab label="General" *ngIf="generalForm">
         <!-- General tab content -->
         <div class="tab-body-wrapper">
-          <api-endpoints-group-general [generalForm]="generalForm"></api-endpoints-group-general>
+          <api-endpoint-group-general [generalForm]="generalForm"></api-endpoint-group-general>
         </div>
       </mat-tab>
       <mat-tab label="Configuration" *ngIf="configurationForm && endpointGroupType != 'mock'">
         <!-- Configuration tab content -->
         <div class="tab-body-wrapper">
-          <api-endpoints-group-configuration
+          <api-endpoint-group-configuration
             [configurationForm]="configurationForm"
             [endpointGroupType]="endpointGroupType"
-          ></api-endpoints-group-configuration>
+          ></api-endpoint-group-configuration>
         </div>
       </mat-tab>
     </mat-tab-group>

@@ -5,8 +5,8 @@
 $typography: map.get(gio.$mat-theme, typography);
 
 .card {
-  &__endpoints-group-name,
-  &__endpoints-group-lb {
+  &__endpoint-group-name,
+  &__endpoint-group-lb {
     &__label {
       @include mat.typography-level($typography, body-2);
     }

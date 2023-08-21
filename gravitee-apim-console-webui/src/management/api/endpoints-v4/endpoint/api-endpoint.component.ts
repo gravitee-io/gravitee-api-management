@@ -20,12 +20,12 @@ import { combineLatest, EMPTY, Subject } from 'rxjs';
 import { GioFormJsonSchemaComponent, GioJsonSchema } from '@gravitee/ui-particles-angular';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 
-import { UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
-import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
-import { ApiV4, ConnectorPlugin, EndpointGroupV4, EndpointV4 } from '../../../../../entities/management-api-v2';
-import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
-import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
-import { IconService } from '../../../../../services-ngx/icon.service';
+import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
+import { ApiV4, ConnectorPlugin, EndpointGroupV4, EndpointV4 } from '../../../../entities/management-api-v2';
+import { ConnectorPluginsV2Service } from '../../../../services-ngx/connector-plugins-v2.service';
+import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
+import { IconService } from '../../../../services-ngx/icon.service';
 
 @Component({
   selector: 'api-endpoint',

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ApiV4 } from '../../../../../entities/management-api-v2';
+import { ApiV4 } from '../../../../entities/management-api-v2';
 
 export type EndpointGroup = {
   name: string;
