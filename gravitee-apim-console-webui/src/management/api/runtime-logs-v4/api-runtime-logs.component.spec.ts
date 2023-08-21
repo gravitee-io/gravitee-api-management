@@ -22,16 +22,24 @@ import { ApiRuntimeLogsModule } from './api-runtime-logs.module';
 import { ApiRuntimeLogsComponent } from './api-runtime-logs.component';
 import { ApiRuntimeLogsHarness } from './api-runtime-logs.component.harness';
 
+import { UIRouterStateParams } from '../../../ajs-upgraded-providers';
+import { CONSTANTS_TESTING } from '../../../shared/testing';
+
 describe('ApiRuntimeLogsComponent', () => {
   let fixture: ComponentFixture<ApiRuntimeLogsComponent>;
   let componentHarness: ApiRuntimeLogsHarness;
 
+  const API_ID = 'apiId';
   const runtimeLogsTabTitle = 'Runtime Logs';
   const settingsTabTitle = 'Settings';
 
   const initComponent = async () => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, ApiRuntimeLogsModule, HttpClientTestingModule],
+      providers: [
+        { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
+        { provide: 'Constants', useValue: CONSTANTS_TESTING },
+      ],
     });
 
     await TestBed.compileComponents();

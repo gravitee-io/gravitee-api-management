@@ -10,12 +10,19 @@ $typography: map.get(gio.$mat-theme, typography);
   @include gio-layout.gio-responsive-content-container;
 }
 
-.runtime-logs__header {
-  margin-bottom: 24px;
+.runtime-logs {
+  &__header {
+    margin-bottom: 24px;
 
-  &__subtitle {
-    color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
-    @include mat.typography-level($typography, 'body-1');
+    &__subtitle {
+      color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+      @include mat.typography-level($typography, 'body-1');
+    }
+  }
+
+  &__settings {
+    margin-top: 24px;
+    padding: 24px;
   }
 }
 
