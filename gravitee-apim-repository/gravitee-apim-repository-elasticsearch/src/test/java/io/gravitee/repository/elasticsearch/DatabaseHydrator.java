@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.elasticsearch.spring;
+package io.gravitee.repository.elasticsearch;
 
 import io.gravitee.elasticsearch.client.Client;
 import io.gravitee.elasticsearch.templating.freemarker.FreeMarkerComponent;

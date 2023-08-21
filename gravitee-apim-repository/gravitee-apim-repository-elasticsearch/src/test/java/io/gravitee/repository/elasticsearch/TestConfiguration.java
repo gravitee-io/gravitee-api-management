@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.elasticsearch.spring;
+package io.gravitee.repository.elasticsearch;
 
 import io.gravitee.elasticsearch.client.Client;
 import io.gravitee.elasticsearch.client.http.HttpClient;
@@ -38,10 +38,9 @@ import org.testcontainers.elasticsearch.ElasticsearchContainer;
  * @author Guillaume Waignier
  * @author Sebastien Devaux
  */
-
 @Configuration
-@Import(ElasticsearchRepositoryConfiguration.class)
-public class ElasticsearchRepositoryConfigurationTest {
+@Import(io.gravitee.repository.elasticsearch.spring.ElasticsearchRepositoryConfiguration.class)
+public class TestConfiguration {
 
     public static final String DEFAULT_ELASTICSEARCH_VERSION = "8.7.0";
     public static final String DEFAULT_OPENSEARCH_VERSION = "2.6.0";

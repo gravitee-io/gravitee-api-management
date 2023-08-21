@@ -18,7 +18,6 @@ package io.gravitee.repository.elasticsearch.configuration;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.elasticsearch.config.Endpoint;
-import io.gravitee.repository.elasticsearch.spring.YamlPropertySourceFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +30,7 @@ import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(loader = AnnotationConfigContextLoader.class)
-public class ElasticsearchRepositoryConfigurationTest {
+public class RepositoryConfigurationTest {
 
     @Configuration
     @PropertySource(factory = YamlPropertySourceFactory.class, value = "classpath:configuration/gravitee.yml")

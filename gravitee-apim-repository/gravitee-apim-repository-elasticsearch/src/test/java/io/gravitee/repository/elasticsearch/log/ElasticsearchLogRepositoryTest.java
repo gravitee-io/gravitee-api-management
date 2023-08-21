@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.elasticsearch;
+package io.gravitee.repository.elasticsearch.log;
 
 import static io.gravitee.repository.analytics.query.DateRangeBuilder.lastDays;
 import static io.gravitee.repository.analytics.query.IntervalBuilder.hours;
@@ -21,6 +21,7 @@ import static io.gravitee.repository.analytics.query.QueryBuilders.tabular;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.repository.analytics.query.tabular.TabularResponse;
+import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepositoryTest;
 import io.gravitee.repository.elasticsearch.log.ElasticLogRepository;
 import io.gravitee.repository.log.model.ExtendedLog;
 import org.junit.jupiter.api.Test;
