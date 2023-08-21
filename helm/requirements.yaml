@@ -1,6 +1,6 @@
 dependencies:
   - name: elasticsearch
-    version: 19.10.6
+    version: 19.10.9
     repository: https://charts.bitnami.com/bitnami
     condition: elasticsearch.enabled
   - name: mongodb
