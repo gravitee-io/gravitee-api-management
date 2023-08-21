@@ -20,13 +20,11 @@
     <gio-submenu class="settings-navigation__submenu">
       <ng-container *ngFor="let group of this.groupItems">
         <gio-submenu-group [title]="group.title" *ngIf="group.items && group.items.length > 0">
-          <gio-submenu-item
-            *ngFor="let item of group.items"
-            tabIndex="1"
-            (click)="navigateTo(item.targetRoute)"
-            [active]="isActive(item.baseRoute)"
-            >{{ item.displayName }}</gio-submenu-item
-          >
+          <ng-container *ngFor="let item of group.items">
+            <a [uiSref]="item.targetRoute">
+              <gio-submenu-item tabIndex="1" [active]="isActive(item.baseRoute)">{{ item.displayName }}</gio-submenu-item>
+            </a>
+          </ng-container>
         </gio-submenu-group>
       </ng-container>
     </gio-submenu>

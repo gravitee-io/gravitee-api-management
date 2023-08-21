@@ -44,6 +44,10 @@ $textColor: map.get(gio.$mat-dove-palette, default);
       text-overflow: ellipsis;
       white-space: nowrap;
     }
+
+    a {
+      text-decoration: none;
+    }
   }
 
   &__breadcrumb {
