@@ -15,13 +15,14 @@
  */
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
-import { takeUntil, tap } from 'rxjs/operators';
-import { Subject } from 'rxjs';
+import { catchError, map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { EMPTY, Subject } from 'rxjs';
 import { StateParams } from '@uirouter/angularjs';
 
 import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
-import { ApiV4 } from '../../../../entities/management-api-v2';
+import { Analytics, ApiV4 } from '../../../../entities/management-api-v2';
+import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 
 @Component({
   selector: 'api-runtime-logs-settings',
@@ -33,7 +34,11 @@ export class ApiRuntimeLogsSettingsComponent implements OnInit, OnDestroy {
   enabled = false;
   private unsubscribe$: Subject<void> = new Subject<void>();
 
-  constructor(@Inject(UIRouterStateParams) private readonly ajsStateParams: StateParams, private readonly apiService: ApiV2Service) {}
+  constructor(
+    @Inject(UIRouterStateParams) private readonly ajsStateParams: StateParams,
+    private readonly apiService: ApiV2Service,
+    private readonly snackBarService: SnackBarService,
+  ) {}
 
   public ngOnInit(): void {
     this.apiService
@@ -62,10 +67,30 @@ export class ApiRuntimeLogsSettingsComponent implements OnInit, OnDestroy {
 
   private handleEnabledChanges(): void {
     this.form
-        .get('enabled')
-        .valueChanges.pipe(takeUntil(this.unsubscribe$))
-        .subscribe((value) => {
-          this.enabled = value;
-        });
+      .get('enabled')
+      .valueChanges.pipe(takeUntil(this.unsubscribe$))
+      .subscribe((value) => {
+        this.enabled = value;
+      });
+  }
+
+  public save(): void {
+    this.apiService
+      .get(this.ajsStateParams.apiId)
+      .pipe(
+        switchMap((api: ApiV4) => {
+          const analytics: Analytics = { enabled: this.enabled };
+          return this.apiService.update(api.id, { ...api, analytics });
+        }),
+        map(() => {
+          this.snackBarService.success(`Runtime logs settings successfully saved!`);
+        }),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe();
   }
 }

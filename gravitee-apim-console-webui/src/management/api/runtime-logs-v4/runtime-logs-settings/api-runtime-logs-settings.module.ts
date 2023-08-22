@@ -18,12 +18,27 @@ import { NgModule } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { GioBannerModule, GioFormSlideToggleModule } from '@gravitee/ui-particles-angular';
+import { MatButtonModule } from '@angular/material/button';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { ApiRuntimeLogsSettingsComponent } from './api-runtime-logs-settings.component';
+
+import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
 
 @NgModule({
   declarations: [ApiRuntimeLogsSettingsComponent],
   exports: [ApiRuntimeLogsSettingsComponent],
-  imports: [CommonModule, MatSlideToggleModule, ReactiveFormsModule, ReactiveFormsModule, GioFormSlideToggleModule, GioBannerModule],
+  imports: [
+    CommonModule,
+    MatButtonModule,
+    MatSlideToggleModule,
+    MatSnackBarModule,
+    ReactiveFormsModule,
+    ReactiveFormsModule,
+
+    GioFormSlideToggleModule,
+    GioBannerModule,
+    GioPermissionModule,
+  ],
 })
 export class ApiRuntimeLogsSettingsModule {}

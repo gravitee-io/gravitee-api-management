@@ -16,14 +16,24 @@
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { DivHarness } from '@gravitee/ui-particles-angular/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 
 export class ApiRuntimeLogsSettingsHarness extends ComponentHarness {
   static hostSelector = 'api-runtime-logs-settings';
 
   private getEnableToggle = this.locatorFor(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' }));
   public getLogsBanner = this.locatorFor(DivHarness.with({ text: /Logging smartly/ }));
+  private getSaveButton = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Save Settings"]' }));
 
   public areLogsEnabled = async (): Promise<boolean> => {
     return await this.getEnableToggle().then((toggles) => toggles.isChecked());
+  };
+
+  public disableLogs = async (): Promise<void> => {
+    return await this.getEnableToggle().then((toggles) => toggles.uncheck());
+  };
+
+  public saveSettings = async (): Promise<void> => {
+    return this.getSaveButton().then((saveButton) => saveButton.click());
   };
 }
