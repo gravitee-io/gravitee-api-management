@@ -83,6 +83,18 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
     });
   });
 
+  describe('save tests', () => {
+    it('should save the API with disabled logs', async () => {
+      await initComponent();
+      await componentHarness.disableLogs();
+      expect(await componentHarness.areLogsEnabled()).toBe(false);
+
+      await componentHarness.saveSettings();
+      expectApiGetRequest(testApi);
+      expectApiPutRequest({ ...testApi, analytics: { enabled: false } });
+    });
+  });
+
   function expectApiGetRequest(api: ApiV4) {
     httpTestingController
       .expectOne({
@@ -90,5 +102,11 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
         method: 'GET',
       })
       .flush(api);
+  }
+
+  function expectApiPutRequest(api: ApiV4) {
+    const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'PUT' });
+    expect(req.request.body).toStrictEqual(api);
+    req.flush(api);
   }
 });
