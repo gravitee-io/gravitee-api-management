@@ -103,7 +103,7 @@ describe('API Info Page functionality', () => {
       expect(interception.response.statusCode).to.eq(200);
       expect(interception.response.body).to.have.property('id');
       expect(interception.response.body).to.have.property('name', apiName);
-      expect(interception.response.body).to.have.property('version', `${apiVersion}`);
+      expect(interception.response.body).to.have.property('apiVersion', `${apiVersion}`);
       duplicateApi = interception.response.body;
     });
     cy.contains('API duplicated successfully').should('be.visible');
