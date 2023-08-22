@@ -16,25 +16,40 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
+import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { MatIconTestingModule } from '@angular/material/icon/testing';
 
 import { ApiRuntimeLogsSettingsModule } from './api-runtime-logs-settings.module';
 import { ApiRuntimeLogsSettingsComponent } from './api-runtime-logs-settings.component';
+import { ApiRuntimeLogsSettingsHarness } from './api-runtime-logs-settings.harness';
 
 import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { User } from '../../../../entities/user';
-import { GioHttpTestingModule } from '../../../../shared/testing';
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { ApiV4 } from '../../../../entities/management-api-v2';
 
 describe('ApiRuntimeLogsSettingsComponent', () => {
   const API_ID = 'apiId';
+  const testApi: ApiV4 = {
+    id: API_ID,
+    definitionVersion: 'V4',
+    type: 'MESSAGE',
+    name: 'test',
+    apiVersion: '1',
+    analytics: {
+      enabled: true,
+    },
+  };
   let fixture: ComponentFixture<ApiRuntimeLogsSettingsComponent>;
   let httpTestingController: HttpTestingController;
+  let componentHarness: ApiRuntimeLogsSettingsHarness;
 
-  const initComponent = () => {
+  const initComponent = async (api: ApiV4 = testApi) => {
     const currentUser = new User();
     currentUser.userPermissions = ['api-definition-u'];
 
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiRuntimeLogsSettingsModule],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiRuntimeLogsSettingsModule, MatIconTestingModule],
       providers: [
         { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
         { provide: UIRouterState, useValue: { go: jest.fn() } },
@@ -44,14 +59,36 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
 
     fixture = TestBed.createComponent(ApiRuntimeLogsSettingsComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
+    componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiRuntimeLogsSettingsHarness);
+    fixture.detectChanges();
+
+    expectApiGetRequest(api);
   };
 
   afterEach(() => {
     httpTestingController.verify();
   });
 
-  it('should create component', () => {
-    initComponent();
-    expect(fixture).toBeTruthy();
+  describe('init tests', () => {
+    it('should init the component with disabled logs', async () => {
+      await initComponent({ ...testApi, analytics: { enabled: false } });
+      await expect(componentHarness.areLogsEnabled()).resolves.toBe(false);
+      await expect(componentHarness.getLogsBanner()).rejects.toThrow(/Failed to find element/);
+    });
+
+    it('should init the component with enabled logs', async () => {
+      await initComponent();
+      await expect(componentHarness.areLogsEnabled()).resolves.toBe(true);
+      await expect(componentHarness.getLogsBanner()).resolves.toBeTruthy();
+    });
   });
+
+  function expectApiGetRequest(api: ApiV4) {
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`,
+        method: 'GET',
+      })
+      .flush(api);
+  }
 });
