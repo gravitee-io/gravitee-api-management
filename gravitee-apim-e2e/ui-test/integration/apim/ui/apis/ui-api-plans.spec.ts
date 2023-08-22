@@ -243,6 +243,7 @@ describe('API Plans Feature', () => {
     cy.contains(`The plan ${planName}-Keyless has been published with success.`).should('be.visible');
     cy.contains(`${planName}-Keyless`).should('not.exist');
     cy.get('[type="button"]').contains('PUBLISHED').click();
+    cy.url().should('include', '/plans?status=PUBLISHED');
     cy.contains(`${planName}-Keyless`).should('be.visible');
     cy.getByDataTestId('api_plans_deprecate_plan_button').first().click();
     cy.getByDataTestId('confirm-dialog').click();

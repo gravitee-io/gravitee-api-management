@@ -97,7 +97,7 @@ describe('API Info Page functionality', () => {
     cy.getByDataTestId('api_info_duplicate_menu').click();
     cy.getByDataTestId('api_info_duplicate_path').type(`${apiFileName}-duplicate`);
     cy.getByDataTestId('api_info_duplicate_version').type(`${apiVersion}`);
-    cy.intercept('POST', '**/duplicate').as('duplicateApi');
+    cy.intercept('POST', '**/_duplicate').as('duplicateApi');
     cy.getByDataTestId('api_info_duplicate_api').click();
     cy.wait('@duplicateApi').then((interception) => {
       expect(interception.response.statusCode).to.eq(200);
