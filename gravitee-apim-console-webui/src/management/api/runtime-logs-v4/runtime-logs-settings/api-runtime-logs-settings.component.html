@@ -1,13 +1,13 @@
 <!--
 
     Copyright (C) 2015 The Gravitee team (http://gravitee.io)
-    
+
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
-    
+
             http://www.apache.org/licenses/LICENSE-2.0
-    
+
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,4 +15,21 @@
     limitations under the License.
 
 -->
-Hello world!
+<div class="settings">
+  <h3 class="settings__title">Settings</h3>
+  <div class="settings__subtitle">Adjust the settings to match your needs.</div>
+  <form *ngIf="form" [formGroup]="form">
+    <gio-form-slide-toggle class="settings__form-control__toggle">
+      <div class="settings__form-control__title">Logging activation</div>
+      <div class="settings__form-control__subtitle">Set when logging is activated.</div>
+      <mat-slide-toggle gioFormSlideToggle formControlName="enabled" aria-label="Logging enable toggle"></mat-slide-toggle>
+    </gio-form-slide-toggle>
+
+    <div *ngIf="enabled">
+      <gio-banner-info>
+        <div>Logging smartly</div>
+        <span gioBannerBody>Opt for logging carefully during development, this requires extra storage and may affect API performance.</span>
+      </gio-banner-info>
+    </div>
+  </form>
+</div>

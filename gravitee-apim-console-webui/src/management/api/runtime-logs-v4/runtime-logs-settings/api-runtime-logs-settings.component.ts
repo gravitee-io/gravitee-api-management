@@ -13,11 +13,59 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { FormControl, FormGroup } from '@angular/forms';
+import { takeUntil, tap } from 'rxjs/operators';
+import { Subject } from 'rxjs';
+import { StateParams } from '@uirouter/angularjs';
+
+import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
+import { ApiV4 } from '../../../../entities/management-api-v2';
 
 @Component({
   selector: 'api-runtime-logs-settings',
   template: require('./api-runtime-logs-settings.component.html'),
   styles: [require('./api-runtime-logs-settings.component.scss')],
 })
-export class ApiRuntimeLogsSettingsComponent {}
+export class ApiRuntimeLogsSettingsComponent implements OnInit, OnDestroy {
+  form: FormGroup;
+  enabled = false;
+  private unsubscribe$: Subject<void> = new Subject<void>();
+
+  constructor(@Inject(UIRouterStateParams) private readonly ajsStateParams: StateParams, private readonly apiService: ApiV2Service) {}
+
+  public ngOnInit(): void {
+    this.apiService
+      .get(this.ajsStateParams.apiId)
+      .pipe(
+        tap((api: ApiV4) => {
+          this.enabled = api?.analytics?.enabled ?? false;
+          this.initForm();
+          this.handleEnabledChanges();
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe();
+  }
+
+  public ngOnDestroy(): void {
+    this.unsubscribe$.next();
+    this.unsubscribe$.complete();
+  }
+
+  private initForm() {
+    this.form = new FormGroup({
+      enabled: new FormControl(this.enabled),
+    });
+  }
+
+  private handleEnabledChanges(): void {
+    this.form
+        .get('enabled')
+        .valueChanges.pipe(takeUntil(this.unsubscribe$))
+        .subscribe((value) => {
+          this.enabled = value;
+        });
+  }
+}
