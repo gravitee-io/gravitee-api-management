@@ -62,10 +62,6 @@ export class OrgNavigationComponent implements OnInit {
     this.appendCockpitItems();
   }
 
-  navigateTo(route: string) {
-    this.ajsState.go(route);
-  }
-
   isActive(route: string): boolean {
     return this.ajsState.includes(route);
   }
@@ -200,6 +196,6 @@ export class OrgNavigationComponent implements OnInit {
   }
 
   goBack() {
-    this.navigateTo('management');
+    this.ajsState.go('management');
   }
 }

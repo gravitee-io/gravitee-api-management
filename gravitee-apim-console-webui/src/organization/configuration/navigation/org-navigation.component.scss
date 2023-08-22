@@ -5,6 +5,9 @@
   flex-direction: row;
   height: 100vh;
 
+  a {
+    text-decoration: none;
+  }
   &__content {
     overflow: auto;
     min-height: 100vh;
