@@ -18,7 +18,7 @@ import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
 import { Visibility } from '@gravitee/management-webclient-sdk/src/lib/models';
 import faker from '@faker-js/faker';
 import ApiDetails from 'ui-test/support/PageObjects/Apis/ApiDetails';
-import { ApiImport } from '@model/api-imports';
+import { Api } from '@model/apis';
 
 describe('API Info Page functionality', () => {
   beforeEach(() => {
@@ -36,7 +36,7 @@ describe('API Info Page functionality', () => {
       body: ApisFaker.apiImport({ visibility: Visibility.PUBLIC }),
     }).then((response) => {
       expect(response.status).to.eq(200);
-      api = response.body;
+      api = { ...response.body };
     });
   });
 
@@ -46,8 +46,8 @@ describe('API Info Page functionality', () => {
   const apiDescription = faker.lorem.words(10);
   const apiFileName = `${apiName.replace(/ /g, '-')}-${apiVersion}`;
   const path = require('path');
-  let api: ApiImport;
-  let duplicateApi: ApiImport;
+  let api: Api;
+  let duplicateApi: Api;
 
   it('Verify Info Page Elements', () => {
     cy.getByDataTestId('api_list_edit_button', { timeout: 5000 }).first().click();

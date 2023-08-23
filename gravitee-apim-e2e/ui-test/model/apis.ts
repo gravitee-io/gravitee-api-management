@@ -32,6 +32,7 @@ export interface Api {
   owner: string;
   workflow_state: string;
   labels?: string[];
+  plans?: Plan[];
 }
 
 export interface ApiDefinition {
