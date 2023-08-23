@@ -37,6 +37,10 @@ $typography: map.get(gio.$mat-theme, typography);
       color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
       @include mat.typography-level($typography, 'body-1');
     }
+
+    mat-checkbox[formcontrolname='entrypoint'] {
+      margin-bottom: 16px;
+    }
   }
 
   gio-banner-info {
