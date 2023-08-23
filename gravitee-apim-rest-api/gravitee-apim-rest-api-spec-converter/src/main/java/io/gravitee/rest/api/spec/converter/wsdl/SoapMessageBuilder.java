@@ -53,6 +53,7 @@ public class SoapMessageBuilder {
         this.options.setLoadAdditionalNamespaces(this.namespaceMappings);
         this.options.setSavePrettyPrint();
         this.options.setSavePrettyPrintIndent(2);
+        this.options.setCompileDownloadUrls();
 
         // provide prefixes used by the WSDL to keep naming consistency in SoapEnvelope message
         this.prefixToNamespaces = new HashMap();
