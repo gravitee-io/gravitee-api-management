@@ -55,10 +55,9 @@
               ></ng-container
             >
             <ng-container *ngIf="subItem?.targetRoute && subItem.targetRoute !== 'DISABLED'"
-              ><a [uiSref]="subItem?.targetRoute"></a>
-              <gio-submenu-item tabIndex="1" [active]="isActive(subItem?.baseRoute)">{{
-                subItem?.displayName
-              }}</gio-submenu-item></ng-container
+              ><a [uiSref]="subItem?.targetRoute">
+                <gio-submenu-item tabIndex="1" [active]="isActive(subItem?.baseRoute)">{{ subItem?.displayName }}</gio-submenu-item></a
+              ></ng-container
             >
             <api-ng-navigation-disabled
               *ngIf="subItem?.targetRoute === 'DISABLED'"
