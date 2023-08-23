@@ -111,7 +111,7 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
           logging: {
             mode: { entrypoint: true, endpoint: true },
             phase: { request: false, response: false },
-            content: { messagePayload: false, messageHeaders: false, messageMetadata: false },
+            content: { messagePayload: false, messageHeaders: false, messageMetadata: false, payload: false, headers: false },
           },
         },
       });
@@ -122,11 +122,11 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
 
     it('should enable logging phase on request and response', async () => {
       await initComponent();
-      expect(await componentHarness.isRequestChecked()).toBe(false);
-      expect(await componentHarness.isResponseChecked()).toBe(false);
+      expect(await componentHarness.isRequestPhaseChecked()).toBe(false);
+      expect(await componentHarness.isResponsePhaseChecked()).toBe(false);
 
-      await componentHarness.checkRequest();
-      await componentHarness.checkResponse();
+      await componentHarness.checkRequestPhase();
+      await componentHarness.checkResponsePhase();
       await componentHarness.saveSettings();
 
       expectApiGetRequest(testApi);
@@ -137,16 +137,16 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
           logging: {
             mode: { entrypoint: false, endpoint: false },
             phase: { request: true, response: true },
-            content: { messagePayload: false, messageHeaders: false, messageMetadata: false },
+            content: { messagePayload: false, messageHeaders: false, messageMetadata: false, payload: false, headers: false },
           },
         },
       });
 
-      expect(await componentHarness.isRequestChecked()).toBe(true);
-      expect(await componentHarness.isResponseChecked()).toBe(true);
+      expect(await componentHarness.isRequestPhaseChecked()).toBe(true);
+      expect(await componentHarness.isResponsePhaseChecked()).toBe(true);
     });
 
-    it('should enable logging content on payload,headers and metadata', async () => {
+    it('should enable logging content on payload, headers and metadata', async () => {
       await initComponent();
       expect(await componentHarness.isMessageContentChecked()).toBe(false);
       expect(await componentHarness.isMessageHeadersChecked()).toBe(false);
@@ -165,7 +165,7 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
           logging: {
             mode: { entrypoint: false, endpoint: false },
             phase: { request: false, response: false },
-            content: { messagePayload: true, messageHeaders: true, messageMetadata: true },
+            content: { messagePayload: true, messageHeaders: true, messageMetadata: true, payload: false, headers: false },
           },
         },
       });
@@ -173,6 +173,32 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
       expect(await componentHarness.isMessageContentChecked()).toBe(true);
       expect(await componentHarness.isMessageHeadersChecked()).toBe(true);
       expect(await componentHarness.isMessageMetadataChecked()).toBe(true);
+    });
+
+    it('should enable logging content on request payload and headers', async () => {
+      await initComponent();
+      expect(await componentHarness.isRequestPayloadChecked()).toBe(false);
+      expect(await componentHarness.isRequestHeadersChecked()).toBe(false);
+
+      await componentHarness.checkRequestPayload();
+      await componentHarness.checkRequestHeaders();
+      await componentHarness.saveSettings();
+
+      expectApiGetRequest(testApi);
+      expectApiPutRequest({
+        ...testApi,
+        analytics: {
+          enabled: true,
+          logging: {
+            mode: { entrypoint: false, endpoint: false },
+            phase: { request: false, response: false },
+            content: { messagePayload: false, messageHeaders: false, messageMetadata: false, payload: true, headers: true },
+          },
+        },
+      });
+
+      expect(await componentHarness.isRequestPayloadChecked()).toBe(true);
+      expect(await componentHarness.isRequestHeadersChecked()).toBe(true);
     });
   });
 
