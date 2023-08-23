@@ -232,6 +232,8 @@ public interface MembershipService {
 
     void deleteMemberForApi(ExecutionContext executionContext, String apiId, String memberId);
 
+    void deleteMemberForApplication(ExecutionContext executionContext, String applicationId, String memberId);
+
     class MembershipReference {
 
         private final MembershipReferenceType type;

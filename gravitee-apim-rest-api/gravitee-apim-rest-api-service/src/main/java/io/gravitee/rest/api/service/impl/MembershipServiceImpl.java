@@ -70,16 +70,7 @@ import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
-import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
-import io.gravitee.rest.api.service.exceptions.ApiOwnershipTransferException;
-import io.gravitee.rest.api.service.exceptions.ApiPrimaryOwnerRemovalException;
-import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
-import io.gravitee.rest.api.service.exceptions.MembershipAlreadyExistsException;
-import io.gravitee.rest.api.service.exceptions.NotAuthorizedMembershipException;
-import io.gravitee.rest.api.service.exceptions.PaginationInvalidException;
-import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
+import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
 import io.gravitee.rest.api.service.v4.ApiGroupService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
@@ -672,6 +663,9 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             RoleEntity apiPORole = roleService
                 .findByScopeAndName(RoleScope.API, PRIMARY_OWNER.name(), executionContext.getOrganizationId())
                 .orElseThrow(() -> new TechnicalManagementException("Unable to find API Primary Owner role"));
+            RoleEntity applicationPORole = roleService
+                    .findByScopeAndName(RoleScope.APPLICATION, PRIMARY_OWNER.name(), executionContext.getOrganizationId())
+                    .orElseThrow(() -> new TechnicalManagementException("Unable to find Application Primary Owner role"));
             Set<io.gravitee.repository.management.model.Membership> memberships = membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
                 memberId,
                 convert(memberType),
@@ -681,6 +675,9 @@ public class MembershipServiceImpl extends AbstractService implements Membership
 
             if (MembershipReferenceType.API.equals(referenceType)) {
                 assertNoPrimaryOwnerRemoval(apiPORole, memberships);
+            }
+            if (MembershipReferenceType.APPLICATION.equals(referenceType)) {
+                assertNoPrimaryOwnerRemoval(applicationPORole, memberships);
             }
 
             for (io.gravitee.repository.management.model.Membership membership : memberships) {
@@ -735,7 +732,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             .filter(membership -> membership.getRoleId().equals(apiPORole.getId()))
             .findFirst()
             .ifPresent(membership -> {
-                throw new ApiPrimaryOwnerRemovalException();
+                throw new PrimaryOwnerRemovalException();
             });
     }
 
@@ -1833,6 +1830,11 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     @Override
     public void deleteMemberForApi(ExecutionContext executionContext, String apiId, String memberId) {
         deleteReferenceMember(executionContext, MembershipReferenceType.API, apiId, MembershipMemberType.USER, memberId);
+    }
+
+    @Override
+    public void deleteMemberForApplication(ExecutionContext executionContext, String applicationId, String memberId) {
+        deleteReferenceMember(executionContext, MembershipReferenceType.APPLICATION, applicationId, MembershipMemberType.USER, memberId);
     }
 
     private boolean hasApiPrimaryOwnerMemberInGroup(ExecutionContext executionContext, String groupId) {
