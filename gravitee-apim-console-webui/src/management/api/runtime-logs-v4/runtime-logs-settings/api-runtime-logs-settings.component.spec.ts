@@ -112,6 +112,8 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
             mode: { entrypoint: true, endpoint: true },
             phase: { request: false, response: false },
             content: { messagePayload: false, messageHeaders: false, messageMetadata: false, payload: false, headers: false },
+            condition: null,
+            messageCondition: null,
           },
         },
       });
@@ -138,6 +140,8 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
             mode: { entrypoint: false, endpoint: false },
             phase: { request: true, response: true },
             content: { messagePayload: false, messageHeaders: false, messageMetadata: false, payload: false, headers: false },
+            condition: null,
+            messageCondition: null,
           },
         },
       });
@@ -166,6 +170,8 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
             mode: { entrypoint: false, endpoint: false },
             phase: { request: false, response: false },
             content: { messagePayload: true, messageHeaders: true, messageMetadata: true, payload: false, headers: false },
+            condition: null,
+            messageCondition: null,
           },
         },
       });
@@ -193,12 +199,42 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
             mode: { entrypoint: false, endpoint: false },
             phase: { request: false, response: false },
             content: { messagePayload: false, messageHeaders: false, messageMetadata: false, payload: true, headers: true },
+            condition: null,
+            messageCondition: null,
           },
         },
       });
 
       expect(await componentHarness.isRequestPayloadChecked()).toBe(true);
       expect(await componentHarness.isRequestHeadersChecked()).toBe(true);
+    });
+
+    it('should save settings with conditions on request and messages', async () => {
+      await initComponent();
+      expect(await componentHarness.getRequestCondition()).toEqual('');
+      expect(await componentHarness.getMessageCondition()).toEqual('');
+
+      await componentHarness.addMessageCondition('message condition');
+      await componentHarness.addRequestCondition('request condition');
+      await componentHarness.saveSettings();
+
+      expectApiGetRequest(testApi);
+      expectApiPutRequest({
+        ...testApi,
+        analytics: {
+          enabled: true,
+          logging: {
+            mode: { entrypoint: false, endpoint: false },
+            phase: { request: false, response: false },
+            content: { messagePayload: false, messageHeaders: false, messageMetadata: false, payload: false, headers: false },
+            condition: 'request condition',
+            messageCondition: 'message condition',
+          },
+        },
+      });
+
+      expect(await componentHarness.getMessageCondition()).toEqual('message condition');
+      expect(await componentHarness.getMessageCondition()).toEqual('message condition');
     });
   });
 

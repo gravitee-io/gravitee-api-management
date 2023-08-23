@@ -18,6 +18,7 @@ import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { DivHarness } from '@gravitee/ui-particles-angular/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
+import { MatInputHarness } from '@angular/material/input/testing';
 
 export class ApiRuntimeLogsSettingsHarness extends ComponentHarness {
   static hostSelector = 'api-runtime-logs-settings';
@@ -34,6 +35,8 @@ export class ApiRuntimeLogsSettingsHarness extends ComponentHarness {
   private getMessageMetadataCheckbox = this.locatorFor(MatCheckboxHarness.with({ selector: '[formControlName="messageMetadata"]' }));
   private getRequestPayloadCheckbox = this.locatorFor(MatCheckboxHarness.with({ selector: '[formControlName="requestPayload"]' }));
   private getRequestHeadersCheckbox = this.locatorFor(MatCheckboxHarness.with({ selector: '[formControlName="requestHeaders"]' }));
+  private getMessageConditionInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="messageCondition"]' }));
+  private getRequestConditionInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="requestCondition"]' }));
 
   public areLogsEnabled = async (): Promise<boolean> => {
     return await this.getEnableToggle().then((toggles) => toggles.isChecked());
@@ -117,5 +120,21 @@ export class ApiRuntimeLogsSettingsHarness extends ComponentHarness {
 
   public checkRequestHeaders = async (): Promise<void> => {
     return await this.getRequestHeadersCheckbox().then((checkbox) => checkbox.check());
+  };
+
+  public getMessageCondition = async (): Promise<string> => {
+    return await this.getMessageConditionInput().then((input) => input.getValue());
+  };
+
+  public addMessageCondition = async (condition: string): Promise<void> => {
+    return await this.getMessageConditionInput().then((input) => input.setValue(condition));
+  };
+
+  public getRequestCondition = async (): Promise<string> => {
+    return await this.getRequestConditionInput().then((input) => input.getValue());
+  };
+
+  public addRequestCondition = async (condition: string): Promise<void> => {
+    return await this.getRequestConditionInput().then((input) => input.setValue(condition));
   };
 }

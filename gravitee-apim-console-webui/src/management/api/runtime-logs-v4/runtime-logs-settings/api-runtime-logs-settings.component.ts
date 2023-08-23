@@ -86,6 +86,8 @@ export class ApiRuntimeLogsSettingsComponent implements OnInit, OnDestroy {
                     payload: formValues.requestPayload,
                     headers: formValues.requestHeaders,
                   },
+                  condition: formValues.requestCondition,
+                  messageCondition: formValues.messageCondition,
                 },
               }
             : { enabled: this.enabled };
@@ -118,6 +120,8 @@ export class ApiRuntimeLogsSettingsComponent implements OnInit, OnDestroy {
       messageMetadata: new FormControl(this.api?.analytics?.logging?.content?.messageMetadata ?? false),
       requestPayload: new FormControl(this.api?.analytics?.logging?.content?.payload ?? false),
       requestHeaders: new FormControl(this.api?.analytics?.logging?.content?.headers ?? false),
+      requestCondition: new FormControl(this.api?.analytics?.logging?.condition),
+      messageCondition: new FormControl(this.api?.analytics?.logging?.messageCondition),
     });
   }
 

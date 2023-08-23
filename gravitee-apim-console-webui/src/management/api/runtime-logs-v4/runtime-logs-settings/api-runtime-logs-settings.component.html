@@ -60,6 +60,23 @@
         <mat-checkbox formControlName="requestPayload">Request payload</mat-checkbox>
         <mat-checkbox formControlName="requestHeaders">Request headers</mat-checkbox>
       </div>
+
+      <div class="settings__form-control">
+        <div class="settings__form-control__title">Display conditions</div>
+        <div class="settings__form-control__subtitle">Filter the data that matter to you.</div>
+
+        <mat-form-field>
+          <mat-label>Request phase condition</mat-label>
+          <input matInput formControlName="requestCondition" />
+          <mat-hint> Support EL (e.g: &#123; #request.headers['Content-Type'][0] === 'application/json' &#125;)</mat-hint>
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-label>Message condition</mat-label>
+          <input matInput formControlName="messageCondition" />
+          <mat-hint> Support EL (e.g: &#123; #message.headers['Content-Type'][0] === 'application/json' &#125;)</mat-hint>
+        </mat-form-field>
+      </div>
     </div>
 
     <div>
