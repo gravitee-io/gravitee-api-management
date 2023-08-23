@@ -93,6 +93,22 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
       expectApiGetRequest(testApi);
       expectApiPutRequest({ ...testApi, analytics: { enabled: false } });
     });
+
+    it('should enable logging mode on entrypoint and endpoint', async () => {
+      await initComponent();
+      expect(await componentHarness.isEntrypointChecked()).toBe(false);
+      expect(await componentHarness.isEndpointChecked()).toBe(false);
+
+      await componentHarness.checkEntrypoint();
+      await componentHarness.checkEndpoint();
+      await componentHarness.saveSettings();
+
+      expectApiGetRequest(testApi);
+      expectApiPutRequest({ ...testApi, analytics: { enabled: true, logging: { mode: { entrypoint: true, endpoint: true } } } });
+
+      expect(await componentHarness.isEntrypointChecked()).toBe(true);
+      expect(await componentHarness.isEndpointChecked()).toBe(true);
+    });
   });
 
   function expectApiGetRequest(api: ApiV4) {

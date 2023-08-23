@@ -17,6 +17,7 @@ import { ComponentHarness } from '@angular/cdk/testing';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { DivHarness } from '@gravitee/ui-particles-angular/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
 
 export class ApiRuntimeLogsSettingsHarness extends ComponentHarness {
   static hostSelector = 'api-runtime-logs-settings';
@@ -24,6 +25,8 @@ export class ApiRuntimeLogsSettingsHarness extends ComponentHarness {
   private getEnableToggle = this.locatorFor(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' }));
   public getLogsBanner = this.locatorFor(DivHarness.with({ text: /Logging smartly/ }));
   private getSaveButton = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Save Settings"]' }));
+  private getEntrypointCheckbox = this.locatorFor(MatCheckboxHarness.with({ selector: '[formControlName="entrypoint"]' }));
+  private getEndpointCheckbox = this.locatorFor(MatCheckboxHarness.with({ selector: '[formControlName="endpoint"]' }));
 
   public areLogsEnabled = async (): Promise<boolean> => {
     return await this.getEnableToggle().then((toggles) => toggles.isChecked());
@@ -35,5 +38,21 @@ export class ApiRuntimeLogsSettingsHarness extends ComponentHarness {
 
   public saveSettings = async (): Promise<void> => {
     return this.getSaveButton().then((saveButton) => saveButton.click());
+  };
+
+  public isEntrypointChecked = async (): Promise<boolean> => {
+    return await this.getEntrypointCheckbox().then((checkbox) => checkbox.isChecked());
+  };
+
+  public checkEntrypoint = async (): Promise<void> => {
+    return await this.getEntrypointCheckbox().then((checkbox) => checkbox.check());
+  };
+
+  public isEndpointChecked = async (): Promise<boolean> => {
+    return await this.getEndpointCheckbox().then((checkbox) => checkbox.isChecked());
+  };
+
+  public checkEndpoint = async (): Promise<void> => {
+    return await this.getEndpointCheckbox().then((checkbox) => checkbox.check());
   };
 }

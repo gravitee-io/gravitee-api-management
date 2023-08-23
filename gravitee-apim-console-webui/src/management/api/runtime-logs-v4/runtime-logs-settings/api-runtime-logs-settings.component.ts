@@ -21,7 +21,7 @@ import { StateParams } from '@uirouter/angularjs';
 
 import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
-import { Analytics, ApiV4 } from '../../../../entities/management-api-v2';
+import { ApiV4 } from '../../../../entities/management-api-v2';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 
 @Component({
@@ -33,6 +33,7 @@ export class ApiRuntimeLogsSettingsComponent implements OnInit, OnDestroy {
   form: FormGroup;
   enabled = false;
   private unsubscribe$: Subject<void> = new Subject<void>();
+  private api: ApiV4;
 
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams: StateParams,
@@ -45,6 +46,7 @@ export class ApiRuntimeLogsSettingsComponent implements OnInit, OnDestroy {
       .get(this.ajsStateParams.apiId)
       .pipe(
         tap((api: ApiV4) => {
+          this.api = api;
           this.enabled = api?.analytics?.enabled ?? false;
           this.initForm();
           this.handleEnabledChanges();
@@ -59,28 +61,27 @@ export class ApiRuntimeLogsSettingsComponent implements OnInit, OnDestroy {
     this.unsubscribe$.complete();
   }
 
-  private initForm() {
-    this.form = new FormGroup({
-      enabled: new FormControl(this.enabled),
-    });
-  }
-
-  private handleEnabledChanges(): void {
-    this.form
-      .get('enabled')
-      .valueChanges.pipe(takeUntil(this.unsubscribe$))
-      .subscribe((value) => {
-        this.enabled = value;
-      });
-  }
-
   public save(): void {
     this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
         switchMap((api: ApiV4) => {
-          const analytics: Analytics = { enabled: this.enabled };
+          const formValues = this.form.getRawValue();
+          const analytics = this.enabled
+            ? {
+                enabled: this.enabled,
+                logging: {
+                  mode: {
+                    entrypoint: formValues.entrypoint,
+                    endpoint: formValues.endpoint,
+                  },
+                },
+              }
+            : { enabled: this.enabled };
           return this.apiService.update(api.id, { ...api, analytics });
+        }),
+        tap((api: ApiV4) => {
+          this.api = api;
         }),
         map(() => {
           this.snackBarService.success(`Runtime logs settings successfully saved!`);
@@ -92,5 +93,22 @@ export class ApiRuntimeLogsSettingsComponent implements OnInit, OnDestroy {
         takeUntil(this.unsubscribe$),
       )
       .subscribe();
+  }
+
+  private initForm() {
+    this.form = new FormGroup({
+      enabled: new FormControl(this.enabled),
+      entrypoint: new FormControl(this.api?.analytics?.logging?.mode?.entrypoint ?? false),
+      endpoint: new FormControl(this.api?.analytics?.logging?.mode?.endpoint ?? false),
+    });
+  }
+
+  private handleEnabledChanges(): void {
+    this.form
+      .get('enabled')
+      .valueChanges.pipe(takeUntil(this.unsubscribe$))
+      .subscribe((value) => {
+        this.enabled = value;
+      });
   }
 }
