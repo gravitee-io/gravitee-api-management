@@ -27,11 +27,13 @@ export class ApiRuntimeLogsSettingsHarness extends ComponentHarness {
   private getSaveButton = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Save Settings"]' }));
   private getEntrypointCheckbox = this.locatorFor(MatCheckboxHarness.with({ selector: '[formControlName="entrypoint"]' }));
   private getEndpointCheckbox = this.locatorFor(MatCheckboxHarness.with({ selector: '[formControlName="endpoint"]' }));
-  private getRequestCheckbox = this.locatorFor(MatCheckboxHarness.with({ selector: '[formControlName="request"]' }));
-  private getResponseCheckbox = this.locatorFor(MatCheckboxHarness.with({ selector: '[formControlName="response"]' }));
+  private getRequestPhaseCheckbox = this.locatorFor(MatCheckboxHarness.with({ selector: '[formControlName="request"]' }));
+  private getResponsePhaseCheckbox = this.locatorFor(MatCheckboxHarness.with({ selector: '[formControlName="response"]' }));
   private getMessageContentCheckbox = this.locatorFor(MatCheckboxHarness.with({ selector: '[formControlName="messageContent"]' }));
   private getMessageHeadersCheckbox = this.locatorFor(MatCheckboxHarness.with({ selector: '[formControlName="messageHeaders"]' }));
   private getMessageMetadataCheckbox = this.locatorFor(MatCheckboxHarness.with({ selector: '[formControlName="messageMetadata"]' }));
+  private getRequestPayloadCheckbox = this.locatorFor(MatCheckboxHarness.with({ selector: '[formControlName="requestPayload"]' }));
+  private getRequestHeadersCheckbox = this.locatorFor(MatCheckboxHarness.with({ selector: '[formControlName="requestHeaders"]' }));
 
   public areLogsEnabled = async (): Promise<boolean> => {
     return await this.getEnableToggle().then((toggles) => toggles.isChecked());
@@ -61,20 +63,20 @@ export class ApiRuntimeLogsSettingsHarness extends ComponentHarness {
     return await this.getEndpointCheckbox().then((checkbox) => checkbox.check());
   };
 
-  public isRequestChecked = async (): Promise<boolean> => {
-    return await this.getRequestCheckbox().then((checkbox) => checkbox.isChecked());
+  public isRequestPhaseChecked = async (): Promise<boolean> => {
+    return await this.getRequestPhaseCheckbox().then((checkbox) => checkbox.isChecked());
   };
 
-  public checkRequest = async (): Promise<void> => {
-    return await this.getRequestCheckbox().then((checkbox) => checkbox.check());
+  public checkRequestPhase = async (): Promise<void> => {
+    return await this.getRequestPhaseCheckbox().then((checkbox) => checkbox.check());
   };
 
-  public isResponseChecked = async (): Promise<boolean> => {
-    return await this.getResponseCheckbox().then((checkbox) => checkbox.isChecked());
+  public isResponsePhaseChecked = async (): Promise<boolean> => {
+    return await this.getResponsePhaseCheckbox().then((checkbox) => checkbox.isChecked());
   };
 
-  public checkResponse = async (): Promise<void> => {
-    return await this.getResponseCheckbox().then((checkbox) => checkbox.check());
+  public checkResponsePhase = async (): Promise<void> => {
+    return await this.getResponsePhaseCheckbox().then((checkbox) => checkbox.check());
   };
 
   public isMessageContentChecked = async (): Promise<boolean> => {
@@ -99,5 +101,21 @@ export class ApiRuntimeLogsSettingsHarness extends ComponentHarness {
 
   public checkMessageMetadata = async (): Promise<void> => {
     return await this.getMessageMetadataCheckbox().then((checkbox) => checkbox.check());
+  };
+
+  public isRequestPayloadChecked = async (): Promise<boolean> => {
+    return await this.getRequestPayloadCheckbox().then((checkbox) => checkbox.isChecked());
+  };
+
+  public checkRequestPayload = async (): Promise<void> => {
+    return await this.getRequestPayloadCheckbox().then((checkbox) => checkbox.check());
+  };
+
+  public isRequestHeadersChecked = async (): Promise<boolean> => {
+    return await this.getRequestHeadersCheckbox().then((checkbox) => checkbox.isChecked());
+  };
+
+  public checkRequestHeaders = async (): Promise<void> => {
+    return await this.getRequestHeadersCheckbox().then((checkbox) => checkbox.check());
   };
 }
