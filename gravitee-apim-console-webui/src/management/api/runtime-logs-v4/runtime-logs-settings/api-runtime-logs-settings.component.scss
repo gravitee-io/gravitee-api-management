@@ -39,7 +39,9 @@ $typography: map.get(gio.$mat-theme, typography);
     }
 
     mat-checkbox[formcontrolname='entrypoint'],
-    mat-checkbox[formcontrolname='request'] {
+    mat-checkbox[formcontrolname='request'] ,
+    mat-checkbox[formcontrolname='messageContent'] ,
+    mat-checkbox[formcontrolname='messageHeaders'] {
       margin-bottom: 16px;
     }
   }
