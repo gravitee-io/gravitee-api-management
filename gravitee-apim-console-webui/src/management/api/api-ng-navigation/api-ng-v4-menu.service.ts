@@ -42,11 +42,16 @@ export class ApiNgV4MenuService implements ApiMenuService {
         baseRoute: 'management.apis.ng.policyStudio',
         tabs: undefined,
       },
-      {
-        displayName: 'Messages',
-        targetRoute: 'DISABLED',
-      },
     ];
+
+    if (this.permissionService.hasAnyMatching(['api-log-r'])) {
+      subMenuItems.push({
+        displayName: 'Runtime Logs',
+        targetRoute: 'management.apis.ng.runtimeLogs',
+        baseRoute: 'management.apis.ng.runtimeLogs',
+      });
+    }
+
     const groupItems: MenuGroupItem[] = [
       this.getGeneralGroup(),
       this.getEntrypointsGroup(),
@@ -188,16 +193,9 @@ export class ApiNgV4MenuService implements ApiMenuService {
       title: 'Analytics',
       items: [],
     };
-
     if (this.permissionService.hasAnyMatching(['api-analytics-r'])) {
       analyticsGroup.items.push({
         displayName: 'Overview',
-        targetRoute: 'DISABLED',
-      });
-    }
-    if (this.permissionService.hasAnyMatching(['api-log-r'])) {
-      analyticsGroup.items.push({
-        displayName: 'Logs',
         targetRoute: 'DISABLED',
       });
     }
