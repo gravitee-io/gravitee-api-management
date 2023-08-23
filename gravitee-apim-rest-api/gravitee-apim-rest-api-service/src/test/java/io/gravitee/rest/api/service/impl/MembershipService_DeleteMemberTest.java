@@ -26,13 +26,15 @@ import io.gravitee.repository.management.model.Membership;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.RoleEntity;
+import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.exceptions.ApiPrimaryOwnerRemovalException;
 import java.util.Optional;
 import java.util.Set;
+
+import io.gravitee.rest.api.service.exceptions.PrimaryOwnerRemovalException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -48,9 +50,12 @@ public class MembershipService_DeleteMemberTest {
     private static final String ORG_ID = "DEFAULT";
     private static final String ENV_ID = "DEFAULT";
     private static final String API_PO_ROLE_ID = "123";
-    private static final String REFERENCE_ID = "456";
+    private static final String APPLICATION_PO_ROLE_ID = "222";
+    private static final String MEMBER_ID = "456";
     private static final String API_ID = "789";
+    private static final String APPLICATION_ID = "app#1";
 
+    private static final UserEntity USER =  UserEntity.builder().build();
     private MembershipService membershipService;
 
     @Mock
@@ -79,12 +84,12 @@ public class MembershipService_DeleteMemberTest {
                 null,
                 null
             );
+        when(roleService.findByScopeAndName(RoleScope.API, PRIMARY_OWNER.name(), ORG_ID)).thenReturn(primaryOwnerRole(RoleScope.API, API_PO_ROLE_ID));
+        when(roleService.findByScopeAndName(RoleScope.APPLICATION, PRIMARY_OWNER.name(), ORG_ID)).thenReturn(primaryOwnerRole(RoleScope.API, APPLICATION_PO_ROLE_ID));
     }
 
     @Test
     public void shouldNotRemoveApiPrimaryOwner() throws TechnicalException {
-        when(roleService.findByScopeAndName(RoleScope.API, PRIMARY_OWNER.name(), ORG_ID)).thenReturn(apiPrimaryOwnerRole());
-
         Membership membership = new Membership();
         membership.setRoleId(API_PO_ROLE_ID);
 
@@ -97,31 +102,59 @@ public class MembershipService_DeleteMemberTest {
                     MembershipReferenceType.API,
                     API_ID,
                     MembershipMemberType.USER,
-                    REFERENCE_ID
+                    MEMBER_ID
                 )
             )
-            .isInstanceOf(ApiPrimaryOwnerRemovalException.class);
+            .isInstanceOf(PrimaryOwnerRemovalException.class);
     }
 
     @Test
     public void shouldNotDeleteApiPrimaryOwner() throws TechnicalException {
-        when(roleService.findByScopeAndName(RoleScope.API, PRIMARY_OWNER.name(), ORG_ID)).thenReturn(apiPrimaryOwnerRole());
-
         Membership membership = new Membership();
         membership.setRoleId(API_PO_ROLE_ID);
 
         when(membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(any(), any(), any(), any()))
             .thenReturn(Set.of(membership));
 
-        assertThatThrownBy(() -> membershipService.deleteMemberForApi(GraviteeContext.getExecutionContext(), API_ID, REFERENCE_ID))
-            .isInstanceOf(ApiPrimaryOwnerRemovalException.class);
+        assertThatThrownBy(() -> membershipService.deleteMemberForApi(GraviteeContext.getExecutionContext(), API_ID, MEMBER_ID))
+            .isInstanceOf(PrimaryOwnerRemovalException.class);
     }
 
-    private static Optional<RoleEntity> apiPrimaryOwnerRole() {
+    @Test
+    public void shouldNotRemoveApplicationPrimaryOwner() throws TechnicalException {
+        Membership membership = new Membership();
+        membership.setRoleId(APPLICATION_PO_ROLE_ID);
+
+        when(membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(any(), any(), any(), any()))
+            .thenReturn(Set.of(membership));
+
+        assertThatThrownBy(() -> membershipService.deleteReferenceMember(
+            GraviteeContext.getExecutionContext(),
+            MembershipReferenceType.APPLICATION,
+            APPLICATION_ID,
+            MembershipMemberType.USER,
+            MEMBER_ID
+        )).isInstanceOf(PrimaryOwnerRemovalException.class);
+    }
+
+    @Test
+    public void shouldNotDeleteApplicationPrimaryOwner() throws TechnicalException {
+        Membership membership = new Membership();
+        membership.setReferenceType(io.gravitee.repository.management.model.MembershipReferenceType.APPLICATION);
+        membership.setRoleId(APPLICATION_PO_ROLE_ID);
+
+        when(membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(any(), any(), any(), any()))
+                .thenReturn(Set.of(membership));
+
+        assertThatThrownBy(() -> membershipService.deleteMemberForApplication(GraviteeContext.getExecutionContext(), APPLICATION_ID, MEMBER_ID))
+                .isInstanceOf(PrimaryOwnerRemovalException.class);
+    }
+
+    private static Optional<RoleEntity> primaryOwnerRole(RoleScope scope, String roleId) {
         RoleEntity role = new RoleEntity();
         role.setName(PRIMARY_OWNER.name());
-        role.setScope(RoleScope.API);
-        role.setId(API_PO_ROLE_ID);
+        role.setScope(scope);
+        role.setId(roleId);
         return Optional.of(role);
     }
 }
