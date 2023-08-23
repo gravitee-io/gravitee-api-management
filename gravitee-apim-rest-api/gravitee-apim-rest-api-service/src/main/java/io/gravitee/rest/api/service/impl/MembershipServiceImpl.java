@@ -84,6 +84,7 @@ import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
 import io.gravitee.rest.api.service.v4.ApiGroupService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
+<<<<<<< HEAD
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -97,6 +98,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+=======
+import java.util.*;
+>>>>>>> a0f8d71591 (fix: do not allow to delete application primay owner via management API)
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -672,15 +676,31 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             RoleEntity apiPORole = roleService
                 .findByScopeAndName(RoleScope.API, PRIMARY_OWNER.name(), executionContext.getOrganizationId())
                 .orElseThrow(() -> new TechnicalManagementException("Unable to find API Primary Owner role"));
+<<<<<<< HEAD
             Set<io.gravitee.repository.management.model.Membership> memberships = membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
                 memberId,
                 convert(memberType),
                 convert(referenceType),
                 referenceId
             );
+=======
+            RoleEntity applicationPORole = roleService
+                .findByScopeAndName(RoleScope.APPLICATION, PRIMARY_OWNER.name(), executionContext.getOrganizationId())
+                .orElseThrow(() -> new TechnicalManagementException("Unable to find Application Primary Owner role"));
+            Set<io.gravitee.repository.management.model.Membership> memberships =
+                membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
+                    memberId,
+                    convert(memberType),
+                    convert(referenceType),
+                    referenceId
+                );
+>>>>>>> a0f8d71591 (fix: do not allow to delete application primay owner via management API)
 
             if (MembershipReferenceType.API.equals(referenceType)) {
                 assertNoPrimaryOwnerRemoval(apiPORole, memberships);
+            }
+            if (MembershipReferenceType.APPLICATION.equals(referenceType)) {
+                assertNoPrimaryOwnerRemoval(applicationPORole, memberships);
             }
 
             for (io.gravitee.repository.management.model.Membership membership : memberships) {
@@ -735,7 +755,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             .filter(membership -> membership.getRoleId().equals(apiPORole.getId()))
             .findFirst()
             .ifPresent(membership -> {
-                throw new ApiPrimaryOwnerRemovalException();
+                throw new PrimaryOwnerRemovalException();
             });
     }
 
