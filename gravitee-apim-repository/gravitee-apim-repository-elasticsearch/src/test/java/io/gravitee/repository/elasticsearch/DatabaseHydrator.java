@@ -17,86 +17,86 @@ package io.gravitee.repository.elasticsearch;
 
 import io.gravitee.elasticsearch.client.Client;
 import io.gravitee.elasticsearch.templating.freemarker.FreeMarkerComponent;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.buffer.Buffer;
 import jakarta.annotation.PostConstruct;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Flow;
+import java.util.concurrent.TimeUnit;
 
 public class DatabaseHydrator {
 
+    private static final DateTimeFormatter FORMATTER_WITH_DASH = DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneId.systemDefault());
+    private static final DateTimeFormatter FORMATTER_WITH_DOT = DateTimeFormatter.ofPattern("yyyy.MM.dd").withZone(ZoneId.systemDefault());
+
     Client client;
     FreeMarkerComponent freeMarkerComponent;
-    String elasticsearchVersion;
+    String elasticMajorVersion;
 
     public DatabaseHydrator(Client client, FreeMarkerComponent freeMarkerComponent, String elasticsearchVersion) {
         this.client = client;
         this.freeMarkerComponent = freeMarkerComponent;
-        this.elasticsearchVersion = elasticsearchVersion;
+        this.elasticMajorVersion = elasticsearchVersion.split("\\.")[0];
     }
 
     @PostConstruct
-    public void indexSampleData() throws InterruptedException {
-        String elasticMajorVersion = elasticsearchVersion.split("\\.")[0];
+    public void indexSampleData() {
+        List<String> indexTypes = List.of("health", "request", "monitor", "log");
+        createTemplate(indexTypes).andThen(Single.defer(() -> client.bulk(prepareData(indexTypes), true))).ignoreElement().blockingAwait();
+    }
 
-        final Map<String, Object> indexTemplateData = new HashMap<>();
-        indexTemplateData.put("numberOfShards", 5);
-        indexTemplateData.put("numberOfReplicas", 1);
-        indexTemplateData.put("refreshInterval", "1s");
+    private Completable createTemplate(List<String> types) {
+        return Flowable
+            .fromIterable(types)
+            .map(type -> {
+                String indexName = "gravitee-" + type;
+                Map<String, Object> data = Map.ofEntries(
+                    Map.entry("numberOfShards", 5),
+                    Map.entry("numberOfReplicas", 1),
+                    Map.entry("refreshInterval", "1s"),
+                    Map.entry("indexName", indexName)
+                );
+                var filename = "es" + elasticMajorVersion + "x/mapping/index-template-" + type + ".ftl";
+                return Map.entry(indexName, freeMarkerComponent.generateFromTemplate(filename, data));
+            })
+            .flatMapCompletable(entry -> client.putTemplate(entry.getKey(), entry.getValue()));
+    }
 
-        if ("5".equals(elasticMajorVersion)) {
-            indexTemplateData.put("indexName", "gravitee");
-            client
-                .putTemplate("gravitee", freeMarkerComponent.generateFromTemplate("es5x/mapping/index-template.ftl", indexTemplateData))
-                .test()
-                .await();
-        } else {
-            for (String type : new String[] { "request", "monitor", "health", "log" }) {
-                indexTemplateData.put("indexName", "gravitee-" + type);
-                client
-                    .putTemplate(
-                        "gravitee-" + type,
-                        freeMarkerComponent.generateFromTemplate(
-                            "es" + elasticMajorVersion + "x/mapping/index-template-" + type + ".ftl",
-                            indexTemplateData
-                        )
-                    )
-                    .test()
-                    .await();
-            }
-        }
-
+    private List<Buffer> prepareData(List<String> types) {
         final Instant now = Instant.now();
         final Instant yesterday = now.minus(1, ChronoUnit.DAYS);
-        DateTimeFormatter formatterWithDash = DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneId.systemDefault());
-        DateTimeFormatter formatterWithDot = DateTimeFormatter.ofPattern("yyyy.MM.dd").withZone(ZoneId.systemDefault());
 
-        final Map<String, Object> bulkData = new HashMap<>();
-        bulkData.put("dateToday", formatterWithDash.format(now));
-        bulkData.put("dateYesterday", formatterWithDash.format(yesterday));
+        final String dateToday = FORMATTER_WITH_DASH.format(now);
+        final String dateYesterday = FORMATTER_WITH_DASH.format(yesterday);
 
-        String indexTemplate = "\"_index\" : \"gravitee-%s-%s\"";
-        if ("5".equals(elasticMajorVersion) || "6".equals(elasticMajorVersion)) {
-            indexTemplate += ", \"_type\" : \"%s\"";
-        }
+        final String todayWithDot = FORMATTER_WITH_DOT.format(now);
+        final String yesterdayWithDot = FORMATTER_WITH_DOT.format(yesterday);
 
-        String todayWithDot = formatterWithDot.format(now);
-        bulkData.put("indexHealthToday", String.format(indexTemplate, "health", todayWithDot, "health"));
-        bulkData.put("indexRequestToday", String.format(indexTemplate, "request", todayWithDot, "request"));
-        bulkData.put("indexMonitorToday", String.format(indexTemplate, "monitor", todayWithDot, "monitor"));
-        bulkData.put("indexLogToday", String.format(indexTemplate, "log", todayWithDot, "log"));
+        return types
+            .stream()
+            .map(type -> {
+                Map<String, Object> data = Map.ofEntries(
+                    Map.entry("dateToday", dateToday),
+                    Map.entry("dateYesterday", dateYesterday),
+                    Map.entry("indexNameToday", indexTemplate(type, todayWithDot)),
+                    Map.entry("indexNameYesterday", indexTemplate(type, yesterdayWithDot))
+                );
+                var filename = type + ".ftl";
+                return freeMarkerComponent.generateFromTemplate(filename, data);
+            })
+            .map(Buffer::buffer)
+            .toList();
+    }
 
-        String yesterdayWithDot = formatterWithDot.format(yesterday);
-        bulkData.put("indexHealthYesterday", String.format(indexTemplate, "health", yesterdayWithDot, "health"));
-        bulkData.put("indexRequestYesterday", String.format(indexTemplate, "request", yesterdayWithDot, "request"));
-        bulkData.put("indexMonitorYesterday", String.format(indexTemplate, "monitor", yesterdayWithDot, "monitor"));
-        bulkData.put("indexLogYesterday", String.format(indexTemplate, "log", yesterdayWithDot, "log"));
-
-        final String body = freeMarkerComponent.generateFromTemplate("bulk.ftl", bulkData);
-        client.bulk(Collections.singletonList(Buffer.buffer(body)), true).test().await();
+    private String indexTemplate(String type, String date) {
+        return String.format("\"_index\" : \"gravitee-%s-%s\"", type, date);
     }
 }
