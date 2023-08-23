@@ -70,7 +70,7 @@
       <mat-form-field class="card__group-endpoint__row__tenant__form-field">
         <mat-label>Tenants</mat-label>
         <mat-select aria-label="Endpoint tenants" formControlName="tenants" multiple>
-          <mat-option *ngFor="let tenant of tenants" [value]="tenant.name">
+          <mat-option *ngFor="let tenant of tenants" [value]="tenant.id">
             <span class="card__group-endpoint__row__tenant__name" [matTooltip]="tenant.description">{{ tenant.name }}</span>
           </mat-option>
         </mat-select>
