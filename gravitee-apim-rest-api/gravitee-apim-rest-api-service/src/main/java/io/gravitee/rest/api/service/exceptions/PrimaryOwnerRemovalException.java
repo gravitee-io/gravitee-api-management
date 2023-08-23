@@ -21,7 +21,7 @@ import java.util.Map;
 /**
  * @author GraviteeSource Team
  */
-public class ApiPrimaryOwnerRemovalException extends AbstractManagementException {
+public class PrimaryOwnerRemovalException extends AbstractManagementException {
 
     @Override
     public int getHttpStatusCode() {
@@ -30,7 +30,7 @@ public class ApiPrimaryOwnerRemovalException extends AbstractManagementException
 
     @Override
     public String getTechnicalCode() {
-        return "api.primary.owner.removal";
+        return "primary.owner.removal";
     }
 
     @Override
@@ -40,6 +40,6 @@ public class ApiPrimaryOwnerRemovalException extends AbstractManagementException
 
     @Override
     public String getMessage() {
-        return "API Primary Owner cannot be removed";
+        return "Primary Owner cannot be removed";
     }
 }
