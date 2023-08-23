@@ -38,7 +38,8 @@ $typography: map.get(gio.$mat-theme, typography);
       @include mat.typography-level($typography, 'body-1');
     }
 
-    mat-checkbox[formcontrolname='entrypoint'] {
+    mat-checkbox[formcontrolname='entrypoint'],
+    mat-checkbox[formcontrolname='request'] {
       margin-bottom: 16px;
     }
   }

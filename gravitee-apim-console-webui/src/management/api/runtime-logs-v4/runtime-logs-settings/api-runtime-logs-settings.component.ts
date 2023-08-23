@@ -75,6 +75,10 @@ export class ApiRuntimeLogsSettingsComponent implements OnInit, OnDestroy {
                     entrypoint: formValues.entrypoint,
                     endpoint: formValues.endpoint,
                   },
+                  phase: {
+                    request: formValues.request,
+                    response: formValues.response,
+                  },
                 },
               }
             : { enabled: this.enabled };
@@ -100,6 +104,8 @@ export class ApiRuntimeLogsSettingsComponent implements OnInit, OnDestroy {
       enabled: new FormControl(this.enabled),
       entrypoint: new FormControl(this.api?.analytics?.logging?.mode?.entrypoint ?? false),
       endpoint: new FormControl(this.api?.analytics?.logging?.mode?.endpoint ?? false),
+      request: new FormControl(this.api?.analytics?.logging?.phase?.request ?? false),
+      response: new FormControl(this.api?.analytics?.logging?.phase?.response ?? false),
     });
   }
 

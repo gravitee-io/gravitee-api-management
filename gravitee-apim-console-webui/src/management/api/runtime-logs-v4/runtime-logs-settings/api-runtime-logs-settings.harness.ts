@@ -27,6 +27,8 @@ export class ApiRuntimeLogsSettingsHarness extends ComponentHarness {
   private getSaveButton = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Save Settings"]' }));
   private getEntrypointCheckbox = this.locatorFor(MatCheckboxHarness.with({ selector: '[formControlName="entrypoint"]' }));
   private getEndpointCheckbox = this.locatorFor(MatCheckboxHarness.with({ selector: '[formControlName="endpoint"]' }));
+ private getRequestCheckbox = this.locatorFor(MatCheckboxHarness.with({ selector: '[formControlName="request"]' }));
+  private getResponseCheckbox = this.locatorFor(MatCheckboxHarness.with({ selector: '[formControlName="response"]' }));
 
   public areLogsEnabled = async (): Promise<boolean> => {
     return await this.getEnableToggle().then((toggles) => toggles.isChecked());
@@ -54,5 +56,21 @@ export class ApiRuntimeLogsSettingsHarness extends ComponentHarness {
 
   public checkEndpoint = async (): Promise<void> => {
     return await this.getEndpointCheckbox().then((checkbox) => checkbox.check());
+  };
+
+  public isRequestChecked = async (): Promise<boolean> => {
+    return await this.getRequestCheckbox().then((checkbox) => checkbox.isChecked());
+  };
+
+  public checkRequest = async (): Promise<void> => {
+    return await this.getRequestCheckbox().then((checkbox) => checkbox.check());
+  };
+
+  public isResponseChecked = async (): Promise<boolean> => {
+    return await this.getResponseCheckbox().then((checkbox) => checkbox.isChecked());
+  };
+
+  public checkResponse = async (): Promise<void> => {
+    return await this.getResponseCheckbox().then((checkbox) => checkbox.check());
   };
 }
