@@ -45,7 +45,7 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
   const DEFAULT_GROUP_NAME = 'default-group';
   const DEFAULT_ENDPOINT_NAME = 'endpoint#1';
   const fakeUiRouter = { go: jest.fn() };
-  const tenants = [fakeTenant({ id: 'tenant#1', name: 'tenant#1' }), fakeTenant({ id: 'tenant#2', name: 'tenant#2' })];
+  const tenants = [fakeTenant({ id: 'tenant#1', name: 'tenant#1-name' }), fakeTenant({ id: 'tenant#2', name: 'tenant#2' })];
   const currentUser = new User();
   currentUser.userPermissions = ['api-definition-u'];
 
@@ -163,6 +163,10 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
         await nameInput.setValue(newEndpointName);
         expect(await nameInput.getValue()).toEqual(newEndpointName);
 
+        const tenantsSelect = await loader.getHarness(MatSelectHarness.with({ selector: '[aria-label="Endpoint tenants"]' }));
+        await tenantsSelect.clickOptions({ text: tenants[0].name });
+        expect(await tenantsSelect.getValueText()).toEqual(tenants[0].name);
+
         const gioSaveBar = await loader.getHarness(GioSaveBarHarness);
         expect(await gioSaveBar.isSubmitButtonInvalid()).toBeFalsy();
         await gioSaveBar.clickSubmit();
@@ -181,7 +185,7 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
                   backup: false,
                   type: 'HTTP',
                   inherit: true,
-                  tenants: null,
+                  tenants: [tenants[0].id],
                   healthcheck: {
                     enabled: false,
                   },
