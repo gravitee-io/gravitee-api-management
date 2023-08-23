@@ -29,11 +29,12 @@ import { ApiImportFakers } from '@fakers/api-imports';
 import { ADMIN_USER, API_PUBLISHER_USER } from '@fakers/users/users';
 import { ApiImport, ImportSwaggerDescriptorEntity, ImportSwaggerDescriptorEntityType } from '@model/api-imports';
 import faker from '@faker-js/faker';
+import { Api } from '@model/apis';
 
 declare global {
   namespace Cypress {
     interface Chainable<Subject> {
-      teardownApi(api: ApiImport): void;
+      teardownApi(api: ApiImport | Api): void;
       teardownV4Api(apiId: string): void;
       createAndStartApiFromSwagger(swaggerImport: string, attributes?: Partial<ImportSwaggerDescriptorEntity>): any;
       callGateway(contextPath: string, maxRetries?: number, retryDelay?: number): any;
@@ -69,9 +70,13 @@ Cypress.Commands.add('callGateway', (contextPath, maxRetries = 5, retryDelay = 1
 
 Cypress.Commands.add('teardownApi', (api) => {
   cy.log(`----- Removing API "${api.name}" -----`);
-  cy.log(`Number of plans: ${api.plans.length}`);
-  if (api.plans.length > 0) {
-    api.plans.forEach((plan) => closePlan(ADMIN_USER, api.id, plan.id).ok());
+  const plans: any[] = [];
+  if (api.plans) {
+    plans.push(...api.plans);
+  }
+  cy.log(`Number of plans: ${plans.length}`);
+  if (plans.length > 0) {
+    plans.forEach((plan) => closePlan(ADMIN_USER, api.id, plan.id).ok());
   }
   stopApi(ADMIN_USER, api.id);
   deleteApi(ADMIN_USER, api.id).noContent();
