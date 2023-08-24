@@ -29,7 +29,13 @@
             <mat-icon svgIcon="gio:share-2"></mat-icon>
             {{ group.loadBalancerType }}
           </span>
-          <span class="gio-badge-neutral" *ngIf="i === 0"> Default </span>
+          <span
+            class="gio-badge-neutral"
+            *ngIf="i === 0"
+            [matTooltip]="'The default group of endpoints used by the API is the first one listed'"
+          >
+            Default
+          </span>
         </div>
 
         <div class="endpoint-group-card__header__actions">
