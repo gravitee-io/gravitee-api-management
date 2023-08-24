@@ -16,7 +16,12 @@
 package io.gravitee.rest.api.service.impl;
 
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
@@ -62,9 +67,6 @@ public class PlanService_CloseTest {
     private SubscriptionService subscriptionService;
 
     @Mock
-    private Plan plan;
-
-    @Mock
     private SubscriptionEntity subscription;
 
     @Mock
@@ -85,7 +87,7 @@ public class PlanService_CloseTest {
 
     @Test(expected = PlanAlreadyClosedException.class)
     public void shouldNotCloseBecauseAlreadyClosed() throws TechnicalException {
-        when(plan.getStatus()).thenReturn(Plan.Status.CLOSED);
+        var plan = Plan.builder().status(Plan.Status.CLOSED).build();
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
 
         planService.close(GraviteeContext.getExecutionContext(), PLAN_ID);
@@ -100,82 +102,90 @@ public class PlanService_CloseTest {
 
     @Test
     public void shouldClosePlanAndAcceptedSubscription() throws TechnicalException {
-        when(plan.getStatus()).thenReturn(Plan.Status.PUBLISHED);
-        when(plan.getType()).thenReturn(Plan.PlanType.API);
-        when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
+        var plan = Plan
+            .builder()
+            .status(Plan.Status.PUBLISHED)
+            .type(Plan.PlanType.API)
+            .validation(Plan.PlanValidationType.AUTO)
+            .api(API_ID)
+            .build();
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
         when(subscription.getId()).thenReturn(SUBSCRIPTION_ID);
         when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID))
             .thenReturn(Collections.singleton(subscription));
-        when(plan.getApi()).thenReturn(API_ID);
         when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
 
         planService.close(GraviteeContext.getExecutionContext(), PLAN_ID);
 
-        verify(plan, times(1)).setStatus(Plan.Status.CLOSED);
-        verify(planRepository, times(1)).update(plan);
+        verify(planRepository, times(1)).update(plan.toBuilder().status(Plan.Status.CLOSED).build());
         verify(subscriptionService, times(1)).close(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
         verify(subscriptionService, never()).process(eq(GraviteeContext.getExecutionContext()), any(), any());
     }
 
     @Test
     public void shouldClosePlanAndPendingSubscription() throws TechnicalException {
-        when(plan.getStatus()).thenReturn(Plan.Status.PUBLISHED);
-        when(plan.getType()).thenReturn(Plan.PlanType.API);
-        when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
+        var plan = Plan
+            .builder()
+            .status(Plan.Status.PUBLISHED)
+            .type(Plan.PlanType.API)
+            .validation(Plan.PlanValidationType.AUTO)
+            .api(API_ID)
+            .build();
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
         when(subscription.getId()).thenReturn(SUBSCRIPTION_ID);
         when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID))
             .thenReturn(Collections.singleton(subscription));
-        when(plan.getApi()).thenReturn(API_ID);
         when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
 
         planService.close(GraviteeContext.getExecutionContext(), PLAN_ID);
 
-        verify(plan, times(1)).setStatus(Plan.Status.CLOSED);
-        verify(planRepository, times(1)).update(plan);
+        verify(planRepository, times(1)).update(plan.toBuilder().status(Plan.Status.CLOSED).build());
         verify(subscriptionService, times(1)).close(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
     }
 
     @Test
     public void shouldClosePlanAndPausedSubscription() throws TechnicalException {
-        when(plan.getStatus()).thenReturn(Plan.Status.PUBLISHED);
-        when(plan.getType()).thenReturn(Plan.PlanType.API);
-        when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
+        var plan = Plan
+            .builder()
+            .status(Plan.Status.PUBLISHED)
+            .type(Plan.PlanType.API)
+            .validation(Plan.PlanValidationType.AUTO)
+            .api(API_ID)
+            .build();
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
         when(subscription.getId()).thenReturn(SUBSCRIPTION_ID);
         when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID))
             .thenReturn(Collections.singleton(subscription));
-        when(plan.getApi()).thenReturn(API_ID);
         when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
 
         planService.close(GraviteeContext.getExecutionContext(), PLAN_ID);
 
-        verify(plan, times(1)).setStatus(Plan.Status.CLOSED);
-        verify(planRepository, times(1)).update(plan);
+        verify(planRepository, times(1)).update(plan.toBuilder().status(Plan.Status.CLOSED).build());
         verify(subscriptionService, times(1)).close(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
         verify(subscriptionService, never()).process(eq(GraviteeContext.getExecutionContext()), any(), any());
     }
 
     @Test
     public void shouldClosePlanButNotClosedSubscription() throws TechnicalException {
-        when(plan.getStatus()).thenReturn(Plan.Status.PUBLISHED);
-        when(plan.getType()).thenReturn(Plan.PlanType.API);
-        when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
+        var plan = Plan
+            .builder()
+            .status(Plan.Status.PUBLISHED)
+            .type(Plan.PlanType.API)
+            .validation(Plan.PlanValidationType.AUTO)
+            .api(API_ID)
+            .build();
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
         when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID))
             .thenReturn(Collections.singleton(subscription));
-        when(plan.getApi()).thenReturn(API_ID);
         when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
 
         planService.close(GraviteeContext.getExecutionContext(), PLAN_ID);
 
-        verify(plan, times(1)).setStatus(Plan.Status.CLOSED);
-        verify(planRepository, times(1)).update(plan);
+        verify(planRepository, times(1)).update(plan.toBuilder().status(Plan.Status.CLOSED).build());
         verify(subscriptionService, never()).process(eq(GraviteeContext.getExecutionContext()), any(), any());
     }
 }

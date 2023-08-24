@@ -68,9 +68,6 @@ public class PlanService_PublishTest {
     private SubscriptionService subscriptionService;
 
     @Mock
-    private Plan plan;
-
-    @Mock
     private SubscriptionEntity subscription;
 
     @Mock
@@ -90,7 +87,7 @@ public class PlanService_PublishTest {
 
     @Test(expected = PlanAlreadyPublishedException.class)
     public void shouldNotPublishBecauseAlreadyPublished() throws TechnicalException {
-        when(plan.getStatus()).thenReturn(Plan.Status.PUBLISHED);
+        var plan = Plan.builder().status(Plan.Status.PUBLISHED).build();
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
 
         planService.publish(GraviteeContext.getExecutionContext(), PLAN_ID);
@@ -98,7 +95,7 @@ public class PlanService_PublishTest {
 
     @Test(expected = PlanAlreadyClosedException.class)
     public void shouldNotPublishBecauseAlreadyClose() throws TechnicalException {
-        when(plan.getStatus()).thenReturn(Plan.Status.CLOSED);
+        var plan = Plan.builder().status(Plan.Status.CLOSED).build();
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
 
         planService.publish(GraviteeContext.getExecutionContext(), PLAN_ID);
@@ -111,36 +108,40 @@ public class PlanService_PublishTest {
         planService.publish(GraviteeContext.getExecutionContext(), PLAN_ID);
     }
 
+    @Test
     public void shouldPublishWithExistingKeylessPlan() throws TechnicalException {
-        Plan keylessPlan = mock(Plan.class);
-        when(keylessPlan.getStatus()).thenReturn(Plan.Status.PUBLISHED);
-        when(keylessPlan.getSecurity()).thenReturn(Plan.PlanSecurityType.KEY_LESS);
+        var plan = Plan
+            .builder()
+            .status(Plan.Status.STAGING)
+            .type(Plan.PlanType.API)
+            .validation(Plan.PlanValidationType.AUTO)
+            .api(API_ID)
+            .build();
 
-        when(plan.getStatus()).thenReturn(Plan.Status.STAGING);
-        when(plan.getType()).thenReturn(Plan.PlanType.API);
-        when(plan.getSecurity()).thenReturn(Plan.PlanSecurityType.API_KEY);
-        when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
-        when(plan.getApi()).thenReturn(API_ID);
+        var keylessPlan = Plan.builder().status(Plan.Status.PUBLISHED).security(Plan.PlanSecurityType.KEY_LESS).build();
+
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.findByApi(API_ID)).thenReturn(Collections.singleton(keylessPlan));
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
-        when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID))
-            .thenReturn(Collections.singleton(subscription));
 
         planService.publish(GraviteeContext.getExecutionContext(), PLAN_ID);
+
+        verify(planRepository, times(1)).update(plan.toBuilder().status(Plan.Status.PUBLISHED).build());
     }
 
     @Test(expected = KeylessPlanAlreadyPublishedException.class)
     public void shouldNotPublishBecauseExistingKeylessPlan() throws TechnicalException {
-        Plan keylessPlan = mock(Plan.class);
-        when(keylessPlan.getStatus()).thenReturn(Plan.Status.PUBLISHED);
-        when(keylessPlan.getSecurity()).thenReturn(Plan.PlanSecurityType.KEY_LESS);
+        var plan = Plan
+            .builder()
+            .status(Plan.Status.STAGING)
+            .type(Plan.PlanType.API)
+            .validation(Plan.PlanValidationType.AUTO)
+            .security(Plan.PlanSecurityType.KEY_LESS)
+            .api(API_ID)
+            .build();
 
-        when(plan.getStatus()).thenReturn(Plan.Status.STAGING);
-        when(plan.getType()).thenReturn(Plan.PlanType.API);
-        when(plan.getSecurity()).thenReturn(Plan.PlanSecurityType.KEY_LESS);
-        when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
-        when(plan.getApi()).thenReturn(API_ID);
+        var keylessPlan = Plan.builder().status(Plan.Status.PUBLISHED).security(Plan.PlanSecurityType.KEY_LESS).build();
+
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.findByApi(API_ID)).thenReturn(Collections.singleton(keylessPlan));
 
@@ -149,42 +150,52 @@ public class PlanService_PublishTest {
 
     @Test
     public void shouldPublish() throws TechnicalException {
-        when(plan.getStatus()).thenReturn(Plan.Status.STAGING);
-        when(plan.getType()).thenReturn(Plan.PlanType.API);
-        when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
-        when(plan.getApi()).thenReturn(API_ID);
+        var plan = Plan
+            .builder()
+            .status(Plan.Status.STAGING)
+            .type(Plan.PlanType.API)
+            .validation(Plan.PlanValidationType.AUTO)
+            .api(API_ID)
+            .build();
+
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
 
         planService.publish(GraviteeContext.getExecutionContext(), PLAN_ID);
 
-        verify(plan, times(1)).setStatus(Plan.Status.PUBLISHED);
-        verify(planRepository, times(1)).update(plan);
+        verify(planRepository, times(1)).update(plan.toBuilder().status(Plan.Status.PUBLISHED).build());
     }
 
     @Test
     public void shouldPublishAndUpdatePlan() throws TechnicalException {
-        when(plan.getStatus()).thenReturn(Plan.Status.STAGING);
-        when(plan.getType()).thenReturn(Plan.PlanType.API);
-        when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
-        when(plan.getApi()).thenReturn(API_ID);
+        var plan = Plan
+            .builder()
+            .status(Plan.Status.STAGING)
+            .type(Plan.PlanType.API)
+            .validation(Plan.PlanValidationType.AUTO)
+            .api(API_ID)
+            .build();
+
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
 
         planService.publish(GraviteeContext.getExecutionContext(), PLAN_ID);
 
-        verify(plan, times(1)).setStatus(Plan.Status.PUBLISHED);
-        verify(planRepository, times(1)).update(plan);
+        verify(planRepository, times(1)).update(plan.toBuilder().status(Plan.Status.PUBLISHED).build());
     }
 
     @Test
     public void shouldPublish_WithPublishGCPage() throws TechnicalException {
         final String GC_PAGE_ID = "GC_PAGE_ID";
-        when(plan.getStatus()).thenReturn(Plan.Status.STAGING);
-        when(plan.getType()).thenReturn(Plan.PlanType.API);
-        when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
-        when(plan.getApi()).thenReturn(API_ID);
-        when(plan.getGeneralConditions()).thenReturn(GC_PAGE_ID);
+        var plan = Plan
+            .builder()
+            .status(Plan.Status.STAGING)
+            .type(Plan.PlanType.API)
+            .validation(Plan.PlanValidationType.AUTO)
+            .api(API_ID)
+            .generalConditions(GC_PAGE_ID)
+            .build();
+
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
 
@@ -195,18 +206,21 @@ public class PlanService_PublishTest {
 
         planService.publish(GraviteeContext.getExecutionContext(), PLAN_ID);
 
-        verify(plan, times(1)).setStatus(Plan.Status.PUBLISHED);
-        verify(planRepository, times(1)).update(plan);
+        verify(planRepository, times(1)).update(plan.toBuilder().status(Plan.Status.PUBLISHED).build());
     }
 
     @Test(expected = PlanGeneralConditionStatusException.class)
     public void shouldNotPublish_WithNotPublishGCPage() throws TechnicalException {
         final String GC_PAGE_ID = "GC_PAGE_ID";
-        when(plan.getStatus()).thenReturn(Plan.Status.STAGING);
-        when(plan.getType()).thenReturn(Plan.PlanType.API);
-        when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
-        when(plan.getApi()).thenReturn(API_ID);
-        when(plan.getGeneralConditions()).thenReturn(GC_PAGE_ID);
+        var plan = Plan
+            .builder()
+            .status(Plan.Status.STAGING)
+            .type(Plan.PlanType.API)
+            .validation(Plan.PlanValidationType.AUTO)
+            .api(API_ID)
+            .generalConditions(GC_PAGE_ID)
+            .build();
+
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
 
         PageEntity page = mock(PageEntity.class);
