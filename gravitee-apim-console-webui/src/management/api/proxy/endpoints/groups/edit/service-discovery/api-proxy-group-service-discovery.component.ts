@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { map, takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 
-import { ServiceDiscoveryEvent } from './api-proxy-group-service-discovery.model';
-
 import { ResourceListItem } from '../../../../../../../entities/resource/resourceListItem';
-import { ProxyGroup } from '../../../../../../../entities/proxy';
 import { ServiceDiscoveryService } from '../../../../../../../services-ngx/service-discovery.service';
 import { SchemaFormEvent } from '../../api-proxy-groups.model';
 
@@ -35,31 +32,23 @@ export class ApiProxyGroupServiceDiscoveryComponent implements OnInit, OnDestroy
 
   @Input() serviceDiscoveryForm: FormGroup;
   @Input() serviceDiscoveryItems: ResourceListItem[];
-  @Input() group: ProxyGroup;
   @Input() isReadOnly: boolean;
-  @Output() onServiceDiscoveryConfigurationChange = new EventEmitter<ServiceDiscoveryEvent>();
 
   public schema: unknown;
-  public displaySchema: boolean;
 
   constructor(private readonly serviceDiscoveryService: ServiceDiscoveryService) {}
 
   ngOnInit(): void {
-    if (this.group?.services?.discovery.enabled) {
-      this.onFormValuesChange(this.group.services.discovery.provider);
+    if (this.serviceDiscoveryForm.get('enabled').value) {
+      this.onFormValuesChange(this.serviceDiscoveryForm.get('provider').value);
     }
 
-    this.serviceDiscoveryForm.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe((values) => {
-      const typeControl = this.serviceDiscoveryForm.get('type');
-      if (values.enabled) {
-        typeControl.enable({ emitEvent: false });
-        this.onFormValuesChange(typeControl.value);
-      } else {
-        typeControl.disable({ emitEvent: false });
-        this.displaySchema = false;
-        this.schema = null;
-      }
-    });
+    this.serviceDiscoveryForm
+      .get('provider')
+      .valueChanges.pipe(takeUntil(this.unsubscribe$))
+      .subscribe((value) => {
+        this.onFormValuesChange(value);
+      });
   }
 
   ngOnDestroy(): void {
@@ -68,21 +57,26 @@ export class ApiProxyGroupServiceDiscoveryComponent implements OnInit, OnDestroy
   }
 
   onSchemaFormChange(event: SchemaFormEvent) {
-    this.onServiceDiscoveryConfigurationChange.emit({
-      isSchemaValid: !event.detail?.validation?.errors?.length,
-      serviceDiscoveryValues: event.detail?.values,
-    });
+    if (event.detail?.validation?.errors?.length > 0) {
+      this.serviceDiscoveryForm.setErrors({ invalidServiceDiscovery: true });
+    } else {
+      if (this.serviceDiscoveryForm.getError('invalidServiceDiscovery')) {
+        delete this.serviceDiscoveryForm.errors['invalidServiceDiscovery'];
+        this.serviceDiscoveryForm.updateValueAndValidity();
+      }
+    }
   }
 
-  private onFormValuesChange(type: string) {
-    if (type) {
+  private onFormValuesChange(provider: string) {
+    if (provider) {
+      // reset schema to force form component to reload
+      this.schema = null;
       this.serviceDiscoveryService
-        .getSchema(type)
+        .getSchema(provider)
         .pipe(
           map((schema) => {
+            this.serviceDiscoveryForm.get('configuration').reset({});
             this.schema = schema;
-            this.displaySchema =
-              this.serviceDiscoveryForm.get('enabled').value === true && !!this.serviceDiscoveryForm.get('type').value && !!this.schema;
           }),
         )
         .subscribe();

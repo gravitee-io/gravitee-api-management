@@ -17,9 +17,9 @@ import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 
 export const serviceDiscoveryValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
   const enabled = control.get('enabled').value;
-  const type = control.get('type').value;
+  const provider = control.get('provider').value;
 
-  return enabled && !type ? { requireTypeWhenEnabled: true } : null;
+  return enabled && !provider ? { requireProviderWhenEnabled: true } : null;
 };
 
 export const isUniq = (values: string[], defaultValue: string): ValidatorFn | null => {

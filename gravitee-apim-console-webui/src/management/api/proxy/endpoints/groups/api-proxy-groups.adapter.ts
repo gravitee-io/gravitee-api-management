@@ -14,21 +14,26 @@
  * limitations under the License.
  */
 
-import { ProxyGroupServiceDiscoveryConfiguration } from './edit/service-discovery/api-proxy-group-service-discovery.model';
-
 import { ProxyConfiguration, ProxyGroup, ProxyGroupLoadBalancerType } from '../../../../../entities/proxy';
 
 export const toProxyGroup = (
   group: ProxyGroup,
   generalData: { name: string; loadBalancerType: ProxyGroupLoadBalancerType },
   configuration: ProxyConfiguration,
-  serviceDiscoveryConfiguration: ProxyGroupServiceDiscoveryConfiguration,
+  serviceDiscoveryData: { enabled: boolean; provider: string; configuration: object },
 ): ProxyGroup => {
+  const discovery = {
+    enabled: serviceDiscoveryData.enabled,
+    ...(serviceDiscoveryData.enabled ? { provider: serviceDiscoveryData.provider, configuration: serviceDiscoveryData.configuration } : {}),
+  };
   let updatedGroup: ProxyGroup = {
     ...group,
     name: generalData.name,
     load_balancing: {
       type: generalData.loadBalancerType,
+    },
+    services: {
+      discovery,
     },
   };
 
@@ -41,26 +46,5 @@ export const toProxyGroup = (
       proxy: configuration.proxy,
     };
   }
-
-  if (serviceDiscoveryConfiguration) {
-    updatedGroup = {
-      ...updatedGroup,
-      services: {
-        discovery: {
-          ...serviceDiscoveryConfiguration.discovery,
-        },
-      },
-    };
-  } else {
-    updatedGroup = {
-      ...updatedGroup,
-      services: {
-        discovery: {
-          enabled: false,
-        },
-      },
-    };
-  }
-
   return updatedGroup;
 };
