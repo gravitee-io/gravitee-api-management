@@ -268,6 +268,20 @@ describe('ApiEndpointGroupsComponent', () => {
     });
   });
 
+  describe('addEndpointGroup', () => {
+    it('should navigate to endpoint group creation page', async () => {
+      const apiV4 = fakeApiV4({
+        id: API_ID,
+        endpointGroups: [group1, group2],
+      });
+      await initComponent(apiV4);
+      expect(await componentHarness.isAddEndpointGroupClickable()).toEqual(true);
+      await componentHarness.clickAddEndpointGroup();
+
+      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.ng.endpoint-group-new');
+    });
+  });
+
   function expectApiGetRequest(api: ApiV4) {
     httpTestingController
       .expectOne({
