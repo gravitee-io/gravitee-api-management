@@ -32,7 +32,8 @@
 
     <properties>
         <elasticsearch.version>5.6.16</elasticsearch.version>
-        <gravitee-common-elasticsearch.version>4.2.0</gravitee-common-elasticsearch.version>
+        <gravitee-reporter-common.version>1.0.1</gravitee-reporter-common.version>
+        <gravitee-common-elasticsearch.version>5.0.0</gravitee-common-elasticsearch.version>
         <opensearch-testcontainers.version>2.0.0</opensearch-testcontainers.version>
     </properties>
 
@@ -191,6 +192,22 @@
         <dependency>
             <groupId>javax.annotation</groupId>
             <artifactId>javax.annotation-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Needed to format the payload when seeding the tests data  -->
+        <dependency>
+            <groupId>io.gravitee.reporter</groupId>
+            <artifactId>gravitee-reporter-common</artifactId>
+            <version>${gravitee-reporter-common.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Needed to define the mapping when seeding the tests data  -->
+        <dependency>
+            <groupId>io.gravitee.reporter</groupId>
+            <artifactId>gravitee-reporter-elasticsearch</artifactId>
+            <version>${gravitee-reporter-elasticsearch.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
