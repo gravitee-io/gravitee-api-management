@@ -18,7 +18,7 @@ import { StateService } from '@uirouter/core';
 import { IScope } from 'angular';
 import { castArray, flatMap } from 'lodash';
 import { map, takeUntil } from 'rxjs/operators';
-import { GIO_DIALOG_WIDTH, GioMenuService } from '@gravitee/ui-particles-angular';
+import { GIO_DIALOG_WIDTH, GioBannerTypes, GioMenuService } from '@gravitee/ui-particles-angular';
 import { Observable, Subject } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 
@@ -43,7 +43,8 @@ import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 
 type TopBanner = {
   title: string;
-  text: 'info' | 'warning' | 'error' | 'success';
+  body?: string;
+  type: GioBannerTypes;
   action?: {
     btnText: string;
     onClick: () => void;
@@ -66,7 +67,7 @@ export class ApiNgNavigationComponent implements OnInit, OnDestroy {
   public breadcrumbItems: string[] = [];
   public banners$: Observable<TopBanner[]> = this.apiV2Service.getLastApiFetch(this.ajsStateParams.apiId).pipe(
     map((api) => {
-      const banners = [];
+      const banners: TopBanner[] = [];
 
       if (api.definitionVersion == null || api.definitionVersion === 'V1') {
         banners.push({
