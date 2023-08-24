@@ -4205,7 +4205,6 @@ components:
                         - PROBABILITY
                         - TEMPORAL
                         - COUNT
-                        - QUERY
                 value:
                     type: string
                     description: The value of the sampling

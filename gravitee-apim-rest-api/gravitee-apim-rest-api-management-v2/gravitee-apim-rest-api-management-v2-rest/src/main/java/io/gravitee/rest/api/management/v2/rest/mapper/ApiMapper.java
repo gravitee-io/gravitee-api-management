@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 @Mapper(
     uses = {
+        AnalyticsMapper.class,
         DateMapper.class,
         DefinitionContextMapper.class,
         EndpointMapper.class,
