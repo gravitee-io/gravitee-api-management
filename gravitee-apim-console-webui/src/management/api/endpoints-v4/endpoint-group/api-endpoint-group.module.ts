@@ -33,16 +33,25 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatOptionModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
+import { MatRadioModule } from '@angular/material/radio';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 
 import { ApiEndpointGroupComponent } from './api-endpoint-group.component';
 import { ApiEndpointGroupGeneralComponent } from './general/api-endpoint-group-general.component';
 import { ApiEndpointGroupConfigurationComponent } from './configuration/api-endpoint-group-configuration.component';
+import { ApiEndpointGroupSelectionComponent } from './selection/api-endpoint-group-selection.component';
 
 import { GioGoBackButtonModule } from '../../../../shared/components/gio-go-back-button/gio-go-back-button.module';
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
+import { GioConnectorListModule } from '../../../../shared/components/gio-connector-list-option/gio-connector-list.module';
 
 @NgModule({
-  declarations: [ApiEndpointGroupComponent, ApiEndpointGroupGeneralComponent, ApiEndpointGroupConfigurationComponent],
+  declarations: [
+    ApiEndpointGroupComponent,
+    ApiEndpointGroupGeneralComponent,
+    ApiEndpointGroupConfigurationComponent,
+    ApiEndpointGroupSelectionComponent,
+  ],
   exports: [ApiEndpointGroupComponent],
   imports: [
     CommonModule,
@@ -55,10 +64,13 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
+    MatProgressBarModule,
+    MatRadioModule,
     MatSlideToggleModule,
     MatTabsModule,
     ReactiveFormsModule,
     GioGoBackButtonModule,
+    GioConnectorListModule,
     GioFormFocusInvalidModule,
     GioSaveBarModule,
     MatOptionModule,
