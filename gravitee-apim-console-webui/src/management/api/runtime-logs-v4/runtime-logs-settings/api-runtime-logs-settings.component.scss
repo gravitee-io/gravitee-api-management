@@ -27,6 +27,8 @@ $typography: map.get(gio.$mat-theme, typography);
     }
 
     &__title {
+      display: flex;
+      justify-items: center;
       margin-bottom: 0;
       color: mat.get-color-from-palette(gio.$mat-space-palette, 'default');
       @include mat.typography-level($typography, 'body-2');
@@ -38,6 +40,10 @@ $typography: map.get(gio.$mat-theme, typography);
       @include mat.typography-level($typography, 'body-1');
     }
 
+    &__form-field {
+      margin-bottom: -1.25em;
+    }
+
     mat-checkbox[formcontrolname='entrypoint'],
     mat-checkbox[formcontrolname='request'],
     mat-checkbox[formcontrolname='messageContent'],
@@ -45,6 +51,37 @@ $typography: map.get(gio.$mat-theme, typography);
     mat-checkbox[formcontrolname='requestPayload'] {
       margin-bottom: 16px;
     }
+
+    // TODO: extract it in a dedicated mixin or component
+    .sampling-type {
+      border: solid 1px mat.get-color-from-palette(gio.$mat-dove-palette, 'darker20');
+      padding: 4px;
+      height: 44px;
+      margin-bottom: 16px;
+      width: fit-content;
+
+      &__toggle {
+        @include mat.typography-level($typography, body-2);
+        border-radius: 4px;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+      }
+
+      &__toggle.mat-button-toggle-checked {
+        color: mat.get-color-from-palette(gio.$mat-accent-palette, default-contrast);
+        background-color: mat.get-color-from-palette(gio.$mat-accent-palette, 'darker20');
+      }
+
+      &__toggle.mat-button-toggle + .mat-button-toggle {
+        border: none;
+        margin-left: 8px;
+      }
+    }
+  }
+
+  &__save {
+    margin-top: 24px;
   }
 
   gio-banner-info {

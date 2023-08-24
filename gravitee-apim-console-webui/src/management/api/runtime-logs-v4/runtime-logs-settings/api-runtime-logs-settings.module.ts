@@ -17,12 +17,15 @@ import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { GioBannerModule, GioFormSlideToggleModule } from '@gravitee/ui-particles-angular';
+import { GioBannerModule, GioFormSlideToggleModule, GioIconsModule } from '@gravitee/ui-particles-angular';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { ApiRuntimeLogsSettingsComponent } from './api-runtime-logs-settings.component';
 
@@ -34,16 +37,20 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
   imports: [
     CommonModule,
     MatButtonModule,
+    MatButtonToggleModule,
     MatCheckboxModule,
     MatFormFieldModule,
+    MatIconModule,
     MatInputModule,
     MatSlideToggleModule,
     MatSnackBarModule,
+    MatTooltipModule,
     ReactiveFormsModule,
     ReactiveFormsModule,
 
-    GioFormSlideToggleModule,
     GioBannerModule,
+    GioFormSlideToggleModule,
+    GioIconsModule,
     GioPermissionModule,
   ],
 })

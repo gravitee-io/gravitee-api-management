@@ -19,6 +19,7 @@ import { DivHarness } from '@gravitee/ui-particles-angular/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
+import { MatButtonToggleGroupHarness } from '@angular/material/button-toggle/testing';
 
 export class ApiRuntimeLogsSettingsHarness extends ComponentHarness {
   static hostSelector = 'api-runtime-logs-settings';
@@ -37,6 +38,8 @@ export class ApiRuntimeLogsSettingsHarness extends ComponentHarness {
   private getRequestHeadersCheckbox = this.locatorFor(MatCheckboxHarness.with({ selector: '[formControlName="requestHeaders"]' }));
   private getMessageConditionInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="messageCondition"]' }));
   private getRequestConditionInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="requestCondition"]' }));
+  private getSamplingTypeToggle = this.locatorFor(MatButtonToggleGroupHarness.with({ selector: '[formControlName="samplingType"]' }));
+  private getSamplingValueInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="samplingValue"]' }));
 
   public areLogsEnabled = async (): Promise<boolean> => {
     return await this.getEnableToggle().then((toggles) => toggles.isChecked());
@@ -136,5 +139,32 @@ export class ApiRuntimeLogsSettingsHarness extends ComponentHarness {
 
   public addRequestCondition = async (condition: string): Promise<void> => {
     return await this.getRequestConditionInput().then((input) => input.setValue(condition));
+  };
+
+  public choseSamplingType(type: string): Promise<void> {
+    return this.getSamplingTypeToggle()
+      .then((group) => group.getToggles({ text: type }))
+      .then((toggles) => toggles[0].check());
+  }
+
+  public getSamplingType = async (): Promise<string> => {
+    return await this.getSamplingTypeToggle()
+      .then((group) => group.getToggles())
+      .then(async (toggles) => {
+        for (const toggle of toggles) {
+          if (await toggle.isChecked()) {
+            return toggle.getText();
+          }
+        }
+        return '';
+      });
+  };
+
+  public addSamplingValue = async (value: string): Promise<void> => {
+    return await this.getSamplingValueInput().then((input) => input.setValue(value));
+  };
+
+  public getSamplingValue = async (): Promise<string> => {
+    return await this.getSamplingValueInput().then((input) => input.getValue());
   };
 }
