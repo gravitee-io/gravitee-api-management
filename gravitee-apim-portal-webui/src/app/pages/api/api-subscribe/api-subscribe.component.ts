@@ -374,7 +374,7 @@ export class ApiSubscribeComponent implements OnInit {
   }
 
   planHasGeneralConditions() {
-    return this._currentPlan && this._currentPlan.general_conditions && this._currentPlan.general_conditions !== '';
+    return !!this._currentPlan?.general_conditions;
   }
 
   hasStepper() {
