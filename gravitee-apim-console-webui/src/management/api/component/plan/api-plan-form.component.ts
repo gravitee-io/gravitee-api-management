@@ -50,6 +50,7 @@ import {
   UpdatePlan,
   PlanMode,
   ApiType,
+  PlanStatus,
 } from '../../../../entities/management-api-v2';
 import { isApiV2FromMAPIV2 } from '../../../../util';
 import { PlanFormType, PlanMenuItemVM } from '../../../../services-ngx/constants.service';
@@ -125,6 +126,9 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
 
   @Input()
   planMenuItem: PlanMenuItemVM;
+
+  @Input()
+  planStatus?: PlanStatus;
 
   public isInit = false;
 

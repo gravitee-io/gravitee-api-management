@@ -37,8 +37,8 @@
   <ng-container *ngIf="api$ | async">
     <h2>Conditions</h2>
 
-    <gio-banner-info *ngIf="mode === 'edit'">
-      This plan is published, if you change the general conditions please remember to notify your API subscribers.
+    <gio-banner-info *ngIf="mode === 'edit' && planStatus !== 'STAGING' && generalForm.get('generalConditions').enabled">
+      This plan is {{ planStatus | lowercase }}, if you change the general conditions please remember to notify your API subscribers.
     </gio-banner-info>
 
     <mat-form-field class="generalConditions-field">

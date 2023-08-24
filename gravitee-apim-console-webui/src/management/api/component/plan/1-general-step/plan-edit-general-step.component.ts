@@ -19,7 +19,7 @@ import { includes } from 'lodash';
 import { combineLatest, of, ReplaySubject, Subject } from 'rxjs';
 import { map, startWith, switchMap, takeUntil } from 'rxjs/operators';
 
-import { ApiV2, ApiV4 } from '../../../../../entities/management-api-v2';
+import { ApiV2, ApiV4, PlanStatus } from '../../../../../entities/management-api-v2';
 import { CurrentUserService } from '../../../../../services-ngx/current-user.service';
 import { DocumentationService } from '../../../../../services-ngx/documentation.service';
 import { GroupService } from '../../../../../services-ngx/group.service';
@@ -49,6 +49,9 @@ export class PlanEditGeneralStepComponent implements OnInit, OnDestroy {
   // Allow to display subscriptions section when plan security is not KEY_LESS
   @Input()
   displaySubscriptionsSection = true;
+
+  @Input()
+  planStatus?: PlanStatus;
 
   conditionPages$ = this.api$.pipe(
     switchMap((api) =>

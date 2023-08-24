@@ -48,7 +48,7 @@ export class ApiGeneralPlanEditComponent implements OnInit, OnDestroy {
 
   @ViewChild('apiPlanForm')
   private apiPlanForm: ApiPlanFormComponent;
-  private currentPlanStatus: PlanStatus;
+  public currentPlanStatus: PlanStatus;
 
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
