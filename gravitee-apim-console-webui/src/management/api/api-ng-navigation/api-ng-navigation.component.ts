@@ -18,7 +18,7 @@ import { StateService } from '@uirouter/core';
 import { IScope } from 'angular';
 import { castArray, flatMap } from 'lodash';
 import { takeUntil, map } from 'rxjs/operators';
-import { GIO_DIALOG_WIDTH, GioMenuService } from '@gravitee/ui-particles-angular';
+import { GIO_DIALOG_WIDTH, GioBannerTypes, GioMenuService } from '@gravitee/ui-particles-angular';
 import { Observable, Subject } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 
@@ -41,7 +41,7 @@ import { Api } from '../../../entities/management-api-v2';
 
 type TopBanner = {
   title: string;
-  text: 'info' | 'warning' | 'error' | 'success';
+  type: GioBannerTypes;
   action?: {
     btnText: string;
     onClick: () => void;
@@ -64,7 +64,7 @@ export class ApiNgNavigationComponent implements OnInit, OnDestroy {
   public breadcrumbItems: string[] = [];
   public banners$: Observable<TopBanner[]> = this.apiV2Service.getLastApiFetch(this.ajsStateParams.apiId).pipe(
     map((api) => {
-      const banners = [];
+      const banners: TopBanner[] = [];
 
       const isApiReviewer = this.permissionService.hasAnyMatching(['api-reviews-u']);
       // Only for API reviewer
