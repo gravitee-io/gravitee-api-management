@@ -30,7 +30,7 @@ import lombok.Setter;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Builder
+@Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -131,28 +131,31 @@ public class Plan {
     private Set<String> tags = new HashSet<>();
 
     public Plan(Plan cloned) {
-        this.id = cloned.getId();
-        this.crossId = cloned.getCrossId();
-        this.name = cloned.getName();
-        this.description = cloned.getDescription();
-        this.security = cloned.getSecurity();
-        this.validation = cloned.getValidation();
-        this.type = cloned.getType();
-        this.mode = cloned.getMode();
-        this.status = cloned.getStatus();
-        this.order = cloned.getOrder();
-        this.api = cloned.getApi();
-        this.createdAt = cloned.getCreatedAt();
-        this.updatedAt = cloned.getUpdatedAt();
-        this.publishedAt = cloned.getPublishedAt();
-        this.closedAt = cloned.getClosedAt();
-        this.definition = cloned.getDefinition();
-        this.characteristics = cloned.getCharacteristics();
-        this.excludedGroups = cloned.getExcludedGroups();
-        this.needRedeployAt = cloned.getNeedRedeployAt();
-        this.selectionRule = cloned.getSelectionRule();
-        this.tags = cloned.getTags();
-        this.generalConditions = cloned.getGeneralConditions();
+        this.id = cloned.id;
+        this.crossId = cloned.crossId;
+        this.name = cloned.name;
+        this.description = cloned.description;
+        this.security = cloned.security;
+        this.validation = cloned.validation;
+        this.type = cloned.type;
+        this.mode = cloned.mode;
+        this.status = cloned.status;
+        this.order = cloned.order;
+        this.api = cloned.api;
+        this.createdAt = cloned.createdAt;
+        this.updatedAt = cloned.updatedAt;
+        this.publishedAt = cloned.publishedAt;
+        this.closedAt = cloned.closedAt;
+        this.definition = cloned.definition;
+        this.characteristics = cloned.characteristics;
+        this.excludedGroups = cloned.excludedGroups;
+        this.needRedeployAt = cloned.needRedeployAt;
+        this.selectionRule = cloned.selectionRule;
+        this.tags = cloned.tags;
+        this.generalConditions = cloned.generalConditions;
+        this.commentMessage = cloned.commentMessage;
+        this.commentRequired = cloned.commentRequired;
+        this.securityDefinition = cloned.securityDefinition;
     }
 
     @Override

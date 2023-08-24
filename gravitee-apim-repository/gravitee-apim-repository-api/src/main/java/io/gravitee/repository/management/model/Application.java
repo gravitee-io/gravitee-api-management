@@ -17,6 +17,7 @@ package io.gravitee.repository.management.model;
 
 import io.gravitee.definition.model.Origin;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -123,7 +124,10 @@ public class Application {
         this.background = cloned.background;
         this.domain = cloned.domain;
         this.apiKeyMode = cloned.apiKeyMode;
+        this.picture = cloned.picture;
+        this.type = cloned.type;
         this.origin = cloned.origin;
+        this.metadata = cloned.metadata != null ? new HashMap<>(cloned.metadata) : null;
     }
 
     @Override
