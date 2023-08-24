@@ -20,6 +20,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { UIRouterModule } from '@uirouter/angular';
 import {
+  GioBannerModule,
   GioFormFocusInvalidModule,
   GioFormJsonSchemaModule,
   GioFormSlideToggleModule,
@@ -33,13 +34,17 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatOptionModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
+import { MatStepperModule } from '@angular/material/stepper';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatDialogModule } from '@angular/material/dialog';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { ApiEndpointGroupComponent } from './api-endpoint-group.component';
 import { ApiEndpointGroupGeneralComponent } from './general/api-endpoint-group-general.component';
 import { ApiEndpointGroupConfigurationComponent } from './configuration/api-endpoint-group-configuration.component';
 import { ApiEndpointGroupSelectionComponent } from './selection/api-endpoint-group-selection.component';
+import { ApiEndpointGroupCreateComponent } from './create/api-endpoint-group-create.component';
 
 import { GioGoBackButtonModule } from '../../../../shared/components/gio-go-back-button/gio-go-back-button.module';
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
@@ -50,31 +55,38 @@ import { GioConnectorListModule } from '../../../../shared/components/gio-connec
     ApiEndpointGroupComponent,
     ApiEndpointGroupGeneralComponent,
     ApiEndpointGroupConfigurationComponent,
+    ApiEndpointGroupCreateComponent,
     ApiEndpointGroupSelectionComponent,
   ],
   exports: [ApiEndpointGroupComponent],
   imports: [
     CommonModule,
-    GioPermissionModule,
-    MatButtonModule,
-    MatIconModule,
+    ReactiveFormsModule,
     UIRouterModule,
-    GioFormJsonSchemaModule,
-    GioFormSlideToggleModule,
+
+    MatButtonModule,
     MatCardModule,
+    MatDialogModule,
     MatFormFieldModule,
+    MatIconModule,
     MatInputModule,
+    MatOptionModule,
     MatProgressBarModule,
     MatRadioModule,
+    MatSelectModule,
     MatSlideToggleModule,
+    MatSnackBarModule,
+    MatStepperModule,
     MatTabsModule,
-    ReactiveFormsModule,
-    GioGoBackButtonModule,
+
+    GioBannerModule,
     GioConnectorListModule,
     GioFormFocusInvalidModule,
+    GioFormJsonSchemaModule,
+    GioFormSlideToggleModule,
+    GioGoBackButtonModule,
+    GioPermissionModule,
     GioSaveBarModule,
-    MatOptionModule,
-    MatSelectModule,
   ],
 })
 export class ApiEndpointGroupModule {}

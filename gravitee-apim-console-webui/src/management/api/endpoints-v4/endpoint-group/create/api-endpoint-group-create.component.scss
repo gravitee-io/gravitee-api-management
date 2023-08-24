@@ -1,0 +1,12 @@
+@use 'src/scss/gio-layout' as gio-layout;
+
+:host {
+  @include gio-layout.gio-responsive-content-container;
+}
+.api-endpoint-group-create {
+  &__footer {
+    display: flex;
+    justify-content: space-between;
+    padding: 24px 0;
+  }
+}
