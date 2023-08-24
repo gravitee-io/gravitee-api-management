@@ -472,6 +472,7 @@ describe('ApiGeneralPlanListComponent', () => {
           expectGetApiPlanSubscriptionsRequest(plan.id);
 
           const confirmDialog = await rootLoader.getHarness(GioConfirmAndValidateDialogHarness);
+          expect(await rootLoader.getHarness(MatButtonHarness.with({ text: 'Yes, close this plan.' }))).toBeTruthy();
           await confirmDialog.confirm();
 
           const updatedPlan: Plan = { ...plan, status: 'CLOSED' };
@@ -496,6 +497,7 @@ describe('ApiGeneralPlanListComponent', () => {
           expectGetApiPlanSubscriptionsRequest(plan.id);
 
           const confirmDialog = await rootLoader.getHarness(GioConfirmAndValidateDialogHarness);
+          expect(await rootLoader.getHarness(MatButtonHarness.with({ text: 'Yes, close this plan.' }))).toBeTruthy();
           await confirmDialog.confirm();
 
           const updatedPlan: Plan = { ...plan, status: 'CLOSED' };
@@ -507,27 +509,6 @@ describe('ApiGeneralPlanListComponent', () => {
           table = await computePlansTableCells();
           expect(table.rowCells).toEqual([['There is no plan (yet).']]);
         });
-      });
-
-      it('should change delete plan button message', async () => {
-        const plan = fakePlanV2({ apiId: API_ID, name: 'key plan 🔑️', status: 'PUBLISHED', security: { type: 'API_KEY' } });
-        await initComponent([plan]);
-
-        const table = await computePlansTableCells();
-        expect(table.rowCells).toEqual([['', 'key plan 🔑️', 'API_KEY', 'PUBLISHED', 'tag1', '']]);
-
-        await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Close the plan"]' })).then((btn) => btn.click());
-
-        expectGetApiPlanSubscriptionsRequest(plan.id);
-
-        const confirmDialog = await rootLoader.getHarness(GioConfirmAndValidateDialogHarness);
-        expect(await rootLoader.getHarness(MatButtonHarness.with({ text: 'Yes, delete this plan' }))).toBeTruthy();
-        await confirmDialog.confirm();
-
-        const updatedPlan: Plan = { ...plan, status: 'CLOSED' };
-        expectApiPlanCloseRequest(updatedPlan);
-        expectApiGetRequest();
-        expectApiPlansListRequest([updatedPlan], [...PLAN_STATUS]);
       });
     });
   });

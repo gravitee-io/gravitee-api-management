@@ -226,10 +226,6 @@ export class ApiGeneralPlanListComponent implements OnInit, OnDestroy {
               content = `There are <code>subscriptions</code> subscription(s) associated to this plan.<br/> By closing this plan, all relative active subscriptions will also be closed.`;
             }
           }
-          let confirmButton = 'Yes, close this plan.';
-          if (subscriptions.page.size === 0 && plan.security?.type === 'API_KEY') {
-            confirmButton = 'Yes, delete this plan';
-          }
           return this.matDialog
             .open<GioConfirmAndValidateDialogComponent, GioConfirmAndValidateDialogData>(GioConfirmAndValidateDialogComponent, {
               width: '500px',
@@ -239,7 +235,7 @@ export class ApiGeneralPlanListComponent implements OnInit, OnDestroy {
                 validationMessage: `Please, type in the name of the plan <code>${plan.name}</code> to confirm.`,
                 validationValue: plan.name,
                 content,
-                confirmButton,
+                confirmButton: 'Yes, close this plan.',
               },
               role: 'alertdialog',
               id: 'closePlanDialog',
