@@ -15,8 +15,8 @@
  */
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
-import { Observable, BehaviorSubject } from 'rxjs';
-import { filter, shareReplay, tap } from 'rxjs/operators';
+import { Observable, BehaviorSubject, of } from 'rxjs';
+import { filter, shareReplay, switchMap, tap } from 'rxjs/operators';
 
 import { Constants } from '../entities/Constants';
 import {
@@ -133,10 +133,9 @@ export class ApiV2Service {
   }
 
   getLastApiFetch(apiId: string): Observable<Api> {
-    if (this.lastApiFetch$.value === null) {
-      return this.get(apiId);
-    }
-    return this.lastApiFetch$.pipe(
+    const start = this.lastApiFetch$.value ? of(this.lastApiFetch$.value) : this.get(apiId);
+    return start.pipe(
+      switchMap(() => this.lastApiFetch$.asObservable()),
       filter((api) => !!api),
       shareReplay({ bufferSize: 1, refCount: true }),
     );
