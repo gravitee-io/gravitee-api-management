@@ -230,7 +230,7 @@ export class ApplicationCreationStep3Component implements OnInit {
 
   get hasGeneralConditions() {
     const plan = this.selectedPlan;
-    return plan !== undefined && plan.general_conditions !== undefined && plan.general_conditions !== '';
+    return !!plan?.general_conditions;
   }
 
   private async loadPlans(api) {
