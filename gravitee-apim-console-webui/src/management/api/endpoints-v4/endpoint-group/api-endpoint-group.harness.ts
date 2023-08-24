@@ -16,9 +16,9 @@
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatTabHarness } from '@angular/material/tabs/testing';
-import { MatInputHarness } from '@angular/material/input/testing';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
-import { MatSelectHarness } from '@angular/material/select/testing';
+
+import { ApiEndpointGroupGeneralHarness } from './general/api-endpoint-group-general.harness';
 
 export class ApiEndpointGroupHarness extends ComponentHarness {
   static hostSelector = 'api-endpoint-group';
@@ -26,11 +26,8 @@ export class ApiEndpointGroupHarness extends ComponentHarness {
   private getBackButton = this.locatorFor(MatButtonHarness.with({ selector: '[mattooltip="Go back"]' }));
   private getGeneralTab = this.locatorFor(MatTabHarness.with({ label: 'General' }));
   private getConfigurationTab = this.locatorFor(MatTabHarness.with({ label: 'Configuration' }));
-  private getEndpointGroupNameInput = this.locatorFor(MatInputHarness.with({ selector: '[aria-label="Endpoints group name input"]' }));
+  private getEndpointGroupGeneralHarness = this.locatorFor(ApiEndpointGroupGeneralHarness);
   private getEndpointGroupSubmissionBar = this.locatorFor(GioSaveBarHarness);
-  private getEndpointGroupLoadBalancerSelector = this.locatorFor(
-    MatSelectHarness.with({ selector: '[aria-label="Load balancing algorithm"]' }),
-  );
 
   public async clickBackButton() {
     return this.getBackButton().then((button) => button.click());
@@ -41,19 +38,19 @@ export class ApiEndpointGroupHarness extends ComponentHarness {
   }
 
   public async readEndpointGroupNameInput() {
-    return this.getEndpointGroupNameInput().then((input) => input.getValue());
+    return this.getEndpointGroupGeneralHarness().then((harness) => harness.getNameValue());
   }
 
   public writeToEndpointGroupNameInput(inputValue) {
-    return this.getEndpointGroupNameInput().then((input) => input.setValue(inputValue));
+    return this.getEndpointGroupGeneralHarness().then((harness) => harness.setNameValue(inputValue));
   }
 
   public async readEndpointGroupLoadBalancerSelector() {
-    return this.getEndpointGroupLoadBalancerSelector().then((selector) => selector.getValueText());
+    return this.getEndpointGroupGeneralHarness().then((harness) => harness.getLoadBalancerValue());
   }
 
   public async writeToEndpointGroupLoadBalancerSelector(selectorValue) {
-    return this.getEndpointGroupLoadBalancerSelector().then((input) => input.clickOptions({ text: selectorValue }));
+    return this.getEndpointGroupGeneralHarness().then((harness) => harness.setLoadBalancerValue(selectorValue));
   }
 
   public isGeneralTabSaveButtonInvalid() {

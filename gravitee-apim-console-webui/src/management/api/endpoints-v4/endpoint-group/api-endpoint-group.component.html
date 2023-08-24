@@ -25,7 +25,9 @@
       <mat-tab label="General" *ngIf="generalForm">
         <!-- General tab content -->
         <div class="tab-body-wrapper">
-          <api-endpoint-group-general [generalForm]="generalForm"></api-endpoint-group-general>
+          <mat-card>
+            <api-endpoint-group-general [generalForm]="generalForm"></api-endpoint-group-general>
+          </mat-card>
         </div>
       </mat-tab>
       <mat-tab label="Configuration" *ngIf="configurationForm && endpointGroupType != 'mock'">
