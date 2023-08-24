@@ -70,7 +70,12 @@
   <!-- Display Name Column -->
   <ng-container matColumnDef="name">
     <th mat-header-cell *matHeaderCellDef id="name">Name</th>
-    <td mat-cell *matCellDef="let element" class="plans__table__name" (click)="navigateToPlan(element.id)">
+    <td
+      mat-cell
+      *matCellDef="let element"
+      [class.plans__table__name]="element.status !== 'CLOSED'"
+      (click)="element.status !== 'CLOSED' && navigateToPlan(element.id)"
+    >
       {{ element.name }}
     </td>
   </ng-container>
