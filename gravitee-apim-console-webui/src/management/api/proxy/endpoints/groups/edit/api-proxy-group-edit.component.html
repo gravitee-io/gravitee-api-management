@@ -47,9 +47,7 @@
           *ngIf="serviceDiscoveryForm && serviceDiscoveryItems"
           [serviceDiscoveryForm]="serviceDiscoveryForm"
           [serviceDiscoveryItems]="serviceDiscoveryItems"
-          [group]="group"
           [isReadOnly]="isReadOnly"
-          (onServiceDiscoveryConfigurationChange)="onServiceDiscoveryChange($event)"
         ></api-proxy-group-service-discovery>
       </div>
     </mat-tab>

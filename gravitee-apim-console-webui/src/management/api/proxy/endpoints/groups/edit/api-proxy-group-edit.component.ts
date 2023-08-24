@@ -20,10 +20,6 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { StateService } from '@uirouter/core';
 
 import { isUniq, serviceDiscoveryValidator } from './api-proxy-group-edit.validator';
-import {
-  ProxyGroupServiceDiscoveryConfiguration,
-  ServiceDiscoveryEvent,
-} from './service-discovery/api-proxy-group-service-discovery.model';
 
 import { UIRouterState, UIRouterStateParams } from '../../../../../../ajs-upgraded-providers';
 import { ApiService } from '../../../../../../services-ngx/api.service';
@@ -45,7 +41,6 @@ import { ConfigurationEvent } from '../api-proxy-groups.model';
 export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   private updatedConfiguration: ProxyConfiguration;
-  private updatedServiceDiscoveryConfiguration: ProxyGroupServiceDiscoveryConfiguration;
   private mode: 'new' | 'edit';
 
   public apiId: string;
@@ -119,7 +114,7 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
             api.proxy.groups[groupIndex],
             this.generalForm.getRawValue(),
             this.updatedConfiguration,
-            this.updatedServiceDiscoveryConfiguration,
+            this.serviceDiscoveryForm.getRawValue(),
           );
 
           groupIndex !== -1 ? api.proxy.groups.splice(groupIndex, 1, updatedGroup) : api.proxy.groups.push(updatedGroup);
@@ -154,35 +149,6 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
     this.updatedConfiguration = event.configuration;
   }
 
-  public onServiceDiscoveryChange(event: ServiceDiscoveryEvent): void {
-    this.groupForm.markAsDirty();
-    this.groupForm.markAsTouched();
-    const enabled = this.serviceDiscoveryForm.get('enabled');
-
-    if (!enabled) {
-      this.updatedServiceDiscoveryConfiguration = null;
-    }
-
-    if (!event.isSchemaValid) {
-      this.groupForm.setErrors({ invalidServiceDiscovery: true });
-    }
-
-    if (this.groupForm.getError('invalidServiceDiscovery') && event.isSchemaValid) {
-      delete this.groupForm.errors['invalidServiceDiscovery'];
-      this.groupForm.updateValueAndValidity();
-    }
-
-    if (this.serviceDiscoveryForm.valid && enabled.value && event.isSchemaValid) {
-      this.updatedServiceDiscoveryConfiguration = {
-        discovery: {
-          enabled: this.serviceDiscoveryForm.get('enabled').value,
-          provider: this.serviceDiscoveryForm.get('type').value,
-          configuration: event.serviceDiscoveryValues,
-        },
-      };
-    }
-  }
-
   public reset(): void {
     // here we the force reset for the two components containing a gv-schema-form
     this.group = null;
@@ -212,10 +178,16 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
     this.serviceDiscoveryForm = this.formBuilder.group(
       {
         enabled: [{ value: this.group?.services?.discovery.enabled ?? false, disabled: this.isReadOnly }],
-        type: [
+        provider: [
           {
             value: this.group?.services?.discovery.provider ?? null,
-            disabled: !this.group?.services?.discovery.enabled || this.isReadOnly,
+            disabled: this.isReadOnly,
+          },
+        ],
+        configuration: [
+          {
+            value: this.group?.services?.discovery.configuration ?? undefined,
+            disabled: this.isReadOnly,
           },
         ],
       },
