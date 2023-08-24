@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { FormControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
 import { catchError, map, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { EMPTY, Subject } from 'rxjs';
+import { EMPTY, Subject, Subscription } from 'rxjs';
 import { StateParams } from '@uirouter/angularjs';
 
 import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
-import { ApiV4 } from '../../../../entities/management-api-v2';
+import { Analytics, ApiV4, SamplingTypeEnum } from '../../../../entities/management-api-v2';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 
 @Component({
@@ -32,8 +32,11 @@ import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 export class ApiRuntimeLogsSettingsComponent implements OnInit, OnDestroy {
   form: FormGroup;
   enabled = false;
+  samplingType: SamplingTypeEnum;
   private unsubscribe$: Subject<void> = new Subject<void>();
   private api: ApiV4;
+  private samplingTypeSubscription$: Subscription;
+  private enabledFormControl: FormControl;
 
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams: StateParams,
@@ -48,8 +51,11 @@ export class ApiRuntimeLogsSettingsComponent implements OnInit, OnDestroy {
         tap((api: ApiV4) => {
           this.api = api;
           this.enabled = api?.analytics?.enabled ?? false;
+          this.samplingType = this.enabled ? api?.analytics?.sampling?.type : undefined;
+          this.enabledFormControl = new FormControl(this.enabled);
           this.initForm();
           this.handleEnabledChanges();
+          this.handleSamplingTypeChanges();
         }),
         takeUntil(this.unsubscribe$),
       )
@@ -67,7 +73,8 @@ export class ApiRuntimeLogsSettingsComponent implements OnInit, OnDestroy {
       .pipe(
         switchMap((api: ApiV4) => {
           const formValues = this.form.getRawValue();
-          const analytics = this.enabled
+          const sampling = formValues.samplingType ? { type: formValues.samplingType, value: formValues.samplingValue?.toString() } : null;
+          const analytics: Analytics = this.enabled
             ? {
                 enabled: this.enabled,
                 logging: {
@@ -89,6 +96,7 @@ export class ApiRuntimeLogsSettingsComponent implements OnInit, OnDestroy {
                   condition: formValues.requestCondition,
                   messageCondition: formValues.messageCondition,
                 },
+                sampling: sampling,
               }
             : { enabled: this.enabled };
           return this.apiService.update(api.id, { ...api, analytics });
@@ -108,21 +116,31 @@ export class ApiRuntimeLogsSettingsComponent implements OnInit, OnDestroy {
       .subscribe();
   }
 
-  private initForm() {
-    this.form = new FormGroup({
-      enabled: new FormControl(this.enabled),
-      entrypoint: new FormControl(this.api?.analytics?.logging?.mode?.entrypoint ?? false),
-      endpoint: new FormControl(this.api?.analytics?.logging?.mode?.endpoint ?? false),
-      request: new FormControl(this.api?.analytics?.logging?.phase?.request ?? false),
-      response: new FormControl(this.api?.analytics?.logging?.phase?.response ?? false),
-      messageContent: new FormControl(this.api?.analytics?.logging?.content?.messagePayload ?? false),
-      messageHeaders: new FormControl(this.api?.analytics?.logging?.content?.messageHeaders ?? false),
-      messageMetadata: new FormControl(this.api?.analytics?.logging?.content?.messageMetadata ?? false),
-      requestPayload: new FormControl(this.api?.analytics?.logging?.content?.payload ?? false),
-      requestHeaders: new FormControl(this.api?.analytics?.logging?.content?.headers ?? false),
-      requestCondition: new FormControl(this.api?.analytics?.logging?.condition),
-      messageCondition: new FormControl(this.api?.analytics?.logging?.messageCondition),
-    });
+  private initForm(): void {
+    this.form = this.enabled
+      ? new FormGroup({
+          enabled: this.enabledFormControl,
+          entrypoint: new FormControl(this.api?.analytics?.logging?.mode?.entrypoint ?? false),
+          endpoint: new FormControl(this.api?.analytics?.logging?.mode?.endpoint ?? false),
+          request: new FormControl(this.api?.analytics?.logging?.phase?.request ?? false),
+          response: new FormControl(this.api?.analytics?.logging?.phase?.response ?? false),
+          messageContent: new FormControl(this.api?.analytics?.logging?.content?.messagePayload ?? false),
+          messageHeaders: new FormControl(this.api?.analytics?.logging?.content?.messageHeaders ?? false),
+          messageMetadata: new FormControl(this.api?.analytics?.logging?.content?.messageMetadata ?? false),
+          requestPayload: new FormControl(this.api?.analytics?.logging?.content?.payload ?? false),
+          requestHeaders: new FormControl(this.api?.analytics?.logging?.content?.headers ?? false),
+          requestCondition: new FormControl(this.api?.analytics?.logging?.condition),
+          messageCondition: new FormControl(this.api?.analytics?.logging?.messageCondition),
+          samplingType: new FormControl(this.samplingType, Validators.required),
+          samplingValue: new FormControl(
+            this.api?.analytics?.sampling?.value ?? this.getSamplingDefaultValue(this.samplingType),
+            this.getSamplingValueValidators(this.samplingType),
+          ),
+        })
+      : new FormGroup({
+          enabled: this.enabledFormControl,
+        });
+    this.form.updateValueAndValidity();
   }
 
   private handleEnabledChanges(): void {
@@ -131,6 +149,52 @@ export class ApiRuntimeLogsSettingsComponent implements OnInit, OnDestroy {
       .valueChanges.pipe(takeUntil(this.unsubscribe$))
       .subscribe((value) => {
         this.enabled = value;
+        this.samplingType = this.enabled ? 'PROBABILITY' : undefined;
+        this.initForm();
+        this.handleSamplingTypeChanges();
       });
+  }
+
+  private handleSamplingTypeChanges(): void {
+    if (this.enabled) {
+      this.samplingTypeSubscription$ = this.form
+        .get('samplingType')
+        .valueChanges.pipe(takeUntil(this.unsubscribe$))
+        .subscribe((value) => {
+          this.samplingType = value;
+          const samplingValueControl = this.form.get('samplingValue');
+          samplingValueControl.setValue(this.getSamplingDefaultValue(value));
+          samplingValueControl.setValidators(this.getSamplingValueValidators(value));
+          samplingValueControl.updateValueAndValidity();
+        });
+    } else {
+      this.samplingTypeSubscription$?.unsubscribe();
+    }
+  }
+
+  private getSamplingValueValidators(samplingType: SamplingTypeEnum): ValidatorFn[] {
+    switch (samplingType) {
+      case 'PROBABILITY':
+        return [Validators.required, Validators.min(0.01), Validators.max(0.5)];
+      case 'COUNT':
+        return [Validators.required, Validators.min(0)];
+      case 'TEMPORAL':
+        return [Validators.required];
+      default:
+        return [];
+    }
+  }
+
+  private getSamplingDefaultValue(samplingType: SamplingTypeEnum): string | number | null {
+    switch (samplingType) {
+      case 'PROBABILITY':
+        return 0.01;
+      case 'COUNT':
+        return 100;
+      case 'TEMPORAL':
+        return 'PT1S';
+      default:
+        return null;
+    }
   }
 }

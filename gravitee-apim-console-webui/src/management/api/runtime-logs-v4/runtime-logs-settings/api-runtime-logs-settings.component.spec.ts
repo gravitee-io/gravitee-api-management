@@ -38,6 +38,14 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
     apiVersion: '1',
     analytics: {
       enabled: true,
+      logging: {
+        mode: { entrypoint: false, endpoint: false },
+        phase: { request: false, response: false },
+        content: { messagePayload: false, messageHeaders: false, messageMetadata: false, payload: false, headers: false },
+        condition: null,
+        messageCondition: null,
+      },
+      sampling: { type: 'COUNT', value: '50' },
     },
   };
   let fixture: ComponentFixture<ApiRuntimeLogsSettingsComponent>;
@@ -60,9 +68,8 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
     fixture = TestBed.createComponent(ApiRuntimeLogsSettingsComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
     componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiRuntimeLogsSettingsHarness);
-    fixture.detectChanges();
-
     expectApiGetRequest(api);
+    fixture.detectChanges();
   };
 
   afterEach(() => {
@@ -108,13 +115,8 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
         ...testApi,
         analytics: {
           enabled: true,
-          logging: {
-            mode: { entrypoint: true, endpoint: true },
-            phase: { request: false, response: false },
-            content: { messagePayload: false, messageHeaders: false, messageMetadata: false, payload: false, headers: false },
-            condition: null,
-            messageCondition: null,
-          },
+          ...testApi.analytics,
+          logging: { ...testApi.analytics.logging, mode: { entrypoint: true, endpoint: true } },
         },
       });
 
@@ -135,13 +137,10 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
       expectApiPutRequest({
         ...testApi,
         analytics: {
-          enabled: true,
+          ...testApi.analytics,
           logging: {
-            mode: { entrypoint: false, endpoint: false },
+            ...testApi.analytics.logging,
             phase: { request: true, response: true },
-            content: { messagePayload: false, messageHeaders: false, messageMetadata: false, payload: false, headers: false },
-            condition: null,
-            messageCondition: null,
           },
         },
       });
@@ -165,13 +164,10 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
       expectApiPutRequest({
         ...testApi,
         analytics: {
-          enabled: true,
+          ...testApi.analytics,
           logging: {
-            mode: { entrypoint: false, endpoint: false },
-            phase: { request: false, response: false },
+            ...testApi.analytics.logging,
             content: { messagePayload: true, messageHeaders: true, messageMetadata: true, payload: false, headers: false },
-            condition: null,
-            messageCondition: null,
           },
         },
       });
@@ -194,13 +190,10 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
       expectApiPutRequest({
         ...testApi,
         analytics: {
-          enabled: true,
+          ...testApi.analytics,
           logging: {
-            mode: { entrypoint: false, endpoint: false },
-            phase: { request: false, response: false },
+            ...testApi.analytics.logging,
             content: { messagePayload: false, messageHeaders: false, messageMetadata: false, payload: true, headers: true },
-            condition: null,
-            messageCondition: null,
           },
         },
       });
@@ -222,11 +215,9 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
       expectApiPutRequest({
         ...testApi,
         analytics: {
-          enabled: true,
+          ...testApi.analytics,
           logging: {
-            mode: { entrypoint: false, endpoint: false },
-            phase: { request: false, response: false },
-            content: { messagePayload: false, messageHeaders: false, messageMetadata: false, payload: false, headers: false },
+            ...testApi.analytics.logging,
             condition: 'request condition',
             messageCondition: 'message condition',
           },
@@ -235,6 +226,73 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
 
       expect(await componentHarness.getMessageCondition()).toEqual('message condition');
       expect(await componentHarness.getMessageCondition()).toEqual('message condition');
+    });
+
+    describe('sampling tests', () => {
+      it('should save sampling settings', async () => {
+        await initComponent();
+        expect(await componentHarness.getSamplingType()).toStrictEqual('Count');
+        expect(await componentHarness.getSamplingValue()).toStrictEqual('50');
+
+        await componentHarness.choseSamplingType('Probabilistic');
+        await componentHarness.addSamplingValue('0.5');
+        await componentHarness.saveSettings();
+
+        expectApiGetRequest(testApi);
+        expectApiPutRequest({
+          ...testApi,
+          analytics: {
+            ...testApi.analytics,
+            sampling: { type: 'PROBABILITY', value: '0.5' },
+          },
+        });
+
+        expect(await componentHarness.getSamplingType()).toStrictEqual('Probabilistic');
+        expect(await componentHarness.getSamplingValue()).toStrictEqual('0.5');
+      });
+
+      it('should validate sampling value with COUNT type', async () => {
+        await initComponent();
+        expect(await componentHarness.getSamplingType()).toStrictEqual('Count');
+        expect(await componentHarness.getSamplingValue()).toStrictEqual('50');
+
+        await componentHarness.addSamplingValue(null);
+        expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(true);
+
+        await componentHarness.addSamplingValue('-1');
+        expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(true);
+
+        await componentHarness.addSamplingValue('42');
+        expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(false);
+      });
+
+      it('should validate sampling value with PROBABILITY type', async () => {
+        await initComponent();
+        await componentHarness.choseSamplingType('Probabilistic');
+
+        await componentHarness.addSamplingValue(null);
+        expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(true);
+
+        await componentHarness.addSamplingValue('-1');
+        expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(true);
+
+        await componentHarness.addSamplingValue('42');
+        expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(true);
+
+        await componentHarness.addSamplingValue('0.3');
+        expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(false);
+      });
+
+      it('should validate sampling value with TEMPORAL type', async () => {
+        await initComponent();
+        await componentHarness.choseSamplingType('Temporal');
+
+        await componentHarness.addSamplingValue(null);
+        expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(true);
+
+        await componentHarness.addSamplingValue('PT1S');
+        expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(false);
+      });
     });
   });
 
