@@ -27,7 +27,9 @@
       <mat-button-toggle-group aria-label="Select User or Group" class="card__userOrGroup__toggle-group" formControlName="userOrGroup">
         <mat-button-toggle class="card__userOrGroup__toggle" value="apiMember"> API member </mat-button-toggle>
         <mat-button-toggle class="card__userOrGroup__toggle" value="user"> Other user </mat-button-toggle>
-        <mat-button-toggle *ngIf="mode === 'HYBRID'" class="card__userOrGroup__toggle" value="group"> Group </mat-button-toggle>
+        <mat-button-toggle *ngIf="mode === 'HYBRID'" class="card__userOrGroup__toggle" value="group">
+          Primary owner group
+        </mat-button-toggle>
       </mat-button-toggle-group>
     </ng-container>
 
@@ -50,7 +52,7 @@
       </gio-banner-warning>
 
       <mat-form-field class="card__userOrGroup__field">
-        <mat-label>Select group</mat-label>
+        <mat-label>Select a primary owner group</mat-label>
         <mat-select formControlName="groupId">
           <mat-option *ngFor="let group of poGroups" [value]="group.id">{{ group.name }}</mat-option>
         </mat-select>

@@ -204,7 +204,7 @@ describe('ApiGeneralTransferOwnershipComponent', () => {
 
       // Select Group mode
       const userOrGroupRadio = await loader.getHarness(MatButtonToggleGroupHarness.with({ selector: '[formControlName="userOrGroup"]' }));
-      const otherUserButton = await userOrGroupRadio.getToggles({ text: 'Group' });
+      const otherUserButton = await userOrGroupRadio.getToggles({ text: 'Primary owner group' });
       await otherUserButton[0].check();
 
       // Select group
