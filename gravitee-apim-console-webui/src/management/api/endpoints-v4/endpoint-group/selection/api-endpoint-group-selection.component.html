@@ -1,0 +1,58 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="endpoint-group-type__header">
+  <p>Choose the type of event-brokers/backend that will be exposed through the API.</p>
+</div>
+<form *ngIf="endpointGroupTypeForm" [formGroup]="endpointGroupTypeForm">
+  <mat-radio-group
+    *ngIf="endpoints; else loadingTpl"
+    formControlName="endpointGroupType"
+    class="gio-connector-list"
+    aria-label="Select an endpoint group type"
+  >
+    <mat-radio-button
+      *ngFor="let endpoint of endpoints"
+      [value]="endpoint.id"
+      [class.gio-connector__selected]="endpointGroupTypeForm.get('endpointGroupType').value === endpoint.id"
+      labelPosition="after"
+    >
+      <gio-connector-list-option-layout>
+        <gio-connector-list-option-layout-title>
+          <div class="endpoint-group-type__endpoint__title">
+            <mat-icon [svgIcon]="endpoint.icon"></mat-icon>
+            {{ endpoint.name }}
+            <span class="gio-badge-primary">New</span>
+            <span class="gio-badge-warning" *ngIf="!endpoint.deployed">Not deployed</span>
+          </div>
+        </gio-connector-list-option-layout-title>
+
+        <gio-connector-list-option-layout-body>
+          {{ endpoint.description }}
+        </gio-connector-list-option-layout-body>
+
+        <gio-connector-list-option-layout-action>
+          <button type="button" mat-stroked-button (click)="onMoreInfoClick($event, endpoint)">
+            <mat-icon svgIcon="gio:eye-empty"></mat-icon>
+            More information
+          </button>
+        </gio-connector-list-option-layout-action>
+      </gio-connector-list-option-layout>
+    </mat-radio-button>
+  </mat-radio-group>
+</form>
+<ng-template #loadingTpl><mat-progress-bar mode="indeterminate"></mat-progress-bar></ng-template>

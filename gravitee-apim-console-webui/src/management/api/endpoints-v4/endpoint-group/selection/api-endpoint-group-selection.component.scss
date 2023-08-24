@@ -1,0 +1,14 @@
+.endpoint-group-type {
+  &__header {
+    padding: 12px 0;
+  }
+  &__endpoint {
+    &__title {
+      display: flex;
+      align-items: center;
+      mat-icon {
+        padding-right: 8px;
+      }
+    }
+  }
+}
