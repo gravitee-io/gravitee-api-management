@@ -20,25 +20,21 @@
     <gio-form-slide-toggle class="card__group-sd__enable">
       <gio-form-label>Enabled service discovery</gio-form-label>
       By enabling service discovery, endpoints will be dynamically added or removed (without downtime).
-      <mat-slide-toggle
-        gioFormSlideToggle
-        formControlName="enabled"
-        aria-label="Enable service discovery"
-        name="enableServiceDiscoveryConfiguration"
-      ></mat-slide-toggle>
+      <mat-slide-toggle gioFormSlideToggle formControlName="enabled"></mat-slide-toggle>
     </gio-form-slide-toggle>
 
     <!-- Type -->
-    <div class="card__group-sd">
+    <div class="card__group-sd" *ngIf="serviceDiscoveryForm.get('enabled').value">
       <div class="card__group-sd__type__label">Type</div>
       <mat-form-field class="card__group-sd__type__form-field">
         <mat-label>Type</mat-label>
-        <mat-select aria-label="Service discovery type" formControlName="type">
+        <mat-select aria-label="Service discovery type" formControlName="provider">
           <mat-option *ngFor="let sd of serviceDiscoveryItems" [value]="sd.id">{{ sd.name }}</mat-option>
         </mat-select>
       </mat-form-field>
     </div>
 
+<<<<<<< HEAD
     <div class="card__group-sd" *ngIf="displaySchema">
       <gv-schema-form-group
         ngDefaultControl
@@ -47,6 +43,16 @@
         [attr.readonly]="serviceDiscoveryForm.get('configuration').enabled ? null : true"
         (:gv-schema-form-group:error)="onConfigurationError($event.detail)"
       ></gv-schema-form-group>
+=======
+    <div class="card__group-sd" *ngIf="schema">
+      <gv-schema-form
+        [attr.readonly]="isReadOnly ? isReadOnly : null"
+        [schema]="schema"
+        (:gv-schema-form:change)="onSchemaFormChange($event)"
+        ngDefaultControl
+        formControlName="configuration"
+      ></gv-schema-form>
+>>>>>>> 1c2d7eb37d (fix: make sure to keep service discovery settings when updating endpoint group)
     </div>
   </mat-card>
 </form>

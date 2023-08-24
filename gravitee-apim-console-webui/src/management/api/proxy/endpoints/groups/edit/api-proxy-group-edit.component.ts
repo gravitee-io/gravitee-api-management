@@ -20,7 +20,10 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { StateService } from '@uirouter/core';
 
 import { isUniq, serviceDiscoveryValidator } from './api-proxy-group-edit.validator';
+<<<<<<< HEAD
 import { ProxyGroupServiceDiscoveryConfiguration } from './service-discovery/api-proxy-group-service-discovery.model';
+=======
+>>>>>>> 1c2d7eb37d (fix: make sure to keep service discovery settings when updating endpoint group)
 
 import { UIRouterState, UIRouterStateParams } from '../../../../../../ajs-upgraded-providers';
 import { ApiService } from '../../../../../../services-ngx/api.service';
@@ -39,6 +42,10 @@ import { GioPermissionService } from '../../../../../../shared/components/gio-pe
 })
 export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+<<<<<<< HEAD
+=======
+  private updatedConfiguration: ProxyConfiguration;
+>>>>>>> 1c2d7eb37d (fix: make sure to keep service discovery settings when updating endpoint group)
   private mode: 'new' | 'edit';
 
   public apiId: string;
@@ -97,8 +104,13 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
           const updatedGroup = toProxyGroup(
             api.proxy.groups[groupIndex],
             this.generalForm.getRawValue(),
+<<<<<<< HEAD
             this.getProxyConfiguration(),
             this.getServiceDiscoveryConfiguration(),
+=======
+            this.updatedConfiguration,
+            this.serviceDiscoveryForm.getRawValue(),
+>>>>>>> 1c2d7eb37d (fix: make sure to keep service discovery settings when updating endpoint group)
           );
 
           groupIndex !== -1 ? api.proxy.groups.splice(groupIndex, 1, updatedGroup) : api.proxy.groups.push(updatedGroup);
@@ -126,6 +138,7 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
     return this.groupForm.get('groupConfiguration').value;
   }
 
+<<<<<<< HEAD
   public getServiceDiscoveryConfiguration(): ProxyGroupServiceDiscoveryConfiguration {
     const enabled = this.serviceDiscoveryForm.get('enabled')?.value;
 
@@ -146,6 +159,8 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
     };
   }
 
+=======
+>>>>>>> 1c2d7eb37d (fix: make sure to keep service discovery settings when updating endpoint group)
   public reset(): void {
     // here we the force reset for the two components containing a gv-schema-form
     this.serviceDiscoveryItems = null;
@@ -172,11 +187,25 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
 
     this.serviceDiscoveryForm = this.formBuilder.group(
       {
+<<<<<<< HEAD
         enabled: [{ value: group?.services?.discovery.enabled ?? false, disabled: this.isReadOnly }],
         type: [
           {
             value: group?.services?.discovery.provider ?? null,
             disabled: !group?.services?.discovery.enabled || this.isReadOnly,
+=======
+        enabled: [{ value: this.group?.services?.discovery.enabled ?? false, disabled: this.isReadOnly }],
+        provider: [
+          {
+            value: this.group?.services?.discovery.provider ?? null,
+            disabled: this.isReadOnly,
+          },
+        ],
+        configuration: [
+          {
+            value: this.group?.services?.discovery.configuration ?? undefined,
+            disabled: this.isReadOnly,
+>>>>>>> 1c2d7eb37d (fix: make sure to keep service discovery settings when updating endpoint group)
           },
         ],
         configuration: [{ value: group?.services?.discovery?.configuration ?? {}, disabled: this.isReadOnly }],

@@ -15,9 +15,14 @@
  */
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { FormGroup } from '@angular/forms';
+<<<<<<< HEAD
 import { startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { combineLatest, of, Subject } from 'rxjs';
 import '@gravitee/ui-components/wc/gv-schema-form-group';
+=======
+import { map, takeUntil } from 'rxjs/operators';
+import { Subject } from 'rxjs';
+>>>>>>> 1c2d7eb37d (fix: make sure to keep service discovery settings when updating endpoint group)
 
 import { ResourceListItem } from '../../../../../../../entities/resource/resourceListItem';
 import { ServiceDiscoveryService } from '../../../../../../../services-ngx/service-discovery.service';
@@ -32,13 +37,17 @@ export class ApiProxyGroupServiceDiscoveryComponent implements OnInit, OnDestroy
 
   @Input() serviceDiscoveryForm: FormGroup;
   @Input() serviceDiscoveryItems: ResourceListItem[];
+<<<<<<< HEAD
+=======
+  @Input() isReadOnly: boolean;
+>>>>>>> 1c2d7eb37d (fix: make sure to keep service discovery settings when updating endpoint group)
 
   public schema: unknown;
-  public displaySchema: boolean;
 
   constructor(private readonly serviceDiscoveryService: ServiceDiscoveryService) {}
 
   ngOnInit(): void {
+<<<<<<< HEAD
     combineLatest([
       this.serviceDiscoveryForm
         .get('enabled')
@@ -65,6 +74,18 @@ export class ApiProxyGroupServiceDiscoveryComponent implements OnInit, OnDestroy
         }),
       )
       .subscribe();
+=======
+    if (this.serviceDiscoveryForm.get('enabled').value) {
+      this.onFormValuesChange(this.serviceDiscoveryForm.get('provider').value);
+    }
+
+    this.serviceDiscoveryForm
+      .get('provider')
+      .valueChanges.pipe(takeUntil(this.unsubscribe$))
+      .subscribe((value) => {
+        this.onFormValuesChange(value);
+      });
+>>>>>>> 1c2d7eb37d (fix: make sure to keep service discovery settings when updating endpoint group)
   }
 
   ngOnDestroy(): void {
@@ -72,10 +93,38 @@ export class ApiProxyGroupServiceDiscoveryComponent implements OnInit, OnDestroy
     this.unsubscribe$.complete();
   }
 
+<<<<<<< HEAD
   onConfigurationError(error: unknown) {
     // Set error at the end of js task. Otherwise it will be reset on value change
     setTimeout(() => {
       this.serviceDiscoveryForm.get('configuration').setErrors(error ? { error: true } : null);
     }, 0);
+=======
+  onSchemaFormChange(event: SchemaFormEvent) {
+    if (event.detail?.validation?.errors?.length > 0) {
+      this.serviceDiscoveryForm.setErrors({ invalidServiceDiscovery: true });
+    } else {
+      if (this.serviceDiscoveryForm.getError('invalidServiceDiscovery')) {
+        delete this.serviceDiscoveryForm.errors['invalidServiceDiscovery'];
+        this.serviceDiscoveryForm.updateValueAndValidity();
+      }
+    }
+  }
+
+  private onFormValuesChange(provider: string) {
+    if (provider) {
+      // reset schema to force form component to reload
+      this.schema = null;
+      this.serviceDiscoveryService
+        .getSchema(provider)
+        .pipe(
+          map((schema) => {
+            this.serviceDiscoveryForm.get('configuration').reset({});
+            this.schema = schema;
+          }),
+        )
+        .subscribe();
+    }
+>>>>>>> 1c2d7eb37d (fix: make sure to keep service discovery settings when updating endpoint group)
   }
 }
