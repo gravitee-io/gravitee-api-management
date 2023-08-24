@@ -18,12 +18,23 @@ package io.gravitee.repository.management.model;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
 public class Plan {
 
     public enum AuditEvent implements Audit.ApiAuditEvent {
@@ -116,9 +127,8 @@ public class Plan {
 
     private String generalConditions;
 
+    @Builder.Default
     private Set<String> tags = new HashSet<>();
-
-    public Plan() {}
 
     public Plan(Plan cloned) {
         this.id = cloned.getId();
@@ -145,206 +155,6 @@ public class Plan {
         this.generalConditions = cloned.getGeneralConditions();
     }
 
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public PlanValidationType getValidation() {
-        return validation;
-    }
-
-    public void setValidation(PlanValidationType validation) {
-        this.validation = validation;
-    }
-
-    public PlanType getType() {
-        return type;
-    }
-
-    public void setType(PlanType type) {
-        this.type = type;
-    }
-
-    public PlanMode getMode() {
-        return mode;
-    }
-
-    public void setMode(PlanMode mode) {
-        this.mode = mode;
-    }
-
-    public String getApi() {
-        return api;
-    }
-
-    public void setApi(String api) {
-        this.api = api;
-    }
-
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Date getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Date updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public String getDefinition() {
-        return definition;
-    }
-
-    public void setDefinition(String definition) {
-        this.definition = definition;
-    }
-
-    public List<String> getCharacteristics() {
-        return characteristics;
-    }
-
-    public void setCharacteristics(List<String> characteristics) {
-        this.characteristics = characteristics;
-    }
-
-    public int getOrder() {
-        return order;
-    }
-
-    public void setOrder(int order) {
-        this.order = order;
-    }
-
-    public Date getPublishedAt() {
-        return publishedAt;
-    }
-
-    public void setPublishedAt(Date publishedAt) {
-        this.publishedAt = publishedAt;
-    }
-
-    public Date getClosedAt() {
-        return closedAt;
-    }
-
-    public void setClosedAt(Date closedAt) {
-        this.closedAt = closedAt;
-    }
-
-    public Status getStatus() {
-        return status;
-    }
-
-    public void setStatus(Status status) {
-        this.status = status;
-    }
-
-    public PlanSecurityType getSecurity() {
-        return security;
-    }
-
-    public void setSecurity(PlanSecurityType security) {
-        this.security = security;
-    }
-
-    public String getSecurityDefinition() {
-        return securityDefinition;
-    }
-
-    public void setSecurityDefinition(String securityDefinition) {
-        this.securityDefinition = securityDefinition;
-    }
-
-    public List<String> getExcludedGroups() {
-        return excludedGroups;
-    }
-
-    public void setExcludedGroups(List<String> excludedGroups) {
-        this.excludedGroups = excludedGroups;
-    }
-
-    public Date getNeedRedeployAt() {
-        return needRedeployAt;
-    }
-
-    public void setNeedRedeployAt(Date needRedeployAt) {
-        this.needRedeployAt = needRedeployAt;
-    }
-
-    public boolean isCommentRequired() {
-        return commentRequired;
-    }
-
-    public void setCommentRequired(boolean commentRequired) {
-        this.commentRequired = commentRequired;
-    }
-
-    public String getCommentMessage() {
-        return commentMessage;
-    }
-
-    public void setCommentMessage(String commentMessage) {
-        this.commentMessage = commentMessage;
-    }
-
-    public String getSelectionRule() {
-        return selectionRule;
-    }
-
-    public void setSelectionRule(String selectionRule) {
-        this.selectionRule = selectionRule;
-    }
-
-    public Set<String> getTags() {
-        return tags;
-    }
-
-    public void setTags(Set<String> tags) {
-        this.tags = tags;
-    }
-
-    public String getGeneralConditions() {
-        return generalConditions;
-    }
-
-    public void setGeneralConditions(String generalConditions) {
-        this.generalConditions = generalConditions;
-    }
-
-    public String getCrossId() {
-        return crossId;
-    }
-
-    public void setCrossId(String crossId) {
-        this.crossId = crossId;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -352,7 +162,7 @@ public class Plan {
 
         Plan plan = (Plan) o;
 
-        return id != null ? id.equals(plan.id) : plan.id == null;
+        return Objects.equals(id, plan.id);
     }
 
     @Override
