@@ -292,7 +292,7 @@ export class ApiGeneralPlanListComponent implements OnInit, OnDestroy {
           this.plansTableDS = orderBy(plans, 'order', 'asc');
           this.isLoadingData = false;
         }),
-        catchError(({ error }) => {
+        catchError((error) => {
           this.snackBarService.error(error.message);
           return of({});
         }),

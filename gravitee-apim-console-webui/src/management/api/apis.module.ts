@@ -217,7 +217,7 @@ const states: Ng2StateDeclaration[] = [
       useAngularMaterial: true,
       docs: null,
       apiPermissions: {
-        only: ['api-plan-u'],
+        only: ['api-plan-r'],
       },
     },
   },
