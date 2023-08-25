@@ -158,6 +158,37 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
         expect(await componentHarness.isMessageMetadataDisabled()).toBe(false);
         expect(await componentHarness.isMessageMetadataChecked()).toBe(false);
       });
+
+      it('should enable/disable request checkboxes according to logging mode', async () => {
+        await initComponent();
+        expect(await componentHarness.isEntrypointChecked()).toBe(false);
+        expect(await componentHarness.isEndpointChecked()).toBe(false);
+        expect(await componentHarness.isRequestPayloadChecked()).toBe(false);
+        expect(await componentHarness.isRequestHeadersChecked()).toBe(false);
+
+        await componentHarness.toggleEntrypoint();
+        expect(await componentHarness.isRequestHeadersDisabled()).toBe(false);
+        expect(await componentHarness.isRequestPayloadDisabled()).toBe(true);
+
+        await componentHarness.toggleEntrypoint();
+        await componentHarness.toggleEndpoint();
+        expect(await componentHarness.isRequestHeadersDisabled()).toBe(false);
+        expect(await componentHarness.isRequestPayloadDisabled()).toBe(true);
+
+        await componentHarness.toggleEndpoint();
+        await componentHarness.toggleRequestHeaders();
+        await componentHarness.toggleRequestPayload();
+        expect(await componentHarness.isRequestHeadersDisabled()).toBe(false);
+        expect(await componentHarness.isRequestPayloadDisabled()).toBe(false);
+        expect(await componentHarness.isRequestPayloadChecked()).toBe(true);
+        expect(await componentHarness.isRequestHeadersChecked()).toBe(true);
+
+        await componentHarness.toggleEndpoint();
+        expect(await componentHarness.isRequestHeadersDisabled()).toBe(false);
+        expect(await componentHarness.isRequestHeadersChecked()).toBe(true);
+        expect(await componentHarness.isRequestPayloadDisabled()).toBe(true);
+        expect(await componentHarness.isRequestPayloadChecked()).toBe(false);
+      });
     });
 
     it('should enable logging phase on request and response', async () => {
@@ -222,8 +253,8 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
       expect(await componentHarness.isRequestPayloadChecked()).toBe(false);
       expect(await componentHarness.isRequestHeadersChecked()).toBe(false);
 
-      await componentHarness.checkRequestPayload();
-      await componentHarness.checkRequestHeaders();
+      await componentHarness.toggleRequestPayload();
+      await componentHarness.toggleRequestHeaders();
       await componentHarness.saveSettings();
 
       expectApiGetRequest(testApi);

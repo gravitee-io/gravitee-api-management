@@ -140,7 +140,10 @@ export class ApiRuntimeLogsSettingsComponent implements OnInit, OnDestroy {
             value: this.api?.analytics?.logging?.content?.messageMetadata ?? false,
             disabled: !this.hasLoggingModeEnabled,
           }),
-          requestPayload: new FormControl(this.api?.analytics?.logging?.content?.payload ?? false),
+          requestPayload: new FormControl({
+            value: this.api?.analytics?.logging?.content?.payload ?? false,
+            disabled: this.hasLoggingModeEnabled,
+          }),
           requestHeaders: new FormControl(this.api?.analytics?.logging?.content?.headers ?? false),
           requestCondition: new FormControl(this.api?.analytics?.logging?.condition),
           messageCondition: new FormControl(this.api?.analytics?.logging?.messageCondition),
@@ -197,18 +200,22 @@ export class ApiRuntimeLogsSettingsComponent implements OnInit, OnDestroy {
             this.form.get('messageContent').enable();
             this.form.get('messageHeaders').enable();
             this.form.get('messageMetadata').enable();
+            this.disableAndUncheck('requestPayload');
           } else {
-            this.form.get('messageContent').setValue(false);
-            this.form.get('messageContent').disable();
-            this.form.get('messageHeaders').setValue(false);
-            this.form.get('messageHeaders').disable();
-            this.form.get('messageMetadata').setValue(false);
-            this.form.get('messageMetadata').disable();
+            this.disableAndUncheck('messageContent');
+            this.disableAndUncheck('messageHeaders');
+            this.disableAndUncheck('messageMetadata');
+            this.form.get('requestPayload').enable();
           }
         });
     } else {
       this.loggingModeSubscription$?.unsubscribe();
     }
+  }
+
+  private disableAndUncheck(controlName: string): void {
+    this.form.get(controlName).setValue(false);
+    this.form.get(controlName).disable();
   }
 
   private getSamplingValueValidators(samplingType: SamplingTypeEnum): ValidatorFn[] {
