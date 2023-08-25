@@ -21,11 +21,15 @@ import com.graviteesource.entrypoint.http.get.HttpGetEntrypointConnectorFactory;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
+import io.gravitee.apim.gateway.tests.sdk.policy.PolicyBuilder;
 import io.gravitee.apim.integration.tests.messages.AbstractKafkaEndpointIntegrationTest;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.reactive.api.qos.Qos;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
+import io.gravitee.plugin.policy.PolicyPlugin;
+import io.gravitee.policy.assignattributes.AssignAttributesPolicy;
+import io.gravitee.policy.assignattributes.configuration.AssignAttributesPolicyConfiguration;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
@@ -51,6 +55,16 @@ class HttpGetEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoin
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
         entrypoints.putIfAbsent("http-get", EntrypointBuilder.build("http-get", HttpGetEntrypointConnectorFactory.class));
+    }
+
+    @Override
+    public void configurePolicies(Map<String, PolicyPlugin> policies) {
+        super.configurePolicies(policies);
+
+        policies.put(
+            "assign-attributes",
+            PolicyBuilder.build("assign-attributes", AssignAttributesPolicy.class, AssignAttributesPolicyConfiguration.class)
+        );
     }
 
     @Test
@@ -134,6 +148,58 @@ class HttpGetEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoin
                 final JsonObject jsonResponse = new JsonObject(body.toString());
                 final JsonArray items = jsonResponse.getJsonArray("items");
                 assertThat(items).isEmpty();
+                return true;
+            });
+    }
+
+    @Test
+    @DeployApi({ "/apis/v4/messages/http-get/http-get-entrypoint-kafka-endpoint-override-topic.json" })
+    void should_receive_all_messages_from_topic_selected_by_attribute(HttpClient client, Vertx vertx) {
+        // In order to simplify the test, Kafka endpoint's consumer is configured with "autoOffsetReset": "earliest"
+        // It allows us to publish the messages in the topic before opening the api connection.
+        Single
+            .fromCallable(() -> getKafkaProducer(vertx))
+            .flatMapCompletable(producer ->
+                publishToKafka(producer, "message1").andThen(publishToKafka(producer, "message2")).doFinally(producer::close)
+            )
+            .blockingAwait();
+
+        Single
+            .fromCallable(() -> getKafkaProducer(vertx))
+            .flatMapCompletable(producer -> publishToKafka(producer, "test-topic-attribute", "another-message").doFinally(producer::close))
+            .blockingAwait();
+
+        // First request should receive one message from test-topic-attribute. This topic is selected with Assign Attribute policy based on path params
+        client
+            .rxRequest(HttpMethod.GET, "/test/test-topic-attribute")
+            .flatMap(request -> {
+                // Override topic from header: topic is set on request phase
+                request.putHeader("X-Topic-Override-Request-Level", "test-topic,test-topic-attribute");
+                request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON);
+                return request.send();
+            })
+            .flatMap(response -> {
+                assertThat(response.statusCode()).isEqualTo(200);
+                return response.body();
+            })
+            .test()
+            .awaitDone(30, TimeUnit.SECONDS)
+            .assertValue(body -> {
+                final JsonObject jsonResponse = new JsonObject(body.toString());
+                final JsonArray items = jsonResponse.getJsonArray("items");
+                assertThat(items).hasSize(3);
+                final JsonObject message1 = items.getJsonObject(0);
+                assertThat(message1.getString("id")).isNull();
+                assertThat(message1.getJsonObject("metadata").getString("topic")).isEqualTo(TEST_TOPIC);
+                assertThat(message1.getString("content")).isEqualTo("message1");
+                final JsonObject message2 = items.getJsonObject(1);
+                assertThat(message2.getString("id")).isNull();
+                assertThat(message2.getJsonObject("metadata").getString("topic")).isEqualTo(TEST_TOPIC);
+                assertThat(message2.getString("content")).isEqualTo("message2");
+                final JsonObject messageOtherTopic = items.getJsonObject(2);
+                assertThat(messageOtherTopic.getJsonObject("metadata").getString("topic")).isEqualTo("test-topic-attribute");
+                assertThat(messageOtherTopic.getString("id")).isNull();
+                assertThat(messageOtherTopic.getString("content")).isEqualTo("another-message");
                 return true;
             });
     }
