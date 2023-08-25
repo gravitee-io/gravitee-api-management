@@ -24,7 +24,7 @@ public class PaginationInfo {
 
     public static Pagination computePaginationInfo(Integer totalCount, Integer pageItemsCount, PaginationParam paginationParam) {
         Pagination pagination = new Pagination();
-        if (paginationParam.getPerPage() > 0 && totalCount > 0) {
+        if (totalCount > 0) {
             pagination
                 .page(paginationParam.getPage())
                 .perPage(paginationParam.getPerPage())

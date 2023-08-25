@@ -24,7 +24,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
@@ -45,6 +44,13 @@ public class PaginationParam {
     @QueryParam(PER_PAGE_QUERY_PARAM_NAME)
     @Min(value = 1, message = "Pagination perPage param must be >= 1")
     Integer perPage;
+
+    public PaginationParam(Integer page, Integer perPage) {
+        if (perPage < 1) throw new IllegalArgumentException("Pagination perPage param must be >= 1");
+
+        this.page = page;
+        this.perPage = perPage;
+    }
 
     public io.gravitee.rest.api.model.common.Pageable toPageable() {
         return new PageableImpl(this.getPage(), this.getPerPage());
