@@ -125,7 +125,11 @@ export class ApiRuntimeLogsSettingsHarness extends ComponentHarness {
     return await this.getRequestPayloadCheckbox().then((checkbox) => checkbox.isChecked());
   };
 
-  public checkRequestPayload = async (): Promise<void> => {
+  public isRequestPayloadDisabled = async (): Promise<boolean> => {
+    return await this.getRequestPayloadCheckbox().then((checkbox) => checkbox.isDisabled());
+  };
+
+  public toggleRequestPayload = async (): Promise<void> => {
     return await this.getRequestPayloadCheckbox().then((checkbox) => checkbox.check());
   };
 
@@ -133,7 +137,11 @@ export class ApiRuntimeLogsSettingsHarness extends ComponentHarness {
     return await this.getRequestHeadersCheckbox().then((checkbox) => checkbox.isChecked());
   };
 
-  public checkRequestHeaders = async (): Promise<void> => {
+  public isRequestHeadersDisabled = async (): Promise<boolean> => {
+    return await this.getRequestHeadersCheckbox().then((checkbox) => checkbox.isDisabled());
+  };
+
+  public toggleRequestHeaders = async (): Promise<void> => {
     return await this.getRequestHeadersCheckbox().then((checkbox) => checkbox.check());
   };
 
