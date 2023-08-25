@@ -42,6 +42,7 @@ import io.gravitee.rest.api.management.v2.rest.model.SubscribersResponse;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV2;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateGenericApi;
+import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.LifecycleAction;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
@@ -511,15 +512,11 @@ public class ApiResource extends AbstractResource {
             paginationParam.toPageable()
         );
 
+        Integer totalCount = Math.toIntExact(subscribersApplicationPage.getTotalElements());
+        Integer pageItemsCount = Math.toIntExact(subscribersApplicationPage.getPageElements());
         return new SubscribersResponse()
             .data(ApplicationMapper.INSTANCE.mapToBaseApplicationList(subscribersApplicationPage.getContent()))
-            .pagination(
-                computePaginationInfo(
-                    Math.toIntExact(subscribersApplicationPage.getTotalElements()),
-                    Math.toIntExact(subscribersApplicationPage.getPageElements()),
-                    paginationParam
-                )
-            )
+            .pagination(PaginationInfo.computePaginationInfo(totalCount, pageItemsCount, paginationParam))
             .links(computePaginationLinks(Math.toIntExact(subscribersApplicationPage.getTotalElements()), paginationParam));
     }
 

@@ -25,6 +25,7 @@ import io.gravitee.rest.api.exception.InvalidImageException;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.ImportExportApiMapper;
 import io.gravitee.rest.api.management.v2.rest.model.*;
+import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.ApiSortByParam;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
@@ -49,10 +50,9 @@ import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.Objects;
 import java.util.Set;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -103,6 +103,8 @@ public class ApisResource extends AbstractResource {
             paginationParam.toPageable()
         );
 
+        Integer totalCount = Math.toIntExact(apis.getTotalElements());
+        Integer pageItemsCount = Math.toIntExact(apis.getPageElements());
         return new ApisResponse()
             .data(
                 ApiMapper.INSTANCE.map(
@@ -116,9 +118,7 @@ public class ApisResource extends AbstractResource {
                     }
                 )
             )
-            .pagination(
-                computePaginationInfo(Math.toIntExact(apis.getTotalElements()), Math.toIntExact(apis.getPageElements()), paginationParam)
-            )
+            .pagination(PaginationInfo.computePaginationInfo(totalCount, pageItemsCount, paginationParam))
             .links(computePaginationLinks(Math.toIntExact(apis.getTotalElements()), paginationParam));
     }
 
@@ -196,6 +196,8 @@ public class ApisResource extends AbstractResource {
             paginationParam.toPageable()
         );
 
+        Integer totalCount = Math.toIntExact(apis.getTotalElements());
+        Integer pageItemsCount = Math.toIntExact(apis.getPageElements());
         return new ApisResponse()
             .data(
                 ApiMapper.INSTANCE.map(
@@ -209,9 +211,7 @@ public class ApisResource extends AbstractResource {
                     }
                 )
             )
-            .pagination(
-                computePaginationInfo(Math.toIntExact(apis.getTotalElements()), Math.toIntExact(apis.getPageElements()), paginationParam)
-            )
+            .pagination(PaginationInfo.computePaginationInfo(totalCount, pageItemsCount, paginationParam))
             .links(computePaginationLinks(Math.toIntExact(apis.getTotalElements()), paginationParam));
     }
 
