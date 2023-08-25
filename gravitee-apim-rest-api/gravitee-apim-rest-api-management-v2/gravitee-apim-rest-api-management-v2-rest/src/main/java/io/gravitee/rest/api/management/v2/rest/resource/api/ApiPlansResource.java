@@ -22,6 +22,7 @@ import io.gravitee.rest.api.management.v2.rest.mapper.PlanMapper;
 import io.gravitee.rest.api.management.v2.rest.model.*;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.model.PlanSecurityType;
+import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.management.v2.rest.security.Permission;
@@ -112,7 +113,7 @@ public class ApiPlansResource extends AbstractResource {
 
         return new PlansResponse()
             .data(planMapper.convert(paginationData))
-            .pagination(computePaginationInfo(plans.size(), paginationData.size(), paginationParam))
+            .pagination(PaginationInfo.computePaginationInfo(plans.size(), paginationData.size(), paginationParam))
             .links(computePaginationLinks(plans.size(), paginationParam));
     }
 

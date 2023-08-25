@@ -21,7 +21,6 @@ import static io.gravitee.rest.api.model.MembershipReferenceType.GROUP;
 
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.management.v2.rest.model.Links;
-import io.gravitee.rest.api.management.v2.rest.model.Pagination;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.model.MembershipEntity;
 import io.gravitee.rest.api.model.RoleEntity;
@@ -43,9 +42,21 @@ import io.gravitee.rest.api.service.exceptions.PreconditionFailedException;
 import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.core.*;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.EntityTag;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.SecurityContext;
+import jakarta.ws.rs.core.UriBuilder;
+import jakarta.ws.rs.core.UriInfo;
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.glassfish.jersey.message.internal.HttpHeaderReader;
@@ -272,19 +283,6 @@ public abstract class AbstractResource {
             throw new PaginationInvalidException();
         }
         return new ArrayList<>(list).subList(startIndex, lastIndex);
-    }
-
-    protected Pagination computePaginationInfo(Integer totalCount, Integer pageItemsCount, PaginationParam paginationParam) {
-        Pagination pagination = new Pagination();
-        if (paginationParam.getPerPage() > 0 && totalCount > 0) {
-            pagination
-                .page(paginationParam.getPage())
-                .perPage(paginationParam.getPerPage())
-                .pageItemsCount(pageItemsCount)
-                .pageCount((int) Math.ceil((double) totalCount / paginationParam.getPerPage()))
-                .totalCount(totalCount);
-        }
-        return pagination;
     }
 
     protected Links computePaginationLinks(int totalElements, PaginationParam paginationParam) {

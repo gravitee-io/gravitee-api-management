@@ -18,6 +18,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.api;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLog;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLogsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.BasePlan;
+import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.management.v2.rest.security.Permission;
@@ -63,7 +64,7 @@ public class ApiLogsResource extends AbstractResource {
                         .build()
                 )
             )
-            .pagination(computePaginationInfo(1, 1, paginationParam))
+            .pagination(PaginationInfo.computePaginationInfo(1, 1, paginationParam))
             .links(computePaginationLinks(1, paginationParam))
             .build();
     }

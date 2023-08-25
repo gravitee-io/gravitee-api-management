@@ -23,6 +23,7 @@ import io.gravitee.rest.api.management.v2.rest.mapper.*;
 import io.gravitee.rest.api.management.v2.rest.model.*;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.model.SubscriptionStatus;
+import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.management.v2.rest.security.Permission;
@@ -109,15 +110,11 @@ public class ApiSubscriptionsResource extends AbstractResource {
         final List<Subscription> subscriptions = subscriptionMapper.mapToList(subscriptionPage.getContent());
         expandData(subscriptions, expands);
 
+        Integer totalCount = Math.toIntExact(subscriptionPage.getTotalElements());
+        Integer pageItemsCount = Math.toIntExact(subscriptionPage.getPageElements());
         return new SubscriptionsResponse()
             .data(subscriptions)
-            .pagination(
-                computePaginationInfo(
-                    Math.toIntExact(subscriptionPage.getTotalElements()),
-                    Math.toIntExact(subscriptionPage.getPageElements()),
-                    paginationParam
-                )
-            )
+            .pagination(PaginationInfo.computePaginationInfo(totalCount, pageItemsCount, paginationParam))
             .links(computePaginationLinks(Math.toIntExact(subscriptionPage.getTotalElements()), paginationParam));
     }
 
@@ -486,7 +483,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
             .ok(
                 new SubscriptionApiKeysResponse()
                     .data(apiKeysSubList)
-                    .pagination(computePaginationInfo(apiKeys.size(), apiKeysSubList.size(), paginationParam))
+                    .pagination(PaginationInfo.computePaginationInfo(apiKeys.size(), apiKeysSubList.size(), paginationParam))
                     .links(computePaginationLinks(apiKeys.size(), paginationParam))
             )
             .build();

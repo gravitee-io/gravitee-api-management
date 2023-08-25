@@ -23,6 +23,7 @@ import io.gravitee.rest.api.management.v2.rest.model.AddApiMember;
 import io.gravitee.rest.api.management.v2.rest.model.Member;
 import io.gravitee.rest.api.management.v2.rest.model.MembersResponse;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiMember;
+import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.management.v2.rest.security.Permission;
@@ -69,7 +70,7 @@ public class ApiMembersResource extends AbstractResource {
 
         return new MembersResponse()
             .data(membersSubList)
-            .pagination(computePaginationInfo(members.size(), membersSubList.size(), paginationParam))
+            .pagination(PaginationInfo.computePaginationInfo(members.size(), membersSubList.size(), paginationParam))
             .links(computePaginationLinks(members.size(), paginationParam));
     }
 

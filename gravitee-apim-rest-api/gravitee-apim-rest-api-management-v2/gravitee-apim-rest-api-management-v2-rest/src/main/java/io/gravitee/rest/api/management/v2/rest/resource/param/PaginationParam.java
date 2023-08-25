@@ -19,7 +19,15 @@ import io.gravitee.rest.api.model.common.PageableImpl;
 import jakarta.validation.constraints.Min;
 import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.QueryParam;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
 public class PaginationParam {
 
     public static final String PAGE_QUERY_PARAM_NAME = "page";
@@ -37,22 +45,6 @@ public class PaginationParam {
     @QueryParam(PER_PAGE_QUERY_PARAM_NAME)
     @Min(value = 1, message = "Pagination perPage param must be >= 1")
     Integer perPage;
-
-    public Integer getPage() {
-        return page;
-    }
-
-    public void setPage(Integer page) {
-        this.page = page;
-    }
-
-    public Integer getPerPage() {
-        return perPage;
-    }
-
-    public void setPerPage(Integer perPage) {
-        this.perPage = perPage;
-    }
 
     public io.gravitee.rest.api.model.common.Pageable toPageable() {
         return new PageableImpl(this.getPage(), this.getPerPage());

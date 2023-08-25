@@ -20,26 +20,22 @@ import io.gravitee.rest.api.management.v2.rest.mapper.MemberMapper;
 import io.gravitee.rest.api.management.v2.rest.model.GroupsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.Member;
 import io.gravitee.rest.api.management.v2.rest.model.MembersResponse;
+import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.management.v2.rest.security.Permission;
 import io.gravitee.rest.api.management.v2.rest.security.Permissions;
 import io.gravitee.rest.api.model.GroupEntity;
-import io.gravitee.rest.api.model.GroupSimpleEntity;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.GroupService;
-import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
-import jakarta.ws.rs.container.ResourceContext;
-import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
-
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -47,6 +43,7 @@ import java.util.stream.Collectors;
 
 @Path("/environments/{envId}/groups")
 public class GroupsResource extends AbstractResource {
+
     @Inject
     private GroupService groupService;
 
@@ -54,16 +51,16 @@ public class GroupsResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = { RolePermissionAction.READ })})
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = { RolePermissionAction.READ }) })
     public GroupsResponse listGroups(@BeanParam @Valid PaginationParam paginationParam) {
         List<GroupEntity> groups = groupService.findAll(GraviteeContext.getExecutionContext());
 
         List<GroupEntity> groupsSubset = computePaginationData(groups, paginationParam);
 
         return new GroupsResponse()
-                .data(mapper.map(groupsSubset))
-                .pagination(computePaginationInfo(groups.size(), groupsSubset.size(), paginationParam))
-                .links(computePaginationLinks(groups.size(), paginationParam));
+            .data(mapper.map(groupsSubset))
+            .pagination(PaginationInfo.computePaginationInfo(groups.size(), groupsSubset.size(), paginationParam))
+            .links(computePaginationLinks(groups.size(), paginationParam));
     }
 
     @GET
@@ -79,18 +76,18 @@ public class GroupsResource extends AbstractResource {
         metadata.put("groupName", groupEntity.getName());
 
         var members = membershipService
-                .getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.GROUP, groupId)
-                .stream()
-                .map(MemberMapper.INSTANCE::map)
-                .sorted(Comparator.comparing(Member::getId))
-                .collect(Collectors.toList());
+            .getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.GROUP, groupId)
+            .stream()
+            .map(MemberMapper.INSTANCE::map)
+            .sorted(Comparator.comparing(Member::getId))
+            .collect(Collectors.toList());
 
         List<Member> membersSubset = computePaginationData(members, paginationParam);
 
         return new MembersResponse()
-                .data(membersSubset)
-                .pagination(computePaginationInfo(members.size(), membersSubset.size(), paginationParam))
-                .links(computePaginationLinks(members.size(), paginationParam))
-                .metadata(metadata);
+            .data(membersSubset)
+            .pagination(PaginationInfo.computePaginationInfo(members.size(), membersSubset.size(), paginationParam))
+            .links(computePaginationLinks(members.size(), paginationParam))
+            .metadata(metadata);
     }
 }
