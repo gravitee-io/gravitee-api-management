@@ -54,6 +54,29 @@ describe('Installation Plugins Service', () => {
       });
     });
 
+    describe('listEndpointPluginsByApiType', () => {
+      it('should call the API', (done) => {
+        const response = [
+          fakeConnectorPlugin({ name: 'z-plugin' }),
+          fakeConnectorPlugin({ name: 'a-plugin' }),
+          fakeConnectorPlugin({ supportedApiType: 'MESSAGE' }),
+        ];
+        const result = [fakeConnectorPlugin({ name: 'a-plugin' }), fakeConnectorPlugin({ name: 'z-plugin' })];
+
+        installationPluginsService.listEndpointPluginsByApiType('PROXY').subscribe((connectors) => {
+          expect(connectors).toStrictEqual(result);
+          done();
+        });
+
+        httpTestingController
+          .expectOne({
+            url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/endpoints`,
+            method: 'GET',
+          })
+          .flush(response);
+      });
+    });
+
     describe('v4Get', () => {
       it('should call the API', (done) => {
         const fakeConnectors = fakeConnectorPlugin();

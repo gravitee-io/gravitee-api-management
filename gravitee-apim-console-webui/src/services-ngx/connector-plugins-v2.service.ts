@@ -20,7 +20,7 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import { Constants } from '../entities/Constants';
-import { ConnectorPlugin, MoreInformation } from '../entities/management-api-v2';
+import { ApiType, ConnectorPlugin, MoreInformation } from '../entities/management-api-v2';
 
 @Injectable({
   providedIn: 'root',
@@ -30,6 +30,20 @@ export class ConnectorPluginsV2Service {
 
   listEndpointPlugins(): Observable<ConnectorPlugin[]> {
     return this.http.get<ConnectorPlugin[]>(`${this.constants.v2BaseURL}/plugins/endpoints`);
+  }
+
+  listEndpointPluginsByApiType(apiType: ApiType): Observable<ConnectorPlugin[]> {
+    return this.listEndpointPlugins().pipe(
+      map((endpointPlugins) =>
+        endpointPlugins
+          .filter((endpoint) => endpoint.supportedApiType === apiType)
+          .sort((endpoint1, endpoint2) => {
+            const name1 = endpoint1.name.toUpperCase();
+            const name2 = endpoint2.name.toUpperCase();
+            return name1 < name2 ? -1 : name1 > name2 ? 1 : 0;
+          }),
+      ),
+    );
   }
 
   listEntrypointPlugins(): Observable<ConnectorPlugin[]> {

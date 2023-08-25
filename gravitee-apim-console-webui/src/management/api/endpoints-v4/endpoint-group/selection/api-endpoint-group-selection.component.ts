@@ -48,19 +48,8 @@ export class ApiEndpointGroupSelectionComponent implements OnInit {
 
   ngOnInit() {
     this.connectorPluginsV2Service
-      .listEndpointPlugins()
-      .pipe(
-        map((endpointPlugins) =>
-          endpointPlugins
-            .filter((endpoint) => endpoint.supportedApiType === 'MESSAGE')
-            .sort((endpoint1, endpoint2) => {
-              const name1 = endpoint1.name.toUpperCase();
-              const name2 = endpoint2.name.toUpperCase();
-              return name1 < name2 ? -1 : name1 > name2 ? 1 : 0;
-            }),
-        ),
-        takeUntil(this.unsubscribe$),
-      )
+      .listEndpointPluginsByApiType('MESSAGE')
+      .pipe(takeUntil(this.unsubscribe$))
       .subscribe((endpointPlugins) => {
         this.endpoints = endpointPlugins.map((endpoint) => fromConnector(this.iconService, endpoint));
       });

@@ -18,7 +18,7 @@ import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { of, Subject } from 'rxjs';
-import { catchError, map, takeUntil, tap } from 'rxjs/operators';
+import { catchError, takeUntil, tap } from 'rxjs/operators';
 import { GioConfirmDialogComponent, GioConfirmDialogData, GioLicenseService } from '@gravitee/ui-particles-angular';
 import { isEqual } from 'lodash';
 
@@ -77,19 +77,8 @@ export class Step3Endpoints1ListComponent implements OnInit, OnDestroy {
     });
 
     this.connectorPluginsV2Service
-      .listEndpointPlugins()
-      .pipe(
-        map((endpointPlugins) =>
-          endpointPlugins
-            .filter((endpoint) => endpoint.supportedApiType === 'MESSAGE')
-            .sort((endpoint1, endpoint2) => {
-              const name1 = endpoint1.name.toUpperCase();
-              const name2 = endpoint2.name.toUpperCase();
-              return name1 < name2 ? -1 : name1 > name2 ? 1 : 0;
-            }),
-        ),
-        takeUntil(this.unsubscribe$),
-      )
+      .listEndpointPluginsByApiType('MESSAGE')
+      .pipe(takeUntil(this.unsubscribe$))
       .subscribe((endpointPlugins) => {
         this.endpoints = endpointPlugins.map((endpoint) => fromConnector(this.iconService, endpoint));
 
