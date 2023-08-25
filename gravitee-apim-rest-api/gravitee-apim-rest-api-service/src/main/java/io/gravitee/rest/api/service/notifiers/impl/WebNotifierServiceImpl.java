@@ -143,75 +143,55 @@ public class WebNotifierServiceImpl implements WebNotifierService {
         Future<HttpClientRequest> requestFuture = httpClient.request(options);
 
         requestFuture
-            .onFailure(
-                new Handler<Throwable>() {
-                    @Override
-                    public void handle(Throwable throwable) {
+            .onFailure(throwable -> {
+                future.completeExceptionally(throwable);
+
+                // Close client
+                httpClient.close();
+            })
+            .onSuccess(request -> {
+                request
+                    .response(asyncResponse -> {
+                        if (asyncResponse.failed()) {
+                            future.completeExceptionally(asyncResponse.cause());
+
+                            // Close client
+                            httpClient.close();
+                        } else {
+                            HttpClientResponse response = asyncResponse.result();
+                            LOGGER.debug("Web response status code : {}", response.statusCode());
+
+                            if (isStatus2xx(response)) {
+                                response.bodyHandler(buffer -> {
+                                    future.complete(buffer);
+
+                                    // Close client
+                                    httpClient.close();
+                                });
+                            } else {
+                                future.completeExceptionally(
+                                    new TechnicalManagementException(
+                                        " Error on url '" +
+                                        uri +
+                                        "'. Status code: " +
+                                        response.statusCode() +
+                                        ". Message: " +
+                                        response.statusMessage(),
+                                        null
+                                    )
+                                );
+                            }
+                        }
+                    })
+                    .exceptionHandler(throwable -> {
                         future.completeExceptionally(throwable);
 
                         // Close client
                         httpClient.close();
-                    }
-                }
-            )
-            .onSuccess(
-                new Handler<HttpClientRequest>() {
-                    @Override
-                    public void handle(HttpClientRequest request) {
-                        request
-                            .response(
-                                new Handler<AsyncResult<HttpClientResponse>>() {
-                                    @Override
-                                    public void handle(AsyncResult<HttpClientResponse> asyncResponse) {
-                                        if (asyncResponse.failed()) {
-                                            future.completeExceptionally(asyncResponse.cause());
+                    });
 
-                                            // Close client
-                                            httpClient.close();
-                                        } else {
-                                            HttpClientResponse response = asyncResponse.result();
-                                            LOGGER.debug("Web response status code : {}", response.statusCode());
-
-                                            if (response.statusCode() == HttpStatusCode.OK_200) {
-                                                response.bodyHandler(buffer -> {
-                                                    future.complete(buffer);
-
-                                                    // Close client
-                                                    httpClient.close();
-                                                });
-                                            } else {
-                                                future.completeExceptionally(
-                                                    new TechnicalManagementException(
-                                                        " Error on url '" +
-                                                        uri +
-                                                        "'. Status code: " +
-                                                        response.statusCode() +
-                                                        ". Message: " +
-                                                        response.statusMessage(),
-                                                        null
-                                                    )
-                                                );
-                                            }
-                                        }
-                                    }
-                                }
-                            )
-                            .exceptionHandler(
-                                new Handler<Throwable>() {
-                                    @Override
-                                    public void handle(Throwable throwable) {
-                                        future.completeExceptionally(throwable);
-
-                                        // Close client
-                                        httpClient.close();
-                                    }
-                                }
-                            );
-
-                        request.end(body);
-                    }
-                }
-            );
+                request.end(body);
+            });
 
         try {
             future.get();
@@ -223,5 +203,9 @@ public class WebNotifierServiceImpl implements WebNotifierService {
             Thread.currentThread().interrupt();
             throw new TechnicalManagementException(e.getMessage(), e);
         }
+    }
+
+    private static boolean isStatus2xx(HttpClientResponse httpResponse) {
+        return httpResponse.statusCode() / 100 == 2;
     }
 }
