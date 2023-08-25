@@ -19,7 +19,7 @@ import { of, Subject } from 'rxjs';
 import { FormGroup } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 
-import { ConnectorVM } from '../../../creation-v4/models/ConnectorVM';
+import { ConnectorVM, fromConnector } from '../../../../../entities/management-api-v2';
 import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
 import { IconService } from '../../../../../services-ngx/icon.service';
 import {
@@ -62,15 +62,7 @@ export class ApiEndpointGroupSelectionComponent implements OnInit {
         takeUntil(this.unsubscribe$),
       )
       .subscribe((endpointPlugins) => {
-        this.endpoints = endpointPlugins.map((endpoint) => ({
-          id: endpoint.id,
-          name: endpoint.name,
-          description: endpoint.description,
-          isEnterprise: endpoint.id.endsWith('-advanced'),
-          supportedListenerType: endpoint.supportedListenerType,
-          icon: this.iconService.registerSvg(endpoint.id, endpoint.icon),
-          deployed: endpoint.deployed,
-        }));
+        this.endpoints = endpointPlugins.map((endpoint) => fromConnector(this.iconService, endpoint));
       });
   }
 

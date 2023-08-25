@@ -26,7 +26,7 @@ import { Step3Endpoints2ConfigComponent } from './step-3-endpoints-2-config.comp
 
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
 import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
-import { ConnectorVM } from '../../models/ConnectorVM';
+import { ConnectorVM, fromConnector } from '../../../../../entities/management-api-v2';
 import {
   GioConnectorDialogComponent,
   GioConnectorDialogData,
@@ -91,15 +91,7 @@ export class Step3Endpoints1ListComponent implements OnInit, OnDestroy {
         takeUntil(this.unsubscribe$),
       )
       .subscribe((endpointPlugins) => {
-        this.endpoints = endpointPlugins.map((endpoint) => ({
-          id: endpoint.id,
-          name: endpoint.name,
-          description: endpoint.description,
-          isEnterprise: endpoint.id.endsWith('-advanced'),
-          supportedListenerType: endpoint.supportedListenerType,
-          icon: this.iconService.registerSvg(endpoint.id, endpoint.icon),
-          deployed: endpoint.deployed,
-        }));
+        this.endpoints = endpointPlugins.map((endpoint) => fromConnector(this.iconService, endpoint));
 
         this.changeDetectorRef.detectChanges();
       });

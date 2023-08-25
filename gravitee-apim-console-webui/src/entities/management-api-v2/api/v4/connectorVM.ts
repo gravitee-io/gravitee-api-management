@@ -1,4 +1,4 @@
-import { ConnectorPlugin, ListenerType } from '../../../../entities/management-api-v2';
+import { ConnectorPlugin, ListenerType } from '../../index';
 
 /*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)

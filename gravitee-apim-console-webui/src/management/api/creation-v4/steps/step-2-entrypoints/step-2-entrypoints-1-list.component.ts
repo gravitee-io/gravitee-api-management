@@ -25,7 +25,7 @@ import { isEqual } from 'lodash';
 import { Step2Entrypoints2ConfigComponent } from './step-2-entrypoints-2-config.component';
 
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
-import { ConnectorVM, fromConnector } from '../../models/ConnectorVM';
+import { ConnectorVM, fromConnector } from '../../../../../entities/management-api-v2';
 import { IconService } from '../../../../../services-ngx/icon.service';
 import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
 import { ApimFeature, UTMTags } from '../../../../../shared/components/gio-license/gio-license-data';

@@ -26,12 +26,22 @@ import { ApiEntrypointsV4AddDialogComponent, ApiEntrypointsV4AddDialogComponentD
 
 import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
-import { Api, ApiV4, ConnectorPlugin, Entrypoint, HttpListener, Listener, PathV4, UpdateApiV4 } from '../../../entities/management-api-v2';
+import {
+  Api,
+  ApiV4,
+  ConnectorPlugin,
+  Entrypoint,
+  HttpListener,
+  Listener,
+  PathV4,
+  UpdateApiV4,
+  ConnectorVM,
+  fromConnector,
+} from '../../../entities/management-api-v2';
 import { ConnectorPluginsV2Service } from '../../../services-ngx/connector-plugins-v2.service';
 import { IconService } from '../../../services-ngx/icon.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { EnvironmentService } from '../../../services-ngx/environment.service';
-import { ConnectorVM, fromConnector } from '../creation-v4/models/ConnectorVM';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 
 type EntrypointVM = {

@@ -17,7 +17,7 @@ import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
-import { ConnectorVM } from '../../creation-v4/models/ConnectorVM';
+import { ConnectorVM } from '../../../../entities/management-api-v2';
 
 export type ApiEntrypointsV4AddDialogComponentData = {
   entrypoints: ConnectorVM[];
