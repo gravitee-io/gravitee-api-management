@@ -383,7 +383,7 @@ class DefaultExecutionContextTest {
             Arguments.arguments("a\t,\tb,\tc\t", List.of("a", "b", "c")),
             Arguments.arguments("a\t\t,\t\tb,\t\tc\t\t", List.of("a", "b", "c")),
             Arguments.arguments("a b c", List.of("a b c")),
-            Arguments.arguments(" a b c ", List.of(" a b c ")),
+            Arguments.arguments(" a b c ", List.of("a b c")),
             Arguments.arguments("[\"a\", \"b\", \"c\"]", List.of("a", "b", "c")),
             Arguments.arguments("[\"a\", {}, \"c\"]", List.of("a", "{}", "c")),
             Arguments.arguments("[\"a\", 1, \"c\"]", List.of("a", "1", "c")),
