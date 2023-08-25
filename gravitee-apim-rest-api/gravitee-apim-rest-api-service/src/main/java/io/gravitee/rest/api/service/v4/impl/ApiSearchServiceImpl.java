@@ -216,7 +216,8 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
         final String userId,
         final boolean isAdmin,
         final QueryBuilder<ApiEntity> apiQueryBuilder,
-        final Pageable pageable
+        final Pageable pageable,
+        final boolean mapToFullGenericApiEntity
     ) {
         // Step 1: find apiIds from lucene indexer from 'query' parameter without any pagination and sorting
         var apiQuery = apiQueryBuilder.build();
@@ -270,10 +271,20 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
 
         Comparator<String> orderingComparator = Comparator.comparingInt(apiIdPageSubset::indexOf);
 
-        // Step 5: Map the page ID subset to GenericApis, sort by subset order and add Page information
-        return apis
-            .stream()
-            .map(api -> genericApiMapper.toGenericApi(api, primaryOwners.get(api.getId())))
+        // Step 5: Map the page ID subset to GenericApis
+        Stream<GenericApiEntity> apisStream;
+
+        if (mapToFullGenericApiEntity) {
+            final List<CategoryEntity> categories = categoryService.findAll(executionContext.getEnvironmentId());
+            apisStream =
+                apis.stream().map(api -> genericApiMapper.toGenericApi(executionContext, api, primaryOwners.get(api.getId()), categories));
+        } else {
+            // Map to simple GenericApiEntity
+            apisStream = apis.stream().map(api -> genericApiMapper.toGenericApi(api, primaryOwners.get(api.getId())));
+        }
+
+        // Step 6: Sort by subset order and add Page information
+        return apisStream
             .sorted((o1, o2) -> orderingComparator.compare(o1.getId(), o2.getId()))
             .collect(
                 Collectors.collectingAndThen(
