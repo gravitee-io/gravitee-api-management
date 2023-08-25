@@ -21,6 +21,7 @@ import static io.gravitee.rest.api.model.MembershipReferenceType.GROUP;
 
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.management.v2.rest.model.Links;
+import io.gravitee.rest.api.management.v2.rest.pagination.PaginationLinks;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.model.MembershipEntity;
 import io.gravitee.rest.api.model.RoleEntity;
@@ -45,7 +46,6 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.EntityTag;
 import jakarta.ws.rs.core.HttpHeaders;
-import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.core.UriBuilder;
 import jakarta.ws.rs.core.UriInfo;
@@ -286,66 +286,11 @@ public abstract class AbstractResource {
     }
 
     protected Links computePaginationLinks(int totalElements, PaginationParam paginationParam) {
-        if (paginationParam.getPerPage() == 0) {
-            return null;
-        }
-        int totalPages = (int) Math.ceil((double) totalElements / paginationParam.getPerPage());
-
-        if (paginationParam.getPage() <= 0 || paginationParam.getPage() > totalPages) {
-            return null;
-        }
-
-        if (totalPages == 1) {
-            return new Links().self(uriInfo.getRequestUri().toString());
-        }
-
-        final String pageToken = "{page}";
-        final String perPageToken = "{perPage}";
-        String linkTemplate = uriInfo.getRequestUri().toString();
-
-        final MultivaluedMap<String, String> queryParameters = uriInfo.getQueryParameters();
-
-        if (queryParameters.isEmpty()) {
-            linkTemplate += "?" + PaginationParam.PAGE_QUERY_PARAM_NAME + "=" + pageToken;
-        } else {
-            final String queryPage = queryParameters.getFirst(PaginationParam.PAGE_QUERY_PARAM_NAME);
-            final String queryPerPage = queryParameters.getFirst(PaginationParam.PER_PAGE_QUERY_PARAM_NAME);
-
-            if (queryPage != null) {
-                linkTemplate =
-                    linkTemplate.replaceFirst(
-                        PaginationParam.PAGE_QUERY_PARAM_NAME + "=(\\w*)",
-                        PaginationParam.PAGE_QUERY_PARAM_NAME + "=" + pageToken
-                    );
-            } else {
-                linkTemplate += "&" + PaginationParam.PAGE_QUERY_PARAM_NAME + "=" + pageToken;
-            }
-            if (queryPerPage != null) {
-                linkTemplate =
-                    linkTemplate.replaceFirst(
-                        PaginationParam.PER_PAGE_QUERY_PARAM_NAME + "=(\\w*)",
-                        PaginationParam.PER_PAGE_QUERY_PARAM_NAME + "=" + perPageToken
-                    );
-            }
-        }
-
-        Integer firstPage = 1;
-        Integer lastPage = totalPages;
-        Integer nextPage = Math.min(paginationParam.getPage() + 1, lastPage);
-        Integer prevPage = Math.max(firstPage, paginationParam.getPage() - 1);
-        String perPageAsString = String.valueOf(paginationParam.getPerPage());
-        Links paginatedLinks = new Links()
-            .first(linkTemplate.replace(pageToken, String.valueOf(firstPage)).replace(perPageToken, perPageAsString))
-            .last(linkTemplate.replace(pageToken, String.valueOf(lastPage)).replace(perPageToken, perPageAsString))
-            .next(linkTemplate.replace(pageToken, String.valueOf(nextPage)).replace(perPageToken, perPageAsString))
-            .previous(linkTemplate.replace(pageToken, String.valueOf(prevPage)).replace(perPageToken, perPageAsString))
-            .self(uriInfo.getRequestUri().toString());
-
-        if (paginationParam.getPage() == 1) {
-            paginatedLinks.setPrevious(null);
-        } else if (paginationParam.getPage().equals(totalPages)) {
-            paginatedLinks.setNext(null);
-        }
-        return paginatedLinks;
+        return PaginationLinks.computePaginationLinks(
+            uriInfo.getRequestUri(),
+            uriInfo.getQueryParameters(),
+            totalElements,
+            paginationParam
+        );
     }
 }
