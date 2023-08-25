@@ -1,0 +1,90 @@
+{
+  "id": "http-get-entrypoint-kafka-endpoint",
+  "name": "my-api-auto",
+  "apiVersion": "1.0",
+  "definitionVersion": "4.0.0",
+  "type": "message",
+  "description": "api v4 using HTTP-GET entrypoint",
+  "listeners": [
+    {
+      "type": "http",
+      "paths": [
+        {
+          "path": "/test"
+        }
+      ],
+      "entrypoints": [
+        {
+          "type": "http-get",
+          "configuration": {
+            "messagesLimitCount": 3,
+            "messagesLimitDurationMs": 10000,
+            "headersInPayload": true,
+            "metadataInPayload": true
+          }
+        }
+      ]
+    }
+  ],
+  "endpointGroups": [
+    {
+      "name": "default-group",
+      "type": "kafka",
+      "endpoints": [
+        {
+          "name": "default",
+          "type": "kafka",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "bootstrapServers": "bootstrap-server"
+          },
+          "sharedConfigurationOverride": {
+            "consumer": {
+              "enabled": true,
+              "topics": ["test-topic"],
+              "autoOffsetReset": "earliest"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "flows": [
+    {
+      "name": "flow-1",
+      "enabled": true,
+      "selectors": [
+        {
+          "type": "http",
+          "path": "/:newTopic",
+          "pathOperator": "STARTS_WITH"
+        }
+      ],
+      "request": [
+        {
+          "name": "Assign Attributes",
+          "description": "Assign 'test-topic-attribute' as new topic",
+          "enabled": true,
+          "policy": "assign-attributes",
+          "condition": "{#request.headers['X-Topic-Override-Request-Level'] != null}",
+          "configuration": {
+            "scope": "REQUEST",
+            "attributes": [
+              {
+                "name": "gravitee.attribute.kafka.topics",
+                "value": "{#request.headers['X-Topic-Override-Request-Level'][0]}"
+              }
+            ]
+          }
+        }
+      ],
+      "response": [],
+      "subscribe": [],
+      "publish": []
+    }
+  ],
+  "analytics": {
+    "enabled": false
+  }
+}

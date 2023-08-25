@@ -26,6 +26,8 @@ import io.gravitee.apim.integration.tests.fake.InterruptMessageRequestPhasePolic
 import io.gravitee.apim.integration.tests.messages.AbstractKafkaEndpointIntegrationTest;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.policy.PolicyPlugin;
+import io.gravitee.policy.assignattributes.AssignAttributesPolicy;
+import io.gravitee.policy.assignattributes.configuration.AssignAttributesPolicyConfiguration;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.Vertx;
@@ -41,12 +43,6 @@ import org.junit.jupiter.api.Test;
  * @author GraviteeSource Team
  */
 @GatewayTest
-@DeployApi(
-    {
-        "/apis/v4/messages/http-post/http-post-entrypoint-kafka-endpoint.json",
-        "/apis/v4/messages/http-post/http-post-entrypoint-kafka-endpoint-failure.json",
-    }
-)
 class HttpPostEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpointIntegrationTest {
 
     @Override
@@ -60,10 +56,15 @@ class HttpPostEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoi
             "interrupt-message-request-phase",
             PolicyBuilder.build("interrupt-message-request-phase", InterruptMessageRequestPhasePolicy.class)
         );
+        policies.put(
+               "assign-attributes",
+               PolicyBuilder.build("assign-attributes", AssignAttributesPolicy.class, AssignAttributesPolicyConfiguration.class)
+        );
     }
 
     @Test
-    void should_be_able_to_subscribe_to_kafka_endpoint_with_httppost_entrypoint(HttpClient client, Vertx vertx) {
+    @DeployApi("/apis/v4/messages/http-post/http-post-entrypoint-kafka-endpoint.json")
+    void should_be_able_to_publish_to_kafka_endpoint_with_httppost_entrypoint(HttpClient client, Vertx vertx) {
         JsonObject requestBody = new JsonObject();
         requestBody.put("field", "value");
 
@@ -105,6 +106,131 @@ class HttpPostEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoi
     }
 
     @Test
+    @DeployApi("/apis/v4/messages/http-post/http-post-entrypoint-kafka-endpoint-override-topic.json")
+    void should_be_able_to_publish_to_kafka_topic_from_context_attribute(HttpClient client, Vertx vertx) {
+        JsonObject requestBody = new JsonObject();
+        requestBody.put("field", "value");
+
+        client
+               .rxRequest(HttpMethod.POST, "/test")
+               .flatMap(request -> {
+                   request.putHeader("X-Test-Header", "header-value");
+                   // Override topic from header: topic is set on request phase
+                   request.putHeader("X-Topic-Override-Request-Level", "test-topic-attribute,another-topic-override");
+                   return request.rxSend(requestBody.toString());
+               })
+               .flatMapPublisher(response -> {
+                   assertThat(response.statusCode()).isEqualTo(202);
+                   return response.toFlowable();
+               })
+               .test()
+               .awaitDone(10, TimeUnit.SECONDS)
+               .assertComplete()
+               .assertNoErrors();
+
+        // Configure a KafkaConsumer to read messages published on topic test-topic.
+        KafkaConsumer<String, byte[]> kafkaConsumer = getKafkaConsumer(vertx);
+
+        subscribeToKafka(kafkaConsumer, "test-topic-attribute")
+               // We expect one message for this test
+               .take(1)
+               .test()
+               .awaitDone(30, TimeUnit.SECONDS)
+               .assertValueAt(
+                      0,
+                      message -> {
+                          assertThat(message.headers()).contains(KafkaHeader.header("X-Test-Header", "header-value"));
+                          final io.vertx.kafka.client.consumer.KafkaConsumerRecord kafkaConsumerRecord = message.getDelegate();
+                          assertThat(kafkaConsumerRecord.value()).isEqualTo(requestBody.toBuffer().getBytes());
+                          return true;
+                      }
+               )
+               .assertComplete();
+
+        subscribeToKafka(kafkaConsumer, "another-topic-override")
+               // We expect one message for this test
+               .take(1)
+               .test()
+               .awaitDone(30, TimeUnit.SECONDS)
+               .assertValueAt(
+                      0,
+                      message -> {
+                          assertThat(message.headers()).contains(KafkaHeader.header("X-Test-Header", "header-value"));
+                          final io.vertx.kafka.client.consumer.KafkaConsumerRecord kafkaConsumerRecord = message.getDelegate();
+                          assertThat(kafkaConsumerRecord.value()).isEqualTo(requestBody.toBuffer().getBytes());
+                          return true;
+                      }
+               )
+               .assertComplete();
+
+        kafkaConsumer.close().blockingAwait(30, TimeUnit.SECONDS);
+    }
+
+    @Test
+    @DeployApi("/apis/v4/messages/http-post/http-post-entrypoint-kafka-endpoint-override-topic.json")
+    void should_be_able_to_publish_to_kafka_topics_from_message_attribute(HttpClient client, Vertx vertx) {
+        JsonObject requestBody = new JsonObject();
+        requestBody.put("field", "value");
+
+        client
+               .rxRequest(HttpMethod.POST, "/test")
+               .flatMap(request -> {
+                   request.putHeader("X-Test-Header", "header-value");
+                   // Override topic from header: topic is set on request phase
+                   request.putHeader("X-Topic-Override-Request-Level", "test-topic-attribute");
+                   // Override topic from header: topic is set on message publish and override the one set on request phase
+                   request.putHeader("X-Topic-Override-Message-Level", "test-topic-message-attribute, another-topic-override");
+                   return request.rxSend(requestBody.toString());
+               })
+               .flatMapPublisher(response -> {
+                   assertThat(response.statusCode()).isEqualTo(202);
+                   return response.toFlowable();
+               })
+               .test()
+               .awaitDone(10, TimeUnit.SECONDS)
+               .assertComplete()
+               .assertNoErrors();
+
+        // Configure a KafkaConsumer to read messages published on topic test-topic.
+        KafkaConsumer<String, byte[]> kafkaConsumer = getKafkaConsumer(vertx);
+
+        subscribeToKafka(kafkaConsumer, "test-topic-message-attribute")
+               // We expect one message for this test
+               .take(1)
+               .test()
+               .awaitDone(30, TimeUnit.SECONDS)
+               .assertValueAt(
+                      0,
+                      message -> {
+                          assertThat(message.headers()).contains(KafkaHeader.header("X-Test-Header", "header-value"));
+                          final io.vertx.kafka.client.consumer.KafkaConsumerRecord kafkaConsumerRecord = message.getDelegate();
+                          assertThat(kafkaConsumerRecord.value()).isEqualTo(requestBody.toBuffer().getBytes());
+                          return true;
+                      }
+               )
+               .assertComplete();
+
+        subscribeToKafka(kafkaConsumer, "another-topic-override")
+               // We expect one message for this test
+               .take(1)
+               .test()
+               .awaitDone(30, TimeUnit.SECONDS)
+               .assertValueAt(
+                      0,
+                      message -> {
+                          assertThat(message.headers()).contains(KafkaHeader.header("X-Test-Header", "header-value"));
+                          final io.vertx.kafka.client.consumer.KafkaConsumerRecord kafkaConsumerRecord = message.getDelegate();
+                          assertThat(kafkaConsumerRecord.value()).isEqualTo(requestBody.toBuffer().getBytes());
+                          return true;
+                      }
+               )
+               .assertComplete();
+
+        kafkaConsumer.close().blockingAwait(30, TimeUnit.SECONDS);
+    }
+
+    @Test
+    @DeployApi("/apis/v4/messages/http-post/http-post-entrypoint-kafka-endpoint-failure.json")
     void should_return_an_error_when_message_failed_to_be_published(HttpClient client) {
         JsonObject requestBody = new JsonObject();
         requestBody.put("field", "value");
