@@ -48,6 +48,8 @@ import io.gravitee.rest.api.service.v4.PlanService;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
 import io.gravitee.rest.api.service.v4.mapper.CategoryMapper;
 import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
+
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
@@ -132,6 +134,7 @@ public class ApiSearchService_SearchTest {
                 searchEngineService,
                 apiAuthorizationService
             );
+        when(categoryService.findAll(GraviteeContext.getCurrentEnvironment())).thenReturn(new ArrayList<>());
     }
 
     @Test
@@ -228,10 +231,12 @@ public class ApiSearchService_SearchTest {
 
         var apiEntity1 = new Api();
         apiEntity1.setId("id-3");
+        apiEntity1.setDefinitionVersion(DefinitionVersion.V4);
         apiEntity1.setLifecycleState(LifecycleState.STARTED);
 
         var apiEntity2 = new Api();
         apiEntity2.setId("id-4");
+        apiEntity2.setDefinitionVersion(DefinitionVersion.V4);
         apiEntity2.setLifecycleState(LifecycleState.STARTED);
 
         when(
@@ -304,10 +309,12 @@ public class ApiSearchService_SearchTest {
 
         var apiEntity1 = new Api();
         apiEntity1.setId("id-1");
+        apiEntity1.setDefinitionVersion(DefinitionVersion.V4);
         apiEntity1.setLifecycleState(LifecycleState.STARTED);
 
         var apiEntity2 = new Api();
         apiEntity2.setId("id-2");
+        apiEntity2.setDefinitionVersion(DefinitionVersion.V4);
         apiEntity2.setLifecycleState(LifecycleState.STARTED);
 
         when(apiAuthorizationService.findApiIdsByUserId(eq(GraviteeContext.getExecutionContext()), eq(USER_ID), isNull()))

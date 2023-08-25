@@ -270,10 +270,12 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
 
         Comparator<String> orderingComparator = Comparator.comparingInt(apiIdPageSubset::indexOf);
 
+        final List<CategoryEntity> categories = categoryService.findAll(executionContext.getEnvironmentId());
+
         // Step 5: Map the page ID subset to GenericApis, sort by subset order and add Page information
         return apis
             .stream()
-            .map(api -> genericApiMapper.toGenericApi(api, primaryOwners.get(api.getId())))
+            .map(api -> genericApiMapper.toGenericApi(executionContext, api, primaryOwners.get(api.getId()), categories))
             .sorted((o1, o2) -> orderingComparator.compare(o1.getId(), o2.getId()))
             .collect(
                 Collectors.collectingAndThen(
