@@ -22,7 +22,7 @@ public class PaginationInfo {
 
     private PaginationInfo() {}
 
-    public static Pagination computePaginationInfo(Integer totalCount, Integer pageItemsCount, PaginationParam paginationParam) {
+    public static Pagination computePaginationInfo(long totalCount, Integer pageItemsCount, PaginationParam paginationParam) {
         Pagination pagination = new Pagination();
         if (totalCount > 0) {
             pagination

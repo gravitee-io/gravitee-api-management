@@ -101,7 +101,7 @@ public class ApiLogsResourceTest extends ApiResourceTest {
                                 .build()
                         )
                     )
-                    .pagination(Pagination.builder().page(1).perPage(10).pageCount(1).pageItemsCount(1).totalCount(1).build())
+                    .pagination(Pagination.builder().page(1).perPage(10).pageCount(1).pageItemsCount(1).totalCount(1L).build())
                     .links(Links.builder().self(target.getUri().toString()).build())
                     .build()
             );

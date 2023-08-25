@@ -103,7 +103,7 @@ public class ApisResource extends AbstractResource {
             paginationParam.toPageable()
         );
 
-        Integer totalCount = Math.toIntExact(apis.getTotalElements());
+        long totalCount = apis.getTotalElements();
         Integer pageItemsCount = Math.toIntExact(apis.getPageElements());
         return new ApisResponse()
             .data(
@@ -119,7 +119,7 @@ public class ApisResource extends AbstractResource {
                 )
             )
             .pagination(PaginationInfo.computePaginationInfo(totalCount, pageItemsCount, paginationParam))
-            .links(computePaginationLinks(Math.toIntExact(apis.getTotalElements()), paginationParam));
+            .links(computePaginationLinks(totalCount, paginationParam));
     }
 
     @POST
@@ -196,7 +196,7 @@ public class ApisResource extends AbstractResource {
             paginationParam.toPageable()
         );
 
-        Integer totalCount = Math.toIntExact(apis.getTotalElements());
+        long totalCount = apis.getTotalElements();
         Integer pageItemsCount = Math.toIntExact(apis.getPageElements());
         return new ApisResponse()
             .data(
@@ -212,7 +212,7 @@ public class ApisResource extends AbstractResource {
                 )
             )
             .pagination(PaginationInfo.computePaginationInfo(totalCount, pageItemsCount, paginationParam))
-            .links(computePaginationLinks(Math.toIntExact(apis.getTotalElements()), paginationParam));
+            .links(computePaginationLinks(totalCount, paginationParam));
     }
 
     @Path("{apiId}")

@@ -172,7 +172,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
                 .isEqualTo(
                     PlansResponse
                         .builder()
-                        .pagination(Pagination.builder().page(1).perPage(10).pageItemsCount(2).totalCount(2).pageCount(1).build())
+                        .pagination(Pagination.builder().page(1).perPage(10).pageItemsCount(2).totalCount(2L).pageCount(1).build())
                         .data(
                             Stream
                                 .of(plan3, plan1)
@@ -236,7 +236,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
                 .isEqualTo(
                     PlansResponse
                         .builder()
-                        .pagination(Pagination.builder().page(1).perPage(1).pageItemsCount(1).totalCount(2).pageCount(2).build())
+                        .pagination(Pagination.builder().page(1).perPage(1).pageItemsCount(1).totalCount(2L).pageCount(2).build())
                         .data(
                             Stream
                                 .of(plan1)

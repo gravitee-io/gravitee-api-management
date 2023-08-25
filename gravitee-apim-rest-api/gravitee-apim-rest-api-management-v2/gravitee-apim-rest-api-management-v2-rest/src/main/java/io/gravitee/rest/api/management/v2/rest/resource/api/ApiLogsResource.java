@@ -64,7 +64,7 @@ public class ApiLogsResource extends AbstractResource {
                         .build()
                 )
             )
-            .pagination(PaginationInfo.computePaginationInfo(1, 1, paginationParam))
+            .pagination(PaginationInfo.computePaginationInfo(1L, 1, paginationParam))
             .links(computePaginationLinks(1, paginationParam))
             .build();
     }

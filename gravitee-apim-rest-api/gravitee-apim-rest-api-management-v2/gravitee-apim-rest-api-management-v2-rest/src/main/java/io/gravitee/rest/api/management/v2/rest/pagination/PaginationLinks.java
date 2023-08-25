@@ -27,7 +27,7 @@ public class PaginationLinks {
     public static Links computePaginationLinks(
         URI requestUri,
         MultivaluedMap<String, String> queryParameters,
-        int totalElements,
+        long totalElements,
         PaginationParam paginationParam
     ) {
         if (totalElements == 0) {
