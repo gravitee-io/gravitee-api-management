@@ -185,10 +185,7 @@ describe('ApisListComponent', () => {
 
       await loader.getHarness(GioTableWrapperHarness).then((tableWrapper) => tableWrapper.setSearchValue('bad-search'));
       await tick(400);
-      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search?page=1&perPage=10`);
-      expect(req.request.body).toEqual({ query: 'bad-search' });
-
-      req.flush('Internal error', { status: 500, statusText: 'Internal error' });
+      expectApisListRequest(undefined, undefined, 'bad-search', 1, 'Internal error', { status: 500, statusText: 'Internal error' });
 
       await loader.getHarness(GioTableWrapperHarness).then((tableWrapper) => tableWrapper.setSearchValue('good-search'));
 
@@ -213,12 +210,11 @@ describe('ApisListComponent', () => {
 
       const nameSort = await loader.getHarness(MatSortHeaderHarness.with({ selector: '#name' })).then((sortHarness) => sortHarness.host());
       await nameSort.click();
-      apis.map((api) => expectSyncedApi(api.id, true));
+
       expectApisListRequest(apis, 'name');
 
       fixture.detectChanges();
       await nameSort.click();
-      apis.map((api) => expectSyncedApi(api.id, true));
       expectApisListRequest(apis, '-name');
     }));
 
@@ -232,25 +228,25 @@ describe('ApisListComponent', () => {
         .getHarness(MatSortHeaderHarness.with({ selector: '#contextPath' }))
         .then((sortHarness) => sortHarness.host());
       await contextPathSort.click();
-      apis.map((api) => expectSyncedApi(api.id, true));
+
       expectApisListRequest(apis, 'paths');
 
       fixture.detectChanges();
       await contextPathSort.click();
-      apis.map((api) => expectSyncedApi(api.id, true));
       expectApisListRequest(apis, '-paths');
     }));
 
     it('should display out of sync api icon', fakeAsync(async () => {
-      const api = fakeApiV2();
-      const apis = [api];
+      const api1 = fakeApiV2({ deploymentState: 'NEED_REDEPLOY' });
+      const api2 = fakeApiV4({ deploymentState: 'DEPLOYED' });
+      const apis = [api1, api2];
       await initComponent(apis);
-      expect(await loader.getAllHarnesses(MatIconHarness.with({ selector: '.states__api-is-not-synced' }))).toHaveLength(0);
+
+      expect(await loader.getAllHarnesses(MatIconHarness.with({ selector: '.states__api-is-not-synced' }))).toHaveLength(1);
 
       const nameSort = await loader.getHarness(MatSortHeaderHarness.with({ selector: '#name' })).then((sortHarness) => sortHarness.host());
       await nameSort.click();
 
-      expectSyncedApi(api.id, false);
       expect(await loader.getHarness(MatIconHarness.with({ selector: '.states__api-is-not-synced' }))).toBeTruthy();
       expectApisListRequest(apis, 'name');
     }));
@@ -366,7 +362,6 @@ describe('ApisListComponent', () => {
     async function initComponent(api: Api, score = 1) {
       expectApisListRequest([api]);
       loader = TestbedHarnessEnvironment.loader(fixture);
-      expectSyncedApi(api.id, true);
       expectQualityRequest(api.id, score);
       fixture.detectChanges();
     }
@@ -394,13 +389,13 @@ describe('ApisListComponent', () => {
     return { headerCells, rowCells };
   }
 
-  function expectApisListRequest(apis: Api[] = [], sortBy?: string, query?: string, page = 1) {
+  function expectApisListRequest(apis: Api[] = [], sortBy?: string, query?: string, page = 1, error?: any, errorResponse?: any) {
     // wait debounceTime
     fixture.detectChanges();
     tick(400);
 
     const req = httpTestingController.expectOne(
-      `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search?page=${page}&perPage=10${sortBy ? `&sortBy=${sortBy}` : ''}`,
+      `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search?page=${page}&perPage=10${sortBy ? `&sortBy=${sortBy}` : ''}&expands=deploymentState`,
     );
     expect(req.request.method).toEqual('POST');
 
@@ -408,16 +403,10 @@ describe('ApisListComponent', () => {
       expect(req.request.body).toEqual({ query });
     }
 
-    req.flush(fakePagedResult(apis));
-  }
-
-  function expectSyncedApi(apiId: string, isSynced: boolean) {
-    // wait debounceTime
-    fixture.detectChanges();
-    tick();
-
-    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/state`);
-    expect(req.request.method).toEqual('GET');
-    req.flush({ api_id: apiId, is_synchronized: isSynced });
+    if (error && errorResponse) {
+      req.flush(error, errorResponse);
+    } else {
+      req.flush(fakePagedResult(apis));
+    }
   }
 });

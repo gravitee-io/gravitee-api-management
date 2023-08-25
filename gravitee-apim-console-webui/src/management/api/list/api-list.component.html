@@ -65,14 +65,14 @@
           svgIcon="gio:play-circle"
         ></mat-icon>
         <mat-icon
-          *ngIf="element.state !== 'STARTED'"
+          *ngIf="element.state && element.state !== 'STARTED'"
           matTooltip="Stopped"
           class="states__api-not-started"
           size="20"
           svgIcon="gio:stop-circle"
         ></mat-icon>
         <mat-icon
-          *ngIf="element.isNotSynced$ | async"
+          *ngIf="element.deploymentState === 'NEED_REDEPLOY'"
           matTooltip="API out of sync"
           class="states__api-is-not-synced"
           size="20"

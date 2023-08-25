@@ -241,10 +241,30 @@ describe('ApiV2Service', () => {
   });
 
   describe('search', () => {
-    it('should call the API', (done) => {
+    it('should call the API with expands query', (done) => {
       const fakeApi = fakeApiV4();
 
-      apiV2Service.search({ ids: [fakeApi.id] }).subscribe(() => {
+      apiV2Service.search({ ids: [fakeApi.id] }, undefined, true).subscribe(() => {
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search?page=1&perPage=10&expands=deploymentState`,
+        method: 'POST',
+      });
+
+      expect(req.request.body).toEqual({
+        ids: [fakeApi.id],
+      });
+      req.flush({
+        data: [fakeApi],
+      });
+    });
+
+    it('should call the API without expands query', (done) => {
+      const fakeApi = fakeApiV4();
+
+      apiV2Service.search({ ids: [fakeApi.id] }, undefined, false).subscribe(() => {
         done();
       });
 

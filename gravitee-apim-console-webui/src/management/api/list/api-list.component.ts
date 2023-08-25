@@ -36,6 +36,7 @@ import {
   HttpListener,
   PagedResult,
   apiSortByParamFromString,
+  ApiDeploymentState,
 } from '../../../entities/management-api-v2';
 
 export type ApisTableDS = {
@@ -49,8 +50,8 @@ export type ApisTableDS = {
   picture: string;
   state: ApiState;
   lifecycleState: ApiLifecycleState;
+  deploymentState?: ApiDeploymentState;
   workflowBadge?: { text: string; class: string };
-  isNotSynced$?: Observable<boolean>;
   qualityScore$?: Observable<{ score: number; class: string }>;
   visibility: { label: string; icon: string };
   origin: OriginEnum;
@@ -116,7 +117,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
         }),
         switchMap(({ pagination, searchTerm, sort }) =>
           this.apiServiceV2
-            .search({ query: searchTerm }, apiSortByParamFromString(toOrder(sort)), pagination.index, pagination.size)
+            .search({ query: searchTerm }, apiSortByParamFromString(toOrder(sort)), true, pagination.index, pagination.size)
             .pipe(catchError(() => of(new PagedResult<Api>()))),
         ),
         tap((apisPage) => {
@@ -169,6 +170,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
             tags: api.tags?.join(', '),
             state: api.state,
             lifecycleState: api.lifecycleState,
+            deploymentState: api.deploymentState,
             workflowBadge: this.getWorkflowBadge(api),
             visibility: { label: api.visibility, icon: this.visibilitiesIcons[api.visibility] },
             origin: api.definitionContext?.origin,
@@ -183,7 +185,6 @@ export class ApiListComponent implements OnInit, OnDestroy {
             return {
               ...tableDS,
               contextPath: this.getContextPath(apiv4),
-              isNotSynced$: undefined,
               qualityScore$: null,
               targetRoute: 'management.apis.ng.general',
             };
@@ -192,7 +193,6 @@ export class ApiListComponent implements OnInit, OnDestroy {
             return {
               ...tableDS,
               contextPath: [apiv2.contextPath],
-              isNotSynced$: this.apiService.isAPISynchronized(apiv2.id).pipe(map((a) => !a.is_synchronized)),
               qualityScore$: this.isQualityDisplayed
                 ? this.apiService.getQualityMetrics(apiv2.id).pipe(map((a) => this.getQualityScore(Math.floor(a.score * 100))))
                 : null,
