@@ -179,7 +179,7 @@ public class ApiMembersResourceTest extends AbstractResourceTest {
                 .isEqualTo(
                     MembersResponse
                         .builder()
-                        .pagination(Pagination.builder().page(1).pageCount(1).perPage(10).totalCount(1).pageItemsCount(1).build())
+                        .pagination(Pagination.builder().page(1).pageCount(1).perPage(10).totalCount(1L).pageItemsCount(1).build())
                         .data(Stream.of(member).map(MemberMapper.INSTANCE::map).toList())
                         .links(Links.builder().self(target.getUri().toString()).build())
                         .build()
@@ -246,7 +246,7 @@ public class ApiMembersResourceTest extends AbstractResourceTest {
                 .isEqualTo(
                     MembersResponse
                         .builder()
-                        .pagination(Pagination.builder().page(1).pageCount(2).perPage(2).totalCount(4).pageItemsCount(2).build())
+                        .pagination(Pagination.builder().page(1).pageCount(2).perPage(2).totalCount(4L).pageItemsCount(2).build())
                         .data(Stream.of(member1, member2).map(MemberMapper.INSTANCE::map).toList())
                         .links(
                             Links

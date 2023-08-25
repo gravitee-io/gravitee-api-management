@@ -173,7 +173,7 @@ public class GroupsResourceTest extends AbstractResourceTest {
                     GroupsResponse
                         .builder()
                         .data(Stream.of(group1, group2).map(GroupMapper.INSTANCE::map).toList())
-                        .pagination(Pagination.builder().page(1).perPage(10).pageCount(1).pageItemsCount(2).totalCount(2).build())
+                        .pagination(Pagination.builder().page(1).perPage(10).pageCount(1).pageItemsCount(2).totalCount(2L).build())
                         .links(Links.builder().self(target.getUri().toString()).build())
                         .build()
                 );
@@ -265,7 +265,7 @@ public class GroupsResourceTest extends AbstractResourceTest {
                 .isEqualTo(
                     MembersResponse
                         .builder()
-                        .pagination(Pagination.builder().page(1).pageCount(1).perPage(10).pageItemsCount(2).totalCount(2).build())
+                        .pagination(Pagination.builder().page(1).pageCount(1).perPage(10).pageItemsCount(2).totalCount(2L).build())
                         .data(Stream.of(member1, member2).map(MemberMapper.INSTANCE::map).toList())
                         .metadata(Map.of("groupName", GROUP_NAME))
                         .links(Links.builder().self(target.getUri().toString()).build())

@@ -28,7 +28,7 @@ public class PaginationInfoTest {
 
     @Test
     void should_build_pagination_info() {
-        var total = 20;
+        var total = 20L;
         var pageItemsCount = 10;
         var page = 2;
         var perPage = 5;
@@ -44,7 +44,7 @@ public class PaginationInfoTest {
 
     @Test
     void should_return_empty_pagination_when_no_result() {
-        var total = 0;
+        var total = 0L;
         var pageItemsCount = 0;
         var page = 1;
         var perPage = 5;
@@ -64,7 +64,7 @@ public class PaginationInfoTest {
         5       | 20       | 1
         """
     )
-    void should_count_pages_based_on_total_and_provided_pagination_param(Integer total, Integer perPage, Integer expectedPageCount) {
+    void should_count_pages_based_on_total_and_provided_pagination_param(Long total, Integer perPage, Integer expectedPageCount) {
         var pagination = computePaginationInfo(total, 10, new PaginationParam(1, perPage));
 
         Assertions.assertThat(pagination).extracting(Pagination::getPageCount).isEqualTo(expectedPageCount);

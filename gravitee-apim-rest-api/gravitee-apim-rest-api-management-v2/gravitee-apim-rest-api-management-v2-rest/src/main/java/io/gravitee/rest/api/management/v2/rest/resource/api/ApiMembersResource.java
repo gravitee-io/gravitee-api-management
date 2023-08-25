@@ -70,7 +70,7 @@ public class ApiMembersResource extends AbstractResource {
 
         return new MembersResponse()
             .data(membersSubList)
-            .pagination(PaginationInfo.computePaginationInfo(members.size(), membersSubList.size(), paginationParam))
+            .pagination(PaginationInfo.computePaginationInfo((long) members.size(), membersSubList.size(), paginationParam))
             .links(computePaginationLinks(members.size(), paginationParam));
     }
 

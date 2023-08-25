@@ -3206,6 +3206,7 @@ components:
                     description: The number of items for the current page.
                 totalCount:
                     type: integer
+                    format: int64
                     description: The total number of items.
 
         PathV4:

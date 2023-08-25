@@ -110,12 +110,12 @@ public class ApiSubscriptionsResource extends AbstractResource {
         final List<Subscription> subscriptions = subscriptionMapper.mapToList(subscriptionPage.getContent());
         expandData(subscriptions, expands);
 
-        Integer totalCount = Math.toIntExact(subscriptionPage.getTotalElements());
+        long totalCount = subscriptionPage.getTotalElements();
         Integer pageItemsCount = Math.toIntExact(subscriptionPage.getPageElements());
         return new SubscriptionsResponse()
             .data(subscriptions)
             .pagination(PaginationInfo.computePaginationInfo(totalCount, pageItemsCount, paginationParam))
-            .links(computePaginationLinks(Math.toIntExact(subscriptionPage.getTotalElements()), paginationParam));
+            .links(computePaginationLinks(totalCount, paginationParam));
     }
 
     @GET

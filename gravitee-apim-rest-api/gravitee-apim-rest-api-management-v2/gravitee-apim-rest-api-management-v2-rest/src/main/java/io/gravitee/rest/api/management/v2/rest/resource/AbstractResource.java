@@ -285,7 +285,7 @@ public abstract class AbstractResource {
         return new ArrayList<>(list).subList(startIndex, lastIndex);
     }
 
-    protected Links computePaginationLinks(int totalElements, PaginationParam paginationParam) {
+    protected Links computePaginationLinks(long totalElements, PaginationParam paginationParam) {
         return PaginationLinks.computePaginationLinks(
             uriInfo.getRequestUri(),
             uriInfo.getQueryParameters(),

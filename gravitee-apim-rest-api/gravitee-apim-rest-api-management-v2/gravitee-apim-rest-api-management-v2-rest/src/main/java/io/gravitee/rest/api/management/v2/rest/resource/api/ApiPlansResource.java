@@ -113,7 +113,7 @@ public class ApiPlansResource extends AbstractResource {
 
         return new PlansResponse()
             .data(planMapper.convert(paginationData))
-            .pagination(PaginationInfo.computePaginationInfo(plans.size(), paginationData.size(), paginationParam))
+            .pagination(PaginationInfo.computePaginationInfo((long) plans.size(), paginationData.size(), paginationParam))
             .links(computePaginationLinks(plans.size(), paginationParam));
     }
 

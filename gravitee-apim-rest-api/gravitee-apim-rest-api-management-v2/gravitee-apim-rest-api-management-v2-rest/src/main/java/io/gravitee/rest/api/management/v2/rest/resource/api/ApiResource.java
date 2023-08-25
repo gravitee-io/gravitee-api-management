@@ -512,12 +512,12 @@ public class ApiResource extends AbstractResource {
             paginationParam.toPageable()
         );
 
-        Integer totalCount = Math.toIntExact(subscribersApplicationPage.getTotalElements());
+        long totalCount = subscribersApplicationPage.getTotalElements();
         Integer pageItemsCount = Math.toIntExact(subscribersApplicationPage.getPageElements());
         return new SubscribersResponse()
             .data(ApplicationMapper.INSTANCE.mapToBaseApplicationList(subscribersApplicationPage.getContent()))
             .pagination(PaginationInfo.computePaginationInfo(totalCount, pageItemsCount, paginationParam))
-            .links(computePaginationLinks(Math.toIntExact(subscribersApplicationPage.getTotalElements()), paginationParam));
+            .links(computePaginationLinks(totalCount, paginationParam));
     }
 
     @POST
