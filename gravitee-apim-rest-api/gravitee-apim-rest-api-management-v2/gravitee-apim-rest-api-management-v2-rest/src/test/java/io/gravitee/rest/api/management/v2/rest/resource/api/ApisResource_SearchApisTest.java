@@ -91,7 +91,8 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                 eq("UnitTests"),
                 eq(true),
                 apiQueryBuilderCaptor.capture(),
-                eq(new PageableImpl(1, 10))
+                eq(new PageableImpl(1, 10)),
+                eq(false)
             )
         )
             .thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
@@ -129,7 +130,8 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                 eq("UnitTests"),
                 eq(true),
                 apiQueryBuilderCaptor.capture(),
-                eq(new PageableImpl(1, 10))
+                eq(new PageableImpl(1, 10)),
+                eq(false)
             )
         )
             .thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
@@ -171,7 +173,8 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                 eq("UnitTests"),
                 eq(true),
                 apiQueryBuilderCaptor.capture(),
-                eq(new PageableImpl(1, 10))
+                eq(new PageableImpl(1, 10)),
+                eq(false)
             )
         )
             .thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
@@ -208,7 +211,8 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                 eq("UnitTests"),
                 eq(true),
                 apiQueryBuilderCaptor.capture(),
-                eq(new PageableImpl(1, 10))
+                eq(new PageableImpl(1, 10)),
+                eq(false)
             )
         )
             .thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
@@ -263,7 +267,8 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                 eq("UnitTests"),
                 eq(true),
                 apiQueryBuilderCaptor.capture(),
-                eq(new PageableImpl(1, 10))
+                eq(new PageableImpl(1, 10)),
+                eq(false)
             )
         )
             .thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
@@ -301,7 +306,8 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                 eq("UnitTests"),
                 eq(true),
                 apiQueryBuilderCaptor.capture(),
-                eq(new PageableImpl(1, 10))
+                eq(new PageableImpl(1, 10)),
+                eq(false)
             )
         )
             .thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
@@ -342,7 +348,8 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                 eq("UnitTests"),
                 eq(true),
                 apiQueryBuilderCaptor.capture(),
-                eq(new PageableImpl(1, 10))
+                eq(new PageableImpl(1, 10)),
+                eq(false)
             )
         )
             .thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
@@ -383,7 +390,8 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                 eq("UnitTests"),
                 eq(true),
                 apiQueryBuilderCaptor.capture(),
-                eq(new PageableImpl(1, 10))
+                eq(new PageableImpl(1, 10)),
+                eq(false)
             )
         )
             .thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
@@ -426,10 +434,12 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                 eq("UnitTests"),
                 eq(true),
                 apiQueryBuilderCaptor.capture(),
-                eq(new PageableImpl(1, 10))
+                eq(new PageableImpl(1, 10)),
+                eq(true)
             )
         )
             .thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
+
         when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), eq(apiEntity))).thenReturn(true);
 
         final Response response = rootTarget().queryParam("expands", "deploymentState").request().post(Entity.json(apiSearchQuery));
