@@ -18,7 +18,7 @@ import { Component, Inject, OnInit } from '@angular/core';
 
 import { ApiCreationPayload } from '../../models/ApiCreationPayload';
 import { MENU_ITEM_PAYLOAD } from '../../components/api-creation-stepper-menu/api-creation-stepper-menu.component';
-import { ConnectorVM } from '../../models/ConnectorVM';
+import { ConnectorVM } from '../../../../../entities/management-api-v2';
 
 @Component({
   selector: 'step-connector-menu-item',

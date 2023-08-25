@@ -21,6 +21,7 @@ export * from './baseListener';
 export * from './baseSelector';
 export * from './channelSelector';
 export * from './conditionSelector';
+export * from './connectorVM';
 export * from './dlq';
 export * from './endpointGroupServices';
 export * from './endpointGroupV4';

@@ -25,7 +25,7 @@ import {
   GioConnectorDialogData,
 } from '../../../../components/gio-connector-dialog/gio-connector-dialog.component';
 import { ConnectorPluginsV2Service } from '../../../../services-ngx/connector-plugins-v2.service';
-import { ConnectorVM } from '../../creation-v4/models/ConnectorVM';
+import { ConnectorVM } from '../../../../entities/management-api-v2';
 
 @Component({
   selector: 'gio-entrypoints-selection-list',
