@@ -187,12 +187,15 @@ public class ApisResource extends AbstractResource {
             apiQueryBuilder.setSort(apiSortByParam.toSortable());
         }
 
+        boolean expandDeploymentState = Objects.nonNull(expands) && expands.contains(EXPAND_DEPLOYMENT_STATE);
+
         Page<GenericApiEntity> apis = apiSearchService.search(
             GraviteeContext.getExecutionContext(),
             getAuthenticatedUser(),
             isAdmin(),
             apiQueryBuilder,
-            paginationParam.toPageable()
+            paginationParam.toPageable(),
+            expandDeploymentState
         );
 
         return new ApisResponse()
@@ -200,12 +203,7 @@ public class ApisResource extends AbstractResource {
                 ApiMapper.INSTANCE.map(
                     apis.getContent(),
                     uriInfo,
-                    api -> {
-                        if (expands == null || expands.isEmpty() || !expands.contains(EXPAND_DEPLOYMENT_STATE)) {
-                            return null;
-                        }
-                        return apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), api);
-                    }
+                    api -> expandDeploymentState ? apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), api) : null
                 )
             )
             .pagination(
