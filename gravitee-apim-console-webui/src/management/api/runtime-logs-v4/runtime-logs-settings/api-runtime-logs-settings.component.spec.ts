@@ -101,27 +101,63 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
       expectApiPutRequest({ ...testApi, analytics: { enabled: false } });
     });
 
-    it('should enable logging mode on entrypoint and endpoint', async () => {
-      await initComponent();
-      expect(await componentHarness.isEntrypointChecked()).toBe(false);
-      expect(await componentHarness.isEndpointChecked()).toBe(false);
+    describe('logging mode tests', () => {
+      it('should enable logging mode on entrypoint and endpoint', async () => {
+        await initComponent();
+        expect(await componentHarness.isEntrypointChecked()).toBe(false);
+        expect(await componentHarness.isEndpointChecked()).toBe(false);
 
-      await componentHarness.checkEntrypoint();
-      await componentHarness.checkEndpoint();
-      await componentHarness.saveSettings();
+        await componentHarness.toggleEntrypoint();
 
-      expectApiGetRequest(testApi);
-      expectApiPutRequest({
-        ...testApi,
-        analytics: {
-          enabled: true,
-          ...testApi.analytics,
-          logging: { ...testApi.analytics.logging, mode: { entrypoint: true, endpoint: true } },
-        },
+        await componentHarness.toggleEndpoint();
+        await componentHarness.saveSettings();
+
+        expectApiGetRequest(testApi);
+        expectApiPutRequest({
+          ...testApi,
+          analytics: {
+            enabled: true,
+            ...testApi.analytics,
+            logging: { ...testApi.analytics.logging, mode: { entrypoint: true, endpoint: true } },
+          },
+        });
+
+        expect(await componentHarness.isEntrypointChecked()).toBe(true);
+        expect(await componentHarness.isEndpointChecked()).toBe(true);
       });
 
-      expect(await componentHarness.isEntrypointChecked()).toBe(true);
-      expect(await componentHarness.isEndpointChecked()).toBe(true);
+      it('should enable/disable message checkboxes according to logging mode', async () => {
+        await initComponent();
+        expect(await componentHarness.isEntrypointChecked()).toBe(false);
+        expect(await componentHarness.isEndpointChecked()).toBe(false);
+        expect(await componentHarness.isMessageContentDisabled()).toBe(true);
+        expect(await componentHarness.isMessageHeadersDisabled()).toBe(true);
+        expect(await componentHarness.isMessageMetadataDisabled()).toBe(true);
+
+        await componentHarness.toggleEntrypoint();
+        expect(await componentHarness.isEntrypointChecked()).toBe(true);
+        expect(await componentHarness.isMessageContentDisabled()).toBe(false);
+        expect(await componentHarness.isMessageHeadersDisabled()).toBe(false);
+        expect(await componentHarness.isMessageMetadataDisabled()).toBe(false);
+
+        await componentHarness.toggleEntrypoint();
+        await componentHarness.toggleEndpoint();
+        expect(await componentHarness.isEntrypointChecked()).toBe(false);
+        expect(await componentHarness.isEndpointChecked()).toBe(true);
+        expect(await componentHarness.isMessageContentDisabled()).toBe(false);
+        expect(await componentHarness.isMessageHeadersDisabled()).toBe(false);
+        expect(await componentHarness.isMessageMetadataDisabled()).toBe(false);
+
+        await componentHarness.toggleEntrypoint();
+        expect(await componentHarness.isEntrypointChecked()).toBe(true);
+        expect(await componentHarness.isEndpointChecked()).toBe(true);
+        expect(await componentHarness.isMessageContentDisabled()).toBe(false);
+        expect(await componentHarness.isMessageContentChecked()).toBe(false);
+        expect(await componentHarness.isMessageHeadersDisabled()).toBe(false);
+        expect(await componentHarness.isMessageHeadersChecked()).toBe(false);
+        expect(await componentHarness.isMessageMetadataDisabled()).toBe(false);
+        expect(await componentHarness.isMessageMetadataChecked()).toBe(false);
+      });
     });
 
     it('should enable logging phase on request and response', async () => {
@@ -150,7 +186,10 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
     });
 
     it('should enable logging content on payload, headers and metadata', async () => {
-      await initComponent();
+      await initComponent({
+        ...testApi,
+        analytics: { ...testApi.analytics, logging: { ...testApi.analytics.logging, mode: { entrypoint: true, endpoint: true } } },
+      });
       expect(await componentHarness.isMessageContentChecked()).toBe(false);
       expect(await componentHarness.isMessageHeadersChecked()).toBe(false);
       expect(await componentHarness.isMessageMetadataChecked()).toBe(false);
@@ -167,6 +206,7 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
           ...testApi.analytics,
           logging: {
             ...testApi.analytics.logging,
+            mode: { entrypoint: true, endpoint: true },
             content: { messagePayload: true, messageHeaders: true, messageMetadata: true, payload: false, headers: false },
           },
         },

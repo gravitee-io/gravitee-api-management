@@ -51,6 +51,9 @@
       <div class="settings__form-control">
         <div class="settings__form-control__title">Content data</div>
         <div class="settings__form-control__subtitle">Customize the message data included.</div>
+        <p *ngIf="!hasLoggingModeEnabled" class="settings__form-control__info">
+          <mat-icon svgIcon="gio:info"></mat-icon> To select an option, ensure you’ve checked one mode or more above.
+        </p>
         <mat-checkbox formControlName="messageContent">Message content</mat-checkbox>
         <mat-checkbox formControlName="messageHeaders">Message headers</mat-checkbox>
         <mat-checkbox formControlName="messageMetadata">Message metadata</mat-checkbox>

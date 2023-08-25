@@ -16,7 +16,7 @@
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
 import { catchError, map, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { EMPTY, Subject, Subscription } from 'rxjs';
+import { EMPTY, merge, Subject, Subscription } from 'rxjs';
 import { StateParams } from '@uirouter/angularjs';
 
 import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
@@ -33,9 +33,11 @@ export class ApiRuntimeLogsSettingsComponent implements OnInit, OnDestroy {
   form: FormGroup;
   enabled = false;
   samplingType: SamplingTypeEnum;
+  hasLoggingModeEnabled = false;
   private unsubscribe$: Subject<void> = new Subject<void>();
   private api: ApiV4;
   private samplingTypeSubscription$: Subscription;
+  private loggingModeSubscription$: Subscription;
   private enabledFormControl: FormControl;
 
   constructor(
@@ -53,9 +55,11 @@ export class ApiRuntimeLogsSettingsComponent implements OnInit, OnDestroy {
           this.enabled = api?.analytics?.enabled ?? false;
           this.samplingType = this.enabled ? api?.analytics?.sampling?.type : undefined;
           this.enabledFormControl = new FormControl(this.enabled);
+          this.hasLoggingModeEnabled = api?.analytics?.logging?.mode?.entrypoint || api?.analytics?.logging?.mode?.endpoint;
           this.initForm();
           this.handleEnabledChanges();
           this.handleSamplingTypeChanges();
+          this.handleLoggingModeChanges();
         }),
         takeUntil(this.unsubscribe$),
       )
@@ -124,9 +128,18 @@ export class ApiRuntimeLogsSettingsComponent implements OnInit, OnDestroy {
           endpoint: new FormControl(this.api?.analytics?.logging?.mode?.endpoint ?? false),
           request: new FormControl(this.api?.analytics?.logging?.phase?.request ?? false),
           response: new FormControl(this.api?.analytics?.logging?.phase?.response ?? false),
-          messageContent: new FormControl(this.api?.analytics?.logging?.content?.messagePayload ?? false),
-          messageHeaders: new FormControl(this.api?.analytics?.logging?.content?.messageHeaders ?? false),
-          messageMetadata: new FormControl(this.api?.analytics?.logging?.content?.messageMetadata ?? false),
+          messageContent: new FormControl({
+            value: this.api?.analytics?.logging?.content?.messagePayload ?? false,
+            disabled: !this.hasLoggingModeEnabled,
+          }),
+          messageHeaders: new FormControl({
+            value: this.api?.analytics?.logging?.content?.messageHeaders ?? false,
+            disabled: !this.hasLoggingModeEnabled,
+          }),
+          messageMetadata: new FormControl({
+            value: this.api?.analytics?.logging?.content?.messageMetadata ?? false,
+            disabled: !this.hasLoggingModeEnabled,
+          }),
           requestPayload: new FormControl(this.api?.analytics?.logging?.content?.payload ?? false),
           requestHeaders: new FormControl(this.api?.analytics?.logging?.content?.headers ?? false),
           requestCondition: new FormControl(this.api?.analytics?.logging?.condition),
@@ -152,6 +165,7 @@ export class ApiRuntimeLogsSettingsComponent implements OnInit, OnDestroy {
         this.samplingType = this.enabled ? 'PROBABILITY' : undefined;
         this.initForm();
         this.handleSamplingTypeChanges();
+        this.handleLoggingModeChanges();
       });
   }
 
@@ -169,6 +183,31 @@ export class ApiRuntimeLogsSettingsComponent implements OnInit, OnDestroy {
         });
     } else {
       this.samplingTypeSubscription$?.unsubscribe();
+    }
+  }
+
+  private handleLoggingModeChanges(): void {
+    if (this.enabled) {
+      this.loggingModeSubscription$ = merge(this.form.get('entrypoint').valueChanges, this.form.get('endpoint').valueChanges)
+        .pipe(takeUntil(this.unsubscribe$))
+        .subscribe(() => {
+          const formValues = this.form.getRawValue();
+          this.hasLoggingModeEnabled = formValues.entrypoint || formValues.endpoint;
+          if (this.hasLoggingModeEnabled) {
+            this.form.get('messageContent').enable();
+            this.form.get('messageHeaders').enable();
+            this.form.get('messageMetadata').enable();
+          } else {
+            this.form.get('messageContent').setValue(false);
+            this.form.get('messageContent').disable();
+            this.form.get('messageHeaders').setValue(false);
+            this.form.get('messageHeaders').disable();
+            this.form.get('messageMetadata').setValue(false);
+            this.form.get('messageMetadata').disable();
+          }
+        });
+    } else {
+      this.loggingModeSubscription$?.unsubscribe();
     }
   }
 

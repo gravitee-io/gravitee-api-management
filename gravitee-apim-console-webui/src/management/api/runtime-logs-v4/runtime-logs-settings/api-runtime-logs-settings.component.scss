@@ -44,6 +44,18 @@ $typography: map.get(gio.$mat-theme, typography);
       margin-bottom: -1.25em;
     }
 
+    &__info {
+      display: flex;
+      flex-direction: row;
+      justify-items: center;
+
+      mat-icon {
+        height: 20px;
+        width: 20px;
+        margin-right: 8px;
+      }
+    }
+
     mat-checkbox[formcontrolname='entrypoint'],
     mat-checkbox[formcontrolname='request'],
     mat-checkbox[formcontrolname='messageContent'],

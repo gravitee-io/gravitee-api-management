@@ -57,16 +57,16 @@ export class ApiRuntimeLogsSettingsHarness extends ComponentHarness {
     return await this.getEntrypointCheckbox().then((checkbox) => checkbox.isChecked());
   };
 
-  public checkEntrypoint = async (): Promise<void> => {
-    return await this.getEntrypointCheckbox().then((checkbox) => checkbox.check());
+  public toggleEntrypoint = async (): Promise<void> => {
+    return await this.getEntrypointCheckbox().then((checkbox) => checkbox.toggle());
   };
 
   public isEndpointChecked = async (): Promise<boolean> => {
     return await this.getEndpointCheckbox().then((checkbox) => checkbox.isChecked());
   };
 
-  public checkEndpoint = async (): Promise<void> => {
-    return await this.getEndpointCheckbox().then((checkbox) => checkbox.check());
+  public toggleEndpoint = async (): Promise<void> => {
+    return await this.getEndpointCheckbox().then((checkbox) => checkbox.toggle());
   };
 
   public isRequestPhaseChecked = async (): Promise<boolean> => {
@@ -89,6 +89,10 @@ export class ApiRuntimeLogsSettingsHarness extends ComponentHarness {
     return await this.getMessageContentCheckbox().then((checkbox) => checkbox.isChecked());
   };
 
+  public isMessageContentDisabled = async (): Promise<boolean> => {
+    return await this.getMessageContentCheckbox().then((checkbox) => checkbox.isDisabled());
+  };
+
   public checkMessageContent = async (): Promise<void> => {
     return await this.getMessageContentCheckbox().then((checkbox) => checkbox.check());
   };
@@ -97,12 +101,20 @@ export class ApiRuntimeLogsSettingsHarness extends ComponentHarness {
     return await this.getMessageHeadersCheckbox().then((checkbox) => checkbox.isChecked());
   };
 
+  public isMessageHeadersDisabled = async (): Promise<boolean> => {
+    return await this.getMessageHeadersCheckbox().then((checkbox) => checkbox.isDisabled());
+  };
+
   public checkMessageHeaders = async (): Promise<void> => {
     return await this.getMessageHeadersCheckbox().then((checkbox) => checkbox.check());
   };
 
   public isMessageMetadataChecked = async (): Promise<boolean> => {
     return await this.getMessageMetadataCheckbox().then((checkbox) => checkbox.isChecked());
+  };
+
+  public isMessageMetadataDisabled = async (): Promise<boolean> => {
+    return await this.getMessageMetadataCheckbox().then((checkbox) => checkbox.isDisabled());
   };
 
   public checkMessageMetadata = async (): Promise<void> => {
