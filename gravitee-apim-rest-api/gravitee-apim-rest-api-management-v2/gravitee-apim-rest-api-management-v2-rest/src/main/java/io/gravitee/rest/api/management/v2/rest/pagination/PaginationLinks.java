@@ -30,12 +30,8 @@ public class PaginationLinks {
         long totalElements,
         PaginationParam paginationParam
     ) {
-        if (totalElements == 0) {
-            return null;
-        }
-
         int totalPages = (int) Math.ceil((double) totalElements / paginationParam.getPerPage());
-        if (totalPages == 1) {
+        if (totalElements == 0 || totalPages == 1) {
             return new Links().self(requestUri.toString());
         }
 

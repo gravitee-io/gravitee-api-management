@@ -18,6 +18,8 @@ package io.gravitee.rest.api.management.v2.rest.resource.api;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -26,6 +28,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import assertions.MAPIAssertions;
 import fixtures.ApplicationFixtures;
 import fixtures.PlanFixtures;
 import fixtures.SubscriptionFixtures;
@@ -80,7 +83,7 @@ public class ApiSubscriptionsResource_ListTest extends ApiSubscriptionsResourceT
 
         // Check links
         Links links = subscriptionsResponse.getLinks();
-        assertNull(links);
+        MAPIAssertions.assertThat(links).isEqualTo(Links.builder().self(rootTarget().getUri().toString()).build());
     }
 
     @Test

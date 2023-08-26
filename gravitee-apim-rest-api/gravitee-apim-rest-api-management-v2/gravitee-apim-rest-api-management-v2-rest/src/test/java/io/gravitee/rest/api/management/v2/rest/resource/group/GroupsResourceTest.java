@@ -113,12 +113,20 @@ public class GroupsResourceTest extends AbstractResourceTest {
         public void should_return_empty_list_if_no_results() {
             when(groupService.findAll(GraviteeContext.getExecutionContext())).thenReturn(List.of());
 
-            final Response response = target.queryParam("perPage", 10).queryParam("page", 1).request().get();
+            var paginatedTarget = target.queryParam("perPage", 10).queryParam("page", 1);
+            final Response response = paginatedTarget.request().get();
 
             assertThat(response)
                 .hasStatus(OK_200)
                 .asEntity(GroupsResponse.class)
-                .isEqualTo(GroupsResponse.builder().data(List.of()).pagination(Pagination.builder().build()).build());
+                .isEqualTo(
+                    GroupsResponse
+                        .builder()
+                        .data(List.of())
+                        .pagination(Pagination.builder().build())
+                        .links(Links.builder().self(paginatedTarget.getUri().toString()).build())
+                        .build()
+                );
         }
 
         @Test
@@ -245,6 +253,7 @@ public class GroupsResourceTest extends AbstractResourceTest {
                         .pagination(Pagination.builder().build())
                         .data(List.of())
                         .metadata(Map.of("groupName", GROUP_NAME))
+                        .links(Links.builder().self(target.getUri().toString()).build())
                         .build()
                 );
         }

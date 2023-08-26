@@ -34,13 +34,13 @@ public class PaginationLinksTest {
     private static final MultivaluedMap<String, String> NO_QUERY_PARAMETERS = new MultivaluedHashMap<>();
 
     @Test
-    void should_return_null_when_no_result() {
+    void should_build_only_self_link_when_no_result() {
         int total = 0;
         int perPage = 10;
 
         var result = PaginationLinks.computePaginationLinks(REQUEST_URI, NO_QUERY_PARAMETERS, total, new PaginationParam(1, perPage));
 
-        assertThat(result).isNull();
+        assertThat(result).isEqualTo(Links.builder().self(REQUEST_URI.toString()).build());
     }
 
     @Test

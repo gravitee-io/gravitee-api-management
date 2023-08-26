@@ -152,7 +152,14 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
             assertThat(response)
                 .hasStatus(OK_200)
                 .asEntity(PlansResponse.class)
-                .isEqualTo(PlansResponse.builder().pagination(Pagination.builder().build()).data(List.of()).build());
+                .isEqualTo(
+                    PlansResponse
+                        .builder()
+                        .pagination(Pagination.builder().build())
+                        .data(List.of())
+                        .links(Links.builder().self(target.getUri().toString()).build())
+                        .build()
+                );
         }
 
         @Test

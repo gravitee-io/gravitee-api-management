@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
+import assertions.MAPIAssertions;
 import fixtures.SubscriptionFixtures;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.model.Links;
@@ -80,7 +81,7 @@ public class ApiSubscriptionsResource_ListApiKeysTest extends ApiSubscriptionsRe
 
         // Check links
         Links links = subscriptionApiKeysResponse.getLinks();
-        assertNull(links);
+        MAPIAssertions.assertThat(links).isEqualTo(Links.builder().self(rootTarget().getUri().toString()).build());
     }
 
     @Test
