@@ -39,8 +39,11 @@ public class PlanConverter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PlanConverter.class);
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper;
+
+    public PlanConverter(@Autowired ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     public PlanEntity toPlanEntity(Plan plan, List<Flow> flows) {
         PlanEntity entity = new PlanEntity();

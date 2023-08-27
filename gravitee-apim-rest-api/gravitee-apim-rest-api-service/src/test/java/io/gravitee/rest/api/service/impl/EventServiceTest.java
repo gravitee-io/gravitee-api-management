@@ -625,7 +625,7 @@ public class EventServiceTest {
         throws TechnicalException, JsonProcessingException {
         ObjectMapper realObjectMapper = new ObjectMapper();
         ReflectionTestUtils.setField(eventService, "objectMapper", realObjectMapper);
-        ReflectionTestUtils.setField(eventService, "planConverter", new PlanConverter());
+        ReflectionTestUtils.setField(eventService, "planConverter", new PlanConverter(objectMapper));
         when(eventRepository.create(any())).thenAnswer(i -> i.getArguments()[0]);
 
         Api api = new Api();
@@ -670,7 +670,7 @@ public class EventServiceTest {
         throws TechnicalException, JsonProcessingException {
         ObjectMapper realObjectMapper = new ObjectMapper();
         ReflectionTestUtils.setField(eventService, "objectMapper", realObjectMapper);
-        ReflectionTestUtils.setField(eventService, "planConverter", new PlanConverter());
+        ReflectionTestUtils.setField(eventService, "planConverter", new PlanConverter(objectMapper));
         when(eventRepository.create(any())).thenAnswer(i -> i.getArguments()[0]);
 
         Api api = new Api();
