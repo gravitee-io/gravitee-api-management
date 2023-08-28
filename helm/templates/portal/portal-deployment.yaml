@@ -38,6 +38,9 @@ metadata:
     {{- end }}
     {{- end }}
 spec:
+  {{- if .Values.portal.deployment.revisionHistoryLimit }}
+  revisionHistoryLimit: {{ .Values.portal.deployment.revisionHistoryLimit }}
+  {{- end }}
   {{- if not .Values.portal.autoscaling.enabled }}
   replicas: {{ .Values.portal.replicaCount }}
   {{- end }}
@@ -82,6 +85,7 @@ spec:
         {{- end }}
         {{- end }}
     spec:
+      securityContext: {{ toYaml .Values.portal.deployment.podSecurityContext | nindent 8 }}
       affinity: {{ toYaml .Values.portal.deployment.affinity | nindent 8 }}
       nodeSelector: {{ toYaml .Values.portal.deployment.nodeSelector | nindent 8 }}
       topologySpreadConstraints: {{ toYaml .Values.portal.deployment.topologySpreadConstraints | nindent 8 }}
