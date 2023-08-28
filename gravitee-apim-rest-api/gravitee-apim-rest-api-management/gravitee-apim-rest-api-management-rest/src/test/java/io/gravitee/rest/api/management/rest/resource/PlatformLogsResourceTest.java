@@ -29,10 +29,10 @@ import io.gravitee.rest.api.model.log.SearchLogResponse;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.Response;
 import java.util.Objects;
 import org.junit.Before;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import org.junit.Test;
 
 /**

@@ -15,10 +15,13 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static java.util.stream.Collectors.toMap;
+
 import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.service.ApiIdsCalculatorService;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.PlanService;
@@ -27,19 +30,15 @@ import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.imports.ImportApiJsonNode;
 import io.gravitee.rest.api.service.imports.ImportJsonNodeWithIds;
 import io.gravitee.rest.api.service.imports.ImportPlanJsonNode;
-import io.gravitee.rest.api.service.ApiIdsCalculatorService;
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
-
-import static java.util.stream.Collectors.toMap;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -60,8 +59,11 @@ public class ApiIdsCalculatorServiceImpl implements ApiIdsCalculatorService {
     }
 
     @Override
-    public ImportApiJsonNode recalculateApiDefinitionIds(ExecutionContext executionContext, ImportApiJsonNode apiJsonNode,
-                                                         String urlApiId) {
+    public ImportApiJsonNode recalculateApiDefinitionIds(
+        ExecutionContext executionContext,
+        ImportApiJsonNode apiJsonNode,
+        String urlApiId
+    ) {
         /*
          * In case of an update, if the API definition ID is the same as the resource ID targeted by the update,
          * we don't apply any kind of ID transformation so that we don't break previous exports that don't hold
@@ -69,10 +71,10 @@ public class ApiIdsCalculatorServiceImpl implements ApiIdsCalculatorService {
          */
         if (!apiJsonNode.hasId() || !apiJsonNode.getId().equals(urlApiId)) {
             findApiByEnvironmentAndCrossId(executionContext.getEnvironmentId(), apiJsonNode.getCrossId())
-                   .ifPresentOrElse(
-                          api -> recalculateIdsFromCrossId(executionContext, apiJsonNode, api),
-                          () -> recalculateIdsFromDefinitionIds(executionContext.getEnvironmentId(), apiJsonNode, urlApiId)
-                   );
+                .ifPresentOrElse(
+                    api -> recalculateIdsFromCrossId(executionContext, apiJsonNode, api),
+                    () -> recalculateIdsFromDefinitionIds(executionContext.getEnvironmentId(), apiJsonNode, urlApiId)
+                );
         }
         return generateEmptyIds(apiJsonNode);
     }
@@ -88,26 +90,26 @@ public class ApiIdsCalculatorServiceImpl implements ApiIdsCalculatorService {
     }
 
     private void recalculatePlanIdsFromCrossIds(
-           ExecutionContext executionContext,
-           ApiEntity api,
-           List<ImportPlanJsonNode> plansNodes,
-           Map<String, String> pagesIdsMap
+        ExecutionContext executionContext,
+        ApiEntity api,
+        List<ImportPlanJsonNode> plansNodes,
+        Map<String, String> pagesIdsMap
     ) {
         Map<String, PlanEntity> plansByCrossId = planService
-               .findByApi(executionContext, api.getId())
-               .stream()
-               .filter(plan -> plan.getCrossId() != null)
-               .collect(toMap(PlanEntity::getCrossId, Function.identity()));
+            .findByApi(executionContext, api.getId())
+            .stream()
+            .filter(plan -> plan.getCrossId() != null)
+            .collect(toMap(PlanEntity::getCrossId, Function.identity()));
 
         plansNodes
-               .stream()
-               .filter(ImportJsonNodeWithIds::hasCrossId)
-               .forEach(plan -> {
-                   PlanEntity matchingPlan = plansByCrossId.get(plan.getCrossId());
-                   plan.setApi(api.getId());
-                   plan.setId(matchingPlan != null ? matchingPlan.getId() : UuidString.generateRandom());
-                   recalculateGeneralConditionsPageId(plan, pagesIdsMap);
-               });
+            .stream()
+            .filter(ImportJsonNodeWithIds::hasCrossId)
+            .forEach(plan -> {
+                PlanEntity matchingPlan = plansByCrossId.get(plan.getCrossId());
+                plan.setApi(api.getId());
+                plan.setId(matchingPlan != null ? matchingPlan.getId() : UuidString.generateRandom());
+                recalculateGeneralConditionsPageId(plan, pagesIdsMap);
+            });
     }
 
     /**
@@ -119,36 +121,36 @@ public class ApiIdsCalculatorServiceImpl implements ApiIdsCalculatorService {
      * @return the map of old ID - new ID
      */
     private Map<String, String> recalculatePageIdsFromCrossIds(
-           String environmentId,
-           ApiEntity api,
-           List<ImportJsonNodeWithIds> pagesNodes
+        String environmentId,
+        ApiEntity api,
+        List<ImportJsonNodeWithIds> pagesNodes
     ) {
         Map<String, String> idsMap = new HashMap<>();
 
         Map<String, PageEntity> pagesByCrossId = pageService
-               .findByApi(environmentId, api.getId())
-               .stream()
-               .filter(page -> page.getCrossId() != null)
-               .collect(toMap(PageEntity::getCrossId, Function.identity()));
+            .findByApi(environmentId, api.getId())
+            .stream()
+            .filter(page -> page.getCrossId() != null)
+            .collect(toMap(PageEntity::getCrossId, Function.identity()));
 
         pagesNodes
-               .stream()
-               .filter(ImportJsonNodeWithIds::hasCrossId)
-               .forEach(page -> {
-                   String pageId = page.hasId() ? page.getId() : null;
-                   PageEntity matchingPage = pagesByCrossId.get(page.getCrossId());
-                   page.setApi(api.getId());
-                   if (matchingPage != null) {
-                       idsMap.put(pageId, matchingPage.getId());
-                       page.setId(matchingPage.getId());
-                       updatePagesHierarchy(pagesNodes, pageId, matchingPage.getId());
-                   } else {
-                       String newPageId = UuidString.generateRandom();
-                       idsMap.put(pageId, newPageId);
-                       page.setId(newPageId);
-                       updatePagesHierarchy(pagesNodes, pageId, newPageId);
-                   }
-               });
+            .stream()
+            .filter(ImportJsonNodeWithIds::hasCrossId)
+            .forEach(page -> {
+                String pageId = page.hasId() ? page.getId() : null;
+                PageEntity matchingPage = pagesByCrossId.get(page.getCrossId());
+                page.setApi(api.getId());
+                if (matchingPage != null) {
+                    idsMap.put(pageId, matchingPage.getId());
+                    page.setId(matchingPage.getId());
+                    updatePagesHierarchy(pagesNodes, pageId, matchingPage.getId());
+                } else {
+                    String newPageId = UuidString.generateRandom();
+                    idsMap.put(pageId, newPageId);
+                    page.setId(newPageId);
+                    updatePagesHierarchy(pagesNodes, pageId, newPageId);
+                }
+            });
 
         return idsMap;
     }
@@ -163,19 +165,19 @@ public class ApiIdsCalculatorServiceImpl implements ApiIdsCalculatorService {
     }
 
     private void recalculatePlanIdsFromDefinitionIds(
-           List<ImportPlanJsonNode> plansNodes,
-           String environmentId,
-           String apiId,
-           Map<String, String> pagesIdsMap
+        List<ImportPlanJsonNode> plansNodes,
+        String environmentId,
+        String apiId,
+        Map<String, String> pagesIdsMap
     ) {
         plansNodes
-               .stream()
-               .filter(ImportJsonNodeWithIds::hasId)
-               .forEach(plan -> {
-                   plan.setId(UuidString.generateForEnvironment(environmentId, apiId, plan.getId()));
-                   plan.setApi(apiId);
-                   recalculateGeneralConditionsPageId(plan, pagesIdsMap);
-               });
+            .stream()
+            .filter(ImportJsonNodeWithIds::hasId)
+            .forEach(plan -> {
+                plan.setId(UuidString.generateForEnvironment(environmentId, apiId, plan.getId()));
+                plan.setApi(apiId);
+                recalculateGeneralConditionsPageId(plan, pagesIdsMap);
+            });
     }
 
     private static void recalculateGeneralConditionsPageId(ImportPlanJsonNode plan, Map<String, String> pagesIdsMap) {
@@ -193,22 +195,22 @@ public class ApiIdsCalculatorServiceImpl implements ApiIdsCalculatorService {
      * @return the map of old ID - new ID
      */
     private Map<String, String> recalculatePageIdsFromDefinitionIds(
-           List<ImportJsonNodeWithIds> pagesNodes,
-           String environmentId,
-           String apiId
+        List<ImportJsonNodeWithIds> pagesNodes,
+        String environmentId,
+        String apiId
     ) {
         Map<String, String> idsMap = new HashMap<>();
         pagesNodes
-               .stream()
-               .filter(ImportJsonNodeWithIds::hasId)
-               .forEach(page -> {
-                   String oldPageId = page.getId();
-                   String newPageId = UuidString.generateForEnvironment(environmentId, apiId, oldPageId);
-                   idsMap.put(oldPageId, newPageId);
-                   page.setId(newPageId);
-                   page.setApi(apiId);
-                   updatePagesHierarchy(pagesNodes, oldPageId, newPageId);
-               });
+            .stream()
+            .filter(ImportJsonNodeWithIds::hasId)
+            .forEach(page -> {
+                String oldPageId = page.getId();
+                String newPageId = UuidString.generateForEnvironment(environmentId, apiId, oldPageId);
+                idsMap.put(oldPageId, newPageId);
+                page.setId(newPageId);
+                page.setApi(apiId);
+                updatePagesHierarchy(pagesNodes, oldPageId, newPageId);
+            });
         return idsMap;
     }
 
@@ -227,9 +229,9 @@ public class ApiIdsCalculatorServiceImpl implements ApiIdsCalculatorService {
 
     private ImportApiJsonNode generateEmptyIds(ImportApiJsonNode apiJsonNode) {
         Stream
-               .concat(apiJsonNode.getPlans().stream(), apiJsonNode.getPages().stream())
-               .filter(node -> !node.hasId())
-               .forEach(node -> node.setId(UuidString.generateRandom()));
+            .concat(apiJsonNode.getPlans().stream(), apiJsonNode.getPages().stream())
+            .filter(node -> !node.hasId())
+            .forEach(node -> node.setId(UuidString.generateRandom()));
         return apiJsonNode;
     }
 }

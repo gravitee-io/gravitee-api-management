@@ -1259,7 +1259,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
     }
 
-    private void checkShardingTags(final UpdateApiEntity updateApiEntity, final ApiEntity existingAPI, ExecutionContext executionContext) throws TechnicalException {
+    private void checkShardingTags(final UpdateApiEntity updateApiEntity, final ApiEntity existingAPI, ExecutionContext executionContext)
+        throws TechnicalException {
         final Set<String> tagsToUpdate = updateApiEntity.getTags() == null ? new HashSet<>() : updateApiEntity.getTags();
         final Set<String> updatedTags;
         if (existingAPI == null) {

@@ -18,7 +18,6 @@ package io.gravitee.rest.api.service;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.stream.Stream;
-
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -28,7 +27,7 @@ class CsvUtilsTest {
     CsvUtils csvUtils = new CsvUtils(';');
 
     @ParameterizedTest
-    @MethodSource({"csvInputs"})
+    @MethodSource({ "csvInputs" })
     void sanitize(String input, String expected) {
         assertThat(csvUtils.sanitize(input)).isEqualTo(expected);
     }

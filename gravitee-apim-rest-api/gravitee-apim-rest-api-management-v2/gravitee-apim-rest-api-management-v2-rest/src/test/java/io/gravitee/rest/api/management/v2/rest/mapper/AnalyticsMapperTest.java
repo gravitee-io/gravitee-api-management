@@ -15,14 +15,14 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+
 import fixtures.AnalyticsFixtures;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.analytics.sampling.SamplingType;
 import io.gravitee.rest.api.management.v2.rest.model.Sampling;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
-
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 public class AnalyticsMapperTest {
 

@@ -19,6 +19,5 @@ import io.gravitee.rest.api.model.v4.api.ExportApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 
 public interface ApiIdsCalculatorService {
-
     ExportApiEntity recalculateApiDefinitionIds(final ExecutionContext executionContext, ExportApiEntity toRecalculate);
 }

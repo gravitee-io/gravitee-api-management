@@ -182,8 +182,7 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
         if (isBlank(executionContext.getEnvironmentId())) {
             return Set.of();
         }
-        final ApiCriteria.Builder builder = new ApiCriteria.Builder()
-            .environmentId(executionContext.getEnvironmentId());
+        final ApiCriteria.Builder builder = new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId());
         List<ApiCriteria> apiCriteriaList = new ArrayList<>();
         apiCriteriaList.add(builder.build());
 

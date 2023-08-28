@@ -32,11 +32,10 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.v4.ApiService;
 import io.gravitee.rest.api.service.v4.ApiStateService;
 import io.reactivex.rxjava3.core.Single;
-import org.springframework.stereotype.Component;
-
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Ashraful Hasan (ashraful.hasan at graviteesource.com)
@@ -69,9 +68,9 @@ public class V4ApiServiceCockpitImpl implements V4ApiServiceCockpit {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
 
         return Single
-                .just(apiServiceV4.create(executionContext, newApiEntity, userId))
-                .flatMap(apiEntity -> publishApi(executionContext, apiEntity, userId, updateApiEntity))
-                .flatMap(apiEntity -> syncDeployment(executionContext, apiEntity.getId(), userId));
+            .just(apiServiceV4.create(executionContext, newApiEntity, userId))
+            .flatMap(apiEntity -> publishApi(executionContext, apiEntity, userId, updateApiEntity))
+            .flatMap(apiEntity -> syncDeployment(executionContext, apiEntity.getId(), userId));
     }
 
     private NewApiEntity getNewApiEntity(JsonNode node) throws JsonProcessingException {
@@ -100,7 +99,12 @@ public class V4ApiServiceCockpitImpl implements V4ApiServiceCockpit {
         return Single.just((ApiEntity) apiStateService.deploy(executionContext, apiId, userId, deploymentEntity));
     }
 
-    private Single<ApiEntity> publishApi(ExecutionContext executionContext, ApiEntity apiEntity, String userId, UpdateApiEntity updateApiEntity) {
+    private Single<ApiEntity> publishApi(
+        ExecutionContext executionContext,
+        ApiEntity apiEntity,
+        String userId,
+        UpdateApiEntity updateApiEntity
+    ) {
         final UpdateApiEntity apiToUpdate = createUpdateApiEntity(apiEntity, updateApiEntity);
 
         final ApiEntity update = apiServiceV4.update(executionContext, apiEntity.getId(), apiToUpdate, userId);

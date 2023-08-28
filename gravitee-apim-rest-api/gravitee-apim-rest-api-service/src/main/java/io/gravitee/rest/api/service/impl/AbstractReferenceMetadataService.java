@@ -277,7 +277,8 @@ public abstract class AbstractReferenceMetadataService {
             }
             final ReferenceMetadataEntity referenceMetadataEntity = convert(savedMetadata);
             if (withDefaults) {
-                metadataService.findAllDefault()
+                metadataService
+                    .findAllDefault()
                     .stream()
                     .filter(m -> m.getKey().equals(metadataEntity.getKey()))
                     .findAny()

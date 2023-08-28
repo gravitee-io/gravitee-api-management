@@ -39,7 +39,6 @@ import io.vertx.rxjava3.core.buffer.Buffer;
 import io.vertx.rxjava3.core.http.HttpClient;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
 import org.junit.jupiter.api.Test;
 
 @GatewayTest
@@ -70,11 +69,11 @@ class HttpPostEntrypointRabbitMQEndpointIntegrationTest extends AbstractRabbitMQ
 
         subscribeToRabbitMQ(exchange, routingKey)
             .zipWith(
-                    postMessage(client, "/test", requestBody, Map.of("X-Test-Header", "header-value"))
-                        .delaySubscription(750, MILLISECONDS)
-                        .isEmpty()
-                        .toFlowable(),
-                    (c, o) -> c
+                postMessage(client, "/test", requestBody, Map.of("X-Test-Header", "header-value"))
+                    .delaySubscription(750, MILLISECONDS)
+                    .isEmpty()
+                    .toFlowable(),
+                (c, o) -> c
             )
             .test()
             .awaitDone(30, TimeUnit.SECONDS)

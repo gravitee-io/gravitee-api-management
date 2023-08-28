@@ -30,11 +30,10 @@ import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.PrimaryOwnerRemovalException;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-
-import io.gravitee.rest.api.service.exceptions.PrimaryOwnerRemovalException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

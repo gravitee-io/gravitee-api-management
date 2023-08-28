@@ -109,7 +109,13 @@ public class PlansDataFixUpgraderTest {
         apiv2_2.setId("api4");
         apiv2_2.setDefinition("{\"gravitee\": \"2.0.0\"}");
         apiv2_2.setEnvironmentId("envId");
-        when(apiRepository.search(eq(new ApiCriteria.Builder().definitionVersion(List.of(DefinitionVersion.V2)).build()), eq(null), any(ApiFieldFilter.class)))
+        when(
+            apiRepository.search(
+                eq(new ApiCriteria.Builder().definitionVersion(List.of(DefinitionVersion.V2)).build()),
+                eq(null),
+                any(ApiFieldFilter.class)
+            )
+        )
             .thenReturn(Stream.of(apiv2_1, apiv2_2));
 
         upgrader.upgrade();

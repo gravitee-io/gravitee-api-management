@@ -1165,7 +1165,7 @@
                     <prettierJavaVersion>${maven-plugin-prettier.prettierjava.version}</prettierJavaVersion>
                     <skip>${skip.validation}</skip>
                     <inputGlobs>
-                        <inputGlob>src/{main,test}/{java,resources}/**/*.{java}</inputGlob>
+                        <inputGlob>src/{main,test}/**/*.java</inputGlob>
                     </inputGlobs>
                 </configuration>
                 <executions>

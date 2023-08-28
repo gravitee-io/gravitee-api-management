@@ -1241,8 +1241,7 @@ public class ApiServiceImplTest {
 
     @Test
     public void shouldFindByEnvironmentIdAndCrossId() throws TechnicalException {
-        when(apiRepository.findByEnvironmentIdAndCrossId("environment", "api-cross-id"))
-               .thenReturn(Optional.of(api));
+        when(apiRepository.findByEnvironmentIdAndCrossId("environment", "api-cross-id")).thenReturn(Optional.of(api));
 
         final Optional<ApiEntity> result = apiService.findByEnvironmentIdAndCrossId("environment", "api-cross-id");
         assertThat(result).isNotEmpty();

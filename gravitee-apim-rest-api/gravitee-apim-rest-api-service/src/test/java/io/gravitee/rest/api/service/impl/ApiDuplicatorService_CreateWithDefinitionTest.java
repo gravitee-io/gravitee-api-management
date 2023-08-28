@@ -43,6 +43,7 @@ import io.gravitee.rest.api.model.UpdateApiMetadataEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
+import io.gravitee.rest.api.service.ApiIdsCalculatorService;
 import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.GroupService;
@@ -66,8 +67,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
-import io.gravitee.rest.api.service.ApiIdsCalculatorService;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
@@ -450,15 +449,15 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         String plan1newId = "14b9b538-1e83-334d-a96a-ec04a825928e";
         String plan2newId = "237961c1-3675-3168-832a-d67f7df97d99";
 
-        when(apiIdsCalculatorService.recalculateApiDefinitionIds(any(), any())).thenAnswer(invocationOnMock -> {
-            // In this case, the ApiIdsCalculator service would have completed the api id
-            final ImportApiJsonNode apiJsonNode = invocationOnMock.getArgument(1, ImportApiJsonNode.class);
-            apiJsonNode.getPlans().stream().filter(plan -> plan.getId().equals("plan-id")).forEach(plan -> plan.setId(plan1newId));
-            apiJsonNode.getPlans().stream().filter(plan -> plan.getId().equals("plan-id2")).forEach(plan -> plan.setId(plan2newId));
-            return apiJsonNode;
-        });
+        when(apiIdsCalculatorService.recalculateApiDefinitionIds(any(), any()))
+            .thenAnswer(invocationOnMock -> {
+                // In this case, the ApiIdsCalculator service would have completed the api id
+                final ImportApiJsonNode apiJsonNode = invocationOnMock.getArgument(1, ImportApiJsonNode.class);
+                apiJsonNode.getPlans().stream().filter(plan -> plan.getId().equals("plan-id")).forEach(plan -> plan.setId(plan1newId));
+                apiJsonNode.getPlans().stream().filter(plan -> plan.getId().equals("plan-id2")).forEach(plan -> plan.setId(plan2newId));
+                return apiJsonNode;
+            });
         apiDuplicatorService.createWithImportedDefinition(GraviteeContext.getExecutionContext(), toBeImport);
-
 
         // check createWithApiDefinition has been called with newly generated plans IDs in API's definition
         verify(apiService, times(1))
