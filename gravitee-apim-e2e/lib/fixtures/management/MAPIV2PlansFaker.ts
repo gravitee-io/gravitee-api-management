@@ -14,7 +14,15 @@
  * limitations under the License.
  */
 import faker from '@faker-js/faker';
-import { PlanValidation, PlanSecurityType, PlanMode, CreatePlan, PlanV4, PlanStatus } from '@gravitee/management-v2-webclient-sdk/src/lib';
+import {
+  PlanValidation,
+  PlanSecurityType,
+  PlanMode,
+  CreatePlan,
+  FlowV4,
+  PlanV4,
+  PlanStatus,
+} from '@gravitee/management-v2-webclient-sdk/src/lib';
 
 export class MAPIV2PlansFaker {
   static newPlanV4(attributes?: Partial<CreatePlan>): CreatePlan {
@@ -50,6 +58,40 @@ export class MAPIV2PlansFaker {
       order: 1,
       characteristics: [],
       flows: [],
+      ...attributes,
+    };
+  }
+
+  static newFlowV4(attributes?: Partial<FlowV4>): FlowV4 {
+    const name = faker.commerce.productName();
+
+    return {
+      name,
+      enabled: true,
+      selectors: [
+        {
+          type: 'HTTP',
+          path: '/',
+          pathOperator: 'STARTS_WITH',
+        },
+      ],
+      response: [
+        {
+          name: 'Transform Headers',
+          enabled: true,
+          policy: 'transform-headers',
+          configuration: {
+            whitelistHeaders: [],
+            addHeaders: [
+              {
+                name: 'x-header-added-by-plan-flow',
+                value: faker.random.word(),
+              },
+            ],
+            // scope : "REQUEST",
+          },
+        },
+      ],
       ...attributes,
     };
   }
