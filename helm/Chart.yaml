@@ -19,5 +19,5 @@ annotations:
   # List of changes for the release in artifacthub.io
   # https://artifacthub.io/packages/helm/graviteeio/apim?modal=changelog
   artifacthub.io/changes: |
-    - Define elasticsearch settings
-    - Add support for DB less deployment
+    - Add revision history limit on portal
+    - Add podSecurityContext
