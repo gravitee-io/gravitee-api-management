@@ -18,6 +18,7 @@ package io.gravitee.repository.elasticsearch.configuration;
 import io.gravitee.common.util.EnvironmentUtils;
 import io.gravitee.elasticsearch.config.Endpoint;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -90,13 +91,11 @@ public class RepositoryConfiguration {
     /**
      * Elasticsearch ssl pem certs paths
      */
-    @Value("${analytics.elasticsearch.ssl.keystore.certs}")
     private List<String> sslPemCerts;
 
     /**
      * Elasticsearch ssl pem keys paths
      */
-    @Value("${analytics.elasticsearch.ssl.keystore.keys}")
     private List<String> sslPemKeys;
 
     /**
@@ -212,6 +211,10 @@ public class RepositoryConfiguration {
     }
 
     public List<String> getSslPemCerts() {
+        if (sslPemCerts == null) {
+            sslPemCerts = readPropertyAsList("analytics.elasticsearch.ssl.keystore.certs");
+        }
+
         return sslPemCerts;
     }
 
@@ -220,6 +223,10 @@ public class RepositoryConfiguration {
     }
 
     public List<String> getSslPemKeys() {
+        if (sslPemKeys == null) {
+            sslPemKeys = readPropertyAsList("analytics.elasticsearch.ssl.keystore.keys");
+        }
+
         return sslPemKeys;
     }
 
@@ -274,6 +281,25 @@ public class RepositoryConfiguration {
 
     public void setCrossClusterMapping(Map<String, String> crossClusterMapping) {
         this.crossClusterMapping = crossClusterMapping;
+    }
+
+    private List<String> readPropertyAsList(String property) {
+        String key = String.format("%s[%s]", property, 0);
+        List<String> properties = new ArrayList<>();
+
+        while (environment.containsProperty(key)) {
+            String p = environment.getProperty(key);
+            properties.add(p);
+
+            key = String.format("%s[%s]", property, properties.size());
+        }
+
+        // fallback to single value style for backward compatibility
+        if (properties.isEmpty()) {
+            properties.add(environment.getProperty(property));
+        }
+
+        return properties;
     }
 
     private List<Endpoint> initializeEndpoints() {
