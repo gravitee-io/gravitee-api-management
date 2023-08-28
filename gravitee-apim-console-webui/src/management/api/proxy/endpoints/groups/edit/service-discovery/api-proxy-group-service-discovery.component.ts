@@ -15,8 +15,8 @@
  */
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { FormGroup } from '@angular/forms';
-import { startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { combineLatest, of, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import { Subject } from 'rxjs';
 import '@gravitee/ui-components/wc/gv-schema-form-group';
 
 import { ResourceListItem } from '../../../../../../../entities/resource/resourceListItem';
@@ -34,37 +34,21 @@ export class ApiProxyGroupServiceDiscoveryComponent implements OnInit, OnDestroy
   @Input() serviceDiscoveryItems: ResourceListItem[];
 
   public schema: unknown;
-  public displaySchema: boolean;
 
   constructor(private readonly serviceDiscoveryService: ServiceDiscoveryService) {}
 
   ngOnInit(): void {
-    combineLatest([
-      this.serviceDiscoveryForm
-        .get('enabled')
-        .valueChanges.pipe(startWith(this.serviceDiscoveryForm.get('enabled').value), takeUntil(this.unsubscribe$)),
-      this.serviceDiscoveryForm
-        .get('type')
-        .valueChanges.pipe(startWith(this.serviceDiscoveryForm.get('type').value), takeUntil(this.unsubscribe$)),
-    ])
-      .pipe(
-        switchMap(([enabled, type]) => {
-          const typeControl = this.serviceDiscoveryForm.get('type');
-          enabled ? typeControl.enable({ emitEvent: false }) : typeControl.disable({ emitEvent: false });
+    if (this.serviceDiscoveryForm.get('enabled').value) {
+      this.getProviderSchema(this.serviceDiscoveryForm.get('provider').value);
+    }
 
-          if (enabled && type) {
-            return this.serviceDiscoveryService.getSchema(type);
-          } else {
-            return of(null);
-          }
-        }),
-        tap((schema) => {
-          this.serviceDiscoveryForm.get('configuration').reset({});
-          this.schema = schema;
-          this.displaySchema = !!schema;
-        }),
-      )
-      .subscribe();
+    this.serviceDiscoveryForm
+      .get('provider')
+      .valueChanges.pipe(takeUntil(this.unsubscribe$))
+      .subscribe((provider) => {
+        this.serviceDiscoveryForm.get('configuration').reset({});
+        this.getProviderSchema(provider);
+      });
   }
 
   ngOnDestroy(): void {
@@ -77,5 +61,14 @@ export class ApiProxyGroupServiceDiscoveryComponent implements OnInit, OnDestroy
     setTimeout(() => {
       this.serviceDiscoveryForm.get('configuration').setErrors(error ? { error: true } : null);
     }, 0);
+  }
+
+  private getProviderSchema(provider: string) {
+    if (provider) {
+      this.serviceDiscoveryService
+        .getSchema(provider)
+        .pipe(takeUntil(this.unsubscribe$))
+        .subscribe((schema) => (this.schema = schema));
+    }
   }
 }

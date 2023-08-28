@@ -29,17 +29,17 @@
     </gio-form-slide-toggle>
 
     <!-- Type -->
-    <div class="card__group-sd">
+    <div class="card__group-sd" *ngIf="serviceDiscoveryForm.get('enabled').value">
       <div class="card__group-sd__type__label">Type</div>
       <mat-form-field class="card__group-sd__type__form-field">
         <mat-label>Type</mat-label>
-        <mat-select aria-label="Service discovery type" formControlName="type">
+        <mat-select aria-label="Service discovery provider" formControlName="provider">
           <mat-option *ngFor="let sd of serviceDiscoveryItems" [value]="sd.id">{{ sd.name }}</mat-option>
         </mat-select>
       </mat-form-field>
     </div>
 
-    <div class="card__group-sd" *ngIf="displaySchema">
+    <div class="card__group-sd" *ngIf="serviceDiscoveryForm.get('enabled').value && schema">
       <gv-schema-form-group
         ngDefaultControl
         formControlName="configuration"
