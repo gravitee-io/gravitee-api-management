@@ -220,3 +220,19 @@ tests:
               name: I-am-a-v-bridge
             - containerPort: 18082
               name: I-am-a-techapi
+
+  - it: Deploy with podSecurityContext
+    template: gateway/gateway-deployment.yaml
+    set:
+      gateway:
+        deployment:
+          podSecurityContext:
+            fsGroup: 1001
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - equal:
+          path: spec.template.spec.securityContext.fsGroup
+          value: 1001

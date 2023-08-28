@@ -83,6 +83,7 @@ spec:
         {{- end }}
         {{- end }}
     spec:
+      securityContext: {{ toYaml .Values.gateway.deployment.podSecurityContext | nindent 8 }}
       {{- if not (eq .Values.gateway.deployment.serviceAccount "") }}
       serviceAccountName: {{ .Values.gateway.deployment.serviceAccount }}
       {{- else if $serviceAccount }}
