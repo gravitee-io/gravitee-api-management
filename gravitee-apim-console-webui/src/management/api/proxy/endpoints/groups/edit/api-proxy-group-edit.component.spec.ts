@@ -222,7 +222,7 @@ describe('ApiProxyGroupEditComponent', () => {
                 name: DEFAULT_GROUP_NAME,
                 endpoints: [],
                 load_balancing: { type: 'ROUND_ROBIN' },
-                services: { discovery: { enabled: true, provider: 'consul-service-discovery' } },
+                services: { discovery: { enabled: true, provider: 'consul-service-discovery', configuration: { service: 'service' } } },
               },
             ],
           },
@@ -259,7 +259,9 @@ describe('ApiProxyGroupEditComponent', () => {
               discovery: {
                 enabled: true,
                 provider: 'consul-service-discovery',
-                configuration: {},
+                configuration: {
+                  service: 'service',
+                },
               },
             },
           },
