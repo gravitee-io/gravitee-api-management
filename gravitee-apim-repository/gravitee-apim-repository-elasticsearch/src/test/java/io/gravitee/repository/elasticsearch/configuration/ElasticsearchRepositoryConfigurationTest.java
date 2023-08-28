@@ -16,6 +16,7 @@
 package io.gravitee.repository.elasticsearch.configuration;
 
 import io.gravitee.repository.elasticsearch.spring.YamlPropertySourceFactory;
+import org.assertj.core.api.Assertions;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -63,5 +64,15 @@ public class ElasticsearchRepositoryConfigurationTest {
     public void shouldHaveClientTimeout() {
         Assert.assertNotNull(configuration.getRequestTimeout());
         Assert.assertEquals(30000, configuration.getRequestTimeout().longValue());
+    }
+
+    @Test
+    public void shouldHaveKeystoreCerts() {
+        Assertions.assertThat(configuration.getSslPemCerts()).hasSize(2).containsExactly("cert1", "cert2");
+    }
+
+    @Test
+    public void shouldHaveKeystoreKeys() {
+        Assertions.assertThat(configuration.getSslPemKeys()).hasSize(1).containsExactly("unique-key");
     }
 }
