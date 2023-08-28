@@ -1,0 +1,31 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+$typography: map.get(gio.$mat-theme, typography);
+
+@mixin gio-button-toggle {
+  border: solid 1px mat.get-color-from-palette(gio.$mat-dove-palette, 'darker20');
+  padding: 4px;
+  height: 44px;
+  margin-bottom: 16px;
+  width: fit-content;
+
+  &__toggle {
+    @include mat.typography-level($typography, body-2);
+    border-radius: 4px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
+
+  &__toggle.mat-button-toggle-checked {
+    color: mat.get-color-from-palette(gio.$mat-accent-palette, default-contrast);
+    background-color: mat.get-color-from-palette(gio.$mat-accent-palette, 'darker20');
+  }
+
+  &__toggle.mat-button-toggle + .mat-button-toggle {
+    border: none;
+    margin-left: 8px;
+  }
+}
