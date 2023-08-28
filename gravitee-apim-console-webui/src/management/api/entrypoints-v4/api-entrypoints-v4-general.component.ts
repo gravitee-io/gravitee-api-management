@@ -48,6 +48,7 @@ type EntrypointVM = {
   id: string;
   icon: string;
   type: string;
+  qos: string;
 };
 @Component({
   selector: 'api-entrypoints-v4-general',
@@ -60,7 +61,7 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
   public api: ApiV4;
   public formGroup: FormGroup;
   public pathsFormControl: FormControl;
-  public displayedColumns = ['type', 'actions'];
+  public displayedColumns = ['type', 'qos', 'actions'];
   public dataSource: EntrypointVM[] = [];
   private allEntrypoints: ConnectorPlugin[];
   public enableVirtualHost = false;
@@ -134,6 +135,7 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
             id: entrypoint.type,
             icon: this.iconService.registerSvg(matchingEntrypoint.id, matchingEntrypoint.icon),
             type: matchingEntrypoint.name,
+            qos: entrypoint.qos,
           };
           return entry;
         }
