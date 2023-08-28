@@ -1,4 +1,4 @@
-import { ConnectorPlugin, ListenerType } from '../../index';
+import { ConnectorPlugin, ListenerType, Qos } from '../../index';
 
 /*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
@@ -25,6 +25,7 @@ export type ConnectorVM = {
    */
   isEnterprise: boolean;
   supportedListenerType: ListenerType;
+  supportedQos: Qos[];
   icon: string;
   deployed: boolean;
 };
@@ -36,6 +37,7 @@ export const fromConnector: (iconService, connector: ConnectorPlugin) => Connect
     description: connector.description,
     isEnterprise: connector.id.endsWith('-advanced'),
     supportedListenerType: connector.supportedListenerType,
+    supportedQos: connector.supportedQos,
     icon: iconService.registerSvg(connector.id, connector.icon),
     deployed: connector.deployed,
   };

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ApiType, CreatePlanV4, ListenerType, PathV4 } from '../../../../entities/management-api-v2';
+import { ApiType, CreatePlanV4, ListenerType, PathV4, Qos } from '../../../../entities/management-api-v2';
 
 export type ApiCreationPayload = Partial<{
   // API details
@@ -29,6 +29,8 @@ export type ApiCreationPayload = Partial<{
     name: string;
     icon: string;
     supportedListenerType: ListenerType;
+    supportedQos?: Qos[];
+    selectedQos?: Qos;
     configuration?: unknown;
     deployed: boolean;
   }[];

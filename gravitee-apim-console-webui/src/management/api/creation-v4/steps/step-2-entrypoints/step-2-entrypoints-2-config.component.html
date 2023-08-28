@@ -46,7 +46,17 @@
     <ng-container *ngFor="let entrypoint of selectedEntrypoints">
       <div *ngIf="entrypointSchemas[entrypoint.id]" class="api-creation-v4__form-container">
         <h3>{{ entrypoint.name }}</h3>
-        <gio-form-json-schema [jsonSchema]="entrypointSchemas[entrypoint.id]" [formControlName]="entrypoint.id"></gio-form-json-schema>
+        <gio-form-json-schema
+          [jsonSchema]="entrypointSchemas[entrypoint.id]"
+          [formControlName]="entrypoint.id + '-config'"
+        ></gio-form-json-schema>
+
+        <gio-form-qos
+          *ngIf="entrypoint"
+          [id]="entrypoint.id"
+          [supportedQos]="entrypoint.supportedQos"
+          [formControlName]="entrypoint.id + '-qos'"
+        ></gio-form-qos>
       </div>
     </ng-container>
 

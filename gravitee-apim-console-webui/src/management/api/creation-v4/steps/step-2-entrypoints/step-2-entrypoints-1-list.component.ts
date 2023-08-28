@@ -119,7 +119,14 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
   private saveChanges() {
     const selectedEntrypointsIds = this.formGroup.getRawValue().selectedEntrypointsIds ?? [];
     const selectedEntrypoints = this.entrypoints
-      .map(({ id, name, supportedListenerType, icon, deployed }) => ({ id, name, supportedListenerType, icon, deployed }))
+      .map(({ id, name, supportedListenerType, supportedQos, icon, deployed }) => ({
+        id,
+        name,
+        supportedListenerType,
+        supportedQos,
+        icon,
+        deployed,
+      }))
       .filter((e) => selectedEntrypointsIds.includes(e.id));
 
     this.stepService.validStep((previousPayload) => ({

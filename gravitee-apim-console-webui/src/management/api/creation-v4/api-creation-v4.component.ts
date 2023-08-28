@@ -182,9 +182,10 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
     const listeners: Listener[] = listenersType.reduce((listeners, listenersType) => {
       const entrypoints: Entrypoint[] = apiCreationPayload.selectedEntrypoints
         .filter((e) => e.supportedListenerType === listenersType)
-        .map(({ id, configuration }) => ({
+        .map(({ id, configuration, selectedQos }) => ({
           type: id,
           configuration: configuration,
+          qos: selectedQos,
         }));
 
       const listenerConfig = {
