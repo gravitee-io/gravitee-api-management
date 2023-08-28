@@ -22,7 +22,7 @@ import { GioJsonSchema } from '@gravitee/ui-particles-angular';
 
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
-import { ApiV4, ConnectorPlugin, Entrypoint, Listener, UpdateApiV4 } from '../../../../entities/management-api-v2';
+import { ApiV4, ConnectorPlugin, Entrypoint, Listener, Qos, UpdateApiV4 } from '../../../../entities/management-api-v2';
 import { ConnectorPluginsV2Service } from '../../../../services-ngx/connector-plugins-v2.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 
@@ -43,6 +43,7 @@ export class ApiEntrypointsV4EditComponent implements OnInit {
   public entrypoint: Entrypoint;
   public entrypointName: string;
   public entrypointSchema: GioJsonSchema;
+  public supportedQos: Qos[];
 
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
@@ -76,6 +77,7 @@ export class ApiEntrypointsV4EditComponent implements OnInit {
               const matchingEntrypoint = this.availableEntrypoints.find((entrypoint) => entrypoint.id === this.entrypoint.type);
               if (matchingEntrypoint) {
                 this.entrypointName = matchingEntrypoint.name;
+                this.supportedQos = matchingEntrypoint.supportedQos;
               }
             }
           }
@@ -84,7 +86,8 @@ export class ApiEntrypointsV4EditComponent implements OnInit {
         tap((schema) => {
           this.entrypointSchema = schema;
           this.form = new FormGroup({});
-          this.form.addControl(this.entrypoint.type, new FormControl(this.entrypoint.configuration));
+          this.form.addControl(`${this.entrypoint.type}-config`, new FormControl(this.entrypoint.configuration));
+          this.form.addControl(`${this.entrypoint.type}-qos`, new FormControl(this.entrypoint.qos));
         }),
         takeUntil(this.unsubscribe$),
       )
@@ -92,7 +95,8 @@ export class ApiEntrypointsV4EditComponent implements OnInit {
   }
 
   onSaveEntrypointConfig() {
-    const formValue = this.form.get(this.entrypoint.type).value;
+    const configurationValue = this.form.get(`${this.entrypoint.type}-config`).value;
+    const qosValue = this.form.get(`${this.entrypoint.type}-qos`).value;
 
     this.apiService
       .get(this.apiId)
@@ -103,7 +107,7 @@ export class ApiEntrypointsV4EditComponent implements OnInit {
           };
           const entrypointToUpdate = listenerToUpdate.entrypoints.find((entrypoint) => entrypoint.type === this.entrypointId);
 
-          const updatedEntrypoint: Entrypoint = { ...entrypointToUpdate, configuration: formValue };
+          const updatedEntrypoint: Entrypoint = { ...entrypointToUpdate, configuration: configurationValue, qos: qosValue };
           const updatedListener: Listener = {
             ...listenerToUpdate,
             entrypoints: [...listenerToUpdate.entrypoints.filter((entrypoint) => entrypoint.type !== this.entrypointId), updatedEntrypoint],
