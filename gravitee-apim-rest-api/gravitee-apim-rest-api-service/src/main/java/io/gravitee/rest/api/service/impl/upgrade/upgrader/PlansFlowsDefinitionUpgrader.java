@@ -27,7 +27,6 @@ import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
-
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -70,7 +69,11 @@ public class PlansFlowsDefinitionUpgrader implements Upgrader {
         try {
             AtomicBoolean upgradeFailed = new AtomicBoolean(false);
             apiRepository
-                .search(new ApiCriteria.Builder().definitionVersion(List.of(DefinitionVersion.V2)).build(), null, ApiFieldFilter.allFields())
+                .search(
+                    new ApiCriteria.Builder().definitionVersion(List.of(DefinitionVersion.V2)).build(),
+                    null,
+                    ApiFieldFilter.allFields()
+                )
                 .forEach(api -> {
                     try {
                         io.gravitee.definition.model.Api apiDefinition = objectMapper.readValue(

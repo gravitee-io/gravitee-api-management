@@ -48,7 +48,6 @@ import io.gravitee.rest.api.service.v4.validation.AnalyticsValidationService;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.Set;
-
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
@@ -137,15 +136,15 @@ public class ApiService_CreateWithDefinitionTest {
     public static void cleanSecurityContextHolder() {
         // reset authentication to avoid side effect during test executions.
         SecurityContextHolder.setContext(
-                new SecurityContext() {
-                    @Override
-                    public Authentication getAuthentication() {
-                        return null;
-                    }
-
-                    @Override
-                    public void setAuthentication(Authentication authentication) {}
+            new SecurityContext() {
+                @Override
+                public Authentication getAuthentication() {
+                    return null;
                 }
+
+                @Override
+                public void setAuthentication(Authentication authentication) {}
+            }
         );
     }
 
@@ -280,7 +279,9 @@ public class ApiService_CreateWithDefinitionTest {
         api.setDescription("tag test example");
         api.setTags(Set.of("unit-tests"));
 
-        doThrow(TagNotFoundException.class).when(tagService).checkTagsExist(Set.of("unit-tests"), GraviteeContext.getCurrentEnvironment(), TagReferenceType.ORGANIZATION);
+        doThrow(TagNotFoundException.class)
+            .when(tagService)
+            .checkTagsExist(Set.of("unit-tests"), GraviteeContext.getCurrentEnvironment(), TagReferenceType.ORGANIZATION);
 
         assertThrows(TagNotFoundException.class, () -> apiService.createWithApiDefinition(EXECUTION_CONTEXT, api, USERNAME, definition));
         verify(apiRepository, never()).create(any());
@@ -314,11 +315,13 @@ public class ApiService_CreateWithDefinitionTest {
 
         when(apiMetadataService.fetchMetadataForApi(any(), any())).thenReturn(new ApiEntity());
 
-        when(tagService.findByUser(USERNAME, GraviteeContext.getCurrentEnvironment(), TagReferenceType.ORGANIZATION)).thenReturn(Set.of("a-tag", "unit-tests"));
+        when(tagService.findByUser(USERNAME, GraviteeContext.getCurrentEnvironment(), TagReferenceType.ORGANIZATION))
+            .thenReturn(Set.of("a-tag", "unit-tests"));
 
         apiService.createWithApiDefinition(EXECUTION_CONTEXT, api, USERNAME, definition);
 
-        verify(tagService, times(1)).checkTagsExist(Set.of("unit-tests"), GraviteeContext.getCurrentEnvironment(), TagReferenceType.ORGANIZATION);
+        verify(tagService, times(1))
+            .checkTagsExist(Set.of("unit-tests"), GraviteeContext.getCurrentEnvironment(), TagReferenceType.ORGANIZATION);
 
         verify(apiRepository, times(1)).create(argThat(arg -> arg.getId().equals(definition.get("id").asText())));
     }
@@ -340,7 +343,8 @@ public class ApiService_CreateWithDefinitionTest {
         api.setDescription("tag test basic example");
         api.setTags(Set.of("unit-tests"));
 
-        when(tagService.findByUser(USERNAME, GraviteeContext.getCurrentEnvironment(), TagReferenceType.ORGANIZATION)).thenReturn(Set.of("a-tag"));
+        when(tagService.findByUser(USERNAME, GraviteeContext.getCurrentEnvironment(), TagReferenceType.ORGANIZATION))
+            .thenReturn(Set.of("a-tag"));
 
         assertThrows(TagNotAllowedException.class, () -> apiService.createWithApiDefinition(EXECUTION_CONTEXT, api, USERNAME, definition));
         verify(apiRepository, never()).create(any());

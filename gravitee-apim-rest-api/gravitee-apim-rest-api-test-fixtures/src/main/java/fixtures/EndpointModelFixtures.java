@@ -25,31 +25,33 @@ public class EndpointModelFixtures {
 
     private EndpointModelFixtures() {}
 
-    private static final io.gravitee.definition.model.Endpoint.EndpointBuilder BASE_MODEL_ENDPOINT_V2 = io.gravitee.definition.model.Endpoint
-        .builder()
-        .name("Endpoint name")
-        .target("http://gravitee.io")
-        .weight(1)
-        .backup(false)
-        .status(io.gravitee.definition.model.Endpoint.Status.UP)
-        .tenants(List.of("tenant1", "tenant2"))
-        .type("HTTP")
-        .inherit(true)
-        .healthCheck(io.gravitee.definition.model.services.healthcheck.EndpointHealthCheckService.builder().build())
-        .configuration(null);
+    private static final io.gravitee.definition.model.Endpoint.EndpointBuilder BASE_MODEL_ENDPOINT_V2 =
+        io.gravitee.definition.model.Endpoint
+            .builder()
+            .name("Endpoint name")
+            .target("http://gravitee.io")
+            .weight(1)
+            .backup(false)
+            .status(io.gravitee.definition.model.Endpoint.Status.UP)
+            .tenants(List.of("tenant1", "tenant2"))
+            .type("HTTP")
+            .inherit(true)
+            .healthCheck(io.gravitee.definition.model.services.healthcheck.EndpointHealthCheckService.builder().build())
+            .configuration(null);
 
-    private static final io.gravitee.definition.model.EndpointGroup.EndpointGroupBuilder BASE_MODEL_ENDPOINTGROUP_V2 = io.gravitee.definition.model.EndpointGroup
-        .builder()
-        .name("Endpoint group name")
-        .endpoints(Set.of(BASE_MODEL_ENDPOINT_V2.build()))
-        .loadBalancer(
-            io.gravitee.definition.model.LoadBalancer.builder().type(io.gravitee.definition.model.LoadBalancerType.ROUND_ROBIN).build()
-        )
-        .services(null)
-        .httpProxy(null)
-        .httpClientOptions(null)
-        .httpClientSslOptions(null)
-        .headers(Collections.emptyList());
+    private static final io.gravitee.definition.model.EndpointGroup.EndpointGroupBuilder BASE_MODEL_ENDPOINTGROUP_V2 =
+        io.gravitee.definition.model.EndpointGroup
+            .builder()
+            .name("Endpoint group name")
+            .endpoints(Set.of(BASE_MODEL_ENDPOINT_V2.build()))
+            .loadBalancer(
+                io.gravitee.definition.model.LoadBalancer.builder().type(io.gravitee.definition.model.LoadBalancerType.ROUND_ROBIN).build()
+            )
+            .services(null)
+            .httpProxy(null)
+            .httpClientOptions(null)
+            .httpClientSslOptions(null)
+            .headers(Collections.emptyList());
 
     private static final Endpoint.EndpointBuilder BASE_MODEL_ENDPOINT_V4 = Endpoint
         .builder()

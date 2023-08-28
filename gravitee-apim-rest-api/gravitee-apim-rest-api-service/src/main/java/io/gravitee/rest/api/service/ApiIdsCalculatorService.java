@@ -19,8 +19,6 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.imports.ImportApiJsonNode;
 
 public interface ApiIdsCalculatorService {
-
     ImportApiJsonNode recalculateApiDefinitionIds(final ExecutionContext executionContext, ImportApiJsonNode apiJsonNode);
-    ImportApiJsonNode recalculateApiDefinitionIds(final ExecutionContext executionContext, ImportApiJsonNode apiJsonNode,
-                                                  String urlApiId);
+    ImportApiJsonNode recalculateApiDefinitionIds(final ExecutionContext executionContext, ImportApiJsonNode apiJsonNode, String urlApiId);
 }

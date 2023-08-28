@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.cockpit.command.handler;
 
+import static io.gravitee.rest.api.service.common.SecurityContextHelper.authenticateAs;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.gravitee.cockpit.api.command.Command;
 import io.gravitee.cockpit.api.command.CommandHandler;
@@ -30,8 +32,6 @@ import io.reactivex.rxjava3.core.Single;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-
-import static io.gravitee.rest.api.service.common.SecurityContextHelper.authenticateAs;
 
 /**
  * @author Ashraful Hasan (ashraful.hasan at graviteesource.com)

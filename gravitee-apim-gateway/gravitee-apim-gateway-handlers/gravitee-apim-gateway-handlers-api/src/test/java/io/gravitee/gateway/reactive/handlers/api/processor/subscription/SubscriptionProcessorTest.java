@@ -39,11 +39,10 @@ import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.handlers.api.context.SubscriptionTemplateVariableProvider;
 import io.gravitee.gateway.reactive.handlers.api.processor.AbstractProcessorTest;
 import io.reactivex.rxjava3.observers.TestObserver;
+import io.vertx.core.MultiMap;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
-import io.vertx.core.MultiMap;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -74,7 +73,7 @@ class SubscriptionProcessorTest extends AbstractProcessorTest {
     ArgumentCaptor<Collection<TemplateVariableProvider>> providersCaptor;
 
     private SubscriptionProcessor cut;
-    private MultiValueMap<String,String> requestParams;
+    private MultiValueMap<String, String> requestParams;
 
     @BeforeEach
     void initProcessor() {

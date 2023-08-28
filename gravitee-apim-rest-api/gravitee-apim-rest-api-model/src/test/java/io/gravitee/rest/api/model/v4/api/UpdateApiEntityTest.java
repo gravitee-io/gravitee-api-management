@@ -15,9 +15,9 @@
  */
 package io.gravitee.rest.api.model.v4.api;
 
-import org.junit.Test;
-
 import static org.junit.Assert.assertEquals;
+
+import org.junit.Test;
 
 public class UpdateApiEntityTest {
 

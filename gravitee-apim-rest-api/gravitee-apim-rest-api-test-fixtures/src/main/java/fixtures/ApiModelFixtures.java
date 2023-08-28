@@ -32,36 +32,39 @@ public class ApiModelFixtures {
 
     private ApiModelFixtures() {}
 
-    private static final io.gravitee.definition.model.DefinitionContext.DefinitionContextBuilder BASE_MODEL_DEFINITION_CONTEXT = io.gravitee.definition.model.DefinitionContext
-        .builder()
-        .origin(io.gravitee.definition.model.DefinitionContext.ORIGIN_MANAGEMENT)
-        .mode(io.gravitee.definition.model.DefinitionContext.MODE_FULLY_MANAGED);
+    private static final io.gravitee.definition.model.DefinitionContext.DefinitionContextBuilder BASE_MODEL_DEFINITION_CONTEXT =
+        io.gravitee.definition.model.DefinitionContext
+            .builder()
+            .origin(io.gravitee.definition.model.DefinitionContext.ORIGIN_MANAGEMENT)
+            .mode(io.gravitee.definition.model.DefinitionContext.MODE_FULLY_MANAGED);
 
-    private static final io.gravitee.rest.api.model.api.ApiEntity.ApiEntityBuilder BASE_MODEL_API_V1 = io.gravitee.rest.api.model.api.ApiEntity
-        .builder()
-        .graviteeDefinitionVersion(io.gravitee.definition.model.DefinitionVersion.V1.getLabel())
-        .id("my-id")
-        .name("my-name")
-        .version("v1.0")
-        .properties(PropertyModelFixtures.aModelPropertiesV2())
-        .services(new Services())
-        .resources(List.of(ResourceModelFixtures.aResourceEntityV2()))
-        .responseTemplates(Map.of("key", new HashMap<>()))
-        .updatedAt(new Date())
-        .paths(Map.of("path", List.of(new Rule())));
+    private static final io.gravitee.rest.api.model.api.ApiEntity.ApiEntityBuilder BASE_MODEL_API_V1 =
+        io.gravitee.rest.api.model.api.ApiEntity
+            .builder()
+            .graviteeDefinitionVersion(io.gravitee.definition.model.DefinitionVersion.V1.getLabel())
+            .id("my-id")
+            .name("my-name")
+            .version("v1.0")
+            .properties(PropertyModelFixtures.aModelPropertiesV2())
+            .services(new Services())
+            .resources(List.of(ResourceModelFixtures.aResourceEntityV2()))
+            .responseTemplates(Map.of("key", new HashMap<>()))
+            .updatedAt(new Date())
+            .paths(Map.of("path", List.of(new Rule())));
 
-    private static final io.gravitee.rest.api.model.api.ApiEntity.ApiEntityBuilder BASE_MODEL_API_V2 = io.gravitee.rest.api.model.api.ApiEntity
-        .builder()
-        .graviteeDefinitionVersion(io.gravitee.definition.model.DefinitionVersion.V2.getLabel())
-        .id("my-id")
-        .name("my-name")
-        .version("v1.0")
-        .properties(PropertyModelFixtures.aModelPropertiesV2())
-        .services(new Services())
-        .resources(List.of(ResourceModelFixtures.aResourceEntityV2()))
-        .responseTemplates(Map.of("template-id", Map.of("application/json", new io.gravitee.definition.model.ResponseTemplate())))
-        .updatedAt(new Date())
-        .flows(List.of(FlowModelFixtures.aModelFlowV2()));
+    private static final io.gravitee.rest.api.model.api.ApiEntity.ApiEntityBuilder BASE_MODEL_API_V2 =
+        io.gravitee.rest.api.model.api.ApiEntity
+            .builder()
+            .graviteeDefinitionVersion(io.gravitee.definition.model.DefinitionVersion.V2.getLabel())
+            .id("my-id")
+            .name("my-name")
+            .version("v1.0")
+            .properties(PropertyModelFixtures.aModelPropertiesV2())
+            .services(new Services())
+            .resources(List.of(ResourceModelFixtures.aResourceEntityV2()))
+            .responseTemplates(Map.of("template-id", Map.of("application/json", new io.gravitee.definition.model.ResponseTemplate())))
+            .updatedAt(new Date())
+            .flows(List.of(FlowModelFixtures.aModelFlowV2()));
 
     private static final ApiEntity.ApiEntityBuilder BASE_MODEL_API_V4 = ApiEntity
         .builder()
