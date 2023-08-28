@@ -127,21 +127,16 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
   }
 
   public getServiceDiscoveryConfiguration(): ProxyGroupServiceDiscoveryConfiguration {
-    const enabled = this.serviceDiscoveryForm.get('enabled')?.value;
-
-    if (!enabled) {
-      return {
-        discovery: {
-          enabled,
-        },
-      };
-    }
-
+    const enabled: boolean = this.serviceDiscoveryForm.get('enabled')?.value;
     return {
       discovery: {
         enabled,
-        provider: this.serviceDiscoveryForm.get('type').value,
-        configuration: this.serviceDiscoveryForm.get('configuration').value,
+        ...(enabled
+          ? {
+              provider: this.serviceDiscoveryForm.get('provider').value,
+              configuration: this.serviceDiscoveryForm.get('configuration').value,
+            }
+          : {}),
       },
     };
   }
@@ -173,10 +168,10 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
     this.serviceDiscoveryForm = this.formBuilder.group(
       {
         enabled: [{ value: group?.services?.discovery.enabled ?? false, disabled: this.isReadOnly }],
-        type: [
+        provider: [
           {
             value: group?.services?.discovery.provider ?? null,
-            disabled: !group?.services?.discovery.enabled || this.isReadOnly,
+            disabled: this.isReadOnly,
           },
         ],
         configuration: [{ value: group?.services?.discovery?.configuration ?? {}, disabled: this.isReadOnly }],
