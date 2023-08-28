@@ -34,7 +34,7 @@
       </mat-form-field>
     </div>
 
-    <div class="card__group-sd" *ngIf="schema">
+    <div class="card__group-sd" *ngIf="serviceDiscoveryForm.get('enabled').value && schema">
       <gv-schema-form
         [attr.readonly]="isReadOnly ? isReadOnly : null"
         [schema]="schema"
