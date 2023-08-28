@@ -27,7 +27,7 @@ import { Step3Endpoints1ListComponent } from '../step-3-endpoints/step-3-endpoin
 import { ApiCreationPayload } from '../../models/ApiCreationPayload';
 import { Step3Endpoints2ConfigComponent } from '../step-3-endpoints/step-3-endpoints-2-config.component';
 import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
-import { PathV4 } from '../../../../../entities/management-api-v2';
+import { PathV4, Qos } from '../../../../../entities/management-api-v2';
 import { ApimFeature, UTMTags } from '../../../../../shared/components/gio-license/gio-license-data';
 
 @Component({
@@ -40,7 +40,7 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();
 
   public formGroup: FormGroup;
-  public selectedEntrypoints: { id: string; name: string; supportedListenerType: string }[];
+  public selectedEntrypoints: { id: string; name: string; supportedListenerType: string; supportedQos?: Qos[] }[];
   public entrypointSchemas: Record<string, GioJsonSchema>;
   public hasListeners: boolean;
   public enableVirtualHost: boolean;
@@ -82,8 +82,9 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
       this.formGroup.addControl('paths', this.formBuilder.control(paths, Validators.required));
     }
 
-    currentStepPayload.selectedEntrypoints.forEach(({ id, configuration }) => {
-      this.formGroup.addControl(id, this.formBuilder.control(configuration ?? {}));
+    currentStepPayload.selectedEntrypoints.forEach(({ id, configuration, selectedQos }) => {
+      this.formGroup.addControl(`${id}-config`, this.formBuilder.control(configuration ?? {}));
+      this.formGroup.addControl(`${id}-qos`, this.formBuilder.control(selectedQos ?? 'AUTO'));
     });
 
     if (this.apiType === 'MESSAGE') {
@@ -125,7 +126,8 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
 
       const selectedEntrypoints: ApiCreationPayload['selectedEntrypoints'] = previousPayload.selectedEntrypoints.map((entrypoint) => ({
         ...entrypoint,
-        configuration: this.formGroup.get(entrypoint.id)?.value,
+        configuration: this.formGroup.get(`${entrypoint.id}-config`)?.value,
+        selectedQos: this.formGroup.get(`${entrypoint.id}-qos`)?.value,
       }));
 
       return { ...previousPayload, paths, selectedEntrypoints };

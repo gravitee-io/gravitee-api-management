@@ -18,6 +18,8 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 
 import { GioFormListenersContextPathHarness } from '../../../component/gio-form-listeners/gio-form-listeners-context-path/gio-form-listeners-context-path.harness';
 import { GioFormListenersVirtualHostHarness } from '../../../component/gio-form-listeners/gio-form-listeners-virtual-host/gio-form-listeners-virtual-host.harness';
+import { Qos } from '../../../../../entities/management-api-v2';
+import { GioFormQosHarness } from '../../../component/gio-form-qos/gio-form-qos.harness';
 
 export class Step2Entrypoints2ConfigHarness extends ComponentHarness {
   static hostSelector = 'step-2-entrypoints-2-config';
@@ -41,6 +43,9 @@ export class Step2Entrypoints2ConfigHarness extends ComponentHarness {
   );
 
   protected getListenersDiv = this.locatorFor('#listeners');
+
+  protected getQosSelect = (entrypointId: string) =>
+    this.locatorFor(GioFormQosHarness.with({ selector: '[ng-reflect-id="' + entrypointId + '"]' }));
 
   async clickPrevious(): Promise<void> {
     return this.getPreviousButton().then((elt) => elt.click());
@@ -98,5 +103,10 @@ export class Step2Entrypoints2ConfigHarness extends ComponentHarness {
     }
 
     await this.clickValidate();
+  }
+
+  async selectQos(entrypointId: string, qos: Qos) {
+    const gioFormQos = await this.getQosSelect(entrypointId)();
+    await gioFormQos.selectOption(qos);
   }
 }

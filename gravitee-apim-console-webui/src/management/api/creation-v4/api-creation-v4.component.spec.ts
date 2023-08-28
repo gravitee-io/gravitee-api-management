@@ -434,6 +434,7 @@ describe('ApiCreationV4Component', () => {
             name: 'SSE',
             icon: 'gio-literal:sse',
             supportedListenerType: 'HTTP',
+            selectedQos: 'AUTO',
             deployed: true,
           },
           {
@@ -453,6 +454,7 @@ describe('ApiCreationV4Component', () => {
             name: 'Webhook',
             icon: 'gio-literal:webhook',
             supportedListenerType: 'SUBSCRIPTION',
+            selectedQos: 'AUTO',
             deployed: true,
           },
         ]);
@@ -530,6 +532,7 @@ describe('ApiCreationV4Component', () => {
             name: 'SSE',
             icon: 'gio-literal:sse',
             supportedListenerType: 'HTTP',
+            selectedQos: 'AUTO',
             deployed: true,
           },
         ]);
@@ -543,8 +546,8 @@ describe('ApiCreationV4Component', () => {
         const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
 
         expectEntrypointsGetRequest([
-          { id: 'sse', supportedApiType: 'MESSAGE', name: 'SSE' },
-          { id: 'webhook', supportedApiType: 'MESSAGE', name: 'Webhook' },
+          { id: 'sse', supportedApiType: 'MESSAGE', name: 'SSE', supportedQos: ['NONE', 'AUTO'] },
+          { id: 'webhook', supportedApiType: 'MESSAGE', name: 'Webhook', supportedQos: ['AUTO', 'AT_MOST_ONCE'] },
         ]);
         expectLicenseGetRequest({ tier: '', features: [], packs: [] });
 
@@ -552,8 +555,22 @@ describe('ApiCreationV4Component', () => {
 
         await step2Harness.clickValidate();
         expect(component.currentStep.payload.selectedEntrypoints).toEqual([
-          { icon: 'gio-literal:sse', id: 'sse', name: 'SSE', supportedListenerType: 'HTTP', deployed: true },
-          { icon: 'gio-literal:webhook', id: 'webhook', name: 'Webhook', supportedListenerType: 'HTTP', deployed: true },
+          {
+            icon: 'gio-literal:sse',
+            id: 'sse',
+            name: 'SSE',
+            supportedListenerType: 'HTTP',
+            supportedQos: ['NONE', 'AUTO'],
+            deployed: true,
+          },
+          {
+            icon: 'gio-literal:webhook',
+            id: 'webhook',
+            name: 'Webhook',
+            supportedListenerType: 'HTTP',
+            supportedQos: ['AUTO', 'AT_MOST_ONCE'],
+            deployed: true,
+          },
         ]);
         exceptEnvironmentGetRequest(fakeEnvironment());
         expectSchemaGetRequest([
@@ -563,6 +580,8 @@ describe('ApiCreationV4Component', () => {
         expectApiGetPortalSettings();
 
         const step21Harness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
+        await step21Harness.selectQos('sse', 'NONE');
+        await step21Harness.selectQos('webhook', 'AT_MOST_ONCE');
         await step21Harness.fillPathsAndValidate('/api/my-api-3');
         expectVerifyContextPathGetRequest();
         await step21Harness.clickValidate();
@@ -583,6 +602,8 @@ describe('ApiCreationV4Component', () => {
             id: 'sse',
             name: 'SSE',
             supportedListenerType: 'HTTP',
+            supportedQos: ['NONE', 'AUTO'],
+            selectedQos: 'NONE',
             deployed: true,
           },
           {
@@ -602,6 +623,8 @@ describe('ApiCreationV4Component', () => {
             id: 'webhook',
             name: 'Webhook',
             supportedListenerType: 'HTTP',
+            supportedQos: ['AUTO', 'AT_MOST_ONCE'],
+            selectedQos: 'AT_MOST_ONCE',
             deployed: true,
           },
         ]);
@@ -653,6 +676,7 @@ describe('ApiCreationV4Component', () => {
             id: 'http-post',
             name: 'HTTP POST',
             supportedListenerType: 'HTTP',
+            selectedQos: 'AUTO',
             icon: 'gio-literal:http-post',
             deployed: true,
             configuration: {},
@@ -725,6 +749,7 @@ describe('ApiCreationV4Component', () => {
               id: 'http-proxy',
               name: 'HTTP Proxy',
               supportedListenerType: 'HTTP',
+              selectedQos: 'AUTO',
               deployed: true,
               configuration: {},
             },
@@ -819,6 +844,7 @@ describe('ApiCreationV4Component', () => {
           id: 'entrypoint-1',
           name: 'initial entrypoint',
           supportedListenerType: 'HTTP',
+          selectedQos: 'AUTO',
           deployed: true,
         },
         {
@@ -827,6 +853,7 @@ describe('ApiCreationV4Component', () => {
           id: 'entrypoint-2',
           name: 'new entrypoint',
           supportedListenerType: 'SUBSCRIPTION',
+          selectedQos: 'AUTO',
           deployed: true,
         },
       ]);

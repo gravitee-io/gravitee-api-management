@@ -35,6 +35,8 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatTableModule } from '@angular/material/table';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatOptionModule } from '@angular/material/core';
+import { MatSelectModule } from '@angular/material/select';
 
 import { ApiCreationV4Component } from './api-creation-v4.component';
 import { Step1ApiDetailsComponent } from './steps/step-1-api-details/step-1-api-details.component';
@@ -61,6 +63,7 @@ import { GioEntrypointsSelectionListModule } from '../component/gio-entrypoints-
 import { GioConnectorDialogModule } from '../../../components/gio-connector-dialog/gio-connector-dialog.module';
 import { ApiPlanFormModule } from '../component/plan/api-plan-form.module';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
+import { GioFormQosModule } from '../component/gio-form-qos/gio-form-qos.module';
 
 @NgModule({
   imports: [
@@ -85,6 +88,7 @@ import { GioPermissionModule } from '../../../shared/components/gio-permission/g
     GioConfirmDialogModule,
     GioFormJsonSchemaModule,
     ApiCreationStepperMenuModule,
+    GioFormQosModule,
     GioFormListenersContextPathModule,
     GioFormListenersVirtualHostModule,
     GioEntrypointsSelectionListModule,
@@ -94,6 +98,8 @@ import { GioPermissionModule } from '../../../shared/components/gio-permission/g
     GioFormFocusInvalidModule,
     GioPermissionModule,
     MatMenuModule,
+    MatOptionModule,
+    MatSelectModule,
   ],
   declarations: [
     ApiCreationV4Component,
