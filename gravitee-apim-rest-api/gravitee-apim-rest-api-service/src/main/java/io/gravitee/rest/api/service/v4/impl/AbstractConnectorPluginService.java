@@ -88,7 +88,13 @@ public abstract class AbstractConnectorPluginService<T extends ConfigurablePlugi
                 supportedQos = ((EndpointAsyncConnectorFactory) connectorFactory).supportedQos();
             }
             if (supportedQos != null) {
-                entity.setSupportedQos(supportedQos.stream().map(qos -> Qos.fromLabel(qos.getLabel())).collect(Collectors.toSet()));
+                entity.setSupportedQos(
+                    supportedQos
+                        .stream()
+                        .map(qos -> Qos.fromLabel(qos.getLabel()))
+                        .sorted()
+                        .collect(Collectors.toCollection(LinkedHashSet::new))
+                );
             }
         }
         if (connectorFactory.supportedModes() != null) {
