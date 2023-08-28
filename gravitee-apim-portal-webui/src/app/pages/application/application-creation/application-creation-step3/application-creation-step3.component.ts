@@ -118,7 +118,20 @@ export class ApplicationCreationStep3Component implements OnInit, OnDestroy {
         this.planForm.get('general_conditions_accepted').clearValidators();
       }
 
+      if (this.selectedPlan?.mode.toUpperCase() === 'PUSH') {
+        this.planForm.get('entrypoint').setValidators(Validators.required);
+      } else {
+        this.planForm.get('channel').clearValidators();
+        this.planForm.get('channel').setValue(null);
+        this.planForm.get('entrypoint').clearValidators();
+        this.planForm.get('entrypoint').setValue(null);
+        this.planForm.get('entrypointConfiguration').clearValidators();
+        this.planForm.get('entrypointConfiguration').setValue(null);
+      }
+
       this.planForm.get('general_conditions_accepted').setValue(false);
+      this.planForm.updateValueAndValidity();
+
       this._generalConditionsAccepted = false;
       this.ref.detectChanges();
     });
