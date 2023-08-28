@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.gravitee.elasticsearch.config.Endpoint;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.assertj.core.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -59,5 +60,15 @@ public class RepositoryConfigurationTest {
     @Test
     public void shouldHaveClientTimeout() {
         assertThat(configuration.getRequestTimeout()).isNotNull().isEqualTo(30000L);
+    }
+
+    @Test
+    public void shouldHaveKeystoreCerts() {
+        Assertions.assertThat(configuration.getSslPemCerts()).hasSize(2).containsExactly("cert1", "cert2");
+    }
+
+    @Test
+    public void shouldHaveKeystoreKeys() {
+        Assertions.assertThat(configuration.getSslPemKeys()).hasSize(1).containsExactly("unique-key");
     }
 }
