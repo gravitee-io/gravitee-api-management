@@ -313,7 +313,8 @@ public class ApiValidationServiceImplTest {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final String apiId = "api-id";
 
-        when(planSearchService.findByApi(executionContext, apiId)).thenReturn(Set.of(new PlanEntity().withStatus(PlanStatus.PUBLISHED)));
+        when(planSearchService.findByApi(executionContext, apiId))
+            .thenReturn(Set.of(PlanEntity.builder().status(PlanStatus.PUBLISHED).build()));
         assertTrue(apiValidationService.canDeploy(executionContext, apiId));
     }
 
@@ -322,7 +323,8 @@ public class ApiValidationServiceImplTest {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final String apiId = "api-id";
 
-        when(planSearchService.findByApi(executionContext, apiId)).thenReturn(Set.of(new PlanEntity().withStatus(PlanStatus.DEPRECATED)));
+        when(planSearchService.findByApi(executionContext, apiId))
+            .thenReturn(Set.of(PlanEntity.builder().status(PlanStatus.DEPRECATED).build()));
         assertTrue(apiValidationService.canDeploy(executionContext, apiId));
     }
 
@@ -341,7 +343,9 @@ public class ApiValidationServiceImplTest {
         final String apiId = "api-id";
 
         when(planSearchService.findByApi(executionContext, apiId))
-            .thenReturn(Set.of(new PlanEntity().withStatus(PlanStatus.STAGING), new PlanEntity().withStatus(PlanStatus.CLOSED)));
+            .thenReturn(
+                Set.of(PlanEntity.builder().status(PlanStatus.STAGING).build(), PlanEntity.builder().status(PlanStatus.CLOSED).build())
+            );
         assertFalse(apiValidationService.canDeploy(executionContext, apiId));
     }
 

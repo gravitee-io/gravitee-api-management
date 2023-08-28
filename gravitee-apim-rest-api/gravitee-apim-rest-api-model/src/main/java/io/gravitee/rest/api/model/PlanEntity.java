@@ -15,19 +15,17 @@
  */
 package io.gravitee.rest.api.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.flow.Flow;
-import io.gravitee.definition.model.v4.plan.PlanSecurity;
-import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
-import io.gravitee.rest.api.model.v4.plan.PlanMode;
-import jakarta.validation.constraints.NotNull;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.With;
+import lombok.experimental.SuperBuilder;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -36,359 +34,16 @@ import lombok.With;
  */
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder(toBuilder = true)
+@SuperBuilder(toBuilder = true)
+@Getter
+@Setter
 @With
-public class PlanEntity implements GenericPlanEntity {
-
-    private String id;
-
-    /**
-     * The plan crossId uniquely identifies a plan across environments.
-     * Plans promoted between environments will share the same crossId.
-     */
-    private String crossId;
-
-    @NotNull
-    private String name;
-
-    @NotNull
-    private String description;
-
-    /**
-     * The way to validate subscriptions
-     */
-    @NotNull
-    private PlanValidationType validation;
-
-    @DeploymentRequired
-    @NotNull
-    private PlanSecurityType security;
-
-    @DeploymentRequired
-    private String securityDefinition;
-
-    @NotNull
-    private PlanType type;
-
-    @DeploymentRequired
-    @NotNull
-    private PlanStatus status;
-
-    @DeploymentRequired
-    private String api;
-
-    private int order;
-
-    /**
-     * Plan creation date
-     */
-    @JsonProperty("created_at")
-    private Date createdAt;
-
-    /**
-     * Plan last update date
-     */
-    @JsonProperty("updated_at")
-    private Date updatedAt;
-
-    /**
-     * Plan publication date
-     */
-    @JsonProperty("published_at")
-    private Date publishedAt;
-
-    /**
-     * Plan closing date
-     */
-    @JsonProperty("closed_at")
-    private Date closedAt;
-
-    @DeploymentRequired
-    @JsonProperty(value = "paths", required = true)
-    private Map<String, List<Rule>> paths = new HashMap<>();
+public class PlanEntity extends BasePlanEntity {
 
     @DeploymentRequired
     @JsonProperty(value = "flows", required = true)
-    private List<Flow> flows = new ArrayList();
-
-    private List<String> characteristics;
-
-    @JsonProperty("excluded_groups")
-    private List<String> excludedGroups;
-
-    /**
-     * last time modification introduced an api redeployment
-     */
-    @JsonIgnore
-    private Date needRedeployAt;
-
-    @JsonProperty("comment_required")
-    private boolean commentRequired;
-
-    @JsonProperty("comment_message")
-    private String commentMessage;
-
-    @JsonProperty("general_conditions")
-    private String generalConditions;
-
-    @DeploymentRequired
-    private Set<String> tags;
-
-    @DeploymentRequired
-    @JsonProperty("selection_rule")
-    private String selectionRule;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public PlanValidationType getValidation() {
-        return validation;
-    }
-
-    public void setValidation(PlanValidationType validation) {
-        this.validation = validation;
-    }
-
-    public PlanType getType() {
-        return type;
-    }
-
-    public void setType(PlanType type) {
-        this.type = type;
-    }
-
-    public String getApi() {
-        return api;
-    }
-
-    public void setApi(String api) {
-        this.api = api;
-    }
-
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Date getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Date updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public Map<String, List<Rule>> getPaths() {
-        return paths;
-    }
-
-    public void setPaths(Map<String, List<Rule>> paths) {
-        this.paths = paths;
-    }
-
-    public List<Flow> getFlows() {
-        return flows;
-    }
-
-    public void setFlows(List<Flow> flows) {
-        this.flows = flows;
-    }
-
-    public List<String> getCharacteristics() {
-        return characteristics;
-    }
-
-    public void setCharacteristics(List<String> characteristics) {
-        this.characteristics = characteristics;
-    }
-
-    public int getOrder() {
-        return order;
-    }
-
-    public void setOrder(int order) {
-        this.order = order;
-    }
-
-    public PlanStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(PlanStatus status) {
-        this.status = status;
-    }
-
-    public Date getPublishedAt() {
-        return publishedAt;
-    }
-
-    public void setPublishedAt(Date publishedAt) {
-        this.publishedAt = publishedAt;
-    }
-
-    public Date getClosedAt() {
-        return closedAt;
-    }
-
-    public void setClosedAt(Date closedAt) {
-        this.closedAt = closedAt;
-    }
-
-    public PlanSecurityType getSecurity() {
-        return security;
-    }
-
-    public void setSecurity(PlanSecurityType security) {
-        this.security = security;
-    }
-
-    public String getSecurityDefinition() {
-        return securityDefinition;
-    }
-
-    public void setSecurityDefinition(String securityDefinition) {
-        this.securityDefinition = securityDefinition;
-    }
-
-    public List<String> getExcludedGroups() {
-        return excludedGroups;
-    }
-
-    public void setExcludedGroups(List<String> excludedGroups) {
-        this.excludedGroups = excludedGroups;
-    }
-
-    public Date getNeedRedeployAt() {
-        return needRedeployAt;
-    }
-
-    public void setNeedRedeployAt(Date needRedeployAt) {
-        this.needRedeployAt = needRedeployAt;
-    }
-
-    @Override
-    public boolean isCommentRequired() {
-        return commentRequired;
-    }
-
-    public void setCommentRequired(boolean commentRequired) {
-        this.commentRequired = commentRequired;
-    }
-
-    public String getCommentMessage() {
-        return commentMessage;
-    }
-
-    public void setCommentMessage(String commentMessage) {
-        this.commentMessage = commentMessage;
-    }
-
-    public Set<String> getTags() {
-        return tags;
-    }
-
-    public void setTags(Set<String> tags) {
-        this.tags = tags;
-    }
-
-    public String getSelectionRule() {
-        return selectionRule;
-    }
-
-    public void setSelectionRule(String selectionRule) {
-        this.selectionRule = selectionRule;
-    }
-
-    /**
-     * Identifier of general condition page
-     * @return id
-     */
-    public String getGeneralConditions() {
-        return generalConditions;
-    }
-
-    public void setGeneralConditions(String generalConditions) {
-        this.generalConditions = generalConditions;
-    }
-
-    public String getCrossId() {
-        return crossId;
-    }
-
-    public void setCrossId(String crossId) {
-        this.crossId = crossId;
-    }
-
-    @Override
-    @JsonIgnore
-    public String getApiId() {
-        return api;
-    }
-
-    @Override
-    @JsonIgnore
-    public PlanSecurity getPlanSecurity() {
-        PlanSecurity planSecurity = new PlanSecurity();
-        if (security != null) {
-            planSecurity.setType(PlanSecurityType.valueOf(security.name()).name());
-        }
-        planSecurity.setConfiguration(securityDefinition);
-        return planSecurity;
-    }
-
-    @Override
-    @JsonIgnore
-    public io.gravitee.definition.model.v4.plan.PlanStatus getPlanStatus() {
-        if (status != null) {
-            return io.gravitee.definition.model.v4.plan.PlanStatus.valueOfLabel(status.name());
-        }
-        return null;
-    }
-
-    @Override
-    public PlanMode getPlanMode() {
-        // V2 API only manage STANDARD mode
-        return PlanMode.STANDARD;
-    }
-
-    @Override
-    @JsonIgnore
-    public io.gravitee.rest.api.model.v4.plan.PlanValidationType getPlanValidation() {
-        if (validation != null) {
-            return io.gravitee.rest.api.model.v4.plan.PlanValidationType.valueOfLabel(validation.name());
-        }
-        return null;
-    }
-
-    @Override
-    @JsonIgnore
-    public io.gravitee.rest.api.model.v4.plan.PlanType getPlanType() {
-        return io.gravitee.rest.api.model.v4.plan.PlanType.API;
-    }
+    @Builder.Default
+    private List<Flow> flows = new ArrayList<>();
 
     @Override
     public boolean equals(Object o) {
@@ -397,11 +52,11 @@ public class PlanEntity implements GenericPlanEntity {
 
         PlanEntity that = (PlanEntity) o;
 
-        return id.equals(that.id);
+        return getId().equals(that.getId());
     }
 
     @Override
     public int hashCode() {
-        return id.hashCode();
+        return getId().hashCode();
     }
 }

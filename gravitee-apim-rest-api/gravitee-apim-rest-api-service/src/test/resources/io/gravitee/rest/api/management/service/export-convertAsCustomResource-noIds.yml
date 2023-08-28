@@ -20,8 +20,8 @@ spec:
     status: "PUBLISHED"
     order: 0
     paths: {}
-    flows: []
     comment_required: false
+    flows: []
   path_mappings: []
   proxy:
     virtual_hosts:

@@ -781,7 +781,8 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         public void should_return_plan_when_v4_plan_closed() {
             final PlanEntity planEntity = PlanFixtures.aPlanEntityV4().toBuilder().id(PLAN).apiId(API).build();
             when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(planEntity);
-            when(planServiceV4.close(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(planEntity.withStatus(PlanStatus.CLOSED));
+            when(planServiceV4.close(GraviteeContext.getExecutionContext(), PLAN))
+                .thenReturn(planEntity.toBuilder().status(PlanStatus.CLOSED).build());
 
             final Response response = target.request().post(Entity.json(null));
             assertThat(response)
@@ -796,7 +797,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
             final io.gravitee.rest.api.model.PlanEntity planEntity = PlanFixtures.aPlanEntityV2().toBuilder().id(PLAN).api(API).build();
             when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(planEntity);
             when(planServiceV4.close(GraviteeContext.getExecutionContext(), PLAN))
-                .thenReturn(planEntity.withStatus(io.gravitee.rest.api.model.PlanStatus.CLOSED));
+                .thenReturn(planEntity.toBuilder().status(io.gravitee.rest.api.model.PlanStatus.CLOSED).build());
 
             final Response response = target.request().post(Entity.json(null));
             assertThat(response)
@@ -871,7 +872,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
             final PlanEntity planEntity = PlanFixtures.aPlanEntityV4().toBuilder().id(PLAN).apiId(API).build();
             when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(planEntity);
             when(planServiceV4.deprecate(GraviteeContext.getExecutionContext(), PLAN))
-                .thenReturn(planEntity.withStatus(PlanStatus.DEPRECATED));
+                .thenReturn(planEntity.toBuilder().status(PlanStatus.DEPRECATED).build());
 
             final Response response = target.request().post(Entity.json(null));
 
@@ -887,7 +888,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
             final io.gravitee.rest.api.model.PlanEntity planEntity = PlanFixtures.aPlanEntityV2().toBuilder().id(PLAN).api(API).build();
             when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(planEntity);
             when(planServiceV2.deprecate(GraviteeContext.getExecutionContext(), PLAN))
-                .thenReturn(planEntity.withStatus(io.gravitee.rest.api.model.PlanStatus.DEPRECATED));
+                .thenReturn(planEntity.toBuilder().status(io.gravitee.rest.api.model.PlanStatus.DEPRECATED).build());
 
             final Response response = target.request().post(Entity.json(null));
             assertThat(response)
@@ -962,7 +963,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
             final PlanEntity planEntity = PlanFixtures.aPlanEntityV4().toBuilder().id(PLAN).apiId(API).build();
             when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(planEntity);
             when(planServiceV4.publish(GraviteeContext.getExecutionContext(), PLAN))
-                .thenReturn(planEntity.withStatus(PlanStatus.PUBLISHED));
+                .thenReturn(planEntity.toBuilder().status(PlanStatus.PUBLISHED).build());
 
             final Response response = target.request().post(Entity.json(null));
 
@@ -978,7 +979,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
             final io.gravitee.rest.api.model.PlanEntity planEntity = PlanFixtures.aPlanEntityV2().toBuilder().id(PLAN).api(API).build();
             when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(planEntity);
             when(planServiceV2.publish(GraviteeContext.getExecutionContext(), PLAN))
-                .thenReturn(planEntity.withStatus(io.gravitee.rest.api.model.PlanStatus.PUBLISHED));
+                .thenReturn(planEntity.toBuilder().status(io.gravitee.rest.api.model.PlanStatus.PUBLISHED).build());
 
             final Response response = target.request().post(Entity.json(null));
 
