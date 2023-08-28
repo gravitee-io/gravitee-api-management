@@ -35,7 +35,7 @@ public class PlanModelFixtures {
         .type(PlanSecurityType.API_KEY.getLabel())
         .configuration("{\"nice\": \"config\"}");
 
-    private static final PlanEntity.PlanEntityBuilder BASE_PLAN_ENTITY_V4 = PlanEntity
+    private static final PlanEntity.PlanEntityBuilder<?, ?> BASE_PLAN_ENTITY_V4 = PlanEntity
         .builder()
         .id("my-plan")
         .apiId("my-api")
@@ -57,27 +57,28 @@ public class PlanModelFixtures {
         .selectionRule("{#request.attribute['selectionRule'] != null}")
         .flows(List.of(FlowModelFixtures.aModelFlowV4()));
 
-    private static final io.gravitee.rest.api.model.PlanEntity.PlanEntityBuilder BASE_PLAN_ENTITY_V2 = io.gravitee.rest.api.model.PlanEntity
-        .builder()
-        .id("my-plan")
-        .api("my-api")
-        .name("My plan")
-        .description("Description")
-        .order(1)
-        .characteristics(List.of("characteristic1", "characteristic2"))
-        .createdAt(new Date())
-        .updatedAt(new Date())
-        .commentMessage("Comment message")
-        .crossId("my-plan-crossId")
-        .generalConditions("General conditions")
-        .tags(Set.of("tag1", "tag2"))
-        .status(io.gravitee.rest.api.model.PlanStatus.PUBLISHED)
-        .security(io.gravitee.rest.api.model.PlanSecurityType.API_KEY)
-        .type(io.gravitee.rest.api.model.PlanType.API)
-        .excludedGroups(List.of("excludedGroup1", "excludedGroup2"))
-        .validation(io.gravitee.rest.api.model.PlanValidationType.AUTO)
-        .selectionRule("{#request.attribute['selectionRule'] != null}")
-        .flows(List.of(FlowModelFixtures.aModelFlowV2()));
+    private static final io.gravitee.rest.api.model.PlanEntity.PlanEntityBuilder<?, ?> BASE_PLAN_ENTITY_V2 =
+        io.gravitee.rest.api.model.PlanEntity
+            .builder()
+            .id("my-plan")
+            .api("my-api")
+            .name("My plan")
+            .description("Description")
+            .order(1)
+            .characteristics(List.of("characteristic1", "characteristic2"))
+            .createdAt(new Date())
+            .updatedAt(new Date())
+            .commentMessage("Comment message")
+            .crossId("my-plan-crossId")
+            .generalConditions("General conditions")
+            .tags(Set.of("tag1", "tag2"))
+            .status(io.gravitee.rest.api.model.PlanStatus.PUBLISHED)
+            .security(io.gravitee.rest.api.model.PlanSecurityType.API_KEY)
+            .type(io.gravitee.rest.api.model.PlanType.API)
+            .excludedGroups(List.of("excludedGroup1", "excludedGroup2"))
+            .validation(io.gravitee.rest.api.model.PlanValidationType.AUTO)
+            .selectionRule("{#request.attribute['selectionRule'] != null}")
+            .flows(List.of(FlowModelFixtures.aModelFlowV2()));
 
     public static PlanEntity aPlanEntityV4() {
         return BASE_PLAN_ENTITY_V4.build();

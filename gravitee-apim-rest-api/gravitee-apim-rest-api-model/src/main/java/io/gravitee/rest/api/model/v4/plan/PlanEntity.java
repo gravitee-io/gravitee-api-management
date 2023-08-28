@@ -15,17 +15,19 @@
  */
 package io.gravitee.rest.api.model.v4.plan;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.gravitee.definition.model.v4.flow.Flow;
-import io.gravitee.definition.model.v4.plan.PlanSecurity;
-import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.DeploymentRequired;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Set;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -36,84 +38,12 @@ import lombok.*;
 @Getter
 @Setter
 @ToString
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = true)
 @Schema(name = "PlanEntityV4")
-@Builder(toBuilder = true)
-@With
-public class PlanEntity implements GenericPlanEntity {
-
-    private String id;
-    /**
-     * The plan crossId uniquely identifies a plan across environments.
-     * Plans promoted between environments will share the same crossId.
-     */
-    private String crossId;
-    private String name;
-    private String description;
-    private Date createdAt;
-    private Date updatedAt;
-    private Date publishedAt;
-    private Date closedAt;
-
-    @JsonIgnore
-    private Date needRedeployAt;
-
-    /**
-     * The way to validate subscriptions
-     */
-    private PlanValidationType validation;
-
-    private PlanType type;
-
-    private PlanMode mode;
+@SuperBuilder(toBuilder = true)
+public class PlanEntity extends BasePlanEntity {
 
     @DeploymentRequired
-    private PlanSecurity security;
-
-    @DeploymentRequired
-    private String selectionRule;
-
-    @DeploymentRequired
+    @Builder.Default
     private List<Flow> flows = new ArrayList<>();
-
-    @DeploymentRequired
-    private Set<String> tags;
-
-    @DeploymentRequired
-    private PlanStatus status;
-
-    @DeploymentRequired
-    private String apiId;
-
-    private int order;
-    private List<String> characteristics;
-    private List<String> excludedGroups;
-    private boolean commentRequired;
-    private String commentMessage;
-    private String generalConditions;
-
-    @Override
-    public PlanType getPlanType() {
-        return type;
-    }
-
-    @Override
-    public PlanMode getPlanMode() {
-        return mode;
-    }
-
-    @Override
-    public PlanSecurity getPlanSecurity() {
-        return security;
-    }
-
-    @Override
-    public PlanStatus getPlanStatus() {
-        return status;
-    }
-
-    @Override
-    public PlanValidationType getPlanValidation() {
-        return validation;
-    }
 }

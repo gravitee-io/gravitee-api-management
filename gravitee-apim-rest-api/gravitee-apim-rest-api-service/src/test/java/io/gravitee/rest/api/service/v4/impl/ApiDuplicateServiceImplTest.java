@@ -305,8 +305,8 @@ public class ApiDuplicateServiceImplTest {
         when(pageDuplicateService.duplicatePages(any(), any(), any(), any()))
             .thenReturn(Map.ofEntries(entry("page-1", "dup-page-1"), entry("page-2", "dup-page-2")));
 
-        PlanEntity keylessPlan = aKeylessPlanV4().withGeneralConditions("page-1");
-        PlanEntity apiKeyPlan = anApiKeyPanV4().withGeneralConditions("page-2");
+        PlanEntity keylessPlan = aKeylessPlanV4().toBuilder().generalConditions("page-1").build();
+        PlanEntity apiKeyPlan = anApiKeyPanV4().toBuilder().generalConditions("page-2").build();
         ApiEntity duplicated = service.duplicate(
             GraviteeContext.getExecutionContext(),
             sourceApi.withPlans(Set.of(keylessPlan, apiKeyPlan)),
