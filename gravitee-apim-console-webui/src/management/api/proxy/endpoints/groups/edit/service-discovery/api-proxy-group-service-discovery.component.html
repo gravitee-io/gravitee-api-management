@@ -40,13 +40,7 @@
     </div>
 
     <div class="card__group-sd" *ngIf="serviceDiscoveryForm.get('enabled').value && schema">
-      <gv-schema-form-group
-        ngDefaultControl
-        formControlName="configuration"
-        [schema]="schema"
-        [attr.readonly]="serviceDiscoveryForm.get('configuration').enabled ? null : true"
-        (:gv-schema-form-group:error)="onConfigurationError($event.detail)"
-      ></gv-schema-form-group>
+      <gio-form-json-schema ngDefaultControl formControlName="configuration" [jsonSchema]="schema"> </gio-form-json-schema>
     </div>
   </mat-card>
 </form>
