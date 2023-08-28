@@ -3,6 +3,8 @@
 @use '@gravitee/ui-particles-angular' as gio;
 @use 'sass:map';
 
+@import '../../../../../components/gio-button-toggle/gio-button-toggle';
+
 $typography: map.get(gio.$mat-theme, typography);
 
 :host {
@@ -27,30 +29,6 @@ $typography: map.get(gio.$mat-theme, typography);
   }
 
   &__userOrGroup__toggle-group {
-    border: solid 1px mat.get-color-from-palette(gio.$mat-dove-palette, 'darker20');
-    padding: 4px;
-    height: 44px;
-    margin-top: 6px;
-    margin-bottom: 10px;
-  }
-
-  &__userOrGroup__toggle {
-    @include mat.typography-level($typography, body-2);
-    border-radius: 4px;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-  }
-
-  // Selected entry
-  &__userOrGroup__toggle.mat-button-toggle-checked {
-    color: mat.get-color-from-palette(gio.$mat-accent-palette, default-contrast);
-    background-color: mat.get-color-from-palette(gio.$mat-accent-palette, 'darker20');
-  }
-
-  // Remove border between buttons
-  &__userOrGroup__toggle.mat-button-toggle + .mat-button-toggle {
-    border: none;
-    margin-left: 8px;
+    @include gio-button-toggle;
   }
 }
