@@ -73,6 +73,7 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
   });
 
   afterEach(() => {
+    TestBed.resetTestingModule();
     httpTestingController.verify();
   });
 
@@ -219,6 +220,9 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
         ],
       };
 
+      await fixture.whenStable();
+      fixture.detectChanges();
+
       await policyStudioHarness.addFlow('Common flows', flowToAdd);
       await policyStudioHarness.save();
 
@@ -291,6 +295,9 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
           },
         ],
       };
+
+      await fixture.whenStable();
+      fixture.detectChanges();
 
       await policyStudioHarness.addFlow(planA.name, flowToAdd);
       await policyStudioHarness.save();
