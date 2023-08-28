@@ -17,8 +17,3 @@
 import { Services } from '../../../../../../../entities/services';
 
 export type ProxyGroupServiceDiscoveryConfiguration = Pick<Services, 'discovery'>;
-
-export interface ServiceDiscoveryEvent {
-  isSchemaValid: boolean;
-  serviceDiscoveryValues: unknown;
-}

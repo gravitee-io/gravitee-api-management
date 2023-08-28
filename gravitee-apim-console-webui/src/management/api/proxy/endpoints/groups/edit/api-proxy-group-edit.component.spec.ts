@@ -210,6 +210,63 @@ describe('ApiProxyGroupEditComponent', () => {
       });
     });
 
+    describe('Edit general information of API with service discovery', () => {
+      let api: Api;
+
+      beforeEach(async () => {
+        api = fakeApi({
+          id: API_ID,
+          proxy: {
+            groups: [
+              {
+                name: DEFAULT_GROUP_NAME,
+                endpoints: [],
+                load_balancing: { type: 'ROUND_ROBIN' },
+                services: { discovery: { enabled: true, provider: 'consul-service-discovery' } },
+              },
+            ],
+          },
+        });
+        expectApiGetRequest(api);
+        expectServiceDiscoveryRequest(serviceDiscovery);
+        expectConnectorRequest(connector);
+        expectServiceDiscoverySchemaRequest();
+        await loader.getHarness(MatTabHarness.with({ label: 'General' })).then((tab) => tab.select());
+        fixture.detectChanges();
+      });
+
+      it('should keep service discovery info on save', async () => {
+        const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[aria-label="Group name input"]' }));
+        expect(await nameInput.getValue()).toEqual(DEFAULT_GROUP_NAME);
+
+        const newGroupName = 'new-group-name-service-discovery';
+        await nameInput.setValue(newGroupName);
+        expect(await nameInput.getValue()).toEqual(newGroupName);
+
+        const gioSaveBar = await loader.getHarness(GioSaveBarHarness);
+        expect(await gioSaveBar.isSubmitButtonInvalid()).toBeFalsy();
+        await gioSaveBar.clickSubmit();
+
+        expectApiGetRequest(api);
+        const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'PUT' });
+
+        expect(req.request.body.proxy.groups).toEqual([
+          {
+            name: newGroupName,
+            endpoints: [],
+            load_balancing: { type: 'ROUND_ROBIN' },
+            services: {
+              discovery: {
+                enabled: true,
+                provider: 'consul-service-discovery',
+                configuration: {},
+              },
+            },
+          },
+        ]);
+      });
+    });
+
     describe('Edit configuration of existing group', () => {
       let api: Api;
 
@@ -264,7 +321,7 @@ describe('ApiProxyGroupEditComponent', () => {
         await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' })).then((slide) => slide.toggle());
 
         await loader
-          .getHarness(MatSelectHarness.with({ selector: '[aria-label="Service discovery type"]' }))
+          .getHarness(MatSelectHarness.with({ selector: '[aria-label="Service discovery provider"]' }))
           .then((select) => select.clickOptions({ text: 'Consul.io Service Discovery' }));
 
         fixture.detectChanges();
@@ -284,10 +341,8 @@ describe('ApiProxyGroupEditComponent', () => {
         await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' })).then((slide) => slide.toggle());
 
         expect(
-          await loader
-            .getHarness(MatSelectHarness.with({ selector: '[aria-label="Service discovery type"]' }))
-            .then((select) => select.isDisabled()),
-        ).toEqual(true);
+          (await loader.getAllHarnesses(MatSelectHarness.with({ selector: '[aria-label="Service discovery provider"]' }))).length,
+        ).toEqual(0);
       });
     });
 
@@ -464,10 +519,8 @@ describe('ApiProxyGroupEditComponent', () => {
       ).toBeTruthy();
 
       expect(
-        await loader
-          .getHarness(MatSelectHarness.with({ selector: '[aria-label="Service discovery type"]' }))
-          .then((select) => select.isDisabled()),
-      ).toBeTruthy();
+        (await loader.getAllHarnesses(MatSelectHarness.with({ selector: '[aria-label="Service discovery provider"]' }))).length,
+      ).toEqual(0);
     });
   });
 
