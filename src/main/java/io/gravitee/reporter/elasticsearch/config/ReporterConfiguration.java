@@ -104,13 +104,11 @@ public class ReporterConfiguration {
     /**
      * Elasticsearch ssl pem certs paths
      */
-    @Value("${reporters.elasticsearch.ssl.keystore.certs}")
     private List<String> sslPemCerts;
 
     /**
      * Elasticsearch ssl pem keys paths
      */
-    @Value("${reporters.elasticsearch.ssl.keystore.keys}")
     private List<String> sslPemKeys;
 
     /**
@@ -310,6 +308,10 @@ public class ReporterConfiguration {
     }
 
     public List<String> getSslPemCerts() {
+        if (sslPemCerts == null) {
+            sslPemCerts = readPropertyAsList("reporters.elasticsearch.ssl.keystore.certs");
+        }
+
         return sslPemCerts;
     }
 
@@ -318,6 +320,10 @@ public class ReporterConfiguration {
     }
 
     public List<String> getSslPemKeys() {
+        if (sslPemKeys == null) {
+            sslPemKeys = readPropertyAsList("reporters.elasticsearch.ssl.keystore.keys");
+        }
+
         return sslPemKeys;
     }
 
@@ -513,5 +519,24 @@ public class ReporterConfiguration {
 
     public boolean isIlmManagedIndex() {
         return "ilm".equalsIgnoreCase(indexMode);
+    }
+
+    private List<String> readPropertyAsList(String property) {
+        String key = String.format("%s[%s]", property, 0);
+        List<String> properties = new ArrayList<>();
+
+        while (environment.containsProperty(key)) {
+            String p = environment.getProperty(key);
+            properties.add(p);
+
+            key = String.format("%s[%s]", property, properties.size());
+        }
+
+        // fallback to single value style for backward compatibility
+        if (properties.isEmpty()) {
+            properties.add(environment.getProperty(property));
+        }
+
+        return properties;
     }
 }
