@@ -47,3 +47,19 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].env[1].value
           value: "/test/"
+
+  - it: Deploy with podSecurityContext
+    template: portal/portal-deployment.yaml
+    set:
+      portal:
+        deployment:
+          podSecurityContext:
+            fsGroup: 1001
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - equal:
+          path: spec.template.spec.securityContext.fsGroup
+          value: 1001

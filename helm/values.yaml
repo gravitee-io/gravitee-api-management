@@ -415,6 +415,14 @@ api:
     envFrom: []
     # - configMapRef:
     #     name: config-secret
+    # SecurityContext holds pod-level security attributes and common container settings.
+    # Field values of container.securityContext take precedence over field values of PodSecurityContext.
+    podSecurityContext:
+      #fsGroup: 1001
+      #runAsUser: 1001
+      #runAsNonRoot: true
+    # SecurityContext defines the security options the container should be run with.
+    # If set, the fields of SecurityContext override the equivalent fields of PodSecurityContext
     securityContext:
       runAsUser: 1001
       runAsNonRoot: true
@@ -737,6 +745,14 @@ gateway:
     envFrom: []
     # - configMapRef:
     #     name: config-secret
+    # SecurityContext holds pod-level security attributes and common container settings.
+    # Field values of container.securityContext take precedence over field values of PodSecurityContext.
+    podSecurityContext:
+     #fsGroup: 1001
+     #runAsUser: 1001
+     #runAsNonRoot: true
+    # SecurityContext defines the security options the container should be run with.
+    # If set, the fields of SecurityContext override the equivalent fields of PodSecurityContext
     securityContext:
       runAsUser: 1001
       runAsNonRoot: true
@@ -1106,6 +1122,14 @@ portal:
     envFrom: []
     # - configMapRef:
     #     name: config-secret
+    # SecurityContext holds pod-level security attributes and common container settings.
+    # Field values of container.securityContext take precedence over field values of PodSecurityContext.
+    podSecurityContext:
+      #fsGroup: 1001
+      #runAsUser: 1001
+      #runAsNonRoot: true
+    # SecurityContext defines the security options the container should be run with.
+    # If set, the fields of SecurityContext override the equivalent fields of PodSecurityContext
     securityContext:
       runAsUser: 101
       runAsGroup: 101
@@ -1282,6 +1306,14 @@ ui:
     envFrom: []
     # - configMapRef:
     #     name: config-secret
+    # SecurityContext holds pod-level security attributes and common container settings.
+    # Field values of container.securityContext take precedence over field values of PodSecurityContext.
+    podSecurityContext:
+      #fsGroup: 1001
+      #runAsUser: 1001
+      #runAsNonRoot: true
+    # SecurityContext defines the security options the container should be run with.
+    # If set, the fields of SecurityContext override the equivalent fields of PodSecurityContext
     securityContext:
       runAsUser: 101
       runAsGroup: 101
