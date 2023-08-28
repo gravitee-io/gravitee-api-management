@@ -155,6 +155,7 @@ tests:
               { }
             nodeSelector:
               { }
+            securityContext: null
             topologySpreadConstraints:
               [ ]
             tolerations:
@@ -303,6 +304,7 @@ tests:
               {}
             nodeSelector:
               {}
+            securityContext: null
             topologySpreadConstraints:
               []
             tolerations:
