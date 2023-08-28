@@ -17,7 +17,6 @@ import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
-import '@gravitee/ui-components/wc/gv-schema-form-group';
 
 import { ResourceListItem } from '../../../../../../../entities/resource/resourceListItem';
 import { ServiceDiscoveryService } from '../../../../../../../services-ngx/service-discovery.service';
@@ -54,13 +53,6 @@ export class ApiProxyGroupServiceDiscoveryComponent implements OnInit, OnDestroy
   ngOnDestroy(): void {
     this.unsubscribe$.next(true);
     this.unsubscribe$.complete();
-  }
-
-  onConfigurationError(error: unknown) {
-    // Set error at the end of js task. Otherwise it will be reset on value change
-    setTimeout(() => {
-      this.serviceDiscoveryForm.get('configuration').setErrors(error ? { error: true } : null);
-    }, 0);
   }
 
   private getProviderSchema(provider: string) {

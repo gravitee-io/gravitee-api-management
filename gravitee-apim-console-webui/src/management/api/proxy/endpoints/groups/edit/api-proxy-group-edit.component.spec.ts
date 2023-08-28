@@ -329,7 +329,7 @@ describe('ApiProxyGroupEditComponent', () => {
       });
 
       it('should display service discovery gv-schema-form and save url', async () => {
-        expect(fixture.debugElement.nativeElement.querySelector('gv-schema-form-group')).toBeTruthy();
+        expect(fixture.debugElement.nativeElement.querySelector('gio-form-json-schema')).toBeTruthy();
 
         await loader.getHarness(GioSaveBarHarness).then((saveBar) => saveBar.clickSubmit());
 
