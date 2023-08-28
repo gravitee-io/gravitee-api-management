@@ -100,7 +100,8 @@ public class GroupService_UpdateTest {
         )
             .thenReturn(true);
         when(membershipService.getRoles(any(), any(), any(), any())).thenReturn(Collections.emptySet());
-        when(roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), "DEFAULT")).thenReturn(Optional.of(new RoleEntity()));
+        when(roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), "DEFAULT"))
+            .thenReturn(Optional.of(new RoleEntity()));
 
         groupService.update(GraviteeContext.getExecutionContext(), GROUP_ID, updatedGroupEntity);
 
@@ -154,7 +155,8 @@ public class GroupService_UpdateTest {
         )
             .thenReturn(true);
         when(membershipService.getRoles(any(), any(), any(), any())).thenReturn(Collections.emptySet());
-        when(roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), "DEFAULT")).thenReturn(Optional.of(new RoleEntity()));
+        when(roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), "DEFAULT"))
+            .thenReturn(Optional.of(new RoleEntity()));
 
         groupService.update(GraviteeContext.getExecutionContext(), GROUP_ID, updatedGroupEntity);
 

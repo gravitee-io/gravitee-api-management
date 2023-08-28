@@ -18,9 +18,9 @@ package io.gravitee.repository.elasticsearch.configuration;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.elasticsearch.config.Endpoint;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.assertj.core.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

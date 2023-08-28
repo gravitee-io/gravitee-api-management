@@ -415,12 +415,15 @@ public class ApisResource_CreateApiWithDefinitionTest extends AbstractResourceTe
         apiEntity.setId(API_ID);
         apiEntity.setName(API_ID);
         apiEntity.setApiVersion("v1.0");
-        io.gravitee.definition.model.v4.listener.http.HttpListener httpListener = new io.gravitee.definition.model.v4.listener.http.HttpListener();
+        io.gravitee.definition.model.v4.listener.http.HttpListener httpListener =
+            new io.gravitee.definition.model.v4.listener.http.HttpListener();
         httpListener.setPaths(List.of(new Path("my.fake.host", "/test")));
         httpListener.setPathMappings(Set.of("/test"));
 
-        io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener subscriptionListener = new io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener();
-        io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint entrypoint = new io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint();
+        io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener subscriptionListener =
+            new io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener();
+        io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint entrypoint =
+            new io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint();
         entrypoint.setType("Entrypoint type");
         entrypoint.setQos(io.gravitee.definition.model.v4.listener.entrypoint.Qos.AT_LEAST_ONCE);
         entrypoint.setDlq(new io.gravitee.definition.model.v4.listener.entrypoint.Dlq("my-endpoint"));
@@ -428,7 +431,8 @@ public class ApisResource_CreateApiWithDefinitionTest extends AbstractResourceTe
         subscriptionListener.setEntrypoints(List.of(entrypoint));
         subscriptionListener.setType(io.gravitee.definition.model.v4.listener.ListenerType.SUBSCRIPTION);
 
-        io.gravitee.definition.model.v4.listener.tcp.TcpListener tcpListener = new io.gravitee.definition.model.v4.listener.tcp.TcpListener();
+        io.gravitee.definition.model.v4.listener.tcp.TcpListener tcpListener =
+            new io.gravitee.definition.model.v4.listener.tcp.TcpListener();
         tcpListener.setType(io.gravitee.definition.model.v4.listener.ListenerType.TCP);
         tcpListener.setEntrypoints(List.of(entrypoint));
 
@@ -474,18 +478,21 @@ public class ApisResource_CreateApiWithDefinitionTest extends AbstractResourceTe
         flow.setRequest(List.of(step));
         flow.setTags(Set.of("tag1", "tag2"));
 
-        io.gravitee.definition.model.v4.flow.selector.HttpSelector httpSelector = new io.gravitee.definition.model.v4.flow.selector.HttpSelector();
+        io.gravitee.definition.model.v4.flow.selector.HttpSelector httpSelector =
+            new io.gravitee.definition.model.v4.flow.selector.HttpSelector();
         httpSelector.setPath("/test");
         httpSelector.setMethods(Set.of(io.gravitee.common.http.HttpMethod.GET, io.gravitee.common.http.HttpMethod.POST));
         httpSelector.setPathOperator(io.gravitee.definition.model.flow.Operator.STARTS_WITH);
 
-        io.gravitee.definition.model.v4.flow.selector.ChannelSelector channelSelector = new io.gravitee.definition.model.v4.flow.selector.ChannelSelector();
+        io.gravitee.definition.model.v4.flow.selector.ChannelSelector channelSelector =
+            new io.gravitee.definition.model.v4.flow.selector.ChannelSelector();
         channelSelector.setChannel("my-channel");
         channelSelector.setChannelOperator(io.gravitee.definition.model.flow.Operator.STARTS_WITH);
         channelSelector.setOperations(Set.of(io.gravitee.definition.model.v4.flow.selector.ChannelSelector.Operation.SUBSCRIBE));
         channelSelector.setEntrypoints(Set.of("my-entrypoint"));
 
-        io.gravitee.definition.model.v4.flow.selector.ConditionSelector conditionSelector = new io.gravitee.definition.model.v4.flow.selector.ConditionSelector();
+        io.gravitee.definition.model.v4.flow.selector.ConditionSelector conditionSelector =
+            new io.gravitee.definition.model.v4.flow.selector.ConditionSelector();
         conditionSelector.setCondition("my-condition");
 
         flow.setSelectors(List.of(httpSelector, channelSelector, conditionSelector));

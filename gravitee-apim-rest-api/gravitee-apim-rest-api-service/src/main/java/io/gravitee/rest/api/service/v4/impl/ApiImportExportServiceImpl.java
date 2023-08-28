@@ -172,7 +172,10 @@ public class ApiImportExportServiceImpl implements ApiImportExportService {
             throw new ApiDefinitionVersionNotSupportedException(apiEntity.getDefinitionVersion().getLabel());
         }
 
-        final ExportApiEntity exportApiWithIdsRecalculated = apiIdsCalculatorService.recalculateApiDefinitionIds(executionContext, exportApiEntity);
+        final ExportApiEntity exportApiWithIdsRecalculated = apiIdsCalculatorService.recalculateApiDefinitionIds(
+            executionContext,
+            exportApiEntity
+        );
 
         ApiEntity createdApiEntity = apiServiceV4.createWithImport(executionContext, exportApiWithIdsRecalculated.getApiEntity(), userId);
 
@@ -251,11 +254,7 @@ public class ApiImportExportServiceImpl implements ApiImportExportService {
         try {
             pageService.createOrUpdatePages(executionContext, pages, createdApiEntity.getId());
         } catch (Exception e) {
-            log.warn(
-                   "Unable to create pages for imported API {}' due to : {}",
-                   createdApiEntity.getId(),
-                   e.getMessage()
-            );
+            log.warn("Unable to create pages for imported API {}' due to : {}", createdApiEntity.getId(), e.getMessage());
         }
         log.debug("Pages successfully created for imported api {}", createdApiEntity.getId());
     }
@@ -271,10 +270,10 @@ public class ApiImportExportServiceImpl implements ApiImportExportService {
                 planService.createOrUpdatePlan(executionContext, planEntity);
             } catch (Exception e) {
                 log.warn(
-                       "Unable to create plan {} for imported API {}' due to : {}",
-                       planEntity.getName(),
-                       createdApiEntity.getId(),
-                       e.getMessage()
+                    "Unable to create plan {} for imported API {}' due to : {}",
+                    planEntity.getName(),
+                    createdApiEntity.getId(),
+                    e.getMessage()
                 );
             }
         });
@@ -300,10 +299,10 @@ public class ApiImportExportServiceImpl implements ApiImportExportService {
                     apiMetadataService.update(executionContext, metadataEntity);
                 } catch (Exception e) {
                     log.warn(
-                           "Unable to create metadata {} for imported API {}' due to : {}",
-                           metadataEntity.getName(),
-                           createdApiEntity.getId(),
-                           e.getMessage()
+                        "Unable to create metadata {} for imported API {}' due to : {}",
+                        metadataEntity.getName(),
+                        createdApiEntity.getId(),
+                        e.getMessage()
                     );
                 }
             });
@@ -320,10 +319,10 @@ public class ApiImportExportServiceImpl implements ApiImportExportService {
                 mediaService.saveApiMedia(createdApiEntity.getId(), mediaEntity);
             } catch (Exception e) {
                 log.warn(
-                       "Unable to create api media {} for imported API {}' due to : {}",
-                       mediaEntity.getFileName(),
-                       createdApiEntity.getId(),
-                       e.getMessage()
+                    "Unable to create api media {} for imported API {}' due to : {}",
+                    mediaEntity.getFileName(),
+                    createdApiEntity.getId(),
+                    e.getMessage()
                 );
             }
         });

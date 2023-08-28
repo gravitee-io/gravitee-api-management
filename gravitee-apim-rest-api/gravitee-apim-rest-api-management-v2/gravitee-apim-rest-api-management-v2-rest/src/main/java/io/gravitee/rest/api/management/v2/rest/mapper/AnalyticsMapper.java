@@ -16,15 +16,14 @@
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import io.gravitee.definition.model.v4.analytics.sampling.SamplingType;
+import io.gravitee.rest.api.management.v2.rest.model.Analytics;
 import io.gravitee.rest.api.management.v2.rest.model.Sampling;
 import org.mapstruct.Mapper;
-import io.gravitee.rest.api.management.v2.rest.model.Analytics;
 import org.mapstruct.Mapping;
 import org.mapstruct.ValueMapping;
 
 @Mapper
 public interface AnalyticsMapper {
-
     @Mapping(target = "sampling", source = "messageSampling")
     Analytics toAnalytics(io.gravitee.definition.model.v4.analytics.Analytics analytics);
 

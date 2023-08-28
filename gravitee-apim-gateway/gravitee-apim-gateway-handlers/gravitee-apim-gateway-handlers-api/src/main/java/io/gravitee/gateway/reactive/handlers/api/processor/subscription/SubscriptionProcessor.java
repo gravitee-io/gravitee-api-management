@@ -15,6 +15,14 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.processor.subscription;
 
+import static io.gravitee.gateway.api.ExecutionContext.ATTR_API;
+import static io.gravitee.gateway.api.ExecutionContext.ATTR_APPLICATION;
+import static io.gravitee.gateway.api.ExecutionContext.ATTR_CLIENT_IDENTIFIER;
+import static io.gravitee.gateway.api.ExecutionContext.ATTR_PLAN;
+import static io.gravitee.gateway.api.ExecutionContext.ATTR_SUBSCRIPTION_ID;
+import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_SECURITY_SKIP;
+import static io.gravitee.repository.management.model.Subscription.Status.ACCEPTED;
+
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
@@ -23,21 +31,12 @@ import io.gravitee.gateway.reactive.core.processor.Processor;
 import io.gravitee.gateway.reactive.handlers.api.context.SubscriptionTemplateVariableProvider;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
-import org.bouncycastle.util.encoders.Hex;
-
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
-
-import static io.gravitee.gateway.api.ExecutionContext.ATTR_API;
-import static io.gravitee.gateway.api.ExecutionContext.ATTR_APPLICATION;
-import static io.gravitee.gateway.api.ExecutionContext.ATTR_CLIENT_IDENTIFIER;
-import static io.gravitee.gateway.api.ExecutionContext.ATTR_PLAN;
-import static io.gravitee.gateway.api.ExecutionContext.ATTR_SUBSCRIPTION_ID;
-import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_SECURITY_SKIP;
-import static io.gravitee.repository.management.model.Subscription.Status.ACCEPTED;
+import org.bouncycastle.util.encoders.Hex;
 
 /**
  * This processor will add template variable provide for the resolved {@link Subscription} if any.

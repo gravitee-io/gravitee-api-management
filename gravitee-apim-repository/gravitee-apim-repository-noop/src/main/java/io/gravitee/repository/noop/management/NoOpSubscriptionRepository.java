@@ -25,7 +25,6 @@ import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.management.model.Subscription;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -35,7 +34,6 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public class NoOpSubscriptionRepository extends AbstractNoOpManagementRepository<Subscription, String> implements SubscriptionRepository {
-
 
     @Override
     public Page<Subscription> search(SubscriptionCriteria criteria, Sortable sortable, Pageable pageable) throws TechnicalException {

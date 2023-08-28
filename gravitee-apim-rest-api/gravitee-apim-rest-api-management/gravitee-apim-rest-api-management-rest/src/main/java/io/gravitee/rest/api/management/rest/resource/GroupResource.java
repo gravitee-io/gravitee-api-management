@@ -139,12 +139,12 @@ public class GroupResource extends AbstractResource {
     @Produces(APPLICATION_JSON)
     @Operation(summary = "List APIs or applications linked to this group")
     @ApiResponse(
-           responseCode = "200",
-           description = "Group memberships",
-           content = @Content(
-                  mediaType = APPLICATION_JSON,
-                  array = @ArraySchema(schema = @Schema(oneOf = {ApiEntity.class, ApplicationEntity.class}))
-    )
+        responseCode = "200",
+        description = "Group memberships",
+        content = @Content(
+            mediaType = APPLICATION_JSON,
+            array = @ArraySchema(schema = @Schema(oneOf = { ApiEntity.class, ApplicationEntity.class }))
+        )
     )
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.READ) })
     public Response getGroupMemberships(@QueryParam("type") String type) {

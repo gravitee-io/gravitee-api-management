@@ -15,18 +15,16 @@
  */
 package io.gravitee.repository.noop.management;
 
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import io.gravitee.repository.management.api.CommandRepository;
 import io.gravitee.repository.management.api.search.CommandCriteria;
 import io.gravitee.repository.management.model.Command;
 import io.gravitee.repository.noop.AbstractNoOpRepositoryTest;
+import java.util.List;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.List;
-
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
@@ -44,5 +42,4 @@ class NoOpCommandRepositoryTest extends AbstractNoOpRepositoryTest {
         assertNotNull(commands);
         assertTrue(commands.isEmpty());
     }
-
 }

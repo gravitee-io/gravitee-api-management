@@ -15,6 +15,9 @@
  */
 package io.gravitee.gateway.reactor.processor.transaction;
 
+import static io.gravitee.gateway.reactor.processor.transaction.TransactionHeader.DEFAULT_REQUEST_ID_HEADER;
+import static io.gravitee.gateway.reactor.processor.transaction.TransactionHeader.DEFAULT_TRANSACTION_ID_HEADER;
+
 import io.gravitee.common.utils.UUID;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
@@ -30,9 +33,6 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-
-import static io.gravitee.gateway.reactor.processor.transaction.TransactionHeader.DEFAULT_REQUEST_ID_HEADER;
-import static io.gravitee.gateway.reactor.processor.transaction.TransactionHeader.DEFAULT_TRANSACTION_ID_HEADER;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -65,8 +65,7 @@ public class TransactionRequestProcessorTest {
     public void shouldHaveTransactionId() {
         Mockito.when(request.id()).thenReturn(UUID.toString(UUID.random()));
 
-        new TransactionRequestProcessor().handler(context -> {
-        }).handle(context);
+        new TransactionRequestProcessor().handler(context -> {}).handle(context);
 
         Assert.assertNotNull(context.request().transactionId());
         Assert.assertEquals(context.request().transactionId(), context.request().headers().get(DEFAULT_TRANSACTION_ID_HEADER));
@@ -96,8 +95,7 @@ public class TransactionRequestProcessorTest {
         String transactionId = UUID.toString(UUID.random());
 
         request.parameters().set(DEFAULT_TRANSACTION_ID_HEADER, transactionId);
-        new TransactionRequestProcessor().handler(context -> {
-        }).handle(context);
+        new TransactionRequestProcessor().handler(context -> {}).handle(context);
 
         Assert.assertNotNull(context.request().transactionId());
         Assert.assertEquals(transactionId, context.request().transactionId());
@@ -109,8 +107,7 @@ public class TransactionRequestProcessorTest {
     public void shouldHaveTransactionIdWithCustomHeader() {
         Mockito.when(request.id()).thenReturn(UUID.toString(UUID.random()));
 
-        new TransactionRequestProcessor(CUSTOM_TRANSACTION_ID_HEADER, CUSTOM_REQUEST_ID_HEADER).handler(context -> {
-        }).handle(context);
+        new TransactionRequestProcessor(CUSTOM_TRANSACTION_ID_HEADER, CUSTOM_REQUEST_ID_HEADER).handler(context -> {}).handle(context);
 
         Assert.assertNotNull(context.request().transactionId());
         Assert.assertEquals(context.request().transactionId(), context.request().headers().get(CUSTOM_TRANSACTION_ID_HEADER));
@@ -122,8 +119,7 @@ public class TransactionRequestProcessorTest {
         String transactionId = UUID.toString(UUID.random());
 
         request.headers().set(CUSTOM_TRANSACTION_ID_HEADER, transactionId);
-        new TransactionRequestProcessor(CUSTOM_TRANSACTION_ID_HEADER, CUSTOM_REQUEST_ID_HEADER).handler(context -> {
-        }).handle(context);
+        new TransactionRequestProcessor(CUSTOM_TRANSACTION_ID_HEADER, CUSTOM_REQUEST_ID_HEADER).handler(context -> {}).handle(context);
 
         Assert.assertNotNull(context.request().transactionId());
         Assert.assertEquals(transactionId, context.request().transactionId());
@@ -136,14 +132,11 @@ public class TransactionRequestProcessorTest {
         String transactionId = UUID.toString(UUID.random());
 
         request.parameters().set(CUSTOM_TRANSACTION_ID_HEADER, transactionId);
-        new TransactionRequestProcessor(CUSTOM_TRANSACTION_ID_HEADER, CUSTOM_REQUEST_ID_HEADER).handler(context -> {
-        }).handle(context);
+        new TransactionRequestProcessor(CUSTOM_TRANSACTION_ID_HEADER, CUSTOM_REQUEST_ID_HEADER).handler(context -> {}).handle(context);
 
         Assert.assertNotNull(context.request().transactionId());
         Assert.assertEquals(transactionId, context.request().transactionId());
         Assert.assertEquals(transactionId, context.request().headers().get(CUSTOM_TRANSACTION_ID_HEADER));
         Assert.assertEquals(transactionId, context.request().metrics().getTransactionId());
-
     }
-
 }

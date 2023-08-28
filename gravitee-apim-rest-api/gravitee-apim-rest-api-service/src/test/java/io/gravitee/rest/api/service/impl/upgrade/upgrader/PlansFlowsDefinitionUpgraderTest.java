@@ -82,7 +82,13 @@ public class PlansFlowsDefinitionUpgraderTest {
 
         Api api2 = buildApi("api2", "2.0.0");
         Api api4 = buildApi("api4", "2.0.0");
-        when(apiRepository.search(eq(new ApiCriteria.Builder().definitionVersion(List.of(DefinitionVersion.V2)).build()), eq(null), any(ApiFieldFilter.class)))
+        when(
+            apiRepository.search(
+                eq(new ApiCriteria.Builder().definitionVersion(List.of(DefinitionVersion.V2)).build()),
+                eq(null),
+                any(ApiFieldFilter.class)
+            )
+        )
             .thenReturn(Stream.of(api2, api4));
 
         upgrader.upgrade();

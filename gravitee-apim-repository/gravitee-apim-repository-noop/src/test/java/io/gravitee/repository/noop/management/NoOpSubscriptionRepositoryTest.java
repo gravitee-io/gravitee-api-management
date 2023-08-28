@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.noop.management;
 
+import static org.junit.Assert.*;
+
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionRepository;
@@ -25,13 +27,10 @@ import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.repository.noop.AbstractNoOpRepositoryTest;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.util.List;
 import java.util.Set;
-
-import static org.junit.Assert.*;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
@@ -52,7 +51,11 @@ public class NoOpSubscriptionRepositoryTest extends AbstractNoOpRepositoryTest {
 
     @Test
     public void testSortablePageableSearch() throws TechnicalException {
-        Page<Subscription> subscriptions = cut.search(SubscriptionCriteria.builder().build(), new SortableBuilder().build(), new PageableBuilder().build());
+        Page<Subscription> subscriptions = cut.search(
+            SubscriptionCriteria.builder().build(),
+            new SortableBuilder().build(),
+            new PageableBuilder().build()
+        );
 
         assertNotNull(subscriptions);
         assertNotNull(subscriptions.getContent());

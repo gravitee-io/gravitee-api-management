@@ -35,14 +35,14 @@ public class PlanFixtures {
 
     private PlanFixtures() {}
 
-    private static final UpdateGenericPlanSecurity.UpdateGenericPlanSecurityBuilder<?, ?> BASE_UPDATE_PLAN_SECURITY = UpdateGenericPlanSecurity
-        .builder()
-        .configuration("{\"nice\": \"config\"}");
+    private static final UpdateGenericPlanSecurity.UpdateGenericPlanSecurityBuilder<?, ?> BASE_UPDATE_PLAN_SECURITY =
+        UpdateGenericPlanSecurity.builder().configuration("{\"nice\": \"config\"}");
 
-    private static final io.gravitee.rest.api.management.v2.rest.model.PlanSecurity.PlanSecurityBuilder<?, ?> BASE_PLAN_SECURITY = io.gravitee.rest.api.management.v2.rest.model.PlanSecurity
-        .builder()
-        .type(io.gravitee.rest.api.management.v2.rest.model.PlanSecurityType.API_KEY)
-        .configuration("{\"nice\": \"config\"}");
+    private static final io.gravitee.rest.api.management.v2.rest.model.PlanSecurity.PlanSecurityBuilder<?, ?> BASE_PLAN_SECURITY =
+        io.gravitee.rest.api.management.v2.rest.model.PlanSecurity
+            .builder()
+            .type(io.gravitee.rest.api.management.v2.rest.model.PlanSecurityType.API_KEY)
+            .configuration("{\"nice\": \"config\"}");
 
     private static final CreatePlanV4.CreatePlanV4Builder BASE_CREATE_PLAN_V4 = CreatePlanV4
         .builder()

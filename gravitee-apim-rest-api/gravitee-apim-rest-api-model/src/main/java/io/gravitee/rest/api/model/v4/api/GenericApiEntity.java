@@ -23,7 +23,6 @@ import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.search.Indexable;
-
 import java.util.Date;
 import java.util.List;
 import java.util.Map;

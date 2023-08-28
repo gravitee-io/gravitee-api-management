@@ -18,7 +18,6 @@ package io.gravitee.repository.noop.management;
 import io.gravitee.repository.management.api.CommandRepository;
 import io.gravitee.repository.management.api.search.CommandCriteria;
 import io.gravitee.repository.management.model.Command;
-
 import java.util.List;
 
 /**
@@ -26,7 +25,6 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public class NoOpCommandRepository extends AbstractNoOpManagementRepository<Command, String> implements CommandRepository {
-
 
     @Override
     public List<Command> search(CommandCriteria criteria) {

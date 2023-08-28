@@ -22,10 +22,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.jackson.AbstractTest;
 import io.gravitee.definition.model.flow.Flow;
-
 import java.io.IOException;
 import java.util.Set;
-
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
 

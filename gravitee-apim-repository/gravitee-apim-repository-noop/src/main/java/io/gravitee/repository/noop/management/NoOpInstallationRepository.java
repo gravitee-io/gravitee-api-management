@@ -18,7 +18,6 @@ package io.gravitee.repository.noop.management;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.InstallationRepository;
 import io.gravitee.repository.management.model.Installation;
-
 import java.util.Optional;
 
 /**
@@ -26,7 +25,6 @@ import java.util.Optional;
  * @author GraviteeSource Team
  */
 public class NoOpInstallationRepository extends AbstractNoOpManagementRepository<Installation, String> implements InstallationRepository {
-
 
     @Override
     public Optional<Installation> find() throws TechnicalException {

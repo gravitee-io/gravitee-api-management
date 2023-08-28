@@ -15,16 +15,15 @@
  */
 package io.gravitee.repository.noop.management;
 
+import static org.junit.Assert.*;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.model.Organization;
 import io.gravitee.repository.noop.AbstractNoOpRepositoryTest;
+import java.util.Set;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.Set;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)

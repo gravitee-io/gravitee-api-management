@@ -18,7 +18,6 @@ package io.gravitee.repository.noop.ratelimit;
 import io.gravitee.repository.ratelimit.api.RateLimitRepository;
 import io.gravitee.repository.ratelimit.model.RateLimit;
 import io.reactivex.rxjava3.core.Single;
-
 import java.util.function.Supplier;
 
 /**
@@ -26,7 +25,6 @@ import java.util.function.Supplier;
  * @author GraviteeSource Team
  */
 public class NoOpRateLimitRepository implements RateLimitRepository<RateLimit> {
-
 
     @Override
     public Single<RateLimit> incrementAndGet(String key, long weight, Supplier<RateLimit> supplier) {

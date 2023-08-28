@@ -17,7 +17,6 @@ package io.gravitee.repository.noop.management;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.CrudRepository;
-
 import java.util.Optional;
 import java.util.Set;
 
@@ -43,9 +42,7 @@ public abstract class AbstractNoOpManagementRepository<U, V> implements CrudRepo
     }
 
     @Override
-    public void delete(V v) throws TechnicalException {
-
-    }
+    public void delete(V v) throws TechnicalException {}
 
     @Override
     public Set<U> findAll() throws TechnicalException {

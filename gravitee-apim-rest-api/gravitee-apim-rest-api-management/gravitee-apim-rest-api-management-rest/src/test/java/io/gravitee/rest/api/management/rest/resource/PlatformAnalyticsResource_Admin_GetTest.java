@@ -26,9 +26,8 @@ import io.gravitee.rest.api.model.analytics.query.CountQuery;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import java.util.Set;
-
 import jakarta.ws.rs.core.Response;
+import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 

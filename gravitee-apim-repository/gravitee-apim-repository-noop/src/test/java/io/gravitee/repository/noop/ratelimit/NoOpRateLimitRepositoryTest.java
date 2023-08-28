@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.noop.ratelimit;
 
+import static org.junit.Assert.*;
+
 import io.gravitee.repository.noop.AbstractNoOpRepositoryTest;
 import io.gravitee.repository.ratelimit.api.RateLimitRepository;
 import io.gravitee.repository.ratelimit.model.RateLimit;
@@ -22,8 +24,6 @@ import io.reactivex.rxjava3.core.Single;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.function.SingletonSupplier;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)

@@ -1570,9 +1570,8 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             ClassLoader fetcherCL = fetcherPlugin.fetcher().getClassLoader();
             Fetcher fetcher;
             if (fetcherPlugin.configuration().isAssignableFrom(FilepathAwareFetcherConfiguration.class)) {
-                Class<? extends FetcherConfiguration> fetcherConfigurationClass = (Class<? extends FetcherConfiguration>) fetcherCL.loadClass(
-                    fetcherPlugin.configuration().getName()
-                );
+                Class<? extends FetcherConfiguration> fetcherConfigurationClass =
+                    (Class<? extends FetcherConfiguration>) fetcherCL.loadClass(fetcherPlugin.configuration().getName());
                 Class<? extends FilesFetcher> fetcherClass = (Class<? extends FilesFetcher>) fetcherCL.loadClass(fetcherPlugin.clazz());
                 FetcherConfiguration fetcherConfigurationInstance = fetcherConfigurationFactory.create(
                     fetcherConfigurationClass,
@@ -1580,9 +1579,8 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 );
                 fetcher = fetcherClass.getConstructor(fetcherConfigurationClass).newInstance(fetcherConfigurationInstance);
             } else {
-                Class<? extends FetcherConfiguration> fetcherConfigurationClass = (Class<? extends FetcherConfiguration>) fetcherCL.loadClass(
-                    fetcherPlugin.configuration().getName()
-                );
+                Class<? extends FetcherConfiguration> fetcherConfigurationClass =
+                    (Class<? extends FetcherConfiguration>) fetcherCL.loadClass(fetcherPlugin.configuration().getName());
                 Class<? extends Fetcher> fetcherClass = (Class<? extends Fetcher>) fetcherCL.loadClass(fetcherPlugin.clazz());
                 FetcherConfiguration fetcherConfigurationInstance = fetcherConfigurationFactory.create(
                     fetcherConfigurationClass,

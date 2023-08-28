@@ -38,18 +38,19 @@ public class FlowFixtures {
 
     private FlowFixtures() {}
 
-    private static final io.gravitee.rest.api.management.v2.rest.model.ChannelSelector.ChannelSelectorBuilder BASE_CHANNEL_SELECTOR_V4 = io.gravitee.rest.api.management.v2.rest.model.ChannelSelector
-        .builder()
-        .channel("channel")
-        .type(BaseSelector.TypeEnum.CHANNEL)
-        .entrypoints(Set.of("entrypoint1", "entrypoint2"))
-        .operations(
-            Set.of(
-                io.gravitee.rest.api.management.v2.rest.model.ChannelSelector.OperationsEnum.SUBSCRIBE,
-                io.gravitee.rest.api.management.v2.rest.model.ChannelSelector.OperationsEnum.PUBLISH
+    private static final io.gravitee.rest.api.management.v2.rest.model.ChannelSelector.ChannelSelectorBuilder BASE_CHANNEL_SELECTOR_V4 =
+        io.gravitee.rest.api.management.v2.rest.model.ChannelSelector
+            .builder()
+            .channel("channel")
+            .type(BaseSelector.TypeEnum.CHANNEL)
+            .entrypoints(Set.of("entrypoint1", "entrypoint2"))
+            .operations(
+                Set.of(
+                    io.gravitee.rest.api.management.v2.rest.model.ChannelSelector.OperationsEnum.SUBSCRIBE,
+                    io.gravitee.rest.api.management.v2.rest.model.ChannelSelector.OperationsEnum.PUBLISH
+                )
             )
-        )
-        .channelOperator(io.gravitee.rest.api.management.v2.rest.model.Operator.EQUALS);
+            .channelOperator(io.gravitee.rest.api.management.v2.rest.model.Operator.EQUALS);
 
     private static final StepV4.StepV4Builder BASE_STEP_V4 = StepV4
         .builder()

@@ -641,9 +641,8 @@ public class ApiResource extends AbstractResource {
                 HttpListener httpListener = (HttpListener) first.get();
                 if (httpListener.getPaths() != null && !httpListener.getPaths().isEmpty()) {
                     io.gravitee.definition.model.v4.listener.http.Path path = httpListener.getPaths().get(0);
-                    io.gravitee.definition.model.v4.listener.http.Path filteredPath = new io.gravitee.definition.model.v4.listener.http.Path(
-                        path.getPath()
-                    );
+                    io.gravitee.definition.model.v4.listener.http.Path filteredPath =
+                        new io.gravitee.definition.model.v4.listener.http.Path(path.getPath());
                     httpListener.setPaths(List.of(filteredPath));
                 }
                 httpListener.setPathMappings(null);

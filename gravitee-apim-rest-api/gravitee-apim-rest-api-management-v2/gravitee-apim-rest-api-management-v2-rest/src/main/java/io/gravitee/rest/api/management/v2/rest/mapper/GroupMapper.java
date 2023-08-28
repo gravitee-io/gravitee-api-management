@@ -20,6 +20,10 @@ import io.gravitee.rest.api.management.v2.rest.model.GroupEvent;
 import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.model.GroupEventRuleEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -27,13 +31,7 @@ import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
-
-@Mapper(uses = {DateMapper.class})
+@Mapper(uses = { DateMapper.class })
 public interface GroupMapper {
     Logger logger = LoggerFactory.getLogger(GroupMapper.class);
     GroupMapper INSTANCE = Mappers.getMapper(GroupMapper.class);
@@ -41,22 +39,26 @@ public interface GroupMapper {
     @Mapping(source = "roles", target = "apiRole", qualifiedByName = "mapApiRole")
     @Mapping(source = "roles", target = "applicationRole", qualifiedByName = "mapApplicationRole")
     Group map(GroupEntity group);
+
     List<Group> map(List<GroupEntity> groups);
 
     default List<GroupEvent> mapGroupEventRuleEntities(List<GroupEventRuleEntity> events) {
         if (Objects.isNull(events)) {
             return null;
         }
-        return events.stream().map(event -> {
-            if (Objects.nonNull(event)) {
-                try {
-                    return GroupEvent.fromValue(event.getEvent());
-                } catch (IllegalArgumentException e) {
-                    logger.error("Unable to parse GroupEventRuleEntity: " + event.getEvent());
+        return events
+            .stream()
+            .map(event -> {
+                if (Objects.nonNull(event)) {
+                    try {
+                        return GroupEvent.fromValue(event.getEvent());
+                    } catch (IllegalArgumentException e) {
+                        logger.error("Unable to parse GroupEventRuleEntity: " + event.getEvent());
+                    }
                 }
-            }
-            return null;
-        }).collect(Collectors.toList());
+                return null;
+            })
+            .collect(Collectors.toList());
     }
 
     @Named("mapApiRole")
