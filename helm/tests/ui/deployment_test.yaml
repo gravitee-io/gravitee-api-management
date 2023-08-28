@@ -66,3 +66,19 @@ tests:
     asserts:
       - hasDocuments:
           count: 0
+
+  - it: Deploy with podSecurityContext
+    template: ui/ui-deployment.yaml
+    set:
+      ui:
+        deployment:
+          podSecurityContext:
+            fsGroup: 1001
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - equal:
+          path: spec.template.spec.securityContext.fsGroup
+          value: 1001
