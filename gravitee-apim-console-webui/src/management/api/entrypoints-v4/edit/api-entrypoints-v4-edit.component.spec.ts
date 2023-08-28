@@ -40,6 +40,7 @@ import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/test
 import { ApiEntrypointsV4Module } from '../api-entrypoints-v4.module';
 import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { fakeSubscriptionListener } from '../../../../entities/management-api-v2/api/v4/listener.fixture';
+import { GioFormQosHarness } from '../../component/gio-form-qos/gio-form-qos.harness';
 
 describe('ApiEntrypointsV4EditComponent', () => {
   const API_ID = 'apiId';
@@ -51,10 +52,12 @@ describe('ApiEntrypointsV4EditComponent', () => {
       metadataInPayload: false,
       messagesLimitDurationMs: 5000,
     },
+    qos: 'AUTO',
   };
   const WEBSOCKET_ENTRYPOINT: Entrypoint = {
     type: 'websocket',
     configuration: { publisher: { enabled: true }, subscriber: { enabled: false } },
+    qos: 'AUTO',
   };
   const HTTP_LISTENER: Listener = {
     type: 'HTTP',
@@ -117,6 +120,10 @@ describe('ApiEntrypointsV4EditComponent', () => {
     const input = await loader.getHarness(MatInputHarness.with({ selector: '[id*="messagesLimitCount"]' }));
     await input.setValue('1234');
 
+    const qosSelect = await loader.getHarness(GioFormQosHarness);
+    expect(await qosSelect.getSelectedQos()).toEqual('AUTO');
+    await qosSelect.selectOption('AT_MOST_ONCE');
+
     expect(await button.isDisabled()).toBeFalsy();
     await button.click();
     fixture.detectChanges();
@@ -141,6 +148,7 @@ describe('ApiEntrypointsV4EditComponent', () => {
                 metadataInPayload: false,
                 messagesLimitDurationMs: 5000,
               },
+              qos: 'AT_MOST_ONCE',
             },
           ],
         },
@@ -157,10 +165,15 @@ describe('ApiEntrypointsV4EditComponent', () => {
 
   const expectGetEntrypoints = () => {
     const entrypoints: Partial<ConnectorPlugin>[] = [
-      { id: 'http-get', supportedApiType: 'MESSAGE', name: 'HTTP GET' },
-      { id: 'http-post', supportedApiType: 'MESSAGE', name: 'HTTP POST' },
-      { id: 'sse', supportedApiType: 'MESSAGE', name: 'Server-Sent Events' },
-      { id: 'webhook', supportedApiType: 'MESSAGE', name: 'Webhook' },
+      { id: 'http-get', supportedApiType: 'MESSAGE', supportedQos: ['AUTO', 'AT_MOST_ONCE', 'AT_LEAST_ONCE'], name: 'HTTP GET' },
+      { id: 'http-post', supportedApiType: 'MESSAGE', supportedQos: ['NONE', 'AUTO'], name: 'HTTP POST' },
+      {
+        id: 'sse',
+        supportedApiType: 'MESSAGE',
+        supportedQos: ['NONE', 'AUTO', 'AT_MOST_ONCE', 'AT_LEAST_ONCE'],
+        name: 'Server-Sent Events',
+      },
+      { id: 'webhook', supportedApiType: 'MESSAGE', supportedQos: ['NONE', 'AUTO', 'AT_MOST_ONCE', 'AT_LEAST_ONCE'], name: 'Webhook' },
     ];
 
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/entrypoints`, method: 'GET' }).flush(entrypoints);

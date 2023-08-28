@@ -23,7 +23,15 @@
   <form [formGroup]="form" *ngIf="form; else loader" (ngSubmit)="onSaveEntrypointConfig()">
     <div *ngIf="entrypointSchema" class="api-creation-v4__form-container">
       <h3>{{ entrypointName }}</h3>
-      <gio-form-json-schema [jsonSchema]="entrypointSchema" [formControlName]="entrypoint.type"></gio-form-json-schema>
+
+      <gio-form-json-schema [jsonSchema]="entrypointSchema" [formControlName]="entrypoint.type + '-config'"></gio-form-json-schema>
+
+      <gio-form-qos
+        *ngIf="entrypoint"
+        [id]="entrypoint.type"
+        [supportedQos]="supportedQos"
+        [formControlName]="entrypoint.type + '-qos'"
+      ></gio-form-qos>
     </div>
 
     <div class="footer">
