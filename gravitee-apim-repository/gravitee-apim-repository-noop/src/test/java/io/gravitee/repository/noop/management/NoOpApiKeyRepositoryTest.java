@@ -15,19 +15,17 @@
  */
 package io.gravitee.repository.noop.management;
 
+import static org.junit.Assert.*;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
 import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.repository.noop.AbstractNoOpRepositoryTest;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-
-import static org.junit.Assert.*;
-
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)

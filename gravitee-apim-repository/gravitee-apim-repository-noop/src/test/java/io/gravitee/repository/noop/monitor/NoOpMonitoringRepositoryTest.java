@@ -18,9 +18,8 @@ package io.gravitee.repository.noop.monitor;
 import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.monitoring.MonitoringRepository;
 import io.gravitee.repository.monitoring.model.MonitoringResponse;
-import java.io.IOException;
-
 import io.gravitee.repository.noop.AbstractNoOpRepositoryTest;
+import java.io.IOException;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;

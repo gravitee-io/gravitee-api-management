@@ -86,7 +86,8 @@ public class GroupService_FindByIdTest extends TestCase {
         )
             .thenReturn(true);
 
-        when(roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), ORGANIZATION_ID)).thenReturn(Optional.of(new RoleEntity()));
+        when(roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), ORGANIZATION_ID))
+            .thenReturn(Optional.of(new RoleEntity()));
 
         var result = groupService.findById(executionContext, GROUP_ID);
 
@@ -111,7 +112,8 @@ public class GroupService_FindByIdTest extends TestCase {
         ExecutionContext executionContext = new ExecutionContext(ORGANIZATION_ID, null);
 
         when(roleService.findByScopeAndName(RoleScope.GROUP, SystemRole.ADMIN.name(), ORGANIZATION_ID)).thenReturn(Optional.empty());
-        when(roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), ORGANIZATION_ID)).thenReturn(Optional.of(new RoleEntity()));
+        when(roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), ORGANIZATION_ID))
+            .thenReturn(Optional.of(new RoleEntity()));
 
         var result = groupService.findById(executionContext, GROUP_ID);
 

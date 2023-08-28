@@ -689,16 +689,16 @@ public class ApplicationService_UpdateTest {
         PlanEntity apiKeyPlanEntity = new PlanEntity();
         apiKeyPlanEntity.setId(apiKeyPlanId);
         when(planSearchService.findByIdIn(GraviteeContext.getExecutionContext(), Set.of(apiKeyPlanId)))
-                .thenReturn(Set.of(apiKeyPlanEntity));
+            .thenReturn(Set.of(apiKeyPlanEntity));
 
         when(
-                parameterService.findAsBoolean(
-                        GraviteeContext.getExecutionContext(),
-                        Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED,
-                        ParameterReferenceType.ENVIRONMENT
-                )
+            parameterService.findAsBoolean(
+                GraviteeContext.getExecutionContext(),
+                Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED,
+                ParameterReferenceType.ENVIRONMENT
+            )
         )
-                .thenReturn(true);
+            .thenReturn(true);
 
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
         when(existingApplication.getName()).thenReturn(APPLICATION_NAME);
@@ -720,20 +720,20 @@ public class ApplicationService_UpdateTest {
         when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
 
         final ApplicationEntity applicationEntity = applicationService.update(
-                GraviteeContext.getExecutionContext(),
-                APPLICATION_ID,
-                updateApplication
+            GraviteeContext.getExecutionContext(),
+            APPLICATION_ID,
+            updateApplication
         );
 
         assertNotNull(applicationEntity);
         assertEquals(APPLICATION_NAME, applicationEntity.getName());
 
         verify(applicationRepository)
-                .update(argThat(application -> APPLICATION_NAME.equals(application.getName()) && application.getUpdatedAt() != null));
+            .update(argThat(application -> APPLICATION_NAME.equals(application.getName()) && application.getUpdatedAt() != null));
         verify(subscriptionService).findByApplicationAndPlan(any(ExecutionContext.class), eq(APPLICATION_ID), isNull());
         verify(planSearchService).findByIdIn(any(ExecutionContext.class), eq(Set.of(apiKeyPlanId)));
-
     }
+
     @Test
     public void should_not_update_null_new_client_id() throws TechnicalException {
         ApplicationSettings settings = new ApplicationSettings();
@@ -766,17 +766,17 @@ public class ApplicationService_UpdateTest {
 
         List<SubscriptionEntity> subscriptions = List.of(subscription1, subscription2);
         when(
-                subscriptionService.search(
-                        any(),
-                        argThat(criteria ->
-                                criteria.getApplications().contains(APPLICATION_ID) &&
-                                        criteria
-                                                .getStatuses()
-                                                .containsAll(Set.of(SubscriptionStatus.ACCEPTED, SubscriptionStatus.PAUSED, SubscriptionStatus.PENDING))
-                        )
+            subscriptionService.search(
+                any(),
+                argThat(criteria ->
+                    criteria.getApplications().contains(APPLICATION_ID) &&
+                    criteria
+                        .getStatuses()
+                        .containsAll(Set.of(SubscriptionStatus.ACCEPTED, SubscriptionStatus.PAUSED, SubscriptionStatus.PENDING))
                 )
+            )
         )
-                .thenReturn(subscriptions);
+            .thenReturn(subscriptions);
 
         applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
 

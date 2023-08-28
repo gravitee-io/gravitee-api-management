@@ -402,10 +402,13 @@ public class ApiService_UpdateTest {
         assertEquals(API_NAME, apiEntity.getName());
 
         // Picture management as a dedicated service, so we should reuse the same picture as the one saved
-        verify(apiRepository).update(argThat(apiToUpdate ->
-               Objects.equals(apiToUpdate.getPicture(), api.getPicture())
-                   && Objects.equals(apiToUpdate.getBackground(), api.getBackground())
-        ));
+        verify(apiRepository)
+            .update(
+                argThat(apiToUpdate ->
+                    Objects.equals(apiToUpdate.getPicture(), api.getPicture()) &&
+                    Objects.equals(apiToUpdate.getBackground(), api.getBackground())
+                )
+            );
         verify(searchEngineService, times(1)).index(eq(GraviteeContext.getExecutionContext()), any(), eq(false));
     }
 

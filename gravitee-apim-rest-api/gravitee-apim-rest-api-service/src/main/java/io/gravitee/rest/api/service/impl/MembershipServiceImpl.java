@@ -240,13 +240,14 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 assertRoleNameAllowedForReference(reference, roleEntity);
 
                 if (member.getMemberId() != null) {
-                    Set<io.gravitee.repository.management.model.Membership> similarMemberships = membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIdAndRoleId(
-                        member.getMemberId(),
-                        convert(member.getMemberType()),
-                        convert(reference.getType()),
-                        reference.getId(),
-                        roleEntity.getId()
-                    );
+                    Set<io.gravitee.repository.management.model.Membership> similarMemberships =
+                        membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIdAndRoleId(
+                            member.getMemberId(),
+                            convert(member.getMemberType()),
+                            convert(reference.getType()),
+                            reference.getId(),
+                            roleEntity.getId()
+                        );
 
                     if (!similarMemberships.isEmpty()) {
                         if (update) {
@@ -284,12 +285,13 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                         applicationAlertService.addMemberToApplication(executionContext, reference.getId(), userEntity.getEmail());
                     }
 
-                    Set<io.gravitee.repository.management.model.Membership> userRolesOnReference = membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
-                        userEntity.getId(),
-                        convert(member.getMemberType()),
-                        convert(reference.getType()),
-                        reference.getId()
-                    );
+                    Set<io.gravitee.repository.management.model.Membership> userRolesOnReference =
+                        membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
+                            userEntity.getId(),
+                            convert(member.getMemberType()),
+                            convert(reference.getType()),
+                            reference.getId()
+                        );
                     boolean shouldNotify =
                         notify &&
                         userRolesOnReference != null &&
@@ -664,14 +666,15 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 .findByScopeAndName(RoleScope.API, PRIMARY_OWNER.name(), executionContext.getOrganizationId())
                 .orElseThrow(() -> new TechnicalManagementException("Unable to find API Primary Owner role"));
             RoleEntity applicationPORole = roleService
-                    .findByScopeAndName(RoleScope.APPLICATION, PRIMARY_OWNER.name(), executionContext.getOrganizationId())
-                    .orElseThrow(() -> new TechnicalManagementException("Unable to find Application Primary Owner role"));
-            Set<io.gravitee.repository.management.model.Membership> memberships = membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
-                memberId,
-                convert(memberType),
-                convert(referenceType),
-                referenceId
-            );
+                .findByScopeAndName(RoleScope.APPLICATION, PRIMARY_OWNER.name(), executionContext.getOrganizationId())
+                .orElseThrow(() -> new TechnicalManagementException("Unable to find Application Primary Owner role"));
+            Set<io.gravitee.repository.management.model.Membership> memberships =
+                membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
+                    memberId,
+                    convert(memberType),
+                    convert(referenceType),
+                    referenceId
+                );
 
             if (MembershipReferenceType.API.equals(referenceType)) {
                 assertNoPrimaryOwnerRemoval(apiPORole, memberships);
@@ -1332,12 +1335,13 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         String userId
     ) {
         try {
-            Set<io.gravitee.repository.management.model.Membership> userMemberships = membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
-                userId,
-                convert(MembershipMemberType.USER),
-                convert(referenceType),
-                referenceId
-            );
+            Set<io.gravitee.repository.management.model.Membership> userMemberships =
+                membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
+                    userId,
+                    convert(MembershipMemberType.USER),
+                    convert(referenceType),
+                    referenceId
+                );
 
             //Get entity groups
             Set<String> entityGroups = new HashSet<>();
@@ -1511,13 +1515,14 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         String roleId
     ) {
         try {
-            Set<io.gravitee.repository.management.model.Membership> membershipsToDelete = membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIdAndRoleId(
-                memberId,
-                convert(memberType),
-                convert(referenceType),
-                referenceId,
-                roleId
-            );
+            Set<io.gravitee.repository.management.model.Membership> membershipsToDelete =
+                membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIdAndRoleId(
+                    memberId,
+                    convert(memberType),
+                    convert(referenceType),
+                    referenceId,
+                    roleId
+                );
             for (io.gravitee.repository.management.model.Membership m : membershipsToDelete) {
                 membershipRepository.delete(m.getId());
             }
@@ -1552,13 +1557,14 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         try {
             Set<io.gravitee.repository.management.model.Membership> membershipsWithOldRole = membershipRepository.findByRoleId(oldRoleId);
             for (io.gravitee.repository.management.model.Membership membership : membershipsWithOldRole) {
-                Set<io.gravitee.repository.management.model.Membership> membershipsWithNewRole = membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIdAndRoleId(
-                    membership.getMemberId(),
-                    membership.getMemberType(),
-                    membership.getReferenceType(),
-                    membership.getReferenceId(),
-                    newRoleId
-                );
+                Set<io.gravitee.repository.management.model.Membership> membershipsWithNewRole =
+                    membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIdAndRoleId(
+                        membership.getMemberId(),
+                        membership.getMemberType(),
+                        membership.getReferenceType(),
+                        membership.getReferenceId(),
+                        newRoleId
+                    );
                 String oldMembershipId = membership.getId();
                 if (membershipsWithNewRole.isEmpty()) {
                     membership.setId(UuidString.generateRandom());

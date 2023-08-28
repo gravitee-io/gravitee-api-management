@@ -19,7 +19,6 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.model.Event;
-
 import java.util.List;
 
 /**
@@ -27,7 +26,6 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public class NoOpEventLatestRepository implements EventLatestRepository {
-
 
     @Override
     public List<Event> search(EventCriteria criteria, Event.EventProperties group, Long page, Long size) {

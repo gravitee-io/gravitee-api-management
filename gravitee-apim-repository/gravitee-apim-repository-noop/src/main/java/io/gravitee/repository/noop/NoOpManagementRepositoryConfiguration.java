@@ -71,5 +71,4 @@ public class NoOpManagementRepositoryConfiguration {
     public CommandRepository commandRepository() {
         return new NoOpCommandRepository();
     }
-
 }

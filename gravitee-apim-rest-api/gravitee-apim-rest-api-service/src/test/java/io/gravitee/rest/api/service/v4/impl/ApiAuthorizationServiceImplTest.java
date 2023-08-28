@@ -51,9 +51,7 @@ import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.search.query.Query;
 import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
-
 import java.util.*;
-
 import org.assertj.core.api.SoftAssertions;
 import org.junit.Before;
 import org.junit.Test;
@@ -167,6 +165,7 @@ public class ApiAuthorizationServiceImplTest {
 
         assertThat(apis).hasSize(1);
     }
+
     @Test
     public void findIdsByUserId() {
         final String userId = "USER#1";
@@ -181,7 +180,7 @@ public class ApiAuthorizationServiceImplTest {
         membership.setRoleId(poRoleId);
 
         when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.API))
-                .thenReturn(Collections.singleton(membership));
+            .thenReturn(Collections.singleton(membership));
 
         RoleEntity poRole = new RoleEntity();
         poRole.setId(poRoleId);
@@ -232,6 +231,7 @@ public class ApiAuthorizationServiceImplTest {
 
         assertThat(apis).hasSize(0);
     }
+
     @Test
     public void shouldFindIdsByUserWithCriteria() {
         final String userRoleId = "API_USER";
@@ -290,21 +290,18 @@ public class ApiAuthorizationServiceImplTest {
                     query.getQuery().contains("tag\\-1")
                 )
             );
-        }
-        @Test
-        public void shouldFindIdsByEnvironmentId() {
-            List<ApiCriteria> apiCriteriaList = new ArrayList<>();
-            apiCriteriaList.add(
-                    new ApiCriteria.Builder()
-                            .environmentId("DEFAULT")
-                            .build()
-            );
+    }
 
-            when(apiRepository.searchIds(eq(apiCriteriaList), any(), any())).thenReturn(new Page<>(List.of("api-1"), 0, 1, 1));
-            final Set<String> apis = apiAuthorizationService.findIdsByEnvironment(GraviteeContext.getExecutionContext());
+    @Test
+    public void shouldFindIdsByEnvironmentId() {
+        List<ApiCriteria> apiCriteriaList = new ArrayList<>();
+        apiCriteriaList.add(new ApiCriteria.Builder().environmentId("DEFAULT").build());
 
-            assertThat(apis).hasSize(1);
-        }
+        when(apiRepository.searchIds(eq(apiCriteriaList), any(), any())).thenReturn(new Page<>(List.of("api-1"), 0, 1, 1));
+        final Set<String> apis = apiAuthorizationService.findIdsByEnvironment(GraviteeContext.getExecutionContext());
+
+        assertThat(apis).hasSize(1);
+    }
 
     @Test
     public void shouldNotFindIdsByUserBecauseNotExists() {

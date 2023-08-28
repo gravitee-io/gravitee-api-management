@@ -15,17 +15,16 @@
  */
 package io.gravitee.repository.noop.management;
 
+import static org.junit.Assert.*;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.noop.AbstractNoOpRepositoryTest;
+import java.util.List;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.List;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
@@ -50,5 +49,4 @@ public class NoOpEventLatestRepositoryTest extends AbstractNoOpRepositoryTest {
 
         assertNull(event);
     }
-
 }

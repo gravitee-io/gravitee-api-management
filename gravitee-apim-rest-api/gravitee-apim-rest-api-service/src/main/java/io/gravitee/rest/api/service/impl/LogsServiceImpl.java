@@ -464,9 +464,8 @@ public class LogsServiceImpl implements LogsService {
             return null;
         }
 
-        io.gravitee.rest.api.model.v4.plan.PlanSecurityType planSecurityType = io.gravitee.rest.api.model.v4.plan.PlanSecurityType.valueOfLabel(
-            plan.getPlanSecurity().getType()
-        );
+        io.gravitee.rest.api.model.v4.plan.PlanSecurityType planSecurityType =
+            io.gravitee.rest.api.model.v4.plan.PlanSecurityType.valueOfLabel(plan.getPlanSecurity().getType());
         if (
             io.gravitee.rest.api.model.v4.plan.PlanSecurityType.API_KEY == planSecurityType ||
             io.gravitee.rest.api.model.v4.plan.PlanSecurityType.KEY_LESS == planSecurityType

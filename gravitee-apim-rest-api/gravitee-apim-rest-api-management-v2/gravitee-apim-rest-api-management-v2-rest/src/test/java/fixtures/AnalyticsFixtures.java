@@ -36,9 +36,11 @@ public class AnalyticsFixtures {
     }
 
     public static io.gravitee.rest.api.management.v2.rest.model.Analytics aBasicAnalytics() {
-        final io.gravitee.rest.api.management.v2.rest.model.Analytics analytics = new io.gravitee.rest.api.management.v2.rest.model.Analytics();
+        final io.gravitee.rest.api.management.v2.rest.model.Analytics analytics =
+            new io.gravitee.rest.api.management.v2.rest.model.Analytics();
         analytics.setEnabled(true);
-        final io.gravitee.rest.api.management.v2.rest.model.Sampling sampling = new io.gravitee.rest.api.management.v2.rest.model.Sampling();
+        final io.gravitee.rest.api.management.v2.rest.model.Sampling sampling =
+            new io.gravitee.rest.api.management.v2.rest.model.Sampling();
         sampling.setType(io.gravitee.rest.api.management.v2.rest.model.Sampling.TypeEnum.COUNT);
         sampling.setValue("10");
         analytics.setSampling(sampling);

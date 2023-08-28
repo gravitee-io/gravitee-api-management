@@ -18,7 +18,6 @@ package io.gravitee.repository.noop.management;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Plan;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -28,7 +27,6 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public class NoOpPlanRepository extends AbstractNoOpManagementRepository<Plan, String> implements PlanRepository {
-
 
     @Override
     public List<Plan> findByApis(List<String> apiIds) throws TechnicalException {

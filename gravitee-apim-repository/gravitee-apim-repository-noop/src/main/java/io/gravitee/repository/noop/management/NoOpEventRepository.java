@@ -21,7 +21,6 @@ import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Event;
-
 import java.util.List;
 
 /**
@@ -29,7 +28,6 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public class NoOpEventRepository extends AbstractNoOpManagementRepository<Event, String> implements EventRepository {
-
 
     @Override
     public Page<Event> search(EventCriteria filter, Pageable pageable) {

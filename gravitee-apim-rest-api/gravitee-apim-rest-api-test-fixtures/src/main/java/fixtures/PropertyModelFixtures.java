@@ -22,19 +22,11 @@ public class PropertyModelFixtures {
 
     private PropertyModelFixtures() {}
 
-    private static final io.gravitee.definition.model.Property.PropertyBuilder BASE_MODEL_PROPERTY_V2 = io.gravitee.definition.model.Property
-        .builder()
-        .dynamic(false)
-        .encrypted(false)
-        .key("prop-key")
-        .value("prop-value");
+    private static final io.gravitee.definition.model.Property.PropertyBuilder BASE_MODEL_PROPERTY_V2 =
+        io.gravitee.definition.model.Property.builder().dynamic(false).encrypted(false).key("prop-key").value("prop-value");
 
-    private static final io.gravitee.definition.model.v4.property.Property.PropertyBuilder BASE_MODEL_PROPERTY_V4 = io.gravitee.definition.model.v4.property.Property
-        .builder()
-        .dynamic(false)
-        .encrypted(false)
-        .key("prop-key")
-        .value("prop-value");
+    private static final io.gravitee.definition.model.v4.property.Property.PropertyBuilder BASE_MODEL_PROPERTY_V4 =
+        io.gravitee.definition.model.v4.property.Property.builder().dynamic(false).encrypted(false).key("prop-key").value("prop-value");
 
     private static final Properties.PropertiesBuilder BASE_MODEL_PROPERTIES_V2 = Properties
         .builder()

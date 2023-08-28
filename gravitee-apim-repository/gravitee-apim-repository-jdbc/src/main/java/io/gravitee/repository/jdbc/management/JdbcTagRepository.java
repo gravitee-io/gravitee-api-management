@@ -24,7 +24,6 @@ import io.gravitee.repository.management.model.AlertTrigger;
 import io.gravitee.repository.management.model.Tag;
 import io.gravitee.repository.management.model.TagReferenceType;
 import io.gravitee.repository.management.model.TenantReferenceType;
-
 import java.sql.PreparedStatement;
 import java.sql.Types;
 import java.util.HashSet;
@@ -100,21 +99,24 @@ public class JdbcTagRepository extends JdbcAbstractCrudRepository<Tag, String> i
 
     @Override
     public Set<Tag> findByIdsAndReference(Set<String> tagIds, String referenceId, TagReferenceType referenceType)
-            throws TechnicalException {
+        throws TechnicalException {
         try {
             return jdbcTemplate
-                    .query(
-                            getOrm().getSelectAllSql() + " where reference_id = ? and reference_type = ? and id in ( " +
-                            getOrm().buildInClause(tagIds) + " )",
-                            (PreparedStatement ps) -> {
-                                ps.setString(1, referenceId);
-                                ps.setString(2, referenceType.name());
-                                getOrm().setArguments(ps, tagIds, 3);
-                            },
-                            getOrm().getRowMapper()
-                    ).stream()
-                    .peek(this::addGroups)
-                    .collect(toSet());
+                .query(
+                    getOrm().getSelectAllSql() +
+                    " where reference_id = ? and reference_type = ? and id in ( " +
+                    getOrm().buildInClause(tagIds) +
+                    " )",
+                    (PreparedStatement ps) -> {
+                        ps.setString(1, referenceId);
+                        ps.setString(2, referenceType.name());
+                        getOrm().setArguments(ps, tagIds, 3);
+                    },
+                    getOrm().getRowMapper()
+                )
+                .stream()
+                .peek(this::addGroups)
+                .collect(toSet());
         } catch (final Exception ex) {
             LOGGER.error("Failed to find {} tags by ids, referenceId and referenceType:", getOrm().getTableName(), ex);
             throw new TechnicalException("Failed to find " + getOrm().getTableName() + " tags by ids, referenceId and referenceType", ex);

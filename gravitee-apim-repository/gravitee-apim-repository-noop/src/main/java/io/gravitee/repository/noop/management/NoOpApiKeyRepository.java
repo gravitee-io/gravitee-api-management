@@ -20,7 +20,6 @@ import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.ApiKey;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -30,7 +29,6 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public class NoOpApiKeyRepository implements ApiKeyRepository {
-
 
     @Override
     public Optional<ApiKey> findById(String id) throws TechnicalException {

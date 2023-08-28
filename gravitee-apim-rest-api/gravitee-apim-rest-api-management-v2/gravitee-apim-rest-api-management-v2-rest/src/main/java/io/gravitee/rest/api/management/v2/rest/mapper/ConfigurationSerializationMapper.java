@@ -73,5 +73,4 @@ public interface ConfigurationSerializationMapper {
 
         return configuration;
     }
-
 }

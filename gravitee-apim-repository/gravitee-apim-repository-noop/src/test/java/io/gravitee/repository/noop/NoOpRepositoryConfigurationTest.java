@@ -23,10 +23,7 @@ import org.springframework.context.annotation.Import;
  * @author GraviteeSource Team
  */
 @Configuration
-@Import({
-        NoOpAnalyticsRepositoryConfiguration.class,
-        NoOpManagementRepositoryConfiguration.class,
-        NoOpRateLimitRepositoryConfiguration.class
-})
-public class NoOpRepositoryConfigurationTest {
-}
+@Import(
+    { NoOpAnalyticsRepositoryConfiguration.class, NoOpManagementRepositoryConfiguration.class, NoOpRateLimitRepositoryConfiguration.class }
+)
+public class NoOpRepositoryConfigurationTest {}
