@@ -130,6 +130,7 @@
         *ngIf="selectedItemWithTabs"
         class="api-navigation__content__tabs"
         [tabMenuItems]="this.selectedItemWithTabs.tabs"
+        [menuItemHeader]="this.selectedItemWithTabs?.header"
       ></api-ng-navigation-tabs>
 
       <ui-view class="api-navigation__content__view__ui"></ui-view>
