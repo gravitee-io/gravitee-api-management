@@ -13,5 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './api-runtime-logs-empty';
-export * from './api-runtime-logs-list-row';
+import { NgModule } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
+
+import { ApiRuntimeLogsListRowComponent } from './api-runtime-logs-list-row.component';
+
+@NgModule({
+  declarations: [ApiRuntimeLogsListRowComponent],
+  exports: [ApiRuntimeLogsListRowComponent],
+  imports: [MatButtonModule],
+})
+export class ApiRuntimeLogsListRowModule {}
