@@ -2387,11 +2387,6 @@ workflows:
                       - Publish APIM Console to artifactory
                       - Publish APIM Portal to artifactory
                   context: cicd-orchestrator
-            - job-publish-on-artifactory:
-                  name: Publish new SNAPSHOTS on artifactory
-                  context: cicd-orchestrator
-                  requires:
-                      - Commit and prepare next version
 
             # Package bundle
             - job-package-bundle:
