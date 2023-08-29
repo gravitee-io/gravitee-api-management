@@ -255,8 +255,8 @@ data:
           password-encoding-algo: {{ .Values.inMemoryAuth.passwordEncodingAlgo | default "bcrypt" }}
           allow-email-in-search-results: {{ .Values.inMemoryAuth.allowEmailInSearchResults }}
           users:
-            - user:
             {{- if .Values.adminAccountEnable }}
+            - user:
               username: admin
               password: {{ .Values.adminPasswordBcrypt }}
               roles: ORGANIZATION:ADMIN, ENVIRONMENT:ADMIN
