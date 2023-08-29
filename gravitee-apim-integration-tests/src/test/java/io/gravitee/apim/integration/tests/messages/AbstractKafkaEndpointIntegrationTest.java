@@ -182,12 +182,15 @@ public abstract class AbstractKafkaEndpointIntegrationTest extends AbstractGatew
         return KafkaConsumer.create(vertx, config);
     }
 
-    protected static Flowable<KafkaConsumerRecord<String, byte[]>> subscribeToKafka(KafkaConsumer<String, byte[]> kafkaConsumer, String topic) {
+    protected static Flowable<KafkaConsumerRecord<String, byte[]>> subscribeToKafka(
+        KafkaConsumer<String, byte[]> kafkaConsumer,
+        String topic
+    ) {
         TopicPartition topicPartition = new TopicPartition(topic, 0);
         return kafkaConsumer
-               .rxAssign(topicPartition)
-               .andThen(kafkaConsumer.rxSeekToBeginning(topicPartition))
-               .andThen(kafkaConsumer.toFlowable());
+            .rxAssign(topicPartition)
+            .andThen(kafkaConsumer.rxSeekToBeginning(topicPartition))
+            .andThen(kafkaConsumer.toFlowable());
     }
 
     protected static Flowable<KafkaConsumerRecord<String, byte[]>> subscribeToKafka(KafkaConsumer<String, byte[]> kafkaConsumer) {
@@ -231,8 +234,8 @@ public abstract class AbstractKafkaEndpointIntegrationTest extends AbstractGatew
 
     protected static Completable publishToKafka(KafkaProducer<String, byte[]> producer, String topic, String message) {
         return producer
-               .rxSend(KafkaProducerRecord.create(topic, "key", io.gravitee.gateway.api.buffer.Buffer.buffer(message).getBytes()))
-               .ignoreElement();
+            .rxSend(KafkaProducerRecord.create(topic, "key", io.gravitee.gateway.api.buffer.Buffer.buffer(message).getBytes()))
+            .ignoreElement();
     }
 
     protected static Completable publishToKafka(KafkaProducer<String, byte[]> producer, String message) {
