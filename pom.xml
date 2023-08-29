@@ -33,6 +33,7 @@
 
     <properties>
         <gravitee-bom.version>4.0.0</gravitee-bom.version>
+        <gravitee-reporter-common.version>1.0.0</gravitee-reporter-common.version>
         <gravitee-common-elasticsearch.version>4.1.0</gravitee-common-elasticsearch.version>
         <gravitee-gateway-api.version>2.1.0</gravitee-gateway-api.version>
         <gravitee-node-api.version>2.0.8</gravitee-node-api.version>
@@ -46,18 +47,18 @@
         <publish-folder-path>graviteeio-apim/plugins/reporters</publish-folder-path>
     </properties>
 
-	<dependencyManagement>
-		<dependencies>
-			<!-- Import bom to properly inherit all dependencies -->
-			<dependency>
-				<groupId>io.gravitee</groupId>
-				<artifactId>gravitee-bom</artifactId>
-				<version>${gravitee-bom.version}</version>
-				<scope>import</scope>
-				<type>pom</type>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
+    <dependencyManagement>
+        <dependencies>
+            <!-- Import bom to properly inherit all dependencies -->
+            <dependency>
+                <groupId>io.gravitee</groupId>
+                <artifactId>gravitee-bom</artifactId>
+                <version>${gravitee-bom.version}</version>
+                <scope>import</scope>
+                <type>pom</type>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <dependency>
@@ -92,6 +93,13 @@
             <groupId>io.gravitee.reporter</groupId>
             <artifactId>gravitee-reporter-api</artifactId>
             <version>${gravitee-reporter-api.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.gravitee.reporter</groupId>
+            <artifactId>gravitee-reporter-common</artifactId>
+            <version>${gravitee-reporter-common.version}</version>
             <scope>provided</scope>
         </dependency>
 
@@ -245,18 +253,18 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-remote-resources-plugin</artifactId>
                 <version>3.0.0</version>
-                <configuration>
-                    <resourceBundles>
-                        <resourceBundle>io.gravitee.elasticsearch:gravitee-common-elasticsearch:${gravitee-common-elasticsearch.version}</resourceBundle>
-                    </resourceBundles>
-                </configuration>
                 <executions>
                     <execution>
                         <goals>
-                            <goal>process</goal>
+                            <goal>bundle</goal>
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <includes>
+                        <include>freemarker/**</include>
+                    </includes>
+                </configuration>
             </plugin>
         </plugins>
     </build>

@@ -16,8 +16,11 @@
 package io.gravitee.reporter.elasticsearch.indexer;
 
 import io.gravitee.elasticsearch.client.Client;
+import io.gravitee.node.api.Node;
 import io.gravitee.reporter.api.Reportable;
+import io.gravitee.reporter.elasticsearch.config.PipelineConfiguration;
 import io.gravitee.reporter.elasticsearch.config.ReporterConfiguration;
+import io.gravitee.reporter.elasticsearch.indexer.name.IndexNameGenerator;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.functions.Function;
 import io.reactivex.rxjava3.processors.PublishProcessor;
@@ -45,13 +48,16 @@ public abstract class BulkIndexer extends AbstractIndexer {
     @Autowired
     private Vertx vertx;
 
-    /**
-     * Configuration of Elasticsearch (cluster name, addresses, ...)
-     */
-    @Autowired
-    private ReporterConfiguration configuration;
-
     private final PublishProcessor<Reportable> bulkProcessor = PublishProcessor.create();
+
+    protected BulkIndexer(
+        ReporterConfiguration configuration,
+        PipelineConfiguration pipelineConfiguration,
+        IndexNameGenerator indexNameGenerator,
+        Node node
+    ) {
+        super(configuration, pipelineConfiguration, indexNameGenerator, node);
+    }
 
     @PostConstruct
     public void initialize() {
