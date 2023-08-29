@@ -212,8 +212,9 @@ describe('API metadata screen', () => {
   });
 
   describe('Global metadata inside API documentation', () => {
-    const globalMetadataName: string = `${faker.random.word()}-${faker.random.word()}`;
+    const globalMetadataName: string = `${faker.random.word()} ${faker.random.word()}`;
     const globalMetadataValue: string = `${faker.random.word()}`;
+    let globalMetadataKey: string;
 
     before(() => {
       cy.request({
@@ -226,7 +227,9 @@ describe('API metadata screen', () => {
           name: globalMetadataName,
           value: globalMetadataValue,
         },
-      }).ok();
+      }).then((response) => {
+        globalMetadataKey = response.body.key;
+      });
     });
 
     it('should display global metadata in API metadata overview', function () {
@@ -258,10 +261,9 @@ describe('API metadata screen', () => {
 
     after(() => {
       cy.clearCookie('Auth-Graviteeio-APIM');
-      const key = globalMetadataName.toLowerCase();
       cy.request({
         method: 'DELETE',
-        url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/configuration/metadata/${key}`,
+        url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/configuration/metadata/${globalMetadataKey}`,
         auth: { username: ADMIN_USER.username, password: ADMIN_USER.password },
       });
     });
