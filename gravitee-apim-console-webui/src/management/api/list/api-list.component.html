@@ -65,7 +65,7 @@
           svgIcon="gio:play-circle"
         ></mat-icon>
         <mat-icon
-          *ngIf="element.state !== 'STARTED'"
+          *ngIf="element.state && element.state !== 'STARTED'"
           matTooltip="Stopped"
           class="states__api-not-started"
           size="20"
@@ -86,7 +86,7 @@
           svgIcon="gio:cloud-published"
         ></mat-icon>
         <mat-icon
-          *ngIf="element.lifecycleState !== 'PUBLISHED'"
+          *ngIf="element.lifecycleState && element.lifecycleState !== 'PUBLISHED'"
           matTooltip="Unpublished"
           class="states__api-not-published"
           size="20"
