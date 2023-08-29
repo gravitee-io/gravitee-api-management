@@ -1,0 +1,40 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<mat-card class="gio-form-qos">
+  <h3>Quality of service</h3>
+  <gio-banner-info>
+    Define the guaranteed level of message delivery.
+    <div gioBannerBody>
+      A given quality of service may or may not be supported by a given endpoint. Support also depends on the protocol used for the
+      entrypoint. Please check the documentation for QoS compatibility.
+      <a
+        href="https://documentation.gravitee.io/apim/guides/api-configuration/v4-api-configuration/quality-of-service"
+        aria-label="learn more"
+        rel="noopener"
+        target="_blank"
+        >Learn more</a
+      >
+    </div>
+  </gio-banner-info>
+  <mat-form-field class="gio-form-qos__select">
+    <mat-label>Quality of Service</mat-label>
+    <mat-select [name]="id + '-qos'" aria-label="Quality of service" required [(ngModel)]="selectedQos">
+      <mat-option *ngFor="let qos of supportedQos" [value]="qos">{{ qos }}</mat-option>
+    </mat-select>
+  </mat-form-field>
+</mat-card>
