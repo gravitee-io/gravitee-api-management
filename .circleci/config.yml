@@ -1479,7 +1479,7 @@ jobs:
                 default: ""
         executor:
             name: ubuntu
-            class: large
+            class: medium
             with_docker_layer_caching: true
         steps:
             - when:
