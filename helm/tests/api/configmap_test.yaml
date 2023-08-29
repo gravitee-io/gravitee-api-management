@@ -106,3 +106,14 @@ tests:
       - matchRegex:
           path: data.[gravitee.yml]
           pattern: "pattern: \\^regex\\$"
+
+  - it: Set adminAccountEnable to false
+    template: api/api-configmap.yaml
+    set:
+      adminAccountEnable: false
+    asserts:
+      - notMatchRegex:
+          path: data.[gravitee.yml]
+          pattern: " * users:\n
+				    *  - user:\n
+                    *  - user:"
