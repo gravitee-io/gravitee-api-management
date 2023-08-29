@@ -1,9 +1,14 @@
 @use 'sass:map';
 @use '@angular/material' as mat;
 @use '@gravitee/ui-particles-angular' as gio;
-@import './../../../../components/gio-button-toggle/gio-button-toggle';
+@use '../../../../scss/gio-layout' as gio-layout;
 
+@import './../../../../components/gio-button-toggle/gio-button-toggle';
 $typography: map.get(gio.$mat-theme, typography);
+
+:host {
+  @include gio-layout.gio-responsive-content-container;
+}
 
 .settings {
   padding: 24px;

@@ -28,7 +28,7 @@ import { ApiNavigationModule } from './api-navigation/api-navigation.module';
 import { ApiNgNavigationModule } from './api-ng-navigation/api-ng-navigation.module';
 import { ApiProxyModule } from './proxy/api-proxy.module';
 import { ApiV4PolicyStudioModule } from './policy-studio-v4/api-v4-policy-studio.module';
-import { ApiRuntimeLogsModule } from './runtime-logs-v4/api-runtime-logs.module';
+import { ApiRuntimeLogsV4Module } from './runtime-logs-v4/api-runtime-logs-v4.module';
 import { ApiNgNavigationComponent } from './api-ng-navigation/api-ng-navigation.component';
 import { ApiGeneralInfoComponent } from './general/details/api-general-info.component';
 import { ApiGeneralPlanEditComponent } from './general/plans/edit/api-general-plan-edit.component';
@@ -76,8 +76,9 @@ import { ApiV1ResourcesComponent } from './proxy/resources-v1/resources.componen
 import { ApiV1PoliciesComponent } from './design/policies/policies.component';
 import { ApiEventsComponent } from './audit/events/api-events.component';
 import { ApiEndpointGroupComponent } from './endpoints-v4/endpoint-group/api-endpoint-group.component';
-import { ApiRuntimeLogsComponent } from './runtime-logs-v4/api-runtime-logs.component';
 import { ApiEndpointGroupCreateComponent } from './endpoints-v4/endpoint-group/create/api-endpoint-group-create.component';
+import { ApiRuntimeLogsSettingsComponent } from './runtime-logs-v4/runtime-logs-settings/api-runtime-logs-settings.component';
+import { ApiRuntimeLogsComponent } from './runtime-logs-v4/runtime-logs/api-runtime-logs.component';
 
 import { NotificationsComponent } from '../../components/notifications/notifications.component';
 import { Scope } from '../../entities/scope';
@@ -1342,6 +1343,20 @@ const states: Ng2StateDeclaration[] = [
     component: ApiRuntimeLogsComponent,
   },
   {
+    name: 'management.apis.ng.runtimeLogs-settings',
+    url: '/runtime-logs/settings',
+    data: {
+      apiPermissions: {
+        only: ['api-log-u'],
+      },
+      docs: {
+        page: 'management-api-logs',
+      },
+      useAngularMaterial: true,
+    },
+    component: ApiRuntimeLogsSettingsComponent,
+  },
+  {
     name: 'management.apis.ng.entrypoints',
     url: '/entrypoints',
     component: ApiEntrypointsV4GeneralComponent,
@@ -1445,7 +1460,7 @@ const states: Ng2StateDeclaration[] = [
     ApiNavigationModule,
     ApiNgNavigationModule,
     ApiV4PolicyStudioModule,
-    ApiRuntimeLogsModule,
+    ApiRuntimeLogsV4Module,
     ApisGeneralModule,
     ApiProxyModule,
     ApiEntrypointsV4Module,

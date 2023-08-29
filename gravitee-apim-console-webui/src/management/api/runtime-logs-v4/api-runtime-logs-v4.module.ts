@@ -15,16 +15,11 @@
  */
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
-import { MatCardModule } from '@angular/material/card';
-import { MatTabsModule } from '@angular/material/tabs';
-import { MatIconModule } from '@angular/material/icon';
 
-import { ApiRuntimeLogsComponent } from './api-runtime-logs.component';
 import { ApiRuntimeLogsSettingsModule } from './runtime-logs-settings/api-runtime-logs-settings.module';
+import { ApiRuntimeLogsModule } from './runtime-logs/api-runtime-logs.module';
 
 @NgModule({
-  imports: [CommonModule, MatCardModule, MatIconModule, MatTabsModule, ApiRuntimeLogsSettingsModule],
-  declarations: [ApiRuntimeLogsComponent],
-  exports: [ApiRuntimeLogsComponent],
+  imports: [CommonModule, ApiRuntimeLogsModule, ApiRuntimeLogsSettingsModule],
 })
-export class ApiRuntimeLogsModule {}
+export class ApiRuntimeLogsV4Module {}
