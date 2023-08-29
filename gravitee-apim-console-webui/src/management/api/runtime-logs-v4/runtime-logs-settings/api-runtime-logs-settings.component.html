@@ -15,134 +15,138 @@
     limitations under the License.
 
 -->
-<div class="settings">
-  <h3 class="settings__title">Settings</h3>
-  <div class="settings__subtitle">Adjust the settings to match your needs.</div>
+<mat-card>
+  <div class="settings">
+    <h3 class="settings__title">Settings</h3>
+    <div class="settings__subtitle">Adjust the settings to match your needs.</div>
 
-  <form *ngIf="form" [formGroup]="form">
-    <div class="settings__form-control">
-      <gio-form-slide-toggle class="settings__form-control__toggle">
-        <div class="settings__form-control__title">Logging activation</div>
-        <div class="settings__form-control__subtitle">Set when logging is activated.</div>
-        <mat-slide-toggle gioFormSlideToggle formControlName="enabled" aria-label="Logging enable toggle"></mat-slide-toggle>
-      </gio-form-slide-toggle>
-    </div>
-
-    <div *ngIf="enabled">
-      <gio-banner-info>
-        <div>Logging smartly</div>
-        <span gioBannerBody>Opt for logging carefully during development, this requires extra storage and may affect API performance.</span>
-      </gio-banner-info>
-
+    <form *ngIf="form" [formGroup]="form">
       <div class="settings__form-control">
-        <div class="settings__form-control__title">Logging mode</div>
-        <div class="settings__form-control__subtitle">Customize the mode included.</div>
-        <mat-checkbox formControlName="entrypoint">Entrypoint</mat-checkbox>
-        <mat-checkbox formControlName="endpoint">Endpoint</mat-checkbox>
+        <gio-form-slide-toggle class="settings__form-control__toggle">
+          <div class="settings__form-control__title">Logging activation</div>
+          <div class="settings__form-control__subtitle">Set when logging is activated.</div>
+          <mat-slide-toggle gioFormSlideToggle formControlName="enabled" aria-label="Logging enable toggle"></mat-slide-toggle>
+        </gio-form-slide-toggle>
       </div>
 
-      <div class="settings__form-control">
-        <div class="settings__form-control__title">Logging phase</div>
-        <div class="settings__form-control__subtitle">Customize the phases included.</div>
-        <mat-checkbox formControlName="request">Request</mat-checkbox>
-        <mat-checkbox formControlName="response">Response</mat-checkbox>
-      </div>
+      <div *ngIf="enabled">
+        <gio-banner-info>
+          <div>Logging smartly</div>
+          <span gioBannerBody
+            >Opt for logging carefully during development, this requires extra storage and may affect API performance.</span
+          >
+        </gio-banner-info>
 
-      <div class="settings__form-control">
-        <div class="settings__form-control__title">Content data</div>
-        <div class="settings__form-control__subtitle">Customize the message data included.</div>
-        <p *ngIf="!hasLoggingModeEnabled" class="settings__form-control__info">
-          <mat-icon svgIcon="gio:info"></mat-icon> To select an option, ensure you’ve checked one mode or more above.
-        </p>
-        <mat-checkbox formControlName="messageContent">Message content</mat-checkbox>
-        <mat-checkbox formControlName="messageHeaders">Message headers</mat-checkbox>
-        <mat-checkbox formControlName="messageMetadata">Message metadata</mat-checkbox>
-      </div>
+        <div class="settings__form-control">
+          <div class="settings__form-control__title">Logging mode</div>
+          <div class="settings__form-control__subtitle">Customize the mode included.</div>
+          <mat-checkbox formControlName="entrypoint">Entrypoint</mat-checkbox>
+          <mat-checkbox formControlName="endpoint">Endpoint</mat-checkbox>
+        </div>
 
-      <div class="settings__form-control">
-        <div class="settings__form-control__title">Request data</div>
-        <div class="settings__form-control__subtitle">Customize the request data included.</div>
-        <p *ngIf="hasLoggingModeEnabled" class="settings__form-control__info">
-          <mat-icon svgIcon="gio:info"></mat-icon>
-          To select the option request payload, ensure you have unchecked all modes above.
-        </p>
-        <mat-checkbox formControlName="requestPayload">Request payload</mat-checkbox>
-        <mat-checkbox formControlName="requestHeaders">Request headers</mat-checkbox>
-      </div>
+        <div class="settings__form-control">
+          <div class="settings__form-control__title">Logging phase</div>
+          <div class="settings__form-control__subtitle">Customize the phases included.</div>
+          <mat-checkbox formControlName="request">Request</mat-checkbox>
+          <mat-checkbox formControlName="response">Response</mat-checkbox>
+        </div>
 
-      <div class="settings__form-control">
-        <div class="settings__form-control__title">Message sampling</div>
-        <div class="settings__form-control__subtitle">Set a personalized sampling configuration.</div>
-        <mat-button-toggle-group aria-label="Select message sampling typ" class="sampling-type" formControlName="samplingType">
-          <mat-button-toggle class="sampling-type__toggle" value="PROBABILITY"> Probabilistic </mat-button-toggle>
-          <mat-button-toggle class="sampling-type__toggle" value="COUNT"> Count </mat-button-toggle>
-          <mat-button-toggle class="sampling-type__toggle" value="TEMPORAL"> Temporal </mat-button-toggle>
-        </mat-button-toggle-group>
+        <div class="settings__form-control">
+          <div class="settings__form-control__title">Content data</div>
+          <div class="settings__form-control__subtitle">Customize the message data included.</div>
+          <p *ngIf="!hasLoggingModeEnabled" class="settings__form-control__info">
+            <mat-icon svgIcon="gio:info"></mat-icon> To select an option, ensure you’ve checked one mode or more above.
+          </p>
+          <mat-checkbox formControlName="messageContent">Message content</mat-checkbox>
+          <mat-checkbox formControlName="messageHeaders">Message headers</mat-checkbox>
+          <mat-checkbox formControlName="messageMetadata">Message metadata</mat-checkbox>
+        </div>
 
-        <ng-container *ngIf="samplingType === 'PROBABILITY'">
-          <p>Samples messages based on a specified probability.</p>
-          <p>The value should be between 0.01 and 0.5.</p>
-          <mat-form-field class="settings__form-control__form-field">
-            <mat-label>Message sampling</mat-label>
-            <input matInput type="number" formControlName="samplingValue" />
-            <mat-error *ngIf="form.get('samplingValue').hasError('required')"> The sampling value is required. </mat-error>
-            <mat-error *ngIf="form.get('samplingValue').hasError('min')"> The sampling value should be greater than 0.01. </mat-error>
-            <mat-error *ngIf="form.get('samplingValue').hasError('max')"> The sampling value should be less than 0.5. </mat-error>
+        <div class="settings__form-control">
+          <div class="settings__form-control__title">Request data</div>
+          <div class="settings__form-control__subtitle">Customize the request data included.</div>
+          <p *ngIf="hasLoggingModeEnabled" class="settings__form-control__info">
+            <mat-icon svgIcon="gio:info"></mat-icon>
+            To select the option request payload, ensure you have unchecked all modes above.
+          </p>
+          <mat-checkbox formControlName="requestPayload">Request payload</mat-checkbox>
+          <mat-checkbox formControlName="requestHeaders">Request headers</mat-checkbox>
+        </div>
+
+        <div class="settings__form-control">
+          <div class="settings__form-control__title">Message sampling</div>
+          <div class="settings__form-control__subtitle">Set a personalized sampling configuration.</div>
+          <mat-button-toggle-group aria-label="Select message sampling typ" class="sampling-type" formControlName="samplingType">
+            <mat-button-toggle class="sampling-type__toggle" value="PROBABILITY"> Probabilistic </mat-button-toggle>
+            <mat-button-toggle class="sampling-type__toggle" value="COUNT"> Count </mat-button-toggle>
+            <mat-button-toggle class="sampling-type__toggle" value="TEMPORAL"> Temporal </mat-button-toggle>
+          </mat-button-toggle-group>
+
+          <ng-container *ngIf="samplingType === 'PROBABILITY'">
+            <p>Samples messages based on a specified probability.</p>
+            <p>The value should be between 0.01 and 0.5.</p>
+            <mat-form-field class="settings__form-control__form-field">
+              <mat-label>Message sampling</mat-label>
+              <input matInput type="number" formControlName="samplingValue" />
+              <mat-error *ngIf="form.get('samplingValue').hasError('required')"> The sampling value is required. </mat-error>
+              <mat-error *ngIf="form.get('samplingValue').hasError('min')"> The sampling value should be greater than 0.01. </mat-error>
+              <mat-error *ngIf="form.get('samplingValue').hasError('max')"> The sampling value should be less than 0.5. </mat-error>
+            </mat-form-field>
+          </ng-container>
+
+          <ng-container *ngIf="samplingType === 'COUNT'">
+            <p>Samples one message for every number of specified messages.</p>
+            <p>The value should be greater than 10.</p>
+            <mat-form-field class="settings__form-control__form-field">
+              <mat-label>Message sampling</mat-label>
+              <input matInput type="number" formControlName="samplingValue" />
+              <mat-error *ngIf="form.get('samplingValue').hasError('required')"> The sampling value is required. </mat-error>
+              <mat-error *ngIf="form.get('samplingValue').hasError('min')"> The sampling value should be greater than 0. </mat-error>
+            </mat-form-field>
+          </ng-container>
+
+          <ng-container *ngIf="samplingType === 'TEMPORAL'">
+            <p>Samples messages based on time duration.</p>
+            <p>The value should conform to ISO-8601 duration format, e.g. PT10S for a duration of 10 seconds.</p>
+            <mat-form-field class="settings__form-control__form-field">
+              <mat-label>Message sampling</mat-label>
+              <input matInput formControlName="samplingValue" />
+              <mat-error *ngIf="form.get('samplingValue').hasError('required')"> The sampling value is required. </mat-error>
+            </mat-form-field>
+          </ng-container>
+        </div>
+
+        <div class="settings__form-control">
+          <div class="settings__form-control__title">Display conditions</div>
+          <div class="settings__form-control__subtitle">Filter the data that matter to you.</div>
+
+          <mat-form-field>
+            <mat-label>Request phase condition</mat-label>
+            <input matInput formControlName="requestCondition" />
+            <mat-hint> Support EL (e.g: &#123; #request.headers['Content-Type'][0] === 'application/json' &#125;)</mat-hint>
           </mat-form-field>
-        </ng-container>
 
-        <ng-container *ngIf="samplingType === 'COUNT'">
-          <p>Samples one message for every number of specified messages.</p>
-          <p>The value should be greater than 10.</p>
           <mat-form-field class="settings__form-control__form-field">
-            <mat-label>Message sampling</mat-label>
-            <input matInput type="number" formControlName="samplingValue" />
-            <mat-error *ngIf="form.get('samplingValue').hasError('required')"> The sampling value is required. </mat-error>
-            <mat-error *ngIf="form.get('samplingValue').hasError('min')"> The sampling value should be greater than 0. </mat-error>
+            <mat-label>Message condition</mat-label>
+            <input matInput formControlName="messageCondition" />
+            <mat-hint> Support EL (e.g: &#123; #message.headers['Content-Type'][0] === 'application/json' &#125;)</mat-hint>
           </mat-form-field>
-        </ng-container>
-
-        <ng-container *ngIf="samplingType === 'TEMPORAL'">
-          <p>Samples messages based on time duration.</p>
-          <p>The value should conform to ISO-8601 duration format, e.g. PT10S for a duration of 10 seconds.</p>
-          <mat-form-field class="settings__form-control__form-field">
-            <mat-label>Message sampling</mat-label>
-            <input matInput formControlName="samplingValue" />
-            <mat-error *ngIf="form.get('samplingValue').hasError('required')"> The sampling value is required. </mat-error>
-          </mat-form-field>
-        </ng-container>
+        </div>
       </div>
 
-      <div class="settings__form-control">
-        <div class="settings__form-control__title">Display conditions</div>
-        <div class="settings__form-control__subtitle">Filter the data that matter to you.</div>
-
-        <mat-form-field>
-          <mat-label>Request phase condition</mat-label>
-          <input matInput formControlName="requestCondition" />
-          <mat-hint> Support EL (e.g: &#123; #request.headers['Content-Type'][0] === 'application/json' &#125;)</mat-hint>
-        </mat-form-field>
-
-        <mat-form-field class="settings__form-control__form-field">
-          <mat-label>Message condition</mat-label>
-          <input matInput formControlName="messageCondition" />
-          <mat-hint> Support EL (e.g: &#123; #message.headers['Content-Type'][0] === 'application/json' &#125;)</mat-hint>
-        </mat-form-field>
+      <div>
+        <button
+          class="settings__save"
+          [disabled]="form.invalid"
+          *gioPermission="{ anyOf: ['api-definition-u'] }"
+          mat-flat-button
+          color="primary"
+          aria-label="Save Settings"
+          (click)="save()"
+        >
+          Save Settings
+        </button>
       </div>
-    </div>
-
-    <div>
-      <button
-        class="settings__save"
-        [disabled]="form.invalid"
-        *gioPermission="{ anyOf: ['api-definition-u'] }"
-        mat-flat-button
-        color="primary"
-        aria-label="Save Settings"
-        (click)="save()"
-      >
-        Save Settings
-      </button>
-    </div>
-  </form>
-</div>
+    </form>
+  </div>
+</mat-card>

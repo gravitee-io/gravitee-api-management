@@ -44,11 +44,29 @@ export class ApiNgV4MenuService implements ApiMenuService {
       },
     ];
 
+    const logsTabs = [];
     if (this.permissionService.hasAnyMatching(['api-log-r'])) {
-      subMenuItems.push({
+      logsTabs.push({
         displayName: 'Runtime Logs',
         targetRoute: 'management.apis.ng.runtimeLogs',
         baseRoute: 'management.apis.ng.runtimeLogs',
+      });
+    }
+    if (this.permissionService.hasAnyMatching(['api-definition-u', 'api-log-u'])) {
+      logsTabs.push({
+        displayName: 'Settings',
+        targetRoute: 'management.apis.ng.runtimeLogs-settings',
+        baseRoute: 'management.apis.ng.runtimeLogs-settings',
+      });
+    }
+    if (logsTabs.length > 0) {
+      subMenuItems.push({
+        displayName: 'Runtime Logs',
+        header: {
+          title: 'Runtime Logs',
+          subtitle: 'Debug and Optimize your API by displaying logs from your API runtime activities',
+        },
+        tabs: logsTabs,
       });
     }
 

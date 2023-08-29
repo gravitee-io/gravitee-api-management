@@ -26,6 +26,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatCardModule } from '@angular/material/card';
 
 import { ApiRuntimeLogsSettingsComponent } from './api-runtime-logs-settings.component';
 
@@ -38,6 +39,7 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
     CommonModule,
     MatButtonModule,
     MatButtonToggleModule,
+    MatCardModule,
     MatCheckboxModule,
     MatFormFieldModule,
     MatIconModule,
