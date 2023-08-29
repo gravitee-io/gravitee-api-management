@@ -18,6 +18,7 @@ export * from './application';
 export * from './plugin';
 export * from './createApi';
 export * from './group';
+export * from './log';
 export * from './member';
 export * from './plan';
 export * from './subscription';
