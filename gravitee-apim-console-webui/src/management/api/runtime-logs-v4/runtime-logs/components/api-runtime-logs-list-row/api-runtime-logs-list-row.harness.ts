@@ -13,5 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './api-runtime-logs-empty';
-export * from './api-runtime-logs-list-row';
+import { ComponentHarness } from '@angular/cdk/testing';
+
+export class ApiRuntimeLogsListRowHarness extends ComponentHarness {
+  static hostSelector = 'api-runtime-logs-list-row';
+}

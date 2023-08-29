@@ -13,5 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './api-runtime-logs-empty';
-export * from './api-runtime-logs-list-row';
+
+import { Component, Input } from '@angular/core';
+
+import { ConnectionLog } from '../../../../../../entities/management-api-v2';
+
+@Component({
+  selector: 'api-runtime-logs-list-row',
+  template: require('./api-runtime-logs-list-row.component.html'),
+  styles: [require('./api-runtime-logs-list-row.component.scss')],
+})
+export class ApiRuntimeLogsListRowComponent {
+  @Input()
+  log: ConnectionLog;
+
+  @Input()
+  index?: number;
+}
