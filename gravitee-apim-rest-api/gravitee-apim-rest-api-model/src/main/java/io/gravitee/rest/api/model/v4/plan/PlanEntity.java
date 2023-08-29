@@ -37,7 +37,7 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @Getter
 @Setter
-@ToString
+@ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "PlanEntityV4")
 @SuperBuilder(toBuilder = true)
