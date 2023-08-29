@@ -1,0 +1,46 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<ng-container *ngIf="pagination.totalCount === 0; else showList">
+  <api-runtime-logs-empty (navigateToSettings)="navigateToSettings.emit()"></api-runtime-logs-empty>
+</ng-container>
+
+<ng-template #showList>
+  <div class="logs-table">
+    <gio-banner-info *ngIf="!logEnabled">
+      Configuration impact
+      <span gioBannerBody>Runtime logs might not be up-to-date as they have been disabled in the settings</span>
+      <div gioBannerAction>
+        <button mat-button mat-raised-button (click)="navigateToSettings.emit()" data-testId="banner-open-settings-button">
+          Open log settings
+        </button>
+      </div>
+    </gio-banner-info>
+
+    <div class="logs-table-row" *ngFor="let log of logs; let index = index">
+      <api-runtime-logs-list-row [log]="log" [index]="index"></api-runtime-logs-list-row>
+    </div>
+
+    <mat-paginator
+      (page)="paginationUpdated.emit($event)"
+      [pageSize]="pagination.perPage"
+      [pageSizeOptions]="pageSizeOptions"
+      [length]="pagination.totalCount"
+      [pageIndex]="pagination.page - 1"
+    ></mat-paginator>
+  </div>
+</ng-template>
