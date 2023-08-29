@@ -115,3 +115,14 @@ tests:
     asserts:
       - hasDocuments:
           count: 0
+
+  - it: Set adminAccountEnable to false
+    template: api/api-configmap.yaml
+    set:
+      adminAccountEnable: false
+    asserts:
+      - notMatchRegex:
+          path: data.[gravitee.yml]
+          pattern: " * users:\n
+				    *  - user:\n
+                    *  - user:"
