@@ -259,6 +259,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Override
     public ApiEntity createWithImport(final ExecutionContext executionContext, final ApiEntity apiEntity, final String userId) {
         String id = apiEntity.getId() != null && !apiEntity.getId().isEmpty() ? apiEntity.getId() : UuidString.generateRandom();
+        apiEntity.setId(id);
+
         log.debug("Importing API {}", id);
         try {
             apiRepository
@@ -276,8 +278,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         apiValidationService.validateAndSanitizeImportApiForCreation(executionContext, apiEntity, primaryOwner);
 
         Api repositoryApi = apiMapper.toRepository(executionContext, apiEntity);
-
-        repositoryApi.setId(id);
         repositoryApi.setEnvironmentId(executionContext.getEnvironmentId());
         // Set date fields
         repositoryApi.setCreatedAt(new Date());
