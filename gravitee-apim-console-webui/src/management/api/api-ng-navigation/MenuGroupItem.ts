@@ -22,10 +22,16 @@ export interface MenuItem {
   displayName: string;
   license?: LicenseOptions;
   iconRight$?: Observable<string>;
+  header?: MenuItemHeader;
   tabs?: MenuItem[];
 }
 
 export interface MenuGroupItem {
   title: string;
   items: MenuItem[];
+}
+
+export interface MenuItemHeader {
+  title?: string;
+  subtitle?: string;
 }

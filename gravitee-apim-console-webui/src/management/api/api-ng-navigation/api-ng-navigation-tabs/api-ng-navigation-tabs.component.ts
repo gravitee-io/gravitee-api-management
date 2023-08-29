@@ -18,7 +18,7 @@ import { StateService } from '@uirouter/core';
 import { castArray } from 'lodash';
 
 import { UIRouterState } from '../../../../ajs-upgraded-providers';
-import { MenuItem } from '../MenuGroupItem';
+import { MenuItem, MenuItemHeader } from '../MenuGroupItem';
 
 @Component({
   selector: 'api-ng-navigation-tabs',
@@ -28,6 +28,9 @@ import { MenuItem } from '../MenuGroupItem';
 export class ApiNgNavigationTabsComponent {
   @Input()
   public tabMenuItems: MenuItem[] = [];
+
+  @Input()
+  public menuItemHeader: MenuItemHeader;
 
   constructor(@Inject(UIRouterState) private readonly ajsState: StateService) {}
 
