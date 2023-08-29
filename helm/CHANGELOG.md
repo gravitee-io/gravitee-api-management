@@ -7,6 +7,7 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
 
 - Add revision history limit on portal
 - Add podSecurityContext
+- Avoid empty user when disabling admin user
 
 ### 3.20.16
 
