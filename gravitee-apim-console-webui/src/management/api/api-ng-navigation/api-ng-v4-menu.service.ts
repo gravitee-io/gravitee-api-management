@@ -180,7 +180,7 @@ export class ApiNgV4MenuService implements ApiMenuService {
           {
             displayName: 'General',
             targetRoute: 'management.apis.ng.entrypoints',
-            baseRoute: 'management.apis.ng.entrypoints',
+            baseRoute: ['management.apis.ng.entrypoints', 'management.apis.ng.entrypoints-edit'],
           },
         ],
       };
