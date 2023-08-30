@@ -15,4 +15,29 @@
     limitations under the License.
 
 -->
-View runtime logs
+<ng-container>
+  <div class="tab-body-wrapper" *ngIf="areRuntimeLogsEnabled">
+    <mat-card class="runtime-logs-card">
+      <mat-icon svgIcon="gio:search"></mat-icon>
+      <div class="mat-h3" aria-label="No runtime logs available">No runtime logs available</div>
+      <div class="runtime-logs-card__body">
+        <span class="runtime-logs-card__body__subtitle">Start making API calls to populate your API runtime logs</span>
+      </div>
+    </mat-card>
+  </div>
+  <div class="tab-body-wrapper" *ngIf="!areRuntimeLogsEnabled">
+    <mat-card class="runtime-logs-card">
+      <mat-icon svgIcon="gio:folder-plus"></mat-icon>
+      <div class="mat-h3">Start by activating the logs</div>
+      <div class="runtime-logs-card__body">
+        <span class="runtime-logs-card__body__subtitle"
+          >Your runtime logs will live here. Start logging your API runtime activities by clicking on "Settings" and enabling logging
+          activation.</span
+        >
+      </div>
+      <div class="runtime-logs-card__actions">
+        <button mat-flat-button color="primary" class="runtime-logs-card__actions__button">Open log settings</button>
+      </div>
+    </mat-card>
+  </div>
+</ng-container>
