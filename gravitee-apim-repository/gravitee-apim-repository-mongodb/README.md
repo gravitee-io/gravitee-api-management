@@ -24,10 +24,10 @@ mvn clean package
 
 By default, unit tests are run with a TestContainer version of Mongo 4.4.6, but sometimes it can be useful to run them against other version of Mongo.
 To do so you can use the following commands:
-- Mongo 3: `mvn clean install -DmongoVersion=3`
 - Mongo 4: `mvn clean install -DmongoVersion=4`
 - Mongo 5: `mvn clean install -DmongoVersion=5`
 - Mongo 6.0: `mvn clean install -DmongoVersion=6.0` (Default version)
+- Mongo 7.0: `mvn clean install -DmongoVersion=7.0`
 
 You can use the version of Mongo you want to test by using the docker image tag in the `-DmongoVersion` parameter. For example, for Mongo 4.4.4, you will use `-DmongoVersion=4.4.4` .
 
