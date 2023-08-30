@@ -96,7 +96,7 @@
 
           <ng-container *ngIf="samplingType === 'COUNT'">
             <p>Samples one message for every number of specified messages.</p>
-            <p>The value should be greater than 10.</p>
+            <p>The value should be greater than 0.</p>
             <mat-form-field class="settings__form-control__form-field">
               <mat-label>Message sampling</mat-label>
               <input matInput type="number" formControlName="samplingValue" />
