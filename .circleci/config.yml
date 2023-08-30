@@ -2577,7 +2577,7 @@ workflows:
                       - Build
                   matrix:
                       parameters:
-                          version: ["4.4", "5.0", "6.0"]
+                          version: ["4.4", "5.0", "6.0", "7.0"]
             - job-elastic-test-container:
                   name: Analytics repository tests - ElasticSearch << matrix.version >>
                   context: cicd-orchestrator
