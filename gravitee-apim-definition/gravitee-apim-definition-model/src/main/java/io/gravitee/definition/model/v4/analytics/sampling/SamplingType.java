@@ -34,7 +34,7 @@ public enum SamplingType {
         value -> {
             try {
                 double parseDouble = Double.parseDouble(value);
-                return parseDouble >= 0 && parseDouble <= 1;
+                return parseDouble >= 0.01 && parseDouble <= 0.5;
             } catch (Exception e) {
                 return false;
             }
@@ -56,7 +56,7 @@ public enum SamplingType {
         value -> {
             try {
                 int count = Integer.parseInt(value);
-                return count > 0;
+                return count >= 10;
             } catch (Exception e) {
                 return false;
             }
