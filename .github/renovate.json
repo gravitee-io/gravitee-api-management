@@ -1,8 +1,5 @@
 {
-  "extends": [
-    "config:base",
-    "schedule:earlyMondays"
-  ],
-  "prConcurrentLimit": 3,
-  "rebaseWhen": "conflicted"
+    "extends": ["config:base", "schedule:earlyMondays"],
+    "prConcurrentLimit": 3,
+    "rebaseWhen": "conflicted"
 }

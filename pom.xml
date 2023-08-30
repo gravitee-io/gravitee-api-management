@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+    Copyright © 2015 The Gravitee team (http://gravitee.io)
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-            http://www.apache.org/licenses/LICENSE-2.0
+        http://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,7 +22,7 @@
     <parent>
         <groupId>io.gravitee</groupId>
         <artifactId>gravitee-parent</artifactId>
-        <version>21.0.0</version>
+        <version>22.0.2</version>
     </parent>
 
     <groupId>io.gravitee.reporter</groupId>
@@ -32,7 +32,7 @@
     <name>Gravitee.io APIM - Reporter - Elasticsearch</name>
 
     <properties>
-        <gravitee-bom.version>4.0.0</gravitee-bom.version>
+        <gravitee-bom.version>6.0.4</gravitee-bom.version>
         <gravitee-reporter-common.version>1.0.0</gravitee-reporter-common.version>
         <gravitee-common-elasticsearch.version>4.1.0</gravitee-common-elasticsearch.version>
         <gravitee-gateway-api.version>2.1.0</gravitee-gateway-api.version>
@@ -229,22 +229,6 @@
                         <phase>package</phase>
                         <goals>
                             <goal>single</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>com.hubspot.maven.plugins</groupId>
-                <artifactId>prettier-maven-plugin</artifactId>
-                <version>0.19</version>
-                <configuration>
-                    <prettierJavaVersion>1.6.2</prettierJavaVersion>
-                </configuration>
-                <executions>
-                    <execution>
-                        <phase>validate</phase>
-                        <goals>
-                            <goal>check</goal>
                         </goals>
                     </execution>
                 </executions>
