@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { Component, Inject } from '@angular/core';
+import { PageEvent } from '@angular/material/paginator';
+import { map } from 'rxjs/operators';
+import { StateParams } from '@uirouter/core';
+import { StateService } from '@uirouter/angular';
 
+import { ApiLogsV2Service } from '../../../../services-ngx/api-logs-v2.service';
 import { ApiV4 } from '../../../../entities/management-api-v2';
-import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 
 @Component({
@@ -27,29 +30,26 @@ import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
   template: require('./api-runtime-logs.component.html'),
   styles: [require('./api-runtime-logs.component.scss')],
 })
-export class ApiRuntimeLogsComponent implements OnInit, OnDestroy {
-  private unsubscribe$: Subject<void> = new Subject<void>();
-  public areRuntimeLogsEnabled = false;
+export class ApiRuntimeLogsComponent {
+  apiLogs$ = this.apiLogsService.searchConnectionLogs(this.ajsStateParams.apiId);
+  apiLogsEnabled$ = this.apiService.get(this.ajsStateParams.apiId).pipe(map(ApiRuntimeLogsComponent.isLogEnabled));
 
-  constructor(@Inject(UIRouterStateParams) private readonly ajsStateParams, private readonly apiService: ApiV2Service) {}
+  constructor(
+    @Inject(UIRouterState) private readonly ajsState: StateService,
+    @Inject(UIRouterStateParams) private readonly ajsStateParams: StateParams,
+    private readonly apiLogsService: ApiLogsV2Service,
+    private readonly apiService: ApiV2Service,
+  ) {}
 
-  public ngOnInit(): void {
-    const apiId = this.ajsStateParams.apiId;
-
-    this.apiService
-      .get(apiId)
-      .pipe(takeUntil(this.unsubscribe$))
-      .subscribe({
-        next: (api: ApiV4) => this.initializeComponent(api),
-      });
+  paginationUpdated(event: PageEvent) {
+    this.apiLogs$ = this.apiLogsService.searchConnectionLogs(this.ajsStateParams.apiId, event.pageIndex + 1, event.pageSize);
   }
 
-  public ngOnDestroy(): void {
-    this.unsubscribe$.next();
-    this.unsubscribe$.complete();
+  openLogsSettings() {
+    return this.ajsState.go('management.apis.ng.runtimeLogs-settings');
   }
 
-  public initializeComponent(api: ApiV4): void {
-    this.areRuntimeLogsEnabled = api.analytics.enabled;
-  }
+  private static isLogEnabled = (api: ApiV4) => {
+    return api.analytics.enabled && (api.analytics.logging?.mode?.endpoint === true || api.analytics.logging?.mode?.entrypoint === true);
+  };
 }

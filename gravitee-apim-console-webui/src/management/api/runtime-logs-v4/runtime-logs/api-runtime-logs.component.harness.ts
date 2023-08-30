@@ -14,47 +14,31 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
-import { MatTabHarness } from '@angular/material/tabs/testing';
-import { MatButtonHarness } from '@angular/material/button/testing';
-import { DivHarness } from '@gravitee/ui-particles-angular/testing';
+
+import { ApiRuntimeLogsListHarness } from './components';
 
 export class ApiRuntimeLogsHarness extends ComponentHarness {
   static hostSelector = 'api-runtime-logs';
 
-  private getRuntimeLogsTab = this.locatorFor(MatTabHarness.with({ label: 'Runtime Logs' }));
-  private getSettingsTab = this.locatorFor(MatTabHarness.with({ label: 'Settings' }));
+  public listHarness = this.locatorFor(ApiRuntimeLogsListHarness);
 
-  private getOpenLogSettingsButton = this.locatorFor(
-    MatButtonHarness.with({
-      text: 'Open log settings',
-    }),
-  );
-
-  private getDivContainingEmptyRuntimeLogsTitle = this.locatorFor(
-    DivHarness.with({ selector: '[aria-label="No runtime logs available"]' }),
-  );
-
-  public async clickRuntimeLogsTab() {
-    return this.getRuntimeLogsTab().then((tab) => tab.select());
+  async isEmptyPanelDisplayed(): Promise<boolean> {
+    return this.listHarness().then((list) => list.isEmptyPanelDisplayed());
   }
 
-  public async readRuntimeLogsTabLabel() {
-    return this.getRuntimeLogsTab().then((tab) => tab.getLabel());
+  async isImpactBannerDisplayed(): Promise<boolean> {
+    return this.listHarness().then((list) => list.isImpactBannerDisplayed());
   }
 
-  public async clickSettingsTab() {
-    return this.getSettingsTab().then((tab) => tab.select());
+  async clickOpenSettings(): Promise<void> {
+    return this.listHarness().then((list) => list.clickOpenSettings());
   }
 
-  public async readSettingsTabLabel() {
-    return this.getSettingsTab().then((tab) => tab.getLabel());
+  async getRows() {
+    return this.listHarness().then((list) => list.rows());
   }
 
-  public async getOpenLogSettingsButtonText() {
-    return this.getOpenLogSettingsButton().then((button) => button.getText());
-  }
-
-  public async getEmptyRuntimeLogsTitle() {
-    return this.getDivContainingEmptyRuntimeLogsTitle().then((button) => button.getText());
+  async getPaginator() {
+    return this.listHarness().then((list) => list.paginator());
   }
 }

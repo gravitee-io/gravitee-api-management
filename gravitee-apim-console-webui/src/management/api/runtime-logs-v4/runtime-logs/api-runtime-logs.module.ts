@@ -15,16 +15,12 @@
  */
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
-import { MatCardModule } from '@angular/material/card';
-import { MatTabsModule } from '@angular/material/tabs';
-import { MatIconModule } from '@angular/material/icon';
-import { GioAvatarModule } from '@gravitee/ui-particles-angular';
-import { MatButtonModule } from '@angular/material/button';
 
 import { ApiRuntimeLogsComponent } from './api-runtime-logs.component';
+import { ApiRuntimeLogsListModule } from './components';
 
 @NgModule({
-  imports: [CommonModule, MatCardModule, MatIconModule, MatTabsModule, CommonModule, GioAvatarModule, MatButtonModule],
+  imports: [CommonModule, ApiRuntimeLogsListModule],
   declarations: [ApiRuntimeLogsComponent],
   exports: [ApiRuntimeLogsComponent],
 })
