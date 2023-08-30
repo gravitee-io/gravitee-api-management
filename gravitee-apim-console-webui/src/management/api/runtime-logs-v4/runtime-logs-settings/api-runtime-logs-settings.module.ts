@@ -15,45 +15,14 @@
  */
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
-import { ReactiveFormsModule } from '@angular/forms';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { GioBannerModule, GioFormSlideToggleModule, GioIconsModule } from '@gravitee/ui-particles-angular';
-import { MatButtonModule } from '@angular/material/button';
-import { MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonToggleModule } from '@angular/material/button-toggle';
-import { MatIconModule } from '@angular/material/icon';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatCardModule } from '@angular/material/card';
 
 import { ApiRuntimeLogsSettingsComponent } from './api-runtime-logs-settings.component';
-
-import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
+import { ApiRuntimeLogsProxySettingsModule } from './runtime-logs-proxy-settings/api-runtime-logs-proxy-settings.module';
+import { ApiRuntimeLogsMessageSettingsModule } from './runtime-logs-message-settings/api-runtime-logs-message-settings.module';
 
 @NgModule({
   declarations: [ApiRuntimeLogsSettingsComponent],
   exports: [ApiRuntimeLogsSettingsComponent],
-  imports: [
-    CommonModule,
-    MatButtonModule,
-    MatButtonToggleModule,
-    MatCardModule,
-    MatCheckboxModule,
-    MatFormFieldModule,
-    MatIconModule,
-    MatInputModule,
-    MatSlideToggleModule,
-    MatSnackBarModule,
-    MatTooltipModule,
-    ReactiveFormsModule,
-    ReactiveFormsModule,
-
-    GioBannerModule,
-    GioFormSlideToggleModule,
-    GioIconsModule,
-    GioPermissionModule,
-  ],
+  imports: [CommonModule, ApiRuntimeLogsProxySettingsModule, ApiRuntimeLogsMessageSettingsModule],
 })
 export class ApiRuntimeLogsSettingsModule {}
