@@ -85,10 +85,6 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
     this.unsubscribe$.unsubscribe();
   }
 
-  public onPrevious() {
-    this.ajsState.go('management.apis.ng.endpoints');
-  }
-
   public onSave() {
     const inheritConfiguration = this.formGroup.get('inheritConfiguration').value;
 
@@ -125,7 +121,7 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
         }),
         map(() => {
           this.snackBarService.success(`Endpoint successfully created!`);
-          this.ajsState.go('management.apis.ng.endpoints');
+          this.ajsState.go('management.apis.ng.endpoint-groups');
         }),
         takeUntil(this.unsubscribe$),
       )

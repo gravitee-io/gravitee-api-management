@@ -148,7 +148,7 @@ describe('ApiEndpointComponent', () => {
         ],
       };
       expectApiPutRequest(updatedApi);
-      expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.ng.endpoints');
+      expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.ng.endpoint-groups');
     });
 
     it('should edit and save an existing endpoint', async () => {
@@ -179,7 +179,7 @@ describe('ApiEndpointComponent', () => {
         ],
       };
       expectApiPutRequest(updatedApi);
-      expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.ng.endpoints');
+      expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.ng.endpoint-groups');
     });
 
     it('should inherit configuration from parent', async () => {
@@ -219,19 +219,6 @@ describe('ApiEndpointComponent', () => {
 
       await componentHarness.toggleConfigurationButton();
       fixture.detectChanges();
-    });
-  });
-
-  describe('onPreviousClick', () => {
-    it('should go back to endpoints groups list page', async () => {
-      const apiV4 = fakeApiV4({
-        id: API_ID,
-      });
-      await initComponent(apiV4);
-
-      await componentHarness.clickPreviousButton();
-
-      expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.ng.endpoints');
     });
   });
 

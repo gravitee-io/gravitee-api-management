@@ -78,7 +78,7 @@
     </div>
 
     <div class="endpoint-card__actions">
-      <a mat-stroked-button type="button" (click)="onPrevious()">Previous</a>
+      <a mat-stroked-button type="button" [uiSref]="'management.apis.ng.endpoint-groups'">Previous</a>
       <button
         mat-flat-button
         aria-label="Validate my endpoints"
