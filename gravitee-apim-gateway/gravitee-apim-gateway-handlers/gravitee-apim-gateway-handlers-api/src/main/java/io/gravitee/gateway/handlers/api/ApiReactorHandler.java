@@ -39,7 +39,6 @@ import io.gravitee.gateway.reactor.handler.DefaultHttpAcceptor;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -102,7 +101,10 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
         context.setAttribute(ExecutionContext.ATTR_INVOKER, invoker);
         context.setAttribute(ExecutionContext.ATTR_ORGANIZATION, reactable.getOrganizationId());
         context.setAttribute(ExecutionContext.ATTR_ENVIRONMENT, reactable.getEnvironmentId());
-        context.setAttribute(ExecutionContext.ATTR_VALIDATE_SUBSCRIPTION, this.configuration.getProperty(API_VALIDATE_SUBSCRIPTION_PROPERTY, Boolean.class, true));
+        context.setAttribute(
+            ExecutionContext.ATTR_VALIDATE_SUBSCRIPTION,
+            this.configuration.getProperty(API_VALIDATE_SUBSCRIPTION_PROPERTY, Boolean.class, true)
+        );
 
         // Prepare request metrics
         request.metrics().setApi(reactable.getId());
