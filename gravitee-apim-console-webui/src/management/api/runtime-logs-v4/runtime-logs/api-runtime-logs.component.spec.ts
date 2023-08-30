@@ -15,7 +15,7 @@
  */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 
@@ -23,42 +23,198 @@ import { ApiRuntimeLogsModule } from './api-runtime-logs.module';
 import { ApiRuntimeLogsComponent } from './api-runtime-logs.component';
 import { ApiRuntimeLogsHarness } from './api-runtime-logs.component.harness';
 
-import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
-import { GioHttpTestingModule } from '../../../../shared/testing';
-import { ApiV4, fakeApiV4 } from '../../../../entities/management-api-v2';
+import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { ConnectionLog, fakeApiV4 } from '../../../../entities/management-api-v2';
+import { fakeApiLogsResponse, fakeEmptyApiLogsResponse } from '../../../../entities/management-api-v2/log/apiLogsResponse.fixture';
+import { fakeConnectionLog } from '../../../../entities/management-api-v2/log/connectionLog.fixture';
 
 describe('ApiRuntimeLogsComponent', () => {
-  const apiId = 'apiId';
-  let api: ApiV4;
+  const API_ID = 'an-api-id';
+
+  const fakeUiRouter = { go: jest.fn() };
+
   let fixture: ComponentFixture<ApiRuntimeLogsComponent>;
+  let httpTestingController: HttpTestingController;
   let componentHarness: ApiRuntimeLogsHarness;
 
-  const openLogSettingsButtonText = 'Open log settings';
-
-  const initComponent = async (testApi: ApiV4) => {
-    api = testApi;
-
+  const initComponent = async () => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, ApiRuntimeLogsModule, HttpClientTestingModule, MatIconTestingModule, GioHttpTestingModule],
-      providers: [{ provide: UIRouterStateParams, useValue: { apiId: apiId } }],
+      imports: [ApiRuntimeLogsModule, NoopAnimationsModule, HttpClientTestingModule, MatIconTestingModule, GioHttpTestingModule],
+      providers: [
+        { provide: UIRouterState, useValue: fakeUiRouter },
+        { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
+      ],
     });
 
     await TestBed.compileComponents();
     fixture = TestBed.createComponent(ApiRuntimeLogsComponent);
+    httpTestingController = TestBed.inject(HttpTestingController);
     componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiRuntimeLogsHarness);
 
     fixture.detectChanges();
   };
 
-  describe('GIVEN the current page is the Runtime Logs page', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+    httpTestingController.verify();
+  });
+
+  describe('GIVEN there are no logs', () => {
     beforeEach(async () => {
-      api = fakeApiV4({ id: apiId, analytics: { enabled: false } });
-      await initComponent(api);
+      await initComponent();
+      expectApiWithNoLog();
+      fixture.detectChanges();
+      expectApiWithLogEnabled();
     });
-    describe('WHEN the runtime logs are disabled', () => {
-      it('THEN the disabled runtime log UI should be visible', async () => {
-        expect(await componentHarness.getOpenLogSettingsButtonText()).toEqual(openLogSettingsButtonText);
+
+    it('should display the empty panel', async () => {
+      expect(await componentHarness.isEmptyPanelDisplayed()).toBeTruthy();
+    });
+
+    it('should not display the banner', async () => {
+      expect(await componentHarness.isImpactBannerDisplayed()).toBeFalsy();
+    });
+
+    it('should navigate to logs settings', async () => {
+      await componentHarness.clickOpenSettings();
+      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.ng.runtimeLogs-settings');
+    });
+
+    it('should not display the list', async () => {
+      expect(await componentHarness.getRows()).toHaveLength(0);
+      expect(await componentHarness.getPaginator()).toBeNull();
+    });
+  });
+
+  describe('GIVEN there are logs', () => {
+    beforeEach(async () => {
+      await initComponent();
+    });
+
+    describe('when there is one page', () => {
+      const total = 1;
+      beforeEach(() => {
+        expectApiWithLogs(total);
+        fixture.detectChanges();
+        expectApiWithLogEnabled();
+      });
+
+      it('should display the 1st page with default pagination', async () => {
+        expect(await componentHarness.getRows()).toHaveLength(total);
+
+        const paginator = await componentHarness.getPaginator();
+        expect(await paginator.getPageSize()).toBe(10);
+      });
+    });
+
+    describe('when there is more than one page', () => {
+      const total = 50;
+      const pageSize = 10;
+      beforeEach(() => {
+        expectApiWithLogs(total, pageSize);
+        fixture.detectChanges();
+        expectApiWithLogEnabled();
+      });
+
+      it('should display the 1st page', async () => {
+        expect(await componentHarness.getRows()).toHaveLength(pageSize);
+
+        const paginator = await componentHarness.getPaginator();
+        expect(await paginator.getPageSize()).toBe(pageSize);
+        expect(await paginator.getRangeLabel()).toBe(`1 – ${pageSize} of ${total}`);
+      });
+
+      it('should navigate to next page', async () => {
+        const paginator = await componentHarness.getPaginator();
+        await paginator.goToNextPage();
+
+        expectSecondPage(total, pageSize);
+      });
+
+      it('should change page size', async () => {
+        const paginator = await componentHarness.getPaginator();
+        await paginator.setPageSize(25);
+
+        expectApiWithLogs(total, 25, 1);
       });
     });
   });
+
+  describe('GIVEN there are logs but logs are disabled', () => {
+    beforeEach(async () => {
+      await initComponent();
+      expectApiWithLogs(1);
+      fixture.detectChanges();
+      expectApiWithLogDisabled();
+    });
+
+    it('should display a banner', async () => {
+      expect(await componentHarness.isImpactBannerDisplayed()).toBeTruthy();
+    });
+
+    it('should display the list', async () => {
+      expect(await componentHarness.getRows()).toHaveLength(1);
+    });
+
+    it('should navigate to logs settings', async () => {
+      await componentHarness.clickOpenSettings();
+      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.ng.runtimeLogs-settings');
+    });
+  });
+
+  function expectApiWithLogEnabled() {
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`,
+        method: 'GET',
+      })
+      .flush(fakeApiV4({ id: API_ID, analytics: { enabled: true, logging: { mode: { entrypoint: true } } } }));
+  }
+  function expectApiWithLogDisabled() {
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`,
+        method: 'GET',
+      })
+      .flush(fakeApiV4({ id: API_ID, analytics: { enabled: true, logging: {} } }));
+  }
+
+  function expectApiWithNoLog() {
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/logs?page=1&perPage=10`,
+        method: 'GET',
+      })
+      .flush(fakeEmptyApiLogsResponse());
+  }
+
+  function expectApiWithLogs(total: number, pageSize = 10, page = 1) {
+    const itemsInPage = total < pageSize ? total : pageSize;
+
+    const data: ConnectionLog[] = [];
+    for (let i = 0; i < itemsInPage; i++) {
+      data.push(fakeConnectionLog());
+    }
+
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/logs?page=${page}&perPage=${pageSize}`,
+        method: 'GET',
+      })
+      .flush(
+        fakeApiLogsResponse({
+          data,
+          pagination: {
+            totalCount: total,
+            page: page,
+            perPage: pageSize,
+          },
+        }),
+      );
+  }
+
+  function expectSecondPage(total: number, pageSize = 10) {
+    return expectApiWithLogs(total, pageSize, 2);
+  }
 });
