@@ -217,5 +217,4 @@ public class CheckSubscriptionPolicyTest {
 
         verify(policyChain, times(1)).doNext(request, response);
     }
-
 }

@@ -53,7 +53,7 @@ public class CheckSubscriptionPolicy implements Policy {
         executionContext.request().metrics().setSecurityToken(clientId);
 
         Object validateSubscription = executionContext.getAttribute(ExecutionContext.ATTR_VALIDATE_SUBSCRIPTION);
-        if(validateSubscription != null && !((boolean) validateSubscription)) {
+        if (validateSubscription != null && !((boolean) validateSubscription)) {
             policyChain.doNext(executionContext.request(), executionContext.response());
             return;
         }

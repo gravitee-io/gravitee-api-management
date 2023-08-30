@@ -138,7 +138,6 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
     private List<ApiService> services;
     private final boolean validateSubscriptionEnabled;
 
-
     public DefaultApiReactor(
         final Api api,
         final DeploymentContext deploymentContext,

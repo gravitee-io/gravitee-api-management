@@ -37,7 +37,6 @@ import io.gravitee.reporter.api.http.Metrics;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.observers.TestObserver;
 import io.reactivex.rxjava3.schedulers.Schedulers;
-
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.*;

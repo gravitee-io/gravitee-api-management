@@ -150,7 +150,7 @@ public class SecurityPlan {
         Boolean validateSubscriptionEnabled = ctx.getInternalAttribute(ATTR_INTERNAL_VALIDATE_SUBSCRIPTION);
 
         // Skip validating the subscription
-        if(validateSubscriptionEnabled != null && !validateSubscriptionEnabled) {
+        if (validateSubscriptionEnabled != null && !validateSubscriptionEnabled) {
             return true;
         }
 
