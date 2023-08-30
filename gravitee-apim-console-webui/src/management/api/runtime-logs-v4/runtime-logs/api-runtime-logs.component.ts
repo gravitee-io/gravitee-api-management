@@ -14,11 +14,42 @@
  * limitations under the License.
  */
 
-import { Component } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+
+import { ApiV4 } from '../../../../entities/management-api-v2';
+import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 
 @Component({
   selector: 'api-runtime-logs',
   template: require('./api-runtime-logs.component.html'),
   styles: [require('./api-runtime-logs.component.scss')],
 })
-export class ApiRuntimeLogsComponent {}
+export class ApiRuntimeLogsComponent implements OnInit, OnDestroy {
+  private unsubscribe$: Subject<void> = new Subject<void>();
+  public areRuntimeLogsEnabled = false;
+
+  constructor(@Inject(UIRouterStateParams) private readonly ajsStateParams, private readonly apiService: ApiV2Service) {}
+
+  public ngOnInit(): void {
+    const apiId = this.ajsStateParams.apiId;
+
+    this.apiService
+      .get(apiId)
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe({
+        next: (api: ApiV4) => this.initializeComponent(api),
+      });
+  }
+
+  public ngOnDestroy(): void {
+    this.unsubscribe$.next();
+    this.unsubscribe$.complete();
+  }
+
+  public initializeComponent(api: ApiV4): void {
+    this.areRuntimeLogsEnabled = api.analytics.enabled;
+  }
+}
