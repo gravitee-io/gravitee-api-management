@@ -1,0 +1,34 @@
+suite: Test Gateway configmap - DB Less Mode
+templates:
+  - "gateway/gateway-configmap.yaml"
+tests:
+  - it: Skips subscription validation
+    template: gateway/gateway-configmap.yaml
+    set:
+      global:
+        kubeVersion: 1.23.0
+      gateway:
+        dbLess: true
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: ConfigMap
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: |
+            api:
+              validateSubscription: false
+  - it: Sets manangement type to 'none'
+    template: gateway/gateway-configmap.yaml
+    set:
+      global:
+        kubeVersion: 1.23.0
+      gateway:
+        dbLess: true
+    asserts:
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: |
+            management:
+              type: none

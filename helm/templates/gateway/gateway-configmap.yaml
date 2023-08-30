@@ -75,11 +75,10 @@ data:
       websocket:
         enabled: {{ .Values.gateway.websocket }}
     management:
-      {{- if .Values.apim.dbLess }}
+    {{- if .Values.gateway.dbLess }}
       type: {{ "none" }}
-      {{- else }}
+    {{- else }}
       type: {{ .Values.management.type | default "mongodb" }}
-      {{- end }}
       {{- if or (eq .Values.management.type "mongodb") (kindIs "invalid" .Values.management.type) }}
       mongodb:
         sslEnabled: {{ .Values.mongo.sslEnabled }}
@@ -158,7 +157,8 @@ data:
           {{- end }}
         {{- end }}
       {{- end }}
-
+    {{- end }}
+    
     ratelimit:
       type: {{ .Values.ratelimit.type | default "mongodb" }}
       {{- if or (eq .Values.ratelimit.type "mongodb") (kindIs "invalid" .Values.ratelimit.type) }}
@@ -436,7 +436,7 @@ data:
 
     # APIs specific configuration
     api:
-    {{- if .Values.apim.dbLess }}
+    {{- if .Values.gateway.dbLess }}
       validateSubscription: false
     {{- end }}
     {{- if .Values.gateway.api }}

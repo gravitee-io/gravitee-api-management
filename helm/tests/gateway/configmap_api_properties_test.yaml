@@ -47,20 +47,3 @@ tests:
                   secret: aSecret
               validateSubscription: true
 
-  - it: Check DB Less mode
-    template: gateway/gateway-configmap.yaml
-    set:
-      global:
-        kubeVersion: 1.23.0
-      apim:
-        dbLess: true
-    asserts:
-      - hasDocuments:
-          count: 1
-      - isKind:
-          of: ConfigMap
-      - matchRegex:
-          path: data.[gravitee.yml]
-          pattern: |
-            api:
-              validateSubscription: false

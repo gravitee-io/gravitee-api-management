@@ -705,7 +705,12 @@ api:
 
 gateway:
   enabled: true
+  # if enabled, required annotation will be added to allow the gateway to act as a runtime for the GKO
+  # ingress controller (service should be set to type LoadBalancer in order to get the full feature set)
   ingressController: false
+  # if enabled, the gateway will run without any database meaning that kubernetes sync should be enabled
+  # to retrieve api definitions from config maps
+  dbLess: false
   type: Deployment
   name: gateway
   http:
