@@ -37,11 +37,11 @@ class SamplingTypeTest {
 
         @Test
         void should_validate_value() {
-            assertThat(SamplingType.COUNT.validate("1")).isTrue();
+            assertThat(SamplingType.COUNT.validate("11")).isTrue();
         }
 
         @ParameterizedTest(name = "{index} => value={0}")
-        @ValueSource(strings = { "bad", "-1", "0" })
+        @ValueSource(strings = { "bad", "-1", "4" })
         @NullAndEmptySource
         void should_not_validate_value(final String value) {
             assertThat(SamplingType.COUNT.validate(value)).isFalse();
@@ -73,9 +73,10 @@ class SamplingTypeTest {
             assertThat(SamplingType.PROBABILITY.validate("0.2")).isTrue();
         }
 
-        @Test
-        void should_not_validate_value() {
-            assertThat(SamplingType.PROBABILITY.validate("bad")).isFalse();
+        @ParameterizedTest
+        @ValueSource(strings = { "bad", "9" })
+        void should_not_validate_value(final String value) {
+            assertThat(SamplingType.PROBABILITY.validate(value)).isFalse();
         }
     }
 }
