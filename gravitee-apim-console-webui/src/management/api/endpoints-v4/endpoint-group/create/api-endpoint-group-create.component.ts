@@ -26,7 +26,7 @@ import { ApiEndpointGroupConfigurationComponent } from '../configuration/api-end
 import { ApiEndpointGroupGeneralComponent } from '../general/api-endpoint-group-general.component';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
 import { isUnique } from '../../../../../shared/utils';
-import { ApiV4, EndpointGroupV4, EndpointV4Default, UpdateApiV4 } from '../../../../../entities/management-api-v2';
+import { ApiType, ApiV4, EndpointGroupV4, EndpointV4Default, UpdateApiV4 } from '../../../../../entities/management-api-v2';
 import { UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
@@ -59,6 +59,7 @@ export class ApiEndpointGroupCreateComponent implements OnInit {
   public generalForm: FormGroup;
   public configuration: FormControl;
   public sharedConfigurationSchema: GioJsonSchema;
+  public apiType: ApiType;
 
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
@@ -76,7 +77,12 @@ export class ApiEndpointGroupCreateComponent implements OnInit {
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe({
         next: (api) => {
-          this.generalForm.get('name').addValidators([isUnique((api as ApiV4).endpointGroups.map((group) => group.name))]);
+          const apiV4 = api as ApiV4;
+          this.generalForm.get('name').addValidators([isUnique(apiV4.endpointGroups.map((group) => group.name))]);
+          this.apiType = apiV4.type;
+          if (this.apiType === 'PROXY') {
+            this.endpointGroupTypeForm.get('endpointGroupType').setValue('http-proxy');
+          }
         },
       });
 
@@ -132,7 +138,7 @@ export class ApiEndpointGroupCreateComponent implements OnInit {
           this.snackBarService.success(`Endpoint group ${newEndpointGroup.name} created!`);
           this.goBackToEndpointGroups();
         },
-        error: (err) => this.snackBarService.error(err.message ?? 'An error occurred.'),
+        error: ({ err }) => this.snackBarService.error(err.message ?? 'An error occurred.'),
       });
   }
 

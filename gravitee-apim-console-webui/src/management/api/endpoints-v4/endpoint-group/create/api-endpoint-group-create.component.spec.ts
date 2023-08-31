@@ -61,6 +61,20 @@ const fakeRabbitMqSchema = {
   required: ['rabbitFood'],
 };
 
+const fakeHttpProxySchema = {
+  $schema: 'http://json-schema.org/draft-07/schema#',
+  type: 'object',
+  properties: {
+    proxyParam: {
+      title: 'Proxy Param',
+      type: 'string',
+      description: 'Some param for your proxy',
+    },
+  },
+  additionalProperties: false,
+  required: ['proxyParam'],
+};
+
 const ENDPOINT_LIST = [
   {
     id: 'mock',
@@ -119,8 +133,11 @@ describe('ApiEndpointGroupCreateComponent', () => {
     routerSpy = jest.spyOn(FAKE_UI_ROUTER, 'go');
 
     expectApiGet();
-    expectEndpointListGet();
     fixture.detectChanges();
+
+    if (api.type === 'MESSAGE') {
+      expectEndpointListGet();
+    }
   };
 
   afterEach(() => {
@@ -128,142 +145,178 @@ describe('ApiEndpointGroupCreateComponent', () => {
     httpTestingController.verify();
   });
 
-  describe('Stepper', () => {
-    beforeEach(async () => {
-      await initComponent(fakeApiV4({ id: API_ID }));
+  describe('V4 API - Message', () => {
+    describe('Stepper', () => {
+      beforeEach(async () => {
+        await initComponent(fakeApiV4({ id: API_ID }));
+      });
+
+      it('should go back to endpoint groups page on exit', async () => {
+        await harness.goBackToEndpointGroups();
+        expect(routerSpy).toHaveBeenCalledWith('management.apis.ng.endpoint-groups');
+      });
+
+      it('should not go to General step if endpoint type not selected', async () => {
+        expect(await harness.getSelectedEndpointGroupId()).toBeNull();
+
+        expect(await harness.canGoToGeneralStep()).toEqual(false);
+
+        await harness.selectEndpointGroup('mock');
+        expect(await harness.getSelectedEndpointGroupId()).toEqual('mock');
+
+        expect(await harness.canGoToGeneralStep()).toEqual(true);
+      });
+
+      it('should not go to Configuration step if invalid General information', async () => {
+        await fillOutAndValidateEndpointSelection();
+        expect(await harness.canGoToConfigurationStep()).toEqual(false);
+
+        expect(await harness.getNameValue()).toEqual('');
+        expect(await harness.getLoadBalancerValue()).toEqual('');
+
+        await harness.setNameValue('A new name');
+        expect(await harness.canGoToConfigurationStep()).toEqual(false);
+
+        await harness.setLoadBalancerValue('ROUND_ROBIN');
+        expect(await harness.getNameValue()).toEqual('A new name');
+        expect(await harness.getLoadBalancerValue()).toEqual('ROUND_ROBIN');
+        expect(await harness.canGoToConfigurationStep()).toEqual(true);
+
+        await harness.setNameValue('default-group'); // Name already exists in fakeApiV4
+        expect(await harness.canGoToConfigurationStep()).toEqual(false);
+      });
+
+      it('should not save endpoint group if Configuration is invalid', async () => {
+        await fillOutAndValidateEndpointSelection();
+        await fillOutAndValidateGeneralInformation();
+
+        expect(await harness.canCreateEndpointGroup()).toEqual(false);
+        expect(await harness.isConfigurationFormShown()).toEqual(true);
+
+        expect(await harness.getConfigurationInputValue('topic')).toEqual('');
+
+        await harness.setConfigurationInputValue('topic', 'my-kafka-topic');
+        expect(await harness.getConfigurationInputValue('topic')).toEqual('my-kafka-topic');
+
+        expect(await harness.isConfigurationStepValid()).toEqual(true);
+        expect(await harness.canCreateEndpointGroup()).toEqual(true);
+      });
     });
 
-    it('should go back to endpoint groups page on exit', async () => {
-      await harness.goBackToEndpointGroups();
-      expect(routerSpy).toHaveBeenCalledWith('management.apis.ng.endpoint-groups');
+    describe('When creating a Kafka endpoint group', () => {
+      beforeEach(async () => {
+        await initComponent(fakeApiV4({ id: API_ID }));
+        await fillOutAndValidateEndpointSelection();
+        await fillOutAndValidateGeneralInformation();
+        await harness.setConfigurationInputValue('topic', 'my-kafka-topic');
+        expect(await harness.isConfigurationStepValid()).toEqual(true);
+      });
+
+      it('should be possible', async () => {
+        await createEndpointGroup({
+          name: ENDPOINT_GROUP_NAME,
+          type: 'kafka',
+          loadBalancer: { type: 'ROUND_ROBIN' },
+          endpoints: [EndpointV4Default.byType('kafka')],
+          sharedConfiguration: {
+            topic: 'my-kafka-topic',
+          },
+        });
+      });
+
+      it('should show error in configuration after changing endpoint type to RabbitMQ', async () => {
+        await chooseEndpointTypeAndGoToConfiguration('rabbitmq', fakeRabbitMqSchema);
+        await harness.setConfigurationInputValue('rabbitFood', 'lettuce');
+
+        await createEndpointGroup({
+          name: ENDPOINT_GROUP_NAME,
+          type: 'rabbitmq',
+          loadBalancer: { type: 'ROUND_ROBIN' },
+          endpoints: [EndpointV4Default.byType('rabbitmq')],
+          sharedConfiguration: {
+            rabbitFood: 'lettuce',
+          },
+        });
+      });
+
+      it('should not show error in configuration after changing endpoint type to Mock', async () => {
+        await chooseEndpointTypeAndGoToConfiguration('mock');
+        await createEndpointGroup({
+          name: ENDPOINT_GROUP_NAME,
+          type: 'mock',
+          loadBalancer: { type: 'ROUND_ROBIN' },
+          endpoints: [EndpointV4Default.byType('mock')],
+        });
+      });
     });
 
-    it('should not go to General step if endpoint type not selected', async () => {
-      expect(await harness.getSelectedEndpointGroupId()).toBeNull();
+    describe('When creating a Mock endpoint group', () => {
+      beforeEach(async () => {
+        await initComponent(fakeApiV4({ id: API_ID }));
+        await fillOutAndValidateEndpointSelection('mock');
+        await fillOutAndValidateGeneralInformation();
 
-      expect(await harness.canGoToGeneralStep()).toEqual(false);
+        expect(await harness.isConfigurationFormShown()).toEqual(false);
+        expect(await harness.isEndpointGroupMockBannerShown()).toEqual(true);
+      });
+      it('can create a mock endpoint group', async () => {
+        await createEndpointGroup({
+          name: ENDPOINT_GROUP_NAME,
+          type: 'mock',
+          loadBalancer: { type: 'ROUND_ROBIN' },
+          endpoints: [EndpointV4Default.byType('mock')],
+        });
+      });
 
-      await harness.selectEndpointGroup('mock');
-      expect(await harness.getSelectedEndpointGroupId()).toEqual('mock');
+      it('should invalidate configuration if user switches to Kafka endpoint type', async () => {
+        await chooseEndpointTypeAndGoToConfiguration();
 
-      expect(await harness.canGoToGeneralStep()).toEqual(true);
-    });
+        await harness.setConfigurationInputValue('topic', 'my-kafka-topic');
+        expect(await harness.isConfigurationStepValid()).toEqual(true);
 
-    it('should not go to Configuration step if invalid General information', async () => {
-      await fillOutAndValidateEndpointSelection();
-      expect(await harness.canGoToConfigurationStep()).toEqual(false);
-
-      expect(await harness.getNameValue()).toEqual('');
-      expect(await harness.getLoadBalancerValue()).toEqual('');
-
-      await harness.setNameValue('A new name');
-      expect(await harness.canGoToConfigurationStep()).toEqual(false);
-
-      await harness.setLoadBalancerValue('ROUND_ROBIN');
-      expect(await harness.getNameValue()).toEqual('A new name');
-      expect(await harness.getLoadBalancerValue()).toEqual('ROUND_ROBIN');
-      expect(await harness.canGoToConfigurationStep()).toEqual(true);
-
-      await harness.setNameValue('default-group'); // Name already exists in fakeApiV4
-      expect(await harness.canGoToConfigurationStep()).toEqual(false);
-    });
-
-    it('should not save endpoint group if Configuration is invalid', async () => {
-      await fillOutAndValidateEndpointSelection();
-      await fillOutAndValidateGeneralInformation();
-
-      expect(await harness.canCreateEndpointGroup()).toEqual(false);
-      expect(await harness.isConfigurationFormShown()).toEqual(true);
-
-      expect(await harness.getConfigurationInputValue('topic')).toEqual('');
-
-      await harness.setConfigurationInputValue('topic', 'my-kafka-topic');
-      expect(await harness.getConfigurationInputValue('topic')).toEqual('my-kafka-topic');
-
-      expect(await harness.isConfigurationStepValid()).toEqual(true);
-      expect(await harness.canCreateEndpointGroup()).toEqual(true);
+        await createEndpointGroup({
+          name: ENDPOINT_GROUP_NAME,
+          type: 'kafka',
+          loadBalancer: { type: 'ROUND_ROBIN' },
+          endpoints: [EndpointV4Default.byType('kafka')],
+          sharedConfiguration: {
+            topic: 'my-kafka-topic',
+          },
+        });
+      });
     });
   });
 
-  describe('When creating a Kafka endpoint group', () => {
+  describe('V4 API - Proxy', () => {
     beforeEach(async () => {
-      await initComponent(fakeApiV4({ id: API_ID }));
-      await fillOutAndValidateEndpointSelection();
-      await fillOutAndValidateGeneralInformation();
-      await harness.setConfigurationInputValue('topic', 'my-kafka-topic');
-      expect(await harness.isConfigurationStepValid()).toEqual(true);
+      await initComponent(fakeApiV4({ id: API_ID, type: 'PROXY' }));
+      expectSchemaGet('http-proxy', fakeHttpProxySchema);
     });
 
-    it('should be possible', async () => {
-      await createEndpointGroup({
-        name: ENDPOINT_GROUP_NAME,
-        type: 'kafka',
-        loadBalancer: { type: 'ROUND_ROBIN' },
-        endpoints: [EndpointV4Default.byType('kafka')],
-        sharedConfiguration: {
-          topic: 'my-kafka-topic',
-        },
+    describe('Stepper', () => {
+      it('should go back to endpoint groups page on exit', async () => {
+        expect(await isStepActive(harness.getGeneralStep())).toEqual(true);
+        await harness.goBackToEndpointGroups();
+        expect(routerSpy).toHaveBeenCalledWith('management.apis.ng.endpoint-groups');
       });
     });
 
-    it('should show error in configuration after changing endpoint type to RabbitMQ', async () => {
-      await chooseEndpointTypeAndGoToConfiguration('rabbitmq', fakeRabbitMqSchema);
-      await harness.setConfigurationInputValue('rabbitFood', 'lettuce');
+    describe('When creating a http-proxy endpoint group', () => {
+      it('should be possible', async () => {
+        await fillOutAndValidateGeneralInformation();
+        expect(await harness.canCreateEndpointGroup()).toEqual(false);
+        await harness.setConfigurationInputValue('proxyParam', 'my-proxy-param');
+        expect(await harness.isConfigurationStepValid()).toEqual(true);
 
-      await createEndpointGroup({
-        name: ENDPOINT_GROUP_NAME,
-        type: 'rabbitmq',
-        loadBalancer: { type: 'ROUND_ROBIN' },
-        endpoints: [EndpointV4Default.byType('rabbitmq')],
-        sharedConfiguration: {
-          rabbitFood: 'lettuce',
-        },
-      });
-    });
-
-    it('should not show error in configuration after changing endpoint type to Mock', async () => {
-      await chooseEndpointTypeAndGoToConfiguration('mock');
-      await createEndpointGroup({
-        name: ENDPOINT_GROUP_NAME,
-        type: 'mock',
-        loadBalancer: { type: 'ROUND_ROBIN' },
-        endpoints: [EndpointV4Default.byType('mock')],
-      });
-    });
-  });
-
-  describe('When creating a Mock endpoint group', () => {
-    beforeEach(async () => {
-      await initComponent(fakeApiV4({ id: API_ID }));
-      await fillOutAndValidateEndpointSelection('mock');
-      await fillOutAndValidateGeneralInformation();
-
-      expect(await harness.isConfigurationFormShown()).toEqual(false);
-      expect(await harness.isEndpointGroupMockBannerShown()).toEqual(true);
-    });
-    it('can create a mock endpoint group', async () => {
-      await createEndpointGroup({
-        name: ENDPOINT_GROUP_NAME,
-        type: 'mock',
-        loadBalancer: { type: 'ROUND_ROBIN' },
-        endpoints: [EndpointV4Default.byType('mock')],
-      });
-    });
-
-    it('should invalidate configuration if user switches to Kafka endpoint type', async () => {
-      await chooseEndpointTypeAndGoToConfiguration();
-
-      await harness.setConfigurationInputValue('topic', 'my-kafka-topic');
-      expect(await harness.isConfigurationStepValid()).toEqual(true);
-
-      await createEndpointGroup({
-        name: ENDPOINT_GROUP_NAME,
-        type: 'kafka',
-        loadBalancer: { type: 'ROUND_ROBIN' },
-        endpoints: [EndpointV4Default.byType('kafka')],
-        sharedConfiguration: {
-          topic: 'my-kafka-topic',
-        },
+        await createEndpointGroup({
+          name: ENDPOINT_GROUP_NAME,
+          type: 'http-proxy',
+          loadBalancer: { type: 'ROUND_ROBIN' },
+          endpoints: [EndpointV4Default.byType('http-proxy')],
+          sharedConfiguration: {
+            proxyParam: 'my-proxy-param',
+          },
+        });
       });
     });
   });
