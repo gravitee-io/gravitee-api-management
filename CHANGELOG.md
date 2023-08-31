@@ -1,3 +1,20 @@
+# [5.0.0](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/4.2.2...5.0.0) (2023-08-31)
+
+
+### Code Refactoring
+
+* drop support for es5 and es6 ([1f86cee](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/1f86cee0c2dc39ae780e668c644831e1125b5762))
+
+
+### Features
+
+* use gravitee-reporter-common for indexing ([b6a124b](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/b6a124b3e3380298a7dc5c65607d8262e798783c))
+
+
+### BREAKING CHANGES
+
+* dropped support for es5 and es6 - needs apim 4.1.x
+
 ## [4.2.2](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/4.2.1...4.2.2) (2023-08-28)
 
 
