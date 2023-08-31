@@ -31,6 +31,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 import lombok.With;
 import lombok.experimental.SuperBuilder;
 
@@ -45,6 +46,7 @@ import lombok.experimental.SuperBuilder;
 @Setter
 @SuperBuilder(toBuilder = true)
 @With
+@ToString
 public class BasePlanEntity implements GenericPlanEntity {
 
     private String id;

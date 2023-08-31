@@ -5116,6 +5116,8 @@ components:
                     type: string
                     description: The id of the request.
                     example: 1719d8d1-8d01-48f6-99d8-d18d0178f6d4
+                method:
+                    $ref: "#/components/schemas/HttpMethod"
                 clientIdentifier:
                     type: string
                     description: The client identifier of the request.

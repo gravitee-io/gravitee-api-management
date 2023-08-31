@@ -21,23 +21,51 @@ import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
+import fixtures.repository.ConnectionLogFixtures;
+import inmemory.ApplicationStorageServiceInMemory;
+import inmemory.InMemoryStorageService;
+import inmemory.LogStorageServiceInMemory;
+import inmemory.PlanStorageServiceInMemory;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLog;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLogsResponse;
+import io.gravitee.rest.api.management.v2.rest.model.BaseApplication;
 import io.gravitee.rest.api.management.v2.rest.model.BasePlan;
+import io.gravitee.rest.api.management.v2.rest.model.HttpMethod;
 import io.gravitee.rest.api.management.v2.rest.model.Links;
 import io.gravitee.rest.api.management.v2.rest.model.Pagination;
+import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
+import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.v4.plan.BasePlanEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import jakarta.inject.Inject;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Response;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.stream.LongStream;
+import java.util.stream.Stream;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 public class ApiLogsResourceTest extends ApiResourceTest {
+
+    private static final BasePlanEntity PLAN = BasePlanEntity.builder().id("plan1").name("1st plan").apiId(API).build();
+    private static final BaseApplicationEntity APPLICATION = BaseApplicationEntity.builder().id("app1").name("an application name").build();
+
+    final ConnectionLogFixtures connectionLogFixtures = new ConnectionLogFixtures(API, APPLICATION.getId(), PLAN.getId());
+
+    @Inject
+    LogStorageServiceInMemory logStorageService;
+
+    @Inject
+    PlanStorageServiceInMemory planStorageService;
+
+    @Inject
+    ApplicationStorageServiceInMemory applicationStorageService;
 
     WebTarget target;
 
@@ -52,6 +80,17 @@ public class ApiLogsResourceTest extends ApiResourceTest {
 
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
+
+        planStorageService.initWith(List.of(PLAN));
+        applicationStorageService.initWith(List.of(APPLICATION));
+    }
+
+    @Override
+    @AfterEach
+    public void tearDown() {
+        GraviteeContext.cleanContext();
+
+        Stream.of(applicationStorageService, logStorageService, planStorageService).forEach(InMemoryStorageService::reset);
     }
 
     @Test
@@ -76,7 +115,9 @@ public class ApiLogsResourceTest extends ApiResourceTest {
     }
 
     @Test
-    public void should_return_the_1st_page_of_logs() {
+    public void should_return_connection_logs() {
+        logStorageService.initWith(List.of(connectionLogFixtures.aConnectionLog("req1")));
+
         final Response response = target.request().get();
 
         assertThat(response)
@@ -89,20 +130,66 @@ public class ApiLogsResourceTest extends ApiResourceTest {
                         List.of(
                             ApiLog
                                 .builder()
-                                .id("log-id")
-                                .application(null)
-                                .plan(BasePlan.builder().id("id-keyless").name("Keyless").apiId(API).build())
+                                .application(BaseApplication.builder().id(APPLICATION.getId()).name(APPLICATION.getName()).build())
+                                .plan(BasePlan.builder().id(PLAN.getId()).name(PLAN.getName()).apiId(API).build())
+                                .method(HttpMethod.GET)
                                 .status(200)
-                                .clientIdentifier("client-id")
+                                .clientIdentifier("client-identifier")
                                 .requestEnded(true)
-                                .requestId("request-id")
+                                .requestId("req1")
                                 .transactionId("transaction-id")
-                                .timestamp(Instant.parse("2020-01-01T00:00:00.00Z").atOffset(ZoneOffset.UTC))
+                                .timestamp(Instant.parse("2020-02-01T20:00:00.00Z").atOffset(ZoneOffset.UTC))
                                 .build()
                         )
                     )
                     .pagination(Pagination.builder().page(1).perPage(10).pageCount(1).pageItemsCount(1).totalCount(1L).build())
                     .links(Links.builder().self(target.getUri().toString()).build())
+                    .build()
+            );
+    }
+
+    @Test
+    public void should_compute_pagination() {
+        var total = 20L;
+        var pageSize = 5;
+        logStorageService.initWith(LongStream.range(0, total).mapToObj(i -> connectionLogFixtures.aConnectionLog()).toList());
+
+        target =
+            target.queryParam(PaginationParam.PAGE_QUERY_PARAM_NAME, 2).queryParam(PaginationParam.PER_PAGE_QUERY_PARAM_NAME, pageSize);
+        final Response response = target.request().get();
+
+        assertThat(response)
+            .hasStatus(OK_200)
+            .asEntity(ApiLogsResponse.class)
+            .extracting(ApiLogsResponse::getPagination)
+            .isEqualTo(Pagination.builder().page(2).perPage(pageSize).pageCount(4).pageItemsCount(pageSize).totalCount(total).build());
+    }
+
+    @Test
+    public void should_compute_links() {
+        var total = 20L;
+        var page = 2;
+        var pageSize = 5;
+        logStorageService.initWith(LongStream.range(0, total).mapToObj(i -> connectionLogFixtures.aConnectionLog()).toList());
+
+        final Response response = target
+            .queryParam(PaginationParam.PAGE_QUERY_PARAM_NAME, page)
+            .queryParam(PaginationParam.PER_PAGE_QUERY_PARAM_NAME, pageSize)
+            .request()
+            .get();
+
+        assertThat(response)
+            .hasStatus(OK_200)
+            .asEntity(ApiLogsResponse.class)
+            .extracting(ApiLogsResponse::getLinks)
+            .isEqualTo(
+                Links
+                    .builder()
+                    .self(target.queryParam("page", page).queryParam("perPage", pageSize).getUri().toString())
+                    .first(target.queryParam("page", 1).queryParam("perPage", pageSize).getUri().toString())
+                    .last(target.queryParam("page", 4).queryParam("perPage", pageSize).getUri().toString())
+                    .previous(target.queryParam("page", 1).queryParam("perPage", pageSize).getUri().toString())
+                    .next(target.queryParam("page", 3).queryParam("perPage", pageSize).getUri().toString())
                     .build()
             );
     }

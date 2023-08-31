@@ -16,6 +16,7 @@
 package io.gravitee.repository.elasticsearch.utils;
 
 import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
+import io.gravitee.repository.log.v4.model.ConnectionLogQuery;
 import java.util.stream.Stream;
 
 public class ClusterUtils {
@@ -50,6 +51,14 @@ public class ClusterUtils {
         // Extract tenant(s) filtering
         if (query != null && query.query() != null) {
             return extractClusterIndexPrefixes(query.query().filter(), configuration);
+        }
+
+        return ALL_CLUSTERS;
+    }
+
+    public static String[] extractClusterIndexPrefixes(ConnectionLogQuery query, RepositoryConfiguration configuration) {
+        if (!configuration.hasCrossClusterMapping()) {
+            return new String[0];
         }
 
         return ALL_CLUSTERS;

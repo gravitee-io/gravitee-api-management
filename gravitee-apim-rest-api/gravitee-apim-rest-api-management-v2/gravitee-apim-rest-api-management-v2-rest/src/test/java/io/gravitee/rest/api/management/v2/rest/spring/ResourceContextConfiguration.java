@@ -30,10 +30,14 @@ import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.PlanService;
 import io.gravitee.rest.api.service.v4.PolicyPluginService;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.PropertySource;
 
 @Configuration
+@ComponentScan(basePackages = { "io.gravitee.rest.api.usecase" })
+@Import({ InMemoryConfiguration.class })
 @PropertySource("classpath:/io/gravitee/rest/api/management/v2/rest/resource/jwt.properties")
 public class ResourceContextConfiguration {
 
