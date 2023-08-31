@@ -69,6 +69,12 @@ const SOLACE_ENDPOINT: EndpointV4 = {
   inheritConfiguration: true,
 };
 
+const HTTP_PROXY_ENDPOINT: EndpointV4 = {
+  name: 'Default HTTP Proxy Endpoint',
+  type: 'http-proxy',
+  inheritConfiguration: true,
+};
+
 export const EndpointV4Default = {
   byType: (type: string): EndpointV4 => {
     switch (type) {
@@ -86,6 +92,9 @@ export const EndpointV4Default = {
       }
       case 'mock': {
         return MOCK_ENDPOINT;
+      }
+      case 'http-proxy': {
+        return HTTP_PROXY_ENDPOINT;
       }
       default: {
         return undefined;

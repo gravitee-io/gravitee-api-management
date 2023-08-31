@@ -15,17 +15,17 @@
     limitations under the License.
 
 -->
-<form *ngIf="createForm" [formGroup]="createForm" (submit)="createEndpointGroup()">
+<form *ngIf="createForm && apiType" [formGroup]="createForm" (submit)="createEndpointGroup()">
   <mat-card>
-    <mat-stepper [linear]="true" #stepper>
-      <mat-step state="type" [stepControl]="createForm.get('type')">
+    <mat-stepper [linear]="true">
+      <mat-step *ngIf="apiType === 'MESSAGE'" state="type" [stepControl]="createForm.get('type')">
         <ng-template matStepperIcon="type">
           <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
         </ng-template>
         <ng-template matStepLabel>Endpoint Group Type</ng-template>
-        <api-endpoints-group-selection [endpointGroupTypeForm]="endpointGroupTypeForm"></api-endpoints-group-selection>
+        <api-endpoints-group-selection [endpointGroupTypeForm]="endpointGroupTypeForm" [apiType]="apiType"></api-endpoints-group-selection>
         <div class="api-endpoint-group-create__footer">
-          <button mat-stroked-button type="button" (click)="goBackToEndpointGroups()">Exit</button>
+          <ng-container *ngTemplateOutlet="exitButton"></ng-container>
           <button mat-raised-button type="button" color="primary" [disabled]="createForm.get('type').invalid" matStepperNext>
             Select endpoint group type
           </button>
@@ -39,7 +39,10 @@
         <ng-template matStepLabel>General</ng-template>
         <api-endpoint-group-general [generalForm]="generalForm"></api-endpoint-group-general>
         <div class="api-endpoint-group-create__footer">
-          <button mat-stroked-button type="button" matStepperPrevious>Back</button>
+          <ng-container *ngIf="apiType === 'PROXY'">
+            <ng-container *ngTemplateOutlet="exitButton"></ng-container>
+          </ng-container>
+          <button *ngIf="apiType === 'MESSAGE'" mat-stroked-button type="button" matStepperPrevious>Back</button>
           <button mat-raised-button type="button" color="primary" [disabled]="createForm.get('general').invalid" matStepperNext>
             Validate general information
           </button>
@@ -74,3 +77,7 @@
     </mat-stepper>
   </mat-card>
 </form>
+
+<ng-template #exitButton>
+  <button mat-stroked-button type="button" (click)="goBackToEndpointGroups()">Exit</button>
+</ng-template>
