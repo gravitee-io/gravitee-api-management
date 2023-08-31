@@ -14,17 +14,15 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
-import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { DivHarness } from '@gravitee/ui-particles-angular/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatButtonToggleGroupHarness } from '@angular/material/button-toggle/testing';
 
-export class ApiRuntimeLogsSettingsHarness extends ComponentHarness {
+export class ApiRuntimeLogsMessageSettingsHarness extends ComponentHarness {
   static hostSelector = 'api-runtime-logs-settings';
 
-  private getEnableToggle = this.locatorFor(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' }));
   public getLogsBanner = this.locatorFor(DivHarness.with({ text: /Logging smartly/ }));
   private getSaveButton = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Save Settings"]' }));
   private getEntrypointCheckbox = this.locatorFor(MatCheckboxHarness.with({ selector: '[formControlName="entrypoint"]' }));
@@ -34,20 +32,11 @@ export class ApiRuntimeLogsSettingsHarness extends ComponentHarness {
   private getMessageContentCheckbox = this.locatorFor(MatCheckboxHarness.with({ selector: '[formControlName="messageContent"]' }));
   private getMessageHeadersCheckbox = this.locatorFor(MatCheckboxHarness.with({ selector: '[formControlName="messageHeaders"]' }));
   private getMessageMetadataCheckbox = this.locatorFor(MatCheckboxHarness.with({ selector: '[formControlName="messageMetadata"]' }));
-  private getRequestPayloadCheckbox = this.locatorFor(MatCheckboxHarness.with({ selector: '[formControlName="requestPayload"]' }));
-  private getRequestHeadersCheckbox = this.locatorFor(MatCheckboxHarness.with({ selector: '[formControlName="requestHeaders"]' }));
+  private getHeadersCheckbox = this.locatorFor(MatCheckboxHarness.with({ selector: '[formControlName="headers"]' }));
   private getMessageConditionInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="messageCondition"]' }));
   private getRequestConditionInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="requestCondition"]' }));
   private getSamplingTypeToggle = this.locatorFor(MatButtonToggleGroupHarness.with({ selector: '[formControlName="samplingType"]' }));
   private getSamplingValueInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="samplingValue"]' }));
-
-  public areLogsEnabled = async (): Promise<boolean> => {
-    return await this.getEnableToggle().then((toggles) => toggles.isChecked());
-  };
-
-  public disableLogs = async (): Promise<void> => {
-    return await this.getEnableToggle().then((toggles) => toggles.uncheck());
-  };
 
   public saveSettings = async (): Promise<void> => {
     return this.getSaveButton().then((saveButton) => saveButton.click());
@@ -121,28 +110,16 @@ export class ApiRuntimeLogsSettingsHarness extends ComponentHarness {
     return await this.getMessageMetadataCheckbox().then((checkbox) => checkbox.check());
   };
 
-  public isRequestPayloadChecked = async (): Promise<boolean> => {
-    return await this.getRequestPayloadCheckbox().then((checkbox) => checkbox.isChecked());
+  public isHeadersChecked = async (): Promise<boolean> => {
+    return await this.getHeadersCheckbox().then((checkbox) => checkbox.isChecked());
   };
 
-  public isRequestPayloadDisabled = async (): Promise<boolean> => {
-    return await this.getRequestPayloadCheckbox().then((checkbox) => checkbox.isDisabled());
+  public isHeadersDisabled = async (): Promise<boolean> => {
+    return await this.getHeadersCheckbox().then((checkbox) => checkbox.isDisabled());
   };
 
-  public toggleRequestPayload = async (): Promise<void> => {
-    return await this.getRequestPayloadCheckbox().then((checkbox) => checkbox.check());
-  };
-
-  public isRequestHeadersChecked = async (): Promise<boolean> => {
-    return await this.getRequestHeadersCheckbox().then((checkbox) => checkbox.isChecked());
-  };
-
-  public isRequestHeadersDisabled = async (): Promise<boolean> => {
-    return await this.getRequestHeadersCheckbox().then((checkbox) => checkbox.isDisabled());
-  };
-
-  public toggleRequestHeaders = async (): Promise<void> => {
-    return await this.getRequestHeadersCheckbox().then((checkbox) => checkbox.check());
+  public checkHeaders = async (): Promise<void> => {
+    return await this.getHeadersCheckbox().then((checkbox) => checkbox.check());
   };
 
   public getMessageCondition = async (): Promise<string> => {
