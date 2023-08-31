@@ -10,21 +10,23 @@ endif::[]
 
 
 == Presentation
-This reporter write access logs to an Elasticsearch instance
+
+This reporter writes access logs to an Elasticsearch instance
 
 
 == Compatibility with APIM
 
 |===
-|Plugin version    | APIM version
+|Plugin version    | APIM version       | ES version    | JDK version
 
-| 4.x              | 3.20.x to latest
-| 3.x              | 3.18.x to 3.19.x
-
+| 5.x              | 4.0.x              | 7.x and later | 17
+| 4.x              | 3.20.x to 4.0.x    | 5.x and later | 11
+| 3.x              | 3.18.x to 3.19.x   | 5.x to 7.x    | 8
 |===
 
 == Configuration
-To be completed
+
+Please visit our https://documentation.gravitee.io/apim/getting-started/configuration/configure-repositories#api-gateway-configuration[documentation website] for further information.
 
 === ILM
 If you use ElasticSearch in version 7 minimum, you can configure your reporter to use ILM (Index Lifecyle Management) policies.
@@ -47,14 +49,11 @@ Then you can activate the ILM feature by adding these settings in the gravitee.y
     index_mode: ilm         # "daily" indexes, suffixed with date. Or "ilm" managed indexes, without date
 ```
 
-IMPORTANT: To use ILM feature you need to use at least version 3.8.5 (for APIM 3.10.x) or 3.12.1 of the plugin (for APIM 3.15.x and upper).
-
 == Testing
+
 By default, unit tests are run with a TestContainer version of ElasticSearch 8.5.2, but sometimes it can be useful to run them against other version of ElasticSearch.
 To do so you can use the following commands:
 
-* ES 5.x: `mvn clean test -Delasticsearch.version=5.6.16`
-* ES 6.x: `mvn clean test -Delasticsearch.version=6.8.23`
 * ES 7.x: `mvn clean test -Delasticsearch.version=7.17.7`
 * ES 8.x: `mvn clean test -Delasticsearch.version=8.5.2` (Default)
 
