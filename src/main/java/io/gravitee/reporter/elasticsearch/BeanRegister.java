@@ -58,10 +58,6 @@ public class BeanRegister {
         }
 
         switch (elasticsearchInfo.getVersion().getMajorVersion()) {
-            case 5:
-                return new Elastic5xBeanRegistrer();
-            case 6:
-                return new Elastic6xBeanRegistrer();
             case 7:
                 return new Elastic7xBeanRegistrer();
             case 8:

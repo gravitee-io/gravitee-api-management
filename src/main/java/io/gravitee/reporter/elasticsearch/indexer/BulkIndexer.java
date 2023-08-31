@@ -70,7 +70,7 @@ public abstract class BulkIndexer extends AbstractIndexer {
             )
             .buffer(configuration.getFlushInterval(), TimeUnit.SECONDS, configuration.getBulkActions())
             .filter(payload -> !payload.isEmpty())
-            .subscribe(new DocumentBulkProcessor(client, vertx));
+            .subscribe(new DocumentBulkProcessor(client));
     }
 
     @Override

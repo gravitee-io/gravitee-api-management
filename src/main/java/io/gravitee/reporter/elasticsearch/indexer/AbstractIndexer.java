@@ -26,7 +26,6 @@ import io.gravitee.reporter.elasticsearch.config.ReporterConfiguration;
 import io.gravitee.reporter.elasticsearch.indexer.name.IndexNameGenerator;
 import io.vertx.core.buffer.Buffer;
 import java.util.Map;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

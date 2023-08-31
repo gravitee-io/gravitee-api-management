@@ -31,7 +31,7 @@ public abstract class AbstractIndexNameGenerator implements IndexNameGenerator {
 
     protected final DateTimeFormatter sdf;
 
-    public AbstractIndexNameGenerator() {
+    protected AbstractIndexNameGenerator() {
         this.sdf = java.time.format.DateTimeFormatter.ofPattern("yyyy.MM.dd").withZone(ZoneId.systemDefault());
     }
 }

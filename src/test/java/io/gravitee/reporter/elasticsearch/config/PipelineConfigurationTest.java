@@ -102,7 +102,7 @@ public class PipelineConfigurationTest {
     }
 
     @Nested
-    class UserAgentPlugin {
+    class UserAgentPluginTest {
 
         @Test
         public void should_create_pipeline_with_regex_file() {

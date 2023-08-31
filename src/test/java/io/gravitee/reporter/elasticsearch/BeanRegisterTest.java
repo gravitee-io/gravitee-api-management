@@ -20,22 +20,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.gravitee.elasticsearch.version.ElasticsearchInfo;
 import io.gravitee.elasticsearch.version.Version;
 import io.gravitee.reporter.elasticsearch.config.ReporterConfiguration;
-import io.gravitee.reporter.elasticsearch.indexer.es5.ES5BulkIndexer;
-import io.gravitee.reporter.elasticsearch.indexer.es6.ES6BulkIndexer;
 import io.gravitee.reporter.elasticsearch.indexer.es7.ES7BulkIndexer;
 import io.gravitee.reporter.elasticsearch.indexer.es8.ES8BulkIndexer;
-import io.gravitee.reporter.elasticsearch.indexer.name.MultiTypeIndexNameGenerator;
 import io.gravitee.reporter.elasticsearch.indexer.name.PerTypeAndDateIndexNameGenerator;
 import io.gravitee.reporter.elasticsearch.indexer.name.PerTypeIndexNameGenerator;
-import io.gravitee.reporter.elasticsearch.mapping.es5.ES5MultiTypeIndexPreparer;
-import io.gravitee.reporter.elasticsearch.mapping.es5.ES5PerTypeIndexPreparer;
-import io.gravitee.reporter.elasticsearch.mapping.es6.ES6IndexPreparer;
 import io.gravitee.reporter.elasticsearch.mapping.es7.ES7IndexPreparer;
 import io.gravitee.reporter.elasticsearch.mapping.es8.ES8IndexPreparer;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -57,62 +50,6 @@ class BeanRegisterTest {
     @BeforeEach
     void setUp() {
         register = new BeanRegister(applicationContext);
-    }
-
-    @Nested
-    class ElasticSearch5 {
-
-        @Test
-        void should_instantiate_beans_for_elasticsearch_5_per_type_index() {
-            var reporterConfiguration = new ReporterConfiguration();
-            reporterConfiguration.setPerTypeIndex(true);
-
-            register.registerBeans(elasticsearchInfo("5.6.16"), reporterConfiguration);
-
-            assertThat(applicationContext.getBean("indexer")).isInstanceOf(ES5BulkIndexer.class);
-            assertThat(applicationContext.getBean("indexPreparer")).isInstanceOf(ES5PerTypeIndexPreparer.class);
-            assertThat(applicationContext.getBean("indexNameGenerator")).isInstanceOf(PerTypeAndDateIndexNameGenerator.class);
-        }
-
-        @Test
-        void should_instantiate_beans_for_elasticsearch_5_multi_type_index() {
-            var reporterConfiguration = new ReporterConfiguration();
-            reporterConfiguration.setPerTypeIndex(false);
-
-            register.registerBeans(elasticsearchInfo("5.6.16"), reporterConfiguration);
-
-            assertThat(applicationContext.getBean("indexer")).isInstanceOf(ES5BulkIndexer.class);
-            assertThat(applicationContext.getBean("indexPreparer")).isInstanceOf(ES5MultiTypeIndexPreparer.class);
-            assertThat(applicationContext.getBean("indexNameGenerator")).isInstanceOf(MultiTypeIndexNameGenerator.class);
-        }
-    }
-
-    @Nested
-    class ElasticSearch6 {
-
-        @Test
-        void should_instantiate_beans_for_elasticsearch_6_daily_mode() {
-            var reporterConfiguration = new ReporterConfiguration();
-            reporterConfiguration.setIndexMode("daily");
-
-            register.registerBeans(elasticsearchInfo("6.7.2"), reporterConfiguration);
-
-            assertThat(applicationContext.getBean("indexer")).isInstanceOf(ES6BulkIndexer.class);
-            assertThat(applicationContext.getBean("indexPreparer")).isInstanceOf(ES6IndexPreparer.class);
-            assertThat(applicationContext.getBean("indexNameGenerator")).isInstanceOf(PerTypeAndDateIndexNameGenerator.class);
-        }
-
-        @Test
-        void should_instantiate_beans_for_elasticsearch_6_ilm_mode() {
-            var reporterConfiguration = new ReporterConfiguration();
-            reporterConfiguration.setIndexMode("ilm");
-
-            register.registerBeans(elasticsearchInfo("6.6.16"), reporterConfiguration);
-
-            assertThat(applicationContext.getBean("indexer")).isInstanceOf(ES6BulkIndexer.class);
-            assertThat(applicationContext.getBean("indexPreparer")).isInstanceOf(ES6IndexPreparer.class);
-            assertThat(applicationContext.getBean("indexNameGenerator")).isInstanceOf(PerTypeIndexNameGenerator.class);
-        }
     }
 
     @Nested

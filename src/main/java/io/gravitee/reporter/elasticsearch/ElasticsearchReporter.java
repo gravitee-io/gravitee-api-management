@@ -71,9 +71,7 @@ public class ElasticsearchReporter extends AbstractService<Reporter> implements 
             IndexPreparer preparer = applicationContext.getBean(IndexPreparer.class);
             preparer
                 .prepare()
-                .doOnComplete(() -> {
-                    LOGGER.info("Starting Elastic reporter engine... DONE");
-                })
+                .doOnComplete(() -> LOGGER.info("Starting Elastic reporter engine... DONE"))
                 .subscribe(
                     new CompletableObserver() {
                         @Override
@@ -102,7 +100,7 @@ public class ElasticsearchReporter extends AbstractService<Reporter> implements 
         }
     }
 
-    Single rxReport(Reportable reportable) {
+    Single<Reportable> rxReport(Reportable reportable) {
         indexer.index(reportable);
         return Single.just(reportable);
     }

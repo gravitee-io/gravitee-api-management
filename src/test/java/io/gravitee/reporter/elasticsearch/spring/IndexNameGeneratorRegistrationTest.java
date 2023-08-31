@@ -23,7 +23,6 @@ import io.gravitee.reporter.elasticsearch.ElasticsearchReporterTest;
 import io.gravitee.reporter.elasticsearch.IntegrationTestConfiguration;
 import io.gravitee.reporter.elasticsearch.config.ReporterConfiguration;
 import io.gravitee.reporter.elasticsearch.indexer.name.IndexNameGenerator;
-import io.gravitee.reporter.elasticsearch.indexer.name.MultiTypeIndexNameGenerator;
 import io.gravitee.reporter.elasticsearch.indexer.name.PerTypeAndDateIndexNameGenerator;
 import io.gravitee.reporter.elasticsearch.indexer.name.PerTypeIndexNameGenerator;
 import java.time.Instant;
@@ -43,7 +42,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = { ElasticsearchReporterTest.TestConfig.class })
-public class IndexNameGeneratorRegistrationTest {
+class IndexNameGeneratorRegistrationTest {
 
     @Autowired
     ApplicationContext applicationContext;
@@ -68,13 +67,7 @@ public class IndexNameGeneratorRegistrationTest {
     }
 
     @Test
-    public void testIndexNameGeneratorRegistration_should_register_per_type_and_date_generator() throws Exception {
-        if (elasticsearchVersion.startsWith("5")) {
-            configuration.setPerTypeIndex(true);
-        }
-        if (elasticsearchVersion.startsWith("6")) {
-            configuration.setIndexMode("daily");
-        }
+    void testIndexNameGeneratorRegistration_should_register_per_type_and_date_generator() throws Exception {
         if (elasticsearchVersion.startsWith("7")) {
             configuration.setIndexMode("daily");
         }
@@ -90,13 +83,7 @@ public class IndexNameGeneratorRegistrationTest {
     }
 
     @Test
-    public void testIndexNameGenerator_should_register_multi_type_or_per_type_generator() throws Exception {
-        if (elasticsearchVersion.startsWith("5")) {
-            configuration.setPerTypeIndex(false);
-        }
-        if (elasticsearchVersion.startsWith("6")) {
-            configuration.setIndexMode("ilm");
-        }
+    void testIndexNameGenerator_should_register_multi_type_or_per_type_generator() throws Exception {
         if (elasticsearchVersion.startsWith("7")) {
             configuration.setIndexMode("ilm");
         }
@@ -108,14 +95,6 @@ public class IndexNameGeneratorRegistrationTest {
         IndexNameGenerator indexNameGenerator = (IndexNameGenerator) applicationContext.getBean("indexNameGenerator");
         String generatedName = indexNameGenerator.generate(new Log(TIMESTAMP));
 
-        if (elasticsearchVersion.startsWith("5")) {
-            assertThat(indexNameGenerator.getClass()).isEqualTo(MultiTypeIndexNameGenerator.class);
-            assertThat(generatedName).isEqualTo("gravitee-2021.12.13");
-        }
-        if (elasticsearchVersion.startsWith("6")) {
-            assertThat(indexNameGenerator.getClass()).isEqualTo(PerTypeIndexNameGenerator.class);
-            assertThat(generatedName).isEqualTo("gravitee-log");
-        }
         if (elasticsearchVersion.startsWith("7")) {
             assertThat(indexNameGenerator.getClass()).isEqualTo(PerTypeIndexNameGenerator.class);
             assertThat(generatedName).isEqualTo("gravitee-log");

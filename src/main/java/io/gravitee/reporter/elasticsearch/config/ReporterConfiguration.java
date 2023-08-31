@@ -500,9 +500,7 @@ public class ReporterConfiguration {
     }
 
     public boolean isProxyConfigured() {
-        return !EnvironmentUtils
-            .getPropertiesStartingWith((ConfigurableEnvironment) environment, "reporters.elasticsearch.http.proxy")
-            .isEmpty();
+        return !EnvironmentUtils.getPropertiesStartingWith(environment, "reporters.elasticsearch.http.proxy").isEmpty();
     }
 
     public String getExtendedSettingsTemplate() {

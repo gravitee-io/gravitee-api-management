@@ -15,8 +15,9 @@
  */
 package io.gravitee.reporter.elasticsearch;
 
+import static org.mockito.Mockito.*;
+
 import io.gravitee.node.api.Node;
-import io.gravitee.reporter.elasticsearch.node.DummyNode;
 import io.gravitee.reporter.elasticsearch.spring.ElasticsearchReporterConfiguration;
 import io.vertx.core.Vertx;
 import org.springframework.context.annotation.Bean;
@@ -34,6 +35,6 @@ public class UnitTestConfiguration {
 
     @Bean
     public Node node() {
-        return new DummyNode();
+        return mock(Node.class);
     }
 }

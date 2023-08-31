@@ -20,6 +20,7 @@ import static io.gravitee.reporter.api.http.SecurityType.API_KEY;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.http.HttpHeaders;
+import io.gravitee.reporter.api.Reportable;
 import io.gravitee.reporter.api.common.Request;
 import io.gravitee.reporter.api.common.Response;
 import io.gravitee.reporter.api.health.EndpointStatus;
@@ -87,7 +88,7 @@ public class ElasticsearchReporterTest {
     }
 
     @Test
-    public void shouldReportMetrics() throws InterruptedException {
+    void shouldReportMetrics() throws InterruptedException {
         final Metrics requestMetrics = Metrics.on(Instant.now().toEpochMilli()).build();
         requestMetrics.setTransactionId("transactionId");
         requestMetrics.setTenant("tenant");
@@ -130,7 +131,7 @@ public class ElasticsearchReporterTest {
     }
 
     @Test
-    public void shoutReportHealth() throws InterruptedException {
+    void shoutReportHealth() throws InterruptedException {
         final Response defaultResponse = new Response();
         defaultResponse.setStatus(200);
         final Request defaultRequest = new Request();
@@ -169,7 +170,7 @@ public class ElasticsearchReporterTest {
         endpointHealthStatus.setState(3);
         endpointHealthStatus.setResponseTime(175);
 
-        TestObserver metrics1 = reporter.rxReport(endpointHealthStatus).test();
+        TestObserver<Reportable> metrics1 = reporter.rxReport(endpointHealthStatus).test();
 
         // advance time manually
         testScheduler.advanceTimeBy(5, TimeUnit.SECONDS);
@@ -179,7 +180,7 @@ public class ElasticsearchReporterTest {
     }
 
     @Test
-    public void shouldReportMonitor() throws Exception {
+    void shouldReportMonitor() throws Exception {
         final JvmInfo jvmInfo = new JvmInfo(100, 20000);
 
         JvmInfo.GarbageCollector youngInfo = new JvmInfo.GarbageCollector();
@@ -248,7 +249,7 @@ public class ElasticsearchReporterTest {
     }
 
     @Test
-    public void shouldReportLog() throws InterruptedException {
+    void shouldReportLog() throws InterruptedException {
         Log log = new Log(Instant.now().toEpochMilli());
 
         log.setApi("my-api");
@@ -299,7 +300,7 @@ public class ElasticsearchReporterTest {
     }
 
     @Test
-    public void reportTest() throws InterruptedException {
+    void reportTest() throws InterruptedException {
         TestObserver metrics1 = reporter.rxReport(mockRequestMetrics()).test();
 
         // advance time manually
@@ -333,45 +334,6 @@ public class ElasticsearchReporterTest {
         requestMetrics.setTransactionId("ba571368-f5e6-48b7-9713-68f5e698b761");
         requestMetrics.addCustomMetric("CustomMetricKey1", "CustomMetricValue1");
         requestMetrics.addCustomMetric("CustomMetricKey2", "CustomMetricValue2");
-
-        /*
-        final HttpHeaders clientRequestHeaders= new HttpHeaders();
-        clientRequestHeaders.add("Host", "localhost:8082");
-        clientRequestHeaders.add("Connection", "keep-alive");
-        clientRequestHeaders.add("X-gravitee-api-key","e14cfcb8-188d-4cb9-ad06-002aea5aab12");
-        clientRequestHeaders.add("User-Agent","Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36");
-        clientRequestHeaders.add("Accept-Encoding","gzip");
-        clientRequestHeaders.add("Accept-Encoding","deflate");
-        clientRequestHeaders.add("Accept-Encoding","sdch");
-        clientRequestHeaders.add("Accept-Encoding","br");
-        clientRequestHeaders.add("X-Gravitee-Transaction-Id","ba571368-f5e6-48b7-9713-68f5e698b761");
-        requestMetrics.setClientRequestHeaders(clientRequestHeaders);
-
-        final HttpHeaders clientResponseHeaders= new HttpHeaders();
-        clientResponseHeaders.add("X-Gravitee-Transaction-Id","ba571368-f5e6-48b7-9713-68f5e698b761");
-        clientResponseHeaders.add("Content-Length", "700");
-        clientResponseHeaders.add("Content-Type", "application/json");
-        clientResponseHeaders.add("Date", "Fri, 09 Jun 2017 17:32:15 GMT");
-        requestMetrics.setClientResponseHeaders(clientResponseHeaders);
-
-        final HttpHeaders proxyRequestHeaders= new HttpHeaders();
-        proxyRequestHeaders.add("Host", "localhost:8082");
-        proxyRequestHeaders.add("Connection", "keep-alive");
-        proxyRequestHeaders.add("X-gravitee-api-key","e14cfcb8-188d-4cb9-ad06-002aea5aab12");
-        proxyRequestHeaders.add("User-Agent","Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36");
-        proxyRequestHeaders.add("Accept-Encoding","gzip");
-        proxyRequestHeaders.add("Accept-Encoding","deflate");
-        proxyRequestHeaders.add("Accept-Encoding","sdch");
-        proxyRequestHeaders.add("Accept-Encoding","br");
-        proxyRequestHeaders.add("X-Gravitee-Transaction-Id","ba571368-f5e6-48b7-9713-68f5e698b761");
-        requestMetrics.setProxyRequestHeaders(proxyRequestHeaders);
-
-        final HttpHeaders proxyResponseHeaders= new HttpHeaders();
-        proxyResponseHeaders.add("Content-Length", "700");
-        proxyResponseHeaders.add("Content-Type", "application/json");
-        proxyResponseHeaders.add("Date", "Fri, 09 Jun 2017 17:32:15 GMT");
-        requestMetrics.setProxyResponseHeaders(proxyResponseHeaders);
-        */
 
         return requestMetrics;
     }

@@ -43,11 +43,8 @@ class DocumentBulkProcessor implements Subscriber<List<Buffer>> {
 
     private final Client client;
 
-    private final Vertx vertx;
-
-    DocumentBulkProcessor(Client client, Vertx vertx) {
+    DocumentBulkProcessor(Client client) {
         this.client = client;
-        this.vertx = vertx;
     }
 
     @Override
