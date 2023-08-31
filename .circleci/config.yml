@@ -119,9 +119,9 @@ commands:
         steps:
             - restore_cache:
                   keys:
-                      - gravitee-api-management-v8-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
-                      - gravitee-api-management-v8-<< parameters.jobName >>-{{ .Branch }}-
-                      - gravitee-api-management-v8-<< parameters.jobName >>-
+                      - gravitee-api-management-v9-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
+                      - gravitee-api-management-v9-<< parameters.jobName >>-{{ .Branch }}-
+                      - gravitee-api-management-v9-<< parameters.jobName >>-
     cmd-save-maven-job-cache:
         description: Restore Maven cache for a dedicated job
         parameters:
@@ -137,7 +137,7 @@ commands:
             - save_cache:
                   paths:
                       - ~/.m2
-                  key: gravitee-api-management-v8-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
+                  key: gravitee-api-management-v9-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
                   when: always
 
     cmd-notify-on-failure:
@@ -463,9 +463,9 @@ jobs:
                   at: .
             - restore_cache:
                   keys:
-                      - gravitee-api-management-v8-sonarcloud-analysis-<< parameters.component >>-{{ .Branch }}-{{ checksum "pom.xml" }}
-                      - gravitee-api-management-v8-sonarcloud-analysis-<< parameters.component >>-{{ .Branch }}-
-                      - gravitee-api-management-v8-sonarcloud-analysis-<< parameters.component >>-
+                      - gravitee-api-management-v9-sonarcloud-analysis-<< parameters.component >>-{{ .Branch }}-{{ checksum "pom.xml" }}
+                      - gravitee-api-management-v9-sonarcloud-analysis-<< parameters.component >>-{{ .Branch }}-
+                      - gravitee-api-management-v9-sonarcloud-analysis-<< parameters.component >>-
             - keeper/env-export:
                   secret-url: keeper://9x9YgyU6DWzux4DPoHAzDQ/field/password
                   var-name: SONAR_TOKEN
@@ -478,7 +478,7 @@ jobs:
             - save_cache:
                   paths:
                       - /opt/sonar-scanner/.sonar/cache
-                  key: gravitee-api-management-v8-sonarcloud-analysis-<< parameters.component >>-{{ .Branch }}-{{ checksum "pom.xml" }}
+                  key: gravitee-api-management-v9-sonarcloud-analysis-<< parameters.component >>-{{ .Branch }}-{{ checksum "pom.xml" }}
                   when: always
 
     job-validate:
@@ -560,7 +560,7 @@ jobs:
             - save_cache:
                   paths:
                       - ~/.m2/repository/io/gravitee/apim
-                  key: gravitee-api-management-v8-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+                  key: gravitee-api-management-v9-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
                   when: on_success
             - cmd-save-maven-job-cache:
                   jobName: job-build
@@ -648,7 +648,7 @@ jobs:
                   jobName: job-test
             - restore_cache:
                   keys:
-                      - gravitee-api-management-v8-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+                      - gravitee-api-management-v9-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
             - run:
                   name: Run tests
                   command: |
@@ -684,7 +684,7 @@ jobs:
                   jobName: test-plugin
             - restore_cache:
                   keys:
-                      - gravitee-api-management-v8-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+                      - gravitee-api-management-v9-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
             - run:
                   name: Run tests
                   command: |
@@ -719,7 +719,7 @@ jobs:
                   jobName: test-integration
             - restore_cache:
                   keys:
-                      - gravitee-api-management-v8-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+                      - gravitee-api-management-v9-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
             - run:
                   name: "Setup Environment Variables"
                   command: |
@@ -775,7 +775,7 @@ jobs:
                   jobName: job-test-repository
             - restore_cache:
                   keys:
-                      - gravitee-api-management-v8-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+                      - gravitee-api-management-v9-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
             - run:
                   name: Run tests
                   command: |
