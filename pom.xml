@@ -100,7 +100,7 @@
             <groupId>io.gravitee.reporter</groupId>
             <artifactId>gravitee-reporter-common</artifactId>
             <version>${gravitee-reporter-common.version}</version>
-            <scope>provided</scope>
+            <scope>compile</scope>
         </dependency>
 
         <dependency>
