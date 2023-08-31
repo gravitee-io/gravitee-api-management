@@ -1,3 +1,10 @@
+## [5.0.1](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/5.0.0...5.0.1) (2023-08-31)
+
+
+### Bug Fixes
+
+* move reporter common dependency scope to compile ([2b1608f](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/2b1608f84e6b35ef43b5f0be174da0bf398b9c52))
+
 # [5.0.0](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/4.2.2...5.0.0) (2023-08-31)
 
 
