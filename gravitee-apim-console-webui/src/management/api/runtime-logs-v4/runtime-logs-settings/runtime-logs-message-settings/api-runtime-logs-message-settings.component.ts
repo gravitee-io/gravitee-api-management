@@ -19,6 +19,8 @@ import { catchError, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { EMPTY, merge, Subject } from 'rxjs';
 import { StateParams } from '@uirouter/angularjs';
 
+import { isIso8601DateValid } from './iso-8601-date.validator';
+
 import { UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
 import { Analytics, ApiV4, SamplingTypeEnum } from '../../../../../entities/management-api-v2';
@@ -33,7 +35,7 @@ export class ApiRuntimeLogsMessageSettingsComponent implements OnInit, OnDestroy
   @Input() public api: ApiV4;
   form: FormGroup;
   samplingType: SamplingTypeEnum;
-  hasLoggingModeEnabled = false;
+  loggingModeDisabled = false;
   private unsubscribe$: Subject<void> = new Subject<void>();
 
   constructor(
@@ -43,7 +45,7 @@ export class ApiRuntimeLogsMessageSettingsComponent implements OnInit, OnDestroy
   ) {}
 
   public ngOnInit(): void {
-    this.hasLoggingModeEnabled = this.api?.analytics?.logging?.mode?.entrypoint || this.api?.analytics?.logging?.mode?.endpoint;
+    this.loggingModeDisabled = !this.api?.analytics?.logging?.mode?.entrypoint && !this.api?.analytics?.logging?.mode?.endpoint;
     this.samplingType = this.api?.analytics?.sampling?.type;
     this.initForm();
     this.handleSamplingTypeChanges();
@@ -109,19 +111,19 @@ export class ApiRuntimeLogsMessageSettingsComponent implements OnInit, OnDestroy
       response: new FormControl(this.api?.analytics?.logging?.phase?.response ?? false),
       messageContent: new FormControl({
         value: this.api?.analytics?.logging?.content?.messagePayload ?? false,
-        disabled: !this.hasLoggingModeEnabled,
+        disabled: this.loggingModeDisabled,
       }),
       messageHeaders: new FormControl({
         value: this.api?.analytics?.logging?.content?.messageHeaders ?? false,
-        disabled: !this.hasLoggingModeEnabled,
+        disabled: this.loggingModeDisabled,
       }),
       messageMetadata: new FormControl({
         value: this.api?.analytics?.logging?.content?.messageMetadata ?? false,
-        disabled: !this.hasLoggingModeEnabled,
+        disabled: this.loggingModeDisabled,
       }),
       headers: new FormControl({
         value: this.api?.analytics?.logging?.content?.headers ?? false,
-        disabled: !this.hasLoggingModeEnabled,
+        disabled: this.loggingModeDisabled,
       }),
       requestCondition: new FormControl(this.api?.analytics?.logging?.condition),
       messageCondition: new FormControl(this.api?.analytics?.logging?.messageCondition),
@@ -151,17 +153,17 @@ export class ApiRuntimeLogsMessageSettingsComponent implements OnInit, OnDestroy
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe(() => {
         const formValues = this.form.getRawValue();
-        this.hasLoggingModeEnabled = formValues.entrypoint || formValues.endpoint;
-        if (this.hasLoggingModeEnabled) {
-          this.form.get('messageContent').enable();
-          this.form.get('messageHeaders').enable();
-          this.form.get('messageMetadata').enable();
-          this.form.get('headers').enable();
-        } else {
+        this.loggingModeDisabled = !formValues.entrypoint && !formValues.endpoint;
+        if (this.loggingModeDisabled) {
           this.disableAndUncheck('messageContent');
           this.disableAndUncheck('messageHeaders');
           this.disableAndUncheck('messageMetadata');
           this.disableAndUncheck('headers');
+        } else {
+          this.form.get('messageContent').enable();
+          this.form.get('messageHeaders').enable();
+          this.form.get('messageMetadata').enable();
+          this.form.get('headers').enable();
         }
       });
   }
@@ -178,7 +180,7 @@ export class ApiRuntimeLogsMessageSettingsComponent implements OnInit, OnDestroy
       case 'COUNT':
         return [Validators.required, Validators.min(10)];
       case 'TEMPORAL':
-        return [Validators.required];
+        return [Validators.required, isIso8601DateValid()];
       default:
         return [];
     }

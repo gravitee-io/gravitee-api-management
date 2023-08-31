@@ -287,6 +287,9 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
         await componentHarness.addSamplingValue(null);
         expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(true);
 
+        await componentHarness.addSamplingValue('PT0.001S');
+        expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(true);
+
         await componentHarness.addSamplingValue('PT1S');
         expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(false);
       });
