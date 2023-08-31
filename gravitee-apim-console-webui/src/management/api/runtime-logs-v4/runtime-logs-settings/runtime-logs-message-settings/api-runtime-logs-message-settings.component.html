@@ -21,7 +21,7 @@
     <div class="settings__subtitle">Adjust the settings to match your needs.</div>
 
     <form *ngIf="form" [formGroup]="form">
-      <gio-banner-info *ngIf="hasLoggingModeEnabled">
+      <gio-banner-info>
         <div>Logging smartly</div>
         <span gioBannerBody>Opt for logging carefully during development, this requires extra storage and may affect API performance.</span>
       </gio-banner-info>
@@ -43,7 +43,7 @@
       <div class="settings__form-control">
         <div class="settings__form-control__title">Content data</div>
         <div class="settings__form-control__subtitle">Customize the data included.</div>
-        <p class="settings__form-control__info">
+        <p class="settings__form-control__info" *ngIf="loggingModeDisabled">
           <mat-icon svgIcon="gio:info"></mat-icon> To select an option, ensure you’ve checked one mode or more above.
         </p>
         <mat-checkbox formControlName="messageContent">Message content</mat-checkbox>
@@ -86,11 +86,14 @@
 
         <ng-container *ngIf="samplingType === 'TEMPORAL'">
           <p>Samples messages based on time duration.</p>
-          <p>The value should conform to ISO-8601 duration format, e.g. PT10S for a duration of 10 seconds.</p>
+          <p>The value should conform to ISO-8601 duration format, e.g. PT1S for a duration of 1 second.</p>
           <mat-form-field class="settings__form-control__form-field">
             <mat-label>Message sampling</mat-label>
             <input matInput formControlName="samplingValue" />
             <mat-error *ngIf="form.get('samplingValue').hasError('required')"> The sampling value is required. </mat-error>
+            <mat-error *ngIf="form.get('samplingValue').hasError('invalidISO8601Duration')">
+              The sampling value should use ISO-8601 duration format, e.g. PT1S, and be greater than 1 second.
+            </mat-error>
           </mat-form-field>
         </ng-container>
       </div>
