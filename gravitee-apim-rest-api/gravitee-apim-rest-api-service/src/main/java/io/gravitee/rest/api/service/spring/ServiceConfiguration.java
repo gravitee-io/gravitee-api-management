@@ -69,7 +69,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * @author GraviteeSource Team
  */
 @Configuration
-@ComponentScan(basePackages = { "io.gravitee.rest.api.service", "io.gravitee.rest.api.storage", "io.gravitee.rest.api.usecase" })
+@ComponentScan(basePackages = { "io.gravitee.rest.api.service" })
 @EnableTransactionManagement
 @Import(
     {
