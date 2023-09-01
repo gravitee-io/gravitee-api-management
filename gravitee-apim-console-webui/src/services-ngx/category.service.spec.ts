@@ -18,11 +18,8 @@ import { TestBed } from '@angular/core/testing';
 
 import { CategoryService } from './category.service';
 
-import { setupAngularJsTesting } from '../../jest.setup.js';
 import { GioHttpTestingModule } from '../shared/testing';
 import { Category } from '../entities/category/Category';
-
-setupAngularJsTesting();
 
 describe('CategoryService', () => {
   let httpTestingController: HttpTestingController;

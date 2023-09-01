@@ -19,10 +19,7 @@ import { TestBed } from '@angular/core/testing';
 import { EventService } from './event.service';
 
 import { fakeEvent } from '../entities/event/event.fixture';
-import { setupAngularJsTesting } from '../../jest.setup.js';
 import { GioHttpTestingModule } from '../shared/testing';
-
-setupAngularJsTesting();
 
 describe('EventService', () => {
   let httpTestingController: HttpTestingController;

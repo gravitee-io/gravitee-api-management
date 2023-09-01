@@ -19,11 +19,8 @@ import { TestBed } from '@angular/core/testing';
 import { DebugApiService } from './debug-api.service';
 
 import { fakeEvent } from '../entities/event/event.fixture';
-import { setupAngularJsTesting } from '../../jest.setup.js';
 import { GioHttpTestingModule } from '../shared/testing';
 import { fakeApi } from '../entities/api/Api.fixture';
-
-setupAngularJsTesting();
 
 describe('DebugApiService', () => {
   let httpTestingController: HttpTestingController;
