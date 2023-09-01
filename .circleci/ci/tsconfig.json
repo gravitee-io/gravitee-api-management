@@ -1,0 +1,30 @@
+{
+    "compilerOptions": {
+        "incremental": true,
+
+        /* Language and Environment */
+        "target": "es2022",
+        // "lib": [],
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+
+        /* Modules */
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "baseUrl": "./" /* Specify the base directory to resolve non-relative module names. */,
+        "resolveJsonModule": true /* Enable importing .json files. */,
+
+        /* Emit */
+        "outDir": "./dist" /* Specify an output folder for all emitted files. */,
+
+        /* Interop Constraints */
+        "esModuleInterop": true,
+        "forceConsistentCasingInFileNames": true,
+
+        /* Type Checking */
+        "strict": true,
+
+        /* Completeness */
+        "skipLibCheck": true /* Skip type checking all .d.ts files. */
+    }
+}
