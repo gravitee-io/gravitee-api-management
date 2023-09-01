@@ -15,9 +15,9 @@
  */
 package io.gravitee.rest.api.management.v2.rest.spring;
 
-import inmemory.ApplicationStorageServiceInMemory;
-import inmemory.LogStorageServiceInMemory;
-import inmemory.PlanStorageServiceInMemory;
+import inmemory.ApplicationCrudServiceInMemory;
+import inmemory.LogCrudServiceInMemory;
+import inmemory.PlanCrudServiceInMemory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -25,17 +25,17 @@ import org.springframework.context.annotation.Configuration;
 public class InMemoryConfiguration {
 
     @Bean
-    public ApplicationStorageServiceInMemory applicationRepository() {
-        return new ApplicationStorageServiceInMemory();
+    public ApplicationCrudServiceInMemory applicationRepository() {
+        return new ApplicationCrudServiceInMemory();
     }
 
     @Bean
-    public LogStorageServiceInMemory logRepository() {
-        return new LogStorageServiceInMemory();
+    public LogCrudServiceInMemory logRepository() {
+        return new LogCrudServiceInMemory();
     }
 
     @Bean
-    public PlanStorageServiceInMemory planRepository() {
-        return new PlanStorageServiceInMemory();
+    public PlanCrudServiceInMemory planRepository() {
+        return new PlanCrudServiceInMemory();
     }
 }

@@ -15,28 +15,29 @@
  */
 package inmemory;
 
-import io.gravitee.apim.storage.plan.PlanStorageService;
-import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
-import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
+import io.gravitee.apim.crud_service.application.ApplicationCrudService;
+import io.gravitee.rest.api.model.BaseApplicationEntity;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class PlanStorageServiceInMemory implements PlanStorageService, InMemoryStorageService<GenericPlanEntity> {
+public class ApplicationCrudServiceInMemory implements ApplicationCrudService, InMemoryCrudService<BaseApplicationEntity> {
 
-    private final List<GenericPlanEntity> storage = new ArrayList<>();
+    private final List<BaseApplicationEntity> storage = new ArrayList<>();
 
     @Override
-    public GenericPlanEntity findById(String planId) {
+    public BaseApplicationEntity findById(ExecutionContext executionContext, String applicationId) {
         return storage
             .stream()
-            .filter(plan -> planId.equals(plan.getId()))
+            .filter(application -> applicationId.equals(application.getId()))
             .findFirst()
-            .orElseThrow(() -> new PlanNotFoundException(planId));
+            .orElseThrow(() -> new ApplicationNotFoundException(applicationId));
     }
 
     @Override
-    public void initWith(List<GenericPlanEntity> items) {
+    public void initWith(List<BaseApplicationEntity> items) {
         storage.addAll(items);
     }
 
@@ -46,7 +47,7 @@ public class PlanStorageServiceInMemory implements PlanStorageService, InMemoryS
     }
 
     @Override
-    public List<GenericPlanEntity> storage() {
+    public List<BaseApplicationEntity> storage() {
         return Collections.unmodifiableList(storage);
     }
 }

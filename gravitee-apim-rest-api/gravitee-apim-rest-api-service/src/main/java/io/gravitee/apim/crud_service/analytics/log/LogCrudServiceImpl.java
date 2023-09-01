@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.storage.analytics.log;
+package io.gravitee.apim.crud_service.analytics.log;
 
 import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.log.v4.api.LogRepository;
@@ -30,11 +30,11 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
-class LogStorageServiceImpl implements LogStorageService {
+class LogCrudServiceImpl implements LogCrudService {
 
     private final LogRepository logRepository;
 
-    public LogStorageServiceImpl(@Lazy LogRepository logRepository) {
+    public LogCrudServiceImpl(@Lazy LogRepository logRepository) {
         this.logRepository = logRepository;
     }
 

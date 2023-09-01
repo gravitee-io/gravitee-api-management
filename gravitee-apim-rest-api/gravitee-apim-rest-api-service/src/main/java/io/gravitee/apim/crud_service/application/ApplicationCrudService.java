@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.storage.application;
+package io.gravitee.apim.crud_service.application;
 
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 
-public interface ApplicationStorageService {
+public interface ApplicationCrudService {
     BaseApplicationEntity findById(final ExecutionContext executionContext, String applicationId);
 }

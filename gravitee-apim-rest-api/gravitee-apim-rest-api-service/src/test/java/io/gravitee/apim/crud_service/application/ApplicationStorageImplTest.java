@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.storage.application;
+package io.gravitee.apim.crud_service.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
@@ -45,13 +45,13 @@ public class ApplicationStorageImplTest {
 
     ApplicationRepository applicationRepository;
 
-    ApplicationStorageService service;
+    ApplicationCrudService service;
 
     @BeforeEach
     void setUp() {
         applicationRepository = mock(ApplicationRepository.class);
 
-        service = new ApplicationStorageServiceImpl(applicationRepository);
+        service = new ApplicationCrudServiceImpl(applicationRepository);
     }
 
     @AfterEach

@@ -15,9 +15,9 @@
  */
 package io.gravitee.apim.usecase.log;
 
-import io.gravitee.apim.storage.analytics.log.LogStorageService;
-import io.gravitee.apim.storage.application.ApplicationStorageService;
-import io.gravitee.apim.storage.plan.PlanStorageService;
+import io.gravitee.apim.crud_service.analytics.log.LogCrudService;
+import io.gravitee.apim.crud_service.application.ApplicationCrudService;
+import io.gravitee.apim.crud_service.plan.PlanCrudService;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.PageableImpl;
@@ -37,24 +37,24 @@ import org.springframework.stereotype.Service;
 @Service
 public class SearchConnectionLogUsecase {
 
-    private final LogStorageService logStorageService;
-    private final PlanStorageService planStorageService;
-    private final ApplicationStorageService applicationStorageService;
+    private final LogCrudService logCrudService;
+    private final PlanCrudService planCrudService;
+    private final ApplicationCrudService applicationCrudService;
 
     public SearchConnectionLogUsecase(
-        LogStorageService logStorageService,
-        PlanStorageService planStorageService,
-        ApplicationStorageService applicationStorageService
+        LogCrudService logCrudService,
+        PlanCrudService planCrudService,
+        ApplicationCrudService applicationCrudService
     ) {
-        this.logStorageService = logStorageService;
-        this.planStorageService = planStorageService;
-        this.applicationStorageService = applicationStorageService;
+        this.logCrudService = logCrudService;
+        this.planCrudService = planCrudService;
+        this.applicationCrudService = applicationCrudService;
     }
 
     public Response execute(ExecutionContext executionContext, Request request) {
         var pageable = request.pageable.orElse(new PageableImpl(1, 20));
 
-        var response = logStorageService.searchApiConnectionLog(request.apiId(), pageable);
+        var response = logCrudService.searchApiConnectionLog(request.apiId(), pageable);
         return mapToResponse(executionContext, response);
     }
 
@@ -83,7 +83,7 @@ public class SearchConnectionLogUsecase {
 
     private GenericPlanEntity getPlanInfo(String planId) {
         try {
-            return planStorageService.findById(planId);
+            return planCrudService.findById(planId);
         } catch (PlanNotFoundException | TechnicalManagementException e) {
             return BasePlanEntity.builder().id(planId).name("Unknown plan").build();
         }
@@ -91,7 +91,7 @@ public class SearchConnectionLogUsecase {
 
     private BaseApplicationEntity getApplicationEntity(ExecutionContext executionContext, String applicationId) {
         try {
-            return applicationStorageService.findById(executionContext, applicationId);
+            return applicationCrudService.findById(executionContext, applicationId);
         } catch (ApplicationNotFoundException | TechnicalManagementException e) {
             return BaseApplicationEntity.builder().id(applicationId).name("Unknown application").build();
         }

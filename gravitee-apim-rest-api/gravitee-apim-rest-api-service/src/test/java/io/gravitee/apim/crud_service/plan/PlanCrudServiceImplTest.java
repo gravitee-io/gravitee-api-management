@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.storage.plan;
+package io.gravitee.apim.crud_service.plan;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
@@ -22,7 +22,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.apim.storage.plan.adapter.BasePlanAdapter;
+import io.gravitee.apim.crud_service.plan.adapter.BasePlanAdapter;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
@@ -49,19 +49,19 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-public class PlanStorageServiceImplTest {
+public class PlanCrudServiceImplTest {
 
     PlanRepository planRepository;
     ApiRepository apiRepository;
 
-    PlanStorageServiceImpl service;
+    PlanCrudServiceImpl service;
 
     @BeforeEach
     void setUp() {
         planRepository = mock(PlanRepository.class);
         apiRepository = mock(ApiRepository.class);
 
-        service = new PlanStorageServiceImpl(planRepository, apiRepository, new BasePlanAdapter(new PlanConverter(new ObjectMapper())));
+        service = new PlanCrudServiceImpl(planRepository, apiRepository, new BasePlanAdapter(new PlanConverter(new ObjectMapper())));
     }
 
     @Nested

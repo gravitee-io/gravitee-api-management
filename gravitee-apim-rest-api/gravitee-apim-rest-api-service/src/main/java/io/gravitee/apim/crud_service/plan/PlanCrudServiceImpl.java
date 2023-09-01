@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.storage.plan;
+package io.gravitee.apim.crud_service.plan;
 
-import io.gravitee.apim.storage.plan.adapter.BasePlanAdapter;
+import io.gravitee.apim.crud_service.plan.adapter.BasePlanAdapter;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -33,13 +33,13 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
-public class PlanStorageServiceImpl implements PlanStorageService {
+public class PlanCrudServiceImpl implements PlanCrudService {
 
     private final PlanRepository planRepository;
     private final ApiRepository apiRepository;
     private final BasePlanAdapter planAdapter;
 
-    public PlanStorageServiceImpl(@Lazy PlanRepository planRepository, @Lazy ApiRepository apiRepository, BasePlanAdapter planAdapter) {
+    public PlanCrudServiceImpl(@Lazy PlanRepository planRepository, @Lazy ApiRepository apiRepository, BasePlanAdapter planAdapter) {
         this.planRepository = planRepository;
         this.apiRepository = apiRepository;
         this.planAdapter = planAdapter;
