@@ -86,8 +86,7 @@ export class Step4Security1PlansHarness extends ComponentHarness {
     await (await this.getButtonByText('Add plan')).click();
   }
 
-  async editDefaultKeylessPlanName(newPlanName: string, httpTestingController: HttpTestingController): Promise<void> {
-    // Find DefaultKeyless Row anf get actions cell
+  async editDefaultKeylessPlanNameAndAddRateLimit(newPlanName: string, httpTestingController: HttpTestingController): Promise<void> {
     const tableDefaultKeylessActionsCell = await this.matTable()
       .then((t) => t.getRows())
       .then((row) => row[0])
@@ -102,24 +101,6 @@ export class Step4Security1PlansHarness extends ComponentHarness {
     apiPlanFormHarness.httpRequest(httpTestingController).expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
     // Change plan name
     await apiPlanFormHarness.getNameInput().then((i) => i.setValue(newPlanName));
-
-    await (await this.getButtonByText('Next')).click();
-    await (await this.getButtonByText('Save changes')).click();
-  }
-
-  async addRateLimitToPlan(httpTestingController: HttpTestingController): Promise<void> {
-    const tableDefaultKeylessActionsCell = await this.matTable()
-      .then((t) => t.getRows())
-      .then((row) => row[0])
-      .then((row) => row.getCells({ columnName: 'actions' }))
-      .then((cell) => cell[0]);
-
-    // Click on Edit plan button
-    await tableDefaultKeylessActionsCell.getHarness(MatButtonHarness.with({ selector: '[aria-label="Edit plan"]' })).then((b) => b.click());
-
-    const apiPlanFormHarness = await this.locatorFor(ApiPlanFormHarness)();
-
-    apiPlanFormHarness.httpRequest(httpTestingController).expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
 
     await (await this.getButtonByText('Next')).click();
     const rateLimitToggle = await apiPlanFormHarness.getRateLimitEnabledInput();
