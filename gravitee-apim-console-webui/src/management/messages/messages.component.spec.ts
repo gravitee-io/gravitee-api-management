@@ -19,6 +19,7 @@ import { InteractivityChecker } from '@angular/cdk/a11y';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { of } from 'rxjs';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
+import { HttpTestingController } from '@angular/common/http/testing';
 
 import { MessagesComponent } from './messages.component';
 import { MessagesHarness } from './messages.harness';
@@ -27,14 +28,14 @@ import { MessagesModule } from './messages.module';
 import { CurrentUserService, UIRouterStateParams } from '../../ajs-upgraded-providers';
 import { RoleService } from '../../services-ngx/role.service';
 import { fakeRole } from '../../entities/role/role.fixture';
-import { MessageService } from '../../services-ngx/message.service';
 import { User } from '../../entities/user';
 import { HttpMessagePayload, TextMessagePayload } from '../../entities/message/messagePayload';
-import { GioHttpTestingModule } from '../../shared/testing';
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../shared/testing';
 
 describe('MigratedMessagesComponent', () => {
   let fixture: ComponentFixture<MessagesComponent>;
   let harness: MessagesHarness;
+  let httpTestingController: HttpTestingController;
   const fakeRoles = [fakeRole({ name: 'ADMIN' }), fakeRole({ name: 'USER' }), fakeRole({ name: 'REVIEWER' })];
   const currentUser = new User();
   currentUser.userPermissions = ['api-message-c', 'environment-message-c'];
@@ -51,7 +52,6 @@ describe('MigratedMessagesComponent', () => {
           },
         },
         { provide: RoleService, useValue: { list: () => of(fakeRoles) } },
-        { provide: MessageService, useValue: { sendFromPortal: () => of(1), sendFromApi: () => of(2) } },
         { provide: CurrentUserService, useValue: { currentUser } },
       ],
     })
@@ -63,9 +63,14 @@ describe('MigratedMessagesComponent', () => {
       .compileComponents();
 
     fixture = TestBed.createComponent(MessagesComponent);
+    httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
     harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, MessagesHarness);
   };
+
+  afterEach(() => {
+    httpTestingController.verify();
+  });
 
   describe('init', () => {
     beforeEach(async () => await init());
@@ -123,12 +128,10 @@ describe('MigratedMessagesComponent', () => {
     });
 
     it('should send MAIL message with selected options', async () => {
-      const spy = jest.spyOn(TestBed.inject(MessageService), 'sendFromApi');
       await harness.selectChannel('Email');
       await harness.selectRecipients(['API subscribers', 'Members with the USER role on subscribing applications']);
       await harness.setTitle('Title');
       await harness.setText('Text');
-      expect(await harness.isSubmitButtonDisabled()).toBeFalsy();
       await harness.clickOnSubmitButton();
 
       const payload: TextMessagePayload = {
@@ -140,11 +143,10 @@ describe('MigratedMessagesComponent', () => {
         text: 'Text',
         title: 'Title',
       };
-      expect(spy).toHaveBeenCalledWith('apiId', payload);
+      expectSendFromApiRequest('apiId', payload);
     });
 
     it('should send HTTP message with selected options', async () => {
-      const spy = jest.spyOn(TestBed.inject(MessageService), 'sendFromApi');
       await harness.selectChannel('POST HTTP message');
       await harness.selectRecipients(['Members with the ADMIN role on subscribing applications']);
       await harness.setUrl('http://alert.io');
@@ -162,7 +164,7 @@ describe('MigratedMessagesComponent', () => {
         params: { Accept: 'application/json' },
       };
 
-      expect(spy).toHaveBeenCalledWith('apiId', payload);
+      expectSendFromApiRequest('apiId', payload);
     });
   });
 
@@ -186,7 +188,6 @@ describe('MigratedMessagesComponent', () => {
     });
 
     it('should send MAIL message with selected options', async () => {
-      const spy = jest.spyOn(TestBed.inject(MessageService), 'sendFromPortal');
       await harness.selectChannel('Portal notifications');
       await harness.selectRecipients(['Members with the USER role on ENVIRONMENT scope']);
       await harness.setTitle('Title');
@@ -203,11 +204,10 @@ describe('MigratedMessagesComponent', () => {
         text: 'Text',
         title: 'Title',
       };
-      expect(spy).toHaveBeenCalledWith(payload);
+      expectSendFromPortalRequest(payload);
     });
 
     it('should send HTTP message with selected options', async () => {
-      const spy = jest.spyOn(TestBed.inject(MessageService), 'sendFromPortal');
       await harness.selectChannel('POST HTTP message');
       await harness.selectRecipients([
         'Members with the ADMIN role on ENVIRONMENT scope',
@@ -227,7 +227,25 @@ describe('MigratedMessagesComponent', () => {
         useSystemProxy: false,
         params: {},
       };
-      expect(spy).toHaveBeenCalledWith(payload);
+      expectSendFromPortalRequest(payload);
     });
   });
+
+  function expectSendFromPortalRequest(payload: any) {
+    const req = httpTestingController.expectOne({
+      url: `${CONSTANTS_TESTING.env.baseURL}/messages`,
+      method: 'POST',
+    });
+    expect(req.request.body).toEqual(payload);
+    req.flush(0);
+  }
+
+  function expectSendFromApiRequest(apiId: string, payload: any) {
+    const req = httpTestingController.expectOne({
+      url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/messages`,
+      method: 'POST',
+    });
+    expect(req.request.body).toEqual(payload);
+    req.flush(0);
+  }
 });
