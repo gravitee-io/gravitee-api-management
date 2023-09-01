@@ -17,9 +17,26 @@ package io.gravitee.rest.api.management.v2.rest.spring;
 
 import static org.mockito.Mockito.mock;
 
+import io.gravitee.apim.usecase.UsecaseSpringConfiguration;
 import io.gravitee.node.api.license.NodeLicenseService;
 import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.ApiDuplicatorService;
+import io.gravitee.rest.api.service.ApiKeyService;
+import io.gravitee.rest.api.service.ApiMetadataService;
+import io.gravitee.rest.api.service.ApiService;
+import io.gravitee.rest.api.service.ApplicationService;
+import io.gravitee.rest.api.service.EnvironmentService;
+import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.MediaService;
+import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.service.OrganizationService;
+import io.gravitee.rest.api.service.PageService;
+import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.PermissionService;
+import io.gravitee.rest.api.service.RoleService;
+import io.gravitee.rest.api.service.SubscriptionService;
+import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.v4.ApiDuplicateService;
 import io.gravitee.rest.api.service.v4.ApiImportExportService;
 import io.gravitee.rest.api.service.v4.ApiLicenseService;
@@ -30,14 +47,12 @@ import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.PlanService;
 import io.gravitee.rest.api.service.v4.PolicyPluginService;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.PropertySource;
 
 @Configuration
-@ComponentScan(basePackages = { "io.gravitee.rest.api.usecase" })
-@Import({ InMemoryConfiguration.class })
+@Import({ InMemoryConfiguration.class, UsecaseSpringConfiguration.class })
 @PropertySource("classpath:/io/gravitee/rest/api/management/v2/rest/resource/jwt.properties")
 public class ResourceContextConfiguration {
 
