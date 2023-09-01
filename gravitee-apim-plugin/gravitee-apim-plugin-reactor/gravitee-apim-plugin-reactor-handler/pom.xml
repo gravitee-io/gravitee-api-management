@@ -28,9 +28,6 @@
 
     <artifactId>gravitee-apim-plugin-reactor-handler</artifactId>
     <name>Gravitee.io APIM - Plugin - Reactor Handler</name>
-    <properties>
-        <gravitee-node-plugins-service.version>3.1.0-alpha.5</gravitee-node-plugins-service.version>
-    </properties>
 
     <dependencies>
         <dependency>
@@ -50,7 +47,7 @@
         <dependency>
             <groupId>io.gravitee.node</groupId>
             <artifactId>gravitee-node-plugins-service</artifactId>
-            <version>${gravitee-node-plugins-service.version}</version>
+            <version>${gravitee-node.version}</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
