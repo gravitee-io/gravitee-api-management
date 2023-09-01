@@ -41,11 +41,13 @@
         ></gio-form-listeners-virtual-host>
       </div>
       <div class="entrypoints__footer" *ngIf="canUpdate">
+        {{ formGroup.getRawValue() | json }}
+        {{ apiExistingPaths | json }}
         <button
           mat-flat-button
           color="primary"
           type="submit"
-          [disabled]="formGroup.pristine || formGroup.invalid || dataSource.length === 0"
+          [disabled]="formGroup.pristine || formGroup.invalid || dataSource.length === 0 || formGroup.getRawValue().paths === apiExistingPaths"
         >
           Save changes
         </button>

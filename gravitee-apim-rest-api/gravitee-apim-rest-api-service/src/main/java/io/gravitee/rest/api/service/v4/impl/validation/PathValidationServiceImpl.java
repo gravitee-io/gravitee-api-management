@@ -128,13 +128,20 @@ public class PathValidationServiceImpl implements PathValidationService {
     }
 
     private void checkPathNotYetRegistered(final String path, final List<String> registeredPaths) {
-        boolean match =
-            registeredPaths != null &&
-            registeredPaths.stream().anyMatch(registeredPath -> path.startsWith(registeredPath) || registeredPath.startsWith(path));
-
-        if (match) {
-            throw new PathAlreadyExistsException(path);
+        if (registeredPaths == null) {
+            return;
         }
+
+        registeredPaths.forEach(registeredPath -> {
+            // If the new path is already used as a root of another path or the paths are equal
+            if (registeredPath.startsWith(path)) {
+                throw new PathAlreadyExistsException(path);
+            }
+            // If root of new path is already used by a path
+            if (path.startsWith(registeredPath)) {
+                throw new PathAlreadyExistsException(registeredPath);
+            }
+        });
     }
 
     private List<Path> extractPaths(final Api api) {

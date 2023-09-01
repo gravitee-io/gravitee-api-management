@@ -30,7 +30,7 @@ import {
 import { isEmpty } from 'lodash';
 import { filter, map, observeOn, startWith, take, takeUntil, tap } from 'rxjs/operators';
 import { FocusMonitor } from '@angular/cdk/a11y';
-import { asyncScheduler, Observable, of, Subject, zip } from 'rxjs';
+import {asyncScheduler, forkJoin, Observable, of, Subject, zip} from 'rxjs';
 
 import { PortalSettingsService } from '../../../../../services-ngx/portal-settings.service';
 import { ApiService } from '../../../../../services-ngx/api.service';
@@ -166,6 +166,8 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
       });
     });
     this.listenerFormArray.updateValueAndValidity();
+    console.log(this.pathsToIgnore?.map((p) => p.path) ?? []);
+
   }
 
   public addEmptyListener() {
@@ -210,9 +212,15 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
   public validateListenerControl(listenerControl: AbstractControl, httpListeners: PathV4[], currentIndex: number): ValidationErrors | null {
     const listenerPathControl = listenerControl.get('path');
     const contextPath = listenerPathControl.value;
+    const contextPathsToIgnore = this.pathsToIgnore?.map((p) => p.path) ?? [];
+
 
     let errors = null;
-    if (isEmpty(contextPath)) {
+
+    if (contextPathsToIgnore.includes(contextPath)) {
+      return null;
+    } else if (isEmpty(contextPath)) {
+    // if (isEmpty(contextPath)) {
       errors = {
         contextPath: 'Context path is required.',
       };
@@ -220,9 +228,14 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
       errors = { contextPath: 'Context path has to be more than 3 characters long.' };
     } else if (!PATH_PATTERN_REGEX.test(contextPath)) {
       errors = { contextPath: 'Context path is not valid.' };
+    } else if (contextPath.includes("//")) {
+      errors = { contextPath: 'Context path cannot contain double "/"'}
+    } else if (contextPath[contextPath.length - 1] !== "/") {
+      errors = {contextPath: `Context path must end with a "/"`};
     } else if (httpListeners.find((httpListener, index) => index !== currentIndex && httpListener.path === contextPath) != null) {
       errors = { contextPath: 'Context path is already use.' };
     }
+
     setTimeout(() => listenerPathControl.setErrors(errors), 0);
     return errors;
   }
@@ -230,19 +243,26 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
   private listenersAsyncValidator(): AsyncValidatorFn {
     return (listenerFormArrayControl: FormArray): Observable<ValidationErrors | null> => {
       const listenerFormArrayControls = listenerFormArrayControl.controls;
+      console.log("in async validator")
 
       const contextPathsToIgnore = this.pathsToIgnore?.map((p) => p.path) ?? [];
       const pathValidations$: Observable<ValidationErrors | null>[] = listenerFormArrayControls.map((listenerControl) => {
+        console.log(listenerControl.get('path').value)
+        console.log(listenerControl.errors)
         const listenerPathControl = listenerControl.get('path');
         const contextPathValue = listenerPathControl.value;
         if (contextPathsToIgnore.includes(contextPathValue)) {
           return of(null);
         }
+        console.log(contextPathValue)
         return this.apiService.verify(contextPathValue);
       });
 
-      return zip(...pathValidations$).pipe(
+      return forkJoin(pathValidations$).pipe(
         map((errors: (ValidationErrors | null)[]) => {
+          console.log("In errors")
+          console.log(listenerFormArrayControls[0].get('path').value)
+          console.log(errors)
           errors.forEach((error, index) => {
             listenerFormArrayControls.at(index).get('path').setErrors(error);
           });
