@@ -15,9 +15,9 @@
  */
 package inmemory;
 
+import io.gravitee.apim.storage.plan.PlanStorageService;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
-import io.gravitee.rest.api.storage.plan.PlanStorageService;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

@@ -15,10 +15,10 @@
  */
 package inmemory;
 
+import io.gravitee.apim.storage.application.ApplicationStorageService;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
-import io.gravitee.rest.api.storage.application.ApplicationStorageService;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

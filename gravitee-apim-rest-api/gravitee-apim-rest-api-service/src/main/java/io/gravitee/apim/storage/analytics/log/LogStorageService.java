@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.storage.application;
+package io.gravitee.apim.storage.analytics.log;
 
-import io.gravitee.rest.api.model.BaseApplicationEntity;
-import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.model.common.Pageable;
+import io.gravitee.rest.api.model.v4.log.BaseConnectionLog;
+import io.gravitee.rest.api.model.v4.log.SearchLogResponse;
 
-public interface ApplicationStorageService {
-    BaseApplicationEntity findById(final ExecutionContext executionContext, String applicationId);
+public interface LogStorageService {
+    SearchLogResponse<BaseConnectionLog> searchApiConnectionLog(String apiId, Pageable pageable);
 }

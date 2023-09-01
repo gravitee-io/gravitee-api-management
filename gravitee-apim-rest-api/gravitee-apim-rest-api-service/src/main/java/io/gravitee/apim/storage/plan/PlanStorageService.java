@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.storage.analytics.log;
+package io.gravitee.apim.storage.plan;
 
-import io.gravitee.rest.api.model.common.Pageable;
-import io.gravitee.rest.api.model.v4.log.BaseConnectionLog;
-import io.gravitee.rest.api.model.v4.log.SearchLogResponse;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 
-public interface LogStorageService {
-    SearchLogResponse<BaseConnectionLog> searchApiConnectionLog(String apiId, Pageable pageable);
+public interface PlanStorageService {
+    GenericPlanEntity findById(String planId);
 }
