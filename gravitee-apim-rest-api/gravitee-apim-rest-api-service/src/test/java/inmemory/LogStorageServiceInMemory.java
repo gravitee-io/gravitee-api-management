@@ -15,10 +15,10 @@
  */
 package inmemory;
 
+import io.gravitee.apim.storage.analytics.log.LogStorageService;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.v4.log.BaseConnectionLog;
 import io.gravitee.rest.api.model.v4.log.SearchLogResponse;
-import io.gravitee.rest.api.storage.analytics.log.LogStorageService;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;

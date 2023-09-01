@@ -13,8 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.usecase.log;
+package io.gravitee.apim.usecase.log;
 
+import io.gravitee.apim.storage.analytics.log.LogStorageService;
+import io.gravitee.apim.storage.application.ApplicationStorageService;
+import io.gravitee.apim.storage.plan.PlanStorageService;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.PageableImpl;
@@ -27,9 +30,6 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import io.gravitee.rest.api.storage.analytics.log.LogStorageService;
-import io.gravitee.rest.api.storage.application.ApplicationStorageService;
-import io.gravitee.rest.api.storage.plan.PlanStorageService;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Service;

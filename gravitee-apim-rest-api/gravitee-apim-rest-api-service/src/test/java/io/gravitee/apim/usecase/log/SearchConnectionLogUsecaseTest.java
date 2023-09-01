@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.usecase.log;
+package io.gravitee.apim.usecase.log;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -23,13 +23,13 @@ import inmemory.ApplicationStorageServiceInMemory;
 import inmemory.InMemoryStorageService;
 import inmemory.LogStorageServiceInMemory;
 import inmemory.PlanStorageServiceInMemory;
+import io.gravitee.apim.usecase.log.SearchConnectionLogUsecase.Request;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.v4.log.ConnectionLogModel;
 import io.gravitee.rest.api.model.v4.plan.BasePlanEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.usecase.log.SearchConnectionLogUsecase.Request;
 import java.util.List;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;

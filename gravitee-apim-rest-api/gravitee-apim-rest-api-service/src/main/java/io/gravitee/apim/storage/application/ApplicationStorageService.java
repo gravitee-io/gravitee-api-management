@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.storage.plan;
+package io.gravitee.apim.storage.application;
 
-import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
+import io.gravitee.rest.api.model.BaseApplicationEntity;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 
-public interface PlanStorageService {
-    GenericPlanEntity findById(String planId);
+public interface ApplicationStorageService {
+    BaseApplicationEntity findById(final ExecutionContext executionContext, String applicationId);
 }
