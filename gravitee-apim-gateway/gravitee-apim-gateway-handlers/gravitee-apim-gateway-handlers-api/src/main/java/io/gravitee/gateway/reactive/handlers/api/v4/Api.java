@@ -106,11 +106,11 @@ public class Api extends ReactableApi<io.gravitee.definition.model.v4.Api> {
                         if (secPolicy.getName() != null) {
                             policies.add(secPolicy);
                         }
+                    }
 
-                        if (plan.getFlows() != null) {
-                            List<Flow> flows = plan.getFlows();
-                            addFlowsPolicies(policies, flows);
-                        }
+                    if (plan.getFlows() != null) {
+                        List<Flow> flows = plan.getFlows();
+                        addFlowsPolicies(policies, flows);
                     }
                 });
         }
