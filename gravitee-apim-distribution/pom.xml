@@ -747,6 +747,7 @@
                 <gravitee-policy-aws-lambda.version>1.1.0</gravitee-policy-aws-lambda.version>
                 <gravitee-policy-basic-authentication.version>1.4.1</gravitee-policy-basic-authentication.version>
                 <gravitee-policy-circuit-breaker.version>1.1.4</gravitee-policy-circuit-breaker.version>
+                <gravitee-policy-custom-query-parameters-parser.version>1.0.1</gravitee-policy-custom-query-parameters-parser.version>
                 <gravitee-policy-geoip-filtering.version>1.1.1</gravitee-policy-geoip-filtering.version>
                 <gravitee-policy-javascript.version>1.3.2</gravitee-policy-javascript.version>
                 <gravitee-policy-wssecurity-authentication.version>1.0.0</gravitee-policy-wssecurity-authentication.version>
@@ -828,6 +829,13 @@
                     <groupId>io.gravitee.policy</groupId>
                     <artifactId>gravitee-policy-circuit-breaker</artifactId>
                     <version>${gravitee-policy-circuit-breaker.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                </dependency>
+                <dependency>
+                    <groupId>io.gravitee.policy</groupId>
+                    <artifactId>gravitee-policy-custom-query-parameters-parser</artifactId>
+                    <version>${gravitee-policy-custom-query-parameters-parser.version}</version>
                     <type>zip</type>
                     <scope>runtime</scope>
                 </dependency>
