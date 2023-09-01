@@ -842,6 +842,13 @@
                     <scope>runtime</scope>
                 </dependency>
                 <dependency>
+                    <groupId>io.gravitee.policy</groupId>
+                    <artifactId>gravitee-policy-custom-query-parameters-parser</artifactId>
+                    <version>${gravitee-policy-custom-query-parameters.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                </dependency>
+                <dependency>
                     <groupId>com.graviteesource.policy</groupId>
                     <artifactId>gravitee-policy-geoip-filtering</artifactId>
                     <version>${gravitee-policy-geoip-filtering.version}</version>

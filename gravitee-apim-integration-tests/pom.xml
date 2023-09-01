@@ -612,6 +612,12 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-custom-query-parameters-parser</artifactId>
+            <version>${gravitee-policy-custom-query-parameters.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>com.graviteesource.policy</groupId>
             <artifactId>gravitee-policy-data-logging-masking</artifactId>
             <version>${gravitee-policy-data-logging-masking.version}</version>
