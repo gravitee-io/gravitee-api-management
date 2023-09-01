@@ -66,12 +66,20 @@ export class ApiRuntimeLogsMessageSettingsHarness extends ComponentHarness {
     return await this.getRequestPhaseCheckbox().then((checkbox) => checkbox.check());
   };
 
+  public uncheckRequestPhase = async (): Promise<void> => {
+    return await this.getRequestPhaseCheckbox().then((checkbox) => checkbox.uncheck());
+  };
+
   public isResponsePhaseChecked = async (): Promise<boolean> => {
     return await this.getResponsePhaseCheckbox().then((checkbox) => checkbox.isChecked());
   };
 
   public checkResponsePhase = async (): Promise<void> => {
     return await this.getResponsePhaseCheckbox().then((checkbox) => checkbox.check());
+  };
+
+  public uncheckResponsePhase = async (): Promise<void> => {
+    return await this.getResponsePhaseCheckbox().then((checkbox) => checkbox.uncheck());
   };
 
   public isMessageContentChecked = async (): Promise<boolean> => {

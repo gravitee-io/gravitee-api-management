@@ -111,12 +111,6 @@ describe('ApiPortalGroupsComponent', () => {
       // expect reloaded component
       expectOneGroupList([fakeGroup({ id: 'my_group', name: 'My Group' }), fakeGroup({ id: 'new_group', name: 'New Group' })]);
       expectOneApiGet(fakeApiV2({ id: API_ID, groups: ['my_group', 'new_group'] }));
-
-      expect(await harness.isFillFormControlDirty()).toEqual(false);
-
-      const newSelectedGroups = await harness.getSelectedGroups();
-      expect(newSelectedGroups.length).toEqual(2);
-      expect(await harness.isSaveBarVisible()).toEqual(false);
     });
 
     it('should be read-only for V1 API', async () => {

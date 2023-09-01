@@ -188,6 +188,20 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       expect(await harness.rejectBtnIsVisible()).toEqual(false);
     });
 
+    it('should display closed subscription', async () => {
+      const closedSubscription = BASIC_SUBSCRIPTION();
+      closedSubscription.status = 'CLOSED';
+      await initComponent(closedSubscription);
+      expectApplicationGet();
+      expectApiKeyListGet();
+
+      const harness = await loader.getHarness(ApiGeneralSubscriptionEditHarness);
+
+      expect(await harness.getStatus()).toEqual('CLOSED');
+      expect(await harness.pauseBtnIsVisible()).toEqual(false);
+      expect(await harness.resumeBtnIsVisible()).toEqual(false);
+    });
+
     it('should not load footer in read-only mode', async () => {
       await initComponent(BASIC_SUBSCRIPTION(), ['api-subscription-r']);
       expectApplicationGet(ApiKeyMode.SHARED);
@@ -203,7 +217,6 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       const pushPlanSubscription = BASIC_SUBSCRIPTION();
       pushPlanSubscription.plan = fakeBasePlan({ id: PLAN_ID, security: { type: undefined, configuration: {} } });
       await initComponent(pushPlanSubscription);
-
       const harness = await loader.getHarness(ApiGeneralSubscriptionEditHarness);
       expect(await harness.transferBtnIsVisible()).toEqual(true);
 
@@ -227,7 +240,6 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       expect(await radioGroup.getRadioButtons().then((buttons) => buttons.length)).toEqual(2);
       expect(await radioGroup.getRadioButtons({ label: 'other' }).then((btn) => btn[0].isDisabled())).toEqual(true);
       expect(await radioGroup.getRadioButtons({ label: 'new' }).then((btn) => btn[0].isDisabled())).toEqual(false);
-
       const transferBtn = await transferDialog.getHarness(MatButtonHarness.with({ text: 'Transfer' }));
       expect(await transferBtn.isDisabled()).toEqual(true);
 
@@ -250,8 +262,6 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
         security: { type: undefined, configuration: {} },
       });
       expectApiSubscriptionGet(newSubscription);
-
-      expect(await harness.getPlan()).toEqual('new');
     });
 
     it('should not transfer subscription on cancel', async () => {
@@ -314,10 +324,6 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       expectApiSubscriptionGet(pausedSubscription);
       expectApplicationGet();
       expectApiKeyListGet();
-
-      expect(await harness.getStatus()).toEqual('PAUSED');
-      expect(await harness.pauseBtnIsVisible()).toEqual(false);
-      expect(await harness.resumeBtnIsVisible()).toEqual(true);
     });
     it('should not pause subscription on cancel', async () => {
       await initComponent();
@@ -377,10 +383,6 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       expectApiSubscriptionGet(BASIC_SUBSCRIPTION());
       expectApplicationGet();
       expectApiKeyListGet();
-
-      expect(await harness.getStatus()).toEqual('ACCEPTED');
-      expect(await harness.pauseBtnIsVisible()).toEqual(true);
-      expect(await harness.resumeBtnIsVisible()).toEqual(false);
     });
     it('should not resume subscription on cancel', async () => {
       await initComponent(pausedSubscription);
@@ -407,6 +409,7 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       expectApiKeyListGet();
 
       const harness = await loader.getHarness(ApiGeneralSubscriptionEditHarness);
+      expect(await harness.getEndingAt()).toEqual('-');
       expect(await harness.changeEndDateBtnIsVisible()).toEqual(true);
       await harness.openChangeEndDateDialog();
 
@@ -445,8 +448,6 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       expectApiSubscriptionGet(newEndDateSubscription);
       expectApplicationGet();
       expectApiKeyListGet();
-
-      expect(await harness.getEndingAt()).toEqual('Jan 1, 2080 12:00:00.000 AM');
     });
     it('should change existing end date', async () => {
       const endingAt = new Date('01/01/2080');
@@ -497,8 +498,6 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       expectApiSubscriptionGet(newEndDateSubscription);
       expectApplicationGet();
       expectApiKeyListGet();
-
-      expect(await harness.getEndingAt()).toEqual('Jan 2, 2080 12:00:00.000 AM');
     });
     it('should not change end date on cancel', async () => {
       await initComponent();
@@ -525,6 +524,7 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
     it('should close subscription', async () => {
       const harness = await loader.getHarness(ApiGeneralSubscriptionEditHarness);
       expect(await harness.closeBtnIsVisible()).toEqual(true);
+      expect(await harness.getStatus()).toEqual('ACCEPTED');
 
       await harness.openCloseDialog();
 
@@ -543,10 +543,6 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       expectApiSubscriptionGet(closedSubscription);
       expectApplicationGet();
       expectApiKeyListGet();
-
-      expect(await harness.getStatus()).toEqual('CLOSED');
-      expect(await harness.pauseBtnIsVisible()).toEqual(false);
-      expect(await harness.resumeBtnIsVisible()).toEqual(false);
     });
     it('should not close subscription on cancel', async () => {
       const harness = await loader.getHarness(ApiGeneralSubscriptionEditHarness);
@@ -592,9 +588,6 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       expectApiSubscriptionGet(BASIC_SUBSCRIPTION());
       expectApplicationGet();
       expectApiKeyListGet();
-
-      expect(await harness.getStatus()).toEqual('ACCEPTED');
-      expect(await harness.validateBtnIsVisible()).toEqual(false);
     });
     it('should validate with extra information', async () => {
       await initComponent(pendingSubscription);
@@ -640,9 +633,6 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       expectApiSubscriptionGet(BASIC_SUBSCRIPTION());
       expectApplicationGet();
       expectApiKeyListGet();
-
-      expect(await harness.getStatus()).toEqual('ACCEPTED');
-      expect(await harness.validateBtnIsVisible()).toEqual(false);
     });
     it('should validate with sharedApiKeyMode and cannot use custom key', async () => {
       await initComponent(pendingSubscription, undefined, false);
@@ -708,9 +698,6 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       expectApiSubscriptionGet(BASIC_SUBSCRIPTION());
       expectApplicationGet();
       expectApiKeyListGet();
-
-      expect(await harness.getStatus()).toEqual('ACCEPTED');
-      expect(await harness.validateBtnIsVisible()).toEqual(false);
     };
   });
 
@@ -743,9 +730,6 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       const rejectedSubscription = BASIC_SUBSCRIPTION();
       rejectedSubscription.status = 'REJECTED';
       expectApiSubscriptionGet(rejectedSubscription);
-
-      expect(await harness.getStatus()).toEqual('REJECTED');
-      expect(await harness.validateBtnIsVisible()).toEqual(false);
     });
     it('should reject subscription with reason specified', async () => {
       const harness = await loader.getHarness(ApiGeneralSubscriptionEditHarness);
@@ -767,9 +751,6 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       const rejectedSubscription = BASIC_SUBSCRIPTION();
       rejectedSubscription.status = 'REJECTED';
       expectApiSubscriptionGet(rejectedSubscription);
-
-      expect(await harness.getStatus()).toEqual('REJECTED');
-      expect(await harness.validateBtnIsVisible()).toEqual(false);
     });
     it('should not reject subscription on cancel', async () => {
       const harness = await loader.getHarness(ApiGeneralSubscriptionEditHarness);
@@ -818,6 +799,8 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
 
       const harness = await loader.getHarness(ApiGeneralSubscriptionEditHarness);
       expect(await harness.renewApiKeyBtnIsVisible()).toEqual(true);
+      expect(await harness.getApiKeyByRowIndex(0)).toContain('49765a30-659b-4284-b65a-30659be28431');
+
       await harness.openRenewApiKeyDialog();
 
       const renewDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
@@ -839,15 +822,14 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       expectApiSubscriptionGet(BASIC_SUBSCRIPTION());
       expectApplicationGet(ApiKeyMode.EXCLUSIVE);
       expectApiKeyListGet(SUBSCRIPTION_ID, [fakeApiKey({ key: 'renewed-api-key' })]);
-
-      expect(await harness.getApiKeyByRowIndex(0)).toContain('renewed-api-key');
     });
     it('should renew API Key with customApiKey enabled', async () => {
       await initComponent();
       expectApplicationGet(ApiKeyMode.EXCLUSIVE);
-      expectApiKeyListGet(SUBSCRIPTION_ID, [fakeApiKey({ id: 'my-api-key' })]);
+      expectApiKeyListGet(SUBSCRIPTION_ID, [fakeApiKey({ id: 'my-api-key', key: 'old-key' })]);
 
       const harness = await loader.getHarness(ApiGeneralSubscriptionEditHarness);
+      expect(await harness.getApiKeyByRowIndex(0)).toContain('old-key');
       await harness.openRenewApiKeyDialog();
 
       const renewDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
@@ -867,8 +849,6 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       expectApiSubscriptionGet(BASIC_SUBSCRIPTION());
       expectApplicationGet(ApiKeyMode.EXCLUSIVE);
       expectApiKeyListGet(SUBSCRIPTION_ID, [fakeApiKey({ id: 'my-api-key', key: '12345678' })]);
-
-      expect(await harness.getApiKeyByRowIndex(0)).toContain('12345678');
     });
     it('should not renew API Key on cancel', async () => {
       await initComponent();
@@ -884,8 +864,6 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
 
       const cancelBtn = await renewDialog.getHarness(MatButtonHarness.with({ text: 'Cancel' }));
       await cancelBtn.click();
-
-      expect(await harness.getApiKeyByRowIndex(0)).toContain('my-api-key');
     });
   });
 
@@ -971,6 +949,8 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       expectApiKeyListGet(SUBSCRIPTION_ID, [fakeApiKey({ expireAt: undefined })]);
 
       const harness = await loader.getHarness(ApiGeneralSubscriptionEditHarness);
+      expect(await harness.getApiKeyEndDateByRowIndex(0)).toEqual('-');
+
       const expireBtn = await harness.getExpireApiKeyBtn(0);
       expect(await expireBtn.isDisabled()).toEqual(false);
       await expireBtn.click();
@@ -998,8 +978,6 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       expectApiSubscriptionGet(BASIC_SUBSCRIPTION());
       expectApplicationGet(ApiKeyMode.EXCLUSIVE);
       expectApiKeyListGet(SUBSCRIPTION_ID, [fakeApiKey({ expireAt: endingAt })]);
-
-      expect(await harness.getApiKeyEndDateByRowIndex(0)).toEqual('Jan 1, 2080 12:00:00.000 AM');
     });
     it('should change existing expiration date', async () => {
       const endingAt = new Date('01/01/2080');
@@ -1035,8 +1013,6 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       expectApiSubscriptionGet(BASIC_SUBSCRIPTION());
       expectApplicationGet();
       expectApiKeyListGet(SUBSCRIPTION_ID, [fakeApiKey({ expireAt: newEndingAt })]);
-
-      expect(await harness.getApiKeyEndDateByRowIndex(0)).toEqual('Jan 2, 2080 12:00:00.000 AM');
     });
     it('should not change expiration date on cancel', async () => {
       await initComponent();

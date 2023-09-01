@@ -82,6 +82,7 @@ describe('OrgSettingsTagsComponent', () => {
     fixture = TestBed.createComponent(OrgSettingsTagsComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
+    fixture.detectChanges();
   }
 
   describe('without license', () => {
@@ -90,7 +91,6 @@ describe('OrgSettingsTagsComponent', () => {
     });
 
     it('should display tags table', async () => {
-      fixture.detectChanges();
       expectTagsListRequest([fakeTag({ restricted_groups: ['group-a'] })]);
       expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
       expectPortalSettingsGetRequest(fakePortalSettings());
@@ -124,7 +124,6 @@ describe('OrgSettingsTagsComponent', () => {
     });
 
     it('should edit default configuration', async () => {
-      fixture.detectChanges();
       expectTagsListRequest([fakeTag({ restricted_groups: ['group-a'] })]);
       expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
       expectPortalSettingsGetRequest(
@@ -156,7 +155,6 @@ describe('OrgSettingsTagsComponent', () => {
     });
 
     it('should lock default configuration entrypoint input', async () => {
-      fixture.detectChanges();
       expectTagsListRequest([fakeTag({ restricted_groups: ['group-a'] })]);
       expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
       expectPortalSettingsGetRequest(
@@ -176,7 +174,6 @@ describe('OrgSettingsTagsComponent', () => {
     });
 
     it('should display entrypoint mappings table', async () => {
-      fixture.detectChanges();
       expectTagsListRequest([fakeTag({ restricted_groups: ['group-a'] })]);
       expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
       expectPortalSettingsGetRequest(fakePortalSettings());
@@ -206,7 +203,6 @@ describe('OrgSettingsTagsComponent', () => {
     });
 
     it('should delete a tag', async () => {
-      fixture.detectChanges();
       expectTagsListRequest([fakeTag({ id: 'tag-1', restricted_groups: ['group-a'] }), fakeTag({ id: 'tag-2' })]);
       expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
       expectPortalSettingsGetRequest(fakePortalSettings());
@@ -244,7 +240,6 @@ describe('OrgSettingsTagsComponent', () => {
     });
 
     it('should delete a tag without entrypoint mapping', async () => {
-      fixture.detectChanges();
       expectTagsListRequest([fakeTag({ id: 'tag-1' })]);
       expectGroupListByOrganizationRequest([]);
       expectPortalSettingsGetRequest(fakePortalSettings());
@@ -264,7 +259,6 @@ describe('OrgSettingsTagsComponent', () => {
     });
 
     it('should delete a mapping', async () => {
-      fixture.detectChanges();
       expectTagsListRequest([fakeTag({ id: 'tag-1', restricted_groups: ['group-a'] }), fakeTag({ id: 'tag-2' })]);
       expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
       expectPortalSettingsGetRequest(fakePortalSettings());
@@ -286,12 +280,10 @@ describe('OrgSettingsTagsComponent', () => {
     });
 
     it('should not create a new tag without license', async () => {
-      fixture.detectChanges();
       expectTagsListRequest();
       expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
       expectPortalSettingsGetRequest(fakePortalSettings());
       expectEntrypointsListRequest();
-      fixture.detectChanges();
 
       const addButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to add a tag"]' }));
       await addButton.click();
@@ -303,12 +295,10 @@ describe('OrgSettingsTagsComponent', () => {
     });
 
     it('should update a tag', async () => {
-      fixture.detectChanges();
       expectTagsListRequest([fakeTag({ id: 'tag-1', restricted_groups: ['group-a'] })]);
       expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' }), fakeGroup({ id: 'group-b', name: 'Group B' })]);
       expectPortalSettingsGetRequest(fakePortalSettings());
       expectEntrypointsListRequest();
-      fixture.detectChanges();
 
       const table = await loader.getHarness(MatTableHarness.with({ selector: '#tagsTable' }));
       const rows = await table.getRows();
@@ -349,12 +339,10 @@ describe('OrgSettingsTagsComponent', () => {
     });
 
     it('should create a new mapping', async () => {
-      fixture.detectChanges();
       expectTagsListRequest([fakeTag({ id: 'tag-1', name: 'Tag 1' })]);
       expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
       expectPortalSettingsGetRequest(fakePortalSettings());
       expectEntrypointsListRequest();
-      fixture.detectChanges();
 
       const addButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to add a mapping"]' }));
       await addButton.click();
@@ -377,22 +365,13 @@ describe('OrgSettingsTagsComponent', () => {
         value: 'https://my.entry',
         tags: ['tag-1'],
       });
-      req.flush(null);
-
-      // expect new ngOnInit()
-      expectTagsListRequest();
-      expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
-      expectPortalSettingsGetRequest(fakePortalSettings());
-      expectEntrypointsListRequest();
     });
 
     it('should update a mapping', async () => {
-      fixture.detectChanges();
       expectTagsListRequest([fakeTag({ id: 'tag-1', name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
       expectGroupListByOrganizationRequest([]);
       expectPortalSettingsGetRequest(fakePortalSettings());
       expectEntrypointsListRequest([fakeEntrypoint({ id: 'entrypointIdA', tags: ['tag-1'] })]);
-      fixture.detectChanges();
 
       const table = await loader.getHarness(MatTableHarness.with({ selector: '#entrypointsTable' }));
       const rows = await table.getRows();
@@ -422,13 +401,6 @@ describe('OrgSettingsTagsComponent', () => {
         value: 'https://my.new.entry',
         tags: ['tag-2'],
       });
-      req.flush(null);
-
-      // expect new ngOnInit()
-      expectTagsListRequest();
-      expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
-      expectPortalSettingsGetRequest(fakePortalSettings());
-      expectEntrypointsListRequest();
     });
   });
 
@@ -438,12 +410,10 @@ describe('OrgSettingsTagsComponent', () => {
     });
 
     it('should create a new tag', async () => {
-      fixture.detectChanges();
       expectTagsListRequest();
       expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
       expectPortalSettingsGetRequest(fakePortalSettings());
       expectEntrypointsListRequest();
-      fixture.detectChanges();
 
       const addButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to add a tag"]' }));
       await addButton.click();

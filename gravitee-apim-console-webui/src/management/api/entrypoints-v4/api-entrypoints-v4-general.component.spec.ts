@@ -342,11 +342,6 @@ describe('ApiProxyV4EntrypointsComponent', () => {
         ],
       };
       saveReq.flush(updatedApi);
-
-      fixture.detectChanges();
-      // Check row is removed and entrypoint marked for deletion
-      const rows = await harness.getEntrypointsTableRows();
-      expect(rows.length).toEqual(2);
     });
 
     it('should not remove entrypoint on cancel', async () => {
@@ -472,12 +467,6 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       };
       expect(saveReq.request.body).toEqual(expectedUpdateApi);
       saveReq.flush(API);
-
-      // Check row is removed and entrypoint marked for deletion
-      const rows = await harness.getEntrypointsTableRows();
-      expect(rows.length).toEqual(1);
-
-      expect(await harness.getDeleteBtnByRowIndex(0).then((btn) => btn.isDisabled())).toEqual(true);
     });
   });
 

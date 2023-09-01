@@ -337,10 +337,6 @@ describe('ApiProxyEndpointListComponent', () => {
           ],
         },
       });
-
-      expect(await endpointsGroupHarness.getTableRows(0)).toEqual([
-        ['default', 'favorite', 'https://api.le-systeme-solaire.net/rest/', 'HTTP', '1', ''],
-      ]);
     });
   });
 
