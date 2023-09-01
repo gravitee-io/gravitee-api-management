@@ -56,7 +56,7 @@
         <gravitee-bom.version>6.0.3</gravitee-bom.version>
         <gravitee-alert-api.version>1.9.1</gravitee-alert-api.version>
         <gravitee-cockpit-api.version>2.1.0</gravitee-cockpit-api.version>
-        <gravitee-common.version>3.0.0</gravitee-common.version>
+        <gravitee-common.version>3.1.0</gravitee-common.version>
         <gravitee-connector-api.version>1.1.4</gravitee-connector-api.version>
         <gravitee-expression-language.version>3.1.0</gravitee-expression-language.version>
         <gravitee-fetcher-api.version>1.4.0</gravitee-fetcher-api.version>
@@ -170,6 +170,7 @@
         <gravitee-policy-cache.version>2.0.1</gravitee-policy-cache.version>
         <gravitee-policy-callout-http.version>2.0.2</gravitee-policy-callout-http.version>
         <gravitee-policy-circuit-breaker.version>1.1.5</gravitee-policy-circuit-breaker.version>
+        <gravitee-policy-custom-query-parameters.version>2.0.0</gravitee-policy-custom-query-parameters.version>
         <gravitee-policy-cloud-events.version>1.0.2</gravitee-policy-cloud-events.version>
         <gravitee-policy-data-logging-masking.version>3.0.2</gravitee-policy-data-logging-masking.version>
         <gravitee-policy-dynamic-routing.version>1.12.1</gravitee-policy-dynamic-routing.version>
