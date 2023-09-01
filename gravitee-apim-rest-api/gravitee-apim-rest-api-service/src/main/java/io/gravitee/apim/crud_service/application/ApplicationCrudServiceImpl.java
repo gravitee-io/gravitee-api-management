@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.storage.application;
+package io.gravitee.apim.crud_service.application;
 
-import io.gravitee.apim.storage.application.adapter.ApplicationMapper;
+import io.gravitee.apim.crud_service.application.adapter.ApplicationMapper;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.model.Application;
@@ -30,11 +30,11 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
-public class ApplicationStorageServiceImpl implements ApplicationStorageService {
+public class ApplicationCrudServiceImpl implements ApplicationCrudService {
 
     private final ApplicationRepository applicationRepository;
 
-    public ApplicationStorageServiceImpl(@Lazy ApplicationRepository applicationRepository) {
+    public ApplicationCrudServiceImpl(@Lazy ApplicationRepository applicationRepository) {
         this.applicationRepository = applicationRepository;
     }
 

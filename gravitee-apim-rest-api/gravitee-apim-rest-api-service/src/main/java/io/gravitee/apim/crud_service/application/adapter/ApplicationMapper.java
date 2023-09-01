@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.storage.application.adapter;
+package io.gravitee.apim.crud_service.application.adapter;
 
 import io.gravitee.definition.model.Origin;
 import io.gravitee.repository.management.model.Application;

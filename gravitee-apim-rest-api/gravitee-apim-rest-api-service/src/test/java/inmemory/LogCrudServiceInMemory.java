@@ -15,7 +15,7 @@
  */
 package inmemory;
 
-import io.gravitee.apim.storage.analytics.log.LogStorageService;
+import io.gravitee.apim.crud_service.analytics.log.LogCrudService;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.v4.log.BaseConnectionLog;
 import io.gravitee.rest.api.model.v4.log.SearchLogResponse;
@@ -25,7 +25,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
 
-public class LogStorageServiceInMemory implements LogStorageService, InMemoryStorageService<BaseConnectionLog> {
+public class LogCrudServiceInMemory implements LogCrudService, InMemoryCrudService<BaseConnectionLog> {
 
     private final List<BaseConnectionLog> storage = new ArrayList<>();
 

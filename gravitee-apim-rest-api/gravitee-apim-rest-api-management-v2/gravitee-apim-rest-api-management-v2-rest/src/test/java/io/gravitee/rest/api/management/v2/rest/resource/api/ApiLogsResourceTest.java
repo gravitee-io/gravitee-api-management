@@ -22,10 +22,10 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import fixtures.repository.ConnectionLogFixtures;
-import inmemory.ApplicationStorageServiceInMemory;
-import inmemory.InMemoryStorageService;
-import inmemory.LogStorageServiceInMemory;
-import inmemory.PlanStorageServiceInMemory;
+import inmemory.ApplicationCrudServiceInMemory;
+import inmemory.InMemoryCrudService;
+import inmemory.LogCrudServiceInMemory;
+import inmemory.PlanCrudServiceInMemory;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLog;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLogsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.BaseApplication;
@@ -59,13 +59,13 @@ public class ApiLogsResourceTest extends ApiResourceTest {
     final ConnectionLogFixtures connectionLogFixtures = new ConnectionLogFixtures(API, APPLICATION.getId(), PLAN.getId());
 
     @Inject
-    LogStorageServiceInMemory logStorageService;
+    LogCrudServiceInMemory logStorageService;
 
     @Inject
-    PlanStorageServiceInMemory planStorageService;
+    PlanCrudServiceInMemory planStorageService;
 
     @Inject
-    ApplicationStorageServiceInMemory applicationStorageService;
+    ApplicationCrudServiceInMemory applicationStorageService;
 
     WebTarget target;
 
@@ -90,7 +90,7 @@ public class ApiLogsResourceTest extends ApiResourceTest {
     public void tearDown() {
         GraviteeContext.cleanContext();
 
-        Stream.of(applicationStorageService, logStorageService, planStorageService).forEach(InMemoryStorageService::reset);
+        Stream.of(applicationStorageService, logStorageService, planStorageService).forEach(InMemoryCrudService::reset);
     }
 
     @Test

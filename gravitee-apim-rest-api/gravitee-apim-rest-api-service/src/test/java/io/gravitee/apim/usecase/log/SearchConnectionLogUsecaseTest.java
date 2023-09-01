@@ -19,10 +19,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
 import fixtures.repository.ConnectionLogFixtures;
-import inmemory.ApplicationStorageServiceInMemory;
-import inmemory.InMemoryStorageService;
-import inmemory.LogStorageServiceInMemory;
-import inmemory.PlanStorageServiceInMemory;
+import inmemory.ApplicationCrudServiceInMemory;
+import inmemory.InMemoryCrudService;
+import inmemory.LogCrudServiceInMemory;
+import inmemory.PlanCrudServiceInMemory;
 import io.gravitee.apim.usecase.log.SearchConnectionLogUsecase.Request;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
@@ -47,9 +47,9 @@ public class SearchConnectionLogUsecaseTest {
 
     ConnectionLogFixtures connectionLogFixtures = new ConnectionLogFixtures(API_ID, APPLICATION.getId(), PLAN.getId());
 
-    LogStorageServiceInMemory logStorageService = new LogStorageServiceInMemory();
-    PlanStorageServiceInMemory planStorageService = new PlanStorageServiceInMemory();
-    ApplicationStorageServiceInMemory applicationStorageService = new ApplicationStorageServiceInMemory();
+    LogCrudServiceInMemory logStorageService = new LogCrudServiceInMemory();
+    PlanCrudServiceInMemory planStorageService = new PlanCrudServiceInMemory();
+    ApplicationCrudServiceInMemory applicationStorageService = new ApplicationCrudServiceInMemory();
 
     SearchConnectionLogUsecase usecase;
 
@@ -63,7 +63,7 @@ public class SearchConnectionLogUsecaseTest {
 
     @AfterEach
     void tearDown() {
-        Stream.of(logStorageService, planStorageService, applicationStorageService).forEach(InMemoryStorageService::reset);
+        Stream.of(logStorageService, planStorageService, applicationStorageService).forEach(InMemoryCrudService::reset);
 
         GraviteeContext.cleanContext();
     }

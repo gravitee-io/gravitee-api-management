@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.storage.analytics.log;
+package io.gravitee.apim.crud_service.analytics.log;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -37,16 +37,16 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-public class LogStorageServiceImplTest {
+public class LogCrudServiceImplTest {
 
     LogRepository logRepository;
 
-    LogStorageServiceImpl logStorageService;
+    LogCrudServiceImpl logStorageService;
 
     @BeforeEach
     void setUp() {
         logRepository = mock(LogRepository.class);
-        logStorageService = new LogStorageServiceImpl(logRepository);
+        logStorageService = new LogCrudServiceImpl(logRepository);
     }
 
     @Nested

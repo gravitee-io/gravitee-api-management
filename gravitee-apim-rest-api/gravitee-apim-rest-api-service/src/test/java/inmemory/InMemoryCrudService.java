@@ -13,10 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.storage.plan;
+package inmemory;
 
-import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
+import java.util.List;
 
-public interface PlanStorageService {
-    GenericPlanEntity findById(String planId);
+public interface InMemoryCrudService<T> {
+    /**
+     * Init the storage with the given items
+     * @param items the items to store
+     */
+    void initWith(List<T> items);
+
+    /** Reset the storage */
+    void reset();
+
+    /** @return the storage */
+    List<T> storage();
 }

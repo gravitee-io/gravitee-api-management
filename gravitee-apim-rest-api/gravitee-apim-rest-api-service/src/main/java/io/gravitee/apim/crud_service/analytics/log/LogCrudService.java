@@ -13,20 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package inmemory;
+package io.gravitee.apim.crud_service.analytics.log;
 
-import java.util.List;
+import io.gravitee.rest.api.model.common.Pageable;
+import io.gravitee.rest.api.model.v4.log.BaseConnectionLog;
+import io.gravitee.rest.api.model.v4.log.SearchLogResponse;
 
-public interface InMemoryStorageService<T> {
-    /**
-     * Init the storage with the given items
-     * @param items the items to store
-     */
-    void initWith(List<T> items);
-
-    /** Reset the storage */
-    void reset();
-
-    /** @return the storage */
-    List<T> storage();
+public interface LogCrudService {
+    SearchLogResponse<BaseConnectionLog> searchApiConnectionLog(String apiId, Pageable pageable);
 }
