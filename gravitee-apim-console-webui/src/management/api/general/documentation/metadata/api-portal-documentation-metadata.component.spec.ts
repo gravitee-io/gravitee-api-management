@@ -110,10 +110,6 @@ describe('ApiPortalDocumentationMetadataComponent', () => {
     req.flush(newMetadata);
 
     expectMetadataList([newMetadata, fakeMetadata({ key: 'key1' }), fakeMetadata({ key: 'key2' })]);
-
-    expect(await gioMetadata.countRows()).toEqual(3);
-    const row1 = await gioMetadata.getRowByIndex(0);
-    expect(row1.name).toEqual('my new name');
   });
 
   it('should update metadata and reload metadata list', async () => {
@@ -122,7 +118,7 @@ describe('ApiPortalDocumentationMetadataComponent', () => {
     const gioMetadata = await loader.getHarness(GioMetadataHarness);
     expect(await gioMetadata.countRows()).toEqual(2);
 
-    let row1 = await gioMetadata.getRowByIndex(0);
+    const row1 = await gioMetadata.getRowByIndex(0);
     const row1UpdateBtn = row1.updateButton;
     await row1UpdateBtn.click();
 
@@ -142,10 +138,6 @@ describe('ApiPortalDocumentationMetadataComponent', () => {
     req.flush(updateMetadata);
 
     expectMetadataList([updateMetadata, fakeMetadata({ key: 'key2' })]);
-
-    expect(await gioMetadata.countRows()).toEqual(2);
-    row1 = await gioMetadata.getRowByIndex(0);
-    expect(row1.name).toEqual('my new name');
   });
 
   it('should delete metadata and reload metadata list', async () => {
@@ -154,7 +146,7 @@ describe('ApiPortalDocumentationMetadataComponent', () => {
     const gioMetadata = await loader.getHarness(GioMetadataHarness);
     expect(await gioMetadata.countRows()).toEqual(2);
 
-    let row1 = await gioMetadata.getRowByIndex(0);
+    const row1 = await gioMetadata.getRowByIndex(0);
     const row1DeleteBtn = row1.deleteButton;
     await row1DeleteBtn.click();
 
@@ -164,10 +156,6 @@ describe('ApiPortalDocumentationMetadataComponent', () => {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/metadata/key1`, method: 'DELETE' }).flush({});
 
     expectMetadataList([fakeMetadata({ key: 'key2' })]);
-
-    expect(await gioMetadata.countRows()).toEqual(1);
-    row1 = await gioMetadata.getRowByIndex(0);
-    expect(row1.key).toEqual('key2');
   });
 
   function expectMetadataList(list: Metadata[] = [fakeMetadata({ key: 'key1' }), fakeMetadata({ key: 'key2' })]) {

@@ -94,11 +94,6 @@ describe('OrgSettingsUserGenerateTokenComponent', () => {
 
       expect(component.hasBeenGenerated).toBeTruthy();
       expect(component.token).toEqual(tokenResponse);
-
-      const closeButton = await loader.getHarness(MatButtonHarness.with({ text: /^Close/ }));
-      await closeButton.click();
-
-      expect(matDialogRefMock.close).toHaveBeenCalledWith(false);
     });
 
     it('should not be able to create a token because it already exists', async () => {

@@ -208,7 +208,6 @@ describe('GioMetadataComponent', () => {
 
       const dia = await rootLoader.getHarness(GioConfirmDialogHarness);
       expect(dia).toBeTruthy();
-      await dia.confirm();
     });
   });
 

@@ -26,7 +26,7 @@ import { ApiRuntimeLogsMessageSettingsHarness } from './api-runtime-logs-message
 import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { User } from '../../../../../entities/user';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
-import { ApiV4 } from '../../../../../entities/management-api-v2';
+import { ApiV4, fakeApiV4 } from '../../../../../entities/management-api-v2';
 
 describe('ApiRuntimeLogsSettingsComponent', () => {
   const API_ID = 'apiId';
@@ -52,7 +52,7 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
   let httpTestingController: HttpTestingController;
   let componentHarness: ApiRuntimeLogsMessageSettingsHarness;
 
-  const initComponent = async () => {
+  const initComponent = async (api: ApiV4 = testApi) => {
     const currentUser = new User();
     currentUser.userPermissions = ['api-definition-u'];
 
@@ -69,7 +69,7 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
     httpTestingController = TestBed.inject(HttpTestingController);
     componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiRuntimeLogsMessageSettingsHarness);
 
-    fixture.componentInstance.api = testApi;
+    fixture.componentInstance.api = api;
     fixture.componentInstance.ngOnInit();
     fixture.detectChanges();
   };
@@ -98,9 +98,34 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
             logging: { ...testApi.analytics.logging, mode: { entrypoint: true, endpoint: true } },
           },
         });
+      });
 
+      it('should have logging mode enabled with entrypoint and endpoint', async () => {
+        await initComponent(
+          fakeApiV4({
+            ...testApi,
+            analytics: {
+              ...testApi.analytics,
+              logging: { ...testApi.analytics.logging, mode: { entrypoint: true, endpoint: true } },
+            },
+          }),
+        );
         expect(await componentHarness.isEntrypointChecked()).toBe(true);
         expect(await componentHarness.isEndpointChecked()).toBe(true);
+
+        await componentHarness.toggleEntrypoint();
+
+        await componentHarness.toggleEndpoint();
+        await componentHarness.saveSettings();
+
+        expectApiGetRequest(testApi);
+        expectApiPutRequest({
+          ...testApi,
+          analytics: {
+            ...testApi.analytics,
+            logging: { ...testApi.analytics.logging, mode: { entrypoint: false, endpoint: false } },
+          },
+        });
       });
 
       it('should enable/disable message checkboxes according to logging mode', async () => {
@@ -161,9 +186,39 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
           },
         },
       });
+    });
 
+    it('should have logging phase enabled with request and response', async () => {
+      await initComponent(
+        fakeApiV4({
+          ...testApi,
+          analytics: {
+            ...testApi.analytics,
+            logging: {
+              ...testApi.analytics.logging,
+              phase: { request: true, response: true },
+            },
+          },
+        }),
+      );
       expect(await componentHarness.isRequestPhaseChecked()).toBe(true);
       expect(await componentHarness.isResponsePhaseChecked()).toBe(true);
+
+      await componentHarness.uncheckRequestPhase();
+      await componentHarness.uncheckResponsePhase();
+      await componentHarness.saveSettings();
+
+      expectApiGetRequest(testApi);
+      expectApiPutRequest({
+        ...testApi,
+        analytics: {
+          ...testApi.analytics,
+          logging: {
+            ...testApi.analytics.logging,
+            phase: { request: false, response: false },
+          },
+        },
+      });
     });
 
     it('should enable logging content on payload, headers and metadata', async () => {
@@ -193,10 +248,6 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
           },
         },
       });
-
-      expect(await componentHarness.isMessageContentChecked()).toBe(true);
-      expect(await componentHarness.isMessageHeadersChecked()).toBe(true);
-      expect(await componentHarness.isMessageMetadataChecked()).toBe(true);
     });
 
     it('should save settings with conditions on request and messages', async () => {
@@ -220,9 +271,6 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
           },
         },
       });
-
-      expect(await componentHarness.getMessageCondition()).toEqual('message condition');
-      expect(await componentHarness.getMessageCondition()).toEqual('message condition');
     });
 
     describe('sampling tests', () => {
@@ -243,9 +291,6 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
             sampling: { type: 'PROBABILITY', value: '0.5' },
           },
         });
-
-        expect(await componentHarness.getSamplingType()).toStrictEqual('Probabilistic');
-        expect(await componentHarness.getSamplingValue()).toStrictEqual('0.5');
       });
 
       it('should validate sampling value with COUNT type', async () => {

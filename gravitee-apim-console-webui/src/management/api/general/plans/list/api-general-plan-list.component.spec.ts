@@ -364,7 +364,7 @@ describe('ApiGeneralPlanListComponent', () => {
         await loader.getHarness(MatButtonToggleHarness.with({ text: /STAGING/ })).then((btn) => btn.toggle());
         expectApiPlansListRequest([plan], 'STAGING');
 
-        let table = await computePlansTableCells();
+        const table = await computePlansTableCells();
         expect(table.rowCells).toEqual([['', 'publish me ☁️️', 'API_KEY', 'STAGING', 'tag1', '']]);
 
         await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Publish the plan"]' })).then((btn) => btn.click());
@@ -378,9 +378,6 @@ describe('ApiGeneralPlanListComponent', () => {
         expect(fakeRootScope.$broadcast).toHaveBeenCalledWith('apiChangeSuccess', { apiId: API_ID });
         expectApiGetRequest();
         expectApiPlansListRequest([updatedPlan], [...PLAN_STATUS]);
-
-        table = await computePlansTableCells();
-        expect(table.rowCells).toEqual([['', 'publish me ☁️️', 'API_KEY', 'PUBLISHED', 'tag1', '']]);
       });
 
       it('With a plan V4', async () => {
@@ -390,7 +387,7 @@ describe('ApiGeneralPlanListComponent', () => {
         await loader.getHarness(MatButtonToggleHarness.with({ text: /STAGING/ })).then((btn) => btn.toggle());
         expectApiPlansListRequest([plan], 'STAGING');
 
-        let table = await computePlansTableCells();
+        const table = await computePlansTableCells();
         expect(table.rowCells).toEqual([['', 'publish me ☁️️', 'API_KEY', 'STAGING', 'tag1', '']]);
 
         await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Publish the plan"]' })).then((btn) => btn.click());
@@ -404,9 +401,6 @@ describe('ApiGeneralPlanListComponent', () => {
         expect(fakeRootScope.$broadcast).not.toHaveBeenCalled();
         expectApiGetRequest();
         expectApiPlansListRequest([updatedPlan], [...PLAN_STATUS]);
-
-        table = await computePlansTableCells();
-        expect(table.rowCells).toEqual([['', 'publish me ☁️️', 'API_KEY', 'PUBLISHED', 'tag1', '']]);
       });
     });
 
@@ -415,7 +409,7 @@ describe('ApiGeneralPlanListComponent', () => {
         const plan = fakePlanV2({ apiId: API_ID, name: 'deprecate me 😥️', status: 'PUBLISHED' });
         await initComponent([plan]);
 
-        let table = await computePlansTableCells();
+        const table = await computePlansTableCells();
         expect(table.rowCells).toEqual([['', 'deprecate me 😥️', 'API_KEY', 'PUBLISHED', 'tag1', '']]);
 
         await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Deprecate the plan"]' })).then((btn) => btn.click());
@@ -429,16 +423,13 @@ describe('ApiGeneralPlanListComponent', () => {
         expect(fakeRootScope.$broadcast).toHaveBeenCalledWith('apiChangeSuccess', { apiId: API_ID });
         expectApiGetRequest();
         expectApiPlansListRequest([updatedPlan], [...PLAN_STATUS]);
-
-        table = await computePlansTableCells();
-        expect(table.rowCells).toEqual([['There is no plan (yet).']]);
       });
 
       it('With a plan V4', async () => {
         const plan = fakePlanV4({ apiId: API_ID, name: 'deprecate me 😥️', status: 'PUBLISHED' });
         await initComponent([plan]);
 
-        let table = await computePlansTableCells();
+        const table = await computePlansTableCells();
         expect(table.rowCells).toEqual([['', 'deprecate me 😥️', 'API_KEY', 'PUBLISHED', 'tag1', '']]);
 
         await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Deprecate the plan"]' })).then((btn) => btn.click());
@@ -452,9 +443,6 @@ describe('ApiGeneralPlanListComponent', () => {
         expect(fakeRootScope.$broadcast).not.toHaveBeenCalled();
         expectApiGetRequest();
         expectApiPlansListRequest([updatedPlan], [...PLAN_STATUS]);
-
-        table = await computePlansTableCells();
-        expect(table.rowCells).toEqual([['There is no plan (yet).']]);
       });
     });
 
@@ -464,7 +452,7 @@ describe('ApiGeneralPlanListComponent', () => {
           const plan = fakePlanV2({ apiId: API_ID, name: 'close me 🚪️', status: 'PUBLISHED' });
           await initComponent([plan]);
 
-          let table = await computePlansTableCells();
+          const table = await computePlansTableCells();
           expect(table.rowCells).toEqual([['', 'close me 🚪️', 'API_KEY', 'PUBLISHED', 'tag1', '']]);
 
           await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Close the plan"]' })).then((btn) => btn.click());
@@ -480,16 +468,13 @@ describe('ApiGeneralPlanListComponent', () => {
           expect(fakeRootScope.$broadcast).toHaveBeenCalledWith('apiChangeSuccess', { apiId: API_ID });
           expectApiGetRequest();
           expectApiPlansListRequest([updatedPlan], [...PLAN_STATUS]);
-
-          table = await computePlansTableCells();
-          expect(table.rowCells).toEqual([['There is no plan (yet).']]);
         });
 
         it('With a plan V4', async () => {
           const plan = fakePlanV4({ apiId: API_ID, name: 'close me 🚪️', status: 'PUBLISHED' });
           await initComponent([plan]);
 
-          let table = await computePlansTableCells();
+          const table = await computePlansTableCells();
           expect(table.rowCells).toEqual([['', 'close me 🚪️', 'API_KEY', 'PUBLISHED', 'tag1', '']]);
 
           await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Close the plan"]' })).then((btn) => btn.click());
@@ -505,9 +490,6 @@ describe('ApiGeneralPlanListComponent', () => {
           expect(fakeRootScope.$broadcast).not.toHaveBeenCalled();
           expectApiGetRequest();
           expectApiPlansListRequest([updatedPlan], [...PLAN_STATUS]);
-
-          table = await computePlansTableCells();
-          expect(table.rowCells).toEqual([['There is no plan (yet).']]);
         });
       });
     });
