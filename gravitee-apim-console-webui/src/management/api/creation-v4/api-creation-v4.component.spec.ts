@@ -125,7 +125,6 @@ describe('ApiCreationV4Component', () => {
     fixture = TestBed.createComponent(ApiCreationV4Component);
     httpTestingController = TestBed.inject(HttpTestingController);
     component = fixture.componentInstance;
-    fixture.detectChanges();
     harnessLoader = await TestbedHarnessEnvironment.loader(fixture);
   };
 
@@ -203,7 +202,6 @@ describe('ApiCreationV4Component', () => {
       expect(step1Harness).toBeDefined();
       await step1Harness.clickExit();
 
-      fixture.detectChanges();
       expect(fakeAjsState.go).toHaveBeenCalled();
     });
 
@@ -219,7 +217,6 @@ describe('ApiCreationV4Component', () => {
       await dialogHarness.cancel();
       expect(component.currentStep.group.label).toEqual('API details');
 
-      fixture.detectChanges();
       expect(fakeAjsState.go).not.toHaveBeenCalled();
     });
 
@@ -236,7 +233,6 @@ describe('ApiCreationV4Component', () => {
       await dialogHarness.confirm();
       expect(component.currentStep.payload).toEqual({});
 
-      fixture.detectChanges();
       expect(fakeAjsState.go).toHaveBeenCalled();
     });
   });
@@ -268,6 +264,7 @@ describe('ApiCreationV4Component', () => {
         await step20ArchitectureHarness.fillAndValidate('PROXY');
         // For sync api type, http-proxy endpoint is automatically added
         expectEndpointGetRequest({ id: 'http-proxy', name: 'HTTP Proxy' });
+        fixture.detectChanges();
 
         expect(component.currentStep.payload.type).toEqual('PROXY');
         expect(component.currentStep.payload.selectedEntrypoints).toEqual([
@@ -726,6 +723,7 @@ describe('ApiCreationV4Component', () => {
 
         await step20ArchitectureHarness.clickValidate();
         expectEndpointGetRequest({ id: 'http-proxy', name: 'HTTP Proxy' });
+        fixture.detectChanges();
 
         // Init Step 2 config
         exceptEnvironmentGetRequest(fakeEnvironment());
@@ -892,8 +890,6 @@ describe('ApiCreationV4Component', () => {
       ]);
       expectLicenseGetRequest({ tier: '', features: [], packs: [] });
 
-      fixture.detectChanges();
-
       await step3Harness.fillAndValidate(['mock', 'kafka']);
 
       expect(component.currentStep.payload.selectedEndpoints).toEqual([
@@ -928,8 +924,6 @@ describe('ApiCreationV4Component', () => {
         { id: 'mock', supportedApiType: 'MESSAGE', name: 'Mock' },
       ]);
       expectLicenseGetRequest({ tier: '', features: [], packs: [] });
-
-      fixture.detectChanges();
 
       await step3Harness.fillAndValidate(['mock', 'kafka']);
 
@@ -1011,7 +1005,6 @@ describe('ApiCreationV4Component', () => {
         await fillAndValidateStep2Entrypoints2Config();
         await fillAndValidateStep3Endpoints1List();
         await fillAndValidateStep3Endpoints2Config();
-        fixture.detectChanges();
       });
       describe('step4 - plans list', () => {
         it('should add default keyless and push plans to payload', async () => {
@@ -1083,7 +1076,6 @@ describe('ApiCreationV4Component', () => {
         ]);
         await fillAndValidateStep3Endpoints1List();
         await fillAndValidateStep3Endpoints2Config();
-        fixture.detectChanges();
       });
 
       it('should add default keyless plan only', async () => {
@@ -1253,7 +1245,6 @@ describe('ApiCreationV4Component', () => {
         ]);
         await fillAndValidateStep3Endpoints1List();
         await fillAndValidateStep3Endpoints2Config();
-        fixture.detectChanges();
       });
 
       it('should add default push plan only', async () => {
@@ -1293,7 +1284,6 @@ describe('ApiCreationV4Component', () => {
         await fillAndValidateStep3Endpoints1List();
         await fillAndValidateStep3Endpoints2Config();
         await fillAndValidateStep4Security1PlansList();
-        fixture.detectChanges();
       });
 
       it('should display payload info', async () => {
@@ -1324,7 +1314,6 @@ describe('ApiCreationV4Component', () => {
         const step6Harness = await harnessLoader.getHarness(Step5SummaryHarness);
         await step6Harness.clickChangeButton(1);
 
-        fixture.detectChanges();
         const step1Harness = await harnessLoader.getHarness(Step1ApiDetailsHarness);
         expect(await step1Harness.getName()).toEqual('API name');
         expect(await step1Harness.getVersion()).toEqual('1.0');
@@ -1336,7 +1325,6 @@ describe('ApiCreationV4Component', () => {
         let step6Harness = await harnessLoader.getHarness(Step5SummaryHarness);
         await step6Harness.clickChangeButton(2);
         expectEntrypointsGetRequest([]);
-        fixture.detectChanges();
 
         const step2Harness0Architecture = await harnessLoader.getHarness(Step2Entrypoints0ArchitectureHarness);
         expect(await step2Harness0Architecture.getArchitecture().then((s) => s.getValue())).toEqual('MESSAGE');
@@ -1351,12 +1339,10 @@ describe('ApiCreationV4Component', () => {
         const list = await step2Harness.getEntrypoints();
         expect(await list.getListValues({ selected: true })).toEqual(['entrypoint-1', 'entrypoint-2']);
         await list.deselectOptionByValue('entrypoint-1');
-        fixture.detectChanges();
 
         await step2Harness.clickValidate();
         const dialogHarness = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
         await dialogHarness.confirm();
-        fixture.detectChanges();
 
         await fillAndValidateStep2Entrypoints2Config([{ id: 'entrypoint-2', name: 'new entrypoint' }], ['/my-api/v4']);
 
@@ -1375,24 +1361,20 @@ describe('ApiCreationV4Component', () => {
         expectLicenseGetRequest({ tier: '', features: [], packs: [] });
         let step6Harness = await harnessLoader.getHarness(Step5SummaryHarness);
         await step6Harness.clickChangeButton(3);
-        fixture.detectChanges();
 
         const step3Harness = await harnessLoader.getHarness(Step3EndpointListHarness);
         expectEndpointsGetRequest([
           { id: 'kafka', supportedApiType: 'MESSAGE', name: 'Kafka' },
           { id: 'mock', supportedApiType: 'MESSAGE', name: 'Mock' },
         ]);
-
         const list = await step3Harness.getEndpoints();
 
         expect(await list.getListValues({ selected: true })).toEqual(['kafka', 'mock']);
         await list.deselectOptionByValue('kafka');
         expect(await list.getListValues({ selected: true })).toEqual(['mock']);
-        fixture.detectChanges();
         await step3Harness.clickValidate();
         const dialogHarness = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
         await dialogHarness.confirm();
-
         await fillAndValidateStep3Endpoints2Config([{ id: 'mock', supportedApiType: 'MESSAGE', name: 'Mock' }]);
 
         await fillAndValidateStep4Security1PlansList();
@@ -1412,8 +1394,6 @@ describe('ApiCreationV4Component', () => {
         expect(step4Summary).toContain('Update name' + 'KEY_LESS');
 
         await step6Harness.clickChangeButton(4);
-
-        fixture.detectChanges();
 
         const step4Security1PlansHarness = await harnessLoader.getHarness(Step4Security1PlansHarness);
         expect(await step4Security1PlansHarness.countNumberOfRows()).toEqual(2);
@@ -1443,7 +1423,6 @@ describe('ApiCreationV4Component', () => {
         await fillAndValidateStep3Endpoints1List();
         await fillAndValidateStep3Endpoints2Config();
         await fillAndValidateStep4Security1PlansList();
-        fixture.detectChanges();
       });
 
       it('should go to confirmation page after clicking Deploy my API', async () => {
@@ -1469,7 +1448,6 @@ describe('ApiCreationV4Component', () => {
         await fillAndValidateStep3Endpoints1List();
         await fillAndValidateStep3Endpoints2Config();
         await fillAndValidateStep4Security1PlansList();
-        fixture.detectChanges();
       });
 
       it('should go to confirmation page after clicking Save API & Ask for review', async () => {
@@ -1529,7 +1507,6 @@ describe('ApiCreationV4Component', () => {
     httpTestingController
       .expectOne({ url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/endpoints/${fullConnector.id}`, method: 'GET' })
       .flush(fullConnector);
-    fixture.detectChanges();
   }
 
   async function fillAndValidateStep1ApiDetails(name = 'API name', version = '1.0', description = 'description') {
@@ -1557,7 +1534,6 @@ describe('ApiCreationV4Component', () => {
       // For sync api type, we need to select the http proxy endpoint
       expectEndpointGetRequest({ id: 'http-proxy', name: 'HTTP Proxy' });
     }
-    fixture.detectChanges();
   }
 
   async function fillAndValidateStep3Endpoints1List(
@@ -1621,7 +1597,6 @@ describe('ApiCreationV4Component', () => {
       },
     };
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/settings`, method: 'GET' }).flush(settings);
-    fixture.detectChanges();
   }
 
   function expectVerifyContextPathGetRequest() {
@@ -1630,7 +1605,6 @@ describe('ApiCreationV4Component', () => {
 
   function exceptEnvironmentGetRequest(environment: Environment) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}`, method: 'GET' }).flush(environment);
-    fixture.detectChanges();
   }
 
   function expectCallsForApiCreation(apiId: string, planId: string) {
