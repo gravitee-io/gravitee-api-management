@@ -1751,7 +1751,6 @@ jobs:
             name: openjdk
             with_node: true
         environment:
-            RELEASE_VERSION: << pipeline.parameters.graviteeio_version >>
             ARTIFACTORY_REPO_URL: "https://odbxikk7vo-artifactory.services.clever-cloud.com/external-dependencies-n-gravitee-all"
         steps:
             - keeper/env-export:
