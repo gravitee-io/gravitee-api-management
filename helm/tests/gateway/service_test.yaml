@@ -102,6 +102,26 @@ tests:
           path: spec.externalTrafficPolicy
           value: Local
 
+  - it: Deploy with NodePort and fixed port
+    template: gateway/gateway-service.yaml
+    set:
+      gateway:
+        service:
+          type: NodePort
+          nodePort: 30082
+    asserts:
+      - hasDocuments:
+          count: 1
+      - contains:
+          path: spec.ports
+          content:
+            port: 82
+            targetPort: 8082
+            nodePort: 30082
+            protocol: TCP
+            name: gateway
+            appProtocol: http
+
   - it: Deploy with LoadBalancer and externalTrafficPolicy
     template: gateway/gateway-service.yaml
     set:

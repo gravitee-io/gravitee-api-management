@@ -617,6 +617,9 @@ api:
     externalTrafficPolicy: Cluster
     externalPort: 83
     internalPort: 8083
+    # used only if the type of your service is "NodePort" and must be in the range 30000-32767
+    # if not set a random port will be used in that range
+    # nodePort: 30083
     internalPortName: http
 #    appProtocol: http
   # annotations:
@@ -1034,6 +1037,9 @@ gateway:
     # externalTrafficPolicy is used only when configuring type "NodePort" or "LoadBalancer"
     externalTrafficPolicy: Cluster
     externalPort: 82
+    # used only if the type of your service is "NodePort" and must be in the range 30000-32767
+    # if not set a random port will be used in that range
+    # nodePort: 30082
     internalPort: 8082
     internalPortName: http
 #    appProtocol: http
@@ -1212,6 +1218,9 @@ portal:
     externalTrafficPolicy: Cluster
     externalPort: 8003
     internalPort: 8080
+    # used only if the type of your service is "NodePort" and must be in the range 30000-32767
+    # if not set a random port will be used in that range
+    # nodePort: 30003
     internalPortName: http
 #    appProtocol: http
   # annotations:
@@ -1396,6 +1405,9 @@ ui:
     externalTrafficPolicy: Cluster
     externalPort: 8002
     internalPort: 8080
+    # used only if the type of your service is "NodePort" and must be in the range 30000-32767
+    # if not set a random port will be used in that range
+    # nodePort: 30002
     internalPortName: http
 #    appProtocol: http
   # annotations:
