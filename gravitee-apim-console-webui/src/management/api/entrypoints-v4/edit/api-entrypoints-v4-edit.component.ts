@@ -15,9 +15,9 @@
  */
 import { Component, Inject, OnInit } from '@angular/core';
 import { StateService } from '@uirouter/core';
-import { EMPTY, forkJoin, Subject } from 'rxjs';
+import { EMPTY, forkJoin, of, Subject } from 'rxjs';
 import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { FormControl, FormGroup } from '@angular/forms';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { GioJsonSchema } from '@gravitee/ui-particles-angular';
 
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
@@ -25,7 +25,9 @@ import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-pro
 import { ApiV4, ConnectorPlugin, Entrypoint, Listener, Qos, UpdateApiV4 } from '../../../../entities/management-api-v2';
 import { ConnectorPluginsV2Service } from '../../../../services-ngx/connector-plugins-v2.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
+import { IconService } from '../../../../services-ngx/icon.service';
 
+type DlqElement = { name: string; type: string; icon: string };
 @Component({
   selector: 'api-entrypoints-v4-edit',
   template: require('./api-entrypoints-v4-edit.component.html'),
@@ -44,6 +46,9 @@ export class ApiEntrypointsV4EditComponent implements OnInit {
   public entrypointName: string;
   public entrypointSchema: GioJsonSchema;
   public supportedQos: Qos[];
+  public supportDlq: boolean;
+  public enabledDlq: boolean;
+  public dlqElements: { name: string; elements: DlqElement[] }[] = [];
 
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
@@ -51,6 +56,7 @@ export class ApiEntrypointsV4EditComponent implements OnInit {
     private readonly apiService: ApiV2Service,
     private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
     private readonly snackBarService: SnackBarService,
+    private readonly iconService: IconService,
   ) {
     this.apiId = this.ajsStateParams.apiId;
     this.entrypointId = this.ajsStateParams.entrypointId;
@@ -78,6 +84,11 @@ export class ApiEntrypointsV4EditComponent implements OnInit {
               if (matchingEntrypoint) {
                 this.entrypointName = matchingEntrypoint.name;
                 this.supportedQos = matchingEntrypoint.supportedQos;
+
+                this.supportDlq = matchingEntrypoint.availableFeatures?.includes('DLQ');
+                if (this.supportDlq) {
+                  this.enabledDlq = !!this.entrypoint.dlq?.endpoint;
+                }
               }
             }
           }
@@ -85,13 +96,86 @@ export class ApiEntrypointsV4EditComponent implements OnInit {
         switchMap((_) => this.connectorPluginsV2Service.getEntrypointPluginSchema(this.entrypoint.type)),
         tap((schema) => {
           this.entrypointSchema = schema;
+        }),
+        switchMap((_) => (this.supportDlq ? this.connectorPluginsV2Service.listEndpointPlugins() : of(null))),
+        tap((plugins: ConnectorPlugin[] | null) => {
           this.form = new FormGroup({});
           this.form.addControl(`${this.entrypoint.type}-config`, new FormControl(this.entrypoint.configuration));
           this.form.addControl(`${this.entrypoint.type}-qos`, new FormControl(this.entrypoint.qos));
+
+          if (this.supportDlq && plugins) {
+            this.dlqElements = this.getEligibleApiEndpointsAndEndpointGroupsForDlq(plugins);
+
+            this.form.addControl('enabledDlq', new FormControl(this.enabledDlq));
+            if (this.enabledDlq) {
+              const selectedDlqElement = this.findSelectedElement(this.dlqElements, this.entrypoint.dlq?.endpoint);
+              this.form.addControl('dlqElement', new FormControl(selectedDlqElement, Validators.required));
+            }
+
+            this.handleEnabledChanges();
+          }
         }),
         takeUntil(this.unsubscribe$),
       )
       .subscribe();
+  }
+
+  private getEligibleApiEndpointsAndEndpointGroupsForDlq(plugins: ConnectorPlugin[]) {
+    const dlqElements: { name: string; elements: DlqElement[] }[] = [];
+    const availableGroups: DlqElement[] = [];
+    const availableEndpoints: DlqElement[] = [];
+
+    const eligibleEndpointTypesForDlq = this.getEligibleEndpointTypesForDlq(plugins);
+
+    this.api.endpointGroups
+      .slice(1) // skip default group
+      .forEach((endpointGroup) => {
+        const eligibleEndpointType = eligibleEndpointTypesForDlq.find((value) => value.id === endpointGroup.type);
+        if (eligibleEndpointType) {
+          availableGroups.push({
+            name: endpointGroup.name,
+            type: eligibleEndpointType.name,
+            icon: eligibleEndpointType.icon,
+          });
+          endpointGroup.endpoints.forEach((endpoint) => {
+            availableEndpoints.push({
+              name: endpoint.name,
+              type: eligibleEndpointType.name,
+              icon: eligibleEndpointType.icon,
+            });
+          });
+        }
+      });
+    if (availableEndpoints.length > 0) {
+      dlqElements.push({ name: 'Endpoints', elements: availableEndpoints });
+    }
+    if (availableGroups.length > 0) {
+      dlqElements.push({ name: 'Endpoint Groups', elements: availableGroups });
+    }
+
+    return dlqElements;
+  }
+
+  private getEligibleEndpointTypesForDlq(plugins: ConnectorPlugin[]) {
+    return plugins
+      .filter((plugin) => plugin.supportedModes.includes('PUBLISH') && plugin.supportedApiType === 'MESSAGE')
+      .map((plugin) => {
+        return { id: plugin.id, name: plugin.name, icon: this.iconService.registerSvg(plugin.id, plugin.icon) };
+      });
+  }
+
+  private handleEnabledChanges(): void {
+    this.form
+      .get('enabledDlq')
+      .valueChanges.pipe(takeUntil(this.unsubscribe$))
+      .subscribe((value) => {
+        this.enabledDlq = value;
+        if (this.enabledDlq) {
+          this.form.addControl('dlqElement', new FormControl(null, Validators.required));
+        } else {
+          this.form.removeControl('dlqElement');
+        }
+      });
   }
 
   onSaveEntrypointConfig() {
@@ -108,6 +192,16 @@ export class ApiEntrypointsV4EditComponent implements OnInit {
           const entrypointToUpdate = listenerToUpdate.entrypoints.find((entrypoint) => entrypoint.type === this.entrypointId);
 
           const updatedEntrypoint: Entrypoint = { ...entrypointToUpdate, configuration: configurationValue, qos: qosValue };
+
+          if (this.supportDlq) {
+            if (this.enabledDlq) {
+              const dlqEndpoint: DlqElement = this.form.get('dlqElement').value;
+              updatedEntrypoint.dlq = { endpoint: dlqEndpoint.name };
+            } else {
+              updatedEntrypoint.dlq = null;
+            }
+          }
+
           const updatedListener: Listener = {
             ...listenerToUpdate,
             entrypoints: [...listenerToUpdate.entrypoints.filter((entrypoint) => entrypoint.type !== this.entrypointId), updatedEntrypoint],
@@ -131,5 +225,15 @@ export class ApiEntrypointsV4EditComponent implements OnInit {
       .subscribe(() => {
         this.ajsState.go('management.apis.ng.entrypoints');
       });
+  }
+
+  private findSelectedElement(dlqElements: { name: string; elements: DlqElement[] }[], endpoint: string | undefined) {
+    let selectedElement: DlqElement | undefined;
+    dlqElements.forEach((dlqElement) => {
+      if (!selectedElement) {
+        selectedElement = dlqElement.elements.find((element) => element.name === endpoint);
+      }
+    });
+    return selectedElement;
   }
 }

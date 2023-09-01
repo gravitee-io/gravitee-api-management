@@ -23,6 +23,8 @@ import { By } from '@angular/platform-browser';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
+import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
+import { MatSelectHarness } from '@angular/material/select/testing';
 
 import { ApiEntrypointsV4EditComponent } from './api-entrypoints-v4-edit.component';
 
@@ -30,8 +32,10 @@ import {
   Api,
   ApiV4,
   ConnectorPlugin,
+  EndpointV4Default,
   Entrypoint,
   fakeApiV4,
+  fakeConnectorPlugin,
   getEntrypointConnectorSchema,
   Listener,
   UpdateApiV4,
@@ -68,94 +72,407 @@ describe('ApiEntrypointsV4EditComponent', () => {
   const API = fakeApiV4({
     id: API_ID,
     listeners: [HTTP_LISTENER, SUBSCRIPTION_LISTENER],
+    endpointGroups: [
+      {
+        name: 'default-group',
+        type: 'kafka',
+        loadBalancer: {
+          type: 'ROUND_ROBIN',
+        },
+        endpoints: [
+          {
+            name: 'default',
+            type: 'kafka',
+            weight: 1,
+            inheritConfiguration: false,
+            configuration: {
+              bootstrapServers: 'localhost:9092',
+            },
+          },
+        ],
+      },
+      {
+        name: 'mock-group',
+        type: 'mock',
+        loadBalancer: {
+          type: 'ROUND_ROBIN',
+        },
+        endpoints: [EndpointV4Default.byType('mock')],
+      },
+    ],
   });
   const fakeUiRouter = { go: jest.fn() };
   let fixture: ComponentFixture<ApiEntrypointsV4EditComponent>;
   let httpTestingController: HttpTestingController;
   let loader: HarnessLoader;
 
-  const createComponent = (api: ApiV4) => {
+  const createComponent = (api: ApiV4, entrypointType: string) => {
     fixture = TestBed.createComponent(ApiEntrypointsV4EditComponent);
     fixture.detectChanges();
 
     expectGetEntrypoints();
     expectGetApi(api);
-    expectGetEntrypointSchema('http-get');
+    expectGetEntrypointSchema(entrypointType);
     fixture.detectChanges();
   };
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiEntrypointsV4Module, MatIconTestingModule, MatAutocompleteModule],
-      providers: [
-        { provide: UIRouterStateParams, useValue: { apiId: API_ID, entrypointId: 'http-get' } },
-        { provide: UIRouterState, useValue: fakeUiRouter },
-      ],
+  describe('With HTTP GET entrypoint', () => {
+    beforeEach(() => {
+      TestBed.configureTestingModule({
+        imports: [NoopAnimationsModule, GioHttpTestingModule, ApiEntrypointsV4Module, MatIconTestingModule, MatAutocompleteModule],
+        providers: [
+          { provide: UIRouterStateParams, useValue: { apiId: API_ID, entrypointId: 'http-get' } },
+          { provide: UIRouterState, useValue: fakeUiRouter },
+        ],
+      });
+      httpTestingController = TestBed.inject(HttpTestingController);
+
+      createComponent(API, 'http-get');
+      fixture.detectChanges();
+      loader = TestbedHarnessEnvironment.loader(fixture);
     });
-    httpTestingController = TestBed.inject(HttpTestingController);
 
-    createComponent(API);
-    fixture.detectChanges();
-    loader = TestbedHarnessEnvironment.loader(fixture);
-  });
+    afterEach(() => {
+      httpTestingController.verify();
+    });
 
-  afterEach(() => {
-    httpTestingController.verify();
-  });
+    it('should show API configuration', async () => {
+      const formElement = fixture.debugElement.query(By.css('gio-form-json-schema'));
+      expect(formElement).not.toBeNull();
 
-  it('should show API configuration', async () => {
-    const formElement = fixture.debugElement.query(By.css('gio-form-json-schema'));
-    expect(formElement).not.toBeNull();
+      const input = await loader.getHarness(MatInputHarness.with({ selector: '[id*="messagesLimitCount"]' }));
+      await input.setValue('111');
+    });
 
-    const input = await loader.getHarness(MatInputHarness.with({ selector: '[id*="messagesLimitCount"]' }));
-    await input.setValue('111');
-  });
+    it('should save configuration changes', async () => {
+      const button = await loader.getHarness(MatButtonHarness.with({ text: 'Save changes' }));
+      const formElement = fixture.debugElement.query(By.css('gio-form-json-schema'));
+      expect(formElement).not.toBeNull();
+      expect(button.isDisabled()).toBeTruthy();
 
-  it('should save configuration changes', async () => {
-    const button = await loader.getHarness(MatButtonHarness.with({ text: 'Save changes' }));
-    const formElement = fixture.debugElement.query(By.css('gio-form-json-schema'));
-    expect(formElement).not.toBeNull();
-    expect(button.isDisabled()).toBeTruthy();
+      const input = await loader.getHarness(MatInputHarness.with({ selector: '[id*="messagesLimitCount"]' }));
+      await input.setValue('1234');
 
-    const input = await loader.getHarness(MatInputHarness.with({ selector: '[id*="messagesLimitCount"]' }));
-    await input.setValue('1234');
+      const qosSelect = await loader.getHarness(GioFormQosHarness);
+      expect(await qosSelect.getSelectedQos()).toEqual('AUTO');
+      await qosSelect.selectOption('AT_MOST_ONCE');
 
-    const qosSelect = await loader.getHarness(GioFormQosHarness);
-    expect(await qosSelect.getSelectedQos()).toEqual('AUTO');
-    await qosSelect.selectOption('AT_MOST_ONCE');
+      expect(await button.isDisabled()).toBeFalsy();
+      await button.click();
+      fixture.detectChanges();
 
-    expect(await button.isDisabled()).toBeFalsy();
-    await button.click();
-    fixture.detectChanges();
-
-    // GET
-    expectGetApi(API);
-    // UPDATE
-    const saveReq = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`, method: 'PUT' });
-    const expectedUpdateApi: UpdateApiV4 = {
-      ...API,
-      listeners: [
-        SUBSCRIPTION_LISTENER,
-        {
-          type: 'HTTP',
-          entrypoints: [
-            WEBSOCKET_ENTRYPOINT,
-            {
-              type: 'http-get',
-              configuration: {
-                messagesLimitCount: 1234,
-                headersInPayload: false,
-                metadataInPayload: false,
-                messagesLimitDurationMs: 5000,
+      // GET
+      expectGetApi(API);
+      // UPDATE
+      const saveReq = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`,
+        method: 'PUT',
+      });
+      const expectedUpdateApi: UpdateApiV4 = {
+        ...API,
+        listeners: [
+          SUBSCRIPTION_LISTENER,
+          {
+            type: 'HTTP',
+            entrypoints: [
+              WEBSOCKET_ENTRYPOINT,
+              {
+                type: 'http-get',
+                configuration: {
+                  messagesLimitCount: 1234,
+                  headersInPayload: false,
+                  metadataInPayload: false,
+                  messagesLimitDurationMs: 5000,
+                },
+                qos: 'AT_MOST_ONCE',
               },
-              qos: 'AT_MOST_ONCE',
+            ],
+          },
+        ],
+      };
+      expect(saveReq.request.body).toEqual(expectedUpdateApi);
+      saveReq.flush(API);
+    });
+  });
+
+  describe('With Webhook entrypoint and two endpoint groups', () => {
+    beforeEach(() => {
+      TestBed.configureTestingModule({
+        imports: [NoopAnimationsModule, GioHttpTestingModule, ApiEntrypointsV4Module, MatIconTestingModule, MatAutocompleteModule],
+        providers: [
+          { provide: UIRouterStateParams, useValue: { apiId: API_ID, entrypointId: 'webhook' } },
+          { provide: UIRouterState, useValue: fakeUiRouter },
+        ],
+      });
+      httpTestingController = TestBed.inject(HttpTestingController);
+
+      const API = fakeApiV4({
+        id: API_ID,
+        listeners: [HTTP_LISTENER, SUBSCRIPTION_LISTENER],
+        endpointGroups: [
+          {
+            name: 'default-group',
+            type: 'kafka',
+            loadBalancer: {
+              type: 'ROUND_ROBIN',
             },
-          ],
-        },
-      ],
-    };
-    expect(saveReq.request.body).toEqual(expectedUpdateApi);
-    saveReq.flush(API);
+            endpoints: [
+              {
+                name: 'default',
+                type: 'kafka',
+                weight: 1,
+                inheritConfiguration: false,
+                configuration: {
+                  bootstrapServers: 'localhost:9092',
+                },
+              },
+            ],
+          },
+          {
+            name: 'mock-group',
+            type: 'mock',
+            loadBalancer: {
+              type: 'ROUND_ROBIN',
+            },
+            endpoints: [EndpointV4Default.byType('mock')],
+          },
+        ],
+      });
+
+      createComponent(API, 'webhook');
+      expectEndpointsGetRequest();
+      fixture.detectChanges();
+      loader = TestbedHarnessEnvironment.loader(fixture);
+    });
+
+    afterEach(() => {
+      httpTestingController.verify();
+    });
+
+    it('should show API configuration', async () => {
+      const formElement = fixture.debugElement.query(By.css('gio-form-json-schema'));
+      expect(formElement).not.toBeNull();
+
+      const input = await loader.getHarness(MatInputHarness.with({ selector: '[id*="connectTimeout"]' }));
+      await input.setValue('111');
+    });
+
+    it('should save configuration changes', async () => {
+      const button = await loader.getHarness(MatButtonHarness.with({ text: 'Save changes' }));
+      const formElement = fixture.debugElement.query(By.css('gio-form-json-schema'));
+      expect(formElement).not.toBeNull();
+      expect(button.isDisabled()).toBeTruthy();
+
+      const input = await loader.getHarness(MatInputHarness.with({ selector: '[id*="connectTimeout"]' }));
+      await input.setValue('1234');
+
+      const qosSelect = await loader.getHarness(GioFormQosHarness);
+      expect(await qosSelect.getSelectedQos()).toEqual('AUTO');
+      await qosSelect.selectOption('AT_MOST_ONCE');
+
+      const dlqToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="enabledDlq"]' }));
+      expect(await dlqToggle.isChecked()).toBeFalsy();
+      await dlqToggle.toggle();
+
+      const dlqSelect = await loader.getHarness(MatSelectHarness.with({ selector: '[aria-label="Dead letter queue endpoint"]' }));
+      expect(await dlqSelect.getValueText()).toEqual('');
+      await dlqSelect.clickOptions({ text: /mock/ });
+
+      expect(await button.isDisabled()).toBeFalsy();
+      await button.click();
+      fixture.detectChanges();
+
+      // GET
+      expectGetApi(API);
+      // UPDATE
+      const saveReq = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`,
+        method: 'PUT',
+      });
+      const expectedUpdateApi: UpdateApiV4 = {
+        ...API,
+        listeners: [
+          HTTP_LISTENER,
+          {
+            type: 'SUBSCRIPTION',
+            entrypoints: [
+              {
+                type: 'webhook',
+                qos: 'AT_MOST_ONCE',
+                configuration: {
+                  proxy: {
+                    useSystemProxy: false,
+                    enabled: false,
+                  },
+                  http: {
+                    readTimeout: 10000,
+                    idleTimeout: 60000,
+                    connectTimeout: 1234,
+                    maxConcurrentConnections: 5,
+                  },
+                },
+                dlq: {
+                  endpoint: 'Default Mock Endpoint',
+                },
+              },
+            ],
+          },
+        ],
+      };
+      expect(saveReq.request.body).toEqual(expectedUpdateApi);
+      saveReq.flush(API);
+    });
+  });
+  describe('With Webhook entrypoint and only one endpoint group', () => {
+    beforeEach(() => {
+      TestBed.configureTestingModule({
+        imports: [NoopAnimationsModule, GioHttpTestingModule, ApiEntrypointsV4Module, MatIconTestingModule, MatAutocompleteModule],
+        providers: [
+          { provide: UIRouterStateParams, useValue: { apiId: API_ID, entrypointId: 'webhook' } },
+          { provide: UIRouterState, useValue: fakeUiRouter },
+        ],
+      });
+      httpTestingController = TestBed.inject(HttpTestingController);
+
+      const API_WITHOUT_OTHER_ENDPOINT_GROUP = fakeApiV4({
+        id: API_ID,
+        listeners: [HTTP_LISTENER, SUBSCRIPTION_LISTENER],
+        endpointGroups: [
+          {
+            name: 'default-group',
+            type: 'kafka',
+            loadBalancer: {
+              type: 'ROUND_ROBIN',
+            },
+            endpoints: [
+              {
+                name: 'default',
+                type: 'kafka',
+                weight: 1,
+                inheritConfiguration: false,
+                configuration: {
+                  bootstrapServers: 'localhost:9092',
+                },
+              },
+            ],
+          },
+        ],
+      });
+
+      createComponent(API_WITHOUT_OTHER_ENDPOINT_GROUP, 'webhook');
+      expectEndpointsGetRequest();
+      fixture.detectChanges();
+      loader = TestbedHarnessEnvironment.loader(fixture);
+    });
+
+    afterEach(() => {
+      httpTestingController.verify();
+    });
+    it('should have no available endpoint for DLQ', async () => {
+      const button = await loader.getHarness(MatButtonHarness.with({ text: 'Save changes' }));
+      const formElement = fixture.debugElement.query(By.css('gio-form-json-schema'));
+      expect(formElement).not.toBeNull();
+      expect(button.isDisabled()).toBeTruthy();
+
+      const dlqToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="enabledDlq"]' }));
+      expect(await dlqToggle.isChecked()).toBeFalsy();
+      await dlqToggle.toggle();
+
+      const dlqSelect = await loader.getHarness(MatSelectHarness.with({ selector: '[aria-label="Dead letter queue endpoint"]' }));
+      expect(await dlqSelect.getValueText()).toEqual('No compatible endpoint or endpoint group available');
+    });
+  });
+
+  describe('With already configured Webhook entrypoint', () => {
+    beforeEach(() => {
+      TestBed.configureTestingModule({
+        imports: [NoopAnimationsModule, GioHttpTestingModule, ApiEntrypointsV4Module, MatIconTestingModule, MatAutocompleteModule],
+        providers: [
+          { provide: UIRouterStateParams, useValue: { apiId: API_ID, entrypointId: 'webhook' } },
+          { provide: UIRouterState, useValue: fakeUiRouter },
+        ],
+      });
+      httpTestingController = TestBed.inject(HttpTestingController);
+
+      const API = fakeApiV4({
+        id: API_ID,
+        listeners: [
+          HTTP_LISTENER,
+          fakeSubscriptionListener({
+            type: 'SUBSCRIPTION',
+            entrypoints: [
+              {
+                type: 'webhook',
+                qos: 'AUTO',
+                dlq: {
+                  endpoint: 'Default Mock Endpoint',
+                },
+                configuration: {
+                  proxy: {
+                    useSystemProxy: false,
+                    enabled: false,
+                  },
+                  http: {
+                    readTimeout: 10000,
+                    idleTimeout: 60000,
+                    connectTimeout: 3000,
+                    maxConcurrentConnections: 5,
+                  },
+                },
+              },
+            ],
+          }),
+        ],
+        endpointGroups: [
+          {
+            name: 'default-group',
+            type: 'kafka',
+            loadBalancer: {
+              type: 'ROUND_ROBIN',
+            },
+            endpoints: [
+              {
+                name: 'default',
+                type: 'kafka',
+                weight: 1,
+                inheritConfiguration: false,
+                configuration: {
+                  bootstrapServers: 'localhost:9092',
+                },
+              },
+            ],
+          },
+          {
+            name: 'mock-group',
+            type: 'mock',
+            loadBalancer: {
+              type: 'ROUND_ROBIN',
+            },
+            endpoints: [EndpointV4Default.byType('mock')],
+          },
+        ],
+      });
+
+      createComponent(API, 'webhook');
+      expectEndpointsGetRequest();
+      fixture.detectChanges();
+      loader = TestbedHarnessEnvironment.loader(fixture);
+    });
+
+    afterEach(() => {
+      httpTestingController.verify();
+    });
+
+    it('should show API configuration', async () => {
+      const formElement = fixture.debugElement.query(By.css('gio-form-json-schema'));
+      expect(formElement).not.toBeNull();
+
+      const dlqToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="enabledDlq"]' }));
+      expect(await dlqToggle.isChecked()).toBeTruthy();
+
+      const dlqSelect = await loader.getHarness(MatSelectHarness.with({ selector: '[aria-label="Dead letter queue endpoint"]' }));
+      expect(await dlqSelect.getValueText()).toContain('Default Mock Endpoint');
+    });
   });
 
   const expectGetApi = (api: Api) => {
@@ -173,7 +490,13 @@ describe('ApiEntrypointsV4EditComponent', () => {
         supportedQos: ['NONE', 'AUTO', 'AT_MOST_ONCE', 'AT_LEAST_ONCE'],
         name: 'Server-Sent Events',
       },
-      { id: 'webhook', supportedApiType: 'MESSAGE', supportedQos: ['NONE', 'AUTO', 'AT_MOST_ONCE', 'AT_LEAST_ONCE'], name: 'Webhook' },
+      {
+        id: 'webhook',
+        availableFeatures: ['DLQ'],
+        supportedApiType: 'MESSAGE',
+        supportedQos: ['NONE', 'AUTO', 'AT_MOST_ONCE', 'AT_LEAST_ONCE'],
+        name: 'Webhook',
+      },
     ];
 
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/entrypoints`, method: 'GET' }).flush(entrypoints);
@@ -185,5 +508,14 @@ describe('ApiEntrypointsV4EditComponent', () => {
     httpTestingController
       .expectOne({ url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/entrypoints/${entrypointType}/schema`, method: 'GET' })
       .flush(entrypointSchema);
+  };
+
+  const expectEndpointsGetRequest = () => {
+    httpTestingController
+      .expectOne({ url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/endpoints`, method: 'GET' })
+      .flush([
+        fakeConnectorPlugin({ id: 'kafka', name: 'kafka' }),
+        fakeConnectorPlugin({ id: 'mock', name: 'mock', supportedApiType: 'MESSAGE', supportedModes: ['PUBLISH'] }),
+      ]);
   };
 });
