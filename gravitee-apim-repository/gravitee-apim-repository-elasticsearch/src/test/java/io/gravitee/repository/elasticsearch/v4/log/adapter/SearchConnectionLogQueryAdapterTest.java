@@ -17,7 +17,6 @@ package io.gravitee.repository.elasticsearch.v4.log.adapter;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 
-import io.gravitee.repository.elasticsearch.log.adapter.SearchConnectionLogQueryAdapter;
 import io.gravitee.repository.log.v4.model.ConnectionLogQuery;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
@@ -39,7 +38,7 @@ public class SearchConnectionLogQueryAdapterTest {
                           "from": 0,
                           "size": 20,
                           "sort": {
-                            "@timestamp": { "order": "desc", "format": "strict_date_optional_time_nanos"}
+                            "@timestamp": { "order": "desc" }
                           }
                         }
                         """
@@ -67,7 +66,7 @@ public class SearchConnectionLogQueryAdapterTest {
                             "term": { "api-id": "f1608475-dd77-4603-a084-75dd775603e9" }
                           },
                           "sort": {
-                            "@timestamp": { "order": "desc", "format": "strict_date_optional_time_nanos"}
+                            "@timestamp": { "order": "desc" }
                           }
                         }
                         """
@@ -85,7 +84,7 @@ public class SearchConnectionLogQueryAdapterTest {
                           "from": 20,
                           "size": 10,
                           "sort": {
-                            "@timestamp": { "order": "desc", "format": "strict_date_optional_time_nanos"}
+                            "@timestamp": { "order": "desc" }
                           }
                         }
                         """
