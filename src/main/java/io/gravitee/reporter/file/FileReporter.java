@@ -1,11 +1,11 @@
-/**
- * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+/*
+ * Copyright © 2015 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,38 +18,39 @@ package io.gravitee.reporter.file;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.reporter.api.Reportable;
 import io.gravitee.reporter.api.Reporter;
+import io.gravitee.reporter.common.MetricsType;
+import io.gravitee.reporter.common.formatter.Formatter;
+import io.gravitee.reporter.common.formatter.FormatterFactory;
 import io.gravitee.reporter.file.config.FileReporterConfiguration;
-import io.gravitee.reporter.file.formatter.Formatter;
-import io.gravitee.reporter.file.formatter.FormatterFactory;
 import io.gravitee.reporter.file.vertx.VertxFileWriter;
-import io.vertx.core.CompositeFuture;
+import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class FileReporter extends AbstractService implements Reporter {
+public class FileReporter extends AbstractService<Reporter> implements Reporter {
 
-    private final Logger logger = LoggerFactory.getLogger(FileReporter.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(FileReporter.class);
 
-    @Autowired
-    private Vertx vertx;
+    private final FileReporterConfiguration configuration;
 
-    @Autowired
-    private FileReporterConfiguration configuration;
+    private final FormatterFactory formatterFactory;
 
-    @Value("${reporters.file.enabled:false}")
-    private boolean enabled;
+    private final Vertx vertx;
 
-    private Map<Class<? extends Reportable>, VertxFileWriter> writers = new HashMap<>(4);
+    private final Map<Class<? extends Reportable>, VertxFileWriter<Reportable>> writers = new HashMap<>(4);
+
+    public FileReporter(FileReporterConfiguration configuration, Vertx vertx, FormatterFactory formatterFactory) {
+        this.formatterFactory = formatterFactory;
+        this.configuration = configuration;
+        this.vertx = vertx;
+    }
 
     @Override
     public void report(Reportable reportable) {
@@ -58,17 +59,16 @@ public class FileReporter extends AbstractService implements Reporter {
 
     @Override
     public boolean canHandle(Reportable reportable) {
-        return enabled && writers.containsKey(reportable.getClass());
+        return configuration.isEnabled() && writers.containsKey(reportable.getClass());
     }
 
     @Override
-    protected void doStart() throws Exception {
-        if (enabled) {
-            // Initialize writers
+    protected void doStart() {
+        if (configuration.isEnabled()) {
+            // Initialize reporters
             for (MetricsType type : MetricsType.values()) {
-                Formatter formatter = FormatterFactory.getFormatter(configuration.getOutputType(), configuration.getRules(type));
+                Formatter<Reportable> formatter = formatterFactory.getFormatter(configuration.getOutputType(), type);
                 applicationContext.getAutowireCapableBeanFactory().autowireBean(formatter);
-
                 writers.put(
                     type.getClazz(),
                     new VertxFileWriter<>(
@@ -81,28 +81,28 @@ public class FileReporter extends AbstractService implements Reporter {
                 );
             }
 
-            CompositeFuture
-                .join(writers.values().stream().map(VertxFileWriter::initialize).collect(Collectors.toList()))
+            Future
+                .join(writers.values().stream().map(VertxFileWriter::initialize).toList())
                 .onComplete(event -> {
                     if (event.succeeded()) {
-                        logger.info("File reporter successfully started");
+                        LOGGER.info("File reporter successfully started");
                     } else {
-                        logger.info("An error occurs while starting file reporter", event.cause());
+                        LOGGER.info("An error occurs while starting file reporter", event.cause());
                     }
                 });
         }
     }
 
     @Override
-    protected void doStop() throws Exception {
-        if (enabled) {
-            CompositeFuture
-                .join(writers.values().stream().map(VertxFileWriter::stop).collect(Collectors.toList()))
+    protected void doStop() {
+        if (configuration.isEnabled()) {
+            Future
+                .join(writers.values().stream().map(VertxFileWriter::stop).toList())
                 .onComplete(event -> {
                     if (event.succeeded()) {
-                        logger.info("File reporter successfully stopped");
+                        LOGGER.info("File reporter successfully stopped");
                     } else {
-                        logger.info("An error occurs while stopping file reporter", event.cause());
+                        LOGGER.info("An error occurs while stopping file reporter", event.cause());
                     }
                 });
         }

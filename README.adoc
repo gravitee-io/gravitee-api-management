@@ -10,7 +10,18 @@ endif::[]
 
 
 == Presentation
-This reporter write access logs to a file, by corresponding one line to one request access to gateway.
+
+This reporter writes access logs to a file, by corresponding one line to one request access to gateway.
+
+== Compatibility matrix
+
+|===
+|Plugin version    | APIM version | JDK version
+
+| 3.x              | 4.x          | 17
+| 2.x              | 3.x          | 8
+|===
+
 
 == Line format
 
@@ -58,3 +69,5 @@ Hereafter available configuration parameters:
 Any files with a last updated date older than this retention period are regularly deleted every day at midnight.
 | *0 (to retain forever)*
 |===
+
+Please visit our https://documentation.gravitee.io/apim/getting-started/configuration/configure-reporters#file-reporter[documentation website] for more details

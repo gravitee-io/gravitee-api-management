@@ -1,11 +1,11 @@
-/**
- * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+/*
+ * Copyright © 2015 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,9 +16,9 @@
 package io.gravitee.reporter.file.vertx;
 
 import io.gravitee.reporter.api.Reportable;
-import io.gravitee.reporter.file.MetricsType;
+import io.gravitee.reporter.common.MetricsType;
+import io.gravitee.reporter.common.formatter.Formatter;
 import io.gravitee.reporter.file.config.FileReporterConfiguration;
-import io.gravitee.reporter.file.formatter.Formatter;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
@@ -78,8 +78,8 @@ public class VertxFileWriter<T extends Reportable> {
 
     private static final String YYYY_MM_DD = "yyyy_mm_dd";
 
-    private static Timer __rollover;
-    private RollTask _rollTask;
+    private static Timer rollover;
+    private RollTask rollTask;
 
     private final SimpleDateFormat fileDateFormat = new SimpleDateFormat(ROLLOVER_FILE_DATE_FORMAT);
 
@@ -124,7 +124,7 @@ public class VertxFileWriter<T extends Reportable> {
             rolloverFiles = null;
         }
 
-        __rollover = new Timer(VertxFileWriter.class.getName(), true);
+        rollover = new Timer(VertxFileWriter.class.getName(), true);
 
         flushId =
             vertx.setPeriodic(
@@ -165,7 +165,7 @@ public class VertxFileWriter<T extends Reportable> {
                 file = new File(filename);
                 File dir = new File(file.getParent());
                 if (!dir.isDirectory() || !dir.canWrite()) {
-                    LOGGER.error("Cannot write reporter data to directory " + dir);
+                    LOGGER.error("Cannot write reporter data to directory {}", dir);
                     promise.fail(new IOException("Cannot write reporter data to directory " + dir));
                     return promise.future();
                 }
@@ -255,8 +255,8 @@ public class VertxFileWriter<T extends Reportable> {
         Promise<Void> promise = Promise.promise();
 
         synchronized (VertxFileWriter.class) {
-            if (_rollTask != null) {
-                _rollTask.cancel();
+            if (rollTask != null) {
+                rollTask.cancel();
             }
         }
 
@@ -300,7 +300,7 @@ public class VertxFileWriter<T extends Reportable> {
     }
 
     private void scheduleNextRollover(ZonedDateTime now) {
-        _rollTask = new RollTask();
+        rollTask = new RollTask();
 
         // Get tomorrow's midnight based on Configured TimeZone
         ZonedDateTime midnight = toMidnight(now);
@@ -308,7 +308,7 @@ public class VertxFileWriter<T extends Reportable> {
         // Schedule next rollover event to occur, based on local machine's Unix Epoch milliseconds
         long delay = midnight.toInstant().toEpochMilli() - now.toInstant().toEpochMilli();
         synchronized (VertxFileWriter.class) {
-            __rollover.schedule(_rollTask, delay);
+            rollover.schedule(rollTask, delay);
         }
     }
 

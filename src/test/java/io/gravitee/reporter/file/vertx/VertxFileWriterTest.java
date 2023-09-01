@@ -1,11 +1,11 @@
-/**
- * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+/*
+ * Copyright © 2015 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,15 +15,16 @@
  */
 package io.gravitee.reporter.file.vertx;
 
-import static io.gravitee.reporter.file.MetricsType.REQUEST;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.time.temporal.ChronoUnit.SECONDS;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.reporter.api.Reportable;
+import io.gravitee.reporter.common.MetricsType;
+import io.gravitee.reporter.common.formatter.Formatter;
 import io.gravitee.reporter.file.config.FileReporterConfiguration;
-import io.gravitee.reporter.file.formatter.Formatter;
 import io.vertx.core.Vertx;
 import java.io.File;
 import java.time.LocalDateTime;
@@ -40,7 +41,7 @@ public class VertxFileWriterTest {
     private static final ZoneOffset ZONE = ZoneOffset.UTC;
     private static final LocalDateTime NOW = LocalDateTime.now(ZONE);
 
-    private VertxFileWriter vertxFileWriter;
+    private VertxFileWriter<Reportable> vertxFileWriter;
 
     @Mock
     private FileReporterConfiguration configuration;
@@ -51,7 +52,7 @@ public class VertxFileWriterTest {
     @Before
     public void setup() {
         when(configuration.getFilename()).thenReturn("/metrics/%s-yyyy_mm_dd");
-        vertxFileWriter = new VertxFileWriter(mock(Vertx.class), REQUEST, mock(Formatter.class), "filename", configuration);
+        vertxFileWriter = new VertxFileWriter<>(mock(Vertx.class), MetricsType.REQUEST, mock(Formatter.class), "filename", configuration);
     }
 
     @Test

@@ -1,11 +1,11 @@
-/**
- * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+/*
+ * Copyright © 2015 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,8 +15,11 @@
  */
 package io.gravitee.reporter.file.spring;
 
+import io.gravitee.node.api.Node;
+import io.gravitee.reporter.common.MetricsType;
+import io.gravitee.reporter.common.formatter.FormatterFactory;
+import io.gravitee.reporter.common.formatter.FormatterFactoryConfiguration;
 import io.gravitee.reporter.file.config.FileReporterConfiguration;
-import io.gravitee.reporter.file.formatter.elasticsearch.freemarker.FreeMarkerComponent;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -33,7 +36,16 @@ public class PluginConfiguration {
     }
 
     @Bean
-    public FreeMarkerComponent freeMarkerComponent() {
-        return new FreeMarkerComponent();
+    public FormatterFactory formatterFactory(Node node, FormatterFactoryConfiguration formatterFactoryConfiguration) {
+        return new FormatterFactory(node, formatterFactoryConfiguration);
+    }
+
+    @Bean
+    public FormatterFactoryConfiguration formatterFactoryConfiguration(FileReporterConfiguration configuration) {
+        var builder = FormatterFactoryConfiguration.builder();
+        for (var type : MetricsType.values()) {
+            builder.rule(type, configuration.getRules(type));
+        }
+        return builder.build();
     }
 }
