@@ -1,3 +1,15 @@
+# [3.0.0](https://github.com/gravitee-io/gravitee-reporter-file/compare/2.5.5...3.0.0) (2023-09-01)
+
+
+### Features
+
+* bring support for v4 api ([1bbc3d6](https://github.com/gravitee-io/gravitee-reporter-file/commit/1bbc3d65375d1c194e70a8116ae399ac5555a0a7))
+
+
+### BREAKING CHANGES
+
+* requires gravitee gateway version to be at least 4.0.0
+
 ## [2.5.5](https://github.com/gravitee-io/gravitee-reporter-file/compare/2.5.4...2.5.5) (2022-08-10)
 
 

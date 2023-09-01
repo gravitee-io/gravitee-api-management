@@ -28,7 +28,7 @@
 
 	<groupId>io.gravitee.reporter</groupId>
 	<artifactId>gravitee-reporter-file</artifactId>
-	<version>2.5.5</version>
+	<version>3.0.0</version>
 
 	<name>Gravitee.io APIM - Reporter - File</name>
 
