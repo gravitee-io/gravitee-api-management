@@ -84,6 +84,28 @@ tests:
           path: spec.externalTrafficPolicy
           value: Local
 
+  - it: Deploy with NodePort and fixed port
+    template: portal/portal-service.yaml
+    set:
+      portal:
+        service:
+          type: NodePort
+          nodePort: 30003
+    asserts:
+      - hasDocuments:
+          count: 1
+      - contains:
+          path: spec.ports
+          content:
+            port: 8003
+            targetPort: 8080
+            nodePort: 30003
+            protocol: TCP
+            name: portal
+            appProtocol: http
+
+
+
   - it: Deploy with LoadBalancer and externalTrafficPolicy
     template: portal/portal-service.yaml
     set:

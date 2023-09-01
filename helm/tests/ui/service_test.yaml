@@ -84,6 +84,26 @@ tests:
           path: spec.externalTrafficPolicy
           value: Local
 
+  - it: Deploy with NodePort and fixed port
+    template: ui/ui-service.yaml
+    set:
+      ui:
+        service:
+          type: NodePort
+          nodePort: 30002
+    asserts:
+      - hasDocuments:
+          count: 1
+      - contains:
+          path: spec.ports
+          content:
+            port: 8002
+            targetPort: 8080
+            nodePort: 30002
+            protocol: TCP
+            name: ui
+            appProtocol: http
+
   - it: Deploy with LoadBalancer and externalTrafficPolicy
     template: ui/ui-service.yaml
     set:

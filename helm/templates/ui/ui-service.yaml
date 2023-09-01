@@ -32,6 +32,11 @@ spec:
   ports:
     - port: {{ .Values.ui.service.externalPort }}
       targetPort: {{ .Values.ui.service.internalPort }}
+      {{- if eq .Values.ui.service.type "NodePort" }}
+      {{- if .Values.ui.service.nodePort }}
+      nodePort: {{ .Values.ui.service.nodePort }}
+      {{- end }}
+      {{- end }}
       protocol: TCP
       {{- if (include "common.service.supportsAppProtocol" .) }}
       {{ if .Values.ui.service.appProtocol }}
