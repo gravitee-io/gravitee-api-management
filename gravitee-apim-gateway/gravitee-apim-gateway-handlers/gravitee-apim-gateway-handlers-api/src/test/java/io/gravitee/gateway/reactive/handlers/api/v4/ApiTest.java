@@ -15,19 +15,19 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.v4;
 
-import static io.gravitee.repository.management.model.Plan.PlanSecurityType.API_KEY;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
+import io.gravitee.definition.model.Policy;
+import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
-import io.gravitee.gateway.reactive.handlers.api.security.plan.SecurityPlan;
 import java.util.ArrayList;
-import org.junit.jupiter.api.Test;
+import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -65,5 +65,92 @@ class ApiTest {
         final Api api = new Api(definition);
 
         assertThat(api.getSubscribablePlans()).containsExactly("subscribable");
+    }
+
+    @ParameterizedTest
+    @CsvSource({ "API_KEY,STANDARD", "api-key,STANDARD", "JWT,STANDARD", "OAUTH2,STANDARD", ",PUSH" })
+    void should_return_dependencies_from_flow_policies(String securityType, String mode) {
+        final io.gravitee.definition.model.v4.Api definition = new io.gravitee.definition.model.v4.Api();
+        definition.setPlans(List.of(aPlan("plan-" + securityType, securityType, mode)));
+        definition.setFlows(aFlowList("api-flow"));
+
+        final Api api = new Api(definition);
+        final Set<Policy> dependencies = api.dependencies(Policy.class);
+
+        // We expect to have
+        //  - 1 policy per phase (request, response, publish, subscribe) on plan flows -> 4
+        //  - 1 policy per phase on api flows -> 4
+        //  - 1 security policy -> 1
+        // Total 9 policies
+
+        int expectedPolicyCount = 9;
+        if (mode.equals("PUSH")) {
+            // Push plan doesn't have security policy -> 8 policies expected.
+            expectedPolicyCount = 8;
+        }
+
+        assertThat(dependencies).hasSize(expectedPolicyCount);
+
+        final List<String> expectedPolicies = new ArrayList<>(
+            List.of(
+                "plan-" + securityType + "-flow-request",
+                "plan-" + securityType + "-flow-response",
+                "plan-" + securityType + "-flow-publish",
+                "plan-" + securityType + "-flow-subscribe",
+                "api-flow-request",
+                "api-flow-response",
+                "api-flow-publish",
+                "api-flow-subscribe"
+            )
+        );
+
+        if (!mode.equals("PUSH")) {
+            expectedPolicies.add(securityType);
+        }
+
+        assertThat(dependencies.stream().map(Policy::getName)).containsExactlyInAnyOrderElementsOf(expectedPolicies);
+    }
+
+    private Plan aPlan(String name, String securityType, String mode) {
+        Plan plan = new Plan();
+        plan.setName(name);
+        plan.setSecurity(new PlanSecurity(securityType, "{}"));
+        plan.setMode(PlanMode.valueOf(mode));
+        plan.setFlows(aFlowList(name + "-flow"));
+        return plan;
+    }
+
+    private List<Flow> aFlowList(String name) {
+        Flow enabledFlow = new Flow();
+        enabledFlow.setName(name);
+        enabledFlow.setEnabled(true);
+        enabledFlow.setRequest(aStepList(name + "-request"));
+        enabledFlow.setResponse(aStepList(name + "-response"));
+        enabledFlow.setPublish(aStepList(name + "-publish"));
+        enabledFlow.setSubscribe(aStepList(name + "-subscribe"));
+
+        Flow disabledFlow = new Flow();
+        disabledFlow.setRequest(aStepList("disabled-" + name + "-request"));
+        disabledFlow.setResponse(aStepList("disabled-" + name + "-response"));
+        disabledFlow.setPublish(aStepList("disabled-" + name + "-publish"));
+        disabledFlow.setSubscribe(aStepList("disabled-" + name + "-subscribe"));
+
+        disabledFlow.setEnabled(false);
+        disabledFlow.setName("disabled-" + name);
+        disabledFlow.setRequest(aStepList(name + "-request"));
+        disabledFlow.setResponse(aStepList(name + "-response"));
+        disabledFlow.setPublish(aStepList(name + "-publish"));
+        disabledFlow.setSubscribe(aStepList(name + "-subscribe"));
+        return List.of(enabledFlow, disabledFlow);
+    }
+
+    private List<Step> aStepList(String policy) {
+        Step enabledPreStep = new Step();
+        enabledPreStep.setPolicy(policy);
+        enabledPreStep.setEnabled(true);
+        Step disabledPreStep = new Step();
+        disabledPreStep.setName("disabled-" + policy);
+        disabledPreStep.setEnabled(false);
+        return List.of(enabledPreStep, disabledPreStep);
     }
 }
