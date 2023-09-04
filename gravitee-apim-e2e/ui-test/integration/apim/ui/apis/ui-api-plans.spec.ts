@@ -190,6 +190,7 @@ describe('API Plans Feature', () => {
     cy.contains(`${planName}-Keyless`).should('be.visible');
     cy.getByDataTestId('api_plans_edit_plan_button').first().click();
     cy.getByDataTestId('api_plans_name_field').type('EDIT');
+    cy.contains('Configuration successfully saved!').should('not.exist');
     cy.get('[type="submit"]').contains('Save').click();
     cy.contains('Configuration successfully saved!').should('be.visible');
     cy.get('[type="button"]').contains('STAGING').click();
