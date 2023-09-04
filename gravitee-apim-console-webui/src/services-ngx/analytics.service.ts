@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Inject, Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
@@ -34,9 +34,7 @@ export class AnalyticsService {
       `&interval=${params.interval}` +
       `&from=${params.from}` +
       `&to=${params.to}`;
-    return this.http.get<AnalyticsStatsResponse>(url, {
-      headers: new HttpHeaders({ timeout: `${this.constants.env.settings.analytics.clientTimeout}` }),
-    });
+    return this.http.get<AnalyticsStatsResponse>(url);
   }
 
   getGroupBy(params: AnalyticsRequestParam): Observable<AnalyticsGroupByResponse> {
@@ -46,9 +44,7 @@ export class AnalyticsService {
       `&interval=${params.interval}` +
       `&from=${params.from}` +
       `&to=${params.to}`;
-    return this.http.get<AnalyticsGroupByResponse>(url, {
-      headers: new HttpHeaders({ timeout: `${this.constants.env.settings.analytics.clientTimeout}` }),
-    });
+    return this.http.get<AnalyticsGroupByResponse>(url);
   }
 
   getCount(params: AnalyticsRequestParam): Observable<AnalyticsCountResponse> {
@@ -58,8 +54,6 @@ export class AnalyticsService {
       `&interval=${params.interval}` +
       `&from=${params.from}` +
       `&to=${params.to}`;
-    return this.http.get<AnalyticsCountResponse>(url, {
-      headers: new HttpHeaders({ timeout: `${this.constants.env.settings.analytics.clientTimeout}` }),
-    });
+    return this.http.get<AnalyticsCountResponse>(url);
   }
 }
