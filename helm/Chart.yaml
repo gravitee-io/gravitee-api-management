@@ -22,3 +22,5 @@ annotations:
     - Avoid empty user when disabling admin user
     - Add revision history limit on portal
     - Add podSecurityContext
+    - Add support for DB less mode on gateway
+    - Add nodePort value to all services
