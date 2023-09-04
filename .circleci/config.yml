@@ -1805,23 +1805,23 @@ jobs:
             - cmd-notify-on-failure
 
     job-snyk-apim-charts:
-      docker:
-        - image: cimg/base:stable
-      resource_class: small
-      steps:
-        - checkout
-        - keeper/env-export:
-            secret-url: keeper://s83JmReKpBZWjHdud6ZAlg/custom_field/gravitee_apim_org_api_token
-            var-name: SNYK_TOKEN
-        - helm/install-helm-client
-        - snyk/install
-        - run:
-            name: "build the Charts output and scan"
-            working_directory: "./helm"
-            command: |
-              helm dependency update
-              helm template . --output-dir ./output
-              snyk iac test ./output --report --target-reference="${CIRCLE_BRANCH}" --project-tags=version=${CIRCLE_BRANCH} --severity-threshold=high
+        docker:
+            - image: cimg/base:stable
+        resource_class: small
+        steps:
+            - checkout
+            - keeper/env-export:
+                  secret-url: keeper://s83JmReKpBZWjHdud6ZAlg/custom_field/gravitee_apim_org_api_token
+                  var-name: SNYK_TOKEN
+            - helm/install-helm-client
+            - snyk/install
+            - run:
+                  name: "build the Charts output and scan"
+                  working_directory: "./helm"
+                  command: |
+                      helm dependency update
+                      helm template . --output-dir ./output
+                      snyk iac test ./output --report --target-reference="${CIRCLE_BRANCH}" --project-tags=version=${CIRCLE_BRANCH} --severity-threshold=high
 
 workflows:
     pull_requests:
@@ -1848,15 +1848,15 @@ workflows:
                   requires:
                       - Setup
             - job-snyk-apim-charts:
-                name: scan snyk Helm chart
-                context: cicd-orchestrator
-                requires:
-                  - Setup
-                filters:
-                  branches:
-                    only:
-                      - master
-                      - /^\d+\.\d+\.x$/
+                  name: scan snyk Helm chart
+                  context: cicd-orchestrator
+                  requires:
+                      - Setup
+                  filters:
+                      branches:
+                          only:
+                              - master
+                              - /^\d+\.\d+\.x$/
             - job-build:
                   name: Build backend
                   context: cicd-orchestrator
@@ -2253,9 +2253,9 @@ workflows:
         when:
             equal: [package_bundle, << pipeline.parameters.gio_action >>]
         jobs:
-          - job-package-bundle:
-              name: Package bundle
-              context: cicd-orchestrator
+            - job-package-bundle:
+                  name: Package bundle
+                  context: cicd-orchestrator
 
     nexus_staging:
         when:
