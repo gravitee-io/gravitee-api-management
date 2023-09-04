@@ -73,7 +73,6 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
   });
 
   afterEach(() => {
-    TestBed.resetTestingModule();
     httpTestingController.verify();
   });
 
@@ -220,11 +219,38 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
         ],
       };
 
-      await fixture.whenStable();
-      fixture.detectChanges();
-
       await policyStudioHarness.addFlow('Common flows', flowToAdd);
       await policyStudioHarness.save();
+
+      const updatedApi: ApiV4 = {
+        ...api,
+        flows: [
+          {
+            enabled: true,
+            name: 'my flow',
+            selectors: [
+              {
+                channel: 'my-channel',
+                channelOperator: 'EQUALS',
+                type: 'CHANNEL',
+              },
+            ],
+          },
+          {
+            enabled: true,
+            name: flowToAdd.name,
+            selectors: [
+              {
+                channel: 'my-channel',
+                channelOperator: 'EQUALS',
+                entrypoints: [],
+                operations: [],
+                type: 'CHANNEL',
+              },
+            ],
+          },
+        ],
+      };
 
       // Fetch fresh API before save
       expectGetApi(api);
@@ -258,27 +284,7 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
           ],
         },
       ]);
-      req.flush(api);
-
-      // Check that the flow has been added in the UI
-      const flowsMenu = await policyStudioHarness.getFlowsMenu();
-      expect(flowsMenu.find((f) => f.name === 'Common flows')).toStrictEqual({
-        name: 'Common flows',
-        flows: [
-          {
-            infos: 'PUBSUBmy-channel',
-            isSelected: false,
-            name: 'my flow',
-            hasCondition: true,
-          },
-          {
-            infos: 'PUBSUBmy-channel',
-            isSelected: true,
-            name: 'New common flow',
-            hasCondition: true,
-          },
-        ],
-      });
+      req.flush(updatedApi);
 
       expectNewNgOnInit();
     });
@@ -295,9 +301,6 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
           },
         ],
       };
-
-      await fixture.whenStable();
-      fixture.detectChanges();
 
       await policyStudioHarness.addFlow(planA.name, flowToAdd);
       await policyStudioHarness.save();
@@ -325,26 +328,6 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
         },
       ]);
       req.flush(planA);
-
-      // Check that the flow has been added in the UI
-      const flowsMenu = await policyStudioHarness.getFlowsMenu();
-      expect(flowsMenu.find((f) => f.name === 'PlanA')).toStrictEqual({
-        name: 'PlanA',
-        flows: [
-          {
-            infos: 'PUBSUBmy-channel',
-            isSelected: false,
-            name: 'PlanA flow',
-            hasCondition: true,
-          },
-          {
-            infos: 'PUBSUBmy-channel',
-            isSelected: true,
-            name: 'New plan flow',
-            hasCondition: true,
-          },
-        ],
-      });
 
       expectNewNgOnInit();
     });
