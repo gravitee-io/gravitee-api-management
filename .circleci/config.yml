@@ -2131,11 +2131,7 @@ workflows:
                       - Publish APIM Console to artifactory
                       - Publish APIM Portal to artifactory
                   context: cicd-orchestrator
-            - job-publish-on-artifactory:
-                  name: Publish new SNAPSHOTS on artifactory
-                  context: cicd-orchestrator
-                  requires:
-                      - Commit and prepare next version
+
             # Package bundle
             - job-package-bundle:
                   name: Package bundle
@@ -2281,23 +2277,22 @@ workflows:
                       - Nexus staging
 
     db_repositories_test_container:
-        triggers:
-            - schedule:
-                  cron: "0 12 * * *"
-                  filters:
-                      branches:
-                          only:
-                              - master
-                              - /^\d+\.\d+\.x$/
+        when:
+            equal: [repositories_tests, << pipeline.parameters.gio_action >>]
         jobs:
             - job-setup:
                   name: Setup
                   context: cicd-orchestrator
-            - job-jdbc-test-container:
-                  name: JDBC Test container
+            - job-build:
+                  name: Build
                   context: cicd-orchestrator
                   requires:
                       - Setup
+            - job-jdbc-test-container:
+                  name: Management repository tests - JDBC - << matrix.version >>
+                  context: cicd-orchestrator
+                  requires:
+                      - Build
                   matrix:
                       parameters:
                           version:
@@ -2316,10 +2311,10 @@ workflows:
                                   "sqlserver~2017-CU12",
                               ]
             - job-mongo-test-container:
-                  name: Mongo Test container
+                  name: Management repository tests - Mongo << matrix.version >>
                   context: cicd-orchestrator
                   requires:
-                      - Setup
+                      - Build
                   matrix:
                       parameters:
                           version: ["3", "4", "5"]
