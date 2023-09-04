@@ -17,11 +17,21 @@ package io.gravitee.repository.management.model;
 
 import java.util.Date;
 import java.util.Objects;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Setter
 public class User {
 
     public enum AuditEvent implements Audit.AuditEvent {
@@ -108,8 +118,6 @@ public class User {
 
     private Boolean newsletterSubscribed;
 
-    public User() {}
-
     public User(User cloned) {
         this.id = cloned.id;
         this.organizationId = cloned.organizationId;
@@ -129,134 +137,6 @@ public class User {
         this.newsletterSubscribed = cloned.newsletterSubscribed;
     }
 
-    public String getOrganizationId() {
-        return organizationId;
-    }
-
-    public void setOrganizationId(String organizationId) {
-        this.organizationId = organizationId;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getFirstname() {
-        return firstname;
-    }
-
-    public void setFirstname(String firstname) {
-        this.firstname = firstname;
-    }
-
-    public String getLastname() {
-        return lastname;
-    }
-
-    public void setLastname(String lastname) {
-        this.lastname = lastname;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Date getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Date updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public String getPicture() {
-        return picture;
-    }
-
-    public void setPicture(String picture) {
-        this.picture = picture;
-    }
-
-    public String getSource() {
-        return source;
-    }
-
-    public void setSource(String source) {
-        this.source = source;
-    }
-
-    public String getSourceId() {
-        return sourceId;
-    }
-
-    public void setSourceId(String sourceId) {
-        this.sourceId = sourceId;
-    }
-
-    public Date getLastConnectionAt() {
-        return lastConnectionAt;
-    }
-
-    public void setLastConnectionAt(Date lastConnectionAt) {
-        this.lastConnectionAt = lastConnectionAt;
-    }
-
-    public UserStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(UserStatus status) {
-        this.status = status;
-    }
-
-    public long getLoginCount() {
-        return loginCount;
-    }
-
-    public void setLoginCount(long loginCount) {
-        this.loginCount = loginCount;
-    }
-
-    public Date getFirstConnectionAt() {
-        return firstConnectionAt;
-    }
-
-    public void setFirstConnectionAt(Date firstConnectionAt) {
-        this.firstConnectionAt = firstConnectionAt;
-    }
-
-    public Boolean getNewsletterSubscribed() {
-        return newsletterSubscribed;
-    }
-
-    public void setNewsletterSubscribed(Boolean newsletterSubscribed) {
-        this.newsletterSubscribed = newsletterSubscribed;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -272,17 +152,36 @@ public class User {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("User{");
-        sb.append("id='").append(id).append('\'');
-        sb.append(", organizationId='").append(organizationId).append('\'');
-        sb.append(", source='").append(source).append('\'');
-        sb.append(", sourceId='").append(sourceId).append('\'');
-        sb.append(", firstname='").append(firstname).append('\'');
-        sb.append(", lastname='").append(lastname).append('\'');
-        sb.append(", mail='").append(email).append('\'');
-        sb.append(", status='").append(status).append('\'');
-        sb.append(", loginCount='").append(loginCount).append('\'');
-        sb.append('}');
-        return sb.toString();
+        return (
+            "User{" +
+            "id='" +
+            id +
+            '\'' +
+            ", organizationId='" +
+            organizationId +
+            '\'' +
+            ", source='" +
+            source +
+            '\'' +
+            ", sourceId='" +
+            sourceId +
+            '\'' +
+            ", firstname='" +
+            firstname +
+            '\'' +
+            ", lastname='" +
+            lastname +
+            '\'' +
+            ", mail='" +
+            email +
+            '\'' +
+            ", status='" +
+            status +
+            '\'' +
+            ", loginCount='" +
+            loginCount +
+            '\'' +
+            '}'
+        );
     }
 }
