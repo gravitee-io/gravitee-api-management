@@ -19,12 +19,25 @@ import io.gravitee.apim.core.api.domain_service.ApiDefinitionParserDomainService
 import io.gravitee.apim.core.api.domain_service.ApiHostValidatorDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
+import io.gravitee.apim.core.audit.crud_service.AuditCrudService;
+import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
+import io.gravitee.apim.core.user.crud_service.UserCrudService;
+import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class CoreServiceSpringConfiguration {
+
+    @Bean
+    public AuditDomainService auditDomainService(
+        AuditCrudService auditCrudService,
+        UserCrudService userCrudService,
+        JacksonJsonDiffProcessor jacksonJsonDiffProcessor
+    ) {
+        return new AuditDomainService(auditCrudService, userCrudService, jacksonJsonDiffProcessor);
+    }
 
     @Bean
     public VerifyApiPathDomainService verifyApiPathDomainService(
