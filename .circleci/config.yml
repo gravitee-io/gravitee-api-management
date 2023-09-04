@@ -375,6 +375,7 @@ parameters:
                 bridge_e2e,
                 publish_docker_images,
                 release_helm,
+                repositories_tests,
             ]
         default: pull_requests
     dry_run:
