@@ -10,6 +10,7 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
 - Add podSecurityContext
 - Add support for DB less mode on gateway
 - Add nodePort value to all services
+- Remove smtp default example values
 
 ### 4.0.2
 
