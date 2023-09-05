@@ -360,23 +360,13 @@ data:
             {{- end }}
           {{- end }}
         {{- end }}
-    # SMTP configuration used to send mails
+    
     {{- if .Values.smtp }}
+    # SMTP configuration used to send mails
     email:
-      enabled: {{ .Values.smtp.enabled }}
-      host: {{ .Values.smtp.host }}
-      subject: {{ .Values.smtp.subject | quote }}
-      port: {{ .Values.smtp.port }}
-      from: {{ .Values.smtp.from }}
-      {{- if or .Values.smtp.username .Values.smtp.password }}
-      username: {{ .Values.smtp.username }}
-      password: {{ .Values.smtp.password }}
-      {{- end }}
-      {{- with .Values.smtp.properties }}
-      properties:
-        {{ toYaml . | nindent 8 | trim -}}
-      {{- end }}
+      {{- .Values.smtp | toYaml | nindent 6 }}
     {{- end }}
+    
     # SMTP configuration used to send notifications / alerts
     notifiers:
       email:
