@@ -1,5 +1,3 @@
-import { DockerResourceClass } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Executors/types/DockerExecutor.types';
-
 const cache = {
   prefix: 'gravitee-api-management-v9',
 };
@@ -23,7 +21,6 @@ const executor = {
   },
   openjdk: {
     image: 'cimg/openjdk',
-    resource: 'medium' as DockerResourceClass,
     version: '17.0',
   },
 };
