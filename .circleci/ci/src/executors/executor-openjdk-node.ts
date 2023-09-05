@@ -4,7 +4,7 @@ import { Executor } from '@circleci/circleci-config-sdk/dist/src/lib/Components/
 import { DockerResourceClass } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Executors/types/DockerExecutor.types';
 
 export class OpenJdkNodeExecutor {
-  public static create(resource: DockerResourceClass = config.executor.openjdk.resource): Executor {
+  public static create(resource: DockerResourceClass = 'medium'): Executor {
     const image = `${config.executor.openjdk.image}:${config.executor.openjdk.version}-node`;
     return new executors.DockerExecutor(image, resource);
   }
