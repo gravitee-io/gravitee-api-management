@@ -20,3 +20,4 @@ annotations:
   # https://artifacthub.io/packages/helm/graviteeio/apim?modal=changelog
   artifacthub.io/changes: |
     - Allow wildcard in ingress host
+    - Remove smtp default example values
