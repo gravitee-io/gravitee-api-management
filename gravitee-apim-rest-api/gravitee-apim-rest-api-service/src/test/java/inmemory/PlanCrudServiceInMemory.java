@@ -15,7 +15,7 @@
  */
 package inmemory;
 
-import io.gravitee.apim.crud_service.plan.PlanCrudService;
+import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import java.util.ArrayList;

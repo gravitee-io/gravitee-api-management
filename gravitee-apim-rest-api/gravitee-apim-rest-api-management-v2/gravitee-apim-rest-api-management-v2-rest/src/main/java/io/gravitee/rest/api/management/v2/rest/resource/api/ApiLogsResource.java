@@ -17,7 +17,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.api;
 
 import static io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo.computePaginationInfo;
 
-import io.gravitee.apim.usecase.log.SearchConnectionLogUsecase;
+import io.gravitee.apim.core.log.usecase.SearchConnectionLogUsecase;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiLogsMapper;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLogsResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;

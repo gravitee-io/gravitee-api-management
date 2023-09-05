@@ -15,7 +15,7 @@
  */
 package inmemory;
 
-import io.gravitee.apim.crud_service.application.ApplicationCrudService;
+import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;

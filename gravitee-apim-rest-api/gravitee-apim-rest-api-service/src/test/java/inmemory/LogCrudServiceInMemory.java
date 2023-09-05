@@ -15,7 +15,7 @@
  */
 package inmemory;
 
-import io.gravitee.apim.crud_service.analytics.log.LogCrudService;
+import io.gravitee.apim.core.log.crud_service.LogCrudService;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.v4.log.BaseConnectionLog;
 import io.gravitee.rest.api.model.v4.log.SearchLogResponse;
