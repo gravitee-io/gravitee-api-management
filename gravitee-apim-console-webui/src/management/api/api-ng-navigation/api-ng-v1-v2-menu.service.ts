@@ -318,7 +318,7 @@ export class ApiNgV1V2MenuService implements ApiMenuService {
     if (this.constants.org.settings.alert?.enabled && this.permissionService.hasAnyMatching(['api-alert-r'])) {
       const alertEngineLicenseOptions = {
         feature: ApimFeature.ALERT_ENGINE,
-        context: UTMTags.CONTEXT_ENVIRONMENT,
+        context: UTMTags.CONTEXT_API_ANALYTICS,
       };
       const alertEngineIconRight$ = this.gioLicenseService
         .isMissingFeature$(alertEngineLicenseOptions)
