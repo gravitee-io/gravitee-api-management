@@ -11,8 +11,9 @@ const dockerImages = {
 };
 
 const executor = {
-  machine: {
-    forTests: 'ubuntu-2204:2022.04.2',
+  ubuntu: {
+    version: '2204',
+    tag: 'current',
   },
   base: 'cimg/base:stable',
   node: {
