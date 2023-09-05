@@ -43,9 +43,13 @@
     </mat-card>
 
     <mat-card class="home-overview__card">
-      <div class="mat-subheading-1">Top APIs</div>
-      <mat-card-subtitle>Ordered by API calls</mat-card-subtitle>
-      <div class="mat-body">No content to display</div>
+      <div class="mat-subheading-1">
+        Top APIs
+        <div class="mat-caption">Ordered by number of API calls</div>
+      </div>
+      <ng-container *ngIf="topApis; else loader">
+        <gio-top-apis-table [data]="topApis"></gio-top-apis-table>
+      </ng-container>
     </mat-card>
 
     <mat-card class="home-overview__card">

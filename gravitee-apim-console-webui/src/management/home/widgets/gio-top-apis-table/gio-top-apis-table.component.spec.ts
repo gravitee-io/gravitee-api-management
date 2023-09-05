@@ -124,6 +124,5 @@ describe('GioStatsTableComponent', () => {
 
     const paginotorHarness = await loader.getHarness(MatPaginatorHarness);
     expect(paginotorHarness).toBeDefined();
-    expect(await paginotorHarness.getPageSize()).toEqual(5);
   });
 });

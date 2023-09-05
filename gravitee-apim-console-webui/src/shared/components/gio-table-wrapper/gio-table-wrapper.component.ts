@@ -79,6 +79,9 @@ export class GioTableWrapperComponent implements AfterViewInit, OnChanges {
   @Input()
   disableSearchInput = false;
 
+  @Input()
+  disablePageSize = false;
+
   /** Pagination available page size options */
   @Input()
   paginationPageSizeOptions = [5, 10, 25, 100];
