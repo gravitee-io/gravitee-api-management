@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Observable, Subject } from 'rxjs';
+import { Subject } from 'rxjs';
 import { FormControl, Validators } from '@angular/forms';
-import { distinctUntilChanged, startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { switchMap, takeUntil, tap } from 'rxjs/operators';
 
-import { AnalyticsStatsResponse } from '../../../entities/analytics/analyticsResponse';
 import { AnalyticsService } from '../../../services-ngx/analytics.service';
 import { GioQuickTimeRangeComponent, TimeRangeParams } from '../widgets/gio-quick-time-range/gio-quick-time-range.component';
+import { RequestStats } from '../widgets/gio-request-stats/gio-request-stats.component';
 
 @Component({
   selector: 'home-overview',
@@ -28,33 +28,37 @@ import { GioQuickTimeRangeComponent, TimeRangeParams } from '../widgets/gio-quic
   styles: [require('./home-overview.component.scss')],
 })
 export class HomeOverviewComponent implements OnInit, OnDestroy {
-  private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   loading = false;
 
+  private fetchAnalyticsRequest$ = new Subject<TimeRangeParams>();
+  private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   constructor(private readonly statsService: AnalyticsService) {}
 
-  requestStats: AnalyticsStatsResponse;
+  requestStats?: RequestStats;
+
   timeRangeControl = new FormControl('1m', Validators.required);
 
   ngOnInit(): void {
-    this.timeRangeControl.valueChanges
+    // Request Stats
+    this.fetchAnalyticsRequest$
       .pipe(
-        startWith(this.timeRangeControl.value),
-        distinctUntilChanged(),
-        switchMap((timeRange) => this.getRequestStats(GioQuickTimeRangeComponent.getTimeFrameRangesParams(timeRange))),
+        tap(() => (this.requestStats = undefined)),
+        switchMap((val) => this.statsService.getStats({ field: 'response-time', interval: val.interval, from: val.from, to: val.to })),
+        tap((data) => (this.requestStats = data)),
         takeUntil(this.unsubscribe$),
       )
       .subscribe();
-  }
 
-  getRequestStats(val: TimeRangeParams): Observable<AnalyticsStatsResponse> {
-    this.loading = true;
-    return this.statsService.getStats({ field: 'response-time', interval: val.interval, from: val.from, to: val.to }).pipe(
-      tap((data) => {
-        this.loading = false;
-        this.requestStats = data;
-      }),
-    );
+    // Fetch Analytics when timeRange change
+    this.timeRangeControl.valueChanges
+      .pipe(
+        tap(() => this.fetchAnalyticsRequest()),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe();
+
+    // First fetch
+    this.fetchAnalyticsRequest();
   }
 
   ngOnDestroy() {
@@ -62,8 +66,8 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
     this.unsubscribe$.unsubscribe();
   }
 
-  refresh() {
+  fetchAnalyticsRequest() {
     const timeRange = this.timeRangeControl.value;
-    if (timeRange.from && timeRange.to) this.getRequestStats(timeRange).subscribe();
+    this.fetchAnalyticsRequest$.next(GioQuickTimeRangeComponent.getTimeFrameRangesParams(timeRange));
   }
 }

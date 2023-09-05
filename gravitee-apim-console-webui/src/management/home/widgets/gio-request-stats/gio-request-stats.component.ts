@@ -15,7 +15,16 @@
  */
 import { Component, Input } from '@angular/core';
 
-import { AnalyticsStatsResponse } from '../../../../entities/analytics/analyticsResponse';
+export class RequestStats {
+  count: number;
+  min: number;
+  max: number;
+  avg: number;
+  sum: number;
+  rps: number;
+  rpm: number;
+  rph: number;
+}
 
 @Component({
   selector: 'gio-request-stats',
@@ -24,5 +33,5 @@ import { AnalyticsStatsResponse } from '../../../../entities/analytics/analytics
 })
 export class GioRequestStatsComponent {
   @Input()
-  public data: AnalyticsStatsResponse;
+  public data?: RequestStats;
 }
