@@ -14,6 +14,8 @@ describe('Package bundle workflow tests', () => {
       branch: 'master',
       sha1: '784ff35ca',
       changedFiles: [],
+      buildNum: '1234',
+      buildId: '1234',
       graviteeioVersion,
       isDryRun,
     });
@@ -33,6 +35,8 @@ describe('Package bundle workflow tests', () => {
         changedFiles: [],
         isDryRun: false,
         graviteeioVersion: undefined,
+        buildNum: '1234',
+        buildId: '1234',
       });
     } catch (e) {
       expect(e).toStrictEqual(new Error('Graviteeio version is undefined - Please export CI_GRAVITEEIO_VERSION environment variable'));

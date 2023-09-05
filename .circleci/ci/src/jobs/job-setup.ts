@@ -5,7 +5,6 @@ import { config } from '../config';
 
 export class SetupJob {
   public static create(dynamicConfig: Config): Job {
-
     dynamicConfig.importOrb(orbs.keeper);
 
     const steps: Command[] = [
