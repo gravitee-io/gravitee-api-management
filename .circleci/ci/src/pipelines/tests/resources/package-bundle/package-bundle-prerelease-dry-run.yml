@@ -4,15 +4,11 @@
 
 version: 2.1
 setup: false
-executors:
-  openjdk-node:
+jobs:
+  job-package-bundle:
     docker:
       - image: cimg/openjdk:17.0-node
     resource_class: medium
-jobs:
-  job-package-bundle:
-    executor:
-      name: openjdk-node
     steps:
       - keeper/env-export:
           secret-url: keeper://R7NuqoW0KD-8l-kjx0-PgQ/field/login

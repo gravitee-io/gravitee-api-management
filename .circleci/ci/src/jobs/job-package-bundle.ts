@@ -12,14 +12,12 @@ export class PackageBundleJob {
     'https://odbxikk7vo-artifactory.services.clever-cloud.com/external-dependencies-n-gravitee-all';
 
   public static create(dynamicConfig: Config, graviteeioVersion: string, isDryRun: boolean) {
-    const openJdkNodeExecutor = OpenJdkNodeExecutor.get();
-    dynamicConfig.addReusableExecutor(openJdkNodeExecutor);
     dynamicConfig.importOrb(keeper);
     dynamicConfig.importOrb(awsS3);
 
     const parsedGraviteeioVersion = parse(graviteeioVersion);
 
-    return new Job('job-package-bundle', new reusable.ReusedExecutor(openJdkNodeExecutor), [
+    return new Job('job-package-bundle', OpenJdkNodeExecutor.create(), [
       new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
         'secret-url': config.secrets.artifactoryUser,
         'var-name': 'ARTIFACTORY_USERNAME',
