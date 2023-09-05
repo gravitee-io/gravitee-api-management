@@ -18,26 +18,26 @@ import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
 import { MatCardModule } from '@angular/material/card';
 
 import { GioChartPieComponent } from './gio-chart-pie.component';
-import { GioChartPieComponentModule } from './gio-chart-pie.component.module';
+import { GioChartPieModule } from './gio-chart-pie.module';
 
 export default {
   title: 'Shared / Pie Chart Component',
   component: GioChartPieComponent,
   decorators: [
     moduleMetadata({
-      imports: [MatCardModule, GioChartPieComponentModule],
+      imports: [MatCardModule, GioChartPieModule],
     }),
   ],
-  render: ({ data, dataDescription, title }) => {
+  render: ({ input, inputDescription, title }) => {
     return {
       template: `
       <mat-card style="width: 500px">
-            <gio-chart-pie [data]="data" [dataDescription]="dataDescription" [title]="title"></gio-chart-pie>
+            <gio-chart-pie [input]="input" [inputDescription]="inputDescription" [title]="title"></gio-chart-pie>
       </mat-card>
       `,
       props: {
-        data,
-        dataDescription,
+        input,
+        inputDescription,
         title,
       },
     };
@@ -46,7 +46,7 @@ export default {
 
 export const Simple: Story = {
   args: {
-    data: [
+    input: [
       {
         color: '#bbb',
         label: '1xx',
@@ -73,15 +73,13 @@ export const Simple: Story = {
         value: 300,
       },
     ],
-    title: 'A Sample Title',
-    dataDescription: 'Nb hits',
+    inputDescription: 'Nb hits',
   },
 };
 
 export const NoData: Story = {
   args: {
-    data: [],
-    title: 'A Sample Title',
-    dataDescription: 'Nb hits',
+    input: [],
+    inputDescription: 'Nb hits',
   },
 };

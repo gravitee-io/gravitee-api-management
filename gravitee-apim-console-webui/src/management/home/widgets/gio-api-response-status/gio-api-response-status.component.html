@@ -15,16 +15,11 @@
     limitations under the License.
 
 -->
-<div class="gio-chart-pie">
-  <highcharts-chart
-    *ngIf="input && input.length > 0; else noData"
-    [Highcharts]="Highcharts"
-    [options]="chartOptions"
-    class="gio-chart-pie__chart"
-  ></highcharts-chart>
-  <ng-template #noData>
-    <div class="gio-chart-pie__no-data">
-      <div class="mat-body">No data to display</div>
-    </div>
-  </ng-template>
+<div *ngIf="totalHint > 0; else noContent">
+  <gio-chart-pie [input]="chartPieInput" inputDescription="Nb hits"></gio-chart-pie>
+  <span>Nb hits total: {{ totalHint }}</span>
 </div>
+
+<ng-template #noContent>
+  <div class="mat-body">No content to display</div>
+</ng-template>
