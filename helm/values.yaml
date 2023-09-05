@@ -154,16 +154,16 @@ oidcAuth:
 #        - "ORGANIZATION:ADMIN"
 smtp:
   enabled: true
-  host: smtp.example.com
-  port: 25
-  from: info@example.com
-  username: info@example.com
-  password: example.com
-  subject: "[gravitee] %s"
-  properties:
-    auth: true
-    starttls.enable: false
-    #localhost: apim.example.com
+#  host: smtp.example.com
+#  port: 25
+#  from: info@example.com
+#  username: info@example.com
+#  password: example.com
+#  subject: "[gravitee] %s"
+#  properties:
+#    auth: true
+#    starttls.enable: false
+#    localhost: apim.example.com
 
 notifiers:
   smtp:
