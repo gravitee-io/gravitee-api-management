@@ -85,11 +85,11 @@ describe('AnalyticsService', () => {
         metadata: {
           blue: {
             name: 'BLUE',
-            order: 1,
+            order: '1',
           },
           yellow: {
             name: 'YELLOW',
-            order: 2,
+            order: '2',
           },
         },
       };

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { AfterViewInit, Component, Inject, Input, OnChanges, SimpleChanges } from '@angular/core';
-import { sortBy } from 'lodash';
+import { sortBy, toNumber } from 'lodash';
 import { StateService } from '@uirouter/angularjs';
 
 import { UIRouterState } from '../../../../ajs-upgraded-providers';
@@ -23,7 +23,7 @@ import { gioTableFilterCollection } from '../../../../shared/components/gio-tabl
 
 export type TopApisData = {
   values: { [key: string]: number };
-  metadata: { [key: string]: { name: string; version?: string; order: number; unknown?: boolean } };
+  metadata: { [key: string]: { name: string; version?: string; order: string; unknown?: boolean } };
 };
 
 type TableDataSource = {
@@ -71,7 +71,7 @@ export class GioTopApisTableComponent implements AfterViewInit, OnChanges {
           id: key,
           name: this.data.metadata[key].name,
           value,
-          order: this.data.metadata[key].order,
+          order: toNumber(this.data.metadata[key].order),
           unknown: this.data.metadata[key].unknown,
         };
       }),

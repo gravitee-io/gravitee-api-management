@@ -41,37 +41,37 @@ describe('GioStatsTableComponent', () => {
       '78416fd0-25ac-4234-816f-d025aca2345c': {
         name: 'Snowcamp',
         version: '1',
-        order: 1,
+        order: '1',
       },
       '5baa3ce2-5c8a-4a53-aa3c-e25c8a0a53aa': {
         name: 'Docs - APIM',
         version: '1.0',
-        order: 3,
+        order: '3',
       },
       'e78f07d4-d6d0-384e-8f8d-8cbe736074ad': {
         name: 'API 1 with slow backend',
         version: '1',
-        order: 5,
+        order: '5',
       },
       '62b7d292-8ee1-3913-8030-c883e01de8a0': {
         name: '4790',
         version: '1',
-        order: 2,
+        order: '2',
       },
       '9cbd6331-fdc7-4362-bd63-31fdc71362ae': {
         name: 'test-bad-ssl',
         version: 'test-bad-ssl',
-        order: 4,
+        order: '4',
       },
       'b264ff24-9030-31ae-be7b-cd50e0a88920': {
         name: 'API 2, call API 1 with slow backend',
         version: '1',
-        order: 6,
+        order: '6',
       },
       '?': {
         name: 'Unknown API (not found)',
         unknown: true,
-        order: 0,
+        order: '0',
       },
     },
   };
