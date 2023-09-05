@@ -28,6 +28,8 @@ const executor = {
   },
 };
 
+const jobContext = ['cicd-orchestrator'];
+
 const maven = {
   settingsFile: '.gravitee.settings.xml',
 };
@@ -74,17 +76,15 @@ const secrets = {
   sonarToken: 'keeper://9x9YgyU6DWzux4DPoHAzDQ/field/password',
 };
 
-const ssh = {
-  fingerprints: ['ac:88:23:8f:c6:0f:7d:f0:fc:df:73:20:34:56:02:6c'],
-};
-
-const jobContext = ['cicd-orchestrator'];
-
 const slack = {
   channels: {
     apiManagementTeamNotifications: 'C02JENTV2AX',
     graviteeReleaseAlerts: 'C02NGT20S4W',
   },
+};
+
+const ssh = {
+  fingerprints: ['ac:88:23:8f:c6:0f:7d:f0:fc:df:73:20:34:56:02:6c'],
 };
 
 export const config = {
