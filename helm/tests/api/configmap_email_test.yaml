@@ -36,7 +36,7 @@ tests:
           pattern: "password: TEST.password"
       - matchRegex:
           path: data.[gravitee.yml]
-          pattern: 'subject: "TEST.subject"'
+          pattern: "subject: TEST.subject"
       - matchRegex:
           path: data.[gravitee.yml]
           pattern: "starttls.enable: false"
