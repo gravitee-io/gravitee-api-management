@@ -3,6 +3,7 @@ import { Config } from '@circleci/circleci-config-sdk';
 import { generatePackageBundleConfig } from './pipeline-package-bundle';
 import { generatePublishDockerImagesConfig } from './pipeline-publish-docker-images';
 import { generateNexusStagingConfig } from './pipeline-nexus-staging';
+import { generateDbRepositoriesTestContainerConfig } from './pipeline-db-repositories-test-container';
 
 export function buildCIPipeline(environment: CircleCIEnvironment): Config | null {
   switch (environment.action) {
@@ -21,7 +22,7 @@ export function buildCIPipeline(environment: CircleCIEnvironment): Config | null
     case 'nexus_staging':
       return generateNexusStagingConfig(environment);
     case 'db_repositories_test_container':
-      return null; // TODO: add buildRepositoryTest(...)
+      return generateDbRepositoriesTestContainerConfig(environment);
     case 'release_notes_apim':
       return null; // TODO: add  buildReleaseNote(...)
     case 'bridge_compatibility_tests':
