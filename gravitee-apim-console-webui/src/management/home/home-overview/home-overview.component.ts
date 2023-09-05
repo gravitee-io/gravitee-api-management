@@ -20,6 +20,7 @@ import { switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { AnalyticsService } from '../../../services-ngx/analytics.service';
 import { GioQuickTimeRangeComponent, TimeRangeParams } from '../widgets/gio-quick-time-range/gio-quick-time-range.component';
+import { TopApisData } from '../widgets/gio-top-apis-table/gio-top-apis-table.component';
 import { RequestStats } from '../widgets/gio-request-stats/gio-request-stats.component';
 
 @Component({
@@ -34,11 +35,22 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   constructor(private readonly statsService: AnalyticsService) {}
 
+  topApis?: TopApisData;
   requestStats?: RequestStats;
 
   timeRangeControl = new FormControl('1m', Validators.required);
 
   ngOnInit(): void {
+    // Top APIs
+    this.fetchAnalyticsRequest$
+      .pipe(
+        tap(() => (this.topApis = undefined)),
+        switchMap((val) => this.statsService.getGroupBy({ field: 'api', interval: val.interval, from: val.from, to: val.to })),
+        tap((data) => (this.topApis = data)),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe();
+
     // Request Stats
     this.fetchAnalyticsRequest$
       .pipe(

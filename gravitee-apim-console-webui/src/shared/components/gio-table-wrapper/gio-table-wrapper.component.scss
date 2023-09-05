@@ -9,6 +9,7 @@ $typography: map.get(gio.$mat-theme, typography);
 
 :host {
   display: block;
+  border-top: 1px solid mat.get-color-from-palette($foreground, divider);
 
   @include mat.elevation(3); // default elevation
 }
@@ -32,7 +33,6 @@ $typography: map.get(gio.$mat-theme, typography);
     min-height: 56px;
     background: mat.get-color-from-palette($background, 'card');
     padding: 0px 16px 0px 16px;
-    border-top: 1px solid mat.get-color-from-palette($foreground, divider);
     border-bottom: 1px solid mat.get-color-from-palette($foreground, divider);
 
     &__search-field {

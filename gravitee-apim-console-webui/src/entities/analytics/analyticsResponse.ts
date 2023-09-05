@@ -16,7 +16,7 @@
 export class AnalyticsMetadata {
   name: string;
   order: number;
-  version?: number;
+  version?: string;
   unknown?: boolean;
 }
 
