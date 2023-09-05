@@ -81,6 +81,10 @@ const ssh = {
 
 const jobContext = ['cicd-orchestrator'];
 
+const slack = {
+  channel: 'C02JENTV2AX',
+};
+
 export const config = {
   cache,
   dockerImages,
@@ -89,5 +93,6 @@ export const config = {
   maven,
   orbs,
   secrets,
+  slack,
   ssh,
 };

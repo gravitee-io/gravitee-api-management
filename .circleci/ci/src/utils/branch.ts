@@ -1,4 +1,4 @@
-export const supportPattern = /^\d+\.\d+\.x$/;
+export const supportBranchPattern = '\\d+\\.\\d+\\.x';
 
 export function sanitizeBranch(branch: string) {
   return branch
@@ -14,5 +14,6 @@ export function isMasterBranch(branch: string) {
 }
 
 export function isSupportBranch(branch: string): boolean {
-  return supportPattern.test(branch);
+  const regex = new RegExp(supportBranchPattern);
+  return regex.test(branch);
 }

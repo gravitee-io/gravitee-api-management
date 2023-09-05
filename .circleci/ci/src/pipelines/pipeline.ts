@@ -26,7 +26,7 @@ export function buildCIPipeline(environment: CircleCIEnvironment): Config | null
     case 'bridge_compatibility_tests':
       return null; // TODO: add buildBridgeCompatibilityTest(...)
     case 'publish_docker_images':
-      return generatePublishDockerImagesConfig();
+      return generatePublishDockerImagesConfig(environment);
   }
   return null;
 }
