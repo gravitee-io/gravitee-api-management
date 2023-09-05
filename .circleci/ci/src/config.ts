@@ -1,8 +1,8 @@
 import { DockerResourceClass } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Executors/types/DockerExecutor.types';
 
-// const cache = {
-//   prefix: 'gravitee-api-management-v9',
-// };
+const cache = {
+  prefix: 'gravitee-api-management-v9',
+};
 
 const dockerImages = {
   cacheDir: '/tmp/docker-cache',
@@ -25,9 +25,9 @@ const executor = {
   },
 };
 
-// const maven = {
-//   settingsFile: '/tmp/.gravitee.settings.xml',
-// };
+const maven = {
+  settingsFile: '.gravitee.settings.xml',
+};
 
 const orbs = {
   artifactory: '1.0.1',
@@ -79,9 +79,14 @@ const ssh = {
   fingerprints: ['ac:88:23:8f:c6:0f:7d:f0:fc:df:73:20:34:56:02:6c'],
 };
 
+const jobContext = ['cicd-orchestrator'];
+
 export const config = {
-  executor,
+  cache,
   dockerImages,
+  executor,
+  jobContext,
+  maven,
   orbs,
   secrets,
   ssh,

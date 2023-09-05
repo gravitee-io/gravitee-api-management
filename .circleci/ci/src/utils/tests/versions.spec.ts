@@ -1,4 +1,4 @@
-import { parse } from './index';
+import { computeApimVersion, parse } from '../versions';
 
 describe('version', function () {
   describe('parse', function () {
@@ -24,5 +24,16 @@ describe('version', function () {
         });
       },
     );
+  });
+
+  describe('computeApimVersion', () => {
+    it.each`
+      path                                                   | expected
+      ${'./src/utils/tests/resources/pom.xml'}               | ${'4.2.0'}
+      ${'./src/utils/tests/resources/pom-sha1-snapshot.xml'} | ${'4.2.0-alpha.1-SNAPSHOT'}
+      ${'./src/utils/tests/resources/pom-snapshot.xml'}      | ${'4.2.0-SNAPSHOT'}
+    `('should parse apim version', ({ path, expected }) => {
+      expect(computeApimVersion(path)).toStrictEqual(expected);
+    });
   });
 });
