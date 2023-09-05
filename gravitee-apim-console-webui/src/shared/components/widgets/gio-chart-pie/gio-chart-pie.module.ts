@@ -13,11 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { NgModule } from '@angular/core';
+import { HighchartsChartModule } from 'highcharts-angular';
+import { CommonModule } from '@angular/common';
 
-export class AnalyticsRequestParam {
-  field: string;
-  from: number;
-  to: number;
-  interval: number;
-  ranges?: string;
-}
+import { GioChartPieComponent } from './gio-chart-pie.component';
+
+@NgModule({
+  imports: [HighchartsChartModule, CommonModule],
+  declarations: [GioChartPieComponent],
+  exports: [GioChartPieComponent],
+})
+export class GioChartPieModule {}

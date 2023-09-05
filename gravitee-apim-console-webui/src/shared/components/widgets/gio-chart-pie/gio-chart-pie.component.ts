@@ -30,13 +30,10 @@ export interface GioChartPieInput {
 })
 export class GioChartPieComponent implements OnInit {
   @Input()
-  public data: GioChartPieInput[];
+  public input: GioChartPieInput[];
 
   @Input()
-  public dataDescription: string;
-
-  @Input()
-  public title: string;
+  public inputDescription: string;
 
   Highcharts: typeof Highcharts = Highcharts;
   chartOptions: Highcharts.Options;
@@ -47,11 +44,15 @@ export class GioChartPieComponent implements OnInit {
         text: '',
       },
       credits: { enabled: false },
+      chart: {
+        height: '100%',
+        backgroundColor: 'transparent',
+      },
       series: [
         {
-          data: this.data?.map((d) => [d.label, d.value]),
-          name: this.dataDescription,
-          colors: this.data?.map((d) => d.color),
+          data: this.input?.map((d) => [d.label, d.value]),
+          name: this.inputDescription,
+          colors: this.input?.map((d) => d.color),
           type: 'pie',
         },
       ],

@@ -18,7 +18,7 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HarnessLoader } from '@angular/cdk/testing';
 
-import { GioChartPieComponentModule } from './gio-chart-pie.component.module';
+import { GioChartPieModule } from './gio-chart-pie.module';
 import { GioChartPieComponent } from './gio-chart-pie.component';
 import { GioChartPieHarness } from './gio-chart-pie.harness';
 
@@ -28,7 +28,7 @@ describe('GioChartPieComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioChartPieComponentModule],
+      imports: [NoopAnimationsModule, GioChartPieModule],
       providers: [],
     });
     fixture = TestBed.createComponent(GioChartPieComponent);

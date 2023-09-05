@@ -16,6 +16,7 @@
 import { Inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { isNil } from 'lodash';
 
 import { Constants } from '../entities/Constants';
 import { AnalyticsRequestParam } from '../entities/analytics/analyticsRequestParam';
@@ -38,12 +39,11 @@ export class AnalyticsService {
   }
 
   getGroupBy(params: AnalyticsRequestParam): Observable<AnalyticsGroupByResponse> {
-    const url =
-      `${this.constants.env.baseURL}/analytics?type=group_by` +
-      `&field=${params.field}` +
-      `&interval=${params.interval}` +
-      `&from=${params.from}` +
-      `&to=${params.to}`;
+    const queryParams = Object.entries(params ?? [])
+      .map(([key, value]) => (isNil(value) ? null : `${key}=${value}`))
+      .filter((v) => v != null);
+
+    const url = `${this.constants.env.baseURL}/analytics?type=group_by&${queryParams.join('&')}`;
     return this.http.get<AnalyticsGroupByResponse>(url);
   }
 

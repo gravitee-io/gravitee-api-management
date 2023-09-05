@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 import { NgModule } from '@angular/core';
-import { HighchartsChartModule } from 'highcharts-angular';
 import { CommonModule } from '@angular/common';
 
-import { GioChartPieComponent } from './gio-chart-pie.component';
+import { GioApiResponseStatusComponent } from './gio-api-response-status.component';
+
+import { GioChartPieModule } from '../../../../shared/components/widgets/gio-chart-pie/gio-chart-pie.module';
 
 @NgModule({
-  imports: [HighchartsChartModule, CommonModule],
-  declarations: [GioChartPieComponent],
-  exports: [GioChartPieComponent],
+  imports: [CommonModule, GioChartPieModule],
+  declarations: [GioApiResponseStatusComponent],
+  exports: [GioApiResponseStatusComponent],
 })
-export class GioChartPieComponentModule {}
+export class GioApiResponseStatusModule {}

@@ -18,18 +18,18 @@ import { ComponentHarness } from '@angular/cdk/testing';
 export class GioChartPieHarness extends ComponentHarness {
   static hostSelector = '.gio-chart-pie';
 
-  protected getPieChart = this.locatorFor('.gio-chart-pie__chart');
-  protected getNoDataDisplayed = this.locatorFor('.gio-chart-pie__no-data');
+  protected getPieChart = this.locatorForOptional('.gio-chart-pie__chart');
+  protected getNoDataDisplayed = this.locatorForOptional('.gio-chart-pie__no-data');
 
   async hasNoData(): Promise<boolean> {
     return this.getNoDataDisplayed()
-      .then((_) => true)
+      .then((v) => !!v)
       .catch((_) => false);
   }
 
   async displaysChart() {
     return this.getPieChart()
-      .then((_) => true)
+      .then((v) => !!v)
       .catch((_) => false);
   }
 }

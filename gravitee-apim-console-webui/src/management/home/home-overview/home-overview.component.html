@@ -39,7 +39,10 @@
   <div class="home-overview__row">
     <mat-card class="home-overview__card">
       <div class="mat-subheading-1">API Response Status</div>
-      <div class="mat-body">No content to display</div>
+
+      <ng-container *ngIf="topApis; else loader">
+        <gio-api-response-status [data]="apiResponseStatus"></gio-api-response-status>
+      </ng-container>
     </mat-card>
 
     <mat-card class="home-overview__card">
