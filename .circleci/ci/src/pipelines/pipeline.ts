@@ -1,6 +1,7 @@
 import { CircleCIEnvironment } from './circleci-environment';
 import { Config } from '@circleci/circleci-config-sdk';
 import { generatePackageBundleConfig } from './pipeline-package-bundle';
+import { generatePublishDockerImagesConfig } from './pipeline-publish-docker-images';
 
 export function buildCIPipeline(environment: CircleCIEnvironment): Config | null {
   switch (environment.action) {
@@ -15,7 +16,7 @@ export function buildCIPipeline(environment: CircleCIEnvironment): Config | null
     case 'release':
       return null; // TODO: add buildRelease(...)
     case 'package_bundle':
-      return generatePackageBundleConfig(environment); // TODO: add buildPackageBundle(...)
+      return generatePackageBundleConfig(environment);
     case 'nexus_staging':
       return null; // TODO: add buildNexusStaging(...)
     case 'db_repositories_test_container':
@@ -25,7 +26,7 @@ export function buildCIPipeline(environment: CircleCIEnvironment): Config | null
     case 'bridge_compatibility_tests':
       return null; // TODO: add buildBridgeCompatibilityTest(...)
     case 'publish_docker_images':
-      return null; // TODO add buildPublishDockerImages(...)
+      return generatePublishDockerImagesConfig();
   }
   return null;
 }

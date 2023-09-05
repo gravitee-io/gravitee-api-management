@@ -1,4 +1,4 @@
-import { isMasterBranch, isSupportBranch, sanitizeBranch } from './branch';
+import { isMasterBranch, isSupportBranch, sanitizeBranch } from '../branch';
 
 describe('branch', function () {
   describe('sanitize', function () {
