@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<div class="gio-request-stats">
+<div *ngIf="data; else noContent" class="gio-request-stats">
   <div class="gio-request-stats__body">
     <div class="gio-request-stats__body__title">
       <span>Response Time</span>
@@ -23,15 +23,15 @@
     <div class="gio-request-stats__body__rows">
       <div class="gio-request-stats__body__row">
         <span>Min</span>
-        <span>{{ data.min || 0 | number : '.1-2' }} ms</span>
+        <span *ngIf="data.min; else emptyNumber">{{ data.min | number : '.1-2' }} ms</span>
       </div>
       <div class="gio-request-stats__body__row">
         <span>Max</span>
-        <span>{{ data.max || 0 | number : '.1-2' }} ms</span>
+        <span *ngIf="data.max; else emptyNumber">{{ data.max | number : '.1-2' }} ms</span>
       </div>
       <div class="gio-request-stats__body__row">
         <span>Average</span>
-        <span>{{ data.avg || 0 | number : '.1-2' }} ms</span>
+        <span *ngIf="data.avg; else emptyNumber">{{ data.avg | number : '.1-2' }} ms</span>
       </div>
     </div>
   </div>
@@ -42,12 +42,20 @@
     <div class="gio-request-stats__body__rows">
       <div class="gio-request-stats__body__row">
         <span>Requests per second</span>
-        <span>{{ data.rps || 0 | number : '.1-1' }}</span>
+        <span *ngIf="data.rps; else emptyNumber">{{ data.rps | number : '.1-1' }}</span>
       </div>
       <div class="gio-request-stats__body__row">
         <span>Total number of requests</span>
-        <span>{{ data.count || 0 | number }}</span>
+        <span *ngIf="data.count; else emptyNumber">{{ data.count | number }}</span>
       </div>
     </div>
   </div>
 </div>
+
+<ng-template #noContent>
+  <div class="mat-body">No content to display</div>
+</ng-template>
+
+<ng-template #emptyNumber>
+  <span>-</span>
+</ng-template>
