@@ -106,7 +106,7 @@ export const FeatureInfoData: Record<ApimFeature, FeatureInfo> = {
       'Explore Gravitee enterprise functionality, such as support for event brokers, asynchronous APIs, and Webhook subscriptions.',
   },
   [ApimFeature.ALERT_ENGINE]: {
-    image: 'assets/gio-ee-unlock-dialog/alert-engine.png',
+    image: 'assets/gio-ee-unlock-dialog/alert-engine.svg',
     description:
       'Alert Engine allows you to isolate, understand and remediate for API performance and security risks before they cause a problem for your customers.',
   },
