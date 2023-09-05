@@ -15,8 +15,8 @@
  */
 package io.gravitee.rest.api.management.v2.rest.spring;
 
-import io.gravitee.apim.crud_service.CrudServiceSpringConfiguration;
-import io.gravitee.apim.usecase.UsecaseSpringConfiguration;
+import io.gravitee.apim.infra.UsecaseSpringConfiguration;
+import io.gravitee.apim.infra.crud_service.CrudServiceSpringConfiguration;
 import io.gravitee.el.ExpressionLanguageInitializer;
 import io.gravitee.plugin.core.spring.PluginConfiguration;
 import io.gravitee.rest.api.idp.core.spring.IdentityProviderPluginConfiguration;
