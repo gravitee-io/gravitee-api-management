@@ -27,6 +27,11 @@ interface Stat {
   fallback?: any;
 }
 
+/**
+ * DEPRECATED
+ *
+ * Tests no longer supported for this component
+ */
 class WidgetDataStatsConfigurationController implements IOnInit {
   public chart: {
     request: { type: string; field: any };

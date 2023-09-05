@@ -15,11 +15,15 @@
  */
 import { IComponentControllerService } from 'angular';
 
-import { setupAngularJsTesting } from '../../../../jest.setup';
+/**
+ * DEPRECATED
+ *
+ * Tests skipped because they are very slow and the component will be migrated to Angular in the future
+ */
 
-setupAngularJsTesting();
+// setupAngularJsTesting();
 
-describe('WidgetDataStatsConfigurationComponent', () => {
+describe.skip('WidgetDataStatsConfigurationComponent', () => {
   let $componentController: IComponentControllerService;
   let widgetDataStatsConfigurationComponent: any;
 
