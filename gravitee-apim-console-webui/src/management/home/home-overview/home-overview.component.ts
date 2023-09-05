@@ -23,6 +23,7 @@ import { GioQuickTimeRangeComponent, TimeRangeParams } from '../widgets/gio-quic
 import { TopApisData } from '../widgets/gio-top-apis-table/gio-top-apis-table.component';
 import { RequestStats } from '../widgets/gio-request-stats/gio-request-stats.component';
 import { ApiResponseStatusData } from '../widgets/gio-api-response-status/gio-api-response-status.component';
+import { ApiStateData } from '../widgets/gio-api-state/gio-api-state.component';
 
 @Component({
   selector: 'home-overview',
@@ -39,10 +40,28 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
   topApis?: TopApisData;
   requestStats?: RequestStats;
   apiResponseStatus?: ApiResponseStatusData;
+  apiState?: ApiStateData;
 
   timeRangeControl = new FormControl('1m', Validators.required);
 
   ngOnInit(): void {
+    // API state
+    this.fetchAnalyticsRequest$
+      .pipe(
+        tap(() => (this.apiState = undefined)),
+        switchMap((val) =>
+          this.statsService.getGroupBy({
+            field: 'state',
+            interval: val.interval,
+            from: val.from,
+            to: val.to,
+          }),
+        ),
+        tap((data) => (this.apiState = data)),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe();
+
     // API response status
     this.fetchAnalyticsRequest$
       .pipe(

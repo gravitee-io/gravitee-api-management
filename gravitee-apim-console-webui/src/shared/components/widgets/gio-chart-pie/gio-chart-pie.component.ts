@@ -48,6 +48,17 @@ export class GioChartPieComponent implements OnInit {
         height: '100%',
         backgroundColor: 'transparent',
       },
+      tooltip: {
+        pointFormat: '{series.name}: {point.y} ({point.percentage:.1f} %)',
+      },
+      plotOptions: {
+        pie: {
+          dataLabels: {
+            enabled: true,
+            format: '<b>{point.name}</b>: {point.y} ({point.percentage:.1f} %)',
+          },
+        },
+      },
       series: [
         {
           data: this.input?.map((d) => [d.label, d.value]),
