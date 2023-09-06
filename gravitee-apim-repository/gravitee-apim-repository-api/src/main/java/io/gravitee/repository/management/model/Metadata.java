@@ -17,11 +17,17 @@ package io.gravitee.repository.management.model;
 
 import java.util.Date;
 import java.util.Objects;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class Metadata {
 
     public enum AuditEvent implements Audit.ApiAuditEvent {
