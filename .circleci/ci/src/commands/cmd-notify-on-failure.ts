@@ -6,25 +6,23 @@ import { slack } from '../orbs/slack';
 import { supportBranchPattern } from '../utils';
 
 export class NotifyOnFailureCommand {
-  public static commandName = 'cmd-notify-on-failure';
+  private static commandName = 'cmd-notify-on-failure';
 
   public static get(dynamicConfig: Config): ReusableCommand {
     dynamicConfig.importOrb(keeper);
     dynamicConfig.importOrb(slack);
 
-    const reusableCommand = new reusable.ReusableCommand(NotifyOnFailureCommand.commandName, [
+    return new reusable.ReusableCommand(NotifyOnFailureCommand.commandName, [
       new reusable.ReusedCommand(keeper.commands['env-export'], {
         'secret-url': config.secrets.slackAccessToken,
         'var-name': 'SLACK_ACCESS_TOKEN',
       }),
       new reusable.ReusedCommand(slack.commands.notify, {
-        channel: config.slack.channel,
+        channel: config.slack.channels.apiManagementTeamNotifications,
         branch_pattern: `master,${supportBranchPattern}`,
         event: 'fail',
         template: 'basic_fail_1',
       }),
     ]);
-
-    return reusableCommand;
   }
 }
