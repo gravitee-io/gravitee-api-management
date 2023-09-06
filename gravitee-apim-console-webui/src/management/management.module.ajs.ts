@@ -67,7 +67,6 @@ import ApiCreationStep3Component from '../management/api/creation/steps/api-crea
 import ApiCreationStep4Component from '../management/api/creation/steps/api-creation-step4.component';
 import ApiCreationStep5Component from '../management/api/creation/steps/api-creation-step5.component';
 import NewApiImportController from './api/creation/newApiImport.controller';
-import { ApiCreationGetStartedComponent } from './api/creation/api-creation-get-started.component';
 // API Plan
 // API PrimaryOwner Mode
 import ApiPrimaryOwnerModeService from '../services/apiPrimaryOwnerMode.service';
@@ -446,46 +445,20 @@ import ApiKeysComponent from '../management/api-key/api-keys.component';
 import ApiKeysController from '../management/api-key/api-keys.controller';
 import { EnvAuditComponent } from './audit/env-audit.component';
 import { EnvApplicationListComponent } from './application/list/env-application-list.component';
-import { ApiListComponent } from './api/list/api-list.component';
-import { ApiProxyEntrypointsComponent } from './api/proxy/entrypoints/api-proxy-entrypoints.component';
-import { ApiProxyEntrypointsContextPathComponent } from './api/proxy/entrypoints/context-path/api-proxy-entrypoints-context-path.component';
-import { ApiProxyEntrypointsVirtualHostComponent } from './api/proxy/entrypoints/virtual-host/api-proxy-entrypoints-virtual-host.component';
-import { ApiProxyCorsComponent } from './api/proxy/cors/api-proxy-cors.component';
-import { ApiProxyDeploymentsComponent } from './api/proxy/deployments/api-proxy-deployments.component';
-import { ApiProxyResponseTemplatesListComponent } from './api/proxy/response-templates/list/api-proxy-response-templates-list.component';
-import { ApiProxyResponseTemplatesEditComponent } from './api/proxy/response-templates/edit/api-proxy-response-templates-edit.component';
-import { ApiGeneralInfoComponent } from './api/general/details/api-general-info.component';
-import { ApiProxyGroupEditComponent } from './api/proxy/endpoints/groups/edit/api-proxy-group-edit.component';
-import { ApiProxyGroupEndpointEditComponent } from './api/proxy/endpoints/groups/endpoint/edit/api-proxy-group-endpoint-edit.component';
-import { ApiProxyFailoverComponent } from './api/proxy/failover/api-proxy-failover.component';
 import { GioSideNavComponent } from '../components/gio-side-nav/gio-side-nav.component';
 import { GioTopNavComponent } from '../components/gio-top-nav/gio-top-nav.component';
 import { SettingsNavigationComponent } from './configuration/settings-navigation/settings-navigation.component';
 import { ApplicationNavigationComponent } from './application/details/application-navigation/application-navigation.component';
-import { ApiProxyHealthCheckComponent } from './api/proxy/health-check/api-proxy-health-check.component';
-import { ApiGeneralPlanListComponent } from './api/general/plans/list/api-general-plan-list.component';
 import { IfMatchEtagInterceptor } from '../shared/interceptors/if-match-etag.interceptor';
-import { ApiLogsConfigurationComponent } from './api/analytics/logs/configuration/api-logs-configuration.component';
-import { ApiCreationV4Component } from './api/creation-v4/api-creation-v4.component';
-import { ApiPathMappingsComponent } from './api/analytics/pathMappings/api-path-mappings.component';
-import { ApiCreationV4ConfirmationComponent } from './api/creation-v4/api-creation-v4-confirmation.component';
-import { ApiGeneralGroupsComponent } from './api/general/user-group-access/groups/api-general-groups.component';
-import { ApiGeneralMembersComponent } from './api/general/user-group-access/members/api-general-members.component';
 import SearchAndSelectComponent from '../components/search-and-select/search-and-select.component';
 import { SearchAndSelectController } from '../components/search-and-select/search-and-select.controller';
-import { ApiGeneralTransferOwnershipComponent } from './api/general/user-group-access/transfer-ownership/api-general-transfer-ownership.component';
 import AlertTabsController from '../components/alerts/alertTabs/alert-tabs-component';
 import AlertsActivityController from '../components/alerts/activity/alerts-activity.controller';
-import { ApiGeneralPlanEditComponent } from './api/general/plans/edit/api-general-plan-edit.component';
-import { ApiPortalDocumentationMetadataComponent } from './api/general/documentation/metadata/api-portal-documentation-metadata.component';
 import { ApiV2Service } from '../services-ngx/api-v2.service';
 import { OrgNavigationComponent } from '../organization/configuration/navigation/org-navigation.component';
 import { ClientRegistrationProviderComponent } from './configuration/client-registration-providers/client-registration-provider/client-registration-provider.component';
 import { GioPermissionService } from '../shared/components/gio-permission/gio-permission.service';
-import { ApiGeneralSubscriptionListComponent } from './api/general/subscriptions/list/api-general-subscription-list.component';
-import { ApiGeneralSubscriptionEditComponent } from './api/general/subscriptions/edit/api-general-subscription-edit.component';
 import { ApiAnalyticsOverviewComponentAjs } from './api/analytics/overview/analytics-overview.component.ajs';
-import { ApiEventsComponent } from './api/audit/events/api-events.component';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -602,53 +575,16 @@ graviteeManagementModule.directive('gioTopNav', downgradeComponent({ component: 
 graviteeManagementModule.directive('settingsNavigation', downgradeComponent({ component: SettingsNavigationComponent }));
 graviteeManagementModule.directive('applicationNavigation', downgradeComponent({ component: ApplicationNavigationComponent }));
 
-// Apis
-graviteeManagementModule.directive('ngApiList', downgradeComponent({ component: ApiListComponent }));
-graviteeManagementModule.directive('ngApiProxyEntrypoints', downgradeComponent({ component: ApiProxyEntrypointsComponent }));
-graviteeManagementModule.directive(
-  'ngApiProxyEntrypointsContextPath',
-  downgradeComponent({ component: ApiProxyEntrypointsContextPathComponent }),
-);
-graviteeManagementModule.directive(
-  'ngApiProxyEntrypointsVirtualHost',
-  downgradeComponent({ component: ApiProxyEntrypointsVirtualHostComponent }),
-);
-graviteeManagementModule.directive('ngApiProxyCors', downgradeComponent({ component: ApiProxyCorsComponent }));
-graviteeManagementModule.directive('ngApiProxyDeployments', downgradeComponent({ component: ApiProxyDeploymentsComponent }));
-graviteeManagementModule.directive(
-  'ngApiProxyResponseTemplatesList',
-  downgradeComponent({ component: ApiProxyResponseTemplatesListComponent }),
-);
-graviteeManagementModule.directive(
-  'ngApiProxyResponseTemplatesEdit',
-  downgradeComponent({ component: ApiProxyResponseTemplatesEditComponent }),
-);
-graviteeManagementModule.directive('ngApiProxyGroupEdit', downgradeComponent({ component: ApiProxyGroupEditComponent }));
-graviteeManagementModule.directive('ngApiProxyGroupEndpointEdit', downgradeComponent({ component: ApiProxyGroupEndpointEditComponent }));
-graviteeManagementModule.directive('ngApiProxyFailover', downgradeComponent({ component: ApiProxyFailoverComponent }));
-
 // Pendo Analytics
 graviteeManagementModule.factory('ngGioPendoService', downgradeInjectable(GioPendoService));
 graviteeManagementModule.controller('ApisStatusDashboardController', ApisStatusDashboardController);
 
-graviteeManagementModule.directive('ngApiPortalDetails', downgradeComponent({ component: ApiGeneralInfoComponent }));
-graviteeManagementModule.directive('ngApiPortalPlanList', downgradeComponent({ component: ApiGeneralPlanListComponent }));
-graviteeManagementModule.directive('ngApiPortalSubscriptionList', downgradeComponent({ component: ApiGeneralSubscriptionListComponent }));
-graviteeManagementModule.directive('ngApiPortalSubscriptionEdit', downgradeComponent({ component: ApiGeneralSubscriptionEditComponent }));
-graviteeManagementModule.directive(
-  'ngApiPortalDocumentationMetadata',
-  downgradeComponent({ component: ApiPortalDocumentationMetadataComponent }),
-);
-
 graviteeManagementModule.component('apiAnalyticsOverviewComponentAjs', ApiAnalyticsOverviewComponentAjs);
 graviteeManagementModule.component('apiV1PoliciesComponentAjs', ApiV1PoliciesComponentAjs);
 graviteeManagementModule.controller('AddPoliciesPathController', AddPoliciesPathController);
-graviteeManagementModule.directive('ngApiMembers', downgradeComponent({ component: ApiGeneralMembersComponent }));
-graviteeManagementModule.directive('ngApiTransferOwnership', downgradeComponent({ component: ApiGeneralTransferOwnershipComponent }));
 graviteeManagementModule.component('apiHealthcheckDashboardComponentAjs', ApiHealthcheckDashboardComponentAjs);
 
 graviteeManagementModule.component('apiV1PropertiesComponentAjs', ApiV1PropertiesComponentAjs);
-graviteeManagementModule.directive('ngApiEvents', downgradeComponent({ component: ApiEventsComponent }));
 graviteeManagementModule.component('apiHistoryComponentAjs', ApiHistoryComponentAjs);
 graviteeManagementModule.component('apiV1ResourcesComponentAjs', ApiV1ResourcesComponentAjs);
 graviteeManagementModule.controller('DialogAddPathMappingController', DialogAddPathMappingController);
@@ -793,12 +729,6 @@ graviteeManagementModule.component('instances', InstancesComponent);
 graviteeManagementModule.component('apiCreation', ApiCreationComponent);
 graviteeManagementModule.controller('ApiCreationController', ApiCreationController);
 graviteeManagementModule.controller('NewApiImportController', NewApiImportController);
-graviteeManagementModule.directive('ngApiCreationGetStartedComponent', downgradeComponent({ component: ApiCreationGetStartedComponent }));
-graviteeManagementModule.directive('ngApiCreationV4Component', downgradeComponent({ component: ApiCreationV4Component }));
-graviteeManagementModule.directive(
-  'ngApiCreationV4ConfirmationComponent',
-  downgradeComponent({ component: ApiCreationV4ConfirmationComponent }),
-);
 graviteeManagementModule.component('apiCreationStep1', ApiCreationStep1Component);
 graviteeManagementModule.component('apiCreationStep2', ApiCreationStep2Component);
 graviteeManagementModule.component('apiCreationStep3', ApiCreationStep3Component);
@@ -809,10 +739,6 @@ graviteeManagementModule.component('gvDashboardFilter', DashboardFilterComponent
 graviteeManagementModule.controller('DashboardFilterController', DashboardFilterController);
 graviteeManagementModule.component('gvDashboardTimeframe', DashboardTimeframeComponent);
 graviteeManagementModule.controller('DashboardTimeframeController', DashboardTimeframeController);
-
-// Plan
-graviteeManagementModule.directive('ngApiPortalPlanEdit', downgradeComponent({ component: ApiGeneralPlanEditComponent }));
-graviteeManagementModule.directive('ngApiPortalGroups', downgradeComponent({ component: ApiGeneralGroupsComponent }));
 
 // API subscriptions
 graviteeManagementModule.component('apiKeys', ApiKeysComponent);
@@ -878,14 +804,9 @@ graviteeManagementModule.component('gvContextualDoc', ContextualDocComponent);
 graviteeManagementModule.controller('ContextualDocController', ContextualDocController);
 
 // Healthcheck
-graviteeManagementModule.directive('ngApiProxyHealthCheck', downgradeComponent({ component: ApiProxyHealthCheckComponent }));
 graviteeManagementModule.component('apiHealthcheckLogComponentAjs', ApiHealthcheckLogComponentAjs);
 graviteeManagementModule.component('progressBar', ProgressBarComponent);
 graviteeManagementModule.component('gvHealthcheckMetric', HealthCheckMetricComponent);
-
-// Analytics
-graviteeManagementModule.directive('ngApiLogsConfiguration', downgradeComponent({ component: ApiLogsConfigurationComponent }));
-graviteeManagementModule.directive('ngApiPathMappings', downgradeComponent({ component: ApiPathMappingsComponent }));
 
 // Configuration
 graviteeManagementModule.component('settings', SettingsComponent);
