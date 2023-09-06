@@ -16,6 +16,8 @@
 package io.gravitee.repository.management.model;
 
 import java.util.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -23,6 +25,8 @@ import java.util.*;
  * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Builder
+@AllArgsConstructor
 public class Membership {
 
     public enum AuditEvent implements Audit.ApiAuditEvent {
