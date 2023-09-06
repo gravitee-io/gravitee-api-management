@@ -21,11 +21,11 @@ import { UIRouterState } from '../../../../ajs-upgraded-providers';
 import { MenuItem, MenuItemHeader } from '../MenuGroupItem';
 
 @Component({
-  selector: 'api-ng-navigation-tabs',
-  template: require('./api-ng-navigation-tabs.component.html'),
-  styles: [require('./api-ng-navigation-tabs.component.scss')],
+  selector: 'api-navigation-tabs',
+  template: require('./api-navigation-tabs.component.html'),
+  styles: [require('./api-navigation-tabs.component.scss')],
 })
-export class ApiNgNavigationTabsComponent {
+export class ApiNavigationTabsComponent {
   @Input()
   public tabMenuItems: MenuItem[] = [];
 

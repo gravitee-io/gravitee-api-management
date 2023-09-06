@@ -185,7 +185,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
               contextPath: this.getContextPath(apiv4),
               isNotSynced$: undefined,
               qualityScore$: null,
-              targetRoute: 'management.apis.ng.general',
+              targetRoute: 'management.apis.general',
             };
           } else {
             const apiv2 = api as ApiV2;
@@ -196,7 +196,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
               qualityScore$: this.isQualityDisplayed
                 ? this.apiService.getQualityMetrics(apiv2.id).pipe(map((a) => this.getQualityScore(Math.floor(a.score * 100))))
                 : null,
-              targetRoute: 'management.apis.ng.general',
+              targetRoute: 'management.apis.general',
             };
           }
         })

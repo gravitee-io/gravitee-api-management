@@ -31,7 +31,7 @@ import {
   ApiConfirmDeploymentDialogResult,
 } from './api-confirm-deployment-dialog.component';
 
-import { ApiNgNavigationModule } from '../api-ng-navigation.module';
+import { ApiNavigationModule } from '../api-navigation.module';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 
 const API_ID = 'apiId';
@@ -67,7 +67,7 @@ describe('ApiConfirmDeploymentDialogComponent', () => {
   beforeEach(async () => {
     TestBed.configureTestingModule({
       declarations: [TestComponent],
-      imports: [ApiNgNavigationModule, NoopAnimationsModule, MatDialogModule, MatIconTestingModule, GioHttpTestingModule],
+      imports: [ApiNavigationModule, NoopAnimationsModule, MatDialogModule, MatIconTestingModule, GioHttpTestingModule],
     });
 
     fixture = TestBed.createComponent(TestComponent);

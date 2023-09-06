@@ -122,7 +122,7 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
 
       await loader.getHarness(MatButtonHarness.with({ selector: '[mattooltip="Go back"]' })).then((button) => button.click());
 
-      expect(routerSpy).toHaveBeenCalledWith('management.apis.ng.endpoints-v2', { apiId: API_ID }, undefined);
+      expect(routerSpy).toHaveBeenCalledWith('management.apis.endpoints-v2', { apiId: API_ID }, undefined);
     });
 
     it('should warn the user on update error', async () => {

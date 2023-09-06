@@ -87,7 +87,7 @@ class ImportPagesComponentController implements IController {
           }
         }
         if (this.apiId) {
-          this.$state.go('management.apis.ng.documentation', { apiId: this.apiId });
+          this.$state.go('management.apis.documentation', { apiId: this.apiId });
         } else {
           this.$state.go('management.settings.documentation.list');
         }
@@ -99,7 +99,7 @@ class ImportPagesComponentController implements IController {
 
   cancel() {
     if (this.apiId) {
-      this.$state.go('management.apis.ng.documentation', { apiId: this.apiId });
+      this.$state.go('management.apis.documentation', { apiId: this.apiId });
     } else {
       this.$state.go('management.settings.documentation.list');
     }

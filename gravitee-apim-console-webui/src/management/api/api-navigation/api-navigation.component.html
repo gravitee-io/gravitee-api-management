@@ -18,7 +18,7 @@
 <div *ngIf="currentApi" class="api-navigation">
   <div class="api-navigation__menu">
     <gio-submenu class="api-navigation__submenu">
-      <api-ng-navigation-title
+      <api-navigation-title
         gioSubmenuTitle
         class="api-navigation__submenu__title"
         [apiName]="currentApi.name"
@@ -28,7 +28,7 @@
         [apiDeploymentState]="currentApi.deploymentState"
         [apiOrigin]="currentApi.definitionContext.origin"
         separator="pipe"
-      ></api-ng-navigation-title>
+      ></api-navigation-title>
       <ng-container *ngFor="let menuItem of this.subMenuItems">
         <ng-container *ngIf="!menuItem?.targetRoute && menuItem?.tabs?.length > 0">
           <a [uiSref]="menuItem?.tabs[0]?.targetRoute">
@@ -52,11 +52,11 @@
             ></a
           ></ng-container
         >
-        <api-ng-navigation-disabled
+        <api-navigation-disabled
           *ngIf="menuItem?.targetRoute === 'DISABLED'"
           class="api-navigation__menu__disabled"
           [displayName]="menuItem.displayName"
-        ></api-ng-navigation-disabled>
+        ></api-navigation-disabled>
       </ng-container>
       <ng-container *ngFor="let group of this.groupItems">
         <gio-submenu-group [title]="group.title" *ngIf="group.title">
@@ -83,11 +83,11 @@
                 ></a
               ></ng-container
             >
-            <api-ng-navigation-disabled
+            <api-navigation-disabled
               *ngIf="subItem?.targetRoute === 'DISABLED'"
               class="api-navigation__submenu__disabled"
               [displayName]="subItem.displayName"
-            ></api-ng-navigation-disabled>
+            ></api-navigation-disabled>
           </ng-container>
         </gio-submenu-group>
       </ng-container>
@@ -110,7 +110,7 @@
 
       <gio-breadcrumb *ngIf="hasBreadcrumb" class="api-navigation__breadcrumb">
         <span *gioBreadcrumbItem class="api-navigation__breadcrumb__item">APIs</span>
-        <api-ng-navigation-title
+        <api-navigation-title
           gioSubmenuTitle
           class="api-navigation__submenu__title api-navigation__breadcrumb__item"
           [apiName]="currentApi.name"
@@ -120,18 +120,18 @@
           [apiDeploymentState]="currentApi.deploymentState"
           [apiOrigin]="currentApi.definitionContext.origin"
           *gioBreadcrumbItem
-        ></api-ng-navigation-title>
+        ></api-navigation-title>
         <ng-template ngFor let-item [ngForOf]="this.computeBreadcrumbItems()">
           <span *gioBreadcrumbItem class="api-navigation__breadcrumb__item">{{ item }}</span>
         </ng-template>
       </gio-breadcrumb>
 
-      <api-ng-navigation-tabs
+      <api-navigation-tabs
         *ngIf="selectedItemWithTabs"
         class="api-navigation__content__tabs"
         [tabMenuItems]="this.selectedItemWithTabs.tabs"
         [menuItemHeader]="this.selectedItemWithTabs?.header"
-      ></api-ng-navigation-tabs>
+      ></api-navigation-tabs>
 
       <ui-view class="api-navigation__content__view__ui"></ui-view>
     </div>

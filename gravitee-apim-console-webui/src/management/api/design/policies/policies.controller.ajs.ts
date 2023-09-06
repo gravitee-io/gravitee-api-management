@@ -385,7 +385,7 @@ class ApiV1PoliciesControllerAjs {
       .then((response) => {
         if (response) {
           this.ApiService.migrateApiToPolicyStudio(this.api.id).then((response) => {
-            this.$state.go('management.apis.ng.general', { apiId: response.data.id }, { reload: true });
+            this.$state.go('management.apis.general', { apiId: response.data.id }, { reload: true });
           });
         }
       });

@@ -37,10 +37,10 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { ApiReviewDialogComponent } from './api-review-dialog/api-review-dialog.component';
 import { ApiConfirmDeploymentDialogComponent } from './api-confirm-deployment-dialog/api-confirm-deployment-dialog.component';
-import { ApiNgNavigationTabsComponent } from './api-ng-navigation-tabs/api-ng-navigation-tabs.component';
-import { ApiNgNavigationTitleComponent } from './api-ng-navigation-title/api-ng-navigation-title.component';
-import { ApiNgNavigationComponent } from './api-ng-navigation.component';
-import { ApiNgNavigationDisabledComponent } from './api-ng-navigation-disabled/api-ng-navigation-disabled.component';
+import { ApiNavigationTabsComponent } from './api-navigation-tabs/api-navigation-tabs.component';
+import { ApiNavigationTitleComponent } from './api-navigation-title/api-navigation-title.component';
+import { ApiNavigationComponent } from './api-navigation.component';
+import { ApiNavigationDisabledComponent } from './api-navigation-disabled/api-navigation-disabled.component';
 
 @NgModule({
   imports: [
@@ -65,13 +65,13 @@ import { ApiNgNavigationDisabledComponent } from './api-ng-navigation-disabled/a
     UIRouterModule,
   ],
   declarations: [
-    ApiNgNavigationComponent,
-    ApiNgNavigationTitleComponent,
-    ApiNgNavigationTabsComponent,
-    ApiNgNavigationDisabledComponent,
+    ApiNavigationComponent,
+    ApiNavigationTitleComponent,
+    ApiNavigationTabsComponent,
+    ApiNavigationDisabledComponent,
     ApiConfirmDeploymentDialogComponent,
     ApiReviewDialogComponent,
   ],
-  exports: [ApiNgNavigationComponent],
+  exports: [ApiNavigationComponent],
 })
-export class ApiNgNavigationModule {}
+export class ApiNavigationModule {}

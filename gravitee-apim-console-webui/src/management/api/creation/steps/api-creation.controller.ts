@@ -280,12 +280,12 @@ class ApiCreationController {
             this.ngIfMatchEtagInterceptor.updateLastEtag('api', response.headers('etag'));
             this.ApiService.start(api.data).then(() => {
               this.NotificationService.show('API created, deployed and started');
-              this.$state.go('management.apis.ng.general', { apiId: api.data.id });
+              this.$state.go('management.apis.general', { apiId: api.data.id });
             });
           });
         } else {
           this.NotificationService.show('API created');
-          this.$state.go('management.apis.ng.general', { apiId: api.data.id });
+          this.$state.go('management.apis.general', { apiId: api.data.id });
         }
         return api;
       })

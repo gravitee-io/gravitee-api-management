@@ -86,12 +86,12 @@ describe('ApiProxyEndpointListComponent', () => {
 
     it('should navigate to new Proxy Endpoint Group page on click to add button', async () => {
       await endpointsGroupHarness.addEndpointGroup();
-      expect(routerSpy).toHaveBeenCalledWith('management.apis.ng.endpoint-group-v2', { groupName: '' });
+      expect(routerSpy).toHaveBeenCalledWith('management.apis.endpoint-group-v2', { groupName: '' });
     });
 
     it('should navigate to existing group', async () => {
       await endpointsGroupHarness.editEndpointGroup();
-      expect(routerSpy).toHaveBeenCalledWith('management.apis.ng.endpoint-group-v2', { groupName: 'default-group' });
+      expect(routerSpy).toHaveBeenCalledWith('management.apis.endpoint-group-v2', { groupName: 'default-group' });
     });
   });
 
@@ -119,7 +119,7 @@ describe('ApiProxyEndpointListComponent', () => {
       );
       await vhTableFirstRowHostInput.click();
 
-      expect(routerSpy).toHaveBeenCalledWith('management.apis.ng.endpoint-v2', {
+      expect(routerSpy).toHaveBeenCalledWith('management.apis.endpoint-v2', {
         groupName: 'default-group',
         endpointName: 'default',
       });

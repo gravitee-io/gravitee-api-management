@@ -94,7 +94,7 @@ export class ApiProxyHealthCheckComponent implements OnInit, OnDestroy {
   }
 
   gotToHealthCheckDashboard() {
-    this.ajsState.go('management.apis.ng.healthcheck-dashboard-v2');
+    this.ajsState.go('management.apis.healthcheck-dashboard-v2');
   }
 
   updateEndpointsHealthCheckConfig(groups: Api['proxy']['groups'], apiHealthCheckEnabled: boolean) {

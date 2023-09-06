@@ -121,7 +121,7 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
         }),
         map(() => {
           this.snackBarService.success(`Endpoint successfully created!`);
-          this.ajsState.go('management.apis.ng.endpoint-groups');
+          this.ajsState.go('management.apis.endpoint-groups');
         }),
         takeUntil(this.unsubscribe$),
       )

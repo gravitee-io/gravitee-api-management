@@ -145,7 +145,7 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
   }
 
   onEdit(element: EntrypointVM) {
-    this.ajsState.go(`management.apis.ng.entrypoints-edit`, { entrypointId: element.id });
+    this.ajsState.go(`management.apis.entrypoints-edit`, { entrypointId: element.id });
   }
 
   onDelete(elementToRemove: EntrypointVM) {

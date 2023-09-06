@@ -223,7 +223,7 @@ describe('TasksComponent', () => {
       expect(await tasks[0].getText()).toContain('Subscription');
       const validateButton = await tasks[0].getHarness(MatButtonHarness);
       await validateButton.click();
-      expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.ng.subscription.edit', {
+      expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.subscription.edit', {
         apiId: responseData.data[0].data.api,
         subscriptionId: responseData.data[0].data.id,
         environmentId: 'TaskEnvironmentId',

@@ -123,8 +123,8 @@ class AlertsDashboardComponent implements ng.IComponentController {
       case 'API':
         return {
           scope: Scope.API,
-          alertCreationUiRef: 'management.apis.ng.alerts.alertnew',
-          uiRef: 'management.apis.ng.editalert({alertId: alert.id, tab: "history"})',
+          alertCreationUiRef: 'management.apis.alerts.alertnew',
+          uiRef: 'management.apis.editalert({alertId: alert.id, tab: "history"})',
           permission: 'api-alert-r',
           hasPermission: this.UserService.currentUser?.userApiPermissions.includes('api-alert-r'),
         };

@@ -22,12 +22,7 @@
         <mat-icon svgIcon="gio:check"></mat-icon>
       </div>
       <h2>{{ api.name }} has been {{ api.lifecycleState === 'PUBLISHED' ? 'deployed' : 'created' }}</h2>
-      <button
-        mat-flat-button
-        color="primary"
-        data-testid="open_api_in_api_management_button"
-        (click)="navigate('management.apis.ng.general')"
-      >
+      <button mat-flat-button color="primary" data-testid="open_api_in_api_management_button" (click)="navigate('management.apis.general')">
         Open my API in API Management
       </button>
     </div>
@@ -38,7 +33,7 @@
           <h4>Policy configuration</h4>
           <div class="action__text__subtitle">Shape traffic reaching the gateway by configuring your policies with our flow editor</div>
         </div>
-        <button mat-stroked-button (click)="navigate('management.apis.ng.policyStudio')">Create policies</button>
+        <button mat-stroked-button (click)="navigate('management.apis.policyStudio')">Create policies</button>
       </div>
       <div class="action">
         <div class="action__text">
@@ -47,7 +42,7 @@
             Publish your API to the Developer Portal. From there, consumers can discover, learn about and use your API
           </div>
         </div>
-        <button mat-stroked-button (click)="navigate('management.apis.ng.general')">Manage API visibility</button>
+        <button mat-stroked-button (click)="navigate('management.apis.general')">Manage API visibility</button>
       </div>
       <div class="action">
         <div class="action__text">

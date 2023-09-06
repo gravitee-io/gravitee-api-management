@@ -166,7 +166,7 @@ const AlertComponentAjs: ng.IComponentOptions = {
 
     this.backToAlerts = () => {
       if ($state.params.apiId) {
-        $state.go('management.apis.ng.alerts.list', { apiId: $state.params.apiId });
+        $state.go('management.apis.alerts.list', { apiId: $state.params.apiId });
       } else if ($state.params.applicationId) {
         $state.go('management.applications.application.alerts.list', { applicationId: $state.params.applicationId });
       } else {

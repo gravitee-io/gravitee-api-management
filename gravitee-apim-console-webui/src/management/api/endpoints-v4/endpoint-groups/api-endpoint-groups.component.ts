@@ -139,11 +139,11 @@ export class ApiEndpointGroupsComponent implements OnInit, OnDestroy {
   }
 
   public addEndpoint(groupIndex: number): void {
-    this.ajsState.go('management.apis.ng.endpoint-new', { groupIndex });
+    this.ajsState.go('management.apis.endpoint-new', { groupIndex });
   }
 
   public editEndpoint(groupIndex: number, endpointIndex: number): void {
-    this.ajsState.go('management.apis.ng.endpoint-edit', { groupIndex, endpointIndex });
+    this.ajsState.go('management.apis.endpoint-edit', { groupIndex, endpointIndex });
   }
 
   public reorderEndpointGroup(oldIndex: number, newIndex: number): void {
@@ -170,10 +170,10 @@ export class ApiEndpointGroupsComponent implements OnInit, OnDestroy {
   }
 
   public editEndpointGroup(groupIndex: number): void {
-    this.ajsState.go('management.apis.ng.endpoint-group', { groupIndex });
+    this.ajsState.go('management.apis.endpoint-group', { groupIndex });
   }
 
   addEndpointGroup() {
-    this.ajsState.go('management.apis.ng.endpoint-group-new');
+    this.ajsState.go('management.apis.endpoint-group-new');
   }
 }

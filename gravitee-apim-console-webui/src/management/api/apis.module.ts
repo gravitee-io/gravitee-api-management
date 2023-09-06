@@ -24,11 +24,11 @@ import { StateParams } from '@uirouter/core';
 
 import { ApiAnalyticsModule } from './analytics/api-analytics.module';
 import { ApiListModule } from './list/api-list.module';
-import { ApiNgNavigationModule } from './api-ng-navigation/api-ng-navigation.module';
+import { ApiNavigationModule } from './api-navigation/api-navigation.module';
 import { ApiProxyModule } from './proxy/api-proxy.module';
 import { ApiV4PolicyStudioModule } from './policy-studio-v4/api-v4-policy-studio.module';
 import { ApiRuntimeLogsV4Module } from './runtime-logs-v4/api-runtime-logs-v4.module';
-import { ApiNgNavigationComponent } from './api-ng-navigation/api-ng-navigation.component';
+import { ApiNavigationComponent } from './api-navigation/api-navigation.component';
 import { ApiGeneralInfoComponent } from './general/details/api-general-info.component';
 import { ApiGeneralPlanEditComponent } from './general/plans/edit/api-general-plan-edit.component';
 import { ApiGeneralPlanListComponent } from './general/plans/list/api-general-plan-list.component';
@@ -112,7 +112,7 @@ apiPermissionHook.$inject = ['$transitions', 'ngGioPermissionService'];
 function apiPermissionHook($transitions: TransitionService, gioPermissionService: GioPermissionService) {
   $transitions.onBefore(
     {
-      to: 'management.apis.ng.**',
+      to: 'management.apis.**',
     },
     (transition: Transition) => {
       const stateService = transition.router.stateService;
@@ -168,20 +168,11 @@ const states: Ng2StateDeclaration[] = [
   },
   {
     name: 'management.apis',
-    url: '/',
+    url: '/:apiId',
     abstract: true,
-    component: GioEmptyComponent,
+    component: ApiNavigationComponent,
     data: {
       baseRouteState: 'management.apis',
-    },
-  },
-  {
-    name: 'management.apis.ng',
-    url: '/ng/:apiId',
-    abstract: true,
-    component: ApiNgNavigationComponent,
-    data: {
-      baseRouteState: 'management.apis.ng',
     },
   },
 
@@ -189,7 +180,7 @@ const states: Ng2StateDeclaration[] = [
    * Common Api state
    */
   {
-    name: 'management.apis.ng.messages',
+    name: 'management.apis.messages',
     url: '/messages',
     data: {
       useAngularMaterial: true,
@@ -200,7 +191,7 @@ const states: Ng2StateDeclaration[] = [
     component: MessagesComponent,
   },
   {
-    name: 'management.apis.ng.general',
+    name: 'management.apis.general',
     url: '/general',
     data: {
       useAngularMaterial: true,
@@ -209,7 +200,7 @@ const states: Ng2StateDeclaration[] = [
     component: ApiGeneralInfoComponent,
   },
   {
-    name: 'management.apis.ng.plans',
+    name: 'management.apis.plans',
     url: '/plans?status',
     data: {
       useAngularMaterial: true,
@@ -227,13 +218,13 @@ const states: Ng2StateDeclaration[] = [
     component: ApiGeneralPlanListComponent,
   },
   {
-    name: 'management.apis.ng.plan',
+    name: 'management.apis.plan',
     url: '/plan',
     component: GioEmptyComponent,
     abstract: true,
   },
   {
-    name: 'management.apis.ng.plan.new',
+    name: 'management.apis.plan.new',
     url: '/new?{selectedPlanMenuItem:string}',
     component: ApiGeneralPlanEditComponent,
     data: {
@@ -250,7 +241,7 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'management.apis.ng.plan.edit',
+    name: 'management.apis.plan.edit',
     url: '/:planId/edit',
     component: ApiGeneralPlanEditComponent,
     data: {
@@ -262,7 +253,7 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'management.apis.ng.subscriptions',
+    name: 'management.apis.subscriptions',
     url: '/subscriptions?page&size&plan&application&status&apiKey',
     component: ApiGeneralSubscriptionListComponent,
     data: {
@@ -302,7 +293,7 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'management.apis.ng.subscription',
+    name: 'management.apis.subscription',
     url: '/subscription',
     component: GioEmptyComponent,
     data: {
@@ -314,7 +305,7 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'management.apis.ng.subscription.edit',
+    name: 'management.apis.subscription.edit',
     url: '/:subscriptionId',
     component: ApiGeneralSubscriptionEditComponent,
     data: {
@@ -326,7 +317,7 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'management.apis.ng.documentation',
+    name: 'management.apis.documentation',
     component: DocumentationManagementComponent,
     url: '/documentation?parent',
     resolve: [
@@ -382,7 +373,7 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'management.apis.ng.documentationNew',
+    name: 'management.apis.documentationNew',
     component: DocumentationNewPageComponent,
     url: '/documentation/new?type&parent',
     resolve: [
@@ -475,7 +466,7 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'management.apis.ng.documentationImport',
+    name: 'management.apis.documentationImport',
     component: DocumentationImportPagesComponent,
     url: '/documentation/import',
     resolve: [
@@ -522,7 +513,7 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'management.apis.ng.documentationEdit',
+    name: 'management.apis.documentationEdit',
     component: DocumentationEditPageComponent,
     url: '/documentation/:pageId?:tab&type',
     resolve: [
@@ -638,7 +629,7 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'management.apis.ng.metadata',
+    name: 'management.apis.metadata',
     component: ApiPortalDocumentationMetadataComponent,
     url: '/metadata',
     data: {
@@ -649,7 +640,7 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'management.apis.ng.members',
+    name: 'management.apis.members',
     component: ApiGeneralMembersComponent,
     url: '/members',
     data: {
@@ -663,7 +654,7 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'management.apis.ng.groups',
+    name: 'management.apis.groups',
     component: ApiGeneralGroupsComponent,
     url: '/groups',
     data: {
@@ -677,7 +668,7 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'management.apis.ng.transferOwnership',
+    name: 'management.apis.transferOwnership',
     component: ApiGeneralTransferOwnershipComponent,
     url: '/transfer-ownership',
     data: {
@@ -691,7 +682,7 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'management.apis.ng.cors',
+    name: 'management.apis.cors',
     component: ApiProxyCorsComponent,
     url: '/cors',
     data: {
@@ -705,7 +696,7 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'management.apis.ng.deployments',
+    name: 'management.apis.deployments',
     component: ApiProxyDeploymentsComponent,
     url: '/deployments',
     data: {
@@ -719,7 +710,7 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'management.apis.ng.responseTemplates',
+    name: 'management.apis.responseTemplates',
     component: ApiProxyResponseTemplatesListComponent,
     url: '/response-templates',
     data: {
@@ -733,7 +724,7 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'management.apis.ng.responseTemplateNew',
+    name: 'management.apis.responseTemplateNew',
     component: ApiProxyResponseTemplatesEditComponent,
     url: '/response-template',
     data: {
@@ -747,7 +738,7 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'management.apis.ng.responseTemplateEdit',
+    name: 'management.apis.responseTemplateEdit',
     component: ApiProxyResponseTemplatesEditComponent,
     url: '/response-template/:responseTemplateId',
     data: {
@@ -761,7 +752,7 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'management.apis.ng.audit',
+    name: 'management.apis.audit',
     component: ApiAuditComponent,
     url: '/audit',
     data: {
@@ -775,7 +766,7 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'management.apis.ng.history',
+    name: 'management.apis.history',
     component: ApiHistoryComponent,
     url: '/history',
     data: {
@@ -789,7 +780,7 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'management.apis.ng.events',
+    name: 'management.apis.events',
     component: ApiEventsComponent,
     url: '/events',
     data: {
@@ -803,7 +794,7 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'management.apis.ng.notifications',
+    name: 'management.apis.notifications',
     component: NotificationsComponent,
     url: '/notifications',
     data: {
@@ -850,7 +841,7 @@ const states: Ng2StateDeclaration[] = [
     ],
   },
   {
-    name: 'management.apis.ng.notifications-ng',
+    name: 'management.apis.notifications-ng',
     component: NotificationsListComponent,
     url: '/notifications-ng',
     data: {
@@ -861,7 +852,7 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'management.apis.ng.notifications.notification',
+    name: 'management.apis.notifications.notification',
     component: NotificationsComponent,
     url: '/:notificationId',
     data: {
@@ -875,7 +866,7 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'management.apis.ng.alerts',
+    name: 'management.apis.alerts',
     component: GioEmptyComponent,
     abstract: true,
     url: '/alerts',
@@ -903,7 +894,7 @@ const states: Ng2StateDeclaration[] = [
     ],
   },
   {
-    name: 'management.apis.ng.alerts.list',
+    name: 'management.apis.alerts.list',
     component: AlertsComponent,
     url: '/',
     data: {
@@ -926,7 +917,7 @@ const states: Ng2StateDeclaration[] = [
     ],
   },
   {
-    name: 'management.apis.ng.alerts.alertnew',
+    name: 'management.apis.alerts.alertnew',
     component: AlertComponent,
     url: '/create',
     data: {
@@ -962,7 +953,7 @@ const states: Ng2StateDeclaration[] = [
     ],
   },
   {
-    name: 'management.apis.ng.alerts.editalert',
+    name: 'management.apis.alerts.editalert',
     component: AlertComponent,
     url: '/:alertId?:tab',
     data: {
@@ -1002,7 +993,7 @@ const states: Ng2StateDeclaration[] = [
    * V1 Api state only
    */
   {
-    name: 'management.apis.ng.policies-v1',
+    name: 'management.apis.policies-v1',
     url: '/v1/policies',
     component: ApiV1PoliciesComponent,
     data: {
@@ -1025,7 +1016,7 @@ const states: Ng2StateDeclaration[] = [
     ],
   },
   {
-    name: 'management.apis.ng.properties-v1',
+    name: 'management.apis.properties-v1',
     url: '/v1/properties',
     component: ApiV1PropertiesComponent,
     data: {
@@ -1048,7 +1039,7 @@ const states: Ng2StateDeclaration[] = [
     ],
   },
   {
-    name: 'management.apis.ng.resources-v1',
+    name: 'management.apis.resources-v1',
     url: '/v1/resources',
     component: ApiV1ResourcesComponent,
     data: {
@@ -1082,7 +1073,7 @@ const states: Ng2StateDeclaration[] = [
    * V1 & V2 Api state only
    */
   {
-    name: 'management.apis.ng.entrypoints-v2',
+    name: 'management.apis.entrypoints-v2',
     component: ApiProxyEntrypointsComponent,
     url: '/v2/entrypoints',
     data: {
@@ -1096,7 +1087,7 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'management.apis.ng.endpoints-v2',
+    name: 'management.apis.endpoints-v2',
     component: ApiProxyEndpointListComponent,
     url: '/v2/endpoints',
     data: {
@@ -1110,7 +1101,7 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'management.apis.ng.endpoint-v2',
+    name: 'management.apis.endpoint-v2',
     component: ApiProxyGroupEndpointEditComponent,
     url: '/v2/groups/:groupName/endpoints/:endpointName',
     data: {
@@ -1124,7 +1115,7 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'management.apis.ng.endpoint-group-v2',
+    name: 'management.apis.endpoint-group-v2',
     component: ApiProxyGroupEditComponent,
     url: '/v2/groups/:groupName',
     data: {
@@ -1138,7 +1129,7 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'management.apis.ng.failover-v2',
+    name: 'management.apis.failover-v2',
     component: ApiProxyFailoverComponent,
     url: '/v2/failover',
     data: {
@@ -1152,7 +1143,7 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'management.apis.ng.healthcheck-v2',
+    name: 'management.apis.healthcheck-v2',
     component: ApiProxyHealthCheckComponent,
     url: '/v2/healthcheck',
     data: {
@@ -1166,7 +1157,7 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'management.apis.ng.healthcheck-dashboard-v2',
+    name: 'management.apis.healthcheck-dashboard-v2',
     component: ApiHealthCheckDashboardComponent,
     url: '/v2/healthcheck-dashboard?from&to&page&size',
     data: {
@@ -1198,7 +1189,7 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'management.apis.ng.healthcheck-log-v2',
+    name: 'management.apis.healthcheck-log-v2',
     component: ApiHealthCheckLogComponent,
     url: '/v2/logs/:logId',
     data: {
@@ -1209,7 +1200,7 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'management.apis.ng.analytics-overview-v2',
+    name: 'management.apis.analytics-overview-v2',
     component: ApiAnalyticsOverviewComponent,
     url: '/v2/analytics-overview?from&to&q&dashboard',
     data: {
@@ -1241,7 +1232,7 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'management.apis.ng.analytics-logs-v2',
+    name: 'management.apis.analytics-logs-v2',
     component: ApiAnalyticsLogsComponent,
     url: '/v2/analytics-logs?from&to&q&page&size',
     data: {
@@ -1277,7 +1268,7 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'management.apis.ng.analytics-logs-configuration-v2',
+    name: 'management.apis.analytics-logs-configuration-v2',
     component: ApiLogsConfigurationComponent,
     url: '/v2/analytics-logs-configuration',
     data: {
@@ -1291,7 +1282,7 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'management.apis.ng.analytics-log-v2',
+    name: 'management.apis.analytics-log-v2',
     component: ApiAnalyticsLogComponent,
     url: '/v2/analytics-log/:logId?timestamp&from&to&q&page&size',
     data: {
@@ -1305,7 +1296,7 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'management.apis.ng.analytics-path-mappings-v2',
+    name: 'management.apis.analytics-path-mappings-v2',
     component: ApiPathMappingsComponent,
     url: '/v2/analytics-path-mappings',
     data: {
@@ -1319,7 +1310,7 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'management.apis.ng.analytics-alerts-v2',
+    name: 'management.apis.analytics-alerts-v2',
     component: ApiAlertsDashboardComponent,
     url: '/v2/analytics-alerts',
     data: {
@@ -1337,7 +1328,7 @@ const states: Ng2StateDeclaration[] = [
    * V2 & V4 Api state only
    */
   {
-    name: 'management.apis.ng.properties',
+    name: 'management.apis.properties',
     url: '/properties',
     component: ApiPropertiesComponent,
     data: {
@@ -1351,7 +1342,7 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'management.apis.ng.resources',
+    name: 'management.apis.resources',
     url: '/resources',
     component: ApiResourcesComponent,
     data: {
@@ -1369,7 +1360,7 @@ const states: Ng2StateDeclaration[] = [
    * V4 Api state only
    */
   {
-    name: 'management.apis.ng.policyStudio',
+    name: 'management.apis.policyStudio',
     url: '/policy-studio',
     data: {
       useAngularMaterial: true,
@@ -1378,7 +1369,7 @@ const states: Ng2StateDeclaration[] = [
     component: ApiV4PolicyStudioDesignComponent,
   },
   {
-    name: 'management.apis.ng.runtimeLogs',
+    name: 'management.apis.runtimeLogs',
     url: '/runtime-logs',
     data: {
       apiPermissions: {
@@ -1392,7 +1383,7 @@ const states: Ng2StateDeclaration[] = [
     component: ApiRuntimeLogsComponent,
   },
   {
-    name: 'management.apis.ng.runtimeLogs-settings',
+    name: 'management.apis.runtimeLogs-settings',
     url: '/runtime-logs/settings',
     data: {
       apiPermissions: {
@@ -1406,7 +1397,7 @@ const states: Ng2StateDeclaration[] = [
     component: ApiRuntimeLogsSettingsComponent,
   },
   {
-    name: 'management.apis.ng.entrypoints',
+    name: 'management.apis.entrypoints',
     url: '/entrypoints',
     component: ApiEntrypointsV4GeneralComponent,
     data: {
@@ -1418,7 +1409,7 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'management.apis.ng.entrypoints-edit',
+    name: 'management.apis.entrypoints-edit',
     url: '/entrypoints/:entrypointId',
     component: ApiEntrypointsV4EditComponent,
     data: {
@@ -1430,7 +1421,7 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'management.apis.ng.endpoint-groups',
+    name: 'management.apis.endpoint-groups',
     url: '/endpoints/groups',
     component: ApiEndpointGroupsComponent,
     data: {
@@ -1444,7 +1435,7 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'management.apis.ng.endpoint-group',
+    name: 'management.apis.endpoint-group',
     url: '/endpoints/groups/:groupIndex',
     component: ApiEndpointGroupComponent,
     data: {
@@ -1458,7 +1449,7 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'management.apis.ng.endpoint-group-new',
+    name: 'management.apis.endpoint-group-new',
     url: '/endpoints/groups/new',
     component: ApiEndpointGroupCreateComponent,
     data: {
@@ -1472,7 +1463,7 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'management.apis.ng.endpoint-new',
+    name: 'management.apis.endpoint-new',
     url: '/endpoints/groups/:groupIndex/endpoints/new',
     component: ApiEndpointComponent,
     data: {
@@ -1486,7 +1477,7 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'management.apis.ng.endpoint-edit',
+    name: 'management.apis.endpoint-edit',
     url: '/endpoints/groups/:groupIndex/endpoints/:endpointIndex',
     component: ApiEndpointComponent,
     data: {
@@ -1506,7 +1497,7 @@ const states: Ng2StateDeclaration[] = [
   imports: [
     ApiAnalyticsModule,
     ApiListModule,
-    ApiNgNavigationModule,
+    ApiNavigationModule,
     ApiV4PolicyStudioModule,
     ApiRuntimeLogsV4Module,
     ApisGeneralModule,
@@ -1515,7 +1506,7 @@ const states: Ng2StateDeclaration[] = [
     ApiEndpointsModule,
     ApiAuditModule,
     NotificationsListModule,
-    GioPolicyStudioRoutingModule.withRouting({ stateNamePrefix: 'management.apis.ng.policy-studio-v2' }),
+    GioPolicyStudioRoutingModule.withRouting({ stateNamePrefix: 'management.apis.policy-studio-v2' }),
     SpecificJsonSchemaTypeModule,
     DocumentationModule,
 

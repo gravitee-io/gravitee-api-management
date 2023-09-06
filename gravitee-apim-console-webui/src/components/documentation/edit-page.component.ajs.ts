@@ -211,7 +211,7 @@ class EditPageComponentController implements IController {
           this.NotificationService.show("'" + this.page.name + "' has been updated");
         }
         if (this.apiId) {
-          this.$state.go('management.apis.ng.documentationEdit', { pageId: this.page.id, tab: this.currentTab }, { reload: true });
+          this.$state.go('management.apis.documentationEdit', { pageId: this.page.id, tab: this.currentTab }, { reload: true });
         } else {
           this.$state.go(
             'management.settings.documentation.edit',
@@ -231,7 +231,7 @@ class EditPageComponentController implements IController {
 
   cancel() {
     if (this.apiId) {
-      this.$state.go('management.apis.ng.documentation', { apiId: this.apiId, parent: this.page.parentId });
+      this.$state.go('management.apis.documentation', { apiId: this.apiId, parent: this.page.parentId });
     } else {
       this.$state.go('management.settings.documentation.list', { parent: this.page.parentId });
     }
@@ -239,7 +239,7 @@ class EditPageComponentController implements IController {
 
   reset() {
     if (this.apiId) {
-      this.$state.go('management.apis.ng.documentationEdit', { pageId: this.page.id }, { reload: true });
+      this.$state.go('management.apis.documentationEdit', { pageId: this.page.id }, { reload: true });
     } else {
       this.$state.go('management.settings.documentation.edit', { pageId: this.page.id, type: this.page.type }, { reload: true });
     }
@@ -268,7 +268,7 @@ class EditPageComponentController implements IController {
     this.changeTab(idx);
     if (this.apiId) {
       this.$state.transitionTo(
-        'management.apis.ng.documentationEdit',
+        'management.apis.documentationEdit',
         { apiId: this.apiId, type: this.page.type, pageId: this.page.id, tab: this.currentTab },
         { notify: false },
       );

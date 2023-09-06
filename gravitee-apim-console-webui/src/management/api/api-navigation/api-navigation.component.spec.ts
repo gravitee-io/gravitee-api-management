@@ -21,8 +21,8 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { UIRouterModule } from '@uirouter/angular';
 import { LICENSE_CONFIGURATION_TESTING } from '@gravitee/ui-particles-angular';
 
-import { ApiNgNavigationModule } from './api-ng-navigation.module';
-import { ApiNgNavigationComponent } from './api-ng-navigation.component';
+import { ApiNavigationModule } from './api-navigation.module';
+import { ApiNavigationComponent } from './api-navigation.component';
 
 import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { GioUiRouterTestingModule } from '../../../shared/testing/gio-uirouter-testing-module';
@@ -34,8 +34,8 @@ describe('ApiNgNavigationComponent', () => {
   const API_ID = 'apiId';
 
   const fakeUiRouter = { go: jest.fn() };
-  let fixture: ComponentFixture<ApiNgNavigationComponent>;
-  let apiNgNavigationComponent: ApiNgNavigationComponent;
+  let fixture: ComponentFixture<ApiNavigationComponent>;
+  let apiNgNavigationComponent: ApiNavigationComponent;
   let httpTestingController: HttpTestingController;
   const currentUser = new DeprecatedUser();
   currentUser.userPermissions = ['environment-api-c'];
@@ -48,7 +48,7 @@ describe('ApiNgNavigationComponent', () => {
     beforeEach(async () => {
       await TestBed.configureTestingModule({
         imports: [
-          ApiNgNavigationModule,
+          ApiNavigationModule,
           MatIconTestingModule,
           GioUiRouterTestingModule,
           NoopAnimationsModule,
@@ -71,7 +71,7 @@ describe('ApiNgNavigationComponent', () => {
         ],
       }).compileComponents();
 
-      fixture = TestBed.createComponent(ApiNgNavigationComponent);
+      fixture = TestBed.createComponent(ApiNavigationComponent);
       apiNgNavigationComponent = await fixture.componentInstance;
       httpTestingController = TestBed.inject(HttpTestingController);
     });

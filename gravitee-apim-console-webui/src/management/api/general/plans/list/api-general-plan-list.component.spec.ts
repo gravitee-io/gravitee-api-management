@@ -63,7 +63,7 @@ describe('ApiGeneralPlanListComponent', () => {
   let httpTestingController: HttpTestingController;
 
   const fakeRootScope = { $broadcast: jest.fn(), $on: jest.fn() };
-  const fakeAjsGlobals = { current: { data: { baseRouteState: 'management.apis.ng' } } };
+  const fakeAjsGlobals = { current: { data: { baseRouteState: 'management.apis' } } };
 
   const init = async (ajsGlobals: any = {}) => {
     await TestBed.configureTestingModule({
@@ -279,7 +279,7 @@ describe('ApiGeneralPlanListComponent', () => {
 
         await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Edit the plan"]' })).then((btn) => btn.click());
 
-        expect(fakeUiRouter.go).toBeCalledWith('management.apis.ng.plan.edit', { planId: plan.id });
+        expect(fakeUiRouter.go).toBeCalledWith('management.apis.plan.edit', { planId: plan.id });
       });
       it('should navigate to new plan', async () => {
         await init(fakeAjsGlobals);
@@ -293,7 +293,7 @@ describe('ApiGeneralPlanListComponent', () => {
         expect(await planSecurityDropdown.getItems().then((items) => items.length)).toEqual(4);
 
         await planSecurityDropdown.clickItem({ text: 'Keyless (public)' });
-        expect(fakeUiRouter.go).toBeCalledWith('management.apis.ng.plan.new', { selectedPlanMenuItem: 'KEY_LESS' });
+        expect(fakeUiRouter.go).toBeCalledWith('management.apis.plan.new', { selectedPlanMenuItem: 'KEY_LESS' });
       });
       it('should navigate to edit when click on the name', async () => {
         await init(fakeAjsGlobals);
@@ -306,7 +306,7 @@ describe('ApiGeneralPlanListComponent', () => {
           .then((btn) => btn.host())
           .then((host) => host.click());
 
-        expect(fakeUiRouter.go).toBeCalledWith('management.apis.ng.plan.edit', { planId: plan.id });
+        expect(fakeUiRouter.go).toBeCalledWith('management.apis.plan.edit', { planId: plan.id });
       });
     });
     it('should navigate to edit when click on the action button', async () => {
@@ -316,7 +316,7 @@ describe('ApiGeneralPlanListComponent', () => {
 
       await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Edit the plan"]' })).then((btn) => btn.click());
 
-      expect(fakeUiRouter.go).toBeCalledWith('management.apis.ng.plan.edit', { planId: plan.id });
+      expect(fakeUiRouter.go).toBeCalledWith('management.apis.plan.edit', { planId: plan.id });
     });
 
     it('should navigate to new plan', async () => {
@@ -330,7 +330,7 @@ describe('ApiGeneralPlanListComponent', () => {
       expect(await planSecurityDropdown.getItems().then((items) => items.length)).toEqual(4);
 
       await planSecurityDropdown.clickItem({ text: 'Keyless (public)' });
-      expect(fakeUiRouter.go).toBeCalledWith('management.apis.ng.plan.new', { selectedPlanMenuItem: 'KEY_LESS' });
+      expect(fakeUiRouter.go).toBeCalledWith('management.apis.plan.new', { selectedPlanMenuItem: 'KEY_LESS' });
     });
 
     it('should navigate to edit when click on the name', async () => {
@@ -343,7 +343,7 @@ describe('ApiGeneralPlanListComponent', () => {
         .then((btn) => btn.host())
         .then((host) => host.click());
 
-      expect(fakeUiRouter.go).toBeCalledWith('management.apis.ng.plan.edit', { planId: plan.id });
+      expect(fakeUiRouter.go).toBeCalledWith('management.apis.plan.edit', { planId: plan.id });
     });
 
     it('should navigate to design when click on the design button', async () => {
@@ -353,7 +353,7 @@ describe('ApiGeneralPlanListComponent', () => {
 
       await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Design the plan"]' })).then((btn) => btn.click());
 
-      expect(fakeUiRouter.go).toBeCalledWith('management.apis.ng.policy-studio-v2.design', { apiId: API_ID, flows: `${plan.id}_0` });
+      expect(fakeUiRouter.go).toBeCalledWith('management.apis.policy-studio-v2.design', { apiId: API_ID, flows: `${plan.id}_0` });
     });
 
     describe('should publish the staging plan', () => {
@@ -506,7 +506,7 @@ describe('ApiGeneralPlanListComponent', () => {
       await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="View the plan details"]' })).then((btn) => btn.click());
 
       expect(await loader.getAllHarnesses(MatButtonHarness.with({ selector: '[aria-label="Add new plan"]' }))).toHaveLength(0);
-      expect(fakeUiRouter.go).toBeCalledWith('management.apis.ng.plan.edit', { planId: plan.id });
+      expect(fakeUiRouter.go).toBeCalledWith('management.apis.plan.edit', { planId: plan.id });
 
       const { headerCells, rowCells } = await computePlansTableCells();
       expect(headerCells).toEqual([
@@ -533,7 +533,7 @@ describe('ApiGeneralPlanListComponent', () => {
       await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="View the plan details"]' })).then((btn) => btn.click());
 
       expect(await loader.getAllHarnesses(MatButtonHarness.with({ selector: '[aria-label="Add new plan"]' }))).toHaveLength(0);
-      expect(fakeUiRouter.go).toBeCalledWith('management.apis.ng.plan.edit', { planId: plan.id });
+      expect(fakeUiRouter.go).toBeCalledWith('management.apis.plan.edit', { planId: plan.id });
 
       const { headerCells, rowCells } = await computePlansTableCells();
       expect(headerCells).toEqual([

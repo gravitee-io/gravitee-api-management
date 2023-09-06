@@ -173,7 +173,7 @@ export class ApiProxyResponseTemplatesEditComponent implements OnInit, OnDestroy
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
-        tap(() => this.ajsState.go('management.apis.ng.responseTemplates', { apiId: this.apiId })),
+        tap(() => this.ajsState.go('management.apis.responseTemplates', { apiId: this.apiId })),
         takeUntil(this.unsubscribe$),
       )
       .subscribe();

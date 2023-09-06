@@ -143,7 +143,7 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       expect(await harness.rejectBtnIsVisible()).toEqual(false);
 
       await harness.goBackToSubscriptionsList();
-      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.ng.subscriptions');
+      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.subscriptions');
     });
 
     it('should load pending subscription', async () => {
