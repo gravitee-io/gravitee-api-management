@@ -1,4 +1,5 @@
 import * as fs from 'fs';
+import { isBlank } from './string';
 
 export interface GraviteeioVersion {
   version: {
@@ -51,4 +52,10 @@ function parsePomXml(pomXml: string) {
     sha1: sha1Match && sha1Match.length > 0 ? sha1Match[1] : '',
     changelist: changelistMatch && changelistMatch.length > 0 ? changelistMatch[1] : '',
   };
+}
+
+export function validateGraviteeioVersion(graviteeioVersion: string) {
+  if (isBlank(graviteeioVersion)) {
+    throw new Error('Graviteeio version is not defined - Please export CI_GRAVITEEIO_VERSION environment variable');
+  }
 }
