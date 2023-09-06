@@ -17,3 +17,8 @@ export function isSupportBranch(branch: string): boolean {
   const regex = new RegExp(supportBranchPattern);
   return regex.test(branch);
 }
+
+export function isSupportBranchOrMaster(branch: string): boolean {
+  const branchPattern = new RegExp(`^(${supportBranchPattern})|master$`);
+  return branchPattern.test(branch);
+}

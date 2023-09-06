@@ -7,6 +7,6 @@ export type CircleCIEnvironment = {
   isDryRun: boolean;
   dockerTagAsLatest?: boolean;
   graviteeioVersion: string;
-
   changedFiles: string[];
+  apimVersionPath?: string;
 };

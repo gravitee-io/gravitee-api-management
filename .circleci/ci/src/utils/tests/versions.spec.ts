@@ -28,12 +28,24 @@ describe('version', function () {
 
   describe('computeApimVersion', () => {
     it.each`
-      path                                                   | expected
+      apimVersionPath                                        | expected
       ${'./src/utils/tests/resources/pom.xml'}               | ${'4.2.0'}
       ${'./src/utils/tests/resources/pom-sha1-snapshot.xml'} | ${'4.2.0-alpha.1-SNAPSHOT'}
       ${'./src/utils/tests/resources/pom-snapshot.xml'}      | ${'4.2.0-SNAPSHOT'}
-    `('should parse apim version', ({ path, expected }) => {
-      expect(computeApimVersion(path)).toStrictEqual(expected);
+    `('should parse apim version', ({ apimVersionPath, expected }) => {
+      expect(
+        computeApimVersion({
+          action: 'package_bundle',
+          branch: 'master',
+          sha1: '784ff35ca',
+          changedFiles: [],
+          buildNum: '1234',
+          buildId: '1234',
+          graviteeioVersion: '4.2.0',
+          isDryRun: false,
+          apimVersionPath,
+        }),
+      ).toStrictEqual(expected);
     });
   });
 

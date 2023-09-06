@@ -1,4 +1,4 @@
-import { isMasterBranch, isSupportBranch, sanitizeBranch } from '../branch';
+import { isMasterBranch, isSupportBranch, isSupportBranchOrMaster, sanitizeBranch } from '../branch';
 
 describe('branch', function () {
   describe('sanitize', function () {
@@ -33,6 +33,20 @@ describe('branch', function () {
       ${'x'}                         | ${false}
     `('returns $expected is $branch is support', ({ branch, expected }) => {
       expect(isSupportBranch(branch)).toEqual(expected);
+    });
+  });
+
+  describe('isSupportOrMaster', function () {
+    it.each`
+      branch                         | expected
+      ${'APIM-1234-mycustom-branch'} | ${false}
+      ${'master'}                    | ${true}
+      ${'1.2.3'}                     | ${false}
+      ${'1.2.x'}                     | ${true}
+      ${'1.x'}                       | ${false}
+      ${'x'}                         | ${false}
+    `('returns $expected is $branch is support', ({ branch, expected }) => {
+      expect(isSupportBranchOrMaster(branch)).toEqual(expected);
     });
   });
 });
