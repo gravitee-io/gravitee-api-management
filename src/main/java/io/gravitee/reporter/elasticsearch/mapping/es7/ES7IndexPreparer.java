@@ -15,7 +15,6 @@
  */
 package io.gravitee.reporter.elasticsearch.mapping.es7;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.elasticsearch.utils.Type;
 import io.gravitee.reporter.elasticsearch.config.PipelineConfiguration;
 import io.gravitee.reporter.elasticsearch.mapping.PerTypeIndexPreparer;

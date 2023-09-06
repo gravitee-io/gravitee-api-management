@@ -17,7 +17,7 @@ package io.gravitee.reporter.elasticsearch.config;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-import io.gravitee.elasticsearch.templating.freemarker.FreeMarkerComponent;
+import io.gravitee.common.templating.FreeMarkerComponent;
 import io.gravitee.reporter.elasticsearch.UnitTestConfiguration;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;

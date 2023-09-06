@@ -15,12 +15,14 @@
  */
 package io.gravitee.reporter.elasticsearch.spring;
 
+import io.gravitee.common.templating.FreeMarkerComponent;
 import io.gravitee.elasticsearch.client.Client;
 import io.gravitee.elasticsearch.client.http.*;
-import io.gravitee.elasticsearch.templating.freemarker.FreeMarkerComponent;
 import io.gravitee.reporter.elasticsearch.config.PipelineConfiguration;
 import io.gravitee.reporter.elasticsearch.config.ReporterConfiguration;
 import io.vertx.rxjava3.core.Vertx;
+import java.nio.file.Path;
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -83,8 +85,15 @@ public class ElasticsearchReporterConfiguration {
     }
 
     @Bean
-    public FreeMarkerComponent freeMarkerComponent() {
-        return new FreeMarkerComponent();
+    public FreeMarkerComponent freeMarkerComponent(
+        @Value("${reporters.elasticsearch.template_mapping.path:#{null}}") String templateMappingPath
+    ) {
+        return FreeMarkerComponent
+            .builder()
+            .path(templateMappingPath != null ? Path.of(templateMappingPath) : null)
+            .classLoader(getClass().getClassLoader())
+            .classLoaderTemplateBase("freemarker")
+            .build();
     }
 
     @Bean

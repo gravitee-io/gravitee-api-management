@@ -17,7 +17,7 @@ package io.gravitee.reporter.elasticsearch.config;
 
 import static java.util.stream.Collectors.toSet;
 
-import io.gravitee.elasticsearch.templating.freemarker.FreeMarkerComponent;
+import io.gravitee.common.templating.FreeMarkerComponent;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;

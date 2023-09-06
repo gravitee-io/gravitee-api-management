@@ -15,8 +15,8 @@
  */
 package io.gravitee.reporter.elasticsearch.mapping;
 
+import io.gravitee.common.templating.FreeMarkerComponent;
 import io.gravitee.elasticsearch.client.Client;
-import io.gravitee.elasticsearch.templating.freemarker.FreeMarkerComponent;
 import io.gravitee.reporter.elasticsearch.config.ReporterConfiguration;
 import java.util.HashMap;
 import java.util.Map;
