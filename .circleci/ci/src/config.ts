@@ -17,7 +17,10 @@ const executor = {
     forTests: 'ubuntu-2204:2022.04.2',
   },
   base: 'cimg/base:stable',
-  node: 'cimg/node:16.10',
+  node: {
+    image: 'cimg/node',
+    version: '16.10',
+  },
   openjdk: {
     image: 'cimg/openjdk',
     resource: 'medium' as DockerResourceClass,

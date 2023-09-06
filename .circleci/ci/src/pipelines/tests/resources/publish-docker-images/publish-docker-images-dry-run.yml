@@ -69,6 +69,48 @@ commands:
           name: Logout from Azure Container Registry
           command: docker logout graviteeio.azurecr.io
     description: Logout from Azure Container Registry
+  cmd-webui-install:
+    parameters:
+      apim-ui-project:
+        type: string
+        default: ""
+        description: the name of the UI project to build
+    steps:
+      - restore_cache:
+          name: Restore NPM cache
+          keys:
+            - << parameters.apim-ui-project >>-cache-v1-{{ .Branch }}-{{ checksum "<< parameters.apim-ui-project >>/package-lock.json" }}
+            - << parameters.apim-ui-project >>-cache-v1-{{ .Branch }}
+      - run:
+          name: Install dependencies
+          command: npm install
+          working_directory: << parameters.apim-ui-project >>
+      - save_cache:
+          name: Save NPM cache
+          key: << parameters.apim-ui-project >>-cache-v1-{{ .Branch }}-{{ checksum "<< parameters.apim-ui-project >>/package-lock.json" }}
+          paths:
+            - ./<< parameters.apim-ui-project >>/node_modules
+  cmd-build-ui-image:
+    parameters:
+      docker-image-name:
+        type: string
+        default: ""
+        description: the name of the image
+      apim-ui-project:
+        type: string
+        default: ""
+        description: the name of the UI project to build
+    steps:
+      - cmd-create-docker-context
+      - cmd-docker-azure-login
+      - run:
+          name: Build UI docker image
+          command: |-
+            docker buildx build --push --platform=linux/arm64,linux/amd64 -f docker/Dockerfile \
+            -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:apim-1234-branch-name-latest \
+            .
+          working_directory: << parameters.apim-ui-project >>
+      - cmd-docker-azure-logout
 jobs:
   job-setup:
     docker:
@@ -142,6 +184,44 @@ jobs:
             -t graviteeio.azurecr.io/apim-gateway:apim-1234-branch-name-latest \
             gateway-docker-context
       - cmd-docker-azure-logout
+  job-webui-build:
+    parameters:
+      apim-ui-project:
+        type: string
+        default: ""
+        description: the name of the UI project to build
+      docker-image-name:
+        type: string
+        default: ""
+        description: the name of the image
+    docker:
+      - image: cimg/node:16.10
+    resource_class: large
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - setup_remote_docker:
+          version: 20.10.6
+      - cmd-webui-install:
+          apim-ui-project: << parameters.apim-ui-project >>
+      - run:
+          name: Update Build version
+          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0-SNAPSHOT\"/' << parameters.apim-ui-project >>/build.json"
+      - run:
+          name: Build
+          command: npm run build:prod
+          environment:
+            NODE_OPTIONS: --max_old_space_size=4086
+          working_directory: << parameters.apim-ui-project >>
+      - cmd-build-ui-image:
+          docker-image-name: << parameters.docker-image-name >>
+          apim-ui-project: << parameters.apim-ui-project >>
+      - cmd-notify-on-failure
+      - persist_to_workspace:
+          root: .
+          paths:
+            - << parameters.apim-ui-project >>/dist
 workflows:
   publish_docker_images:
     jobs:
@@ -161,6 +241,14 @@ workflows:
           requires:
             - Build backend
           name: Build and push rest api and gateway images
+      - job-webui-build:
+          context:
+            - cicd-orchestrator
+          requires:
+            - Setup
+          name: Build APIM Console and publish image
+          apim-ui-project: gravitee-apim-console-webui
+          docker-image-name: apim-management-ui
 orbs:
   keeper: gravitee-io/keeper@0.6.3
   slack: circleci/slack@4.12.5

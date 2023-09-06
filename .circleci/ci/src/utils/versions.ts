@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import { isBlank } from './string';
+import { CircleCIEnvironment } from '../pipelines';
 
 export interface GraviteeioVersion {
   version: {
@@ -36,8 +37,11 @@ export function parse(graviteeioVersion: string): GraviteeioVersion {
   };
 }
 
-export function computeApimVersion(pomXmlPath = '~/projects/gravitee-api-management/pom.xml'): string {
-  const pomXml = fs.readFileSync(pomXmlPath, 'utf8');
+export function computeApimVersion(environment: CircleCIEnvironment): string {
+  const pomXml = fs.readFileSync(
+    !environment.apimVersionPath ? '~/projects/gravitee-api-management/pom.xml' : environment.apimVersionPath,
+    'utf8',
+  );
   const { revision, sha1, changelist } = parsePomXml(pomXml);
   return `${revision}${sha1}${changelist}`;
 }

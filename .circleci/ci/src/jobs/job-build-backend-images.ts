@@ -1,7 +1,7 @@
 import { commands, Config, Job, reusable } from '@circleci/circleci-config-sdk';
 import { OpenJdkExecutor } from '../executors';
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
-import { computeImagesTag, supportBranchPattern } from '../utils';
+import { computeImagesTag, isSupportBranchOrMaster } from '../utils';
 import { CircleCIEnvironment } from '../pipelines';
 import { AddDockerImageInSnykCommand, CreateDockerContextCommand, DockerAzureLoginCommand, DockerAzureLogoutCommand } from '../commands';
 import { orbs } from '../orbs';
@@ -38,8 +38,7 @@ gateway-docker-context`,
       }),
     ];
 
-    const branchPattern = new RegExp(`^(${supportBranchPattern})|master$`);
-    if (branchPattern.test(environment.branch)) {
+    if (isSupportBranchOrMaster(environment.branch)) {
       dynamicConfig.importOrb(orbs.keeper);
 
       steps.push(

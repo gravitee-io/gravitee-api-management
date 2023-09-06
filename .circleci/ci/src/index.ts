@@ -13,6 +13,7 @@ const CI_ACTION: string | undefined = process.env.CI_ACTION;
 const CI_DRY_RUN: string | undefined = process.env.CI_DRY_RUN;
 const CI_GRAVITEEIO_VERSION: string = process.env.CI_GRAVITEEIO_VERSION ?? '';
 const GIT_BASE_BRANCH: string = process.env.GIT_BASE_BRANCH ?? 'master';
+const APIM_VERSION_PATH: string = process.env.APIM_VERSION_PATH;
 
 if (isBlank(CIRCLE_SHA1)) {
   console.error('No CIRCLE_SHA1 defined');
@@ -31,6 +32,7 @@ changed
     isDryRun: CI_DRY_RUN !== 'false',
     graviteeioVersion: CI_GRAVITEEIO_VERSION,
     changedFiles: changes,
+    apimVersionPath: APIM_VERSION_PATH,
   }))
   .then((environment: CircleCIEnvironment) => buildCIPipeline(environment))
   .then((dynamicConfig) => {
