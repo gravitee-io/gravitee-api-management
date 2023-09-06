@@ -2,7 +2,11 @@ import { commands, parameters, reusable } from '@circleci/circleci-config-sdk';
 import { config } from '../config';
 
 export class RestoreMavenJobCacheCommand {
-  public static commandName = 'cmd-restore-maven-job-cache';
+  private static commandName = 'cmd-restore-maven-job-cache';
+
+  private static customParametersList = new parameters.CustomParametersList([
+    new parameters.CustomParameter('jobName', 'string', '', 'The job name'),
+  ]);
 
   public static get(): reusable.ReusableCommand {
     return new reusable.ReusableCommand(
@@ -16,7 +20,7 @@ export class RestoreMavenJobCacheCommand {
           ],
         }),
       ],
-      new parameters.CustomParametersList([new parameters.CustomParameter('jobName', 'string', '', 'The job name')]),
+      RestoreMavenJobCacheCommand.customParametersList,
       'Restore Maven cache for a dedicated job',
     );
   }

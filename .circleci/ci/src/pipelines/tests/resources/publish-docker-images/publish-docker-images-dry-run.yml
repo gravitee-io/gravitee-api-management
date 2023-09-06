@@ -44,6 +44,31 @@ commands:
           branch_pattern: master,\d+\.\d+\.x
           event: fail
           template: basic_fail_1
+  cmd-create-docker-context:
+    steps:
+      - run:
+          name: Create docker context for buildx
+          command: |-
+            docker context create tls-env
+            docker buildx create tls-env --use
+  cmd-docker-azure-login:
+    steps:
+      - keeper/env-export:
+          secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/login
+          var-name: AZURE_DOCKER_REGISTRY_USERNAME
+      - keeper/env-export:
+          secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/password
+          var-name: AZURE_DOCKER_REGISTRY_PASSWORD
+      - run:
+          name: Login to Azure Container Registry
+          command: echo $AZURE_DOCKER_REGISTRY_PASSWORD | docker login --username $AZURE_DOCKER_REGISTRY_USERNAME --password-stdin graviteeio.azurecr.io
+    description: Login to Azure Container Registry
+  cmd-docker-azure-logout:
+    steps:
+      - run:
+          name: Logout from Azure Container Registry
+          command: docker logout graviteeio.azurecr.io
+    description: Logout from Azure Container Registry
 jobs:
   job-setup:
     docker:
@@ -94,6 +119,29 @@ jobs:
             - ./gravitee-apim-rest-api/gravitee-apim-rest-api-management/gravitee-apim-rest-api-management-rest/target/classes/console-openapi.*
             - ./rest-api-docker-context
             - ./gateway-docker-context
+  job-build-images:
+    docker:
+      - image: cimg/openjdk:17.0
+    resource_class: medium
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - setup_remote_docker:
+          version: 20.10.6
+      - cmd-create-docker-context
+      - cmd-docker-azure-login
+      - run:
+          name: Build rest api and gateway docker images
+          command: |-
+            docker buildx build --push --platform=linux/arm64,linux/amd64 -f gravitee-apim-rest-api/docker/Dockerfile \
+            -t graviteeio.azurecr.io/apim-management-api:apim-1234-branch-name-latest \
+            rest-api-docker-context
+
+            docker buildx build --push --platform=linux/arm64,linux/amd64 -f gravitee-apim-gateway/docker/Dockerfile \
+            -t graviteeio.azurecr.io/apim-gateway:apim-1234-branch-name-latest \
+            gateway-docker-context
+      - cmd-docker-azure-logout
 workflows:
   publish_docker_images:
     jobs:
@@ -106,6 +154,13 @@ workflows:
             - cicd-orchestrator
           requires:
             - Setup
+          name: Build backend
+      - job-build-images:
+          context:
+            - cicd-orchestrator
+          requires:
+            - Build backend
+          name: Build and push rest api and gateway images
 orbs:
   keeper: gravitee-io/keeper@0.6.3
   slack: circleci/slack@4.12.5

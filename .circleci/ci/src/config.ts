@@ -40,10 +40,6 @@ const orbs = {
   snyk: '1.7.0',
 };
 
-// const remoteDocker = {
-//   version: '20.10.6',
-// };
-
 const secrets = {
   artifactoryApiKey: 'keeper://R7NuqoW0KD-8l-kjx0-PgQ/field/password',
   artifactoryUser: 'keeper://R7NuqoW0KD-8l-kjx0-PgQ/field/login',
@@ -82,7 +78,9 @@ const ssh = {
 const jobContext = ['cicd-orchestrator'];
 
 const slack = {
-  channel: 'C02JENTV2AX',
+  channels: {
+    apiManagementTeamNotifications: 'C02JENTV2AX',
+  },
 };
 
 export const config = {
