@@ -1,6 +1,7 @@
 import { CircleCIEnvironment } from './circleci-environment';
 import { Config } from '@circleci/circleci-config-sdk';
 import { generatePackageBundleConfig } from './pipeline-package-bundle';
+import { generateBridgeCompatibilityTestsConfig } from './pipeline-bridge-compatibility-tests';
 import { generatePublishDockerImagesConfig } from './pipeline-publish-docker-images';
 import { generateNexusStagingConfig } from './pipeline-nexus-staging';
 import { generateDbRepositoriesTestContainerConfig } from './pipeline-db-repositories-test-container';
@@ -27,7 +28,7 @@ export function buildCIPipeline(environment: CircleCIEnvironment): Config | null
     case 'release_notes_apim':
       return generateReleaseNotesApimConfig(environment);
     case 'bridge_compatibility_tests':
-      return null; // TODO: add buildBridgeCompatibilityTest(...)
+      return generateBridgeCompatibilityTestsConfig(environment);
     case 'publish_docker_images':
       return generatePublishDockerImagesConfig(environment);
   }
