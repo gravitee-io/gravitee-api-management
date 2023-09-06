@@ -33,12 +33,17 @@ export class GioChartPieComponent implements OnInit {
   public input: GioChartPieInput[];
 
   @Input()
-  public inputDescription: string;
+  public inputDescription = 'Nb hits';
+
+  @Input()
+  public totalInputDescription = 'Total';
 
   Highcharts: typeof Highcharts = Highcharts;
   chartOptions: Highcharts.Options;
 
   ngOnInit() {
+    const totalInputDescription = this.totalInputDescription;
+
     this.chartOptions = {
       title: {
         text: '',
@@ -47,6 +52,22 @@ export class GioChartPieComponent implements OnInit {
       chart: {
         height: '100%',
         backgroundColor: 'transparent',
+        spacing: [0, 0, 0, 0],
+        // Add bottom left total
+        events: {
+          load: function () {
+            const total = this.series[0].data[0].total;
+
+            this.setSubtitle({
+              text: totalInputDescription + ': ' + total,
+              align: 'left',
+              verticalAlign: 'bottom',
+              style: {
+                color: 'default',
+              },
+            });
+          },
+        },
       },
       tooltip: {
         pointFormat: '{series.name}: {point.y} ({point.percentage:.1f} %)',

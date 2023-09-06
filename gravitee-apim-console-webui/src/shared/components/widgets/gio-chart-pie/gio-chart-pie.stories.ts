@@ -28,16 +28,17 @@ export default {
       imports: [MatCardModule, GioChartPieModule],
     }),
   ],
-  render: ({ input, inputDescription, title }) => {
+  render: ({ input, inputDescription, totalInputDescription, title }) => {
     return {
       template: `
       <mat-card style="width: 500px">
-            <gio-chart-pie [input]="input" [inputDescription]="inputDescription" [title]="title"></gio-chart-pie>
+            <gio-chart-pie [input]="input" [inputDescription]="inputDescription" [totalInputDescription]="totalInputDescription" [title]="title"></gio-chart-pie>
       </mat-card>
       `,
       props: {
         input,
         inputDescription,
+        totalInputDescription,
         title,
       },
     };
