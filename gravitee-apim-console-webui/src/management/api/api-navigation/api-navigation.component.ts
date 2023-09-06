@@ -29,8 +29,8 @@ import {
 } from './api-confirm-deployment-dialog/api-confirm-deployment-dialog.component';
 import { ApiReviewDialogComponent, ApiReviewDialogData, ApiReviewDialogResult } from './api-review-dialog/api-review-dialog.component';
 import { MenuGroupItem, MenuItem } from './MenuGroupItem';
-import { ApiNgV4MenuService } from './api-ng-v4-menu.service';
-import { ApiNgV1V2MenuService } from './api-ng-v1-v2-menu.service';
+import { ApiV4MenuService } from './api-v4-menu.service';
+import { ApiV1V2MenuService } from './api-v1-v2-menu.service';
 
 import { AjsRootScope, CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
@@ -52,12 +52,12 @@ type TopBanner = {
 };
 
 @Component({
-  selector: 'api-ng-navigation',
-  template: require('./api-ng-navigation.component.html'),
-  styles: [require('./api-ng-navigation.component.scss')],
-  providers: [ApiNgV1V2MenuService, ApiNgV4MenuService],
+  selector: 'api-navigation',
+  template: require('./api-navigation.component.html'),
+  styles: [require('./api-navigation.component.scss')],
+  providers: [ApiV1V2MenuService, ApiV4MenuService],
 })
-export class ApiNgNavigationComponent implements OnInit, OnDestroy {
+export class ApiNavigationComponent implements OnInit, OnDestroy {
   public currentApi: Api;
   public subMenuItems: MenuItem[] = [];
   public groupItems: MenuGroupItem[] = [];
@@ -266,8 +266,8 @@ export class ApiNgNavigationComponent implements OnInit, OnDestroy {
     private readonly apiV2Service: ApiV2Service,
     private readonly legacyApiService: ApiService,
     private readonly matDialog: MatDialog,
-    private readonly apiNgV1V2MenuService: ApiNgV1V2MenuService,
-    private readonly apiNgV4MenuService: ApiNgV4MenuService,
+    private readonly apiNgV1V2MenuService: ApiV1V2MenuService,
+    private readonly apiNgV4MenuService: ApiV4MenuService,
     private readonly snackBarService: SnackBarService,
   ) {}
 

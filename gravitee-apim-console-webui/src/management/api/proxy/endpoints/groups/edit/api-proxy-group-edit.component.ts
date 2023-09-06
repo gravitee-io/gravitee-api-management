@@ -112,7 +112,7 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
         tap(() =>
           // Redirect to same page with last group name
           this.ajsState.go(
-            'management.apis.ng.endpoint-group-v2',
+            'management.apis.endpoint-group-v2',
             { apiId: this.apiId, groupName: this.generalForm.get('name').value },
             { reload: true },
           ),

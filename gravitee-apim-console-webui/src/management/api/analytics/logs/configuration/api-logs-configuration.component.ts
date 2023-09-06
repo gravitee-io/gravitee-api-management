@@ -111,7 +111,7 @@ export class ApiLogsConfigurationComponent implements OnInit, OnDestroy {
   }
 
   public goToLoggingDashboard() {
-    this.ajsState.go('management.apis.ng.analytics-logs-v2');
+    this.ajsState.go('management.apis.analytics-logs-v2');
   }
 
   public onSubmit() {

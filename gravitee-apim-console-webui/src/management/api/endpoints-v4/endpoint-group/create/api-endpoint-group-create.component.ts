@@ -143,7 +143,7 @@ export class ApiEndpointGroupCreateComponent implements OnInit {
   }
 
   goBackToEndpointGroups() {
-    this.ajsState.go('management.apis.ng.endpoint-groups');
+    this.ajsState.go('management.apis.endpoint-groups');
   }
 
   private initCreateForm(): void {

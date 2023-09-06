@@ -148,7 +148,7 @@ describe('ApiEndpointComponent', () => {
         ],
       };
       expectApiPutRequest(updatedApi);
-      expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.ng.endpoint-groups');
+      expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.endpoint-groups');
     });
 
     it('should edit and save an existing endpoint', async () => {
@@ -179,7 +179,7 @@ describe('ApiEndpointComponent', () => {
         ],
       };
       expectApiPutRequest(updatedApi);
-      expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.ng.endpoint-groups');
+      expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.endpoint-groups');
     });
 
     it('should inherit configuration from parent', async () => {

@@ -42,7 +42,7 @@ class ApiHealthcheckLogControllerAjs {
 
   backToHealthcheck() {
     const query = JSON.parse(this.$window.localStorage.lastHealthCheckQuery);
-    this.$state.go('management.apis.ng.healthcheck-dashboard-v2', {
+    this.$state.go('management.apis.healthcheck-dashboard-v2', {
       page: query.page,
       size: query.size,
       from: query.from,

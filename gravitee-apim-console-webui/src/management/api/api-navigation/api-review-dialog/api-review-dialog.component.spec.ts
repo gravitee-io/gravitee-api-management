@@ -31,7 +31,7 @@ import { ApiReviewDialogComponent, ApiReviewDialogData, ApiReviewDialogResult } 
 import { QualityRule } from '../../../../entities/qualityRule';
 import { ApiQualityRule } from '../../../../entities/apiQualityRule';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
-import { ApiNgNavigationModule } from '../api-ng-navigation.module';
+import { ApiNavigationModule } from '../api-navigation.module';
 
 const API_ID = 'apiId';
 @Component({
@@ -63,7 +63,7 @@ describe('ApiReviewDialogComponent', () => {
   beforeEach(async () => {
     TestBed.configureTestingModule({
       declarations: [TestComponent],
-      imports: [ApiNgNavigationModule, NoopAnimationsModule, MatDialogModule, MatIconTestingModule, GioHttpTestingModule],
+      imports: [ApiNavigationModule, NoopAnimationsModule, MatDialogModule, MatIconTestingModule, GioHttpTestingModule],
     });
 
     fixture = TestBed.createComponent(TestComponent);

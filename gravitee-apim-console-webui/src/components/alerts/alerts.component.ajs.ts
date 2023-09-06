@@ -37,7 +37,7 @@ const AlertsComponentAjs: ng.IComponentOptions = {
     this.alerts = this.alerts ?? [];
     this.goTo = (suffixState: string, alertId: string) => {
       if ($stateParams.apiId) {
-        $state.go('management.apis.ng.alerts.' + suffixState, { apiId: $stateParams.apiId, alertId: alertId });
+        $state.go('management.apis.alerts.' + suffixState, { apiId: $stateParams.apiId, alertId: alertId });
       } else if ($stateParams.applicationId) {
         $state.go('management.applications.application.alerts.' + suffixState, {
           applicationId: $stateParams.applicationId,

@@ -121,7 +121,7 @@ export class HomeApiHealthCheckComponent implements OnInit, OnDestroy {
   }
 
   onViewHealthCheckClicked(api: ApisTableDS) {
-    this.ajsState.go('management.apis.ng.healthcheck-dashboard-v2', { apiId: api.id });
+    this.ajsState.go('management.apis.healthcheck-dashboard-v2', { apiId: api.id });
   }
 
   onRefreshClicked() {

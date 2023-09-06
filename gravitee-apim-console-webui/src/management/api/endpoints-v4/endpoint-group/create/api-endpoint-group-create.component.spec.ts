@@ -153,7 +153,7 @@ describe('ApiEndpointGroupCreateComponent', () => {
 
       it('should go back to endpoint groups page on exit', async () => {
         await harness.goBackToEndpointGroups();
-        expect(routerSpy).toHaveBeenCalledWith('management.apis.ng.endpoint-groups');
+        expect(routerSpy).toHaveBeenCalledWith('management.apis.endpoint-groups');
       });
 
       it('should not go to General step if endpoint type not selected', async () => {
@@ -297,7 +297,7 @@ describe('ApiEndpointGroupCreateComponent', () => {
       it('should go back to endpoint groups page on exit', async () => {
         expect(await isStepActive(harness.getGeneralStep())).toEqual(true);
         await harness.goBackToEndpointGroups();
-        expect(routerSpy).toHaveBeenCalledWith('management.apis.ng.endpoint-groups');
+        expect(routerSpy).toHaveBeenCalledWith('management.apis.endpoint-groups');
       });
     });
 
@@ -407,6 +407,6 @@ describe('ApiEndpointGroupCreateComponent', () => {
 
     expectApiGet();
     expectApiPut(updatedApi);
-    expect(routerSpy).toHaveBeenCalledWith('management.apis.ng.endpoint-groups');
+    expect(routerSpy).toHaveBeenCalledWith('management.apis.endpoint-groups');
   }
 });

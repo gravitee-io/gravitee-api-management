@@ -161,7 +161,7 @@ describe('HomeApiHealthCheckComponent', () => {
         .getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to view API Health-check"]' }))
         .then((button) => button.click());
 
-      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.ng.healthcheck-dashboard-v2', { apiId: fakeApi().id });
+      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.healthcheck-dashboard-v2', { apiId: fakeApi().id });
     });
   });
 

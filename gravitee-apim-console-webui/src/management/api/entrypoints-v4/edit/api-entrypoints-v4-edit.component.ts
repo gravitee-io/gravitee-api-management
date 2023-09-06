@@ -223,7 +223,7 @@ export class ApiEntrypointsV4EditComponent implements OnInit {
         takeUntil(this.unsubscribe$),
       )
       .subscribe(() => {
-        this.ajsState.go('management.apis.ng.entrypoints');
+        this.ajsState.go('management.apis.entrypoints');
       });
   }
 

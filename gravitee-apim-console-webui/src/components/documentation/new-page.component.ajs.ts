@@ -169,7 +169,7 @@ class NewPageComponentController implements IController {
 
   gotoParent() {
     if (this.apiId) {
-      this.$state.go('management.apis.ng.documentation', { apiId: this.apiId, parent: this.$state.params.parent });
+      this.$state.go('management.apis.documentation', { apiId: this.apiId, parent: this.$state.params.parent });
     } else {
       this.$state.go('management.settings.documentation.list', { parent: this.$state.params.parent });
     }
@@ -177,7 +177,7 @@ class NewPageComponentController implements IController {
 
   gotoEdit(page: any) {
     if (this.apiId) {
-      this.$state.go('management.apis.ng.documentationEdit', { apiId: this.apiId, pageId: page.id, type: page.type });
+      this.$state.go('management.apis.documentationEdit', { apiId: this.apiId, pageId: page.id, type: page.type });
     } else {
       this.$state.go('management.settings.documentation.edit', { pageId: page.id, type: page.type });
     }

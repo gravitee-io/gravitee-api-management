@@ -16,11 +16,11 @@
 import { Component, Input } from '@angular/core';
 
 @Component({
-  selector: 'api-ng-navigation-disabled',
-  template: require('./api-ng-navigation-disabled.component.html'),
-  styles: [require('./api-ng-navigation-disabled.component.scss')],
+  selector: 'api-navigation-disabled',
+  template: require('./api-navigation-disabled.component.html'),
+  styles: [require('./api-navigation-disabled.component.scss')],
 })
-export class ApiNgNavigationDisabledComponent {
+export class ApiNavigationDisabledComponent {
   @Input()
   public displayName: string;
 }

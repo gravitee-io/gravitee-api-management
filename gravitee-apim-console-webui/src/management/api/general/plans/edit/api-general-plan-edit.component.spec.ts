@@ -50,7 +50,7 @@ describe('ApiGeneralPlanEditComponent', () => {
   const API_ID = 'my-api';
   const currentUser = new User();
   const fakeUiRouter = { go: jest.fn() };
-  const fakeAjsGlobals = { current: { data: { baseRouteState: 'management.apis.ng' } } };
+  const fakeAjsGlobals = { current: { data: { baseRouteState: 'management.apis' } } };
 
   currentUser.userPermissions = ['api-plan-u'];
 
@@ -167,7 +167,7 @@ describe('ApiGeneralPlanEditComponent', () => {
           ],
         } as CreatePlanV2);
         req.flush({});
-        expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.ng.plans', { status: 'STAGING' });
+        expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.plans', { status: 'STAGING' });
       });
     });
 
@@ -263,7 +263,7 @@ describe('ApiGeneralPlanEditComponent', () => {
           ],
         } as PlanV2);
         req.flush({});
-        expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.ng.plans', { status: PLAN.status });
+        expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.plans', { status: PLAN.status });
       });
     });
 
@@ -483,7 +483,7 @@ describe('ApiGeneralPlanEditComponent', () => {
           method: 'POST',
         })
         .flush({});
-      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.ng.plans', { status: 'STAGING' });
+      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.plans', { status: 'STAGING' });
     });
   });
 

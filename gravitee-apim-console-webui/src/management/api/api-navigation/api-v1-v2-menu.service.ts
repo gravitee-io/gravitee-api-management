@@ -28,7 +28,7 @@ import { ApiV1, ApiV2, DefinitionVersion } from '../../../entities/management-ap
 import { ApimFeature, UTMTags } from '../../../shared/components/gio-license/gio-license-data';
 
 @Injectable()
-export class ApiNgV1V2MenuService implements ApiMenuService {
+export class ApiV1V2MenuService implements ApiMenuService {
   constructor(
     private readonly permissionService: GioPermissionService,
     @Inject(CurrentUserService) private readonly currentUserService: UserService,
@@ -45,21 +45,21 @@ export class ApiNgV1V2MenuService implements ApiMenuService {
         ? [
             {
               displayName: 'Policy Studio',
-              targetRoute: 'management.apis.ng.policies-v1',
-              baseRoute: 'management.apis.ng.policies-v1',
+              targetRoute: 'management.apis.policies-v1',
+              baseRoute: 'management.apis.policies-v1',
             },
           ]
         : [
             {
               displayName: 'Policy Studio',
-              targetRoute: 'management.apis.ng.policy-studio-v2',
-              baseRoute: 'management.apis.ng.policy-studio-v2',
+              targetRoute: 'management.apis.policy-studio-v2',
+              baseRoute: 'management.apis.policy-studio-v2',
             },
           ]),
       {
         displayName: 'Messages',
-        targetRoute: 'management.apis.ng.messages',
-        baseRoute: 'management.apis.ng.messages',
+        targetRoute: 'management.apis.messages',
+        baseRoute: 'management.apis.messages',
       },
     ];
 
@@ -81,8 +81,8 @@ export class ApiNgV1V2MenuService implements ApiMenuService {
       items: [
         {
           displayName: 'Info',
-          targetRoute: 'management.apis.ng.general',
-          baseRoute: 'management.apis.ng.general',
+          targetRoute: 'management.apis.general',
+          baseRoute: 'management.apis.general',
         },
       ],
     };
@@ -95,15 +95,15 @@ export class ApiNgV1V2MenuService implements ApiMenuService {
     if (this.permissionService.hasAnyMatching(['api-plan-r'])) {
       plansMenuItem.tabs.push({
         displayName: 'Plans',
-        targetRoute: 'management.apis.ng.plans',
-        baseRoute: ['management.apis.ng.plans', 'management.apis.ng.plan'],
+        targetRoute: 'management.apis.plans',
+        baseRoute: ['management.apis.plans', 'management.apis.plan'],
       });
     }
     if (this.permissionService.hasAnyMatching(['api-subscription-r'])) {
       plansMenuItem.tabs.push({
         displayName: 'Subscriptions',
-        targetRoute: 'management.apis.ng.subscriptions',
-        baseRoute: ['management.apis.ng.subscriptions', 'management.apis.ng.subscription'],
+        targetRoute: 'management.apis.subscriptions',
+        baseRoute: ['management.apis.subscriptions', 'management.apis.subscription'],
       });
     }
     if (plansMenuItem.tabs.length > 0) {
@@ -118,20 +118,20 @@ export class ApiNgV1V2MenuService implements ApiMenuService {
     if (this.permissionService.hasAnyMatching(['api-documentation-r'])) {
       documentationMenuItem.tabs.push({
         displayName: 'Pages',
-        targetRoute: 'management.apis.ng.documentation',
+        targetRoute: 'management.apis.documentation',
         baseRoute: [
-          'management.apis.ng.documentation',
-          'management.apis.ng.documentationNew',
-          'management.apis.ng.documentationImport',
-          'management.apis.ng.documentationEdit',
+          'management.apis.documentation',
+          'management.apis.documentationNew',
+          'management.apis.documentationImport',
+          'management.apis.documentationEdit',
         ],
       });
     }
     if (this.permissionService.hasAnyMatching(['api-metadata-r'])) {
       documentationMenuItem.tabs.push({
         displayName: 'Metadata',
-        targetRoute: 'management.apis.ng.metadata',
-        baseRoute: 'management.apis.ng.metadata',
+        targetRoute: 'management.apis.metadata',
+        baseRoute: 'management.apis.metadata',
       });
     }
     if (documentationMenuItem.tabs.length > 0) {
@@ -147,21 +147,21 @@ export class ApiNgV1V2MenuService implements ApiMenuService {
       userAndGroupAccessMenuItems.tabs.push(
         {
           displayName: 'Members',
-          targetRoute: 'management.apis.ng.members',
-          baseRoute: 'management.apis.ng.members',
+          targetRoute: 'management.apis.members',
+          baseRoute: 'management.apis.members',
         },
         {
           displayName: 'Groups',
-          targetRoute: 'management.apis.ng.groups',
-          baseRoute: 'management.apis.ng.groups',
+          targetRoute: 'management.apis.groups',
+          baseRoute: 'management.apis.groups',
         },
       );
     }
     if (this.currentUserService.currentUser.isOrganizationAdmin() || this.permissionService.hasAnyMatching(['api-member-u'])) {
       userAndGroupAccessMenuItems.tabs.push({
         displayName: 'Transfer ownership',
-        targetRoute: 'management.apis.ng.transferOwnership',
-        baseRoute: 'management.apis.ng.transferOwnership',
+        targetRoute: 'management.apis.transferOwnership',
+        baseRoute: 'management.apis.transferOwnership',
       });
     }
     if (userAndGroupAccessMenuItems.tabs.length > 0) {
@@ -180,33 +180,29 @@ export class ApiNgV1V2MenuService implements ApiMenuService {
     if (this.permissionService.hasAnyMatching(['api-definition-r', 'api-health-r'])) {
       proxyGroup.items.push({
         displayName: 'Entrypoints',
-        targetRoute: 'management.apis.ng.entrypoints-v2',
-        baseRoute: 'management.apis.ng.entrypoints-v2',
+        targetRoute: 'management.apis.entrypoints-v2',
+        baseRoute: 'management.apis.entrypoints-v2',
       });
     }
     if (this.permissionService.hasAnyMatching(['api-definition-r'])) {
       proxyGroup.items.push(
         {
           displayName: 'CORS',
-          targetRoute: 'management.apis.ng.cors',
-          baseRoute: 'management.apis.ng.cors',
+          targetRoute: 'management.apis.cors',
+          baseRoute: 'management.apis.cors',
         },
         {
           displayName: 'Deployments',
-          targetRoute: 'management.apis.ng.deployments',
-          baseRoute: 'management.apis.ng.deployments',
+          targetRoute: 'management.apis.deployments',
+          baseRoute: 'management.apis.deployments',
         },
       );
     }
     if (this.permissionService.hasAnyMatching(['api-response_templates-r'])) {
       proxyGroup.items.push({
         displayName: 'Response Templates',
-        targetRoute: 'management.apis.ng.responseTemplates',
-        baseRoute: [
-          'management.apis.ng.responseTemplates',
-          'management.apis.ng.responseTemplateNew',
-          'management.apis.ng.responseTemplateEdit',
-        ],
+        targetRoute: 'management.apis.responseTemplates',
+        baseRoute: ['management.apis.responseTemplates', 'management.apis.responseTemplateNew', 'management.apis.responseTemplateEdit'],
       });
     }
     if (this.permissionService.hasAnyMatching(['api-definition-r'])) {
@@ -214,26 +210,26 @@ export class ApiNgV1V2MenuService implements ApiMenuService {
         proxyGroup.items.push(
           {
             displayName: 'Properties',
-            targetRoute: 'management.apis.ng.properties-v1',
-            baseRoute: 'management.apis.ng.properties-v1',
+            targetRoute: 'management.apis.properties-v1',
+            baseRoute: 'management.apis.properties-v1',
           },
           {
             displayName: 'Resources',
-            targetRoute: 'management.apis.ng.resources-v1',
-            baseRoute: 'management.apis.ng.resources-v1',
+            targetRoute: 'management.apis.resources-v1',
+            baseRoute: 'management.apis.resources-v1',
           },
         );
       } else {
         proxyGroup.items.push(
           {
             displayName: 'Properties',
-            targetRoute: 'management.apis.ng.properties',
-            baseRoute: 'management.apis.ng.properties',
+            targetRoute: 'management.apis.properties',
+            baseRoute: 'management.apis.properties',
           },
           {
             displayName: 'Resources',
-            targetRoute: 'management.apis.ng.resources',
-            baseRoute: 'management.apis.ng.resources',
+            targetRoute: 'management.apis.resources',
+            baseRoute: 'management.apis.resources',
           },
         );
       }
@@ -255,21 +251,21 @@ export class ApiNgV1V2MenuService implements ApiMenuService {
       backendServicesGroup.items.push(
         {
           displayName: 'Endpoints',
-          targetRoute: 'management.apis.ng.endpoints-v2',
-          baseRoute: ['management.apis.ng.endpoints-v2', 'management.apis.ng.endpoint-v2', 'management.apis.ng.endpoint-group-v2'],
+          targetRoute: 'management.apis.endpoints-v2',
+          baseRoute: ['management.apis.endpoints-v2', 'management.apis.endpoint-v2', 'management.apis.endpoint-group-v2'],
         },
         {
           displayName: 'Failover',
-          targetRoute: 'management.apis.ng.failover-v2',
-          baseRoute: 'management.apis.ng.failover-v2',
+          targetRoute: 'management.apis.failover-v2',
+          baseRoute: 'management.apis.failover-v2',
         },
       );
     }
     if (this.permissionService.hasAnyMatching(['api-health-r'])) {
       backendServicesGroup.items.push({
         displayName: 'Health-check',
-        targetRoute: 'management.apis.ng.healthcheck-v2',
-        baseRoute: 'management.apis.ng.healthcheck-v2',
+        targetRoute: 'management.apis.healthcheck-v2',
+        baseRoute: 'management.apis.healthcheck-v2',
       });
     }
 
@@ -277,8 +273,8 @@ export class ApiNgV1V2MenuService implements ApiMenuService {
     if (this.permissionService.hasAnyMatching(['api-health-r'])) {
       backendServicesGroup.items.push({
         displayName: 'Health-check dashboard',
-        targetRoute: 'management.apis.ng.healthcheck-dashboard-v2',
-        baseRoute: ['management.apis.ng.healthcheck-dashboard-v2', 'management.apis.ng.healthcheck-log-v2'],
+        targetRoute: 'management.apis.healthcheck-dashboard-v2',
+        baseRoute: ['management.apis.healthcheck-dashboard-v2', 'management.apis.healthcheck-log-v2'],
       });
     }
 
@@ -297,22 +293,22 @@ export class ApiNgV1V2MenuService implements ApiMenuService {
     if (this.permissionService.hasAnyMatching(['api-analytics-r'])) {
       analyticsGroup.items.push({
         displayName: 'Overview',
-        targetRoute: 'management.apis.ng.analytics-overview-v2',
-        baseRoute: 'management.apis.ng.analytics-overview-v2',
+        targetRoute: 'management.apis.analytics-overview-v2',
+        baseRoute: 'management.apis.analytics-overview-v2',
       });
     }
     if (this.permissionService.hasAnyMatching(['api-log-r'])) {
       analyticsGroup.items.push({
         displayName: 'Logs',
-        targetRoute: 'management.apis.ng.analytics-logs-v2',
-        baseRoute: ['management.apis.ng.analytics-logs-v2', 'management.apis.ng.analytics-logs-configuration-v2'],
+        targetRoute: 'management.apis.analytics-logs-v2',
+        baseRoute: ['management.apis.analytics-logs-v2', 'management.apis.analytics-logs-configuration-v2'],
       });
     }
     if (this.permissionService.hasAnyMatching(['api-definition-u'])) {
       analyticsGroup.items.push({
         displayName: 'Path mappings',
-        targetRoute: 'management.apis.ng.analytics-path-mappings-v2',
-        baseRoute: 'management.apis.ng.analytics-path-mappings-v2',
+        targetRoute: 'management.apis.analytics-path-mappings-v2',
+        baseRoute: 'management.apis.analytics-path-mappings-v2',
       });
     }
     if (this.constants.org.settings.alert?.enabled && this.permissionService.hasAnyMatching(['api-alert-r'])) {
@@ -326,8 +322,8 @@ export class ApiNgV1V2MenuService implements ApiMenuService {
 
       analyticsGroup.items.push({
         displayName: 'Alerts',
-        targetRoute: 'management.apis.ng.analytics-alerts-v2',
-        baseRoute: 'management.apis.ng.analytics-alerts-v2',
+        targetRoute: 'management.apis.analytics-alerts-v2',
+        baseRoute: 'management.apis.analytics-alerts-v2',
         license: alertEngineLicenseOptions,
         iconRight$: alertEngineIconRight$,
       });
@@ -350,8 +346,8 @@ export class ApiNgV1V2MenuService implements ApiMenuService {
     if (this.permissionService.hasAnyMatching(['api-audit-r'])) {
       auditGroup.items.push({
         displayName: 'Audit',
-        targetRoute: 'management.apis.ng.audit',
-        baseRoute: 'management.apis.ng.audit',
+        targetRoute: 'management.apis.audit',
+        baseRoute: 'management.apis.audit',
         license,
         iconRight$,
       });
@@ -359,15 +355,15 @@ export class ApiNgV1V2MenuService implements ApiMenuService {
     if (this.permissionService.hasAnyMatching(['api-event-r'])) {
       auditGroup.items.push({
         displayName: 'History',
-        targetRoute: 'management.apis.ng.history',
-        baseRoute: 'management.apis.ng.history',
+        targetRoute: 'management.apis.history',
+        baseRoute: 'management.apis.history',
       });
     }
     if (this.permissionService.hasAnyMatching(['api-event-u'])) {
       auditGroup.items.push({
         displayName: 'Events',
-        targetRoute: 'management.apis.ng.events',
-        baseRoute: 'management.apis.ng.events',
+        targetRoute: 'management.apis.events',
+        baseRoute: 'management.apis.events',
       });
     }
 
@@ -385,8 +381,8 @@ export class ApiNgV1V2MenuService implements ApiMenuService {
     if (this.permissionService.hasAnyMatching(['api-notification-r'])) {
       notificationsGroup.items.push({
         displayName: 'Notifications',
-        targetRoute: 'management.apis.ng.notifications',
-        baseRoute: 'management.apis.ng.notifications',
+        targetRoute: 'management.apis.notifications',
+        baseRoute: 'management.apis.notifications',
       });
     }
 
@@ -401,8 +397,8 @@ export class ApiNgV1V2MenuService implements ApiMenuService {
 
       notificationsGroup.items.push({
         displayName: 'Alerts',
-        targetRoute: 'management.apis.ng.alerts.list',
-        baseRoute: 'management.apis.ng.alerts',
+        targetRoute: 'management.apis.alerts.list',
+        baseRoute: 'management.apis.alerts',
         license: alertEngineLicenseOptions,
         iconRight$: alertEngineIconRight$,
       });

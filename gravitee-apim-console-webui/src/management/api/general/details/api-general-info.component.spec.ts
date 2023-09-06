@@ -372,7 +372,7 @@ describe('ApiGeneralInfoComponent', () => {
 
       await expectDuplicatePostRequest(API_ID);
 
-      expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.ng.general', { apiId: 'newApiId' });
+      expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.general', { apiId: 'newApiId' });
     });
   });
 
@@ -579,7 +579,7 @@ describe('ApiGeneralInfoComponent', () => {
 
       expectDuplicatePostRequest(API_ID);
 
-      expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.ng.general', { apiId: 'newApiId' });
+      expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.general', { apiId: 'newApiId' });
     });
   });
 

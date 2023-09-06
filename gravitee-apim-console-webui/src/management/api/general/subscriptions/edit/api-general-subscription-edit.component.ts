@@ -532,7 +532,7 @@ export class ApiGeneralSubscriptionEditComponent implements OnInit {
   }
 
   goBackToSubscriptions() {
-    this.ajsState.go('management.apis.ng.subscriptions');
+    this.ajsState.go('management.apis.subscriptions');
   }
 
   private serializeDate(date: Date): string {

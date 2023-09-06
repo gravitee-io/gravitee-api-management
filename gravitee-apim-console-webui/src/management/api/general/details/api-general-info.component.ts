@@ -340,7 +340,7 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
       .afterClosed()
       .pipe(
         filter((apiDuplicated) => !!apiDuplicated),
-        tap((apiDuplicated) => this.ajsState.go('management.apis.ng.general', { apiId: apiDuplicated.id })),
+        tap((apiDuplicated) => this.ajsState.go('management.apis.general', { apiId: apiDuplicated.id })),
 
         takeUntil(this.unsubscribe$),
       )

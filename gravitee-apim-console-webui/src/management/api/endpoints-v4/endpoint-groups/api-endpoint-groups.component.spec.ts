@@ -186,7 +186,7 @@ describe('ApiEndpointGroupsComponent', () => {
 
         await componentHarness.clickEditEndpointGroup(0);
 
-        expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.ng.endpoint-group', { groupIndex: 0 });
+        expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.endpoint-group', { groupIndex: 0 });
       });
     });
   });
@@ -201,7 +201,7 @@ describe('ApiEndpointGroupsComponent', () => {
       expect(await componentHarness.isAddEndpointButtonVisible()).toEqual(true);
       await componentHarness.clickAddEndpoint(0);
 
-      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.ng.endpoint-new', { groupIndex: 0 });
+      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.endpoint-new', { groupIndex: 0 });
     });
   });
 
@@ -216,7 +216,7 @@ describe('ApiEndpointGroupsComponent', () => {
       expect(await componentHarness.isEditEndpointButtonVisible()).toEqual(true);
       await componentHarness.clickEditEndpoint(0);
 
-      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.ng.endpoint-edit', { groupIndex: 0, endpointIndex: 0 });
+      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.endpoint-edit', { groupIndex: 0, endpointIndex: 0 });
     });
   });
 
@@ -278,7 +278,7 @@ describe('ApiEndpointGroupsComponent', () => {
       expect(await componentHarness.isAddEndpointGroupClickable()).toEqual(true);
       await componentHarness.clickAddEndpointGroup();
 
-      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.ng.endpoint-group-new');
+      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.endpoint-group-new');
     });
   });
 

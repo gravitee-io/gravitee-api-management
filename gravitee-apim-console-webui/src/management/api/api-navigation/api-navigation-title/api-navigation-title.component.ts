@@ -18,11 +18,11 @@ import { Component, Input } from '@angular/core';
 import { Api } from '../../../../entities/management-api-v2';
 
 @Component({
-  selector: 'api-ng-navigation-title',
-  template: require('./api-ng-navigation-title.component.html'),
-  styles: [require('./api-ng-navigation-title.component.scss')],
+  selector: 'api-navigation-title',
+  template: require('./api-navigation-title.component.html'),
+  styles: [require('./api-navigation-title.component.scss')],
 })
-export class ApiNgNavigationTitleComponent {
+export class ApiNavigationTitleComponent {
   @Input()
   public apiName: string;
   @Input()

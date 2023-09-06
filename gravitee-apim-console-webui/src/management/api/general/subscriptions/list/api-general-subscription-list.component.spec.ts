@@ -428,7 +428,7 @@ describe('ApiGeneralSubscriptionListComponent', () => {
       tick(400);
       expectApiSubscriptionsPostRequest(planV4.id, application.id, undefined, subscription);
 
-      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.ng.subscription.edit', { subscriptionId: expect.any(String) });
+      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.subscription.edit', { subscriptionId: expect.any(String) });
 
       flush();
     }));
@@ -484,7 +484,7 @@ describe('ApiGeneralSubscriptionListComponent', () => {
       tick(400);
       expectApiSubscriptionsPostRequest(planV4.id, application.id, undefined, subscription);
 
-      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.ng.subscription.edit', { subscriptionId: expect.any(String) });
+      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.subscription.edit', { subscriptionId: expect.any(String) });
 
       flush();
     }));
@@ -517,7 +517,7 @@ describe('ApiGeneralSubscriptionListComponent', () => {
       const subscription = fakeSubscription();
       expectApiSubscriptionsPostRequest(planV4.id, application.id, undefined, subscription);
 
-      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.ng.subscription.edit', { subscriptionId: expect.any(String) });
+      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.subscription.edit', { subscriptionId: expect.any(String) });
 
       flush();
     }));
@@ -565,7 +565,7 @@ describe('ApiGeneralSubscriptionListComponent', () => {
       const subscription = fakeSubscription();
       expectApiSubscriptionsPostRequest(planV4.id, application.id, '12345678', subscription);
 
-      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.ng.subscription.edit', { subscriptionId: expect.any(String) });
+      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.subscription.edit', { subscriptionId: expect.any(String) });
 
       flush();
     }));
@@ -588,7 +588,7 @@ describe('ApiGeneralSubscriptionListComponent', () => {
 
       await creationDialogHarness.cancelSubscription();
 
-      expect(fakeUiRouter.go).not.toHaveBeenCalledWith('management.apis.ng.subscription.edit', { subscriptionId: expect.any(String) });
+      expect(fakeUiRouter.go).not.toHaveBeenCalledWith('management.apis.subscription.edit', { subscriptionId: expect.any(String) });
 
       flush();
     }));

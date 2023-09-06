@@ -24,7 +24,7 @@ import { CurrentUserService } from '../../../ajs-upgraded-providers';
 import UserService from '../../../services/user.service';
 
 @Injectable()
-export class ApiNgV4MenuService implements ApiMenuService {
+export class ApiV4MenuService implements ApiMenuService {
   constructor(
     private readonly permissionService: GioPermissionService,
     @Inject(CurrentUserService) private readonly currentUserService: UserService,
@@ -38,8 +38,8 @@ export class ApiNgV4MenuService implements ApiMenuService {
     const subMenuItems: MenuItem[] = [
       {
         displayName: 'Policy Studio',
-        targetRoute: 'management.apis.ng.policyStudio',
-        baseRoute: 'management.apis.ng.policyStudio',
+        targetRoute: 'management.apis.policyStudio',
+        baseRoute: 'management.apis.policyStudio',
         tabs: undefined,
       },
     ];
@@ -48,15 +48,15 @@ export class ApiNgV4MenuService implements ApiMenuService {
     if (this.permissionService.hasAnyMatching(['api-log-r'])) {
       logsTabs.push({
         displayName: 'Runtime Logs',
-        targetRoute: 'management.apis.ng.runtimeLogs',
-        baseRoute: 'management.apis.ng.runtimeLogs',
+        targetRoute: 'management.apis.runtimeLogs',
+        baseRoute: 'management.apis.runtimeLogs',
       });
     }
     if (this.permissionService.hasAnyMatching(['api-definition-u', 'api-log-u'])) {
       logsTabs.push({
         displayName: 'Settings',
-        targetRoute: 'management.apis.ng.runtimeLogs-settings',
-        baseRoute: 'management.apis.ng.runtimeLogs-settings',
+        targetRoute: 'management.apis.runtimeLogs-settings',
+        baseRoute: 'management.apis.runtimeLogs-settings',
       });
     }
     if (logsTabs.length > 0) {
@@ -88,8 +88,8 @@ export class ApiNgV4MenuService implements ApiMenuService {
       items: [
         {
           displayName: 'Info',
-          targetRoute: 'management.apis.ng.general',
-          baseRoute: 'management.apis.ng.general',
+          targetRoute: 'management.apis.general',
+          baseRoute: 'management.apis.general',
         },
       ],
     };
@@ -102,15 +102,15 @@ export class ApiNgV4MenuService implements ApiMenuService {
     if (this.permissionService.hasAnyMatching(['api-plan-r'])) {
       plansMenuItem.tabs.push({
         displayName: 'Plans',
-        targetRoute: 'management.apis.ng.plans',
-        baseRoute: ['management.apis.ng.plans', 'management.apis.ng.plan'],
+        targetRoute: 'management.apis.plans',
+        baseRoute: ['management.apis.plans', 'management.apis.plan'],
       });
     }
     if (this.permissionService.hasAnyMatching(['api-subscription-r'])) {
       plansMenuItem.tabs.push({
         displayName: 'Subscriptions',
-        targetRoute: 'management.apis.ng.subscriptions',
-        baseRoute: ['management.apis.ng.subscriptions', 'management.apis.ng.subscription'],
+        targetRoute: 'management.apis.subscriptions',
+        baseRoute: ['management.apis.subscriptions', 'management.apis.subscription'],
       });
     }
     if (plansMenuItem.tabs.length > 0) {
@@ -121,13 +121,13 @@ export class ApiNgV4MenuService implements ApiMenuService {
       generalGroup.items.push(
         {
           displayName: 'Properties',
-          targetRoute: 'management.apis.ng.properties',
-          baseRoute: 'management.apis.ng.properties',
+          targetRoute: 'management.apis.properties',
+          baseRoute: 'management.apis.properties',
         },
         {
           displayName: 'Resources',
-          targetRoute: 'management.apis.ng.resources',
-          baseRoute: 'management.apis.ng.resources',
+          targetRoute: 'management.apis.resources',
+          baseRoute: 'management.apis.resources',
         },
       );
     }
@@ -148,21 +148,21 @@ export class ApiNgV4MenuService implements ApiMenuService {
       userAndGroupAccessMenuItems.tabs.push(
         {
           displayName: 'Members',
-          targetRoute: 'management.apis.ng.members',
-          baseRoute: 'management.apis.ng.members',
+          targetRoute: 'management.apis.members',
+          baseRoute: 'management.apis.members',
         },
         {
           displayName: 'Groups',
-          targetRoute: 'management.apis.ng.groups',
-          baseRoute: 'management.apis.ng.groups',
+          targetRoute: 'management.apis.groups',
+          baseRoute: 'management.apis.groups',
         },
       );
     }
     if (this.currentUserService.currentUser.isOrganizationAdmin() || this.permissionService.hasAnyMatching(['api-member-u'])) {
       userAndGroupAccessMenuItems.tabs.push({
         displayName: 'Transfer ownership',
-        targetRoute: 'management.apis.ng.transferOwnership',
-        baseRoute: 'management.apis.ng.transferOwnership',
+        targetRoute: 'management.apis.transferOwnership',
+        baseRoute: 'management.apis.transferOwnership',
       });
     }
     if (userAndGroupAccessMenuItems.tabs.length > 0) {
@@ -179,8 +179,8 @@ export class ApiNgV4MenuService implements ApiMenuService {
         items: [
           {
             displayName: 'General',
-            targetRoute: 'management.apis.ng.entrypoints',
-            baseRoute: ['management.apis.ng.entrypoints', 'management.apis.ng.entrypoints-edit'],
+            targetRoute: 'management.apis.entrypoints',
+            baseRoute: ['management.apis.entrypoints', 'management.apis.entrypoints-edit'],
           },
         ],
       };
@@ -198,12 +198,12 @@ export class ApiNgV4MenuService implements ApiMenuService {
     if (this.permissionService.hasAnyMatching(['api-definition-r'])) {
       endpointsGroup.items.push({
         displayName: 'Backend services',
-        targetRoute: 'management.apis.ng.endpoint-groups',
+        targetRoute: 'management.apis.endpoint-groups',
         baseRoute: [
-          'management.apis.ng.endpoint-groups',
-          'management.apis.ng.endpoint',
-          'management.apis.ng.endpoint-group',
-          'management.apis.ng.endpoint-group-new',
+          'management.apis.endpoint-groups',
+          'management.apis.endpoint',
+          'management.apis.endpoint-group',
+          'management.apis.endpoint-group-new',
         ],
       });
     }

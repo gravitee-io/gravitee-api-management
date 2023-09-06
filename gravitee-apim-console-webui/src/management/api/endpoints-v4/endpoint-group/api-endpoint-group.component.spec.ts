@@ -252,7 +252,7 @@ describe('ApiEndpointGroupComponent', () => {
       });
 
       it('THEN the endpoint groups list page should be the next page expected to be shown', async () => {
-        expect(routerSpy).toHaveBeenCalledWith('management.apis.ng.endpoint-groups', undefined, undefined);
+        expect(routerSpy).toHaveBeenCalledWith('management.apis.endpoint-groups', undefined, undefined);
       });
     });
   });
