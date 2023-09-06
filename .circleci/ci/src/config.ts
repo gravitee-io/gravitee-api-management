@@ -80,6 +80,7 @@ const jobContext = ['cicd-orchestrator'];
 const slack = {
   channels: {
     apiManagementTeamNotifications: 'C02JENTV2AX',
+    graviteeReleaseAlerts: 'C02NGT20S4W',
   },
 };
 
