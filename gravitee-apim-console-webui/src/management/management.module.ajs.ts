@@ -34,7 +34,6 @@ import GvModelDirective from '../libraries/gv-model.directive';
 import { ApiService } from '../services/api.service';
 import CorsService from '../services/cors.service';
 import ApisStatusDashboardController from '../management/dashboard-ajs/apis-status-dashboard/apis-status-dashboard.controller';
-import ApiAdminController from '../management/api/apiAdmin.controller';
 import { ApiV1PoliciesComponentAjs } from './api/design/policies/policies.component.ajs';
 import AddPoliciesPathController from '../management/api/design/policies/addPoliciesPath.controller';
 import { ApiV1ResourcesComponentAjs } from './api/proxy/resources-v1/resources.component.ajs';
@@ -69,7 +68,6 @@ import ApiCreationStep4Component from '../management/api/creation/steps/api-crea
 import ApiCreationStep5Component from '../management/api/creation/steps/api-creation-step5.component';
 import NewApiImportController from './api/creation/newApiImport.controller';
 import { ApiCreationGetStartedComponent } from './api/creation/api-creation-get-started.component';
-import DialogConfirmDeploymentController from '../management/api/deploy/confirmDeploymentDialog.controller';
 // API Plan
 import ApiPlanComponent from '../management/api/api-plan.component';
 // API PrimaryOwner Mode
@@ -330,8 +328,6 @@ import QuickTimeRangeController from '../components/quick-time-range/quick-time-
 import UserAutocompleteComponent from '../components/user-autocomplete/user-autocomplete.component';
 import UserAutocompleteController from '../components/user-autocomplete/user-autocomplete.controller';
 
-import DialogReviewController from './api/review/reviewDialog.controller';
-import DialogRequestForChangesController from './api/dialog/requestForChanges.controller';
 import ApplicationSubscribeComponent from './application/details/subscribe/application-subscribe.component';
 import ApplicationSubscribeController from './application/details/subscribe/application-subscribe.controller';
 import ApiKeyModeChoiceDialogController from '../components/dialog/apiKeyMode/api-key-mode-choice-dialog.controller';
@@ -475,7 +471,6 @@ import { GioSideNavComponent } from '../components/gio-side-nav/gio-side-nav.com
 import { GioTopNavComponent } from '../components/gio-top-nav/gio-top-nav.component';
 import { SettingsNavigationComponent } from './configuration/settings-navigation/settings-navigation.component';
 import { ApplicationNavigationComponent } from './application/details/application-navigation/application-navigation.component';
-import { ApiNavigationComponent } from './api/api-navigation/api-navigation.component';
 import { ApiProxyHealthCheckComponent } from './api/proxy/health-check/api-proxy-health-check.component';
 import { ApiGeneralPlanListComponent } from './api/general/plans/list/api-general-plan-list.component';
 import { IfMatchEtagInterceptor } from '../shared/interceptors/if-match-etag.interceptor';
@@ -623,7 +618,6 @@ graviteeManagementModule.directive('gioSideNav', downgradeComponent({ component:
 graviteeManagementModule.directive('gioTopNav', downgradeComponent({ component: GioTopNavComponent }));
 graviteeManagementModule.directive('settingsNavigation', downgradeComponent({ component: SettingsNavigationComponent }));
 graviteeManagementModule.directive('applicationNavigation', downgradeComponent({ component: ApplicationNavigationComponent }));
-graviteeManagementModule.directive('apiNavigation', downgradeComponent({ component: ApiNavigationComponent }));
 
 // Apis
 graviteeManagementModule.directive('ngApiList', downgradeComponent({ component: ApiListComponent }));
@@ -654,7 +648,6 @@ graviteeManagementModule.directive('ngApiProxyFailover', downgradeComponent({ co
 graviteeManagementModule.factory('ngGioPendoService', downgradeInjectable(GioPendoService));
 graviteeManagementModule.controller('ApisStatusDashboardController', ApisStatusDashboardController);
 
-graviteeManagementModule.controller('ApiAdminController', ApiAdminController);
 graviteeManagementModule.directive('ngApiPortalDetails', downgradeComponent({ component: ApiGeneralInfoComponent }));
 graviteeManagementModule.directive('ngApiPortalPlanList', downgradeComponent({ component: ApiGeneralPlanListComponent }));
 graviteeManagementModule.directive('ngApiPortalSubscriptionList', downgradeComponent({ component: ApiGeneralSubscriptionListComponent }));
@@ -709,7 +702,6 @@ graviteeManagementModule.controller('NewFieldDialogController', NewFieldDialogCo
 graviteeManagementModule.controller('UpdateFieldDialogController', UpdateFieldDialogController);
 graviteeManagementModule.controller('FileChooserDialogController', FileChooserDialogController);
 graviteeManagementModule.controller('DialogConfirmController', DialogConfirmController);
-graviteeManagementModule.controller('DialogConfirmDeploymentController', DialogConfirmDeploymentController);
 graviteeManagementModule.controller('DialogConfirmAndValidateController', DialogConfirmAndValidateController);
 graviteeManagementModule.controller('DialogDynamicProviderHttpController', DialogDynamicProviderHttpController);
 graviteeManagementModule.controller('SupportTicketController', SupportTicketController);
@@ -723,8 +715,6 @@ graviteeManagementModule.controller('AddTopApiDialogController', AddTopApiDialog
 graviteeManagementModule.controller('DeleteTopApiDialogController', DeleteTopApiDialogController);
 graviteeManagementModule.controller('SelectFolderDialogController', SelectFolderDialogController);
 graviteeManagementModule.controller('SelectPageDialogController', SelectPageDialogController);
-graviteeManagementModule.controller('DialogReviewController', DialogReviewController);
-graviteeManagementModule.controller('DialogRequestForChangesController', DialogRequestForChangesController);
 graviteeManagementModule.service('ApplicationService', ApplicationService);
 graviteeManagementModule.service('ApplicationTypesService', ApplicationTypesService);
 graviteeManagementModule.service('ApiService', ApiService);
