@@ -24,6 +24,7 @@ import { TopApisData } from '../widgets/gio-top-apis-table/gio-top-apis-table.co
 import { RequestStats } from '../widgets/gio-request-stats/gio-request-stats.component';
 import { ApiResponseStatusData } from '../widgets/gio-api-response-status/gio-api-response-status.component';
 import { ApiStateData } from '../widgets/gio-api-state/gio-api-state.component';
+import { ApiLifecycleStateData } from '../widgets/gio-api-lifecycle-state/gio-api-lifecycle-state.component';
 
 @Component({
   selector: 'home-overview',
@@ -41,10 +42,28 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
   requestStats?: RequestStats;
   apiResponseStatus?: ApiResponseStatusData;
   apiState?: ApiStateData;
+  apiLifecycleState?: ApiLifecycleStateData;
 
   timeRangeControl = new FormControl('1m', Validators.required);
 
   ngOnInit(): void {
+    // API lifecycle state
+    this.fetchAnalyticsRequest$
+      .pipe(
+        tap(() => (this.apiLifecycleState = undefined)),
+        switchMap((val) =>
+          this.statsService.getGroupBy({
+            field: 'lifecycle_state',
+            interval: val.interval,
+            from: val.from,
+            to: val.to,
+          }),
+        ),
+        tap((data) => (this.apiLifecycleState = data)),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe();
+
     // API state
     this.fetchAnalyticsRequest$
       .pipe(
