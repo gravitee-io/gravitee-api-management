@@ -39,7 +39,6 @@ function apisRouterConfig($stateProvider: StateProvider) {
     .state('management.apis.detail', {
       abstract: true,
       url: '/:apiId',
-      template: require('./apiAdmin.html'),
       controller: 'ApiAdminController',
       controllerAs: 'apiCtrl',
       resolve: {
