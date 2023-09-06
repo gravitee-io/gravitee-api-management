@@ -22,7 +22,7 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 
 import { HomeOverviewComponent } from './home-overview.component';
 
-import { CurrentUserService } from '../../../ajs-upgraded-providers';
+import { CurrentUserService, UIRouterState } from '../../../ajs-upgraded-providers';
 import { User } from '../../../entities/user';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { HomeModule } from '../home.module';
@@ -39,7 +39,15 @@ describe('HomeOverviewComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, HomeModule, MatIconTestingModule],
-      providers: [{ provide: CurrentUserService, useValue: { currentUser } }],
+      providers: [
+        { provide: CurrentUserService, useValue: { currentUser } },
+        {
+          provide: UIRouterState,
+          useValue: {
+            go: jest.fn(),
+          },
+        },
+      ],
     });
   });
 
@@ -56,24 +64,42 @@ describe('HomeOverviewComponent', () => {
   });
 
   it('should show request stats', async () => {
-    expect(loader).toBeTruthy();
-    expectLoadRequestStats();
+    expectApiLifecycleStateRequest();
+    expectApiStateRequest();
+    expectResponseStatusRequest();
+    expectRequestStatsRequest();
+    expectTopApiRequest();
 
     const stats = await loader.getHarness(GioRequestStatsHarness);
     expect(await stats.getAverage()).toEqual('8.43 ms');
   });
 
   it('should load request stats when changing date range', async () => {
-    expect(loader).toBeTruthy();
-    expectLoadRequestStats();
+    expectApiLifecycleStateRequest();
+    expectApiStateRequest();
+    expectResponseStatusRequest();
+    expectRequestStatsRequest();
+    expectTopApiRequest();
 
     const timeRangeHarness = await loader.getHarness(GioQuickTimeRangeHarness);
     await timeRangeHarness.selectTimeRangeByText('last hour');
-    const req = expectLoadRequestStats();
+    let req = expectApiLifecycleStateRequest();
+    expect(req.request.url).toContain('interval=120000');
+
+    req = expectApiStateRequest();
+    expect(req.request.url).toContain('interval=120000');
+
+    req = expectResponseStatusRequest();
+    expect(req.request.url).toContain('interval=120000');
+
+    req = expectRequestStatsRequest();
+    expect(req.request.url).toContain('interval=120000');
+
+    req = expectTopApiRequest();
     expect(req.request.url).toContain('interval=120000');
   });
 
-  function expectLoadRequestStats(): TestRequest {
+  function expectRequestStatsRequest(): TestRequest {
     const req = httpTestingController.expectOne((req) => {
       return req.method === 'GET' && req.url.startsWith(`${CONSTANTS_TESTING.env.baseURL}/analytics?type=stats&field=response-time`);
     });
@@ -86,6 +112,51 @@ describe('HomeOverviewComponent', () => {
       rph: 4324.44024,
       count: 332981092,
       sum: 4567115654.2,
+    });
+    return req;
+  }
+
+  function expectApiLifecycleStateRequest(): TestRequest {
+    const req = httpTestingController.expectOne((req) => {
+      return req.method === 'GET' && req.url.startsWith(`${CONSTANTS_TESTING.env.baseURL}/analytics?type=group_by&field=lifecycle_state`);
+    });
+    req.flush({
+      values: {
+        CREATED: 0,
+      },
+    });
+    return req;
+  }
+
+  function expectResponseStatusRequest(): TestRequest {
+    const req = httpTestingController.expectOne((req) => {
+      return req.method === 'GET' && req.url.startsWith(`${CONSTANTS_TESTING.env.baseURL}/analytics?type=group_by&field=status`);
+    });
+    req.flush({
+      values: {
+        '100.0-200.0': 0,
+      },
+      metadata: {},
+    });
+    return req;
+  }
+
+  function expectApiStateRequest(): TestRequest {
+    const req = httpTestingController.expectOne((req) => {
+      return req.method === 'GET' && req.url.startsWith(`${CONSTANTS_TESTING.env.baseURL}/analytics?type=group_by&field=state`);
+    });
+    req.flush({
+      values: {},
+    });
+    return req;
+  }
+
+  function expectTopApiRequest(): TestRequest {
+    const req = httpTestingController.expectOne((req) => {
+      return req.method === 'GET' && req.url.startsWith(`${CONSTANTS_TESTING.env.baseURL}/analytics?type=group_by&field=api`);
+    });
+    req.flush({
+      values: {},
     });
     return req;
   }
