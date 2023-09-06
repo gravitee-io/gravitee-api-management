@@ -20,7 +20,6 @@ import io.gravitee.reporter.api.Reportable;
 import io.gravitee.reporter.common.MetricsType;
 import io.gravitee.reporter.common.formatter.csv.CsvFormatter;
 import io.gravitee.reporter.common.formatter.elasticsearch.ElasticsearchFormatter;
-import io.gravitee.reporter.common.formatter.elasticsearch.FreeMarkerComponent;
 import io.gravitee.reporter.common.formatter.json.JsonFormatter;
 import io.gravitee.reporter.common.formatter.msgpack.MsgPackFormatter;
 
@@ -59,7 +58,7 @@ public class FormatterFactory {
       case JSON -> new JsonFormatter<>(configuration.getRules(metricsType));
       case ELASTICSEARCH -> new ElasticsearchFormatter<>(
         node,
-        new FreeMarkerComponent(configuration.elasticSearchVersion)
+        configuration.elasticSearchVersion
       );
     };
   }

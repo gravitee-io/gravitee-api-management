@@ -15,8 +15,6 @@
  */
 package io.gravitee.reporter.common.formatter;
 
-import static java.util.Optional.ofNullable;
-
 import io.gravitee.reporter.api.configuration.Rules;
 import io.gravitee.reporter.common.MetricsType;
 import java.util.Map;

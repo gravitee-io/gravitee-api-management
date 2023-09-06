@@ -15,6 +15,7 @@
  */
 package io.gravitee.reporter.common.formatter.elasticsearch;
 
+import io.gravitee.common.templating.FreeMarkerComponent;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.node.api.Node;
 import io.gravitee.reporter.api.Reportable;
@@ -44,6 +45,8 @@ import java.util.Map;
 public class ElasticsearchFormatter<T extends Reportable>
   extends AbstractFormatter<T> {
 
+  private static final String INDEX_TEMPLATES_PATTERN = "/es%dx/index/";
+
   /** Index simple date format **/
   private final DateTimeFormatter dtf;
   private final DateTimeFormatter sdf;
@@ -62,20 +65,18 @@ public class ElasticsearchFormatter<T extends Reportable>
 
   private final FreeMarkerComponent freeMarkerComponent;
 
-  public ElasticsearchFormatter(
-    Node node,
-    FreeMarkerComponent freeMarkerComponent
-  ) {
+  public ElasticsearchFormatter(Node node, int elasticSearchVersion) {
     this.node = node;
-    this.freeMarkerComponent = freeMarkerComponent;
-    this.dtf =
-      DateTimeFormatter
-        .ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS[XXX]")
-        .withZone(ZoneId.systemDefault());
-    this.sdf =
-      DateTimeFormatter
-        .ofPattern("yyyy.MM.dd")
-        .withZone(ZoneId.systemDefault());
+    this.freeMarkerComponent =
+      new FreeMarkerComponent(
+        String.format(INDEX_TEMPLATES_PATTERN, elasticSearchVersion)
+      );
+    this.dtf = dtfWithDefaultZone("yyyy-MM-dd'T'HH:mm:ss.SSS[XXX]");
+    this.sdf = dtfWithDefaultZone("yyyy.MM.dd");
+  }
+
+  private static DateTimeFormatter dtfWithDefaultZone(String format) {
+    return DateTimeFormatter.ofPattern(format).withZone(ZoneId.systemDefault());
   }
 
   @Override
@@ -403,7 +404,7 @@ public class ElasticsearchFormatter<T extends Reportable>
   private Buffer generateData(String templateName, Map<String, Object> data) {
     try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
       freeMarkerComponent.generateFromTemplate(
-        "/index/" + templateName,
+        templateName,
         data,
         new OutputStreamWriter(baos)
       );
