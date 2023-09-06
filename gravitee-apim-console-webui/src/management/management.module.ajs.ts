@@ -69,7 +69,6 @@ import ApiCreationStep5Component from '../management/api/creation/steps/api-crea
 import NewApiImportController from './api/creation/newApiImport.controller';
 import { ApiCreationGetStartedComponent } from './api/creation/api-creation-get-started.component';
 // API Plan
-import ApiPlanComponent from '../management/api/api-plan.component';
 // API PrimaryOwner Mode
 import ApiPrimaryOwnerModeService from '../services/apiPrimaryOwnerMode.service';
 // Applications
@@ -182,13 +181,6 @@ import RoleService from '../services/role.service';
 
 import applicationRouterConfig from './application/applications.route';
 import applicationsNotificationsRouterConfig from './application/details/notifications/applications.notifications.settings.route';
-import apisRouterConfig from './api/apis.route';
-import apisAnalyticsRouterConfig from './api/analytics/apis.analytics.route';
-import apisAuditRouterConfig from './api/audit/apis.audit.route';
-import apisDesignRouterConfig from './api/design/apis.design.route';
-import apisProxyRouterConfig from './api/proxy/apis.proxy.route';
-import apisPortalRouterConfig from './api/general/apis.portal.route';
-import apisNotificationsRouterConfig from './api/notifications/apis.notifications.settings.route';
 import configurationRouterConfig from './configuration/configuration.route';
 import globalNotificationsRouterConfig from './configuration/notifications/global.notifications.settings.route';
 // User
@@ -266,7 +258,6 @@ import RouterService from '../services/router.service';
 
 import MessageService from '../services/message.service';
 import { MessagesComponent } from './messages/messages.component';
-import apisMessagesRouterConfig from './api/messages/apis.messages.route';
 
 import ApiPortalHeaderComponent from '../management/configuration/api-portal-header/api-portal-header.component';
 import ApiHeaderService from '../services/apiHeader.service';
@@ -555,14 +546,6 @@ graviteeManagementModule.config(authenticationConfig);
 graviteeManagementModule.config(managementRouterConfig);
 graviteeManagementModule.config(applicationRouterConfig);
 graviteeManagementModule.config(applicationsNotificationsRouterConfig);
-graviteeManagementModule.config(apisRouterConfig);
-graviteeManagementModule.config(apisPortalRouterConfig);
-graviteeManagementModule.config(apisProxyRouterConfig);
-graviteeManagementModule.config(apisDesignRouterConfig);
-graviteeManagementModule.config(apisAnalyticsRouterConfig);
-graviteeManagementModule.config(apisAuditRouterConfig);
-graviteeManagementModule.config(apisNotificationsRouterConfig);
-graviteeManagementModule.config(apisMessagesRouterConfig);
 graviteeManagementModule.config(configurationRouterConfig);
 graviteeManagementModule.config(globalNotificationsRouterConfig);
 graviteeManagementModule.config(interceptorConfig);
@@ -829,7 +812,6 @@ graviteeManagementModule.controller('DashboardTimeframeController', DashboardTim
 
 // Plan
 graviteeManagementModule.directive('ngApiPortalPlanEdit', downgradeComponent({ component: ApiGeneralPlanEditComponent }));
-graviteeManagementModule.component('apiPlan', ApiPlanComponent);
 graviteeManagementModule.directive('ngApiPortalGroups', downgradeComponent({ component: ApiGeneralGroupsComponent }));
 
 // API subscriptions
