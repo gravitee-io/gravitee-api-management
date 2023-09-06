@@ -34,12 +34,12 @@ describe('Package bundle workflow tests', () => {
         sha1: '784ff35ca',
         changedFiles: [],
         isDryRun: false,
-        graviteeioVersion: undefined,
+        graviteeioVersion: '',
         buildNum: '1234',
         buildId: '1234',
       });
     } catch (e) {
-      expect(e).toStrictEqual(new Error('Graviteeio version is undefined - Please export CI_GRAVITEEIO_VERSION environment variable'));
+      expect(e).toStrictEqual(new Error('Graviteeio version is not defined - Please export CI_GRAVITEEIO_VERSION environment variable'));
     }
   });
 });

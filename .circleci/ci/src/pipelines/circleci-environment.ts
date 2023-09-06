@@ -6,7 +6,7 @@ export type CircleCIEnvironment = {
   action: string;
   isDryRun: boolean;
   dockerTagAsLatest?: boolean;
-  graviteeioVersion?: string | undefined;
+  graviteeioVersion: string;
 
   changedFiles: string[];
 };

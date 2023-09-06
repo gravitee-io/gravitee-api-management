@@ -11,7 +11,7 @@ const CIRCLE_SHA1: string = process.env.CIRCLE_SHA1 ?? '';
 const CIRCLE_TAG: string | undefined = process.env.CIRCLE_TAG;
 const CI_ACTION: string | undefined = process.env.CI_ACTION;
 const CI_DRY_RUN: string | undefined = process.env.CI_DRY_RUN;
-const CI_GRAVITEEIO_VERSION: string | undefined = process.env.CI_GRAVITEEIO_VERSION;
+const CI_GRAVITEEIO_VERSION: string = process.env.CI_GRAVITEEIO_VERSION ?? '';
 const GIT_BASE_BRANCH: string = process.env.GIT_BASE_BRANCH ?? 'master';
 
 if (isBlank(CIRCLE_SHA1)) {
