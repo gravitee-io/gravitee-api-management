@@ -364,7 +364,7 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
     }
 
     private boolean isV3ExecutionMode(Api api) {
-        return (api.getDefinition().getExecutionMode() == null || api.getDefinition().getExecutionMode() == ExecutionMode.V3);
+        return (api.getDefinition().getExecutionMode() != null && api.getDefinition().getExecutionMode() == ExecutionMode.V3);
     }
 
     protected V3ExecutionContextFactory v3ExecutionContextFactory(
