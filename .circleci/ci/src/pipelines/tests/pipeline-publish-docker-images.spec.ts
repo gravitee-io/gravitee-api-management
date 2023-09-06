@@ -15,7 +15,7 @@ describe('Publish docker images tests', () => {
       buildNum: '1234',
       buildId: '1234',
       graviteeioVersion: '4.2.0',
-      apimVersionPath: './src/../../../pom.xml',
+      apimVersionPath: './src/pipelines/tests/resources/publish-docker-images/pom.xml',
       branch,
       isDryRun,
     });

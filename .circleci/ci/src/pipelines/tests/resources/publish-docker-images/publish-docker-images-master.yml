@@ -234,7 +234,7 @@ jobs:
           apim-ui-project: << parameters.apim-ui-project >>
       - run:
           name: Update Build version
-          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0-SNAPSHOT\"/' << parameters.apim-ui-project >>/build.json"
+          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0\"/' << parameters.apim-ui-project >>/build.json"
       - run:
           name: Build
           command: npm run build:prod
@@ -249,6 +249,49 @@ jobs:
           root: .
           paths:
             - << parameters.apim-ui-project >>/dist
+  job-publish-pr-env-urls:
+    docker:
+      - image: cimg/node:16.10
+    resource_class: small
+    steps:
+      - keeper/env-export:
+          secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
+          var-name: GITHUB_TOKEN
+      - gh/setup
+      - run:
+          name: Edit Pull Request Description
+          command: |-
+            # First check there is an associated pull request, otherwise just stop the job here
+            if ! gh pr view --json title;
+            then
+              echo "No PR found for this branch, stopping the job here."
+              exit 0
+            fi
+
+            # If PR state is different from OPEN
+            if [ "$(gh pr view --json state --jq .state)" != "OPEN" ];
+            then
+              echo "PR is not opened, stopping the job here."
+              exit 0
+            fi
+            export PR_NUMBER=$(gh pr view --json number --jq .number)
+            export PR_BODY_ENV_SECTION="
+            <!-- Environment placeholder -->
+
+            🏗️ Your changes can be tested here and will be available soon:
+                  Console: [https://pr.team-apim.gravitee.dev/$PR_NUMBER/console](https://pr.team-apim.gravitee.dev/$PR_NUMBER/console)
+                  Portal: [https://pr.team-apim.gravitee.dev/$PR_NUMBER/portal](https://pr.team-apim.gravitee.dev/$PR_NUMBER/portal)
+                  Management-api: [https://pr.team-apim.gravitee.dev/$PR_NUMBER/api/management](https://pr.team-apim.gravitee.dev/$PR_NUMBER/api/management)
+                  Gateway v4: [https://pr.team-apim.gravitee.dev/$PR_NUMBER](https://pr.team-apim.gravitee.dev/$PR_NUMBER)
+                  Gateway v3: [https://pr.gateway-v3.team-apim.gravitee.dev/$PR_NUMBER](https://pr.gateway-v3.team-apim.gravitee.dev/$PR_NUMBER)
+
+            <!-- Environment placeholder end -->
+            "
+
+            export CLEAN_BODY=$(gh pr view --json body --jq .body | sed '/Environment placeholder -->/,/Environment placeholder end -->/d')
+
+            gh pr edit --body "$CLEAN_BODY$PR_BODY_ENV_SECTION"
+      - cmd-notify-on-failure
 workflows:
   publish_docker_images:
     jobs:
@@ -284,6 +327,15 @@ workflows:
           name: Build APIM Portal and publish image
           apim-ui-project: gravitee-apim-portal-webui
           docker-image-name: apim-portal-ui
+      - job-publish-pr-env-urls:
+          name: Publish environment URLs in Github PR
+          context:
+            - cicd-orchestrator
+          requires:
+            - Build and push rest api and gateway images
+            - Build APIM Console and publish image
+            - Build APIM Portal and publish image
 orbs:
   keeper: gravitee-io/keeper@0.6.3
   slack: circleci/slack@4.12.5
+  gh: circleci/github-cli@1.0.5
