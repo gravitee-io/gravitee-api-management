@@ -276,6 +276,14 @@ workflows:
           name: Build APIM Console and publish image
           apim-ui-project: gravitee-apim-console-webui
           docker-image-name: apim-management-ui
+      - job-webui-build:
+          context:
+            - cicd-orchestrator
+          requires:
+            - Setup
+          name: Build APIM Portal and publish image
+          apim-ui-project: gravitee-apim-portal-webui
+          docker-image-name: apim-portal-ui
 orbs:
   keeper: gravitee-io/keeper@0.6.3
   slack: circleci/slack@4.12.5

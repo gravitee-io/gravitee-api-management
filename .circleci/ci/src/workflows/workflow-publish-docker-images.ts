@@ -33,6 +33,13 @@ export class PublishDockerImagesWorkflow {
         'apim-ui-project': 'gravitee-apim-console-webui',
         'docker-image-name': 'apim-management-ui',
       }),
+      new workflow.WorkflowJob(webuiBuildJob, {
+        context: config.jobContext,
+        requires: ['Setup'],
+        name: 'Build APIM Portal and publish image',
+        'apim-ui-project': 'gravitee-apim-portal-webui',
+        'docker-image-name': 'apim-portal-ui',
+      }),
     ];
 
     return new Workflow('publish_docker_images', jobs);
