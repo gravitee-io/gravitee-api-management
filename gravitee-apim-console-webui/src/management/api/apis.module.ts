@@ -24,7 +24,6 @@ import { StateParams } from '@uirouter/core';
 
 import { ApiAnalyticsModule } from './analytics/api-analytics.module';
 import { ApiListModule } from './list/api-list.module';
-import { ApiNavigationModule } from './api-navigation/api-navigation.module';
 import { ApiNgNavigationModule } from './api-ng-navigation/api-ng-navigation.module';
 import { ApiProxyModule } from './proxy/api-proxy.module';
 import { ApiV4PolicyStudioModule } from './policy-studio-v4/api-v4-policy-studio.module';
@@ -81,6 +80,7 @@ import { ApiRuntimeLogsSettingsComponent } from './runtime-logs-v4/runtime-logs-
 import { ApiRuntimeLogsComponent } from './runtime-logs-v4/runtime-logs/api-runtime-logs.component';
 import { NotificationsListModule } from './notifications/notifications-list/notifications-list.module';
 import { NotificationsListComponent } from './notifications/notifications-list/notifications-list.component';
+import { ApiListComponent } from './list/api-list.component';
 
 import { NotificationsComponent } from '../../components/notifications/notifications.component';
 import { Scope } from '../../entities/scope';
@@ -139,6 +139,42 @@ function apiPermissionHook($transitions: TransitionService, gioPermissionService
 graviteeManagementModule.run(apiPermissionHook);
 // New Angular routing
 const states: Ng2StateDeclaration[] = [
+  {
+    name: 'management.apis-list',
+    url: '/apis/?q&page&size&order',
+    component: ApiListComponent,
+    data: {
+      useAngularMaterial: true,
+      docs: {
+        page: 'management-apis',
+      },
+    },
+    params: {
+      page: {
+        value: '1',
+        dynamic: true,
+      },
+      q: {
+        dynamic: true,
+      },
+      size: {
+        value: '10',
+        dynamic: true,
+      },
+      order: {
+        dynamic: true,
+      },
+    },
+  },
+  {
+    name: 'management.apis',
+    url: '/',
+    abstract: true,
+    component: GioEmptyComponent,
+    data: {
+      baseRouteState: 'management.apis',
+    },
+  },
   {
     name: 'management.apis.ng',
     url: '/ng/:apiId',
@@ -1470,7 +1506,6 @@ const states: Ng2StateDeclaration[] = [
   imports: [
     ApiAnalyticsModule,
     ApiListModule,
-    ApiNavigationModule,
     ApiNgNavigationModule,
     ApiV4PolicyStudioModule,
     ApiRuntimeLogsV4Module,
