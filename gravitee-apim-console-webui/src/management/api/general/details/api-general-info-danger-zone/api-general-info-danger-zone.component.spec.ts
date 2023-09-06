@@ -272,7 +272,7 @@ describe('ApiGeneralInfoDangerZoneComponent', () => {
     await confirmDialog.confirm();
 
     httpTestingController.expectOne({ method: 'DELETE', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` }).flush({});
-    expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.ng-list');
+    expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis-list');
 
     expect(component.reloadDetails.emit).not.toHaveBeenCalled();
   });

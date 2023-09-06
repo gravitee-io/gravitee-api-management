@@ -19,6 +19,7 @@ import { LicenseOptions, GioLicenseService, SelectorItem } from '@gravitee/ui-pa
 import { IRootScopeService } from 'angular';
 import { map } from 'rxjs/operators';
 import { Observable } from 'rxjs';
+import { castArray } from 'lodash';
 
 import { AjsRootScope, CurrentUserService, PortalSettingsService, UIRouterState } from '../../ajs-upgraded-providers';
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
@@ -31,7 +32,7 @@ import { ApimFeature, UTMTags } from '../../shared/components/gio-license/gio-li
 interface MenuItem {
   icon: string;
   targetRoute: string;
-  baseRoute: string;
+  baseRoute: string | string[];
   displayName: string;
   permissions?: string[];
   licenseOptions?: LicenseOptions;
@@ -86,7 +87,12 @@ export class GioSideNavComponent implements OnInit {
 
     const mainMenuItems: MenuItem[] = [
       { icon: 'gio:home', targetRoute: 'management.dashboard.home', baseRoute: 'management.dashboard', displayName: 'Dashboard' },
-      { icon: 'gio:upload-cloud', targetRoute: 'management.apis.ng-list', baseRoute: 'management.apis', displayName: 'APIs' },
+      {
+        icon: 'gio:upload-cloud',
+        targetRoute: 'management.apis-list',
+        baseRoute: ['management.apis-list', 'management.apis'],
+        displayName: 'APIs',
+      },
       {
         icon: 'gio:multi-window',
         targetRoute: 'management.applications.list',
@@ -200,8 +206,8 @@ export class GioSideNavComponent implements OnInit {
     return menuItems.filter((item) => !item.permissions || this.permissionService.hasAnyMatching(item.permissions));
   }
 
-  isActive(route: string): boolean {
-    return this.ajsState.includes(route);
+  isActive(baseRoute: string | string[]): boolean {
+    return castArray(baseRoute).some((baseRoute) => this.ajsState.includes(baseRoute));
   }
 
   updateCurrentEnv(): void {

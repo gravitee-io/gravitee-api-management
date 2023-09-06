@@ -292,7 +292,7 @@ export class ApiGeneralInfoDangerZoneComponent implements OnChanges, OnDestroy {
         takeUntil(this.unsubscribe$),
       )
       .subscribe(() => {
-        this.ajsState.go('management.apis.ng-list');
+        this.ajsState.go('management.apis-list');
       });
   }
 
