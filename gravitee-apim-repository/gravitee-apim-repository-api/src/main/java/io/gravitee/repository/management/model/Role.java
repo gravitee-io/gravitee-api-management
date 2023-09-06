@@ -17,11 +17,15 @@ package io.gravitee.repository.management.model;
 
 import java.util.Date;
 import java.util.Objects;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Builder
+@AllArgsConstructor
 public class Role {
 
     public enum AuditEvent implements Audit.AuditEvent {
