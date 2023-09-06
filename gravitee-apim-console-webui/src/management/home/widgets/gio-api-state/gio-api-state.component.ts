@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
-import { sum } from 'lodash';
+import { isEmpty } from 'lodash';
 
 import { GioChartPieInput } from '../../../../shared/components/widgets/gio-chart-pie/gio-chart-pie.component';
 
@@ -42,7 +42,7 @@ export class GioApiStateComponent implements OnChanges {
   data: ApiStateData;
 
   chartPieInput: GioChartPieInput[];
-  total: number;
+  isEmpty = true;
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.data) {
@@ -67,6 +67,6 @@ export class GioApiStateComponent implements OnChanges {
       })
       .filter((v) => v != null);
 
-    this.total = sum(this.chartPieInput.map((v) => v.value));
+    this.isEmpty = isEmpty(this.chartPieInput) || !this.chartPieInput.some((v) => v.value > 0);
   }
 }

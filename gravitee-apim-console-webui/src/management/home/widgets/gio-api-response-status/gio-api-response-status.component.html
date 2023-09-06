@@ -15,9 +15,8 @@
     limitations under the License.
 
 -->
-<div *ngIf="totalHint > 0; else noContent">
-  <gio-chart-pie [input]="chartPieInput" inputDescription="Nb hits"></gio-chart-pie>
-  <span>Nb hits total: {{ totalHint }}</span>
+<div *ngIf="!isEmpty; else noContent">
+  <gio-chart-pie [input]="chartPieInput" inputDescription="Nb hits" totalInputDescription="Nb hits total"></gio-chart-pie>
 </div>
 
 <ng-template #noContent>
