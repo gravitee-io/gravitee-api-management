@@ -6,3 +6,4 @@ export * from './job-webui-build';
 export * from './job-publish-pr-env-urls';
 export * from './job-slack-announcement';
 export * from './job-nexus-staging';
+export * from './job-release-notes-apim';
