@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.infra;
+package io.gravitee.apim.infra.spring;
 
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
 import io.gravitee.apim.core.log.crud_service.LogCrudService;

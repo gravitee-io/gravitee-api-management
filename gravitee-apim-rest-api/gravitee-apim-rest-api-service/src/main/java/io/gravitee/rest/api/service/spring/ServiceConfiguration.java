@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+import io.gravitee.apim.infra.spring.InfraServiceSpringConfiguration;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.event.impl.EventManagerImpl;
 import io.gravitee.common.util.DataEncryptor;
@@ -87,6 +88,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
         UpgraderConfiguration.class,
         InitializerConfiguration.class,
         ApiServicePluginConfiguration.class,
+        InfraServiceSpringConfiguration.class,
     }
 )
 public class ServiceConfiguration {

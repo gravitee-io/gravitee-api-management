@@ -17,7 +17,7 @@ package io.gravitee.rest.api.management.v2.rest.spring;
 
 import static org.mockito.Mockito.mock;
 
-import io.gravitee.apim.infra.UsecaseSpringConfiguration;
+import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
 import io.gravitee.node.api.license.NodeLicenseService;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.rest.api.service.ApiDuplicatorService;
