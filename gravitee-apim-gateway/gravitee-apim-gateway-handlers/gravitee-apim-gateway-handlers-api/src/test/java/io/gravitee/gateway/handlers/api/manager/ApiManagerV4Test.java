@@ -117,7 +117,7 @@ public class ApiManagerV4Test {
 
     @Test(expected = IllegalArgumentException.class)
     public void shouldNotDeployApi_invalidTag() throws Exception {
-        shouldDeployApiWithTags("test,!test", new String[] {});
+        shouldDeployApiWithTags("test,!test", new String[] { "test" });
     }
 
     @Test
