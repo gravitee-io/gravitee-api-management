@@ -5,6 +5,7 @@ import { awsS3 } from './aws-s3';
 import { artifactory } from './artifactory';
 import { awsCli } from './aws-cli';
 import { snyk } from './snyk';
+import { helm } from './helm';
 
 export const orbs = {
   artifactory,
@@ -14,4 +15,5 @@ export const orbs = {
   github,
   slack,
   snyk,
+  helm,
 };
