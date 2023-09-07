@@ -5,6 +5,7 @@ export * from './job-nexus-staging';
 export * from './job-package-bundle';
 export * from './job-publish-pr-env-urls';
 export * from './job-publish-prod-docker-images';
+export * from './job-publish-rpm-packages';
 export * from './job-release-helm';
 export * from './job-release-notes-apim';
 export * from './job-setup';
