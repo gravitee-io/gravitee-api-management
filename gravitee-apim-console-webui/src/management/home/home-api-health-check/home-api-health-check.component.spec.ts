@@ -33,7 +33,7 @@ import { Api } from '../../../entities/api';
 import { fakePagedResult } from '../../../entities/pagedResult';
 import { fakeApi } from '../../../entities/api/Api.fixture';
 import { GioUiRouterTestingModule } from '../../../shared/testing/gio-uirouter-testing-module';
-import { GioQuickTimeRangeHarness } from '../widgets/gio-quick-time-range/gio-quick-time-range.harness';
+import { GioQuickTimeRangeHarness } from '../components/gio-quick-time-range/gio-quick-time-range.harness';
 
 describe('HomeApiHealthCheckComponent', () => {
   let fixture: ComponentFixture<HomeApiHealthCheckComponent>;

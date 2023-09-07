@@ -29,7 +29,7 @@ import { PagedResult } from '../../../entities/pagedResult';
 import { ApiService } from '../../../services-ngx/api.service';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { toOrder, toSort } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
-import { GioQuickTimeRangeComponent } from '../widgets/gio-quick-time-range/gio-quick-time-range.component';
+import { GioQuickTimeRangeComponent } from '../components/gio-quick-time-range/gio-quick-time-range.component';
 
 export type ApisTableDS = {
   id: string;

@@ -24,7 +24,7 @@ import { GioTopApisTableModule } from './gio-top-apis-table.module';
 import { UIRouterState } from '../../../../ajs-upgraded-providers';
 
 export default {
-  title: 'Home / Widgets / Top APIs table',
+  title: 'Home / Components / Top APIs table',
   component: GioTopApisTableComponent,
   decorators: [
     moduleMetadata({

@@ -24,7 +24,7 @@ import { GioApiLifecycleStateModule } from './gio-api-lifecycle-state.module';
 import { UIRouterState } from '../../../../ajs-upgraded-providers';
 
 export default {
-  title: 'Home / Widgets / API Lifecycle State',
+  title: 'Home / Components / API Lifecycle State',
   component: GioApiLifecycleStateComponent,
   decorators: [
     moduleMetadata({

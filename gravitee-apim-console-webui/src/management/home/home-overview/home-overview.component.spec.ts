@@ -26,8 +26,8 @@ import { CurrentUserService, UIRouterState } from '../../../ajs-upgraded-provide
 import { User } from '../../../entities/user';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { HomeModule } from '../home.module';
-import { GioQuickTimeRangeHarness } from '../widgets/gio-quick-time-range/gio-quick-time-range.harness';
-import { GioRequestStatsHarness } from '../widgets/gio-request-stats/gio-request-stats.harness';
+import { GioQuickTimeRangeHarness } from '../components/gio-quick-time-range/gio-quick-time-range.harness';
+import { GioRequestStatsHarness } from '../components/gio-request-stats/gio-request-stats.harness';
 
 describe('HomeOverviewComponent', () => {
   let fixture: ComponentFixture<HomeOverviewComponent>;

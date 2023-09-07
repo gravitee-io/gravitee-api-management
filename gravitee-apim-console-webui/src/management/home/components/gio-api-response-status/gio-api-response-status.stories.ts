@@ -18,24 +18,24 @@ import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
 import { action } from '@storybook/addon-actions';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
-import { GioApiStateComponent } from './gio-api-state.component';
-import { GioApiStateModule } from './gio-api-state.module';
+import { GioApiResponseStatusComponent } from './gio-api-response-status.component';
+import { GioApiResponseStatusModule } from './gio-api-response-status.module';
 
 import { UIRouterState } from '../../../../ajs-upgraded-providers';
 
 export default {
-  title: 'Home / Widgets / API state',
-  component: GioApiStateComponent,
+  title: 'Home / Components / API response status',
+  component: GioApiResponseStatusComponent,
   decorators: [
     moduleMetadata({
-      imports: [GioApiStateModule, BrowserAnimationsModule],
+      imports: [GioApiResponseStatusModule, BrowserAnimationsModule],
       providers: [{ provide: UIRouterState, useValue: { go: (...args) => action('Ajs state go')(args) } }],
     }),
     componentWrapperDecorator((story) => `<div style="height:400px;width: 400px">${story}</div>`),
   ],
   render: ({ data }) => ({
     props: { data },
-    template: `<gio-api-state [data]="data"></gio-api-state>`,
+    template: `<gio-api-response-status [data]="data"></gio-api-response-status>`,
   }),
 } as Meta;
 
@@ -43,8 +43,33 @@ export const Default: Story = {};
 Default.args = {
   data: {
     values: {
-      STOPPED: 30,
-      STARTED: 81,
+      '200.0-300.0': 2,
+      '300.0-400.0': 3,
+      '400.0-500.0': 4,
+      '500.0-600.0': 5,
+      '100.0-200.0': 1,
+    },
+    metadata: {
+      '300.0-400.0': {
+        name: '300.0-400.0',
+        order: '2',
+      },
+      '100.0-200.0': {
+        name: '100.0-200.0',
+        order: '0',
+      },
+      '200.0-300.0': {
+        name: '200.0-300.0',
+        order: '1',
+      },
+      '400.0-500.0': {
+        name: '400.0-500.0',
+        order: '3',
+      },
+      '500.0-600.0': {
+        name: '500.0-600.0',
+        order: '4',
+      },
     },
   },
 };
