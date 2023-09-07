@@ -1,9 +1,9 @@
 import { commands, Config, Job, reusable } from '@circleci/circleci-config-sdk';
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
-import { orbs } from '../orbs';
-import { BaseExecutor } from '../executors';
+import { orbs } from '../../orbs';
+import { BaseExecutor } from '../../executors';
 
-export class TestApimChartJob {
+export class TestApimChartsJob {
   private static jobName = 'job-test-apim-charts';
 
   public static create(dynamicConfig: Config): Job {
@@ -28,6 +28,6 @@ export class TestApimChartJob {
         path: 'apim-result.xml',
       }),
     ];
-    return new Job(TestApimChartJob.jobName, BaseExecutor.create('small'), steps);
+    return new Job(TestApimChartsJob.jobName, BaseExecutor.create('small'), steps);
   }
 }

@@ -5,6 +5,8 @@ export const helm = new orb.OrbImport('helm', 'circleci', 'helm', config.orbs.he
   jobs: {},
   executors: {},
   commands: {
-    'install-helm-client': new parameters.CustomParametersList([new parameters.CustomParameter('version', 'string')]),
+    'install-helm-client': new parameters.CustomParametersList([
+      new parameters.CustomParameter('version', 'string', 'v3.8.2', 'the helm client version to install. e.g. v3.8.0'),
+    ]),
   },
 });

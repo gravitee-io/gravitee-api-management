@@ -1,10 +1,10 @@
 import { commands, Config, Job, reusable } from '@circleci/circleci-config-sdk';
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
-import { orbs } from '../orbs';
-import { NodeLtsExecutor } from '../executors';
-import { config } from '../config';
-import { CircleCIEnvironment } from '../pipelines';
-import { computeApimVersion } from '../utils';
+import { orbs } from '../../orbs';
+import { NodeLtsExecutor } from '../../executors';
+import { config } from '../../config';
+import { CircleCIEnvironment } from '../../pipelines';
+import { computeApimVersion } from '../../utils';
 
 export class ReleaseHelmJob {
   private static jobName = 'job-release-helm';
