@@ -79,6 +79,8 @@ import { ApiEndpointGroupComponent } from './endpoints-v4/endpoint-group/api-end
 import { ApiEndpointGroupCreateComponent } from './endpoints-v4/endpoint-group/create/api-endpoint-group-create.component';
 import { ApiRuntimeLogsSettingsComponent } from './runtime-logs-v4/runtime-logs-settings/api-runtime-logs-settings.component';
 import { ApiRuntimeLogsComponent } from './runtime-logs-v4/runtime-logs/api-runtime-logs.component';
+import { NotificationsListModule } from './notifications/notifications-list/notifications-list.module';
+import { NotificationsListComponent } from './notifications/notifications-list/notifications-list.component';
 
 import { NotificationsComponent } from '../../components/notifications/notifications.component';
 import { Scope } from '../../entities/scope';
@@ -812,6 +814,17 @@ const states: Ng2StateDeclaration[] = [
     ],
   },
   {
+    name: 'management.apis.ng.notifications-ng',
+    component: NotificationsListComponent,
+    url: '/notifications-ng',
+    data: {
+      apiPermissions: {
+        only: ['api-notification-r'],
+      },
+      useAngularMaterial: true,
+    },
+  },
+  {
     name: 'management.apis.ng.notifications.notification',
     component: NotificationsComponent,
     url: '/:notificationId',
@@ -1466,6 +1479,7 @@ const states: Ng2StateDeclaration[] = [
     ApiEntrypointsV4Module,
     ApiEndpointsModule,
     ApiAuditModule,
+    NotificationsListModule,
     GioPolicyStudioRoutingModule.withRouting({ stateNamePrefix: 'management.apis.ng.policy-studio-v2' }),
     SpecificJsonSchemaTypeModule,
     DocumentationModule,
