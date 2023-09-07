@@ -1,14 +1,13 @@
-import { changedFiles, isBlank } from './utils';
+import { changedFiles, isBlank, isSupportBranchOrMaster } from './utils';
 import { argv } from 'node:process';
 import { buildCIPipeline, CircleCIEnvironment } from './pipelines';
 import * as fs from 'fs';
 
 const destFile = argv.slice(2).at(0) ?? './dynamicConfig.yml';
 
-const CIRCLE_BRANCH: string | undefined = process.env.CIRCLE_BRANCH;
+const CIRCLE_BRANCH: string | undefined = process.env.CIRCLE_BRANCH ?? '';
 const CIRCLE_BUILD_NUM: string = process.env.CIRCLE_BUILD_NUM ?? '';
 const CIRCLE_SHA1: string = process.env.CIRCLE_SHA1 ?? '';
-const CIRCLE_TAG: string | undefined = process.env.CIRCLE_TAG;
 const CI_ACTION: string | undefined = process.env.CI_ACTION;
 const CI_DRY_RUN: string | undefined = process.env.CI_DRY_RUN;
 const CI_GRAVITEEIO_VERSION: string = process.env.CI_GRAVITEEIO_VERSION ?? '';
@@ -20,11 +19,16 @@ if (isBlank(CIRCLE_SHA1)) {
   process.exit(1);
 }
 
-const changed = CIRCLE_TAG != null || CIRCLE_BRANCH === 'master' ? Promise.resolve([]) : changedFiles(`origin/${GIT_BASE_BRANCH}`);
+/**
+ * The pipeline generation is available according to different conditions:
+ *     - if the branch is supported ( CIRCLE_BRANCH is master or a support branch )
+ *     - if we are working on a branch with changes committed on the base branch
+ */
+const changed = isSupportBranchOrMaster(CIRCLE_BRANCH) ? Promise.resolve([]) : changedFiles(`origin/${GIT_BASE_BRANCH}`);
 
 changed
   .then((changes) => ({
-    branch: CIRCLE_BRANCH ?? CIRCLE_TAG ?? 'unknown',
+    branch: CIRCLE_BRANCH,
     buildNum: CIRCLE_BUILD_NUM, // TODO merge this line with the next one when everything is working on the CI
     buildId: CIRCLE_BUILD_NUM,
     sha1: CIRCLE_SHA1,
