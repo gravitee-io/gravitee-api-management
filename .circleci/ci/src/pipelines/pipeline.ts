@@ -7,13 +7,14 @@ import { generateNexusStagingConfig } from './pipeline-nexus-staging';
 import { generateDbRepositoriesTestContainerConfig } from './pipeline-db-repositories-test-container';
 import { generateReleaseNotesApimConfig } from './pipeline-release-notes-apim';
 import { generateReleaseHelmConfig } from './pipeline-release-helm';
+import { generateBuildRpmAndDockerImagesConfig } from './pipeline-build-rpm-and-docker-images';
 
 export function buildCIPipeline(environment: CircleCIEnvironment): Config | null {
   switch (environment.action) {
     case 'pull_requests':
       return null; // TODO: add buildPullRequest(...)
     case 'build_rpm_&_docker_images':
-      return null; // TODO: add buildRprmAndDockerImages(...)
+      return generateBuildRpmAndDockerImagesConfig(environment);
     case 'release_helm':
       return generateReleaseHelmConfig(environment);
     case 'full_release':

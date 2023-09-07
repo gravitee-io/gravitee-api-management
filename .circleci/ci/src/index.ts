@@ -11,6 +11,7 @@ const CIRCLE_SHA1: string = process.env.CIRCLE_SHA1 ?? '';
 const CI_ACTION: string | undefined = process.env.CI_ACTION;
 const CI_DRY_RUN: string | undefined = process.env.CI_DRY_RUN;
 const CI_GRAVITEEIO_VERSION: string = process.env.CI_GRAVITEEIO_VERSION ?? '';
+const CI_DOCKER_TAG_AS_LATEST: string | undefined = process.env.CI_DOCKER_TAG_AS_LATEST;
 const GIT_BASE_BRANCH: string = process.env.GIT_BASE_BRANCH ?? 'master';
 const APIM_VERSION_PATH: string = process.env.APIM_VERSION_PATH ?? '';
 
@@ -27,17 +28,21 @@ if (isBlank(CIRCLE_SHA1)) {
 const changed = isSupportBranchOrMaster(CIRCLE_BRANCH) ? Promise.resolve([]) : changedFiles(`origin/${GIT_BASE_BRANCH}`);
 
 changed
-  .then((changes) => ({
-    branch: CIRCLE_BRANCH,
-    buildNum: CIRCLE_BUILD_NUM, // TODO merge this line with the next one when everything is working on the CI
-    buildId: CIRCLE_BUILD_NUM,
-    sha1: CIRCLE_SHA1,
-    action: CI_ACTION ?? 'pull_requests',
-    isDryRun: CI_DRY_RUN !== 'false',
-    graviteeioVersion: CI_GRAVITEEIO_VERSION,
-    changedFiles: changes,
-    apimVersionPath: APIM_VERSION_PATH,
-  }))
+  .then(
+    (changes) =>
+      ({
+        branch: CIRCLE_BRANCH,
+        buildNum: CIRCLE_BUILD_NUM, // TODO merge this line with the next one when everything is working on the CI
+        buildId: CIRCLE_BUILD_NUM,
+        sha1: CIRCLE_SHA1,
+        action: CI_ACTION ?? 'pull_requests',
+        isDryRun: CI_DRY_RUN !== 'false',
+        graviteeioVersion: CI_GRAVITEEIO_VERSION,
+        changedFiles: changes,
+        apimVersionPath: APIM_VERSION_PATH,
+        dockerTagAsLatest: CI_DOCKER_TAG_AS_LATEST === 'true',
+      }) as CircleCIEnvironment,
+  )
   .then((environment: CircleCIEnvironment) => buildCIPipeline(environment))
   .then((dynamicConfig) => {
     if (dynamicConfig !== null) {
