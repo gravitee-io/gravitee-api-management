@@ -15,10 +15,11 @@ $typography: map.get(gio.$mat-theme, typography);
 
     &__title {
       @include mat.typography-level($typography, body-2);
-      padding: 4px 0;
+      padding: 4px 0 4px 4px;
     }
 
     &__rows {
+      padding-left: 8px;
       :first-child {
         border: none;
       }
