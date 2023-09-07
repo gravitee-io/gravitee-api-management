@@ -1,13 +1,13 @@
 import { Config, workflow, Workflow } from '@circleci/circleci-config-sdk';
-import { ReleaseHelmJob, TestApimChartJob } from '../jobs';
 import { CircleCIEnvironment } from '../pipelines';
 import { config } from '../config';
+import { ReleaseHelmJob, TestApimChartsJob } from '../jobs/helm';
 
 export class ReleaseHelmWorkflow {
   private static workflowName = 'release_helm';
 
   static create(dynamicConfig: Config, environment: CircleCIEnvironment) {
-    const testApimChartsJob = TestApimChartJob.create(dynamicConfig);
+    const testApimChartsJob = TestApimChartsJob.create(dynamicConfig);
     dynamicConfig.addJob(testApimChartsJob);
 
     const releaseHelmJob = ReleaseHelmJob.create(dynamicConfig, environment);
