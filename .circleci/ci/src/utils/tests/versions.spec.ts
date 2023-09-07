@@ -10,6 +10,7 @@ describe('version', function () {
       'returns parsed version $versionToParse',
       ({ versionToParse, versionFull, major, minor, patch, qualifierFull, qualifierName, qualifierVersion }) => {
         expect(parse(versionToParse)).toEqual({
+          full: versionToParse,
           version: {
             full: versionFull,
             major,

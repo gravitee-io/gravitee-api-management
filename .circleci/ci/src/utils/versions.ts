@@ -3,16 +3,17 @@ import { isBlank } from './string';
 import { CircleCIEnvironment } from '../pipelines';
 
 export interface GraviteeioVersion {
+  full: string;
   version: {
-    full?: string;
-    major?: string;
-    minor?: string;
-    patch?: string;
+    full: string;
+    major: string;
+    minor: string;
+    patch: string;
   };
   qualifier: {
-    full?: string;
-    name?: string;
-    version?: string;
+    full: string;
+    name: string;
+    version: string;
   };
 }
 
@@ -20,19 +21,20 @@ export function parse(graviteeioVersion: string): GraviteeioVersion {
   const [versionFull, qualifierFull] = graviteeioVersion.split('-');
 
   const [major, minor, patch] = versionFull.split('.');
-  const [name, qualifierVersion] = qualifierFull?.split('.') ?? ['', ''];
+  const [qualifierName, qualifierVersion] = qualifierFull?.split('.') ?? ['', ''];
 
   return {
+    full: graviteeioVersion,
     version: {
-      full: versionFull,
-      major,
-      minor,
-      patch,
+      full: versionFull ?? '',
+      major: major ?? '',
+      minor: minor ?? '',
+      patch: patch ?? '',
     },
     qualifier: {
       full: qualifierFull ?? '',
-      name,
-      version: qualifierVersion,
+      name: qualifierName ?? '',
+      version: qualifierVersion ?? '',
     },
   };
 }
