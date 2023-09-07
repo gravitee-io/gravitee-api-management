@@ -27,21 +27,35 @@ public class OnionArchitectureTest extends AbstractApimArchitectureTest {
 
     /**
      * Code from {@link AbstractApimArchitectureTest#GRAVITEE_APIM_PACKAGE} should respect onion architecture
+     * https://www.archunit.org/userguide/html/000_Index.html#_onion_architecture
+     * The domain package is the core of the application. It consists of two parts.
+     *
+     * - The domainModels packages contain the domain entities.
+     *
+     * - The packages in domainServices contains services that use the entities in the domainModel packages.
+     *
+     * The applicationServices packages contain services and configuration to run the application and use cases.
+     * It can use the items of the domain package but there must not be any dependency from the domain to the application packages.
+     *
+     * The adapter package contains logic to connect to external systems and/or infrastructure.
+     * No adapter may depend on another adapter. Adapters can use both the items of the domain as well as the application packages.
+     * Vice versa, neither the domain nor the application packages must contain dependencies on any adapter package.
      */
     @Test
     public void should_respect_onion_architecture() {
         onionArchitecture()
-            // TODO: at this point in time, we don't have the adapters, so we accept layers to be optional
             .domainModels(anyPackageThatContains(MODEL_PACKAGE))
             .domainServices(
-                anyPackageThatContains(CORE_PACKAGE + "." + CRUD_SERVICE_PACKAGE),
-                anyPackageThatContains(CORE_PACKAGE + "." + DOMAIN_SERVICE_PACKAGE)
+                "io.gravitee.apim.core.*." + CRUD_SERVICE_PACKAGE + "..",
+                "io.gravitee.apim.core.*." + DOMAIN_SERVICE_PACKAGE + ".."
             )
-            .applicationServices(anyPackageThatContains(CORE_PACKAGE + "." + USECASE_PACKAGE))
-            .adapter("persistence#crud_service", anyPackageThatContains(INFRA_PACKAGE + ".(**)." + CRUD_SERVICE_PACKAGE))
-            .adapter("persistence#domain_service", anyPackageThatContains(INFRA_PACKAGE + ".(**)." + DOMAIN_SERVICE_PACKAGE))
-            // TODO: here we allow no class to be passed to the rule because package does not exist yet (for domain_service)
-            .allowEmptyShould(true)
+            .applicationServices(anyPackageThatContains(CORE_PACKAGE + ".*." + USECASE_PACKAGE))
+            .adapter(
+                "persistence",
+                anyPackageThatContains(INFRA_PACKAGE + "." + CRUD_SERVICE_PACKAGE),
+                anyPackageThatContains(INFRA_PACKAGE + "." + DOMAIN_SERVICE_PACKAGE)
+            )
+            .adapter("spring", anyPackageThatContains(INFRA_PACKAGE + ".spring"))
             .check(apimClassesWithoutTests());
     }
 }
