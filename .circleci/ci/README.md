@@ -45,6 +45,7 @@ export CIRCLE_BRANCH=master
 export CI_ACTION=publish_docker_images
 export CIRCLE_SHA1=784ff35ca
 export CI_DRY_RUN=false
+export CI_DOCKER_TAG_AS_LATEST=false
 export CI_GRAVITEEIO_VERSION=4.1.0
 npm run generate
 ```
