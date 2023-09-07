@@ -46,7 +46,10 @@ jobs:
 workflows:
   release-notes-apim:
     jobs:
-      - job-release-notes-apim
+      - job-release-notes-apim:
+          context:
+            - cicd-orchestrator
+          name: Generate release note and create PR
 orbs:
   keeper: gravitee-io/keeper@0.6.3
   gh: circleci/github-cli@1.0.5
