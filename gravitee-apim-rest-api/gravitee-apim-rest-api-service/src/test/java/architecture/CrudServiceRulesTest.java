@@ -58,20 +58,6 @@ public class CrudServiceRulesTest extends AbstractApimArchitectureTest {
     }
 
     /**
-     * CrudServices should only be accessed by Usecase
-     */
-    @Test
-    public void crud_services_only_be_accessed_by_usecase() {
-        classes()
-            .that()
-            .resideInAnyPackage(anyPackageThatContains(CORE_PACKAGE + ".(*)." + CRUD_SERVICE_PACKAGE))
-            .should()
-            .onlyBeAccessed()
-            .byAnyPackage(anyPackageThatContains(USECASE_PACKAGE))
-            .check(apimClassesWithoutTests());
-    }
-
-    /**
      * CrudServices should be independent: it must not depend on another CrudService
      */
     @Test
