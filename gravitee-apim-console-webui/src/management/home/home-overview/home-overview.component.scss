@@ -1,4 +1,9 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
 @use 'src/scss/gio-layout' as gio-layout;
+
+$typography: map.get(gio.$mat-theme, typography);
 
 .home-overview {
   padding: 24px;
@@ -20,6 +25,27 @@
     width: 100%;
     flex: 1 1 100%;
     min-height: 250px;
+
+    &__row {
+      gap: 20px;
+      display: flex;
+      border-bottom: 1px mat.get-color-from-palette(gio.$mat-dove-palette, 'darker10') solid;
+      padding: 8px 0;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      &__label {
+        flex: 1 1 70%;
+      }
+
+      &__value {
+        flex: 1 1 30%;
+        @include mat.typography-level($typography, body-2);
+        color: mat.get-color-from-palette(gio.$mat-accent-palette, 'darker20');
+      }
+    }
   }
 }
 .loader {

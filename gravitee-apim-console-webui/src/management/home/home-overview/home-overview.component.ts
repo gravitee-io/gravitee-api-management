@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Subject } from 'rxjs';
+import { forkJoin, Subject } from 'rxjs';
 import { FormControl, Validators } from '@angular/forms';
 import { switchMap, takeUntil, tap } from 'rxjs/operators';
 
@@ -43,10 +43,43 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
   apiResponseStatus?: ApiResponseStatusData;
   apiState?: ApiStateData;
   apiLifecycleState?: ApiLifecycleStateData;
+  apiNb?: number;
+  applicationNb?: number;
 
   timeRangeControl = new FormControl('1m', Validators.required);
 
   ngOnInit(): void {
+    // Quick Summary
+    this.fetchAnalyticsRequest$
+      .pipe(
+        tap(() => {
+          this.apiNb = undefined;
+          this.applicationNb = undefined;
+        }),
+        switchMap((val) =>
+          forkJoin([
+            this.statsService.getCount({
+              field: 'application',
+              interval: val.interval,
+              from: val.from,
+              to: val.to,
+            }),
+            this.statsService.getCount({
+              field: 'api',
+              interval: val.interval,
+              from: val.from,
+              to: val.to,
+            }),
+          ]),
+        ),
+        tap(([applicationNb, apiNb]) => {
+          this.apiNb = apiNb.count;
+          this.applicationNb = applicationNb.count;
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe();
+
     // API lifecycle state
     this.fetchAnalyticsRequest$
       .pipe(
