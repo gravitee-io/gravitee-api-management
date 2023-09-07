@@ -19,7 +19,7 @@
 
 <nav mat-tab-nav-bar>
   <a *ngFor="let tab of tabs" mat-tab-link [uiSref]="tab.uiSref" uiSrefStatus #uis="uiSrefStatus" [active]="uis.status.active">
-    {{ tab.label }}
+    {{ tab.label | async }}
   </a>
 </nav>
 <ui-view></ui-view>

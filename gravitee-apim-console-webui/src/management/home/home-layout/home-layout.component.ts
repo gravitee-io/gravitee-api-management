@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 import { Component } from '@angular/core';
+import { Observable, of } from 'rxjs';
+import { catchError, map, startWith } from 'rxjs/operators';
+
+import { TaskService } from '../../../services-ngx/task.service';
 
 @Component({
   selector: 'home-layout',
@@ -21,18 +25,27 @@ import { Component } from '@angular/core';
   styles: [require('./home-layout.component.scss')],
 })
 export class HomeLayoutComponent {
-  public tabs: { label: string; uiSref: string }[] = [
+  public taskLabel = this.taskService.getTasks().pipe(
+    map((tasks) => `Tasks (${tasks.page.total_elements})`),
+    startWith('Tasks'),
+    // If thrown, keep the label as is
+    catchError(() => of('Tasks')),
+  );
+
+  public tabs: { label: Observable<string>; uiSref: string }[] = [
     {
-      label: 'Overview',
+      label: of('Overview'),
       uiSref: 'home.overview',
     },
     {
-      label: 'API Health-check',
+      label: of('API Health-check'),
       uiSref: 'home.apiHealthCheck',
     },
     {
-      label: 'Tasks',
+      label: this.taskLabel,
       uiSref: 'home.tasks',
     },
   ];
+
+  constructor(private readonly taskService: TaskService) {}
 }
