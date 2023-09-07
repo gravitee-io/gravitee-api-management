@@ -69,6 +69,8 @@ describe('HomeOverviewComponent', () => {
     expectResponseStatusRequest();
     expectRequestStatsRequest();
     expectTopApiRequest();
+    expectCountApiRequest();
+    expectCountApplicationRequest();
 
     const stats = await loader.getHarness(GioRequestStatsHarness);
     expect(await stats.getAverage()).toEqual('8.43 ms');
@@ -80,6 +82,8 @@ describe('HomeOverviewComponent', () => {
     expectResponseStatusRequest();
     expectRequestStatsRequest();
     expectTopApiRequest();
+    expectCountApiRequest();
+    expectCountApplicationRequest();
 
     const timeRangeHarness = await loader.getHarness(GioQuickTimeRangeHarness);
     await timeRangeHarness.selectTimeRangeByText('last hour');
@@ -96,6 +100,12 @@ describe('HomeOverviewComponent', () => {
     expect(req.request.url).toContain('interval=120000');
 
     req = expectTopApiRequest();
+    expect(req.request.url).toContain('interval=120000');
+
+    req = expectCountApiRequest();
+    expect(req.request.url).toContain('interval=120000');
+
+    req = expectCountApplicationRequest();
     expect(req.request.url).toContain('interval=120000');
   });
 
@@ -157,6 +167,26 @@ describe('HomeOverviewComponent', () => {
     });
     req.flush({
       values: {},
+    });
+    return req;
+  }
+
+  function expectCountApiRequest(): TestRequest {
+    const req = httpTestingController.expectOne((req) => {
+      return req.method === 'GET' && req.url.startsWith(`${CONSTANTS_TESTING.env.baseURL}/analytics?type=count&field=api`);
+    });
+    req.flush({
+      count: 0,
+    });
+    return req;
+  }
+
+  function expectCountApplicationRequest(): TestRequest {
+    const req = httpTestingController.expectOne((req) => {
+      return req.method === 'GET' && req.url.startsWith(`${CONSTANTS_TESTING.env.baseURL}/analytics?type=count&field=application`);
+    });
+    req.flush({
+      count: 0,
     });
     return req;
   }

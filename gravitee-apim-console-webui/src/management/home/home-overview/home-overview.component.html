@@ -22,8 +22,16 @@
   <div class="home-overview__row">
     <mat-card class="home-overview__card">
       <div class="mat-subheading-1">Quick Summary</div>
-      <div class="mat-body">Number of APIs</div>
-      <div class="mat-body">Number of Applications</div>
+      <ng-container *ngIf="apiNb && applicationNb; else loader">
+        <div class="home-overview__card__row">
+          <span class="home-overview__card__row__label">Number of APIs</span>
+          <span class="home-overview__card__row__value">{{ apiNb }}</span>
+        </div>
+        <div class="home-overview__card__row">
+          <span class="home-overview__card__row__label">Number of Applications</span>
+          <span class="home-overview__card__row__value">{{ applicationNb }}</span>
+        </div>
+      </ng-container>
     </mat-card>
 
     <mat-card class="home-overview__card">
