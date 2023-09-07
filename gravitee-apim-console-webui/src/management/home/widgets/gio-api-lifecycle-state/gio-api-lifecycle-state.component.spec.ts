@@ -22,7 +22,7 @@ import { SimpleChange } from '@angular/core';
 import { GioApiLifecycleStateModule } from './gio-api-lifecycle-state.module';
 import { ApiLifecycleStateData, GioApiLifecycleStateComponent } from './gio-api-lifecycle-state.component';
 
-import { GioChartPieHarness } from '../../../../shared/components/widgets/gio-chart-pie/gio-chart-pie.harness';
+import { GioChartPieHarness } from '../../../../shared/components/gio-chart-pie/gio-chart-pie.harness';
 
 describe('GioApiStateComponent', () => {
   const data: ApiLifecycleStateData = {

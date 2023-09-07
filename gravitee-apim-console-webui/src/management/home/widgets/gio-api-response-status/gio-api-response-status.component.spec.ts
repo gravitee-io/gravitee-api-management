@@ -22,7 +22,7 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { GioApiResponseStatusModule } from './gio-api-response-status.module';
 import { ApiResponseStatusData, GioApiResponseStatusComponent } from './gio-api-response-status.component';
 
-import { GioChartPieHarness } from '../../../../shared/components/widgets/gio-chart-pie/gio-chart-pie.harness';
+import { GioChartPieHarness } from '../../../../shared/components/gio-chart-pie/gio-chart-pie.harness';
 
 describe('GioApiResponseStatusComponent', () => {
   const data: ApiResponseStatusData = {

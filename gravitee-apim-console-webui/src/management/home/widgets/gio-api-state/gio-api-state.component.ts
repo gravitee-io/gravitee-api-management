@@ -16,7 +16,7 @@
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { isEmpty } from 'lodash';
 
-import { GioChartPieInput } from '../../../../shared/components/widgets/gio-chart-pie/gio-chart-pie.component';
+import { GioChartPieInput } from '../../../../shared/components/gio-chart-pie/gio-chart-pie.component';
 
 export type ApiStateData = {
   values: { [key: string]: number };

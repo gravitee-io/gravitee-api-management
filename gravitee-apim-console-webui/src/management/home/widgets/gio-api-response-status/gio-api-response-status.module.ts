@@ -18,7 +18,7 @@ import { CommonModule } from '@angular/common';
 
 import { GioApiResponseStatusComponent } from './gio-api-response-status.component';
 
-import { GioChartPieModule } from '../../../../shared/components/widgets/gio-chart-pie/gio-chart-pie.module';
+import { GioChartPieModule } from '../../../../shared/components/gio-chart-pie/gio-chart-pie.module';
 
 @NgModule({
   imports: [CommonModule, GioChartPieModule],
