@@ -37,7 +37,15 @@ import org.springframework.context.annotation.Import;
  * @author GraviteeSource Team
  */
 @Configuration
-@Import({ VertxConfiguration.class, RestManagementConfiguration.class, RestPortalConfiguration.class, NodeCertificatesConfiguration.class })
+@Import(
+    {
+        VertxConfiguration.class,
+        RestManagementConfiguration.class,
+        io.gravitee.rest.api.management.v2.rest.spring.RestManagementConfiguration.class,
+        RestPortalConfiguration.class,
+        NodeCertificatesConfiguration.class,
+    }
+)
 public class StandaloneConfiguration {
 
     @Bean
