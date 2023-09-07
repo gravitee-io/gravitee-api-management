@@ -24,7 +24,7 @@ import { GioQuickTimeRangeComponent } from './gio-quick-time-range.component';
 import { GioQuickTimeRangeModule } from './gio-quick-time-range.module';
 
 export default {
-  title: 'Home / Quick time range',
+  title: 'Home / Components / Quick time range',
   component: GioQuickTimeRangeComponent,
   decorators: [
     moduleMetadata({

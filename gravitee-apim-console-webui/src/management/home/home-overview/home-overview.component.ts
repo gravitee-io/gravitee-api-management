@@ -19,12 +19,12 @@ import { FormControl, Validators } from '@angular/forms';
 import { switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { AnalyticsService } from '../../../services-ngx/analytics.service';
-import { GioQuickTimeRangeComponent, TimeRangeParams } from '../widgets/gio-quick-time-range/gio-quick-time-range.component';
-import { TopApisData } from '../widgets/gio-top-apis-table/gio-top-apis-table.component';
-import { RequestStats } from '../widgets/gio-request-stats/gio-request-stats.component';
-import { ApiResponseStatusData } from '../widgets/gio-api-response-status/gio-api-response-status.component';
-import { ApiStateData } from '../widgets/gio-api-state/gio-api-state.component';
-import { ApiLifecycleStateData } from '../widgets/gio-api-lifecycle-state/gio-api-lifecycle-state.component';
+import { GioQuickTimeRangeComponent, TimeRangeParams } from '../components/gio-quick-time-range/gio-quick-time-range.component';
+import { TopApisData } from '../components/gio-top-apis-table/gio-top-apis-table.component';
+import { RequestStats } from '../components/gio-request-stats/gio-request-stats.component';
+import { ApiResponseStatusData } from '../components/gio-api-response-status/gio-api-response-status.component';
+import { ApiStateData } from '../components/gio-api-state/gio-api-state.component';
+import { ApiLifecycleStateData } from '../components/gio-api-lifecycle-state/gio-api-lifecycle-state.component';
 
 @Component({
   selector: 'home-overview',

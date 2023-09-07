@@ -23,7 +23,7 @@ import { GioRequestStatsModule } from './gio-request-stats.module';
 import { AnalyticsStatsResponse } from '../../../../entities/analytics/analyticsResponse';
 
 export default {
-  title: 'Home / Widgets / Request stats',
+  title: 'Home / Components / Request stats',
   component: GioRequestStatsComponent,
   decorators: [
     moduleMetadata({

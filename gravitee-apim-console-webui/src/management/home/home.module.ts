@@ -31,12 +31,12 @@ import { HomeApiHealthCheckComponent } from './home-api-health-check/home-api-he
 import { HomeLayoutComponent } from './home-layout/home-layout.component';
 import { HomeOverviewComponent } from './home-overview/home-overview.component';
 import { HealthAvailabilityTimeFrameModule } from './home-api-health-check/health-availability-time-frame/health-availability-time-frame.module';
-import { GioQuickTimeRangeModule } from './widgets/gio-quick-time-range/gio-quick-time-range.module';
-import { GioRequestStatsModule } from './widgets/gio-request-stats/gio-request-stats.module';
-import { GioTopApisTableModule } from './widgets/gio-top-apis-table/gio-top-apis-table.module';
-import { GioApiResponseStatusModule } from './widgets/gio-api-response-status/gio-api-response-status.module';
-import { GioApiStateModule } from './widgets/gio-api-state/gio-api-state.module';
-import { GioApiLifecycleStateModule } from './widgets/gio-api-lifecycle-state/gio-api-lifecycle-state.module';
+import { GioQuickTimeRangeModule } from './components/gio-quick-time-range/gio-quick-time-range.module';
+import { GioRequestStatsModule } from './components/gio-request-stats/gio-request-stats.module';
+import { GioTopApisTableModule } from './components/gio-top-apis-table/gio-top-apis-table.module';
+import { GioApiResponseStatusModule } from './components/gio-api-response-status/gio-api-response-status.module';
+import { GioApiStateModule } from './components/gio-api-state/gio-api-state.module';
+import { GioApiLifecycleStateModule } from './components/gio-api-lifecycle-state/gio-api-lifecycle-state.module';
 
 import { GioCircularPercentageModule } from '../../shared/components/gio-circular-percentage/gio-circular-percentage.module';
 import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
