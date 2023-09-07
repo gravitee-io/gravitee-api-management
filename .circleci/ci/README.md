@@ -7,6 +7,12 @@ APIM CI run in two steps:
 1. A pre-step will run the `generate-config` job generate from typescript code the circleCI workflow to execute. (via `npm run generate /tmp/dynamicConfig.yml`)
 2. The CircleCI orbs `continuation/continue` execute the generated workflow.
 
+### Conditions to generate the pipeline
+The pipeline generation is available according to different conditions:
+    - if the branch is supported ( CIRCLE_BRANCH is master or a support branch )
+    - if we are working on a branch with changes committed on the base branch
+
+
 ## Install
 
 ### Prerequisites:
@@ -34,13 +40,12 @@ npm install
 ### Generate CircleCI config locally:
 
 ```bash
-#export CIRCLE_BRANCH=my-awesome-branch-🦄
-#export GIT_BASE_BRANCH=master
-export CI_ACTION=pull_requests
-#export CIRCLE_TAG=4.1.0
-export CI_TAG=4.1.0
+export APIM_VERSION_PATH=/replace-me/gravitee/gravitee-api-management/pom.xml
+export CIRCLE_BRANCH=master
+export CI_ACTION=publish_docker_images
 export CIRCLE_SHA1=784ff35ca
-
+export CI_DRY_RUN=false
+export CI_GRAVITEEIO_VERSION=4.1.0
 npm run generate
 ```
 
