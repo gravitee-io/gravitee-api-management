@@ -1,7 +1,8 @@
-import { SlackAnnouncementJob, SetupJob, NexusStagingJob } from '../jobs';
+import { SlackAnnouncementJob, SetupJob } from '../jobs';
 import { Config, Workflow, workflow } from '@circleci/circleci-config-sdk';
 import { config } from '../config';
 import { CircleCIEnvironment } from '../pipelines';
+import { NexusStagingJob } from '../jobs/backend';
 
 export class WorkflowNexusStaging {
   static create(dynamicConfig: Config, environment: CircleCIEnvironment) {

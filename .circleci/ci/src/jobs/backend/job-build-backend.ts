@@ -1,9 +1,9 @@
 import { commands, Config, Job, reusable } from '@circleci/circleci-config-sdk';
-import { OpenJdkExecutor } from '../executors';
-import { NotifyOnFailureCommand, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand } from '../commands';
+import { OpenJdkExecutor } from '../../executors';
+import { NotifyOnFailureCommand, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand } from '../../commands';
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
-import { config } from '../config';
-import { CircleCIEnvironment } from '../pipelines';
+import { config } from '../../config';
+import { CircleCIEnvironment } from '../../pipelines';
 
 export class BuildBackendJob {
   public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {

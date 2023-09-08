@@ -1,8 +1,8 @@
 import { commands, Config, Job, reusable } from '@circleci/circleci-config-sdk';
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
-import { config } from '../config';
-import { NotifyOnFailureCommand, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand } from '../commands';
-import { OpenJdkExecutor } from '../executors';
+import { config } from '../../config';
+import { NotifyOnFailureCommand, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand } from '../../commands';
+import { OpenJdkExecutor } from '../../executors';
 
 export class PublishJob {
   public static create(dynamicConfig: Config, target: 'nexus' | 'artifactory'): Job {
