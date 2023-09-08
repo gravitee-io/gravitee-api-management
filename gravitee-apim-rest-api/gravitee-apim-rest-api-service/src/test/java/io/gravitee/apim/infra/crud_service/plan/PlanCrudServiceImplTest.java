@@ -21,8 +21,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.apim.infra.crud_service.plan.adapter.BasePlanAdapter;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
@@ -35,7 +33,6 @@ import io.gravitee.rest.api.model.v4.plan.BasePlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanMode;
 import io.gravitee.rest.api.model.v4.plan.PlanType;
 import io.gravitee.rest.api.model.v4.plan.PlanValidationType;
-import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.time.Instant;
@@ -61,7 +58,7 @@ public class PlanCrudServiceImplTest {
         planRepository = mock(PlanRepository.class);
         apiRepository = mock(ApiRepository.class);
 
-        service = new PlanCrudServiceImpl(planRepository, apiRepository, new BasePlanAdapter(new PlanConverter(new ObjectMapper())));
+        service = new PlanCrudServiceImpl(planRepository, apiRepository);
     }
 
     @Nested

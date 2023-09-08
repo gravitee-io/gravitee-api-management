@@ -16,7 +16,7 @@
 package io.gravitee.apim.infra.crud_service.plan;
 
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
-import io.gravitee.apim.infra.crud_service.plan.adapter.BasePlanAdapter;
+import io.gravitee.apim.infra.adapter.PlanAdapter;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -38,12 +38,10 @@ public class PlanCrudServiceImpl implements PlanCrudService {
 
     private final PlanRepository planRepository;
     private final ApiRepository apiRepository;
-    private final BasePlanAdapter planAdapter;
 
-    public PlanCrudServiceImpl(@Lazy PlanRepository planRepository, @Lazy ApiRepository apiRepository, BasePlanAdapter planAdapter) {
+    public PlanCrudServiceImpl(@Lazy PlanRepository planRepository, @Lazy ApiRepository apiRepository) {
         this.planRepository = planRepository;
         this.apiRepository = apiRepository;
-        this.planAdapter = planAdapter;
     }
 
     @Override
@@ -60,7 +58,7 @@ public class PlanCrudServiceImpl implements PlanCrudService {
         try {
             Optional<Api> apiOptional = apiRepository.findById(plan.getApi());
             final Api api = apiOptional.orElseThrow(() -> new ApiNotFoundException(plan.getApi()));
-            return api.getDefinitionVersion() == DefinitionVersion.V4 ? planAdapter.toEntityV4(plan) : planAdapter.toEntityV2(plan);
+            return api.getDefinitionVersion() == DefinitionVersion.V4 ? PlanAdapter.INSTANCE.toEntityV4(plan) : PlanAdapter.INSTANCE.toEntityV2(plan);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("An error occurs while trying to find an API using its ID: " + plan.getApi(), e);
         }
