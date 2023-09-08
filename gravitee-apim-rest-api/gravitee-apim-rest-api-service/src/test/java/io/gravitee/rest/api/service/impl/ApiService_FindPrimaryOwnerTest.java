@@ -21,6 +21,7 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import io.gravitee.apim.core.api.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.UserEntity;
@@ -36,7 +37,6 @@ import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
 import io.gravitee.rest.api.service.exceptions.NoPrimaryOwnerGroupForUserException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import io.gravitee.rest.api.service.spring.ServiceConfiguration;
-import io.gravitee.rest.api.service.v4.ApiGroupService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import io.gravitee.rest.api.service.v4.impl.PrimaryOwnerServiceImpl;
 import java.util.Arrays;
@@ -82,6 +82,9 @@ public class ApiService_FindPrimaryOwnerTest {
     @Mock
     private RoleService roleService;
 
+    @Mock
+    private ApiPrimaryOwnerDomainService primaryOwnerDomainService;
+
     @Before
     public void before() {
         PrimaryOwnerService primaryOwnerService = new PrimaryOwnerServiceImpl(
@@ -89,7 +92,8 @@ public class ApiService_FindPrimaryOwnerTest {
             membershipService,
             groupService,
             parameterService,
-            roleService
+            roleService,
+            primaryOwnerDomainService
         );
         ReflectionTestUtils.setField(apiService, "primaryOwnerService", primaryOwnerService);
     }

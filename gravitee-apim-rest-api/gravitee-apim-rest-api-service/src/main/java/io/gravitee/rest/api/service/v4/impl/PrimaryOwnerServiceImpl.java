@@ -17,11 +17,12 @@ package io.gravitee.rest.api.service.v4.impl;
 
 import static java.util.stream.Collectors.toSet;
 
+import io.gravitee.apim.core.api.domain_service.ApiPrimaryOwnerDomainService;
+import io.gravitee.apim.core.membership.exception.ApiPrimaryOwnerNotFoundException;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RoleScope;
-import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.MembershipService;
@@ -36,7 +37,6 @@ import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import io.gravitee.rest.api.service.impl.TransactionalService;
-import io.gravitee.rest.api.service.v4.ApiGroupService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -58,77 +58,49 @@ public class PrimaryOwnerServiceImpl extends TransactionalService implements Pri
     private final GroupService groupService;
     private final ParameterService parameterService;
     private final RoleService roleService;
+    private final ApiPrimaryOwnerDomainService primaryOwnerDomainService;
 
     public PrimaryOwnerServiceImpl(
         final UserService userService,
         final MembershipService membershipService,
         final GroupService groupService,
         final ParameterService parameterService,
-        final RoleService roleService
+        final RoleService roleService,
+        final ApiPrimaryOwnerDomainService primaryOwnerDomainService
     ) {
         this.userService = userService;
         this.membershipService = membershipService;
         this.groupService = groupService;
         this.parameterService = parameterService;
         this.roleService = roleService;
+        this.primaryOwnerDomainService = primaryOwnerDomainService;
     }
 
     @Override
     public PrimaryOwnerEntity getPrimaryOwner(final ExecutionContext executionContext, final String apiId)
         throws TechnicalManagementException {
-        MembershipEntity primaryOwnerMemberEntity = membershipService.getPrimaryOwner(
-            executionContext.getOrganizationId(),
-            io.gravitee.rest.api.model.MembershipReferenceType.API,
-            apiId
-        );
-        if (primaryOwnerMemberEntity == null) {
-            throw new PrimaryOwnerNotFoundException(apiId);
+        try {
+            io.gravitee.apim.core.membership.model.PrimaryOwnerEntity po = primaryOwnerDomainService.getApiPrimaryOwner(
+                executionContext,
+                apiId
+            );
+            return PrimaryOwnerEntity.builder().id(po.id()).type(po.type()).displayName(po.displayName()).email(po.email()).build();
+        } catch (ApiPrimaryOwnerNotFoundException e) {
+            throw new PrimaryOwnerNotFoundException(e.getApiId());
         }
-        if (MembershipMemberType.GROUP == primaryOwnerMemberEntity.getMemberType()) {
-            final String poMail = computePrimaryOwnerMailFromGroup(executionContext, primaryOwnerMemberEntity.getMemberId());
-            return new PrimaryOwnerEntity(groupService.findById(executionContext, primaryOwnerMemberEntity.getMemberId()), poMail);
-        }
-        return new PrimaryOwnerEntity(userService.findById(executionContext, primaryOwnerMemberEntity.getMemberId()));
     }
 
     @Override
     public String getPrimaryOwnerEmail(ExecutionContext executionContext, String apiId) {
-        PrimaryOwnerEntity primaryOwner = getPrimaryOwner(executionContext, apiId);
-        if (MembershipMemberType.USER.name().equals(primaryOwner.getType())) {
-            return primaryOwner.getEmail();
+        try {
+            io.gravitee.apim.core.membership.model.PrimaryOwnerEntity po = primaryOwnerDomainService.getApiPrimaryOwner(
+                executionContext,
+                apiId
+            );
+            return po.email();
+        } catch (ApiPrimaryOwnerNotFoundException e) {
+            throw new PrimaryOwnerNotFoundException(e.getApiId());
         }
-
-        log.debug("Primary owner of API {} is a group, looking for a primary owner role member to resolve email", apiId);
-
-        final RoleScope apiRole = RoleScope.API;
-        final String poRole = SystemRole.PRIMARY_OWNER.name();
-
-        String poRoleId = roleService
-            .findByScopeAndName(apiRole, poRole, executionContext.getOrganizationId())
-            .map(RoleEntity::getId)
-            .orElseThrow(() -> new RoleNotFoundException(apiRole, poRole));
-
-        Set<MemberEntity> poGroupMembers = membershipService.getMembersByReferenceAndRole(
-            executionContext,
-            MembershipReferenceType.GROUP,
-            primaryOwner.getId(),
-            poRoleId
-        );
-
-        if (poGroupMembers == null) {
-            log.error("Unable to find primary owner group members for API {}", apiId);
-            throw new PrimaryOwnerNotFoundException(apiId);
-        }
-
-        return poGroupMembers
-            .stream()
-            .map(MemberEntity::getId)
-            .findFirst()
-            .map(userId -> userService.findById(executionContext, userId).getEmail())
-            .orElseThrow(() -> {
-                log.error("Unable to find primary owner email for API {}", apiId);
-                throw new PrimaryOwnerNotFoundException(apiId);
-            });
     }
 
     @Override
