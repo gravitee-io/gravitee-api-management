@@ -71,6 +71,7 @@
           <mat-form-field class="virtual-host__table__path-field">
             <mat-label>Listening Path</mat-label>
             <input matInput [formControl]="element.controls.path" required />
+            <gio-clipboard-copy-icon matSuffix [contentToCopy]="element.value.host + element.value.path"></gio-clipboard-copy-icon>
             <mat-hint
               >Path where API is exposed, must start with a '/' and must contain any letter, capitalize letter, number, dash or
               underscore.</mat-hint

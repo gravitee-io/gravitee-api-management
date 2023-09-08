@@ -22,9 +22,14 @@
       The URL location of your API. So if your URL is <strong>[{{ contextPathPrefix }}/myAPI]</strong>, then <strong>[/myAPI]</strong> is
       the context path.
     </div>
+
     <mat-form-field appearance="outline" class="form-card__context-path-field">
       <span matPrefix>{{ contextPathPrefix }}</span>
       <input matInput formControlName="contextPath" required />
+      <gio-clipboard-copy-icon
+        matSuffix
+        [contentToCopy]="contextPathPrefix + this.entrypointsForm.value.contextPath"
+      ></gio-clipboard-copy-icon>
       <mat-hint
         >Path where API is exposed, must start with a '/' and must contain any letter, capitalize letter, number, dash or
         underscore.</mat-hint
