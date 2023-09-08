@@ -25,7 +25,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
 
-public class LogCrudServiceInMemory implements LogCrudService, InMemoryCrudService<BaseConnectionLog> {
+public class LogCrudServiceInMemory implements LogCrudService, InMemoryAlternative<BaseConnectionLog> {
 
     private final List<BaseConnectionLog> storage = new ArrayList<>();
 

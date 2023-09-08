@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class PlanCrudServiceInMemory implements PlanCrudService, InMemoryCrudService<GenericPlanEntity> {
+public class PlanCrudServiceInMemory implements PlanCrudService, InMemoryAlternative<GenericPlanEntity> {
 
     private final List<GenericPlanEntity> storage = new ArrayList<>();
 

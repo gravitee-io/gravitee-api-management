@@ -17,7 +17,7 @@ package inmemory;
 
 import java.util.List;
 
-public interface InMemoryCrudService<T> {
+public interface InMemoryAlternative<T> {
     /**
      * Init the storage with the given items
      * @param items the items to store
