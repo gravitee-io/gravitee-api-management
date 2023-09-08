@@ -39,7 +39,7 @@ class NewApiImportController {
   }
 
   cancelImport() {
-    this.$state.go('management.apis.new');
+    this.$state.go('management.apis-new');
   }
 }
 

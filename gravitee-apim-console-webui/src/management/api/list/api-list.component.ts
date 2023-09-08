@@ -139,7 +139,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
   }
 
   onAddApiClick() {
-    this.ajsState.go('management.apis.new');
+    this.ajsState.go('management.apis-new');
   }
 
   private initFilters() {

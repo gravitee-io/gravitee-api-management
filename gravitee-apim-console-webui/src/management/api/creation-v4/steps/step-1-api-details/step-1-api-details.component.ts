@@ -66,12 +66,12 @@ export class Step1ApiDetailsComponent implements OnInit {
         .afterClosed()
         .subscribe((confirmed) => {
           if (confirmed) {
-            this.ajsState.go('management.apis.new');
+            this.ajsState.go('management.apis-new');
           }
         });
       return;
     }
-    this.ajsState.go('management.apis.new');
+    this.ajsState.go('management.apis-new');
   }
 
   save() {

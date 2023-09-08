@@ -64,6 +64,10 @@ import { ApiRuntimeLogsSettingsComponent } from './runtime-logs-v4/runtime-logs-
 import { ApiRuntimeLogsComponent } from './runtime-logs-v4/runtime-logs/api-runtime-logs.component';
 import { ApiListComponent } from './list/api-list.component';
 import { NotificationsListComponent } from './notifications/notifications-list/notifications-list.component';
+import { ApiCreationGetStartedComponent } from './creation/api-creation-get-started.component';
+import { ApiCreationV4Component } from './creation-v4/api-creation-v4.component';
+import { ApiCreationV4ConfirmationComponent } from './creation-v4/api-creation-v4-confirmation.component';
+import { ApiCreationV2Component } from './creation/steps/api-creation-v2.component';
 
 import { NotificationsComponent } from '../../components/notifications/notifications.component';
 import { Scope } from '../../entities/scope';
@@ -85,6 +89,8 @@ import { AlertsComponent } from '../../components/alerts/alerts.component';
 import { AlertComponent } from '../../components/alerts/alert/alert.component';
 import ResourceService from '../../services/resource.service';
 import { MessagesComponent } from '../messages/messages.component';
+import TenantService from '../../services/tenant.service';
+import TagService from '../../services/tag.service';
 
 // New Angular routing
 export const states: Ng2StateDeclaration[] = [
@@ -115,6 +121,78 @@ export const states: Ng2StateDeclaration[] = [
       },
     },
   },
+
+  /**
+   * New API
+   */
+  {
+    name: 'management.apis-new',
+    url: '/new',
+    component: ApiCreationGetStartedComponent,
+    data: {
+      useAngularMaterial: true,
+      perms: {
+        only: ['environment-api-c'],
+      },
+      docs: {
+        page: 'management-apis-create',
+      },
+    },
+  },
+  {
+    name: 'management.apis-new-v4',
+    url: '/new/v4',
+    component: ApiCreationV4Component,
+    data: {
+      useAngularMaterial: true,
+      perms: {
+        only: ['environment-api-c'],
+      },
+    },
+  },
+  {
+    name: 'management.apis-new-v4-confirmation',
+    url: '/new/v4/:apiId',
+    component: ApiCreationV4ConfirmationComponent,
+    data: {
+      useAngularMaterial: true,
+      perms: {
+        only: ['environment-api-c'],
+      },
+    },
+  },
+  {
+    name: 'management.apis-new-v2',
+    url: '/new/v2',
+    component: ApiCreationV2Component,
+    data: {
+      useAngularMaterial: true,
+      perms: {
+        only: ['environment-api-c'],
+      },
+    },
+    resolve: [
+      {
+        token: 'groups',
+        deps: ['GroupService'],
+        resolveFn: (groupService: GroupService) => groupService.list().then((response) => response.data),
+      },
+      {
+        token: 'tenants',
+        deps: ['TenantService'],
+        resolveFn: (tenantService: TenantService) => tenantService.list().then((response) => response.data),
+      },
+      {
+        token: 'tags',
+        deps: ['TenantService'],
+        resolveFn: (tagService: TagService) => tagService.list().then((response) => response.data),
+      },
+    ],
+  },
+
+  /**
+   * Existing API
+   */
   {
     name: 'management.apis',
     url: '/:apiId',

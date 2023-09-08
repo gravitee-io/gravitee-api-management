@@ -59,8 +59,8 @@ import { LogoutComponent } from '../user/logout/logout.component';
 
 import DiffDirective from '../components/diff/diff.directive';
 // Api
-import ApiCreationComponent from '../management/api/creation/steps/api-creation.component';
-import ApiCreationController from '../management/api/creation/steps/api-creation.controller';
+import ApiCreationV2ComponentAjs from './api/creation/steps/api-creation-v2.component.ajs';
+import ApiCreationV2ControllerAjs from './api/creation/steps/api-creation-v2.controller.ajs';
 import ApiCreationStep1Component from '../management/api/creation/steps/api-creation-step1.component';
 import ApiCreationStep2Component from '../management/api/creation/steps/api-creation-step2.component';
 import ApiCreationStep3Component from '../management/api/creation/steps/api-creation-step3.component';
@@ -726,8 +726,8 @@ graviteeManagementModule.component('ticketDetail', TicketDetailComponent);
 
 graviteeManagementModule.component('instances', InstancesComponent);
 
-graviteeManagementModule.component('apiCreation', ApiCreationComponent);
-graviteeManagementModule.controller('ApiCreationController', ApiCreationController);
+graviteeManagementModule.component('apiCreationV2ComponentAjs', ApiCreationV2ComponentAjs);
+graviteeManagementModule.controller('ApiCreationV2AjsController', ApiCreationV2ControllerAjs);
 graviteeManagementModule.controller('NewApiImportController', NewApiImportController);
 graviteeManagementModule.component('apiCreationStep1', ApiCreationStep1Component);
 graviteeManagementModule.component('apiCreationStep2', ApiCreationStep2Component);

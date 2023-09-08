@@ -1421,7 +1421,7 @@ describe('ApiCreationV4Component', () => {
 
         expectCallsForApiDeployment(API_ID, PLAN_ID);
 
-        expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.create-v4-confirmation', { apiId: API_ID });
+        expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis-new-v4-confirmation', { apiId: API_ID });
       });
     });
 
