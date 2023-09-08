@@ -24,6 +24,7 @@ import static org.mockito.Mockito.when;
 
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.membership.exception.ApiPrimaryOwnerNotFoundException;
+import io.gravitee.apim.core.membership.exception.ApplicationPrimaryOwnerNotFoundException;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.domain_service.membership.PrimaryOwnerDomainServiceImpl;
@@ -273,6 +274,175 @@ public class PrimaryOwnerDomainServiceImplTest {
         }
     }
 
+    @Nested
+    class GetApplicationPrimaryOwner {
+
+        @Test
+        @SneakyThrows
+        public void should_return_a_user_primary_owner_of_an_api() {
+            givenExistingUsers(
+                List.of(BaseUserEntity.builder().id("user-id").firstname("Jane").lastname("Doe").email("jane.doe@gravitee.io").build())
+            );
+            givenExistingMemberships(
+                List.of(
+                    Membership
+                        .builder()
+                        .referenceType(MembershipReferenceType.APPLICATION)
+                        .referenceId("application-id")
+                        .memberType(MembershipMemberType.USER)
+                        .memberId("user-id")
+                        .roleId(PRIMARY_OWNER_ROLE_ID)
+                        .build()
+                )
+            );
+
+            var result = service.getApplicationPrimaryOwner(GraviteeContext.getExecutionContext(), "application-id");
+
+            Assertions
+                .assertThat(result)
+                .isEqualTo(
+                    PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type("USER").build()
+                );
+        }
+
+        @Test
+        @SneakyThrows
+        public void should_return_a_group_primary_owner_of_an_application() {
+            givenExistingUsers(
+                List.of(BaseUserEntity.builder().id("user-id").firstname("Jane").lastname("Doe").email("jane.doe@gravitee.io").build())
+            );
+            givenExistingGroup(List.of(Group.builder().id("group-id").name("Group name").build()));
+            givenExistingMemberships(
+                List.of(
+                    Membership
+                        .builder()
+                        .referenceType(MembershipReferenceType.APPLICATION)
+                        .referenceId("application-id")
+                        .memberType(MembershipMemberType.GROUP)
+                        .memberId("group-id")
+                        .roleId(PRIMARY_OWNER_ROLE_ID)
+                        .build(),
+                    Membership
+                        .builder()
+                        .referenceType(MembershipReferenceType.GROUP)
+                        .referenceId("group-id")
+                        .memberType(MembershipMemberType.USER)
+                        .memberId("user-id")
+                        .roleId(PRIMARY_OWNER_ROLE_ID)
+                        .build()
+                )
+            );
+
+            var result = service.getApplicationPrimaryOwner(GraviteeContext.getExecutionContext(), "application-id");
+
+            Assertions
+                .assertThat(result)
+                .isEqualTo(
+                    PrimaryOwnerEntity
+                        .builder()
+                        .id("group-id")
+                        .displayName("Group name")
+                        .email("jane.doe@gravitee.io")
+                        .type("GROUP")
+                        .build()
+                );
+        }
+
+        @Test
+        public void should_throw_when_no_user_primary_owner_found() {
+            givenExistingUsers(List.of());
+            givenExistingMemberships(
+                List.of(
+                    Membership
+                        .builder()
+                        .referenceType(MembershipReferenceType.APPLICATION)
+                        .referenceId("application-id")
+                        .memberType(MembershipMemberType.USER)
+                        .memberId("user-id")
+                        .roleId(PRIMARY_OWNER_ROLE_ID)
+                        .build()
+                )
+            );
+
+            Throwable throwable = catchThrowable(() ->
+                service.getApplicationPrimaryOwner(GraviteeContext.getExecutionContext(), "application-id")
+            );
+
+            assertThat(throwable).isInstanceOf(ApplicationPrimaryOwnerNotFoundException.class);
+        }
+
+        @Test
+        public void should_throw_when_fail_to_get_primary_owner_role() {
+            // Given
+            givenRoleFailToBeFetched("technical exception");
+
+            // When
+            Throwable throwable = catchThrowable(() ->
+                service.getApplicationPrimaryOwner(GraviteeContext.getExecutionContext(), "application-id")
+            );
+
+            // Then
+            assertThat(throwable).isInstanceOf(TechnicalManagementException.class).hasMessageContaining("technical exception");
+        }
+
+        @Test
+        public void should_throw_when_fail_to_fetch_api_memberships() {
+            givenApiPrimaryOwnerMembershipFailToBeFetched("technical exception");
+
+            Throwable throwable = catchThrowable(() ->
+                service.getApplicationPrimaryOwner(GraviteeContext.getExecutionContext(), "application-id")
+            );
+
+            assertThat(throwable).isInstanceOf(TechnicalManagementException.class).hasMessageContaining("technical exception");
+        }
+
+        @Test
+        public void should_throw_when_fail_to_fetch_group() {
+            givenExistingMemberships(
+                List.of(
+                    Membership
+                        .builder()
+                        .referenceType(MembershipReferenceType.APPLICATION)
+                        .referenceId("application-id")
+                        .memberType(MembershipMemberType.GROUP)
+                        .memberId("group-id")
+                        .roleId(PRIMARY_OWNER_ROLE_ID)
+                        .build()
+                )
+            );
+            givenGroupFailToBeFetched("technical exception");
+
+            Throwable throwable = catchThrowable(() ->
+                service.getApplicationPrimaryOwner(GraviteeContext.getExecutionContext(), "application-id")
+            );
+
+            assertThat(throwable).isInstanceOf(TechnicalManagementException.class).hasMessageContaining("technical exception");
+        }
+
+        @Test
+        public void should_throw_when_fail_to_fetch_group_members() {
+            givenExistingMemberships(
+                List.of(
+                    Membership
+                        .builder()
+                        .referenceType(MembershipReferenceType.APPLICATION)
+                        .referenceId("application-id")
+                        .memberType(MembershipMemberType.GROUP)
+                        .memberId("group-id")
+                        .roleId(PRIMARY_OWNER_ROLE_ID)
+                        .build()
+                )
+            );
+            givenGroupMembershipFailToBeFetched("technical exception");
+
+            Throwable throwable = catchThrowable(() ->
+                service.getApplicationPrimaryOwner(GraviteeContext.getExecutionContext(), "application-id")
+            );
+
+            assertThat(throwable).isInstanceOf(TechnicalManagementException.class).hasMessageContaining("technical exception");
+        }
+    }
+
     private void givenPrimaryRoleForOrganizationIs(Role role) throws TechnicalException {
         lenient()
             .when(
@@ -294,7 +464,11 @@ public class PrimaryOwnerDomainServiceImplTest {
 
     @SneakyThrows
     private void givenApiPrimaryOwnerMembershipFailToBeFetched(String message) {
-        when(membershipRepository.findByReferenceAndRoleId(eq(MembershipReferenceType.API), any(), any()))
+        lenient()
+            .when(membershipRepository.findByReferenceAndRoleId(eq(MembershipReferenceType.API), any(), any()))
+            .thenThrow(new TechnicalException(message));
+        lenient()
+            .when(membershipRepository.findByReferenceAndRoleId(eq(MembershipReferenceType.APPLICATION), any(), any()))
             .thenThrow(new TechnicalException(message));
     }
 

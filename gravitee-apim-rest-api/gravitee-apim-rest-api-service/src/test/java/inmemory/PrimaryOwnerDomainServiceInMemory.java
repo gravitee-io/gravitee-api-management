@@ -16,7 +16,9 @@
 package inmemory;
 
 import io.gravitee.apim.core.api.domain_service.ApiPrimaryOwnerDomainService;
+import io.gravitee.apim.core.application.domain_service.ApplicationPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.exception.ApiPrimaryOwnerNotFoundException;
+import io.gravitee.apim.core.membership.exception.ApplicationPrimaryOwnerNotFoundException;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.HashMap;
@@ -24,7 +26,8 @@ import java.util.List;
 import java.util.Map;
 
 public class PrimaryOwnerDomainServiceInMemory
-    implements ApiPrimaryOwnerDomainService, InMemoryAlternative<Map.Entry<String, PrimaryOwnerEntity>> {
+    implements
+        ApiPrimaryOwnerDomainService, ApplicationPrimaryOwnerDomainService, InMemoryAlternative<Map.Entry<String, PrimaryOwnerEntity>> {
 
     Map<String, PrimaryOwnerEntity> storage = new HashMap<>();
 
@@ -33,6 +36,16 @@ public class PrimaryOwnerDomainServiceInMemory
         PrimaryOwnerEntity primaryOwnerEntity = storage.get(apiId);
         if (primaryOwnerEntity == null) {
             throw new ApiPrimaryOwnerNotFoundException(apiId);
+        }
+        return primaryOwnerEntity;
+    }
+
+    @Override
+    public PrimaryOwnerEntity getApplicationPrimaryOwner(ExecutionContext executionContext, String applicationId)
+        throws ApplicationPrimaryOwnerNotFoundException {
+        PrimaryOwnerEntity primaryOwnerEntity = storage.get(applicationId);
+        if (primaryOwnerEntity == null) {
+            throw new ApplicationPrimaryOwnerNotFoundException(applicationId);
         }
         return primaryOwnerEntity;
     }

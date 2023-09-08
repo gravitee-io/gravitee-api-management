@@ -16,7 +16,9 @@
 package io.gravitee.apim.infra.domain_service.membership;
 
 import io.gravitee.apim.core.api.domain_service.ApiPrimaryOwnerDomainService;
+import io.gravitee.apim.core.application.domain_service.ApplicationPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.exception.ApiPrimaryOwnerNotFoundException;
+import io.gravitee.apim.core.membership.exception.ApplicationPrimaryOwnerNotFoundException;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
@@ -31,6 +33,7 @@ import io.gravitee.repository.management.model.RoleReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -39,7 +42,7 @@ import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
-public class PrimaryOwnerDomainServiceImpl implements ApiPrimaryOwnerDomainService {
+public class PrimaryOwnerDomainServiceImpl implements ApiPrimaryOwnerDomainService, ApplicationPrimaryOwnerDomainService {
 
     private final RoleRepository roleRepository;
     private final MembershipRepository membershipRepository;
@@ -62,7 +65,7 @@ public class PrimaryOwnerDomainServiceImpl implements ApiPrimaryOwnerDomainServi
     public PrimaryOwnerEntity getApiPrimaryOwner(ExecutionContext executionContext, String apiId) throws ApiPrimaryOwnerNotFoundException {
         return findPrimaryOwnerRole(executionContext.getOrganizationId())
             .flatMap(role ->
-                findPrimaryOwnerMembership(apiId, role)
+                findApiPrimaryOwnerMembership(apiId, role)
                     .flatMap(membership ->
                         switch (membership.getMemberType()) {
                             case USER -> findUserPrimaryOwner(membership);
@@ -71,6 +74,22 @@ public class PrimaryOwnerDomainServiceImpl implements ApiPrimaryOwnerDomainServi
                     )
             )
             .orElseThrow(() -> new ApiPrimaryOwnerNotFoundException(apiId));
+    }
+
+    @Override
+    public PrimaryOwnerEntity getApplicationPrimaryOwner(ExecutionContext executionContext, String applicationId)
+        throws ApplicationPrimaryOwnerNotFoundException {
+        return findPrimaryOwnerRole(executionContext.getOrganizationId())
+            .flatMap(role ->
+                findApplicationPrimaryOwnerMembership(applicationId, role)
+                    .flatMap(membership ->
+                        switch (membership.getMemberType()) {
+                            case USER -> findUserPrimaryOwner(membership);
+                            case GROUP -> findGroupPrimaryOwner(membership, role.getId());
+                        }
+                    )
+            )
+            .orElseThrow(() -> new ApplicationPrimaryOwnerNotFoundException(applicationId));
     }
 
     private Optional<Role> findPrimaryOwnerRole(String organizationId) {
@@ -87,11 +106,23 @@ public class PrimaryOwnerDomainServiceImpl implements ApiPrimaryOwnerDomainServi
         }
     }
 
-    private Optional<Membership> findPrimaryOwnerMembership(String apiId, Role role) {
+    private Optional<Membership> findApiPrimaryOwnerMembership(String apiId, Role role) {
         try {
             return membershipRepository.findByReferenceAndRoleId(MembershipReferenceType.API, apiId, role.getId()).stream().findFirst();
         } catch (TechnicalException e) {
             log.error("An error occurs while trying to get primary owner for [apiId={}]", apiId, e);
+            throw new TechnicalManagementException(e);
+        }
+    }
+
+    private Optional<Membership> findApplicationPrimaryOwnerMembership(String applicationId, Role role) {
+        try {
+            return membershipRepository
+                .findByReferenceAndRoleId(MembershipReferenceType.APPLICATION, applicationId, role.getId())
+                .stream()
+                .findFirst();
+        } catch (TechnicalException e) {
+            log.error("An error occurs while trying to get primary owner for [applicationId={}]", applicationId, e);
             throw new TechnicalManagementException(e);
         }
     }
