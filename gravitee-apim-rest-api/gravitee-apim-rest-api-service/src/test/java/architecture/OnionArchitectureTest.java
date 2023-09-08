@@ -53,7 +53,8 @@ public class OnionArchitectureTest extends AbstractApimArchitectureTest {
             .adapter(
                 "persistence",
                 anyPackageThatContains(INFRA_PACKAGE + "." + CRUD_SERVICE_PACKAGE),
-                anyPackageThatContains(INFRA_PACKAGE + "." + DOMAIN_SERVICE_PACKAGE)
+                anyPackageThatContains(INFRA_PACKAGE + "." + DOMAIN_SERVICE_PACKAGE),
+                anyPackageThatContains(INFRA_PACKAGE + "." + ADAPTER_PACKAGE)
             )
             .adapter("spring", anyPackageThatContains(INFRA_PACKAGE + ".spring"))
             .check(apimClassesWithoutTests());
