@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import { GioConfirmDialogComponent, GioConfirmDialogData, GioLicenseService } from '@gravitee/ui-particles-angular';
 import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { find, remove } from 'lodash';
 import { combineLatest, EMPTY, Subject } from 'rxjs';
@@ -29,6 +29,7 @@ import { ApiV4, ConnectorPlugin, UpdateApi } from '../../../../entities/manageme
 import { ConnectorPluginsV2Service } from '../../../../services-ngx/connector-plugins-v2.service';
 import { IconService } from '../../../../services-ngx/icon.service';
 import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+import { ApimFeature, UTMTags } from '../../../../shared/components/gio-license/gio-license-data';
 
 @Component({
   selector: 'api-endpoint-groups',
@@ -41,6 +42,12 @@ export class ApiEndpointGroupsComponent implements OnInit, OnDestroy {
   public plugins: Map<string, ConnectorPlugin>;
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   public isReordering = false;
+  public shouldUpgrade = false;
+
+  private licenseOptions = {
+    feature: ApimFeature.APIM_EN_MESSAGE_REACTOR,
+    context: UTMTags.GENERAL_ENDPOINT_CONFIG,
+  };
 
   constructor(
     @Inject(UIRouterState) private readonly ajsState: StateService,
@@ -50,6 +57,7 @@ export class ApiEndpointGroupsComponent implements OnInit, OnDestroy {
     private readonly snackBarService: SnackBarService,
     private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
     private readonly iconService: IconService,
+    private readonly licenseService: GioLicenseService,
   ) {}
 
   public ngOnInit() {
@@ -59,8 +67,16 @@ export class ApiEndpointGroupsComponent implements OnInit, OnDestroy {
           this.groupsTableData = toEndpoints(apiV4);
 
           this.plugins = new Map(
-            plugins.map((plugin) => [plugin.id, { ...plugin, icon: this.iconService.registerSvg(plugin.id, plugin.icon) }]),
+            plugins.map((plugin) => [
+              plugin.id,
+              {
+                ...plugin,
+                icon: this.iconService.registerSvg(plugin.id, plugin.icon),
+              },
+            ]),
           );
+
+          this.shouldUpgrade = this.groupsTableData.some((group) => !this.plugins.get(group.type).deployed);
         }),
         takeUntil(this.unsubscribe$),
       )
@@ -175,5 +191,9 @@ export class ApiEndpointGroupsComponent implements OnInit, OnDestroy {
 
   addEndpointGroup() {
     this.ajsState.go('management.apis.ng.endpoint-group-new');
+  }
+
+  public onRequestUpgrade($event: MouseEvent) {
+    this.licenseService.openDialog(this.licenseOptions, $event);
   }
 }
