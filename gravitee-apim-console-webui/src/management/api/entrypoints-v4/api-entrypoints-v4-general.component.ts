@@ -17,7 +17,7 @@ import { ChangeDetectorRef, Component, Inject, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { EMPTY, forkJoin, Observable, of, Subject } from 'rxjs';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData, GioLicenseService } from '@gravitee/ui-particles-angular';
 import { MatDialog } from '@angular/material/dialog';
 import { StateService } from '@uirouter/core';
 import { flatten, isEmpty, remove } from 'lodash';
@@ -33,6 +33,7 @@ import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { EnvironmentService } from '../../../services-ngx/environment.service';
 import { ConnectorVM, fromConnector } from '../creation-v4/models/ConnectorVM';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
+import { ApimFeature, UTMTags } from '../../../shared/components/gio-license/gio-license-data';
 
 type EntrypointVM = {
   id: string;
@@ -57,6 +58,7 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
   public apiExistingPaths: PathV4[] = [];
   public domainRestrictions: string[] = [];
   public entrypointAvailableForAdd: ConnectorVM[] = [];
+  public shouldUpgrade = false;
   private canUpdate = false;
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
@@ -70,6 +72,7 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
     private readonly matDialog: MatDialog,
     private readonly permissionService: GioPermissionService,
     private readonly changeDetector: ChangeDetectorRef,
+    private readonly licenseService: GioLicenseService,
   ) {
     this.apiId = this.ajsStateParams.apiId;
   }
@@ -88,6 +91,9 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
 
         if (api.definitionVersion === 'V4') {
           this.allEntrypoints = availableEntrypoints;
+          if (api.type === 'MESSAGE') {
+            this.shouldUpgrade = this.allEntrypoints.some(({ deployed }) => !deployed);
+          }
           this.initForm(api);
         }
       });
@@ -323,5 +329,9 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
   onReset() {
     this.formGroup.reset();
     this.initForm(this.api);
+  }
+
+  onRequestUpgrade($event: MouseEvent) {
+    this.licenseService.openDialog({ feature: ApimFeature.APIM_EN_MESSAGE_REACTOR, context: UTMTags.GENERAL_ENTRYPOINT_CONFIG }, $event);
   }
 }
