@@ -11,18 +11,21 @@ const dockerImages = {
 };
 
 const executor = {
-  ubuntu: {
-    version: '2204',
-    tag: 'current',
-  },
-  base: 'cimg/base:stable',
-  node: {
-    image: 'cimg/node',
-    version: '16.10',
+  base: {
+    image: 'cimg/base',
+    version: 'stable',
   },
   openjdk: {
     image: 'cimg/openjdk',
     version: '17.0',
+  },
+  node: {
+    image: 'cimg/node',
+    version: '16.10',
+  },
+  ubuntu: {
+    version: '2204',
+    tag: 'current',
   },
 };
 

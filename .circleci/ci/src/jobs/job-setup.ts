@@ -1,7 +1,8 @@
-import { commands, Config, executors, Job, reusable } from '@circleci/circleci-config-sdk';
+import { commands, Config, Job, reusable } from '@circleci/circleci-config-sdk';
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
 import { orbs } from '../orbs';
 import { config } from '../config';
+import { BaseExecutor } from '../executors';
 
 export class SetupJob {
   public static create(dynamicConfig: Config): Job {
@@ -21,6 +22,6 @@ export class SetupJob {
         paths: [config.maven.settingsFile],
       }),
     ];
-    return new Job('job-setup', new executors.DockerExecutor(config.executor.base, 'small'), steps);
+    return new Job('job-setup', BaseExecutor.create('small'), steps);
   }
 }
