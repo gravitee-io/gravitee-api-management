@@ -15,22 +15,16 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.apim.core.api.domain_service.ApiPrimaryOwnerDomainService;
-import io.gravitee.rest.api.model.GroupEntity;
-import io.gravitee.rest.api.model.MemberEntity;
-import io.gravitee.rest.api.model.MembershipEntity;
-import io.gravitee.rest.api.model.MembershipMemberType;
-import io.gravitee.rest.api.model.MembershipReferenceType;
-import io.gravitee.rest.api.model.PrimaryOwnerEntity;
-import io.gravitee.rest.api.model.RoleEntity;
-import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.GroupService;
@@ -39,14 +33,9 @@ import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.exceptions.PrimaryOwnerNotFoundException;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -77,22 +66,25 @@ public class PrimaryOwnerServiceImplTest {
     @Mock
     private RoleService roleService;
 
-    @Mock
-    private ApiPrimaryOwnerDomainService primaryOwnerDomainService;
-
     private static final ExecutionContext EXECUTION_CONTEXT = new ExecutionContext("TEST", "TEST");
 
     @Before
     public void setUp() {
-        this.primaryOwnerService =
-            new PrimaryOwnerServiceImpl(
-                userService,
-                membershipService,
-                groupService,
-                parameterService,
-                roleService,
-                primaryOwnerDomainService
-            );
+        this.primaryOwnerService = new PrimaryOwnerServiceImpl(userService, membershipService, groupService, parameterService, roleService);
+    }
+
+    @Test
+    public void getPrimaryOwner_should_throw_PrimaryOwnerNotFoundException_if_no_membership_found() {
+        when(membershipService.getPrimaryOwner(EXECUTION_CONTEXT.getOrganizationId(), MembershipReferenceType.API, "my-api"))
+            .thenReturn(null);
+        PrimaryOwnerNotFoundException exception = assertThrows(
+            PrimaryOwnerNotFoundException.class,
+            () -> primaryOwnerService.getPrimaryOwner(EXECUTION_CONTEXT, "my-api")
+        );
+        assertEquals("Primary owner not found for API [my-api]", exception.getMessage());
+        assertEquals("primaryOwner.notFound", exception.getTechnicalCode());
+        assertEquals(500, exception.getHttpStatusCode());
+        assertEquals(Map.of("api", "my-api"), exception.getParameters());
     }
 
     @Test
@@ -135,6 +127,98 @@ public class PrimaryOwnerServiceImplTest {
         Map<String, PrimaryOwnerEntity> primaryOwners = primaryOwnerService.getPrimaryOwners(EXECUTION_CONTEXT, apiIds);
         assertNotNull(primaryOwners);
         assertEquals(3, primaryOwners.size());
+    }
+
+    @Test
+    public void getPrimaryOwner_should_return_group_primary_owner_with_email_of_po_user() {
+        final MembershipEntity groupMembership = primaryOwnerGroupMembership();
+        groupMembership.setMemberId("member-id");
+        when(membershipService.getPrimaryOwner(EXECUTION_CONTEXT.getOrganizationId(), MembershipReferenceType.API, "api"))
+            .thenReturn(groupMembership);
+
+        MemberEntity member = new MemberEntity();
+        member.setId("some-member");
+        member.setEmail("some-member@mail.com");
+        member.setRoles(List.of());
+
+        MemberEntity memberOther = new MemberEntity();
+        memberOther.setId("other-member");
+        memberOther.setEmail("other-member@mail.com");
+        memberOther.setRoles(List.of());
+
+        MemberEntity poMember = new MemberEntity();
+        poMember.setId("po-member");
+        poMember.setEmail("po-member@mail.com");
+        final RoleEntity role = new RoleEntity();
+        role.setScope(RoleScope.API);
+        role.setName(SystemRole.PRIMARY_OWNER.name());
+        poMember.setRoles(List.of(role));
+
+        when(membershipService.getMembersByReference(EXECUTION_CONTEXT, MembershipReferenceType.GROUP, groupMembership.getMemberId()))
+            .thenReturn(Set.of(member, memberOther, poMember));
+
+        final GroupEntity poGroup = primaryOwnerGroup();
+        when(groupService.findById(EXECUTION_CONTEXT, groupMembership.getMemberId())).thenReturn(poGroup);
+
+        final PrimaryOwnerEntity result = primaryOwnerService.getPrimaryOwner(EXECUTION_CONTEXT, "api");
+        assertThat(result.getId()).isEqualTo(poGroup.getId());
+        assertThat(result.getType()).isEqualTo("GROUP");
+        assertThat(result.getEmail()).isEqualTo("po-member@mail.com");
+    }
+
+    @Test
+    public void shouldReturnPrimaryOwnerEmailFromUser() {
+        final String apiId = "some-api";
+
+        when(
+            membershipService.getPrimaryOwner(
+                EXECUTION_CONTEXT.getOrganizationId(),
+                io.gravitee.rest.api.model.MembershipReferenceType.API,
+                apiId
+            )
+        )
+            .thenReturn(primaryOwnerUserMembership());
+
+        when(userService.findById(EXECUTION_CONTEXT, "some-user")).thenReturn(primaryOwnerUser());
+
+        String email = primaryOwnerService.getPrimaryOwnerEmail(EXECUTION_CONTEXT, apiId);
+
+        assertThat(email).isEqualTo("some-user@gravitee.test");
+    }
+
+    @Test
+    public void shouldReturnPrimaryOwnerEmailFromGroupMember() {
+        final String apiId = "some-api";
+
+        when(
+            membershipService.getPrimaryOwner(
+                EXECUTION_CONTEXT.getOrganizationId(),
+                io.gravitee.rest.api.model.MembershipReferenceType.API,
+                apiId
+            )
+        )
+            .thenReturn(primaryOwnerGroupMembership());
+
+        when(roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), EXECUTION_CONTEXT.getOrganizationId()))
+            .thenReturn(apiPrimaryOwnerRole());
+
+        when(
+            membershipService.getMembersByReferenceAndRole(
+                EXECUTION_CONTEXT,
+                MembershipReferenceType.GROUP,
+                "some-group",
+                "role-api-primary-owner"
+            )
+        )
+            .thenReturn(primaryOwnerGroupMember());
+
+        when(groupService.findById(EXECUTION_CONTEXT, "some-group")).thenReturn(primaryOwnerGroup());
+
+        when(userService.findById(EXECUTION_CONTEXT, "some-member")).thenReturn(primaryOwnerUser());
+
+        String email = primaryOwnerService.getPrimaryOwnerEmail(EXECUTION_CONTEXT, apiId);
+
+        assertThat(email).isEqualTo("some-user@gravitee.test");
     }
 
     private static MembershipEntity primaryOwnerUserMembership() {
