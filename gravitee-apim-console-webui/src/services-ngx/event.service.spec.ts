@@ -57,4 +57,25 @@ describe('EventService', () => {
         .flush(responseEvent);
     });
   });
+
+  describe('search', () => {
+    it('should call the API', (done) => {
+      const eventId = 'event#1';
+      const responseEvent = { content: [fakeEvent({ id: eventId })] };
+
+      eventService
+        .search('START_API,STOP_API,PUBLISH_API,UNPUBLISH_API', '', '', 1691505958670, 1694097958670, 1, 10)
+        .subscribe((result) => {
+          expect(result).toMatchObject(responseEvent);
+          done();
+        });
+
+      httpTestingController
+        .expectOne({
+          method: 'GET',
+          url: `https://url.test:3000/management/organizations/DEFAULT/environments/DEFAULT/platform/events?type=START_API,STOP_API,PUBLISH_API,UNPUBLISH_API&query=&api_ids=&from=1691505958670&to=1694097958670&page=1&size=10`,
+        })
+        .flush(responseEvent);
+    });
+  });
 });

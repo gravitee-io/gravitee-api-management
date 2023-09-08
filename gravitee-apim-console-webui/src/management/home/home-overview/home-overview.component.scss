@@ -6,7 +6,7 @@
 $typography: map.get(gio.$mat-theme, typography);
 
 .home-overview {
-  padding: 24px;
+  padding: 24px 24px 16px 24px;
   display: flex;
   flex-flow: column;
   gap: 14px;
@@ -48,6 +48,11 @@ $typography: map.get(gio.$mat-theme, typography);
     }
   }
 }
+
+.home-api-events {
+  padding: 16px 24px 16px 24px;
+}
+
 .loader {
   display: flex;
   align-items: center;

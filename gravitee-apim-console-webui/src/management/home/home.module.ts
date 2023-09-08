@@ -37,6 +37,7 @@ import { GioTopApisTableModule } from './components/gio-top-apis-table/gio-top-a
 import { GioApiResponseStatusModule } from './components/gio-api-response-status/gio-api-response-status.module';
 import { GioApiStateModule } from './components/gio-api-state/gio-api-state.module';
 import { GioApiLifecycleStateModule } from './components/gio-api-lifecycle-state/gio-api-lifecycle-state.module';
+import { GioApiEventsTableModule } from './components/gio-api-events-table/gio-api-events-table.module';
 
 import { GioCircularPercentageModule } from '../../shared/components/gio-circular-percentage/gio-circular-percentage.module';
 import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
@@ -126,6 +127,7 @@ export const states: Ng2StateDeclaration[] = [
     GioApiResponseStatusModule,
     GioApiStateModule,
     GioApiLifecycleStateModule,
+    GioApiEventsTableModule,
   ],
   declarations: [HomeLayoutComponent, HomeOverviewComponent, HomeApiHealthCheckComponent],
 })
