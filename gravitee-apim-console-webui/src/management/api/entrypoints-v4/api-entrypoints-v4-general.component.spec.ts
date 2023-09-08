@@ -21,7 +21,7 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
-import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
+import { GioConfirmDialogHarness, GioLicenseTestingModule } from '@gravitee/ui-particles-angular';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatRowHarnessColumnsText } from '@angular/material/table/testing';
 
@@ -66,7 +66,14 @@ describe('ApiProxyV4EntrypointsComponent', () => {
     currentUser.userPermissions = permissions;
 
     await TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiEntrypointsV4Module, MatIconTestingModule, MatAutocompleteModule],
+      imports: [
+        NoopAnimationsModule,
+        GioHttpTestingModule,
+        ApiEntrypointsV4Module,
+        MatIconTestingModule,
+        MatAutocompleteModule,
+        GioLicenseTestingModule,
+      ],
       providers: [
         { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
         { provide: UIRouterState, useValue: fakeUiRouter },
