@@ -89,6 +89,20 @@
         <tr mat-header-row *matHeaderRowDef="displayedColumns" class="entrypoints__type__table__header"></tr>
         <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
       </table>
+
+      <div *ngIf="shouldUpgrade">
+        <gio-banner type="error" icon="gio:universe" class="license__banner">
+          This configuration requires an enterprise license
+          <span gioBannerBody
+            >Request a license to unlock enterprise functionality, such as support for event brokers, asynchronous APIS, and Webhook
+            subscriptions.</span
+          >
+          <div gioBannerAction>
+            <button mat-raised-button (click)="onRequestUpgrade($event)">Request upgrade</button>
+          </div>
+        </gio-banner>
+      </div>
+
       <button
         *ngIf="canUpdate"
         mat-stroked-button
