@@ -11,6 +11,12 @@ const dockerImages = {
 };
 
 const executor = {
+  azure: {
+    // Version can be found here https://docs.microsoft.com/en-us/cli/azure/release-notes-azure-cli
+    // be careful when updating the version as it looks it is not following semver
+    image: 'mcr.microsoft.com/azure-cli',
+    version: '2.34.1',
+  },
   base: {
     image: 'cimg/base',
     version: 'stable',

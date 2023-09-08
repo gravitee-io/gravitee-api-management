@@ -1,6 +1,7 @@
 export * from './job-add-docker-images-in-snyk';
 export * from './job-build-backend';
 export * from './job-build-backend-images';
+export * from './job-deploy-on-azure';
 export * from './job-nexus-staging';
 export * from './job-package-bundle';
 export * from './job-publish-pr-env-urls';
