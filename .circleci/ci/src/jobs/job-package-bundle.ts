@@ -8,8 +8,7 @@ import { awsS3 } from '../orbs/aws-s3';
 import { GraviteeioVersion, parse } from '../utils';
 
 export class PackageBundleJob {
-  private static readonly ARTIFACTORY_REPO_URL =
-    'https://odbxikk7vo-artifactory.services.clever-cloud.com/external-dependencies-n-gravitee-all';
+  private static readonly ARTIFACTORY_REPO_URL = `${config.artifactoryUrl}/external-dependencies-n-gravitee-all`;
 
   public static create(dynamicConfig: Config, graviteeioVersion: string, isDryRun: boolean) {
     dynamicConfig.importOrb(keeper);

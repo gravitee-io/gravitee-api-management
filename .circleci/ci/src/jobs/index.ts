@@ -1,3 +1,4 @@
+export * from './frontend/index';
 export * from './job-add-docker-images-in-snyk';
 export * from './backend/job-build-backend';
 export * from './job-build-backend-images';
@@ -8,6 +9,7 @@ export * from './job-perf-lint-build';
 export * from './job-publish-pr-env-urls';
 export * from './job-publish-prod-docker-images';
 export * from './job-publish-rpm-packages';
+export * from './job-release-commit-and-prepare-next-version';
 export * from './job-release-notes-apim';
 export * from './job-setup';
 export * from './job-slack-announcement';
