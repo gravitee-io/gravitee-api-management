@@ -20,12 +20,10 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { GioConfirmDialogModule } from '@gravitee/ui-particles-angular';
 
 import { EnvAuditModule } from './audit/env-audit.module';
-import { ApiCreationModule } from './api/creation/api-creation.module';
 import { EnvironmentApplicationModule } from './application/environment-application.module';
 import { ApisModule } from './api/apis.module';
 import { SettingsNavigationModule } from './configuration/settings-navigation/settings-navigation.module';
 import { InstanceDetailsModule } from './instances/instance-details/instance-details.module';
-import { ApiCreationV4Module } from './api/creation-v4/api-creation-v4.module';
 import { MessagesModule } from './messages/messages.module';
 import { HomeModule } from './home/home.module';
 import { TasksModule } from './tasks/tasks.module';
@@ -43,8 +41,6 @@ import { AlertsModule } from '../components/alerts/alerts.module';
     GioPermissionModule,
     GioConfirmDialogModule,
     EnvAuditModule,
-    ApiCreationModule,
-    ApiCreationV4Module,
     HomeModule,
     ApisModule,
     EnvironmentApplicationModule,

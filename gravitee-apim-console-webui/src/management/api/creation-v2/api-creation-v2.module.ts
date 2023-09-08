@@ -1,5 +1,3 @@
-import { shouldDisplayHint } from '../../../api/creation-v2/steps/form.helper';
-
 /*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
@@ -15,14 +13,12 @@ import { shouldDisplayHint } from '../../../api/creation-v2/steps/form.helper';
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const ApplicationCreationStep1Component: ng.IComponentOptions = {
-  require: {
-    parent: '^createApplication',
-  },
-  template: require('./application-creation-step1.html'),
-  controller: class {
-    public shouldDisplayHint = shouldDisplayHint;
-  },
-};
+import { NgModule } from '@angular/core';
 
-export default ApplicationCreationStep1Component;
+import { ApiCreationV2Component } from './steps/api-creation-v2.component';
+
+@NgModule({
+  declarations: [ApiCreationV2Component],
+  exports: [ApiCreationV2Component],
+})
+export class ApiCreationV2Module {}
