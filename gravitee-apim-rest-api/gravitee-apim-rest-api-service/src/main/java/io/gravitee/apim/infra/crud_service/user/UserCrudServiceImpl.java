@@ -17,7 +17,7 @@ package io.gravitee.apim.infra.crud_service.user;
 
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
-import io.gravitee.apim.infra.crud_service.user.adapter.UserAdapter;
+import io.gravitee.apim.infra.adapter.UserAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.model.User;
@@ -46,7 +46,7 @@ public class UserCrudServiceImpl implements UserCrudService {
         try {
             log.debug("Find user [userId={}]", id);
             Optional<User> optionalUser = userRepository.findById(id);
-            return optionalUser.map(UserAdapter::toBaseUserEntity);
+            return optionalUser.map(UserAdapter.INSTANCE::fromUser);
         } catch (TechnicalException ex) {
             log.error("An error occurs while trying to find user using [userId={}]", id, ex);
             throw new TechnicalManagementException(ex);
@@ -57,7 +57,7 @@ public class UserCrudServiceImpl implements UserCrudService {
     public Set<BaseUserEntity> findBaseUsersByIds(List<String> userIds) {
         try {
             log.debug("Find users [userIds={}]", userIds);
-            return userRepository.findByIds(userIds).stream().map(UserAdapter::toBaseUserEntity).collect(Collectors.toSet());
+            return userRepository.findByIds(userIds).stream().map(UserAdapter.INSTANCE::fromUser).collect(Collectors.toSet());
         } catch (TechnicalException ex) {
             log.error("An error occurs while trying to find user using [userIds={}]", userIds, ex);
             throw new TechnicalManagementException(ex);
@@ -69,7 +69,7 @@ public class UserCrudServiceImpl implements UserCrudService {
         try {
             log.debug("Find user [userId={}]", id);
             Optional<User> optionalUser = userRepository.findById(id);
-            return optionalUser.map(UserAdapter::toBaseUserEntity).orElseThrow(() -> new UserNotFoundException(id));
+            return optionalUser.map(UserAdapter.INSTANCE::fromUser).orElseThrow(() -> new UserNotFoundException(id));
         } catch (TechnicalException ex) {
             log.error("An error occurs while trying to get user using [userId={}]", id, ex);
             throw new TechnicalManagementException("An error occurs while trying to get user " + id, ex);
