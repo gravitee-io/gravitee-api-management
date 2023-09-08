@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.notification.model.hook;
+package io.gravitee.apim.core.subscription.domain_service;
 
-import java.util.Map;
+import io.gravitee.apim.core.audit.model.AuditActor;
+import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 
-public interface HookContext {
-    Map<HookContextEntry, String> getProperties();
+public interface CloseSubscriptionDomainService {
+    SubscriptionEntity closeSubscription(ExecutionContext executionContext, String subscriptionId, AuditActor currentUser);
 }

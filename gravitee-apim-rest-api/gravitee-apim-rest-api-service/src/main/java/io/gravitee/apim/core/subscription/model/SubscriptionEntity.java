@@ -15,7 +15,8 @@
  */
 package io.gravitee.apim.core.subscription.model;
 
-import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.time.ZonedDateTime;
 import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -39,7 +40,7 @@ public class SubscriptionEntity {
     /** The clientId linked to the subscription */
     private String clientId;
     /** When the subscription has been processed. */
-    private Date processedAt;
+    private ZonedDateTime processedAt;
     /** Give a request message to the api owner why a user wants to subscribe */
     private String requestMessage;
     /** Give a reason to the developer if the subscription is accepted or not. */
@@ -58,15 +59,15 @@ public class SubscriptionEntity {
     private String processedBy;
     /** The username of the user who has subscribed to the plan. */
     private String subscribedBy;
-    private Date startingAt;
-    private Date endingAt;
+    private ZonedDateTime startingAt;
+    private ZonedDateTime endingAt;
     /** Subscription creation date */
-    private Date createdAt;
+    private ZonedDateTime createdAt;
     /** Subscription last update date */
-    private Date updatedAt;
-    private Date closedAt;
-    private Date pausedAt;
-    private Date consumerPausedAt;
+    private ZonedDateTime updatedAt;
+    private ZonedDateTime closedAt;
+    private ZonedDateTime pausedAt;
+    private ZonedDateTime consumerPausedAt;
 
     private Integer generalConditionsContentRevision;
     private String generalConditionsContentPageId;
@@ -96,6 +97,42 @@ public class SubscriptionEntity {
      */
     public boolean canBeStoppedByConsumer() {
         return ConsumerStatus.STARTED.equals(consumerStatus) || ConsumerStatus.FAILURE.equals(consumerStatus);
+    }
+
+    public SubscriptionEntity close() {
+        return switch (this.status) {
+            case ACCEPTED, PAUSED -> {
+                final ZonedDateTime now = ZonedDateTime.now();
+                yield this.toBuilder().updatedAt(now).closedAt(now).status(Status.CLOSED).build();
+            }
+            case PENDING -> throw new IllegalStateException("Pending subscription not implemented yet"); // TODO: handle pending status
+            case REJECTED, CLOSED -> throw new IllegalStateException("Subscription not closable"); // TODO: create new Exception type for this
+        };
+    }
+
+    @JsonIgnore
+    public boolean isAccepted() {
+        return this.status == Status.ACCEPTED;
+    }
+
+    @JsonIgnore
+    public boolean isPaused() {
+        return this.status == Status.PAUSED;
+    }
+
+    @JsonIgnore
+    public boolean isPending() {
+        return this.status == Status.PENDING;
+    }
+
+    @JsonIgnore
+    public boolean isRejected() {
+        return this.status == Status.REJECTED;
+    }
+
+    @JsonIgnore
+    public boolean isClosed() {
+        return this.status == Status.CLOSED;
     }
 
     public enum Status {

@@ -16,18 +16,19 @@
 package io.gravitee.apim.core.notification.model.hook;
 
 import io.gravitee.rest.api.service.notification.ApiHook;
-import io.gravitee.rest.api.service.notification.Hook;
 import java.util.HashMap;
 import java.util.Map;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.experimental.SuperBuilder;
+import lombok.ToString;
 
+@Getter
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 public abstract class ApiHookContext extends AbstractHookContext {
 
-    @Getter
     private final ApiHook hook;
 
-    @Getter
     private final String apiId;
 
     public ApiHookContext(ApiHook hook, String apiId) {

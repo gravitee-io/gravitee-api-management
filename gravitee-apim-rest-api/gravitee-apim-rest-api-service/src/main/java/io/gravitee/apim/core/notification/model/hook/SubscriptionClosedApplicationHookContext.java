@@ -15,13 +15,28 @@
  */
 package io.gravitee.apim.core.notification.model.hook;
 
+import io.gravitee.rest.api.service.notification.ApplicationHook;
 import java.util.Map;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.ToString;
 
-@EqualsAndHashCode
-@ToString
-public abstract class AbstractHookContext implements HookContext {
+@EqualsAndHashCode(callSuper = true)
+@Getter
+@ToString(callSuper = true)
+public class SubscriptionClosedApplicationHookContext extends ApplicationHookContext {
 
-    protected abstract Map<HookContextEntry, String> getChildProperties();
+    String apiId;
+    String planId;
+
+    public SubscriptionClosedApplicationHookContext(String applicationId, String apiId, String planId) {
+        super(ApplicationHook.SUBSCRIPTION_CLOSED, applicationId);
+        this.apiId = apiId;
+        this.planId = planId;
+    }
+
+    @Override
+    protected Map<HookContextEntry, String> getChildProperties() {
+        return Map.of(HookContextEntry.API_ID, apiId, HookContextEntry.PLAN_ID, planId);
+    }
 }

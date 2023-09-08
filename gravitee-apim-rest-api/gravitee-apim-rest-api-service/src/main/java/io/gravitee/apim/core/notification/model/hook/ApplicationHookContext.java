@@ -18,9 +18,13 @@ package io.gravitee.apim.core.notification.model.hook;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
 import java.util.HashMap;
 import java.util.Map;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.ToString;
 
+@EqualsAndHashCode(callSuper = true)
 @Getter
+@ToString(callSuper = true)
 public abstract class ApplicationHookContext extends AbstractHookContext {
 
     private final ApplicationHook hook;

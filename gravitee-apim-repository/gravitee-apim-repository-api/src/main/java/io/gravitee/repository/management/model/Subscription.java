@@ -18,11 +18,19 @@ package io.gravitee.repository.management.model;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Map;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.Getter;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Getter
+@Data
+@Builder
+@AllArgsConstructor
 public class Subscription implements Serializable {
 
     public enum AuditEvent implements Audit.ApiAuditEvent {
@@ -145,216 +153,108 @@ public class Subscription implements Serializable {
         this.type = cloned.type;
     }
 
-    public String getId() {
-        return id;
-    }
-
     public void setId(String id) {
         this.id = id;
-    }
-
-    public String getApi() {
-        return api;
     }
 
     public void setApi(String api) {
         this.api = api;
     }
 
-    public String getPlan() {
-        return plan;
-    }
-
     public void setPlan(String plan) {
         this.plan = plan;
-    }
-
-    public String getApplication() {
-        return application;
     }
 
     public void setApplication(String application) {
         this.application = application;
     }
 
-    public Date getStartingAt() {
-        return startingAt;
-    }
-
     public void setStartingAt(Date startingAt) {
         this.startingAt = startingAt;
-    }
-
-    public Date getEndingAt() {
-        return endingAt;
     }
 
     public void setEndingAt(Date endingAt) {
         this.endingAt = endingAt;
     }
 
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
     public void setCreatedAt(Date createdAt) {
         this.createdAt = createdAt;
-    }
-
-    public Date getUpdatedAt() {
-        return updatedAt;
     }
 
     public void setUpdatedAt(Date updatedAt) {
         this.updatedAt = updatedAt;
     }
 
-    public Date getProcessedAt() {
-        return processedAt;
-    }
-
     public void setProcessedAt(Date processedAt) {
         this.processedAt = processedAt;
-    }
-
-    public String getProcessedBy() {
-        return processedBy;
     }
 
     public void setProcessedBy(String processedBy) {
         this.processedBy = processedBy;
     }
 
-    public String getSubscribedBy() {
-        return subscribedBy;
-    }
-
     public void setSubscribedBy(String subscribedBy) {
         this.subscribedBy = subscribedBy;
-    }
-
-    public String getRequest() {
-        return request;
     }
 
     public void setRequest(String request) {
         this.request = request;
     }
 
-    public String getReason() {
-        return reason;
-    }
-
     public void setReason(String reason) {
         this.reason = reason;
-    }
-
-    public Status getStatus() {
-        return status;
     }
 
     public void setStatus(Status status) {
         this.status = status;
     }
 
-    public ConsumerStatus getConsumerStatus() {
-        return consumerStatus;
-    }
-
     public void setConsumerStatus(ConsumerStatus consumerStatus) {
         this.consumerStatus = consumerStatus;
-    }
-
-    public Date getClosedAt() {
-        return closedAt;
     }
 
     public void setClosedAt(Date closedAt) {
         this.closedAt = closedAt;
     }
 
-    public String getClientId() {
-        return clientId;
-    }
-
     public void setClientId(String clientId) {
         this.clientId = clientId;
-    }
-
-    public Date getPausedAt() {
-        return pausedAt;
     }
 
     public void setPausedAt(Date pausedAt) {
         this.pausedAt = pausedAt;
     }
 
-    public Date getConsumerPausedAt() {
-        return consumerPausedAt;
-    }
-
     public void setConsumerPausedAt(Date consumerPausedAt) {
         this.consumerPausedAt = consumerPausedAt;
-    }
-
-    public Integer getGeneralConditionsContentRevision() {
-        return generalConditionsContentRevision;
     }
 
     public void setGeneralConditionsContentRevision(Integer generalConditionsContentRevision) {
         this.generalConditionsContentRevision = generalConditionsContentRevision;
     }
 
-    public String getGeneralConditionsContentPageId() {
-        return generalConditionsContentPageId;
-    }
-
     public void setGeneralConditionsContentPageId(String generalConditionsContentPageId) {
         this.generalConditionsContentPageId = generalConditionsContentPageId;
-    }
-
-    public Boolean getGeneralConditionsAccepted() {
-        return generalConditionsAccepted;
     }
 
     public void setGeneralConditionsAccepted(Boolean generalConditionsAccepted) {
         this.generalConditionsAccepted = generalConditionsAccepted;
     }
 
-    public Integer getDaysToExpirationOnLastNotification() {
-        return daysToExpirationOnLastNotification;
-    }
-
     public void setDaysToExpirationOnLastNotification(Integer daysToExpirationOnLastNotification) {
         this.daysToExpirationOnLastNotification = daysToExpirationOnLastNotification;
-    }
-
-    public String getConfiguration() {
-        return configuration;
     }
 
     public void setConfiguration(String configuration) {
         this.configuration = configuration;
     }
 
-    public Map<String, String> getMetadata() {
-        return metadata;
-    }
-
     public void setMetadata(Map<String, String> metadata) {
         this.metadata = metadata;
     }
 
-    public Type getType() {
-        return type;
-    }
-
     public void setType(Type type) {
         this.type = type;
-    }
-
-    public String getFailureCause() {
-        return failureCause;
     }
 
     public void setFailureCause(String failureCause) {
