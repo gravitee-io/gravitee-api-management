@@ -23,7 +23,6 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { GioIconsModule } from '@gravitee/ui-particles-angular';
 
 import { ApiCreationGetStartedComponent } from './api-creation-get-started.component';
-import { ApiCreationV2Component } from './steps/api-creation-v2.component';
 
 import { GioApiImportDialogModule } from '../../../shared/components/gio-api-import-dialog/gio-api-import-dialog.module';
 
@@ -38,7 +37,7 @@ import { GioApiImportDialogModule } from '../../../shared/components/gio-api-imp
     GioIconsModule,
     GioApiImportDialogModule,
   ],
-  declarations: [ApiCreationGetStartedComponent, ApiCreationV2Component],
-  exports: [ApiCreationGetStartedComponent, ApiCreationV2Component],
+  declarations: [ApiCreationGetStartedComponent],
+  exports: [ApiCreationGetStartedComponent],
 })
-export class ApiCreationModule {}
+export class ApiCreationGetStartedModule {}

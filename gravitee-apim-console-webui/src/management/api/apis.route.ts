@@ -64,10 +64,10 @@ import { ApiRuntimeLogsSettingsComponent } from './runtime-logs-v4/runtime-logs-
 import { ApiRuntimeLogsComponent } from './runtime-logs-v4/runtime-logs/api-runtime-logs.component';
 import { ApiListComponent } from './list/api-list.component';
 import { NotificationsListComponent } from './notifications/notifications-list/notifications-list.component';
-import { ApiCreationGetStartedComponent } from './creation/api-creation-get-started.component';
+import { ApiCreationGetStartedComponent } from './creation-get-started/api-creation-get-started.component';
 import { ApiCreationV4Component } from './creation-v4/api-creation-v4.component';
 import { ApiCreationV4ConfirmationComponent } from './creation-v4/api-creation-v4-confirmation.component';
-import { ApiCreationV2Component } from './creation/steps/api-creation-v2.component';
+import { ApiCreationV2Component } from './creation-v2/steps/api-creation-v2.component';
 
 import { NotificationsComponent } from '../../components/notifications/notifications.component';
 import { Scope } from '../../entities/scope';

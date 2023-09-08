@@ -59,13 +59,13 @@ import { LogoutComponent } from '../user/logout/logout.component';
 
 import DiffDirective from '../components/diff/diff.directive';
 // Api
-import ApiCreationV2ComponentAjs from './api/creation/steps/api-creation-v2.component.ajs';
-import ApiCreationV2ControllerAjs from './api/creation/steps/api-creation-v2.controller.ajs';
-import ApiCreationStep1Component from '../management/api/creation/steps/api-creation-step1.component';
-import ApiCreationStep2Component from '../management/api/creation/steps/api-creation-step2.component';
-import ApiCreationStep3Component from '../management/api/creation/steps/api-creation-step3.component';
-import ApiCreationStep4Component from '../management/api/creation/steps/api-creation-step4.component';
-import ApiCreationStep5Component from '../management/api/creation/steps/api-creation-step5.component';
+import ApiCreationV2ComponentAjs from './api/creation-v2/steps/api-creation-v2.component.ajs';
+import ApiCreationV2ControllerAjs from './api/creation-v2/steps/api-creation-v2.controller.ajs';
+import ApiCreationStep1Component from './api/creation-v2/steps/api-creation-step1.component';
+import ApiCreationStep2Component from './api/creation-v2/steps/api-creation-step2.component';
+import ApiCreationStep3Component from './api/creation-v2/steps/api-creation-step3.component';
+import ApiCreationStep4Component from './api/creation-v2/steps/api-creation-step4.component';
+import ApiCreationStep5Component from './api/creation-v2/steps/api-creation-step5.component';
 // API Plan
 // API PrimaryOwner Mode
 import ApiPrimaryOwnerModeService from '../services/apiPrimaryOwnerMode.service';

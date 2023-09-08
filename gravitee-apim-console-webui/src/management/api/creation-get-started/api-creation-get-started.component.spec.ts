@@ -23,7 +23,7 @@ import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 
 import { ApiCreationGetStartedComponent } from './api-creation-get-started.component';
-import { ApiCreationModule } from './api-creation.module';
+import { ApiCreationGetStartedModule } from './api-creation-get-started.module';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { CurrentUserService, UIRouterState } from '../../../ajs-upgraded-providers';
@@ -43,7 +43,7 @@ describe('ApiCreationGetStartedComponent', () => {
 
   const initConfigureTestingModule = (currentUser: User) => {
     TestBed.configureTestingModule({
-      imports: [GioPermissionModule, GioHttpTestingModule, ApiCreationModule, MatIconTestingModule, NoopAnimationsModule],
+      imports: [GioPermissionModule, GioHttpTestingModule, ApiCreationGetStartedModule, MatIconTestingModule, NoopAnimationsModule],
       providers: [
         { provide: UIRouterState, useValue: fakeAjsState },
         {
