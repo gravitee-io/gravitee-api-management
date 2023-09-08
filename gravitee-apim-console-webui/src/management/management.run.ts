@@ -95,7 +95,7 @@ function runBlock(
         return;
       }
 
-      return trans.router.stateService.target('management.apis.new');
+      return trans.router.stateService.target('management.apis-new');
     },
   );
 

@@ -153,7 +153,7 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
             this.snackBarService.error(finalResult.errorMessages.join('\n'));
           }
           if (finalResult.result?.api?.id) {
-            this.ajsState.go('management.apis.create-v4-confirmation', { apiId: finalResult.result.api.id });
+            this.ajsState.go('management.apis-new-v4-confirmation', { apiId: finalResult.result.api.id });
           }
         },
         (error) => {

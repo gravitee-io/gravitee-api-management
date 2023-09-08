@@ -262,7 +262,7 @@ describe('ApisListComponent', () => {
 
         await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="add-api"]' })).then((button) => button.click());
 
-        expect(routerSpy).toHaveBeenCalledWith('management.apis.new');
+        expect(routerSpy).toHaveBeenCalledWith('management.apis-new');
       });
     });
 

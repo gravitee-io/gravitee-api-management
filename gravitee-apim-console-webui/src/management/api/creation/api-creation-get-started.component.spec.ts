@@ -108,13 +108,13 @@ describe('ApiCreationGetStartedComponent', () => {
     it('should go to api v2 creation wizard', async () => {
       httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/installation`);
       component.goToApiV2CreationWizard();
-      expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.create-v2');
+      expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis-new-v2');
     });
 
     it('should go to api v4 creation wizard', async () => {
       httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/installation`);
       component.goToApiv4CreationWizard();
-      expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.create-v4');
+      expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis-new-v4');
     });
 
     it('should open api import dialog', async () => {

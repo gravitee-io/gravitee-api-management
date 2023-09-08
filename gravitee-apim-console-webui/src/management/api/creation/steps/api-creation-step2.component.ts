@@ -13,18 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import ApiCreationController from './api-creation.controller';
+import ApiCreationV2ControllerAjs from './api-creation-v2.controller.ajs';
 import { shouldDisplayHint } from './form.helper';
 
 const ApiCreationStep2Component: ng.IComponentOptions = {
   require: {
-    parent: '^apiCreation',
+    parent: '^apiCreationV2ComponentAjs',
   },
   template: require('./api-creation-step2.html'),
   controller: class {
     public shouldDisplayHint = shouldDisplayHint;
 
-    private parent: ApiCreationController;
+    private parent: ApiCreationV2ControllerAjs;
     private advancedMode: boolean;
 
     /* @ngInject */

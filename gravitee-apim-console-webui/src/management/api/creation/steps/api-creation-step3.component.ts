@@ -17,7 +17,7 @@ import { shouldDisplayHint } from './form.helper';
  */
 const ApiCreationStep3Component: ng.IComponentOptions = {
   require: {
-    parent: '^apiCreation',
+    parent: '^apiCreationV2ComponentAjs',
   },
   template: require('./api-creation-step3.html'),
   controller: class {

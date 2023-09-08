@@ -46,7 +46,7 @@ interface Api {
   execution_mode?: string;
 }
 
-class ApiCreationController {
+class ApiCreationV2ControllerAjs {
   api: Api;
   selectedTenants: any[];
   attachableGroups: any[];
@@ -207,7 +207,7 @@ class ApiCreationController {
     if (this.vm.selectedStep > 0) {
       this.vm.selectedStep = this.vm.selectedStep - 1;
     } else {
-      this.$state.go('management.apis.new');
+      this.$state.go('management.apis-new');
     }
   }
 
@@ -526,4 +526,4 @@ class ApiCreationController {
   }
 }
 
-export default ApiCreationController;
+export default ApiCreationV2ControllerAjs;

@@ -90,7 +90,7 @@ export class GioSideNavComponent implements OnInit {
       {
         icon: 'gio:upload-cloud',
         targetRoute: 'management.apis-list',
-        baseRoute: ['management.apis-list', 'management.apis'],
+        baseRoute: ['management.apis-list', 'management.apis', 'management.apis-new', 'management.apis-new-v2', 'management.apis-new-v4'],
         displayName: 'APIs',
       },
       {
