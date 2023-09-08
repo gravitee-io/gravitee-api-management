@@ -1,10 +1,10 @@
 import { commands, Config, Job, parameters, reusable } from '@circleci/circleci-config-sdk';
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
 import { CommandParameterLiteral } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Parameters/types/CustomParameterLiterals.types';
-import { NodeLtsExecutor } from '../executors';
-import { BuildUiImageCommand, NotifyOnFailureCommand, WebuiInstallCommand } from '../commands';
-import { CircleCIEnvironment } from '../pipelines';
-import { computeApimVersion } from '../utils';
+import { NodeLtsExecutor } from '../../executors';
+import { BuildUiImageCommand, NotifyOnFailureCommand, WebuiInstallCommand } from '../../commands';
+import { CircleCIEnvironment } from '../../pipelines';
+import { computeApimVersion } from '../../utils';
 
 export class WebuiBuildJob {
   private static jobName = 'job-webui-build';

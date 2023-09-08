@@ -2,7 +2,7 @@ import { Config, workflow, Workflow } from '@circleci/circleci-config-sdk';
 import { BuildBackendImagesJob, BuildBackendJob, PublishPrEnvUrlsJob, SetupJob } from '../jobs';
 import { config } from '../config';
 import { CircleCIEnvironment } from '../pipelines';
-import { WebuiBuildJob } from '../jobs';
+import { WebuiBuildJob } from '../jobs/frontend';
 
 export class PublishDockerImagesWorkflow {
   static create(dynamicConfig: Config, environment: CircleCIEnvironment) {
