@@ -2,4 +2,8 @@ export * from './job-build-backend';
 export * from './job-community-build-backend';
 export * from './job-nexus-staging';
 export * from './job-publish';
+export * from './job-test-backend';
+export * from './job-test-integration';
+export * from './job-test-plugin';
+export * from './job-test-repository';
 export * from './job-validate';
