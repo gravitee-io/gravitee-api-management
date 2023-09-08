@@ -26,6 +26,15 @@ import java.util.Map;
  * @author GraviteeSource Team
  */
 public interface PrimaryOwnerService {
+    /**
+     * Resolves the primary owner for the given API.
+     * @param executionContext the execution context
+     * @param apiId the API id
+     * @return The primary owner
+     * @throws TechnicalManagementException if an error occurs while resolving the primary owner
+     * @deprecated use {@link io.gravitee.apim.core.api.domain_service.ApiPrimaryOwnerDomainService#getApiPrimaryOwner(ExecutionContext, String)} instead
+     */
+    @Deprecated
     PrimaryOwnerEntity getPrimaryOwner(ExecutionContext executionContext, String apiId) throws TechnicalManagementException;
 
     /**
@@ -35,7 +44,10 @@ public interface PrimaryOwnerService {
      * @param executionContext the execution context
      * @param apiId the API id
      * @return the primary owner email
+     *
+     * @deprecated use {@link io.gravitee.apim.core.api.domain_service.ApiPrimaryOwnerDomainService#getApiPrimaryOwner(ExecutionContext, String)} instead
      */
+    @Deprecated
     String getPrimaryOwnerEmail(ExecutionContext executionContext, String apiId);
 
     PrimaryOwnerEntity getPrimaryOwner(ExecutionContext executionContext, String userId, PrimaryOwnerEntity currentPrimaryOwner);
