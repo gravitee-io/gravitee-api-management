@@ -161,6 +161,7 @@
     </mat-card>
   </ng-container>
 </ng-container>
+
 <button
   *gioPermission="{ anyOf: ['api-definition-u'] }"
   mat-flat-button
@@ -170,3 +171,16 @@
 >
   Add endpoint group
 </button>
+
+<div *ngIf="shouldUpgrade">
+  <gio-banner type="error" icon="gio:universe" class="license__banner">
+    This configuration requires an enterprise license
+    <span gioBannerBody
+      >Request a license to unlock enterprise functionality, such as support for event brokers, asynchronous APIS, and Webhook
+      subscriptions.</span
+    >
+    <div gioBannerAction>
+      <button mat-raised-button (click)="onRequestUpgrade($event)">Request upgrade</button>
+    </div>
+  </gio-banner>
+</div>
