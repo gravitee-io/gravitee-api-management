@@ -66,7 +66,6 @@ import ApiCreationStep2Component from '../management/api/creation/steps/api-crea
 import ApiCreationStep3Component from '../management/api/creation/steps/api-creation-step3.component';
 import ApiCreationStep4Component from '../management/api/creation/steps/api-creation-step4.component';
 import ApiCreationStep5Component from '../management/api/creation/steps/api-creation-step5.component';
-import NewApiImportController from './api/creation/newApiImport.controller';
 // API Plan
 // API PrimaryOwner Mode
 import ApiPrimaryOwnerModeService from '../services/apiPrimaryOwnerMode.service';
@@ -728,7 +727,6 @@ graviteeManagementModule.component('instances', InstancesComponent);
 
 graviteeManagementModule.component('apiCreationV2ComponentAjs', ApiCreationV2ComponentAjs);
 graviteeManagementModule.controller('ApiCreationV2AjsController', ApiCreationV2ControllerAjs);
-graviteeManagementModule.controller('NewApiImportController', NewApiImportController);
 graviteeManagementModule.component('apiCreationStep1', ApiCreationStep1Component);
 graviteeManagementModule.component('apiCreationStep2', ApiCreationStep2Component);
 graviteeManagementModule.component('apiCreationStep3', ApiCreationStep3Component);

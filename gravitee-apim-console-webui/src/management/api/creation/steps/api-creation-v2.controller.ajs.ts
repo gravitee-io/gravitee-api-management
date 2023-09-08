@@ -20,7 +20,6 @@ import * as _ from 'lodash';
 import { ApiService } from '../../../../services/api.service';
 import NotificationService from '../../../../services/notification.service';
 import UserService from '../../../../services/user.service';
-import NewApiImportController from '../newApiImport.controller';
 import { PlanSecurityType } from '../../../../entities/plan';
 import { IfMatchEtagInterceptor } from '../../../../shared/interceptors/if-match-etag.interceptor';
 
@@ -52,7 +51,6 @@ class ApiCreationV2ControllerAjs {
   attachableGroups: any[];
   poGroups: any[];
 
-  private parent: NewApiImportController;
   private vm: {
     selectedStep: number;
     stepProgress: number;
