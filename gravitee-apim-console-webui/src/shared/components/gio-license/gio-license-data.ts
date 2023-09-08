@@ -36,6 +36,7 @@ export enum UTMTags {
   CONTEXT_ORGANIZATION = 'organization',
   API_CONFLUENT = 'api_confluent',
   GENERAL_DANGER_ZONE = 'general_danger_zone',
+  GENERAL_ENTRYPOINT_CONFIG = 'general_entrypoint_config',
   API_CREATION_TRY_MESSAGE = 'api_creation_try_message',
   API_CREATION_MESSAGE_ENTRYPOINT = 'api_creation_message_entrypoint',
   API_CREATION_MESSAGE_ENTRYPOINT_CONFIG = 'api_creation_message_entrypoint_config',
