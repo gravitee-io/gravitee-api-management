@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class ApplicationCrudServiceInMemory implements ApplicationCrudService, InMemoryCrudService<BaseApplicationEntity> {
+public class ApplicationCrudServiceInMemory implements ApplicationCrudService, InMemoryAlternative<BaseApplicationEntity> {
 
     private final List<BaseApplicationEntity> storage = new ArrayList<>();
 

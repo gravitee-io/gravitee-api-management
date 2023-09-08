@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.tuple;
 
 import fixtures.repository.ConnectionLogFixtures;
 import inmemory.ApplicationCrudServiceInMemory;
-import inmemory.InMemoryCrudService;
+import inmemory.InMemoryAlternative;
 import inmemory.LogCrudServiceInMemory;
 import inmemory.PlanCrudServiceInMemory;
 import io.gravitee.apim.core.log.usecase.SearchConnectionLogUsecase.Request;
@@ -63,7 +63,7 @@ public class SearchConnectionLogUsecaseTest {
 
     @AfterEach
     void tearDown() {
-        Stream.of(logStorageService, planStorageService, applicationStorageService).forEach(InMemoryCrudService::reset);
+        Stream.of(logStorageService, planStorageService, applicationStorageService).forEach(InMemoryAlternative::reset);
 
         GraviteeContext.cleanContext();
     }

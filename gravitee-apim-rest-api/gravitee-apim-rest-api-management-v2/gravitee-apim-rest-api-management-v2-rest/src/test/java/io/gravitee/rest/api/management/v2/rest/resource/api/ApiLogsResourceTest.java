@@ -23,7 +23,7 @@ import static org.mockito.Mockito.when;
 
 import fixtures.repository.ConnectionLogFixtures;
 import inmemory.ApplicationCrudServiceInMemory;
-import inmemory.InMemoryCrudService;
+import inmemory.InMemoryAlternative;
 import inmemory.LogCrudServiceInMemory;
 import inmemory.PlanCrudServiceInMemory;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLog;
@@ -90,7 +90,7 @@ public class ApiLogsResourceTest extends ApiResourceTest {
     public void tearDown() {
         GraviteeContext.cleanContext();
 
-        Stream.of(applicationStorageService, logStorageService, planStorageService).forEach(InMemoryCrudService::reset);
+        Stream.of(applicationStorageService, logStorageService, planStorageService).forEach(InMemoryAlternative::reset);
     }
 
     @Test
