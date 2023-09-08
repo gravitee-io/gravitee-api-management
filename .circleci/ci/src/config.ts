@@ -29,6 +29,10 @@ const executor = {
     image: 'cimg/node',
     version: '16.10',
   },
+  sonar: {
+    image: 'sonarsource/sonar-scanner-cli',
+    version: '5.0.1',
+  },
   ubuntu: {
     version: '2204',
     tag: 'current',
