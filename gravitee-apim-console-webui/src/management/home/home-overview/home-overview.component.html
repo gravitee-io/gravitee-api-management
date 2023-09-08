@@ -36,7 +36,7 @@
 
     <mat-card class="home-overview__card">
       <div class="mat-subheading-1">API Lifecycle State</div>
-      <ng-container *ngIf="apiState; else loader">
+      <ng-container *ngIf="apiLifecycleState; else loader">
         <gio-api-lifecycle-state [data]="apiLifecycleState"></gio-api-lifecycle-state>
       </ng-container>
     </mat-card>
@@ -52,7 +52,7 @@
     <mat-card class="home-overview__card">
       <div class="mat-subheading-1">API Response Status</div>
 
-      <ng-container *ngIf="topApis; else loader">
+      <ng-container *ngIf="apiResponseStatus; else loader">
         <gio-api-response-status [data]="apiResponseStatus"></gio-api-response-status>
       </ng-container>
     </mat-card>
@@ -74,6 +74,12 @@
       </ng-container>
     </mat-card>
   </div>
+</div>
+<div class="home-api-events">
+  <h2>API Events</h2>
+  <ng-container *ngIf="timeRangeParams; else loader">
+    <gio-api-events-table [timeRangeParams]="timeRangeParams"></gio-api-events-table>
+  </ng-container>
 </div>
 
 <ng-template #loader

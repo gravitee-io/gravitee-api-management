@@ -47,6 +47,7 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
   applicationNb?: number;
 
   timeRangeControl = new FormControl('1m', Validators.required);
+  timeRangeParams: TimeRangeParams;
 
   ngOnInit(): void {
     // Quick Summary
@@ -171,6 +172,7 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
 
   fetchAnalyticsRequest() {
     const timeRange = this.timeRangeControl.value;
-    this.fetchAnalyticsRequest$.next(GioQuickTimeRangeComponent.getTimeFrameRangesParams(timeRange));
+    this.timeRangeParams = GioQuickTimeRangeComponent.getTimeFrameRangesParams(timeRange);
+    this.fetchAnalyticsRequest$.next(this.timeRangeParams);
   }
 }

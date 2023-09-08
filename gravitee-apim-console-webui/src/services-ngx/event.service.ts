@@ -21,6 +21,13 @@ import { Observable } from 'rxjs';
 import { Constants } from '../entities/Constants';
 import { Event } from '../entities/event/event';
 
+export interface EventPage {
+  content: Event[];
+  pageElements: number;
+  pageNumber: number;
+  totalElements: number;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -29,5 +36,11 @@ export class EventService {
 
   public findById(apiId: string, eventId: string): Observable<Event> {
     return this.http.get<Event>(`${this.constants.env.baseURL}/apis/${apiId}/events/${eventId}`);
+  }
+
+  public search(type: string, apis: string, query: string, from: number, to: number, page: number, size: number): Observable<EventPage> {
+    return this.http.get<EventPage>(
+      `${this.constants.env.baseURL}/platform/events?type=${type}&query=${query}&api_ids=${apis}&from=${from}&to=${to}&page=${page}&size=${size}`,
+    );
   }
 }
