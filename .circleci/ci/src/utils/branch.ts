@@ -9,6 +9,11 @@ export function sanitizeBranch(branch: string) {
     .substring(0, 60);
 }
 
+export function isE2EBranch(branch: string): boolean {
+  const regex = new RegExp('.*-run-e2e.*');
+  return regex.test(branch);
+}
+
 export function isMasterBranch(branch: string) {
   return branch === 'master';
 }
