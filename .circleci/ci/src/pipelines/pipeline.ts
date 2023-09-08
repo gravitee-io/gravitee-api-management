@@ -8,11 +8,12 @@ import { generateDbRepositoriesTestContainerConfig } from './pipeline-db-reposit
 import { generateReleaseNotesApimConfig } from './pipeline-release-notes-apim';
 import { generateReleaseHelmConfig } from './pipeline-release-helm';
 import { generateBuildRpmAndDockerImagesConfig } from './pipeline-build-rpm-and-docker-images';
+import { generatePullRequestsConfig } from './pipeline-pull-requests';
 
 export function buildCIPipeline(environment: CircleCIEnvironment): Config | null {
   switch (environment.action) {
     case 'pull_requests':
-      return null; // TODO: add buildPullRequest(...)
+      return generatePullRequestsConfig(environment);
     case 'build_rpm_&_docker_images':
       return generateBuildRpmAndDockerImagesConfig(environment);
     case 'release_helm':
