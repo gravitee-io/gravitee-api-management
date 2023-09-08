@@ -143,7 +143,7 @@
         <testcontainers.version>1.18.3</testcontainers.version>
         <xmlbeans.version>3.1.0</xmlbeans.version>
         <wiremock.version>3.0.0-beta-8</wiremock.version>
-        <wiremock-jre8.version>2.35.0</wiremock-jre8.version>
+        <wiremock-jre8.version>2.35.1</wiremock-jre8.version>
         <!-- Need to downgrade jetty to a compatible version with wiremock (jetty is only use for tests purpose) -->
         <jetty94.wiremock.version>9.4.44.v20210927</jetty94.wiremock.version>
         <wsdl4j.version>1.6.3</wsdl4j.version>
