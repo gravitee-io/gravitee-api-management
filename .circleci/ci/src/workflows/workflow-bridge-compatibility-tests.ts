@@ -1,8 +1,9 @@
 import { Config, workflow, Workflow } from '@circleci/circleci-config-sdk';
-import { BuildBackendJob, SetupJob, ValidateJob } from '../jobs';
+import { BuildBackendJob, SetupJob } from '../jobs';
 import { E2EGenerateSDKJob, E2ELintBuildJob, E2ETestJob } from '../jobs/e2e';
 import { config } from '../config';
 import { CircleCIEnvironment } from '../pipelines';
+import { ValidateJob } from '../jobs/backend';
 
 export class BridgeCompatibilityTestsWorkflow {
   static create(dynamicConfig: Config, environment: CircleCIEnvironment) {

@@ -1,12 +1,12 @@
 import { commands, Config, Job, reusable } from '@circleci/circleci-config-sdk';
-import { OpenJdkExecutor } from '../executors';
-import { NotifyOnFailureCommand, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand } from '../commands';
+import { OpenJdkExecutor } from '../../executors';
+import { NotifyOnFailureCommand, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand } from '../../commands';
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
+import { config } from '../../config';
 
-export class CommunityBuildBackendJob {
+export class ValidateJob {
+  private static jobName = 'job-validate';
   public static create(dynamicConfig: Config): Job {
-    const jobName = 'job-community-build';
-
     const restoreMavenJobCacheCmd = RestoreMavenJobCacheCommand.get();
     const saveMavenJobCacheCmd = SaveMavenJobCacheCommand.get();
     const notifyOnFailureCmd = NotifyOnFailureCommand.get(dynamicConfig);
@@ -16,14 +16,15 @@ export class CommunityBuildBackendJob {
 
     const steps: Command[] = [
       new commands.Checkout(),
-      new reusable.ReusedCommand(restoreMavenJobCacheCmd, { jobName: jobName }),
+      new commands.workspace.Attach({ at: '.' }),
+      new reusable.ReusedCommand(restoreMavenJobCacheCmd, { jobName: ValidateJob.jobName }),
       new commands.Run({
-        name: 'Build project',
-        command: `mvn clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -T 2C`,
+        name: 'Validate project',
+        command: `mvn -s ${config.maven.settingsFile} validate --no-transfer-progress -Pall-modules,integration-tests-modules -T 2C`,
       }),
       new reusable.ReusedCommand(notifyOnFailureCmd),
-      new reusable.ReusedCommand(saveMavenJobCacheCmd, { jobName: jobName }),
+      new reusable.ReusedCommand(saveMavenJobCacheCmd, { jobName: ValidateJob.jobName }),
     ];
-    return new Job(jobName, OpenJdkExecutor.create(), steps);
+    return new Job(ValidateJob.jobName, OpenJdkExecutor.create('small'), steps);
   }
 }

@@ -1,10 +1,10 @@
 import { commands, Config, Job, reusable } from '@circleci/circleci-config-sdk';
-import { config } from '../config';
-import { OpenJdkExecutor } from '../executors';
+import { config } from '../../config';
+import { OpenJdkExecutor } from '../../executors';
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
-import { CircleCIEnvironment } from '../pipelines';
-import { PrepareGpgCmd, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand } from '../commands';
-import { keeper } from '../orbs/keeper';
+import { CircleCIEnvironment } from '../../pipelines';
+import { PrepareGpgCmd, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand } from '../../commands';
+import { keeper } from '../../orbs/keeper';
 
 export class NexusStagingJob {
   private static jobName: string = 'job-nexus-staging';
