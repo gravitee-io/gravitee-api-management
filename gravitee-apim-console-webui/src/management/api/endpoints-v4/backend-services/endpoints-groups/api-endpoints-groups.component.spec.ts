@@ -21,6 +21,7 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { Component, ViewChild } from '@angular/core';
 import { InteractivityChecker } from '@angular/cdk/a11y';
+import { GioLicenseTestingModule } from '@gravitee/ui-particles-angular';
 
 import { ApiEndpointsGroupsComponent } from './api-endpoints-groups.component';
 import { ApiEndpointsGroupsHarness } from './api-endpoints-groups.harness';
@@ -94,7 +95,7 @@ describe('ApiEndpointsGroupsComponent', () => {
 
     TestBed.configureTestingModule({
       declarations: [TestComponent],
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiEndpointsGroupsModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiEndpointsGroupsModule, MatIconTestingModule, GioLicenseTestingModule],
       providers: [
         { provide: UIRouterState, useValue: fakeUiRouter },
         { provide: CurrentUserService, useValue: { currentUser } },

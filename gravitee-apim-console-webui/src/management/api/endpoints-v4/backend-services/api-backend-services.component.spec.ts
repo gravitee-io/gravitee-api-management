@@ -20,6 +20,7 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { UIRouterGlobals } from '@uirouter/core';
+import { GioLicenseTestingModule } from '@gravitee/ui-particles-angular';
 
 import { ApiBackendServicesComponent } from './api-backend-services.component';
 import { ApiBackendServicesModule } from './api-backend-services.module';
@@ -49,7 +50,7 @@ describe('ApiPortalProxyEndpointsComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiBackendServicesModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiBackendServicesModule, MatIconTestingModule, GioLicenseTestingModule],
       providers: [
         { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
         { provide: UIRouterState, useValue: fakeUiRouter },

@@ -20,7 +20,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { GioIconsModule } from '@gravitee/ui-particles-angular';
+import { GioBannerModule, GioIconsModule } from '@gravitee/ui-particles-angular';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 
@@ -44,6 +44,7 @@ import { GioPermissionModule } from '../../../../../shared/components/gio-permis
 
     ApiEndpointModule,
     GioPermissionModule,
+    GioBannerModule,
   ],
 })
 export class ApiEndpointsGroupsModule {}
