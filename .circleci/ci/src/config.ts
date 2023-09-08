@@ -1,3 +1,5 @@
+const artifactoryUrl = 'https://odbxikk7vo-artifactory.services.clever-cloud.com';
+
 const cache = {
   prefix: 'gravitee-api-management-v9',
 };
@@ -99,6 +101,7 @@ const ssh = {
 };
 
 export const config = {
+  artifactoryUrl,
   cache,
   dockerImages,
   executor,

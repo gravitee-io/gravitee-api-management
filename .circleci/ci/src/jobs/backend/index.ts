@@ -1,3 +1,4 @@
+export * from './job-backend-build-and-publish-artifactory';
 export * from './job-build-backend';
 export * from './job-community-build-backend';
 export * from './job-nexus-staging';
