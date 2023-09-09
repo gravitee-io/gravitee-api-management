@@ -45,7 +45,8 @@ import java.util.Map;
 public class ElasticsearchFormatter<T extends Reportable>
   extends AbstractFormatter<T> {
 
-  private static final String INDEX_TEMPLATES_PATTERN = "/es%dx/index/";
+  private static final String TEMPLATES_BASE_PATTERN =
+    "/freemarker/es%dx/index/";
 
   /** Index simple date format **/
   private final DateTimeFormatter dtf;
@@ -67,12 +68,17 @@ public class ElasticsearchFormatter<T extends Reportable>
 
   public ElasticsearchFormatter(Node node, int elasticSearchVersion) {
     this.node = node;
-    this.freeMarkerComponent =
-      new FreeMarkerComponent(
-        String.format(INDEX_TEMPLATES_PATTERN, elasticSearchVersion)
-      );
     this.dtf = dtfWithDefaultZone("yyyy-MM-dd'T'HH:mm:ss.SSS[XXX]");
     this.sdf = dtfWithDefaultZone("yyyy.MM.dd");
+
+    this.freeMarkerComponent =
+      FreeMarkerComponent
+        .builder()
+        .classLoader(getClass().getClassLoader())
+        .classLoaderTemplateBase(
+          String.format(TEMPLATES_BASE_PATTERN, elasticSearchVersion)
+        )
+        .build();
   }
 
   private static DateTimeFormatter dtfWithDefaultZone(String format) {
@@ -401,10 +407,10 @@ public class ElasticsearchFormatter<T extends Reportable>
     return generateData("v4-message-log.ftl", data);
   }
 
-  private Buffer generateData(String templateName, Map<String, Object> data) {
+  private Buffer generateData(String template, Map<String, Object> data) {
     try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
       freeMarkerComponent.generateFromTemplate(
-        templateName,
+        template,
         data,
         new OutputStreamWriter(baos)
       );
