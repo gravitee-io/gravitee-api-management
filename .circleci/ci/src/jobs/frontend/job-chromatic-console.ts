@@ -6,7 +6,7 @@ import { orbs } from '../../orbs';
 import { config } from '../../config';
 
 export class ChromaticConsoleJob {
-  private static jobName = 'job-console-webui-build-storybook';
+  private static jobName = 'job-console-webui-chromatic-deployment';
 
   public static create(dynamicConfig: Config): Job {
     dynamicConfig.importOrb(orbs.keeper);

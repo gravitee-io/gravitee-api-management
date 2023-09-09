@@ -6,7 +6,7 @@ import { CircleCIEnvironment } from '../../pipelines';
 import { BaseExecutor } from '../../executors';
 
 export class SnykApimChartsJob {
-  private static jobName: 'job-snyk-apim-charts';
+  private static jobName = 'job-snyk-apim-charts';
   public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
     dynamicConfig.importOrb(orbs.helm);
     dynamicConfig.importOrb(orbs.keeper);
@@ -27,6 +27,6 @@ helm template . --output-dir ./output
 snyk iac test ./output --report --target-reference="${environment.branch}" --project-tags=version=${environment.branch} --severity-threshold=high`,
       }),
     ];
-    return new Job(SnykApimChartsJob.name, BaseExecutor.create('small'), steps);
+    return new Job(SnykApimChartsJob.jobName, BaseExecutor.create('small'), steps);
   }
 }
