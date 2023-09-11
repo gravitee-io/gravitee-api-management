@@ -17,7 +17,7 @@ import { ADMIN_USER, API_PUBLISHER_USER } from '@fakers/users/users';
 import { Api } from '@model/apis';
 import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
 import { Visibility } from '../../../../../lib/management-webclient-sdk/src/lib/models';
-import { MAPIV2ApisFaker } from '../../../../../lib/fixtures/management/MAPIV2ApisFaker';
+import { MAPIV2ApisFaker } from '@gravitee/fixtures/management/MAPIV2ApisFaker';
 import { ApiImport } from '@model/api-imports';
 import { ApiV4 } from '../../../../../lib/management-v2-webclient-sdk/src/lib';
 
@@ -28,12 +28,10 @@ describe('API List feature', { defaultCommandTimeout: 10000 }, () => {
     beforeEach(() => {
       cy.loginInAPIM(ADMIN_USER.username, ADMIN_USER.password);
       cy.visit('/#!/environments/default/apis/');
-      cy.url().should('include', '/apis/');
+      cy.getByDataTestId('api_list_addApi_button', { timeout: 60000 }).should('be.visible').and('contain.text', 'Add API');
     });
 
     it('check if the API list screen is displayed correctly', function () {
-      cy.get('h1', { timeout: 60000 }).contains('APIs').should('be.visible');
-      cy.getByDataTestId('api_list_addApi_button').should('be.visible').and('contain.text', 'Add API');
       cy.getByDataTestId('search').should('be.visible');
       cy.get('td:contains("There is no API (yet)")').should('be.visible');
       cy.getByDataTestId('paginator-header').should('be.visible');
@@ -120,7 +118,7 @@ describe('API List feature', { defaultCommandTimeout: 10000 }, () => {
     beforeEach(() => {
       cy.loginInAPIM(ADMIN_USER.username, ADMIN_USER.password);
       cy.visit(`/#!/environments/default/apis/`);
-      cy.url().should('include', '/apis/');
+      cy.getByDataTestId('api_list_addApi_button', { timeout: 60000 }).should('be.visible').and('contain.text', 'Add API');
     });
 
     describe('Verify element of API list filled with sample data', function () {
