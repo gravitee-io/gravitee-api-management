@@ -17,8 +17,20 @@
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { Subject } from 'rxjs';
 import { StateParams } from '@uirouter/angularjs';
+import { takeUntil, tap } from 'rxjs/operators';
+import { isEmpty } from 'lodash';
 
 import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+import { GioTableWrapperFilters } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
+import { ApiV2, ApiV4 } from '../../../../entities/management-api-v2';
+import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
+import { gioTableFilterCollection } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
+
+type TableDataSource = {
+  key: string;
+  value: string;
+  encrypted: boolean;
+};
 
 @Component({
   selector: 'api-properties',
@@ -28,12 +40,69 @@ import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 export class ApiPropertiesComponent implements OnInit, OnDestroy {
   private unsubscribe$ = new Subject<boolean>();
 
-  constructor(@Inject(UIRouterStateParams) private readonly ajsStateParams: StateParams) {}
+  public isReadOnly = false;
+  public isLoading = true;
+  public totalLength = 0;
+  public tableFilters: GioTableWrapperFilters = {
+    searchTerm: '',
+    pagination: {
+      index: 1,
+      size: 10,
+    },
+  };
+  public displayedColumns = ['key', 'value', 'encrypted', 'actions'];
+  public filteredTableData: TableDataSource[] = [];
+  public api: ApiV2 | ApiV4;
 
-  ngOnInit(): void {}
+  constructor(@Inject(UIRouterStateParams) private readonly ajsStateParams: StateParams, private readonly apiService: ApiV2Service) {}
+
+  ngOnInit(): void {
+    this.apiService
+      .get(this.ajsStateParams.apiId)
+      .pipe(
+        tap((api) => {
+          if (api.definitionVersion === 'V1') {
+            throw new Error('Unexpected API type. This page is compatible only for API > V1');
+          }
+          this.api = api;
+
+          // Initialize the properties table data
+          this.onFiltersChanged(this.tableFilters);
+
+          this.isLoading = false;
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe();
+  }
 
   ngOnDestroy() {
     this.unsubscribe$.next(true);
     this.unsubscribe$.unsubscribe();
+  }
+
+  addProperties() {
+    // TODO: implement
+  }
+  removeProperty(_: TableDataSource) {
+    // TODO: implement
+  }
+  togglePropertyEncryption(_: TableDataSource) {
+    // TODO: implement
+  }
+
+  onFiltersChanged(filters: GioTableWrapperFilters) {
+    if (isEmpty(this.api?.properties)) return;
+
+    const filtered = gioTableFilterCollection(
+      this.api.properties.map((p) => ({
+        key: p.key,
+        value: p.value,
+        encrypted: p.encrypted,
+      })),
+      filters,
+    );
+    this.filteredTableData = filtered.filteredCollection;
+    this.totalLength = filtered.unpaginatedLength;
   }
 }
