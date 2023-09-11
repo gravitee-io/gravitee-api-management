@@ -68,6 +68,7 @@ import { ApiCreationGetStartedComponent } from './creation-get-started/api-creat
 import { ApiCreationV4Component } from './creation-v4/api-creation-v4.component';
 import { ApiCreationV4ConfirmationComponent } from './creation-v4/api-creation-v4-confirmation.component';
 import { ApiCreationV2Component } from './creation-v2/steps/api-creation-v2.component';
+import { ApiPropertiesComponent } from './proxy/properties/api-properties.component';
 
 import { NotificationsComponent } from '../../components/notifications/notifications.component';
 import { Scope } from '../../entities/scope';
@@ -91,7 +92,6 @@ import ResourceService from '../../services/resource.service';
 import { MessagesComponent } from '../messages/messages.component';
 import TenantService from '../../services/tenant.service';
 import TagService from '../../services/tag.service';
-import { ApiPropertiesComponent } from './proxy/properties/api-properties.component';
 
 // New Angular routing
 export const states: Ng2StateDeclaration[] = [

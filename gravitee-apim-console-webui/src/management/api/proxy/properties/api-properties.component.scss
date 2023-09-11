@@ -6,3 +6,22 @@
 :host {
   @include gio-layout.gio-responsive-margin-container;
 }
+
+.apiProperties {
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+
+    &__text {
+      padding-right: 48px;
+    }
+  }
+
+  &__table {
+    .mat-column-actions {
+      width: 0;
+    }
+  }
+}

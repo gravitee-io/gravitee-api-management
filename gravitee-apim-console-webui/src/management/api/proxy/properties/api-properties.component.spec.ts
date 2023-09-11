@@ -20,14 +20,17 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HarnessLoader } from '@angular/cdk/testing';
+import { MatTableHarness } from '@angular/material/table/testing';
+import { MatIconTestingModule } from '@angular/material/icon/testing';
 
 import { ApiPropertiesComponent } from './api-properties.component';
 import { ApiPropertiesModule } from './api-properties.module';
 
-import { GioHttpTestingModule } from '../../../../shared/testing';
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { User } from '../../../../entities/user';
 import { CurrentUserService, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { GioUiRouterTestingModule } from '../../../../shared/testing/gio-uirouter-testing-module';
+import { Api, fakeApiV4 } from '../../../../entities/management-api-v2/api';
 
 describe('ApiPropertiesComponent', () => {
   const API_ID = 'apiId';
@@ -41,7 +44,7 @@ describe('ApiPropertiesComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiPropertiesModule, GioUiRouterTestingModule],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiPropertiesModule, GioUiRouterTestingModule, MatIconTestingModule],
       providers: [
         { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
         {
@@ -70,6 +73,34 @@ describe('ApiPropertiesComponent', () => {
 
   it('should work', async () => {
     expect(component).toBeTruthy();
-    expect(loader).toBeTruthy();
+
+    const table = await loader.getHarness(MatTableHarness.with({ selector: '[aria-label="API Properties"]' }));
+
+    const loadingRow = await table.getCellTextByIndex();
+    expect(loadingRow).toEqual([['Loading...']]);
+
+    expectGetApi(
+      fakeApiV4({
+        id: API_ID,
+        properties: [
+          { key: 'key1', value: 'value1', encrypted: false },
+          { key: 'key2', value: 'value2', encrypted: true },
+        ],
+      }),
+    );
+
+    const rows = await table.getCellTextByIndex();
+    expect(rows).toEqual([
+      ['key1', 'value1', '', ''],
+      ['key2', 'value2', '', ''],
+    ]);
   });
+
+  function expectGetApi(api: Api) {
+    const req = httpTestingController.expectOne({
+      method: 'GET',
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`,
+    });
+    req.flush(api);
+  }
 });

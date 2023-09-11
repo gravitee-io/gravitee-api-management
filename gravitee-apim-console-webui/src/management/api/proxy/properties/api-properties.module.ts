@@ -16,11 +16,35 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import { MatTableModule } from '@angular/material/table';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { FormsModule } from '@angular/forms';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 
 import { ApiPropertiesComponent } from './api-properties.component';
 
+import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
+import { GioTableWrapperModule } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
+
 @NgModule({
-  imports: [CommonModule, GioSaveBarModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+
+    GioSaveBarModule,
+    GioTableWrapperModule,
+    GioPermissionModule,
+
+    MatSlideToggleModule,
+    MatTableModule,
+    MatButtonModule,
+    MatCardModule,
+    MatIconModule,
+    MatTooltipModule,
+  ],
   declarations: [ApiPropertiesComponent],
   exports: [ApiPropertiesComponent],
 })
