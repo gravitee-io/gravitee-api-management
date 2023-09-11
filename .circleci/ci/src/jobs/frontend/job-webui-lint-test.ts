@@ -9,6 +9,7 @@ export class WebuiLintTestJob {
 
   private static customParametersList = new parameters.CustomParametersList<CommandParameterLiteral>([
     new parameters.CustomParameter('apim-ui-project', 'string', '', 'the name of the UI project to build'),
+    new parameters.CustomParameter('resource_class', 'string', 'medium', 'Resource class to use for executor'),
   ]);
 
   public static create(dynamicConfig: Config): Job {
@@ -38,15 +39,22 @@ export class WebuiLintTestJob {
         working_directory: '<< parameters.apim-ui-project >>',
       }),
       new reusable.ReusedCommand(notifyOnFailureCommand),
+      // For Sonar analysis
       new commands.workspace.Persist({
         root: '.',
-        paths: ['<< parameters.apim-ui-project >>/coverage'],
+        paths: ['<< parameters.apim-ui-project >>/coverage/lcov.info'],
       }),
-      new commands.StoreTestResults({
-        path: '<< parameters.apim-ui-project >>/coverage',
+      // For direct access in CircleCI UI
+      new commands.StoreArtifacts({
+        path: '<< parameters.apim-ui-project >>/coverage/lcov.info',
       }),
     ];
 
-    return new reusable.ParameterizedJob(WebuiLintTestJob.jobName, NodeLtsExecutor.create(), WebuiLintTestJob.customParametersList, steps);
+    return new reusable.ParameterizedJob(
+      WebuiLintTestJob.jobName,
+      NodeLtsExecutor.create('<< parameters.resource_class >>'),
+      WebuiLintTestJob.customParametersList,
+      steps,
+    );
   }
 }
