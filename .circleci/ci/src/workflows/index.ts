@@ -1,6 +1,6 @@
 export * from './workflow-bridge-compatibility-tests';
 export * from './workflow-build-rpm-and-docker-images';
-export * from './workflow-db-repositories-test-container';
+export * from './workflow-repositories-tests';
 export * from './workflow-package-bundle';
 export * from './workflow-publish-docker-images';
 export * from './workflow-pull-requests';

@@ -4,7 +4,7 @@ import { ElasticTestContainerJob, JdbcTestContainerJob, MongoTestContainerJob, R
 
 import { CircleCIEnvironment } from '../pipelines';
 
-export class DbRepositoriesTestContainerWorkflow {
+export class RepositoriesTestsWorkflow {
   static create(dynamicConfig: Config, environment: CircleCIEnvironment) {
     const setupJob = SetupJob.create(dynamicConfig);
     const buildJob = BuildBackendJob.create(dynamicConfig, environment);
@@ -25,7 +25,7 @@ export class DbRepositoriesTestContainerWorkflow {
     const setupJobName = 'Setup';
     const buildJobName = 'Build';
 
-    return new Workflow('db-repositories-test-container', [
+    return new Workflow('repositories-tests', [
       new workflow.WorkflowJob(setupJob, { name: setupJobName, context: ['cicd-orchestrator'] }),
       new workflow.WorkflowJob(buildJob, { name: buildJobName, context: ['cicd-orchestrator'], requires: [setupJobName] }),
       new workflow.WorkflowJob(jdbcTestContainerJob, {

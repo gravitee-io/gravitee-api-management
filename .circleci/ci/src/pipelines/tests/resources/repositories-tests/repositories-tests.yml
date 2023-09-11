@@ -230,7 +230,7 @@ jobs:
           path: ~/test-results
       - cmd-notify-on-failure
 workflows:
-  db-repositories-test-container:
+  repositories-tests:
     jobs:
       - job-setup:
           name: Setup
