@@ -20,7 +20,7 @@ import { switchMap, takeUntil, tap } from 'rxjs/operators';
 import '@gravitee/ui-components/wc/gv-properties';
 import { StateParams } from '@uirouter/angularjs';
 
-import { ApiPropertiesService } from './api-properties.service';
+import { ApiPropertiesOldService } from './api-properties-old.service';
 import { ChangePropertiesEvent, Property } from './models/ChangePropertiesEvent';
 import { SaveProviderEvent } from './models/SaveProviderEvent';
 
@@ -31,10 +31,10 @@ import { ApiV2, ApiV4, UpdateApiV2, UpdateApiV4 } from '../../../../entities/man
 
 @Component({
   selector: 'api-properties',
-  template: require('./api-properties.component.html'),
-  styles: [require('./api-properties.component.scss')],
+  template: require('./api-properties-old.component.html'),
+  styles: [require('./api-properties-old.component.scss')],
 })
-export class ApiPropertiesComponent implements OnInit, OnDestroy {
+export class ApiPropertiesOldComponent implements OnInit, OnDestroy {
   private unsubscribe$ = new Subject<boolean>();
 
   public provider: any;
@@ -53,7 +53,7 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
 
   constructor(
     private readonly apiService: ApiV2Service,
-    private readonly apiPropertiesService: ApiPropertiesService,
+    private readonly apiPropertiesService: ApiPropertiesOldService,
     private readonly permissionService: GioPermissionService,
     @Inject(UIRouterStateParams) private readonly ajsStateParams: StateParams,
     @Inject(AjsRootScope) readonly ajsRootScope,

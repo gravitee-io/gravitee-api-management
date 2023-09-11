@@ -17,12 +17,12 @@ import { CommonModule } from '@angular/common';
 import { CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
 import { GioSaveBarModule } from '@gravitee/ui-particles-angular';
 
-import { ApiPropertiesComponent } from './api-properties.component';
+import { ApiPropertiesOldComponent } from './api-properties-old.component';
 
 @NgModule({
   imports: [CommonModule, GioSaveBarModule],
-  declarations: [ApiPropertiesComponent],
-  exports: [ApiPropertiesComponent],
+  declarations: [ApiPropertiesOldComponent],
+  exports: [ApiPropertiesOldComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
-export class ApiPropertiesModule {}
+export class ApiPropertiesOldModule {}
