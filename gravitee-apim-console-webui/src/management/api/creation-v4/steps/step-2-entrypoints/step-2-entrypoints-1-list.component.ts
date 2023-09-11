@@ -133,10 +133,7 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
     });
   }
 
-  public onRequestUpgrade($event: MouseEvent) {
-    this.licenseService.openDialog(
-      { feature: ApimFeature.APIM_EN_MESSAGE_REACTOR, context: UTMTags.API_CREATION_MESSAGE_ENTRYPOINT },
-      $event,
-    );
+  public onRequestUpgrade() {
+    this.licenseService.openDialog({ feature: ApimFeature.APIM_EN_MESSAGE_REACTOR, context: UTMTags.API_CREATION_MESSAGE_ENTRYPOINT });
   }
 }

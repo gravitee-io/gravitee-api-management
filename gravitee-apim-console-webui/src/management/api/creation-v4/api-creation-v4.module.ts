@@ -61,6 +61,7 @@ import { GioEntrypointsSelectionListModule } from '../component/gio-entrypoints-
 import { GioConnectorDialogModule } from '../../../components/gio-connector-dialog/gio-connector-dialog.module';
 import { ApiPlanFormModule } from '../component/plan/api-plan-form.module';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
+import { GioLicenseBannerModule } from '../../../shared/components/gio-license-banner/gio-license-banner.module';
 
 @NgModule({
   imports: [
@@ -94,6 +95,7 @@ import { GioPermissionModule } from '../../../shared/components/gio-permission/g
     GioFormFocusInvalidModule,
     GioPermissionModule,
     MatMenuModule,
+    GioLicenseBannerModule,
   ],
   declarations: [
     ApiCreationV4Component,

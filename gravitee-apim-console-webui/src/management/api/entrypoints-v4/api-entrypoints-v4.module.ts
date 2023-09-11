@@ -33,6 +33,7 @@ import { GioFormListenersContextPathModule } from '../component/gio-form-listene
 import { GioFormListenersVirtualHostModule } from '../component/gio-form-listeners/gio-form-listeners-virtual-host/gio-form-listeners-virtual-host.module';
 import { GioGoBackButtonModule } from '../../../shared/components/gio-go-back-button/gio-go-back-button.module';
 import { GioEntrypointsSelectionListModule } from '../component/gio-entrypoints-selection-list/gio-entrypoints-selection-list.module';
+import { GioLicenseBannerModule } from '../../../shared/components/gio-license-banner/gio-license-banner.module';
 
 @NgModule({
   imports: [
@@ -54,6 +55,7 @@ import { GioEntrypointsSelectionListModule } from '../component/gio-entrypoints-
     MatSnackBarModule,
     MatTableModule,
     MatTooltipModule,
+    GioLicenseBannerModule,
   ],
   declarations: [ApiEntrypointsV4GeneralComponent, ApiEntrypointsV4EditComponent, ApiEntrypointsV4AddDialogComponent],
 })
