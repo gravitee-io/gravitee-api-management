@@ -193,7 +193,7 @@ export class ApiEndpointGroupsComponent implements OnInit, OnDestroy {
     this.ajsState.go('management.apis.ng.endpoint-group-new');
   }
 
-  public onRequestUpgrade($event: MouseEvent) {
-    this.licenseService.openDialog(this.licenseOptions, $event);
+  public onRequestUpgrade() {
+    this.licenseService.openDialog(this.licenseOptions);
   }
 }

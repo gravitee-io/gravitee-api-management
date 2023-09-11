@@ -158,7 +158,7 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
     });
   }
 
-  public onRequestUpgrade($event: MouseEvent) {
-    this.licenseService.openDialog(this.licenseOptions, $event);
+  public onRequestUpgrade() {
+    this.licenseService.openDialog(this.licenseOptions);
   }
 }
