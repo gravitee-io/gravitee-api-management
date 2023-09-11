@@ -44,6 +44,9 @@ export class BuildUiImageCommand {
     if (isSupportBranchOrMaster(environment.branch)) {
       dynamicConfig.importOrb(orbs.keeper);
 
+      const addDockerImageInSnykCommand = AddDockerImageInSnykCommand.get();
+      dynamicConfig.addReusableCommand(addDockerImageInSnykCommand);
+
       steps.push(
         new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
           'secret-url': config.secrets.snykApiToken,
@@ -57,14 +60,14 @@ export class BuildUiImageCommand {
           'secret-url': config.secrets.snykIntegrationId,
           'var-name': 'SNYK_INTEGRATION_ID',
         }),
-        new reusable.ReusedCommand(AddDockerImageInSnykCommand.get(), {
+        new reusable.ReusedCommand(addDockerImageInSnykCommand, {
           'docker-image-name': '<< parameters.docker-image-name >>',
           version: tag,
         }),
       );
     }
 
-    steps.push(new reusable.ReusedCommand(DockerAzureLogoutCommand.get()));
+    steps.push(new reusable.ReusedCommand(dockerAzureLogoutCommand));
 
     return new reusable.ReusableCommand(BuildUiImageCommand.commandName, steps, BuildUiImageCommand.customParametersList);
   }

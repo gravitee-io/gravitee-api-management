@@ -90,6 +90,27 @@ commands:
           name: Logout from Azure Container Registry
           command: docker logout graviteeio.azurecr.io
     description: Logout from Azure Container Registry
+  cmd-add-docker-image-in-snyk:
+    parameters:
+      docker-image-name:
+        type: string
+      version:
+        type: string
+    steps:
+      - run:
+          name: Add << parameters.docker-image-name >> << parameters.version >> to Snyk
+          command: |-
+            curl --fail \
+                --include \
+                --request POST \
+                --header "Content-Type: application/json; charset=utf-8" \
+                --header "Authorization: token ${SNYK_API_TOKEN}" \
+                --data-binary "{
+              \"target\": {
+                \"name\": \"<< parameters.docker-image-name >>:<< parameters.version >>\"
+              }
+            }" \
+            "https://api.snyk.io/api/v1/org/${SNYK_ORG_ID}/integrations/${SNYK_INTEGRATION_ID}/import"
   cmd-build-ui-image:
     parameters:
       docker-image-name:
