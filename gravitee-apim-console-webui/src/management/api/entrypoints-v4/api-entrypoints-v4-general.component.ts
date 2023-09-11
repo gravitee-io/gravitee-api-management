@@ -343,7 +343,7 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
     this.initForm(this.api);
   }
 
-  onRequestUpgrade($event: MouseEvent) {
-    this.licenseService.openDialog({ feature: ApimFeature.APIM_EN_MESSAGE_REACTOR, context: UTMTags.GENERAL_ENTRYPOINT_CONFIG }, $event);
+  onRequestUpgrade() {
+    this.licenseService.openDialog({ feature: ApimFeature.APIM_EN_MESSAGE_REACTOR, context: UTMTags.GENERAL_ENTRYPOINT_CONFIG });
   }
 }

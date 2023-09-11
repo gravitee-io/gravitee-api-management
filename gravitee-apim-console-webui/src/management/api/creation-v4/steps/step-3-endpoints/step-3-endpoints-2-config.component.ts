@@ -116,10 +116,7 @@ export class Step3Endpoints2ConfigComponent implements OnInit, OnDestroy {
     this.stepService.goToPreviousStep();
   }
 
-  public onRequestUpgrade($event: MouseEvent) {
-    this.licenseService.openDialog(
-      { feature: ApimFeature.APIM_EN_MESSAGE_REACTOR, context: UTMTags.API_CREATION_MESSAGE_ENDPOINT_CONFIG },
-      $event,
-    );
+  public onRequestUpgrade() {
+    this.licenseService.openDialog({ feature: ApimFeature.APIM_EN_MESSAGE_REACTOR, context: UTMTags.API_CREATION_MESSAGE_ENDPOINT_CONFIG });
   }
 }
