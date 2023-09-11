@@ -18,7 +18,7 @@ import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { takeUntil, tap } from 'rxjs/operators';
 import { GioConfirmDialogComponent, GioConfirmDialogData, GioLicenseService } from '@gravitee/ui-particles-angular';
 import { isEqual } from 'lodash';
 
@@ -75,9 +75,20 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
             const name2 = entrypoint2.name.toUpperCase();
             return name1 < name2 ? -1 : name1 > name2 ? 1 : 0;
           });
-        this.shouldUpgrade = this.entrypoints.some((entrypoint) => !entrypoint.deployed);
         this.changeDetectorRef.detectChanges();
       });
+
+    this.formGroup
+      .get('selectedEntrypointsIds')
+      .valueChanges.pipe(
+        tap((selectedEntrypointsIds) => {
+          this.shouldUpgrade = selectedEntrypointsIds
+            .map((id) => this.entrypoints.find((entrypoint) => entrypoint.id === id))
+            .some((entrypoint) => !entrypoint.deployed);
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe();
   }
 
   ngOnDestroy() {
