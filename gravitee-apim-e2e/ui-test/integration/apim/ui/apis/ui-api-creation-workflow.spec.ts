@@ -26,6 +26,7 @@ describe('API creation workflow', () => {
     before(() => {
       cy.loginInAPIM(ADMIN_USER.username, ADMIN_USER.password);
       cy.visit('/#!/environments/default/apis/new');
+      cy.getByDataTestId('api_create_v4_button').should('be.visible');
     });
 
     it(`should initiate V4 API workflow by clicking Create button`, () => {

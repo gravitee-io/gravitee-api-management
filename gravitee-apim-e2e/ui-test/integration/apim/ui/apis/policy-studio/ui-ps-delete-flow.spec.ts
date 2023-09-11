@@ -101,7 +101,7 @@ describe('Deleting a flow', () => {
   describe('Verify that flow deletion works in Policy Studio', () => {
     beforeEach(() => {
       cy.loginInAPIM(API_PUBLISHER_USER.username, API_PUBLISHER_USER.password);
-      cy.visit(`/#!/environments/default/apis/ng/${v4api.id}/policy-studio`);
+      cy.visit(`/#!/environments/default/apis/${v4api.id}/policy-studio`);
       cy.url().should('include', '/policy-studio');
     });
 
