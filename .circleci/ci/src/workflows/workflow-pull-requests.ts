@@ -138,6 +138,7 @@ export class PullRequestsWorkflow {
         context: config.jobContext,
         requires: ['Setup'],
         'apim-ui-project': 'gravitee-apim-console-webui',
+        resource_class: 'medium',
       }),
       new workflow.WorkflowJob(webuiBuildJob, {
         name: 'Build APIM Console and publish image',
@@ -151,6 +152,7 @@ export class PullRequestsWorkflow {
         context: config.jobContext,
         requires: ['Setup'],
         'apim-ui-project': 'gravitee-apim-portal-webui',
+        resource_class: 'large',
       }),
       new workflow.WorkflowJob(webuiBuildJob, {
         name: 'Build APIM Portal and publish image',

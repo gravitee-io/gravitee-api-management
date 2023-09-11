@@ -378,9 +378,13 @@ jobs:
         type: string
         default: ""
         description: the name of the UI project to build
+      resource_class:
+        type: string
+        default: medium
+        description: Resource class to use for executor
     docker:
       - image: cimg/node:16.10
-    resource_class: medium
+    resource_class: << parameters.resource_class >>
     steps:
       - checkout
       - cmd-webui-install:
@@ -403,9 +407,9 @@ jobs:
       - persist_to_workspace:
           root: .
           paths:
-            - << parameters.apim-ui-project >>/coverage
-      - store_test_results:
-          path: << parameters.apim-ui-project >>/coverage
+            - << parameters.apim-ui-project >>/coverage/lcov.info
+      - store_artifacts:
+          path: << parameters.apim-ui-project >>/coverage/lcov.info
   job-webui-build:
     parameters:
       apim-ui-project:
@@ -888,6 +892,7 @@ workflows:
           requires:
             - Setup
           apim-ui-project: gravitee-apim-console-webui
+          resource_class: medium
       - job-webui-build:
           name: Build APIM Console and publish image
           context:
@@ -903,6 +908,7 @@ workflows:
           requires:
             - Setup
           apim-ui-project: gravitee-apim-portal-webui
+          resource_class: large
       - job-webui-build:
           name: Build APIM Portal and publish image
           context:

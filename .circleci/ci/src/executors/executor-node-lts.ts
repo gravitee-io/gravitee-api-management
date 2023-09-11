@@ -4,8 +4,8 @@ import { Executor } from '@circleci/circleci-config-sdk/dist/src/lib/Components/
 import { DockerResourceClass } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Executors/types/DockerExecutor.types';
 
 export class NodeLtsExecutor {
-  public static create(resource: DockerResourceClass = 'medium'): Executor {
+  public static create(resource: string = 'medium'): Executor {
     const image = `${config.executor.node.image}:${config.executor.node.version}`;
-    return new executors.DockerExecutor(image, resource);
+    return new executors.DockerExecutor(image, resource as DockerResourceClass);
   }
 }
