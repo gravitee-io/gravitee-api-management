@@ -61,7 +61,7 @@
       </mat-list-option>
     </mat-selection-list>
 
-    <div *ngIf="shouldUpgrade$ | async">
+    <div *ngIf="shouldUpgrade">
       <gio-license-banner (onRequestUpgrade)="onRequestUpgrade()"></gio-license-banner>
     </div>
 
