@@ -19,6 +19,7 @@ import io.gravitee.apim.core.api.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.exception.ApiPrimaryOwnerNotFoundException;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
+import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
@@ -109,18 +110,15 @@ public class PrimaryOwnerDomainServiceImpl implements ApiPrimaryOwnerDomainServi
             var user = findPrimaryOwnerGroupMember(membership.getMemberId(), primaryOwnerRoleId)
                 .flatMap(m -> userCrudService.findBaseUserById(m.getMemberId()));
 
-            if (user.isPresent() && group.isPresent()) {
-                return Optional.of(
-                    PrimaryOwnerEntity
-                        .builder()
-                        .id(group.get().getId())
-                        .displayName(group.get().getName())
-                        .type("GROUP")
-                        .email(user.get().getEmail())
-                        .build()
-                );
-            }
-            return Optional.empty();
+            return group.map(value ->
+                PrimaryOwnerEntity
+                    .builder()
+                    .id(value.getId())
+                    .displayName(value.getName())
+                    .type("GROUP")
+                    .email(user.map(BaseUserEntity::getEmail).orElse(null))
+                    .build()
+            );
         } catch (TechnicalException e) {
             log.error("An error occurs while trying to get group [groupId={}]", membership.getMemberId(), e);
             throw new TechnicalManagementException(e);
