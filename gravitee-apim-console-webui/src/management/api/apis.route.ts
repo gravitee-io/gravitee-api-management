@@ -91,6 +91,7 @@ import ResourceService from '../../services/resource.service';
 import { MessagesComponent } from '../messages/messages.component';
 import TenantService from '../../services/tenant.service';
 import TagService from '../../services/tag.service';
+import { ApiPropertiesComponent } from './proxy/properties/api-properties.component';
 
 // New Angular routing
 export const states: Ng2StateDeclaration[] = [
@@ -1358,6 +1359,20 @@ export const states: Ng2StateDeclaration[] = [
     name: 'management.apis.properties',
     url: '/properties',
     component: ApiPropertiesOldComponent,
+    data: {
+      useAngularMaterial: true,
+      apiPermissions: {
+        only: ['api-definition-r'],
+      },
+      docs: {
+        page: 'management-api-policy-studio-properties',
+      },
+    },
+  },
+  {
+    name: 'management.apis.properties-new',
+    url: '/properties-new',
+    component: ApiPropertiesComponent,
     data: {
       useAngularMaterial: true,
       apiPermissions: {
