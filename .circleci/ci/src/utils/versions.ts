@@ -40,10 +40,10 @@ export function parse(graviteeioVersion: string): GraviteeioVersion {
 }
 
 export function computeApimVersion(environment: CircleCIEnvironment): string {
-  const pomXml = fs.readFileSync(
-    !environment.apimVersionPath ? '~/projects/gravitee-api-management/pom.xml' : environment.apimVersionPath,
-    'utf8',
-  );
+  if (!fs.existsSync(environment.apimVersionPath)) {
+    throw new Error('computeApiVersion - No file at specified path: ' + environment.apimVersionPath);
+  }
+  const pomXml = fs.readFileSync(environment.apimVersionPath, 'utf8');
   const { revision, sha1, changelist } = parsePomXml(pomXml);
   return `${revision}${sha1}${changelist}`;
 }

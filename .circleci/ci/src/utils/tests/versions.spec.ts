@@ -48,6 +48,26 @@ describe('version', function () {
         }),
       ).toStrictEqual(expected);
     });
+
+    it('should throw exception with non-existing file', () => {
+      expect.assertions(1);
+
+      try {
+        computeApimVersion({
+          action: 'package_bundle',
+          branch: 'master',
+          sha1: '784ff35ca',
+          changedFiles: [],
+          buildNum: '1234',
+          buildId: '1234',
+          graviteeioVersion: '4.2.0',
+          isDryRun: false,
+          apimVersionPath: './path/to/non-existing/file',
+        });
+      } catch (e) {
+        expect(e).toStrictEqual(new Error('computeApiVersion - No file at specified path: ./path/to/non-existing/file'));
+      }
+    });
   });
 
   describe('validateGraviteeioVersion', () => {

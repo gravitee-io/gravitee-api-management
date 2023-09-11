@@ -13,7 +13,7 @@ const CI_DRY_RUN: string | undefined = process.env.CI_DRY_RUN;
 const CI_GRAVITEEIO_VERSION: string = process.env.CI_GRAVITEEIO_VERSION ?? '';
 const CI_DOCKER_TAG_AS_LATEST: string | undefined = process.env.CI_DOCKER_TAG_AS_LATEST;
 const GIT_BASE_BRANCH: string = process.env.GIT_BASE_BRANCH ?? 'master';
-const APIM_VERSION_PATH: string = process.env.APIM_VERSION_PATH ?? '';
+const APIM_VERSION_PATH: string | undefined = process.env.APIM_VERSION_PATH;
 
 if (isBlank(CIRCLE_SHA1)) {
   console.error('No CIRCLE_SHA1 defined');
@@ -39,7 +39,7 @@ changed
         isDryRun: CI_DRY_RUN !== 'false',
         graviteeioVersion: CI_GRAVITEEIO_VERSION,
         changedFiles: changes,
-        apimVersionPath: APIM_VERSION_PATH,
+        apimVersionPath: APIM_VERSION_PATH ?? '/home/circleci/project/pom.xml',
         dockerTagAsLatest: CI_DOCKER_TAG_AS_LATEST === 'true',
       }) as CircleCIEnvironment,
   )

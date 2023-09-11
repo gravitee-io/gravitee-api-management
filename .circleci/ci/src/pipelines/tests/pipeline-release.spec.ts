@@ -39,6 +39,7 @@ describe('Release tests', () => {
         buildId: '1234',
         graviteeioVersion: '4.1.0',
         branch: 'apim-1234-dev',
+        apimVersionPath: '/some/path',
         isDryRun: false,
       });
     } catch (e) {
