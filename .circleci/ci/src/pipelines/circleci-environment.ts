@@ -8,5 +8,5 @@ export type CircleCIEnvironment = {
   dockerTagAsLatest?: boolean;
   graviteeioVersion: string;
   changedFiles: string[];
-  apimVersionPath?: string;
+  apimVersionPath: string;
 };
