@@ -15,9 +15,10 @@
  */
 package io.gravitee.apim.infra.adapter;
 
-import io.gravitee.apim.core.user.model.BaseUserEntity;
-import io.gravitee.repository.management.model.User;
+import io.gravitee.repository.management.model.Application;
+import io.gravitee.rest.api.model.BaseApplicationEntity;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
 /**
@@ -25,8 +26,9 @@ import org.mapstruct.factory.Mappers;
  * @author GraviteeSource Team
  */
 @Mapper
-public interface UserAdapter {
-    UserAdapter INSTANCE = Mappers.getMapper(UserAdapter.class);
+public interface ApplicationAdapter {
+    ApplicationAdapter INSTANCE = Mappers.getMapper(ApplicationAdapter.class);
 
-    BaseUserEntity fromUser(User user);
+    @Mapping(target = "origin", source = "origin", defaultValue = "MANAGEMENT")
+    BaseApplicationEntity toEntity(Application application);
 }

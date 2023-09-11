@@ -16,7 +16,7 @@
 package io.gravitee.apim.infra.crud_service.application;
 
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
-import io.gravitee.apim.infra.crud_service.application.adapter.ApplicationMapper;
+import io.gravitee.apim.infra.adapter.ApplicationAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.model.Application;
@@ -51,11 +51,9 @@ public class ApplicationCrudServiceImpl implements ApplicationCrudService {
                     applicationOptional.filter(result -> result.getEnvironmentId().equals(executionContext.getEnvironmentId()));
             }
 
-            if (applicationOptional.isPresent()) {
-                return ApplicationMapper.mapToBaseApplication(applicationOptional.get());
-            }
-
-            throw new ApplicationNotFoundException(applicationId);
+            return applicationOptional
+                .map(ApplicationAdapter.INSTANCE::toEntity)
+                .orElseThrow(() -> new ApplicationNotFoundException(applicationId));
         } catch (TechnicalException ex) {
             log.error("An error occurs while trying to find an application using its ID {}", applicationId, ex);
             throw new TechnicalManagementException("An error occurs while trying to find an application using its ID " + applicationId, ex);

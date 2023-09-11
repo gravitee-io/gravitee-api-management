@@ -58,7 +58,9 @@ public class PlanCrudServiceImpl implements PlanCrudService {
         try {
             Optional<Api> apiOptional = apiRepository.findById(plan.getApi());
             final Api api = apiOptional.orElseThrow(() -> new ApiNotFoundException(plan.getApi()));
-            return api.getDefinitionVersion() == DefinitionVersion.V4 ? PlanAdapter.INSTANCE.toEntityV4(plan) : PlanAdapter.INSTANCE.toEntityV2(plan);
+            return api.getDefinitionVersion() == DefinitionVersion.V4
+                ? PlanAdapter.INSTANCE.toEntityV4(plan)
+                : PlanAdapter.INSTANCE.toEntityV2(plan);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("An error occurs while trying to find an API using its ID: " + plan.getApi(), e);
         }

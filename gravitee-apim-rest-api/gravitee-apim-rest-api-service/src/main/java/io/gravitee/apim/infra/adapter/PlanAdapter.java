@@ -1,12 +1,12 @@
-/**
- * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
- * <p>
+/*
+ * Copyright © 2015 The Gravitee team (http://gravitee.io)
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,6 +23,9 @@ import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.model.v4.plan.BasePlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanMode;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -30,17 +33,12 @@ import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Mapper
 public interface PlanAdapter {
-
     Logger LOGGER = LoggerFactory.getLogger(PlanAdapter.class);
     PlanAdapter INSTANCE = Mappers.getMapper(PlanAdapter.class);
 
@@ -69,17 +67,19 @@ public interface PlanAdapter {
     @Named("computeBasePlanEntityStatusV2")
     default io.gravitee.rest.api.model.PlanStatus computeBasePlanEntityStatusV2(Plan plan) {
         // Ensure backward compatibility
-        return plan.getStatus() != null ? io.gravitee.rest.api.model.PlanStatus.valueOf(plan.getStatus().name()) : io.gravitee.rest.api.model.PlanStatus.PUBLISHED;
+        return plan.getStatus() != null
+            ? io.gravitee.rest.api.model.PlanStatus.valueOf(plan.getStatus().name())
+            : io.gravitee.rest.api.model.PlanStatus.PUBLISHED;
     }
 
     @Named("computeBasePlanEntitySecurityV4")
     default PlanSecurity computeBasePlanEntitySecurityV4(Plan plan) {
         if (Plan.PlanMode.PUSH != plan.getMode()) {
             return PlanSecurity
-                   .builder()
-                   .type(PlanSecurityType.valueOf(plan.getSecurity().name()).getLabel())
-                   .configuration(plan.getSecurityDefinition())
-                   .build();
+                .builder()
+                .type(PlanSecurityType.valueOf(plan.getSecurity().name()).getLabel())
+                .configuration(plan.getSecurityDefinition())
+                .build();
         } else {
             return null;
         }
@@ -87,7 +87,9 @@ public interface PlanAdapter {
 
     @Named("computeBasePlanEntitySecurityV2")
     default io.gravitee.rest.api.model.PlanSecurityType computeBasePlanEntitySecurityV2(Plan plan) {
-        return plan.getSecurity() != null ? io.gravitee.rest.api.model.PlanSecurityType.valueOf(plan.getSecurity().name()) : io.gravitee.rest.api.model.PlanSecurityType.API_KEY;
+        return plan.getSecurity() != null
+            ? io.gravitee.rest.api.model.PlanSecurityType.valueOf(plan.getSecurity().name())
+            : io.gravitee.rest.api.model.PlanSecurityType.API_KEY;
     }
 
     @Named("computeBasePlanEntityPaths")
