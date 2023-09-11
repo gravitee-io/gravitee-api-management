@@ -69,7 +69,7 @@ export class Step5SummaryComponent implements OnInit {
     this.stepService.goToStepLabel(stepLabel);
   }
 
-  public onRequestUpgrade($event: MouseEvent) {
-    this.licenseService.openDialog({ feature: ApimFeature.APIM_EN_MESSAGE_REACTOR, context: UTMTags.API_CREATION_MESSAGE_SUMMARY }, $event);
+  public onRequestUpgrade() {
+    this.licenseService.openDialog({ feature: ApimFeature.APIM_EN_MESSAGE_REACTOR, context: UTMTags.API_CREATION_MESSAGE_SUMMARY });
   }
 }
