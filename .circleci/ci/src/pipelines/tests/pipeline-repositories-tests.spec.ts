@@ -12,6 +12,7 @@ describe('Run Repositories Tests', () => {
       buildId: '1234',
       graviteeioVersion: '4.2.0',
       isDryRun: false,
+      apimVersionPath: '',
     });
 
     const expected = fs.readFileSync(`./src/pipelines/tests/resources/repositories-tests/repositories-tests.yml`, 'utf-8');

@@ -22,6 +22,7 @@ describe('Build RPM & Docker images workflow tests', () => {
         graviteeioVersion,
         isDryRun,
         dockerTagAsLatest,
+        apimVersionPath: '',
       });
 
       const expected = fs.readFileSync(`./src/pipelines/tests/resources/build-rpm-and-docker-images/${expectedFileName}`, 'utf-8');
@@ -43,6 +44,7 @@ describe('Build RPM & Docker images workflow tests', () => {
         isDryRun: false,
         graviteeioVersion: '',
         dockerTagAsLatest: false,
+        apimVersionPath: '',
       });
     } catch (e) {
       expect(e).toStrictEqual(new Error('Graviteeio version is not defined - Please export CI_GRAVITEEIO_VERSION environment variable'));
@@ -63,6 +65,7 @@ describe('Build RPM & Docker images workflow tests', () => {
         isDryRun: false,
         graviteeioVersion: '1.2.3',
         dockerTagAsLatest: false,
+        apimVersionPath: '',
       });
     } catch (e) {
       expect(e).toStrictEqual(new Error('A branch (CIRCLE_BRANCH) must be specified'));
