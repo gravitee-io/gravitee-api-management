@@ -39,6 +39,7 @@ import { ApiProxyGroupServiceDiscoveryComponent } from './edit/service-discovery
 import { ApiProxyGroupEndpointModule } from './endpoint/api-proxy-group-endpoint.module';
 
 import { GioGoBackButtonModule } from '../../../../../shared/components/gio-go-back-button/gio-go-back-button.module';
+import { EndpointHttpConfigModule } from '../components/endpoint-http-config/endpoint-http-config.module';
 
 @NgModule({
   declarations: [
@@ -68,6 +69,7 @@ import { GioGoBackButtonModule } from '../../../../../shared/components/gio-go-b
 
     ApiProxyGroupEndpointModule,
     GioFormJsonSchemaModule,
+    EndpointHttpConfigModule,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
