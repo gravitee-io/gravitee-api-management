@@ -46,14 +46,12 @@ export class Step3Endpoints1ListComponent implements OnInit, OnDestroy {
 
   public endpoints: ConnectorVM[];
 
+  public shouldUpgrade = false;
+
   private licenseOptions = {
     feature: ApimFeature.APIM_EN_MESSAGE_REACTOR,
     context: UTMTags.API_CREATION_MESSAGE_ENDPOINT,
   };
-
-  public get shouldUpgrade$() {
-    return this.licenseService?.isMissingFeature$(this.licenseOptions);
-  }
 
   constructor(
     private readonly formBuilder: FormBuilder,
@@ -84,6 +82,18 @@ export class Step3Endpoints1ListComponent implements OnInit, OnDestroy {
 
         this.changeDetectorRef.detectChanges();
       });
+
+    this.formGroup
+      .get('selectedEndpointsIds')
+      .valueChanges.pipe(
+        tap((selectedEndpointsIds) => {
+          this.shouldUpgrade = selectedEndpointsIds
+            .map((id) => this.endpoints.find((endpoint) => endpoint.id === id))
+            .some((endpoint) => !endpoint.deployed);
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe();
   }
 
   ngOnDestroy() {
