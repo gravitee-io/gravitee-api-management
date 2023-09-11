@@ -12,6 +12,7 @@ describe('Run bridge compatibility tests', () => {
       buildId: '1234',
       graviteeioVersion: '4.2.0',
       isDryRun: false,
+      apimVersionPath: '',
     });
 
     const expected = fs.readFileSync(`./src/pipelines/tests/resources/bridge-compatibility-tests/bridge-compatibility-tests.yml`, 'utf-8');

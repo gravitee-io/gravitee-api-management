@@ -12,6 +12,7 @@ describe('Nexus staging workflow tests', () => {
       buildId: '1234',
       graviteeioVersion: '1.2.3-alpha.1',
       isDryRun: false,
+      apimVersionPath: '',
     });
 
     const expected = fs.readFileSync('./src/pipelines/tests/resources/nexus-staging/nexus-staging-no-dry-run.yml', 'utf-8');
@@ -31,6 +32,7 @@ describe('Nexus staging workflow tests', () => {
         graviteeioVersion: '1.2.3-alpha.1',
         buildNum: '1234',
         buildId: '1234',
+        apimVersionPath: '',
       });
     } catch (e) {
       expect(e).toStrictEqual(new Error('Dry Run - Nexus staging is deactivated if dry run is true'));
@@ -50,6 +52,7 @@ describe('Nexus staging workflow tests', () => {
         graviteeioVersion: '',
         buildNum: '1234',
         buildId: '1234',
+        apimVersionPath: '',
       });
     } catch (e) {
       expect(e).toStrictEqual(new Error('Graviteeio version is not defined - Please export CI_GRAVITEEIO_VERSION environment variable'));

@@ -18,6 +18,7 @@ describe('Package bundle workflow tests', () => {
       buildId: '1234',
       graviteeioVersion,
       isDryRun,
+      apimVersionPath: '',
     });
 
     const expected = fs.readFileSync(`./src/pipelines/tests/resources/package-bundle/${expectedFileName}`, 'utf-8');
@@ -37,6 +38,7 @@ describe('Package bundle workflow tests', () => {
         graviteeioVersion: '',
         buildNum: '1234',
         buildId: '1234',
+        apimVersionPath: '',
       });
     } catch (e) {
       expect(e).toStrictEqual(new Error('Graviteeio version is not defined - Please export CI_GRAVITEEIO_VERSION environment variable'));
