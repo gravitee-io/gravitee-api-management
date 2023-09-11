@@ -25,6 +25,7 @@ export class SnykApimChartsJob {
         command: `helm dependency update
 helm template . --output-dir ./output
 snyk iac test ./output --report --target-reference="${environment.branch}" --project-tags=version=${environment.branch} --severity-threshold=high`,
+        working_directory: './helm',
       }),
     ];
     return new Job(SnykApimChartsJob.jobName, BaseExecutor.create('small'), steps);

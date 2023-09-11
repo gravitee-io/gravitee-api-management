@@ -784,6 +784,7 @@ jobs:
             helm dependency update
             helm template . --output-dir ./output
             snyk iac test ./output --report --target-reference="4.1.x" --project-tags=version=4.1.x --severity-threshold=high
+          working_directory: ./helm
   job-publish-on-artifactory:
     docker:
       - image: cimg/openjdk:17.0
