@@ -127,7 +127,7 @@ export const states: Ng2StateDeclaration[] = [
    */
   {
     name: 'management.apis-new',
-    url: '/new',
+    url: '/apis/new',
     component: ApiCreationGetStartedComponent,
     data: {
       useAngularMaterial: true,
@@ -141,7 +141,7 @@ export const states: Ng2StateDeclaration[] = [
   },
   {
     name: 'management.apis-new-v4',
-    url: '/new/v4',
+    url: '/apis/new/v4',
     component: ApiCreationV4Component,
     data: {
       useAngularMaterial: true,
@@ -152,7 +152,7 @@ export const states: Ng2StateDeclaration[] = [
   },
   {
     name: 'management.apis-new-v4-confirmation',
-    url: '/new/v4/:apiId',
+    url: '/apis/new/v4/:apiId',
     component: ApiCreationV4ConfirmationComponent,
     data: {
       useAngularMaterial: true,
@@ -163,7 +163,7 @@ export const states: Ng2StateDeclaration[] = [
   },
   {
     name: 'management.apis-new-v2',
-    url: '/new/v2',
+    url: '/apis/new/v2',
     component: ApiCreationV2Component,
     data: {
       useAngularMaterial: true,
@@ -195,7 +195,7 @@ export const states: Ng2StateDeclaration[] = [
    */
   {
     name: 'management.apis',
-    url: '/:apiId',
+    url: '/apis/:apiId',
     abstract: true,
     component: ApiNavigationComponent,
     data: {
