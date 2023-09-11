@@ -17,7 +17,8 @@
         "lint:prettier": "prettier --check \"**/*.ts\"",
         "lint:prettier:fix": "prettier --write \"**/*.ts\"",
         "test": "jest",
-        "validate:build-pr": "CIRCLE_BRANCH=\"feat-branch\" CIRCLE_SHA1=\"1234\" npm run generate ./dist/build-pr.yml && circleci config validate ./dist/build-pr.yml"
+        "validate:build-pr": "CIRCLE_BRANCH=\"feat-branch\" CIRCLE_SHA1=\"1234\" npm run generate ./dist/build-pr.yml && circleci config validate ./dist/build-pr.yml",
+        "validate:test": "find src/pipelines/tests/resources/* -name \"*.yml\" -exec circleci config validate {} \\;"
     },
     "dependencies": {
         "@circleci/circleci-config-sdk": "0.12.3",
