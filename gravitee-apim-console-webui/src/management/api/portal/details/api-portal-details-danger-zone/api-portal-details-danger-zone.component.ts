@@ -304,7 +304,7 @@ export class ApiPortalDetailsDangerZoneComponent implements OnChanges, OnDestroy
     }
   }
 
-  public onRequestUpgrade($event: MouseEvent) {
-    this.licenseService.openDialog(this.licenseOptions, $event);
+  public onRequestUpgrade() {
+    this.licenseService.openDialog(this.licenseOptions);
   }
 }

@@ -183,7 +183,7 @@ export class ApiEndpointsGroupsComponent implements OnInit, OnDestroy {
       .subscribe();
   }
 
-  public onRequestUpgrade($event: MouseEvent) {
-    this.licenseService.openDialog(this.licenseOptions, $event);
+  public onRequestUpgrade() {
+    this.licenseService.openDialog(this.licenseOptions);
   }
 }

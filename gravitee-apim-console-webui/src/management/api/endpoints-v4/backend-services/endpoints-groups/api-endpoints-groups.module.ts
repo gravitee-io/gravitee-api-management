@@ -28,6 +28,7 @@ import { ApiEndpointsGroupsComponent } from './api-endpoints-groups.component';
 
 import { ApiEndpointModule } from '../endpoint/api-endpoint.module';
 import { GioPermissionModule } from '../../../../../shared/components/gio-permission/gio-permission.module';
+import { GioLicenseBannerModule } from '../../../../../shared/components/gio-license-banner/gio-license-banner.module';
 
 @NgModule({
   declarations: [ApiEndpointsGroupsComponent],
@@ -45,6 +46,7 @@ import { GioPermissionModule } from '../../../../../shared/components/gio-permis
     ApiEndpointModule,
     GioPermissionModule,
     GioBannerModule,
+    GioLicenseBannerModule,
   ],
 })
 export class ApiEndpointsGroupsModule {}
