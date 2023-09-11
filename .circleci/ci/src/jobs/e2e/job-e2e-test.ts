@@ -1,4 +1,4 @@
-import { commands, Config, Job, reusable } from '@circleci/circleci-config-sdk';
+import { commands, Config, Job, parameters, reusable } from '@circleci/circleci-config-sdk';
 import { DockerAzureLoginCommand, DockerAzureLogoutCommand, NotifyOnFailureCommand } from '../../commands';
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
 import { computeImagesTag } from '../../utils';
@@ -10,6 +10,11 @@ import { UbuntuExecutor } from '../../executors';
 
 export class E2ETestJob {
   private static jobName = `job-e2e-test`;
+  private static customParametersList = new parameters.CustomParametersList([
+    new parameters.CustomParameter('apim_client_tag', 'string', ''),
+    new parameters.CustomParameter('execution_mode', 'string', ''),
+    new parameters.CustomParameter('database', 'string', ''),
+  ]);
   public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
     dynamicConfig.importOrb(orbs.keeper);
 
@@ -56,6 +61,6 @@ fi`,
         path: './gravitee-apim-e2e/.logs',
       }),
     ];
-    return new Job(E2ETestJob.jobName, UbuntuExecutor.create(), steps);
+    return new reusable.ParameterizedJob(E2ETestJob.jobName, UbuntuExecutor.create(), E2ETestJob.customParametersList, steps);
   }
 }
