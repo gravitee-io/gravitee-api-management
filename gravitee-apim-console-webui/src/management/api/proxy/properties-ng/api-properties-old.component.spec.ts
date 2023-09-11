@@ -21,8 +21,8 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 
-import { ApiPropertiesComponent } from './api-properties.component';
-import { ApiPropertiesModule } from './api-properties.module';
+import { ApiPropertiesOldComponent } from './api-properties-old.component';
+import { ApiPropertiesOldModule } from './api-properties-old.module';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { User } from '../../../../entities/user';
@@ -30,10 +30,10 @@ import { AjsRootScope, CurrentUserService, UIRouterStateParams } from '../../../
 import { GioUiRouterTestingModule } from '../../../../shared/testing/gio-uirouter-testing-module';
 import { Api, fakeApiV4 } from '../../../../entities/management-api-v2';
 
-describe('ApiPropertiesComponent', () => {
+describe('ApiPropertiesOldComponent', () => {
   const API_ID = 'apiId';
-  let fixture: ComponentFixture<ApiPropertiesComponent>;
-  let component: ApiPropertiesComponent;
+  let fixture: ComponentFixture<ApiPropertiesOldComponent>;
+  let component: ApiPropertiesOldComponent;
   let httpTestingController: HttpTestingController;
   let loader: HarnessLoader;
 
@@ -43,7 +43,7 @@ describe('ApiPropertiesComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiPropertiesModule, GioUiRouterTestingModule],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiPropertiesOldModule, GioUiRouterTestingModule],
       providers: [
         { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
         {
@@ -67,7 +67,7 @@ describe('ApiPropertiesComponent', () => {
   });
 
   const createComponent = (api: Api) => {
-    fixture = TestBed.createComponent(ApiPropertiesComponent);
+    fixture = TestBed.createComponent(ApiPropertiesOldComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
     loader = TestbedHarnessEnvironment.loader(fixture);
     component = fixture.componentInstance;

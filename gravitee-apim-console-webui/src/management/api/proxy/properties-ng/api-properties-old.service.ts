@@ -136,7 +136,7 @@ const DYNAMIC_PROPERTY_SCHEMA = {
 @Injectable({
   providedIn: 'root',
 })
-export class ApiPropertiesService {
+export class ApiPropertiesOldService {
   getProviders(): Observable<Json> {
     return of(PROPERTY_PROVIDERS);
   }
