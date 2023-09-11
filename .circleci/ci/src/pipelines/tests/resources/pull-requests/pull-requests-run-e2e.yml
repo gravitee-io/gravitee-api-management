@@ -649,6 +649,16 @@ jobs:
             gateway-docker-context
       - cmd-docker-azure-logout
   job-e2e-test:
+    parameters:
+      apim_client_tag:
+        type: string
+        default: ""
+      execution_mode:
+        type: string
+        default: ""
+      database:
+        type: string
+        default: ""
     machine:
       image: ubuntu-2204:current
       docker_layer_caching: false
