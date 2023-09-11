@@ -165,6 +165,30 @@ public class PrimaryOwnerDomainServiceImplTest {
         }
 
         @Test
+        @SneakyThrows
+        public void should_return_a_group_primary_owner_with_no_email_when_group_has_no_users() {
+            givenExistingGroup(List.of(Group.builder().id("group-id").name("Group name").build()));
+            givenExistingMemberships(
+                List.of(
+                    Membership
+                        .builder()
+                        .referenceType(MembershipReferenceType.API)
+                        .referenceId("api-id")
+                        .memberType(MembershipMemberType.GROUP)
+                        .memberId("group-id")
+                        .roleId(PRIMARY_OWNER_ROLE_ID)
+                        .build()
+                )
+            );
+
+            var result = service.getApiPrimaryOwner(GraviteeContext.getExecutionContext(), "api-id");
+
+            Assertions
+                .assertThat(result)
+                .isEqualTo(PrimaryOwnerEntity.builder().id("group-id").displayName("Group name").type("GROUP").build());
+        }
+
+        @Test
         public void should_return_no_user_primary_owner_found() {
             givenExistingUsers(List.of());
             givenExistingMemberships(
