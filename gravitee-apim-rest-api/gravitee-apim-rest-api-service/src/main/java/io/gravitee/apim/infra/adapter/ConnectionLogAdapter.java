@@ -15,8 +15,9 @@
  */
 package io.gravitee.apim.infra.adapter;
 
-import io.gravitee.apim.core.user.model.BaseUserEntity;
-import io.gravitee.repository.management.model.User;
+import io.gravitee.repository.log.v4.model.ConnectionLog;
+import io.gravitee.rest.api.model.v4.log.BaseConnectionLog;
+import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
@@ -25,8 +26,10 @@ import org.mapstruct.factory.Mappers;
  * @author GraviteeSource Team
  */
 @Mapper
-public interface UserAdapter {
-    UserAdapter INSTANCE = Mappers.getMapper(UserAdapter.class);
+public interface ConnectionLogAdapter {
+    ConnectionLogAdapter INSTANCE = Mappers.getMapper(ConnectionLogAdapter.class);
 
-    BaseUserEntity fromUser(User user);
+    BaseConnectionLog toEntity(ConnectionLog connectionLog);
+
+    List<BaseConnectionLog> toEntitiesList(List<ConnectionLog> connectionLogs);
 }

@@ -16,6 +16,7 @@
 package io.gravitee.apim.infra.crud_service.log;
 
 import io.gravitee.apim.core.log.crud_service.LogCrudService;
+import io.gravitee.apim.infra.adapter.ConnectionLogAdapter;
 import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.log.v4.api.LogRepository;
 import io.gravitee.repository.log.v4.model.ConnectionLog;
@@ -58,24 +59,8 @@ class LogCrudServiceImpl implements LogCrudService {
 
     private SearchLogResponse<BaseConnectionLog> mapToResponse(LogResponse<ConnectionLog> logs) {
         var total = logs.total();
-        var data = logs.data().stream().map(this::mapToModel).toList();
+        var data = ConnectionLogAdapter.INSTANCE.toEntitiesList(logs.data());
 
         return new SearchLogResponse<>(total, data);
-    }
-
-    private BaseConnectionLog mapToModel(ConnectionLog connectionLog) {
-        return BaseConnectionLog
-            .builder()
-            .apiId(connectionLog.getApiId())
-            .requestId(connectionLog.getRequestId())
-            .timestamp(connectionLog.getTimestamp())
-            .applicationId(connectionLog.getApplicationId())
-            .clientIdentifier(connectionLog.getClientIdentifier())
-            .method(connectionLog.getMethod())
-            .planId(connectionLog.getPlanId())
-            .requestEnded(connectionLog.isRequestEnded())
-            .transactionId(connectionLog.getTransactionId())
-            .status(connectionLog.getStatus())
-            .build();
     }
 }
