@@ -64,6 +64,7 @@ import { ApiRuntimeLogsSettingsComponent } from './runtime-logs-v4/runtime-logs-
 import { ApiRuntimeLogsComponent } from './runtime-logs-v4/runtime-logs/api-runtime-logs.component';
 import { ApiListComponent } from './list/api-list.component';
 import { NotificationsListComponent } from './notifications/notifications-list/notifications-list.component';
+import { NotificationDetailsComponent } from './notifications/notifications-list/notofication-details/notification-details.component';
 import { ApiCreationGetStartedComponent } from './creation-get-started/api-creation-get-started.component';
 import { ApiCreationV4Component } from './creation-v4/api-creation-v4.component';
 import { ApiCreationV4ConfirmationComponent } from './creation-v4/api-creation-v4-confirmation.component';
@@ -830,6 +831,17 @@ export const states: Ng2StateDeclaration[] = [
     name: 'management.apis.notifications-ng',
     component: NotificationsListComponent,
     url: '/notifications-ng',
+    data: {
+      apiPermissions: {
+        only: ['api-notification-r'],
+      },
+      useAngularMaterial: true,
+    },
+  },
+  {
+    name: 'management.apis.notifications-ng.details',
+    component: NotificationDetailsComponent,
+    url: '/:notificationId',
     data: {
       apiPermissions: {
         only: ['api-notification-r'],
