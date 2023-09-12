@@ -21,6 +21,7 @@ module.exports = {
     'ts-jest': {
       tsconfig: '<rootDir>/tsconfig.json',
       stringifyContentPathRegex: '\\.(html|svg)$',
+      isolatedModules: true,
     },
   },
 
