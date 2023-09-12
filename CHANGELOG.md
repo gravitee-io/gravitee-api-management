@@ -1,3 +1,10 @@
+## [5.0.2](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/5.0.1...5.0.2) (2023-09-12)
+
+
+### Bug Fixes
+
+* add ingest pipelines plugins template ([e6ce2d3](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/e6ce2d371106982b652b8597a6b4e13fe1d6e1dc))
+
 ## [5.0.1](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/5.0.0...5.0.1) (2023-08-31)
 
 
