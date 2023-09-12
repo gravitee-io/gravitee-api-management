@@ -54,6 +54,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -150,6 +151,21 @@ public class ApiDeserializerTest extends AbstractTest {
 
         Set<HttpMethod> methods = rules.iterator().next().getMethods();
         assertEquals(2, methods.size());
+    }
+
+    @Test
+    public void definition_withWildcardInPathMapping() throws IOException {
+        Api api = load("/io/gravitee/definition/jackson/api-with-wildcard-in-path-mapping.json", Api.class);
+        assertNotNull(api.getPathMappings());
+        assertEquals(1, api.getPathMappings().size());
+        Pattern pattern = api.getPathMappings().get("/echo/:*test/.*");
+        assertNotNull(pattern);
+        assertEquals("/echo/[^/]*/.*", pattern.pattern());
+        assertFalse(pattern.matcher("/echo").matches());
+        assertFalse(pattern.matcher("/echo/").matches());
+        assertFalse(pattern.matcher("/echo/anything").matches());
+        assertTrue(pattern.matcher("/echo/anything/").matches());
+        assertTrue(pattern.matcher("/echo/anything/anything-else").matches());
     }
 
     @Test
