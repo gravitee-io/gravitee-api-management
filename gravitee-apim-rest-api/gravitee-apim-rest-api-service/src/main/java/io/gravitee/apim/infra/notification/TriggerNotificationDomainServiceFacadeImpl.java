@@ -24,6 +24,7 @@ import io.gravitee.apim.core.notification.model.ApplicationNotificationTemplateD
 import io.gravitee.apim.core.notification.model.PlanNotificationTemplateData;
 import io.gravitee.apim.core.notification.model.PrimaryOwnerNotificationTemplateData;
 import io.gravitee.apim.core.notification.model.hook.ApiHookContext;
+import io.gravitee.apim.core.notification.model.hook.ApplicationHookContext;
 import io.gravitee.apim.core.notification.model.hook.HookContext;
 import io.gravitee.apim.core.notification.model.hook.HookContextEntry;
 import io.gravitee.apim.infra.template.TemplateProcessor;
@@ -88,6 +89,13 @@ public class TriggerNotificationDomainServiceFacadeImpl implements TriggerNotifi
         var props = buildParams(executionContext, context);
 
         notifierService.trigger(executionContext, context.getHook(), context.getApiId(), props);
+    }
+
+    @Override
+    public void triggerApplicationNotification(ExecutionContext executionContext, ApplicationHookContext context) {
+        var props = buildParams(executionContext, context);
+
+        notifierService.trigger(executionContext, context.getHook(), context.getApplicationId(), props);
     }
 
     private Map<String, Object> buildParams(ExecutionContext executionContext, HookContext context) {

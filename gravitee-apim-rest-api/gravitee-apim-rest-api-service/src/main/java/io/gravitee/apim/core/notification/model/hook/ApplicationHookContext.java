@@ -20,9 +20,9 @@ import java.util.HashMap;
 import java.util.Map;
 import lombok.Getter;
 
+@Getter
 public abstract class ApplicationHookContext extends AbstractHookContext {
 
-    @Getter
     private final ApplicationHook hook;
 
     private final String applicationId;

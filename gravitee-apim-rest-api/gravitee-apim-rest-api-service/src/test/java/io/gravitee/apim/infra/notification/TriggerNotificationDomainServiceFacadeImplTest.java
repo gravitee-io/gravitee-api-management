@@ -31,6 +31,7 @@ import io.gravitee.apim.core.notification.model.ApplicationNotificationTemplateD
 import io.gravitee.apim.core.notification.model.PlanNotificationTemplateData;
 import io.gravitee.apim.core.notification.model.PrimaryOwnerNotificationTemplateData;
 import io.gravitee.apim.core.notification.model.hook.ApiHookContext;
+import io.gravitee.apim.core.notification.model.hook.ApplicationHookContext;
 import io.gravitee.apim.core.notification.model.hook.HookContextEntry;
 import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -46,6 +47,7 @@ import io.gravitee.rest.api.model.MetadataFormat;
 import io.gravitee.rest.api.service.NotifierService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.notification.ApiHook;
+import io.gravitee.rest.api.service.notification.ApplicationHook;
 import java.sql.Date;
 import java.time.Instant;
 import java.util.HashMap;
@@ -318,6 +320,256 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             protected Map<HookContextEntry, String> getChildProperties() {
                 return properties;
             }
+        }
+    }
+
+    @Nested
+    class TriggerApplicationNotification {
+
+        @Test
+        public void should_fetch_application_notification_data() {
+            // Given
+            givenExistingApplication(
+                Application
+                    .builder()
+                    .id("application-id")
+                    .name("application-name")
+                    .type(ApplicationType.SIMPLE)
+                    .status(ApplicationStatus.ACTIVE)
+                    .description("application-description")
+                    .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                    .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+                    .build(),
+                PrimaryOwnerEntity.builder().id("user-2").displayName("Jen Doe").email("jen.doe@gravitee.io").type("USER").build()
+            );
+
+            // When
+            service.triggerApplicationNotification(
+                GraviteeContext.getExecutionContext(),
+                new SimpleApplicationHookContextForTest("application-id")
+            );
+
+            // Then
+            verify(notifierService)
+                .trigger(
+                    eq(GraviteeContext.getExecutionContext()),
+                    eq(ApplicationHook.SUBSCRIPTION_CLOSED),
+                    eq("application-id"),
+                    paramsCaptor.capture()
+                );
+            var params = paramsCaptor.getValue();
+            assertThat(params)
+                .containsEntry(
+                    "application",
+                    ApplicationNotificationTemplateData
+                        .builder()
+                        .name("application-name")
+                        .type("SIMPLE")
+                        .status("ACTIVE")
+                        .description("application-description")
+                        .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                        .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+                        .primaryOwner(
+                            PrimaryOwnerNotificationTemplateData
+                                .builder()
+                                .id("user-2")
+                                .email("jen.doe@gravitee.io")
+                                .displayName("Jen Doe")
+                                .type("USER")
+                                .build()
+                        )
+                        .build()
+                );
+        }
+
+        @Test
+        public void should_fetch_api_notification_data() {
+            // Given
+            givenExistingApplication(
+                Application
+                    .builder()
+                    .id("application-id")
+                    .name("application-name")
+                    .description("application-description")
+                    .type(ApplicationType.SIMPLE)
+                    .status(ApplicationStatus.ACTIVE)
+                    .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                    .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+                    .build(),
+                PrimaryOwnerEntity.builder().id("user-2").displayName("Jen Doe").email("jen.doe@gravitee.io").type("USER").build()
+            );
+            givenExistingApi(
+                anApi().withId("api-id"),
+                PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type("USER").build()
+            );
+
+            // When
+            service.triggerApplicationNotification(
+                GraviteeContext.getExecutionContext(),
+                new SimpleApplicationHookContextForTest("application-id", Map.of(HookContextEntry.API_ID, "api-id"))
+            );
+
+            // Then
+            verify(notifierService)
+                .trigger(
+                    eq(GraviteeContext.getExecutionContext()),
+                    eq(ApplicationHook.SUBSCRIPTION_CLOSED),
+                    eq("application-id"),
+                    paramsCaptor.capture()
+                );
+            var params = paramsCaptor.getValue();
+            assertThat(params)
+                .containsEntry(
+                    "api",
+                    ApiNotificationTemplateData
+                        .builder()
+                        .id("api-id")
+                        .name("api-name")
+                        .description("api-description")
+                        .apiVersion("api-version")
+                        .definitionVersion(DefinitionVersion.V4)
+                        .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                        .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+                        .deployedAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
+                        .primaryOwner(
+                            PrimaryOwnerNotificationTemplateData
+                                .builder()
+                                .id("user-id")
+                                .email("jane.doe@gravitee.io")
+                                .displayName("Jane Doe")
+                                .type("USER")
+                                .build()
+                        )
+                        .metadata(Map.of())
+                        .build()
+                );
+        }
+
+        @Test
+        public void should_fetch_api_notification_data_with_metadata() {
+            // Given
+            givenExistingApi(
+                anApi().withId("api-id"),
+                PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type("USER").build(),
+                List.of(
+                    ApiMetadata.builder().key("key1").value("value1").format(MetadataFormat.STRING).build(),
+                    //                    ApiMetadata.builder().key("email-support").value("${api.name}").format(MetadataFormat.STRING).build()
+                    ApiMetadata.builder().key("email-support").value("${(api.primaryOwner.email)!''}").format(MetadataFormat.STRING).build()
+                )
+            );
+
+            // When
+            service.triggerApplicationNotification(
+                GraviteeContext.getExecutionContext(),
+                new SimpleApplicationHookContextForTest("application-id", Map.of(HookContextEntry.API_ID, "api-id"))
+            );
+
+            // Then
+            verify(notifierService)
+                .trigger(
+                    eq(GraviteeContext.getExecutionContext()),
+                    eq(ApplicationHook.SUBSCRIPTION_CLOSED),
+                    eq("application-id"),
+                    paramsCaptor.capture()
+                );
+            var params = paramsCaptor.getValue();
+            assertThat(params)
+                .containsEntry(
+                    "api",
+                    ApiNotificationTemplateData
+                        .builder()
+                        .id("api-id")
+                        .name("api-name")
+                        .description("api-description")
+                        .apiVersion("api-version")
+                        .definitionVersion(DefinitionVersion.V4)
+                        .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                        .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+                        .deployedAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
+                        .primaryOwner(
+                            PrimaryOwnerNotificationTemplateData
+                                .builder()
+                                .id("user-id")
+                                .email("jane.doe@gravitee.io")
+                                .displayName("Jane Doe")
+                                .type("USER")
+                                .build()
+                        )
+                        .metadata(Map.of("key1", "value1", "email-support", "jane.doe@gravitee.io"))
+                        .build()
+                );
+        }
+
+        @Test
+        public void should_fetch_plan_notification_data() {
+            // Given
+            givenExistingApi(
+                anApi().withId("api-id"),
+                PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type("USER").build()
+            );
+
+            givenExistingPlan(
+                Plan
+                    .builder()
+                    .id("plan-id")
+                    .api("api-id")
+                    .name("plan")
+                    .description("plan-description")
+                    .order(1)
+                    .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                    .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+                    .publishedAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
+                    .closedAt(Date.from(Instant.parse("2020-02-04T20:22:02.00Z")))
+                    .build()
+            );
+            // When
+            service.triggerApplicationNotification(
+                GraviteeContext.getExecutionContext(),
+                new SimpleApplicationHookContextForTest("application-id", Map.of(HookContextEntry.PLAN_ID, "plan-id"))
+            );
+
+            // Then
+            verify(notifierService)
+                .trigger(
+                    eq(GraviteeContext.getExecutionContext()),
+                    eq(ApplicationHook.SUBSCRIPTION_CLOSED),
+                    eq("application-id"),
+                    paramsCaptor.capture()
+                );
+            var params = paramsCaptor.getValue();
+            assertThat(params)
+                .containsEntry(
+                    "plan",
+                    PlanNotificationTemplateData
+                        .builder()
+                        .name("plan")
+                        .description("plan-description")
+                        .order(1)
+                        .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                        .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+                        .publishedAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
+                        .closedAt(Date.from(Instant.parse("2020-02-04T20:22:02.00Z")))
+                        .build()
+                );
+        }
+    }
+
+    static class SimpleApplicationHookContextForTest extends ApplicationHookContext {
+
+        private final Map<HookContextEntry, String> properties;
+
+        public SimpleApplicationHookContextForTest(String applicationId) {
+            this(applicationId, new HashMap<>());
+        }
+
+        public SimpleApplicationHookContextForTest(String applicationId, Map<HookContextEntry, String> properties) {
+            super(ApplicationHook.SUBSCRIPTION_CLOSED, applicationId);
+            this.properties = properties;
+        }
+
+        @Override
+        protected Map<HookContextEntry, String> getChildProperties() {
+            return properties;
         }
     }
 

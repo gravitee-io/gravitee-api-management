@@ -17,6 +17,7 @@ package inmemory;
 
 import io.gravitee.apim.core.notification.TriggerNotificationDomainService;
 import io.gravitee.apim.core.notification.model.hook.ApiHookContext;
+import io.gravitee.apim.core.notification.model.hook.ApplicationHookContext;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -25,17 +26,28 @@ import java.util.List;
 public class TriggerNotificationDomainServiceInMemory implements TriggerNotificationDomainService {
 
     private final List<ApiHookContext> apiNotifications = new ArrayList<>();
+    private final List<ApplicationHookContext> applicationNotifications = new ArrayList<>();
 
     @Override
     public void triggerApiNotification(ExecutionContext executionContext, ApiHookContext hookContext) {
         apiNotifications.add(hookContext);
     }
 
+    @Override
+    public void triggerApplicationNotification(ExecutionContext executionContext, ApplicationHookContext hookContext) {
+        applicationNotifications.add(hookContext);
+    }
+
     public List<ApiHookContext> getApiNotifications() {
         return Collections.unmodifiableList(apiNotifications);
     }
 
+    public List<ApplicationHookContext> getApplicationNotifications() {
+        return Collections.unmodifiableList(applicationNotifications);
+    }
+
     public void reset() {
         apiNotifications.clear();
+        applicationNotifications.clear();
     }
 }

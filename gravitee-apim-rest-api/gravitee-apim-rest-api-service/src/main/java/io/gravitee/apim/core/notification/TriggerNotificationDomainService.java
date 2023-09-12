@@ -21,4 +21,5 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 
 public interface TriggerNotificationDomainService {
     void triggerApiNotification(ExecutionContext executionContext, final ApiHookContext context);
+    void triggerApplicationNotification(ExecutionContext executionContext, final ApplicationHookContext context);
 }
