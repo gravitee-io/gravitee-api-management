@@ -165,7 +165,7 @@
     "build:prod": "webpack -c ./conf/webpack-dist.conf.js",
     "compile": "tsc",
     "lint": "npm run lint:eslint && npm run prettier",
-    "lint:eslint": "eslint --ext .json,.ts ./src",
+    "lint:eslint": "eslint --debug --ext .json,.ts ./src",
     "lint:eslint:fix": "eslint --ext .json,.ts ./src --fix",
     "lint:fix": "npm run lint:eslint:fix && npm run lint:license:fix && npm run prettier:fix",
     "lint:license": "license-check-and-add check -f license-check-config.json",
@@ -181,6 +181,6 @@
     "serve:prod": "node scripts/serve.js",
     "test": "jest --detectOpenHandles",
     "test:auto": "jest --watch",
-    "test:coverage": "NODE_OPTIONS=--max-old-space-size=3072 jest --runInBand --ci --collectCoverage=true"
+    "test:coverage": "node --max-old-space-size=7168 --expose-gc ./node_modules/.bin/jest --maxWorkers=3 --collectCoverage=true --logHeapUsage"
   }
 }
