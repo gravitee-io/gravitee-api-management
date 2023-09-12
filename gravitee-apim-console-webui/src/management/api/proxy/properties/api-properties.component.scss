@@ -21,7 +21,16 @@
 
   &__table {
     .mat-column-actions {
-      width: 0;
+      text-align: end;
+    }
+
+    .mat-column-key,
+    .mat-column-value {
+      padding-right: 16px;
+    }
+
+    &__field {
+      width: 100%;
     }
   }
 }

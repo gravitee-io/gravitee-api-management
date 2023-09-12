@@ -21,8 +21,11 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { ApiPropertiesComponent } from './api-properties.component';
 
@@ -33,6 +36,7 @@ import { GioTableWrapperModule } from '../../../../shared/components/gio-table-w
   imports: [
     CommonModule,
     FormsModule,
+    ReactiveFormsModule,
 
     GioSaveBarModule,
     GioTableWrapperModule,
@@ -44,6 +48,9 @@ import { GioTableWrapperModule } from '../../../../shared/components/gio-table-w
     MatCardModule,
     MatIconModule,
     MatTooltipModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSnackBarModule,
   ],
   declarations: [ApiPropertiesComponent],
   exports: [ApiPropertiesComponent],

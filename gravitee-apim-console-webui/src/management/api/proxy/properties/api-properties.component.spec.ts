@@ -19,9 +19,12 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { HarnessLoader } from '@angular/cdk/testing';
+import { HarnessLoader, parallel } from '@angular/cdk/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
+import { MatInputHarness } from '@angular/material/input/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
+import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 
 import { ApiPropertiesComponent } from './api-properties.component';
 import { ApiPropertiesModule } from './api-properties.module';
@@ -71,7 +74,7 @@ describe('ApiPropertiesComponent', () => {
     httpTestingController.verify();
   });
 
-  it('should work', async () => {
+  it('should display properties', async () => {
     expect(component).toBeTruthy();
 
     const table = await loader.getHarness(MatTableHarness.with({ selector: '[aria-label="API Properties"]' }));
@@ -89,12 +92,188 @@ describe('ApiPropertiesComponent', () => {
       }),
     );
 
-    const rows = await table.getCellTextByIndex();
-    expect(rows).toEqual([
-      ['key1', 'value1', '', ''],
-      ['key2', 'value2', '', ''],
+    const cellContentByIndex = await getCellContentByIndex(table);
+    expect(cellContentByIndex).toEqual([
+      {
+        key: 'key1',
+        value: 'value1',
+        isValueDisabled: false,
+        encrypted: 'Not Encrypted',
+      },
+      {
+        key: 'key2',
+        value: '*************',
+        isValueDisabled: true,
+        encrypted: 'Encrypted',
+      },
     ]);
   });
+
+  it('should renew encrypted value', async () => {
+    expectGetApi(
+      fakeApiV4({
+        id: API_ID,
+        properties: [{ key: 'key2', value: 'encryptedValue', encrypted: true }],
+      }),
+    );
+
+    const renewEncryptedValueButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Renew encrypted value"]' }));
+    await renewEncryptedValueButton.click();
+
+    const table = await loader.getHarness(MatTableHarness.with({ selector: '[aria-label="API Properties"]' }));
+    const firstRow = (await table.getRows())[0];
+    const valueCell = (await firstRow.getCells())[1];
+    const valueInput = await valueCell.getHarness(MatInputHarness);
+
+    expect(await valueInput.getValue()).toEqual('');
+
+    await valueInput.setValue('newEncryptedValue');
+
+    const cellContentByIndex = await getCellContentByIndex(table);
+    expect(cellContentByIndex).toEqual([
+      {
+        key: 'key2',
+        value: 'newEncryptedValue',
+        isValueDisabled: false,
+        encrypted: 'To Encrypt',
+      },
+    ]);
+    const saveBar = await loader.getHarness(GioSaveBarHarness);
+
+    await saveBar.clickSubmit();
+
+    expectGetApi(
+      fakeApiV4({
+        id: API_ID,
+        properties: [{ key: 'key2', value: 'encryptedValue', encrypted: true }],
+      }),
+    );
+
+    const postApiReq = httpTestingController.expectOne({
+      method: 'PUT',
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`,
+    });
+
+    expect(postApiReq.request.body.properties).toEqual([
+      {
+        encryptable: true,
+        encrypted: false,
+        key: 'key2',
+        value: 'newEncryptedValue',
+      },
+    ]);
+  });
+
+  it('should encrypt value', async () => {
+    expectGetApi(
+      fakeApiV4({
+        id: API_ID,
+        properties: [{ key: 'key2', value: 'ValueToEncrypt', encrypted: false }],
+      }),
+    );
+
+    const encryptValueButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Encrypt value"]' }));
+    await encryptValueButton.click();
+
+    const table = await loader.getHarness(MatTableHarness.with({ selector: '[aria-label="API Properties"]' }));
+    const firstRow = (await table.getRows())[0];
+    const valueCell = (await firstRow.getCells())[1];
+    const valueInput = await valueCell.getHarness(MatInputHarness);
+
+    expect(await valueInput.getValue()).toEqual('ValueToEncrypt');
+
+    const cellContentByIndex = await getCellContentByIndex(table);
+    expect(cellContentByIndex).toEqual([
+      {
+        key: 'key2',
+        value: 'ValueToEncrypt',
+        isValueDisabled: false,
+        encrypted: 'To Encrypt',
+      },
+    ]);
+    const saveBar = await loader.getHarness(GioSaveBarHarness);
+
+    await saveBar.clickSubmit();
+
+    expectGetApi(
+      fakeApiV4({
+        id: API_ID,
+        properties: [{ key: 'key2', value: 'encryptedValue', encrypted: true }],
+      }),
+    );
+
+    const postApiReq = httpTestingController.expectOne({
+      method: 'PUT',
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`,
+    });
+
+    expect(postApiReq.request.body.properties).toEqual([
+      {
+        encryptable: true,
+        encrypted: false,
+        key: 'key2',
+        value: 'ValueToEncrypt',
+      },
+    ]);
+  });
+
+  it('should remove property', async () => {
+    expectGetApi(
+      fakeApiV4({
+        id: API_ID,
+        properties: [{ key: 'key2', value: 'ValueToEncrypt', encrypted: false }],
+      }),
+    );
+
+    const removePropertyButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Remove property"]' }));
+    await removePropertyButton.click();
+
+    const table = await loader.getHarness(MatTableHarness.with({ selector: '[aria-label="API Properties"]' }));
+    const cellContentByIndex = await getCellContentByIndex(table);
+    expect(cellContentByIndex).toEqual([
+      {
+        encrypted: 'Not Encrypted',
+        isValueDisabled: false,
+        key: 'key2',
+        value: 'ValueToEncrypt',
+      },
+    ]);
+    const saveBar = await loader.getHarness(GioSaveBarHarness);
+
+    await saveBar.clickSubmit();
+
+    expectGetApi(
+      fakeApiV4({
+        id: API_ID,
+        properties: [{ key: 'key2', value: 'encryptedValue', encrypted: true }],
+      }),
+    );
+
+    const postApiReq = httpTestingController.expectOne({
+      method: 'PUT',
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`,
+    });
+
+    expect(postApiReq.request.body.properties).toEqual([]);
+  });
+
+  async function getCellContentByIndex(table: MatTableHarness) {
+    const rows = await table.getRows();
+    return await parallel(() =>
+      rows.map(async (row) => {
+        const cells = await row.getCells();
+        const keyInput = await cells[0].getHarness(MatInputHarness);
+        const valueInput = await cells[1].getHarness(MatInputHarness);
+
+        return {
+          key: await keyInput.getValue(),
+          value: await valueInput.getValue(),
+          isValueDisabled: await valueInput.isDisabled(),
+          encrypted: await cells[2].getText(),
+        };
+      }),
+    );
+  }
 
   function expectGetApi(api: Api) {
     const req = httpTestingController.expectOne({
