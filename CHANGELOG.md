@@ -1,3 +1,10 @@
+## [1.0.3](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.0.2...1.0.3) (2023-09-12)
+
+
+### Bug Fixes
+
+* use common freemarker component ([2b2e423](https://github.com/gravitee-io/gravitee-reporter-common/commit/2b2e423cf37108058c025d3496a892353932485f))
+
 ## [1.0.2](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.0.1...1.0.2) (2023-09-08)
 
 

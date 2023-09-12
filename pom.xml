@@ -30,7 +30,7 @@
     <name>Gravitee.io APIM - Reporter - Common</name>
     <groupId>io.gravitee.reporter</groupId>
     <artifactId>gravitee-reporter-common</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
 
     <properties>
         <gravitee-bom.version>6.0.4</gravitee-bom.version>
