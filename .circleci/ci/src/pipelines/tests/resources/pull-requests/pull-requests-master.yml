@@ -935,7 +935,7 @@ workflows:
           requires:
             - Setup
           apim-ui-project: gravitee-apim-console-webui
-          resource_class: medium
+          resource_class: large
       - job-webui-build:
           name: Build APIM Console and publish image
           context:
