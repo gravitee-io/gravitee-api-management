@@ -17,11 +17,12 @@ import { CircleCIEnvironment } from './circleci-environment';
 import { Config } from '@circleci/circleci-config-sdk';
 import { ReleaseNotesApimWorkflow } from '../workflows';
 import { validateGraviteeioVersion } from '../utils';
+import { initDynamicConfig } from './config-factory';
 
 export function generateReleaseNotesApimConfig(environment: CircleCIEnvironment): Config {
   validateGraviteeioVersion(environment.graviteeioVersion);
 
-  const dynamicConfig = new Config();
+  const dynamicConfig = initDynamicConfig();
   const workflow = ReleaseNotesApimWorkflow.create(dynamicConfig, environment);
   dynamicConfig.addWorkflow(workflow);
   return dynamicConfig;

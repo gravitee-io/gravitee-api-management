@@ -16,9 +16,10 @@
 import { Config } from '@circleci/circleci-config-sdk';
 import { ReleaseHelmWorkflow } from '../workflows';
 import { CircleCIEnvironment } from './circleci-environment';
+import { initDynamicConfig } from './config-factory';
 
 export function generateReleaseHelmConfig(environment: CircleCIEnvironment): Config {
-  const dynamicConfig = new Config();
+  const dynamicConfig = initDynamicConfig();
   const workflow = ReleaseHelmWorkflow.create(dynamicConfig, environment);
   dynamicConfig.addWorkflow(workflow);
   return dynamicConfig;

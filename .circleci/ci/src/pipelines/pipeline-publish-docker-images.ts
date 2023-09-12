@@ -16,9 +16,10 @@
 import { Config } from '@circleci/circleci-config-sdk';
 import { PublishDockerImagesWorkflow } from '../workflows';
 import { CircleCIEnvironment } from './circleci-environment';
+import { initDynamicConfig } from './config-factory';
 
 export function generatePublishDockerImagesConfig(environment: CircleCIEnvironment): Config {
-  const dynamicConfig = new Config();
+  const dynamicConfig = initDynamicConfig();
   const workflow = PublishDockerImagesWorkflow.create(dynamicConfig, environment);
   dynamicConfig.addWorkflow(workflow);
   return dynamicConfig;

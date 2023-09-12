@@ -4,6 +4,27 @@
 
 version: 2.1
 setup: false
+parameters:
+  gio_action:
+    type: string
+    default: pull_requests
+    description: ""
+  dry_run:
+    type: boolean
+    default: true
+    description: Run in dry run mode?
+  docker_tag_as_latest:
+    type: boolean
+    default: false
+    description: Is this version the latest version available?
+  graviteeio_version:
+    type: string
+    default: ""
+    description: Version of APIM to be used in docker images
+  apim_version_path:
+    type: string
+    default: /home/circleci/project/pom.xml
+    description: Path to pom.xml with APIM version
 jobs:
   job-test-apim-charts:
     docker:
