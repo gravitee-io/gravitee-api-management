@@ -36,32 +36,66 @@
     [length]="totalLength"
     (filtersChange)="onFiltersChanged($event)"
   >
-    <table mat-table [dataSource]="filteredTableData" aria-label="API Properties">
+    <table mat-table [dataSource]="filteredTableData" [formGroup]="propertiesFormGroup" aria-label="API Properties">
       <ng-container matColumnDef="key">
         <th mat-header-cell *matHeaderCellDef mat-sort-header>Key</th>
-        <td mat-cell *matCellDef="let element">{{ element.key }}</td>
+        <td mat-cell *matCellDef="let element" [formGroupName]="element._id">
+          <mat-form-field class="apiProperties__table__field">
+            <mat-label>Key</mat-label>
+            <input matInput formControlName="key" required />
+          </mat-form-field>
+        </td>
       </ng-container>
 
       <ng-container matColumnDef="value">
         <th mat-header-cell *matHeaderCellDef mat-sort-header>Value</th>
-        <td mat-cell *matCellDef="let element">{{ element.value }}</td>
+        <td mat-cell *matCellDef="let element" [formGroupName]="element._id">
+          <mat-form-field class="apiProperties__table__field">
+            <mat-label>Value</mat-label>
+            <input matInput formControlName="value" />
+          </mat-form-field>
+        </td>
       </ng-container>
 
       <ng-container matColumnDef="encrypted">
         <th mat-header-cell *matHeaderCellDef mat-sort-header>Encrypted</th>
-        <td mat-cell *matCellDef="let element">
-          <mat-slide-toggle
-            aria-label="Enable/disable encryption"
-            [checked]="element.encrypted"
-            (change)="togglePropertyEncryption(element)"
-          ></mat-slide-toggle>
+        <td mat-cell *matCellDef="let element" [formGroupName]="element._id">
+          {{ element.encrypted ? 'Encrypted' : element.encryptable ? 'To Encrypt' : 'Not Encrypted' }}
         </td>
       </ng-container>
 
       <ng-container matColumnDef="actions">
         <th mat-header-cell *matHeaderCellDef mat-sort-header></th>
         <td mat-cell *matCellDef="let element">
-          <button type="button" mat-icon-button aria-label="Remove property" matTooltip="Remove property" (click)="removeProperty(element)">
+          <button
+            *ngIf="element.encrypted || element.encryptable"
+            type="button"
+            mat-icon-button
+            aria-label="Renew encrypted value"
+            matTooltip="Renew encrypted value"
+            (click)="renewEncryptedPropertyValue(element._id)"
+          >
+            <mat-icon svgIcon="gio:refresh-cw"></mat-icon>
+          </button>
+
+          <button
+            *ngIf="!element.encrypted && !element.encryptable"
+            type="button"
+            mat-icon-button
+            aria-label="Encrypt value"
+            matTooltip="Encrypt value"
+            (click)="encryptPropertyValue(element._id)"
+          >
+            <mat-icon svgIcon="gio:lock"></mat-icon>
+          </button>
+
+          <button
+            type="button"
+            mat-icon-button
+            aria-label="Remove property"
+            matTooltip="Remove property"
+            (click)="removeProperty(element._id)"
+          >
             <mat-icon svgIcon="gio:cancel"></mat-icon>
           </button>
         </td>
@@ -80,3 +114,5 @@
     </table>
   </gio-table-wrapper>
 </mat-card>
+
+<gio-save-bar [opened]="isDirty" (submitted)="onSave()" (resetClicked)="onReset()"> </gio-save-bar>

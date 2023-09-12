@@ -15,21 +15,25 @@
  */
 
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { Subject } from 'rxjs';
+import { EMPTY, Subject } from 'rxjs';
 import { StateParams } from '@uirouter/angularjs';
-import { takeUntil, tap } from 'rxjs/operators';
-import { isEmpty } from 'lodash';
+import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { isEmpty, omit, uniqueId } from 'lodash';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 
 import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { GioTableWrapperFilters } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
-import { ApiV2, ApiV4 } from '../../../../entities/management-api-v2';
+import { Property } from '../../../../entities/management-api-v2';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { gioTableFilterCollection } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
+import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 
 type TableDataSource = {
+  _id: string;
   key: string;
   value: string;
   encrypted: boolean;
+  encryptable: boolean;
 };
 
 @Component({
@@ -38,7 +42,7 @@ type TableDataSource = {
   styles: [require('./api-properties.component.scss')],
 })
 export class ApiPropertiesComponent implements OnInit, OnDestroy {
-  private unsubscribe$ = new Subject<boolean>();
+  private unsubscribe$ = new Subject<void>();
 
   public isReadOnly = false;
   public isLoading = true;
@@ -52,11 +56,19 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
   };
   public displayedColumns = ['key', 'value', 'encrypted', 'actions'];
   public filteredTableData: TableDataSource[] = [];
-  public api: ApiV2 | ApiV4;
+  public apiProperties: (Property & { _id: string })[];
+  public propertiesFormGroup: FormGroup = new FormGroup({});
+  public isDirty = false;
 
-  constructor(@Inject(UIRouterStateParams) private readonly ajsStateParams: StateParams, private readonly apiService: ApiV2Service) {}
+  constructor(
+    @Inject(UIRouterStateParams) private readonly ajsStateParams: StateParams,
+    private readonly apiService: ApiV2Service,
+    private readonly snackBarService: SnackBarService,
+  ) {}
 
   ngOnInit(): void {
+    this.isLoading = true;
+    this.isDirty = false;
     this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
@@ -64,10 +76,13 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
           if (api.definitionVersion === 'V1') {
             throw new Error('Unexpected API type. This page is compatible only for API > V1');
           }
-          this.api = api;
+          this.apiProperties = api.properties.map((p) => ({ ...p, _id: uniqueId() }));
+
+          // Initialize the properties form group
+          this.initPropertiesFormGroup();
 
           // Initialize the properties table data
-          this.onFiltersChanged(this.tableFilters);
+          this.refreshTable();
 
           this.isLoading = false;
         }),
@@ -77,32 +92,147 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    this.unsubscribe$.next(true);
+    this.unsubscribe$.next();
     this.unsubscribe$.unsubscribe();
   }
 
   addProperties() {
     // TODO: implement
   }
-  removeProperty(_: TableDataSource) {
-    // TODO: implement
+
+  editKeyProperty(_id: string, newKey: string) {
+    const property = this.apiProperties.find((p) => p._id === _id);
+
+    property.key = newKey;
+    this.isDirty = true;
   }
-  togglePropertyEncryption(_: TableDataSource) {
-    // TODO: implement
+
+  editValueProperty(_id: string, newValue: string) {
+    const property = this.apiProperties.find((p) => p._id === _id);
+
+    property.value = newValue;
+    this.isDirty = true;
+  }
+  editEncryptedProperty(_id: string, encryptable: boolean) {
+    const property = this.apiProperties.find((p) => p._id === _id);
+
+    property.encryptable = encryptable;
+
+    this.isDirty = true;
+    this.refreshTable();
+  }
+
+  encryptPropertyValue(_id: string) {
+    const property = this.apiProperties.find((p) => p._id === _id);
+
+    property.encryptable = true;
+    this.isDirty = true;
+    this.refreshTable();
+  }
+  renewEncryptedPropertyValue(_id: string) {
+    const property = this.apiProperties.find((p) => p._id === _id);
+
+    property.value = '';
+    property.encrypted = false;
+    property.encryptable = true;
+
+    const valueControl = this.propertiesFormGroup.get(_id).get('value');
+    valueControl.setValue('');
+    valueControl.enable();
+
+    this.isDirty = true;
+    this.refreshTable();
+  }
+
+  removeProperty(_id: string) {
+    this.apiProperties = this.apiProperties.filter((p) => p._id !== _id);
+
+    this.isDirty = true;
+    this.refreshTable();
   }
 
   onFiltersChanged(filters: GioTableWrapperFilters) {
-    if (isEmpty(this.api?.properties)) return;
+    if (isEmpty(this.apiProperties)) return;
 
-    const filtered = gioTableFilterCollection(
-      this.api.properties.map((p) => ({
+    const propertiesCollection: TableDataSource[] = this.apiProperties.map((p) => {
+      return {
+        _id: p._id,
         key: p.key,
         value: p.value,
         encrypted: p.encrypted,
-      })),
-      filters,
-    );
+        encryptable: p.encryptable,
+      };
+    });
+
+    const filtered = gioTableFilterCollection(propertiesCollection, filters);
     this.filteredTableData = filtered.filteredCollection;
     this.totalLength = filtered.unpaginatedLength;
+    this.tableFilters = filters;
+  }
+
+  onSave() {
+    this.apiService
+      .get(this.ajsStateParams.apiId)
+      .pipe(
+        switchMap((api) => {
+          if (api.definitionVersion === 'V1') {
+            throw new Error('Unexpected API type. This page is compatible only for API > V1');
+          }
+
+          return this.apiService.update(this.ajsStateParams.apiId, {
+            ...api,
+            properties: this.apiProperties.map((p) => omit(p, ['_id'])),
+          });
+        }),
+        tap(() => {
+          this.snackBarService.success('Configuration successfully saved!');
+          this.isDirty = false;
+        }),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe(() => this.ngOnInit());
+  }
+
+  onReset() {
+    this.ngOnInit();
+  }
+
+  private refreshTable() {
+    this.onFiltersChanged(this.tableFilters);
+  }
+
+  private initPropertiesFormGroup() {
+    if (isEmpty(this.apiProperties)) return;
+
+    this.propertiesFormGroup = new FormGroup(
+      this.apiProperties.reduce((previousValue, currentValue) => {
+        const keyControl = new FormControl(currentValue.key, [Validators.required]);
+        keyControl.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe((value) => this.editKeyProperty(currentValue._id, value));
+
+        const valueControl = new FormControl({
+          value: currentValue.encrypted ? '*************' : currentValue.value,
+          disabled: currentValue.encrypted,
+        });
+        valueControl.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe((value) => this.editValueProperty(currentValue._id, value));
+
+        const encryptedControl = new FormControl(currentValue.encrypted);
+        encryptedControl.valueChanges
+          .pipe(takeUntil(this.unsubscribe$))
+          .subscribe((value) => this.editEncryptedProperty(currentValue._id, value));
+
+        return {
+          ...previousValue,
+          [currentValue._id]: new FormGroup({
+            key: keyControl,
+            value: valueControl,
+            encrypted: encryptedControl,
+          }),
+        };
+      }, {}),
+    );
   }
 }
