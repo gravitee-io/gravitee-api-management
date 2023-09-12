@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+export * from './backend/index';
+export * from './e2e/index';
 export * from './frontend/index';
+export * from './helm/index';
 export * from './job-add-docker-images-in-snyk';
-export * from './backend/job-build-backend';
 export * from './job-build-backend-images';
 export * from './job-danger-js';
 export * from './job-deploy-on-azure';
