@@ -414,6 +414,40 @@ jobs:
           root: .
           paths:
             - gravitee-apim-repository/gravitee-apim-repository-coverage/target/site/jacoco-aggregate/
+  job-sonarcloud-analysis:
+    parameters:
+      working_directory:
+        type: string
+        default: gravitee-apim-rest-api
+        description: Directory where the Sonarcloud analysis will be run
+    docker:
+      - image: sonarsource/sonar-scanner-cli:5.0.1
+    resource_class: large
+    steps:
+      - run:
+          name: Add SSH tool
+          command: apk add --no-cache openssh
+      - checkout
+      - attach_workspace:
+          at: .
+      - restore_cache:
+          keys:
+            - gravitee-api-management-v9-sonarcloud-analysis-<< parameters.working_directory >>-{{ .Branch }}-{{ checksum "pom.xml" }}
+            - gravitee-api-management-v9-sonarcloud-analysis-<< parameters.working_directory >>-{{ .Branch }}
+            - gravitee-api-management-v9-sonarcloud-analysis-<< parameters.working_directory >>
+      - keeper/env-export:
+          secret-url: keeper://9x9YgyU6DWzux4DPoHAzDQ/field/password
+          var-name: SONAR_TOKEN
+      - run:
+          name: Run Sonarcloud Analysis
+          command: sonar-scanner -Dsonar.projectVersion=4.2.0
+          working_directory: << parameters.working_directory >>
+      - cmd-notify-on-failure
+      - save_cache:
+          paths:
+            - /opt/sonar-scanner/.sonar/cache
+          key: gravitee-api-management-v9-sonarcloud-analysis-<< parameters.working_directory >>-{{ .Branch }}-{{ checksum "pom.xml" }}
+          when: always
   job-webui-lint-test:
     parameters:
       apim-ui-project:
@@ -490,81 +524,6 @@ jobs:
           root: .
           paths:
             - << parameters.apim-ui-project >>/dist
-  job-e2e-generate-sdk:
-    docker:
-      - image: cimg/openjdk:17.0-node
-    resource_class: small
-    steps:
-      - checkout
-      - cmd-webui-install:
-          apim-ui-project: gravitee-apim-e2e
-      - attach_workspace:
-          at: .
-      - run:
-          name: Generate e2e tests SDK
-          command: |-
-            npm run update:sdk:management
-            npm run update:sdk:management:v2
-            npm run update:sdk:portal
-          working_directory: gravitee-apim-e2e
-      - cmd-notify-on-failure
-      - persist_to_workspace:
-          root: .
-          paths:
-            - gravitee-apim-e2e/lib/management-webclient-sdk
-            - gravitee-apim-e2e/lib/management-v2-webclient-sdk
-            - gravitee-apim-e2e/lib/portal-webclient-sdk
-  job-e2e-lint-build:
-    docker:
-      - image: cimg/node:16.10
-    resource_class: small
-    steps:
-      - checkout
-      - cmd-webui-install:
-          apim-ui-project: gravitee-apim-e2e
-      - attach_workspace:
-          at: .
-      - run:
-          name: Check License
-          command: npm run lint:license
-          working_directory: gravitee-apim-e2e
-      - run:
-          name: Run Prettier and ESLint
-          command: npm run lint
-          working_directory: gravitee-apim-e2e
-      - run:
-          name: Build
-          command: npm run build
-          working_directory: gravitee-apim-e2e
-      - cmd-notify-on-failure
-      - persist_to_workspace:
-          root: .
-          paths:
-            - gravitee-apim-e2e/dist
-            - gravitee-apim-e2e/node_modules
-  job-perf-lint-build:
-    docker:
-      - image: cimg/node:16.10
-    resource_class: small
-    steps:
-      - checkout
-      - cmd-webui-install:
-          apim-ui-project: gravitee-apim-perf
-      - attach_workspace:
-          at: .
-      - run:
-          name: Check License
-          command: npm run lint:license
-          working_directory: gravitee-apim-perf
-      - run:
-          name: Run Prettier and ESLint
-          command: npm run lint
-          working_directory: gravitee-apim-perf
-      - run:
-          name: Build
-          command: npm run build
-          working_directory: gravitee-apim-perf
-      - cmd-notify-on-failure
   job-console-webui-build-storybook:
     docker:
       - image: cimg/node:16.10
@@ -635,54 +594,6 @@ jobs:
 
             gh pr edit --body "$CLEAN_BODY$PR_BODY_STORYBOOK_SECTION"
       - cmd-notify-on-failure
-  job-sonarcloud-analysis:
-    parameters:
-      working_directory:
-        type: string
-        default: gravitee-apim-rest-api
-        description: Directory where the Sonarcloud analysis will be run
-    docker:
-      - image: sonarsource/sonar-scanner-cli:5.0.1
-    resource_class: large
-    steps:
-      - run:
-          name: Add SSH tool
-          command: apk add --no-cache openssh
-      - checkout
-      - attach_workspace:
-          at: .
-      - restore_cache:
-          keys:
-            - gravitee-api-management-v9-sonarcloud-analysis-<< parameters.working_directory >>-{{ .Branch }}-{{ checksum "pom.xml" }}
-            - gravitee-api-management-v9-sonarcloud-analysis-<< parameters.working_directory >>-{{ .Branch }}
-            - gravitee-api-management-v9-sonarcloud-analysis-<< parameters.working_directory >>
-      - keeper/env-export:
-          secret-url: keeper://9x9YgyU6DWzux4DPoHAzDQ/field/password
-          var-name: SONAR_TOKEN
-      - run:
-          name: Run Sonarcloud Analysis
-          command: sonar-scanner -Dsonar.projectVersion=4.2.0
-          working_directory: << parameters.working_directory >>
-      - cmd-notify-on-failure
-      - save_cache:
-          paths:
-            - /opt/sonar-scanner/.sonar/cache
-          key: gravitee-api-management-v9-sonarcloud-analysis-<< parameters.working_directory >>-{{ .Branch }}-{{ checksum "pom.xml" }}
-          when: always
-  job-community-build:
-    docker:
-      - image: cimg/openjdk:17.0
-    resource_class: medium
-    steps:
-      - checkout
-      - cmd-restore-maven-job-cache:
-          jobName: job-community-build
-      - run:
-          name: Build project
-          command: mvn clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -T 2C
-      - cmd-notify-on-failure
-      - cmd-save-maven-job-cache:
-          jobName: job-community-build
   job-build-images:
     docker:
       - image: cimg/openjdk:17.0
@@ -721,6 +632,58 @@ jobs:
           docker-image-name: apim-gateway
           version: 4.1.x-latest
       - cmd-docker-azure-logout
+  job-e2e-generate-sdk:
+    docker:
+      - image: cimg/openjdk:17.0-node
+    resource_class: small
+    steps:
+      - checkout
+      - cmd-webui-install:
+          apim-ui-project: gravitee-apim-e2e
+      - attach_workspace:
+          at: .
+      - run:
+          name: Generate e2e tests SDK
+          command: |-
+            npm run update:sdk:management
+            npm run update:sdk:management:v2
+            npm run update:sdk:portal
+          working_directory: gravitee-apim-e2e
+      - cmd-notify-on-failure
+      - persist_to_workspace:
+          root: .
+          paths:
+            - gravitee-apim-e2e/lib/management-webclient-sdk
+            - gravitee-apim-e2e/lib/management-v2-webclient-sdk
+            - gravitee-apim-e2e/lib/portal-webclient-sdk
+  job-e2e-lint-build:
+    docker:
+      - image: cimg/node:16.10
+    resource_class: small
+    steps:
+      - checkout
+      - cmd-webui-install:
+          apim-ui-project: gravitee-apim-e2e
+      - attach_workspace:
+          at: .
+      - run:
+          name: Check License
+          command: npm run lint:license
+          working_directory: gravitee-apim-e2e
+      - run:
+          name: Run Prettier and ESLint
+          command: npm run lint
+          working_directory: gravitee-apim-e2e
+      - run:
+          name: Build
+          command: npm run build
+          working_directory: gravitee-apim-e2e
+      - cmd-notify-on-failure
+      - persist_to_workspace:
+          root: .
+          paths:
+            - gravitee-apim-e2e/dist
+            - gravitee-apim-e2e/node_modules
   job-e2e-test:
     parameters:
       apim_client_tag:
@@ -788,6 +751,43 @@ jobs:
           path: ./gravitee-apim-e2e/.tmp/videos
       - store_artifacts:
           path: ./gravitee-apim-e2e/.logs
+  job-perf-lint-build:
+    docker:
+      - image: cimg/node:16.10
+    resource_class: small
+    steps:
+      - checkout
+      - cmd-webui-install:
+          apim-ui-project: gravitee-apim-perf
+      - attach_workspace:
+          at: .
+      - run:
+          name: Check License
+          command: npm run lint:license
+          working_directory: gravitee-apim-perf
+      - run:
+          name: Run Prettier and ESLint
+          command: npm run lint
+          working_directory: gravitee-apim-perf
+      - run:
+          name: Build
+          command: npm run build
+          working_directory: gravitee-apim-perf
+      - cmd-notify-on-failure
+  job-community-build:
+    docker:
+      - image: cimg/openjdk:17.0
+    resource_class: medium
+    steps:
+      - checkout
+      - cmd-restore-maven-job-cache:
+          jobName: job-community-build
+      - run:
+          name: Build project
+          command: mvn clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -T 2C
+      - cmd-notify-on-failure
+      - cmd-save-maven-job-cache:
+          jobName: job-community-build
   job-snyk-apim-charts:
     docker:
       - image: cimg/base:stable
@@ -925,68 +925,6 @@ workflows:
             - cicd-orchestrator
           requires:
             - Build backend
-      - job-webui-lint-test:
-          name: Lint & test APIM Console
-          context:
-            - cicd-orchestrator
-          requires:
-            - Setup
-          apim-ui-project: gravitee-apim-console-webui
-          resource_class: large
-      - job-webui-build:
-          name: Build APIM Console and publish image
-          context:
-            - cicd-orchestrator
-          requires:
-            - Setup
-          apim-ui-project: gravitee-apim-console-webui
-          docker-image-name: apim-management-ui
-      - job-webui-lint-test:
-          name: Lint & test APIM Portal
-          context:
-            - cicd-orchestrator
-          requires:
-            - Setup
-          apim-ui-project: gravitee-apim-portal-webui
-          resource_class: large
-      - job-webui-build:
-          name: Build APIM Portal and publish image
-          context:
-            - cicd-orchestrator
-          requires:
-            - Setup
-          apim-ui-project: gravitee-apim-portal-webui
-          docker-image-name: apim-portal-ui
-      - job-e2e-generate-sdk:
-          context:
-            - cicd-orchestrator
-          name: Generate e2e tests SDK
-          requires:
-            - Build backend
-      - job-e2e-lint-build:
-          context:
-            - cicd-orchestrator
-          name: Lint & Build APIM e2e
-          requires:
-            - Generate e2e tests SDK
-      - job-perf-lint-build:
-          context:
-            - cicd-orchestrator
-          name: Lint & Build APIM perf
-          requires:
-            - Generate e2e tests SDK
-      - job-console-webui-build-storybook:
-          name: Build Console Storybook
-          context:
-            - cicd-orchestrator
-          requires:
-            - Setup
-      - job-console-webui-chromatic-deployment:
-          name: Deploy console in chromatic
-          context:
-            - cicd-orchestrator
-          requires:
-            - Build Console Storybook
       - job-sonarcloud-analysis:
           name: Sonar - << matrix.working_directory >>
           context:
@@ -1013,6 +951,28 @@ workflows:
           requires:
             - Test repository
           working_directory: gravitee-apim-repository
+      - job-webui-lint-test:
+          name: Lint & test APIM Console
+          context:
+            - cicd-orchestrator
+          apim-ui-project: gravitee-apim-console-webui
+          resource_class: large
+      - job-webui-build:
+          name: Build APIM Console and publish image
+          context:
+            - cicd-orchestrator
+          apim-ui-project: gravitee-apim-console-webui
+          docker-image-name: apim-management-ui
+      - job-console-webui-build-storybook:
+          name: Build Console Storybook
+          context:
+            - cicd-orchestrator
+      - job-console-webui-chromatic-deployment:
+          name: Deploy console in chromatic
+          context:
+            - cicd-orchestrator
+          requires:
+            - Build Console Storybook
       - job-sonarcloud-analysis:
           name: Sonar - gravitee-apim-console-webui
           context:
@@ -1020,6 +980,18 @@ workflows:
           requires:
             - Lint & test APIM Console
           working_directory: gravitee-apim-console-webui
+      - job-webui-lint-test:
+          name: Lint & test APIM Portal
+          context:
+            - cicd-orchestrator
+          apim-ui-project: gravitee-apim-portal-webui
+          resource_class: large
+      - job-webui-build:
+          name: Build APIM Portal and publish image
+          context:
+            - cicd-orchestrator
+          apim-ui-project: gravitee-apim-portal-webui
+          docker-image-name: apim-portal-ui
       - job-sonarcloud-analysis:
           name: Sonar - gravitee-apim-portal-webui
           context:
@@ -1027,16 +999,30 @@ workflows:
           requires:
             - Lint & test APIM Portal
           working_directory: gravitee-apim-portal-webui
-      - job-community-build:
-          name: Check build as Community user
-          context:
-            - cicd-orchestrator
       - job-build-images:
           name: Build and push rest api and gateway images
           context:
             - cicd-orchestrator
           requires:
             - Build backend
+      - job-e2e-generate-sdk:
+          context:
+            - cicd-orchestrator
+          name: Generate e2e tests SDK
+          requires:
+            - Build backend
+      - job-e2e-lint-build:
+          context:
+            - cicd-orchestrator
+          name: Lint & Build APIM e2e
+          requires:
+            - Generate e2e tests SDK
+      - job-perf-lint-build:
+          context:
+            - cicd-orchestrator
+          name: Lint & Build APIM perf
+          requires:
+            - Generate e2e tests SDK
       - job-e2e-test:
           context:
             - cicd-orchestrator
@@ -1062,6 +1048,10 @@ workflows:
             - Build and push rest api and gateway images
             - Build APIM Console and publish image
             - Build APIM Portal and publish image
+      - job-community-build:
+          name: Check build as Community user
+          context:
+            - cicd-orchestrator
       - job-snyk-apim-charts:
           name: Scan snyk Helm chart
           context:
