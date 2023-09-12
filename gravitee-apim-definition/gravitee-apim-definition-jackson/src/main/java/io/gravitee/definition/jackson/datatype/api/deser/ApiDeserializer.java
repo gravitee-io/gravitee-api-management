@@ -211,8 +211,10 @@ public class ApiDeserializer<T extends Api> extends StdScalarDeserializer<T> {
             pathMappingsNode
                 .elements()
                 .forEachRemaining(jsonNode -> {
-                    final String pathMapping = jsonNode.asText();
-                    api.getPathMappings().put(pathMapping, Pattern.compile(pathMapping.replaceAll(":\\w*", "[^\\/]*") + "/*"));
+                    String pathMapping = jsonNode.asText();
+                    String pathMappingRegex = pathMapping.replaceAll(":[^/]*", "[^/]*");
+                    Pattern pattern = Pattern.compile(pathMappingRegex);
+                    api.getPathMappings().put(pathMapping, pattern);
                 });
         }
 
