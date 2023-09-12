@@ -25,6 +25,7 @@ import { generateReleaseHelmConfig } from './pipeline-release-helm';
 import { generateReleaseConfig } from './pipeline-release';
 import { generateBuildRpmAndDockerImagesConfig } from './pipeline-build-rpm-and-docker-images';
 import { generatePullRequestsConfig } from './pipeline-pull-requests';
+import { generateFullReleaseConfig } from './pipeline-full-release';
 
 export function buildCIPipeline(environment: CircleCIEnvironment): Config | null {
   switch (environment.action) {
@@ -35,7 +36,7 @@ export function buildCIPipeline(environment: CircleCIEnvironment): Config | null
     case 'release_helm':
       return generateReleaseHelmConfig(environment);
     case 'full_release':
-      return null; // TODO: add buildFullRelease(...)
+      return generateFullReleaseConfig(environment);
     case 'release':
       return generateReleaseConfig(environment);
     case 'package_bundle':

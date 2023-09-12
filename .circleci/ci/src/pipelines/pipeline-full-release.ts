@@ -13,14 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './workflow-bridge-compatibility-tests';
-export * from './workflow-build-rpm-and-docker-images';
-export * from './workflow-full-release';
-export * from './workflow-repositories-tests';
-export * from './workflow-package-bundle';
-export * from './workflow-publish-docker-images';
-export * from './workflow-pull-requests';
-export * from './workflow-nexus-staging';
-export * from './workflow-release';
-export * from './workflow-release-helm';
-export * from './workflow-release-notes-apim';
+import { Config } from '@circleci/circleci-config-sdk';
+import { CircleCIEnvironment } from './circleci-environment';
+import { isSupportBranch } from '../utils';
+import { FullReleaseWorkflow } from '../workflows';
+
+export function generateFullReleaseConfig(environment: CircleCIEnvironment): Config {
+  if (!isSupportBranch(environment.branch)) {
+    throw new Error('Full release is only supported on support branches');
+  }
+
+  const dynamicConfig = new Config();
+  const workflow = FullReleaseWorkflow.create(dynamicConfig, environment);
+  dynamicConfig.addWorkflow(workflow);
+  return dynamicConfig;
+}
