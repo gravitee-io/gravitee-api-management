@@ -28,7 +28,7 @@ import { FormlyModule } from '@ngx-formly/core';
 import { ResourceTypeComponent } from './resource-type.component';
 import { ResourceTypeService } from './resource-type.service';
 
-import { GioSafePipeModule } from '../../utils/gio.pipe.module';
+import { GioSafePipeModule } from '../../utils/safe.pipe.module';
 
 @NgModule({
   declarations: [ResourceTypeComponent],

@@ -41,7 +41,7 @@ import { PlanEditSecureStepComponent } from './2-secure-step/plan-edit-secure-st
 import { PlanEditRestrictionStepComponent } from './3-restriction-step/plan-edit-restriction-step.component';
 import { ApiPlanFormComponent } from './api-plan-form.component';
 
-import { GioSafePipeModule } from '../../../../shared/utils/gio.pipe.module';
+import { GioSafePipeModule } from '../../../../shared/utils/safe.pipe.module';
 import { SpecificJsonSchemaTypeModule } from '../../../../shared/components/specific-json-schema-type/specific-json-schema-type.module';
 
 @NgModule({

@@ -13,17 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { MatTooltipModule } from '@angular/material/tooltip';
 
-import { GioRequestStatsComponent } from './gio-request-stats.component';
+import { ShortNumberPipe } from './shortNumber.pipe';
 
-import { GioShortNumberPipeModule } from '../../../../shared/utils/shortNumber.pipe.module';
+describe('ShortNumberPipe', () => {
+  let pipe: ShortNumberPipe;
 
-@NgModule({
-  imports: [CommonModule, GioShortNumberPipeModule, MatTooltipModule],
-  declarations: [GioRequestStatsComponent],
-  exports: [GioRequestStatsComponent],
-})
-export class GioRequestStatsModule {}
+  const init = async () => {
+    pipe = new ShortNumberPipe();
+  };
+
+  beforeEach(async () => await init());
+
+  it('should transform numbers to make them more short', () => {
+    expect(pipe.transform(100_000_100)).toEqual('100M');
+
+    expect(pipe.transform(100_109, 2)).toEqual('100.11K');
+
+    expect(pipe.transform(100, 2)).toEqual('100');
+    expect(pipe.transform(1000, 2)).toEqual('1K');
+
+    expect(pipe.transform(1090, 2)).toEqual('1.09K');
+  });
+});

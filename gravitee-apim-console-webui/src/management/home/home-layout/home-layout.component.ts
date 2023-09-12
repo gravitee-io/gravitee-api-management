@@ -26,7 +26,7 @@ import { TaskService } from '../../../services-ngx/task.service';
 })
 export class HomeLayoutComponent {
   public taskLabel = this.taskService.getTasks().pipe(
-    map((tasks) => `Tasks (${tasks.page.total_elements})`),
+    map((tasks) => `My tasks <span class="gio-badge-accent">${tasks.page.total_elements}</span>`),
     startWith('Tasks'),
     // If thrown, keep the label as is
     catchError(() => of('Tasks')),
@@ -38,7 +38,7 @@ export class HomeLayoutComponent {
       uiSref: 'home.overview',
     },
     {
-      label: of('API Health-check'),
+      label: of('APIs health-check'),
       uiSref: 'home.apiHealthCheck',
     },
     {

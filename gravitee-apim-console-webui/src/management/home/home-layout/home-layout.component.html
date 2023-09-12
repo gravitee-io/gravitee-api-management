@@ -15,11 +15,16 @@
     limitations under the License.
 
 -->
-<h1>Home</h1>
-
 <nav mat-tab-nav-bar>
-  <a *ngFor="let tab of tabs" mat-tab-link [uiSref]="tab.uiSref" uiSrefStatus #uis="uiSrefStatus" [active]="uis.status.active">
-    {{ tab.label | async }}
+  <a
+    *ngFor="let tab of tabs"
+    mat-tab-link
+    [uiSref]="tab.uiSref"
+    uiSrefStatus
+    #uis="uiSrefStatus"
+    [active]="uis.status.active"
+    [innerHTML]="tab.label | async"
+  >
   </a>
 </nav>
 <ui-view></ui-view>

@@ -18,35 +18,42 @@
 <div *ngIf="data; else noContent" class="gio-request-stats">
   <div class="gio-request-stats__body">
     <div class="gio-request-stats__body__title">
-      <span>Response Time</span>
-    </div>
-    <div class="gio-request-stats__body__rows">
-      <div class="gio-request-stats__body__row">
-        <span>Min</span>
-        <span *ngIf="data.min; else emptyNumber">{{ data.min | number : '.1-2' }} ms</span>
-      </div>
-      <div class="gio-request-stats__body__row">
-        <span>Max</span>
-        <span *ngIf="data.max; else emptyNumber">{{ data.max | number : '.1-2' }} ms</span>
-      </div>
-      <div class="gio-request-stats__body__row">
-        <span>Average</span>
-        <span *ngIf="data.avg; else emptyNumber">{{ data.avg | number : '.1-2' }} ms</span>
-      </div>
-    </div>
-  </div>
-  <div class="gio-request-stats__body">
-    <div class="gio-request-stats__body__title">
       <span>Requests</span>
     </div>
     <div class="gio-request-stats__body__rows">
       <div class="gio-request-stats__body__row">
-        <span>Requests per second</span>
-        <span *ngIf="data.rps; else emptyNumber">{{ data.rps | number : '.1-1' }}</span>
+        <span *ngIf="data.rps; else emptyNumber" class="gio-request-stats__body__row__value">{{ data.rps | number : '.1-1' }}</span>
+        <span class="gio-request-stats__body__row__label">Per second</span>
       </div>
       <div class="gio-request-stats__body__row">
-        <span>Total number of requests</span>
-        <span *ngIf="data.count; else emptyNumber">{{ data.count | number }}</span>
+        <span
+          *ngIf="data.count; else emptyNumber"
+          class="gio-request-stats__body__row__value"
+          [matTooltip]="data.count | number"
+          [matTooltipDisabled]="data.count < 999"
+          >{{ data.count | shortNumber : 2 }}</span
+        >
+        <span class="gio-request-stats__body__row__label">Total</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="gio-request-stats__body">
+    <div class="gio-request-stats__body__title">
+      <span>Response Time</span>
+    </div>
+    <div class="gio-request-stats__body__rows">
+      <div class="gio-request-stats__body__row">
+        <span *ngIf="data.min; else emptyNumber" class="gio-request-stats__body__row__value">{{ data.min | number : '.1-2' }} ms</span>
+        <span class="gio-request-stats__body__row__label">Min</span>
+      </div>
+      <div class="gio-request-stats__body__row">
+        <span *ngIf="data.max; else emptyNumber" class="gio-request-stats__body__row__value">{{ data.max | number : '.1-2' }} ms</span>
+        <span class="gio-request-stats__body__row__label">Max</span>
+      </div>
+      <div class="gio-request-stats__body__row">
+        <span *ngIf="data.avg; else emptyNumber" class="gio-request-stats__body__row__value">{{ data.avg | number : '.1-2' }} ms</span>
+        <span class="gio-request-stats__body__row__label">Average</span>
       </div>
     </div>
   </div>
