@@ -33,7 +33,6 @@ import AutofocusDirective from '../components/autofocus/autofocus.directive';
 import GvModelDirective from '../libraries/gv-model.directive';
 import { ApiService } from '../services/api.service';
 import CorsService from '../services/cors.service';
-import ApisStatusDashboardController from '../management/dashboard-ajs/apis-status-dashboard/apis-status-dashboard.controller';
 import { ApiV1PoliciesComponentAjs } from './api/design/policies/policies.component.ajs';
 import AddPoliciesPathController from '../management/api/design/policies/addPoliciesPath.controller';
 import { ApiV1ResourcesComponentAjs } from './api/proxy/resources-v1/resources.component.ajs';
@@ -344,8 +343,6 @@ import FlowService from '../services/flow.service';
 import TicketsListController from './support/tickets-list.controller';
 import TicketDetailComponent from './support/ticket-detail.component';
 import SpelService from '../services/spel.service';
-import DashboardController from './dashboard-ajs/dashboard.controller';
-import HomeDashboardController from './dashboard-ajs/home-dashboard/home-dashboard.controller';
 import AlertsDashboardComponent from '../components/alerts/dashboard/alerts-dashboard.component';
 import WidgetChartCountComponent from '../components/widget/count/widget-chart-count.component';
 
@@ -574,7 +571,6 @@ graviteeManagementModule.directive('applicationNavigation', downgradeComponent({
 
 // Pendo Analytics
 graviteeManagementModule.factory('ngGioPendoService', downgradeInjectable(GioPendoService));
-graviteeManagementModule.controller('ApisStatusDashboardController', ApisStatusDashboardController);
 
 graviteeManagementModule.component('apiAnalyticsOverviewComponentAjs', ApiAnalyticsOverviewComponentAjs);
 graviteeManagementModule.component('apiV1PoliciesComponentAjs', ApiV1PoliciesComponentAjs);
@@ -590,8 +586,6 @@ graviteeManagementModule.controller('DialogEditPolicyController', DialogEditPoli
 graviteeManagementModule.controller('LoginController', LoginController);
 graviteeManagementModule.controller('InstancesController', InstancesController);
 graviteeManagementModule.controller('AnalyticsDashboardController', AnalyticsDashboardController);
-graviteeManagementModule.controller('DashboardController', DashboardController);
-graviteeManagementModule.controller('HomeDashboardController', HomeDashboardController);
 graviteeManagementModule.component('gvAlertDashboard', AlertsDashboardComponent);
 graviteeManagementModule.controller('AlertsActivityController', AlertsActivityController);
 graviteeManagementModule.component('apiAlertsDashboardComponentAjs', ApiAlertsDashboardComponentAjs);

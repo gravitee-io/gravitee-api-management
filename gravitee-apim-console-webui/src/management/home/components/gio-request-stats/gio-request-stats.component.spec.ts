@@ -54,7 +54,7 @@ describe('GioRequestStatsComponent', () => {
     expect(await harness.getMax()).toEqual('23,009.3 ms');
     expect(await harness.getAverage()).toEqual('8.44 ms');
     expect(await harness.getRequestsPerSecond()).toEqual('1.3');
-    expect(await harness.getTotalRequests()).toEqual('332,981,092');
+    expect(await harness.getTotalRequests()).toEqual('332.98M');
   });
 
   function loadData(data: AnalyticsStatsResponse) {

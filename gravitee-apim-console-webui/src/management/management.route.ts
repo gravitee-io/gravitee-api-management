@@ -29,52 +29,13 @@ import { ApimFeature } from '../shared/components/gio-license/gio-license-data';
 function managementRouterConfig($stateProvider) {
   $stateProvider
     .state('management', {
-      redirectTo: 'management.dashboard',
+      redirectTo: 'home',
       template: '<div ui-view layout="column" flex></div>',
       parent: 'withSidenav',
       controller: function ($rootScope, Constants) {
         $rootScope.consoleTitle = Constants.org.settings.management.title;
       },
       controllerAs: '$ctrl',
-    })
-    .state('management.dashboard', {
-      redirectTo: 'management.dashboard.home',
-      template: require('./dashboard-ajs/dashboard.html'),
-      controller: 'DashboardController',
-      controllerAs: '$ctrl',
-    })
-    .state('management.dashboard.home', {
-      url: '/',
-      template: require('./dashboard-ajs/home-dashboard/home-dashboard.html'),
-      controller: 'HomeDashboardController',
-      controllerAs: '$ctrl',
-      resolve: {
-        dashboards: (DashboardService: DashboardService) => DashboardService.list('HOME').then((response) => response.data),
-      },
-      data: {
-        docs: {
-          page: 'management-dashboard-home',
-        },
-      },
-    })
-    .state('management.dashboard.apis-status', {
-      url: '/apis-status',
-      template: require('./dashboard-ajs/apis-status-dashboard/apis-status-dashboard.html'),
-      controller: 'ApisStatusDashboardController',
-      controllerAs: '$ctrl',
-      resolve: {
-        apis: (ApiService: ApiService, Constants, $state: StateParams) => {
-          if (Constants.env.settings.dashboards.apiStatus.enabled) {
-            return ApiService.list().then((response) => response.data);
-          }
-          return $state.go('management.dashboard.home');
-        },
-      },
-      data: {
-        docs: {
-          page: 'management-dashboard-apis-status',
-        },
-      },
     })
     .state('management.instances', {
       abstract: true,

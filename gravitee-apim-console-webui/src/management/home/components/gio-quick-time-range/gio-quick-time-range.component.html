@@ -15,9 +15,8 @@
     limitations under the License.
 
 -->
-Show data for
 <mat-form-field class="time-frame">
-  <mat-label>Time range</mat-label>
+  <mat-label>Show data for</mat-label>
   <mat-select [(ngModel)]="selectedTimeFrame" (valueChange)="emitValueChange($event)">
     <mat-option *ngFor="let timeFrame of options" [value]="timeFrame.id">
       {{ timeFrame.label }}

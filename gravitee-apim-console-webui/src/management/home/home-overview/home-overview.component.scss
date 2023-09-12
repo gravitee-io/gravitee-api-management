@@ -6,7 +6,7 @@
 $typography: map.get(gio.$mat-theme, typography);
 
 .home-overview {
-  padding: 24px 24px 16px 24px;
+  padding: 24px 0 16px 0;
   display: flex;
   flex-flow: column;
   gap: 14px;
@@ -14,7 +14,7 @@ $typography: map.get(gio.$mat-theme, typography);
   &__time-selector {
     display: flex;
     flex-direction: column;
-    align-items: flex-end;
+    align-items: flex-start;
   }
   &__row {
     display: flex;
@@ -26,31 +26,43 @@ $typography: map.get(gio.$mat-theme, typography);
     flex: 1 1 100%;
     min-height: 250px;
 
-    &__row {
-      gap: 20px;
+    &.flex {
       display: flex;
-      border-bottom: 1px mat.get-color-from-palette(gio.$mat-dove-palette, 'darker10') solid;
-      padding: 8px 0;
+      flex-direction: column;
+    }
 
-      &:last-child {
-        border-bottom: none;
-      }
+    &__list {
+      display: flex;
+      flex-direction: column;
 
-      &__label {
-        flex: 1 1 70%;
-      }
+      flex: 1 1 auto;
 
-      &__value {
-        flex: 1 1 30%;
-        @include mat.typography-level($typography, body-2);
-        color: mat.get-color-from-palette(gio.$mat-accent-palette, 'darker20');
+      &__row {
+        gap: 4px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        border-bottom: 1px mat.get-color-from-palette(gio.$mat-dove-palette, 'darker10') solid;
+        flex: 1 1 100%;
+
+        &:last-child {
+          border-bottom: none;
+        }
+
+        &__label {
+          @include mat.typography-level($typography, 'caption');
+        }
+
+        &__value {
+          @include mat.typography-level($typography, 'title');
+        }
       }
     }
   }
 }
 
 .home-api-events {
-  padding: 16px 24px 16px 24px;
+  padding: 16px 0 16px 0;
 }
 
 .loader {

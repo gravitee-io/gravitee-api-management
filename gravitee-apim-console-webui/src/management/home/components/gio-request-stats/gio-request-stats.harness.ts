@@ -32,11 +32,11 @@ export class GioRequestStatsHarness extends ComponentHarness {
   }
 
   async getRequestsPerSecond(): Promise<string> {
-    return this.getValueByLabel('Requests per second');
+    return this.getValueByLabel('Per second');
   }
 
   async getTotalRequests(): Promise<string> {
-    return this.getValueByLabel('Total number of requests');
+    return this.getValueByLabel('Total');
   }
 
   private async getValueByLabel(label: string): Promise<string> {

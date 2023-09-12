@@ -20,18 +20,18 @@
     <gio-quick-time-range [formControl]="timeRangeControl" (onRefreshClicked)="fetchAnalyticsRequest()"></gio-quick-time-range>
   </div>
   <div class="home-overview__row">
-    <mat-card class="home-overview__card">
+    <mat-card class="home-overview__card flex">
       <div class="mat-subheading-1">Quick Summary</div>
-      <ng-container *ngIf="apiNb && applicationNb; else loader">
-        <div class="home-overview__card__row">
-          <span class="home-overview__card__row__label">Number of APIs</span>
-          <span class="home-overview__card__row__value">{{ apiNb }}</span>
+      <div *ngIf="apiNb && applicationNb; else loader" class="home-overview__card__list">
+        <div class="home-overview__card__list__row">
+          <span class="home-overview__card__list__row__value">{{ apiNb }}</span>
+          <span class="home-overview__card__list__row__label">Total APIs</span>
         </div>
-        <div class="home-overview__card__row">
-          <span class="home-overview__card__row__label">Number of Applications</span>
-          <span class="home-overview__card__row__value">{{ applicationNb }}</span>
+        <div class="home-overview__card__list__row">
+          <span class="home-overview__card__list__row__value">{{ applicationNb }}</span>
+          <span class="home-overview__card__list__row__label">Total Applications</span>
         </div>
-      </ng-container>
+      </div>
     </mat-card>
 
     <mat-card class="home-overview__card">
@@ -60,15 +60,14 @@
     <mat-card class="home-overview__card">
       <div class="mat-subheading-1">
         Top APIs
-        <div class="mat-caption">Ordered by number of API calls</div>
+        <span class="mat-caption">(Ordered by API calls)</span>
       </div>
       <ng-container *ngIf="topApis; else loader">
         <gio-top-apis-table [data]="topApis"></gio-top-apis-table>
       </ng-container>
     </mat-card>
 
-    <mat-card class="home-overview__card">
-      <div class="mat-subheading-1">Request Stats</div>
+    <mat-card class="home-overview__card flex">
       <ng-container *ngIf="requestStats; else loader">
         <gio-request-stats [data]="requestStats"></gio-request-stats>
       </ng-container>

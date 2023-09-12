@@ -86,7 +86,7 @@ export class GioSideNavComponent implements OnInit {
     const alertEngineIconRight$ = this.getMenuItemIconRight$(alertEngineLicenseOptions);
 
     const mainMenuItems: MenuItem[] = [
-      { icon: 'gio:home', targetRoute: 'management.dashboard.home', baseRoute: 'management.dashboard', displayName: 'Dashboard' },
+      { icon: 'gio:home', targetRoute: 'home', baseRoute: 'home', displayName: 'Dashboard' },
       {
         icon: 'gio:upload-cloud',
         targetRoute: 'management.apis-list',

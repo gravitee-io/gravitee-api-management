@@ -13,20 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
-import { MatDialogModule } from '@angular/material/dialog';
-import { GioIconsModule } from '@gravitee/ui-particles-angular';
-import { MatButtonModule } from '@angular/material/button';
 
-import { GioConnectorDialogComponent } from './gio-connector-dialog.component';
-
-import { GioSafePipeModule } from '../../shared/utils/safe.pipe.module';
+import { ShortNumberPipe } from './shortNumber.pipe';
 
 @NgModule({
-  imports: [CommonModule, MatDialogModule, GioIconsModule, MatButtonModule, GioSafePipeModule],
-  declarations: [GioConnectorDialogComponent],
-  exports: [GioConnectorDialogComponent],
-  entryComponents: [GioConnectorDialogComponent],
+  imports: [],
+  declarations: [ShortNumberPipe],
+  exports: [ShortNumberPipe],
 })
-export class GioConnectorDialogModule {}
+export class GioShortNumberPipeModule {}
