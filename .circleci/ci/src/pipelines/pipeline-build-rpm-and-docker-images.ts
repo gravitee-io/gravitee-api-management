@@ -17,6 +17,7 @@ import { CircleCIEnvironment } from './circleci-environment';
 import { Config } from '@circleci/circleci-config-sdk';
 import { isBlank, validateGraviteeioVersion } from '../utils';
 import { BuildRpmAndDockerImagesWorkflow } from '../workflows';
+import { initDynamicConfig } from './config-factory';
 
 export function generateBuildRpmAndDockerImagesConfig(environment: CircleCIEnvironment): Config {
   validateGraviteeioVersion(environment.graviteeioVersion);
@@ -25,7 +26,7 @@ export function generateBuildRpmAndDockerImagesConfig(environment: CircleCIEnvir
     throw new Error('A branch (CIRCLE_BRANCH) must be specified');
   }
 
-  const dynamicConfig = new Config();
+  const dynamicConfig = initDynamicConfig();
   const workflow = BuildRpmAndDockerImagesWorkflow.create(dynamicConfig, environment);
   dynamicConfig.addWorkflow(workflow);
   return dynamicConfig;

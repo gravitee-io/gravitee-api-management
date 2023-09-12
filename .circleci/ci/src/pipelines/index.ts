@@ -14,4 +14,5 @@
  * limitations under the License.
  */
 export * from './circleci-environment';
+export * from './config-factory';
 export * from './pipeline';

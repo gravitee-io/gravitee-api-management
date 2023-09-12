@@ -16,9 +16,10 @@
 import { Config } from '@circleci/circleci-config-sdk';
 import { CircleCIEnvironment } from './circleci-environment';
 import { RepositoriesTestsWorkflow } from '../workflows';
+import { initDynamicConfig } from './config-factory';
 
 export function generateRepositoriesTestsConfig(environment: CircleCIEnvironment): Config {
-  const dynamicConfig = new Config();
+  const dynamicConfig = initDynamicConfig();
   const workflow = RepositoriesTestsWorkflow.create(dynamicConfig, environment);
   dynamicConfig.addWorkflow(workflow);
   return dynamicConfig;

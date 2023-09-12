@@ -16,9 +16,10 @@
 import { Config } from '@circleci/circleci-config-sdk';
 import { CircleCIEnvironment } from './circleci-environment';
 import { PullRequestsWorkflow } from '../workflows';
+import { initDynamicConfig } from './config-factory';
 
 export function generatePullRequestsConfig(environment: CircleCIEnvironment): Config {
-  const dynamicConfig = new Config();
+  const dynamicConfig = initDynamicConfig();
   const workflow = PullRequestsWorkflow.create(dynamicConfig, environment);
   dynamicConfig.addWorkflow(workflow);
   return dynamicConfig;

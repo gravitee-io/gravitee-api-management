@@ -17,6 +17,7 @@ import { CircleCIEnvironment } from './circleci-environment';
 import { Config } from '@circleci/circleci-config-sdk';
 import { WorkflowNexusStaging } from '../workflows';
 import { validateGraviteeioVersion } from '../utils';
+import { initDynamicConfig } from './config-factory';
 
 export function generateNexusStagingConfig(environment: CircleCIEnvironment): Config {
   if (environment.isDryRun) {
@@ -24,7 +25,7 @@ export function generateNexusStagingConfig(environment: CircleCIEnvironment): Co
   }
   validateGraviteeioVersion(environment.graviteeioVersion);
 
-  const dynamicConfig = new Config();
+  const dynamicConfig = initDynamicConfig();
   const workflow = WorkflowNexusStaging.create(dynamicConfig, environment);
   dynamicConfig.addWorkflow(workflow);
   return dynamicConfig;
