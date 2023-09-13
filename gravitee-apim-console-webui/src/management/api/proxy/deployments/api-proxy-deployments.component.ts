@@ -20,10 +20,11 @@ import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { Tag } from '../../../../entities/tag/tag';
-import { ApiService } from '../../../../services-ngx/api.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { TagService } from '../../../../services-ngx/tag.service';
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
+import { onlyApiV2Filter } from '../../../../util/apiFilter.operator';
 
 @Component({
   selector: 'api-proxy-deployments',
@@ -39,7 +40,7 @@ export class ApiProxyDeploymentsComponent implements OnInit, OnDestroy {
 
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
-    private readonly apiService: ApiService,
+    private readonly apiService: ApiV2Service,
     private readonly tagService: TagService,
     private readonly snackBarService: SnackBarService,
     private readonly permissionService: GioPermissionService,
@@ -51,8 +52,7 @@ export class ApiProxyDeploymentsComponent implements OnInit, OnDestroy {
         tap(([api, shardingTags]) => {
           this.shardingTags = shardingTags;
 
-          const isReadOnly =
-            !this.permissionService.hasAnyMatching(['api-definition-u']) || api.definition_context?.origin === 'kubernetes';
+          const isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']) || api.definitionContext?.origin === 'KUBERNETES';
 
           this.deploymentsForm = new FormGroup({
             tags: new FormControl({
@@ -77,7 +77,8 @@ export class ApiProxyDeploymentsComponent implements OnInit, OnDestroy {
     return this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
-        switchMap((api) => this.apiService.update({ ...api, tags: this.deploymentsForm.get('tags').value ?? [] })),
+        onlyApiV2Filter(this.snackBarService),
+        switchMap((api) => this.apiService.update(api.id, { ...api, tags: this.deploymentsForm.get('tags').value ?? [] })),
         tap(() => this.snackBarService.success('Configuration successfully saved!')),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
