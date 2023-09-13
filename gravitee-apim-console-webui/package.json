@@ -165,7 +165,7 @@
     "build:prod": "webpack -c ./conf/webpack-dist.conf.js",
     "compile": "tsc",
     "lint": "npm run lint:eslint && npm run prettier",
-    "lint:eslint": "eslint --debug --ext .json,.ts ./src",
+    "lint:eslint": "eslint --ext .json,.ts ./src",
     "lint:eslint:fix": "eslint --ext .json,.ts ./src --fix",
     "lint:fix": "npm run lint:eslint:fix && npm run lint:license:fix && npm run prettier:fix",
     "lint:license": "license-check-and-add check -f license-check-config.json",
