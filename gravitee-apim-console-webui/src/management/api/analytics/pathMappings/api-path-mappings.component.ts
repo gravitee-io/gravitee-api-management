@@ -30,11 +30,12 @@ import {
 } from './api-path-mappings-add-dialog/api-path-mappings-add-dialog.component';
 
 import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
-import { ApiService } from '../../../../services-ngx/api.service';
-import { Api } from '../../../../entities/api';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { DocumentationService } from '../../../../services-ngx/documentation.service';
 import { Page } from '../../../../entities/page';
+import { ApiV1, ApiV2 } from '../../../../entities/management-api-v2';
+import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
+import { onlyApiV1V2Filter, onlyApiV2Filter } from '../../../../util/apiFilter.operator';
 
 export interface PathMappingDS {
   path: string;
@@ -47,7 +48,7 @@ export interface PathMappingDS {
 })
 export class ApiPathMappingsComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
-  private api: Api;
+  private api: ApiV1 | ApiV2;
   public displayedColumns = ['path', 'actions'];
   public pathMappingsDS: PathMappingDS[] = [];
   public isLoadingData = true;
@@ -56,7 +57,7 @@ export class ApiPathMappingsComponent implements OnInit, OnDestroy {
 
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
-    private readonly apiService: ApiService,
+    private readonly apiService: ApiV2Service,
     private readonly matDialog: MatDialog,
     private readonly snackBarService: SnackBarService,
     private documentationService: DocumentationService,
@@ -66,11 +67,12 @@ export class ApiPathMappingsComponent implements OnInit, OnDestroy {
     this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
+        onlyApiV1V2Filter(this.snackBarService),
         tap((api) => {
           this.api = api;
           this.pathMappingsDS = this.toPathMappingDS(api);
           this.isLoadingData = false;
-          this.isReadOnly = api.definition_context.origin === 'kubernetes';
+          this.isReadOnly = api.definitionContext.origin === 'KUBERNETES';
         }),
       )
       .subscribe();
@@ -106,9 +108,10 @@ export class ApiPathMappingsComponent implements OnInit, OnDestroy {
       .pipe(
         filter((confirm) => confirm === true),
         switchMap(() => this.apiService.get(this.ajsStateParams.apiId)),
+        onlyApiV2Filter(this.snackBarService),
         switchMap((api) => {
-          remove(api.path_mappings, (p) => p === path);
-          return this.apiService.update(api);
+          remove(api.pathMappings, (p) => p === path);
+          return this.apiService.update(api.id, api);
         }),
         tap(() => this.snackBarService.success(`The path mapping ${path} has been successfully deleted!`)),
         catchError(({ error }) => {
@@ -121,8 +124,8 @@ export class ApiPathMappingsComponent implements OnInit, OnDestroy {
       .subscribe();
   }
 
-  private toPathMappingDS(api: Api): PathMappingDS[] {
-    return sortBy(api.path_mappings).map((path) => ({ path }));
+  private toPathMappingDS(api: ApiV1 | ApiV2): PathMappingDS[] {
+    return sortBy(api.pathMappings).map((path) => ({ path }));
   }
 
   addPathMapping() {
