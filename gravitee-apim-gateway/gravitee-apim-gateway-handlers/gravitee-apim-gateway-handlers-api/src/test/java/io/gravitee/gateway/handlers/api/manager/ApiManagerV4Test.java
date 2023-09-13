@@ -83,7 +83,7 @@ public class ApiManagerV4Test {
     }
 
     @Test
-    public void shouldNotDeployDisableApi() throws Exception {
+    public void shouldNotDeployDisableApi() {
         final Api api = buildTestApi();
         api.setEnabled(false);
 
@@ -93,7 +93,7 @@ public class ApiManagerV4Test {
     }
 
     @Test
-    public void shouldNotDeployApiWithoutPlan() throws Exception {
+    public void shouldNotDeployApiWithoutPlan() {
         final Api api = buildTestApi();
 
         apiManager.register(api);
@@ -103,7 +103,7 @@ public class ApiManagerV4Test {
     }
 
     @Test
-    public void shouldDeployApiWithPlan() throws Exception {
+    public void shouldDeployApiWithPlan() {
         final Api api = buildTestApi();
         final Plan mockedPlan = buildMockPlan();
 
@@ -115,13 +115,23 @@ public class ApiManagerV4Test {
         assertEquals(1, apiManager.apis().size());
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void shouldNotDeployApi_invalidTag() throws Exception {
-        shouldDeployApiWithTags("test,!test", new String[] { "test" });
+    @Test
+    public void shouldNotDeployApiWithTagOnGatewayTagInInclusionAndExclusion() {
+        final Api api = buildTestApi();
+        final Plan mockedPlan = buildMockPlan();
+
+        api.getDefinition().setPlans(singletonList(mockedPlan));
+        api.getDefinition().setTags(new HashSet<>(Arrays.asList("test")));
+
+        when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(Arrays.asList("test,!test")));
+
+        apiManager.register(api);
+
+        verify(eventManager, never()).publishEvent(ReactorEvent.DEPLOY, api);
     }
 
     @Test
-    public void shouldDeployApiWithTagOnGatewayWithoutTag() throws Exception {
+    public void shouldDeployApiWithTagOnGatewayWithoutTag() {
         final Api api = buildTestApi();
         final Plan mockedPlan = buildMockPlan();
 
@@ -134,7 +144,7 @@ public class ApiManagerV4Test {
     }
 
     @Test
-    public void shouldNotDeployApiWithTagOnGatewayTagExclusion() throws Exception {
+    public void shouldNotDeployApiWithTagOnGatewayTagExclusion() {
         final Api api = buildTestApi();
         final Plan mockedPlan = mock(Plan.class);
 
@@ -149,7 +159,7 @@ public class ApiManagerV4Test {
     }
 
     @Test
-    public void shouldNotDeployApiWithTagOnGatewayWithoutTag() throws Exception {
+    public void shouldNotDeployApiWithTagOnGatewayWithoutTag() {
         final Api api = buildTestApi();
         final Plan mockedPlan = mock(Plan.class);
 
@@ -162,7 +172,7 @@ public class ApiManagerV4Test {
         verify(eventManager, never()).publishEvent(ReactorEvent.DEPLOY, api);
     }
 
-    private void shouldDeployApiWithTags(final String tags, final String[] apiTags) throws Exception {
+    private void shouldDeployApiWithTags(final String tags, final String[] apiTags) {
         final Api api = buildTestApi();
         final Plan mockedPlan = buildMockPlan();
 
@@ -177,7 +187,7 @@ public class ApiManagerV4Test {
     }
 
     @Test
-    public void shouldDeployApiWithPlanMatchingTag() throws Exception {
+    public void shouldDeployApiWithPlanMatchingTag() {
         final Api api = buildTestApi();
         api.getDefinition().setTags(new HashSet<>(singletonList("test")));
 
@@ -193,7 +203,7 @@ public class ApiManagerV4Test {
     }
 
     @Test
-    public void shouldNotDeployApiWithoutPlanMatchingTag() throws Exception {
+    public void shouldNotDeployApiWithoutPlanMatchingTag() {
         final Api api = buildTestApi();
         api.getDefinition().setTags(new HashSet<>(singletonList("test")));
 
@@ -255,7 +265,7 @@ public class ApiManagerV4Test {
     }
 
     @Test
-    public void shouldUpdateApi() throws Exception {
+    public void shouldUpdateApi() {
         final Api api = buildTestApi();
         final Plan mockedPlan = buildMockPlan();
 
@@ -276,7 +286,7 @@ public class ApiManagerV4Test {
     }
 
     @Test
-    public void shouldNotUpdateApi() throws Exception {
+    public void shouldNotUpdateApi() {
         final Api api = buildTestApi();
         final Plan mockedPlan = buildMockPlan();
 
@@ -296,7 +306,7 @@ public class ApiManagerV4Test {
     }
 
     @Test
-    public void shouldUndeployApi_noMoreMatchingTag() throws Exception {
+    public void shouldUndeployApi_noMoreMatchingTag() {
         final Api api = buildTestApi();
         final Plan mockedPlan = buildMockPlan();
 
@@ -327,7 +337,7 @@ public class ApiManagerV4Test {
     }
 
     @Test
-    public void shouldUndeployApi() throws Exception {
+    public void shouldUndeployApi() {
         final Api api = buildTestApi();
         final Plan mockedPlan = buildMockPlan();
 
@@ -343,7 +353,7 @@ public class ApiManagerV4Test {
     }
 
     @Test
-    public void shouldNotUndeployUnknownApi() throws Exception {
+    public void shouldNotUndeployUnknownApi() {
         final Api api = buildTestApi();
         final Plan mockedPlan = buildMockPlan();
 
@@ -359,7 +369,7 @@ public class ApiManagerV4Test {
     }
 
     @Test
-    public void shouldUndeployApi_noMorePlan() throws Exception {
+    public void shouldUndeployApi_noMorePlan() {
         final Api api = buildTestApi();
         final Plan mockedPlan = buildMockPlan();
 
