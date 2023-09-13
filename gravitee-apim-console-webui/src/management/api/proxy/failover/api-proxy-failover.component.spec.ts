@@ -28,9 +28,8 @@ import { ApiProxyFailoverModule } from './api-proxy-failover.module';
 
 import { UIRouterStateParams, CurrentUserService, AjsRootScope } from '../../../../ajs-upgraded-providers';
 import { User } from '../../../../entities/user';
-import { Api } from '../../../../entities/api';
-import { fakeApi } from '../../../../entities/api/Api.fixture';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { ApiV2, fakeApiV2 } from '../../../../entities/management-api-v2';
 
 describe('ApiProxyFailoverComponent', () => {
   const API_ID = 'apiId';
@@ -71,7 +70,7 @@ describe('ApiProxyFailoverComponent', () => {
   });
 
   it('should enable and set failover config', async () => {
-    const api = fakeApi({
+    const api = fakeApiV2({
       id: API_ID,
       proxy: {
         failover: undefined,
@@ -102,7 +101,7 @@ describe('ApiProxyFailoverComponent', () => {
 
     // Expect fetch api and update
     expectApiGetRequest(api);
-    const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}` });
+    const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` });
     expect(req.request.body.proxy.failover).toStrictEqual({
       maxAttempts: 2,
       retryTimeout: 22,
@@ -110,7 +109,7 @@ describe('ApiProxyFailoverComponent', () => {
   });
 
   it('should update failover config', async () => {
-    const api = fakeApi({
+    const api = fakeApiV2({
       id: API_ID,
       proxy: {
         failover: {
@@ -138,7 +137,7 @@ describe('ApiProxyFailoverComponent', () => {
 
     // Expect fetch api and update
     expectApiGetRequest(api);
-    const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}` });
+    const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` });
     expect(req.request.body.proxy.failover).toStrictEqual({
       maxAttempts: 3,
       retryTimeout: 33,
@@ -146,12 +145,12 @@ describe('ApiProxyFailoverComponent', () => {
   });
 
   it('should disable fields when origin is kubernetes', async () => {
-    const api = fakeApi({
+    const api = fakeApiV2({
       id: API_ID,
       proxy: {
         failover: undefined,
       },
-      definition_context: { origin: 'kubernetes' },
+      definitionContext: { origin: 'KUBERNETES' },
     });
     expectApiGetRequest(api);
 
@@ -165,8 +164,8 @@ describe('ApiProxyFailoverComponent', () => {
     expect(await retryTimeoutInput.isDisabled()).toBe(true);
   });
 
-  function expectApiGetRequest(api: Api) {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
+  function expectApiGetRequest(api: ApiV2) {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
     fixture.detectChanges();
   }
 });
