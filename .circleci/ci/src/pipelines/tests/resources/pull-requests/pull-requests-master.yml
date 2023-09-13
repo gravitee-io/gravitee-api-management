@@ -262,22 +262,22 @@ jobs:
             - ./gravitee-apim-rest-api/gravitee-apim-rest-api-management/gravitee-apim-rest-api-management-rest/target/classes/console-openapi.*
             - ./rest-api-docker-context
             - ./gateway-docker-context
-  job-test-backend:
+  job-test-definition:
     docker:
       - image: cimg/openjdk:17.0
-    resource_class: medium+
+    resource_class: small
     steps:
       - checkout
       - attach_workspace:
           at: .
       - cmd-restore-maven-job-cache:
-          jobName: job-test-backend
+          jobName: job-test-definition
       - restore_cache:
           keys:
             - gravitee-api-management-v9-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
       - run:
-          name: Run backend tests
-          command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Dmain-modules -Dskip.validation=true -T 2C
+          name: Run definition tests
+          command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Ddefinition-modules -Dskip.validation=true -T 2C
       - run:
           name: Save test results
           command: |-
@@ -286,15 +286,115 @@ jobs:
           when: always
       - cmd-notify-on-failure
       - cmd-save-maven-job-cache:
-          jobName: job-test-backend
+          jobName: job-test-definition
+      - store_test_results:
+          path: ~/test-results
+      - persist_to_workspace:
+          root: .
+          paths:
+            - gravitee-apim-definition/gravitee-apim-definition-coverage/target/site/jacoco-aggregate/
+  job-test-gateway:
+    docker:
+      - image: cimg/openjdk:17.0
+    resource_class: small
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - cmd-restore-maven-job-cache:
+          jobName: job-test-gateway
+      - restore_cache:
+          keys:
+            - gravitee-api-management-v9-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+      - run:
+          name: Run tests
+          command: |-
+            cd gravitee-apim-gateway
+            # List all tests
+            circleci tests glob "**/src/test/java/**/*Test.java" | sed -e 's#^.*/src/test/java/\(.*\)\.java#\1#' | tr "/" "." > all-tests
+
+            # List all tests to run on this executor
+            cat all-tests | circleci tests split --split-by=timings --timings-type=classname --time-default=10s > tests-to-run
+
+            # Compute exclusion list (use grep to invert the include list to an exclude list)
+            cat all-tests | grep -xvf tests-to-run > /tmp/ignore_list
+
+            # Add * add the end of each line of ignore_list to also exclude all inner classes
+            sed -i 's/$/*/' /tmp/ignore_list
+
+            # Display tests to run on this executor
+            echo "Following test files will run on this executor:"
+            cat tests-to-run
+
+            # Run tests
+            mvn --fail-fast -s ../.gravitee.settings.xml test --no-transfer-progress -Dskip.validation=true -Dsurefire.excludesFile=/tmp/ignore_list
+      - run:
+          name: Save test results
+          command: |-
+            mkdir -p ~/test-results/junit/
+            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
+          when: always
+      - cmd-notify-on-failure
+      - cmd-save-maven-job-cache:
+          jobName: job-test-gateway
       - store_test_results:
           path: ~/test-results
       - persist_to_workspace:
           root: .
           paths:
             - gravitee-apim-gateway/gravitee-apim-gateway-coverage/target/site/jacoco-aggregate/
+    parallelism: 4
+  job-test-rest-api:
+    docker:
+      - image: cimg/openjdk:17.0
+    resource_class: small
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - cmd-restore-maven-job-cache:
+          jobName: job-test-rest-api
+      - restore_cache:
+          keys:
+            - gravitee-api-management-v9-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+      - run:
+          name: Run tests
+          command: |-
+            cd gravitee-apim-rest-api
+            # List all tests
+            circleci tests glob "**/src/test/java/**/*Test.java" | sed -e 's#^.*/src/test/java/\(.*\)\.java#\1#' | tr "/" "." > all-tests
+
+            # List all tests to run on this executor
+            cat all-tests | circleci tests split --split-by=timings --timings-type=classname --time-default=10s > tests-to-run
+
+            # Compute exclusion list (use grep to invert the include list to an exclude list)
+            cat all-tests | grep -xvf tests-to-run > /tmp/ignore_list
+
+            # Add * add the end of each line of ignore_list to also exclude all inner classes
+            sed -i 's/$/*/' /tmp/ignore_list
+
+            # Display tests to run on this executor
+            echo "Following test files will run on this executor:"
+            cat tests-to-run
+
+            # Run tests
+            mvn --fail-fast -s ../.gravitee.settings.xml test --no-transfer-progress -Dskip.validation=true -Dsurefire.excludesFile=/tmp/ignore_list
+      - run:
+          name: Save test results
+          command: |-
+            mkdir -p ~/test-results/junit/
+            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
+          when: always
+      - cmd-notify-on-failure
+      - cmd-save-maven-job-cache:
+          jobName: job-test-rest-api
+      - store_test_results:
+          path: ~/test-results
+      - persist_to_workspace:
+          root: .
+          paths:
             - gravitee-apim-rest-api/gravitee-apim-rest-api-coverage/target/site/jacoco-aggregate/
-            - gravitee-apim-definition/gravitee-apim-definition-coverage/target/site/jacoco-aggregate/
+    parallelism: 4
   job-test-integration:
     docker:
       - image: cimg/openjdk:17.0
@@ -897,8 +997,20 @@ workflows:
             - cicd-orchestrator
           requires:
             - Validate backend
-      - job-test-backend:
-          name: Test backend
+      - job-test-definition:
+          name: Test definition
+          context:
+            - cicd-orchestrator
+          requires:
+            - Build backend
+      - job-test-gateway:
+          name: Test gateway
+          context:
+            - cicd-orchestrator
+          requires:
+            - Build backend
+      - job-test-rest-api:
+          name: Test rest-api
           context:
             - cicd-orchestrator
           requires:
@@ -922,17 +1034,26 @@ workflows:
           requires:
             - Build backend
       - job-sonarcloud-analysis:
-          name: Sonar - << matrix.working_directory >>
+          name: Sonar - gravitee-apim-definition
           context:
             - cicd-orchestrator
           requires:
-            - Test backend
-          matrix:
-            parameters:
-              working_directory:
-                - gravitee-apim-rest-api
-                - gravitee-apim-gateway
-                - gravitee-apim-definition
+            - Test definition
+          working_directory: gravitee-apim-definition
+      - job-sonarcloud-analysis:
+          name: Sonar - gravitee-apim-gateway
+          context:
+            - cicd-orchestrator
+          requires:
+            - Test gateway
+          working_directory: gravitee-apim-gateway
+      - job-sonarcloud-analysis:
+          name: Sonar - gravitee-apim-rest-api
+          context:
+            - cicd-orchestrator
+          requires:
+            - Test rest-api
+          working_directory: gravitee-apim-rest-api
       - job-sonarcloud-analysis:
           name: Sonar - gravitee-apim-plugin
           context:
@@ -1059,25 +1180,31 @@ workflows:
           context:
             - cicd-orchestrator
           requires:
-            - Test backend
+            - Test definition
+            - Test gateway
             - Test plugins
             - Test repository
+            - Test rest-api
       - job-publish-on-nexus:
           name: Publish on nexus
           context:
             - cicd-orchestrator
           requires:
-            - Test backend
+            - Test definition
+            - Test gateway
             - Test plugins
             - Test repository
+            - Test rest-api
       - job-deploy-on-azure-cluster:
           name: Deploy on Azure cluster
           context:
             - cicd-orchestrator
           requires:
-            - Test backend
+            - Test definition
+            - Test gateway
             - Test plugins
             - Test repository
+            - Test rest-api
             - Build and push rest api and gateway images
             - Build APIM Console and publish image
             - Build APIM Portal and publish image
