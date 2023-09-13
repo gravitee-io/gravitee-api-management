@@ -104,6 +104,7 @@ import { AlertsComponent } from '../../components/alerts/alerts.component';
 import { AlertComponent } from '../../components/alerts/alert/alert.component';
 import ResourceService from '../../services/resource.service';
 import { MessagesComponent } from '../messages/messages.component';
+import { ApimFeature } from '../../shared/components/gio-license/gio-license-data';
 
 const graviteeManagementModule = angular.module('gravitee-management');
 apiPermissionHook.$inject = ['$transitions', 'ngGioPermissionService'];
@@ -727,6 +728,10 @@ const states: Ng2StateDeclaration[] = [
     component: ApiAuditComponent,
     url: '/audit',
     data: {
+      requireLicense: {
+        license: { feature: ApimFeature.APIM_AUDIT_TRAIL },
+        redirect: 'management.apis.ng-list',
+      },
       apiPermissions: {
         only: ['api-audit-r'],
       },
@@ -831,6 +836,10 @@ const states: Ng2StateDeclaration[] = [
     abstract: true,
     url: '/alerts',
     data: {
+      requireLicense: {
+        license: { feature: ApimFeature.ALERT_ENGINE },
+        redirect: 'management.apis.ng-list',
+      },
       apiPermissions: {
         only: ['api-alert-r'],
       },
@@ -1274,6 +1283,10 @@ const states: Ng2StateDeclaration[] = [
     component: ApiAlertsDashboardComponent,
     url: '/v2/analytics-alerts',
     data: {
+      requireLicense: {
+        license: { feature: ApimFeature.ALERT_ENGINE },
+        redirect: 'management.apis.ng-list',
+      },
       apiPermissions: {
         only: ['api-alert-r'],
       },
