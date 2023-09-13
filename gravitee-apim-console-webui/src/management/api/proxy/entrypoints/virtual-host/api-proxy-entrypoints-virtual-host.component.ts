@@ -17,7 +17,8 @@ import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from
 import { AbstractControl, FormArray, FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { escapeRegExp, isEmpty } from 'lodash';
 
-import { Api } from '../../../../../entities/api';
+import { Proxy } from '../../../../../entities/management-api-v2';
+
 @Component({
   selector: 'api-proxy-entrypoints-virtual-host',
   template: require('./api-proxy-entrypoints-virtual-host.component.html'),
@@ -28,13 +29,13 @@ export class ApiProxyEntrypointsVirtualHostComponent implements OnChanges {
   readOnly: boolean;
 
   @Input()
-  apiProxy: Api['proxy'];
+  apiProxy: Proxy;
 
   @Input()
   domainRestrictions: string[] = [];
 
   @Output()
-  public apiProxySubmit = new EventEmitter<Api['proxy']>();
+  public apiProxySubmit = new EventEmitter<Proxy>();
 
   public virtualHostsForm: FormGroup;
   private get virtualHostsFormArray(): FormArray {
@@ -45,7 +46,7 @@ export class ApiProxyEntrypointsVirtualHostComponent implements OnChanges {
     // Create new array to trigger change detection
     return [...(this.virtualHostsFormArray?.controls ?? [])];
   }
-  public virtualHostsTableDisplayedColumns = ['host', 'path', 'override_entrypoint', 'remove'];
+  public virtualHostsTableDisplayedColumns = ['host', 'path', 'overrideEntrypoint', 'remove'];
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes.apiProxy || changes.readOnly) {
@@ -54,15 +55,15 @@ export class ApiProxyEntrypointsVirtualHostComponent implements OnChanges {
   }
 
   onSubmit() {
-    const virtualHosts: Api['proxy']['virtual_hosts'] = this.virtualHostsFormArray.getRawValue().map((virtualHost) => ({
+    const virtualHosts: Proxy['virtualHosts'] = this.virtualHostsFormArray.getRawValue().map((virtualHost) => ({
       host: combineHostWithDomain(virtualHost.host, virtualHost.hostDomain),
       path: virtualHost.path,
-      override_entrypoint: virtualHost.override_entrypoint,
+      overrideEntrypoint: virtualHost.overrideEntrypoint,
     }));
 
     this.apiProxySubmit.emit({
       ...this.apiProxy,
-      virtual_hosts: virtualHosts,
+      virtualHosts: virtualHosts,
     });
   }
 
@@ -81,14 +82,14 @@ export class ApiProxyEntrypointsVirtualHostComponent implements OnChanges {
     this.initForm(this.apiProxy);
   }
 
-  private initForm(apiProxy: Api['proxy']) {
+  private initForm(apiProxy: Proxy) {
     // Wrap form array in a form group because angular doesn't support form array as root form control
     this.virtualHostsForm = new FormGroup({
-      virtualHosts: new FormArray([...apiProxy.virtual_hosts.map((virtualHost) => this.newVirtualHostFormGroup(virtualHost))]),
+      virtualHosts: new FormArray([...apiProxy.virtualHosts.map((virtualHost) => this.newVirtualHostFormGroup(virtualHost))]),
     });
   }
 
-  private newVirtualHostFormGroup(virtualHost?: Api['proxy']['virtual_hosts'][number]) {
+  private newVirtualHostFormGroup(virtualHost?: Proxy['virtualHosts'][number]) {
     const hostObj = extractDomainToHost(virtualHost?.host, this.domainRestrictions);
 
     return new FormGroup({
@@ -113,8 +114,8 @@ export class ApiProxyEntrypointsVirtualHostComponent implements OnChanges {
         },
         [Validators.required, Validators.pattern(/^\/[/.a-zA-Z0-9-_]*$/)],
       ),
-      override_entrypoint: new FormControl({
-        value: virtualHost?.override_entrypoint ?? false,
+      overrideEntrypoint: new FormControl({
+        value: virtualHost?.overrideEntrypoint ?? false,
         disabled: this.readOnly,
       }),
     });

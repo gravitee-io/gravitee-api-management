@@ -19,9 +19,9 @@ import { takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { UIRouterGlobals } from '@uirouter/core';
 
-import { Api } from '../../../../../entities/api';
 import { ApiService } from '../../../../../services-ngx/api.service';
 import { PortalSettingsService } from '../../../../../services-ngx/portal-settings.service';
+import { Proxy } from '../../../../../entities/management-api-v2';
 
 @Component({
   selector: 'api-proxy-entrypoints-context-path',
@@ -33,10 +33,10 @@ export class ApiProxyEntrypointsContextPathComponent implements OnInit, OnChange
   readOnly: boolean;
 
   @Input()
-  apiProxy: Api['proxy'];
+  apiProxy: Proxy;
 
   @Output()
-  public apiProxySubmit = new EventEmitter<Api['proxy']>();
+  public apiProxySubmit = new EventEmitter<Proxy>();
 
   public contextPathPrefix: string;
 
@@ -68,7 +68,7 @@ export class ApiProxyEntrypointsContextPathComponent implements OnInit, OnChange
   }
 
   onSubmit() {
-    this.apiProxySubmit.emit({ ...this.apiProxy, virtual_hosts: [{ path: this.entrypointsForm.value.contextPath }] });
+    this.apiProxySubmit.emit({ ...this.apiProxy, virtualHosts: [{ path: this.entrypointsForm.value.contextPath }] });
   }
 
   ngOnDestroy() {
@@ -76,14 +76,14 @@ export class ApiProxyEntrypointsContextPathComponent implements OnInit, OnChange
     this.unsubscribe$.unsubscribe();
   }
 
-  private initForm(apiProxy: Api['proxy']) {
-    const currentContextPath = apiProxy.virtual_hosts[0].path;
+  private initForm(apiProxy: Proxy) {
+    const currentContextPath = apiProxy.virtualHosts[0].path;
     const { apiId } = this.$router.params;
 
     this.entrypointsForm = new FormGroup({
       contextPath: new FormControl(
         {
-          value: apiProxy.virtual_hosts[0].path,
+          value: apiProxy.virtualHosts[0].path,
           disabled: this.readOnly,
         },
         [Validators.required],
