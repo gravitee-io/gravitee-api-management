@@ -29,11 +29,10 @@ import { ApiLogsConfigurationComponent } from './api-logs-configuration.componen
 import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { ApiLogsModule } from '../api-logs.module';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
-import { Api } from '../../../../../entities/api';
-import { fakeApi } from '../../../../../entities/api/Api.fixture';
 import { GioFormCardGroupHarness } from '../../../../../shared/components/gio-form-card-group/gio-form-card-group.harness';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { User } from '../../../../../entities/user';
+import { ApiV2, fakeApiV2 } from '../../../../../entities/management-api-v2';
 
 describe('ApiLogsConfigurationComponent', () => {
   const API_ID = 'my-api';
@@ -71,7 +70,7 @@ describe('ApiLogsConfigurationComponent', () => {
 
   describe('goToLoggingDashboard', () => {
     it('should redirect to logging dashboard', async () => {
-      const api = fakeApi({
+      const api = fakeApiV2({
         id: API_ID,
       });
       expectApiGetRequest(api);
@@ -86,7 +85,7 @@ describe('ApiLogsConfigurationComponent', () => {
 
   describe('form tests', () => {
     it('should get the api and init the form with logs disabled', () => {
-      const api = fakeApi({
+      const api = fakeApiV2({
         id: API_ID,
         proxy: {
           logging: {
@@ -110,7 +109,7 @@ describe('ApiLogsConfigurationComponent', () => {
     });
 
     it('should get the api and init the form with logs enabled', () => {
-      const api = fakeApi({
+      const api = fakeApiV2({
         id: API_ID,
         proxy: {
           logging: {
@@ -134,7 +133,7 @@ describe('ApiLogsConfigurationComponent', () => {
     });
 
     it('should enable and then disable logging configuration', async () => {
-      const api = fakeApi({
+      const api = fakeApiV2({
         id: API_ID,
         proxy: {
           logging: {
@@ -172,7 +171,7 @@ describe('ApiLogsConfigurationComponent', () => {
     });
 
     it('should save logging configuration', async () => {
-      const api = fakeApi({
+      const api = fakeApiV2({
         id: API_ID,
         proxy: {
           logging: {
@@ -212,7 +211,7 @@ describe('ApiLogsConfigurationComponent', () => {
 
     it('should handle error on save', async () => {
       const snackBarServiceSpy = jest.spyOn(TestBed.inject(SnackBarService), 'error');
-      const api = fakeApi({
+      const api = fakeApiV2({
         id: API_ID,
         proxy: {
           logging: {
@@ -238,7 +237,7 @@ describe('ApiLogsConfigurationComponent', () => {
 
   describe('kubernetes origin tests', () => {
     it('should disable the form when the origin is kubernetes', async () => {
-      const api = fakeApi({
+      const api = fakeApiV2({
         id: API_ID,
         proxy: {
           logging: {
@@ -248,8 +247,8 @@ describe('ApiLogsConfigurationComponent', () => {
             scope: 'RESPONSE',
           },
         },
-        definition_context: {
-          origin: 'kubernetes',
+        definitionContext: {
+          origin: 'KUBERNETES',
         },
       });
       expectApiGetRequest(api);
@@ -264,13 +263,13 @@ describe('ApiLogsConfigurationComponent', () => {
     });
   });
 
-  function expectApiGetRequest(api: Api) {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
+  function expectApiGetRequest(api: ApiV2) {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
     fixture.detectChanges();
   }
 
-  function expectApiPutRequest(api: Api) {
-    const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'PUT' });
+  function expectApiPutRequest(api: ApiV2) {
+    const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'PUT' });
     expect(req.request.body.proxy.logging).toStrictEqual(api.proxy.logging);
     req.flush(api);
     fixture.detectChanges();
@@ -278,7 +277,7 @@ describe('ApiLogsConfigurationComponent', () => {
 
   function expectApiPutRequestError(apiId: string) {
     httpTestingController
-      .expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}`, method: 'PUT' })
+      .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}`, method: 'PUT' })
       .error(new ErrorEvent('error'));
     fixture.detectChanges();
   }
