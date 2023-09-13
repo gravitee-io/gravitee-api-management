@@ -91,6 +91,7 @@ import ResourceService from '../../services/resource.service';
 import { MessagesComponent } from '../messages/messages.component';
 import TenantService from '../../services/tenant.service';
 import TagService from '../../services/tag.service';
+import { ApimFeature } from '../../shared/components/gio-license/gio-license-data';
 
 // New Angular routing
 export const states: Ng2StateDeclaration[] = [
@@ -783,6 +784,10 @@ export const states: Ng2StateDeclaration[] = [
     component: ApiAuditComponent,
     url: '/audit',
     data: {
+      requireLicense: {
+        license: { feature: ApimFeature.APIM_AUDIT_TRAIL },
+        redirect: 'management.apis-list',
+      },
       apiPermissions: {
         only: ['api-audit-r'],
       },
@@ -898,6 +903,10 @@ export const states: Ng2StateDeclaration[] = [
     abstract: true,
     url: '/alerts',
     data: {
+      requireLicense: {
+        license: { feature: ApimFeature.ALERT_ENGINE },
+        redirect: 'management.apis-list',
+      },
       apiPermissions: {
         only: ['api-alert-r'],
       },
@@ -1341,6 +1350,10 @@ export const states: Ng2StateDeclaration[] = [
     component: ApiAlertsDashboardComponent,
     url: '/v2/analytics-alerts',
     data: {
+      requireLicense: {
+        license: { feature: ApimFeature.ALERT_ENGINE },
+        redirect: 'management.apis-list',
+      },
       apiPermissions: {
         only: ['api-alert-r'],
       },

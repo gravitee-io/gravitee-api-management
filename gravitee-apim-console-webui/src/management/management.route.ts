@@ -23,6 +23,7 @@ import ApplicationService from '../services/application.service';
 import DashboardService from '../services/dashboard.service';
 import InstancesService from '../services/instances.service';
 import TicketService from '../services/ticket.service';
+import { ApimFeature } from '../shared/components/gio-license/gio-license-data';
 
 /* @ngInject */
 function managementRouterConfig($stateProvider) {
@@ -161,7 +162,7 @@ function managementRouterConfig($stateProvider) {
       data: {
         useAngularMaterial: true,
         requireLicense: {
-          license: { feature: 'apim-audit-trail' },
+          license: { feature: ApimFeature.APIM_AUDIT_TRAIL },
           redirect: 'management',
         },
         perms: {
