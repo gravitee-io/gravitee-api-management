@@ -33,13 +33,12 @@ import { ApiProxyEntrypointsModule } from './api-proxy-entrypoints.module';
 import { ApiProxyEntrypointsComponent } from './api-proxy-entrypoints.component';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
-import { fakeApi } from '../../../../entities/api/Api.fixture';
-import { Api } from '../../../../entities/api';
 import { AjsRootScope, CurrentUserService, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { User } from '../../../../entities/user';
 import { Environment } from '../../../../entities/environment/environment';
 import { fakeEnvironment } from '../../../../entities/environment/environment.fixture';
 import { PortalSettings } from '../../../../entities/portal/portalSettings';
+import { ApiV2, fakeApiV2 } from '../../../../entities/management-api-v2';
 
 describe('ApiProxyEntrypointsComponent', () => {
   let fixture: ComponentFixture<ApiProxyEntrypointsComponent>;
@@ -94,7 +93,7 @@ describe('ApiProxyEntrypointsComponent', () => {
     });
 
     it('should update context-path', async () => {
-      const api = fakeApi({ id: API_ID, proxy: { virtual_hosts: [{ path: '/path' }] } });
+      const api = fakeApiV2({ id: API_ID, proxy: { virtualHosts: [{ path: '/path' }] } });
       expectApiGetRequest(api);
       expectApiGetPortalSettings();
 
@@ -113,12 +112,12 @@ describe('ApiProxyEntrypointsComponent', () => {
 
       // Expect fetch api get and update proxy
       expectApiGetRequest(api);
-      const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}` });
-      expect(req.request.body.proxy.virtual_hosts).toEqual([{ path: '/new-path' }]);
+      const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` });
+      expect(req.request.body.proxy.virtualHosts).toEqual([{ path: '/new-path' }]);
     });
 
     it('should disable field when origin is kubernetes', async () => {
-      const api = fakeApi({ id: API_ID, proxy: { virtual_hosts: [{ path: '/path' }] }, definition_context: { origin: 'kubernetes' } });
+      const api = fakeApiV2({ id: API_ID, proxy: { virtualHosts: [{ path: '/path' }] }, definitionContext: { origin: 'KUBERNETES' } });
       expectApiGetRequest(api);
       expectApiGetPortalSettings();
 
@@ -130,7 +129,7 @@ describe('ApiProxyEntrypointsComponent', () => {
     });
 
     it('should switch to virtual-host mode', async () => {
-      expectApiGetRequest(fakeApi({ id: API_ID }));
+      expectApiGetRequest(fakeApiV2({ id: API_ID }));
 
       const switchButton = await loader.getHarness(MatButtonHarness.with({ text: 'Switch to virtual-hosts mode' }));
       await switchButton.click();
@@ -145,10 +144,10 @@ describe('ApiProxyEntrypointsComponent', () => {
     });
 
     it('should update virtual-host', async () => {
-      const api = fakeApi({
+      const api = fakeApiV2({
         id: API_ID,
         proxy: {
-          virtual_hosts: [
+          virtualHosts: [
             { path: '/path-foo', host: 'host.io' },
             { path: '/path-bar', host: 'host.io' },
           ],
@@ -180,31 +179,31 @@ describe('ApiProxyEntrypointsComponent', () => {
 
       // Expect fetch api get and update proxy
       expectApiGetRequest(api);
-      const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}` });
-      expect(req.request.body.proxy.virtual_hosts).toEqual([
+      const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` });
+      expect(req.request.body.proxy.virtualHosts).toEqual([
         {
           path: '/new-path-foo',
           host: 'new-host',
-          override_entrypoint: true,
+          overrideEntrypoint: true,
         },
         {
           host: 'host.io',
-          override_entrypoint: false,
+          overrideEntrypoint: false,
           path: '/path-bar',
         },
       ]);
     });
 
     it('should disable field when origin is kubernetes', async () => {
-      const api = fakeApi({
+      const api = fakeApiV2({
         id: API_ID,
         proxy: {
-          virtual_hosts: [
+          virtualHosts: [
             { path: '/path-foo', host: 'host.io' },
             { path: '/path-bar', host: 'host.io' },
           ],
         },
-        definition_context: { origin: 'kubernetes' },
+        definitionContext: { origin: 'KUBERNETES' },
       });
       expectApiGetRequest(api);
 
@@ -232,10 +231,10 @@ describe('ApiProxyEntrypointsComponent', () => {
     });
 
     it('should add virtual-host', async () => {
-      const api = fakeApi({
+      const api = fakeApiV2({
         id: API_ID,
         proxy: {
-          virtual_hosts: [{ path: '/path-foo', host: 'host.io' }],
+          virtualHosts: [{ path: '/path-foo', host: 'host.io' }],
         },
       });
       expectApiGetRequest(api);
@@ -260,26 +259,26 @@ describe('ApiProxyEntrypointsComponent', () => {
 
       // Expect fetch api get and update proxy
       expectApiGetRequest(api);
-      const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}` });
-      expect(req.request.body.proxy.virtual_hosts).toEqual([
+      const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` });
+      expect(req.request.body.proxy.virtualHosts).toEqual([
         {
           path: '/path-foo',
           host: 'host.io',
-          override_entrypoint: false,
+          overrideEntrypoint: false,
         },
         {
           host: 'host-bar',
-          override_entrypoint: false,
+          overrideEntrypoint: false,
           path: '/path-bar',
         },
       ]);
     });
 
     it('should remove virtual-host', async () => {
-      const api = fakeApi({
+      const api = fakeApiV2({
         id: API_ID,
         proxy: {
-          virtual_hosts: [
+          virtualHosts: [
             { path: '/path-foo', host: 'host.io' },
             { path: '/path-bar', host: 'host.io' },
           ],
@@ -301,18 +300,18 @@ describe('ApiProxyEntrypointsComponent', () => {
 
       // Expect fetch api get and update proxy
       expectApiGetRequest(api);
-      const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}` });
-      expect(req.request.body.proxy.virtual_hosts).toEqual([
+      const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` });
+      expect(req.request.body.proxy.virtualHosts).toEqual([
         {
           host: 'host.io',
-          override_entrypoint: false,
+          overrideEntrypoint: false,
           path: '/path-bar',
         },
       ]);
     });
 
     it('should switch to context-path mode', async () => {
-      const api = fakeApi({ id: API_ID, proxy: { virtual_hosts: [{ path: '/path-foo', host: 'host.io' }, { path: '/path-bar' }] } });
+      const api = fakeApiV2({ id: API_ID, proxy: { virtualHosts: [{ path: '/path-foo', host: 'host.io' }, { path: '/path-bar' }] } });
       expectApiGetRequest(api);
 
       const switchButton = await loader.getHarness(MatButtonHarness.with({ text: 'Switch to context-path mode' }));
@@ -327,8 +326,8 @@ describe('ApiProxyEntrypointsComponent', () => {
       // Expect fetch api get and update proxy
       expectApiGetRequest(api);
       expectApiGetPortalSettings();
-      const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}` });
-      expect(req.request.body.proxy.virtual_hosts).toEqual([{ path: '/path-foo' }]);
+      const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` });
+      expect(req.request.body.proxy.virtualHosts).toEqual([{ path: '/path-foo' }]);
     });
   });
 
@@ -338,10 +337,10 @@ describe('ApiProxyEntrypointsComponent', () => {
     });
 
     it('should update virtual-host', async () => {
-      const api = fakeApi({
+      const api = fakeApiV2({
         id: API_ID,
         proxy: {
-          virtual_hosts: [
+          virtualHosts: [
             { path: '/path-foo', host: 'host.io' },
             { path: '/path-bar', host: 'host.dog.io' },
             { path: '/path-joe', host: 'a' },
@@ -378,22 +377,22 @@ describe('ApiProxyEntrypointsComponent', () => {
 
       // Expect fetch api get and update proxy
       expectApiGetRequest(api);
-      const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}` });
-      expect(req.request.body.proxy.virtual_hosts).toEqual([
+      const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` });
+      expect(req.request.body.proxy.virtualHosts).toEqual([
         {
           path: '/path-foo',
           host: 'new-host.fox.io',
-          override_entrypoint: false,
+          overrideEntrypoint: false,
         },
         {
           host: 'host.dog.io',
-          override_entrypoint: false,
+          overrideEntrypoint: false,
           path: '/path-bar',
         },
         {
           path: '/path-joe',
           host: 'a.fox.io',
-          override_entrypoint: false,
+          overrideEntrypoint: false,
         },
       ]);
     });
@@ -409,8 +408,8 @@ describe('ApiProxyEntrypointsComponent', () => {
     fixture.detectChanges();
   }
 
-  function expectApiGetRequest(api: Api) {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
+  function expectApiGetRequest(api: ApiV2) {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
     fixture.detectChanges();
   }
 

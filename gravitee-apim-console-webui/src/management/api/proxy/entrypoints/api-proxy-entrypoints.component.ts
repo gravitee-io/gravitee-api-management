@@ -21,11 +21,12 @@ import { combineLatest, EMPTY, Subject } from 'rxjs';
 import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
-import { Api } from '../../../../entities/api';
-import { ApiService } from '../../../../services-ngx/api.service';
 import { EnvironmentService } from '../../../../services-ngx/environment.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
+import { Proxy } from '../../../../entities/management-api-v2';
+import { onlyApiV1V2Filter, onlyApiV2Filter } from '../../../../util/apiFilter.operator';
 
 @Component({
   selector: 'api-proxy-entrypoints',
@@ -38,12 +39,12 @@ export class ApiProxyEntrypointsComponent implements OnInit, OnDestroy {
   public virtualHostModeEnabled = false;
   public domainRestrictions: string[] = [];
 
-  public apiProxy: Api['proxy'];
+  public apiProxy: Proxy;
   public isReadOnly = false;
 
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
-    private readonly apiService: ApiService,
+    private readonly apiService: ApiV2Service,
     private readonly environmentService: EnvironmentService,
     private readonly matDialog: MatDialog,
     private readonly permissionService: GioPermissionService,
@@ -51,7 +52,10 @@ export class ApiProxyEntrypointsComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    combineLatest([this.apiService.get(this.ajsStateParams.apiId), this.environmentService.getCurrent()])
+    combineLatest([
+      this.apiService.get(this.ajsStateParams.apiId).pipe(onlyApiV1V2Filter(this.snackBarService)),
+      this.environmentService.getCurrent(),
+    ])
       .pipe(
         tap(([api, environment]) => {
           this.apiProxy = api.proxy;
@@ -59,14 +63,14 @@ export class ApiProxyEntrypointsComponent implements OnInit, OnDestroy {
           // virtual host mode is enabled if there are domain restrictions or if there is more than one virtual host or if the first virtual host has a host
           this.virtualHostModeEnabled =
             !isEmpty(environment.domainRestrictions) ||
-            get(api, 'proxy.virtual_hosts', []) > 1 ||
-            !isNil(get(api, 'proxy.virtual_hosts[0].host', null));
+            get(api, 'proxy.virtualHosts', []) > 1 ||
+            !isNil(get(api, 'proxy.virtualHosts[0].host', null));
 
           this.domainRestrictions = environment.domainRestrictions ?? [];
 
           this.isReadOnly =
             !this.permissionService.hasAnyMatching(['api-definition-u', 'api-gateway_definition-u']) ||
-            api.definition_context?.origin === 'kubernetes';
+            api.definitionContext?.origin === 'KUBERNETES';
         }),
         takeUntil(this.unsubscribe$),
       )
@@ -78,11 +82,13 @@ export class ApiProxyEntrypointsComponent implements OnInit, OnDestroy {
     this.unsubscribe$.unsubscribe();
   }
 
-  onSubmit(apiProxy: Api['proxy']) {
+  onSubmit(apiProxy: Proxy) {
     return this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
-        switchMap((api) => this.apiService.update({ ...api, proxy: apiProxy })),
+        onlyApiV2Filter(this.snackBarService),
+        switchMap((api) => this.apiService.update(api.id, { ...api, proxy: apiProxy })),
+        onlyApiV2Filter(this.snackBarService),
         tap((api) => (this.apiProxy = api.proxy)),
         tap(() => this.snackBarService.success('Configuration successfully saved!')),
         catchError(({ error }) => {
@@ -114,9 +120,9 @@ export class ApiProxyEntrypointsComponent implements OnInit, OnDestroy {
               // Keep only the first virtual_host path
               this.onSubmit({
                 ...this.apiProxy,
-                virtual_hosts: [
+                virtualHosts: [
                   {
-                    path: this.apiProxy.virtual_hosts[0].path,
+                    path: this.apiProxy.virtualHosts[0].path,
                   },
                 ],
               });
