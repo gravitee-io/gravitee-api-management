@@ -19,10 +19,11 @@ import { EMPTY, Subject } from 'rxjs';
 import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
-import { ProxyFailover } from '../../../../entities/proxy';
-import { ApiService } from '../../../../services-ngx/api.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
+import { onlyApiV1V2Filter, onlyApiV2Filter } from '../../../../util/apiFilter.operator';
+import { Failover } from '../../../../entities/management-api-v2';
 
 @Component({
   selector: 'api-proxy-failover',
@@ -33,7 +34,7 @@ export class ApiProxyFailoverComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   private failoverForm: FormGroup;
-  public initialFailoverFormValue: ProxyFailover;
+  public initialFailoverFormValue: Failover;
 
   public get enabled() {
     return this.failoverForm.get('enabled');
@@ -50,7 +51,7 @@ export class ApiProxyFailoverComponent implements OnInit, OnDestroy {
   constructor(
     private readonly formBuilder: FormBuilder,
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
-    private readonly apiService: ApiService,
+    private readonly apiService: ApiV2Service,
     private readonly snackBarService: SnackBarService,
     private readonly permissionService: GioPermissionService,
   ) {}
@@ -59,9 +60,9 @@ export class ApiProxyFailoverComponent implements OnInit, OnDestroy {
     this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
+        onlyApiV1V2Filter(this.snackBarService),
         tap((api) => {
-          const isReadOnly =
-            !this.permissionService.hasAnyMatching(['api-definition-u']) || api.definition_context?.origin === 'kubernetes';
+          const isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']) || api.definitionContext?.origin === 'KUBERNETES';
           this.createForm(isReadOnly, api.proxy?.failover);
           this.setupDisablingFields();
         }),
@@ -75,7 +76,7 @@ export class ApiProxyFailoverComponent implements OnInit, OnDestroy {
     this.unsubscribe$.unsubscribe();
   }
 
-  private createForm(isReadOnly: boolean, failover?: ProxyFailover) {
+  private createForm(isReadOnly: boolean, failover?: Failover) {
     const isFailoverReadOnly = isReadOnly || !failover;
 
     this.failoverForm = this.formBuilder.group({
@@ -97,7 +98,7 @@ export class ApiProxyFailoverComponent implements OnInit, OnDestroy {
 
   onSubmit() {
     const { enabled, maxAttempts, retryTimeout } = this.failoverForm.getRawValue();
-    const failover: ProxyFailover = enabled
+    const failover: Failover = enabled
       ? {
           maxAttempts,
           retryTimeout,
@@ -107,8 +108,9 @@ export class ApiProxyFailoverComponent implements OnInit, OnDestroy {
     return this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
+        onlyApiV2Filter(this.snackBarService),
         switchMap(({ proxy, ...api }) =>
-          this.apiService.update({
+          this.apiService.update(api.id, {
             ...api,
             proxy: {
               ...proxy,
