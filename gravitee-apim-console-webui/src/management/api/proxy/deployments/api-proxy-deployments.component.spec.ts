@@ -28,10 +28,9 @@ import { ApiProxyDeploymentsComponent } from './api-proxy-deployments.component'
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { UIRouterStateParams, CurrentUserService } from '../../../../ajs-upgraded-providers';
 import { User } from '../../../../entities/user';
-import { Api } from '../../../../entities/api';
 import { fakeTag } from '../../../../entities/tag/tag.fixture';
 import { Tag } from '../../../../entities/tag/tag';
-import { fakeApi } from '../../../../entities/api/Api.fixture';
+import { ApiV2, fakeApiV2 } from '../../../../entities/management-api-v2';
 
 describe('ApiProxyDeploymentsComponent', () => {
   const API_ID = 'apiId';
@@ -68,7 +67,7 @@ describe('ApiProxyDeploymentsComponent', () => {
   });
 
   it('should update deployment', async () => {
-    const api = fakeApi({
+    const api = fakeApiV2({
       id: API_ID,
       tags: ['tag2'],
     });
@@ -94,7 +93,7 @@ describe('ApiProxyDeploymentsComponent', () => {
 
     // Expect fetch api and update
     expectApiGetRequest(api);
-    const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}` });
+    const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` });
     expect(req.request.body.tags).toStrictEqual(['tag1', 'tag3']);
     req.flush(api);
 
@@ -102,15 +101,15 @@ describe('ApiProxyDeploymentsComponent', () => {
     expect(snackBars.length).toBe(1);
 
     // No flush to stop on new call of ngOnInit
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'GET' });
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' });
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.org.baseURL}/configuration/tags`, method: 'GET' });
   });
 
   it('should disable field when origin is kubernetes', async () => {
-    const api = fakeApi({
+    const api = fakeApiV2({
       id: API_ID,
       tags: ['tag2'],
-      definition_context: { origin: 'kubernetes' },
+      definitionContext: { origin: 'KUBERNETES' },
     });
     expectApiGetRequest(api);
     expectTagGetRequest([fakeTag({ id: 'tag1', name: 'tag1' })]);
@@ -122,8 +121,8 @@ describe('ApiProxyDeploymentsComponent', () => {
     expect(await tagsInput.isDisabled()).toEqual(true);
   });
 
-  function expectApiGetRequest(api: Api) {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
+  function expectApiGetRequest(api: ApiV2) {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
     fixture.detectChanges();
   }
 
