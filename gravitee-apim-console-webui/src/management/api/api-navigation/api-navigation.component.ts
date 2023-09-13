@@ -350,10 +350,15 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
       });
     }
     if (this.constants.org.settings.alert?.enabled && this.permissionService.hasAnyMatching(['api-alert-r'])) {
+      const license = { feature: ApimFeature.ALERT_ENGINE, context: UTMTags.CONTEXT_API_ANALYTICS };
+      const iconRight$ = this.gioLicenseService.isMissingFeature$(license).pipe(map((notAllowed) => (notAllowed ? 'gio:lock' : null)));
+
       analyticsGroup.items.push({
         displayName: 'Alerts',
         targetRoute: 'management.apis.detail.analytics.alerts',
         baseRoute: 'management.apis.detail.analytics.alerts',
+        license,
+        iconRight$,
       });
     }
     if (analyticsGroup.items.length > 0) {
@@ -413,10 +418,15 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
     }
 
     if (this.constants.org.settings.alert?.enabled && this.permissionService.hasAnyMatching(['api-alert-r'])) {
+      const license = { feature: ApimFeature.ALERT_ENGINE, context: UTMTags.CONTEXT_API_NOTIFICATIONS };
+      const iconRight$ = this.gioLicenseService.isMissingFeature$(license).pipe(map((notAllowed) => (notAllowed ? 'gio:lock' : null)));
+
       notificationsGroup.items.push({
         displayName: 'Alerts',
         targetRoute: 'management.apis.detail.alerts.list',
         baseRoute: 'management.apis.detail.alerts',
+        license,
+        iconRight$,
       });
     }
 
