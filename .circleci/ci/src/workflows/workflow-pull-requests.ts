@@ -14,6 +14,11 @@
  * limitations under the License.
  */
 import { commands, Config, Job, workflow, Workflow } from '@circleci/circleci-config-sdk';
+
+import { CircleCIEnvironment } from '../pipelines';
+import { isE2EBranch, isSupportBranchOrMaster } from '../utils';
+import { config } from '../config';
+import { BaseExecutor } from '../executors';
 import {
   BuildBackendImagesJob,
   BuildBackendJob,
@@ -28,23 +33,20 @@ import {
   PerfLintBuildJob,
   PublishJob,
   SetupJob,
-  SonarCloudAnalysisJob,
   SnykApimChartsJob,
+  SonarCloudAnalysisJob,
   StorybookConsoleJob,
   TestApimChartsJob,
-  TestBackendJob,
+  TestDefinitionJob,
+  TestGatewayJob,
   TestIntegrationJob,
   TestPluginJob,
   TestRepositoryJob,
+  TestRestApiJob,
   ValidateJob,
-  WebuiLintTestJob,
   WebuiBuildJob,
+  WebuiLintTestJob,
 } from '../jobs';
-
-import { CircleCIEnvironment } from '../pipelines';
-import { isE2EBranch, isSupportBranchOrMaster } from '../utils';
-import { config } from '../config';
-import { BaseExecutor } from '../executors';
 
 export class PullRequestsWorkflow {
   static create(dynamicConfig: Config, environment: CircleCIEnvironment): Workflow {
@@ -93,8 +95,14 @@ export class PullRequestsWorkflow {
       const buildBackendJob = BuildBackendJob.create(dynamicConfig, environment);
       dynamicConfig.addJob(buildBackendJob);
 
-      const testBackendJob = TestBackendJob.create(dynamicConfig);
-      dynamicConfig.addJob(testBackendJob);
+      const testDefinitionJob = TestDefinitionJob.create(dynamicConfig);
+      dynamicConfig.addJob(testDefinitionJob);
+
+      const testGatewayJob = TestGatewayJob.create(dynamicConfig);
+      dynamicConfig.addJob(testGatewayJob);
+
+      const testRestApiJob = TestRestApiJob.create(dynamicConfig);
+      dynamicConfig.addJob(testRestApiJob);
 
       const testIntegrationJob = TestIntegrationJob.create(dynamicConfig);
       dynamicConfig.addJob(testIntegrationJob);
@@ -125,8 +133,18 @@ export class PullRequestsWorkflow {
           context: config.jobContext,
           requires: ['Validate backend'],
         }),
-        new workflow.WorkflowJob(testBackendJob, {
-          name: 'Test backend',
+        new workflow.WorkflowJob(testDefinitionJob, {
+          name: 'Test definition',
+          context: config.jobContext,
+          requires: ['Build backend'],
+        }),
+        new workflow.WorkflowJob(testGatewayJob, {
+          name: 'Test gateway',
+          context: config.jobContext,
+          requires: ['Build backend'],
+        }),
+        new workflow.WorkflowJob(testRestApiJob, {
+          name: 'Test rest-api',
           context: config.jobContext,
           requires: ['Build backend'],
         }),
@@ -146,11 +164,24 @@ export class PullRequestsWorkflow {
           requires: ['Build backend'],
         }),
         new workflow.WorkflowJob(sonarCloudAnalysisJob, {
-          name: 'Sonar - << matrix.working_directory >>',
+          name: 'Sonar - gravitee-apim-definition',
           context: config.jobContext,
-          requires: ['Test backend'],
-          matrix: { working_directory: ['gravitee-apim-rest-api', 'gravitee-apim-gateway', 'gravitee-apim-definition'] },
+          requires: ['Test definition'],
+          working_directory: 'gravitee-apim-definition',
         }),
+        new workflow.WorkflowJob(sonarCloudAnalysisJob, {
+          name: 'Sonar - gravitee-apim-gateway',
+          context: config.jobContext,
+          requires: ['Test gateway'],
+          working_directory: 'gravitee-apim-gateway',
+        }),
+        new workflow.WorkflowJob(sonarCloudAnalysisJob, {
+          name: 'Sonar - gravitee-apim-rest-api',
+          context: config.jobContext,
+          requires: ['Test rest-api'],
+          working_directory: 'gravitee-apim-rest-api',
+        }),
+
         new workflow.WorkflowJob(sonarCloudAnalysisJob, {
           name: 'Sonar - gravitee-apim-plugin',
           context: config.jobContext,
@@ -165,7 +196,7 @@ export class PullRequestsWorkflow {
         }),
       );
 
-      requires.push('Test backend', 'Test plugins', 'Test repository');
+      requires.push('Test definition', 'Test gateway', 'Test plugins', 'Test repository', 'Test rest-api');
     }
 
     if (!filterJobs || shouldBuildAll(environment.changedFiles) || shouldBuildConsole(environment.changedFiles)) {
@@ -350,20 +381,22 @@ export class PullRequestsWorkflow {
       new workflow.WorkflowJob(publishOnArtifactoryJob, {
         name: 'Publish on artifactory',
         context: config.jobContext,
-        requires: ['Test backend', 'Test plugins', 'Test repository'],
+        requires: ['Test definition', 'Test gateway', 'Test plugins', 'Test repository', 'Test rest-api'],
       }),
       new workflow.WorkflowJob(publishOnNexusJob, {
         name: 'Publish on nexus',
         context: config.jobContext,
-        requires: ['Test backend', 'Test plugins', 'Test repository'],
+        requires: ['Test definition', 'Test gateway', 'Test plugins', 'Test repository', 'Test rest-api'],
       }),
       new workflow.WorkflowJob(deployOnAzureJob, {
         name: 'Deploy on Azure cluster',
         context: config.jobContext,
         requires: [
-          'Test backend',
+          'Test definition',
+          'Test gateway',
           'Test plugins',
           'Test repository',
+          'Test rest-api',
           'Build and push rest api and gateway images',
           'Build APIM Console and publish image',
           'Build APIM Portal and publish image',
