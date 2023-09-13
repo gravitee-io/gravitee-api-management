@@ -21,13 +21,14 @@ import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { EMPTY, Subject } from 'rxjs';
 import { remove } from 'lodash';
 
-import { Api } from '../../../../../entities/api';
-import { ApiService } from '../../../../../services-ngx/api.service';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { isUnique } from '../../../../../shared/utils';
+import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
+import { ApiV1, ApiV2 } from '../../../../../entities/management-api-v2';
+import { onlyApiV2Filter } from '../../../../../util/apiFilter.operator';
 
 export interface ApiPathMappingsEditDialogData {
-  api: Api;
+  api: ApiV1 | ApiV2;
   path: string;
 }
 
@@ -37,7 +38,7 @@ export interface ApiPathMappingsEditDialogData {
   styles: [require('./api-path-mappings-edit-dialog.component.scss')],
 })
 export class ApiPathMappingsEditDialogComponent {
-  private api: Api;
+  private api: ApiV1 | ApiV2;
   private readonly pathToUpdate: string;
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
@@ -45,13 +46,13 @@ export class ApiPathMappingsEditDialogComponent {
   constructor(
     @Inject(MAT_DIALOG_DATA) dialogData: ApiPathMappingsEditDialogData,
     private readonly dialogRef: MatDialogRef<ApiPathMappingsEditDialogData>,
-    private readonly apiService: ApiService,
+    private readonly apiService: ApiV2Service,
     private readonly snackBarService: SnackBarService,
   ) {
     this.api = dialogData.api;
     this.pathToUpdate = dialogData.path;
     this.pathFormGroup = new FormGroup({
-      path: new FormControl(this.pathToUpdate, [Validators.required, isUnique(this.api.path_mappings)]),
+      path: new FormControl(this.pathToUpdate, [Validators.required, isUnique(this.api.pathMappings)]),
     });
   }
 
@@ -64,10 +65,11 @@ export class ApiPathMappingsEditDialogComponent {
     this.apiService
       .get(this.api.id)
       .pipe(
+        onlyApiV2Filter(this.snackBarService),
         switchMap((api) => {
-          remove(api.path_mappings, (p) => p === this.pathToUpdate);
-          api.path_mappings.push(this.pathFormGroup.getRawValue().path);
-          return this.apiService.update(api);
+          remove(api.pathMappings, (p) => p === this.pathToUpdate);
+          api.pathMappings.push(this.pathFormGroup.getRawValue().path);
+          return this.apiService.update(api.id, api);
         }),
         catchError(() => {
           this.snackBarService.error(`An error occurred while trying to update the path mapping ${this.pathToUpdate}.`);
