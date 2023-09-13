@@ -32,9 +32,8 @@ import { ApiPathMappingsModule } from './api-path-mappings.module';
 import { AjsRootScope, CurrentUserService, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { User } from '../../../../entities/user';
-import { fakeApi } from '../../../../entities/api/Api.fixture';
-import { Api } from '../../../../entities/api';
 import { Page } from '../../../../entities/page';
+import { ApiV2, fakeApiV2 } from '../../../../entities/management-api-v2';
 
 describe('ApiPathMappingsComponent', () => {
   const API_ID = 'apiId';
@@ -77,9 +76,9 @@ describe('ApiPathMappingsComponent', () => {
 
   describe('table tests', () => {
     it('should display the api path mapping', async () => {
-      const api = fakeApi({
+      const api = fakeApiV2({
         id: API_ID,
-        path_mappings: ['/test', '/test/:id'],
+        pathMappings: ['/test', '/test/:id'],
       });
 
       expectApiGetRequest(api);
@@ -100,9 +99,9 @@ describe('ApiPathMappingsComponent', () => {
     });
 
     it('should display an empty table', async () => {
-      const api = fakeApi({
+      const api = fakeApiV2({
         id: API_ID,
-        path_mappings: [],
+        pathMappings: [],
       });
       expectApiGetRequest(api);
       expectApiPagesGetRequest(api, []);
@@ -121,9 +120,9 @@ describe('ApiPathMappingsComponent', () => {
 
   describe('deletePathMapping', () => {
     it('should delete a path mapping', async () => {
-      const api = fakeApi({
+      const api = fakeApiV2({
         id: API_ID,
-        path_mappings: ['/test', '/test/:id'],
+        pathMappings: ['/test', '/test/:id'],
       });
       expectApiGetRequest(api);
       expectApiPagesGetRequest(api, []);
@@ -142,7 +141,7 @@ describe('ApiPathMappingsComponent', () => {
         .then((dialog) => dialog.getHarness(MatButtonHarness.with({ text: /Delete/ })))
         .then((element) => element.click());
 
-      const updatedApi = { ...api, path_mappings: ['/test'] };
+      const updatedApi = { ...api, pathMappings: ['/test'] };
       expectApiGetRequest(api);
       expectApiPutRequest(updatedApi);
       expectApiGetRequest(updatedApi);
@@ -154,10 +153,10 @@ describe('ApiPathMappingsComponent', () => {
   });
 
   describe('edit path mapping', () => {
-    it('should edit a path mapping', async () => {
-      const api = fakeApi({
+    it('should open edit path dialog', async () => {
+      const api = fakeApiV2({
         id: API_ID,
-        path_mappings: ['/test', '/test/:id'],
+        pathMappings: ['/test', '/test/:id'],
       });
       expectApiGetRequest(api);
       expectApiPagesGetRequest(api, []);
@@ -194,22 +193,21 @@ describe('ApiPathMappingsComponent', () => {
     });
   });
 
-  function expectApiGetRequest(api: Api) {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
-    fixture.detectChanges();
+  function expectApiGetRequest(api: ApiV2) {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
   }
 
-  function expectApiPagesGetRequest(api: Api, pages: Page[]) {
+  function expectApiPagesGetRequest(api: ApiV2, pages: Page[]) {
     httpTestingController
       .expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}/pages?type=SWAGGER&api=${api.id}`, method: 'GET' })
       .flush(pages);
     fixture.detectChanges();
   }
 
-  function expectApiPutRequest(api: Api) {
-    const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}` });
+  function expectApiPutRequest(api: ApiV2) {
+    const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}` });
     expect(req.request.body).toBeTruthy();
-    expect(req.request.body.path_mappings).toStrictEqual(api.path_mappings);
+    expect(req.request.body.pathMappings).toStrictEqual(api.pathMappings);
     req.flush(api);
     fixture.detectChanges();
   }

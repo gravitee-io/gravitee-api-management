@@ -21,14 +21,16 @@ import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { EMPTY, Subject } from 'rxjs';
 import { MatTabChangeEvent } from '@angular/material/tabs';
 
-import { Api } from '../../../../../entities/api';
-import { ApiService } from '../../../../../services-ngx/api.service';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { isUnique } from '../../../../../shared/utils';
 import { Page } from '../../../../../entities/page';
+import { ApiV1, ApiV2 } from '../../../../../entities/management-api-v2';
+import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
+import { onlyApiV2Filter } from '../../../../../util/apiFilter.operator';
+import { ApiService } from '../../../../../services-ngx/api.service';
 
 export interface ApiPathMappingsAddDialogData {
-  api: Api;
+  api: ApiV1 | ApiV2;
   swaggerDocs: Page[];
 }
 
@@ -45,13 +47,14 @@ export class ApiPathMappingsAddDialogComponent implements OnInit {
   public pathFormGroup: FormGroup;
   public swaggerDocs: Page[];
   public selectedSwaggerDoc: string;
-  private api: Api;
+  private api: ApiV1 | ApiV2;
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   constructor(
     @Inject(MAT_DIALOG_DATA) dialogData: ApiPathMappingsAddDialogData,
     private readonly dialogRef: MatDialogRef<ApiPathMappingsAddDialogData>,
     private readonly apiService: ApiService,
+    private readonly apiV2Service: ApiV2Service,
     private readonly snackBarService: SnackBarService,
   ) {
     this.api = dialogData.api;
@@ -68,15 +71,16 @@ export class ApiPathMappingsAddDialogComponent implements OnInit {
   }
 
   public onAddPath(): void {
-    this.apiService
+    this.apiV2Service
       .get(this.api.id)
       .pipe(
+        onlyApiV2Filter(this.snackBarService),
         switchMap((api) => {
           if (this.selectedSwaggerDoc) {
-            return this.apiService.importPathMappings(api.id, this.selectedSwaggerDoc, this.api.gravitee);
+            return this.apiService.importPathMappings(api.id, this.selectedSwaggerDoc, this.api.definitionVersion);
           } else {
-            api.path_mappings.push(this.pathFormGroup.getRawValue().path);
-            return this.apiService.update(api);
+            api.pathMappings.push(this.pathFormGroup.getRawValue().path);
+            return this.apiV2Service.update(api.id, api);
           }
         }),
         catchError(() => {
@@ -102,7 +106,7 @@ export class ApiPathMappingsAddDialogComponent implements OnInit {
 
   private initFormGroup(): FormGroup {
     return new FormGroup({
-      path: new FormControl(null, [Validators.required, isUnique(this.api.path_mappings), Validators.pattern('^/[a-zA-Z0-9:/]+')]),
+      path: new FormControl(null, [Validators.required, isUnique(this.api.pathMappings), Validators.pattern('^/[a-zA-Z0-9:/]+')]),
     });
   }
 }
