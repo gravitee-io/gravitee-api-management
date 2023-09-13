@@ -27,13 +27,12 @@ import { MatRadioGroupHarness } from '@angular/material/radio/testing';
 import { ApiPathMappingsAddDialogComponent } from './api-path-mappings-add-dialog.component';
 
 import { ApiPathMappingsModule } from '../api-path-mappings.module';
-import { fakeApi } from '../../../../../entities/api/Api.fixture';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
-import { Api } from '../../../../../entities/api';
+import { ApiV2, fakeApiV2 } from '../../../../../entities/management-api-v2';
 
 describe('ApiPathMappingsEditDialogComponent', () => {
   const API_ID = 'apiId';
-  const api = fakeApi({ id: API_ID, path_mappings: ['/test', '/test/:id'] });
+  const api = fakeApiV2({ id: API_ID, pathMappings: ['/test', '/test/:id'] });
   const matDialogRefMock = {
     close: jest.fn(),
   };
@@ -119,25 +118,25 @@ describe('ApiPathMappingsEditDialogComponent', () => {
     });
   });
 
-  function expectApiGetRequest(api: Api) {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
+  function expectApiGetRequest(api: ApiV2) {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
     fixture.detectChanges();
   }
 
-  function expectPathMappingImportRequest(api: Api, pageId: string) {
+  function expectPathMappingImportRequest(api: ApiV2, pageId: string) {
     httpTestingController
       .expectOne({
         method: 'POST',
-        url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}/import-path-mappings?page=${pageId}&definitionVersion=${api.gravitee}`,
+        url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}/import-path-mappings?page=${pageId}&definitionVersion=${api.definitionVersion}`,
       })
       .flush(api);
     fixture.detectChanges();
   }
 
-  function expectApiPutRequest(api: Api) {
-    const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}` });
+  function expectApiPutRequest(api: ApiV2) {
+    const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}` });
     expect(req.request.body).toBeTruthy();
-    expect(req.request.body.path_mappings).toStrictEqual(api.path_mappings);
+    expect(req.request.body.pathMappings).toStrictEqual(api.pathMappings);
     req.flush(api);
     fixture.detectChanges();
   }

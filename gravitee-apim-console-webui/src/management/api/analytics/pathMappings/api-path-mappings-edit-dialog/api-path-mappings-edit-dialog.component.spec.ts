@@ -25,12 +25,12 @@ import { MatInputHarness } from '@angular/material/input/testing';
 import { ApiPathMappingsEditDialogComponent } from './api-path-mappings-edit-dialog.component';
 
 import { ApiPathMappingsModule } from '../api-path-mappings.module';
-import { fakeApi } from '../../../../../entities/api/Api.fixture';
 import { GioHttpTestingModule } from '../../../../../shared/testing';
+import { fakeApiV2 } from '../../../../../entities/management-api-v2';
 
 describe('ApiPathMappingsEditDialogComponent', () => {
   const API_ID = 'apiId';
-  const api = fakeApi({ id: API_ID, path_mappings: ['/test', '/test/:id'] });
+  const api = fakeApiV2({ id: API_ID, pathMappings: ['/test', '/test/:id'] });
 
   let fixture: ComponentFixture<ApiPathMappingsEditDialogComponent>;
   let loader: HarnessLoader;
