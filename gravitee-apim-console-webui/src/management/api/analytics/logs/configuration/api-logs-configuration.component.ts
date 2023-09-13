@@ -23,10 +23,11 @@ import { isEmpty } from 'lodash';
 import { CONTENT_MODES, DEFAULT_LOGGING, LOGGING_MODES, SCOPE_MODES } from './api-logs-configuration';
 
 import { AjsRootScope, UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
-import { ApiService } from '../../../../../services-ngx/api.service';
-import { Api } from '../../../../../entities/api';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
+import { ApiV1, ApiV2 } from '../../../../../entities/management-api-v2';
+import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
+import { onlyApiV1V2Filter, onlyApiV2Filter } from '../../../../../util/apiFilter.operator';
 
 interface LoggingConfiguration {
   enabled: boolean;
@@ -43,7 +44,7 @@ interface LoggingConfiguration {
 })
 export class ApiLogsConfigurationComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
-  private api: Api;
+  private api: ApiV1 | ApiV2;
   private defaultLogging = DEFAULT_LOGGING;
   private defaultConfiguration: LoggingConfiguration;
 
@@ -59,7 +60,7 @@ export class ApiLogsConfigurationComponent implements OnInit, OnDestroy {
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
     @Inject(UIRouterState) private readonly ajsState: StateService,
     @Inject(AjsRootScope) readonly ajsRootScope,
-    private readonly apiService: ApiService,
+    private readonly apiService: ApiV2Service,
     private readonly snackBarService: SnackBarService,
     private readonly permissionService: GioPermissionService,
     private readonly cdr: ChangeDetectorRef,
@@ -74,6 +75,7 @@ export class ApiLogsConfigurationComponent implements OnInit, OnDestroy {
     this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
+        onlyApiV1V2Filter(this.snackBarService),
         tap((api) => {
           this.api = api;
           this.initForm(api);
@@ -118,6 +120,7 @@ export class ApiLogsConfigurationComponent implements OnInit, OnDestroy {
     this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
+        onlyApiV2Filter(this.snackBarService),
         switchMap((api) => {
           const configurationValues = this.logsConfigurationForm.getRawValue();
           const updatedApi = {
@@ -138,7 +141,7 @@ export class ApiLogsConfigurationComponent implements OnInit, OnDestroy {
             delete updatedApi.proxy.logging.condition;
           }
 
-          return this.apiService.update(updatedApi);
+          return this.apiService.update(api.id, updatedApi);
         }),
         tap(() => {
           this.snackBarService.success('Configuration successfully saved!');
@@ -153,9 +156,9 @@ export class ApiLogsConfigurationComponent implements OnInit, OnDestroy {
       .subscribe();
   }
 
-  private initForm(api: Api) {
+  private initForm(api: ApiV2 | ApiV1) {
     const { mode, content, scope } = { ...this.defaultLogging, ...this.api.proxy.logging };
-    const isReadOnly = !this.permissionService.hasAnyMatching(['api-log-u']) || api.definition_context?.origin === 'kubernetes';
+    const isReadOnly = !this.permissionService.hasAnyMatching(['api-log-u']) || api.definitionContext?.origin === 'KUBERNETES';
     const enabled = !!api.proxy.logging && api.proxy.logging.mode !== 'NONE';
     this.mode = new FormControl({
       value: mode !== 'NONE' ? mode : 'CLIENT_PROXY',
