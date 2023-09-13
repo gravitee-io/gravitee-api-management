@@ -21,10 +21,11 @@ import { EMPTY, Subject } from 'rxjs';
 import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
-import { ApiService } from '../../../../services-ngx/api.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { CorsUtil } from '../../../../shared/utils';
+import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
+import { onlyApiV1V2Filter, onlyApiV2Filter } from '../../../../util/apiFilter.operator';
 
 @Component({
   selector: 'api-proxy-cors',
@@ -44,7 +45,7 @@ export class ApiProxyCorsComponent implements OnInit, OnDestroy {
   constructor(
     private readonly matDialog: MatDialog,
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
-    private readonly apiService: ApiService,
+    private readonly apiService: ApiV2Service,
     private readonly snackBarService: SnackBarService,
     private readonly permissionService: GioPermissionService,
   ) {}
@@ -53,13 +54,13 @@ export class ApiProxyCorsComponent implements OnInit, OnDestroy {
     this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
+        onlyApiV1V2Filter(this.snackBarService),
         tap((api) => {
           const cors = api.proxy?.cors ?? {
             enabled: false,
           };
 
-          const isReadOnly =
-            !this.permissionService.hasAnyMatching(['api-definition-u']) || api.definition_context?.origin === 'kubernetes';
+          const isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']) || api.definitionContext?.origin === 'KUBERNETES';
           const isCorsDisabled = isReadOnly || !cors.enabled;
 
           this.corsForm = new FormGroup({
@@ -156,13 +157,15 @@ export class ApiProxyCorsComponent implements OnInit, OnDestroy {
     return this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
+        onlyApiV2Filter(this.snackBarService),
         switchMap((api) =>
-          this.apiService.update({
+          this.apiService.update(api.id, {
             ...api,
             proxy: {
               ...api.proxy,
               cors: {
                 ...api.proxy.cors,
+
                 enabled: corsFormValue.enabled,
                 allowOrigin: corsFormValue.allowOrigin,
                 allowMethods: corsFormValue.allowMethods,
