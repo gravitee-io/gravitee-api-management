@@ -31,9 +31,8 @@ import { ApiProxyCorsModule } from './api-proxy-cors.module';
 
 import { UIRouterStateParams, CurrentUserService, AjsRootScope } from '../../../../ajs-upgraded-providers';
 import { User } from '../../../../entities/user';
-import { Api } from '../../../../entities/api';
-import { fakeApi } from '../../../../entities/api/Api.fixture';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { ApiV2, fakeApiV2 } from '../../../../entities/management-api-v2';
 
 describe('ApiProxyEntrypointsComponent', () => {
   const API_ID = 'apiId';
@@ -75,7 +74,7 @@ describe('ApiProxyEntrypointsComponent', () => {
   });
 
   it('should enable and set CORS config', async () => {
-    const api = fakeApi({
+    const api = fakeApiV2({
       id: API_ID,
       proxy: {
         cors: {
@@ -108,7 +107,7 @@ describe('ApiProxyEntrypointsComponent', () => {
 
     // Expect fetch api and update
     expectApiGetRequest(api);
-    const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}` });
+    const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` });
     expect(req.request.body.proxy.cors).toStrictEqual({
       enabled: true,
       allowMethods: ['GET'],
@@ -122,7 +121,7 @@ describe('ApiProxyEntrypointsComponent', () => {
   });
 
   it('should update CORS config', async () => {
-    const api = fakeApi({
+    const api = fakeApiV2({
       id: API_ID,
       proxy: {
         cors: {
@@ -175,7 +174,7 @@ describe('ApiProxyEntrypointsComponent', () => {
 
     // Expect fetch api and update
     expectApiGetRequest(api);
-    const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}` });
+    const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` });
     expect(req.request.body.proxy.cors).toStrictEqual({
       enabled: true,
       allowOrigin: [],
@@ -189,7 +188,7 @@ describe('ApiProxyEntrypointsComponent', () => {
   });
 
   it('should open confirm dialog for the addition of a Allow-Origin with `*`', async () => {
-    const api = fakeApi({
+    const api = fakeApiV2({
       id: API_ID,
       proxy: {
         cors: {
@@ -216,7 +215,7 @@ describe('ApiProxyEntrypointsComponent', () => {
 
     // Expect fetch api and update
     expectApiGetRequest(api);
-    const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}` });
+    const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` });
     expect(req.request.body.proxy.cors).toStrictEqual({
       enabled: true,
       allowMethods: [],
@@ -230,14 +229,14 @@ describe('ApiProxyEntrypointsComponent', () => {
   });
 
   it('should disable field when origin is kubernetes', async () => {
-    const api = fakeApi({
+    const api = fakeApiV2({
       id: API_ID,
       proxy: {
         cors: {
           enabled: true,
         },
       },
-      definition_context: { origin: 'kubernetes' },
+      definitionContext: { origin: 'KUBERNETES' },
     });
     expectApiGetRequest(api);
 
@@ -251,8 +250,8 @@ describe('ApiProxyEntrypointsComponent', () => {
     expect(await enabledSlideToggle.isDisabled()).toEqual(true);
   });
 
-  function expectApiGetRequest(api: Api) {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
+  function expectApiGetRequest(api: ApiV2) {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
     fixture.detectChanges();
   }
 });

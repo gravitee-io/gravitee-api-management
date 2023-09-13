@@ -44,6 +44,7 @@ import org.slf4j.LoggerFactory;
         ResponseTemplateMapper.class,
         RuleMapper.class,
         ServiceMapper.class,
+        CorsMapper.class,
     }
 )
 public interface ApiMapper {
