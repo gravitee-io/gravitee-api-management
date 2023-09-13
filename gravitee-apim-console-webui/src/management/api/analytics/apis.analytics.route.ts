@@ -21,6 +21,7 @@ import { ApiService } from '../../../services/api.service';
 import DashboardService from '../../../services/dashboard.service';
 import TenantService from '../../../services/tenant.service';
 import EnvironmentService from '../../../services/environment.service';
+import { ApimFeature } from '../../../shared/components/gio-license/gio-license-data';
 
 export default apisAnalyticsRouterConfig;
 
@@ -191,6 +192,10 @@ function apisAnalyticsRouterConfig($stateProvider) {
           AlertService.getStatus(Scope.API, $stateParams.apiId).then((response) => response.data),
       },
       data: {
+        requireLicense: {
+          license: { feature: ApimFeature.ALERT_ENGINE },
+          redirect: 'management.apis.ng-list',
+        },
         perms: {
           only: ['api-alert-r'],
         },

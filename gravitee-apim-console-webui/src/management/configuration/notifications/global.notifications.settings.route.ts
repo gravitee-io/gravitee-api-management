@@ -18,6 +18,7 @@ import AlertService from '../../../services/alert.service';
 import NotificationSettingsService from '../../../services/notificationSettings.service';
 import NotifierService from '../../../services/notifier.service';
 import { Scope as AlertScope } from '../../../entities/alert';
+import { ApimFeature } from '../../../shared/components/gio-license/gio-license-data';
 
 export default applicationsNotificationsRouterConfig;
 
@@ -82,6 +83,10 @@ function applicationsNotificationsRouterConfig($stateProvider) {
       url: '/list',
       component: 'alertsComponent',
       data: {
+        requireLicense: {
+          license: { feature: ApimFeature.ALERT_ENGINE },
+          redirect: 'management',
+        },
         perms: {
           only: ['environment-alert-r'],
         },

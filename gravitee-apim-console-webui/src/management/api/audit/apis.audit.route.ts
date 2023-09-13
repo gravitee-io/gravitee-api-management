@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import AuditService from '../../../services/audit.service';
+import { ApimFeature } from '../../../shared/components/gio-license/gio-license-data';
 
 export default apisAuditRouterConfig;
 
@@ -29,6 +30,10 @@ function apisAuditRouterConfig($stateProvider) {
       controller: 'ApiAuditController',
       controllerAs: 'auditCtrl',
       data: {
+        requireLicense: {
+          license: { feature: ApimFeature.APIM_AUDIT_TRAIL },
+          redirect: 'management.apis.ng-list',
+        },
         perms: {
           only: ['api-audit-r'],
         },
