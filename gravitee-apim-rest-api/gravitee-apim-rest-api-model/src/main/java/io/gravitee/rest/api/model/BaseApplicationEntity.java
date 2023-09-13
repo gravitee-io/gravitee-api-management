@@ -83,4 +83,8 @@ public class BaseApplicationEntity {
 
     @Schema(description = "The origin used for creating this application.")
     private Origin origin;
+
+    public boolean hasApiKeySharedMode() {
+        return getApiKeyMode() == ApiKeyMode.SHARED;
+    }
 }

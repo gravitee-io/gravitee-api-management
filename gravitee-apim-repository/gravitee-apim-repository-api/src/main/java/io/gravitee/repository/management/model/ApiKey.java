@@ -20,11 +20,16 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import lombok.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@ToString
 public class ApiKey implements Serializable {
 
     public enum AuditEvent implements Audit.ApiAuditEvent {
@@ -38,16 +43,19 @@ public class ApiKey implements Serializable {
     /**
      * API Key's unique id
      */
+    @Getter
     private String id;
 
     /**
      * API Key
      */
+    @Getter
     private String key;
 
     /**
      * The subscriptions for which the API Key is generated
      */
+    @Getter
     private List<String> subscriptions = new ArrayList<>();
 
     /**
@@ -80,44 +88,50 @@ public class ApiKey implements Serializable {
     /**
      * The application used to make the subscription
      */
+    @Getter
     private String application;
 
     /**
      * Expiration date (end date) of the API Key
      */
+    @Getter
     private Date expireAt;
 
     /**
      * API Key creation date
      */
+    @Getter
     private Date createdAt;
 
     /**
      * API Key updated date
      */
+    @Getter
     private Date updatedAt;
 
     /**
      * Flag to indicate if the API Key is revoked ?
      */
+    @Getter
     private boolean revoked;
 
     /**
      * Flag to indicate if the API Key is paused ?
      */
+    @Getter
     private boolean paused;
 
     /**
      * If the key is revoked, the revocation date
      */
+    @Getter
     private Date revokedAt;
 
     /**
      * Number of days before the expiration of this API Key when the last pre-expiration notification was sent
      */
+    @Getter
     private Integer daysToExpirationOnLastNotification;
-
-    public ApiKey() {}
 
     public ApiKey(ApiKey cloned) {
         this.id = cloned.id;
@@ -135,88 +149,53 @@ public class ApiKey implements Serializable {
         this.api = cloned.api;
     }
 
-    public boolean isRevoked() {
-        return revoked;
+    public ApiKey revoke() {
+        var revokedApiKey = new ApiKey(this);
+        var now = new Date();
+        revokedApiKey.setRevoked(true);
+        revokedApiKey.setUpdatedAt(now);
+        revokedApiKey.setRevokedAt(now);
+        return revokedApiKey;
     }
 
     public void setRevoked(boolean revoked) {
         this.revoked = revoked;
     }
 
-    public String getKey() {
-        return key;
-    }
-
     public void setKey(String key) {
         this.key = key;
-    }
-
-    public String getApplication() {
-        return application;
     }
 
     public void setApplication(String application) {
         this.application = application;
     }
 
-    public Date getExpireAt() {
-        return expireAt;
-    }
-
     public void setExpireAt(Date expireAt) {
         this.expireAt = expireAt;
-    }
-
-    public Date getCreatedAt() {
-        return createdAt;
     }
 
     public void setCreatedAt(Date createdAt) {
         this.createdAt = createdAt;
     }
 
-    public Date getRevokedAt() {
-        return revokedAt;
-    }
-
     public void setRevokedAt(Date revokedAt) {
         this.revokedAt = revokedAt;
-    }
-
-    public Date getUpdatedAt() {
-        return updatedAt;
     }
 
     public void setUpdatedAt(Date updatedAt) {
         this.updatedAt = updatedAt;
     }
 
-    public List<String> getSubscriptions() {
-        return subscriptions;
-    }
-
     public void setSubscriptions(List<String> subscriptions) {
         this.subscriptions = subscriptions;
-    }
-
-    public boolean isPaused() {
-        return paused;
     }
 
     public void setPaused(boolean paused) {
         this.paused = paused;
     }
 
-    public Integer getDaysToExpirationOnLastNotification() {
-        return daysToExpirationOnLastNotification;
-    }
-
     public void setDaysToExpirationOnLastNotification(Integer daysToExpirationOnLastNotification) {
         this.daysToExpirationOnLastNotification = daysToExpirationOnLastNotification;
-    }
-
-    public String getId() {
-        return id;
     }
 
     public void setId(String id) {
@@ -276,5 +255,13 @@ public class ApiKey implements Serializable {
     @Override
     public int hashCode() {
         return Objects.hash(id);
+    }
+
+    public boolean isExpired() {
+        return this.expireAt != null && new Date().after(this.getExpireAt());
+    }
+
+    public boolean canBeRevoked() {
+        return !this.isRevoked() && !this.isExpired();
     }
 }

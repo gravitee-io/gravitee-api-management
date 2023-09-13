@@ -6,9 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 
-import inmemory.AuditCrudServiceInMemory;
-import inmemory.TriggerNotificationDomainServiceInMemory;
-import inmemory.UserCrudServiceInMemory;
+import inmemory.*;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionClosedApiHookContext;
@@ -17,13 +15,17 @@ import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomain
 import io.gravitee.apim.infra.domain_service.audit.AuditDomainServiceImpl;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.repository.management.api.SubscriptionRepository;
+import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.repository.management.model.Subscription;
+import io.gravitee.rest.api.model.ApiKeyMode;
+import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
+import java.time.Instant;
 import java.time.ZonedDateTime;
-import java.util.Map;
-import java.util.Optional;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,6 +46,8 @@ class CloseSubscriptionDomainServiceImplTest {
 
     private AuditCrudServiceInMemory auditCrudServiceInMemory;
     private CloseSubscriptionDomainService service;
+    private ApplicationCrudServiceInMemory applicationCrudService;
+    private RevokeApiKeyDomainServiceInMemory revokeApiKeyDomainService;
 
     @BeforeEach
     void setUp() {
@@ -56,11 +60,16 @@ class CloseSubscriptionDomainServiceImplTest {
 
         // TODO  Use GraviteeJsonMapper instance
         auditCrudServiceInMemory = new AuditCrudServiceInMemory();
+        applicationCrudService = new ApplicationCrudServiceInMemory();
+        var auditDomainService = new AuditDomainServiceImpl(auditCrudServiceInMemory, new UserCrudServiceInMemory(), new GraviteeMapper());
+        revokeApiKeyDomainService = new RevokeApiKeyDomainServiceInMemory();
         service =
             new CloseSubscriptionDomainServiceImpl(
                 subscriptionRepository,
                 triggerNotificationService,
-                new AuditDomainServiceImpl(auditCrudServiceInMemory, new UserCrudServiceInMemory(), new GraviteeMapper())
+                auditDomainService,
+                applicationCrudService,
+                revokeApiKeyDomainService
             );
 
         allowSubscriptionRepositorySave();
@@ -106,11 +115,14 @@ class CloseSubscriptionDomainServiceImplTest {
 
     @ParameterizedTest
     @EnumSource(value = Subscription.Status.class, names = { "ACCEPTED", "PAUSED" })
-    void should_close_accepted_or_paused_subscription(Subscription.Status status) {
+    void should_close_accepted_or_paused_subscription_and_not_revoke_keys_for_application_in_shared_api_key_mode(
+        Subscription.Status status
+    ) {
         // Given
         givenExistingSubscription(
             Subscription.builder().id("subscription-id").application("application-id").api("api-id").plan("plan-id").status(status).build()
         );
+        givenExistingApplication(BaseApplicationEntity.builder().id("application-id").apiKeyMode(ApiKeyMode.SHARED).build());
 
         // When
         service.closeSubscription(GraviteeContext.getExecutionContext(), "subscription-id", AuditActor.builder().userId("user-id").build());
@@ -150,6 +162,56 @@ class CloseSubscriptionDomainServiceImplTest {
                     ""
                 )
             );
+    }
+
+    @Test
+    void should_revoke_keys_if_application_not_in_shared_api_key_mode() {
+        // Given
+        var now = new Date();
+        givenExistingSubscription(
+            Subscription
+                .builder()
+                .id("subscription-id")
+                .application("application-id")
+                .api("api-id")
+                .plan("plan-id")
+                .status(Subscription.Status.ACCEPTED)
+                .build()
+        );
+        givenExistingApplication(BaseApplicationEntity.builder().id("application-id").apiKeyMode(ApiKeyMode.EXCLUSIVE).build());
+        givenExistingApiKeysForSubscription(
+            "subscription-id",
+            Set.of(
+                ApiKey
+                    .builder()
+                    .id("api-key-id")
+                    .key("api-key")
+                    .revoked(false)
+                    .expireAt(new Date(Instant.now().plus(1, ChronoUnit.DAYS).toEpochMilli()))
+                    .build()
+            )
+        );
+
+        // When
+        service.closeSubscription(GraviteeContext.getExecutionContext(), "subscription-id", AuditActor.builder().userId("user-id").build());
+
+        // Then
+        var revokedKeys = revokeApiKeyDomainService.getApiKeysBySubscriptionId("subscription-id");
+        assertThat(revokedKeys).hasSize(1);
+        var revokedKey = revokedKeys.stream().findFirst().get();
+        assertThat(revokedKey.getId()).isEqualTo("api-key-id");
+        assertThat(revokedKey.getKey()).isEqualTo("api-key");
+        assertThat(revokedKey.isRevoked()).isTrue();
+        assertThat(revokedKey.getRevokedAt()).isAfterOrEqualTo(now);
+    }
+
+    @SneakyThrows
+    private void givenExistingApiKeysForSubscription(String subscriptionId, Set<ApiKey> apiKeys) {
+        revokeApiKeyDomainService.initWith(Map.of(subscriptionId, Set.copyOf(apiKeys)));
+    }
+
+    private void givenExistingApplication(BaseApplicationEntity application) {
+        applicationCrudService.initWith(List.of(application));
     }
 
     @SneakyThrows

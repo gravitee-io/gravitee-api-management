@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.infra.domain_service.subscription;
 
+import io.gravitee.apim.core.api_key.domain_service.RevokeApiKeyDomainService;
+import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.ApiAuditLogEntity;
 import io.gravitee.apim.core.audit.model.ApplicationAuditLogEntity;
@@ -46,15 +48,21 @@ public class CloseSubscriptionDomainServiceImpl implements CloseSubscriptionDoma
     private final SubscriptionRepository subscriptionRepository;
     private final TriggerNotificationDomainService triggerNotificationDomainService;
     private final AuditDomainService auditDomainService;
+    private final ApplicationCrudService applicationCrudService;
+    private final RevokeApiKeyDomainService revokeApiKeyDomainService;
 
     public CloseSubscriptionDomainServiceImpl(
         @Lazy SubscriptionRepository subscriptionRepository,
         TriggerNotificationDomainService triggerNotificationDomainService,
-        AuditDomainService auditDomainService
+        AuditDomainService auditDomainService,
+        ApplicationCrudService applicationCrudService,
+        RevokeApiKeyDomainService revokeApiKeyDomainService
     ) {
         this.subscriptionRepository = subscriptionRepository;
         this.triggerNotificationDomainService = triggerNotificationDomainService;
         this.auditDomainService = auditDomainService;
+        this.applicationCrudService = applicationCrudService;
+        this.revokeApiKeyDomainService = revokeApiKeyDomainService;
     }
 
     @Override
@@ -132,11 +140,23 @@ public class CloseSubscriptionDomainServiceImpl implements CloseSubscriptionDoma
                     .build()
             );
 
-            // TODO handle revoke API keys
+            revokeApiKeys(executionContext, subscriptionEntity, currentUser);
             return closedSubscriptionEntity;
         } catch (TechnicalException e) {
             log.error("An error occurs while trying to save subscription [subscriptionId={}]", subscriptionId, e);
             throw new TechnicalManagementException(e);
+        }
+    }
+
+    private void revokeApiKeys(ExecutionContext executionContext, SubscriptionEntity subscriptionEntity, AuditActor currentUser) {
+        var application = applicationCrudService.findById(executionContext, subscriptionEntity.getApplicationId());
+        if (!application.hasApiKeySharedMode()) {
+            revokeApiKeyDomainService.revokeAllSubscriptionsApiKeys(
+                executionContext,
+                subscriptionEntity.getApiId(),
+                subscriptionEntity.getId(),
+                currentUser
+            );
         }
     }
 }
