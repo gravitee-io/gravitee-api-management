@@ -15,19 +15,22 @@
  */
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { StateParams, StateService } from '@uirouter/angularjs';
-import { map, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { Observable, of, Subject } from 'rxjs';
+import { catchError, defaultIfEmpty, map, switchMap, takeUntil, tap, withLatestFrom } from 'rxjs/operators';
+import { combineLatest, EMPTY, forkJoin, Observable, of, Subject } from 'rxjs';
 import { GioLicenseService } from '@gravitee/ui-particles-angular';
+import { isEqual } from 'lodash';
 
 import { PolicyStudioService } from './policy-studio.service';
-import { ApiDefinition, toApiDefinition } from './models/ApiDefinition';
+import { ApiDefinition, toApiDefinition, toApiPlansDefinition, toApiPlanV2, toApiV2 } from './models/ApiDefinition';
 
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { AjsRootScope, UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
-import { ApiService } from '../../../services-ngx/api.service';
-import { Api } from '../../../entities/api';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { ApimFeature, UTMTags } from '../../../shared/components/gio-license/gio-license-data';
+import { ApiV2Service } from '../../../services-ngx/api-v2.service';
+import { onlyApiV2Filter } from '../../../util/apiFilter.operator';
+import { ApiV2, PlanV2 } from '../../../entities/management-api-v2';
+import { ApiPlanV2Service } from '../../../services-ngx/api-plan-v2.service';
 
 interface MenuItem {
   label: string;
@@ -55,7 +58,8 @@ export class GioPolicyStudioLayoutComponent implements OnInit, OnDestroy {
     readonly policyStudioService: PolicyStudioService,
     readonly gioLicenseService: GioLicenseService,
     readonly snackBarService: SnackBarService,
-    readonly apiService: ApiService,
+    readonly apiService: ApiV2Service,
+    readonly apiPlanService: ApiPlanV2Service,
     readonly permissionService: GioPermissionService,
     @Inject(UIRouterState) readonly ajsStateService: StateService,
     @Inject(UIRouterStateParams) readonly ajsStateParams: StateParams,
@@ -63,8 +67,11 @@ export class GioPolicyStudioLayoutComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    this.isDirty = false;
     const debugLicense = { feature: ApimFeature.APIM_DEBUG_MODE, context: UTMTags.CONTEXT_API_V2 };
     const notAllowed$ = this.gioLicenseService.isMissingFeature$(debugLicense);
+
+    this.policyStudioMenu = this.policyStudioMenu.filter((i) => i.label !== 'Debug');
     this.policyStudioMenu.push({
       label: 'Debug',
       uiSref: notAllowed$.pipe(map((notAllowed) => (notAllowed ? null : '.debug'))),
@@ -75,8 +82,10 @@ export class GioPolicyStudioLayoutComponent implements OnInit, OnDestroy {
     this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
-        tap((api) => {
-          this.policyStudioService.setApiDefinition(this.toApiDefinition(api));
+        onlyApiV2Filter(this.snackBarService),
+        withLatestFrom(this.apiPlanService.list(this.ajsStateParams.apiId, undefined, undefined, undefined, 1, 9999)),
+        tap(([api, plansResponse]) => {
+          this.policyStudioService.setApiDefinition(this.toApiDefinition(api, plansResponse.data as PlanV2[]));
         }),
         takeUntil(this.unsubscribe$),
       )
@@ -90,14 +99,41 @@ export class GioPolicyStudioLayoutComponent implements OnInit, OnDestroy {
   }
 
   onSubmit() {
-    return this.apiService
-      .get(this.apiDefinition.id)
+    const updatePlans$ = this.apiPlanService.list(this.ajsStateParams.apiId, undefined, undefined, undefined, 1, 9999).pipe(
+      switchMap((plansResponse) => {
+        const plans = plansResponse.data as PlanV2[];
+
+        const planToUpdate = plans
+          .map((plan) => {
+            const planDefinition = this.apiDefinition.plans.find((p) => p.id === plan.id);
+            if (planDefinition) {
+              const planToUpdate = toApiPlanV2(planDefinition, plan);
+
+              return isEqual(plan, planToUpdate) ? null : planToUpdate;
+            }
+            return null;
+          })
+          .filter((p) => p !== null);
+
+        return forkJoin(...planToUpdate.map((plan) => this.apiPlanService.update(this.ajsStateParams.apiId, plan.id, plan)));
+      }),
+      defaultIfEmpty(null),
+    );
+
+    const updateApi$ = this.apiService.get(this.apiDefinition.id).pipe(
+      onlyApiV2Filter(this.snackBarService),
+      switchMap((api) => this.apiService.update(api.id, toApiV2(this.apiDefinition, api))),
+    );
+
+    combineLatest([updatePlans$, updateApi$])
       .pipe(
-        switchMap((api) => this.apiService.update({ ...api, ...this.apiDefinition })),
-        tap((api) => {
-          this.ajsRootScope.$broadcast('apiChangeSuccess', { api });
-          this.policyStudioService.setApiDefinition(this.toApiDefinition(api));
-          this.isDirty = false;
+        tap(() => {
+          this.ngOnInit();
+          this.snackBarService.success('Configuration successfully saved!');
+        }),
+        catchError(({ error }) => {
+          this.snackBarService.error(error?.message ?? 'An error occurred while saving the configuration.');
+          return EMPTY;
         }),
         takeUntil(this.unsubscribe$),
       )
@@ -109,10 +145,12 @@ export class GioPolicyStudioLayoutComponent implements OnInit, OnDestroy {
     this.ajsStateService.reload();
   }
 
-  private toApiDefinition(api: Api): ApiDefinition {
+  private toApiDefinition(api: ApiV2, _plans: PlanV2[]): ApiDefinition {
+    const plans = _plans && this.permissionService.hasAnyMatching(['api-plan-r', 'api-plan-u']) ? _plans : [];
+
     const apiDefinition = toApiDefinition(api);
-    const plans = api.plans && this.permissionService.hasAnyMatching(['api-plan-r', 'api-plan-u']) ? api.plans : [];
-    return { ...apiDefinition, plans };
+    const plansDefinition = toApiPlansDefinition(plans);
+    return { ...apiDefinition, plans: plansDefinition };
   }
 
   ngOnDestroy(): void {
