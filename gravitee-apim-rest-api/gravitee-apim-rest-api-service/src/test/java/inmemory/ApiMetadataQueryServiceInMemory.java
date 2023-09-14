@@ -17,8 +17,8 @@ package inmemory;
 
 import static java.util.stream.Collectors.toMap;
 
-import io.gravitee.apim.core.api.ApiMetadataQueryService;
 import io.gravitee.apim.core.api.model.ApiMetadata;
+import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

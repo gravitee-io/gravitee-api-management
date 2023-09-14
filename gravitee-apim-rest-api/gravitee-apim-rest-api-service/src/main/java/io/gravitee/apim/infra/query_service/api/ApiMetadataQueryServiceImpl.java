@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.infra.api;
+package io.gravitee.apim.infra.query_service.api;
 
 import static java.util.stream.Collectors.toMap;
 
-import io.gravitee.apim.core.api.ApiMetadataQueryService;
 import io.gravitee.apim.core.api.model.ApiMetadata;
+import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.MetadataRepository;
 import io.gravitee.repository.management.model.MetadataReferenceType;

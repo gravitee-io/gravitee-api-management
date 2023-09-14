@@ -47,11 +47,14 @@ public class CoreRulesTest extends AbstractApimArchitectureTest {
                     "java..",
                     "org.slf4j..",
                     "lombok..",
+                    "com.fasterxml..",
                     // TODO: ideally, core should be independent from model.
                     "io.gravitee.rest.api.model..",
+                    "io.gravitee.definition..",
                     // Common and Exceptions are an accepted case of reusability
                     "io.gravitee.rest.api.service.common..",
-                    "io.gravitee.rest.api.service.exceptions.."
+                    "io.gravitee.rest.api.service.exceptions..",
+                    "io.gravitee.rest.api.service.notification.."
                 )
             )
             .because("Core should be free from framework")
