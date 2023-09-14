@@ -24,13 +24,13 @@ import { PolicyStudioDesignModule } from './policy-studio-design.module';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { fakePolicyListItem } from '../../../../entities/policy';
-import { fakeApi } from '../../../../entities/api/Api.fixture';
 import { fakeResourceListItem } from '../../../../entities/resource/resourceListItem.fixture';
 import { AjsRootScope, CurrentUserService, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { User } from '../../../../entities/user';
 import { fakeFlowSchema } from '../../../../entities/flow/flowSchema.fixture';
 import { PolicyStudioService } from '../policy-studio.service';
 import { ApiDefinition, toApiDefinition } from '../models/ApiDefinition';
+import { fakeApiV2 } from '../../../../entities/management-api-v2';
 
 describe('PolicyStudioDesignComponent', () => {
   let fixture: ComponentFixture<PolicyStudioDesignComponent>;
@@ -44,7 +44,7 @@ describe('PolicyStudioDesignComponent', () => {
 
   const apiFlowSchema = fakeFlowSchema();
   const policies = [fakePolicyListItem()];
-  const api = fakeApi();
+  const api = fakeApiV2();
   const resources = [fakeResourceListItem()];
 
   const openDialog = jest.fn();
@@ -100,8 +100,8 @@ describe('PolicyStudioDesignComponent', () => {
   });
 
   it('should disable field when origin is kubernetes', async () => {
-    const api = fakeApi({
-      definition_context: { origin: 'kubernetes' },
+    const api = fakeApiV2({
+      definitionContext: { origin: 'KUBERNETES' },
     });
     policyStudioService.setApiDefinition(toApiDefinition(api));
     expect(component.isReadonly).toEqual(true);

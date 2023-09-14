@@ -15,8 +15,10 @@
  */
 import { Definition } from './Definition';
 
-import { Api, ApiPlan, ApiProperty, ApiResource } from '../../../../entities/api';
+import { ApiPlan, ApiProperty, ApiResource } from '../../../../entities/api';
 import { Services } from '../../../../entities/services';
+import { ApiV2, FlowV2, HttpMethod, PlanV2 } from '../../../../entities/management-api-v2';
+import { Flow } from '../../../../entities/flow/flow';
 
 export interface ApiDefinition extends Definition {
   resources: ApiResource[];
@@ -25,18 +27,89 @@ export interface ApiDefinition extends Definition {
   services: Services;
 }
 
-export function toApiDefinition(api: Api): ApiDefinition {
+// Adapt ApiV2 to ApiDefinition for the policy studio
+export function toApiDefinition(api: ApiV2): ApiDefinition {
+  const toExecutionMode = {
+    V3: 'v3',
+    V4_EMULATION_ENGINE: 'v4-emulation-engine',
+  } as const;
+
+  const toOrigin = {
+    MANAGEMENT: 'management',
+    KUBERNETES: 'kubernetes',
+  } as const;
+
   return {
     id: api.id,
     name: api.name,
-    flows: api.flows,
-    flow_mode: api.flow_mode,
+    flows: api.flows.map((flow) => toApiFlowDefinition(flow)),
+    flow_mode: api.flowMode,
     resources: api.resources,
-    plans: api.plans,
-    version: api.version,
+    version: api.apiVersion,
     properties: api.properties,
     services: api.services,
-    execution_mode: api.execution_mode,
-    origin: api.definition_context.origin,
+    execution_mode: toExecutionMode[api.executionMode],
+    origin: toOrigin[api.definitionContext.origin],
   };
 }
+
+// Adapt ApiV2 flow to ApiDefinition flow
+const toApiFlowDefinition = (flow: FlowV2): Flow => ({
+  name: flow.name,
+  'path-operator': flow.pathOperator,
+  pre: flow.pre,
+  post: flow.post,
+  enabled: flow.enabled,
+  methods: flow.methods,
+  condition: flow.condition,
+  consumers: flow.consumers,
+});
+
+// Adapt ApiV2 plan to ApiDefinition plan
+export const toApiPlansDefinition = (plans: PlanV2[]): ApiDefinition['plans'] => {
+  return plans.map((plan) => ({
+    id: plan.id,
+    name: plan.name,
+    security: plan.security.type,
+    securityDefinition: JSON.stringify(plan.security.configuration),
+    paths: plan.paths,
+    api: plan.apiId,
+    tags: plan.tags,
+    selectionRule: plan.selectionRule,
+    order: plan.order,
+    status: plan.status,
+    flows: plan.flows.map((flow) => toApiFlowDefinition(flow)),
+  }));
+};
+
+// Adapt ApiDefinition to ApiV2 only for properties edited in the policy studio
+export const toApiV2 = (apiDefinition: ApiDefinition, api: ApiV2): ApiV2 => {
+  const toExecutionMode = {
+    v3: 'V3',
+    'v4-emulation-engine': 'V4_EMULATION_ENGINE',
+  } as const;
+
+  return {
+    ...api,
+    flows: apiDefinition.flows.map((flow) => toApiFlowV2(flow)),
+    flowMode: apiDefinition.flow_mode,
+    executionMode: toExecutionMode[apiDefinition.execution_mode],
+  };
+};
+
+const toApiFlowV2 = (flow: Flow): FlowV2 => ({
+  name: flow.name,
+  pathOperator: flow['path-operator'],
+  pre: flow.pre,
+  post: flow.post,
+  enabled: flow.enabled,
+  methods: flow.methods as HttpMethod[],
+  condition: flow.condition,
+  consumers: flow.consumers,
+});
+
+// Adapt ApiDefinition plan to ApiV2 plan only for properties edited in the policy studio
+export const toApiPlanV2 = (plan: ApiDefinition['plans'][number], planV2: PlanV2): PlanV2 => ({
+  ...planV2,
+  flows: plan.flows.map((flow) => toApiFlowV2(flow)),
+});
