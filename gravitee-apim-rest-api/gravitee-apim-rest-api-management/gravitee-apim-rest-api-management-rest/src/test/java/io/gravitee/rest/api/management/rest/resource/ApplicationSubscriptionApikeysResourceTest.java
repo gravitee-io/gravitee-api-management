@@ -46,7 +46,7 @@ public class ApplicationSubscriptionApikeysResourceTest extends AbstractResource
     }
 
     @Before
-    public void setUp() {
+    public void init() {
         reset(apiKeyService, applicationService);
     }
 

@@ -54,7 +54,7 @@ public class UserTokensResourceAdminTest extends AbstractResourceTest {
     }
 
     @Before
-    public void setUp() {
+    public void init() {
         when(
             permissionService.hasPermission(
                 any(ExecutionContext.class),

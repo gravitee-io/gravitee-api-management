@@ -45,7 +45,7 @@ public class PlatformAlertsResourceTest extends AbstractResourceTest {
     }
 
     @Before
-    public void setUp() {
+    public void init() {
         reset(alertService, alertAnalyticsService);
     }
 
