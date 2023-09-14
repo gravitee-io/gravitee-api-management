@@ -51,9 +51,8 @@ public class ApiResourceDebugTest extends AbstractResourceTest {
         return "apis/";
     }
 
-    @Override
     @Before
-    public void setUp() throws Exception {
+    public void init() throws Exception {
         GraviteeContext.setCurrentEnvironment("DEFAULT");
         debugApiEntity = new DebugApiEntity();
         debugApiEntity.setId(API);

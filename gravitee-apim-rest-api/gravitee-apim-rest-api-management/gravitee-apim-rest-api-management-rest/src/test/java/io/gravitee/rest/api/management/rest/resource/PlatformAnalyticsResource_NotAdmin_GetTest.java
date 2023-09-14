@@ -45,7 +45,7 @@ public class PlatformAnalyticsResource_NotAdmin_GetTest extends AbstractResource
     }
 
     @Before
-    public void setUp() {
+    public void init() {
         reset(applicationService, apiAuthorizationService, permissionService);
         when(
             permissionService.hasPermission(

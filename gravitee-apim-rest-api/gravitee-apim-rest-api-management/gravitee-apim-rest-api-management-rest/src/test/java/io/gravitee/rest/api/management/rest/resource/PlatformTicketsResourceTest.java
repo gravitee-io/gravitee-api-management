@@ -52,7 +52,7 @@ public class PlatformTicketsResourceTest extends AbstractResourceTest {
     }
 
     @Before
-    public void setUp() {
+    public void init() {
         reset(ticketService);
 
         fakeTicketEntity = new TicketEntity();
