@@ -50,7 +50,7 @@ public class ApiSubscriptionApikeyResourceTest extends AbstractResourceTest {
     }
 
     @Before
-    public void setUp() {
+    public void init() {
         reset(apiKeyService, subscriptionService, applicationService);
         GraviteeContext.cleanContext();
     }
