@@ -19,7 +19,6 @@ import { config } from '../config';
 import { NotifyOnFailureCommand, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand } from '../commands';
 import { orbs } from '../orbs';
 import { CircleCIEnvironment } from '../pipelines';
-import { isMasterBranch } from '../utils';
 import { AzureCliExecutor } from '../executors/executor-azure-cli';
 
 export class DeployOnAzureJob {
@@ -62,19 +61,8 @@ kubectl version --client=true`,
         command: `az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
 az aks get-credentials --admin --resource-group Devs-Preprod-Hosted --name gravitee-devs-preprod-aks-cluster
 
-kubectl rollout restart deployment/${k8sNamespace}-api -n ${k8sNamespace}
-kubectl rollout restart deployment/${k8sNamespace}-portal -n ${k8sNamespace}
-kubectl rollout restart deployment/${k8sNamespace}-ui -n ${k8sNamespace}
-kubectl rollout restart deployment/${k8sNamespace}-gateway -n ${k8sNamespace}
-kubectl rollout restart deployment/${k8sNamespace}-bridge-client-gateway -n ${k8sNamespace}
-kubectl rollout restart deployment/${k8sNamespace}-ingress-gateway -n ${k8sNamespace}
-${
-  isMasterBranch(environment.branch)
-    ? `
-kubectl rollout restart deployment apim-apim-master-ce-apim-ce-api -n apim-apim-master-ce
-kubectl rollout restart deployment apim-apim-master-ce-apim-ce-ui -n apim-apim-master-ce`
-    : ''
-}`,
+kubectl rollout restart deployment -n ${k8sNamespace}
+kubectl rollout restart deployment -n ${k8sNamespace}-ce`,
       }),
       new reusable.ReusedCommand(notifyOnFailureCmd),
     ];
