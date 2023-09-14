@@ -39,7 +39,7 @@ public class PlatformAnalyticsResource_Admin_GetTest extends AbstractResourceTes
     }
 
     @Before
-    public void setUp() {
+    public void init() {
         reset(applicationService, apiAuthorizationService, permissionService);
         when(
             permissionService.hasPermission(

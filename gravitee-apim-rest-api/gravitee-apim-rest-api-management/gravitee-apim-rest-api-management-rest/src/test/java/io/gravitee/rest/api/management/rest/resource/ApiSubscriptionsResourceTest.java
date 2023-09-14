@@ -63,7 +63,7 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
     }
 
     @Before
-    public void setUp() {
+    public void init() {
         reset(subscriptionService);
         reset(userService);
         reset(planSearchService);
