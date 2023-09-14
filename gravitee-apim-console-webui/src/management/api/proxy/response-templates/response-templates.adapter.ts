@@ -15,7 +15,7 @@
  */
 import { flatMap } from 'lodash';
 
-import { Api } from '../../../../entities/api';
+import { ApiV1, ApiV2 } from '../../../../entities/management-api-v2';
 
 export type ResponseTemplate = {
   id: string;
@@ -26,7 +26,7 @@ export type ResponseTemplate = {
   headers?: Record<string, string>;
 };
 
-export const toResponseTemplates = (responseTemplates: Api['response_templates']): ResponseTemplate[] => {
+export const toResponseTemplates = (responseTemplates: (ApiV1 | ApiV2)['responseTemplates']): ResponseTemplate[] => {
   if (!responseTemplates) {
     return [];
   }
@@ -37,7 +37,7 @@ export const toResponseTemplates = (responseTemplates: Api['response_templates']
         id: `${key}-${contentType}`,
         key: key,
         contentType,
-        statusCode: responseTemplate.status,
+        statusCode: responseTemplate.statusCode,
         body: responseTemplate.body,
         headers: responseTemplate.headers,
       })),
@@ -45,17 +45,17 @@ export const toResponseTemplates = (responseTemplates: Api['response_templates']
   });
 };
 
-export const fromResponseTemplates = (responseTemplates: ResponseTemplate[]): Api['response_templates'] => {
+export const fromResponseTemplates = (responseTemplates: ResponseTemplate[]): (ApiV1 | ApiV2)['responseTemplates'] => {
   return responseTemplates.reduce((acc, responseTemplate) => {
     const { key, contentType, statusCode, body, headers } = responseTemplate;
     if (!acc[key]) {
       acc[key] = {};
     }
     acc[key][contentType] = {
-      status: statusCode,
+      statusCode,
       body,
       headers,
     };
     return acc;
-  }, {} as Api['response_templates']);
+  }, {} as (ApiV1 | ApiV2)['responseTemplates']);
 };
