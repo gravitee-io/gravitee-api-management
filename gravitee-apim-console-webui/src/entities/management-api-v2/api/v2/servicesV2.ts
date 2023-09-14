@@ -16,11 +16,10 @@
 
 import { DynamicPropertyService } from './dynamicPropertyService';
 import { EndpointDiscoveryService } from './endpointDiscoveryService';
-import { EndpointHealthCheckService } from './endpointHealthCheckService';
 import { HealthCheckService } from './healthCheckService';
 
 export interface ServicesV2 {
   discovery?: EndpointDiscoveryService;
-  healthCheck?: HealthCheckService | EndpointHealthCheckService;
+  healthCheck?: HealthCheckService;
   dynamicProperty?: DynamicPropertyService;
 }

@@ -31,8 +31,7 @@ import { ApiProxyHealthCheckModule } from './api-proxy-health-check.module';
 import { User } from '../../../../entities/user';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
-import { Api } from '../../../../entities/api';
-import { fakeApi } from '../../../../entities/api/Api.fixture';
+import { ApiV2, fakeApiV2 } from '../../../../entities/management-api-v2';
 
 describe('ApiProxyHealthCheckComponent', () => {
   const currentUser = new User();
@@ -76,10 +75,10 @@ describe('ApiProxyHealthCheckComponent', () => {
   });
 
   it('should add health check', async () => {
-    const api = fakeApi({
+    const api = fakeApiV2({
       id: API_ID,
       services: {
-        'health-check': {
+        healthCheck: {
           enabled: false,
         },
       },
@@ -109,8 +108,8 @@ describe('ApiProxyHealthCheckComponent', () => {
     // Expect fetch api and update
     expectApiGetRequest(api);
 
-    const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}` });
-    expect(req.request.body.services['health-check']).toStrictEqual({
+    const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` });
+    expect(req.request.body.services['healthCheck']).toStrictEqual({
       enabled: true,
       schedule: '* * * * *',
       steps: [
@@ -131,10 +130,10 @@ describe('ApiProxyHealthCheckComponent', () => {
   });
 
   it('should activate health check for all endpoints with no health check config', async () => {
-    const api = fakeApi({
+    const api = fakeApiV2({
       id: API_ID,
       services: {
-        'health-check': {
+        healthCheck: {
           enabled: false,
         },
       },
@@ -143,17 +142,17 @@ describe('ApiProxyHealthCheckComponent', () => {
           {
             name: 'default',
             endpoints: [
-              { name: 'endpoint1-with-healthcheck-deactivated', healthcheck: { enabled: false } },
-              { name: 'endpoint1-with-healthcheck-activated', healthcheck: { enabled: true, inherit: true } },
-              { name: 'endpoint1-without-healthcheck' },
+              { name: 'endpoint1-with-healthcheck-deactivated', healthCheck: { enabled: false }, type: 'http' },
+              { name: 'endpoint1-with-healthcheck-activated', healthCheck: { enabled: true, inherit: true }, type: 'http' },
+              { name: 'endpoint1-without-healthcheck', type: 'http' },
             ],
           },
           {
             name: 'group-2',
             endpoints: [
-              { name: 'endpoint2-with-healthcheck-deactivated', healthcheck: { enabled: false } },
-              { name: 'endpoint2-with-healthcheck-activated', healthcheck: { enabled: true, inherit: true } },
-              { name: 'endpoint2-without-healthcheck' },
+              { name: 'endpoint2-with-healthcheck-deactivated', healthCheck: { enabled: false }, type: 'http' },
+              { name: 'endpoint2-with-healthcheck-activated', healthCheck: { enabled: true, inherit: true }, type: 'http' },
+              { name: 'endpoint2-without-healthcheck', type: 'http' },
             ],
           },
         ],
@@ -186,33 +185,33 @@ describe('ApiProxyHealthCheckComponent', () => {
 
     const req = httpTestingController.expectOne({
       method: 'PUT',
-      url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}`,
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`,
     });
     expect(req.request.body.proxy.groups).toStrictEqual([
       {
         name: 'default',
         endpoints: [
-          { name: 'endpoint1-with-healthcheck-deactivated', healthcheck: { enabled: false } },
-          { name: 'endpoint1-with-healthcheck-activated', healthcheck: { enabled: true, inherit: true } },
-          { name: 'endpoint1-without-healthcheck', healthcheck: { enabled: true, inherit: true } },
+          { name: 'endpoint1-with-healthcheck-deactivated', healthCheck: { enabled: false }, type: 'http' },
+          { name: 'endpoint1-with-healthcheck-activated', healthCheck: { enabled: true, inherit: true }, type: 'http' },
+          { name: 'endpoint1-without-healthcheck', healthCheck: { enabled: true, inherit: true }, type: 'http' },
         ],
       },
       {
         name: 'group-2',
         endpoints: [
-          { name: 'endpoint2-with-healthcheck-deactivated', healthcheck: { enabled: false } },
-          { name: 'endpoint2-with-healthcheck-activated', healthcheck: { enabled: true, inherit: true } },
-          { name: 'endpoint2-without-healthcheck', healthcheck: { enabled: true, inherit: true } },
+          { name: 'endpoint2-with-healthcheck-deactivated', healthCheck: { enabled: false }, type: 'http' },
+          { name: 'endpoint2-with-healthcheck-activated', healthCheck: { enabled: true, inherit: true }, type: 'http' },
+          { name: 'endpoint2-without-healthcheck', healthCheck: { enabled: true, inherit: true }, type: 'http' },
         ],
       },
     ]);
   });
 
   it('should deactivate health check for all endpoints with "inherit" health check config', async () => {
-    const api = fakeApi({
+    const api = fakeApiV2({
       id: API_ID,
       services: {
-        'health-check': {
+        healthCheck: {
           enabled: true,
           schedule: '* * * * *',
           steps: [
@@ -236,19 +235,19 @@ describe('ApiProxyHealthCheckComponent', () => {
           {
             name: 'default',
             endpoints: [
-              { name: 'endpoint1-with-healthcheck-deactivated', healthcheck: { enabled: false } },
-              { name: 'endpoint1-with-healthcheck-activated-inherited', healthcheck: { enabled: true, inherit: true } },
-              { name: 'endpoint1-with-healthcheck-activated', healthcheck: { enabled: true, inherit: false } },
-              { name: 'endpoint1-without-healthcheck' },
+              { name: 'endpoint1-with-healthcheck-deactivated', healthCheck: { enabled: false }, type: 'http' },
+              { name: 'endpoint1-with-healthcheck-activated-inherited', healthCheck: { enabled: true, inherit: true }, type: 'http' },
+              { name: 'endpoint1-with-healthcheck-activated', healthCheck: { enabled: true, inherit: false }, type: 'http' },
+              { name: 'endpoint1-without-healthcheck', type: 'http' },
             ],
           },
           {
             name: 'group-2',
             endpoints: [
-              { name: 'endpoint2-with-healthcheck-deactivated', healthcheck: { enabled: false } },
-              { name: 'endpoint2-with-healthcheck-activated-inherited', healthcheck: { enabled: true, inherit: true } },
-              { name: 'endpoint2-with-healthcheck-activated', healthcheck: { enabled: true, inherit: false } },
-              { name: 'endpoint2-without-healthcheck' },
+              { name: 'endpoint2-with-healthcheck-deactivated', healthCheck: { enabled: false }, type: 'http' },
+              { name: 'endpoint2-with-healthcheck-activated-inherited', healthCheck: { enabled: true, inherit: true }, type: 'http' },
+              { name: 'endpoint2-with-healthcheck-activated', healthCheck: { enabled: true, inherit: false }, type: 'http' },
+              { name: 'endpoint2-without-healthcheck', type: 'http' },
             ],
           },
         ],
@@ -270,9 +269,9 @@ describe('ApiProxyHealthCheckComponent', () => {
 
     const req = httpTestingController.expectOne({
       method: 'PUT',
-      url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}`,
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`,
     });
-    expect(req.request.body.services['health-check']).toStrictEqual({
+    expect(req.request.body.services['healthCheck']).toStrictEqual({
       enabled: false,
     });
 
@@ -280,26 +279,26 @@ describe('ApiProxyHealthCheckComponent', () => {
       {
         name: 'default',
         endpoints: [
-          { name: 'endpoint1-with-healthcheck-deactivated', healthcheck: { enabled: false } },
-          { name: 'endpoint1-with-healthcheck-activated-inherited', healthcheck: { enabled: false, inherit: true } },
-          { name: 'endpoint1-with-healthcheck-activated', healthcheck: { enabled: true, inherit: false } },
-          { name: 'endpoint1-without-healthcheck' },
+          { name: 'endpoint1-with-healthcheck-deactivated', healthCheck: { enabled: false }, type: 'http' },
+          { name: 'endpoint1-with-healthcheck-activated-inherited', healthCheck: { enabled: false, inherit: true }, type: 'http' },
+          { name: 'endpoint1-with-healthcheck-activated', healthCheck: { enabled: true, inherit: false }, type: 'http' },
+          { name: 'endpoint1-without-healthcheck', type: 'http' },
         ],
       },
       {
         name: 'group-2',
         endpoints: [
-          { name: 'endpoint2-with-healthcheck-deactivated', healthcheck: { enabled: false } },
-          { name: 'endpoint2-with-healthcheck-activated-inherited', healthcheck: { enabled: false, inherit: true } },
-          { name: 'endpoint2-with-healthcheck-activated', healthcheck: { enabled: true, inherit: false } },
-          { name: 'endpoint2-without-healthcheck' },
+          { name: 'endpoint2-with-healthcheck-deactivated', healthCheck: { enabled: false }, type: 'http' },
+          { name: 'endpoint2-with-healthcheck-activated-inherited', healthCheck: { enabled: false, inherit: true }, type: 'http' },
+          { name: 'endpoint2-with-healthcheck-activated', healthCheck: { enabled: true, inherit: false }, type: 'http' },
+          { name: 'endpoint2-without-healthcheck', type: 'http' },
         ],
       },
     ]);
   });
 
-  function expectApiGetRequest(api: Api) {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
+  function expectApiGetRequest(api: ApiV2) {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
     fixture.detectChanges();
   }
 });
