@@ -115,12 +115,14 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
             }
             endpointIndex = api.proxy.groups[groupIndex].endpoints.length;
           }
+          // TODO: Remove the "as" when we migrate to mapiV2
+          const healthCheck = ApiProxyHealthCheckFormComponent.HealthCheckFromFormGroup(this.healthCheckForm, true) as HealthCheck;
 
           const updatedEndpoint = toProxyGroupEndpoint(
             api.proxy.groups[groupIndex]?.endpoints[endpointIndex],
             this.generalForm.getRawValue(),
             this.configurationForm.getRawValue(),
-            ApiProxyHealthCheckFormComponent.HealthCheckFromFormGroup(this.healthCheckForm, true),
+            healthCheck,
           );
 
           endpointIndex !== -1
@@ -130,8 +132,8 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
           return this.apiService.update(api);
         }),
         tap(() => this.snackBarService.success('Configuration successfully saved!')),
-        catchError(({ error }) => {
-          this.snackBarService.error(error.message);
+        catchError((error) => {
+          this.snackBarService.error(error.error?.message ?? 'Error while saving configuration.');
           return EMPTY;
         }),
         tap(() =>
