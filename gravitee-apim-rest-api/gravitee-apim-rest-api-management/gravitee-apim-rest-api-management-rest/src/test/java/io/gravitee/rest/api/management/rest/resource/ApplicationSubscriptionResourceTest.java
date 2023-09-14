@@ -56,7 +56,7 @@ public class ApplicationSubscriptionResourceTest extends AbstractResourceTest {
     }
 
     @Before
-    public void setUp() {
+    public void init() {
         reset(subscriptionService, userService, applicationService, planSearchService, apiSearchServiceV4, permissionService);
 
         fakeSubscriptionEntity = new SubscriptionEntity();

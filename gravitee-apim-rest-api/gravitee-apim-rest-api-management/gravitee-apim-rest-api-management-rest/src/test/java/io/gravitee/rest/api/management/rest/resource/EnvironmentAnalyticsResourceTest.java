@@ -57,7 +57,7 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
     }
 
     @Before
-    public void setUp() {
+    public void init() {
         reset(analyticsService, applicationService, apiService, apiAuthorizationService);
     }
 

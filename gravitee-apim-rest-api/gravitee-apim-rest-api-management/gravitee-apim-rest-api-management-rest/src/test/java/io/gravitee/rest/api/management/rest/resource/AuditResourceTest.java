@@ -42,7 +42,7 @@ public class AuditResourceTest extends AbstractResourceTest {
     }
 
     @Before
-    public void setUp() {
+    public void init() {
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
         reset(auditService);
     }
