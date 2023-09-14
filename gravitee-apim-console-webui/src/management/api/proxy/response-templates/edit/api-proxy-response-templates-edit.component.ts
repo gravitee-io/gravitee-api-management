@@ -22,12 +22,13 @@ import { EMPTY, Observable, Subject } from 'rxjs';
 import { catchError, map, startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { UIRouterStateParams, UIRouterState } from '../../../../../ajs-upgraded-providers';
-import { ApiService } from '../../../../../services-ngx/api.service';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import { HttpUtil, StatusCode } from '../../../../../shared/utils';
 import { fromResponseTemplates, ResponseTemplate, toResponseTemplates } from '../response-templates.adapter';
 import { gatewayErrorKeys } from '../../../../../entities/gateway-error-keys/GatewayErrorKeys';
+import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
+import { onlyApiV1V2Filter, onlyApiV2Filter } from '../../../../../util/apiFilter.operator';
 
 @Component({
   selector: 'api-proxy-response-templates-edit',
@@ -52,7 +53,7 @@ export class ApiProxyResponseTemplatesEditComponent implements OnInit, OnDestroy
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
     @Inject(UIRouterState) private readonly ajsState: StateService,
-    private readonly apiService: ApiService,
+    private readonly apiService: ApiV2Service,
     private readonly permissionService: GioPermissionService,
     private readonly snackBarService: SnackBarService,
   ) {}
@@ -61,16 +62,17 @@ export class ApiProxyResponseTemplatesEditComponent implements OnInit, OnDestroy
     this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
+        onlyApiV1V2Filter(this.snackBarService),
         tap((api) => {
           this.apiId = api.id;
 
-          const responseTemplates = toResponseTemplates(api.response_templates);
+          const responseTemplates = toResponseTemplates(api.responseTemplates);
 
           this.responseTemplateToEdit = responseTemplates.find((rt) => rt.id === this.ajsStateParams.responseTemplateId);
           this.mode = !isNil(this.responseTemplateToEdit) ? 'edit' : 'new';
 
           this.isReadOnly =
-            !this.permissionService.hasAnyMatching(['api-response_templates-u']) || api.definition_context?.origin === 'kubernetes';
+            !this.permissionService.hasAnyMatching(['api-response_templates-u']) || api.definitionContext?.origin === 'KUBERNETES';
 
           this.responseTemplatesForm = new FormGroup({
             key: new FormControl(
@@ -152,8 +154,9 @@ export class ApiProxyResponseTemplatesEditComponent implements OnInit, OnDestroy
     return this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
+        onlyApiV2Filter(this.snackBarService),
         switchMap((api) => {
-          const responseTemplates = toResponseTemplates(api.response_templates);
+          const responseTemplates = toResponseTemplates(api.responseTemplates);
 
           // Find the response template to update or add the new one
           const responseTemplateToEditIndex =
@@ -163,9 +166,9 @@ export class ApiProxyResponseTemplatesEditComponent implements OnInit, OnDestroy
             ? responseTemplates.splice(responseTemplateToEditIndex, 1, responseTemplateToSave)
             : responseTemplates.push(responseTemplateToSave);
 
-          return this.apiService.update({
+          return this.apiService.update(api.id, {
             ...api,
-            response_templates: fromResponseTemplates(responseTemplates),
+            responseTemplates: fromResponseTemplates(responseTemplates),
           });
         }),
         tap(() => this.snackBarService.success('Configuration successfully saved!')),
