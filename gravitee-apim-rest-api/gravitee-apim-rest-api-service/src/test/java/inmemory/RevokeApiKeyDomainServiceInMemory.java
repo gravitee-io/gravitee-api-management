@@ -16,8 +16,8 @@
 package inmemory;
 
 import io.gravitee.apim.core.api_key.domain_service.RevokeApiKeyDomainService;
+import io.gravitee.apim.core.api_key.model.ApiKeyEntity;
 import io.gravitee.apim.core.audit.model.AuditActor;
-import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Date;
 import java.util.HashMap;
@@ -27,14 +27,16 @@ import java.util.stream.Collectors;
 
 public class RevokeApiKeyDomainServiceInMemory implements RevokeApiKeyDomainService {
 
-    Map<String, Set<ApiKey>> storage = new HashMap<>();
+    Map<String, Set<ApiKeyEntity>> storage = new HashMap<>();
 
-    public void initWith(Map<String, Set<ApiKey>> initialValues) {
-        initialValues.forEach((key, values) -> storage.put(key, values.stream().map(ApiKey::new).collect(Collectors.toSet())));
+    public void initWith(Map<String, Set<ApiKeyEntity>> initialValues) {
+        initialValues.forEach((key, values) ->
+            storage.put(key, values.stream().map(apiKeyEntity -> apiKeyEntity.toBuilder().build()).collect(Collectors.toSet()))
+        );
     }
 
     @Override
-    public Set<ApiKey> revokeAllSubscriptionsApiKeys(
+    public Set<ApiKeyEntity> revokeAllSubscriptionsApiKeys(
         ExecutionContext executionContext,
         String apiId,
         String subscriptionId,
@@ -51,11 +53,11 @@ public class RevokeApiKeyDomainServiceInMemory implements RevokeApiKeyDomainServ
             .collect(Collectors.toSet());
     }
 
-    public Set<ApiKey> getApiKeysBySubscriptionId(String subscriptionId) {
+    public Set<ApiKeyEntity> getApiKeysBySubscriptionId(String subscriptionId) {
         return storage.get(subscriptionId);
     }
 
-    public Map<String, Set<ApiKey>> getStorage() {
+    public Map<String, Set<ApiKeyEntity>> getStorage() {
         return storage;
     }
 }

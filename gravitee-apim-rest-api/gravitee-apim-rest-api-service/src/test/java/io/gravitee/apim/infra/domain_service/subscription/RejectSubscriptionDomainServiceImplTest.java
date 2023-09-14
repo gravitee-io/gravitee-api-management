@@ -72,11 +72,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 public class RejectSubscriptionDomainServiceImplTest {
 
-    enum RejectSubscriptionMode {
-        BY_ENTITY,
-        BY_ID,
-    }
-
     public static final AuditActor CURRENT_USER = AuditActor.builder().userId("user-id").build();
     public static final String PLAN_CLOSED = "plan-closed";
     public static final String PLAN_PUBLISHED = "plan-published";

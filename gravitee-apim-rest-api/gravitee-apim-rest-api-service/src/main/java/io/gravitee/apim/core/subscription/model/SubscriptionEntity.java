@@ -124,6 +124,7 @@ public class SubscriptionEntity {
         return this.rejectBy(userId, "Subscription has been closed.");
     }
 
+    @JsonIgnore
     public boolean isAccepted() {
         return this.status == Status.ACCEPTED;
     }

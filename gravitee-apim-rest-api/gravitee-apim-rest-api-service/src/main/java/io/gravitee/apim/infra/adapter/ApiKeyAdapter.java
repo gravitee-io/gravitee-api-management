@@ -13,18 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.api_key.domain_service;
+package io.gravitee.apim.infra.adapter;
 
 import io.gravitee.apim.core.api_key.model.ApiKeyEntity;
-import io.gravitee.apim.core.audit.model.AuditActor;
-import io.gravitee.rest.api.service.common.ExecutionContext;
-import java.util.Set;
+import io.gravitee.repository.management.model.ApiKey;
+import org.mapstruct.Mapper;
+import org.mapstruct.factory.Mappers;
 
-public interface RevokeApiKeyDomainService {
-    Set<ApiKeyEntity> revokeAllSubscriptionsApiKeys(
-        ExecutionContext executionContext,
-        String apiId,
-        String subscriptionId,
-        AuditActor currentUser
-    );
+/**
+ * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
+ * @author GraviteeSource Team
+ */
+@Mapper(uses = SubscriptionAdapter.class)
+public interface ApiKeyAdapter {
+    ApiKeyAdapter INSTANCE = Mappers.getMapper(ApiKeyAdapter.class);
+
+    ApiKeyEntity toEntity(ApiKey apiKey);
+
+    ApiKey fromEntity(ApiKeyEntity apiKeyEntity);
 }

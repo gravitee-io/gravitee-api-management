@@ -22,6 +22,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 
 import inmemory.*;
+import io.gravitee.apim.core.api_key.model.ApiKeyEntity;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.event.SubscriptionAuditEvent;
@@ -249,7 +250,7 @@ class CloseSubscriptionDomainServiceImplTest {
         givenExistingApiKeysForSubscription(
             "subscription-id",
             Set.of(
-                ApiKey
+                ApiKeyEntity
                     .builder()
                     .id("api-key-id")
                     .key("api-key")
@@ -281,7 +282,7 @@ class CloseSubscriptionDomainServiceImplTest {
     }
 
     @SneakyThrows
-    private void givenExistingApiKeysForSubscription(String subscriptionId, Set<ApiKey> apiKeys) {
+    private void givenExistingApiKeysForSubscription(String subscriptionId, Set<ApiKeyEntity> apiKeys) {
         revokeApiKeyDomainService.initWith(Map.of(subscriptionId, Set.copyOf(apiKeys)));
     }
 

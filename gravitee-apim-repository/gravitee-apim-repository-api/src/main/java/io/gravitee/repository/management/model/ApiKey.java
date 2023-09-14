@@ -256,12 +256,4 @@ public class ApiKey implements Serializable {
     public int hashCode() {
         return Objects.hash(id);
     }
-
-    public boolean isExpired() {
-        return this.expireAt != null && new Date().after(this.getExpireAt());
-    }
-
-    public boolean canBeRevoked() {
-        return !this.isRevoked() && !this.isExpired();
-    }
 }
