@@ -21,10 +21,11 @@ import { EMPTY, of, Subject } from 'rxjs';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
-import { ApiService } from '../../../../../services-ngx/api.service';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import { ResponseTemplate, toResponseTemplates } from '../response-templates.adapter';
+import { onlyApiV1V2Filter, onlyApiV2Filter } from '../../../../../util/apiFilter.operator';
+import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
 
 @Component({
   selector: 'api-proxy-response-templates-list',
@@ -42,7 +43,7 @@ export class ApiProxyResponseTemplatesListComponent implements OnInit, OnDestroy
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
     @Inject(UIRouterState) private readonly ajsState: StateService,
-    private readonly apiService: ApiService,
+    private readonly apiService: ApiV2Service,
     private readonly permissionService: GioPermissionService,
     private readonly matDialog: MatDialog,
     private readonly snackBarService: SnackBarService,
@@ -52,12 +53,13 @@ export class ApiProxyResponseTemplatesListComponent implements OnInit, OnDestroy
     this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
+        onlyApiV1V2Filter(this.snackBarService),
         tap((api) => {
           this.apiId = api.id;
-          this.responseTemplateTableData = toResponseTemplates(api.response_templates);
+          this.responseTemplateTableData = toResponseTemplates(api.responseTemplates);
 
           this.isReadOnly =
-            !this.permissionService.hasAnyMatching(['api-response_templates-u']) || api.definition_context?.origin === 'kubernetes';
+            !this.permissionService.hasAnyMatching(['api-response_templates-u']) || api.definitionContext?.origin === 'KUBERNETES';
         }),
         takeUntil(this.unsubscribe$),
       )
@@ -93,10 +95,11 @@ export class ApiProxyResponseTemplatesListComponent implements OnInit, OnDestroy
       .pipe(
         filter((confirm) => confirm === true),
         switchMap(() => this.apiService.get(this.ajsStateParams.apiId)),
+        onlyApiV2Filter(this.snackBarService),
         switchMap((api) => {
-          if (api.response_templates[element.key] && api.response_templates[element.key][element.contentType]) {
-            delete api.response_templates[element.key][element.contentType];
-            return this.apiService.update(api);
+          if (api.responseTemplates[element.key] && api.responseTemplates[element.key][element.contentType]) {
+            delete api.responseTemplates[element.key][element.contentType];
+            return this.apiService.update(api.id, api);
           }
           return of({});
         }),
