@@ -28,10 +28,9 @@ import { ApiProxyResponseTemplatesListComponent } from './api-proxy-response-tem
 
 import { ApiProxyResponseTemplatesModule } from '../api-proxy-response-templates.module';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
-import { fakeApi } from '../../../../../entities/api/Api.fixture';
 import { UIRouterStateParams, CurrentUserService, UIRouterState, AjsRootScope } from '../../../../../ajs-upgraded-providers';
 import { User } from '../../../../../entities/user';
-import { Api } from '../../../../../entities/api';
+import { ApiV2, fakeApiV2 } from '../../../../../entities/management-api-v2';
 
 describe('ApiProxyResponseTemplatesListComponent', () => {
   const API_ID = 'apiId';
@@ -77,7 +76,7 @@ describe('ApiProxyResponseTemplatesListComponent', () => {
 
   describe('onAddResponseTemplateClicked', () => {
     it('should navigate to new Response Template page on click to add button', async () => {
-      const api = fakeApi({
+      const api = fakeApiV2({
         id: API_ID,
       });
       expectApiGetRequest(api);
@@ -94,21 +93,21 @@ describe('ApiProxyResponseTemplatesListComponent', () => {
     it('should navigate to new apis page on click to add button', async () => {
       const routerSpy = jest.spyOn(fakeUiRouter, 'go');
 
-      const api = fakeApi({
+      const api = fakeApiV2({
         id: API_ID,
-        response_templates: {
+        responseTemplates: {
           DEFAULT: {
             'application/json': {
               body: 'json',
-              status: 200,
+              statusCode: 200,
             },
             'text/xml': {
               body: 'xml',
-              status: 200,
+              statusCode: 200,
             },
             '*/*': {
               body: 'default',
-              status: 200,
+              statusCode: 200,
             },
           },
         },
@@ -133,21 +132,21 @@ describe('ApiProxyResponseTemplatesListComponent', () => {
   });
 
   it('should display response templates table', async () => {
-    const api = fakeApi({
+    const api = fakeApiV2({
       id: API_ID,
-      response_templates: {
+      responseTemplates: {
         DEFAULT: {
           'application/json': {
             body: 'json',
-            status: 200,
+            statusCode: 200,
           },
           'text/xml': {
             body: 'xml',
-            status: 200,
+            statusCode: 200,
           },
           '*/*': {
             body: 'default',
-            status: 200,
+            statusCode: 200,
           },
         },
       },
@@ -165,21 +164,21 @@ describe('ApiProxyResponseTemplatesListComponent', () => {
   });
 
   it('should delete response template', async () => {
-    const api = fakeApi({
+    const api = fakeApiV2({
       id: API_ID,
-      response_templates: {
+      responseTemplates: {
         DEFAULT: {
           'application/json': {
             body: 'json',
-            status: 200,
+            statusCode: 200,
           },
           'text/xml': {
             body: 'xml',
-            status: 200,
+            statusCode: 200,
           },
           '*/*': {
             body: 'default',
-            status: 200,
+            statusCode: 200,
           },
         },
       },
@@ -200,23 +199,23 @@ describe('ApiProxyResponseTemplatesListComponent', () => {
     await (await confirmDialog.getHarness(MatButtonHarness.with({ text: /^Delete/ }))).click();
 
     expectApiGetRequest(api);
-    const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}` });
-    expect(req.request.body.response_templates['DEFAULT']['application/json']).toBeUndefined();
+    const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` });
+    expect(req.request.body.responseTemplates['DEFAULT']['application/json']).toBeUndefined();
   });
 
   it('should disable field when origin is kubernetes', async () => {
     const routerSpy = jest.spyOn(fakeUiRouter, 'go');
 
-    const api = fakeApi({
+    const api = fakeApiV2({
       id: API_ID,
-      definition_context: {
-        origin: 'kubernetes',
+      definitionContext: {
+        origin: 'KUBERNETES',
       },
-      response_templates: {
+      responseTemplates: {
         DEFAULT: {
           'application/json': {
             body: 'json',
-            status: 200,
+            statusCode: 200,
           },
         },
       },
@@ -243,8 +242,8 @@ describe('ApiProxyResponseTemplatesListComponent', () => {
     });
   });
 
-  function expectApiGetRequest(api: Api) {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
+  function expectApiGetRequest(api: ApiV2) {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
     fixture.detectChanges();
   }
 });

@@ -29,8 +29,7 @@ import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/t
 import { ApiProxyResponseTemplatesModule } from '../api-proxy-response-templates.module';
 import { UIRouterStateParams, UIRouterState, CurrentUserService, AjsRootScope } from '../../../../../ajs-upgraded-providers';
 import { User } from '../../../../../entities/user';
-import { fakeApi } from '../../../../../entities/api/Api.fixture';
-import { Api } from '../../../../../entities/api';
+import { ApiV2, fakeApiV2 } from '../../../../../entities/management-api-v2';
 
 describe('ApiProxyResponseTemplatesComponent', () => {
   const API_ID = 'apiId';
@@ -70,8 +69,26 @@ describe('ApiProxyResponseTemplatesComponent', () => {
     });
 
     it('should add new response template', async () => {
-      const api = fakeApi({
+      const api = fakeApiV2({
         id: API_ID,
+        responseTemplates: {
+          customKey: {
+            '*/*': {
+              statusCode: 400,
+              body: '',
+            },
+          },
+          DEFAULT: {
+            '*/*': {
+              statusCode: 400,
+              body: '',
+            },
+            test: {
+              statusCode: 400,
+              body: '',
+            },
+          },
+        },
       });
       expectApiGetRequest(api);
 
@@ -98,16 +115,34 @@ describe('ApiProxyResponseTemplatesComponent', () => {
 
       // Expect fetch api and update
       expectApiGetRequest(api);
-      const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}` });
-      expect(req.request.body.response_templates).toEqual({
-        ...api.response_templates,
-        newTemplateKey: { 'application/json': { status: 200, headers: undefined, body: 'newTemplateBody' } },
+      const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` });
+      expect(req.request.body.responseTemplates).toEqual({
+        ...api.responseTemplates,
+        newTemplateKey: { 'application/json': { statusCode: 200, headers: undefined, body: 'newTemplateBody' } },
       });
     });
 
     it('should add new response template to existing template key', async () => {
-      const api = fakeApi({
+      const api = fakeApiV2({
         id: API_ID,
+        responseTemplates: {
+          customKey: {
+            '*/*': {
+              statusCode: 400,
+              body: '',
+            },
+          },
+          DEFAULT: {
+            '*/*': {
+              statusCode: 400,
+              body: '',
+            },
+            test: {
+              statusCode: 400,
+              body: '',
+            },
+          },
+        },
       });
       expectApiGetRequest(api);
 
@@ -125,12 +160,12 @@ describe('ApiProxyResponseTemplatesComponent', () => {
 
       // Expect fetch api and update
       expectApiGetRequest(api);
-      const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}` });
-      expect(req.request.body.response_templates).toEqual({
-        ...api.response_templates,
+      const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` });
+      expect(req.request.body.responseTemplates).toEqual({
+        ...api.responseTemplates,
         ['DEFAULT']: {
-          ...api.response_templates['DEFAULT'],
-          'application/json': { status: 400, body: '' },
+          ...api.responseTemplates['DEFAULT'],
+          'application/json': { statusCode: 400, body: '' },
         },
       });
     });
@@ -142,8 +177,26 @@ describe('ApiProxyResponseTemplatesComponent', () => {
     });
 
     it('should edit response template', async () => {
-      const api = fakeApi({
+      const api = fakeApiV2({
         id: API_ID,
+        responseTemplates: {
+          customKey: {
+            '*/*': {
+              statusCode: 400,
+              body: '',
+            },
+          },
+          DEFAULT: {
+            '*/*': {
+              statusCode: 400,
+              body: '',
+            },
+            test: {
+              statusCode: 400,
+              body: '',
+            },
+          },
+        },
       });
       expectApiGetRequest(api);
 
@@ -170,13 +223,13 @@ describe('ApiProxyResponseTemplatesComponent', () => {
 
       // Expect fetch api and update
       expectApiGetRequest(api);
-      const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}` });
-      expect(req.request.body.response_templates).toEqual({
-        ...api.response_templates,
+      const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` });
+      expect(req.request.body.responseTemplates).toEqual({
+        ...api.responseTemplates,
         ['DEFAULT']: {
-          ...api.response_templates['DEFAULT'],
+          ...api.responseTemplates['DEFAULT'],
           '*/*': {
-            status: 400,
+            statusCode: 400,
             headers: {
               header1: 'value1',
             },
@@ -187,8 +240,26 @@ describe('ApiProxyResponseTemplatesComponent', () => {
     });
 
     it('should edit response template key and accept header', async () => {
-      const api = fakeApi({
+      const api = fakeApiV2({
         id: API_ID,
+        responseTemplates: {
+          customKey: {
+            '*/*': {
+              statusCode: 400,
+              body: '',
+            },
+          },
+          DEFAULT: {
+            '*/*': {
+              statusCode: 400,
+              body: '',
+            },
+            test: {
+              statusCode: 400,
+              body: '',
+            },
+          },
+        },
       });
       expectApiGetRequest(api);
 
@@ -208,19 +279,37 @@ describe('ApiProxyResponseTemplatesComponent', () => {
       // Expect fetch api and update
       expectApiGetRequest(api);
 
-      const expectedResponseTemplates = cloneDeep(api.response_templates);
+      const expectedResponseTemplates = cloneDeep(api.responseTemplates);
       delete expectedResponseTemplates['DEFAULT']['*/*'];
       expectedResponseTemplates.NewKey = {
-        'new/accept': { status: 400, body: '' },
+        'new/accept': { statusCode: 400, body: '' },
       };
 
-      const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}` });
-      expect(req.request.body.response_templates).toEqual(expectedResponseTemplates);
+      const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` });
+      expect(req.request.body.responseTemplates).toEqual(expectedResponseTemplates);
     });
 
     it('should throw if new template key and accept header already exist', async () => {
-      const api = fakeApi({
+      const api = fakeApiV2({
         id: API_ID,
+        responseTemplates: {
+          customKey: {
+            '*/*': {
+              statusCode: 400,
+              body: '',
+            },
+          },
+          DEFAULT: {
+            '*/*': {
+              statusCode: 400,
+              body: '',
+            },
+            test: {
+              statusCode: 400,
+              body: '',
+            },
+          },
+        },
       });
       expectApiGetRequest(api);
 
@@ -244,16 +333,16 @@ describe('ApiProxyResponseTemplatesComponent', () => {
     });
 
     it('should disable field when origin is kubernetes', async () => {
-      const api = fakeApi({
+      const api = fakeApiV2({
         id: API_ID,
-        definition_context: {
-          origin: 'kubernetes',
+        definitionContext: {
+          origin: 'KUBERNETES',
         },
-        response_templates: {
+        responseTemplates: {
           DEFAULT: {
             '*/*': {
               body: 'json',
-              status: 400,
+              statusCode: 400,
             },
           },
         },
@@ -281,8 +370,8 @@ describe('ApiProxyResponseTemplatesComponent', () => {
     });
   });
 
-  function expectApiGetRequest(api: Api) {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
+  function expectApiGetRequest(api: ApiV2) {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
     fixture.detectChanges();
   }
 });
