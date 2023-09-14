@@ -28,11 +28,11 @@ import { PolicyStudioDebugModule } from './policy-studio-debug.module';
 import { fakeDebugEvent } from './models/DebugEvent.fixture';
 
 import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
-import { fakeApi } from '../../../../entities/api/Api.fixture';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { fakePolicyListItem } from '../../../../entities/policy';
 import { PolicyStudioService } from '../policy-studio.service';
 import { toApiDefinition } from '../models/ApiDefinition';
+import { fakeApiV2 } from '../../../../entities/management-api-v2';
 
 describe('PolicyStudioDebugComponent', () => {
   let fixture: ComponentFixture<PolicyStudioDebugComponent>;
@@ -59,7 +59,7 @@ describe('PolicyStudioDebugComponent', () => {
       name: 'Transform Headers',
     }),
   ];
-  const api = fakeApi();
+  const api = fakeApiV2();
 
   beforeEach(() => {
     TestBed.configureTestingModule({

@@ -26,11 +26,11 @@ import { PolicyStudioConfigComponent } from './policy-studio-config.component';
 import { PolicyStudioConfigModule } from './policy-studio-config.module';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
-import { fakeApi } from '../../../../entities/api/Api.fixture';
 import { fakeFlowConfigurationSchema } from '../../../../entities/flow/configurationSchema.fixture';
 import { User } from '../../../../entities/user';
 import { PolicyStudioService } from '../policy-studio.service';
 import { toApiDefinition } from '../models/ApiDefinition';
+import { fakeApiV2 } from '../../../../entities/management-api-v2';
 
 describe('PolicyStudioConfigComponent', () => {
   let fixture: ComponentFixture<PolicyStudioConfigComponent>;
@@ -43,7 +43,7 @@ describe('PolicyStudioConfigComponent', () => {
   currentUser.userApiPermissions = ['api-plan-r', 'api-plan-u'];
 
   const configurationSchema = fakeFlowConfigurationSchema();
-  const api = fakeApi();
+  const api = fakeApiV2();
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -86,18 +86,18 @@ describe('PolicyStudioConfigComponent', () => {
 
   describe('ngOnInit', () => {
     it('should setup properties', async () => {
+      const apiDefinitionToExpect = toApiDefinition(api);
       expect(component.apiDefinition).toStrictEqual({
-        id: api.id,
-        name: api.name,
+        id: apiDefinitionToExpect.id,
+        name: apiDefinitionToExpect.name,
         origin: 'management',
-        flows: api.flows,
-        flow_mode: api.flow_mode,
-        resources: api.resources,
-        plans: api.plans,
-        version: api.version,
-        services: api.services,
-        properties: api.properties,
-        execution_mode: api.execution_mode,
+        flows: apiDefinitionToExpect.flows,
+        flow_mode: apiDefinitionToExpect.flow_mode,
+        resources: apiDefinitionToExpect.resources,
+        version: apiDefinitionToExpect.version,
+        services: apiDefinitionToExpect.services,
+        properties: apiDefinitionToExpect.properties,
+        execution_mode: apiDefinitionToExpect.execution_mode,
       });
       expect(component.flowConfigurationSchema).toStrictEqual(configurationSchema);
     });
@@ -120,8 +120,8 @@ describe('PolicyStudioConfigComponent', () => {
   });
 
   it('should disable field when origin is kubernetes', async () => {
-    const api = fakeApi({
-      definition_context: { origin: 'kubernetes' },
+    const api = fakeApiV2({
+      definitionContext: { origin: 'KUBERNETES' },
     });
     policyStudioService.setApiDefinition(toApiDefinition(api));
 
