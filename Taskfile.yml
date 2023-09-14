@@ -17,6 +17,7 @@
 version: '3'
 
 env:
+  DOCKER_TAG: '{{.DOCKER_REGISTRY | default "graviteeio.azurecr.io"}}'
   DOCKER_TAG: '{{.DOCKER_TAG | default "local"}}'
 
 tasks:
@@ -28,7 +29,17 @@ tasks:
   docker:
     desc: "Build all 🐳 images"
     cmds:
-      - docker build -t graviteeio.azurecr.io/apim-gateway:$DOCKER_TAG -f gravitee-apim-gateway/docker/Dockerfile ./gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target
-      - docker build -t graviteeio.azurecr.io/apim-management-api:$DOCKER_TAG -f gravitee-apim-rest-api/docker/Dockerfile ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target
-      - docker build -t graviteeio.azurecr.io/apim-management-ui:$DOCKER_TAG -f gravitee-apim-console-webui/docker/Dockerfile ./gravitee-apim-console-webui
-      - docker build -t graviteeio.azurecr.io/apim-portal-ui:$DOCKER_TAG -f gravitee-apim-portal-webui/docker/Dockerfile ./gravitee-apim-portal-webui
+      - task: docker-backend
+      - task: docker-ui
+
+  docker-backend:
+    desc: "Build backend 🐳 images"
+    cmds:
+      - docker build -t ${DOCKER_REGISTRY}/apim-gateway:$DOCKER_TAG -f gravitee-apim-gateway/docker/Dockerfile ./gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target
+      - docker build -t ${DOCKER_REGISTRY}/apim-management-api:$DOCKER_TAG -f gravitee-apim-rest-api/docker/Dockerfile ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target
+
+  docker-ui:
+    desc: "Build UI 🐳 images"
+    cmds:
+      - docker build -t ${DOCKER_REGISTRY}/apim-management-ui:$DOCKER_TAG -f gravitee-apim-console-webui/docker/Dockerfile ./gravitee-apim-console-webui
+      - docker build -t ${DOCKER_REGISTRY}/apim-portal-ui:$DOCKER_TAG -f gravitee-apim-portal-webui/docker/Dockerfile ./gravitee-apim-portal-webui
