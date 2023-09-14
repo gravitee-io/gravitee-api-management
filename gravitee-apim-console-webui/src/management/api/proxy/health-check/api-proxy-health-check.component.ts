@@ -20,11 +20,12 @@ import { EMPTY, Subject } from 'rxjs';
 import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
-import { ApiService } from '../../../../services-ngx/api.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { ApiProxyHealthCheckFormComponent } from '../components/health-check-form/api-proxy-health-check-form.component';
-import { Api } from '../../../../entities/api';
+import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
+import { onlyApiV1V2Filter, onlyApiV2Filter } from '../../../../util/apiFilter.operator';
+import { Proxy } from '../../../../entities/management-api-v2';
 
 @Component({
   selector: 'api-proxy-health-check',
@@ -41,7 +42,7 @@ export class ApiProxyHealthCheckComponent implements OnInit, OnDestroy {
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
     @Inject(UIRouterState) private readonly ajsState: StateService,
-    private readonly apiService: ApiService,
+    private readonly apiService: ApiV2Service,
     private readonly snackBarService: SnackBarService,
     private readonly permissionService: GioPermissionService,
   ) {}
@@ -50,11 +51,12 @@ export class ApiProxyHealthCheckComponent implements OnInit, OnDestroy {
     this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
+        onlyApiV1V2Filter(this.snackBarService),
         tap((api) => {
           const isReadOnly =
-            !this.permissionService.hasAnyMatching(['api-health-c', 'api-health-u']) || api.definition_context?.origin === 'kubernetes';
+            !this.permissionService.hasAnyMatching(['api-health-c', 'api-health-u']) || api.definitionContext?.origin === 'KUBERNETES';
 
-          this.healthCheckForm = ApiProxyHealthCheckFormComponent.NewHealthCheckFormGroup(api.services['health-check'], isReadOnly);
+          this.healthCheckForm = ApiProxyHealthCheckFormComponent.NewHealthCheckFormGroup(api.services.healthCheck, isReadOnly);
         }),
         takeUntil(this.unsubscribe$),
       )
@@ -70,15 +72,16 @@ export class ApiProxyHealthCheckComponent implements OnInit, OnDestroy {
     return this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
+        onlyApiV2Filter(this.snackBarService),
         switchMap((api) => {
           const apiHealthCheck = ApiProxyHealthCheckFormComponent.HealthCheckFromFormGroup(this.healthCheckForm, false);
           this.updateEndpointsHealthCheckConfig(api.proxy?.groups, apiHealthCheck.enabled);
 
-          return this.apiService.update({
+          return this.apiService.update(api.id, {
             ...api,
             services: {
               ...api.services,
-              'health-check': apiHealthCheck,
+              healthCheck: apiHealthCheck,
             },
           });
         }),
@@ -97,13 +100,13 @@ export class ApiProxyHealthCheckComponent implements OnInit, OnDestroy {
     this.ajsState.go('management.apis.ng.healthcheck-dashboard-v2');
   }
 
-  updateEndpointsHealthCheckConfig(groups: Api['proxy']['groups'], apiHealthCheckEnabled: boolean) {
+  updateEndpointsHealthCheckConfig(groups: Proxy['groups'], apiHealthCheckEnabled: boolean) {
     if (apiHealthCheckEnabled === true) {
       // If the API healthcheck is enabled, we enable the health-check for all endpoints without `healthcheck` config
       groups.forEach((group) => {
         group.endpoints.forEach((endpoint) => {
-          if (!endpoint.healthcheck) {
-            endpoint.healthcheck = {
+          if (!endpoint.healthCheck) {
+            endpoint.healthCheck = {
               enabled: true,
               inherit: true,
             };
@@ -114,8 +117,8 @@ export class ApiProxyHealthCheckComponent implements OnInit, OnDestroy {
       // If the API healthcheck is disabled, we disable the health-check for all endpoints inheriting the health-check config
       groups.forEach((group) => {
         group.endpoints.forEach((endpoint) => {
-          if (endpoint.healthcheck?.enabled === true && endpoint.healthcheck?.inherit === true) {
-            endpoint.healthcheck.enabled = false;
+          if (endpoint.healthCheck?.enabled === true && endpoint.healthCheck?.inherit === true) {
+            endpoint.healthCheck.enabled = false;
           }
         });
       });

@@ -20,7 +20,7 @@ import { map, shareReplay, startWith, takeUntil } from 'rxjs/operators';
 import { omit } from 'lodash';
 import '@gravitee/ui-components/wc/gv-cron-editor';
 
-import { HealthCheck } from '../../../../../entities/health-check';
+import { EndpointHealthCheckService } from '../../../../../entities/management-api-v2';
 
 @Component({
   selector: 'api-proxy-health-check-form',
@@ -30,7 +30,7 @@ import { HealthCheck } from '../../../../../entities/health-check';
 export class ApiProxyHealthCheckFormComponent implements OnChanges, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
-  public static NewHealthCheckFormGroup = (healthCheck?: HealthCheck, isReadOnly = true): FormGroup => {
+  public static NewHealthCheckFormGroup = (healthCheck?: EndpointHealthCheckService, isReadOnly = true): FormGroup => {
     const healthCheckStep = healthCheck?.steps?.length > 0 ? healthCheck.steps[0] : undefined;
     return new FormGroup({
       enabled: new FormControl({
@@ -90,7 +90,7 @@ export class ApiProxyHealthCheckFormComponent implements OnChanges, OnDestroy {
     });
   };
 
-  public static HealthCheckFromFormGroup(healthCheckForm: FormGroup, hasInheritToggle: boolean): HealthCheck {
+  public static HealthCheckFromFormGroup(healthCheckForm: FormGroup, hasInheritToggle: boolean): EndpointHealthCheckService {
     if (!healthCheckForm.get('enabled').value) {
       return {
         enabled: false,
@@ -131,7 +131,7 @@ export class ApiProxyHealthCheckFormComponent implements OnChanges, OnDestroy {
 
   @Input()
   // If provided, the inherit option is enabled
-  public inheritHealthCheck?: HealthCheck;
+  public inheritHealthCheck?: EndpointHealthCheckService;
   private healthCheckFormInitialValue: unknown;
 
   public isDisabled$: Observable<boolean>;

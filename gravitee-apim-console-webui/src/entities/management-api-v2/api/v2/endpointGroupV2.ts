@@ -17,10 +17,14 @@
 import { EndpointV2 } from './endpointV2';
 import { HttpClientSslOptions } from './httpClientSslOptions';
 import { HttpProxy } from './httpProxy';
-import { ServicesV2 } from './servicesV2';
 import { HttpClientOptions } from './httpClientOptions';
+import { EndpointDiscoveryService } from './endpointDiscoveryService';
 
 import { LoadBalancer } from '../loadBalancer';
+
+export type EndpointGroupServicesV2 = {
+  discovery?: EndpointDiscoveryService;
+};
 
 export interface EndpointGroupV2 {
   /**
@@ -32,7 +36,7 @@ export interface EndpointGroupV2 {
    */
   endpoints?: EndpointV2[];
   loadBalancer?: LoadBalancer;
-  services?: ServicesV2;
+  services?: EndpointGroupServicesV2;
   httpProxy?: HttpProxy;
   httpClientOptions?: HttpClientOptions;
   httpClientSslOptions?: HttpClientSslOptions;
