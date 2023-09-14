@@ -13,16 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.api;
+package io.gravitee.apim.core.subscription.domain_service;
 
-import io.gravitee.apim.core.api.model.ApiMetadata;
-import java.util.Map;
+import io.gravitee.apim.core.audit.model.AuditActor;
+import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 
-public interface ApiMetadataQueryService {
-    /**
-     * Find all metadata with their default value for an API.
-     * @param apiId The API id.
-     * @return A map of metadata key and metadata.
-     */
-    Map<String, ApiMetadata> findApiMetadata(String apiId);
+public interface RejectSubscriptionDomainService {
+    SubscriptionEntity rejectSubscription(final ExecutionContext executionContext, String subscriptionId, AuditActor auditActor);
+    SubscriptionEntity rejectSubscription(final ExecutionContext executionContext, SubscriptionEntity subscription, AuditActor auditActor);
 }

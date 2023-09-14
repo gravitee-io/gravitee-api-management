@@ -849,6 +849,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 searchSubscriberEmail(executionContext, subscriptionEntity)
                     .ifPresent(subscriberEmail -> {
                         if (
+                            // TODO: I don't understand the ! here
                             !notifierService.hasEmailNotificationFor(
                                 executionContext,
                                 ApplicationHook.SUBSCRIPTION_REJECTED,
@@ -860,6 +861,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                             notifierService.triggerEmail(
                                 executionContext,
                                 ApplicationHook.SUBSCRIPTION_REJECTED,
+                                // FIXME: it should be appId, and it is only for log purpose
                                 apiId,
                                 params,
                                 subscriberEmail

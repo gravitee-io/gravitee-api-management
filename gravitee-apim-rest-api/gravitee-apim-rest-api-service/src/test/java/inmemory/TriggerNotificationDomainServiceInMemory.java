@@ -15,18 +15,26 @@
  */
 package inmemory;
 
-import io.gravitee.apim.core.notification.TriggerNotificationDomainService;
+import io.gravitee.apim.core.notification.domain_service.TriggerNotificationDomainService;
 import io.gravitee.apim.core.notification.model.hook.ApiHookContext;
 import io.gravitee.apim.core.notification.model.hook.ApplicationHookContext;
+import io.gravitee.apim.core.notification.model.hook.HookContext;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 public class TriggerNotificationDomainServiceInMemory implements TriggerNotificationDomainService {
 
     private final List<ApiHookContext> apiNotifications = new ArrayList<>();
     private final List<ApplicationHookContext> applicationNotifications = new ArrayList<>();
+    private final List<ApplicationHookContext> applicationEmailNotifications = new ArrayList<>();
+
+    @Override
+    public Map<String, Object> prepareNotificationParameters(ExecutionContext executionContext, HookContext hookContext) {
+        return Map.of();
+    }
 
     @Override
     public void triggerApiNotification(ExecutionContext executionContext, ApiHookContext hookContext) {
@@ -34,8 +42,36 @@ public class TriggerNotificationDomainServiceInMemory implements TriggerNotifica
     }
 
     @Override
+    public void triggerApiNotification(
+        ExecutionContext executionContext,
+        ApiHookContext hookContext,
+        Map<String, Object> notificationParameters
+    ) {
+        apiNotifications.add(hookContext);
+    }
+
+    @Override
     public void triggerApplicationNotification(ExecutionContext executionContext, ApplicationHookContext hookContext) {
         applicationNotifications.add(hookContext);
+    }
+
+    @Override
+    public void triggerApplicationNotification(
+        ExecutionContext executionContext,
+        ApplicationHookContext hookContext,
+        Map<String, Object> notificationParameters
+    ) {
+        applicationNotifications.add(hookContext);
+    }
+
+    @Override
+    public void triggerApplicationEmailNotification(
+        ExecutionContext executionContext,
+        ApplicationHookContext hookContext,
+        Map<String, Object> notificationParameters,
+        String recipient
+    ) {
+        applicationEmailNotifications.add(hookContext);
     }
 
     public List<ApiHookContext> getApiNotifications() {
@@ -46,8 +82,13 @@ public class TriggerNotificationDomainServiceInMemory implements TriggerNotifica
         return Collections.unmodifiableList(applicationNotifications);
     }
 
+    public List<ApplicationHookContext> getApplicationEmailNotifications() {
+        return Collections.unmodifiableList(applicationEmailNotifications);
+    }
+
     public void reset() {
         apiNotifications.clear();
         applicationNotifications.clear();
+        applicationEmailNotifications.clear();
     }
 }

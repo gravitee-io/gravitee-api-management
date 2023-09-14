@@ -1,3 +1,18 @@
+/*
+ * Copyright © 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package io.gravitee.apim.infra.domain_service.subscription;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -9,11 +24,14 @@ import static org.mockito.Mockito.lenient;
 import inmemory.*;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditEntity;
+import io.gravitee.apim.core.audit.model.event.SubscriptionAuditEvent;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionClosedApiHookContext;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionClosedApplicationHookContext;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
+import io.gravitee.apim.core.subscription.domain_service.RejectSubscriptionDomainService;
+import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
+import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
 import io.gravitee.apim.infra.domain_service.audit.AuditDomainServiceImpl;
-import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.repository.management.model.Subscription;
@@ -27,6 +45,7 @@ import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import lombok.SneakyThrows;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -49,6 +68,8 @@ class CloseSubscriptionDomainServiceImplTest {
     private ApplicationCrudServiceInMemory applicationCrudService;
     private RevokeApiKeyDomainServiceInMemory revokeApiKeyDomainService;
 
+    private RejectSubscriptionDomainService rejectSubscriptionDomainService;
+
     @BeforeEach
     void setUp() {
         UuidString.overrideGenerator(() -> "audit-id");
@@ -58,14 +79,19 @@ class CloseSubscriptionDomainServiceImplTest {
 
         triggerNotificationService = new TriggerNotificationDomainServiceInMemory();
 
-        // TODO  Use GraviteeJsonMapper instance
         auditCrudServiceInMemory = new AuditCrudServiceInMemory();
         applicationCrudService = new ApplicationCrudServiceInMemory();
-        var auditDomainService = new AuditDomainServiceImpl(auditCrudServiceInMemory, new UserCrudServiceInMemory(), new GraviteeMapper());
+        var auditDomainService = new AuditDomainServiceImpl(
+            auditCrudServiceInMemory,
+            new UserCrudServiceInMemory(),
+            GraviteeJacksonMapper.getInstance()
+        );
         revokeApiKeyDomainService = new RevokeApiKeyDomainServiceInMemory();
+        rejectSubscriptionDomainService = new RejectSubscriptionDomainServiceInMemory();
         service =
             new CloseSubscriptionDomainServiceImpl(
                 subscriptionRepository,
+                rejectSubscriptionDomainService,
                 triggerNotificationService,
                 auditDomainService,
                 applicationCrudService,
@@ -94,7 +120,7 @@ class CloseSubscriptionDomainServiceImplTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = Subscription.Status.class, names = { "CLOSED", "REJECTED", "PENDING" })
+    @EnumSource(value = Subscription.Status.class, names = { "CLOSED", "REJECTED" })
     void should_throw_when_close_subscription(Subscription.Status status) {
         // Given
         givenExistingSubscription(
@@ -113,6 +139,37 @@ class CloseSubscriptionDomainServiceImplTest {
             .hasMessageContaining("Cannot close subscription with status " + status.name());
     }
 
+    @Test
+    void should_reject_pending_subscription() {
+        // Given
+        givenExistingSubscription(
+            Subscription
+                .builder()
+                .id("subscription-id")
+                .application("application-id")
+                .api("api-id")
+                .plan("plan-id")
+                .status(Subscription.Status.PENDING)
+                .build()
+        );
+
+        final AuditActor currentUser = AuditActor.builder().userId("user-id").build();
+        final SubscriptionEntity expecpectedSubscriptionEntity = SubscriptionEntity
+            .builder()
+            .id("subscription-id")
+            .status(SubscriptionEntity.Status.REJECTED)
+            .build();
+
+        // When
+        final SubscriptionEntity result = service.closeSubscription(GraviteeContext.getExecutionContext(), "subscription-id", currentUser);
+
+        // Then
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat(result.getId()).isEqualTo(expecpectedSubscriptionEntity.getId());
+            softly.assertThat(result.getStatus()).isEqualTo(expecpectedSubscriptionEntity.getStatus());
+        });
+    }
+
     @ParameterizedTest
     @EnumSource(value = Subscription.Status.class, names = { "ACCEPTED", "PAUSED" })
     void should_close_accepted_or_paused_subscription_and_not_revoke_keys_for_application_in_shared_api_key_mode(
@@ -125,14 +182,24 @@ class CloseSubscriptionDomainServiceImplTest {
         givenExistingApplication(BaseApplicationEntity.builder().id("application-id").apiKeyMode(ApiKeyMode.SHARED).build());
 
         // When
-        service.closeSubscription(GraviteeContext.getExecutionContext(), "subscription-id", AuditActor.builder().userId("user-id").build());
+        final SubscriptionEntity result = service.closeSubscription(
+            GraviteeContext.getExecutionContext(),
+            "subscription-id",
+            AuditActor.builder().userId("user-id").build()
+        );
 
         // Then
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat(result.getId()).isEqualTo("subscription-id");
+            softly.assertThat(result.getStatus()).isEqualTo(SubscriptionEntity.Status.CLOSED);
+        });
         assertThat(triggerNotificationService.getApiNotifications())
             .containsExactly(new SubscriptionClosedApiHookContext("api-id", "application-id", "plan-id"));
 
         assertThat(triggerNotificationService.getApplicationNotifications())
             .containsExactly(new SubscriptionClosedApplicationHookContext("application-id", "api-id", "plan-id"));
+
+        assertThat(triggerNotificationService.getApplicationEmailNotifications()).isEmpty();
 
         assertThat(auditCrudServiceInMemory.storage())
             .usingRecursiveFieldByFieldElementComparatorIgnoringFields("createdAt", "patch")
@@ -145,7 +212,7 @@ class CloseSubscriptionDomainServiceImplTest {
                     "api-id",
                     "user-id",
                     Map.of("APPLICATION", "application-id"),
-                    "SUBSCRIPTION_CLOSED",
+                    SubscriptionAuditEvent.SUBSCRIPTION_CLOSED.name(),
                     ZonedDateTime.now(),
                     ""
                 ),
@@ -157,7 +224,7 @@ class CloseSubscriptionDomainServiceImplTest {
                     "application-id",
                     "user-id",
                     Map.of("API", "api-id"),
-                    "SUBSCRIPTION_CLOSED",
+                    SubscriptionAuditEvent.SUBSCRIPTION_CLOSED.name(),
                     ZonedDateTime.now(),
                     ""
                 )
@@ -193,9 +260,17 @@ class CloseSubscriptionDomainServiceImplTest {
         );
 
         // When
-        service.closeSubscription(GraviteeContext.getExecutionContext(), "subscription-id", AuditActor.builder().userId("user-id").build());
+        final SubscriptionEntity result = service.closeSubscription(
+            GraviteeContext.getExecutionContext(),
+            "subscription-id",
+            AuditActor.builder().userId("user-id").build()
+        );
 
         // Then
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat(result.getId()).isEqualTo("subscription-id");
+            softly.assertThat(result.getStatus()).isEqualTo(SubscriptionEntity.Status.CLOSED);
+        });
         var revokedKeys = revokeApiKeyDomainService.getApiKeysBySubscriptionId("subscription-id");
         assertThat(revokedKeys).hasSize(1);
         var revokedKey = revokedKeys.stream().findFirst().get();

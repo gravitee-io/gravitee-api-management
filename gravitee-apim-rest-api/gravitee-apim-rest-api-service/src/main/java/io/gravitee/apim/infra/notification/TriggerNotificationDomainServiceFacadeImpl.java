@@ -15,10 +15,10 @@
  */
 package io.gravitee.apim.infra.notification;
 
-import io.gravitee.apim.core.api.ApiMetadataQueryService;
 import io.gravitee.apim.core.api.domain_service.ApiPrimaryOwnerDomainService;
+import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
-import io.gravitee.apim.core.notification.TriggerNotificationDomainService;
+import io.gravitee.apim.core.notification.domain_service.TriggerNotificationDomainService;
 import io.gravitee.apim.core.notification.model.ApiNotificationTemplateData;
 import io.gravitee.apim.core.notification.model.ApplicationNotificationTemplateData;
 import io.gravitee.apim.core.notification.model.PlanNotificationTemplateData;
@@ -32,6 +32,7 @@ import io.gravitee.apim.infra.template.TemplateProcessorException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
+import io.gravitee.repository.management.api.GenericNotificationConfigRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.service.NotifierService;
@@ -42,6 +43,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
@@ -65,10 +67,12 @@ public class TriggerNotificationDomainServiceFacadeImpl implements TriggerNotifi
     private final ApiPrimaryOwnerDomainService primaryOwnerDomainService;
     private final ApiMetadataQueryService metadataQueryService;
     private final TemplateProcessor templateProcessor;
+    private final GenericNotificationConfigRepository genericNotificationConfigRepository;
 
     public TriggerNotificationDomainServiceFacadeImpl(
         NotifierService notifierService,
         @Lazy ApiRepository apiRepository,
+        @Lazy GenericNotificationConfigRepository genericNotificationConfigRepository,
         @Lazy ApplicationRepository applicationRepository,
         @Lazy PlanRepository planRepository,
         ApiPrimaryOwnerDomainService primaryOwnerDomainService,
@@ -77,6 +81,7 @@ public class TriggerNotificationDomainServiceFacadeImpl implements TriggerNotifi
     ) {
         this.notifierService = notifierService;
         this.apiRepository = apiRepository;
+        this.genericNotificationConfigRepository = genericNotificationConfigRepository;
         this.applicationRepository = applicationRepository;
         this.planRepository = planRepository;
         this.primaryOwnerDomainService = primaryOwnerDomainService;
@@ -85,31 +90,82 @@ public class TriggerNotificationDomainServiceFacadeImpl implements TriggerNotifi
     }
 
     @Override
-    public void triggerApiNotification(ExecutionContext executionContext, ApiHookContext context) {
-        var props = buildParams(executionContext, context);
+    // FIXME:  Weird to have this service depend on repositories to build data. why the caller is not building a map of <key, SomethingNotificationTemplateData>
+    public Map<String, Object> prepareNotificationParameters(ExecutionContext executionContext, HookContext hookContext) {
+        var params = new HashMap<String, Object>();
+        buildApiNotificationTemplateData(executionContext, hookContext)
+            .ifPresent(apiNotificationTemplateData -> params.put("api", apiNotificationTemplateData));
+        buildApplicationNotificationTemplateData(executionContext, hookContext).ifPresent(data -> params.put("application", data));
+        buildPlanNotificationTemplateData(hookContext).ifPresent(data -> params.put("plan", data));
 
-        notifierService.trigger(executionContext, context.getHook(), context.getApiId(), props);
+        return params;
+    }
+
+    @Override
+    public void triggerApiNotification(ExecutionContext executionContext, ApiHookContext context) {
+        var notificationParameters = prepareNotificationParameters(executionContext, context);
+        triggerApiNotification(executionContext, context, notificationParameters);
+    }
+
+    @Override
+    public void triggerApiNotification(
+        ExecutionContext executionContext,
+        ApiHookContext context,
+        Map<String, Object> notificationParameters
+    ) {
+        Objects.requireNonNull(notificationParameters, "notification parameters should not be null");
+        notifierService.trigger(executionContext, context.getHook(), context.getApiId(), notificationParameters);
     }
 
     @Override
     public void triggerApplicationNotification(ExecutionContext executionContext, ApplicationHookContext context) {
-        var props = buildParams(executionContext, context);
-
-        notifierService.trigger(executionContext, context.getHook(), context.getApplicationId(), props);
+        var notificationParameters = prepareNotificationParameters(executionContext, context);
+        triggerApplicationNotification(executionContext, context, notificationParameters);
     }
 
-    private Map<String, Object> buildParams(ExecutionContext executionContext, HookContext context) {
-        var apiId = context.getProperties().get(HookContextEntry.API_ID);
-        var applicationId = context.getProperties().get(HookContextEntry.APPLICATION_ID);
-        var planId = context.getProperties().get(HookContextEntry.PLAN_ID);
-        Optional<ApiNotificationTemplateData> apiData = Optional.empty();
-        Optional<ApplicationNotificationTemplateData> applicationData = Optional.empty();
-        Optional<PlanNotificationTemplateData> planData = Optional.empty();
+    @Override
+    public void triggerApplicationNotification(
+        ExecutionContext executionContext,
+        ApplicationHookContext context,
+        Map<String, Object> notificationParameters
+    ) {
+        Objects.requireNonNull(notificationParameters, "notification parameters should not be null");
+        notifierService.trigger(executionContext, context.getHook(), context.getApplicationId(), notificationParameters);
+    }
 
-        if (apiId != null) {
-            try {
-                apiData =
-                    apiRepository
+    @Override
+    public void triggerApplicationEmailNotification(
+        ExecutionContext executionContext,
+        ApplicationHookContext hookContext,
+        Map<String, Object> notificationParameters,
+        String recipient
+    ) {
+        if (
+            notifierService.hasEmailNotificationFor(
+                executionContext,
+                hookContext.getHook(),
+                // It would be better to call it getReferenceId() so it remains generic and notification oriented
+                hookContext.getApplicationId(),
+                notificationParameters,
+                recipient
+            )
+        ) {
+            notifierService.triggerEmail(
+                executionContext,
+                hookContext.getHook(),
+                hookContext.getApplicationId(),
+                notificationParameters,
+                recipient
+            );
+        }
+    }
+
+    private Optional<ApiNotificationTemplateData> buildApiNotificationTemplateData(ExecutionContext executionContext, HookContext context) {
+        return Optional
+            .ofNullable(context.getProperties().get(HookContextEntry.API_ID))
+            .flatMap(apiId -> {
+                try {
+                    return apiRepository
                         .findById(apiId)
                         .map(api -> {
                             var apiPrimaryOwner = primaryOwnerDomainService.getApiPrimaryOwner(executionContext, apiId);
@@ -134,15 +190,21 @@ public class TriggerNotificationDomainServiceFacadeImpl implements TriggerNotifi
                                 .metadata(decodeMetadata(metadata, api, apiPrimaryOwner))
                                 .build();
                         });
-            } catch (TechnicalException e) {
-                throw new TechnicalManagementException(e);
-            }
-        }
+                } catch (TechnicalException e) {
+                    throw new TechnicalManagementException(e);
+                }
+            });
+    }
 
-        if (applicationId != null) {
-            try {
-                applicationData =
-                    applicationRepository
+    private Optional<ApplicationNotificationTemplateData> buildApplicationNotificationTemplateData(
+        ExecutionContext executionContext,
+        HookContext context
+    ) {
+        return Optional
+            .ofNullable(context.getProperties().get(HookContextEntry.APPLICATION_ID))
+            .flatMap(applicationId -> {
+                try {
+                    return applicationRepository
                         .findById(applicationId)
                         .map(application -> {
                             var apiPrimaryOwner = primaryOwnerDomainService.getApiPrimaryOwner(executionContext, applicationId);
@@ -157,38 +219,35 @@ public class TriggerNotificationDomainServiceFacadeImpl implements TriggerNotifi
                                 .updatedAt(application.getUpdatedAt())
                                 .build();
                         });
-            } catch (TechnicalException e) {
-                throw new TechnicalManagementException(e);
-            }
-        }
+                } catch (TechnicalException e) {
+                    throw new TechnicalManagementException(e);
+                }
+            });
+    }
 
-        if (planId != null) {
-            try {
-                var optPlan = planRepository.findById(planId);
-                planData =
-                    optPlan.map(plan ->
-                        PlanNotificationTemplateData
-                            .builder()
-                            .name(plan.getName())
-                            .description(plan.getDescription())
-                            .order(plan.getOrder())
-                            .createdAt(plan.getCreatedAt())
-                            .updatedAt(plan.getUpdatedAt())
-                            .publishedAt(plan.getPublishedAt())
-                            .closedAt(plan.getClosedAt())
-                            .build()
-                    );
-            } catch (TechnicalException e) {
-                throw new TechnicalManagementException(e);
-            }
-        }
-
-        var params = new HashMap<String, Object>();
-        apiData.ifPresent(apiNotificationTemplateData -> params.put("api", apiNotificationTemplateData));
-        applicationData.ifPresent(data -> params.put("application", data));
-        planData.ifPresent(data -> params.put("plan", data));
-
-        return params;
+    private Optional<PlanNotificationTemplateData> buildPlanNotificationTemplateData(HookContext context) {
+        return Optional
+            .ofNullable(context.getProperties().get(HookContextEntry.PLAN_ID))
+            .flatMap(planId -> {
+                try {
+                    return planRepository
+                        .findById(planId)
+                        .map(plan ->
+                            PlanNotificationTemplateData
+                                .builder()
+                                .name(plan.getName())
+                                .description(plan.getDescription())
+                                .order(plan.getOrder())
+                                .createdAt(plan.getCreatedAt())
+                                .updatedAt(plan.getUpdatedAt())
+                                .publishedAt(plan.getPublishedAt())
+                                .closedAt(plan.getClosedAt())
+                                .build()
+                        );
+                } catch (TechnicalException e) {
+                    throw new TechnicalManagementException(e);
+                }
+            });
     }
 
     private Map<String, String> decodeMetadata(Map<String, String> metadata, Api api, PrimaryOwnerEntity primaryOwner) {

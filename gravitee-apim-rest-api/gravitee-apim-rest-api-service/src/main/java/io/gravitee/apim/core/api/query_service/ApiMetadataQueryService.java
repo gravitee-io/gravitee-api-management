@@ -13,13 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.notification;
+package io.gravitee.apim.core.api.query_service;
 
-import io.gravitee.apim.core.notification.model.hook.ApiHookContext;
-import io.gravitee.apim.core.notification.model.hook.ApplicationHookContext;
-import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.apim.core.api.model.ApiMetadata;
+import java.util.Map;
 
-public interface TriggerNotificationDomainService {
-    void triggerApiNotification(ExecutionContext executionContext, final ApiHookContext context);
-    void triggerApplicationNotification(ExecutionContext executionContext, final ApplicationHookContext context);
+public interface ApiMetadataQueryService {
+    /**
+     * Find all metadata with their default value for an API.
+     * @param apiId The API id.
+     * @return A map of metadata key and metadata.
+     */
+    Map<String, ApiMetadata> findApiMetadata(String apiId);
 }

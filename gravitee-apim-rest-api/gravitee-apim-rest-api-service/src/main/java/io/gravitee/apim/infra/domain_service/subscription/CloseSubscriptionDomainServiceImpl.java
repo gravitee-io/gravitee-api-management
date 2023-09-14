@@ -23,10 +23,11 @@ import io.gravitee.apim.core.audit.model.ApplicationAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.event.SubscriptionAuditEvent;
-import io.gravitee.apim.core.notification.TriggerNotificationDomainService;
+import io.gravitee.apim.core.notification.domain_service.TriggerNotificationDomainService;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionClosedApiHookContext;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionClosedApplicationHookContext;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
+import io.gravitee.apim.core.subscription.domain_service.RejectSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -46,6 +47,7 @@ import org.springframework.stereotype.Service;
 public class CloseSubscriptionDomainServiceImpl implements CloseSubscriptionDomainService {
 
     private final SubscriptionRepository subscriptionRepository;
+    private final RejectSubscriptionDomainService rejectSubscriptionDomainService;
     private final TriggerNotificationDomainService triggerNotificationDomainService;
     private final AuditDomainService auditDomainService;
     private final ApplicationCrudService applicationCrudService;
@@ -53,12 +55,14 @@ public class CloseSubscriptionDomainServiceImpl implements CloseSubscriptionDoma
 
     public CloseSubscriptionDomainServiceImpl(
         @Lazy SubscriptionRepository subscriptionRepository,
+        RejectSubscriptionDomainService rejectSubscriptionDomainService,
         TriggerNotificationDomainService triggerNotificationDomainService,
         AuditDomainService auditDomainService,
         ApplicationCrudService applicationCrudService,
         RevokeApiKeyDomainService revokeApiKeyDomainService
     ) {
         this.subscriptionRepository = subscriptionRepository;
+        this.rejectSubscriptionDomainService = rejectSubscriptionDomainService;
         this.triggerNotificationDomainService = triggerNotificationDomainService;
         this.auditDomainService = auditDomainService;
         this.applicationCrudService = applicationCrudService;
@@ -80,6 +84,8 @@ public class CloseSubscriptionDomainServiceImpl implements CloseSubscriptionDoma
             .map(subscriptionEntity -> {
                 if (subscriptionEntity.isAccepted() || subscriptionEntity.isPaused()) {
                     return closeAcceptedOrPausedSubscription(executionContext, subscriptionId, subscriptionEntity, currentUser);
+                } else if (subscriptionEntity.isPending()) {
+                    return rejectSubscriptionDomainService.rejectSubscription(executionContext, subscriptionEntity, currentUser);
                 }
                 // TODO: create exception type
                 throw new IllegalStateException("Cannot close subscription with status " + subscriptionEntity.getStatus().name());

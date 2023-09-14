@@ -62,4 +62,20 @@ public interface GenericPlanEntity extends Identifiable {
     String getDescription();
 
     int getOrder();
+
+    default boolean isClosed() {
+        return PlanStatus.CLOSED.equals(getPlanStatus());
+    }
+
+    default boolean isPublished() {
+        return PlanStatus.PUBLISHED.equals(getPlanStatus());
+    }
+
+    default boolean isStaging() {
+        return PlanStatus.STAGING.equals(getPlanStatus());
+    }
+
+    default boolean isDeprecated() {
+        return PlanStatus.DEPRECATED.equals(getPlanStatus());
+    }
 }

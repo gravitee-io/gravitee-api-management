@@ -111,6 +111,19 @@ public class SubscriptionEntity {
     }
 
     @JsonIgnore
+    public SubscriptionEntity rejectBy(String userId, String reason) {
+        if (Status.PENDING.equals(this.status)) {
+            final ZonedDateTime now = ZonedDateTime.now();
+            return this.toBuilder().processedBy(userId).updatedAt(now).closedAt(now).status(Status.REJECTED).reasonMessage(reason).build();
+        }
+        throw new IllegalStateException("Cannot reject subscription");
+    }
+
+    @JsonIgnore
+    public SubscriptionEntity rejectBy(String userId) {
+        return this.rejectBy(userId, "Subscription has been closed.");
+    }
+
     public boolean isAccepted() {
         return this.status == Status.ACCEPTED;
     }

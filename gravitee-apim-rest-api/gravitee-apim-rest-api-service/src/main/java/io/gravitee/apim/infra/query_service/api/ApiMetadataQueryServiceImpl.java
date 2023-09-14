@@ -28,13 +28,16 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
 
 @Slf4j
+@Service
 public class ApiMetadataQueryServiceImpl implements ApiMetadataQueryService {
 
     private final MetadataRepository metadataRepository;
 
-    public ApiMetadataQueryServiceImpl(MetadataRepository metadataRepository) {
+    public ApiMetadataQueryServiceImpl(@Lazy MetadataRepository metadataRepository) {
         this.metadataRepository = metadataRepository;
     }
 

@@ -20,12 +20,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import inmemory.ApiMetadataQueryServiceInMemory;
 import inmemory.PrimaryOwnerDomainServiceInMemory;
 import io.gravitee.apim.core.api.model.ApiMetadata;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
+import io.gravitee.apim.core.notification.domain_service.TriggerNotificationDomainService;
 import io.gravitee.apim.core.notification.model.ApiNotificationTemplateData;
 import io.gravitee.apim.core.notification.model.ApplicationNotificationTemplateData;
 import io.gravitee.apim.core.notification.model.PlanNotificationTemplateData;
@@ -37,6 +40,7 @@ import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
+import io.gravitee.repository.management.api.GenericNotificationConfigRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Application;
@@ -48,6 +52,7 @@ import io.gravitee.rest.api.service.NotifierService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
+import io.gravitee.rest.api.service.notifiers.EmailNotifierService;
 import java.sql.Date;
 import java.time.Instant;
 import java.util.HashMap;
@@ -60,6 +65,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
@@ -67,6 +74,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 public class TriggerNotificationDomainServiceFacadeImplTest {
+
+    enum NotificationParametersMode {
+        PASSED_AS_PARAMETER,
+        COMPUTED_BY_METHOD,
+    }
 
     @Mock
     NotifierService notifierService;
@@ -80,14 +92,17 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
     @Mock
     PlanRepository planRepository;
 
-    PrimaryOwnerDomainServiceInMemory primaryOwnerDomainService = new PrimaryOwnerDomainServiceInMemory();
+    @Mock
+    GenericNotificationConfigRepository genericNotificationConfigRepository;
 
-    ApiMetadataQueryServiceInMemory metadataQueryService = new ApiMetadataQueryServiceInMemory();
+    PrimaryOwnerDomainServiceInMemory apiPrimaryOwnerDomainService = new PrimaryOwnerDomainServiceInMemory();
+
+    ApiMetadataQueryServiceInMemory apiMetadataQueryService = new ApiMetadataQueryServiceInMemory();
 
     @Captor
     ArgumentCaptor<Map<String, Object>> paramsCaptor;
 
-    TriggerNotificationDomainServiceFacadeImpl service;
+    TriggerNotificationDomainService service;
 
     @BeforeEach
     void setUp() {
@@ -95,10 +110,11 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             new TriggerNotificationDomainServiceFacadeImpl(
                 notifierService,
                 apiRepository,
+                genericNotificationConfigRepository,
                 applicationRepository,
                 planRepository,
-                primaryOwnerDomainService,
-                metadataQueryService,
+                apiPrimaryOwnerDomainService,
+                apiMetadataQueryService,
                 new FreemarkerTemplateProcessor()
             );
     }
@@ -111,8 +127,9 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
     @Nested
     class TriggerApiNotification {
 
-        @Test
-        public void should_fetch_api_notification_data() {
+        @ParameterizedTest
+        @EnumSource(value = NotificationParametersMode.class)
+        public void should_fetch_api_notification_data(NotificationParametersMode notificationParametersMode) {
             // Given
             givenExistingApi(
                 anApi().withId("api-id"),
@@ -120,7 +137,17 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             );
 
             // When
-            service.triggerApiNotification(GraviteeContext.getExecutionContext(), new SimpleApiHookContextForTest("api-id"));
+            final SimpleApiHookContextForTest apiHookContext = new SimpleApiHookContextForTest("api-id");
+            switch (notificationParametersMode) {
+                case PASSED_AS_PARAMETER -> {
+                    final Map<String, Object> notificationParameters = service.prepareNotificationParameters(
+                        GraviteeContext.getExecutionContext(),
+                        apiHookContext
+                    );
+                    service.triggerApiNotification(GraviteeContext.getExecutionContext(), apiHookContext, notificationParameters);
+                }
+                case COMPUTED_BY_METHOD -> service.triggerApiNotification(GraviteeContext.getExecutionContext(), apiHookContext);
+            }
 
             // Then
             verify(notifierService)
@@ -153,8 +180,9 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                 );
         }
 
-        @Test
-        public void should_fetch_api_notification_data_with_metadata() {
+        @ParameterizedTest
+        @EnumSource(value = NotificationParametersMode.class)
+        public void should_fetch_api_notification_data_with_metadata(NotificationParametersMode notificationParametersMode) {
             // Given
             givenExistingApi(
                 anApi().withId("api-id"),
@@ -167,7 +195,17 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             );
 
             // When
-            service.triggerApiNotification(GraviteeContext.getExecutionContext(), new SimpleApiHookContextForTest("api-id"));
+            final SimpleApiHookContextForTest apiHookContext = new SimpleApiHookContextForTest("api-id");
+            switch (notificationParametersMode) {
+                case PASSED_AS_PARAMETER -> {
+                    final Map<String, Object> notificationParameters = service.prepareNotificationParameters(
+                        GraviteeContext.getExecutionContext(),
+                        apiHookContext
+                    );
+                    service.triggerApiNotification(GraviteeContext.getExecutionContext(), apiHookContext, notificationParameters);
+                }
+                case COMPUTED_BY_METHOD -> service.triggerApiNotification(GraviteeContext.getExecutionContext(), apiHookContext);
+            }
 
             // Then
             verify(notifierService)
@@ -200,8 +238,9 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                 );
         }
 
-        @Test
-        public void should_fetch_application_notification_data() {
+        @ParameterizedTest
+        @EnumSource(value = NotificationParametersMode.class)
+        public void should_fetch_application_notification_data(NotificationParametersMode notificationParametersMode) {
             // Given
             givenExistingApi(
                 anApi().withId("api-id"),
@@ -222,10 +261,20 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             );
 
             // When
-            service.triggerApiNotification(
-                GraviteeContext.getExecutionContext(),
-                new SimpleApiHookContextForTest("api-id", Map.of(HookContextEntry.APPLICATION_ID, "application-id"))
+            final SimpleApiHookContextForTest apiHookContext = new SimpleApiHookContextForTest(
+                "api-id",
+                Map.of(HookContextEntry.APPLICATION_ID, "application-id")
             );
+            switch (notificationParametersMode) {
+                case PASSED_AS_PARAMETER -> {
+                    final Map<String, Object> notificationParameters = service.prepareNotificationParameters(
+                        GraviteeContext.getExecutionContext(),
+                        apiHookContext
+                    );
+                    service.triggerApiNotification(GraviteeContext.getExecutionContext(), apiHookContext, notificationParameters);
+                }
+                case COMPUTED_BY_METHOD -> service.triggerApiNotification(GraviteeContext.getExecutionContext(), apiHookContext);
+            }
 
             // Then
             verify(notifierService)
@@ -255,8 +304,9 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                 );
         }
 
-        @Test
-        public void should_fetch_plan_notification_data() {
+        @ParameterizedTest
+        @EnumSource(value = NotificationParametersMode.class)
+        public void should_fetch_plan_notification_data(NotificationParametersMode notificationParametersMode) {
             // Given
             givenExistingApi(
                 anApi().withId("api-id"),
@@ -278,10 +328,20 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                     .build()
             );
             // When
-            service.triggerApiNotification(
-                GraviteeContext.getExecutionContext(),
-                new SimpleApiHookContextForTest("api-id", Map.of(HookContextEntry.PLAN_ID, "plan-id"))
+            final SimpleApiHookContextForTest apiHookContext = new SimpleApiHookContextForTest(
+                "api-id",
+                Map.of(HookContextEntry.PLAN_ID, "plan-id")
             );
+            switch (notificationParametersMode) {
+                case PASSED_AS_PARAMETER -> {
+                    final Map<String, Object> notificationParameters = service.prepareNotificationParameters(
+                        GraviteeContext.getExecutionContext(),
+                        apiHookContext
+                    );
+                    service.triggerApiNotification(GraviteeContext.getExecutionContext(), apiHookContext, notificationParameters);
+                }
+                case COMPUTED_BY_METHOD -> service.triggerApiNotification(GraviteeContext.getExecutionContext(), apiHookContext);
+            }
 
             // Then
             verify(notifierService)
@@ -326,8 +386,9 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
     @Nested
     class TriggerApplicationNotification {
 
-        @Test
-        public void should_fetch_application_notification_data() {
+        @ParameterizedTest
+        @EnumSource(value = NotificationParametersMode.class)
+        public void should_fetch_application_notification_data(NotificationParametersMode notificationParametersMode) {
             // Given
             givenExistingApplication(
                 Application
@@ -344,10 +405,24 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             );
 
             // When
-            service.triggerApplicationNotification(
-                GraviteeContext.getExecutionContext(),
-                new SimpleApplicationHookContextForTest("application-id")
-            );
+            final SimpleApplicationHookContextForTest applicationHookContext = new SimpleApplicationHookContextForTest("application-id");
+            switch (notificationParametersMode) {
+                case PASSED_AS_PARAMETER -> {
+                    final Map<String, Object> notificationParameters = service.prepareNotificationParameters(
+                        GraviteeContext.getExecutionContext(),
+                        applicationHookContext
+                    );
+                    service.triggerApplicationNotification(
+                        GraviteeContext.getExecutionContext(),
+                        applicationHookContext,
+                        notificationParameters
+                    );
+                }
+                case COMPUTED_BY_METHOD -> service.triggerApplicationNotification(
+                    GraviteeContext.getExecutionContext(),
+                    applicationHookContext
+                );
+            }
 
             // Then
             verify(notifierService)
@@ -382,8 +457,9 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                 );
         }
 
-        @Test
-        public void should_fetch_api_notification_data() {
+        @ParameterizedTest
+        @EnumSource(value = NotificationParametersMode.class)
+        public void should_fetch_api_notification_data(NotificationParametersMode notificationParametersMode) {
             // Given
             givenExistingApplication(
                 Application
@@ -404,10 +480,27 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             );
 
             // When
-            service.triggerApplicationNotification(
-                GraviteeContext.getExecutionContext(),
-                new SimpleApplicationHookContextForTest("application-id", Map.of(HookContextEntry.API_ID, "api-id"))
+            final SimpleApplicationHookContextForTest applicationHookContext = new SimpleApplicationHookContextForTest(
+                "application-id",
+                Map.of(HookContextEntry.API_ID, "api-id")
             );
+            switch (notificationParametersMode) {
+                case PASSED_AS_PARAMETER -> {
+                    final Map<String, Object> notificationParameters = service.prepareNotificationParameters(
+                        GraviteeContext.getExecutionContext(),
+                        applicationHookContext
+                    );
+                    service.triggerApplicationNotification(
+                        GraviteeContext.getExecutionContext(),
+                        applicationHookContext,
+                        notificationParameters
+                    );
+                }
+                case COMPUTED_BY_METHOD -> service.triggerApplicationNotification(
+                    GraviteeContext.getExecutionContext(),
+                    applicationHookContext
+                );
+            }
 
             // Then
             verify(notifierService)
@@ -445,8 +538,9 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                 );
         }
 
-        @Test
-        public void should_fetch_api_notification_data_with_metadata() {
+        @ParameterizedTest
+        @EnumSource(value = NotificationParametersMode.class)
+        public void should_fetch_api_notification_data_with_metadata(NotificationParametersMode notificationParametersMode) {
             // Given
             givenExistingApi(
                 anApi().withId("api-id"),
@@ -459,10 +553,27 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             );
 
             // When
-            service.triggerApplicationNotification(
-                GraviteeContext.getExecutionContext(),
-                new SimpleApplicationHookContextForTest("application-id", Map.of(HookContextEntry.API_ID, "api-id"))
+            final SimpleApplicationHookContextForTest applicationHookContext = new SimpleApplicationHookContextForTest(
+                "application-id",
+                Map.of(HookContextEntry.API_ID, "api-id")
             );
+            switch (notificationParametersMode) {
+                case PASSED_AS_PARAMETER -> {
+                    final Map<String, Object> notificationParameters = service.prepareNotificationParameters(
+                        GraviteeContext.getExecutionContext(),
+                        applicationHookContext
+                    );
+                    service.triggerApplicationNotification(
+                        GraviteeContext.getExecutionContext(),
+                        applicationHookContext,
+                        notificationParameters
+                    );
+                }
+                case COMPUTED_BY_METHOD -> service.triggerApplicationNotification(
+                    GraviteeContext.getExecutionContext(),
+                    applicationHookContext
+                );
+            }
 
             // Then
             verify(notifierService)
@@ -500,8 +611,9 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                 );
         }
 
-        @Test
-        public void should_fetch_plan_notification_data() {
+        @ParameterizedTest
+        @EnumSource(value = NotificationParametersMode.class)
+        public void should_fetch_plan_notification_data(NotificationParametersMode notificationParametersMode) {
             // Given
             givenExistingApi(
                 anApi().withId("api-id"),
@@ -523,10 +635,27 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                     .build()
             );
             // When
-            service.triggerApplicationNotification(
-                GraviteeContext.getExecutionContext(),
-                new SimpleApplicationHookContextForTest("application-id", Map.of(HookContextEntry.PLAN_ID, "plan-id"))
+            final SimpleApplicationHookContextForTest applicationHookContext = new SimpleApplicationHookContextForTest(
+                "application-id",
+                Map.of(HookContextEntry.PLAN_ID, "plan-id")
             );
+            switch (notificationParametersMode) {
+                case PASSED_AS_PARAMETER -> {
+                    final Map<String, Object> notificationParameters = service.prepareNotificationParameters(
+                        GraviteeContext.getExecutionContext(),
+                        applicationHookContext
+                    );
+                    service.triggerApplicationNotification(
+                        GraviteeContext.getExecutionContext(),
+                        applicationHookContext,
+                        notificationParameters
+                    );
+                }
+                case COMPUTED_BY_METHOD -> service.triggerApplicationNotification(
+                    GraviteeContext.getExecutionContext(),
+                    applicationHookContext
+                );
+            }
 
             // Then
             verify(notifierService)
@@ -552,24 +681,114 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                         .build()
                 );
         }
+
+        static class SimpleApplicationHookContextForTest extends ApplicationHookContext {
+
+            private final Map<HookContextEntry, String> properties;
+
+            public SimpleApplicationHookContextForTest(String applicationId) {
+                this(applicationId, new HashMap<>());
+            }
+
+            public SimpleApplicationHookContextForTest(String applicationId, Map<HookContextEntry, String> properties) {
+                super(ApplicationHook.SUBSCRIPTION_CLOSED, applicationId);
+                this.properties = properties;
+            }
+
+            @Override
+            protected Map<HookContextEntry, String> getChildProperties() {
+                return properties;
+            }
+        }
     }
 
-    static class SimpleApplicationHookContextForTest extends ApplicationHookContext {
+    @Nested
+    class TriggerApplicationEmailNotification {
 
-        private final Map<HookContextEntry, String> properties;
+        @Test
+        public void should_trigger_application_email_notification_() {
+            // Given
+            final TriggerApplicationNotification.SimpleApplicationHookContextForTest applicationHookContext =
+                new TriggerApplicationNotification.SimpleApplicationHookContextForTest("application-id");
+            when(
+                notifierService.hasEmailNotificationFor(
+                    GraviteeContext.getExecutionContext(),
+                    applicationHookContext.getHook(),
+                    applicationHookContext.getApplicationId(),
+                    Map.of(),
+                    "existing@mail.fake"
+                )
+            )
+                .thenReturn(true);
 
-        public SimpleApplicationHookContextForTest(String applicationId) {
-            this(applicationId, new HashMap<>());
+            // When
+            service.triggerApplicationEmailNotification(
+                GraviteeContext.getExecutionContext(),
+                applicationHookContext,
+                Map.of(),
+                "existing@mail.fake"
+            );
+
+            // Then
+            verify(notifierService)
+                .hasEmailNotificationFor(
+                    eq(GraviteeContext.getExecutionContext()),
+                    eq(applicationHookContext.getHook()),
+                    eq(applicationHookContext.getApplicationId()),
+                    eq(Map.of()),
+                    eq("existing@mail.fake")
+                );
+            verify(notifierService)
+                .triggerEmail(
+                    eq(GraviteeContext.getExecutionContext()),
+                    eq(applicationHookContext.getHook()),
+                    eq(applicationHookContext.getApplicationId()),
+                    eq(Map.of()),
+                    eq("existing@mail.fake")
+                );
         }
 
-        public SimpleApplicationHookContextForTest(String applicationId, Map<HookContextEntry, String> properties) {
-            super(ApplicationHook.SUBSCRIPTION_CLOSED, applicationId);
-            this.properties = properties;
-        }
+        @Test
+        public void should_not_trigger_application_email_notification_() {
+            // Given
+            final TriggerApplicationNotification.SimpleApplicationHookContextForTest applicationHookContext =
+                new TriggerApplicationNotification.SimpleApplicationHookContextForTest("application-id");
+            when(
+                notifierService.hasEmailNotificationFor(
+                    GraviteeContext.getExecutionContext(),
+                    applicationHookContext.getHook(),
+                    applicationHookContext.getApplicationId(),
+                    Map.of(),
+                    "not-existing@mail.fake"
+                )
+            )
+                .thenReturn(false);
 
-        @Override
-        protected Map<HookContextEntry, String> getChildProperties() {
-            return properties;
+            // When
+            service.triggerApplicationEmailNotification(
+                GraviteeContext.getExecutionContext(),
+                applicationHookContext,
+                Map.of(),
+                "not-existing@mail.fake"
+            );
+
+            // Then
+            verify(notifierService)
+                .hasEmailNotificationFor(
+                    eq(GraviteeContext.getExecutionContext()),
+                    eq(applicationHookContext.getHook()),
+                    eq(applicationHookContext.getApplicationId()),
+                    eq(Map.of()),
+                    eq("not-existing@mail.fake")
+                );
+            verify(notifierService, never())
+                .triggerEmail(
+                    eq(GraviteeContext.getExecutionContext()),
+                    eq(applicationHookContext.getHook()),
+                    eq(applicationHookContext.getApplicationId()),
+                    eq(Map.of()),
+                    eq("not-existing@mail.fake")
+                );
         }
     }
 
@@ -583,9 +802,9 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
         lenient().when(apiRepository.findById(any())).thenReturn(Optional.empty());
         lenient().when(apiRepository.findById(api.getId())).thenReturn(Optional.of(api));
 
-        primaryOwnerDomainService.initWith(List.of(Map.entry(api.getId(), primaryOwnerEntity)));
+        apiPrimaryOwnerDomainService.initWith(List.of(Map.entry(api.getId(), primaryOwnerEntity)));
 
-        metadataQueryService.initWith(List.of(Map.entry(api.getId(), metadata)));
+        apiMetadataQueryService.initWith(List.of(Map.entry(api.getId(), metadata)));
     }
 
     @SneakyThrows
@@ -593,7 +812,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
         lenient().when(applicationRepository.findById(any())).thenReturn(Optional.empty());
         lenient().when(applicationRepository.findById(eq(application.getId()))).thenReturn(Optional.of(application));
 
-        primaryOwnerDomainService.initWith(List.of(Map.entry(application.getId(), primaryOwnerEntity)));
+        apiPrimaryOwnerDomainService.initWith(List.of(Map.entry(application.getId(), primaryOwnerEntity)));
     }
 
     @SneakyThrows

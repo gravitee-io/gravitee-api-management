@@ -15,10 +15,22 @@
  */
 package io.gravitee.apim.core.notification.model.hook;
 
-import io.gravitee.rest.api.service.notification.Hook;
+import io.gravitee.rest.api.service.notification.ApiHook;
 import java.util.Map;
 
-public interface HookContext {
-    Map<HookContextEntry, String> getProperties();
-    Hook getHook();
+public class SubscriptionRejectedApiHookContext extends ApiHookContext {
+
+    String applicationId;
+    String planId;
+
+    public SubscriptionRejectedApiHookContext(String apiId, String applicationId, String planId) {
+        super(ApiHook.SUBSCRIPTION_REJECTED, apiId);
+        this.applicationId = applicationId;
+        this.planId = planId;
+    }
+
+    @Override
+    protected Map<HookContextEntry, String> getChildProperties() {
+        return Map.of(HookContextEntry.APPLICATION_ID, applicationId, HookContextEntry.PLAN_ID, planId);
+    }
 }
