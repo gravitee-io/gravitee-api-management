@@ -21,15 +21,15 @@ import { fakeDebugEvent } from './models/DebugEvent.fixture';
 import { RequestPolicyDebugStep, ResponsePolicyDebugStep } from './models/DebugStep';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
-import { fakeApi } from '../../../../entities/api/Api.fixture';
 import { PolicyStudioService } from '../policy-studio.service';
 import { toApiDefinition } from '../models/ApiDefinition';
+import { fakeApiV2 } from '../../../../entities/management-api-v2';
 
 describe('PolicyStudioDebugService', () => {
   let httpTestingController: HttpTestingController;
   let policyStudioDebugService: PolicyStudioDebugService;
   let policyStudioService: PolicyStudioService;
-  const api = fakeApi();
+  const api = fakeApiV2();
 
   beforeEach(() => {
     TestBed.configureTestingModule({

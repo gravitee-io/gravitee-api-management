@@ -7,6 +7,7 @@
   @include gio-layout.gio-full-width-content-container;
   display: flex;
   flex-direction: column;
+  position: relative;
 
   :host-context(.breadcrumb) {
     height: calc(100% - 16px /* Remove margin-top*/);
@@ -51,7 +52,6 @@
       position: absolute;
       bottom: 25px;
       width: 50%;
-      min-width: 580px; // keep save bar button on one line for small screen
       margin: 0 25%;
     }
   }

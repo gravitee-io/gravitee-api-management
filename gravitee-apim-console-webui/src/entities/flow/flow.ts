@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 export interface PathOperator {
-  path: string;
-  operator: 'STARTS_WITH' | 'EQUALS';
+  path?: string;
+  operator?: 'STARTS_WITH' | 'EQUALS';
 }
 
 export interface Step {
-  name: string;
-  policy: string;
+  name?: string;
+  policy?: string;
   description?: string;
   configuration?: unknown;
   enabled?: boolean;
@@ -28,8 +28,8 @@ export interface Step {
 }
 
 export interface Consumer {
-  consumerType: 'TAG';
-  consumerId: string;
+  consumerType?: 'TAG';
+  consumerId?: string;
 }
 
 export interface Flow {
