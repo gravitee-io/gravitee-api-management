@@ -363,12 +363,11 @@ jobs:
             - gravitee-apim-rest-api/gravitee-apim-rest-api-coverage/target/site/jacoco-aggregate/
     parallelism: 4
   job-test-integration:
-    docker:
-      - image: cimg/openjdk:17.0
-    resource_class: medium+
+    machine:
+      image: ubuntu-2204:current
+      docker_layer_caching: false
+    resource_class: medium
     steps:
-      - setup_remote_docker:
-          version: 20.10.6
       - checkout
       - attach_workspace:
           at: .
@@ -377,12 +376,6 @@ jobs:
       - restore_cache:
           keys:
             - gravitee-api-management-v9-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
-      - run:
-          name: Testcontainers tunnel
-          command: .circleci/autoforward.py
-          background: true
-          environment:
-            TESTCONTAINERS_HOST_OVERRIDE: localhost
       - run:
           name: Run tests
           command: |-
@@ -394,17 +387,17 @@ jobs:
             cat all-tests | circleci tests split --split-by=timings --timings-type=classname --time-default=10s > tests-to-run
 
             # Compute exclusion list (use grep to invert the include list to an exclude list)
-            cat all-tests | grep -xvf tests-to-run > ignore_list
+            cat all-tests | grep -xvf tests-to-run > /tmp/ignore_list
 
             # Add * add the end of each line of ignore_list to also exclude all inner classes
-            sed -i 's/$/*/' ignore_list 
+            sed -i 's/$/*/' /tmp/ignore_list
 
             # Display tests to run on this executor
             echo "Following test files will run on this executor:"
             cat tests-to-run
 
             # Run tests with rerunFailingTestsCount=2 because some integration tests related to RabbitMQ or Websocket are randomly failing on the CI             
-            mvn --fail-fast -s ../.gravitee.settings.xml test --no-transfer-progress -Dskip.validation=true -Dsurefire.excludesFile=ignore_list -Dsurefire.rerunFailingTestsCount=2
+            mvn --fail-fast -s ../.gravitee.settings.xml test --no-transfer-progress -Dskip.validation=true -Dsurefire.excludesFile=/tmp/ignore_list -Dsurefire.rerunFailingTestsCount=2
       - run:
           name: Save test results
           command: |-
@@ -416,7 +409,7 @@ jobs:
           jobName: job-test-integration
       - store_test_results:
           path: ~/test-results
-    parallelism: 2
+    parallelism: 4
   job-test-plugin:
     machine:
       image: ubuntu-2204:current
