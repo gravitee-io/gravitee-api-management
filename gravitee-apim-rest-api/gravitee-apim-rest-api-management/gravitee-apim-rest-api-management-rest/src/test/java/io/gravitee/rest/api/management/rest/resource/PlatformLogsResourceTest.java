@@ -47,7 +47,7 @@ public class PlatformLogsResourceTest extends AbstractResourceTest {
     }
 
     @Before
-    public void setUp() {
+    public void init() {
         reset(logsService, applicationService, apiAuthorizationServiceV4);
     }
 
