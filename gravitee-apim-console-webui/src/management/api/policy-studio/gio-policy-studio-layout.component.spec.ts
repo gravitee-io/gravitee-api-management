@@ -20,19 +20,17 @@ import { InteractivityChecker } from '@angular/cdk/a11y';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { GioIconsModule, GioLicenseModule, GioSaveBarModule, LICENSE_CONFIGURATION_TESTING } from '@gravitee/ui-particles-angular';
 import { MatTabsModule } from '@angular/material/tabs';
-import { omit } from 'lodash';
 import { MatDialogModule } from '@angular/material/dialog';
 
 import { GioPolicyStudioLayoutComponent } from './gio-policy-studio-layout.component';
-import { toApiDefinition } from './models/ApiDefinition';
+import { toApiDefinition, toApiPlansDefinition } from './models/ApiDefinition';
 import { PolicyStudioService } from './policy-studio.service';
 
 import { User } from '../../../entities/user';
-import { fakeApi } from '../../../entities/api/Api.fixture';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
-import { AjsRootScope, CurrentUserService, UIRouterStateParams } from '../../../ajs-upgraded-providers';
-import { fakeUpdateApi } from '../../../entities/api/UpdateApi.fixture';
+import { CurrentUserService, UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { GioUiRouterTestingModule } from '../../../shared/testing/gio-uirouter-testing-module';
+import { fakeApiV2, fakePlanV2 } from '../../../entities/management-api-v2';
 
 describe('GioPolicyStudioLayoutComponent', () => {
   let fixture: ComponentFixture<GioPolicyStudioLayoutComponent>;
@@ -42,8 +40,8 @@ describe('GioPolicyStudioLayoutComponent', () => {
   const currentUser = new User();
   currentUser.userApiPermissions = ['api-plan-r', 'api-plan-u'];
 
-  const api = fakeApi();
-  const $broadcast = jest.fn();
+  const api = fakeApiV2();
+  const plans = [fakePlanV2()];
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -61,12 +59,6 @@ describe('GioPolicyStudioLayoutComponent', () => {
       ],
       providers: [
         { provide: UIRouterStateParams, useValue: { apiId: api.id } },
-        {
-          provide: AjsRootScope,
-          useValue: {
-            $broadcast: $broadcast,
-          },
-        },
         {
           provide: CurrentUserService,
           useValue: { currentUser },
@@ -91,7 +83,8 @@ describe('GioPolicyStudioLayoutComponent', () => {
     fixture.detectChanges();
     httpTestingController.expectOne(LICENSE_CONFIGURATION_TESTING.resourceURL);
 
-    httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`).flush(api);
+    httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`).flush(api);
+    httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}/plans?page=1&perPage=9999`);
 
     fixture.detectChanges();
   });
@@ -99,45 +92,30 @@ describe('GioPolicyStudioLayoutComponent', () => {
   describe('onSubmit', () => {
     it('should call the API', async () => {
       const policyStudioService = TestBed.inject(PolicyStudioService);
-      const apiDefinitionToSave = toApiDefinition(fakeApi());
-      policyStudioService.saveApiDefinition(apiDefinitionToSave);
+      const apiDefinitionToSave = toApiDefinition(fakeApiV2());
+      const apiPlansDefinitionToSave = toApiPlansDefinition(plans);
+      apiPlansDefinitionToSave[0].flows[0].name = 'new name';
+
+      policyStudioService.saveApiDefinition({
+        ...apiDefinitionToSave,
+        plans: apiPlansDefinitionToSave,
+      });
 
       component.onSubmit();
 
-      httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`).flush(api);
+      httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`).flush(api);
+      httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}/plans?page=1&perPage=9999`).flush({
+        data: plans,
+      });
 
-      const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}` });
+      const apiReq = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}` });
+      expect(apiReq.request.body.flowMode).toEqual(apiDefinitionToSave.flow_mode);
 
-      expect(req.request.body).toStrictEqual(
-        omit(
-          fakeUpdateApi({
-            background: undefined,
-            categories: undefined,
-            paths: undefined,
-            picture: undefined,
-            plans: apiDefinitionToSave.plans,
-            flows: api.flows,
-            execution_mode: undefined,
-          }),
-          'definition_context',
-        ),
-      );
-    });
-
-    it('should broadcast `apiChangeSuccess` with api updated', async () => {
-      const updateApi = fakeUpdateApi();
-      const policyStudioService = TestBed.inject(PolicyStudioService);
-      policyStudioService.saveApiDefinition(toApiDefinition(fakeApi()));
-      const setApiDefinitionSpy = jest.spyOn(component.policyStudioService, 'setApiDefinition');
-
-      component.onSubmit();
-
-      httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`).flush(api);
-      httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}` }).flush(updateApi);
-
-      expect($broadcast).toHaveBeenCalledWith('apiChangeSuccess', { api: updateApi });
-      expect(setApiDefinitionSpy).toHaveBeenCalledTimes(1);
-      expect(component.isDirty).toBeFalsy();
+      const planReq = httpTestingController.expectOne({
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}/plans/${plans[0].id}`,
+      });
+      expect(planReq.request.body.flows[0].name).toEqual('new name');
     });
   });
 
