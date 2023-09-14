@@ -867,15 +867,8 @@ jobs:
             az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
             az aks get-credentials --admin --resource-group Devs-Preprod-Hosted --name gravitee-devs-preprod-aks-cluster
 
-            kubectl rollout restart deployment/apim-apim-master-api -n apim-apim-master
-            kubectl rollout restart deployment/apim-apim-master-portal -n apim-apim-master
-            kubectl rollout restart deployment/apim-apim-master-ui -n apim-apim-master
-            kubectl rollout restart deployment/apim-apim-master-gateway -n apim-apim-master
-            kubectl rollout restart deployment/apim-apim-master-bridge-client-gateway -n apim-apim-master
-            kubectl rollout restart deployment/apim-apim-master-ingress-gateway -n apim-apim-master
-
-            kubectl rollout restart deployment apim-apim-master-ce-apim-ce-api -n apim-apim-master-ce
-            kubectl rollout restart deployment apim-apim-master-ce-apim-ce-ui -n apim-apim-master-ce
+            kubectl rollout restart deployment -n apim-apim-master
+            kubectl rollout restart deployment -n apim-apim-master-ce
       - cmd-notify-on-failure
 workflows:
   pull_requests:
