@@ -15,12 +15,28 @@
  */
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
-import { GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import { GioFormSlideToggleModule } from '@gravitee/ui-particles-angular';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { MatInputModule } from '@angular/material/input';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 
 import { EndpointHttpConfigComponent } from './endpoint-http-config.component';
 
 @NgModule({
-  imports: [CommonModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+
+    MatFormFieldModule,
+    MatSelectModule,
+    MatInputModule,
+    MatSlideToggleModule,
+
+    GioFormSlideToggleModule,
+  ],
   declarations: [EndpointHttpConfigComponent],
   exports: [EndpointHttpConfigComponent],
 })
