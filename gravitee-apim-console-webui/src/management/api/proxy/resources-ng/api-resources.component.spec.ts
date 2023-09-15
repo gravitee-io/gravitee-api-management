@@ -29,7 +29,7 @@ import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/test
 import { User } from '../../../../entities/user';
 import { fakeResourceListItem } from '../../../../entities/resource/resourceListItem.fixture';
 import { GioUiRouterTestingModule } from '../../../../shared/testing/gio-uirouter-testing-module';
-import { AjsRootScope, CurrentUserService, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+import { CurrentUserService, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { ApiV4, fakeApiV4 } from '../../../../entities/management-api-v2';
 
 describe('PolicyStudioResourcesComponent', () => {
@@ -41,7 +41,6 @@ describe('PolicyStudioResourcesComponent', () => {
   const currentUser = new User();
   currentUser.userPermissions = ['api-plan-r', 'api-plan-u'];
   const API_ID = 'apiId';
-  const $broadcast = jest.fn();
 
   const resources = [fakeResourceListItem()];
 
@@ -59,12 +58,6 @@ describe('PolicyStudioResourcesComponent', () => {
       ],
       providers: [
         { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
-        {
-          provide: AjsRootScope,
-          useValue: {
-            $broadcast: $broadcast,
-          },
-        },
         {
           provide: CurrentUserService,
           useValue: { currentUser },

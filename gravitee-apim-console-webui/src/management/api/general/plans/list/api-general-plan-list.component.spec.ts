@@ -375,7 +375,6 @@ describe('ApiGeneralPlanListComponent', () => {
 
         const updatedPlan: Plan = { ...plan, status: 'PUBLISHED' };
         expectApiPlanPublishRequest(updatedPlan);
-        expect(fakeRootScope.$broadcast).toHaveBeenCalledWith('apiChangeSuccess', { apiId: API_ID });
         expectApiGetRequest();
         expectApiPlansListRequest([updatedPlan], [...PLAN_STATUS]);
       });
@@ -420,7 +419,6 @@ describe('ApiGeneralPlanListComponent', () => {
 
         const updatedPlan: Plan = { ...plan, status: 'DEPRECATED' };
         expectApiPlanDeprecateRequest(updatedPlan);
-        expect(fakeRootScope.$broadcast).toHaveBeenCalledWith('apiChangeSuccess', { apiId: API_ID });
         expectApiGetRequest();
         expectApiPlansListRequest([updatedPlan], [...PLAN_STATUS]);
       });
@@ -465,7 +463,6 @@ describe('ApiGeneralPlanListComponent', () => {
 
           const updatedPlan: Plan = { ...plan, status: 'CLOSED' };
           expectApiPlanCloseRequest(updatedPlan);
-          expect(fakeRootScope.$broadcast).toHaveBeenCalledWith('apiChangeSuccess', { apiId: API_ID });
           expectApiGetRequest();
           expectApiPlansListRequest([updatedPlan], [...PLAN_STATUS]);
         });
