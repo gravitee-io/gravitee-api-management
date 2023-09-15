@@ -90,6 +90,9 @@ describe('ApiProxyGroupEditComponent', () => {
         id: API_ID,
       });
       expectApiGetRequest(api);
+
+      // TODO : remove when this page only use apiV2Service
+      httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush({});
       expectServiceDiscoveryRequest(serviceDiscovery);
       expectConnectorRequest(connector);
 
@@ -117,6 +120,9 @@ describe('ApiProxyGroupEditComponent', () => {
           },
         });
         expectApiGetRequest(api);
+
+        // TODO : remove when this page only use apiV2Service
+        httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush({});
         expectServiceDiscoveryRequest(serviceDiscovery);
         expectConnectorRequest(connector);
 
@@ -228,6 +234,9 @@ describe('ApiProxyGroupEditComponent', () => {
           },
         });
         expectApiGetRequest(api);
+        // TODO : remove when this page only use apiV2Service
+        httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush({});
+
         expectServiceDiscoveryRequest(serviceDiscovery);
         expectConnectorRequest(connector);
         expectServiceDiscoverySchemaRequest();
@@ -275,6 +284,9 @@ describe('ApiProxyGroupEditComponent', () => {
           id: API_ID,
         });
         expectApiGetRequest(api);
+        // TODO : remove when this page only use apiV2Service
+        httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush({});
+
         expectServiceDiscoveryRequest(serviceDiscovery);
         expectConnectorRequest(connector);
       });
@@ -313,6 +325,9 @@ describe('ApiProxyGroupEditComponent', () => {
           id: API_ID,
         });
         expectApiGetRequest(api);
+        // TODO : remove when this page only use apiV2Service
+        httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush({});
+
         expectServiceDiscoveryRequest(serviceDiscovery);
         expectConnectorRequest(connector);
 
@@ -354,6 +369,9 @@ describe('ApiProxyGroupEditComponent', () => {
           id: API_ID,
         });
         expectApiGetRequest(api);
+        // TODO : remove when this page only use apiV2Service
+        httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush({});
+
         expectServiceDiscoveryRequest(serviceDiscovery);
         expectConnectorRequest(connector);
       });
@@ -374,6 +392,10 @@ describe('ApiProxyGroupEditComponent', () => {
         await gioSaveBar.clickReset();
 
         expectApiGetRequest(api);
+
+        // TODO : remove when this page only use apiV2Service
+        httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush({});
+
         expectServiceDiscoveryRequest(serviceDiscovery);
         expect(await nameInput.getValue()).toStrictEqual('default-group');
         expect(await lbSelect.getValueText()).toStrictEqual('ROUND_ROBIN');
@@ -396,6 +418,9 @@ describe('ApiProxyGroupEditComponent', () => {
         id: API_ID,
       });
       expectApiGetRequest(api);
+      // TODO : remove when this page only use apiV2Service
+      httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush({});
+
       expectServiceDiscoveryRequest(serviceDiscovery);
       expectConnectorRequest(connector);
     });
@@ -493,6 +518,9 @@ describe('ApiProxyGroupEditComponent', () => {
         },
       });
       expectApiGetRequest(api);
+      // TODO : remove when this page only use apiV2Service
+      httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush({});
+
       expectServiceDiscoveryRequest(serviceDiscovery);
       expectConnectorRequest(connector);
     });
@@ -526,6 +554,7 @@ describe('ApiProxyGroupEditComponent', () => {
 
   function expectApiGetRequest(api: Api) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
+
     fixture.detectChanges();
   }
 
