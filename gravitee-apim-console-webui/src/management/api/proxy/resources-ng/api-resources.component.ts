@@ -19,14 +19,12 @@ import { combineLatest, EMPTY, Subject } from 'rxjs';
 import { switchMap, takeUntil, tap } from 'rxjs/operators';
 import '@gravitee/ui-components/wc/gv-resources';
 import { StateParams } from '@uirouter/angularjs';
-import { MatDialog } from '@angular/material/dialog';
 import { GioLicenseService } from '@gravitee/ui-particles-angular';
 
 import { ApiResourcesService } from './api-resources.service';
 
 import { ResourceListItem } from '../../../../entities/resource/resourceListItem';
 import { AjsRootScope, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
-import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { ApiV2, ApiV4 } from '../../../../entities/management-api-v2';
 import { stringFeature, UTMTags } from '../../../../shared/components/gio-license/gio-license-data';
@@ -50,9 +48,7 @@ export class ApiResourcesComponent implements OnInit, OnDestroy {
   constructor(
     private readonly apiService: ApiV2Service,
     private readonly apiResourcesService: ApiResourcesService,
-    private readonly permissionService: GioPermissionService,
     private readonly gioLicenseService: GioLicenseService,
-    private readonly matDialog: MatDialog,
     @Inject(UIRouterStateParams) private readonly ajsStateParams: StateParams,
     @Inject(AjsRootScope) readonly ajsRootScope,
   ) {}
@@ -109,7 +105,6 @@ export class ApiResourcesComponent implements OnInit, OnDestroy {
           return this.apiService.update(this.ajsStateParams.apiId, updateApi);
         }),
         tap((api: ApiV2 | ApiV4) => {
-          this.ajsRootScope.$broadcast('apiChangeSuccess', { api });
           this.api = api;
           this.isDirty = false;
         }),

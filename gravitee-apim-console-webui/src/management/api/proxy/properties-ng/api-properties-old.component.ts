@@ -121,7 +121,6 @@ export class ApiPropertiesOldComponent implements OnInit, OnDestroy {
           }
         }),
         tap((api: ApiV2 | ApiV4) => {
-          this.ajsRootScope.$broadcast('apiChangeSuccess', { api });
           this.initApiData(api);
           this.isDirty = false;
         }),

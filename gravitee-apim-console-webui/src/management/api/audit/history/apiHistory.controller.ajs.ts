@@ -22,6 +22,7 @@ import { StateService } from '@uirouter/core';
 
 import { ApiService } from '../../../../services/api.service';
 import AuditService from '../../../../services/audit.service';
+import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const copy = require('clipboard-copy');
@@ -146,6 +147,7 @@ class ApiHistoryControllerAjs {
     private PolicyService,
     private ResourceService,
     private FlowService,
+    private ApiV2Service: ApiV2Service,
   ) {
     this.eventsSelected = [];
     this.eventsTimeline = [];
@@ -181,26 +183,8 @@ class ApiHistoryControllerAjs {
           this.studio.propertyProviders = propertyProviders;
           this.events = events.data;
 
-          this.init();
           this.initTimeline(this.events);
           this.$scope.$apply();
-        });
-      }
-    });
-  }
-
-  init() {
-    this.$scope.$on('apiChangeSuccess', (event, args) => {
-      if (this.$state.current.name.endsWith('history')) {
-        // reload API
-        if (args.api) {
-          this.api = JSON.parse(angular.toJson(_.cloneDeep(args.api)));
-        } else {
-          this.ApiService.get(args.apiId).then((response) => (this.api = response.data));
-        }
-        // reload API events
-        this.ApiService.getApiEvents(this.api.id, this.eventTypes).then((response) => {
-          this.events = response.data;
         });
       }
     });
@@ -404,8 +388,14 @@ class ApiHistoryControllerAjs {
         return this.ApiService.get(this.api.id);
       })
       .then((response) => {
-        this.$rootScope.$broadcast('apiChangeSuccess', { api: response.data });
-      });
+        this.api = JSON.parse(angular.toJson(_.cloneDeep(response.data)));
+        // reload API events
+        return this.ApiService.getApiEvents(this.api.id, this.eventTypes);
+      })
+      .then((response) => {
+        this.events = response.data;
+      })
+      .then(() => this.ApiV2Service.get(this.api.id).toPromise()); // To update the deploy banner
   }
 
   showRollbackAPIConfirm(ev, api) {

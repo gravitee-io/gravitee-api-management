@@ -87,7 +87,6 @@ describe('ApiService', () => {
       const apiToUpdate = fakeUpdateApi();
 
       apiService.update({ id: apiId, ...apiToUpdate }).subscribe(() => {
-        expect(fakeRootScope.$broadcast).toHaveBeenCalledWith('apiChangeSuccess', { api: { id: apiId, ...apiToUpdate } });
         done();
       });
 
