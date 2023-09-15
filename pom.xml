@@ -141,10 +141,7 @@
         <rhino.version>1.7.14</rhino.version>
         <testcontainers.version>1.18.3</testcontainers.version>
         <xmlbeans.version>3.1.0</xmlbeans.version>
-        <wiremock.version>3.0.0-beta-8</wiremock.version>
-        <wiremock-jre8.version>2.35.0</wiremock-jre8.version>
-        <!-- Need to downgrade jetty to a compatible version with wiremock (jetty is only use for tests purpose) -->
-        <jetty94.wiremock.version>9.4.44.v20210927</jetty94.wiremock.version>
+        <wiremock.version>3.0.4</wiremock.version>
         <wsdl4j.version>1.6.3</wsdl4j.version>
         <!-- Plugins version -->
         <gatling-maven-plugin.version>4.0.1</gatling-maven-plugin.version>
@@ -546,7 +543,7 @@
             </dependency>
 
             <dependency>
-                <groupId>com.github.tomakehurst</groupId>
+                <groupId>org.wiremock</groupId>
                 <artifactId>wiremock</artifactId>
                 <version>${wiremock.version}</version>
                 <exclusions>
@@ -555,12 +552,6 @@
                         <artifactId>guava</artifactId>
                     </exclusion>
                 </exclusions>
-            </dependency>
-
-            <dependency>
-                <groupId>com.github.tomakehurst</groupId>
-                <artifactId>wiremock-jre8</artifactId>
-                <version>${wiremock-jre8.version}</version>
             </dependency>
 
             <dependency>
