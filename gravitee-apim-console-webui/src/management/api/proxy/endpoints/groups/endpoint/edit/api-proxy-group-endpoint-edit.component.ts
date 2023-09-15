@@ -34,6 +34,7 @@ import { GioPermissionService } from '../../../../../../../shared/components/gio
 import { ApiProxyHealthCheckFormComponent } from '../../../../components/health-check-form/api-proxy-health-check-form.component';
 import { HealthCheck } from '../../../../../../../entities/health-check';
 import '@gravitee/ui-components/wc/gv-schema-form-group';
+import { ApiV2Service } from '../../../../../../../services-ngx/api-v2.service';
 
 @Component({
   selector: 'api-proxy-group-endpoint-edit',
@@ -64,6 +65,7 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
     @Inject(UIRouterState) private readonly ajsState: StateService,
     private readonly formBuilder: FormBuilder,
     private readonly apiService: ApiService,
+    private readonly apiV2Service: ApiV2Service,
     private readonly connectorService: ConnectorService,
     private readonly tenantService: TenantService,
     private readonly snackBarService: SnackBarService,
@@ -87,6 +89,8 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
             this.connectors.find((connector) => connector.supportedTypes.includes(this.endpoint?.type?.toLowerCase() ?? 'http'))?.schema,
           );
         }),
+        // TODO : remove when this page only use apiV2Service
+        switchMap(() => this.apiV2Service.get(this.apiId)),
         takeUntil(this.unsubscribe$),
       )
       .subscribe();
@@ -136,6 +140,8 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
           this.snackBarService.error(error.error?.message ?? 'Error while saving configuration.');
           return EMPTY;
         }),
+        // TODO : remove when this page only use apiV2Service
+        switchMap(() => this.apiV2Service.get(this.apiId)),
         tap(() =>
           // Redirect to same page with last endpoint name
           this.ajsState.go(
