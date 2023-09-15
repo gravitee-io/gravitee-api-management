@@ -65,7 +65,7 @@ const maven = {
 const orbs = {
   artifactory: '1.0.1',
   awsCli: '2.0.6',
-  awsS3: '3.1.1',
+  awsS3: '3.0.0',
   github: '1.0.5',
   helm: '2.0.1',
   keeper: '0.6.3',
