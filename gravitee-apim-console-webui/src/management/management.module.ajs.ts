@@ -261,8 +261,6 @@ import TopApisComponent from '../management/configuration/top-apis/top-apis.comp
 import AddTopApiDialogController from '../management/configuration/top-apis/dialog/add.top-api.dialog.controller';
 import DeleteTopApiDialogController from '../management/configuration/top-apis/dialog/delete.top-api.dialog.controller';
 import PortalSettingsComponent from './configuration/portal/portal.component';
-import DialogAddPathMappingController from './api/analytics/pathMappings/modal/add-pathMapping.dialog.controller';
-import DialogImportPathMappingController from './api/analytics/pathMappings/modal/import-pathMapping.dialog.controller';
 
 import RouterService from '../services/router.service';
 
@@ -675,8 +673,6 @@ graviteeManagementModule.component('apiV1PropertiesComponentAjs', ApiV1Propertie
 graviteeManagementModule.directive('ngApiEvents', downgradeComponent({ component: ApiEventsComponent }));
 graviteeManagementModule.component('apiHistoryComponentAjs', ApiHistoryComponentAjs);
 graviteeManagementModule.component('apiV1ResourcesComponentAjs', ApiV1ResourcesComponentAjs);
-graviteeManagementModule.controller('DialogAddPathMappingController', DialogAddPathMappingController);
-graviteeManagementModule.controller('DialogImportPathMappingController', DialogImportPathMappingController);
 graviteeManagementModule.controller('DialogAddPropertyController', DialogAddPropertyController);
 graviteeManagementModule.controller('UserController', UserController);
 graviteeManagementModule.controller('DialogEditPolicyController', DialogEditPolicyController);
