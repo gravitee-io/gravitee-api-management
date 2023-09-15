@@ -1,0 +1,28 @@
+{
+  "ignore": [
+    "*",
+    "node_modules/**",
+    "dist/**",
+    "**/.*",
+    "**/tests/**/*.xml",
+    "**/tests/**/*.yml"
+  ],
+  "license": "LICENSE_TEMPLATE.txt",
+  "licenseFormats": {
+    "ts": {
+      "prepend": "/*",
+      "append": " */",
+      "eachLine": {
+        "prepend": " * "
+      }
+    }
+  },
+  "defaultFormat": {
+    "prepend": "/*",
+    "append": " */",
+    "eachLine": {
+      "prepend": " * "
+    }
+  },
+  "regexIdentifier": "###"
+}
