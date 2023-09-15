@@ -17,7 +17,10 @@ package io.gravitee.gateway.standalone;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 
+import com.github.tomakehurst.wiremock.common.ClasspathFileSource;
+import com.github.tomakehurst.wiremock.common.FileSource;
 import com.github.tomakehurst.wiremock.extension.responsetemplating.ResponseTemplateTransformer;
+import com.github.tomakehurst.wiremock.extension.responsetemplating.TemplateEngine;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Endpoint;
@@ -27,6 +30,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.Collections;
 import org.apache.http.client.fluent.Executor;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.client.fluent.Response;
@@ -61,7 +65,12 @@ public abstract class AbstractWiremockGatewayTest extends AbstractGatewayTest {
     public final TestRule chain = RuleChain.outerRule(wireMockRule).around(apiDeployer);
 
     protected WireMockRule getWiremockRule() {
-        return new WireMockRule(wireMockConfig().dynamicPort().extensions(new ResponseTemplateTransformer(true)));
+        FileSource fs = new ClasspathFileSource("src/test/resources/");
+        return new WireMockRule(
+            wireMockConfig()
+                .dynamicPort()
+                .extensions(new ResponseTemplateTransformer(TemplateEngine.defaultTemplateEngine(), true, fs, Collections.emptyList()))
+        );
     }
 
     @Override
