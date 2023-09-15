@@ -31,6 +31,7 @@ import { ProxyConfiguration } from '../../../../../../entities/proxy';
 import { ResourceListItem } from '../../../../../../entities/resource/resourceListItem';
 import { ServiceDiscoveryService } from '../../../../../../services-ngx/service-discovery.service';
 import { GioPermissionService } from '../../../../../../shared/components/gio-permission/gio-permission.service';
+import { ApiV2Service } from '../../../../../../services-ngx/api-v2.service';
 
 @Component({
   selector: 'api-proxy-group-edit',
@@ -55,6 +56,7 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
     @Inject(UIRouterState) private readonly ajsState: StateService,
     private readonly formBuilder: FormBuilder,
     private readonly apiService: ApiService,
+    private readonly apiV2Service: ApiV2Service,
     private readonly snackBarService: SnackBarService,
     private readonly serviceDiscoveryService: ServiceDiscoveryService,
     private readonly permissionService: GioPermissionService,
@@ -67,6 +69,8 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
     this.apiService
       .get(this.apiId)
       .pipe(
+        // TODO : remove when this page only use apiV2Service
+        switchMap((api) => this.apiV2Service.get(api.id).pipe(map(() => api))),
         switchMap((api) => {
           this.api = api;
           this.isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']) || api.definition_context?.origin === 'kubernetes';
@@ -105,6 +109,8 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
           return this.apiService.update(api);
         }),
         tap(() => this.snackBarService.success('Configuration successfully saved!')),
+        // TODO : remove when this page only use apiV2Service
+        switchMap((api) => this.apiV2Service.get(api.id).pipe(map(() => api))),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
           return EMPTY;
