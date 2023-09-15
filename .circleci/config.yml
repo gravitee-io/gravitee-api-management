@@ -1,0 +1,107 @@
+version: 2.1
+
+orbs:
+    continuation: circleci/continuation@0.3.1
+    node: circleci/node@5.1.0
+    keeper: gravitee-io/keeper@0.6.3
+    slack: circleci/slack@4.12.5
+
+setup: true
+
+parameters:
+    gio_action:
+        type: enum
+        enum:
+            [
+                full_release,
+                release,
+                package_bundle,
+                nexus_staging,
+                pull_requests,
+                build_rpm_&_docker_images,
+                release_notes_apim,
+                bridge_e2e,
+                publish_docker_images,
+                release_helm,
+                repositories_tests,
+            ]
+        default: pull_requests
+    dry_run:
+        type: boolean
+        default: true
+        description: "Run in dry run mode?"
+    docker_tag_as_latest:
+        default: false
+        type: boolean
+        description: "Is this version the latest version available ?"
+    graviteeio_version:
+        default: ""
+        type: string
+        description: "Version of APIM to be used in docker images"
+    apim_version_path:
+        default: "/home/circleci/project/pom.xml"
+        type: string
+        description: "Path to pom.xml with APIM version"
+jobs:
+    generate-config:
+        executor: node/default
+        environment:
+            CI_ACTION: "<< pipeline.parameters.gio_action >>"
+            CI_DRY_RUN: "<< pipeline.parameters.dry_run >>"
+            CI_GRAVITEEIO_VERSION: "<< pipeline.parameters.graviteeio_version >>"
+            CI_DOCKER_TAG_AS_LATEST: "<< pipeline.parameters.docker_tag_as_latest >>"
+            APIM_VERSION_PATH: "<< pipeline.parameters.apim_version_path >>"
+        steps:
+            - checkout
+            - keeper/env-export:
+                  secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
+                  var-name: GITHUB_TOKEN
+            - when:
+                  condition:
+                      not:
+                          or:
+                              - equal: ["master", << pipeline.git.branch >>]
+                              - matches:
+                                    pattern: "^[0-9]+\\.[0-9]+\\.x$"
+                                    value: << pipeline.git.branch >>
+                  steps:
+                      - run:
+                            name: Find base branch
+                            command: |
+                                if [ "x${GITHUB_TOKEN}" == "x" ]; then
+                                  echo "[GITHUB_TOKEN] is not set, can't find the base branch. Use 'master'"
+                                  echo "export GIT_BASE_BRANCH=master" >> $BASH_ENV
+                                fi;
+
+                                if [ "x${CIRCLE_PULL_REQUEST}" == "x" ]; then
+                                  echo "No pull request -> stopping build"
+                                  circleci step halt
+                                fi;
+
+                                PULL_REQUEST_URL=$(echo https://api.github.com/repos/${CIRCLE_PULL_REQUEST:19} | sed "s/\/pull\//\/pulls\//")
+                                BASE_REF=$(curl -s -H "Authorization: token ${GITHUB_TOKEN}" ${PULL_REQUEST_URL} | jq -r '.base.ref // "master"')
+                                echo "export GIT_BASE_BRANCH=${BASE_REF}" >> $BASH_ENV
+
+                                echo "The base branch is ${BASE_REF}"
+
+            - node/install-packages:
+                  app-dir: .circleci/ci
+                  override-ci-command: npm install
+            - run:
+                  name: Lint & Test CI Project
+                  working_directory: .circleci/ci
+                  command: |
+                      npm run lint && npm run test
+            - run:
+                  name: Generate config
+                  working_directory: .circleci/ci
+                  command: |
+                      npm run generate /tmp/dynamicConfig.yml
+            - continuation/continue:
+                  configuration_path: /tmp/dynamicConfig.yml
+
+workflows:
+    dynamic-workflow:
+        jobs:
+            - generate-config:
+                  context: cicd-orchestrator
