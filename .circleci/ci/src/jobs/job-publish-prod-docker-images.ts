@@ -113,7 +113,9 @@ ${this.dockerBuildCommand(environment, config.dockerImages.portal, graviteeioVer
   }
 
   private static getGraviteeioDownloadUrl(environment: CircleCIEnvironment, graviteeioVersion: GraviteeioVersion): string {
-    const targetFolder = isBlank(graviteeioVersion.qualifier.full) ? '/graviteeio-apim' : '/pre-releases/graviteeio-apim';
+    const targetFolder = isBlank(graviteeioVersion.qualifier.full)
+      ? '/graviteeio-apim/distributions'
+      : '/pre-releases/graviteeio-apim/distributions';
     const downloadHost = environment.isDryRun
       ? 'https://gravitee-dry-releases-downloads.cellar-c2.services.clever-cloud.com'
       : 'https://download.gravitee.io';
