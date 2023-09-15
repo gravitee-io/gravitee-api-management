@@ -87,7 +87,7 @@ export function fakeBaseApi(modifier?: Partial<BaseApi> | ((baseApi: BaseApi) =>
 
 export function fakeApiV1(modifier?: Partial<ApiV1> | ((baseApi: ApiV1) => ApiV1)): ApiV1 {
   const base: ApiV1 = {
-    ...fakeBaseApi(modifier),
+    ...fakeBaseApi(),
     definitionVersion: 'V1',
     environmentId: 'my-environment',
     entrypoints: [
@@ -156,7 +156,7 @@ export function fakeApiV1(modifier?: Partial<ApiV1> | ((baseApi: ApiV1) => ApiV1
 
 export function fakeApiV2(modifier?: Partial<ApiV2> | ((baseApi: ApiV2) => ApiV2)): ApiV2 {
   const base: ApiV2 = {
-    ...fakeBaseApi(modifier),
+    ...fakeBaseApi(),
     definitionVersion: 'V2',
     entrypoints: [
       {
@@ -265,7 +265,7 @@ export function fakeApiV2(modifier?: Partial<ApiV2> | ((baseApi: ApiV2) => ApiV2
 
 export function fakeApiV4(modifier?: Partial<ApiV4> | ((baseApi: ApiV4) => ApiV4)): ApiV4 {
   const base: ApiV4 = {
-    ...fakeBaseApi({ ...modifier }),
+    ...fakeBaseApi(),
     definitionVersion: 'V4',
     type: 'MESSAGE',
     listeners: [

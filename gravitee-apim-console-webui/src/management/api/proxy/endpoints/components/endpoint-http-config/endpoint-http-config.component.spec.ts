@@ -19,20 +19,21 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { HarnessLoader } from '@angular/cdk/testing';
 
 import { EndpointHttpConfigComponent } from './endpoint-http-config.component';
 import { EndpointHttpConfigModule } from './endpoint-http-config.module';
+import { EndpointHttpConfigHarness } from './endpoint-http-config.harness';
+
 import { GioHttpTestingModule } from '../../../../../../shared/testing';
 
 describe('ApiPropertiesComponent', () => {
   let fixture: ComponentFixture<EndpointHttpConfigComponent>;
   let component: EndpointHttpConfigComponent;
   let httpTestingController: HttpTestingController;
-  let loader: HarnessLoader;
+  let endpointHttpConfigHarness: EndpointHttpConfigHarness;
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, EndpointHttpConfigModule],
     })
       .overrideProvider(InteractivityChecker, {
@@ -44,17 +45,96 @@ describe('ApiPropertiesComponent', () => {
 
     fixture = TestBed.createComponent(EndpointHttpConfigComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
-    loader = TestbedHarnessEnvironment.loader(fixture);
     component = fixture.componentInstance;
-    fixture.detectChanges();
+
+    component.httpConfigFormGroup = EndpointHttpConfigComponent.getHttpConfigFormGroup(
+      {
+        httpClientOptions: {
+          version: 'HTTP_2',
+          connectTimeout: 1000,
+          readTimeout: 1000,
+          idleTimeout: 1000,
+          maxConcurrentConnections: 1000,
+          keepAlive: true,
+          pipelining: true,
+          useCompression: true,
+          followRedirects: true,
+          propagateClientAcceptEncoding: true,
+          clearTextUpgrade: true,
+        },
+      },
+      false,
+    );
+    endpointHttpConfigHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, EndpointHttpConfigHarness);
   });
 
   afterEach(() => {
     httpTestingController.verify();
   });
 
-  it('should work', async () => {
-    expect(component).toBeTruthy();
-    expect(loader).toBeTruthy();
+  it('should init form fields with value', async () => {
+    const values = await endpointHttpConfigHarness.getHttpConfigValues();
+
+    expect(values).toEqual({
+      clearTextUpgrade: true,
+      connectTimeout: 1000,
+      followRedirects: true,
+      idleTimeout: 1000,
+      keepAlive: true,
+      maxConcurrentConnections: 1000,
+      pipelining: true,
+      propagateClientAcceptEncoding: false,
+      readTimeout: 1000,
+      useCompression: true,
+      version: 'HTTP/2',
+    });
+  });
+
+  it('should change HttpVersion to HTTP 1.1', async () => {
+    const clearTextUpgrade = await endpointHttpConfigHarness.getMatSlideToggle('clearTextUpgrade');
+
+    expect(await clearTextUpgrade.isDisabled()).toEqual(false);
+
+    await endpointHttpConfigHarness.setHttpVersion('HTTP/1.1');
+
+    expect(await clearTextUpgrade.isDisabled()).toEqual(true);
+
+    expect(await endpointHttpConfigHarness.getHttpConfigValues()).toEqual({
+      clearTextUpgrade: false,
+      connectTimeout: 1000,
+      followRedirects: true,
+      idleTimeout: 1000,
+      keepAlive: true,
+      maxConcurrentConnections: 1000,
+      pipelining: true,
+      propagateClientAcceptEncoding: false,
+      readTimeout: 1000,
+      useCompression: true,
+      version: 'HTTP/1.1',
+    });
+  });
+
+  it('should set useCompression=false and propagateClientAcceptEncoding=true', async () => {
+    const propagateClientAcceptEncoding = await endpointHttpConfigHarness.getMatSlideToggle('propagateClientAcceptEncoding');
+    expect(await propagateClientAcceptEncoding.isDisabled()).toEqual(true);
+
+    await endpointHttpConfigHarness.setEnableCompression(false);
+    expect(await propagateClientAcceptEncoding.isDisabled()).toEqual(false);
+
+    await propagateClientAcceptEncoding.toggle();
+
+    expect(await endpointHttpConfigHarness.getHttpConfigValues()).toEqual({
+      clearTextUpgrade: true,
+      connectTimeout: 1000,
+      followRedirects: true,
+      idleTimeout: 1000,
+      keepAlive: true,
+      maxConcurrentConnections: 1000,
+      pipelining: true,
+      propagateClientAcceptEncoding: true,
+      readTimeout: 1000,
+      useCompression: false,
+      version: 'HTTP/2',
+    });
   });
 });

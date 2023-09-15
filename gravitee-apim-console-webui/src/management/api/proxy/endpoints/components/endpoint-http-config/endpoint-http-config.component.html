@@ -15,4 +15,116 @@
     limitations under the License.
 
 -->
-🚧🚧🚧
+<ng-container *ngIf="httpConfigFormGroup" [formGroup]="httpConfigFormGroup">
+  <ng-container formGroupName="httpClientOptions">
+    <h2>HTTP Options</h2>
+
+    <mat-form-field class="endpointHttpConfig__formField">
+      <mat-label>HTTP Protocol version</mat-label>
+      <mat-select formControlName="version">
+        <mat-option *ngFor="let version of httpVersions" [value]="version.value">{{ version.label }}</mat-option>
+      </mat-select>
+      <mat-hint>HTTP protocol version to use</mat-hint>
+    </mat-form-field>
+
+    <mat-form-field class="endpointHttpConfig__formField">
+      <mat-label>Connect timeout</mat-label>
+      <input matInput formControlName="connectTimeout" type="number" />
+      <mat-hint>Maximum time to connect to the remote host. (in milliseconds)</mat-hint>
+    </mat-form-field>
+
+    <mat-form-field class="endpointHttpConfig__formField">
+      <mat-label>Read timeout</mat-label>
+      <input matInput formControlName="readTimeout" type="number" />
+      <mat-hint>Maximum time to complete the request, including response. (in milliseconds)</mat-hint>
+    </mat-form-field>
+
+    <mat-form-field class="endpointHttpConfig__formField">
+      <mat-label>Idle timeout</mat-label>
+      <input matInput formControlName="idleTimeout" type="number" />
+      <mat-hint>Maximum time a connection will timeout and be closed if no data is received within the timeout. (in milliseconds)</mat-hint>
+    </mat-form-field>
+
+    <mat-form-field class="endpointHttpConfig__formField">
+      <mat-label>Max Concurrent Connections</mat-label>
+      <input matInput formControlName="maxConcurrentConnections" type="number" />
+      <mat-hint>Maximum pool size for connections.</mat-hint>
+    </mat-form-field>
+
+    <gio-form-slide-toggle class="endpointHttpConfig__formField">
+      <gio-form-label>Allow h2c Clear Text Upgrade</gio-form-label>
+      If enabled, an h2c connection is established using an HTTP/1.1 Upgrade request. If disabled, h2c connection is established directly
+      (with prior knowledge)
+      <mat-slide-toggle
+        gioFormSlideToggle
+        formControlName="clearTextUpgrade"
+        aria-label="Allow h2c Clear Text Upgrade"
+        name="clearTextUpgrade"
+      ></mat-slide-toggle>
+    </gio-form-slide-toggle>
+
+    <gio-form-slide-toggle class="endpointHttpConfig__formField">
+      <gio-form-label>Enable keep-alive</gio-form-label>
+      Use an HTTP persistent connection to send and receive multiple HTTP requests / responses.
+      <mat-slide-toggle gioFormSlideToggle formControlName="keepAlive" aria-label="Enable keep-alive" name="keepAlive"></mat-slide-toggle>
+    </gio-form-slide-toggle>
+
+    <gio-form-slide-toggle class="endpointHttpConfig__formField">
+      <gio-form-label>Enable HTTP pipelining</gio-form-label>
+      When pipe-lining is enabled requests will be written to connections without waiting for previous responses to return.
+      <mat-slide-toggle
+        gioFormSlideToggle
+        formControlName="pipelining"
+        aria-label="Enable HTTP pipelining"
+        name="pipelining"
+      ></mat-slide-toggle>
+    </gio-form-slide-toggle>
+
+    <gio-form-slide-toggle class="endpointHttpConfig__formField">
+      <gio-form-label>Follow HTTP redirects</gio-form-label>
+      When the client receives a status code in the range 3xx, it follows the redirection provided by the Location response header
+      <mat-slide-toggle
+        gioFormSlideToggle
+        formControlName="followRedirects"
+        aria-label="Follow HTTP redirects"
+        name="followRedirects"
+      ></mat-slide-toggle>
+    </gio-form-slide-toggle>
+
+    <gio-form-slide-toggle class="endpointHttpConfig__formField">
+      <gio-form-label>Enable compression (gzip, deflate)</gio-form-label>
+      The gateway can let the remote http server know that it supports compression. In case the remote http server returns a compressed
+      response, the gateway will decompress it. Leave that option off if you don't want compression between the gateway and the remote
+      server.
+      <mat-slide-toggle
+        gioFormSlideToggle
+        formControlName="useCompression"
+        aria-label="Enable compression (gzip, deflate)"
+        name="useCompression"
+      ></mat-slide-toggle>
+    </gio-form-slide-toggle>
+
+    <gio-form-slide-toggle class="endpointHttpConfig__formField">
+      <gio-form-label>Propagate client Accept-Encoding header (no decompression if any)</gio-form-label>
+      The gateway will propagate the Accept-Encoding header's value specified by the client's request to the backend (if any). The gateway
+      will <b>NEVER attempt to decompress the content</b> if the backend response is compressed (gzip, deflate). It is then not possible to
+      apply transformation policy if the body is compressed. Also, body will appear compressed if logging is enabled for the API. DO NOT
+      activate this option if you plan to play with body responses.
+      <mat-slide-toggle
+        gioFormSlideToggle
+        formControlName="propagateClientAcceptEncoding"
+        aria-label="Propagate client Accept-Encoding header (no decompression if any)"
+        name="propagateClientAcceptEncoding"
+      ></mat-slide-toggle>
+    </gio-form-slide-toggle>
+  </ng-container>
+
+  <h2>HTTP Headers</h2>
+  🚧
+
+  <h2>Proxy Options</h2>
+  🚧
+
+  <h2>SSL Options</h2>
+  🚧
+</ng-container>
