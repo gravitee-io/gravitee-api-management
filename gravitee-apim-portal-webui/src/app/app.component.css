@@ -123,7 +123,7 @@
 
 .layout__header__container {
   display: grid;
-  grid-template-columns: 75px 1fr auto;
+  grid-template-columns: 250px 1fr auto;
   grid-gap: 0.5rem;
   padding: var(--gv-theme-layout--pt) var(--gv-theme-layout--pr) var(--gv-theme-layout--pb) var(--gv-theme-layout--pl);
 }
@@ -132,7 +132,7 @@
   background-image: var(--gv-theme-logo);
   background-size: contain;
   background-repeat: no-repeat;
-  background-position: center;
+  background-position-y: center;
   height: var(--gv-theme-layout-header--h);
 }
 
