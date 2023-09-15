@@ -367,7 +367,7 @@
 
         <!-- Testing -->
         <dependency>
-            <groupId>com.github.tomakehurst</groupId>
+            <groupId>org.wiremock</groupId>
             <artifactId>wiremock</artifactId>
             <scope>compile</scope>
         </dependency>
