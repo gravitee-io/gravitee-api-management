@@ -47,6 +47,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 import lombok.SneakyThrows;
 import org.assertj.core.api.SoftAssertions;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -105,6 +106,11 @@ class CloseSubscriptionDomainServiceImplTest {
     @AfterEach
     void tearDown() {
         GraviteeContext.cleanContext();
+    }
+
+    @AfterAll
+    static void afterAll() {
+        UuidString.reset();
     }
 
     @Test

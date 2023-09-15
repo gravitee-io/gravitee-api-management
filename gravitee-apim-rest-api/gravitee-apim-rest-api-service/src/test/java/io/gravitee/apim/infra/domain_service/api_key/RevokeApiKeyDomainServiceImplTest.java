@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import lombok.SneakyThrows;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -70,6 +71,11 @@ class RevokeApiKeyDomainServiceImplTest {
                 apiKeyRepository,
                 new AuditDomainServiceImpl(auditCrudService, userCrudService, GraviteeJacksonMapper.getInstance())
             );
+    }
+
+    @AfterAll
+    static void afterAll() {
+        UuidString.reset();
     }
 
     @SneakyThrows

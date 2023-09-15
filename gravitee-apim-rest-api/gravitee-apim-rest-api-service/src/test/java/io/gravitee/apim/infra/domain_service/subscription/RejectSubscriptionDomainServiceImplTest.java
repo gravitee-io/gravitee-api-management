@@ -51,6 +51,7 @@ import java.util.Map;
 import java.util.Optional;
 import lombok.SneakyThrows;
 import org.assertj.core.api.SoftAssertions;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -122,6 +123,11 @@ public class RejectSubscriptionDomainServiceImplTest {
         planCrudService.reset();
         triggerNotificationDomainService.reset();
         userCrudService.reset();
+    }
+
+    @AfterAll
+    static void afterAll() {
+        UuidString.reset();
     }
 
     @Nested
