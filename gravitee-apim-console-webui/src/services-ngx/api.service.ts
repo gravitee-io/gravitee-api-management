@@ -16,8 +16,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
-import * as _ from 'lodash';
-import { catchError, map, mapTo } from 'rxjs/operators';
+import { catchError, mapTo } from 'rxjs/operators';
 import { IScope } from 'angular';
 import { AbstractControl, AsyncValidatorFn, ValidationErrors, ValidatorFn } from '@angular/forms';
 
@@ -54,43 +53,36 @@ export class ApiService {
   }
 
   update(api: UpdateApi & { id: string }): Observable<Api> {
-    return this.http
-      .put<Api>(`${this.constants.env.baseURL}/apis/${api.id}`, {
-        version: api.version,
-        description: api.description,
-        proxy: api.proxy,
-        paths: api.paths,
-        flows: api.flows,
-        plans: api.plans,
-        // TODO To remove ? not present inside backend model
-        // private: api.private,
-        visibility: api.visibility,
-        name: api.name,
-        services: api.services,
-        properties: api.properties,
-        tags: api.tags,
-        picture: api.picture,
-        picture_url: api.picture_url,
-        background: api.background,
-        background_url: api.background_url,
-        resources: api.resources,
-        categories: api.categories,
-        groups: api.groups,
-        labels: api.labels,
-        path_mappings: api.path_mappings,
-        response_templates: api.response_templates,
-        lifecycle_state: api.lifecycle_state,
-        disable_membership_notifications: api.disable_membership_notifications,
-        flow_mode: api.flow_mode,
-        gravitee: api.gravitee,
-        execution_mode: api.execution_mode,
-      })
-      .pipe(
-        map((api) => {
-          this.ajsRootScope.$broadcast('apiChangeSuccess', { api: _.cloneDeep(api) });
-          return api;
-        }),
-      );
+    return this.http.put<Api>(`${this.constants.env.baseURL}/apis/${api.id}`, {
+      version: api.version,
+      description: api.description,
+      proxy: api.proxy,
+      paths: api.paths,
+      flows: api.flows,
+      plans: api.plans,
+      // TODO To remove ? not present inside backend model
+      // private: api.private,
+      visibility: api.visibility,
+      name: api.name,
+      services: api.services,
+      properties: api.properties,
+      tags: api.tags,
+      picture: api.picture,
+      picture_url: api.picture_url,
+      background: api.background,
+      background_url: api.background_url,
+      resources: api.resources,
+      categories: api.categories,
+      groups: api.groups,
+      labels: api.labels,
+      path_mappings: api.path_mappings,
+      response_templates: api.response_templates,
+      lifecycle_state: api.lifecycle_state,
+      disable_membership_notifications: api.disable_membership_notifications,
+      flow_mode: api.flow_mode,
+      gravitee: api.gravitee,
+      execution_mode: api.execution_mode,
+    });
   }
 
   getAll(

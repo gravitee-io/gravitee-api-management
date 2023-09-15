@@ -23,6 +23,7 @@ import UserService from '../../../../services/user.service';
 import NewApiImportController from '../newApiImport.controller';
 import { PlanSecurityType } from '../../../../entities/plan';
 import { IfMatchEtagInterceptor } from '../../../../shared/interceptors/if-match-etag.interceptor';
+import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 
 interface Page {
   fileName: string;
@@ -96,6 +97,7 @@ class ApiCreationController {
     private $stateParams,
     private $window,
     private ApiService: ApiService,
+    private ApiV2Service: ApiV2Service,
     private NotificationService: NotificationService,
     private UserService: UserService,
     private $state: StateService,
@@ -269,7 +271,6 @@ class ApiCreationController {
             api.data.workflow_state = 'IN_REVIEW';
             this.ngIfMatchEtagInterceptor.updateLastEtag('api', response.headers('etag'));
             this.api = api.data;
-            this.$rootScope.$broadcast('apiChangeSuccess', { api: api.data });
           });
         }
         return api;
@@ -289,6 +290,7 @@ class ApiCreationController {
         }
         return api;
       })
+      .then((api) => this.ApiV2Service.get(api.data.id).toPromise())
       .catch(() => {
         this.vm.showBusyText = false;
       });

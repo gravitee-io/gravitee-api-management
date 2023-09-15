@@ -21,6 +21,7 @@ import * as angular from 'angular';
 import { StateService } from '@uirouter/core';
 
 import { ApiService } from '../../../../services/api.service';
+import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const copy = require('clipboard-copy');
@@ -145,6 +146,7 @@ class ApiHistoryController {
     private PolicyService,
     private ResourceService,
     private FlowService,
+    private ApiV2Service: ApiV2Service,
   ) {
     this.api = JSON.parse(angular.toJson(_.cloneDeep(this.$scope.$parent.apiCtrl.api)));
     this.events = resolvedEvents.data;
@@ -183,21 +185,6 @@ class ApiHistoryController {
 
   init() {
     this.$scope.$parent.apiCtrl.checkAPISynchronization(this.api);
-    this.$scope.$on('apiChangeSuccess', (event, args) => {
-      if (this.$state.current.name.endsWith('history')) {
-        // reload API
-        if (args.api) {
-          this.api = JSON.parse(angular.toJson(_.cloneDeep(args.api)));
-        } else {
-          this.ApiService.get(args.apiId).then((response) => (this.api = response.data));
-        }
-        // reload API events
-        this.ApiService.getApiEvents(this.api.id, this.eventTypes).then((response) => {
-          this.events = response.data;
-          this.reloadEventsTimeline(this.events);
-        });
-      }
-    });
     this.$scope.$on('checkAPISynchronizationSucceed', () => {
       this.reloadEventsTimeline(this.events);
     });
@@ -401,8 +388,14 @@ class ApiHistoryController {
         return this.ApiService.get(this.api.id);
       })
       .then((response) => {
-        this.$rootScope.$broadcast('apiChangeSuccess', { api: response.data });
-      });
+        this.api = JSON.parse(angular.toJson(_.cloneDeep(response.data)));
+        // reload API events
+        return this.ApiService.getApiEvents(this.api.id, this.eventTypes);
+      })
+      .then((response) => {
+        this.events = response.data;
+      })
+      .then(() => this.ApiV2Service.get(this.api.id).toPromise()); // To update the deploy banner
   }
 
   showRollbackAPIConfirm(ev, api) {

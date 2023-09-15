@@ -165,9 +165,6 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
           return EMPTY;
         }),
         map((plan) => {
-          if (plan.definitionVersion === 'V2') {
-            this.ajsRootScope.$broadcast('apiChangeSuccess', { apiId: plan.apiId });
-          }
           this.snackBarService.success(`The plan ${plan.name} has been published with success.`);
           this.ngOnInit();
         }),
@@ -197,9 +194,6 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
           return EMPTY;
         }),
         map((plan) => {
-          if (plan.definitionVersion === 'V2') {
-            this.ajsRootScope.$broadcast('apiChangeSuccess', { apiId: plan.apiId });
-          }
           this.snackBarService.success(`The plan ${plan.name} has been deprecated with success.`);
           this.ngOnInit();
         }),
@@ -250,10 +244,6 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
           return EMPTY;
         }),
         map((plan) => {
-          if (plan.definitionVersion === 'V2') {
-            this.ajsRootScope.$broadcast('apiChangeSuccess', { apiId: plan.apiId });
-          }
-
           this.snackBarService.success(`The plan ${plan.name} has been closed with success.`);
           this.ngOnInit();
         }),
