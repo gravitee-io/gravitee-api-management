@@ -115,6 +115,9 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
       expectApiGetRequest(api);
       expectConnectorRequest();
       expectTenantsRequest();
+
+      // TODO : remove when this page only use apiV2Service
+      httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush({});
     });
 
     it('should go back to endpoints', async () => {
@@ -311,6 +314,9 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
       expectApiGetRequest(api);
       expectConnectorRequest();
       expectTenantsRequest();
+
+      // TODO : remove when this page only use apiV2Service
+      httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush({});
     });
 
     it('should create new endpoint', async () => {
@@ -399,6 +405,8 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
       expectApiGetRequest(api);
       expectConnectorRequest();
       expectTenantsRequest();
+      // TODO : remove when this page only use apiV2Service
+      httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush({});
     });
 
     it('should create new endpoint', async () => {
@@ -484,6 +492,8 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
       expectApiGetRequest(api);
       expectConnectorRequest();
       expectTenantsRequest();
+      // TODO : remove when this page only use apiV2Service
+      httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush({});
     });
 
     it('should create new endpoint', async () => {
@@ -577,6 +587,8 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
       expectApiGetRequest(api);
       expectConnectorRequest();
       expectTenantsRequest();
+      // TODO : remove when this page only use apiV2Service
+      httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush({});
     });
 
     it('should not allow user to update the form', async () => {
