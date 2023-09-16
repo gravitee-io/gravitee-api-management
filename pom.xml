@@ -102,7 +102,7 @@
         <javassist.version>3.28.0-GA</javassist.version>
         <jakarta.validation-api.version>3.0.2</jakarta.validation-api.version>
         <jakarta.annotation-api.version>2.1.1</jakarta.annotation-api.version>
-        <jakarta.inject-api.version>2.0.1</jakarta.inject-api.version>
+        <jakarta.inject-api.version>2.0.1.MR</jakarta.inject-api.version>
         <javax.inject.version>1</javax.inject.version>
         <jakarta.servlet-api.version>6.0.0</jakarta.servlet-api.version>
         <jakarta.transaction-api.version>2.0.1</jakarta.transaction-api.version>
@@ -151,7 +151,7 @@
         <maven-jar-plugin.version>3.3.0</maven-jar-plugin.version>
         <jacoco-maven-plugin.version>0.8.10</jacoco-maven-plugin.version>
         <os-maven-plugin.version>1.7.0</os-maven-plugin.version>
-        <swagger-maven-plugin.version>>2.2.9</swagger-maven-plugin.version>
+        <swagger-maven-plugin.version>&gt;2.2.9</swagger-maven-plugin.version>
         <maven-plugin-prettier.version>0.19</maven-plugin-prettier.version>
         <maven-plugin-prettier.prettierjava.version>2.1.0</maven-plugin-prettier.prettierjava.version>
         <skip.validation>false</skip.validation>
