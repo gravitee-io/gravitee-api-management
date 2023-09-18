@@ -22,10 +22,11 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { ApiRuntimeLogsModule } from './api-runtime-logs.module';
 import { ApiRuntimeLogsComponent } from './api-runtime-logs.component';
 import { ApiRuntimeLogsHarness } from './api-runtime-logs.component.harness';
+import { ApiRuntimeLogsListRowHarness } from './components';
 
 import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
-import { ConnectionLog, fakeApiV4 } from '../../../../entities/management-api-v2';
+import { ApiV4, ConnectionLog, fakeApiV4 } from '../../../../entities/management-api-v2';
 import { fakeApiLogsResponse, fakeEmptyApiLogsResponse } from '../../../../entities/management-api-v2/log/apiLogsResponse.fixture';
 import { fakeConnectionLog } from '../../../../entities/management-api-v2/log/connectionLog.fixture';
 
@@ -37,6 +38,7 @@ describe('ApiRuntimeLogsComponent', () => {
   let fixture: ComponentFixture<ApiRuntimeLogsComponent>;
   let httpTestingController: HttpTestingController;
   let componentHarness: ApiRuntimeLogsHarness;
+  let logsRowHarness: ApiRuntimeLogsListRowHarness;
 
   const initComponent = async () => {
     TestBed.configureTestingModule({
@@ -51,6 +53,7 @@ describe('ApiRuntimeLogsComponent', () => {
     fixture = TestBed.createComponent(ApiRuntimeLogsComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
     componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiRuntimeLogsHarness);
+    logsRowHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiRuntimeLogsListRowHarness);
 
     fixture.detectChanges();
   };
@@ -163,13 +166,36 @@ describe('ApiRuntimeLogsComponent', () => {
     });
   });
 
-  function expectApiWithLogEnabled() {
+  describe('GIVEN the API is a proxy API', () => {
+    it('should not display view message button', async () => {
+      expect.assertions(1);
+
+      await initComponent();
+      expectApiWithNoLog();
+      fixture.detectChanges();
+      expectApiWithLogEnabled({ type: 'PROXY' });
+
+      try {
+        await logsRowHarness.getViewMessageButton();
+      } catch (e) {
+        expect(e.message).toMatch(/Failed to find element/);
+      }
+    });
+  });
+
+  function expectApiWithLogEnabled(modifier?: Partial<ApiV4>) {
+    let api = fakeApiV4({ id: API_ID, analytics: { enabled: true, logging: { mode: { entrypoint: true } } } });
+
+    if (modifier) {
+      api = { ...api, ...modifier };
+    }
+
     httpTestingController
       .expectOne({
         url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`,
         method: 'GET',
       })
-      .flush(fakeApiV4({ id: API_ID, analytics: { enabled: true, logging: { mode: { entrypoint: true } } } }));
+      .flush(api);
   }
   function expectApiWithLogDisabled() {
     httpTestingController

@@ -15,12 +15,14 @@
  */
 import { NgModule } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
+import { BrowserModule } from '@angular/platform-browser';
+import { CommonModule } from '@angular/common';
 
 import { ApiRuntimeLogsListRowComponent } from './api-runtime-logs-list-row.component';
 
 @NgModule({
   declarations: [ApiRuntimeLogsListRowComponent],
   exports: [ApiRuntimeLogsListRowComponent],
-  imports: [MatButtonModule],
+  imports: [CommonModule, MatButtonModule, BrowserModule],
 })
 export class ApiRuntimeLogsListRowModule {}

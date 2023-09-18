@@ -62,7 +62,7 @@
       </div>
     </div>
   </div>
-  <div class="log-row__actions">
-    <button mat-button mat-raised-button disabled>View messages</button>
+  <div class="log-row__actions" *ngIf="isMessageApi">
+    <button mat-button mat-raised-button disabled data-testId="view-messages">View messages</button>
   </div>
 </div>
