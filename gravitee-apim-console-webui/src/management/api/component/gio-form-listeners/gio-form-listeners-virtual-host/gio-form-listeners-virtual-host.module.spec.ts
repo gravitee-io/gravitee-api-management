@@ -28,7 +28,12 @@ import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/t
 import { AjsRootScope } from '../../../../../ajs-upgraded-providers';
 
 @Component({
-  template: ` <gio-form-listeners-virtual-host [formControl]="formControl"></gio-form-listeners-virtual-host> `,
+  template: `
+    <gio-form-listeners-virtual-host
+      [formControl]="formControl"
+      [domainRestrictions]="['aa.com', 'bb.com']"
+    ></gio-form-listeners-virtual-host>
+  `,
 })
 class TestComponent {
   public formControl = new FormControl([]);
@@ -154,13 +159,52 @@ describe('GioFormListenersVirtualHostModule', () => {
 
     // Add path on last path row
     const emptyLastContextPathRow = await formVirtualHosts.getLastListenerRow();
-    await emptyLastContextPathRow.hostSubDomainInput.setValue('');
     await emptyLastContextPathRow.pathInput.setValue('/api/my-api-3');
 
     const hostTestElement = await emptyLastContextPathRow.hostSubDomainInput.host();
     expect(await hostTestElement.hasClass('ng-invalid')).toEqual(true);
-    await emptyLastContextPathRow.hostSubDomainInput.setValue('localhost');
+    await emptyLastContextPathRow.hostSubDomainInput.setValue('aa.com');
     expect(await hostTestElement.hasClass('ng-invalid')).toEqual(false);
+  });
+
+  it('should accept empty context path with virtual host', async () => {
+    const formVirtualHosts = await loader.getHarness(GioFormListenersVirtualHostHarness);
+
+    expect((await formVirtualHosts.getListenerRows()).length).toEqual(1);
+
+    // Add path on last path row
+    const emptyLastContextPathRow = await formVirtualHosts.getLastListenerRow();
+    await emptyLastContextPathRow.pathInput.setValue('/');
+
+    const hostSubDomainTestElement = await emptyLastContextPathRow.hostSubDomainInput.host();
+    const pathTestElement = await emptyLastContextPathRow.pathInput.host();
+    expect(await hostSubDomainTestElement.hasClass('ng-invalid')).toEqual(true);
+    await emptyLastContextPathRow.hostSubDomainInput.setValue('dd.aa.com');
+    expect(await hostSubDomainTestElement.hasClass('ng-invalid')).toEqual(false);
+    // should accept empty path as valid for virtual host
+    expect(await pathTestElement.hasClass('ng-invalid')).toEqual(false);
+  });
+
+  it('should not accept 2 hosts with same config', async () => {
+    const formVirtualHosts = await loader.getHarness(GioFormListenersVirtualHostHarness);
+
+    expect((await formVirtualHosts.getListenerRows()).length).toEqual(1);
+
+    // Add path on last path row
+    const firstVirtualHostRow = await formVirtualHosts.getLastListenerRow();
+    await firstVirtualHostRow.hostSubDomainInput.setValue('aa.com');
+    await firstVirtualHostRow.pathInput.setValue('test');
+
+    await formVirtualHosts.addListenerRow();
+
+    const secondVirtualHostRow = await formVirtualHosts.getLastListenerRow();
+    await secondVirtualHostRow.hostSubDomainInput.setValue('aa.com');
+    await secondVirtualHostRow.pathInput.setValue('test');
+
+    fixture.detectChanges();
+
+    expect(testComponent.formControl.valid).toBeFalsy();
+    expect(testComponent.formControl.errors).not.toBeNull();
   });
 
   it('should edit virtual host', async () => {

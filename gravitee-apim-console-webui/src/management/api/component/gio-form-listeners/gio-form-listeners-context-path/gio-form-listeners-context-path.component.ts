@@ -209,19 +209,33 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
 
   public validateListenerControl(listenerControl: AbstractControl, httpListeners: PathV4[], currentIndex: number): ValidationErrors | null {
     const listenerPathControl = listenerControl.get('path');
-    const contextPath = listenerPathControl.value;
+    let error = this.validateGenericPathListenerControl(listenerControl);
+    if (!error) {
+      const contextPathAlreadyExist = httpListeners
+        .filter((l, index) => index !== currentIndex)
+        .map((l) => l.path)
+        .includes(listenerPathControl.value);
+      if (contextPathAlreadyExist) {
+        error = { contextPath: 'Context path is already use.' };
+      }
+    }
+    setTimeout(() => listenerPathControl.setErrors(error), 0);
+    return error;
+  }
+
+  public validateGenericPathListenerControl(listenerControl: AbstractControl): ValidationErrors | null {
+    const listenerPathControl = listenerControl.get('path');
+    const contextPath: string = listenerPathControl.value;
 
     let errors = null;
     if (isEmpty(contextPath)) {
       errors = {
         contextPath: 'Context path is required.',
       };
-    } else if (contextPath.length < 3) {
-      errors = { contextPath: 'Context path has to be more than 3 characters long.' };
+    } else if (contextPath.includes('//')) {
+      errors = { contextPath: 'Context path is not valid.' };
     } else if (!PATH_PATTERN_REGEX.test(contextPath)) {
       errors = { contextPath: 'Context path is not valid.' };
-    } else if (httpListeners.find((httpListener, index) => index !== currentIndex && httpListener.path === contextPath) != null) {
-      errors = { contextPath: 'Context path is already use.' };
     }
     setTimeout(() => listenerPathControl.setErrors(errors), 0);
     return errors;
@@ -244,7 +258,7 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
       return zip(...pathValidations$).pipe(
         map((errors: (ValidationErrors | null)[]) => {
           errors.forEach((error, index) => {
-            listenerFormArrayControls.at(index).get('path').setErrors(error);
+            setTimeout(() => listenerFormArrayControls.at(index).get('path').setErrors(error), 0);
           });
           if (errors.filter((v) => v !== null).length === 0) {
             return null;
