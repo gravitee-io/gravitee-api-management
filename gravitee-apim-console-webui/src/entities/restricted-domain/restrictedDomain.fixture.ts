@@ -13,14 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Flow } from '../flow/flow';
+import { RestrictedDomain } from './restrictedDomain';
 
-export interface Organization {
-  id: string;
-  cockpitId: string;
-  hrids: string[];
-  name: string;
-  description: string;
-  flowMode: 'DEFAULT' | 'BEST_MATCH';
-  flows: Flow[];
+export function fakeRestrictedDomain(attributes?: Partial<RestrictedDomain>): RestrictedDomain {
+  const base: RestrictedDomain = {
+    domain: 'my-custom-domain',
+    secured: false,
+  };
+
+  return {
+    ...base,
+    ...attributes,
+  };
+}
+
+export function fakeRestrictedDomains(domain: string[], attributes?: Partial<RestrictedDomain>): RestrictedDomain[] {
+  return domain.map((value) => {
+    const base: RestrictedDomain = {
+      domain: value,
+      secured: false,
+    };
+
+    return {
+      ...base,
+      ...attributes,
+    };
+  });
 }

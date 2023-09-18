@@ -88,7 +88,7 @@ public class NamingConventionTest extends AbstractApimArchitectureTest {
     }
 
     @Nested
-    class DomainServices {
+    class AccessPointServices {
 
         /**
          * DomainServices implementation should be suffixed with "DomainServiceImpl"

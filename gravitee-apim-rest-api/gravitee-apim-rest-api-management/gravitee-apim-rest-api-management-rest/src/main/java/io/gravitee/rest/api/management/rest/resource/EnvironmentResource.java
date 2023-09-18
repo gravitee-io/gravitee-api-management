@@ -295,4 +295,9 @@ public class EnvironmentResource extends AbstractResource {
     public PromotionTargetsResource getPromotionTargetsResource() {
         return resourceContext.getResource(PromotionTargetsResource.class);
     }
+
+    @Path("restrictedDomains")
+    public RestrictedDomainsResource getRestrictedDomainsResource() {
+        return resourceContext.getResource(RestrictedDomainsResource.class);
+    }
 }

@@ -15,9 +15,8 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
-import java.util.List;
-import java.util.Objects;
-import lombok.EqualsAndHashCode;
+import io.gravitee.repository.management.model.AccessPointReferenceType;
+import io.gravitee.repository.management.model.AccessPointTarget;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -25,38 +24,37 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
- * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
+ * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}organizations")
+@Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}access_points")
 @Getter
 @Setter
 @ToString
-public class OrganizationMongo {
+public class AccessPointMongo {
 
     @Id
     private String id;
 
-    private String cockpitId;
-
-    private List<String> hrids;
-
-    private String name;
-
-    private String description;
-
-    private String flowMode;
+    private AccessPointReferenceType referenceType;
+    private String referenceId;
+    private String host;
+    private boolean secured;
+    private AccessPointTarget target;
+    private boolean overriding;
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof OrganizationMongo)) return false;
-        OrganizationMongo envMongo = (OrganizationMongo) o;
-        return Objects.equals(id, envMongo.id);
+        if (o == null || getClass() != o.getClass()) return false;
+
+        AccessPointMongo that = (AccessPointMongo) o;
+
+        return id.equals(that.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return id.hashCode();
     }
 }

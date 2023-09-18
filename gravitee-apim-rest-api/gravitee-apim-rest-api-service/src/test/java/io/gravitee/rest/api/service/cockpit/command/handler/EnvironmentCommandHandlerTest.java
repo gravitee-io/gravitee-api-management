@@ -79,8 +79,7 @@ public class EnvironmentCommandHandlerTest {
                     newEnvironment.getCockpitId().equals(environmentPayload.getCockpitId()) &&
                     newEnvironment.getHrids().equals(environmentPayload.getHrids()) &&
                     newEnvironment.getDescription().equals(environmentPayload.getDescription()) &&
-                    newEnvironment.getName().equals(environmentPayload.getName()) &&
-                    newEnvironment.getDomainRestrictions().equals(environmentPayload.getDomainRestrictions())
+                    newEnvironment.getName().equals(environmentPayload.getName())
                 )
             )
         )

@@ -94,8 +94,6 @@ public class OrganizationService_CreateTest {
         org1.setHrids(List.of("orgid"));
         org1.setName("org_name");
         org1.setDescription("org_desc");
-        List<String> domainRestrictions = Arrays.asList("domain", "restriction");
-        org1.setDomainRestrictions(domainRestrictions);
         org1.setFlows(List.of());
 
         Organization createdOrganization = new Organization();
@@ -118,14 +116,7 @@ public class OrganizationService_CreateTest {
 
         assertNotNull("result is null", organization);
         verify(mockOrganizationRepository, times(1))
-            .create(
-                argThat(arg ->
-                    arg != null &&
-                    arg.getName().equals("org_name") &&
-                    arg.getDescription().equals("org_desc") &&
-                    arg.getDomainRestrictions().equals(domainRestrictions)
-                )
-            );
+            .create(argThat(arg -> arg != null && arg.getName().equals("org_name") && arg.getDescription().equals("org_desc")));
         verify(mockOrganizationRepository, never()).update(any());
         verify(mockRoleService, times(1)).initialize(GraviteeContext.getExecutionContext(), "org_id");
         verify(mockRoleService, times(1)).createOrUpdateSystemRoles(GraviteeContext.getExecutionContext(), "org_id");
@@ -147,8 +138,6 @@ public class OrganizationService_CreateTest {
         org1.setHrids(List.of("orgid"));
         org1.setName("org_name");
         org1.setDescription("org_desc");
-        List<String> domainRestrictions = Arrays.asList("domain", "restriction");
-        org1.setDomainRestrictions(domainRestrictions);
         org1.setFlows(List.of(mock(Flow.class)));
 
         Organization createdOrganization = new Organization();
@@ -170,14 +159,7 @@ public class OrganizationService_CreateTest {
 
         assertNotNull("result is null", organization);
         verify(mockOrganizationRepository, times(1))
-            .update(
-                argThat(arg ->
-                    arg != null &&
-                    arg.getName().equals("org_name") &&
-                    arg.getDescription().equals("org_desc") &&
-                    arg.getDomainRestrictions().equals(domainRestrictions)
-                )
-            );
+            .update(argThat(arg -> arg != null && arg.getName().equals("org_name") && arg.getDescription().equals("org_desc")));
         verify(mockOrganizationRepository, never()).create(any());
         verify(mockRoleService, never()).initialize(GraviteeContext.getExecutionContext(), "org_id");
         verify(mockRoleService, never()).createOrUpdateSystemRoles(GraviteeContext.getExecutionContext(), "org_id");

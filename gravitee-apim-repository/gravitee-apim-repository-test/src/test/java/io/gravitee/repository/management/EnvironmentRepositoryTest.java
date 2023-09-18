@@ -42,7 +42,6 @@ public class EnvironmentRepositoryTest extends AbstractManagementRepositoryTest 
         environment.setName("Default env for create");
         environment.setDescription("Default env description for create");
         environment.setOrganizationId("DEFAULT-ORG");
-        environment.setDomainRestrictions(Arrays.asList("domain", "restriction"));
 
         final Environment createdEnv = environmentRepository.create(environment);
 
@@ -52,11 +51,6 @@ public class EnvironmentRepositoryTest extends AbstractManagementRepositoryTest 
         assertEquals(environment.getName(), createdEnv.getName());
         assertEquals(environment.getDescription(), createdEnv.getDescription());
         assertEquals(environment.getOrganizationId(), createdEnv.getOrganizationId());
-        List<String> domainRestrictions = createdEnv.getDomainRestrictions();
-        assertNotNull(domainRestrictions);
-        assertEquals(2, domainRestrictions.size());
-        assertTrue(domainRestrictions.contains("domain"));
-        assertTrue(domainRestrictions.contains("restriction"));
 
         Optional<Environment> optionalEnv = environmentRepository.findById("DEFAULT-create");
         Assert.assertTrue("Environment to create not found", optionalEnv.isPresent());

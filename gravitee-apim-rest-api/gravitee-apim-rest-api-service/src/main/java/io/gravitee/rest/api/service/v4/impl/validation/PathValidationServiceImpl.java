@@ -24,9 +24,10 @@ import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
+import io.gravitee.repository.management.model.AccessPoint;
 import io.gravitee.repository.management.model.Api;
-import io.gravitee.rest.api.model.EnvironmentEntity;
-import io.gravitee.rest.api.service.EnvironmentService;
+import io.gravitee.rest.api.model.RestrictedDomainEntity;
+import io.gravitee.rest.api.service.AccessPointService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.v4.exception.HttpListenerPathMissingException;
 import io.gravitee.rest.api.service.v4.exception.InvalidHostException;
@@ -56,16 +57,16 @@ public class PathValidationServiceImpl implements PathValidationService {
 
     private final ApiRepository apiRepository;
     private final ObjectMapper objectMapper;
-    private final EnvironmentService environmentService;
+    private final AccessPointService accessPointService;
 
     public PathValidationServiceImpl(
         @Lazy final ApiRepository apiRepository,
         final ObjectMapper objectMapper,
-        final EnvironmentService environmentService
+        final AccessPointService accessPointService
     ) {
         this.apiRepository = apiRepository;
         this.objectMapper = objectMapper;
-        this.environmentService = environmentService;
+        this.accessPointService = accessPointService;
     }
 
     @Override
@@ -76,12 +77,10 @@ public class PathValidationServiceImpl implements PathValidationService {
         List<Path> sanitizedPaths = paths
             .stream()
             .map(path -> new Path(path.getHost(), sanitizePath(path.getPath()), path.isOverrideAccess()))
-            .collect(Collectors.toList());
-
-        final EnvironmentEntity currentEnv = environmentService.findById(executionContext.getEnvironmentId());
+            .toList();
 
         // validate domain restrictions
-        validateDomainRestrictions(sanitizedPaths, currentEnv.getDomainRestrictions());
+        validateDomainRestrictions(executionContext, sanitizedPaths);
 
         // Get all the paths declared on all API of the currentEnvironment, except the one to update
         apiRepository
@@ -195,28 +194,39 @@ public class PathValidationServiceImpl implements PathValidationService {
         return DUPLICATE_SLASH_REMOVER.matcher(sanitizedPath).replaceAll(URI_PATH_SEPARATOR);
     }
 
-    private void validateDomainRestrictions(final List<Path> paths, final List<String> domainRestrictions) {
-        if (domainRestrictions != null && !domainRestrictions.isEmpty()) {
+    private void validateDomainRestrictions(final ExecutionContext executionContext, final List<Path> paths) {
+        final List<RestrictedDomainEntity> restrictedDomains = accessPointService.getGatewayRestrictedDomains(
+            executionContext.getOrganizationId(),
+            executionContext.getEnvironmentId()
+        );
+        if (restrictedDomains != null && !restrictedDomains.isEmpty()) {
             for (Path path : paths) {
                 String host = path.getHost();
                 if (!StringUtils.isEmpty(host)) {
                     String hostWithoutPort = host.split(":")[0];
-                    if (!isValidDomainOrSubDomain(hostWithoutPort, domainRestrictions)) {
-                        throw new InvalidHostException(hostWithoutPort, domainRestrictions);
+                    if (!isValidDomainOrSubDomain(hostWithoutPort, restrictedDomains)) {
+                        throw new InvalidHostException(
+                            hostWithoutPort,
+                            restrictedDomains.stream().map(RestrictedDomainEntity::getDomain).toList()
+                        );
                     }
                 } else {
-                    path.setHost(domainRestrictions.get(0));
+                    path.setHost(restrictedDomains.get(0).getDomain());
                 }
+            }
+            if (!paths.isEmpty() && paths.stream().noneMatch(Path::isOverrideAccess)) {
+                paths.get(0).setOverrideAccess(true);
             }
         }
     }
 
-    private boolean isValidDomainOrSubDomain(String domain, List<String> domainRestrictions) {
+    private boolean isValidDomainOrSubDomain(String domain, List<RestrictedDomainEntity> restrictedDomainEntities) {
         boolean isSubDomain = false;
-        if (domainRestrictions.isEmpty()) {
+        if (restrictedDomainEntities.isEmpty()) {
             return true;
         }
-        for (String domainRestriction : domainRestrictions) {
+        for (RestrictedDomainEntity restrictedDomainEntity : restrictedDomainEntities) {
+            String domainRestriction = restrictedDomainEntity.getDomain();
             InternetDomainName domainIDN = InternetDomainName.from(domain);
             InternetDomainName parentIDN = InternetDomainName.from(domainRestriction);
 

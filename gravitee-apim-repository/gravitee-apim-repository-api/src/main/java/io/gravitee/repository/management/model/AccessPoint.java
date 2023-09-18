@@ -13,13 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.model;
+package io.gravitee.repository.management.model;
 
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
-import java.util.List;
-import java.util.Objects;
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -27,30 +24,23 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
+ * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Getter
 @Setter
 @EqualsAndHashCode
 @ToString
-public class UpdateEnvironmentEntity {
+public class AccessPoint {
 
-    private String cockpitId;
-
-    private List<String> hrids;
-
-    @NotNull
-    @Size(min = 1)
-    private String name;
-
-    private String description;
-
-    public UpdateEnvironmentEntity(EnvironmentEntity environment) {
-        this.cockpitId = environment.getCockpitId();
-        this.hrids = environment.getHrids();
-        this.name = environment.getName();
-        this.description = environment.getDescription();
-    }
+    private String id;
+    private AccessPointReferenceType referenceType;
+    private String referenceId;
+    private AccessPointTarget target;
+    private String host;
+    private boolean secured;
+    private boolean overriding;
 }

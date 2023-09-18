@@ -36,9 +36,9 @@ import { Api, ApiV4, ConnectorPlugin, fakeApiV4, UpdateApiV4 } from '../../../en
 import { GioFormListenersContextPathHarness } from '../component/gio-form-listeners/gio-form-listeners-context-path/gio-form-listeners-context-path.harness';
 import { PortalSettings } from '../../../entities/portal/portalSettings';
 import { GioFormListenersVirtualHostHarness } from '../component/gio-form-listeners/gio-form-listeners-virtual-host/gio-form-listeners-virtual-host.harness';
-import { Environment } from '../../../entities/environment/environment';
-import { fakeEnvironment } from '../../../entities/environment/environment.fixture';
 import { User as DeprecatedUser } from '../../../entities/user';
+import { RestrictedDomain } from '../../../entities/restricted-domain/restrictedDomain';
+import { fakeRestrictedDomains } from '../../../entities/restricted-domain/restrictedDomain.fixture';
 
 describe('ApiProxyV4EntrypointsComponent', () => {
   const API_ID = 'apiId';
@@ -48,11 +48,11 @@ describe('ApiProxyV4EntrypointsComponent', () => {
   let httpTestingController: HttpTestingController;
   let rootLoader: HarnessLoader;
 
-  const createComponent = async (environment: Environment, api: ApiV4, getPortalSettings = true, permissions?: string[]) => {
+  const createComponent = async (restrictedDomains: RestrictedDomain[], api: ApiV4, getPortalSettings = true, permissions?: string[]) => {
     await init(permissions);
     fixture.detectChanges();
 
-    expectGetCurrentEnvironment(environment);
+    expectGetRestrictedDomain(restrictedDomains);
     expectGetEntrypoints();
     expectGetApi(api);
 
@@ -96,14 +96,14 @@ describe('ApiProxyV4EntrypointsComponent', () => {
   });
 
   describe('When API has PROXY architecture type', () => {
-    const ENV = fakeEnvironment();
+    const RESTRICTED_DOMAINS = [];
     const API = fakeApiV4({
       type: 'PROXY',
       listeners: [{ type: 'HTTP', entrypoints: [{ type: 'http-get' }], paths: [{ path: '/path' }] }],
     });
 
     beforeEach(async () => {
-      await createComponent(ENV, API);
+      await createComponent(RESTRICTED_DOMAINS, API);
     });
 
     afterEach(() => {
@@ -123,11 +123,11 @@ describe('ApiProxyV4EntrypointsComponent', () => {
   });
 
   describe('API with subscription listener only', () => {
-    const ENV = fakeEnvironment();
+    const RESTRICTED_DOMAINS = [];
     const API = fakeApiV4({ listeners: [{ type: 'SUBSCRIPTION', entrypoints: [{ type: 'webhook' }] }] });
 
     beforeEach(async () => {
-      await createComponent(ENV, API, false);
+      await createComponent(RESTRICTED_DOMAINS, API, false);
     });
 
     it('should not show context paths', async () => {
@@ -145,11 +145,11 @@ describe('ApiProxyV4EntrypointsComponent', () => {
   });
 
   describe('API with context path', () => {
-    const ENV = fakeEnvironment();
+    const RESTRICTED_DOMAINS = [];
     const API = fakeApiV4({ listeners: [{ type: 'HTTP', paths: [{ path: '/context-path' }], entrypoints: [{ type: 'http-get' }] }] });
 
     beforeEach(async () => {
-      await createComponent(ENV, API);
+      await createComponent(RESTRICTED_DOMAINS, API);
     });
 
     afterEach(() => {
@@ -222,13 +222,13 @@ describe('ApiProxyV4EntrypointsComponent', () => {
   });
 
   describe('API with virtual host', () => {
-    const ENV = fakeEnvironment({ domainRestrictions: ['host', 'host2'] });
+    const RESTRICTED_DOMAINS = fakeRestrictedDomains(['host', 'host2']);
     const API = fakeApiV4({
       listeners: [{ type: 'HTTP', paths: [{ path: '/context-path', host: 'host' }], entrypoints: [{ type: 'http-get' }] }],
     });
 
     beforeEach(async () => {
-      await createComponent(ENV, API);
+      await createComponent(RESTRICTED_DOMAINS, API);
     });
 
     afterEach(() => {
@@ -292,7 +292,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
   });
 
   describe('Entrypoints management', () => {
-    const ENV = fakeEnvironment();
+    const RESTRICTED_DOMAINS = [];
     const API = () =>
       fakeApiV4({
         id: API_ID,
@@ -303,7 +303,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       });
 
     beforeEach(async () => {
-      await createComponent(ENV, API());
+      await createComponent(RESTRICTED_DOMAINS, API());
     });
 
     afterEach(() => {
@@ -449,7 +449,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
   });
 
   describe('When deleting the only entrypoint for HTTP listener', () => {
-    const ENV = fakeEnvironment();
+    const RESTRICTED_DOMAINS = [];
     const API = fakeApiV4({
       id: API_ID,
       listeners: [
@@ -459,7 +459,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
     });
 
     beforeEach(async () => {
-      await createComponent(ENV, API);
+      await createComponent(RESTRICTED_DOMAINS, API);
     });
 
     afterEach(() => {
@@ -498,7 +498,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
   });
 
   describe('When API does not have corresponding listener for entrypoint to add', () => {
-    const ENV = fakeEnvironment();
+    const RESTRICTED_DOMAINS = [];
     const API = fakeApiV4({
       listeners: [
         { type: 'HTTP', paths: [{ path: '/context-path' }], entrypoints: [{ type: 'http-get' }, { type: 'http-post' }, { type: 'sse' }] },
@@ -506,7 +506,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
     });
 
     beforeEach(async () => {
-      await createComponent(ENV, API);
+      await createComponent(RESTRICTED_DOMAINS, API);
     });
 
     afterEach(() => {
@@ -542,7 +542,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
   });
 
   describe('When API already has all existing listener type', () => {
-    const ENV = fakeEnvironment();
+    const RESTRICTED_DOMAINS = [];
     const API = fakeApiV4({
       listeners: [
         { type: 'HTTP', paths: [{ path: '/context-path' }], entrypoints: [{ type: 'http-get' }, { type: 'http-post' }, { type: 'sse' }] },
@@ -551,7 +551,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
     });
 
     beforeEach(async () => {
-      await createComponent(ENV, API);
+      await createComponent(RESTRICTED_DOMAINS, API);
       expectApiVerify();
     });
 
@@ -562,13 +562,13 @@ describe('ApiProxyV4EntrypointsComponent', () => {
   });
 
   describe('When API does not have HTTP listener', () => {
-    const ENV = fakeEnvironment();
+    const RESTRICTED_DOMAINS = [];
     const API = fakeApiV4({
       listeners: [{ type: 'SUBSCRIPTION', entrypoints: [{ type: 'webhook' }] }],
     });
 
     beforeEach(async () => {
-      await createComponent(ENV, API, false);
+      await createComponent(RESTRICTED_DOMAINS, API, false);
     });
 
     it('should ask for the context path', async () => {
@@ -611,7 +611,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
   });
 
   describe('user cannot update', () => {
-    const ENV = fakeEnvironment();
+    const RESTRICTED_DOMAINS = [];
     const API = fakeApiV4({
       id: API_ID,
       listeners: [
@@ -621,7 +621,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
     });
 
     beforeEach(async () => {
-      await createComponent(ENV, API, undefined, ['api-definition-r']);
+      await createComponent(RESTRICTED_DOMAINS, API, undefined, ['api-definition-r']);
       expectApiVerify();
     });
     it('should not show buttons that require permissions', async () => {
@@ -657,8 +657,8 @@ describe('ApiProxyV4EntrypointsComponent', () => {
         .catch((err) => expect(err).toBeTruthy());
     });
   });
-  function expectGetCurrentEnvironment(environment: Environment): void {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}`, method: 'GET' }).flush(environment);
+  function expectGetRestrictedDomain(restrictedDomains: RestrictedDomain[]): void {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/restrictedDomains`, method: 'GET' }).flush(restrictedDomains);
   }
   function expectGetApi(api: Api): void {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`, method: 'GET' }).flush(api);

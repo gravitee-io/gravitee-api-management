@@ -161,3 +161,9 @@ db.getCollection(`${prefix}custom_user_fields`).reIndex();
 db.getCollection(`${prefix}client_registration_providers`).dropIndexes();
 db.getCollection(`${prefix}client_registration_providers`).createIndex({ environmentId: 1 }, { name: "e1" });
 db.getCollection(`${prefix}client_registration_providers`).reIndex();
+
+// "customDomain" collection
+db.getCollection(`${prefix}custom_domain`).dropIndexes();
+db.getCollection(`${prefix}custom_domain`).createIndex({ domain: 1 }, { name: "d1" });
+db.getCollection(`${prefix}custom_domain`).createIndex({ referenceId: 1, referenceType: 1 }, { name: "ri1rt1" });
+db.getCollection(`${prefix}custom_domain`).reIndex();

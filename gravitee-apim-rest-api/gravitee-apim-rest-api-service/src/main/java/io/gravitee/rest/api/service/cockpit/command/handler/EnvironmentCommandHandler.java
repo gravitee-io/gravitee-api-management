@@ -59,8 +59,8 @@ public class EnvironmentCommandHandler implements CommandHandler<EnvironmentComm
             newEnvironment.setHrids(environmentPayload.getHrids());
             newEnvironment.setName(environmentPayload.getName());
             newEnvironment.setDescription(environmentPayload.getDescription());
-            newEnvironment.setDomainRestrictions(environmentPayload.getDomainRestrictions());
 
+            //TODO Handle custom domain
             final EnvironmentEntity environment = environmentService.createOrUpdate(
                 environmentPayload.getOrganizationId(),
                 environmentPayload.getId(),

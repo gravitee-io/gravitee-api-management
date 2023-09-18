@@ -13,14 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Flow } from '../flow/flow';
-
-export interface Organization {
-  id: string;
-  cockpitId: string;
-  hrids: string[];
-  name: string;
-  description: string;
-  flowMode: 'DEFAULT' | 'BEST_MATCH';
-  flows: Flow[];
+export interface RestrictedDomain {
+  domain: string;
+  secured: boolean;
 }

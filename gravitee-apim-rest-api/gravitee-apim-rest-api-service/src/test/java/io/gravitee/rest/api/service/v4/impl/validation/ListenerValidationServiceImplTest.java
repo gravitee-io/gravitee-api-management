@@ -39,9 +39,8 @@ import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
 import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
-import io.gravitee.rest.api.service.EnvironmentService;
+import io.gravitee.rest.api.service.AccessPointService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
@@ -78,7 +77,7 @@ public class ListenerValidationServiceImplTest {
     private ApiRepository apiRepository;
 
     @Mock
-    private EnvironmentService environmentService;
+    private AccessPointService accessPointService;
 
     @Mock
     private CorsValidationService corsValidationService;
@@ -93,13 +92,13 @@ public class ListenerValidationServiceImplTest {
 
     @Before
     public void setUp() throws Exception {
-        when(environmentService.findById(any())).thenReturn(new EnvironmentEntity());
+        when(accessPointService.getGatewayRestrictedDomains(any(), any())).thenReturn(List.of());
         lenient()
             .when(entrypointService.validateConnectorConfiguration(any(String.class), any()))
             .thenAnswer(invocation -> invocation.getArgument(1));
         listenerValidationService =
             new ListenerValidationServiceImpl(
-                new PathValidationServiceImpl(apiRepository, objectMapper, environmentService),
+                new PathValidationServiceImpl(apiRepository, objectMapper, accessPointService),
                 entrypointService,
                 endpointService,
                 corsValidationService

@@ -13,14 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Flow } from '../flow/flow';
+import { HttpClient } from '@angular/common/http';
+import { Inject, Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
 
-export interface Organization {
-  id: string;
-  cockpitId: string;
-  hrids: string[];
-  name: string;
-  description: string;
-  flowMode: 'DEFAULT' | 'BEST_MATCH';
-  flows: Flow[];
+import { Constants } from '../entities/Constants';
+import { RestrictedDomain } from "../entities/restricted-domain/restrictedDomain";
+
+@Injectable({
+  providedIn: 'root',
+})
+export class RestrictedDomainService {
+
+  constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
+
+  get(): Observable<RestrictedDomain[]> {
+    return this.http.get<RestrictedDomain[]>(`${this.constants.env.baseURL}/restrictedDomains`);
+  }
 }

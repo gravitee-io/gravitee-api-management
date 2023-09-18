@@ -13,29 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.management.model;
+package io.gravitee.rest.api.service;
 
+import io.gravitee.rest.api.model.RestrictedDomainEntity;
 import java.util.List;
-import java.util.Objects;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
 
 /**
- * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
+ * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Getter
-@Setter
-@EqualsAndHashCode
-@ToString
-public class Environment {
+public interface AccessPointService {
+    String getConsoleUrl(final String organizationId);
 
-    private String id;
-    private String cockpitId;
-    private List<String> hrids;
-    private String name;
-    private String description;
-    private String organizationId;
+    String getPortalUrl(final String environmentId);
+
+    List<RestrictedDomainEntity> getGatewayRestrictedDomains(final String organizationId, final String environmentId);
 }

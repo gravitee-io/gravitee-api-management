@@ -64,7 +64,7 @@ public class OrganizationCommandHandler implements CommandHandler<OrganizationCo
             newOrganization.setHrids(organizationPayload.getHrids());
             newOrganization.setName(organizationPayload.getName());
             newOrganization.setDescription(organizationPayload.getDescription());
-            newOrganization.setDomainRestrictions(organizationPayload.getDomainRestrictions());
+            //TODO Handle custom domain
 
             final OrganizationEntity organization = organizationService.createOrUpdate(executionContext, newOrganization);
             logger.info("Organization [{}] handled with id [{}].", organization.getName(), organization.getId());

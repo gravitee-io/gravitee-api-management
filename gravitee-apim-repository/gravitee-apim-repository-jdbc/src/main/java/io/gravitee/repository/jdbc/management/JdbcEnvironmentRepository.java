@@ -36,12 +36,10 @@ import org.springframework.util.CollectionUtils;
 public class JdbcEnvironmentRepository extends JdbcAbstractCrudRepository<Environment, String> implements EnvironmentRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcEnvironmentRepository.class);
-    private final String ENVIRONMENT_DOMAIN_RESTRICTIONS;
     private final String ENVIRONMENT_HRIDS;
 
     JdbcEnvironmentRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "environments");
-        ENVIRONMENT_DOMAIN_RESTRICTIONS = getTableNameFor("environment_domain_restrictions");
         ENVIRONMENT_HRIDS = getTableNameFor("environment_hrids");
     }
 
@@ -67,7 +65,6 @@ public class JdbcEnvironmentRepository extends JdbcAbstractCrudRepository<Enviro
         Optional<Environment> findById = super.findById(id);
         if (findById.isPresent()) {
             final Environment environment = findById.get();
-            addDomainRestrictions(environment);
             addHrids(environment);
         }
         return findById;
@@ -77,7 +74,6 @@ public class JdbcEnvironmentRepository extends JdbcAbstractCrudRepository<Enviro
     public Set<Environment> findAll() throws TechnicalException {
         Set<Environment> findAll = super.findAll();
         for (Environment env : findAll) {
-            this.addDomainRestrictions(env);
             this.addHrids(env);
         }
         return findAll;
@@ -86,7 +82,6 @@ public class JdbcEnvironmentRepository extends JdbcAbstractCrudRepository<Enviro
     @Override
     public Environment create(Environment item) throws TechnicalException {
         super.create(item);
-        storeDomainRestrictions(item, false);
         storeHrids(item, false);
         return findById(item.getId()).orElse(null);
     }
@@ -94,25 +89,14 @@ public class JdbcEnvironmentRepository extends JdbcAbstractCrudRepository<Enviro
     @Override
     public Environment update(Environment item) throws TechnicalException {
         super.update(item);
-        storeDomainRestrictions(item, true);
         storeHrids(item, true);
         return findById(item.getId()).orElse(null);
     }
 
     @Override
     public void delete(String id) throws TechnicalException {
-        jdbcTemplate.update("delete from " + ENVIRONMENT_DOMAIN_RESTRICTIONS + " where environment_id = ?", id);
         jdbcTemplate.update("delete from " + ENVIRONMENT_HRIDS + " where environment_id = ?", id);
         super.delete(id);
-    }
-
-    private void addDomainRestrictions(Environment parent) {
-        List<String> domainRestrictions = jdbcTemplate.queryForList(
-            "select domain_restriction from " + ENVIRONMENT_DOMAIN_RESTRICTIONS + " where environment_id = ?",
-            String.class,
-            parent.getId()
-        );
-        parent.setDomainRestrictions(domainRestrictions);
     }
 
     private void addHrids(Environment environment) {
@@ -122,19 +106,6 @@ public class JdbcEnvironmentRepository extends JdbcAbstractCrudRepository<Enviro
             environment.getId()
         );
         environment.setHrids(hrids);
-    }
-
-    private void storeDomainRestrictions(Environment environment, boolean deleteFirst) {
-        if (deleteFirst) {
-            jdbcTemplate.update("delete from " + ENVIRONMENT_DOMAIN_RESTRICTIONS + " where environment_id = ?", environment.getId());
-        }
-        List<String> filteredDomainRestrictions = getOrm().filterStrings(environment.getDomainRestrictions());
-        if (!filteredDomainRestrictions.isEmpty()) {
-            jdbcTemplate.batchUpdate(
-                "insert into " + ENVIRONMENT_DOMAIN_RESTRICTIONS + " (environment_id, domain_restriction) values ( ?, ? )",
-                getOrm().getBatchStringSetter(environment.getId(), filteredDomainRestrictions)
-            );
-        }
     }
 
     private void storeHrids(Environment environment, boolean deleteFirst) {
@@ -163,7 +134,6 @@ public class JdbcEnvironmentRepository extends JdbcAbstractCrudRepository<Enviro
                 organizationId
             );
             for (Environment env : environments) {
-                this.addDomainRestrictions(env);
                 this.addHrids(env);
             }
             return new HashSet<>(environments);
@@ -200,7 +170,6 @@ public class JdbcEnvironmentRepository extends JdbcAbstractCrudRepository<Enviro
                 getOrm().getRowMapper()
             );
             for (Environment env : environments) {
-                this.addDomainRestrictions(env);
                 this.addHrids(env);
             }
             return new HashSet<>(environments);
@@ -223,7 +192,6 @@ public class JdbcEnvironmentRepository extends JdbcAbstractCrudRepository<Enviro
             final Optional<Environment> environment = environments.stream().findFirst();
 
             environment.ifPresent(env -> {
-                this.addDomainRestrictions(env);
                 this.addHrids(env);
             });
 

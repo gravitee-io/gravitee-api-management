@@ -24,7 +24,6 @@ export function fakeOrganization(attributes?: Partial<Organization>): Organizati
     hrids: ['org_1'],
     name: 'Organization 1',
     description: 'Organization 1 - Description',
-    domainRestrictions: [],
     flowMode: 'DEFAULT',
     flows: [fakeFlow()],
   };

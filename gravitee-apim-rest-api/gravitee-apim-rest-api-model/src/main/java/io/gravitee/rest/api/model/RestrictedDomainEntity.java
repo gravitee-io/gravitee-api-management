@@ -15,11 +15,9 @@
  */
 package io.gravitee.rest.api.model;
 
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
-import java.util.List;
-import java.util.Objects;
-import lombok.Data;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -27,30 +25,22 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
+ * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Getter
 @Setter
-@EqualsAndHashCode
 @ToString
-public class UpdateEnvironmentEntity {
+@EqualsAndHashCode
+@Schema(name = "RestrictedDomainEntity")
+public class RestrictedDomainEntity {
 
-    private String cockpitId;
+    @Schema(description = "The restricted domain value.", example = "my-domain")
+    private String domain;
 
-    private List<String> hrids;
-
-    @NotNull
-    @Size(min = 1)
-    private String name;
-
-    private String description;
-
-    public UpdateEnvironmentEntity(EnvironmentEntity environment) {
-        this.cockpitId = environment.getCockpitId();
-        this.hrids = environment.getHrids();
-        this.name = environment.getName();
-        this.description = environment.getDescription();
-    }
+    @Schema(description = "Define if the restricted domain is secured", example = "true", defaultValue = "false")
+    private boolean secured;
 }

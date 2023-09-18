@@ -21,12 +21,12 @@ import { combineLatest, EMPTY, Subject } from 'rxjs';
 import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
-import { EnvironmentService } from '../../../../services-ngx/environment.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { Proxy } from '../../../../entities/management-api-v2';
 import { onlyApiV1V2Filter, onlyApiV2Filter } from '../../../../util/apiFilter.operator';
+import { RestrictedDomainService } from '../../../../services-ngx/restricted-domain.service';
 
 @Component({
   selector: 'api-proxy-entrypoints',
@@ -45,7 +45,7 @@ export class ApiProxyEntrypointsComponent implements OnInit, OnDestroy {
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
     private readonly apiService: ApiV2Service,
-    private readonly environmentService: EnvironmentService,
+    private readonly restrictedDomainService: RestrictedDomainService,
     private readonly matDialog: MatDialog,
     private readonly permissionService: GioPermissionService,
     private readonly snackBarService: SnackBarService,
@@ -54,19 +54,19 @@ export class ApiProxyEntrypointsComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     combineLatest([
       this.apiService.get(this.ajsStateParams.apiId).pipe(onlyApiV1V2Filter(this.snackBarService)),
-      this.environmentService.getCurrent(),
+      this.restrictedDomainService.get(),
     ])
       .pipe(
-        tap(([api, environment]) => {
+        tap(([api, restrictedDomains]) => {
           this.apiProxy = api.proxy;
+
+          this.domainRestrictions = restrictedDomains.map((value) => value.domain) ?? [];
 
           // virtual host mode is enabled if there are domain restrictions or if there is more than one virtual host or if the first virtual host has a host
           this.virtualHostModeEnabled =
-            !isEmpty(environment.domainRestrictions) ||
+            !isEmpty(this.domainRestrictions) ||
             get(api, 'proxy.virtualHosts', []) > 1 ||
             !isNil(get(api, 'proxy.virtualHosts[0].host', null));
-
-          this.domainRestrictions = environment.domainRestrictions ?? [];
 
           this.isReadOnly =
             !this.permissionService.hasAnyMatching(['api-definition-u', 'api-gateway_definition-u']) ||

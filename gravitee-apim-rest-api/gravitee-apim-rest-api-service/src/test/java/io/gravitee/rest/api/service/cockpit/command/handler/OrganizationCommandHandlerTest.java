@@ -77,8 +77,7 @@ public class OrganizationCommandHandlerTest {
                     newOrganization.getCockpitId().equals(organizationPayload.getCockpitId()) &&
                     newOrganization.getHrids().equals(organizationPayload.getHrids()) &&
                     newOrganization.getDescription().equals(organizationPayload.getDescription()) &&
-                    newOrganization.getName().equals(organizationPayload.getName()) &&
-                    newOrganization.getDomainRestrictions().equals(organizationPayload.getDomainRestrictions())
+                    newOrganization.getName().equals(organizationPayload.getName())
                 )
             )
         )

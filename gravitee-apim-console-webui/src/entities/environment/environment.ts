@@ -19,5 +19,4 @@ export interface Environment {
   name?: string;
   description?: string;
   organizationId: string;
-  domainRestrictions?: string[];
 }

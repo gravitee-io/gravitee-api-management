@@ -60,7 +60,6 @@ public class OrganizationService_UpdateOrganizationTest {
     private static final String RANDOM_COCKPIT_ID = "randomCockpitId";
     private static final String FLOW_MODE = "DEFAULT";
     private static final List<String> HRIDS = Collections.singletonList("hrid");
-    private static final List<String> DOMAINS = Collections.singletonList("domainRestrictions");
 
     @InjectMocks
     private OrganizationServiceImpl organizationService = new OrganizationServiceImpl();
@@ -109,7 +108,6 @@ public class OrganizationService_UpdateOrganizationTest {
         updateOrganizationEntity.setName(NAME);
         updateOrganizationEntity.setDescription(DESCRIPTION);
         updateOrganizationEntity.setHrids(HRIDS);
-        updateOrganizationEntity.setDomainRestrictions(DOMAINS);
         updateOrganizationEntity.setCockpitId(COCKPIT_ID);
 
         Organization organization = new Organization();
@@ -117,7 +115,6 @@ public class OrganizationService_UpdateOrganizationTest {
         organization.setCockpitId(RANDOM_COCKPIT_ID);
         organization.setFlowMode(FLOW_MODE);
         organization.setHrids(HRIDS);
-        organization.setDomainRestrictions(DOMAINS);
         organization.setName(NAME);
         organization.setDescription(DESCRIPTION);
 
@@ -136,7 +133,6 @@ public class OrganizationService_UpdateOrganizationTest {
         updateOrganizationEntity.setName(NAME);
         updateOrganizationEntity.setDescription(DESCRIPTION);
         updateOrganizationEntity.setHrids(HRIDS);
-        updateOrganizationEntity.setDomainRestrictions(DOMAINS);
         updateOrganizationEntity.setCockpitId(COCKPIT_ID);
 
         Organization organization = new Organization();
@@ -144,7 +140,6 @@ public class OrganizationService_UpdateOrganizationTest {
         organization.setCockpitId(RANDOM_COCKPIT_ID);
         organization.setFlowMode(FLOW_MODE);
         organization.setHrids(HRIDS);
-        organization.setDomainRestrictions(DOMAINS);
         organization.setName(NAME);
         organization.setDescription(DESCRIPTION);
         when(mockOrganizationRepository.findById(any())).thenReturn(Optional.of(organization));
@@ -154,7 +149,6 @@ public class OrganizationService_UpdateOrganizationTest {
         expectedOrganization.setCockpitId(COCKPIT_ID);
         expectedOrganization.setFlowMode(FLOW_MODE);
         expectedOrganization.setHrids(HRIDS);
-        expectedOrganization.setDomainRestrictions(DOMAINS);
         expectedOrganization.setName(NAME);
         expectedOrganization.setDescription(DESCRIPTION);
 
@@ -177,7 +171,6 @@ public class OrganizationService_UpdateOrganizationTest {
                     assertEquals(COCKPIT_ID, o.getCockpitId());
                     assertEquals(FLOW_MODE, o.getFlowMode());
                     assertEquals(HRIDS, o.getHrids());
-                    assertEquals(DOMAINS, o.getDomainRestrictions());
                     assertEquals(NAME, o.getName());
                     assertEquals(DESCRIPTION, o.getDescription());
                     return true;
