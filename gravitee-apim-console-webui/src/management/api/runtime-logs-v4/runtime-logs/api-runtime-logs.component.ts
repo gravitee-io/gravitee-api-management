@@ -16,7 +16,7 @@
 
 import { Component, Inject } from '@angular/core';
 import { PageEvent } from '@angular/material/paginator';
-import { map } from 'rxjs/operators';
+import { map, shareReplay } from 'rxjs/operators';
 import { StateParams } from '@uirouter/core';
 import { StateService } from '@uirouter/angular';
 
@@ -31,8 +31,10 @@ import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
   styles: [require('./api-runtime-logs.component.scss')],
 })
 export class ApiRuntimeLogsComponent {
+  private api$ = this.apiService.get(this.ajsStateParams.apiId).pipe(shareReplay(1));
   apiLogs$ = this.apiLogsService.searchConnectionLogs(this.ajsStateParams.apiId);
-  apiLogsEnabled$ = this.apiService.get(this.ajsStateParams.apiId).pipe(map(ApiRuntimeLogsComponent.isLogEnabled));
+  isMessageApi$ = this.api$.pipe(map((api: ApiV4) => api?.type === 'MESSAGE'));
+  apiLogsEnabled$ = this.api$.pipe(map(ApiRuntimeLogsComponent.isLogEnabled));
 
   constructor(
     @Inject(UIRouterState) private readonly ajsState: StateService,

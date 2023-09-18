@@ -29,4 +29,7 @@ export class ApiRuntimeLogsListRowComponent {
 
   @Input()
   index?: number;
+
+  @Input()
+  isMessageApi: boolean;
 }
