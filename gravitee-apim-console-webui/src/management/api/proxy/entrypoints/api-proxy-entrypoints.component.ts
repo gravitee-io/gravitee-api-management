@@ -22,13 +22,12 @@ import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 
 import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
-import { EnvironmentService } from '../../../../services-ngx/environment.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { ApiV1, ApiV2, PathV4, Proxy, UpdateApiV2, VirtualHost } from '../../../../entities/management-api-v2';
 import { onlyApiV1V2Filter, onlyApiV2Filter } from '../../../../util/apiFilter.operator';
-import { Environment } from '../../../../entities/environment/environment';
+import { RestrictedDomainService } from '../../../../services-ngx/restricted-domain.service';
 
 @Component({
   selector: 'api-proxy-entrypoints',
@@ -46,12 +45,11 @@ export class ApiProxyEntrypointsComponent implements OnInit, OnDestroy {
   public apiProxy: Proxy;
   public isReadOnly = false;
   public api: ApiV1 | ApiV2;
-  private environment: Environment;
 
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
     private readonly apiService: ApiV2Service,
-    private readonly environmentService: EnvironmentService,
+    private readonly restrictedDomainService: RestrictedDomainService,
     private readonly matDialog: MatDialog,
     private readonly permissionService: GioPermissionService,
     private readonly snackBarService: SnackBarService,
@@ -62,14 +60,12 @@ export class ApiProxyEntrypointsComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     combineLatest([
       this.apiService.get(this.ajsStateParams.apiId).pipe(onlyApiV1V2Filter(this.snackBarService)),
-      this.environmentService.getCurrent(),
+      this.restrictedDomainService.get(),
     ])
       .pipe(
-        tap(([api, environment]) => {
+        tap(([api, restrictedDomains]) => {
           this.api = api;
-          this.environment = environment;
-
-          this.domainRestrictions = this.environment.domainRestrictions ?? [];
+          this.domainRestrictions = restrictedDomains.map((value) => value.domain) ?? [];
 
           this.initForm(api);
         }),
@@ -178,8 +174,6 @@ export class ApiProxyEntrypointsComponent implements OnInit, OnDestroy {
 
     // virtual host mode is enabled if there are domain restrictions or if there is more than one virtual host or if the first virtual host has a host
     this.virtualHostModeEnabled =
-      !isEmpty(this.environment.domainRestrictions) ||
-      get(api, 'proxy.virtualHosts', []) > 1 ||
-      !isNil(get(api, 'proxy.virtualHosts[0].host', null));
+      !isEmpty(this.domainRestrictions) || get(api, 'proxy.virtualHosts', []) > 1 || !isNil(get(api, 'proxy.virtualHosts[0].host', null));
   }
 }

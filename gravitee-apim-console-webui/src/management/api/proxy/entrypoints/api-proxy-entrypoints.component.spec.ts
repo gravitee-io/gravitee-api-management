@@ -30,12 +30,12 @@ import { ApiProxyEntrypointsComponent } from './api-proxy-entrypoints.component'
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { AjsRootScope, CurrentUserService, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { User } from '../../../../entities/user';
-import { Environment } from '../../../../entities/environment/environment';
-import { fakeEnvironment } from '../../../../entities/environment/environment.fixture';
 import { PortalSettings } from '../../../../entities/portal/portalSettings';
 import { ApiV1, ApiV2, fakeApiV1, fakeApiV2 } from '../../../../entities/management-api-v2';
 import { GioFormListenersContextPathHarness } from '../../component/gio-form-listeners/gio-form-listeners-context-path/gio-form-listeners-context-path.harness';
 import { GioFormListenersVirtualHostHarness } from '../../component/gio-form-listeners/gio-form-listeners-virtual-host/gio-form-listeners-virtual-host.harness';
+import { RestrictedDomain } from '../../../../entities/restricted-domain/restrictedDomain';
+import { fakeRestrictedDomains } from '../../../../entities/restricted-domain/restrictedDomain.fixture';
 
 describe('ApiProxyEntrypointsComponent', () => {
   let fixture: ComponentFixture<ApiProxyEntrypointsComponent>;
@@ -86,7 +86,7 @@ describe('ApiProxyEntrypointsComponent', () => {
 
   describe('context-path mode', () => {
     beforeEach(() => {
-      exceptEnvironmentGetRequest(fakeEnvironment());
+      exceptRestrictedDomainsGetRequest([]);
     });
 
     it('should update context-path', async () => {
@@ -157,7 +157,7 @@ describe('ApiProxyEntrypointsComponent', () => {
 
   describe('virtual-host mode', () => {
     beforeEach(() => {
-      exceptEnvironmentGetRequest(fakeEnvironment());
+      exceptRestrictedDomainsGetRequest([]);
     });
 
     it('should update virtual-host', async () => {
@@ -388,7 +388,7 @@ describe('ApiProxyEntrypointsComponent', () => {
 
   describe('virtual-host mode with domain restriction', () => {
     beforeEach(() => {
-      exceptEnvironmentGetRequest(fakeEnvironment({ domainRestrictions: ['fox.io', 'dog.io'] }));
+      exceptRestrictedDomainsGetRequest(fakeRestrictedDomains(['fox.io', 'dog.io']));
     });
 
     it('should update virtual-host', async () => {
@@ -480,8 +480,8 @@ describe('ApiProxyEntrypointsComponent', () => {
     fixture.detectChanges();
   }
 
-  function exceptEnvironmentGetRequest(environment: Environment) {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}`, method: 'GET' }).flush(environment);
+  function exceptRestrictedDomainsGetRequest(restrictedDomains: RestrictedDomain[]) {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/restrictedDomains`, method: 'GET' }).flush(restrictedDomains);
     fixture.detectChanges();
   }
 

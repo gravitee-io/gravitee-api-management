@@ -187,6 +187,9 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
     @Inject
     protected UpgraderRepository upgraderRepository;
 
+    @Inject
+    protected AccessPointRepository accessPointRepository;
+
     protected void createModel(Object object) throws TechnicalException {
         if (object instanceof Application) {
             applicationRepository.create((Application) object);
@@ -291,6 +294,8 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
             promotionRepository.create((Promotion) object);
         } else if (object instanceof UpgradeRecord) {
             upgraderRepository.create((UpgradeRecord) object);
+        } else if (object instanceof AccessPoint) {
+            accessPointRepository.create((AccessPoint) object);
         }
     }
 

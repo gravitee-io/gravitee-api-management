@@ -88,7 +88,6 @@ public class MongoEnvironmentRepository implements EnvironmentRepository {
             environmentMongo.setName(environment.getName());
             environmentMongo.setDescription(environment.getDescription());
             environmentMongo.setHrids(environment.getHrids());
-            environmentMongo.setDomainRestrictions(environment.getDomainRestrictions());
             environmentMongo.setCockpitId(environment.getCockpitId());
 
             EnvironmentMongo environmentMongoUpdated = internalEnvironmentRepo.save(environmentMongo);

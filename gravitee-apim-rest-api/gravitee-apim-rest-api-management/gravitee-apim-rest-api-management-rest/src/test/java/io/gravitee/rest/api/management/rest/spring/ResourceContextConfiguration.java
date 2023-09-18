@@ -417,8 +417,10 @@ public class ResourceContextConfiguration {
         return mock(ResourceService.class);
     }
 
-    @Inject
-    EnvironmentCrudService environmentCrudService;
+    @Bean
+    public AccessPointService accessPointService() {
+        return mock(AccessPointService.class);
+    }
 
     @Inject
     ApiQueryService apiQueryService;
@@ -426,8 +428,8 @@ public class ResourceContextConfiguration {
     @Bean
     public VerifyApiPathDomainService verifyApiPathDomainService() {
         return new VerifyApiPathDomainService(
-            environmentCrudService,
             apiQueryService,
+            accessPointService(),
             new ApiDefinitionParserDomainServiceImpl(objectMapper()),
             new ApiHostValidatorDomainServiceImpl()
         );

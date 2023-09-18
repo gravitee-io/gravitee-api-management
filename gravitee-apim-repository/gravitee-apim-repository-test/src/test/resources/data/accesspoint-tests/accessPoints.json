@@ -1,0 +1,74 @@
+[
+	{
+		"id": "221b8991-cd3c-48c0-a17d-119e3ef8d5d8",
+		"host": "dev.en.company.apim-portal.gravitee.io:4100",
+		"overriding": false,
+		"referenceId": "69a7a51a-98b7-4943-a7a5-1a98b79943e6",
+		"referenceType": "ENVIRONMENT",
+		"secured": false,
+		"target": "PORTAL"
+	},
+	{
+		"id": "4ca60a2b-0367-4a45-8a98-ec42b037ad80",
+		"host": "dev.en.company.apim-portal-api.gravitee.io:8083",
+		"overriding": false,
+		"referenceId": "69a7a51a-98b7-4943-a7a5-1a98b79943e6",
+		"referenceType": "ENVIRONMENT",
+		"secured": false,
+		"target": "PORTAL_API"
+	},
+	{
+		"id": "0a660212-e982-498c-ad5c-32ec0f2737a4",
+		"host": "dev.en.company.apim-gateway.gravitee.io:8082",
+		"overriding": false,
+		"referenceId": "69a7a51a-98b7-4943-a7a5-1a98b79943e6",
+		"referenceType": "ENVIRONMENT",
+		"secured": false,
+		"target": "GATEWAY"
+	},
+	{
+		"id": "bcea7c41-4372-4a78-8e02-984ecf641d88",
+		"host": "prod.en.company.apim-portal.gravitee.io:4100",
+		"overriding": false,
+		"referenceId": "b78f2219-890d-4344-8f22-19890d834442",
+		"referenceType": "ENVIRONMENT",
+		"secured": false,
+		"target": "PORTAL"
+	},
+	{
+		"id": "86ba92b7-bb32-4401-a9c7-5f432326e5e8",
+		"host": "prod.en.company.apim-portal-api.gravitee.io:8083",
+		"overriding": false,
+		"referenceId": "b78f2219-890d-4344-8f22-19890d834442",
+		"referenceType": "ENVIRONMENT",
+		"secured": false,
+		"target": "PORTAL_API"
+	},
+	{
+		"id": "b5655a66-cc38-46c5-8260-05a1c13850ec",
+		"host": "prod.en.company.apim-gateway.gravitee.io:8082",
+		"overriding": false,
+		"referenceId": "b78f2219-890d-4344-8f22-19890d834442",
+		"referenceType": "ENVIRONMENT",
+		"secured": false,
+		"target": "GATEWAY"
+	},
+	{
+		"id": "3224b421-f1a3-4979-944e-3f94d5b60211",
+		"host": "en.company.apim-console.gravitee.io:3000",
+		"overriding": false,
+		"referenceId": "d8bac64b-a95b-4122-bac6-4ba95b212203",
+		"referenceType": "ORGANIZATION",
+		"secured": false,
+		"target": "CONSOLE"
+	},
+	{
+		"id": "2a7fc9de-15fb-4430-99c3-37060c8e7ed2",
+		"host": "en.company.apim-console-api.gravitee.io:8083",
+		"overriding": false,
+		"referenceId": "d8bac64b-a95b-4122-bac6-4ba95b212203",
+		"referenceType": "ORGANIZATION",
+		"secured": false,
+		"target": "CONSOLE_API"
+	}
+]

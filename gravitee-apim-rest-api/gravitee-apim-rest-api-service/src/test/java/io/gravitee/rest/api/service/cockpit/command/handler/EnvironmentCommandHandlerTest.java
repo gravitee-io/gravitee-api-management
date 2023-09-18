@@ -21,15 +21,19 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.cockpit.api.command.Command;
 import io.gravitee.cockpit.api.command.CommandStatus;
+import io.gravitee.cockpit.api.command.accesspoint.AccessPoint;
 import io.gravitee.cockpit.api.command.environment.EnvironmentCommand;
 import io.gravitee.cockpit.api.command.environment.EnvironmentPayload;
 import io.gravitee.cockpit.api.command.environment.EnvironmentReply;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.UpdateEnvironmentEntity;
+import io.gravitee.rest.api.service.AccessPointService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.reactivex.rxjava3.observers.TestObserver;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,12 +49,15 @@ public class EnvironmentCommandHandlerTest {
 
     @Mock
     private EnvironmentService environmentService;
+    @Mock
+    private AccessPointService accessPointService;
+
 
     public EnvironmentCommandHandler cut;
 
     @Before
     public void before() {
-        cut = new EnvironmentCommandHandler(environmentService);
+        cut = new EnvironmentCommandHandler(environmentService,accessPointService);
     }
 
     @Test
@@ -69,7 +76,7 @@ public class EnvironmentCommandHandlerTest {
         environmentPayload.setOrganizationId("orga#1");
         environmentPayload.setDescription("Environment description");
         environmentPayload.setName("Environment name");
-        environmentPayload.setDomainRestrictions(Arrays.asList("domain.restriction1.io", "domain.restriction2.io"));
+        environmentPayload.setAccessPoints(List.of(AccessPoint.builder().target(AccessPoint.Target.CONSOLE).host("domain.restriction1.io").build(),AccessPoint.builder().target(AccessPoint.Target.CONSOLE).host("domain.restriction2.io").build()));
 
         when(
             environmentService.createOrUpdate(
@@ -79,8 +86,7 @@ public class EnvironmentCommandHandlerTest {
                     newEnvironment.getCockpitId().equals(environmentPayload.getCockpitId()) &&
                     newEnvironment.getHrids().equals(environmentPayload.getHrids()) &&
                     newEnvironment.getDescription().equals(environmentPayload.getDescription()) &&
-                    newEnvironment.getName().equals(environmentPayload.getName()) &&
-                    newEnvironment.getDomainRestrictions().equals(environmentPayload.getDomainRestrictions())
+                    newEnvironment.getName().equals(environmentPayload.getName())
                 )
             )
         )
@@ -102,7 +108,7 @@ public class EnvironmentCommandHandlerTest {
         environmentPayload.setOrganizationId("orga#1");
         environmentPayload.setDescription("Environment description");
         environmentPayload.setName("Environment name");
-        environmentPayload.setDomainRestrictions(Arrays.asList("domain.restriction1.io", "domain.restriction2.io"));
+        environmentPayload.setAccessPoints(List.of(AccessPoint.builder().target(AccessPoint.Target.CONSOLE).host("domain.restriction1.io").build(),AccessPoint.builder().target(AccessPoint.Target.CONSOLE).host("domain.restriction2.io").build()));
 
         when(environmentService.createOrUpdate(eq("orga#1"), eq("env#1"), any(UpdateEnvironmentEntity.class)))
             .thenThrow(new RuntimeException("fake error"));

@@ -205,7 +205,6 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
         organization.setCockpitId(organizationEntity.getCockpitId());
         organization.setName(organizationEntity.getName());
         organization.setDescription(organizationEntity.getDescription());
-        organization.setDomainRestrictions(organizationEntity.getDomainRestrictions());
         String flowMode = organizationEntity.getFlowMode() != null ? organizationEntity.getFlowMode().name() : FlowMode.DEFAULT.name();
         organization.setFlowMode(flowMode);
         return organization;
@@ -218,7 +217,6 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
         organizationEntity.setHrids(organization.getHrids());
         organizationEntity.setName(organization.getName());
         organizationEntity.setDescription(organization.getDescription());
-        organizationEntity.setDomainRestrictions(organization.getDomainRestrictions());
         FlowMode flowMode = organization.getFlowMode() != null ? FlowMode.valueOf(organization.getFlowMode()) : FlowMode.DEFAULT;
         organizationEntity.setFlowMode(flowMode);
         List<Flow> flows = flowService.findByReference(FlowReferenceType.ORGANIZATION, organization.getId());

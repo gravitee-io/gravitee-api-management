@@ -20,32 +20,34 @@ import io.gravitee.apim.core.api.model.ApiFieldFilter;
 import io.gravitee.apim.core.api.model.ApiSearchCriteria;
 import io.gravitee.apim.core.api.model.Path;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
-import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
 import io.gravitee.apim.core.exception.InvalidPathsException;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
+import io.gravitee.rest.api.model.RestrictedDomainEntity;
+import io.gravitee.rest.api.service.AccessPointService;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class VerifyApiPathDomainService {
 
-    private final EnvironmentCrudService environmentCrudService;
     private final ApiQueryService apiSearchService;
+    private final AccessPointService accessPointService;
     private final ApiDefinitionParserDomainService apiDefinitionParserDomainService;
     private final ApiHostValidatorDomainService apiHostValidatorDomainService;
 
     public VerifyApiPathDomainService(
-        final EnvironmentCrudService environmentCrudService,
         final ApiQueryService apiSearchService,
+        final AccessPointService accessPointService,
         final ApiDefinitionParserDomainService apiDefinitionParserDomainService,
         final ApiHostValidatorDomainService apiHostValidatorDomainService
     ) {
-        this.environmentCrudService = environmentCrudService;
         this.apiSearchService = apiSearchService;
+        this.accessPointService = accessPointService;
         this.apiDefinitionParserDomainService = apiDefinitionParserDomainService;
         this.apiHostValidatorDomainService = apiHostValidatorDomainService;
     }
@@ -184,31 +186,75 @@ public class VerifyApiPathDomainService {
     }
 
     private List<Path> validateAndSetDomain(String environmentId, List<Path> sanitizedPaths) throws InvalidPathsException {
-        var env = environmentCrudService.get(environmentId);
-
-        var domainRestrictions = env.getDomainRestrictions();
-        if (domainRestrictions != null && !domainRestrictions.isEmpty()) {
-            return sanitizedPaths
-                .stream()
-                .map(path -> {
-                    if (path.hasHost()) {
-                        checkDomainIsValid(path, domainRestrictions);
-                        return path;
-                    }
-
-                    return path.withHost(env.getDomainRestrictions().get(0));
-                })
-                .collect(Collectors.toList());
+        List<RestrictedDomainEntity> restrictedDomains = accessPointService.getGatewayRestrictedDomains(environmentId);
+        if (restrictedDomains != null && !restrictedDomains.isEmpty()) {
+            for (Path path : sanitizedPaths) {
+                if (path.hasHost()) {
+                    checkDomainIsValid(path, restrictedDomains);
+                } else {
+                    path.setHost(restrictedDomains.get(0).getDomain());
+                }
+            }
+            if (!sanitizedPaths.isEmpty() && sanitizedPaths.stream().noneMatch(Path::isOverrideAccess)) {
+                sanitizedPaths.get(0).setOverrideAccess(true);
+            }
         }
 
         return sanitizedPaths;
     }
 
-    private void checkDomainIsValid(Path path, List<String> domainRestrictions) {
-        String hostWithoutPort = path.getHost().split(":")[0];
-        if (!this.apiHostValidatorDomainService.isValidDomainOrSubDomain(hostWithoutPort, domainRestrictions)) {
-            throw new InvalidHostException("Host [" + hostWithoutPort + "] must be a subdomain of " + domainRestrictions);
+    private void checkDomainIsValid(Path path, List<RestrictedDomainEntity> restrictedDomainEntities) {
+        String hostWithoutPort = extractHost(path.getHost());
+        List<String> restrictedDomainsWithoutPort = restrictedDomainEntities
+            .stream()
+            .map(restrictedDomainEntity -> extractHost(restrictedDomainEntity.getDomain()))
+            .toList();
+        String onlyPort = extractPort(path.getHost());
+        if (
+            !this.apiHostValidatorDomainService.isValidDomainOrSubDomain(hostWithoutPort, restrictedDomainsWithoutPort) ||
+            !isValidPort(onlyPort, restrictedDomainEntities)
+        ) {
+            throw new InvalidHostException(
+                "Host [" +
+                hostWithoutPort +
+                "] must be a subdomain of " +
+                restrictedDomainEntities.stream().map(RestrictedDomainEntity::getDomain).toList()
+            );
         }
+    }
+
+    private boolean isValidPort(final String port, final List<RestrictedDomainEntity> restrictedDomainEntities) {
+        if (restrictedDomainEntities.isEmpty()) {
+            return true;
+        }
+        return restrictedDomainEntities
+            .stream()
+            .anyMatch(restrictedDomainEntity -> {
+                String domainRestriction = restrictedDomainEntity.getDomain();
+                String domainRestrictionOnlyPort = extractPort(domainRestriction);
+                return (
+                    (port == null && domainRestrictionOnlyPort == null) ||
+                    (port == null && isDefaultHttp(domainRestrictionOnlyPort)) ||
+                    (domainRestrictionOnlyPort == null && isDefaultHttp(port)) ||
+                    Objects.equals(port, domainRestrictionOnlyPort)
+                );
+            });
+    }
+
+    private static boolean isDefaultHttp(final String domainRestrictionOnlyPort) {
+        return "80".equals(domainRestrictionOnlyPort) || "443".equals(domainRestrictionOnlyPort);
+    }
+
+    private static String extractHost(final String hostAndPort) {
+        return hostAndPort.split(":")[0];
+    }
+
+    private static String extractPort(final String hostAndPort) {
+        String[] split = hostAndPort.split(":");
+        if (split.length > 1) {
+            return split[1];
+        }
+        return null;
     }
 }
 

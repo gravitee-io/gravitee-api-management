@@ -43,8 +43,12 @@ import io.gravitee.definition.model.v4.listener.entrypoint.Qos;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
+import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
+import io.gravitee.rest.api.service.AccessPointService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.exception.*;
@@ -65,6 +69,9 @@ import org.mockito.junit.MockitoJUnitRunner;
  */
 @RunWith(MockitoJUnitRunner.class)
 public class ListenerValidationServiceImplTest {
+
+    @Mock
+    private AccessPointService accessPointService;
 
     @Mock
     private CorsValidationService corsValidationService;
@@ -91,15 +98,15 @@ public class ListenerValidationServiceImplTest {
 
     @Before
     public void setUp() throws Exception {
-        when(environmentCrudService.get(any())).thenReturn(Environment.builder().build());
+        when(accessPointService.getGatewayRestrictedDomains(any())).thenReturn(List.of());
         lenient()
             .when(entrypointService.validateConnectorConfiguration(any(String.class), any()))
             .thenAnswer(invocation -> invocation.getArgument(1));
         listenerValidationService =
             new ListenerValidationServiceImpl(
                 new VerifyApiPathDomainService(
-                    environmentCrudService,
                     apiQueryService,
+                    accessPointService,
                     apiDefinitionParserDomainService,
                     apiHostValidatorDomainService
                 ),

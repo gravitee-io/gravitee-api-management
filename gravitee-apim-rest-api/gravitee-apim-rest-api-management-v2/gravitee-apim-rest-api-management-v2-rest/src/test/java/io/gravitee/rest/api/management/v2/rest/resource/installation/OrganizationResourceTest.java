@@ -58,7 +58,6 @@ public class OrganizationResourceTest extends AbstractResourceTest {
         organizationEntity.setName("org-name");
         organizationEntity.setDescription("A nice description");
         organizationEntity.setCockpitId("cockpit-id");
-        organizationEntity.setDomainRestrictions(List.of("restriction-1"));
         organizationEntity.setFlowMode(FlowMode.BEST_MATCH);
         organizationEntity.setHrids(List.of("one-hrid"));
 

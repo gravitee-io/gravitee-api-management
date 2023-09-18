@@ -37,7 +37,6 @@ public class OrganizationRepositoryTest extends AbstractManagementRepositoryTest
         organization.setHrids(Arrays.asList("hrid1", "hrid2"));
         organization.setName("Default org for create");
         organization.setDescription("Default org description for create");
-        organization.setDomainRestrictions(Arrays.asList("domain", "restriction"));
         organization.setFlowMode("BEST_MATCH");
 
         final Organization createdOrg = organizationRepository.create(organization);
@@ -47,12 +46,6 @@ public class OrganizationRepositoryTest extends AbstractManagementRepositoryTest
         assertEquals(organization.getName(), createdOrg.getName());
         assertEquals(organization.getDescription(), createdOrg.getDescription());
         assertEquals(organization.getFlowMode(), createdOrg.getFlowMode());
-        assertEquals(organization.getHrids(), createdOrg.getHrids());
-        List<String> domainRestrictions = createdOrg.getDomainRestrictions();
-        assertNotNull(domainRestrictions);
-        assertEquals(2, domainRestrictions.size());
-        assertTrue(domainRestrictions.contains("domain"));
-        assertTrue(domainRestrictions.contains("restriction"));
 
         Optional<Organization> optionalOrg = organizationRepository.findById("DEFAULT-ORG-create");
         Assert.assertTrue("Organization to create not found", optionalOrg.isPresent());
@@ -74,7 +67,6 @@ public class OrganizationRepositoryTest extends AbstractManagementRepositoryTest
         org.setName("New name");
         org.setCockpitId("org#cockpit-new");
         org.setDescription("New description");
-        org.setDomainRestrictions(Collections.singletonList("New domain restriction"));
         org.setHrids(Collections.singletonList("New hrid"));
         org.setFlowMode("DEFAULT");
 
@@ -83,7 +75,6 @@ public class OrganizationRepositoryTest extends AbstractManagementRepositoryTest
         assertEquals(org.getCockpitId(), fetchedOrganization.getCockpitId());
         assertEquals(org.getDescription(), fetchedOrganization.getDescription());
         assertEquals(org.getHrids(), fetchedOrganization.getHrids());
-        assertEquals(org.getDomainRestrictions(), fetchedOrganization.getDomainRestrictions());
         assertEquals(org.getFlowMode(), fetchedOrganization.getFlowMode());
 
         optional = organizationRepository.findById("DEFAULT-ORG-update");

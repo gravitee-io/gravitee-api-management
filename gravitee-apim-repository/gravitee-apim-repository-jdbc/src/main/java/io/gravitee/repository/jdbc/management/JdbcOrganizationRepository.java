@@ -34,12 +34,10 @@ import org.springframework.stereotype.Repository;
 public class JdbcOrganizationRepository extends JdbcAbstractCrudRepository<Organization, String> implements OrganizationRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcOrganizationRepository.class);
-    private final String ORGANIZATION_DOMAIN_RESTRICTIONS;
     private final String ORGANIZATION_HRIDS;
 
     JdbcOrganizationRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "organizations");
-        ORGANIZATION_DOMAIN_RESTRICTIONS = getTableNameFor("organization_domain_restrictions");
         ORGANIZATION_HRIDS = getTableNameFor("organization_hrids");
     }
 
@@ -65,7 +63,6 @@ public class JdbcOrganizationRepository extends JdbcAbstractCrudRepository<Organ
         Optional<Organization> findById = super.findById(id);
         if (findById.isPresent()) {
             final Organization organization = findById.get();
-            addDomainRestrictions(organization);
             addHrids(organization);
         }
         return findById;
@@ -74,7 +71,6 @@ public class JdbcOrganizationRepository extends JdbcAbstractCrudRepository<Organ
     @Override
     public Organization create(Organization item) throws TechnicalException {
         super.create(item);
-        storeDomainRestrictions(item, false);
         storeHrids(item, false);
         return findById(item.getId()).orElse(null);
     }
@@ -82,14 +78,12 @@ public class JdbcOrganizationRepository extends JdbcAbstractCrudRepository<Organ
     @Override
     public Organization update(Organization item) throws TechnicalException {
         super.update(item);
-        storeDomainRestrictions(item, true);
         storeHrids(item, true);
         return findById(item.getId()).orElse(null);
     }
 
     @Override
     public void delete(String id) throws TechnicalException {
-        jdbcTemplate.update("delete from " + ORGANIZATION_DOMAIN_RESTRICTIONS + " where organization_id = ?", id);
         jdbcTemplate.update("delete from " + ORGANIZATION_HRIDS + " where organization_id = ?", id);
         super.delete(id);
     }
@@ -123,7 +117,6 @@ public class JdbcOrganizationRepository extends JdbcAbstractCrudRepository<Organ
                 getOrm().getRowMapper()
             );
             for (Organization org : organizations) {
-                this.addDomainRestrictions(org);
                 this.addHrids(org);
             }
             return new HashSet<>(organizations);
@@ -141,7 +134,6 @@ public class JdbcOrganizationRepository extends JdbcAbstractCrudRepository<Organ
             // Note: we should find a proper way to store domain restrictions and hrids to avoid such (N*2)+1 queries.
             // For now we assume that the number of organizations remains low and this function is not widely used.
             organizations.forEach(organization -> {
-                addDomainRestrictions(organization);
                 addHrids(organization);
             });
 
@@ -152,15 +144,6 @@ public class JdbcOrganizationRepository extends JdbcAbstractCrudRepository<Organ
         }
     }
 
-    private void addDomainRestrictions(Organization parent) {
-        List<String> domainRestrictions = jdbcTemplate.queryForList(
-            "select domain_restriction from " + ORGANIZATION_DOMAIN_RESTRICTIONS + " where organization_id = ?",
-            String.class,
-            parent.getId()
-        );
-        parent.setDomainRestrictions(domainRestrictions);
-    }
-
     private void addHrids(Organization parent) {
         List<String> hrids = jdbcTemplate.queryForList(
             "select hrid from " + ORGANIZATION_HRIDS + " where organization_id = ? order by pos",
@@ -168,19 +151,6 @@ public class JdbcOrganizationRepository extends JdbcAbstractCrudRepository<Organ
             parent.getId()
         );
         parent.setHrids(hrids);
-    }
-
-    private void storeDomainRestrictions(Organization organization, boolean deleteFirst) {
-        if (deleteFirst) {
-            jdbcTemplate.update("delete from " + ORGANIZATION_DOMAIN_RESTRICTIONS + " where organization_id = ?", organization.getId());
-        }
-        List<String> filteredDomainRestrictions = getOrm().filterStrings(organization.getDomainRestrictions());
-        if (!filteredDomainRestrictions.isEmpty()) {
-            jdbcTemplate.batchUpdate(
-                "insert into " + ORGANIZATION_DOMAIN_RESTRICTIONS + " (organization_id, domain_restriction) values ( ?, ? )",
-                getOrm().getBatchStringSetter(organization.getId(), filteredDomainRestrictions)
-            );
-        }
     }
 
     private void storeHrids(Organization organization, boolean deleteFirst) {

@@ -22,13 +22,13 @@ import { takeUntil, tap } from 'rxjs/operators';
 import { isEmpty, omitBy } from 'lodash';
 
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
-import { EnvironmentService } from '../../../../../services-ngx/environment.service';
 import { Step3Endpoints1ListComponent } from '../step-3-endpoints/step-3-endpoints-1-list.component';
 import { ApiCreationPayload } from '../../models/ApiCreationPayload';
 import { Step3Endpoints2ConfigComponent } from '../step-3-endpoints/step-3-endpoints-2-config.component';
 import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
 import { PathV4, Qos } from '../../../../../entities/management-api-v2';
 import { ApimFeature, UTMTags } from '../../../../../shared/components/gio-license/gio-license-data';
+import { RestrictedDomainService } from '../../../../../services-ngx/restricted-domain.service';
 
 @Component({
   selector: 'step-2-entrypoints-2-config',
@@ -53,7 +53,7 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
     private readonly formBuilder: FormBuilder,
     private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
     private readonly stepService: ApiCreationStepService,
-    private readonly environmentService: EnvironmentService,
+    private readonly restrictedDomainService: RestrictedDomainService,
     private readonly changeDetectorRef: ChangeDetectorRef,
     private readonly licenseService: GioLicenseService,
   ) {}
@@ -64,11 +64,11 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
 
     const paths = currentStepPayload.paths ?? [];
 
-    this.environmentService
-      .getCurrent()
+    this.restrictedDomainService
+      .get()
       .pipe(
-        tap((environment) => {
-          this.domainRestrictions = environment.domainRestrictions || [];
+        tap((restrictedDomain) => {
+          this.domainRestrictions = restrictedDomain.map((value) => value.domain) || [];
           this.enableVirtualHost =
             !isEmpty(this.domainRestrictions) || paths.find((path) => path.host !== undefined || path.overrideAccess !== undefined) != null;
         }),

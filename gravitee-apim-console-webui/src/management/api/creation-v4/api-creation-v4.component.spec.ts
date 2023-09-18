@@ -41,8 +41,6 @@ import { Step5SummaryHarness } from './steps/step-5-summary/step-5-summary.harne
 import { UIRouterState } from '../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { PortalSettings } from '../../../entities/portal/portalSettings';
-import { Environment } from '../../../entities/environment/environment';
-import { fakeEnvironment } from '../../../entities/environment/environment.fixture';
 import {
   fakePlanV4,
   ApiType,
@@ -52,6 +50,8 @@ import {
   fakeConnectorPlugin,
 } from '../../../entities/management-api-v2';
 import { License } from '../../../entities/license/License';
+import { RestrictedDomain } from '../../../entities/restricted-domain/restrictedDomain';
+import { fakeRestrictedDomains } from '../../../entities/restricted-domain/restrictedDomain.fixture';
 
 describe('ApiCreationV4Component', () => {
   const httpProxyEntrypoint: Partial<ConnectorPlugin>[] = [{ id: 'http-proxy', supportedApiType: 'PROXY', name: 'HTTP Proxy' }];
@@ -273,7 +273,7 @@ describe('ApiCreationV4Component', () => {
         expect(component.currentStep.payload.selectedEndpoints).toEqual([
           { icon: 'gio-literal:http-proxy', id: 'http-proxy', name: 'HTTP Proxy', deployed: true },
         ]);
-        exceptEnvironmentGetRequest(fakeEnvironment());
+        exceptRestrictedDomainsGetRequest([]);
         expectSchemaGetRequest([{ id: 'http-proxy', name: 'HTTP Proxy' }]);
         expectApiGetPortalSettings();
         expectLicenseGetRequest({ tier: '', features: [], packs: [] });
@@ -318,7 +318,7 @@ describe('ApiCreationV4Component', () => {
           { icon: 'gio-literal:sse', id: 'sse', name: 'SSE', supportedListenerType: 'HTTP', deployed: true },
           { icon: 'gio-literal:webhook', id: 'webhook', name: 'Webhook', supportedListenerType: 'HTTP', deployed: true },
         ]);
-        exceptEnvironmentGetRequest(fakeEnvironment());
+        exceptRestrictedDomainsGetRequest([]);
         expectSchemaGetRequest([
           { id: 'sse', name: 'SSE' },
           { id: 'webhook', name: 'Webhook' },
@@ -338,7 +338,7 @@ describe('ApiCreationV4Component', () => {
         await step2Harness.getEntrypoints().then((form) => form.selectOptionsByIds(['sse']));
 
         await step2Harness.clickValidate();
-        exceptEnvironmentGetRequest(fakeEnvironment());
+        exceptRestrictedDomainsGetRequest([]);
         expectSchemaGetRequest([{ id: 'sse', name: 'SSE' }]);
         const step21Harness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
         expect(await step21Harness.hasListenersForm()).toEqual(false);
@@ -358,7 +358,7 @@ describe('ApiCreationV4Component', () => {
         expect(component.currentStep.payload.selectedEntrypoints).toEqual([
           { icon: 'gio-literal:sse', id: 'sse', name: 'SSE', supportedListenerType: 'HTTP', deployed: true },
         ]);
-        exceptEnvironmentGetRequest(fakeEnvironment());
+        exceptRestrictedDomainsGetRequest([]);
         expectSchemaGetRequest([{ id: 'sse', name: 'SSE' }]);
         expectApiGetPortalSettings();
         const step21Harness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
@@ -381,7 +381,7 @@ describe('ApiCreationV4Component', () => {
         expect(component.currentStep.payload.selectedEntrypoints).toEqual([
           { icon: 'gio-literal:sse', id: 'sse', name: 'SSE', supportedListenerType: 'HTTP', deployed: true },
         ]);
-        exceptEnvironmentGetRequest(fakeEnvironment());
+        exceptRestrictedDomainsGetRequest([]);
         expectSchemaGetRequest([{ id: 'sse', name: 'SSE' }]);
         expectApiGetPortalSettings();
         const step22Harness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
@@ -408,7 +408,7 @@ describe('ApiCreationV4Component', () => {
           { icon: 'gio-literal:sse', id: 'sse', name: 'SSE', supportedListenerType: 'HTTP', deployed: true },
           { icon: 'gio-literal:webhook', id: 'webhook', name: 'Webhook', supportedListenerType: 'SUBSCRIPTION', deployed: true },
         ]);
-        exceptEnvironmentGetRequest(fakeEnvironment());
+        exceptRestrictedDomainsGetRequest([]);
         expectSchemaGetRequest([
           { id: 'sse', name: 'SSE' },
           { id: 'webhook', name: 'Webhook' },
@@ -477,7 +477,7 @@ describe('ApiCreationV4Component', () => {
         expect(component.currentStep.payload.selectedEntrypoints).toEqual([
           { icon: 'gio-literal:sse', id: 'sse', name: 'SSE', supportedListenerType: 'HTTP', deployed: true },
         ]);
-        exceptEnvironmentGetRequest(fakeEnvironment());
+        exceptRestrictedDomainsGetRequest([]);
         expectSchemaGetRequest([{ id: 'sse', name: 'SSE' }]);
         expectApiGetPortalSettings();
         const step21Harness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
@@ -505,7 +505,7 @@ describe('ApiCreationV4Component', () => {
         expect(component.currentStep.payload.selectedEntrypoints).toEqual([
           { icon: 'gio-literal:sse', id: 'sse', name: 'SSE', supportedListenerType: 'HTTP', deployed: true },
         ]);
-        exceptEnvironmentGetRequest(fakeEnvironment());
+        exceptRestrictedDomainsGetRequest([]);
         expectSchemaGetRequest([{ id: 'sse', name: 'SSE' }]);
         expectApiGetPortalSettings();
         const step21Harness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
@@ -558,7 +558,7 @@ describe('ApiCreationV4Component', () => {
         expect(component.currentStep.payload.selectedEntrypoints).toEqual([
           { icon: 'gio-literal:sse', id: 'sse', name: 'SSE', supportedListenerType: 'HTTP', deployed: true },
         ]);
-        exceptEnvironmentGetRequest(fakeEnvironment({ domainRestrictions: ['domain.com', 'domain.net'] }));
+        exceptRestrictedDomainsGetRequest(fakeRestrictedDomains(['domain.com', 'domain.net']));
         expectSchemaGetRequest([{ id: 'sse', name: 'SSE' }]);
         expectVerifyContextPathGetRequest();
         expectApiGetPortalSettings();
@@ -600,7 +600,7 @@ describe('ApiCreationV4Component', () => {
             deployed: true,
           },
         ]);
-        exceptEnvironmentGetRequest(fakeEnvironment());
+        exceptRestrictedDomainsGetRequest([]);
         expectSchemaGetRequest([
           { id: 'sse', name: 'SSE' },
           { id: 'webhook', name: 'Webhook' },
@@ -710,7 +710,7 @@ describe('ApiCreationV4Component', () => {
             configuration: {},
           },
         ]);
-        exceptEnvironmentGetRequest(fakeEnvironment());
+        exceptRestrictedDomainsGetRequest([]);
         expectSchemaGetRequest(entrypoints);
         expectApiGetPortalSettings();
         expectVerifyContextPathGetRequest();
@@ -731,7 +731,7 @@ describe('ApiCreationV4Component', () => {
         await step3endpoint2config.clickPrevious();
 
         // Init Step 2 config and go back to Step 2 architecture
-        exceptEnvironmentGetRequest(fakeEnvironment());
+        exceptRestrictedDomainsGetRequest([]);
         expectSchemaGetRequest(httpProxyEntrypoint);
         expectApiGetPortalSettings();
         expectVerifyContextPathGetRequest();
@@ -757,7 +757,7 @@ describe('ApiCreationV4Component', () => {
         fixture.detectChanges();
 
         // Init Step 2 config
-        exceptEnvironmentGetRequest(fakeEnvironment());
+        exceptRestrictedDomainsGetRequest([]);
         expectSchemaGetRequest(httpProxyEntrypoint);
         expectApiGetPortalSettings();
         expectVerifyContextPathGetRequest();
@@ -807,7 +807,7 @@ describe('ApiCreationV4Component', () => {
         await step3endpoint2config.clickPrevious();
 
         // Init Step 2 config and go back to Step 2 architecture
-        exceptEnvironmentGetRequest(fakeEnvironment());
+        exceptRestrictedDomainsGetRequest([]);
         expectSchemaGetRequest(httpProxyEntrypoint);
         expectApiGetPortalSettings();
         expectVerifyContextPathGetRequest();
@@ -852,7 +852,7 @@ describe('ApiCreationV4Component', () => {
 
       const step21Harness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
       expect(step21Harness).toBeDefined();
-      exceptEnvironmentGetRequest(fakeEnvironment());
+      exceptRestrictedDomainsGetRequest([]);
       expectSchemaGetRequest([
         { id: 'entrypoint-1', name: 'initial entrypoint' },
         { id: 'entrypoint-2', name: 'new entrypoint' },
@@ -1576,7 +1576,7 @@ describe('ApiCreationV4Component', () => {
     paths: string[] = ['/api/my-api-3'],
   ) {
     const step22EntrypointsConfigHarness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
-    exceptEnvironmentGetRequest(fakeEnvironment());
+    exceptRestrictedDomainsGetRequest([]);
     expectSchemaGetRequest(entrypoints);
 
     if (entrypoints.some((entrypoint) => entrypoint.supportedListenerType !== 'SUBSCRIPTION')) {
@@ -1622,8 +1622,8 @@ describe('ApiCreationV4Component', () => {
     httpTestingController.match({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_verify/paths`, method: 'POST' });
   }
 
-  function exceptEnvironmentGetRequest(environment: Environment) {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}`, method: 'GET' }).flush(environment);
+  function exceptRestrictedDomainsGetRequest(restrictedDomains: RestrictedDomain[]) {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/restrictedDomains`, method: 'GET' }).flush(restrictedDomains);
   }
 
   function expectCallsForApiCreation(apiId: string, planId: string) {

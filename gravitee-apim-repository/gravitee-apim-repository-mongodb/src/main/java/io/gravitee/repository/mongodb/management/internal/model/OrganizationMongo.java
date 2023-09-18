@@ -17,6 +17,10 @@ package io.gravitee.repository.mongodb.management.internal.model;
 
 import java.util.List;
 import java.util.Objects;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -25,6 +29,9 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * @author GraviteeSource Team
  */
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}organizations")
+@Getter
+@Setter
+@ToString
 public class OrganizationMongo {
 
     @Id
@@ -38,65 +45,7 @@ public class OrganizationMongo {
 
     private String description;
 
-    private List<String> domainRestrictions;
-
     private String flowMode;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public List<String> getDomainRestrictions() {
-        return domainRestrictions;
-    }
-
-    public void setDomainRestrictions(List<String> domainRestrictions) {
-        this.domainRestrictions = domainRestrictions;
-    }
-
-    public List<String> getHrids() {
-        return hrids;
-    }
-
-    public void setHrids(List<String> hrids) {
-        this.hrids = hrids;
-    }
-
-    public String getFlowMode() {
-        return flowMode;
-    }
-
-    public void setFlowMode(String flowMode) {
-        this.flowMode = flowMode;
-    }
-
-    public String getCockpitId() {
-        return cockpitId;
-    }
-
-    public void setCockpitId(String cockpitId) {
-        this.cockpitId = cockpitId;
-    }
 
     @Override
     public boolean equals(Object o) {
@@ -109,32 +58,5 @@ public class OrganizationMongo {
     @Override
     public int hashCode() {
         return Objects.hash(id);
-    }
-
-    @Override
-    public String toString() {
-        return (
-            "OrganizationMongo{" +
-            "id='" +
-            id +
-            '\'' +
-            ", cockpitId='" +
-            cockpitId +
-            '\'' +
-            ", hrids=" +
-            hrids +
-            ", name='" +
-            name +
-            '\'' +
-            ", description='" +
-            description +
-            '\'' +
-            ", domainRestrictions=" +
-            domainRestrictions +
-            ", flowMode='" +
-            flowMode +
-            '\'' +
-            '}'
-        );
     }
 }
