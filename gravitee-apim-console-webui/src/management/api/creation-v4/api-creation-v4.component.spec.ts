@@ -282,6 +282,7 @@ describe('ApiCreationV4Component', () => {
         expectLicenseGetRequest({ tier: '', features: [], packs: [] });
 
         expect(await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness)).toBeDefined();
+        expectVerifyContextPathGetRequest();
       });
     });
 
@@ -326,6 +327,7 @@ describe('ApiCreationV4Component', () => {
           { id: 'webhook', name: 'Webhook' },
         ]);
         expectApiGetPortalSettings();
+        expectVerifyContextPathGetRequest();
       });
 
       it('should not display context-path form for non http supportedListenerType', async () => {
@@ -365,6 +367,7 @@ describe('ApiCreationV4Component', () => {
         const step21Harness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
         expect(await step21Harness.hasListenersForm()).toEqual(true);
         expect(await step21Harness.hasValidationDisabled()).toEqual(true);
+        expectVerifyContextPathGetRequest();
       });
 
       it('should not validate with bad path', async () => {
@@ -387,6 +390,7 @@ describe('ApiCreationV4Component', () => {
         const step22Harness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
         await step22Harness.fillPaths('bad-path');
         expect(await step22Harness.hasValidationDisabled()).toEqual(true);
+        expectVerifyContextPathGetRequest();
       });
 
       it('should configure paths', async () => {
@@ -483,6 +487,7 @@ describe('ApiCreationV4Component', () => {
 
         await step21Harness.fillVirtualHostsAndValidate({ host: '', path: '/api/my-api-3' });
         expect(await step21Harness.hasValidationDisabled()).toEqual(true);
+        expectVerifyContextPathGetRequest();
       });
 
       it('should configure virtual host', async () => {
