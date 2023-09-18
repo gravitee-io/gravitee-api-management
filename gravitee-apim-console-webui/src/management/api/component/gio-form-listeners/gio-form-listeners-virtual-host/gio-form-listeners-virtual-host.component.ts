@@ -71,25 +71,37 @@ export class GioFormListenersVirtualHostComponent extends GioFormListenersContex
   }
 
   validateListenerControl(listenerControl: AbstractControl, httpListeners: PathV4[], currentIndex: number): ValidationErrors | null {
-    const inheritErrors = super.validateListenerControl(listenerControl, httpListeners, currentIndex);
+    const inheritErrors = super.validateGenericPathListenerControl(listenerControl);
     const subDomainControl = listenerControl.get('_hostSubDomain');
     const domainControl = listenerControl.get('_hostDomain');
+    const contextPathControl = listenerControl.get('path');
+    const contextPath = contextPathControl.value;
+    const fullHost = combineSubDomainWithDomain(subDomainControl.value, domainControl.value);
 
-    const fullHost = subDomainControl.value + domainControl.value;
-
-    // When no domain restriction, host is required
+    // When no domain restrictions, host is required
     if (isEmpty(this.domainRestrictions) && isEmpty(subDomainControl.value)) {
       const errors = { host: 'Host is required.' };
       setTimeout(() => subDomainControl.setErrors(errors), 0);
       return { ...inheritErrors, ...errors };
     }
 
-    if (!isEmpty(this.domainRestrictions)) {
-      const isValid = this.domainRestrictions.some((domainRestriction) => fullHost.endsWith(domainRestriction));
-      const errors = isValid ? null : { host: 'Host is not valid (must end with one of restriction domain).' };
+    if (!isEmpty(this.domainRestrictions) && !this.domainRestrictions.some((domainRestriction) => fullHost.endsWith(domainRestriction))) {
+      const errors = { host: 'Host is not valid (must end with one of restriction domain).' };
       setTimeout(() => subDomainControl.setErrors(errors), 0);
       return { ...inheritErrors, ...errors };
     }
+
+    // Check host is not already defined
+    if (
+      httpListeners.find(
+        (httpListener, index) => index !== currentIndex && httpListener.path === contextPath && httpListener.host === fullHost,
+      ) != null
+    ) {
+      const error = { contextPath: 'Context path is already use.' };
+      setTimeout(() => contextPathControl.setErrors(error), 0);
+      return { ...inheritErrors, ...error };
+    }
+
     setTimeout(() => subDomainControl.setErrors(null), 0);
     return inheritErrors;
   }
