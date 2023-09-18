@@ -116,7 +116,7 @@ describe('API Plans Feature', () => {
     cy.getByDataTestId('api_plans_name_field').type(`${planName}-JWT`);
     cy.getByDataTestId('api_plans_description_field').type(`${planDescription} JWT`);
     cy.getByDataTestId('api_plans_nextstep').click();
-    cy.contains('selection rule').should('be.visible');
+    cy.contains('selection rule').scrollIntoView().should('be.visible');
     cy.getByDataTestId('api_plans_nextstep').click();
     cy.contains('Rate Limiting').should('be.visible');
     cy.contains('Quota').should('be.visible');
