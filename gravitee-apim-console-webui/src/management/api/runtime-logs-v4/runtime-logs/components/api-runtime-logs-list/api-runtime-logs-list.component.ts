@@ -27,6 +27,10 @@ import { ConnectionLog, Pagination } from '../../../../../../entities/management
 export class ApiRuntimeLogsListComponent {
   @Input()
   logEnabled: boolean;
+
+  @Input()
+  isMessageApi: boolean;
+
   @Input()
   logs: ConnectionLog[];
 
