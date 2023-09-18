@@ -19,6 +19,7 @@ import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.Organization;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
+
 import java.util.Objects;
 import java.util.Optional;
 
@@ -28,13 +29,17 @@ import java.util.Optional;
  */
 public class ExecutionContext {
 
-    private final String organizationId;
+    private final Optional<String> organizationId;
 
     private final Optional<String> environmentId;
 
     public ExecutionContext(String organizationId, String environmentId) {
-        this.organizationId = organizationId;
+        this.organizationId = Optional.ofNullable(organizationId);
         this.environmentId = Optional.ofNullable(environmentId);
+    }
+
+    public ExecutionContext(String organizationId) {
+        this(organizationId, null);
     }
 
     public ExecutionContext(EnvironmentEntity environment) {
@@ -50,21 +55,29 @@ public class ExecutionContext {
     }
 
     public String getOrganizationId() {
-        return organizationId;
+        return organizationId.orElse(null);
     }
 
     public String getEnvironmentId() throws EnvironmentNotFoundException {
         return environmentId.orElseThrow(() -> new EnvironmentNotFoundException(null));
     }
 
+    public boolean hasOrganizationId() {
+        return organizationId.isPresent();
+    }
+
     public boolean hasEnvironmentId() {
         return environmentId.isPresent();
     }
 
-    public GraviteeContext.ReferenceContext getReferenceContext() {
+    public ReferenceContext getReferenceContext() {
         return environmentId
-            .map(id -> new GraviteeContext.ReferenceContext(id, GraviteeContext.ReferenceContextType.ENVIRONMENT))
-            .orElseGet(() -> new GraviteeContext.ReferenceContext(organizationId, GraviteeContext.ReferenceContextType.ORGANIZATION));
+            .map(envId -> ReferenceContext.builder().referenceId(envId).referenceType(ReferenceContext.Type.ENVIRONMENT).build())
+            .orElseGet(() ->
+                organizationId
+                    .map(orgId -> ReferenceContext.builder().referenceId(orgId).referenceType(ReferenceContext.Type.ORGANIZATION).build())
+                    .orElse(null)
+            );
     }
 
     @Override

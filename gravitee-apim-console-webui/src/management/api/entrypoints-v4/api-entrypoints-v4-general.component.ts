@@ -41,9 +41,9 @@ import {
 import { ConnectorPluginsV2Service } from '../../../services-ngx/connector-plugins-v2.service';
 import { IconService } from '../../../services-ngx/icon.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
-import { EnvironmentService } from '../../../services-ngx/environment.service';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { ApimFeature, UTMTags } from '../../../shared/components/gio-license/gio-license-data';
+import { RestrictedDomainService } from '../../../services-ngx/restricted-domain.service';
 
 type EntrypointVM = {
   id: string;
@@ -76,7 +76,7 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
     @Inject(UIRouterState) private readonly ajsState: StateService,
     private readonly apiService: ApiV2Service,
     private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
-    private readonly environmentService: EnvironmentService,
+    private readonly restrictedDomainService: RestrictedDomainService,
     private readonly formBuilder: FormBuilder,
     private readonly iconService: IconService,
     private readonly snackBarService: SnackBarService,
@@ -92,13 +92,13 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
     this.canUpdate = this.permissionService.hasAnyMatching(['api-definition-u']);
 
     forkJoin([
-      this.environmentService.getCurrent(),
+      this.restrictedDomainService.get(),
       this.apiService.get(this.apiId),
       this.connectorPluginsV2Service.listAsyncEntrypointPlugins(),
     ])
       .pipe(takeUntil(this.unsubscribe$))
-      .subscribe(([environment, api, availableEntrypoints]) => {
-        this.domainRestrictions = environment.domainRestrictions || [];
+      .subscribe(([restrictedDomains, api, availableEntrypoints]) => {
+        this.domainRestrictions = restrictedDomains.map((value) => value.domain) || [];
 
         if (api.definitionVersion === 'V4') {
           this.allEntrypoints = availableEntrypoints;

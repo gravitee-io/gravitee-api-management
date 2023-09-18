@@ -22,6 +22,7 @@ import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
 import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
+import io.gravitee.rest.api.service.AccessPointService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -30,14 +31,14 @@ public class CoreServiceSpringConfiguration {
 
     @Bean
     public VerifyApiPathDomainService verifyApiPathDomainService(
-        EnvironmentCrudService environmentCrudService,
         ApiQueryService apiSearchService,
+        AccessPointService accessPointService,
         ApiDefinitionParserDomainService apiDefinitionParserDomainService,
         ApiHostValidatorDomainService apiHostValidatorDomainService
     ) {
         return new VerifyApiPathDomainService(
-            environmentCrudService,
             apiSearchService,
+            accessPointService,
             apiDefinitionParserDomainService,
             apiHostValidatorDomainService
         );

@@ -218,8 +218,6 @@ public class EnvironmentServiceTest {
             env1.setHrids(Arrays.asList("envhrid"));
             env1.setName("env_name");
             env1.setDescription("env_desc");
-            List<String> domainRestrictions = Arrays.asList("domain", "restriction");
-            env1.setDomainRestrictions(domainRestrictions);
 
             Environment createdEnv = new Environment();
             createdEnv.setId("env_id");
@@ -235,7 +233,6 @@ public class EnvironmentServiceTest {
                         arg.getHrids().equals(Arrays.asList("envhrid")) &&
                         arg.getName().equals("env_name") &&
                         arg.getDescription().equals("env_desc") &&
-                        arg.getDomainRestrictions().equals(domainRestrictions) &&
                         arg.getOrganizationId().equals("DEFAULT")
                     )
                 );
@@ -254,8 +251,6 @@ public class EnvironmentServiceTest {
             env1.setHrids(Arrays.asList("envhrid"));
             env1.setName("env_name");
             env1.setDescription("env_desc");
-            List<String> domainRestrictions = Arrays.asList("domain", "restriction");
-            env1.setDomainRestrictions(domainRestrictions);
 
             Environment updatedEnv = new Environment();
             when(mockEnvironmentRepository.update(any())).thenReturn(updatedEnv);
@@ -270,7 +265,6 @@ public class EnvironmentServiceTest {
                         arg.getHrids().equals(Arrays.asList("envhrid")) &&
                         arg.getName().equals("env_name") &&
                         arg.getDescription().equals("env_desc") &&
-                        arg.getDomainRestrictions().equals(domainRestrictions) &&
                         arg.getOrganizationId().equals("DEFAULT")
                     )
                 );

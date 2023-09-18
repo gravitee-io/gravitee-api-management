@@ -21,7 +21,6 @@ export interface Organization {
   hrids: string[];
   name: string;
   description: string;
-  domainRestrictions: string[];
   flowMode: 'DEFAULT' | 'BEST_MATCH';
   flows: Flow[];
 }

@@ -249,7 +249,6 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
         environment.setHrids(environmentEntity.getHrids());
         environment.setName(environmentEntity.getName());
         environment.setDescription(environmentEntity.getDescription());
-        environment.setDomainRestrictions(environmentEntity.getDomainRestrictions());
         return environment;
     }
 
@@ -261,7 +260,6 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
         environmentEntity.setName(environment.getName());
         environmentEntity.setDescription(environment.getDescription());
         environmentEntity.setOrganizationId(environment.getOrganizationId());
-        environmentEntity.setDomainRestrictions(environment.getDomainRestrictions());
         return environmentEntity;
     }
 }

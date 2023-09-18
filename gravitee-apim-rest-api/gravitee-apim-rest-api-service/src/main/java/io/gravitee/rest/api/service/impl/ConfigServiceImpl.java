@@ -17,7 +17,9 @@ package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.rest.api.service.impl.ParameterServiceImpl.KV_SEPARATOR;
 import static io.gravitee.rest.api.service.impl.ParameterServiceImpl.SEPARATOR;
-import static java.util.Collections.*;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toMap;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -25,8 +27,22 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.rest.api.model.annotations.ParameterKey;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
-import io.gravitee.rest.api.model.settings.*;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.model.settings.AbstractCommonSettingsEntity;
+import io.gravitee.rest.api.model.settings.CommonAuthentication;
+import io.gravitee.rest.api.model.settings.ConsoleConfigEntity;
+import io.gravitee.rest.api.model.settings.ConsoleReCaptcha;
+import io.gravitee.rest.api.model.settings.ConsoleSettingsEntity;
+import io.gravitee.rest.api.model.settings.Enabled;
+import io.gravitee.rest.api.model.settings.Newsletter;
+import io.gravitee.rest.api.model.settings.PortalAuthentication;
+import io.gravitee.rest.api.model.settings.PortalConfigEntity;
+import io.gravitee.rest.api.model.settings.PortalReCaptcha;
+import io.gravitee.rest.api.model.settings.PortalSettingsEntity;
+import io.gravitee.rest.api.service.AccessPointService;
+import io.gravitee.rest.api.service.ConfigService;
+import io.gravitee.rest.api.service.NewsletterService;
+import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.ReCaptchaService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -63,7 +79,7 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
     private ReCaptchaService reCaptchaService;
 
     @Autowired
-    private V4EmulationEngineService v4EmulationEngine;
+    private AccessPointService accessPointService;
 
     private static final String SENSITIVE_VALUE = "********";
 
@@ -95,6 +111,7 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
             ParameterReferenceType.ENVIRONMENT
         );
         enhanceFromConfigFile(portalConfigEntity);
+        enhanceFromRepository(executionContext, portalConfigEntity);
 
         return portalConfigEntity;
     }
@@ -117,6 +134,8 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
             ParameterReferenceType.ORGANIZATION
         );
         enhanceFromConfigFile(consoleConfigEntity);
+
+        enhanceFromRepository(executionContext, consoleConfigEntity);
 
         return consoleConfigEntity;
     }
@@ -260,6 +279,14 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
         portalConfigEntity.setReCaptcha(reCaptcha);
     }
 
+    private void enhanceFromRepository(final ExecutionContext executionContext, final PortalSettingsEntity portalConfigEntity) {
+        String portalCustomUrl = accessPointService.getPortalUrl(executionContext.getEnvironmentId());
+        if (portalCustomUrl != null) {
+            portalConfigEntity.getPortal().setUrl(portalCustomUrl);
+            portalConfigEntity.getMetadata().add(PortalSettingsEntity.METADATA_READONLY, Key.PORTAL_URL.key());
+        }
+    }
+
     private void enhanceFromConfigFile(ConsoleSettingsEntity consoleSettingsEntity) {
         enhanceAuthenticationFromConfigFile(consoleSettingsEntity.getAuthentication());
         final ConsoleReCaptcha reCaptcha = new ConsoleReCaptcha();
@@ -270,6 +297,14 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
         final Newsletter newsletter = new Newsletter();
         newsletter.setEnabled(newsletterService.isEnabled());
         consoleSettingsEntity.setNewsletter(newsletter);
+    }
+
+    private void enhanceFromRepository(final ExecutionContext executionContext, final ConsoleSettingsEntity consoleConfigEntity) {
+        String consoleCustomUrl = accessPointService.getConsoleUrl(executionContext.getOrganizationId());
+        if (consoleCustomUrl != null) {
+            consoleConfigEntity.getManagement().setUrl(consoleCustomUrl);
+            consoleConfigEntity.getMetadata().add(PortalSettingsEntity.METADATA_READONLY, Key.MANAGEMENT_URL.key());
+        }
     }
 
     @Override

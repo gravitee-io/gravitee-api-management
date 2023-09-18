@@ -50,7 +50,10 @@ public class ConsoleSettingsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldCallSaveMethod() {
-        ExecutionContext executionContext = new ExecutionContext(GraviteeContext.getCurrentOrganization(), null);
+        ExecutionContext executionContext = new ExecutionContext(
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment()
+        );
         ConsoleSettingsEntity config = new ConsoleSettingsEntity();
         config.setMaintenance(new Maintenance());
 
@@ -72,7 +75,10 @@ public class ConsoleSettingsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldCallSaveMethod_EnabledMaintenance() {
-        ExecutionContext executionContext = new ExecutionContext(GraviteeContext.getCurrentOrganization(), null);
+        ExecutionContext executionContext = new ExecutionContext(
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment()
+        );
         ConsoleSettingsEntity config = new ConsoleSettingsEntity();
         Maintenance maintenance = new Maintenance();
         maintenance.setEnabled(true);

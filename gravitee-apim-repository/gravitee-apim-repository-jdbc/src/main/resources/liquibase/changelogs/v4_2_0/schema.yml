@@ -1,0 +1,37 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.2.0
+      author: GraviteeSource Team
+      changes:
+        # ################
+        # AccessPoints changes
+        # ################
+        - createTable:
+            tableName: ${gravitee_prefix}access_points
+            columns:
+              - column: {name: id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true, primaryKeyName: pk_access_point } }
+              - column: {name: reference_type, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: reference_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: target, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: host, type: nvarchar(256), constraints: { nullable: false } }
+              - column: {name: secured, type: boolean, constraints: { nullable: false } }
+              - column: {name: overriding, type: boolean, constraints: { nullable: false } }
+
+        - createIndex:
+            indexName: idx_${gravitee_prefix}access_points_reference
+            columns:
+              - column:
+                  name: reference_type
+                  type: nvarchar(64)
+              - column:
+                  name: reference_id
+                  type: nvarchar(64)
+            tableName: ${gravitee_prefix}access_points
+
+        - dropTable:
+            cascadeConstraints: true
+            tableName: ${gravitee_prefix}organization_domain_restrictions
+
+        - dropTable:
+            cascadeConstraints: true
+            tableName: ${gravitee_prefix}environment_domain_restrictions

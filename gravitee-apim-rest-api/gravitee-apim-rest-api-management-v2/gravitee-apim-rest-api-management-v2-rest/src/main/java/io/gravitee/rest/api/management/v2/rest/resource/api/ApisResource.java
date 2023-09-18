@@ -26,7 +26,12 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.exception.InvalidImageException;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.ImportExportApiMapper;
-import io.gravitee.rest.api.management.v2.rest.model.*;
+import io.gravitee.rest.api.management.v2.rest.model.ApiSearchQuery;
+import io.gravitee.rest.api.management.v2.rest.model.ApisResponse;
+import io.gravitee.rest.api.management.v2.rest.model.CreateApiV4;
+import io.gravitee.rest.api.management.v2.rest.model.ExportApiV4;
+import io.gravitee.rest.api.management.v2.rest.model.VerifyApiPaths;
+import io.gravitee.rest.api.management.v2.rest.model.VerifyApiPathsResponse;
 import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.ApiSortByParam;
@@ -48,8 +53,14 @@ import io.gravitee.rest.api.service.v4.exception.InvalidPathException;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.BeanParam;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
@@ -238,7 +249,14 @@ public class ApisResource extends AbstractResource {
                     verifyPayload
                         .getPaths()
                         .stream()
-                        .map(p -> io.gravitee.apim.core.api.model.Path.builder().path(p.getPath()).host(p.getHost()).build())
+                        .map(p ->
+                            io.gravitee.apim.core.api.model.Path
+                                .builder()
+                                .path(p.getPath())
+                                .host(p.getHost())
+                                .overrideAccess(Boolean.TRUE.equals(p.getOverrideAccess()))
+                                .build()
+                        )
                         .toList()
                 )
             );

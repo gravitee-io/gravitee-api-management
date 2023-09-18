@@ -86,7 +86,6 @@ public class MongoOrganizationRepository implements OrganizationRepository {
             organizationMongo.setCockpitId(organization.getCockpitId());
             organizationMongo.setDescription(organization.getDescription());
             organizationMongo.setHrids(organization.getHrids());
-            organizationMongo.setDomainRestrictions(organization.getDomainRestrictions());
             organizationMongo.setFlowMode(organization.getFlowMode());
 
             OrganizationMongo organizationMongoUpdated = internalOrganizationRepo.save(organizationMongo);

@@ -28,6 +28,7 @@ import io.gravitee.rest.api.model.settings.ConsoleConfigEntity;
 import io.gravitee.rest.api.model.settings.ConsoleSettingsEntity;
 import io.gravitee.rest.api.model.settings.Logging;
 import io.gravitee.rest.api.model.settings.PortalSettingsEntity;
+import io.gravitee.rest.api.service.AccessPointService;
 import io.gravitee.rest.api.service.NewsletterService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.ReCaptchaService;
@@ -67,6 +68,9 @@ public class ConfigServiceTest {
 
     @Mock
     private NewsletterService newsletterService;
+
+    @Mock
+    private AccessPointService accessPointService;
 
     @Before
     public void setup() {

@@ -110,6 +110,11 @@ public interface GraviteeMapper {
     @InheritInverseConfiguration
     CustomUserFieldMongo map(CustomUserField toMap);
 
+    // CustomDomain mapping
+    AccessPoint map(AccessPointMongo toMap);
+
+    AccessPointMongo map(AccessPoint toMap);
+
     // Dashboard mapping
     Dashboard map(DashboardMongo toMap);
 

@@ -29,19 +29,20 @@ import io.gravitee.apim.core.api.model.ApiFieldFilter;
 import io.gravitee.apim.core.api.model.ApiSearchCriteria;
 import io.gravitee.apim.core.api.model.Path;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
-import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
-import io.gravitee.apim.core.environment.model.Environment;
 import io.gravitee.apim.core.exception.InvalidPathsException;
 import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
-import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
+import io.gravitee.rest.api.model.RestrictedDomainEntity;
+import io.gravitee.rest.api.service.AccessPointService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.tuple.Pair;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -61,7 +62,7 @@ class VerifyApiPathDomainServiceTest {
     ApiQueryService apiSearchService;
 
     @Mock
-    EnvironmentCrudService environmentCrudService;
+    AccessPointService accessPointService;
 
     VerifyApiPathDomainService service;
     private ObjectMapper objectMapper = GraviteeJacksonMapper.getInstance();
@@ -91,28 +92,22 @@ class VerifyApiPathDomainServiceTest {
     void setup() {
         service =
             new VerifyApiPathDomainService(
-                environmentCrudService,
                 apiSearchService,
+                accessPointService,
                 new ApiDefinitionParserDomainServiceJacksonImpl(),
                 new ApiHostValidatorDomainServiceGoogleImpl()
             );
     }
 
-    @Test
-    public void should_return_an_exception_if_environment_not_found() {
-        givenNoEnvironment();
-
-        Throwable throwable = catchThrowable(() ->
-            service.checkAndSanitizeApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().build()))
-        );
-
-        assertThat(throwable).isInstanceOf(EnvironmentNotFoundException.class);
+    @AfterEach
+    void tearDown() {
+        GraviteeContext.cleanContext();
     }
 
     @ParameterizedTest
     @MethodSource("sanitizePathParams")
     public void should_sanitize_path(String path, String expectedPath) {
-        givenExistingEnvironment(ENVIRONMENT_ID, null);
+        givenExistingRestrictedDomains(ENVIRONMENT_ID, null);
 
         var res = service.checkAndSanitizeApiPaths(
             ENVIRONMENT_ID,
@@ -127,7 +122,7 @@ class VerifyApiPathDomainServiceTest {
 
     @Test
     public void should_throw_exception_if_path_is_invalid() {
-        givenExistingEnvironment(ENVIRONMENT_ID, null);
+        givenExistingRestrictedDomains(ENVIRONMENT_ID, null);
 
         var throwable = catchThrowable(() ->
             service.checkAndSanitizeApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().path("invalid>path").build()))
@@ -139,7 +134,7 @@ class VerifyApiPathDomainServiceTest {
     @ParameterizedTest
     @MethodSource("sanitizeHostParams")
     public void should_set_domain_with_domain_restrictions(String host, String expectedHost) {
-        givenExistingEnvironment(ENVIRONMENT_ID, List.of("domain.com", "domain.net"));
+        givenExistingRestrictedDomains(ENVIRONMENT_ID, List.of("domain.com", "domain.net", "domain.com:123"));
 
         var res = service.checkAndSanitizeApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().host(host).path("/path/").build()));
 
@@ -149,9 +144,9 @@ class VerifyApiPathDomainServiceTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "wrong-domain.com", "not-same-domain:8082" })
+    @ValueSource(strings = { "wrong-domain.com", "not-same-port:8082" })
     public void should_throw_exception_if_domain_is_invalid(String host) {
-        givenExistingEnvironment(ENVIRONMENT_ID, List.of("domain.com", "domain.net"));
+        givenExistingRestrictedDomains(ENVIRONMENT_ID, List.of("domain.com", "domain.net", "not-same-port:1234"));
 
         var throwable = catchThrowable(() ->
             service.checkAndSanitizeApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().host(host).path("/path/").build()))
@@ -162,7 +157,7 @@ class VerifyApiPathDomainServiceTest {
 
     @Test
     public void should_throw_exception_if_duplicate_paths() {
-        givenExistingEnvironment(ENVIRONMENT_ID, null);
+        givenExistingRestrictedDomains(ENVIRONMENT_ID, null);
 
         var throwable = catchThrowable(() ->
             service.checkAndSanitizeApiPaths(
@@ -177,7 +172,7 @@ class VerifyApiPathDomainServiceTest {
 
     @Test
     public void should_throw_exception_if_path_already_covered_by_other_api_for_api_creation() {
-        givenExistingEnvironment(ENVIRONMENT_ID, null);
+        givenExistingRestrictedDomains(ENVIRONMENT_ID, null);
 
         givenExistingApis(ENVIRONMENT_ID, Stream.of(buildApiV2WithPaths(ENVIRONMENT_ID, "api1", List.of(Pair.of("", "/path/")))));
 
@@ -189,7 +184,7 @@ class VerifyApiPathDomainServiceTest {
 
     @Test
     public void should_throw_exception_if_path_already_used_by_api_v2() {
-        givenExistingEnvironment(ENVIRONMENT_ID, null);
+        givenExistingRestrictedDomains(ENVIRONMENT_ID, null);
 
         givenExistingApis(ENVIRONMENT_ID, Stream.of(buildApiV2WithPaths(ENVIRONMENT_ID, "api1", List.of(Pair.of("", "/path/")))));
 
@@ -201,7 +196,7 @@ class VerifyApiPathDomainServiceTest {
 
     @Test
     public void should_throw_exception_if_path_already_used_by_api_v2_with_default_host() {
-        givenExistingEnvironment(ENVIRONMENT_ID, List.of("domain.com", "domain.net"));
+        givenExistingRestrictedDomains(ENVIRONMENT_ID, List.of("domain.com", "domain.net"));
 
         givenExistingApis(ENVIRONMENT_ID, Stream.of(buildApiV2WithPaths(ENVIRONMENT_ID, "api1", List.of(Pair.of("domain.com", "/path/")))));
 
@@ -213,7 +208,7 @@ class VerifyApiPathDomainServiceTest {
 
     @Test
     public void should_throw_exception_if_path_already_used_by_api_v2_with_host() {
-        givenExistingEnvironment(ENVIRONMENT_ID, List.of("domain.com", "domain.net"));
+        givenExistingRestrictedDomains(ENVIRONMENT_ID, List.of("domain.com", "domain.net"));
 
         givenExistingApis(ENVIRONMENT_ID, Stream.of(buildApiV2WithPaths(ENVIRONMENT_ID, "api1", List.of(Pair.of("domain.com", "/path/")))));
 
@@ -226,7 +221,7 @@ class VerifyApiPathDomainServiceTest {
 
     @Test
     public void should_ignore_path_used_by_same_api_v2_with_host() {
-        givenExistingEnvironment(ENVIRONMENT_ID, List.of("domain.com", "domain.net"));
+        givenExistingRestrictedDomains(ENVIRONMENT_ID, List.of("domain.com", "domain.net"));
 
         givenExistingApis(
             ENVIRONMENT_ID,
@@ -246,7 +241,7 @@ class VerifyApiPathDomainServiceTest {
 
     @Test
     public void should_throw_exception_if_path_is_subpath_of_another_api_v2() {
-        givenExistingEnvironment(ENVIRONMENT_ID, List.of());
+        givenExistingRestrictedDomains(ENVIRONMENT_ID, List.of());
 
         givenExistingApis(ENVIRONMENT_ID, Stream.of(buildApiV2WithPaths(ENVIRONMENT_ID, "api1", List.of(Pair.of(null, "/path/")))));
 
@@ -259,7 +254,7 @@ class VerifyApiPathDomainServiceTest {
 
     @Test
     public void should_throw_exception_if_path_is_subpath_of_another_api_v2_with_host() {
-        givenExistingEnvironment(ENVIRONMENT_ID, List.of("domain.com", "domain.net"));
+        givenExistingRestrictedDomains(ENVIRONMENT_ID, List.of("domain.com", "domain.net"));
 
         givenExistingApis(ENVIRONMENT_ID, Stream.of(buildApiV2WithPaths(ENVIRONMENT_ID, "api1", List.of(Pair.of("domain.com", "/path/")))));
 
@@ -276,7 +271,7 @@ class VerifyApiPathDomainServiceTest {
 
     @Test
     public void should_throw_exception_if_path_already_used_by_api_v4() {
-        givenExistingEnvironment(ENVIRONMENT_ID, null);
+        givenExistingRestrictedDomains(ENVIRONMENT_ID, null);
 
         givenExistingApis(ENVIRONMENT_ID, Stream.of(buildApiV4WithPaths(ENVIRONMENT_ID, "api1", List.of(Pair.of("", "/path/")))));
 
@@ -288,7 +283,7 @@ class VerifyApiPathDomainServiceTest {
 
     @Test
     public void should_ignore_path_already_used_by_same_api_v4() {
-        givenExistingEnvironment(ENVIRONMENT_ID, null);
+        givenExistingRestrictedDomains(ENVIRONMENT_ID, null);
 
         givenExistingApis(ENVIRONMENT_ID, Stream.of(buildApiV4WithPaths(ENVIRONMENT_ID, "api-id", List.of(Pair.of("", "/path/")))));
 
@@ -300,7 +295,7 @@ class VerifyApiPathDomainServiceTest {
 
     @Test
     public void should_throw_exception_if_path_already_used_by_api_v4_with_default_host() {
-        givenExistingEnvironment(ENVIRONMENT_ID, List.of("domain.com", "domain.net"));
+        givenExistingRestrictedDomains(ENVIRONMENT_ID, List.of("domain.com", "domain.net"));
 
         givenExistingApis(ENVIRONMENT_ID, Stream.of(buildApiV4WithPaths(ENVIRONMENT_ID, "api1", List.of(Pair.of("domain.com", "/path/")))));
 
@@ -312,7 +307,7 @@ class VerifyApiPathDomainServiceTest {
 
     @Test
     public void should_throw_exception_if_path_already_used_by_api_v4_with_host() {
-        givenExistingEnvironment(ENVIRONMENT_ID, List.of("domain.com", "domain.net"));
+        givenExistingRestrictedDomains(ENVIRONMENT_ID, List.of("domain.com", "domain.net"));
 
         givenExistingApis(ENVIRONMENT_ID, Stream.of(buildApiV4WithPaths(ENVIRONMENT_ID, "api1", List.of(Pair.of("domain.com", "/path/")))));
 
@@ -325,7 +320,7 @@ class VerifyApiPathDomainServiceTest {
 
     @Test
     public void should_ignore_path_used_by_same_api_v4_with_host() {
-        givenExistingEnvironment(ENVIRONMENT_ID, List.of("domain.com", "domain.net"));
+        givenExistingRestrictedDomains(ENVIRONMENT_ID, List.of("domain.com", "domain.net"));
 
         givenExistingApis(
             ENVIRONMENT_ID,
@@ -345,7 +340,7 @@ class VerifyApiPathDomainServiceTest {
 
     @Test
     public void should_throw_exception_if_path_is_subpath_of_another_api_v4() {
-        givenExistingEnvironment(ENVIRONMENT_ID, List.of());
+        givenExistingRestrictedDomains(ENVIRONMENT_ID, List.of());
 
         givenExistingApis(ENVIRONMENT_ID, Stream.of(buildApiV4WithPaths(ENVIRONMENT_ID, "api1", List.of(Pair.of(null, "/path/")))));
 
@@ -358,7 +353,7 @@ class VerifyApiPathDomainServiceTest {
 
     @Test
     public void should_throw_exception_if_path_is_subpath_of_another_api_v4_with_host() {
-        givenExistingEnvironment(ENVIRONMENT_ID, List.of("domain.com", "domain.net"));
+        givenExistingRestrictedDomains(ENVIRONMENT_ID, List.of("domain.com", "domain.net"));
 
         givenExistingApis(ENVIRONMENT_ID, Stream.of(buildApiV4WithPaths(ENVIRONMENT_ID, "api1", List.of(Pair.of("domain.com", "/path/")))));
 
@@ -373,15 +368,15 @@ class VerifyApiPathDomainServiceTest {
         assertThat(pathAlreadyExistExceptionIfDefaultDomain).isInstanceOf(InvalidPathsException.class);
     }
 
-    private void givenNoEnvironment() {
-        lenient().when(environmentCrudService.get(any())).thenThrow(new EnvironmentNotFoundException("env-id"));
-    }
-
-    @SneakyThrows
-    private void givenExistingEnvironment(String environmentId, List<String> domainRestrictions) {
-        var env = Environment.builder().id(environmentId).domainRestrictions(domainRestrictions).build();
-
-        lenient().when(environmentCrudService.get(eq(environmentId))).thenReturn(env);
+    private void givenExistingRestrictedDomains(String environmentId, List<String> domainRestrictions) {
+        lenient().when(accessPointService.getGatewayRestrictedDomains(any())).thenReturn(List.of());
+        lenient()
+            .when(accessPointService.getGatewayRestrictedDomains(eq(environmentId)))
+            .thenReturn(
+                domainRestrictions != null
+                    ? domainRestrictions.stream().map(domain -> RestrictedDomainEntity.builder().domain(domain).build()).toList()
+                    : List.of()
+            );
     }
 
     private void givenExistingApis(String environmentId, Stream<Api> apis) {

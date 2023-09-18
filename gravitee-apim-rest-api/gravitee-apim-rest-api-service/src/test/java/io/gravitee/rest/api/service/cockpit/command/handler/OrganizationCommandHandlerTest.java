@@ -21,15 +21,19 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.cockpit.api.command.Command;
 import io.gravitee.cockpit.api.command.CommandStatus;
+import io.gravitee.cockpit.api.command.accesspoint.AccessPoint;
 import io.gravitee.cockpit.api.command.organization.OrganizationCommand;
 import io.gravitee.cockpit.api.command.organization.OrganizationPayload;
 import io.gravitee.cockpit.api.command.organization.OrganizationReply;
 import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.model.UpdateOrganizationEntity;
+import io.gravitee.rest.api.service.AccessPointService;
 import io.gravitee.rest.api.service.OrganizationService;
 import io.reactivex.rxjava3.observers.TestObserver;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,12 +49,14 @@ public class OrganizationCommandHandlerTest {
 
     @Mock
     private OrganizationService organizationService;
+    @Mock
+    private AccessPointService accessPointService;
 
     public OrganizationCommandHandler cut;
 
     @Before
     public void before() {
-        cut = new OrganizationCommandHandler(organizationService);
+        cut = new OrganizationCommandHandler(organizationService,accessPointService);
     }
 
     @Test
@@ -68,7 +74,7 @@ public class OrganizationCommandHandlerTest {
         organizationPayload.setHrids(Collections.singletonList("orga-1"));
         organizationPayload.setDescription("Organization description");
         organizationPayload.setName("Organization name");
-        organizationPayload.setDomainRestrictions(Arrays.asList("domain.restriction1.io", "domain.restriction2.io"));
+        organizationPayload.setAccessPoints(List.of(AccessPoint.builder().target(AccessPoint.Target.CONSOLE).host("domain.restriction1.io").build(),AccessPoint.builder().target(AccessPoint.Target.CONSOLE).host("domain.restriction2.io").build()));
 
         when(
             organizationService.createOrUpdate(
@@ -77,8 +83,7 @@ public class OrganizationCommandHandlerTest {
                     newOrganization.getCockpitId().equals(organizationPayload.getCockpitId()) &&
                     newOrganization.getHrids().equals(organizationPayload.getHrids()) &&
                     newOrganization.getDescription().equals(organizationPayload.getDescription()) &&
-                    newOrganization.getName().equals(organizationPayload.getName()) &&
-                    newOrganization.getDomainRestrictions().equals(organizationPayload.getDomainRestrictions())
+                    newOrganization.getName().equals(organizationPayload.getName())
                 )
             )
         )
@@ -98,7 +103,7 @@ public class OrganizationCommandHandlerTest {
         organizationPayload.setId("orga#1");
         organizationPayload.setDescription("Organization description");
         organizationPayload.setName("Organization name");
-        organizationPayload.setDomainRestrictions(Arrays.asList("domain.restriction1.io", "domain.restriction2.io"));
+        organizationPayload.setAccessPoints(List.of(AccessPoint.builder().target(AccessPoint.Target.CONSOLE).host("domain.restriction1.io").build(),AccessPoint.builder().target(AccessPoint.Target.CONSOLE).host("domain.restriction2.io").build()));
 
         when(
             organizationService.createOrUpdate(
