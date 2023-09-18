@@ -28,7 +28,7 @@ export function initDynamicConfig(): Config {
     'pull_requests',
     'build_rpm_&_docker_images',
     'release_notes_apim',
-    'bridge_e2e',
+    'bridge_compatibility_tests',
     'publish_docker_images',
     'release_helm',
     'repositories_tests',
