@@ -31,16 +31,18 @@
       </div>
     </gio-banner-info>
 
-    <div class="logs-table-row" *ngFor="let log of logs; let index = index">
-      <api-runtime-logs-list-row [log]="log" [index]="index" [isMessageApi]="isMessageApi"></api-runtime-logs-list-row>
-    </div>
+    <div class="logs-table-card">
+      <div class="logs-table-row" *ngFor="let log of logs; let index = index">
+        <api-runtime-logs-list-row [log]="log" [index]="index" [isMessageApi]="isMessageApi"></api-runtime-logs-list-row>
+      </div>
 
-    <mat-paginator
-      (page)="paginationUpdated.emit($event)"
-      [pageSize]="pagination.perPage"
-      [pageSizeOptions]="pageSizeOptions"
-      [length]="pagination.totalCount"
-      [pageIndex]="pagination.page - 1"
-    ></mat-paginator>
+      <mat-paginator
+        (page)="paginationUpdated.emit($event)"
+        [pageSize]="pagination.perPage"
+        [pageSizeOptions]="pageSizeOptions"
+        [length]="pagination.totalCount"
+        [pageIndex]="pagination.page - 1"
+      ></mat-paginator>
+    </div>
   </div>
 </ng-template>
