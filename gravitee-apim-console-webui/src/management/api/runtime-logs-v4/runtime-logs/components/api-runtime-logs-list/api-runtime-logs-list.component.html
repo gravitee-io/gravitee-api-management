@@ -32,7 +32,7 @@
     </gio-banner-info>
 
     <div class="logs-table-row" *ngFor="let log of logs; let index = index">
-      <api-runtime-logs-list-row [log]="log" [index]="index"></api-runtime-logs-list-row>
+      <api-runtime-logs-list-row [log]="log" [index]="index" [isMessageApi]="isMessageApi"></api-runtime-logs-list-row>
     </div>
 
     <mat-paginator

@@ -14,7 +14,12 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 
 export class ApiRuntimeLogsListRowHarness extends ComponentHarness {
   static hostSelector = 'api-runtime-logs-list-row';
+
+  private readonly viewMessageButtonSelector = '[data-testId=view-messages]';
+
+  public getViewMessageButton = this.locatorFor(MatButtonHarness.with({ selector: this.viewMessageButtonSelector }));
 }

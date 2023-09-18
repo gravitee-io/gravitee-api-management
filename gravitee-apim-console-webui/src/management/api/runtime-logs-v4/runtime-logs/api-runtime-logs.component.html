@@ -19,6 +19,7 @@
   <api-runtime-logs-list
     [pagination]="response.pagination"
     [logEnabled]="apiLogsEnabled$ | async"
+    [isMessageApi]="isMessageApi$ | async"
     [logs]="response.data"
     (navigateToSettings)="openLogsSettings()"
     (paginationUpdated)="paginationUpdated($event)"
