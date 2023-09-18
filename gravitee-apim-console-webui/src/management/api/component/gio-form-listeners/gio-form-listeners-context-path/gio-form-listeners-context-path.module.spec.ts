@@ -86,8 +86,11 @@ describe('GioFormListenersContextPathModule', () => {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/settings`, method: 'GET' }).flush(settings);
   };
 
-  const expectApiVerify = () => {
-    httpTestingController.match({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/verify`, method: 'POST' });
+  const expectApiVerify = (inError = false) => {
+    httpTestingController
+      .match({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/verify`, method: 'POST' })
+      .filter((r) => !r.cancelled)
+      .map((c) => (inError ? c.error(new ProgressEvent('invalid')) : c.flush({})));
   };
 
   it('should display paths', async () => {
@@ -133,16 +136,16 @@ describe('GioFormListenersContextPathModule', () => {
     const emptyLastContextPathRow = await formPaths.getLastListenerRow();
     const pathInputHost = await emptyLastContextPathRow.pathInput.host();
 
-    // Invalid start with /
+    // Invalid: should start with /
     await emptyLastContextPathRow.pathInput.setValue('bad-path');
     expect(await pathInputHost.hasClass('ng-invalid')).toEqual(true);
 
-    // Invalid format
-    await emptyLastContextPathRow.pathInput.setValue('/abc yeh');
+    // Invalid: should not contain //
+    await emptyLastContextPathRow.pathInput.setValue('/bad//path');
     expect(await pathInputHost.hasClass('ng-invalid')).toEqual(true);
 
-    // Invalid min size 3
-    await emptyLastContextPathRow.pathInput.setValue('/b');
+    // Invalid: contains invalid char
+    await emptyLastContextPathRow.pathInput.setValue('/abc yeh');
     expect(await pathInputHost.hasClass('ng-invalid')).toEqual(true);
 
     // Valid
@@ -152,14 +155,44 @@ describe('GioFormListenersContextPathModule', () => {
     // Valid
     await emptyLastContextPathRow.pathInput.setValue('/good-path');
     expect(await pathInputHost.hasClass('ng-invalid')).toEqual(false);
-
-    // Invalid same path
-    await formPaths.addListenerRow();
-    const secondLine = await formPaths.getLastListenerRow();
-    await secondLine.pathInput.setValue('/good-path');
-    expect(await pathInputHost.hasClass('ng-invalid')).toEqual(true);
-    expect(await (await secondLine.pathInput.host()).hasClass('ng-invalid')).toEqual(true);
     expectApiVerify();
+  });
+
+  it('should mark control as invalid if path is already defined', async () => {
+    const formPaths = await loader.getHarness(GioFormListenersContextPathHarness);
+    await formPaths.addListenerRow();
+
+    const rows = await formPaths.getListenerRows();
+    expect(rows.length).toEqual(2);
+
+    await rows[0].pathInput.setValue('/api');
+    await rows[1].pathInput.setValue('/api');
+
+    expect(await (await rows[0].pathInput.host()).hasClass('ng-invalid')).toEqual(true);
+    expect(await (await rows[1].pathInput.host()).hasClass('ng-invalid')).toEqual(true);
+  });
+
+  it('should mark control as valid is path is using the same root but different path', async () => {
+    const formPaths = await loader.getHarness(GioFormListenersContextPathHarness);
+    await formPaths.getAddButton().then((b) => b.click());
+    const rows = await formPaths.getListenerRows();
+    expect(rows.length).toEqual(2);
+
+    await rows[0].pathInput.setValue('/api/delete');
+    await rows[1].pathInput.setValue('/api/create');
+    expectApiVerify();
+    expect(await (await rows[0].pathInput.host()).hasClass('ng-invalid')).toEqual(false);
+    expect(await (await rows[1].pathInput.host()).hasClass('ng-invalid')).toEqual(false);
+  });
+
+  it('should mark path as invalid if verify fails', async () => {
+    const formPaths = await loader.getHarness(GioFormListenersContextPathHarness);
+    const rows = await formPaths.getListenerRows();
+    expect(rows.length).toEqual(1);
+
+    await rows[0].pathInput.setValue('/path');
+    expectApiVerify(true);
+    expect(await (await rows[0].pathInput.host()).hasClass('ng-invalid')).toEqual(false);
   });
 
   it('should not validate path if included in pathsToIgnore', async () => {
