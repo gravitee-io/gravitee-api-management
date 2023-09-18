@@ -11,4 +11,9 @@
   &-row {
     border-bottom: 1px solid mat.get-color-from-palette(gio.$mat-dove-palette, darker10);
   }
+
+  &-card {
+    border-radius: 4px;
+    @include mat.elevation(3);
+  }
 }
