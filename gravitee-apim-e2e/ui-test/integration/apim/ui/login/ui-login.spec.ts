@@ -25,9 +25,6 @@ describe('Login Feature', () => {
 
   it(`should launch the login page`, () => {
     cy.url().should('contain', 'login');
-  });
-
-  it(`should have login page elements`, () => {
     cy.get('.title').should('be.visible');
     cy.get('.title').contains('Sign In');
   });
@@ -37,6 +34,10 @@ describe('Login Feature', () => {
     cy.get('#input_1').type(ADMIN_USER.password);
 
     cy.get('.btn').click();
-    cy.contains('Home board');
+    cy.url().should('contain', '/home/overview');
+    cy.contains('Overview').should('be.visible');
+    cy.contains('APIs health-check').should('be.visible');
+    cy.contains('My tasks').should('be.visible');
+    cy.contains('h2', 'API Events').should('be.visible');
   });
 });
