@@ -65,8 +65,8 @@ sed -i 's/$/*/' ignore_list
 echo "Following test files will run on this executor:"
 cat tests-to-run
 
-# Run tests            
-mvn --fail-fast -s ../.gravitee.settings.xml test --no-transfer-progress -Dskip.validation=true -Dsurefire.excludesFile=ignore_list`,
+# Run tests with rerunFailingTestsCount=2 because some integration tests related to RabbitMQ or Websocket are randomly failing on the CI             
+mvn --fail-fast -s ../.gravitee.settings.xml test --no-transfer-progress -Dskip.validation=true -Dsurefire.excludesFile=ignore_list -Dsurefire.rerunFailingTestsCount=2`,
       }),
       new commands.Run({
         name: 'Save test results',
