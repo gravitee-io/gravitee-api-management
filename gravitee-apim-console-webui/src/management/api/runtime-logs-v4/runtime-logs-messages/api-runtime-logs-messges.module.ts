@@ -16,12 +16,14 @@
 import { NgModule } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { CommonModule } from '@angular/common';
+import { MatButtonModule } from '@angular/material/button';
+import { UIRouterModule } from '@uirouter/angular';
 
 import { ApiRuntimeLogsMessagesComponent } from './api-runtime-logs-messages.component';
 
 @NgModule({
   declarations: [ApiRuntimeLogsMessagesComponent],
   exports: [ApiRuntimeLogsMessagesComponent],
-  imports: [CommonModule, MatCardModule],
+  imports: [CommonModule, MatButtonModule, MatCardModule, UIRouterModule],
 })
 export class ApiRuntimeLogsMessgesModule {}
