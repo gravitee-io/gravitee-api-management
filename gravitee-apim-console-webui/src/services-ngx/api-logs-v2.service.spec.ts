@@ -19,8 +19,9 @@ import { TestBed } from '@angular/core/testing';
 import { ApiLogsV2Service } from './api-logs-v2.service';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
-import { ApiLogsResponse } from '../entities/management-api-v2';
+import { ApiLogsResponse, fakePagedResult } from '../entities/management-api-v2';
 import { fakeConnectionLog } from '../entities/management-api-v2/log/connectionLog.fixture';
+import { fakeMessageLog } from '../entities/management-api-v2/log/messageLog.fixture';
 
 describe('ApiLogsV2Service', () => {
   let httpTestingController: HttpTestingController;
@@ -53,6 +54,26 @@ describe('ApiLogsV2Service', () => {
 
       const req = httpTestingController.expectOne({
         url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/logs?page=1&perPage=10`,
+        method: 'GET',
+      });
+
+      req.flush(fakeResponse);
+    });
+  });
+
+  describe('searchMessageLogs', () => {
+    const REQUEST_ID = 'request-id';
+
+    it('should call the API', (done) => {
+      const fakeResponse = fakePagedResult([fakeMessageLog()]);
+
+      apiPlanV2Service.searchMessageLogs(API_ID, REQUEST_ID).subscribe((apiPlansResponse) => {
+        expect(apiPlansResponse.data).toEqual(fakeResponse.data);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/logs/${REQUEST_ID}/messages?page=1&perPage=10`,
         method: 'GET',
       });
 

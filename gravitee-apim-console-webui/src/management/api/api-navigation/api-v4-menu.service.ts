@@ -49,7 +49,7 @@ export class ApiV4MenuService implements ApiMenuService {
       logsTabs.push({
         displayName: 'Runtime Logs',
         targetRoute: 'management.apis.runtimeLogs',
-        baseRoute: 'management.apis.runtimeLogs',
+        baseRoute: ['management.apis.runtimeLogs', 'management.apis.runtimeLogs-messages'],
       });
     }
     if (this.permissionService.hasAnyMatching(['api-definition-u', 'api-log-u'])) {
