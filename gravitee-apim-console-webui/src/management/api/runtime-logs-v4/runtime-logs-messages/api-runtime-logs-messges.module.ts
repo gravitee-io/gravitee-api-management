@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 import { NgModule } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
-import { UIRouterModule } from '@uirouter/angular';
-import { BrowserModule } from '@angular/platform-browser';
+import { MatCardModule } from '@angular/material/card';
 import { CommonModule } from '@angular/common';
 
-import { ApiRuntimeLogsListRowComponent } from './api-runtime-logs-list-row.component';
+import { ApiRuntimeLogsMessagesComponent } from './api-runtime-logs-messages.component';
 
 @NgModule({
-  declarations: [ApiRuntimeLogsListRowComponent],
-  exports: [ApiRuntimeLogsListRowComponent],
-  imports: [CommonModule, MatButtonModule, BrowserModule, UIRouterModule],
+  declarations: [ApiRuntimeLogsMessagesComponent],
+  exports: [ApiRuntimeLogsMessagesComponent],
+  imports: [CommonModule, MatCardModule],
 })
-export class ApiRuntimeLogsListRowModule {}
+export class ApiRuntimeLogsMessgesModule {}

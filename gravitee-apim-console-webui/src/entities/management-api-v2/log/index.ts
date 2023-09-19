@@ -16,3 +16,4 @@
 
 export * from './apiLogsResponse';
 export * from './connectionLog';
+export * from './messageLog';

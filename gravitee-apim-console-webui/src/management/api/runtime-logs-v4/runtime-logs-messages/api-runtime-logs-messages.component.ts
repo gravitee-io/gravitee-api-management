@@ -13,17 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NgModule } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
-import { UIRouterModule } from '@uirouter/angular';
-import { BrowserModule } from '@angular/platform-browser';
-import { CommonModule } from '@angular/common';
 
-import { ApiRuntimeLogsListRowComponent } from './api-runtime-logs-list-row.component';
+import { Component } from '@angular/core';
 
-@NgModule({
-  declarations: [ApiRuntimeLogsListRowComponent],
-  exports: [ApiRuntimeLogsListRowComponent],
-  imports: [CommonModule, MatButtonModule, BrowserModule, UIRouterModule],
+@Component({
+  selector: 'api-runtime-logs-messages',
+  template: require('./api-runtime-logs-messages.component.html'),
+  styles: [require('./api-runtime-logs-messages.component.scss')],
 })
-export class ApiRuntimeLogsListRowModule {}
+export class ApiRuntimeLogsMessagesComponent {}
