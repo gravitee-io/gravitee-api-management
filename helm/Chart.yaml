@@ -25,3 +25,4 @@ annotations:
     - Add support for DB less mode on gateway
     - Add nodePort value to all services
     - Remove smtp default example values
+    - Allow wildcard in ingress host
