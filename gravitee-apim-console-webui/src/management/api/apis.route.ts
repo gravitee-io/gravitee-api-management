@@ -70,6 +70,7 @@ import { ApiCreationV4Component } from './creation-v4/api-creation-v4.component'
 import { ApiCreationV4ConfirmationComponent } from './creation-v4/api-creation-v4-confirmation.component';
 import { ApiCreationV2Component } from './creation-v2/steps/api-creation-v2.component';
 import { ApiPropertiesComponent } from './proxy/properties/api-properties.component';
+import { ApiRuntimeLogsMessagesComponent } from './runtime-logs-v4/runtime-logs-messages/api-runtime-logs-messages.component';
 
 import { NotificationsComponent } from '../../components/notifications/notifications.component';
 import { Scope } from '../../entities/scope';
@@ -1448,6 +1449,20 @@ export const states: Ng2StateDeclaration[] = [
       useAngularMaterial: true,
     },
     component: ApiRuntimeLogsComponent,
+  },
+  {
+    name: 'management.apis.runtimeLogs-messages',
+    url: '/runtime-logs/:requestId',
+    data: {
+      apiPermissions: {
+        only: ['api-log-r'],
+      },
+      docs: {
+        page: 'management-api-logs',
+      },
+      useAngularMaterial: true,
+    },
+    component: ApiRuntimeLogsMessagesComponent,
   },
   {
     name: 'management.apis.runtimeLogs-settings',
