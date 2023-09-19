@@ -18,7 +18,7 @@
 <div class="log-row" [class.first]="index === 0">
   <div class="log-row__left">
     <div class="log-row__line-1">
-      <div>{{ log.timestamp }}</div>
+      <div>{{ log.timestamp | date : 'yyyy-MM-dd HH:mm:ss.SSS' }}</div>
       <span class="gio-badge-neutral">Request ended</span>
     </div>
 
