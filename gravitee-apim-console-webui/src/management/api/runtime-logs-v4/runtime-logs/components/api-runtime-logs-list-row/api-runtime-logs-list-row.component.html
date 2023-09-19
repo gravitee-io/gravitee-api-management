@@ -63,6 +63,13 @@
     </div>
   </div>
   <div class="log-row__actions" *ngIf="isMessageApi">
-    <button mat-button mat-raised-button disabled data-testId="view-messages">View messages</button>
+    <a
+      mat-button
+      mat-raised-button
+      data-testId="view-messages"
+      [uiSref]="'management.apis.ng.runtimeLogs-messages'"
+      [uiParams]="{ requestId: log.requestId }"
+      >View messages</a
+    >
   </div>
 </div>
