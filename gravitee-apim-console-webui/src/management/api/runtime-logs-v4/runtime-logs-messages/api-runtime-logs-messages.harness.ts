@@ -13,4 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './api-runtime-logs-messges.module';
+import { ComponentHarness } from '@angular/cdk/testing';
+import { MatIconHarness } from '@angular/material/icon/testing';
+
+export class ApiRuntimeLogsMessagesHarness extends ComponentHarness {
+  static hostSelector = 'runtime-logs-messages';
+  public connectorIcon = this.locatorFor(MatIconHarness.with({ selector: '[data-testId=connector-icon]' }));
+}

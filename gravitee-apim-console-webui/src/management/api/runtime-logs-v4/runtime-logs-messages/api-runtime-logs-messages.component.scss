@@ -14,10 +14,12 @@ $typography: map.get(gio.$mat-theme, typography);
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-bottom: 16px;
 
     &__title {
       @include mat.typography-level($typography, subheading-2);
     }
+
     &__subtitle {
       color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
       @include mat.typography-level($typography, body-1);

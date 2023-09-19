@@ -13,4 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './api-runtime-logs-messges.module';
+
+import { Component, Input } from '@angular/core';
+
+import { MessageLog } from '../../../../../entities/management-api-v2';
+
+@Component({
+  selector: 'api-runtime-logs-message',
+  template: require('./api-runtime-logs-message.component.html'),
+  styles: [require('./api-runtime-logs-message.component.scss')],
+})
+export class ApiRuntimeLogsMessageComponent {
+  @Input()
+  messageLog: MessageLog;
+
+  @Input()
+  connectorIcon: string;
+}
