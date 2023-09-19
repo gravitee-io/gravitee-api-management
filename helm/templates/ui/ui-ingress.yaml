@@ -36,7 +36,7 @@ spec:
   {{- end }}
   rules:
   {{- range $host := .Values.ui.ingress.hosts }}
-  - host: {{ $host }}
+  - host: {{ $host | quote }}
     http:
       paths:
       - pathType: {{ $ingressPathType }}

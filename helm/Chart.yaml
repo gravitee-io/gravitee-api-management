@@ -19,6 +19,4 @@ annotations:
   # List of changes for the release in artifacthub.io
   # https://artifacthub.io/packages/helm/graviteeio/apim?modal=changelog
   artifacthub.io/changes: |
-    - Avoid empty user when disabling admin user
-    - Add revision history limit on portal
-    - Add podSecurityContext
+    - Allow wildcard in ingress host

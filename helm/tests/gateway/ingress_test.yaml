@@ -119,3 +119,14 @@ tests:
       - equal:
           path: spec.rules[0].http.paths[0].path
           value: /test-gateway
+
+  - it: Check Ingress host with wildcard
+    set:
+      gateway:
+        ingress:
+          hosts:
+            - "*.apim.example.com"
+    asserts:
+      - equal:
+          path: spec.rules[0].host
+          value: "*.apim.example.com"
