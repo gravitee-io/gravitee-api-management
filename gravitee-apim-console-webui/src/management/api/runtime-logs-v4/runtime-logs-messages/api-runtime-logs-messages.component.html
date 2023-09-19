@@ -17,7 +17,10 @@
 -->
 <mat-card class="card">
   <div class="card__header">
-    <div class="card__header__title">Messages</div>
-    <div class="card__header__subtitle">Analyse the messages for a specific runtime log</div>
+    <div>
+      <div class="card__header__title">Messages</div>
+      <div class="card__header__subtitle">Analyse the messages for a specific runtime log</div>
+    </div>
+    <a mat-button mat-raised-button [uiSref]="'management.apis.ng.runtimeLogs'" aria-label="Back to Runtime Logs"> Back to Runtime Logs </a>
   </div>
 </mat-card>
