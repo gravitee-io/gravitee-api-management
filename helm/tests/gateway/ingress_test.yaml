@@ -133,3 +133,14 @@ tests:
           of: Ingress
       - isAPIVersion:
           of: networking.k8s.io/v1
+
+  - it: Check Ingress host with wildcard
+    set:
+      gateway:
+        ingress:
+          hosts:
+            - "*.apim.example.com"
+    asserts:
+      - equal:
+          path: spec.rules[0].host
+          value: "*.apim.example.com"
