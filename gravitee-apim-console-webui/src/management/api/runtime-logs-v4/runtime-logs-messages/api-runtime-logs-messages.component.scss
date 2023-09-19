@@ -11,6 +11,10 @@ $typography: map.get(gio.$mat-theme, typography);
 
 .card {
   &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
     &__title {
       @include mat.typography-level($typography, subheading-2);
     }
