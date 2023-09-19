@@ -13,17 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NgModule } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
-import { UIRouterModule } from '@uirouter/angular';
-import { BrowserModule } from '@angular/platform-browser';
-import { CommonModule } from '@angular/common';
+export interface MessageLog {
+  requestId: string;
+  timestamp: string;
+  clientIdentifier: string;
+  correlationId: string;
+  parentCorrelationId: string;
+  operation: MessageOperation;
+  connectorType: ConnectorType;
+  connectorId: string;
+  message: Message;
+}
 
-import { ApiRuntimeLogsListRowComponent } from './api-runtime-logs-list-row.component';
+export interface Message {
+  id: string;
+  payload: string;
+  headers: Record<string, any>;
+  metadata: Record<string, string>;
+}
 
-@NgModule({
-  declarations: [ApiRuntimeLogsListRowComponent],
-  exports: [ApiRuntimeLogsListRowComponent],
-  imports: [CommonModule, MatButtonModule, BrowserModule, UIRouterModule],
-})
-export class ApiRuntimeLogsListRowModule {}
+export type ConnectorType = 'ENDPOINT' | 'ENTRYPOINT';
+export type MessageOperation = 'SUBSCRIBE' | 'PUBLISH';

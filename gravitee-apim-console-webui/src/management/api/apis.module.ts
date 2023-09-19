@@ -79,6 +79,7 @@ import { ApiEndpointGroupComponent } from './endpoints-v4/endpoint-group/api-end
 import { ApiEndpointGroupCreateComponent } from './endpoints-v4/endpoint-group/create/api-endpoint-group-create.component';
 import { ApiRuntimeLogsSettingsComponent } from './runtime-logs-v4/runtime-logs-settings/api-runtime-logs-settings.component';
 import { ApiRuntimeLogsComponent } from './runtime-logs-v4/runtime-logs/api-runtime-logs.component';
+import { ApiRuntimeLogsMessagesComponent } from './runtime-logs-v4/runtime-logs-messages/api-runtime-logs-messages.component';
 
 import { NotificationsComponent } from '../../components/notifications/notifications.component';
 import { Scope } from '../../entities/scope';
@@ -1354,6 +1355,20 @@ const states: Ng2StateDeclaration[] = [
       useAngularMaterial: true,
     },
     component: ApiRuntimeLogsComponent,
+  },
+  {
+    name: 'management.apis.ng.runtimeLogs-messages',
+    url: '/runtime-logs/:requestId',
+    data: {
+      apiPermissions: {
+        only: ['api-log-r'],
+      },
+      docs: {
+        page: 'management-api-logs',
+      },
+      useAngularMaterial: true,
+    },
+    component: ApiRuntimeLogsMessagesComponent,
   },
   {
     name: 'management.apis.ng.runtimeLogs-settings',

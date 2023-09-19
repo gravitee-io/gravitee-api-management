@@ -49,7 +49,7 @@ export class ApiNgV4MenuService implements ApiMenuService {
       logsTabs.push({
         displayName: 'Runtime Logs',
         targetRoute: 'management.apis.ng.runtimeLogs',
-        baseRoute: 'management.apis.ng.runtimeLogs',
+        baseRoute: ['management.apis.ng.runtimeLogs', 'management.apis.ng.runtimeLogs-messages'],
       });
     }
     if (this.permissionService.hasAnyMatching(['api-definition-u', 'api-log-u'])) {

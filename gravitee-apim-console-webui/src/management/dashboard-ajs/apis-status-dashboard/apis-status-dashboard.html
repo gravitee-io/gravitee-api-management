@@ -76,7 +76,7 @@
             </md-card-avatar>
             <md-card-header-text>
               <span class="md-title" title="{{api.name}} {{api.version}}">{{api.name}} <small>({{api.version}})</small></span>
-              <a ui-sref="management.apis.ng.healthcheck-dashboard-v2({apiId: api.id})">View detail</a>
+              <a ui-sref="management.apis.ng.healthcheck-dashboard-v2({apiId: @api.id})">View detail</a>
             </md-card-header-text>
             <md-card-avatar ng-if="$ctrl.isInError(api) || $ctrl.isInWarning(api)">
               <ng-md-icon icon="error" size="40px"></ng-md-icon>
