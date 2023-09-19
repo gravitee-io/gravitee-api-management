@@ -14,17 +14,15 @@
  * limitations under the License.
  */
 import { NgModule } from '@angular/core';
-import { MatCardModule } from '@angular/material/card';
 import { CommonModule } from '@angular/common';
-import { MatButtonModule } from '@angular/material/button';
-import { UIRouterModule } from '@uirouter/angular';
+import { MatIconModule } from '@angular/material/icon';
+import { GioIconsModule } from '@gravitee/ui-particles-angular';
 
-import { ApiRuntimeLogsMessagesComponent } from './api-runtime-logs-messages.component';
-import { ApiRuntimeLogsMessageModule } from './components';
+import { ApiRuntimeLogsMessageComponent } from './api-runtime-logs-message.component';
 
 @NgModule({
-  declarations: [ApiRuntimeLogsMessagesComponent],
-  exports: [ApiRuntimeLogsMessagesComponent],
-  imports: [ApiRuntimeLogsMessageModule, CommonModule, MatButtonModule, MatCardModule, UIRouterModule],
+  declarations: [ApiRuntimeLogsMessageComponent],
+  exports: [ApiRuntimeLogsMessageComponent],
+  imports: [CommonModule, MatIconModule, GioIconsModule],
 })
-export class ApiRuntimeLogsMessgesModule {}
+export class ApiRuntimeLogsMessageModule {}
