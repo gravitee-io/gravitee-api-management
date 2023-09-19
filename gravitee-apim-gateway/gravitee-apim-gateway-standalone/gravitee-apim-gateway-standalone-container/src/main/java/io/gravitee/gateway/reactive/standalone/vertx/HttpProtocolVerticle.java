@@ -28,7 +28,6 @@ import io.vertx.rxjava3.core.RxHelper;
 import io.vertx.rxjava3.core.http.HttpServer;
 import io.vertx.rxjava3.core.http.HttpServerRequest;
 import io.vertx.rxjava3.core.http.HttpServerResponse;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,7 +48,6 @@ public class HttpProtocolVerticle extends AbstractVerticle {
 
     private final ServerManager serverManager;
     private final HttpRequestDispatcher requestDispatcher;
-    private final List<Disposable> requestDisposables;
     private final Map<VertxHttpServer, HttpServer> httpServerMap;
 
     public HttpProtocolVerticle(
@@ -58,7 +56,6 @@ public class HttpProtocolVerticle extends AbstractVerticle {
     ) {
         this.serverManager = serverManager;
         this.requestDispatcher = requestDispatcher;
-        this.requestDisposables = new ArrayList<>();
         this.httpServerMap = new HashMap<>();
     }
 
@@ -81,15 +78,8 @@ public class HttpProtocolVerticle extends AbstractVerticle {
                 httpServerMap.put(gioServer, rxHttpServer);
 
                 // Listen and dispatch http requests.
-                requestDisposables.add(
-                    rxHttpServer
-                        .requestStream()
-                        .toFlowable()
-                        .flatMapCompletable(request -> dispatchRequest(request, gioServer.id()))
-                        .subscribe()
-                );
-
                 return rxHttpServer
+                    .requestHandler(request -> dispatchRequest(request, gioServer.id()))
                     .rxListen()
                     .ignoreElement()
                     .doOnComplete(() ->
@@ -108,15 +98,14 @@ public class HttpProtocolVerticle extends AbstractVerticle {
      *
      * @param request the current request to dispatch.
      * @param serverId the id of the server handling the request.
-     *
-     * @return a {@link Completable} that completes once the request has been ended.
      */
-    private Completable dispatchRequest(HttpServerRequest request, String serverId) {
-        return requestDispatcher
+    private void dispatchRequest(HttpServerRequest request, String serverId) {
+        requestDispatcher
             .dispatch(request, serverId)
             .doOnComplete(() -> log.debug("Request properly dispatched"))
             .onErrorResumeNext(t -> handleError(t, request.response()))
-            .doOnSubscribe(dispatchDisposable -> configureCloseHandler(request, dispatchDisposable));
+            .doOnSubscribe(dispatchDisposable -> configureConnectionHandlers(request, dispatchDisposable))
+            .subscribe();
     }
 
     /**
@@ -160,30 +149,23 @@ public class HttpProtocolVerticle extends AbstractVerticle {
         }
     }
 
-    private void configureCloseHandler(HttpServerRequest request, Disposable dispatchDisposable) {
+    private void configureConnectionHandlers(HttpServerRequest request, Disposable dispatchDisposable) {
         request
             .connection()
-            // Must be added to ensure closed connection disposes underlying subscription
+            // Must be added to ensure closed connection or error disposes underlying subscription.
+            .exceptionHandler(event -> dispatchDisposable.dispose())
             .closeHandler(event -> dispatchDisposable.dispose());
     }
 
     @Override
     public Completable rxStop() {
         return Flowable
-            .fromIterable(requestDisposables)
-            .doOnNext(Disposable::dispose)
-            .ignoreElements()
-            .andThen(
-                Flowable
-                    .fromIterable(httpServerMap.entrySet())
-                    .flatMapCompletable(entry -> {
-                        final VertxHttpServer gioServer = entry.getKey();
-                        final HttpServer rxHttpServer = entry.getValue();
-                        return rxHttpServer
-                            .rxClose()
-                            .doOnComplete(() -> log.info("HTTP server [{}] has been correctly stopped", gioServer.id()));
-                    })
-            )
+            .fromIterable(httpServerMap.entrySet())
+            .flatMapCompletable(entry -> {
+                final VertxHttpServer gioServer = entry.getKey();
+                final HttpServer rxHttpServer = entry.getValue();
+                return rxHttpServer.rxClose().doOnComplete(() -> log.info("HTTP server [{}] has been correctly stopped", gioServer.id()));
+            })
             .doOnSubscribe(disposable -> log.info("Stopping HTTP servers..."));
     }
 }
