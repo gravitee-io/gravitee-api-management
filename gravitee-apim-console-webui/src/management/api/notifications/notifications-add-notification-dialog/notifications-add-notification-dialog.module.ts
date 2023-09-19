@@ -15,12 +15,28 @@
  */
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { MatDialogModule } from '@angular/material/dialog';
+import { MatButtonModule } from '@angular/material/button';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatOptionModule } from '@angular/material/core';
+import { MatSelectModule } from '@angular/material/select';
+import { ReactiveFormsModule } from '@angular/forms';
 
 import { NotificationsAddNotificationDialogComponent } from './notifications-add-notification-dialog.component';
 
 @NgModule({
   declarations: [NotificationsAddNotificationDialogComponent],
   exports: [NotificationsAddNotificationDialogComponent],
-  imports: [CommonModule],
+  imports: [
+    CommonModule,
+    MatDialogModule,
+    MatButtonModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatOptionModule,
+    MatSelectModule,
+    ReactiveFormsModule,
+  ],
 })
 export class NotificationsAddNotificationDialogModule {}

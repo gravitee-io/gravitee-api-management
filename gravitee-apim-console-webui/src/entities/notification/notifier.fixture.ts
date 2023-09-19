@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export interface NotificationSettings {
-  id?: string;
-  name: string;
-  referenceType: string;
-  referenceId: string;
-  notifier: string;
-  hooks?: string[];
-  useSystemProxy?: boolean;
-  config_type: string;
+import { Notifier } from './notifier';
+
+export function fakeNotifier(attributes?: Partial<Notifier>): Notifier {
+  const defaultValue: Notifier = {
+    id: 'test id',
+    name: 'test name',
+  };
+  return {
+    ...defaultValue,
+    ...attributes,
+  };
 }

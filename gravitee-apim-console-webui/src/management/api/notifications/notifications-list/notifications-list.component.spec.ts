@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { ComponentFixture, fakeAsync, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
@@ -25,6 +25,8 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
+import { MatInputHarness } from '@angular/material/input/testing';
+import { MatSelectHarness } from '@angular/material/select/testing';
 
 import { NotificationsListModule } from './notifications-list.module';
 import { NotificationsListComponent } from './notifications-list.component';
@@ -35,6 +37,8 @@ import { GioUiRouterTestingModule } from '../../../../shared/testing/gio-uiroute
 import { User } from '../../../../entities/user';
 import { NotificationSettings } from '../../../../entities/notification/notificationSettings';
 import { fakeNotificationSettings } from '../../../../entities/notification/notificationSettings.fixture';
+import { fakeNotifier } from '../../../../entities/notification/notifier.fixture';
+import { Notifier } from '../../../../entities/notification/notifier';
 
 describe('NotificationsListComponent', () => {
   let fixture: ComponentFixture<NotificationsListComponent>;
@@ -67,6 +71,7 @@ describe('NotificationsListComponent', () => {
         .overrideProvider(InteractivityChecker, {
           useValue: {
             isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
+            isTabbable: () => true, // This traps focus checks and so avoid warnings when dealing with
           },
         })
         .compileComponents();
@@ -82,28 +87,31 @@ describe('NotificationsListComponent', () => {
       httpTestingController.verify();
     });
 
-    it('should display an empty table', fakeAsync(async () => {
+    it('should display an empty table', async () => {
       const table = await loader.getHarness(MatTableHarness.with({ selector: '#notificationsTable' }));
       expect(await table.getCellTextByIndex()).toEqual([['Loading...']]);
 
       expectApiGetNotificationList([]);
+      expectApiGetNotifiers([]);
 
       expect(await table.getCellTextByIndex()).toEqual([['No notifications to display.']]);
-    }));
+    });
 
-    it('should display a table with notifications', fakeAsync(async () => {
+    it('should display a table with notifications', async () => {
       const table = await loader.getHarness(MatTableHarness.with({ selector: '#notificationsTable' }));
       expect(await table.getCellTextByIndex()).toEqual([['Loading...']]);
 
       const notifications = [fakeNotificationSettings({ name: 'Test name' })];
       expectApiGetNotificationList(notifications);
+      expectApiGetNotifiers([]);
 
       expect(await table.getCellTextByIndex()).toEqual([['Test name', '']]);
-    }));
+    });
 
-    it('should delete the notification', fakeAsync(async () => {
+    it('should delete the notification', async () => {
       const table = [fakeNotificationSettings({ name: 'Test name', id: 'test id' })];
       expectApiGetNotificationList(table);
+      expectApiGetNotifiers([]);
 
       const button = await loader.getHarness(MatButtonHarness.with({ selector: `[aria-label="Delete notification"]` }));
       await button.click();
@@ -115,7 +123,46 @@ describe('NotificationsListComponent', () => {
         url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/notificationsettings/${table[0].id}`,
         method: 'DELETE',
       });
-    }));
+    });
+
+    it('should add the notification', async () => {
+      const table = [fakeNotificationSettings({ name: 'Test name', id: 'test id' })];
+      expectApiGetNotificationList(table);
+      const notifier = [fakeNotifier({ id: 'notifier-a', name: 'Notifier A' })];
+      expectApiGetNotifiers(notifier);
+
+      const button = await loader.getHarness(MatButtonHarness.with({ selector: `[aria-label="Add notification"]` }));
+      expect(await button.isDisabled()).toBeFalsy();
+      await button.click();
+
+      const submitButton = await rootLoader.getHarness(MatButtonHarness.with({ selector: 'button[type=submit]' }));
+      expect(await submitButton.isDisabled()).toBeTruthy();
+
+      const nameInput = await rootLoader.getHarness(MatInputHarness.with({ selector: '[formControlName=name]' }));
+      await nameInput.setValue('Test notification');
+
+      const notifierGroupSelect = await rootLoader.getHarness(MatSelectHarness.with({ selector: '[formControlName=notifier' }));
+      await notifierGroupSelect.clickOptions({ text: 'Notifier A' });
+
+      await submitButton.click();
+
+      const req = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/notificationsettings`,
+      });
+      expect(req.request.body).toStrictEqual({
+        config_type: 'GENERIC',
+        hooks: [],
+        name: 'Test notification',
+        notifier: 'notifier-a',
+        referenceId: 'apiId',
+        referenceType: 'API',
+      });
+      req.flush(null);
+
+      expectApiGetNotificationList(table);
+      expectApiGetNotifiers(notifier);
+    });
   });
 
   function expectApiGetNotificationList(notifactionSettings: NotificationSettings[]) {
@@ -125,6 +172,16 @@ describe('NotificationsListComponent', () => {
         method: 'GET',
       })
       .flush(notifactionSettings);
+    fixture.detectChanges();
+  }
+
+  function expectApiGetNotifiers(notifier: Notifier[]) {
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/notifiers`,
+        method: 'GET',
+      })
+      .flush(notifier);
     fixture.detectChanges();
   }
 });

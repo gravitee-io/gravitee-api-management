@@ -19,6 +19,8 @@ import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
 import { NotificationSettings } from '../entities/notification/notificationSettings';
+import { Notifier } from '../entities/notification/notifier';
+import { NewNotificationSettings } from '../entities/notification/newNotificationSettings';
 
 @Injectable({
   providedIn: 'root',
@@ -32,5 +34,13 @@ export class NotificationSettingsService {
 
   delete(apiId: string, id: string): Observable<NotificationSettings[]> {
     return this.http.delete<NotificationSettings[]>(`${this.constants.env.baseURL}/apis/${apiId}/notificationsettings/${id}`);
+  }
+
+  getNotifiers(apiId: string): Observable<Notifier[]> {
+    return this.http.get<Notifier[]>(`${this.constants.env.baseURL}/apis/${apiId}/notifiers`);
+  }
+
+  create(apiId, notificationConfig: NewNotificationSettings): Observable<NewNotificationSettings> {
+    return this.http.post<NewNotificationSettings>(`${this.constants.env.baseURL}/apis/${apiId}/notificationsettings`, notificationConfig);
   }
 }

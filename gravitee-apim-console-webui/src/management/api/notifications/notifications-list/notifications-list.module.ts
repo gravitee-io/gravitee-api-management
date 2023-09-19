@@ -29,6 +29,7 @@ import { NotificationsListComponent } from './notifications-list.component';
 
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
 import { GioTableWrapperModule } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
+import { NotificationsAddNotificationDialogModule } from '../notifications-add-notification-dialog/notifications-add-notification-dialog.module';
 
 @NgModule({
   declarations: [NotificationsListComponent],
@@ -46,6 +47,7 @@ import { GioTableWrapperModule } from '../../../../shared/components/gio-table-w
     HttpClientModule,
     MatDialogModule,
     MatSnackBarModule,
+    NotificationsAddNotificationDialogModule,
   ],
 })
 export class NotificationsListModule {}

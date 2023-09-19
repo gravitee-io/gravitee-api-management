@@ -13,13 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export interface NotificationSettings {
-  id?: string;
+export interface NewNotificationSettings {
   name: string;
+  notifier: string;
+  config_type: string;
+  hooks: string[];
   referenceType: string;
   referenceId: string;
-  notifier: string;
-  hooks?: string[];
-  useSystemProxy?: boolean;
-  config_type: string;
 }
