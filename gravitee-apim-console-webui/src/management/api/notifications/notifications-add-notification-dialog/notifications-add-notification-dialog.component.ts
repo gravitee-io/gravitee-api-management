@@ -13,11 +13,53 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component } from '@angular/core';
+import { Component, Inject } from '@angular/core';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
+
+import { Notifier } from '../../../../entities/notification/notifier';
+import { NewNotificationSettings } from '../../../../entities/notification/newNotificationSettings';
+import { NotificationSettings } from '../../../../entities/notification/notificationSettings';
+import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+
+export interface NotificationsAddNotificationDialogData {
+  notifier: Notifier[];
+}
+
+export type NotificationsAddNotificationDialogResult = NewNotificationSettings;
 
 @Component({
   selector: 'notifications-add-notification-dialog',
   template: require('./notifications-add-notification-dialog.component.html'),
   styles: [require('./notifications-add-notification-dialog.component.scss')],
 })
-export class NotificationsAddNotificationDialogComponent {}
+export class NotificationsAddNotificationDialogComponent {
+  notificationForm: FormGroup;
+  notifierList: Notifier[];
+  notificationTemplate: NotificationSettings[];
+
+  constructor(
+    @Inject(MAT_DIALOG_DATA) dialogData: NotificationsAddNotificationDialogData,
+    @Inject(UIRouterStateParams) private readonly ajsStateParams,
+    public dialogRef: MatDialogRef<NotificationsAddNotificationDialogData, NotificationsAddNotificationDialogResult>,
+  ) {
+    this.notifierList = dialogData.notifier;
+    this.notificationForm = new FormGroup({
+      name: new FormControl(null, [Validators.required]),
+      notifier: new FormControl(this.notifierList[0].id, [Validators.required]),
+    });
+  }
+
+  onSubmit() {
+    const { name, notifier } = this.notificationForm.getRawValue();
+
+    this.dialogRef.close({
+      name,
+      notifier,
+      config_type: 'GENERIC',
+      hooks: [],
+      referenceType: 'API',
+      referenceId: this.ajsStateParams.apiId,
+    });
+  }
+}

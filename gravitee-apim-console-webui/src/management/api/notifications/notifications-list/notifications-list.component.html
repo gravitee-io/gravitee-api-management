@@ -22,8 +22,8 @@
     *gioPermission="{ anyOf: ['api-notification-c'] }"
     mat-raised-button
     color="primary"
-    aria-label="add-notification"
-    [disabled]="true"
+    aria-label="Add notification"
+    (click)="addNotification()"
   >
     <mat-icon>add</mat-icon>
     Add notification

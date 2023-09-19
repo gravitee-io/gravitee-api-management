@@ -19,6 +19,8 @@ import { TestBed } from '@angular/core/testing';
 import { NotificationSettingsService } from './notification-settings.service';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
+import { fakeNotifier } from '../entities/notification/notifier.fixture';
+import { fakeNotificationSettings } from '../entities/notification/notificationSettings.fixture';
 
 describe('NotificationSettings', () => {
   let httpTestingController: HttpTestingController;
@@ -43,6 +45,57 @@ describe('NotificationSettings', () => {
           url: `${CONSTANTS_TESTING.org.baseURL}/environments/DEFAULT/apis/123/notificationsettings/456`,
         })
         .flush(null);
+    });
+  });
+
+  describe('get notifiers', () => {
+    it('should call the API', (done) => {
+      const notifier = [fakeNotifier({ id: 'notifier-a', name: 'Notifier A' })];
+
+      notificationSettingsService.getNotifiers('123').subscribe(() => done());
+
+      httpTestingController
+        .expectOne({
+          method: 'GET',
+          url: `${CONSTANTS_TESTING.org.baseURL}/environments/DEFAULT/apis/123/notifiers`,
+        })
+        .flush(notifier);
+    });
+  });
+
+  describe('get notification settings', () => {
+    it('should call the API', (done) => {
+      const notificationSettings = [fakeNotificationSettings({ name: 'Test name', id: 'test id' })];
+
+      notificationSettingsService.getNotificationSettings('123').subscribe(() => done());
+
+      httpTestingController
+        .expectOne({
+          method: 'GET',
+          url: `${CONSTANTS_TESTING.org.baseURL}/environments/DEFAULT/apis/123/notificationsettings`,
+        })
+        .flush(notificationSettings);
+    });
+  });
+
+  describe('create', () => {
+    it('should call the API', (done) => {
+      const fakeNewNotificationSettings = {
+        name: 'test name',
+        notifier: 'test notifier',
+        config_type: 'test config_type',
+        hooks: [],
+        referenceType: 'test reference_type',
+        referenceId: 'test reference_id',
+      };
+
+      notificationSettingsService.create('123', fakeNewNotificationSettings).subscribe(() => done());
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/environments/DEFAULT/apis/123/notificationsettings`);
+      expect(req.request.method).toEqual('POST');
+      expect(req.request.body).toEqual(fakeNewNotificationSettings);
+
+      req.flush(fakeNewNotificationSettings);
     });
   });
 });

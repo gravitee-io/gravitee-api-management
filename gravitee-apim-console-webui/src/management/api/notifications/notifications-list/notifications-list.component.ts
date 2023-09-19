@@ -16,8 +16,8 @@
 
 import { Component, Inject, OnInit } from '@angular/core';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { EMPTY, Subject } from 'rxjs';
-import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import { combineLatest, EMPTY, Subject } from 'rxjs';
+import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { MatDialog } from '@angular/material/dialog';
 
 import { NotificationSettingsService } from '../../../../services-ngx/notification-settings.service';
@@ -25,6 +25,12 @@ import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { GioTableWrapperFilters } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { gioTableFilterCollection } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
+import {
+  NotificationsAddNotificationDialogComponent,
+  NotificationsAddNotificationDialogData,
+  NotificationsAddNotificationDialogResult,
+} from '../notifications-add-notification-dialog/notifications-add-notification-dialog.component';
+import { Notifier } from '../../../../entities/notification/notifier';
 
 type NotificationSettingsTable = {
   name: string;
@@ -39,6 +45,7 @@ type NotificationSettingsTable = {
 })
 export class NotificationsListComponent implements OnInit {
   public notificationsSettingsTable: NotificationSettingsTable[] = [];
+  public notifiersGroup: Notifier[] = [];
   public isLoadingData = true;
   public displayedColumns = ['name', 'actions'];
   public notificationUnpaginatedLength = 0;
@@ -56,11 +63,13 @@ export class NotificationsListComponent implements OnInit {
   public ngOnInit() {
     this.isLoadingData = true;
     this.filteredNotificationsSettingsTable = [];
-    this.notificationSettingsService
-      .getNotificationSettings(this.ajsStateParams.apiId)
+    combineLatest([
+      this.notificationSettingsService.getNotificationSettings(this.ajsStateParams.apiId),
+      this.notificationSettingsService.getNotifiers(this.ajsStateParams.apiId),
+    ])
       .pipe(
-        tap((settings) => {
-          this.notificationsSettingsTable = settings.map((notificationSettings) => {
+        tap(([notificationsList, notifiers]) => {
+          this.notificationsSettingsTable = notificationsList.map((notificationSettings) => {
             return {
               id: notificationSettings.id,
               configType: notificationSettings.config_type,
@@ -69,6 +78,8 @@ export class NotificationsListComponent implements OnInit {
           });
           this.filteredNotificationsSettingsTable = this.notificationsSettingsTable;
           this.notificationUnpaginatedLength = this.filteredNotificationsSettingsTable.length;
+
+          this.notifiersGroup = notifiers;
         }),
         takeUntil(this.unsubscribe$),
       )
@@ -105,6 +116,35 @@ export class NotificationsListComponent implements OnInit {
         filter((confirm) => confirm === true),
         switchMap(() => this.notificationSettingsService.delete(this.ajsStateParams.apiId, id)),
         tap(() => this.snackBarService.success(`“${name}” has been deleted”`)),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe(() => this.ngOnInit());
+  }
+
+  addNotification() {
+    this.matDialog
+      .open<NotificationsAddNotificationDialogComponent, NotificationsAddNotificationDialogData, NotificationsAddNotificationDialogResult>(
+        NotificationsAddNotificationDialogComponent,
+        {
+          width: GIO_DIALOG_WIDTH.MEDIUM,
+          data: {
+            notifier: this.notifiersGroup,
+          },
+          role: 'dialog',
+          id: 'addNotificationDialog',
+        },
+      )
+      .afterClosed()
+      .pipe(
+        filter((result) => !!result),
+        switchMap((newNotificationSettings) => this.notificationSettingsService.create(this.ajsStateParams.apiId, newNotificationSettings)),
+        tap(() => {
+          this.snackBarService.success('Notification created successfully');
+        }),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
           return EMPTY;
