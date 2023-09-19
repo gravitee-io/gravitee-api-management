@@ -13,4 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './api-runtime-logs-messges.module';
+import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
+import { GioIconsModule } from '@gravitee/ui-particles-angular';
+
+import { ApiRuntimeLogsMessageComponent } from './api-runtime-logs-message.component';
+
+@NgModule({
+  declarations: [ApiRuntimeLogsMessageComponent],
+  exports: [ApiRuntimeLogsMessageComponent],
+  imports: [CommonModule, MatIconModule, GioIconsModule],
+})
+export class ApiRuntimeLogsMessageModule {}

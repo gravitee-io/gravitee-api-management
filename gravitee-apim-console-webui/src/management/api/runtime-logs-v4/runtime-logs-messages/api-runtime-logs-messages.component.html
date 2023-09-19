@@ -23,4 +23,13 @@
     </div>
     <a mat-button mat-raised-button [uiSref]="'management.apis.ng.runtimeLogs'" aria-label="Back to Runtime Logs"> Back to Runtime Logs </a>
   </div>
+
+  <ng-container *ngIf="messageLogs$ | async as messageLogs">
+    <ng-container *ngFor="let messageLog of messageLogs">
+      <api-runtime-logs-message
+        [messageLog]="messageLog"
+        [connectorIcon]="connectorIcons[messageLog.connectorId]"
+      ></api-runtime-logs-message>
+    </ng-container>
+  </ng-container>
 </mat-card>
