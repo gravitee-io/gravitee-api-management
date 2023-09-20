@@ -15,8 +15,8 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
-import io.gravitee.rest.api.management.v2.rest.model.ApiLog;
-import io.gravitee.rest.api.model.v4.log.connection.ConnectionLogModel;
+import io.gravitee.rest.api.management.v2.rest.model.ApiMessageLog;
+import io.gravitee.rest.api.model.v4.log.message.BaseMessageLog;
 import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -24,13 +24,13 @@ import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Mapper(uses = { ApplicationMapper.class, DateMapper.class, PlanMapper.class })
-public interface ApiLogsMapper {
-    Logger logger = LoggerFactory.getLogger(ApiLogsMapper.class);
-    ApiLogsMapper INSTANCE = Mappers.getMapper(ApiLogsMapper.class);
+@Mapper(uses = { DateMapper.class })
+public interface ApiMessageLogsMapper {
+    Logger logger = LoggerFactory.getLogger(ApiMessageLogsMapper.class);
+    ApiMessageLogsMapper INSTANCE = Mappers.getMapper(ApiMessageLogsMapper.class);
 
     @Mapping(source = "timestamp", target = "timestamp", qualifiedByName = "mapTimestamp")
-    ApiLog map(ConnectionLogModel connectionLog);
+    ApiMessageLog map(BaseMessageLog connectionLog);
 
-    List<ApiLog> mapToList(List<ConnectionLogModel> logs);
+    List<ApiMessageLog> mapToList(List<BaseMessageLog> logs);
 }

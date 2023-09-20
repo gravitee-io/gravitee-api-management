@@ -13,24 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.log.v4.model;
+package io.gravitee.apim.crud_service.analytics.log;
 
-import io.gravitee.common.http.HttpMethod;
-import lombok.Builder;
-import lombok.Data;
+import io.gravitee.rest.api.model.common.Pageable;
+import io.gravitee.rest.api.model.v4.log.SearchLogResponse;
+import io.gravitee.rest.api.model.v4.log.message.BaseMessageLog;
 
-@Data
-@Builder(toBuilder = true)
-public class ConnectionLog {
-
-    private String apiId;
-    private String requestId;
-    private String timestamp;
-    private String applicationId;
-    private String planId;
-    private String clientIdentifier;
-    private String transactionId;
-    private HttpMethod method;
-    private int status;
-    private boolean requestEnded;
+/**
+ * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
+ * @author GraviteeSource Team
+ */
+public interface MessageLogCrudService {
+    SearchLogResponse<BaseMessageLog> searchApiMessageLog(String apiId, String requestId, Pageable pageable);
 }

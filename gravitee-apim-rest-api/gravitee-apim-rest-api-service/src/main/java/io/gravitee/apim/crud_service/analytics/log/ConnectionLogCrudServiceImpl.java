@@ -15,14 +15,15 @@
  */
 package io.gravitee.apim.crud_service.analytics.log;
 
+import io.gravitee.apim.infra.adapter.ConnectionLogAdapter;
 import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.log.v4.api.LogRepository;
-import io.gravitee.repository.log.v4.model.ConnectionLog;
-import io.gravitee.repository.log.v4.model.ConnectionLogQuery;
 import io.gravitee.repository.log.v4.model.LogResponse;
+import io.gravitee.repository.log.v4.model.connection.ConnectionLog;
+import io.gravitee.repository.log.v4.model.connection.ConnectionLogQuery;
 import io.gravitee.rest.api.model.common.Pageable;
-import io.gravitee.rest.api.model.v4.log.BaseConnectionLog;
 import io.gravitee.rest.api.model.v4.log.SearchLogResponse;
+import io.gravitee.rest.api.model.v4.log.connection.BaseConnectionLog;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -30,51 +31,36 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
-class LogCrudServiceImpl implements LogCrudService {
+class ConnectionLogCrudServiceImpl implements ConnectionLogCrudService {
 
     private final LogRepository logRepository;
 
-    public LogCrudServiceImpl(@Lazy LogRepository logRepository) {
+    public ConnectionLogCrudServiceImpl(@Lazy LogRepository logRepository) {
         this.logRepository = logRepository;
     }
 
+    @Override
     public SearchLogResponse<BaseConnectionLog> searchApiConnectionLog(String apiId, Pageable pageable) {
         try {
             var response = logRepository.searchConnectionLog(
                 ConnectionLogQuery
                     .builder()
-                    .filter(ConnectionLogQuery.Filter.builder().appId(apiId).build())
+                    .filter(ConnectionLogQuery.Filter.builder().apiId(apiId).build())
                     .page(pageable.getPageNumber())
                     .size(pageable.getPageSize())
                     .build()
             );
-            return mapToResponse(response);
+            return mapToConnectionResponse(response);
         } catch (AnalyticsException e) {
             log.error("An error occurs while trying to search connection of api [apiId={}]", apiId, e);
             throw new TechnicalManagementException("Error while searching connection logs of api " + apiId, e);
         }
     }
 
-    private SearchLogResponse<BaseConnectionLog> mapToResponse(LogResponse<ConnectionLog> logs) {
+    private SearchLogResponse<BaseConnectionLog> mapToConnectionResponse(LogResponse<ConnectionLog> logs) {
         var total = logs.total();
-        var data = logs.data().stream().map(this::mapToModel).toList();
+        var data = ConnectionLogAdapter.INSTANCE.toEntitiesList(logs.data());
 
         return new SearchLogResponse<>(total, data);
-    }
-
-    private BaseConnectionLog mapToModel(ConnectionLog connectionLog) {
-        return BaseConnectionLog
-            .builder()
-            .apiId(connectionLog.getApiId())
-            .requestId(connectionLog.getRequestId())
-            .timestamp(connectionLog.getTimestamp())
-            .applicationId(connectionLog.getApplicationId())
-            .clientIdentifier(connectionLog.getClientIdentifier())
-            .method(connectionLog.getMethod())
-            .planId(connectionLog.getPlanId())
-            .requestEnded(connectionLog.isRequestEnded())
-            .transactionId(connectionLog.getTransactionId())
-            .status(connectionLog.getStatus())
-            .build();
     }
 }

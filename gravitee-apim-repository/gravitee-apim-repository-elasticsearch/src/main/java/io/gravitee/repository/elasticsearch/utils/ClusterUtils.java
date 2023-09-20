@@ -16,7 +16,7 @@
 package io.gravitee.repository.elasticsearch.utils;
 
 import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
-import io.gravitee.repository.log.v4.model.ConnectionLogQuery;
+import io.gravitee.repository.log.v4.model.connection.ConnectionLogQuery;
 import java.util.stream.Stream;
 
 public class ClusterUtils {

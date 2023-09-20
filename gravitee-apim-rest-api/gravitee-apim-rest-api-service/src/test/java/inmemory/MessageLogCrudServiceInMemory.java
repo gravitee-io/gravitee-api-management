@@ -15,31 +15,28 @@
  */
 package inmemory;
 
-import io.gravitee.apim.crud_service.analytics.log.LogCrudService;
+import io.gravitee.apim.crud_service.analytics.log.MessageLogCrudService;
 import io.gravitee.rest.api.model.common.Pageable;
-import io.gravitee.rest.api.model.v4.log.BaseConnectionLog;
 import io.gravitee.rest.api.model.v4.log.SearchLogResponse;
+import io.gravitee.rest.api.model.v4.log.message.BaseMessageLog;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
 
-public class LogCrudServiceInMemory implements LogCrudService, InMemoryCrudService<BaseConnectionLog> {
+public class MessageLogCrudServiceInMemory implements MessageLogCrudService, InMemoryCrudService<BaseMessageLog> {
 
-    private final List<BaseConnectionLog> storage = new ArrayList<>();
+    private final List<BaseMessageLog> storage = new ArrayList<>();
 
     @Override
-    public SearchLogResponse<BaseConnectionLog> searchApiConnectionLog(String apiId, Pageable pageable) {
-        Predicate<BaseConnectionLog> predicate = connectionLog -> connectionLog.getApiId().equals(apiId);
+    public SearchLogResponse<BaseMessageLog> searchApiMessageLog(String apiId, String requestId, Pageable pageable) {
+        Predicate<BaseMessageLog> predicate = baseMessageLog ->
+            baseMessageLog.getApiId().equals(apiId) && baseMessageLog.getRequestId().equals(requestId);
         var pageNumber = pageable.getPageNumber();
         var pageSize = pageable.getPageSize();
 
-        var matches = storage()
-            .stream()
-            .filter(predicate)
-            .sorted(Comparator.comparing(BaseConnectionLog::getTimestamp).reversed())
-            .toList();
+        var matches = storage().stream().filter(predicate).sorted(Comparator.comparing(BaseMessageLog::getTimestamp).reversed()).toList();
 
         var page = matches.size() <= pageSize ? matches : matches.subList((pageNumber - 1) * pageSize, pageNumber * pageSize);
 
@@ -47,7 +44,7 @@ public class LogCrudServiceInMemory implements LogCrudService, InMemoryCrudServi
     }
 
     @Override
-    public void initWith(List<BaseConnectionLog> items) {
+    public void initWith(List<BaseMessageLog> items) {
         storage.addAll(items);
     }
 
@@ -57,7 +54,7 @@ public class LogCrudServiceInMemory implements LogCrudService, InMemoryCrudServi
     }
 
     @Override
-    public List<BaseConnectionLog> storage() {
+    public List<BaseMessageLog> storage() {
         return Collections.unmodifiableList(storage);
     }
 }

@@ -13,16 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.log.v4.api;
+package io.gravitee.apim.infra.adapter;
 
-import io.gravitee.repository.analytics.AnalyticsException;
-import io.gravitee.repository.log.v4.model.LogResponse;
 import io.gravitee.repository.log.v4.model.connection.ConnectionLog;
-import io.gravitee.repository.log.v4.model.connection.ConnectionLogQuery;
-import io.gravitee.repository.log.v4.model.message.MessageLog;
-import io.gravitee.repository.log.v4.model.message.MessageLogQuery;
+import io.gravitee.rest.api.model.v4.log.connection.BaseConnectionLog;
+import java.util.List;
+import org.mapstruct.Mapper;
+import org.mapstruct.factory.Mappers;
 
-public interface LogRepository {
-    LogResponse<ConnectionLog> searchConnectionLog(ConnectionLogQuery query) throws AnalyticsException;
-    LogResponse<MessageLog> searchMessageLog(MessageLogQuery query) throws AnalyticsException;
+/**
+ * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
+ * @author GraviteeSource Team
+ */
+@Mapper
+public interface ConnectionLogAdapter {
+    ConnectionLogAdapter INSTANCE = Mappers.getMapper(ConnectionLogAdapter.class);
+
+    BaseConnectionLog toEntity(ConnectionLog connectionLog);
+
+    List<BaseConnectionLog> toEntitiesList(List<ConnectionLog> connectionLogs);
 }
