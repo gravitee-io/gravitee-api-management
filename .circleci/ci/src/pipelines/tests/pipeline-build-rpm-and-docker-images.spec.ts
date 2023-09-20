@@ -41,7 +41,7 @@ describe('Build RPM & Docker images workflow tests', () => {
       });
 
       const expected = fs.readFileSync(`./src/pipelines/tests/resources/build-rpm-and-docker-images/${expectedFileName}`, 'utf-8');
-      expect(expected).toStrictEqual(result.stringify());
+      expect(result.stringify()).toStrictEqual(expected);
     },
   );
 
