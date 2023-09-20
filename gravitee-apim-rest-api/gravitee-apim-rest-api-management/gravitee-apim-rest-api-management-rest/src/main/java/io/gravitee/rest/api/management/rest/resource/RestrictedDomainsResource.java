@@ -27,6 +27,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Produces;
+
 import java.util.Collection;
 
 /**
@@ -51,9 +52,6 @@ public class RestrictedDomainsResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Collection<RestrictedDomainEntity> getRestrictedDomains() {
-        return accessPointService.getGatewayRestrictedDomains(
-            GraviteeContext.getCurrentOrganization(),
-            GraviteeContext.getCurrentEnvironment()
-        );
+        return accessPointService.getGatewayRestrictedDomains(GraviteeContext.getCurrentEnvironment());
     }
 }

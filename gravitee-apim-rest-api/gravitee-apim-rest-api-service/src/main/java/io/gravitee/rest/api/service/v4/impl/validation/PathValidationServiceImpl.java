@@ -196,7 +196,6 @@ public class PathValidationServiceImpl implements PathValidationService {
 
     private void validateDomainRestrictions(final ExecutionContext executionContext, final List<Path> paths) {
         final List<RestrictedDomainEntity> restrictedDomains = accessPointService.getGatewayRestrictedDomains(
-            executionContext.getOrganizationId(),
             executionContext.getEnvironmentId()
         );
         if (restrictedDomains != null && !restrictedDomains.isEmpty()) {

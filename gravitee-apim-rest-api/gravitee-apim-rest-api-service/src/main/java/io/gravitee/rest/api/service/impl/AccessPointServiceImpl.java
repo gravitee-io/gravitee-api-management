@@ -23,12 +23,14 @@ import io.gravitee.repository.management.model.AccessPointTarget;
 import io.gravitee.rest.api.model.RestrictedDomainEntity;
 import io.gravitee.rest.api.service.AccessPointService;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import java.util.ArrayList;
-import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -43,13 +45,29 @@ public class AccessPointServiceImpl extends AbstractService implements AccessPoi
     private AccessPointRepository accessPointRepository;
 
     @Override
+    public void updateAccessPoints(final AccessPointReferenceType referenceType, final String referenceId, final List<AccessPoint> accessPoints) {
+        try {
+            accessPointRepository.deleteByReference(referenceType, referenceId);
+
+            for (AccessPoint accessPoint : accessPoints) {
+                if (accessPoint.getId() == null) {
+                    accessPoint.setId(UUID.randomUUID().toString());
+                }
+                accessPointRepository.create(accessPoint);
+            }
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException("An error occurs while creating access points", e);
+        }
+    }
+
+    @Override
     public String getConsoleUrl(final String organizationId) {
         try {
             return buildHttpUrl(findCustomDomain(AccessPointReferenceType.ORGANIZATION, organizationId, AccessPointTarget.CONSOLE));
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
-                String.format("An error occurs while getting console access point for environment '%s'", organizationId),
-                e
+                    String.format("An error occurs while getting console access point for environment '%s'", organizationId),
+                    e
             );
         }
     }
@@ -67,21 +85,9 @@ public class AccessPointServiceImpl extends AbstractService implements AccessPoi
     }
 
     @Override
-    public List<RestrictedDomainEntity> getGatewayRestrictedDomains(final String organizationId, final String environmentId) {
+    public List<RestrictedDomainEntity> getGatewayRestrictedDomains(final String environmentId) {
         try {
-            List<AccessPoint> mergeList = new ArrayList<>();
-
-            // Retrieve domain for orga
-            List<AccessPoint> domainsForOrg = accessPointRepository.findByReferenceAndTarget(
-                AccessPointReferenceType.ORGANIZATION,
-                organizationId,
-                AccessPointTarget.GATEWAY
-            );
-            if (domainsForOrg.size() == 1) {
-                mergeList.addAll(domainsForOrg);
-            } else {
-                mergeList.addAll(domainsForOrg.stream().filter(AccessPoint::isOverriding).toList());
-            }
+            List<AccessPoint> filteredList = new ArrayList<>();
 
             // Retrieve domain for env
             List<AccessPoint> domainsForEnv = accessPointRepository.findByReferenceAndTarget(
@@ -90,22 +96,21 @@ public class AccessPointServiceImpl extends AbstractService implements AccessPoi
                 AccessPointTarget.GATEWAY
             );
             if (domainsForEnv.size() == 1) {
-                mergeList.addAll(domainsForEnv);
+                filteredList.addAll(domainsForEnv);
             } else {
-                mergeList.addAll(domainsForEnv.stream().filter(AccessPoint::isOverriding).toList());
+                filteredList.addAll(domainsForEnv.stream().filter(AccessPoint::isOverriding).toList());
             }
 
-            return mergeList
-                .stream()
-                .map(customDomain ->
-                    RestrictedDomainEntity.builder().domain(customDomain.getHost()).secured(customDomain.isSecured()).build()
-                )
-                .toList();
+            return filteredList
+                    .stream()
+                    .map(customDomain ->
+                            RestrictedDomainEntity.builder().domain(customDomain.getHost()).secured(customDomain.isSecured()).build()
+                    )
+                    .toList();
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
                 String.format(
-                    "An error occurs while getting gateway restricted domain for organization '%s' and environment '%s'",
-                    organizationId,
+                    "An error occurs while getting gateway restricted domain from environment '%s'",
                     environmentId
                 ),
                 e

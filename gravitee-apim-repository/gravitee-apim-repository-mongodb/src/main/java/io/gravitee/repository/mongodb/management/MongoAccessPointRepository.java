@@ -64,10 +64,9 @@ public class MongoAccessPointRepository implements AccessPointRepository {
     @Override
     public Optional<AccessPoint> findByHost(final String host) {
         log.debug("Find access point by host [{}]", host);
-
         final AccessPointMongo accessPointMongo = internalRepository.findByHost(host);
         AccessPoint res = map(accessPointMongo);
-        log.debug("Find access point  by host value [{}] - Done", host);
+        log.debug("Find access point by host value [{}] - Done", host);
         return Optional.ofNullable(res);
     }
 
@@ -86,10 +85,17 @@ public class MongoAccessPointRepository implements AccessPointRepository {
     }
 
     @Override
+    public void deleteByReference(final AccessPointReferenceType referenceType, final String referenceId) {
+        log.debug("Delete access point by reference [{}, {}]", referenceType,referenceId);
+        internalRepository.deleteAllByReference(referenceType.name(), referenceId);
+        log.debug("Delete access point by reference [{}, {}] - Done", referenceType,referenceId);
+    }
+
+    @Override
     public AccessPoint create(final AccessPoint accessPoint) throws TechnicalException {
-        log.debug("Create access point  [{}]", accessPoint);
+        log.debug("Create access point [{}]", accessPoint);
         AccessPoint accessPointCreated = map(internalRepository.insert(map(accessPoint)));
-        log.debug("Create access point  [{}] - Done", accessPointCreated.getId());
+        log.debug("Create access point [{}] - Done", accessPointCreated.getId());
         return accessPointCreated;
     }
 
@@ -103,23 +109,15 @@ public class MongoAccessPointRepository implements AccessPointRepository {
             .findById(accessPoint.getId())
             .orElseThrow(() -> new IllegalStateException(String.format("No access point found with id [%s]", accessPoint.getId())));
 
-        log.debug("Update access point  [{}]", accessPoint);
+        log.debug("Update access point [{}]", accessPoint);
         return map(internalRepository.save(map(accessPoint)));
     }
 
     @Override
     public void delete(String id) throws TechnicalException {
-        log.debug("Delete access point  [{}]", id);
+        log.debug("Delete access point [{}]", id);
         internalRepository.deleteById(id);
-        log.debug("Delete access point  [{}] - Done", id);
-    }
-
-    @Override
-    public void deleteByHost(final String host) {
-        AccessPointMongo accessPointMongo = internalRepository.findByHost(host);
-        if (accessPointMongo != null) {
-            internalRepository.delete(accessPointMongo);
-        }
+        log.debug("Delete access point [{}] - Done", id);
     }
 
     private AccessPointMongo map(AccessPoint accessPoint) {

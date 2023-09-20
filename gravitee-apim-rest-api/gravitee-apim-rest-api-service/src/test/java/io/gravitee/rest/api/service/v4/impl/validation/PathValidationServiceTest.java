@@ -32,6 +32,7 @@ import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.AccessPoint;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.RestrictedDomainEntity;
 import io.gravitee.rest.api.service.AccessPointService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.v4.exception.InvalidHostException;
@@ -322,8 +323,8 @@ public class PathValidationServiceTest {
     public void validate_hostEqualsToDomainConstraint() {
         Path path = getValidPath();
 
-        when(accessPointService.getGatewayRestrictedDomains(any(), any()))
-            .thenReturn(List.of(AccessPoint.builder().host(path.getHost()).build()));
+        when(accessPointService.getGatewayRestrictedDomains(any()))
+            .thenReturn(List.of(RestrictedDomainEntity.builder().domain(path.getHost()).build()));
 
         List<Path> paths = pathValidationService.validateAndSanitizePaths(
             GraviteeContext.getExecutionContext(),
@@ -341,8 +342,8 @@ public class PathValidationServiceTest {
         String domainConstraint = path.getHost();
         path.setHost("level2.level1." + domainConstraint);
 
-        when(accessPointService.getGatewayRestrictedDomains(any(), any()))
-            .thenReturn(List.of(AccessPoint.builder().host(domainConstraint).build()));
+        when(accessPointService.getGatewayRestrictedDomains(any()))
+            .thenReturn(List.of(RestrictedDomainEntity.builder().domain(domainConstraint).build()));
 
         List<Path> paths = pathValidationService.validateAndSanitizePaths(
             GraviteeContext.getExecutionContext(),
@@ -361,12 +362,12 @@ public class PathValidationServiceTest {
 
         EnvironmentEntity environmentEntity = new EnvironmentEntity();
         environmentEntity.setDomainRestrictions(Arrays.asList("test.gravitee.io", "other.gravitee.io", domainConstraint));
-        when(accessPointService.getGatewayRestrictedDomains(any(), any()))
+        when(accessPointService.getGatewayRestrictedDomains(any()))
             .thenReturn(
                 List.of(
-                    AccessPoint.builder().host("test.gravitee.io").build(),
-                    AccessPoint.builder().host("other.gravitee.io").build(),
-                    AccessPoint.builder().host(domainConstraint).build()
+                        RestrictedDomainEntity.builder().domain("test.gravitee.io").build(),
+                        RestrictedDomainEntity.builder().domain("other.gravitee.io").build(),
+                        RestrictedDomainEntity.builder().domain(domainConstraint).build()
                 )
             );
 
@@ -383,9 +384,9 @@ public class PathValidationServiceTest {
     public void validate_notASubDomain() {
         Path path = getValidPath();
 
-        when(accessPointService.getGatewayRestrictedDomains(any(), any()))
+        when(accessPointService.getGatewayRestrictedDomains(any()))
             .thenReturn(
-                List.of(AccessPoint.builder().host("test.gravitee.io").build(), AccessPoint.builder().host("other.gravitee.io").build())
+                List.of(RestrictedDomainEntity.builder().domain("test.gravitee.io").build(), RestrictedDomainEntity.builder().domain("other.gravitee.io").build())
             );
 
         pathValidationService.validateAndSanitizePaths(GraviteeContext.getExecutionContext(), null, Collections.singletonList(path));
@@ -418,9 +419,9 @@ public class PathValidationServiceTest {
         path.setHost(null);
         path.setPath("/validPath");
 
-        when(accessPointService.getGatewayRestrictedDomains(any(), any()))
+        when(accessPointService.getGatewayRestrictedDomains(any()))
             .thenReturn(
-                List.of(AccessPoint.builder().host("test.gravitee.io").build(), AccessPoint.builder().host("other.gravitee.io").build())
+                List.of(RestrictedDomainEntity.builder().domain("test.gravitee.io").build(), RestrictedDomainEntity.builder().domain("other.gravitee.io").build())
             );
 
         final List<Path> paths = pathValidationService.validateAndSanitizePaths(

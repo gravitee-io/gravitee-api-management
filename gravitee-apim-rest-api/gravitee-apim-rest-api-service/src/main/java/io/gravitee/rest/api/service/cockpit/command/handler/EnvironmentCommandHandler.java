@@ -18,31 +18,36 @@ package io.gravitee.rest.api.service.cockpit.command.handler;
 import io.gravitee.cockpit.api.command.Command;
 import io.gravitee.cockpit.api.command.CommandHandler;
 import io.gravitee.cockpit.api.command.CommandStatus;
+import io.gravitee.cockpit.api.command.accesspoint.AccessPoint;
 import io.gravitee.cockpit.api.command.environment.EnvironmentCommand;
 import io.gravitee.cockpit.api.command.environment.EnvironmentPayload;
 import io.gravitee.cockpit.api.command.environment.EnvironmentReply;
+import io.gravitee.repository.management.model.AccessPointReferenceType;
+import io.gravitee.repository.management.model.AccessPointTarget;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.UpdateEnvironmentEntity;
+import io.gravitee.rest.api.service.AccessPointService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.reactivex.rxjava3.core.Single;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
+@RequiredArgsConstructor
+@Slf4j
 public class EnvironmentCommandHandler implements CommandHandler<EnvironmentCommand, EnvironmentReply> {
 
-    private final Logger logger = LoggerFactory.getLogger(EnvironmentCommandHandler.class);
-
     private final EnvironmentService environmentService;
-
-    public EnvironmentCommandHandler(EnvironmentService environmentService) {
-        this.environmentService = environmentService;
-    }
+    private final AccessPointService accessPointService;
 
     @Override
     public Command.Type handleType() {
@@ -60,16 +65,31 @@ public class EnvironmentCommandHandler implements CommandHandler<EnvironmentComm
             newEnvironment.setName(environmentPayload.getName());
             newEnvironment.setDescription(environmentPayload.getDescription());
 
-            //TODO Handle custom domain
             final EnvironmentEntity environment = environmentService.createOrUpdate(
                 environmentPayload.getOrganizationId(),
                 environmentPayload.getId(),
                 newEnvironment
             );
-            logger.info("Environment [{}] handled with id [{}].", environment.getName(), environment.getId());
+            List<AccessPoint> accessPoints = environmentPayload.getAccessPoints();
+            if (accessPoints != null){
+                List<io.gravitee.repository.management.model.AccessPoint> accessPointsToCreate = accessPoints
+                        .stream()
+                                .map(cockpitAccessPoint -> io.gravitee.repository.management.model.AccessPoint
+                                        .builder()
+                                        .referenceType(AccessPointReferenceType.ENVIRONMENT)
+                                        .referenceId(environment.getId())
+                                        .target(AccessPointTarget.valueOf(cockpitAccessPoint.getTarget().name()))
+                                        .host(cockpitAccessPoint.getHost())
+                                        .secured(cockpitAccessPoint.isSecured())
+                                        .overriding(cockpitAccessPoint.isOverriding())
+                                        .build())
+                                        .toList();
+                accessPointService.updateAccessPoints(AccessPointReferenceType.ENVIRONMENT, environment.getId(),accessPointsToCreate);
+            }
+            log.info("Environment [{}] handled with id [{}].", environment.getName(), environment.getId());
             return Single.just(new EnvironmentReply(command.getId(), CommandStatus.SUCCEEDED));
         } catch (Exception e) {
-            logger.error(
+            log.error(
                 "Error occurred when handling environment [{}] with id [{}].",
                 environmentPayload.getName(),
                 environmentPayload.getId(),
