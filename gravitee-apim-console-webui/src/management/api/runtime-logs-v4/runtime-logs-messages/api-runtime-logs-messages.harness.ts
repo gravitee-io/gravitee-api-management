@@ -15,8 +15,21 @@
  */
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatIconHarness } from '@angular/material/icon/testing';
+import { DivHarness } from '@gravitee/ui-particles-angular/testing';
+import { MatTabHarness } from '@angular/material/tabs/testing';
 
 export class ApiRuntimeLogsMessagesHarness extends ComponentHarness {
   static hostSelector = 'runtime-logs-messages';
+
+  private tabBodySelector = this.locatorFor(DivHarness.with({ selector: '.log__data__tabs__body' }));
+
   public connectorIcon = this.locatorFor(MatIconHarness.with({ selector: '[data-testId=connector-icon]' }));
+
+  public clickOnTab = async (tabLabel: string) => {
+    return await this.locatorFor(MatTabHarness.with({ label: tabLabel }))().then((tab) => tab.select());
+  };
+
+  public getTabBody = async () => {
+    return await this.tabBodySelector().then((tabBody) => tabBody.getText());
+  };
 }
