@@ -25,4 +25,10 @@ $typography: map.get(gio.$mat-theme, typography);
       @include mat.typography-level($typography, body-1);
     }
   }
+
+  &__footer {
+    margin: 0 -16px;
+    padding: 16px;
+    border-top: 1px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker10');
+  }
 }

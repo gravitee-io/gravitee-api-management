@@ -32,4 +32,8 @@
       ></api-runtime-logs-message>
     </ng-container>
   </ng-container>
+
+  <div class="card__footer" *ngIf="pageIndex <= pageCount">
+    <button mat-button mat-raised-button aria-label="Load 5 more" (click)="loadMoreMessages()">Load 5 more</button>
+  </div>
 </mat-card>
