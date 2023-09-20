@@ -18,10 +18,11 @@ import { Component, Inject, OnInit } from '@angular/core';
 import { StateParams } from '@uirouter/core';
 import { map, switchMap, tap } from 'rxjs/operators';
 import { BehaviorSubject } from 'rxjs';
+import { uniqBy } from 'lodash';
 
 import { ApiLogsV2Service } from '../../../../services-ngx/api-logs-v2.service';
 import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
-import { ConnectorPlugin, MessageLog } from '../../../../entities/management-api-v2';
+import { ConnectorPlugin, ConnectorType, MessageLog } from '../../../../entities/management-api-v2';
 import { IconService } from '../../../../services-ngx/icon.service';
 import { ConnectorPluginsV2Service } from '../../../../services-ngx/connector-plugins-v2.service';
 
@@ -58,12 +59,18 @@ export class ApiRuntimeLogsMessagesComponent implements OnInit {
           this.pageCount = messageLogs.pagination.pageCount;
           return messageLogs.data;
         }),
-        switchMap((messageLogs: MessageLog[]) => new Set(messageLogs.map((messageLog: MessageLog) => messageLog.connectorId))),
-        tap((connectorId) => {
-          if (!this.connectorIcons[connectorId]) {
-            this.connectorPluginsV2Service.getEndpointPlugin(connectorId).subscribe((connectorPlugin: ConnectorPlugin) => {
-              this.connectorIcons[connectorId] = this.iconService.registerSvg(connectorPlugin.id, connectorPlugin.icon);
-            });
+        switchMap((messageLogs: MessageLog[]) =>
+          uniqBy(
+            messageLogs.map((messageLog) => ({
+              connectorId: messageLog.connectorId,
+              connectorType: messageLog.connectorType,
+            })),
+            'connectorId',
+          ),
+        ),
+        tap((entry: { connectorId: string; connectorType: ConnectorType }) => {
+          if (!this.connectorIcons[entry.connectorId]) {
+            this.loadConnectorIcon(entry.connectorType, entry.connectorId);
           }
         }),
       )
@@ -72,5 +79,19 @@ export class ApiRuntimeLogsMessagesComponent implements OnInit {
 
   public loadMoreMessages(): void {
     this.loadMessages(this.pageIndex);
+  }
+
+  private loadConnectorIcon(connectorType: ConnectorType, connectorId: string) {
+    if (connectorType === 'ENDPOINT') {
+      this.connectorPluginsV2Service.getEndpointPlugin(connectorId).subscribe((connectorPlugin: ConnectorPlugin) => {
+        this.connectorIcons[connectorId] = this.iconService.registerSvg(connectorId, connectorPlugin.icon);
+      });
+    }
+
+    if (connectorType === 'ENTRYPOINT') {
+      this.connectorPluginsV2Service.getEntrypointPlugin(connectorId).subscribe((connectorPlugin: ConnectorPlugin) => {
+        this.connectorIcons[connectorId] = this.iconService.registerSvg(connectorId, connectorPlugin.icon);
+      });
+    }
   }
 }
