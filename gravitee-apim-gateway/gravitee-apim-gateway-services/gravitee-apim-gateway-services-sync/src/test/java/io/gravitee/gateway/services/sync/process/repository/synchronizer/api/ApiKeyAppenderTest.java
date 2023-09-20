@@ -93,7 +93,7 @@ class ApiKeyAppenderTest {
         e1.setSubscriptions(List.of("subscription1"));
         ApiKey e2 = new ApiKey();
         e2.setSubscriptions(List.of("subscription1"));
-        when(apiKeyRepository.findByCriteria(any())).thenReturn(List.of(e1, e2));
+        when(apiKeyRepository.findByCriteria(any(), any())).thenReturn(List.of(e1, e2));
         ApiReactorDeployable apiReactorDeployable2 = ApiReactorDeployable
             .builder()
             .apiId("api2")
