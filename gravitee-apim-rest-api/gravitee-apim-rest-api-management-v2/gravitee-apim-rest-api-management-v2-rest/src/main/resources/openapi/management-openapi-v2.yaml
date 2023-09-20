@@ -145,6 +145,31 @@ paths:
                     $ref: "#/components/responses/ApisResponse"
                 default:
                     $ref: "#/components/responses/Error"
+    /environments/{envId}/apis/_verify/paths:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+        post:
+            parameters:
+                - $ref: "#/components/parameters/envIdParam"
+            tags:
+                - APIs
+            summary: Verify API paths
+            description: |-
+                Verify paths before creating or updating an API.<br>
+                This will check paths and hosts (depending on environment domain restrictions), and will check that path is not already used by other APIs in the environment.<br>
+                The result will indicate if the paths are OK, and give the reason of the failure if they are not (path contains invalid chars, path is already covered by another API,...)
+            operationId: verifyPaths
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/VerifyApiPaths"
+                required: true
+            responses:
+                "200":
+                    $ref: "#/components/responses/VerifyApiPathsResponse"
+                default:
+                    $ref: "#/components/responses/Error"
 
     /environments/{envId}/apis/{apiId}:
         parameters:
@@ -3231,6 +3256,15 @@ components:
                     format: int64
                     description: The total number of items.
 
+        PathToVerify:
+            type: object
+            properties:
+                host:
+                    type: string
+                path:
+                    type: string
+                    default: "/"
+
         PathV4:
             type: object
             properties:
@@ -4321,6 +4355,16 @@ components:
             title: "TcpListener"
             allOf:
                 - $ref: "#/components/schemas/BaseListener"
+        VerifyApiPaths:
+            title: "VerifyApiPaths"
+            properties:
+                apiId:
+                    type: string
+                paths:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/PathToVerify"
+            required: [paths]
 
         ## API V2 specific schemas
         ApiEntrypoint:
@@ -5822,6 +5866,19 @@ components:
                     schema:
                         $ref: "#/components/schemas/Error"
 
+        VerifyApiPathsResponse:
+            description: Result of the API paths verification
+            content:
+                application/json:
+                    schema:
+                        title: "VerifyApiPathsResponse"
+                        properties:
+                            ok:
+                                type: boolean
+                                description: Indicates whether the paths are valid.
+                            reason:
+                                type: string
+                                description: An optional reason giving details about the result.
         # Analytics - Logs
         ApiLogsResponse:
             description: Page of API Logs

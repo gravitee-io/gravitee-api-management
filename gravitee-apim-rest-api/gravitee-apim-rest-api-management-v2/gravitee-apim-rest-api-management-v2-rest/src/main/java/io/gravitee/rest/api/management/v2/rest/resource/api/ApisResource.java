@@ -19,6 +19,7 @@ import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDoc
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_TYPE_VALUE;
 
 import com.google.common.base.Strings;
+import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.exception.InvalidImageException;
@@ -50,6 +51,7 @@ import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
@@ -75,6 +77,9 @@ public class ApisResource extends AbstractResource {
 
     @Inject
     private ApiStateService apiStateService;
+
+    @Inject
+    private VerifyApiPathDomainService verifyApiPathService;
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
@@ -211,6 +216,25 @@ public class ApisResource extends AbstractResource {
             )
             .pagination(PaginationInfo.computePaginationInfo(totalCount, pageItemsCount, paginationParam))
             .links(computePaginationLinks(totalCount, paginationParam));
+    }
+
+    @POST
+    @Path("_verify/paths")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.READ }) })
+    public Response verifyPaths(VerifyApiPaths verifyPayload) {
+        try {
+            List<io.gravitee.apim.core.api.model.Path> pathsToVerify = verifyPayload
+                .getPaths()
+                .stream()
+                .map(p -> io.gravitee.apim.core.api.model.Path.builder().path(p.getPath()).host(p.getHost()).build())
+                .toList();
+            verifyApiPathService.verifyApiPaths(GraviteeContext.getExecutionContext(), verifyPayload.getApiId(), pathsToVerify);
+            return Response.accepted(VerifyApiPathsResponse.builder().ok(true).build()).build();
+        } catch (Exception e) {
+            return Response.accepted(VerifyApiPathsResponse.builder().ok(false).reason(e.getMessage()).build()).build();
+        }
     }
 
     @Path("{apiId}")
