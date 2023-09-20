@@ -13,27 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.model.v4.log;
+package io.gravitee.rest.api.model.v4.log.connection;
 
 import io.gravitee.common.http.HttpMethod;
-import io.gravitee.rest.api.model.ApplicationEntity;
-import io.gravitee.rest.api.model.BaseApplicationEntity;
-import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
-@AllArgsConstructor
+@Data
 @NoArgsConstructor
-@EqualsAndHashCode(callSuper = true)
+@AllArgsConstructor
 @SuperBuilder(toBuilder = true)
-@Getter
-public class ConnectionLogModel extends BaseConnectionLog {
+public class BaseConnectionLog {
 
-    private BaseApplicationEntity application;
-    private GenericPlanEntity plan;
+    private String apiId;
+    private String requestId;
+    private String timestamp;
+    private String applicationId;
+    private String planId;
+    private String clientIdentifier;
+    private String transactionId;
+    private HttpMethod method;
+    private int status;
+    private boolean requestEnded;
 }

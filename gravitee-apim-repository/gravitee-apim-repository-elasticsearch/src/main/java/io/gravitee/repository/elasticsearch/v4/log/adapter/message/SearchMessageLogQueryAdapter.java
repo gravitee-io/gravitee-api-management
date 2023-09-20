@@ -13,17 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.elasticsearch.v4.log.adapter;
+package io.gravitee.repository.elasticsearch.v4.log.adapter.message;
 
-import io.gravitee.repository.log.v4.model.ConnectionLogQuery;
+import io.gravitee.repository.log.v4.model.message.MessageLogQuery;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import java.util.ArrayList;
 import java.util.HashMap;
 
-public class SearchConnectionLogQueryAdapter {
+public class SearchMessageLogQueryAdapter {
 
-    private SearchConnectionLogQueryAdapter() {}
+    private SearchMessageLogQueryAdapter() {}
 
-    public static String adapt(ConnectionLogQuery query) {
+    public static String adapt(MessageLogQuery query) {
         var jsonContent = new HashMap<String, Object>();
         jsonContent.put("from", (query.getPage() - 1) * query.getSize());
         jsonContent.put("size", query.getSize());
@@ -32,23 +34,28 @@ public class SearchConnectionLogQueryAdapter {
         if (esQuery != null) {
             jsonContent.put("query", esQuery);
         }
+
         jsonContent.put("sort", buildSort());
+        jsonContent.put("aggs", buildGroupBy());
 
         return new JsonObject(jsonContent).encode();
     }
 
-    private static JsonObject buildElasticQuery(ConnectionLogQuery.Filter filter) {
+    private static JsonObject buildElasticQuery(MessageLogQuery.Filter filter) {
         if (filter == null) {
             return null;
         }
 
-        var terms = new HashMap<String, Object>();
-        if (filter.getAppId() != null) {
-            terms.put("api-id", filter.getAppId());
+        var terms = new ArrayList<JsonObject>();
+        if (filter.getApiId() != null) {
+            terms.add(JsonObject.of("term", JsonObject.of("api-id", filter.getApiId())));
+        }
+        if (filter.getRequestId() != null) {
+            terms.add(JsonObject.of("term", JsonObject.of("request-id", filter.getRequestId())));
         }
 
         if (!terms.isEmpty()) {
-            return JsonObject.of("term", new JsonObject(terms));
+            return JsonObject.of("bool", JsonObject.of("must", JsonArray.of(terms.toArray())));
         }
 
         return null;
@@ -56,5 +63,16 @@ public class SearchConnectionLogQueryAdapter {
 
     private static JsonObject buildSort() {
         return JsonObject.of("@timestamp", JsonObject.of("order", "desc"));
+    }
+
+    private static JsonObject buildGroupBy() {
+        return JsonObject.of(
+            "group_by_correlation_id",
+            JsonObject.of(
+                "terms",
+                // .keyword means it's a non-analyzed version of correlation-id field. It is important for a "terms" aggregation
+                JsonObject.of("field", "correlation-id.keyword")
+            )
+        );
     }
 }

@@ -13,23 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.infra.adapter;
+package io.gravitee.apim.core.log.crud_service;
 
-import io.gravitee.repository.log.v4.model.connection.ConnectionLog;
-import io.gravitee.rest.api.model.v4.log.connection.BaseConnectionLog;
-import java.util.List;
-import org.mapstruct.Mapper;
-import org.mapstruct.factory.Mappers;
+import io.gravitee.rest.api.model.common.Pageable;
+import io.gravitee.rest.api.model.v4.log.SearchLogResponse;
+import io.gravitee.rest.api.model.v4.log.message.BaseMessageLog;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Mapper
-public interface ConnectionLogAdapter {
-    ConnectionLogAdapter INSTANCE = Mappers.getMapper(ConnectionLogAdapter.class);
-
-    BaseConnectionLog toEntity(ConnectionLog connectionLog);
-
-    List<BaseConnectionLog> toEntitiesList(List<ConnectionLog> connectionLogs);
+public interface MessageLogCrudService {
+    SearchLogResponse<BaseMessageLog> searchApiMessageLog(String apiId, String requestId, Pageable pageable);
 }

@@ -15,17 +15,17 @@
  */
 package inmemory;
 
-import io.gravitee.apim.core.log.crud_service.LogCrudService;
+import io.gravitee.apim.core.log.crud_service.ConnectionLogCrudService;
 import io.gravitee.rest.api.model.common.Pageable;
-import io.gravitee.rest.api.model.v4.log.BaseConnectionLog;
 import io.gravitee.rest.api.model.v4.log.SearchLogResponse;
+import io.gravitee.rest.api.model.v4.log.connection.BaseConnectionLog;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
 
-public class LogCrudServiceInMemory implements LogCrudService, InMemoryAlternative<BaseConnectionLog> {
+public class ConnectionLogCrudServiceInMemory implements ConnectionLogCrudService, InMemoryAlternative<BaseConnectionLog> {
 
     private final List<BaseConnectionLog> storage = new ArrayList<>();
 

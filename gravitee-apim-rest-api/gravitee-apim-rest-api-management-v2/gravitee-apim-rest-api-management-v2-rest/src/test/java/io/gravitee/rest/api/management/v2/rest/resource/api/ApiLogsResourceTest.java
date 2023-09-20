@@ -22,12 +22,17 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import fixtures.repository.ConnectionLogFixtures;
+import fixtures.repository.MessageLogFixtures;
 import inmemory.ApplicationCrudServiceInMemory;
+import inmemory.ConnectionLogCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
-import inmemory.LogCrudServiceInMemory;
+import inmemory.MessageLogCrudServiceInMemory;
 import inmemory.PlanCrudServiceInMemory;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLog;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLogsResponse;
+import io.gravitee.rest.api.management.v2.rest.model.ApiMessageLog;
+import io.gravitee.rest.api.management.v2.rest.model.ApiMessageLogContent;
+import io.gravitee.rest.api.management.v2.rest.model.ApiMessageLogsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.BaseApplication;
 import io.gravitee.rest.api.management.v2.rest.model.BasePlan;
 import io.gravitee.rest.api.management.v2.rest.model.HttpMethod;
@@ -37,6 +42,8 @@ import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.v4.connector.ConnectorType;
+import io.gravitee.rest.api.model.v4.log.message.MessageOperation;
 import io.gravitee.rest.api.model.v4.plan.BasePlanEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
@@ -45,21 +52,28 @@ import jakarta.ws.rs.core.Response;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 public class ApiLogsResourceTest extends ApiResourceTest {
 
     private static final BasePlanEntity PLAN = BasePlanEntity.builder().id("plan1").name("1st plan").apiId(API).build();
     private static final BaseApplicationEntity APPLICATION = BaseApplicationEntity.builder().id("app1").name("an application name").build();
+    public static final String REQUEST_ID = "request-id";
 
     final ConnectionLogFixtures connectionLogFixtures = new ConnectionLogFixtures(API, APPLICATION.getId(), PLAN.getId());
+    final MessageLogFixtures messageLogFixtures = new MessageLogFixtures(API, REQUEST_ID);
 
     @Inject
-    LogCrudServiceInMemory logStorageService;
+    ConnectionLogCrudServiceInMemory connectionLogStorageService;
+
+    @Inject
+    MessageLogCrudServiceInMemory messageLogStorageService;
 
     @Inject
     PlanCrudServiceInMemory planStorageService;
@@ -67,16 +81,13 @@ public class ApiLogsResourceTest extends ApiResourceTest {
     @Inject
     ApplicationCrudServiceInMemory applicationStorageService;
 
-    WebTarget target;
-
-    @Override
-    protected String contextPath() {
-        return "/environments/" + ENVIRONMENT + "/apis/" + API + "/logs";
-    }
+    WebTarget connectionLogsTarget;
+    WebTarget messageLogsTarget;
 
     @BeforeEach
     public void setup() {
-        target = rootTarget();
+        connectionLogsTarget = rootTarget();
+        messageLogsTarget = rootTarget().path(REQUEST_ID).path("messages");
 
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
@@ -90,107 +101,239 @@ public class ApiLogsResourceTest extends ApiResourceTest {
     public void tearDown() {
         GraviteeContext.cleanContext();
 
-        Stream.of(applicationStorageService, logStorageService, planStorageService).forEach(InMemoryAlternative::reset);
+        Stream
+            .of(applicationStorageService, connectionLogStorageService, messageLogStorageService, planStorageService)
+            .forEach(InMemoryAlternative::reset);
     }
 
-    @Test
-    public void should_return_403_if_incorrect_permissions() {
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_LOG),
-                eq(API),
-                eq(RolePermissionAction.READ)
+    @Override
+    protected String contextPath() {
+        return "/environments/" + ENVIRONMENT + "/apis/" + API + "/logs";
+    }
+
+    @Nested
+    class ConnectionLogs {
+
+        @Test
+        public void should_return_403_if_incorrect_permissions() {
+            when(
+                permissionService.hasPermission(
+                    eq(GraviteeContext.getExecutionContext()),
+                    eq(RolePermission.API_LOG),
+                    eq(API),
+                    eq(RolePermissionAction.READ)
+                )
             )
-        )
-            .thenReturn(false);
+                .thenReturn(false);
 
-        final Response response = target.request().get();
+            final Response response = connectionLogsTarget.request().get();
 
-        assertThat(response)
-            .hasStatus(FORBIDDEN_403)
-            .asError()
-            .hasHttpStatus(FORBIDDEN_403)
-            .hasMessage("You do not have sufficient rights to access this resource");
-    }
+            assertThat(response)
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("You do not have sufficient rights to access this resource");
+        }
 
-    @Test
-    public void should_return_connection_logs() {
-        logStorageService.initWith(List.of(connectionLogFixtures.aConnectionLog("req1")));
+        @Test
+        public void should_return_connection_logs() {
+            connectionLogStorageService.initWith(List.of(connectionLogFixtures.aConnectionLog("req1")));
 
-        final Response response = target.request().get();
+            final Response response = connectionLogsTarget.request().get();
 
-        assertThat(response)
-            .hasStatus(OK_200)
-            .asEntity(ApiLogsResponse.class)
-            .isEqualTo(
-                ApiLogsResponse
-                    .builder()
-                    .data(
-                        List.of(
-                            ApiLog
-                                .builder()
-                                .application(BaseApplication.builder().id(APPLICATION.getId()).name(APPLICATION.getName()).build())
-                                .plan(BasePlan.builder().id(PLAN.getId()).name(PLAN.getName()).apiId(API).build())
-                                .method(HttpMethod.GET)
-                                .status(200)
-                                .clientIdentifier("client-identifier")
-                                .requestEnded(true)
-                                .requestId("req1")
-                                .transactionId("transaction-id")
-                                .timestamp(Instant.parse("2020-02-01T20:00:00.00Z").atOffset(ZoneOffset.UTC))
-                                .build()
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(ApiLogsResponse.class)
+                .isEqualTo(
+                    ApiLogsResponse
+                        .builder()
+                        .data(
+                            List.of(
+                                ApiLog
+                                    .builder()
+                                    .application(BaseApplication.builder().id(APPLICATION.getId()).name(APPLICATION.getName()).build())
+                                    .plan(BasePlan.builder().id(PLAN.getId()).name(PLAN.getName()).apiId(API).build())
+                                    .method(HttpMethod.GET)
+                                    .status(200)
+                                    .clientIdentifier("client-identifier")
+                                    .requestEnded(true)
+                                    .requestId("req1")
+                                    .transactionId("transaction-id")
+                                    .timestamp(Instant.parse("2020-02-01T20:00:00.00Z").atOffset(ZoneOffset.UTC))
+                                    .build()
+                            )
                         )
-                    )
-                    .pagination(Pagination.builder().page(1).perPage(10).pageCount(1).pageItemsCount(1).totalCount(1L).build())
-                    .links(Links.builder().self(target.getUri().toString()).build())
-                    .build()
-            );
+                        .pagination(Pagination.builder().page(1).perPage(10).pageCount(1).pageItemsCount(1).totalCount(1L).build())
+                        .links(Links.builder().self(connectionLogsTarget.getUri().toString()).build())
+                        .build()
+                );
+        }
+
+        @Test
+        public void should_compute_pagination() {
+            var total = 20L;
+            var pageSize = 5;
+            connectionLogStorageService.initWith(LongStream.range(0, total).mapToObj(i -> connectionLogFixtures.aConnectionLog()).toList());
+
+            connectionLogsTarget =
+                connectionLogsTarget
+                    .queryParam(PaginationParam.PAGE_QUERY_PARAM_NAME, 2)
+                    .queryParam(PaginationParam.PER_PAGE_QUERY_PARAM_NAME, pageSize);
+            final Response response = connectionLogsTarget.request().get();
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(ApiLogsResponse.class)
+                .extracting(ApiLogsResponse::getPagination)
+                .isEqualTo(Pagination.builder().page(2).perPage(pageSize).pageCount(4).pageItemsCount(pageSize).totalCount(total).build());
+        }
+
+        @Test
+        public void should_compute_links() {
+            var total = 20L;
+            var page = 2;
+            var pageSize = 5;
+            connectionLogStorageService.initWith(LongStream.range(0, total).mapToObj(i -> connectionLogFixtures.aConnectionLog()).toList());
+
+            final Response response = connectionLogsTarget
+                .queryParam(PaginationParam.PAGE_QUERY_PARAM_NAME, page)
+                .queryParam(PaginationParam.PER_PAGE_QUERY_PARAM_NAME, pageSize)
+                .request()
+                .get();
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(ApiLogsResponse.class)
+                .extracting(ApiLogsResponse::getLinks)
+                .isEqualTo(
+                    Links
+                        .builder()
+                        .self(connectionLogsTarget.queryParam("page", page).queryParam("perPage", pageSize).getUri().toString())
+                        .first(connectionLogsTarget.queryParam("page", 1).queryParam("perPage", pageSize).getUri().toString())
+                        .last(connectionLogsTarget.queryParam("page", 4).queryParam("perPage", pageSize).getUri().toString())
+                        .previous(connectionLogsTarget.queryParam("page", 1).queryParam("perPage", pageSize).getUri().toString())
+                        .next(connectionLogsTarget.queryParam("page", 3).queryParam("perPage", pageSize).getUri().toString())
+                        .build()
+                );
+        }
     }
 
-    @Test
-    public void should_compute_pagination() {
-        var total = 20L;
-        var pageSize = 5;
-        logStorageService.initWith(LongStream.range(0, total).mapToObj(i -> connectionLogFixtures.aConnectionLog()).toList());
+    @Nested
+    class MessageLogs {
 
-        target =
-            target.queryParam(PaginationParam.PAGE_QUERY_PARAM_NAME, 2).queryParam(PaginationParam.PER_PAGE_QUERY_PARAM_NAME, pageSize);
-        final Response response = target.request().get();
+        @Test
+        public void should_return_403_if_incorrect_permissions() {
+            when(
+                permissionService.hasPermission(
+                    eq(GraviteeContext.getExecutionContext()),
+                    eq(RolePermission.API_LOG),
+                    eq(API),
+                    eq(RolePermissionAction.READ)
+                )
+            )
+                .thenReturn(false);
 
-        assertThat(response)
-            .hasStatus(OK_200)
-            .asEntity(ApiLogsResponse.class)
-            .extracting(ApiLogsResponse::getPagination)
-            .isEqualTo(Pagination.builder().page(2).perPage(pageSize).pageCount(4).pageItemsCount(pageSize).totalCount(total).build());
-    }
+            final Response response = messageLogsTarget.request().get();
 
-    @Test
-    public void should_compute_links() {
-        var total = 20L;
-        var page = 2;
-        var pageSize = 5;
-        logStorageService.initWith(LongStream.range(0, total).mapToObj(i -> connectionLogFixtures.aConnectionLog()).toList());
+            assertThat(response)
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("You do not have sufficient rights to access this resource");
+        }
 
-        final Response response = target
-            .queryParam(PaginationParam.PAGE_QUERY_PARAM_NAME, page)
-            .queryParam(PaginationParam.PER_PAGE_QUERY_PARAM_NAME, pageSize)
-            .request()
-            .get();
+        @Test
+        public void should_return_message_logs() {
+            messageLogStorageService.initWith(List.of(messageLogFixtures.aMessageLog(REQUEST_ID)));
 
-        assertThat(response)
-            .hasStatus(OK_200)
-            .asEntity(ApiLogsResponse.class)
-            .extracting(ApiLogsResponse::getLinks)
-            .isEqualTo(
-                Links
-                    .builder()
-                    .self(target.queryParam("page", page).queryParam("perPage", pageSize).getUri().toString())
-                    .first(target.queryParam("page", 1).queryParam("perPage", pageSize).getUri().toString())
-                    .last(target.queryParam("page", 4).queryParam("perPage", pageSize).getUri().toString())
-                    .previous(target.queryParam("page", 1).queryParam("perPage", pageSize).getUri().toString())
-                    .next(target.queryParam("page", 3).queryParam("perPage", pageSize).getUri().toString())
-                    .build()
+            final Response response = messageLogsTarget.request().get();
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(ApiMessageLogsResponse.class)
+                .isEqualTo(
+                    ApiMessageLogsResponse
+                        .builder()
+                        .data(
+                            List.of(
+                                ApiMessageLog
+                                    .builder()
+                                    .requestId(REQUEST_ID)
+                                    .clientIdentifier("client-identifier")
+                                    .timestamp(Instant.parse("2020-02-01T20:00:00.00Z").atOffset(ZoneOffset.UTC))
+                                    .correlationId("correlation-id")
+                                    .parentCorrelationId("parent-correlation-id")
+                                    .connectorType(ConnectorType.ENTRYPOINT.name())
+                                    .connectorId("http-get")
+                                    .operation(MessageOperation.SUBSCRIBE.name())
+                                    .message(
+                                        ApiMessageLogContent
+                                            .builder()
+                                            .id("message-id")
+                                            .payload("message-payload")
+                                            .headers(Map.of("X-Header", List.of("header-value")))
+                                            .metadata(Map.of("X-Metdata", "metadata-value"))
+                                            .build()
+                                    )
+                                    .build()
+                            )
+                        )
+                        .pagination(Pagination.builder().page(1).perPage(10).pageCount(1).pageItemsCount(1).totalCount(1L).build())
+                        .links(Links.builder().self(messageLogsTarget.getUri().toString()).build())
+                        .build()
+                );
+        }
+
+        @Test
+        public void should_compute_pagination() {
+            var total = 20L;
+            var pageSize = 5;
+            messageLogStorageService.initWith(
+                LongStream.range(0, total).mapToObj(i -> messageLogFixtures.aMessageLogWithMessageId(String.valueOf(i))).toList()
             );
+
+            messageLogsTarget =
+                messageLogsTarget
+                    .queryParam(PaginationParam.PAGE_QUERY_PARAM_NAME, 2)
+                    .queryParam(PaginationParam.PER_PAGE_QUERY_PARAM_NAME, pageSize);
+            final Response response = messageLogsTarget.request().get();
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(ApiLogsResponse.class)
+                .extracting(ApiLogsResponse::getPagination)
+                .isEqualTo(Pagination.builder().page(2).perPage(pageSize).pageCount(4).pageItemsCount(pageSize).totalCount(total).build());
+        }
+
+        @Test
+        public void should_compute_links() {
+            var total = 20L;
+            var page = 2;
+            var pageSize = 5;
+            messageLogStorageService.initWith(
+                LongStream.range(0, total).mapToObj(i -> messageLogFixtures.aMessageLogWithMessageId(String.valueOf(i))).toList()
+            );
+
+            final Response response = messageLogsTarget
+                .queryParam(PaginationParam.PAGE_QUERY_PARAM_NAME, page)
+                .queryParam(PaginationParam.PER_PAGE_QUERY_PARAM_NAME, pageSize)
+                .request()
+                .get();
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(ApiLogsResponse.class)
+                .extracting(ApiLogsResponse::getLinks)
+                .isEqualTo(
+                    Links
+                        .builder()
+                        .self(messageLogsTarget.queryParam("page", page).queryParam("perPage", pageSize).getUri().toString())
+                        .first(messageLogsTarget.queryParam("page", 1).queryParam("perPage", pageSize).getUri().toString())
+                        .last(messageLogsTarget.queryParam("page", 4).queryParam("perPage", pageSize).getUri().toString())
+                        .previous(messageLogsTarget.queryParam("page", 1).queryParam("perPage", pageSize).getUri().toString())
+                        .next(messageLogsTarget.queryParam("page", 3).queryParam("perPage", pageSize).getUri().toString())
+                        .build()
+                );
+        }
     }
 }

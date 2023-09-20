@@ -24,12 +24,12 @@ import static org.mockito.Mockito.when;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.log.v4.api.LogRepository;
-import io.gravitee.repository.log.v4.model.ConnectionLog;
-import io.gravitee.repository.log.v4.model.ConnectionLogQuery;
-import io.gravitee.repository.log.v4.model.ConnectionLogQuery.Filter;
 import io.gravitee.repository.log.v4.model.LogResponse;
+import io.gravitee.repository.log.v4.model.connection.ConnectionLog;
+import io.gravitee.repository.log.v4.model.connection.ConnectionLogQuery;
+import io.gravitee.repository.log.v4.model.connection.ConnectionLogQuery.Filter;
 import io.gravitee.rest.api.model.common.PageableImpl;
-import io.gravitee.rest.api.model.v4.log.BaseConnectionLog;
+import io.gravitee.rest.api.model.v4.log.connection.BaseConnectionLog;
 import java.util.List;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,16 +37,16 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-public class LogCrudServiceImplTest {
+public class ConnectionLogCrudServiceImplTest {
 
     LogRepository logRepository;
 
-    LogCrudServiceImpl logStorageService;
+    ConnectionLogCrudServiceImpl logStorageService;
 
     @BeforeEach
     void setUp() {
         logRepository = mock(LogRepository.class);
-        logStorageService = new LogCrudServiceImpl(logRepository);
+        logStorageService = new ConnectionLogCrudServiceImpl(logRepository);
     }
 
     @Nested
@@ -62,7 +62,7 @@ public class LogCrudServiceImplTest {
             verify(logRepository).searchConnectionLog(captor.capture());
 
             assertThat(captor.getValue())
-                .isEqualTo(ConnectionLogQuery.builder().filter(Filter.builder().appId("apiId").build()).page(1).size(10).build());
+                .isEqualTo(ConnectionLogQuery.builder().filter(Filter.builder().apiId("apiId").build()).page(1).size(10).build());
         }
 
         @Test

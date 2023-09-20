@@ -16,7 +16,7 @@
 package fixtures.repository;
 
 import io.gravitee.common.http.HttpMethod;
-import io.gravitee.rest.api.model.v4.log.BaseConnectionLog;
+import io.gravitee.rest.api.model.v4.log.connection.BaseConnectionLog;
 import java.util.UUID;
 
 public class ConnectionLogFixtures {

@@ -15,51 +15,56 @@
  */
 package io.gravitee.apim.infra.crud_service.log;
 
-import io.gravitee.apim.core.log.crud_service.LogCrudService;
-import io.gravitee.apim.infra.adapter.ConnectionLogAdapter;
+import io.gravitee.apim.core.log.crud_service.MessageLogCrudService;
+import io.gravitee.apim.infra.adapter.MessageLogAdapter;
 import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.log.v4.api.LogRepository;
-import io.gravitee.repository.log.v4.model.ConnectionLog;
-import io.gravitee.repository.log.v4.model.ConnectionLogQuery;
 import io.gravitee.repository.log.v4.model.LogResponse;
+import io.gravitee.repository.log.v4.model.message.MessageLog;
+import io.gravitee.repository.log.v4.model.message.MessageLogQuery;
 import io.gravitee.rest.api.model.common.Pageable;
-import io.gravitee.rest.api.model.v4.log.BaseConnectionLog;
 import io.gravitee.rest.api.model.v4.log.SearchLogResponse;
+import io.gravitee.rest.api.model.v4.log.message.BaseMessageLog;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
+/**
+ * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
+ * @author GraviteeSource Team
+ */
 @Component
 @Slf4j
-class LogCrudServiceImpl implements LogCrudService {
+class MessageLogCrudServiceImpl implements MessageLogCrudService {
 
     private final LogRepository logRepository;
 
-    public LogCrudServiceImpl(@Lazy LogRepository logRepository) {
+    public MessageLogCrudServiceImpl(@Lazy LogRepository logRepository) {
         this.logRepository = logRepository;
     }
 
-    public SearchLogResponse<BaseConnectionLog> searchApiConnectionLog(String apiId, Pageable pageable) {
+    @Override
+    public SearchLogResponse<BaseMessageLog> searchApiMessageLog(String apiId, String requestId, Pageable pageable) {
         try {
-            var response = logRepository.searchConnectionLog(
-                ConnectionLogQuery
+            var response = logRepository.searchMessageLog(
+                MessageLogQuery
                     .builder()
-                    .filter(ConnectionLogQuery.Filter.builder().appId(apiId).build())
+                    .filter(MessageLogQuery.Filter.builder().apiId(apiId).requestId(requestId).build())
                     .page(pageable.getPageNumber())
                     .size(pageable.getPageSize())
                     .build()
             );
-            return mapToResponse(response);
+            return mapToMessageResponse(response);
         } catch (AnalyticsException e) {
-            log.error("An error occurs while trying to search connection of api [apiId={}]", apiId, e);
-            throw new TechnicalManagementException("Error while searching connection logs of api " + apiId, e);
+            log.error("An error occurs while trying to search message of api [apiId={}, requestId={}]", apiId, requestId, e);
+            throw new TechnicalManagementException("Error while searching message logs of api " + apiId + " request " + requestId, e);
         }
     }
 
-    private SearchLogResponse<BaseConnectionLog> mapToResponse(LogResponse<ConnectionLog> logs) {
+    private SearchLogResponse<BaseMessageLog> mapToMessageResponse(LogResponse<MessageLog> logs) {
         var total = logs.total();
-        var data = ConnectionLogAdapter.INSTANCE.toEntitiesList(logs.data());
+        var data = MessageLogAdapter.INSTANCE.toEntitiesList(logs.data());
 
         return new SearchLogResponse<>(total, data);
     }

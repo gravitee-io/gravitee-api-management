@@ -16,7 +16,8 @@
 package io.gravitee.rest.api.management.v2.rest.spring;
 
 import inmemory.ApplicationCrudServiceInMemory;
-import inmemory.LogCrudServiceInMemory;
+import inmemory.ConnectionLogCrudServiceInMemory;
+import inmemory.MessageLogCrudServiceInMemory;
 import inmemory.PlanCrudServiceInMemory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,8 +31,13 @@ public class InMemoryConfiguration {
     }
 
     @Bean
-    public LogCrudServiceInMemory logRepository() {
-        return new LogCrudServiceInMemory();
+    public ConnectionLogCrudServiceInMemory connectionLogRepository() {
+        return new ConnectionLogCrudServiceInMemory();
+    }
+
+    @Bean
+    public MessageLogCrudServiceInMemory messageLogRepository() {
+        return new MessageLogCrudServiceInMemory();
     }
 
     @Bean

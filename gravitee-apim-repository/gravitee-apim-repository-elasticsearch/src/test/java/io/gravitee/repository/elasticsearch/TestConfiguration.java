@@ -42,7 +42,7 @@ import org.testcontainers.elasticsearch.ElasticsearchContainer;
 @Import(io.gravitee.repository.elasticsearch.spring.ElasticsearchRepositoryConfiguration.class)
 public class TestConfiguration {
 
-    public static final String DEFAULT_ELASTICSEARCH_VERSION = "8.7.0";
+    public static final String DEFAULT_ELASTICSEARCH_VERSION = "8.8.0";
     public static final String DEFAULT_OPENSEARCH_VERSION = "2.6.0";
     private static final String DEFAULT_SEARCH_TYPE = "elasticsearch";
 
