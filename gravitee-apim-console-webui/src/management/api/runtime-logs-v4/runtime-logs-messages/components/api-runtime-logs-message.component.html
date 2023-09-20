@@ -65,5 +65,17 @@
         <div class="log__row__value">{{ messageLog.parentCorrelationId }}</div>
       </div>
     </div>
+
+    <mat-tab-group class="log__data__tabs">
+      <mat-tab label="Message">
+        <div class="log__data__tabs__body">{{ messageLog.message?.payload }}</div>
+      </mat-tab>
+      <mat-tab label="Headers">
+        <div class="log__data__tabs__body">{{ messageLog.message?.headers | json }}</div>
+      </mat-tab>
+      <mat-tab label="Metadata">
+        <div class="log__data__tabs__body">{{ messageLog.message?.metadata | json }}</div>
+      </mat-tab>
+    </mat-tab-group>
   </div>
 </div>

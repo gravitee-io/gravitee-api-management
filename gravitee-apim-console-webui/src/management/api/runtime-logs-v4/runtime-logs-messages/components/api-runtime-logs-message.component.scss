@@ -19,6 +19,14 @@ $typography: map.get(gio.$mat-theme, typography);
 
   &__data {
     margin: 16px;
+
+    &__tabs {
+      &__body {
+        background-color: mat.get-color-from-palette(gio.$mat-dove-palette, 'default');
+        padding: 12px 16px;
+        white-space: pre-wrap;
+      }
+    }
   }
 
   &__row {
