@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.log.v4.model;
+package io.gravitee.repository.log.v4.model.connection;
 
 import lombok.Builder;
 import lombok.Data;
@@ -34,6 +34,6 @@ public class ConnectionLogQuery {
     @Builder
     public static class Filter {
 
-        private String appId;
+        private String apiId;
     }
 }

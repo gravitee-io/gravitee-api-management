@@ -13,23 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.infra.adapter;
+package io.gravitee.rest.api.model.v4.connector;
 
-import io.gravitee.repository.log.v4.model.connection.ConnectionLog;
-import io.gravitee.rest.api.model.v4.log.connection.BaseConnectionLog;
-import java.util.List;
-import org.mapstruct.Mapper;
-import org.mapstruct.factory.Mappers;
+import java.util.Map;
+import lombok.Getter;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Mapper
-public interface ConnectionLogAdapter {
-    ConnectionLogAdapter INSTANCE = Mappers.getMapper(ConnectionLogAdapter.class);
+@Getter
+public enum ConnectorType {
+    ENDPOINT("endpoint"),
+    ENTRYPOINT("entrypoint");
 
-    BaseConnectionLog toEntity(ConnectionLog connectionLog);
+    private static final Map<String, ConnectorType> LABELS_MAP = Map.of(ENDPOINT.label, ENDPOINT, ENTRYPOINT.label, ENTRYPOINT);
 
-    List<BaseConnectionLog> toEntitiesList(List<ConnectionLog> connectionLogs);
+    private final String label;
+
+    private ConnectorType(String label) {
+        this.label = label;
+    }
+
+    public static ConnectorType fromLabel(final String label) {
+        if (label != null) {
+            return LABELS_MAP.get(label);
+        }
+        return null;
+    }
 }

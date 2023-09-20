@@ -19,12 +19,16 @@ import io.gravitee.elasticsearch.utils.Type;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepository;
 import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
 import io.gravitee.repository.elasticsearch.utils.ClusterUtils;
-import io.gravitee.repository.elasticsearch.v4.log.adapter.SearchConnectionLogQueryAdapter;
-import io.gravitee.repository.elasticsearch.v4.log.adapter.SearchConnectionLogResponseAdapter;
+import io.gravitee.repository.elasticsearch.v4.log.adapter.connection.SearchConnectionLogQueryAdapter;
+import io.gravitee.repository.elasticsearch.v4.log.adapter.connection.SearchConnectionLogResponseAdapter;
+import io.gravitee.repository.elasticsearch.v4.log.adapter.message.SearchMessageLogQueryAdapter;
+import io.gravitee.repository.elasticsearch.v4.log.adapter.message.SearchMessageLogResponseAdapter;
 import io.gravitee.repository.log.v4.api.LogRepository;
-import io.gravitee.repository.log.v4.model.ConnectionLog;
-import io.gravitee.repository.log.v4.model.ConnectionLogQuery;
 import io.gravitee.repository.log.v4.model.LogResponse;
+import io.gravitee.repository.log.v4.model.connection.ConnectionLog;
+import io.gravitee.repository.log.v4.model.connection.ConnectionLogQuery;
+import io.gravitee.repository.log.v4.model.message.MessageLog;
+import io.gravitee.repository.log.v4.model.message.MessageLogQuery;
 
 public class LogElasticsearchRepository extends AbstractElasticsearchRepository implements LogRepository {
 
@@ -36,11 +40,21 @@ public class LogElasticsearchRepository extends AbstractElasticsearchRepository 
 
     @Override
     public LogResponse<ConnectionLog> searchConnectionLog(ConnectionLogQuery query) {
-        var clusters = ClusterUtils.extractClusterIndexPrefixes(query, configuration);
+        var clusters = ClusterUtils.extractClusterIndexPrefixes(configuration);
         var index = this.indexNameGenerator.getWildcardIndexName(Type.V4_METRICS, clusters);
 
         return this.client.search(index, null, SearchConnectionLogQueryAdapter.adapt(query))
             .map(SearchConnectionLogResponseAdapter::adapt)
+            .blockingGet();
+    }
+
+    @Override
+    public LogResponse<MessageLog> searchMessageLog(MessageLogQuery query) {
+        var clusters = ClusterUtils.extractClusterIndexPrefixes(configuration);
+        var index = this.indexNameGenerator.getWildcardIndexName(Type.V4_MESSAGE_LOG, clusters);
+
+        return this.client.search(index, null, SearchMessageLogQueryAdapter.adapt(query))
+            .map(SearchMessageLogResponseAdapter::adapt)
             .blockingGet();
     }
 }

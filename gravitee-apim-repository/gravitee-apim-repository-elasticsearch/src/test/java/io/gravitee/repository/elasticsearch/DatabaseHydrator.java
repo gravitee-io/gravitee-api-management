@@ -28,6 +28,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.lang.StringUtils;
 
 public class DatabaseHydrator {
 
@@ -46,7 +47,16 @@ public class DatabaseHydrator {
 
     @PostConstruct
     public void indexSampleData() {
-        List<String> indexTypes = List.of("health", "request", "monitor", "log", "v4-log", "v4-metrics");
+        List<String> indexTypes = List.of(
+            "health",
+            "request",
+            "monitor",
+            "log",
+            "v4-log",
+            "v4-metrics",
+            "v4-message-log",
+            "v4-message-metrics"
+        );
         createTemplate(indexTypes).andThen(Single.defer(() -> client.bulk(prepareData(indexTypes), true))).ignoreElement().blockingAwait();
     }
 
@@ -84,7 +94,11 @@ public class DatabaseHydrator {
                     Map.entry("dateToday", dateToday),
                     Map.entry("dateYesterday", dateYesterday),
                     Map.entry("indexNameToday", indexTemplate(type, todayWithDot)),
-                    Map.entry("indexNameYesterday", indexTemplate(type, yesterdayWithDot))
+                    Map.entry("indexNameTodayEntrypoint", indexTemplate(type, todayWithDot, "entrypoint")),
+                    Map.entry("indexNameTodayEndpoint", indexTemplate(type, todayWithDot, "endpoint")),
+                    Map.entry("indexNameYesterday", indexTemplate(type, yesterdayWithDot)),
+                    Map.entry("indexNameYesterdayEntrypoint", indexTemplate(type, yesterdayWithDot, "entrypoint")),
+                    Map.entry("indexNameYesterdayEndpoint", indexTemplate(type, yesterdayWithDot, "endpoint"))
                 );
                 var filename = type + ".ftl";
                 return freeMarkerComponent.generateFromTemplate(filename, data);
@@ -94,6 +108,13 @@ public class DatabaseHydrator {
     }
 
     private String indexTemplate(String type, String date) {
+        return indexTemplate(type, date, null);
+    }
+
+    private String indexTemplate(String type, String date, String suffix) {
+        if (StringUtils.isNotEmpty(suffix)) {
+            return String.format("\"_index\" : \"gravitee-%s-%s-%s\"", type, date, suffix);
+        }
         return String.format("\"_index\" : \"gravitee-%s-%s\"", type, date);
     }
 }
