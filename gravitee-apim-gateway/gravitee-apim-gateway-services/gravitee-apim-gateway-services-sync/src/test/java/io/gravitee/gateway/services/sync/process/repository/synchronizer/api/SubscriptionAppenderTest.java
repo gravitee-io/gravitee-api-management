@@ -90,7 +90,7 @@ class SubscriptionAppenderTest {
         io.gravitee.repository.management.model.Subscription subscription2 = new io.gravitee.repository.management.model.Subscription();
         subscription2.setId("sub2");
         subscription2.setApi("api1");
-        when(subscriptionRepository.search(any())).thenReturn(List.of(subscription1, subscription2));
+        when(subscriptionRepository.search(any(), any())).thenReturn(List.of(subscription1, subscription2));
         ApiReactorDeployable apiReactorDeployable2 = ApiReactorDeployable
             .builder()
             .apiId("api2")
