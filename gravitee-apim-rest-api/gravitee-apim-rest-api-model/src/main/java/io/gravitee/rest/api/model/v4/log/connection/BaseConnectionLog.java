@@ -13,27 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.log.v4.model;
+package io.gravitee.rest.api.model.v4.log.connection;
 
-import lombok.Builder;
+import io.gravitee.common.http.HttpMethod;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
-@Builder
 @Data
-public class ConnectionLogQuery {
+@NoArgsConstructor
+@AllArgsConstructor
+@SuperBuilder(toBuilder = true)
+public class BaseConnectionLog {
 
-    @Builder.Default
-    private int size = 20;
-
-    @Builder.Default
-    private int page = 1;
-
-    private Filter filter;
-
-    @Data
-    @Builder
-    public static class Filter {
-
-        private String appId;
-    }
+    private String apiId;
+    private String requestId;
+    private String timestamp;
+    private String applicationId;
+    private String planId;
+    private String clientIdentifier;
+    private String transactionId;
+    private HttpMethod method;
+    private int status;
+    private boolean requestEnded;
 }

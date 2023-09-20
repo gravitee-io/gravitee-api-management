@@ -16,9 +16,9 @@
 package io.gravitee.apim.crud_service.analytics.log;
 
 import io.gravitee.rest.api.model.common.Pageable;
-import io.gravitee.rest.api.model.v4.log.BaseConnectionLog;
 import io.gravitee.rest.api.model.v4.log.SearchLogResponse;
+import io.gravitee.rest.api.model.v4.log.connection.BaseConnectionLog;
 
-public interface LogCrudService {
+public interface ConnectionLogCrudService {
     SearchLogResponse<BaseConnectionLog> searchApiConnectionLog(String apiId, Pageable pageable);
 }

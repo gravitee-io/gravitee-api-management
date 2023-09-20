@@ -20,14 +20,14 @@ import static org.assertj.core.api.Assertions.tuple;
 
 import fixtures.repository.ConnectionLogFixtures;
 import inmemory.ApplicationCrudServiceInMemory;
+import inmemory.ConnectionLogCrudServiceInMemory;
 import inmemory.InMemoryCrudService;
-import inmemory.LogCrudServiceInMemory;
 import inmemory.PlanCrudServiceInMemory;
 import io.gravitee.apim.usecase.log.SearchConnectionLogUsecase.Request;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.model.common.PageableImpl;
-import io.gravitee.rest.api.model.v4.log.ConnectionLogModel;
+import io.gravitee.rest.api.model.v4.log.connection.ConnectionLogModel;
 import io.gravitee.rest.api.model.v4.plan.BasePlanEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.List;
@@ -47,7 +47,7 @@ public class SearchConnectionLogUsecaseTest {
 
     ConnectionLogFixtures connectionLogFixtures = new ConnectionLogFixtures(API_ID, APPLICATION.getId(), PLAN.getId());
 
-    LogCrudServiceInMemory logStorageService = new LogCrudServiceInMemory();
+    ConnectionLogCrudServiceInMemory logStorageService = new ConnectionLogCrudServiceInMemory();
     PlanCrudServiceInMemory planStorageService = new PlanCrudServiceInMemory();
     ApplicationCrudServiceInMemory applicationStorageService = new ApplicationCrudServiceInMemory();
 
