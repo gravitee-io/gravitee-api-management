@@ -143,138 +143,6 @@ jobs:
             - ./gravitee-apim-rest-api/gravitee-apim-rest-api-management/gravitee-apim-rest-api-management-rest/target/classes/console-openapi.*
             - ./rest-api-docker-context
             - ./gateway-docker-context
-  job-test-definition:
-    docker:
-      - image: cimg/openjdk:17.0.8
-    resource_class: small
-    steps:
-      - checkout
-      - attach_workspace:
-          at: .
-      - cmd-restore-maven-job-cache:
-          jobName: job-test-definition
-      - restore_cache:
-          keys:
-            - gravitee-api-management-v9-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
-      - run:
-          name: Run definition tests
-          command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Ddefinition-modules -Dskip.validation=true -T 2C
-      - run:
-          name: Save test results
-          command: |-
-            mkdir -p ~/test-results/junit/
-            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
-          when: always
-      - cmd-notify-on-failure
-      - cmd-save-maven-job-cache:
-          jobName: job-test-definition
-      - store_test_results:
-          path: ~/test-results
-      - persist_to_workspace:
-          root: .
-          paths:
-            - gravitee-apim-definition/gravitee-apim-definition-coverage/target/site/jacoco-aggregate/
-  job-sonarcloud-analysis:
-    parameters:
-      working_directory:
-        type: string
-        default: gravitee-apim-rest-api
-        description: Directory where the Sonarcloud analysis will be run
-      cache_type:
-        type: enum
-        default: backend
-        description: Type of cache to use
-        enum:
-          - backend
-          - frontend
-    docker:
-      - image: sonarsource/sonar-scanner-cli:5.0.1
-    resource_class: large
-    steps:
-      - run:
-          name: Add SSH tool
-          command: apk add --no-cache openssh
-      - checkout
-      - attach_workspace:
-          at: .
-      - restore_cache:
-          keys:
-            - gravitee-api-management-v9-sonarcloud-analysis-<< parameters.cache_type >>
-      - keeper/env-export:
-          secret-url: keeper://9x9YgyU6DWzux4DPoHAzDQ/field/password
-          var-name: SONAR_TOKEN
-      - run:
-          name: Run Sonarcloud Analysis
-          command: sonar-scanner -Dsonar.projectVersion=4.2.0
-          working_directory: << parameters.working_directory >>
-      - cmd-notify-on-failure
-      - save_cache:
-          paths:
-            - /opt/sonar-scanner/.sonar/cache
-          key: gravitee-api-management-v9-sonarcloud-analysis-<< parameters.cache_type >>
-          when: always
-  job-test-gateway:
-    docker:
-      - image: cimg/openjdk:17.0.8
-    resource_class: medium
-    steps:
-      - checkout
-      - attach_workspace:
-          at: .
-      - cmd-restore-maven-job-cache:
-          jobName: job-test-gateway
-      - restore_cache:
-          keys:
-            - gravitee-api-management-v9-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
-      - run:
-          name: Run gateway tests
-          command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Dgateway-modules -Dskip.validation=true -T 2C
-      - run:
-          name: Save test results
-          command: |-
-            mkdir -p ~/test-results/junit/
-            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
-          when: always
-      - cmd-notify-on-failure
-      - cmd-save-maven-job-cache:
-          jobName: job-test-gateway
-      - store_test_results:
-          path: ~/test-results
-      - persist_to_workspace:
-          root: .
-          paths:
-            - gravitee-apim-gateway/gravitee-apim-gateway-coverage/target/site/jacoco-aggregate/
-  job-test-rest-api:
-    docker:
-      - image: cimg/openjdk:17.0.8
-    resource_class: medium
-    steps:
-      - checkout
-      - attach_workspace:
-          at: .
-      - cmd-restore-maven-job-cache:
-          jobName: job-test-rest-api
-      - restore_cache:
-          keys:
-            - gravitee-api-management-v9-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
-      - run:
-          name: Run Rest API tests
-          command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Drest-api-modules -Dskip.validation=true -T 2C
-      - run:
-          name: Save test results
-          command: |-
-            mkdir -p ~/test-results/junit/
-            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
-          when: always
-      - cmd-notify-on-failure
-      - cmd-save-maven-job-cache:
-          jobName: job-test-rest-api
-      - store_test_results:
-          path: ~/test-results
-      - persist_to_workspace:
-          root: .
-          paths:
-            - gravitee-apim-rest-api/gravitee-apim-rest-api-coverage/target/site/jacoco-aggregate/
   job-test-integration:
     machine:
       image: ubuntu-2204:current
@@ -355,38 +223,45 @@ jobs:
           root: .
           paths:
             - gravitee-apim-plugin/gravitee-apim-plugin-coverage/target/site/jacoco-aggregate/
-  job-test-repository:
-    machine:
-      image: ubuntu-2204:current
-      docker_layer_caching: false
+  job-sonarcloud-analysis:
+    parameters:
+      working_directory:
+        type: string
+        default: gravitee-apim-rest-api
+        description: Directory where the Sonarcloud analysis will be run
+      cache_type:
+        type: enum
+        default: backend
+        description: Type of cache to use
+        enum:
+          - backend
+          - frontend
+    docker:
+      - image: sonarsource/sonar-scanner-cli:5.0.1
     resource_class: large
     steps:
+      - run:
+          name: Add SSH tool
+          command: apk add --no-cache openssh
       - checkout
       - attach_workspace:
           at: .
-      - cmd-restore-maven-job-cache:
-          jobName: job-test-repository
       - restore_cache:
           keys:
-            - gravitee-api-management-v9-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+            - gravitee-api-management-v9-sonarcloud-analysis-<< parameters.cache_type >>
+      - keeper/env-export:
+          secret-url: keeper://9x9YgyU6DWzux4DPoHAzDQ/field/password
+          var-name: SONAR_TOKEN
       - run:
-          name: Run repository tests
-          command: mvn --fail-fast -s .gravitee.settings.xml verify --no-transfer-progress -Drepository-modules -Dskip.validation=true -T 2C
-      - run:
-          name: Save test results
-          command: |-
-            mkdir -p ~/test-results/junit/
-            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
-          when: always
+          name: Run Sonarcloud Analysis
+          command: sonar-scanner -Dsonar.projectVersion=4.2.0
+          working_directory: << parameters.working_directory >>
       - cmd-notify-on-failure
-      - cmd-save-maven-job-cache:
-          jobName: job-test-repository
-      - store_test_results:
-          path: ~/test-results
-      - persist_to_workspace:
-          root: .
+      - save_cache:
           paths:
-            - gravitee-apim-repository/gravitee-apim-repository-coverage/target/site/jacoco-aggregate/
+            - /opt/sonar-scanner/.sonar/cache
+          key: gravitee-api-management-v9-sonarcloud-analysis-<< parameters.cache_type >>
+          when: always
   job-validate-workflow-status:
     docker:
       - image: cimg/base:stable
@@ -420,48 +295,6 @@ workflows:
             - cicd-orchestrator
           requires:
             - Validate backend
-      - job-test-definition:
-          name: Test definition
-          context:
-            - cicd-orchestrator
-          requires:
-            - Build backend
-      - job-sonarcloud-analysis:
-          name: Sonar - gravitee-apim-definition
-          context:
-            - cicd-orchestrator
-          requires:
-            - Test definition
-          working_directory: gravitee-apim-definition
-          cache_type: backend
-      - job-test-gateway:
-          name: Test gateway
-          context:
-            - cicd-orchestrator
-          requires:
-            - Build backend
-      - job-sonarcloud-analysis:
-          name: Sonar - gravitee-apim-gateway
-          context:
-            - cicd-orchestrator
-          requires:
-            - Test gateway
-          working_directory: gravitee-apim-gateway
-          cache_type: backend
-      - job-test-rest-api:
-          name: Test rest-api
-          context:
-            - cicd-orchestrator
-          requires:
-            - Build backend
-      - job-sonarcloud-analysis:
-          name: Sonar - gravitee-apim-rest-api
-          context:
-            - cicd-orchestrator
-          requires:
-            - Test rest-api
-          working_directory: gravitee-apim-rest-api
-          cache_type: backend
       - job-test-integration:
           name: Integration tests
           context:
@@ -482,28 +315,10 @@ workflows:
             - Test plugins
           working_directory: gravitee-apim-plugin
           cache_type: backend
-      - job-test-repository:
-          name: Test repository
-          context:
-            - cicd-orchestrator
-          requires:
-            - Build backend
-      - job-sonarcloud-analysis:
-          name: Sonar - gravitee-apim-repository
-          context:
-            - cicd-orchestrator
-          requires:
-            - Test repository
-          working_directory: gravitee-apim-repository
-          cache_type: backend
       - job-validate-workflow-status:
           name: Validate workflow status
           requires:
-            - Test definition
-            - Test gateway
-            - Test rest-api
             - Test plugins
-            - Test repository
 orbs:
   keeper: gravitee-io/keeper@0.6.3
   slack: circleci/slack@4.12.5
