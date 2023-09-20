@@ -23,6 +23,8 @@ import io.gravitee.gateway.services.sync.process.common.model.SyncException;
 import io.gravitee.gateway.services.sync.process.repository.mapper.ApiKeyMapper;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
+import io.gravitee.repository.management.api.search.Order;
+import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -77,7 +79,10 @@ public class ApiKeyAppender {
             } else {
                 criteriaBuilder.includeRevoked(true);
             }
-            List<io.gravitee.repository.management.model.ApiKey> bySubscriptions = apiKeyRepository.findByCriteria(criteriaBuilder.build());
+            List<io.gravitee.repository.management.model.ApiKey> bySubscriptions = apiKeyRepository.findByCriteria(
+                criteriaBuilder.build(),
+                new SortableBuilder().field("updatedAt").order(Order.ASC).build()
+            );
             return bySubscriptions
                 .stream()
                 .flatMap(apiKey ->
