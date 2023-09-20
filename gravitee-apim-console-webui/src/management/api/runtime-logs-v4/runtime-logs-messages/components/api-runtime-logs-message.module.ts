@@ -17,12 +17,14 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { GioIconsModule } from '@gravitee/ui-particles-angular';
+import { MatTabsModule } from '@angular/material/tabs';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { ApiRuntimeLogsMessageComponent } from './api-runtime-logs-message.component';
 
 @NgModule({
   declarations: [ApiRuntimeLogsMessageComponent],
   exports: [ApiRuntimeLogsMessageComponent],
-  imports: [CommonModule, MatIconModule, GioIconsModule],
+  imports: [CommonModule, BrowserAnimationsModule, MatIconModule, GioIconsModule, MatTabsModule],
 })
 export class ApiRuntimeLogsMessageModule {}

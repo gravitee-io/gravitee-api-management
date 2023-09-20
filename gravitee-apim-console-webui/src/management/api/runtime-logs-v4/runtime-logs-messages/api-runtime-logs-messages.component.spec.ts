@@ -18,6 +18,7 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { UIRouterModule } from '@uirouter/angular';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 import { ApiRuntimeLogsMessagesComponent } from './api-runtime-logs-messages.component';
 import { ApiRuntimeLogsMessgesModule } from './api-runtime-logs-messges.module';
@@ -50,6 +51,7 @@ describe('ApiRuntimeLogsMessagesComponent', () => {
         GioUiRouterTestingModule,
         GioHttpTestingModule,
         MatIconTestingModule,
+        NoopAnimationsModule,
       ],
       providers: [
         { provide: UIRouterState, useValue: fakeUiRouter },
@@ -69,16 +71,35 @@ describe('ApiRuntimeLogsMessagesComponent', () => {
   });
 
   describe('GIVEN there are message logs', () => {
-    it('should init the component and fetch the connector icon', async () => {
-      await initComponent();
-      const iconServiceSpy = jest.spyOn(TestBed.inject(IconService), 'registerSvg').mockReturnValue('gio:mock');
+    let iconServiceSpy: jest.SpyInstance;
 
+    beforeEach(async () => {
+      await initComponent();
+      iconServiceSpy = jest.spyOn(TestBed.inject(IconService), 'registerSvg').mockReturnValue('gio:mock');
       expectApiWithMessageLogs(2);
       expectEndpointPlugin();
-      expect(iconServiceSpy).toHaveBeenCalledTimes(1);
+    });
 
+    it('should init the component and fetch the connector icon', async () => {
+      expect(iconServiceSpy).toHaveBeenCalledTimes(1);
       fixture.detectChanges();
       expect(await componentHarness.connectorIcon()).toBeTruthy();
+    });
+
+    it('should be able to switch between message, headers and metadata tabs', async () => {
+      expect(FAKE_MESSAGE_LOG.message.payload).toStrictEqual(JSON.parse(await componentHarness.getTabBody()));
+
+      await componentHarness.clickOnTab('Headers');
+      fixture.detectChanges();
+      expect(FAKE_MESSAGE_LOG.message.headers).toStrictEqual(JSON.parse(await componentHarness.getTabBody()));
+
+      await componentHarness.clickOnTab('Metadata');
+      fixture.detectChanges();
+      expect(FAKE_MESSAGE_LOG.message.metadata).toStrictEqual(JSON.parse(await componentHarness.getTabBody()));
+
+      await componentHarness.clickOnTab('Message');
+      fixture.detectChanges();
+      expect(FAKE_MESSAGE_LOG.message.payload).toStrictEqual(JSON.parse(await componentHarness.getTabBody()));
     });
   });
 
