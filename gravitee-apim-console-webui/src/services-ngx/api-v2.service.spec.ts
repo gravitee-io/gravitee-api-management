@@ -27,6 +27,7 @@ import {
   fakeCreateApiV4,
   fakeUpdateApiV4,
 } from '../entities/management-api-v2';
+import { PathToVerify } from '../entities/management-api-v2/api/verifyApiPath';
 
 describe('ApiV2Service', () => {
   let httpTestingController: HttpTestingController;
@@ -366,6 +367,25 @@ describe('ApiV2Service', () => {
       });
 
       expect(req.request.body).toEqual(transferOwnership);
+      req.flush(null);
+    });
+  });
+
+  describe('verify API path', () => {
+    it('should call the API', (done) => {
+      const apiId = 'apiId';
+      const paths: PathToVerify[] = [{ path: 'path', host: 'host' }];
+
+      apiV2Service.verifyPath(apiId, paths).subscribe(() => {
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_verify/paths`,
+        method: 'POST',
+      });
+
+      expect(req.request.body).toEqual({ apiId, paths });
       req.flush(null);
     });
   });

@@ -15,7 +15,7 @@
  */
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
-import { Observable, BehaviorSubject, of } from 'rxjs';
+import { BehaviorSubject, Observable, of } from 'rxjs';
 import { filter, shareReplay, switchMap, tap } from 'rxjs/operators';
 
 import { Constants } from '../entities/Constants';
@@ -31,6 +31,7 @@ import {
   UpdateApi,
 } from '../entities/management-api-v2';
 import { ApiTransferOwnership } from '../entities/management-api-v2/api/apiTransferOwnership';
+import { PathToVerify, VerifyApiPathResponse } from '../entities/management-api-v2/api/verifyApiPath';
 
 @Injectable({
   providedIn: 'root',
@@ -143,5 +144,9 @@ export class ApiV2Service {
 
   transferOwnership(api: string, ownership: ApiTransferOwnership): Observable<any> {
     return this.http.post(`${this.constants.env.v2BaseURL}/apis/${api}/_transfer-ownership`, ownership);
+  }
+
+  verifyPath(apiId: string, paths: PathToVerify[]): Observable<VerifyApiPathResponse> {
+    return this.http.post<VerifyApiPathResponse>(`${this.constants.env.v2BaseURL}/apis/_verify/paths`, { apiId, paths });
   }
 }
