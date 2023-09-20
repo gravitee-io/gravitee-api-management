@@ -24,7 +24,7 @@ import { fakeConnectorPlugin } from '../entities/management-api-v2/plugin/connec
 
 describe('Installation Plugins Service', () => {
   let httpTestingController: HttpTestingController;
-  let installationPluginsService: ConnectorPluginsV2Service;
+  let service: ConnectorPluginsV2Service;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -32,7 +32,7 @@ describe('Installation Plugins Service', () => {
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);
-    installationPluginsService = TestBed.inject<ConnectorPluginsV2Service>(ConnectorPluginsV2Service);
+    service = TestBed.inject<ConnectorPluginsV2Service>(ConnectorPluginsV2Service);
   });
 
   describe('Endpoints', () => {
@@ -40,7 +40,7 @@ describe('Installation Plugins Service', () => {
       it('should call the API', (done) => {
         const fakeConnectors = [fakeConnectorPlugin()];
 
-        installationPluginsService.listEndpointPlugins().subscribe((connectors) => {
+        service.listEndpointPlugins().subscribe((connectors) => {
           expect(connectors).toMatchObject(fakeConnectors);
           done();
         });
@@ -63,7 +63,7 @@ describe('Installation Plugins Service', () => {
         ];
         const result = [fakeConnectorPlugin({ name: 'a-plugin' }), fakeConnectorPlugin({ name: 'z-plugin' })];
 
-        installationPluginsService.listEndpointPluginsByApiType('PROXY').subscribe((connectors) => {
+        service.listEndpointPluginsByApiType('PROXY').subscribe((connectors) => {
           expect(connectors).toStrictEqual(result);
           done();
         });
@@ -81,7 +81,7 @@ describe('Installation Plugins Service', () => {
       it('should call the API', (done) => {
         const fakeConnectors = fakeConnectorPlugin();
 
-        installationPluginsService.getEndpointPlugin('endpointId').subscribe((connectors) => {
+        service.getEndpointPlugin('endpointId').subscribe((connectors) => {
           expect(connectors).toEqual(fakeConnectors);
           done();
         });
@@ -101,7 +101,7 @@ describe('Installation Plugins Service', () => {
       it('should call the API', (done) => {
         const fakeConnectors = [fakeConnectorPlugin({ supportedApiType: 'PROXY' }), fakeConnectorPlugin({ supportedApiType: 'MESSAGE' })];
 
-        installationPluginsService.listSyncEntrypointPlugins().subscribe((connectors) => {
+        service.listSyncEntrypointPlugins().subscribe((connectors) => {
           expect(connectors).toMatchObject([fakeConnectors[0]]);
           done();
         });
@@ -119,7 +119,7 @@ describe('Installation Plugins Service', () => {
       it('should call the API', (done) => {
         const fakeConnectors = [fakeConnectorPlugin({ supportedApiType: 'PROXY' }), fakeConnectorPlugin({ supportedApiType: 'MESSAGE' })];
 
-        installationPluginsService.listAsyncEntrypointPlugins().subscribe((connectors) => {
+        service.listAsyncEntrypointPlugins().subscribe((connectors) => {
           expect(connectors).toMatchObject([fakeConnectors[1]]);
           done();
         });
@@ -145,7 +145,7 @@ describe('Installation Plugins Service', () => {
           },
         };
 
-        installationPluginsService.getEntrypointPluginSubscriptionSchema('entrypoint-id').subscribe((schema) => {
+        service.getEntrypointPluginSubscriptionSchema('entrypoint-id').subscribe((schema) => {
           expect(schema).toMatchObject(expectedSchema);
           done();
         });
@@ -156,6 +156,23 @@ describe('Installation Plugins Service', () => {
             method: 'GET',
           })
           .flush(expectedSchema);
+      });
+    });
+
+    describe('getEntrypointPluginSchema', () => {
+      const entrypoint = fakeConnectorPlugin();
+      it('should call the API', (done) => {
+        service.getEntrypointPlugin('entrypoint-id').subscribe((schema) => {
+          expect(schema).toMatchObject(entrypoint);
+          done();
+        });
+
+        httpTestingController
+          .expectOne({
+            url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/entrypoints/entrypoint-id`,
+            method: 'GET',
+          })
+          .flush(entrypoint);
       });
     });
   });
