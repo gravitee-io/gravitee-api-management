@@ -21,24 +21,29 @@ import { MatTableHarness } from '@angular/material/table/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { UIRouterModule } from '@uirouter/angular';
+import { MatButtonHarness } from '@angular/material/button/testing';
+import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
+import { MatIconTestingModule } from '@angular/material/icon/testing';
+import { InteractivityChecker } from '@angular/cdk/a11y';
 
 import { NotificationsListModule } from './notifications-list.module';
 import { NotificationsListComponent } from './notifications-list.component';
 
-import { fakeNotificationTemplate } from '../../../../entities/notification/notificationTemplate.fixture';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
-import { AjsRootScope, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+import { AjsRootScope, CurrentUserService, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { GioUiRouterTestingModule } from '../../../../shared/testing/gio-uirouter-testing-module';
+import { User } from '../../../../entities/user';
+import { NotificationSettings } from '../../../../entities/notification/notificationSettings';
+import { fakeNotificationSettings } from '../../../../entities/notification/notificationSettings.fixture';
 
 describe('NotificationsListComponent', () => {
   let fixture: ComponentFixture<NotificationsListComponent>;
   const API_ID = 'apiId';
+  const currentUser = new User();
+  currentUser.userPermissions = ['api-notification-u', 'api-notification-d', 'api-notification-c'];
   let httpTestingController: HttpTestingController;
   let loader: HarnessLoader;
-
-  afterEach(() => {
-    httpTestingController.verify();
-  });
+  let rootLoader: HarnessLoader;
 
   describe('notification table test', () => {
     beforeEach(async () => {
@@ -48,6 +53,7 @@ describe('NotificationsListComponent', () => {
           GioHttpTestingModule,
           GioUiRouterTestingModule,
           NotificationsListModule,
+          MatIconTestingModule,
           UIRouterModule.forRoot({
             useHash: true,
           }),
@@ -55,13 +61,25 @@ describe('NotificationsListComponent', () => {
         providers: [
           { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
           { provide: AjsRootScope, useValue: null },
+          { provide: CurrentUserService, useValue: { currentUser } },
         ],
-      }).compileComponents();
+      })
+        .overrideProvider(InteractivityChecker, {
+          useValue: {
+            isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
+          },
+        })
+        .compileComponents();
 
       fixture = TestBed.createComponent(NotificationsListComponent);
       httpTestingController = TestBed.inject(HttpTestingController);
       loader = TestbedHarnessEnvironment.loader(fixture);
+      rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
       fixture.detectChanges();
+    });
+
+    afterEach(() => {
+      httpTestingController.verify();
     });
 
     it('should display an empty table', fakeAsync(async () => {
@@ -77,20 +95,36 @@ describe('NotificationsListComponent', () => {
       const table = await loader.getHarness(MatTableHarness.with({ selector: '#notificationsTable' }));
       expect(await table.getCellTextByIndex()).toEqual([['Loading...']]);
 
-      const notifications = [fakeNotificationTemplate({ name: 'Test name' })];
+      const notifications = [fakeNotificationSettings({ name: 'Test name' })];
       expectApiGetNotificationList(notifications);
 
-      expect(await table.getCellTextByIndex()).toEqual([['Test name']]);
+      expect(await table.getCellTextByIndex()).toEqual([['Test name', '']]);
+    }));
+
+    it('should delete the notification', fakeAsync(async () => {
+      const table = [fakeNotificationSettings({ name: 'Test name', id: 'test id' })];
+      expectApiGetNotificationList(table);
+
+      const button = await loader.getHarness(MatButtonHarness.with({ selector: `[aria-label="Delete notification"]` }));
+      await button.click();
+
+      const confirmDialog = await rootLoader.getHarness(GioConfirmDialogHarness);
+      await confirmDialog.confirm();
+
+      httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/notificationsettings/${table[0].id}`,
+        method: 'DELETE',
+      });
     }));
   });
 
-  function expectApiGetNotificationList(notifications) {
+  function expectApiGetNotificationList(notifactionSettings: NotificationSettings[]) {
     httpTestingController
       .expectOne({
         url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/notificationsettings`,
         method: 'GET',
       })
-      .flush(notifications);
+      .flush(notifactionSettings);
     fixture.detectChanges();
   }
 });

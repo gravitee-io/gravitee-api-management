@@ -29,4 +29,8 @@ export class NotificationSettingsService {
   getNotificationSettings(apiId: string): Observable<NotificationSettings[]> {
     return this.http.get<NotificationSettings[]>(`${this.constants.env.baseURL}/apis/${apiId}/notificationsettings`);
   }
+
+  delete(apiId: string, id: string): Observable<NotificationSettings[]> {
+    return this.http.delete<NotificationSettings[]>(`${this.constants.env.baseURL}/apis/${apiId}/notificationsettings/${id}`);
+  }
 }

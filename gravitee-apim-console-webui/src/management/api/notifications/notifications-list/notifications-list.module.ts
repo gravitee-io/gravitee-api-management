@@ -22,6 +22,8 @@ import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { UIRouterModule } from '@uirouter/angular';
 import { HttpClientModule } from '@angular/common/http';
+import { MatDialogModule } from '@angular/material/dialog';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { NotificationsListComponent } from './notifications-list.component';
 
@@ -42,6 +44,8 @@ import { GioTableWrapperModule } from '../../../../shared/components/gio-table-w
     MatTooltipModule,
     UIRouterModule,
     HttpClientModule,
+    MatDialogModule,
+    MatSnackBarModule,
   ],
 })
 export class NotificationsListModule {}

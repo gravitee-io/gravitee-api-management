@@ -15,13 +15,16 @@
  */
 
 import { Component, Inject, OnInit } from '@angular/core';
-import { takeUntil, tap } from 'rxjs/operators';
-import { Subject } from 'rxjs';
+import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { EMPTY, Subject } from 'rxjs';
+import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import { MatDialog } from '@angular/material/dialog';
 
 import { NotificationSettingsService } from '../../../../services-ngx/notification-settings.service';
 import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { GioTableWrapperFilters } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { gioTableFilterCollection } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
+import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 
 type NotificationSettingsTable = {
   name: string;
@@ -37,7 +40,7 @@ type NotificationSettingsTable = {
 export class NotificationsListComponent implements OnInit {
   public notificationsSettingsTable: NotificationSettingsTable[] = [];
   public isLoadingData = true;
-  public displayedColumns = ['name'];
+  public displayedColumns = ['name', 'actions'];
   public notificationUnpaginatedLength = 0;
   public filteredNotificationsSettingsTable = [];
 
@@ -46,6 +49,8 @@ export class NotificationsListComponent implements OnInit {
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
     private readonly notificationSettingsService: NotificationSettingsService,
+    private readonly matDialog: MatDialog,
+    private readonly snackBarService: SnackBarService,
   ) {}
 
   public ngOnInit() {
@@ -81,5 +86,31 @@ export class NotificationsListComponent implements OnInit {
     const filtered = gioTableFilterCollection(this.notificationsSettingsTable, filters);
     this.filteredNotificationsSettingsTable = filtered.filteredCollection;
     this.notificationUnpaginatedLength = filtered.unpaginatedLength;
+  }
+
+  deleteNotification(name: string, id: string) {
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
+        width: '500px',
+        data: {
+          title: 'Delete notification',
+          content: `Are you sure you want to delete the notification <strong>${name}</strong>?`,
+          confirmButton: 'Delete',
+        },
+        role: 'alertdialog',
+        id: 'deleteNotificationConfirmDialog',
+      })
+      .afterClosed()
+      .pipe(
+        filter((confirm) => confirm === true),
+        switchMap(() => this.notificationSettingsService.delete(this.ajsStateParams.apiId, id)),
+        tap(() => this.snackBarService.success(`“${name}” has been deleted”`)),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe(() => this.ngOnInit());
   }
 }
