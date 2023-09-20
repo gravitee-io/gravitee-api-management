@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.v2.rest.spring;
 
 import static org.mockito.Mockito.mock;
 
+import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
 import io.gravitee.node.api.license.NodeLicenseService;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -224,5 +225,10 @@ public class ResourceContextConfiguration {
     @Bean
     public ApiDuplicateService apiDuplicateService() {
         return mock(ApiDuplicateService.class);
+    }
+
+    @Bean
+    public VerifyApiPathDomainService verifyApiPathDomainService() {
+        return mock(VerifyApiPathDomainService.class);
     }
 }
