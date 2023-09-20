@@ -78,7 +78,7 @@ export class PullRequestsWorkflow {
     const jobs: workflow.WorkflowJob[] = [];
     const requires: string[] = [];
 
-    if (!filterJobs || shouldBuildAll(environment.changedFiles) || shouldBuildHelm(environment.changedFiles)) {
+    if (!filterJobs || shouldBuildHelm(environment.changedFiles)) {
       const apimChartsTestJob = TestApimChartsJob.create(dynamicConfig);
       dynamicConfig.addJob(apimChartsTestJob);
       jobs.push(new workflow.WorkflowJob(apimChartsTestJob, { name: 'Helm Chart - Lint & Test' }));
@@ -86,7 +86,7 @@ export class PullRequestsWorkflow {
       requires.push('Helm Chart - Lint & Test');
     }
 
-    if (!filterJobs || shouldBuildAll(environment.changedFiles) || shouldBuildBackend(environment.changedFiles)) {
+    if (!filterJobs || shouldBuildBackend(environment.changedFiles)) {
       const setupJob = SetupJob.create(dynamicConfig);
       dynamicConfig.addJob(setupJob);
 
@@ -98,27 +98,6 @@ export class PullRequestsWorkflow {
 
       const buildBackendJob = BuildBackendJob.create(dynamicConfig, environment);
       dynamicConfig.addJob(buildBackendJob);
-
-      const testDefinitionJob = TestDefinitionJob.create(dynamicConfig);
-      dynamicConfig.addJob(testDefinitionJob);
-
-      const testGatewayJob = TestGatewayJob.create(dynamicConfig);
-      dynamicConfig.addJob(testGatewayJob);
-
-      const testRestApiJob = TestRestApiJob.create(dynamicConfig);
-      dynamicConfig.addJob(testRestApiJob);
-
-      const testIntegrationJob = TestIntegrationJob.create(dynamicConfig);
-      dynamicConfig.addJob(testIntegrationJob);
-
-      const testPluginsJob = TestPluginJob.create(dynamicConfig);
-      dynamicConfig.addJob(testPluginsJob);
-
-      const testRepositoryJob = TestRepositoryJob.create(dynamicConfig);
-      dynamicConfig.addJob(testRepositoryJob);
-
-      const sonarCloudAnalysisJob = SonarCloudAnalysisJob.create(dynamicConfig, environment);
-      dynamicConfig.addJob(sonarCloudAnalysisJob);
 
       jobs.push(
         new workflow.WorkflowJob(setupJob, { name: 'Setup', context: config.jobContext }),
@@ -137,78 +116,143 @@ export class PullRequestsWorkflow {
           context: config.jobContext,
           requires: ['Validate backend'],
         }),
-        new workflow.WorkflowJob(testDefinitionJob, {
-          name: 'Test definition',
-          context: config.jobContext,
-          requires: ['Build backend'],
-        }),
-        new workflow.WorkflowJob(testGatewayJob, {
-          name: 'Test gateway',
-          context: config.jobContext,
-          requires: ['Build backend'],
-        }),
-        new workflow.WorkflowJob(testRestApiJob, {
-          name: 'Test rest-api',
-          context: config.jobContext,
-          requires: ['Build backend'],
-        }),
-        new workflow.WorkflowJob(testIntegrationJob, {
-          name: 'Integration tests',
-          context: config.jobContext,
-          requires: ['Build backend'],
-        }),
-        new workflow.WorkflowJob(testPluginsJob, {
-          name: 'Test plugins',
-          context: config.jobContext,
-          requires: ['Build backend'],
-        }),
-        new workflow.WorkflowJob(testRepositoryJob, {
-          name: 'Test repository',
-          context: config.jobContext,
-          requires: ['Build backend'],
-        }),
-        new workflow.WorkflowJob(sonarCloudAnalysisJob, {
-          name: 'Sonar - gravitee-apim-definition',
-          context: config.jobContext,
-          requires: ['Test definition'],
-          working_directory: 'gravitee-apim-definition',
-          cache_type: 'backend',
-        }),
-        new workflow.WorkflowJob(sonarCloudAnalysisJob, {
-          name: 'Sonar - gravitee-apim-gateway',
-          context: config.jobContext,
-          requires: ['Test gateway'],
-          working_directory: 'gravitee-apim-gateway',
-          cache_type: 'backend',
-        }),
-        new workflow.WorkflowJob(sonarCloudAnalysisJob, {
-          name: 'Sonar - gravitee-apim-rest-api',
-          context: config.jobContext,
-          requires: ['Test rest-api'],
-          working_directory: 'gravitee-apim-rest-api',
-          cache_type: 'backend',
-        }),
-
-        new workflow.WorkflowJob(sonarCloudAnalysisJob, {
-          name: 'Sonar - gravitee-apim-plugin',
-          context: config.jobContext,
-          requires: ['Test plugins'],
-          working_directory: 'gravitee-apim-plugin',
-          cache_type: 'backend',
-        }),
-        new workflow.WorkflowJob(sonarCloudAnalysisJob, {
-          name: 'Sonar - gravitee-apim-repository',
-          context: config.jobContext,
-          requires: ['Test repository'],
-          working_directory: 'gravitee-apim-repository',
-          cache_type: 'backend',
-        }),
       );
 
-      requires.push('Test definition', 'Test gateway', 'Test plugins', 'Test repository', 'Test rest-api');
+      if (!filterJobs || shouldTestDefinition(environment.changedFiles)) {
+        const testDefinitionJob = TestDefinitionJob.create(dynamicConfig);
+        dynamicConfig.addJob(testDefinitionJob);
+
+        const sonarCloudAnalysisJob = SonarCloudAnalysisJob.create(dynamicConfig, environment);
+        dynamicConfig.addJob(sonarCloudAnalysisJob);
+
+        jobs.push(
+          new workflow.WorkflowJob(testDefinitionJob, {
+            name: 'Test definition',
+            context: config.jobContext,
+            requires: ['Build backend'],
+          }),
+          new workflow.WorkflowJob(sonarCloudAnalysisJob, {
+            name: 'Sonar - gravitee-apim-definition',
+            context: config.jobContext,
+            requires: ['Test definition'],
+            working_directory: 'gravitee-apim-definition',
+            cache_type: 'backend',
+          }),
+        );
+        requires.push('Test definition');
+      }
+
+      if (!filterJobs || shouldTestGateway(environment.changedFiles)) {
+        const testGatewayJob = TestGatewayJob.create(dynamicConfig);
+        dynamicConfig.addJob(testGatewayJob);
+
+        const sonarCloudAnalysisJob = SonarCloudAnalysisJob.create(dynamicConfig, environment);
+        dynamicConfig.addJob(sonarCloudAnalysisJob);
+
+        jobs.push(
+          new workflow.WorkflowJob(testGatewayJob, {
+            name: 'Test gateway',
+            context: config.jobContext,
+            requires: ['Build backend'],
+          }),
+          new workflow.WorkflowJob(sonarCloudAnalysisJob, {
+            name: 'Sonar - gravitee-apim-gateway',
+            context: config.jobContext,
+            requires: ['Test gateway'],
+            working_directory: 'gravitee-apim-gateway',
+            cache_type: 'backend',
+          }),
+        );
+        requires.push('Test gateway');
+      }
+
+      if (!filterJobs || shouldTestRestApi(environment.changedFiles)) {
+        const testRestApiJob = TestRestApiJob.create(dynamicConfig);
+        dynamicConfig.addJob(testRestApiJob);
+
+        const sonarCloudAnalysisJob = SonarCloudAnalysisJob.create(dynamicConfig, environment);
+        dynamicConfig.addJob(sonarCloudAnalysisJob);
+
+        jobs.push(
+          new workflow.WorkflowJob(testRestApiJob, {
+            name: 'Test rest-api',
+            context: config.jobContext,
+            requires: ['Build backend'],
+          }),
+          new workflow.WorkflowJob(sonarCloudAnalysisJob, {
+            name: 'Sonar - gravitee-apim-rest-api',
+            context: config.jobContext,
+            requires: ['Test rest-api'],
+            working_directory: 'gravitee-apim-rest-api',
+            cache_type: 'backend',
+          }),
+        );
+        requires.push('Test rest-api');
+      }
+
+      if (!filterJobs || shouldTestIntegrationTests(environment.changedFiles)) {
+        const testIntegrationJob = TestIntegrationJob.create(dynamicConfig);
+        dynamicConfig.addJob(testIntegrationJob);
+
+        jobs.push(
+          new workflow.WorkflowJob(testIntegrationJob, {
+            name: 'Integration tests',
+            context: config.jobContext,
+            requires: ['Build backend'],
+          }),
+        );
+      }
+
+      if (!filterJobs || shouldTestPlugin(environment.changedFiles)) {
+        const testPluginsJob = TestPluginJob.create(dynamicConfig);
+        dynamicConfig.addJob(testPluginsJob);
+
+        const sonarCloudAnalysisJob = SonarCloudAnalysisJob.create(dynamicConfig, environment);
+        dynamicConfig.addJob(sonarCloudAnalysisJob);
+
+        jobs.push(
+          new workflow.WorkflowJob(testPluginsJob, {
+            name: 'Test plugins',
+            context: config.jobContext,
+            requires: ['Build backend'],
+          }),
+          new workflow.WorkflowJob(sonarCloudAnalysisJob, {
+            name: 'Sonar - gravitee-apim-plugin',
+            context: config.jobContext,
+            requires: ['Test plugins'],
+            working_directory: 'gravitee-apim-plugin',
+            cache_type: 'backend',
+          }),
+        );
+        requires.push('Test plugins');
+      }
+
+      if (!filterJobs || shouldTestRepository(environment.changedFiles)) {
+        const testRepositoryJob = TestRepositoryJob.create(dynamicConfig);
+        dynamicConfig.addJob(testRepositoryJob);
+
+        const sonarCloudAnalysisJob = SonarCloudAnalysisJob.create(dynamicConfig, environment);
+        dynamicConfig.addJob(sonarCloudAnalysisJob);
+
+        jobs.push(
+          new workflow.WorkflowJob(testRepositoryJob, {
+            name: 'Test repository',
+            context: config.jobContext,
+            requires: ['Build backend'],
+          }),
+          new workflow.WorkflowJob(sonarCloudAnalysisJob, {
+            name: 'Sonar - gravitee-apim-repository',
+            context: config.jobContext,
+            requires: ['Test repository'],
+            working_directory: 'gravitee-apim-repository',
+            cache_type: 'backend',
+          }),
+        );
+        requires.push('Test repository');
+      }
     }
 
-    if (!filterJobs || shouldBuildAll(environment.changedFiles) || shouldBuildConsole(environment.changedFiles)) {
+    if (!filterJobs || shouldBuildConsole(environment.changedFiles)) {
       const webuiLintTestJob = WebuiLintTestJob.create(dynamicConfig);
       dynamicConfig.addJob(webuiLintTestJob);
 
@@ -256,7 +300,7 @@ export class PullRequestsWorkflow {
       requires.push('Lint & test APIM Console', 'Build APIM Console and publish image');
     }
 
-    if (!filterJobs || shouldBuildAll(environment.changedFiles) || shouldBuildPortal(environment.changedFiles)) {
+    if (!filterJobs || shouldBuildPortal(environment.changedFiles)) {
       const webuiLintTestJob = WebuiLintTestJob.create(dynamicConfig);
       dynamicConfig.addJob(webuiLintTestJob);
 
@@ -433,15 +477,24 @@ export class PullRequestsWorkflow {
   }
 }
 
-export function shouldBuildConsole(changedFiles: string[]): boolean {
-  return changedFiles.some((file) => file.includes(config.dockerImages.console.project));
+function shouldBuildAll(changedFiles: string[]): boolean {
+  const baseDepsIdentifiers = ['.circleci', 'pom.xml', '.gitignore', '.prettierrc', 'gravitee-apim-e2e'];
+  return changedFiles.some((file) => baseDepsIdentifiers.some((identifier) => file.includes(identifier)));
 }
 
-export function shouldBuildPortal(changedFiles: string[]): boolean {
-  return changedFiles.some((file) => file.includes(config.dockerImages.portal.project));
+function shouldBuildHelm(changedFiles: string[]): boolean {
+  return shouldBuildAll(changedFiles) || changedFiles.some((file) => file.includes('helm'));
 }
 
-export function shouldBuildBackend(changedFiles: string[]): boolean {
+function shouldBuildConsole(changedFiles: string[]): boolean {
+  return shouldBuildAll(changedFiles) || changedFiles.some((file) => file.includes(config.dockerImages.console.project));
+}
+
+function shouldBuildPortal(changedFiles: string[]): boolean {
+  return shouldBuildAll(changedFiles) || changedFiles.some((file) => file.includes(config.dockerImages.portal.project));
+}
+
+function shouldBuildBackend(changedFiles: string[]): boolean {
   const mavenProjectsIdentifiers = [
     'gravitee-apim-definition',
     'gravitee-apim-distribution',
@@ -451,14 +504,63 @@ export function shouldBuildBackend(changedFiles: string[]): boolean {
     'gravitee-apim-repository',
     'gravitee-apim-rest-api',
   ];
-  return changedFiles.some((file) => mavenProjectsIdentifiers.some((identifier) => file.includes(identifier)));
+  return (
+    shouldBuildAll(changedFiles) || changedFiles.some((file) => mavenProjectsIdentifiers.some((identifier) => file.includes(identifier)))
+  );
 }
 
-export function shouldBuildHelm(changedFiles: string[]): boolean {
-  return changedFiles.some((file) => file.includes('helm'));
+function shouldTestAllBackend(changedFiles: string[]): boolean {
+  const mavenProjectsIdentifiers = ['gravitee-apim-definition', 'gravitee-apim-repository'];
+  return (
+    shouldBuildAll(changedFiles) || changedFiles.some((file) => mavenProjectsIdentifiers.some((identifier) => file.includes(identifier)))
+  );
 }
 
-export function shouldBuildAll(changedFiles: string[]): boolean {
-  const baseDepsIdentifiers = [/^.circleci/, /^pom.xml$/, /^.gitignore$/, /^.prettierrc$/, /^gravitee-apim-e2e/];
-  return changedFiles.some((file) => baseDepsIdentifiers.some((identifier) => identifier.test(file)));
+function shouldTestDefinition(changedFiles: string[]): boolean {
+  return shouldTestAllBackend(changedFiles) || changedFiles.some((file) => file.includes('gravitee-apim-definition'));
+}
+
+function shouldTestIntegrationTests(changedFiles: string[]): boolean {
+  const mavenProjectsIdentifiers = [
+    'gravitee-apim-definition',
+    'gravitee-apim-gateway',
+    'gravitee-apim-integration-tests',
+    'gravitee-apim-plugin',
+  ];
+  return (
+    shouldTestAllBackend(changedFiles) ||
+    changedFiles.some((file) => mavenProjectsIdentifiers.some((identifier) => file.includes(identifier)))
+  );
+}
+
+function shouldTestGateway(changedFiles: string[]): boolean {
+  const mavenProjectsIdentifiers = ['gravitee-apim-definition', 'gravitee-apim-repository', 'gravitee-apim-gateway'];
+  return (
+    shouldTestAllBackend(changedFiles) ||
+    changedFiles.some((file) => mavenProjectsIdentifiers.some((identifier) => file.includes(identifier)))
+  );
+}
+
+function shouldTestRepository(changedFiles: string[]): boolean {
+  const mavenProjectsIdentifiers = ['gravitee-apim-definition', 'gravitee-apim-repository'];
+  return (
+    shouldTestAllBackend(changedFiles) ||
+    changedFiles.some((file) => mavenProjectsIdentifiers.some((identifier) => file.includes(identifier)))
+  );
+}
+
+function shouldTestPlugin(changedFiles: string[]): boolean {
+  const mavenProjectsIdentifiers = ['gravitee-apim-definition', 'gravitee-apim-plugin'];
+  return (
+    shouldTestAllBackend(changedFiles) ||
+    changedFiles.some((file) => mavenProjectsIdentifiers.some((identifier) => file.includes(identifier)))
+  );
+}
+
+function shouldTestRestApi(changedFiles: string[]): boolean {
+  const mavenProjectsIdentifiers = ['gravitee-apim-definition', 'gravitee-apim-repository', 'gravitee-apim-rest-api'];
+  return (
+    shouldTestAllBackend(changedFiles) ||
+    changedFiles.some((file) => mavenProjectsIdentifiers.some((identifier) => file.includes(identifier)))
+  );
 }
