@@ -18,8 +18,11 @@ package io.gravitee.rest.api.management.v2.rest.resource.api;
 import static io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo.computePaginationInfo;
 
 import io.gravitee.apim.usecase.log.SearchConnectionLogUsecase;
+import io.gravitee.apim.usecase.log.SearchMessageLogUsecase;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiLogsMapper;
+import io.gravitee.rest.api.management.v2.rest.mapper.ApiMessageLogsMapper;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLogsResponse;
+import io.gravitee.rest.api.management.v2.rest.model.ApiMessageLogsResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.management.v2.rest.security.Permission;
@@ -44,7 +47,10 @@ public class ApiLogsResource extends AbstractResource {
     private String apiId;
 
     @Inject
-    private SearchConnectionLogUsecase usecase;
+    private SearchConnectionLogUsecase searchConnectionLogUsecase;
+
+    @Inject
+    private SearchMessageLogUsecase searchMessageLogUsecase;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -56,11 +62,36 @@ public class ApiLogsResource extends AbstractResource {
             new PageableImpl(paginationParam.getPage(), paginationParam.getPerPage())
         );
 
-        var response = usecase.execute(GraviteeContext.getExecutionContext(), request);
+        var response = searchConnectionLogUsecase.execute(GraviteeContext.getExecutionContext(), request);
 
         return ApiLogsResponse
             .builder()
             .data(ApiLogsMapper.INSTANCE.mapToList(response.data()))
+            .pagination(computePaginationInfo(response.total(), response.data().size(), paginationParam))
+            .links(computePaginationLinks(response.total(), paginationParam))
+            .build();
+    }
+
+    @Path("/{requestId}/messages")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_LOG, acls = { RolePermissionAction.READ }) })
+    public ApiMessageLogsResponse getApiMessageLogs(
+        @BeanParam @Valid PaginationParam paginationParam,
+        @PathParam("requestId") String requestId
+    ) {
+        var request = new SearchMessageLogUsecase.Request(
+            apiId,
+            requestId,
+            null,
+            new PageableImpl(paginationParam.getPage(), paginationParam.getPerPage())
+        );
+
+        var response = searchMessageLogUsecase.execute(request);
+
+        return ApiMessageLogsResponse
+            .builder()
+            .data(ApiMessageLogsMapper.INSTANCE.mapToList(response.data()))
             .pagination(computePaginationInfo(response.total(), response.data().size(), paginationParam))
             .links(computePaginationLinks(response.total(), paginationParam))
             .build();

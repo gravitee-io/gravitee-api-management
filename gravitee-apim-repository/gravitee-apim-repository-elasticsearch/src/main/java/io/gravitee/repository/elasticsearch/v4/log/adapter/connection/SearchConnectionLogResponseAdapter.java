@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.elasticsearch.v4.log.adapter;
+package io.gravitee.repository.elasticsearch.v4.log.adapter.connection;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.elasticsearch.model.SearchResponse;
-import io.gravitee.repository.log.v4.model.ConnectionLog;
 import io.gravitee.repository.log.v4.model.LogResponse;
+import io.gravitee.repository.log.v4.model.connection.ConnectionLog;
 import java.util.List;
 
 public class SearchConnectionLogResponseAdapter {

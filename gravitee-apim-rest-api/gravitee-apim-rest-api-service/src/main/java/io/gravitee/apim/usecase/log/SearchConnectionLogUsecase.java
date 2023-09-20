@@ -15,15 +15,15 @@
  */
 package io.gravitee.apim.usecase.log;
 
-import io.gravitee.apim.crud_service.analytics.log.LogCrudService;
+import io.gravitee.apim.crud_service.analytics.log.ConnectionLogCrudService;
 import io.gravitee.apim.crud_service.application.ApplicationCrudService;
 import io.gravitee.apim.crud_service.plan.PlanCrudService;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.PageableImpl;
-import io.gravitee.rest.api.model.v4.log.BaseConnectionLog;
-import io.gravitee.rest.api.model.v4.log.ConnectionLogModel;
 import io.gravitee.rest.api.model.v4.log.SearchLogResponse;
+import io.gravitee.rest.api.model.v4.log.connection.BaseConnectionLog;
+import io.gravitee.rest.api.model.v4.log.connection.ConnectionLogModel;
 import io.gravitee.rest.api.model.v4.plan.BasePlanEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -37,16 +37,16 @@ import org.springframework.stereotype.Service;
 @Service
 public class SearchConnectionLogUsecase {
 
-    private final LogCrudService logCrudService;
+    private final ConnectionLogCrudService connectionLogCrudService;
     private final PlanCrudService planCrudService;
     private final ApplicationCrudService applicationCrudService;
 
     public SearchConnectionLogUsecase(
-        LogCrudService logCrudService,
+        ConnectionLogCrudService connectionLogCrudService,
         PlanCrudService planCrudService,
         ApplicationCrudService applicationCrudService
     ) {
-        this.logCrudService = logCrudService;
+        this.connectionLogCrudService = connectionLogCrudService;
         this.planCrudService = planCrudService;
         this.applicationCrudService = applicationCrudService;
     }
@@ -54,7 +54,7 @@ public class SearchConnectionLogUsecase {
     public Response execute(ExecutionContext executionContext, Request request) {
         var pageable = request.pageable.orElse(new PageableImpl(1, 20));
 
-        var response = logCrudService.searchApiConnectionLog(request.apiId(), pageable);
+        var response = connectionLogCrudService.searchApiConnectionLog(request.apiId(), pageable);
         return mapToResponse(executionContext, response);
     }
 

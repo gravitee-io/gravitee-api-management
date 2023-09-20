@@ -20,14 +20,17 @@ import static org.assertj.core.api.Assertions.tuple;
 
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepositoryTest;
-import io.gravitee.repository.log.v4.model.ConnectionLog;
-import io.gravitee.repository.log.v4.model.ConnectionLogQuery;
-import io.gravitee.repository.log.v4.model.ConnectionLogQuery.Filter;
+import io.gravitee.repository.log.v4.model.connection.ConnectionLog;
+import io.gravitee.repository.log.v4.model.connection.ConnectionLogQuery;
+import io.gravitee.repository.log.v4.model.connection.ConnectionLogQuery.Filter;
+import io.gravitee.repository.log.v4.model.message.MessageLog;
+import io.gravitee.repository.log.v4.model.message.MessageLogQuery;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +50,7 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
             var today = DATE_FORMATTER.format(Instant.now());
 
             var result = logV4Repository.searchConnectionLog(
-                ConnectionLogQuery.builder().filter(Filter.builder().appId("f1608475-dd77-4603-a084-75dd775603e9").build()).size(2).build()
+                ConnectionLogQuery.builder().filter(Filter.builder().apiId("f1608475-dd77-4603-a084-75dd775603e9").build()).size(2).build()
             );
             assertThat(result).isNotNull();
             assertThat(result.total()).isEqualTo(6);
@@ -93,7 +96,7 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
                     .builder()
                     .page(3)
                     .size(2)
-                    .filter(Filter.builder().appId("f1608475-dd77-4603-a084-75dd775603e9").build())
+                    .filter(Filter.builder().apiId("f1608475-dd77-4603-a084-75dd775603e9").build())
                     .build()
             );
             assertThat(result).isNotNull();
@@ -142,6 +145,273 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
                 .extracting(ConnectionLog::getRequestId, ConnectionLog::getTimestamp)
                 .containsExactly(
                     tuple("e71f2ae0-7673-4d7e-9f2a-e076730d7e69", today + "T06:57:44.893Z"),
+                    tuple("8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48", today + "T06:56:44.552Z")
+                );
+        }
+    }
+
+    @Nested
+    class SearchMessageLog {
+
+        @Test
+        void should_return_the_1st_page_of_message_logs_of_an_api_and_request_id() {
+            var today = DATE_FORMATTER.format(Instant.now());
+
+            var result = logV4Repository.searchMessageLog(
+                MessageLogQuery
+                    .builder()
+                    .filter(
+                        MessageLogQuery.Filter
+                            .builder()
+                            .apiId("f1608475-dd77-4603-a084-75dd775603e9")
+                            .requestId("8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48")
+                            .build()
+                    )
+                    .size(2)
+                    .build()
+            );
+            assertThat(result).isNotNull();
+            assertThat(result.total()).isEqualTo(2);
+            assertThat(result.data())
+                .isEqualTo(
+                    List.of(
+                        MessageLog
+                            .builder()
+                            .requestId("8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48")
+                            .apiId("f1608475-dd77-4603-a084-75dd775603e9")
+                            .clientIdentifier("12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0")
+                            .correlationId("8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48")
+                            .operation("subscribe")
+                            .connectorType("endpoint")
+                            .connectorId("kafka")
+                            .timestamp(today + "T06:57:44.893Z")
+                            .message(
+                                MessageLog.Message
+                                    .builder()
+                                    .id("0")
+                                    .payload("message")
+                                    .headers(Map.of("X-Header", List.of("kafka-header")))
+                                    .metadata(Map.of("MessageMetadata", "kafka-metadata"))
+                                    .build()
+                            )
+                            .build(),
+                        MessageLog
+                            .builder()
+                            .requestId("8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48")
+                            .apiId("f1608475-dd77-4603-a084-75dd775603e9")
+                            .clientIdentifier("12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0")
+                            .correlationId("8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48")
+                            .operation("subscribe")
+                            .connectorType("entrypoint")
+                            .connectorId("http-get")
+                            .timestamp(today + "T06:56:44.552Z")
+                            .message(
+                                MessageLog.Message
+                                    .builder()
+                                    .id("0")
+                                    .payload("message")
+                                    .headers(Map.of("X-Header", List.of("http-get-header")))
+                                    .metadata(Map.of("MessageMetadata", "http-get-metadata"))
+                                    .build()
+                            )
+                            .build()
+                    )
+                );
+        }
+
+        @Test
+        void should_return_the_1st_page_of_message_logs_for_a_request_id() {
+            var today = DATE_FORMATTER.format(Instant.now());
+
+            var result = logV4Repository.searchMessageLog(
+                MessageLogQuery
+                    .builder()
+                    .filter(MessageLogQuery.Filter.builder().requestId("8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48").build())
+                    .size(2)
+                    .build()
+            );
+            assertThat(result).isNotNull();
+            assertThat(result.total()).isEqualTo(2);
+            assertThat(result.data())
+                .isEqualTo(
+                    List.of(
+                        MessageLog
+                            .builder()
+                            .requestId("8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48")
+                            .apiId("f1608475-dd77-4603-a084-75dd775603e9")
+                            .clientIdentifier("12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0")
+                            .correlationId("8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48")
+                            .operation("subscribe")
+                            .connectorType("endpoint")
+                            .connectorId("kafka")
+                            .timestamp(today + "T06:57:44.893Z")
+                            .message(
+                                MessageLog.Message
+                                    .builder()
+                                    .id("0")
+                                    .payload("message")
+                                    .headers(Map.of("X-Header", List.of("kafka-header")))
+                                    .metadata(Map.of("MessageMetadata", "kafka-metadata"))
+                                    .build()
+                            )
+                            .build(),
+                        MessageLog
+                            .builder()
+                            .requestId("8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48")
+                            .apiId("f1608475-dd77-4603-a084-75dd775603e9")
+                            .clientIdentifier("12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0")
+                            .correlationId("8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48")
+                            .operation("subscribe")
+                            .connectorType("entrypoint")
+                            .connectorId("http-get")
+                            .timestamp(today + "T06:56:44.552Z")
+                            .message(
+                                MessageLog.Message
+                                    .builder()
+                                    .id("0")
+                                    .payload("message")
+                                    .headers(Map.of("X-Header", List.of("http-get-header")))
+                                    .metadata(Map.of("MessageMetadata", "http-get-metadata"))
+                                    .build()
+                            )
+                            .build()
+                    )
+                );
+        }
+
+        @Test
+        void should_return_the_1st_page_of_message_logs_of_an_api() {
+            var today = DATE_FORMATTER.format(Instant.now());
+
+            var result = logV4Repository.searchMessageLog(
+                MessageLogQuery
+                    .builder()
+                    .filter(MessageLogQuery.Filter.builder().apiId("f1608475-dd77-4603-a084-75dd775603e9").build())
+                    .size(2)
+                    .build()
+            );
+            assertThat(result).isNotNull();
+            assertThat(result.total()).isEqualTo(6);
+            assertThat(result.data())
+                .isEqualTo(
+                    List.of(
+                        MessageLog
+                            .builder()
+                            .requestId("8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48")
+                            .apiId("f1608475-dd77-4603-a084-75dd775603e9")
+                            .clientIdentifier("12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0")
+                            .correlationId("8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48")
+                            .operation("subscribe")
+                            .connectorType("endpoint")
+                            .connectorId("kafka")
+                            .timestamp(today + "T06:57:44.893Z")
+                            .message(
+                                MessageLog.Message
+                                    .builder()
+                                    .id("0")
+                                    .payload("message")
+                                    .headers(Map.of("X-Header", List.of("kafka-header")))
+                                    .metadata(Map.of("MessageMetadata", "kafka-metadata"))
+                                    .build()
+                            )
+                            .build(),
+                        MessageLog
+                            .builder()
+                            .requestId("8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48")
+                            .apiId("f1608475-dd77-4603-a084-75dd775603e9")
+                            .clientIdentifier("12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0")
+                            .correlationId("8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48")
+                            .operation("subscribe")
+                            .connectorType("entrypoint")
+                            .connectorId("http-get")
+                            .timestamp(today + "T06:56:44.552Z")
+                            .message(
+                                MessageLog.Message
+                                    .builder()
+                                    .id("0")
+                                    .payload("message")
+                                    .headers(Map.of("X-Header", List.of("http-get-header")))
+                                    .metadata(Map.of("MessageMetadata", "http-get-metadata"))
+                                    .build()
+                            )
+                            .build()
+                    )
+                );
+        }
+
+        @Test
+        void should_return_a_page_of_connection_logs_of_an_api() {
+            var yesterday = DATE_FORMATTER.format(Instant.now().minus(1, ChronoUnit.DAYS));
+
+            var result = logV4Repository.searchMessageLog(
+                MessageLogQuery
+                    .builder()
+                    .page(3)
+                    .size(2)
+                    .filter(MessageLogQuery.Filter.builder().apiId("f1608475-dd77-4603-a084-75dd775603e9").build())
+                    .size(2)
+                    .build()
+            );
+            assertThat(result).isNotNull();
+            assertThat(result.total()).isEqualTo(6);
+            assertThat(result.data())
+                .isEqualTo(
+                    List.of(
+                        MessageLog
+                            .builder()
+                            .requestId("bf98c96b-fb84-4e25-98c9-6bfb84fe257a")
+                            .apiId("f1608475-dd77-4603-a084-75dd775603e9")
+                            .clientIdentifier("12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0")
+                            .correlationId("ebaa9b08-eac8-490d-aa9b-08eac8590d3c")
+                            .operation("subscribe")
+                            .connectorType("endpoint")
+                            .connectorId("kafka")
+                            .timestamp(yesterday + "T14:08:59.901Z")
+                            .message(
+                                MessageLog.Message
+                                    .builder()
+                                    .id("0")
+                                    .payload("message")
+                                    .headers(Map.of("X-Header", List.of("kafka-header")))
+                                    .metadata(Map.of("MessageMetadata", "kafka-metadata"))
+                                    .build()
+                            )
+                            .build(),
+                        MessageLog
+                            .builder()
+                            .requestId("bf98c96b-fb84-4e25-98c9-6bfb84fe257a")
+                            .apiId("f1608475-dd77-4603-a084-75dd775603e9")
+                            .clientIdentifier("12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0")
+                            .correlationId("aed3a207-d5c0-4073-93a2-07d5c0007336")
+                            .operation("subscribe")
+                            .connectorType("entrypoint")
+                            .connectorId("http-get")
+                            .timestamp(yesterday + "T14:08:45.994Z")
+                            .message(
+                                MessageLog.Message
+                                    .builder()
+                                    .id("0")
+                                    .payload("message")
+                                    .headers(Map.of("X-Header", List.of("http-get-header")))
+                                    .metadata(Map.of("MessageMetadata", "http-get-metadata"))
+                                    .build()
+                            )
+                            .build()
+                    )
+                );
+        }
+
+        @Test
+        void should_return_the_1st_page_of_connection_logs_without_filter() {
+            var today = DATE_FORMATTER.format(Instant.now());
+
+            var result = logV4Repository.searchMessageLog(MessageLogQuery.builder().size(2).build());
+            assertThat(result).isNotNull();
+            assertThat(result.total()).isEqualTo(8);
+            assertThat(result.data())
+                .extracting(MessageLog::getRequestId, MessageLog::getTimestamp)
+                .containsExactly(
+                    tuple("8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48", today + "T06:57:44.893Z"),
                     tuple("8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48", today + "T06:56:44.552Z")
                 );
         }
