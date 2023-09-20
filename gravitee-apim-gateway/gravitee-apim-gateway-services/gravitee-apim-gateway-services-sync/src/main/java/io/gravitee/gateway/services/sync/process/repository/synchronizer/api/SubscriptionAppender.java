@@ -25,7 +25,10 @@ import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.services.sync.process.common.model.SyncException;
 import io.gravitee.gateway.services.sync.process.repository.mapper.SubscriptionMapper;
 import io.gravitee.repository.management.api.SubscriptionRepository;
+import io.gravitee.repository.management.api.search.Order;
+import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
+import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
@@ -80,7 +83,7 @@ public class SubscriptionAppender {
 
         try {
             return subscriptionRepository
-                .search(criteriaBuilder.build())
+                .search(criteriaBuilder.build(), new SortableBuilder().field("updatedAt").order(Order.ASC).build())
                 .stream()
                 .map(subscription -> {
                     Subscription subscriptionConverted = subscriptionMapper.to(subscription);
