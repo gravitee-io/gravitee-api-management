@@ -78,6 +78,10 @@ export class ConnectorPluginsV2Service {
     return this.http.get<GioJsonSchema>(`${this.constants.v2BaseURL}/plugins/endpoints/${id}/shared-configuration-schema`);
   }
 
+  getEntrypointPlugin(entrypointId: string): Observable<ConnectorPlugin> {
+    return this.http.get<ConnectorPlugin>(`${this.constants.v2BaseURL}/plugins/entrypoints/${entrypointId}`);
+  }
+
   getEntrypointPluginSchema(entrypointId: string): Observable<GioJsonSchema> {
     return this.http.get<GioJsonSchema>(`${this.constants.v2BaseURL}/plugins/entrypoints/${entrypointId}/schema`);
   }

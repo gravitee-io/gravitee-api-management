@@ -34,7 +34,6 @@ import { IconService } from '../../../../services-ngx/icon.service';
 describe('ApiRuntimeLogsMessagesComponent', () => {
   const API_ID = 'an-api-id';
   const REQUEST_ID = 'a-request-id';
-  const FAKE_MESSAGE_LOG = fakeMessageLog();
   const fakeUiRouter = { go: jest.fn() };
 
   let fixture: ComponentFixture<ApiRuntimeLogsMessagesComponent>;
@@ -76,39 +75,56 @@ describe('ApiRuntimeLogsMessagesComponent', () => {
     beforeEach(async () => {
       await initComponent();
       iconServiceSpy = jest.spyOn(TestBed.inject(IconService), 'registerSvg').mockReturnValue('gio:mock');
-      expectApiWithMessageLogs(5);
-      expectEndpointPlugin();
     });
 
-    it('should init the component and fetch the connector icon', async () => {
+    it('should init the component and fetch the endpoint connector icon', async () => {
+      const messageLog = fakeMessageLog({ connectorId: 'mock', connectorType: 'ENDPOINT' });
+      expectApiWithMessageLogs(Array(5).fill(messageLog));
+      expectEndpointPlugin(messageLog);
+      expect(iconServiceSpy).toHaveBeenCalledTimes(1);
+      fixture.detectChanges();
+      expect(await componentHarness.connectorIcon()).toBeTruthy();
+    });
+
+    it('should init the component and fetch the entrypoint connector icon', async () => {
+      const messageLog = fakeMessageLog({ connectorId: 'mock', connectorType: 'ENTRYPOINT' });
+      expectApiWithMessageLogs(Array(5).fill(messageLog));
+      expectEntrypointPlugin(messageLog);
       expect(iconServiceSpy).toHaveBeenCalledTimes(1);
       fixture.detectChanges();
       expect(await componentHarness.connectorIcon()).toBeTruthy();
     });
 
     it('should be able to switch between message, headers and metadata tabs', async () => {
-      expect(FAKE_MESSAGE_LOG.message.payload).toStrictEqual(JSON.parse(await componentHarness.getTabBody()));
+      const messageLog = fakeMessageLog({ connectorId: 'mock', connectorType: 'ENDPOINT' });
+      expectApiWithMessageLogs([messageLog]);
+      expectEndpointPlugin(messageLog);
+
+      expect(messageLog.message.payload).toStrictEqual(await componentHarness.getTabBody());
 
       await componentHarness.clickOnTab('Headers');
       fixture.detectChanges();
-      expect(FAKE_MESSAGE_LOG.message.headers).toStrictEqual(JSON.parse(await componentHarness.getTabBody()));
+      expect(messageLog.message.headers).toStrictEqual(JSON.parse(await componentHarness.getTabBody()));
 
       await componentHarness.clickOnTab('Metadata');
       fixture.detectChanges();
-      expect(FAKE_MESSAGE_LOG.message.metadata).toStrictEqual(JSON.parse(await componentHarness.getTabBody()));
+      expect(messageLog.message.metadata).toStrictEqual(JSON.parse(await componentHarness.getTabBody()));
 
       await componentHarness.clickOnTab('Message');
       fixture.detectChanges();
-      expect(FAKE_MESSAGE_LOG.message.payload).toStrictEqual(JSON.parse(await componentHarness.getTabBody()));
+      expect(messageLog.message.payload).toStrictEqual(await componentHarness.getTabBody());
     });
 
     it('should load more messages', async () => {
       expect.assertions(3);
 
+      const messageLog = fakeMessageLog({ connectorId: 'mock', connectorType: 'ENDPOINT' });
+      expectApiWithMessageLogs(Array(5).fill(messageLog));
+      expectEndpointPlugin(messageLog);
       expect(await componentHarness.getMessages()).toHaveLength(5);
 
       await componentHarness.load5More();
-      expectApiWithMessageLogs(5, 10, 2);
+      expectApiWithMessageLogs(Array(5).fill(messageLog), 10, 2);
       expect(await componentHarness.getMessages()).toHaveLength(10);
 
       try {
@@ -119,12 +135,7 @@ describe('ApiRuntimeLogsMessagesComponent', () => {
     });
   });
 
-  function expectApiWithMessageLogs(items: number, totalCount = 10, page = 1) {
-    const data: MessageLog[] = [];
-    for (let i = 0; i < items; i++) {
-      data.push(FAKE_MESSAGE_LOG);
-    }
-
+  function expectApiWithMessageLogs(data: MessageLog[], totalCount = 10, page = 1) {
     httpTestingController
       .expectOne({
         url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/logs/${REQUEST_ID}/messages?page=${page}&perPage=5`,
@@ -135,15 +146,21 @@ describe('ApiRuntimeLogsMessagesComponent', () => {
           page: page,
           perPage: 5,
           pageCount: Math.ceil(totalCount / 5),
-          pageItemsCount: items,
+          pageItemsCount: data.length,
           totalCount,
         }),
       );
   }
 
-  function expectEndpointPlugin() {
+  function expectEndpointPlugin(messageLog: MessageLog) {
     httpTestingController
-      .expectOne({ url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/endpoints/${FAKE_MESSAGE_LOG.connectorId}`, method: 'GET' })
-      .flush([fakeConnectorPlugin({ id: FAKE_MESSAGE_LOG.connectorId, name: FAKE_MESSAGE_LOG.connectorId })]);
+      .expectOne({ url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/endpoints/${messageLog.connectorId}`, method: 'GET' })
+      .flush([fakeConnectorPlugin({ id: messageLog.connectorId, name: messageLog.connectorId })]);
+  }
+
+  function expectEntrypointPlugin(messageLog: MessageLog) {
+    httpTestingController
+      .expectOne({ url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/entrypoints/${messageLog.connectorId}`, method: 'GET' })
+      .flush([fakeConnectorPlugin({ id: messageLog.connectorId, name: messageLog.connectorId })]);
   }
 });
