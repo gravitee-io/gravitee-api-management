@@ -17,11 +17,14 @@ import { ComponentHarness } from '@angular/cdk/testing';
 import { MatIconHarness } from '@angular/material/icon/testing';
 import { DivHarness } from '@gravitee/ui-particles-angular/testing';
 import { MatTabHarness } from '@angular/material/tabs/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 
 export class ApiRuntimeLogsMessagesHarness extends ComponentHarness {
   static hostSelector = 'runtime-logs-messages';
 
   private tabBodySelector = this.locatorFor(DivHarness.with({ selector: '.log__data__tabs__body' }));
+  private load5MoreSelector = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Load 5 more"]' }));
+  private messagesSelector = this.locatorForAll(DivHarness.with({ selector: '.log__header__title' }));
 
   public connectorIcon = this.locatorFor(MatIconHarness.with({ selector: '[data-testId=connector-icon]' }));
 
@@ -31,5 +34,13 @@ export class ApiRuntimeLogsMessagesHarness extends ComponentHarness {
 
   public getTabBody = async () => {
     return await this.tabBodySelector().then((tabBody) => tabBody.getText());
+  };
+
+  public load5More = async () => {
+    return await this.load5MoreSelector().then((tab) => tab.click());
+  };
+
+  public getMessages = () => {
+    return this.messagesSelector();
   };
 }
