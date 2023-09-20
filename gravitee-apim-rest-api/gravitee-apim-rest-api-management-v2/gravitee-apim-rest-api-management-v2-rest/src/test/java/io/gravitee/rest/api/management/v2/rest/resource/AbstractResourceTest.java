@@ -18,6 +18,7 @@ package io.gravitee.rest.api.management.v2.rest.resource;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.rest.api.management.v2.rest.JerseySpringTest;
 import io.gravitee.rest.api.management.v2.rest.spring.ResourceContextConfiguration;
@@ -135,6 +136,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected ApiDuplicateService apiDuplicateService;
+
+    @Autowired
+    protected VerifyApiPathDomainService verifyApiPathDomainService;
 
     @BeforeEach
     public void setUp() {
