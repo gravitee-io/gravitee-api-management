@@ -18,8 +18,8 @@ package io.gravitee.apim.infra.adapter;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.common.http.HttpMethod;
-import io.gravitee.repository.log.v4.model.ConnectionLog;
-import io.gravitee.rest.api.model.v4.log.BaseConnectionLog;
+import io.gravitee.repository.log.v4.model.connection.ConnectionLog;
+import io.gravitee.rest.api.model.v4.log.connection.BaseConnectionLog;
 import java.util.List;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;

@@ -16,8 +16,10 @@
 package io.gravitee.apim.infra.spring;
 
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
-import io.gravitee.apim.core.log.crud_service.LogCrudService;
+import io.gravitee.apim.core.log.crud_service.ConnectionLogCrudService;
+import io.gravitee.apim.core.log.crud_service.MessageLogCrudService;
 import io.gravitee.apim.core.log.usecase.SearchConnectionLogUsecase;
+import io.gravitee.apim.core.log.usecase.SearchMessageLogUsecase;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,10 +29,15 @@ public class UsecaseSpringConfiguration {
 
     @Bean
     public SearchConnectionLogUsecase searchConnectionLogUsecase(
-        LogCrudService logCrudService,
+        ConnectionLogCrudService connectionLogCrudService,
         PlanCrudService planCrudService,
         ApplicationCrudService applicationCrudService
     ) {
-        return new SearchConnectionLogUsecase(logCrudService, planCrudService, applicationCrudService);
+        return new SearchConnectionLogUsecase(connectionLogCrudService, planCrudService, applicationCrudService);
+    }
+
+    @Bean
+    public SearchMessageLogUsecase searchMessageLogUsecase(MessageLogCrudService messageLogCrudService) {
+        return new SearchMessageLogUsecase(messageLogCrudService);
     }
 }

@@ -13,23 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.infra.adapter;
+package io.gravitee.rest.api.management.v2.rest.mapper;
 
-import io.gravitee.repository.log.v4.model.connection.ConnectionLog;
-import io.gravitee.rest.api.model.v4.log.connection.BaseConnectionLog;
+import io.gravitee.rest.api.management.v2.rest.model.ApiMessageLog;
+import io.gravitee.rest.api.model.v4.log.message.BaseMessageLog;
 import java.util.List;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-/**
- * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
- * @author GraviteeSource Team
- */
-@Mapper
-public interface ConnectionLogAdapter {
-    ConnectionLogAdapter INSTANCE = Mappers.getMapper(ConnectionLogAdapter.class);
+@Mapper(uses = { DateMapper.class })
+public interface ApiMessageLogsMapper {
+    Logger logger = LoggerFactory.getLogger(ApiMessageLogsMapper.class);
+    ApiMessageLogsMapper INSTANCE = Mappers.getMapper(ApiMessageLogsMapper.class);
 
-    BaseConnectionLog toEntity(ConnectionLog connectionLog);
+    @Mapping(source = "timestamp", target = "timestamp", qualifiedByName = "mapTimestamp")
+    ApiMessageLog map(BaseMessageLog connectionLog);
 
-    List<BaseConnectionLog> toEntitiesList(List<ConnectionLog> connectionLogs);
+    List<ApiMessageLog> mapToList(List<BaseMessageLog> logs);
 }

@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import io.gravitee.rest.api.management.v2.rest.model.ApiLog;
-import io.gravitee.rest.api.model.v4.log.ConnectionLogModel;
+import io.gravitee.rest.api.model.v4.log.connection.ConnectionLogModel;
 import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
