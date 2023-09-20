@@ -76,7 +76,7 @@ describe('ApiRuntimeLogsMessagesComponent', () => {
     beforeEach(async () => {
       await initComponent();
       iconServiceSpy = jest.spyOn(TestBed.inject(IconService), 'registerSvg').mockReturnValue('gio:mock');
-      expectApiWithMessageLogs(2);
+      expectApiWithMessageLogs(5);
       expectEndpointPlugin();
     });
 
@@ -100,6 +100,22 @@ describe('ApiRuntimeLogsMessagesComponent', () => {
       await componentHarness.clickOnTab('Message');
       fixture.detectChanges();
       expect(FAKE_MESSAGE_LOG.message.payload).toStrictEqual(JSON.parse(await componentHarness.getTabBody()));
+    });
+
+    it('should load more messages', async () => {
+      expect.assertions(3);
+
+      expect(await componentHarness.getMessages()).toHaveLength(5);
+
+      await componentHarness.load5More();
+      expectApiWithMessageLogs(5, 10, 2);
+      expect(await componentHarness.getMessages()).toHaveLength(10);
+
+      try {
+        await componentHarness.load5More();
+      } catch (e) {
+        expect(e.message).toMatch(/Failed to find element/);
+      }
     });
   });
 
