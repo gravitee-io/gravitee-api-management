@@ -29,7 +29,7 @@ import {
 } from '@gravitee/management-webclient-sdk/src/lib/models';
 import { teardownApisAndApplications } from '@gravitee/utils/management';
 import { PropertyEntity } from '@model/apis';
-import { fetchGatewaySuccess } from '@gravitee/utils/gateway';
+import { fetchGatewaySuccess } from '@gravitee/utils/apim-http';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
