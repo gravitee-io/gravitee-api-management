@@ -29,7 +29,7 @@ import { PlanStatus } from '@gravitee/management-webclient-sdk/src/lib/models/Pl
 import { UpdatePlanEntityFromJSON } from '@gravitee/management-webclient-sdk/src/lib/models/UpdatePlanEntity';
 import { ApplicationsFaker } from '@gravitee/fixtures/management/ApplicationsFaker';
 import { LifecycleAction } from '@gravitee/management-webclient-sdk/src/lib/models/LifecycleAction';
-import { fetchGatewaySuccess, fetchGatewayUnauthorized } from '@gravitee/utils/gateway';
+import { fetchGatewaySuccess, fetchGatewayUnauthorized } from '@gravitee/utils/apim-http';
 import { teardownApisAndApplications } from '@gravitee/utils/management';
 import { PathOperatorOperatorEnum } from '@gravitee/management-webclient-sdk/src/lib/models/PathOperator';
 import { UpdateApiEntityFromJSON } from '@gravitee/management-webclient-sdk/src/lib/models/UpdateApiEntity';

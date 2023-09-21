@@ -24,7 +24,7 @@ import { PlanStatus } from '@gravitee/management-webclient-sdk/src/lib/models/Pl
 import { LifecycleAction } from '@gravitee/management-webclient-sdk/src/lib/models/LifecycleAction';
 import { teardownApisAndApplications } from '@gravitee/utils/management';
 import { PathOperatorOperatorEnum } from '@gravitee/management-webclient-sdk/src/lib/models/PathOperator';
-import { fetchGatewaySuccess } from '@gravitee/utils/gateway';
+import { fetchGatewaySuccess } from '@gravitee/utils/apim-http';
 import { LoadBalancerTypeEnum } from '@gravitee/management-webclient-sdk/src/lib/models/LoadBalancer';
 import { flakyRunner, sleep } from '@lib/jest-utils';
 

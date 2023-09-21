@@ -28,7 +28,7 @@ import { HealthCheckRequestMethodEnum } from '@gravitee/management-webclient-sdk
 import { setWiremockState } from '@gravitee/utils/wiremock';
 import { LifecycleAction } from '@gravitee/management-webclient-sdk/src/lib/models/LifecycleAction';
 import { HealthcheckType } from '@gravitee/management-webclient-sdk/src/lib/models/HealthcheckType';
-import { fetchGatewaySuccess } from '@gravitee/utils/gateway';
+import { fetchGatewaySuccess } from '@gravitee/utils/apim-http';
 import { flakyRunner } from '@lib/jest-utils';
 
 const orgId = 'DEFAULT';

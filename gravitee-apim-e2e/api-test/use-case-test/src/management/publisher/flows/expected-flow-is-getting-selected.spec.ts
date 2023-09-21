@@ -25,7 +25,7 @@ import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi
 import { forManagementAsApiUser } from '@gravitee/utils/configuration';
 import { teardownApisAndApplications } from '@gravitee/utils/management';
 import { PathOperatorOperatorEnum } from '@gravitee/management-webclient-sdk/src/lib/models/PathOperator';
-import { fetchGatewaySuccess } from '@gravitee/utils/gateway';
+import { fetchGatewaySuccess } from '@gravitee/utils/apim-http';
 import { Flow } from '@gravitee/management-webclient-sdk/src/lib/models/Flow';
 
 const orgId = 'DEFAULT';
