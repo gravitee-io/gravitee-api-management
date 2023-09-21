@@ -29,7 +29,7 @@ import { ApplicationsFaker } from '@gravitee/fixtures/management/ApplicationsFak
 import { LifecycleAction } from '@gravitee/management-webclient-sdk/src/lib/models/LifecycleAction';
 import { ApplicationsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ApplicationsApi';
 import { ApplicationSubscriptionsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ApplicationSubscriptionsApi';
-import { fetchGatewaySuccess } from '@gravitee/utils/gateway';
+import { fetchGatewaySuccess } from '@gravitee/utils/apim-http';
 import { FlowMethodsEnum } from '@gravitee/management-webclient-sdk/src/lib/models/Flow';
 import { UpdatePlanEntityFromJSON } from '@gravitee/management-webclient-sdk/src/lib/models/UpdatePlanEntity';
 import { PathOperatorOperatorEnum } from '@gravitee/management-webclient-sdk/src/lib/models/PathOperator';
