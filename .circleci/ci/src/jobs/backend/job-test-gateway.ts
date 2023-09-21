@@ -45,7 +45,7 @@ cat tests-to-run
 # Run tests
 mvn --fail-fast -s ../${config.maven.settingsFile} test --no-transfer-progress -Dskip.validation=true -Dsurefire.excludesFile=/tmp/ignore_list`,
       }),
-      OpenJdkExecutor.create('small'),
+      OpenJdkExecutor.create('medium'),
       ['gravitee-apim-gateway/gravitee-apim-gateway-coverage/target/site/jacoco-aggregate/'],
       {
         parallelism: 4,
