@@ -18,23 +18,42 @@ import fetchApi, { HeadersInit, Response } from 'node-fetch';
 
 import { fetchEventSource } from './eventsource-fetch';
 import { ApiResponse, ApisResponse } from '../management-v2-webclient-sdk/src/lib';
+import { logger } from 'bs-logger';
 
 export type HttpMethod = 'GET' | 'PUT' | 'POST' | 'DELETE' | 'OPTIONS';
 
-interface GatewayRequest {
-  contextPath: string;
-  expectedStatusCode: number;
-  expectedResponseValidator: (response: Response) => boolean | Promise<boolean>; // Allows to validate if the expected request is the right one. Useful in case of api redeployment.
-  method: HttpMethod;
-  body?: string;
+interface BaseHttpRequest {
   headers?: HeadersInit;
   timeBetweenRetries: number;
   maxRetries: number;
+  expectedStatusCode: number;
+}
+
+interface GatewayRequest extends BaseHttpRequest {
+  contextPath: string;
+  body?: string;
+  method: HttpMethod;
+  expectedResponseValidator: (response: Response) => boolean | Promise<boolean>; // Allows to validate if the expected request is the right one. Useful in case of api redeployment.
+}
+
+interface RestApiRequest<T> extends BaseHttpRequest {
+  restApiHttpCall: () => Promise<ApiResponse<T>>;
+  expectedResponseValidator: (response: RestApiResponseValidationParam<T>) => boolean | Promise<boolean>; // Allows to validate if the expected request is the right one. Useful in case of api redeployment.
+}
+
+interface RestApiResponseValidationParam<T> {
+  status: number;
+  headers: Headers;
+  value: T;
 }
 
 export interface Logger {
   error(...data: any[]): void;
   info(...data: any[]): void;
+}
+
+export async function fetchRestApiSuccess<T>(request: Partial<RestApiRequest<T>>, logger: Logger = console): Promise<T> {
+  return _fetchRestApiWithRetries({ expectedStatusCode: 200, ...request }, logger);
 }
 
 export async function fetchGatewaySuccess(request?: Partial<GatewayRequest>, logger: Logger = console) {
@@ -90,6 +109,38 @@ async function _fetchGatewayWithRetries(attributes: Partial<GatewayRequest>, log
   throw lastError;
 }
 
+async function _fetchRestApiWithRetries<T>(attributes: Partial<RestApiRequest<T>>, logger: Logger): Promise<T> {
+  const request = <RestApiRequest<T>>{
+    expectedStatusCode: 200,
+    timeBetweenRetries: 1500,
+    maxRetries: 5,
+    expectedResponseValidator: () => true,
+    ...attributes,
+  };
+
+  if (request.maxRetries <= 0) {
+    return await _fetchRestApi(request);
+  }
+
+  let lastError: Error;
+
+  for (let retries = request.maxRetries; retries > 0; --retries) {
+    try {
+      return await _fetchRestApi(request);
+    } catch (error) {
+      lastError = error;
+      if (retries > 0) {
+        logger.info(`Retrying in ${request.timeBetweenRetries} ms with ${retries} attempts`);
+        await sleep(request.timeBetweenRetries);
+      }
+    }
+  }
+
+  logger.info(`[${request.restApiHttpCall.toString()}] failed after ${request.maxRetries} retries with error: \n`, lastError);
+
+  throw lastError;
+}
+
 async function _fetchGateway(request: Partial<GatewayRequest>): Promise<Response> {
   const response = await fetchApi(`${process.env.GATEWAY_BASE_URL}${request.contextPath}`, {
     method: request.method,
@@ -108,6 +159,28 @@ async function _fetchGateway(request: Partial<GatewayRequest>): Promise<Response
   }
 
   return response;
+}
+
+async function _fetchRestApi<T>(request: Partial<RestApiRequest<T>>): Promise<T> {
+  const response: ApiResponse<T> = await request.restApiHttpCall();
+
+  if (response.raw.status != request.expectedStatusCode) {
+    throw new Error(`[${request.restApiHttpCall.toString()}] returned HTTP ${response.raw.status}`);
+  }
+
+  let responseObject: T = await response.value();
+  let resolvedResponse = {
+    value: responseObject,
+    status: response.raw.status,
+    headers: response.raw.headers,
+  };
+  const isValidResponse = await request.expectedResponseValidator(resolvedResponse);
+
+  if (!isValidResponse) {
+    throw new Error(`Unexpected response for [${request.restApiHttpCall.toString()}]: \n ${JSON.stringify(resolvedResponse, null, '\t')}`);
+  }
+
+  return responseObject;
 }
 
 export async function fetchEventSourceGateway(request: Partial<GatewayRequest>, onmessage, logger = console): Promise<unknown> {
