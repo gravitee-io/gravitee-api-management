@@ -147,7 +147,7 @@ class ApiHistoryControllerAjs {
     private PolicyService,
     private ResourceService,
     private FlowService,
-    private ApiV2Service: ApiV2Service,
+    private ngApiV2Service: ApiV2Service,
   ) {
     this.eventsSelected = [];
     this.eventsTimeline = [];
@@ -395,7 +395,7 @@ class ApiHistoryControllerAjs {
       .then((response) => {
         this.events = response.data;
       })
-      .then(() => this.ApiV2Service.get(this.api.id).toPromise()); // To update the deploy banner
+      .then(() => this.ngApiV2Service.get(this.api.id).toPromise()); // To update the deploy banner
   }
 
   showRollbackAPIConfirm(ev, api) {

@@ -95,7 +95,7 @@ class ApiCreationV2ControllerAjs {
     private $stateParams,
     private $window,
     private ApiService: ApiService,
-    private ApiV2Service: ApiV2Service,
+    private ngApiV2Service: ApiV2Service,
     private NotificationService: NotificationService,
     private UserService: UserService,
     private $state: StateService,
@@ -288,7 +288,7 @@ class ApiCreationV2ControllerAjs {
         }
         return api;
       })
-      .then((api) => this.ApiV2Service.get(api.data.id).toPromise())
+      .then((api) => this.ngApiV2Service.get(api.data.id).toPromise())
       .catch(() => {
         this.vm.showBusyText = false;
       });
