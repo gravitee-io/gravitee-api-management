@@ -18,6 +18,7 @@ import { Notifier } from './notifier';
 export function fakeNotifier(attributes?: Partial<Notifier>): Notifier {
   const defaultValue: Notifier = {
     id: 'test id',
+    type: 'test type',
     name: 'test name',
   };
   return {

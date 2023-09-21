@@ -67,7 +67,7 @@ describe('NotificationSettings', () => {
     it('should call the API', (done) => {
       const notificationSettings = [fakeNotificationSettings({ name: 'Test name', id: 'test id' })];
 
-      notificationSettingsService.getNotificationSettings('123').subscribe(() => done());
+      notificationSettingsService.getAll('123').subscribe(() => done());
 
       httpTestingController
         .expectOne({

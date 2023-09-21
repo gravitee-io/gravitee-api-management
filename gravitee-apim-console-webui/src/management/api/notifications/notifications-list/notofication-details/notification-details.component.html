@@ -15,4 +15,31 @@
     limitations under the License.
 
 -->
-🚧 Notification detail component 🚧
+<div>
+  <div class="md-headline notifications-form__title" *ngIf="!isLoadingData">
+    <gio-go-back-button [ajsGo]="{ to: 'management.apis.notifications-ng' }"></gio-go-back-button>
+    Update <b>{{ notificationSettings.name }}</b>
+    <span *ngIf="notifier" class="gio-badge-neutral">{{ notifier.name }}</span>
+  </div>
+  <form autocomplete="off" gioFormFocusInvalid [formGroup]="notificationForm" (ngSubmit)="onSubmit()" *ngIf="!isLoadingData">
+    <mat-card>
+      <mat-form-field class="notifications-form__email">
+        <mat-label>Email list</mat-label>
+        <input matInput formControlName="notifier" />
+        <mat-hint>Use space, ',' or ';' to separate emails. EL supported.</mat-hint>
+      </mat-form-field>
+      <h3>Event subscribed</h3>
+
+      <div *ngFor="let category of categoriesHooksVM" class="notifications-hooks-categories">
+        <h6>{{ category.name }}</h6>
+        <div class="checkbox-container">
+          <mat-checkbox *ngFor="let singleHook of category.hooks" [formControlName]="singleHook.id" class="checkbox-container__checkbox">
+            <b>{{ singleHook.label }}</b
+            ><br />{{ singleHook.description }}
+          </mat-checkbox>
+        </div>
+      </div>
+    </mat-card>
+    <gio-save-bar [form]="notificationForm" [formInitialValues]="formInitialValues"></gio-save-bar>
+  </form>
+</div>

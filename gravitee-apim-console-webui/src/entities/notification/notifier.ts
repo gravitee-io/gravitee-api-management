@@ -16,5 +16,5 @@
 export interface Notifier {
   id?: string;
   type?: string;
-  name: string;
+  name?: string;
 }

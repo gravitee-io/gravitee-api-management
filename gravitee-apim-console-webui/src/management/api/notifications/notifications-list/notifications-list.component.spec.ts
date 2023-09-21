@@ -102,16 +102,20 @@ describe('NotificationsListComponent', () => {
       expect(await table.getCellTextByIndex()).toEqual([['Loading...']]);
 
       const notifications = [fakeNotificationSettings({ name: 'Test name' })];
-      expectApiGetNotificationList(notifications);
-      expectApiGetNotifiers([]);
+      const notifier = [fakeNotifier({ id: 'default-email', name: 'Notifier A', type: 'Notifier-type' })];
 
-      expect(await table.getCellTextByIndex()).toEqual([['Test name', '']]);
+      expectApiGetNotificationList(notifications);
+      expectApiGetNotifiers(notifier);
+
+      expect(await table.getCellTextByIndex()).toEqual([['Test name', 'Notifier A', '']]);
     });
 
     it('should delete the notification', async () => {
       const table = [fakeNotificationSettings({ name: 'Test name', id: 'test id' })];
+      const notifier = [fakeNotifier({ id: 'default-email', name: 'Notifier A', type: 'Notifier-type' })];
+
       expectApiGetNotificationList(table);
-      expectApiGetNotifiers([]);
+      expectApiGetNotifiers(notifier);
 
       const button = await loader.getHarness(MatButtonHarness.with({ selector: `[aria-label="Delete notification"]` }));
       await button.click();
@@ -128,7 +132,7 @@ describe('NotificationsListComponent', () => {
     it('should add the notification', async () => {
       const table = [fakeNotificationSettings({ name: 'Test name', id: 'test id' })];
       expectApiGetNotificationList(table);
-      const notifier = [fakeNotifier({ id: 'notifier-a', name: 'Notifier A' })];
+      const notifier = [fakeNotifier({ id: 'default-email', name: 'Notifier A', type: 'Notifier-type' })];
       expectApiGetNotifiers(notifier);
 
       const button = await loader.getHarness(MatButtonHarness.with({ selector: `[aria-label="Add notification"]` }));
@@ -154,7 +158,7 @@ describe('NotificationsListComponent', () => {
         config_type: 'GENERIC',
         hooks: [],
         name: 'Test notification',
-        notifier: 'notifier-a',
+        notifier: 'default-email',
         referenceId: 'apiId',
         referenceType: 'API',
       });
