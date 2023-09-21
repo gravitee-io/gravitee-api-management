@@ -30,13 +30,13 @@
         <gio-form-listeners-context-path
           *ngIf="!this.enableVirtualHost"
           [formControl]="pathsFormControl"
-          [pathsToIgnore]="apiExistingPaths"
+          [apiId]="apiId"
         ></gio-form-listeners-context-path>
 
         <gio-form-listeners-virtual-host
           *ngIf="this.enableVirtualHost"
           [formControl]="pathsFormControl"
-          [pathsToIgnore]="apiExistingPaths"
+          [apiId]="apiId"
           [domainRestrictions]="domainRestrictions"
         ></gio-form-listeners-virtual-host>
       </div>

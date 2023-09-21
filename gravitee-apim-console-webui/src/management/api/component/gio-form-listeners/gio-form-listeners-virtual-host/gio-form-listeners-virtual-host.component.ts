@@ -105,6 +105,15 @@ export class GioFormListenersVirtualHostComponent extends GioFormListenersContex
     setTimeout(() => subDomainControl.setErrors(null), 0);
     return inheritErrors;
   }
+
+  protected getValue(): PathV4[] {
+    return this.listenerFormArray?.controls.map((control) => {
+      return {
+        path: control.get('path').value,
+        host: combineSubDomainWithDomain(control.get('_hostSubDomain').value, control.get('_hostDomain').value),
+      };
+    });
+  }
 }
 
 const extractDomainToHost = (fullHost: string, domainRestrictions: string[] = []): { host: string; hostDomain: string } => {

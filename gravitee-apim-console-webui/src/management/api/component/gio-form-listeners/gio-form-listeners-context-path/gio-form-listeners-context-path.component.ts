@@ -30,11 +30,11 @@ import {
 import { isEmpty } from 'lodash';
 import { filter, map, observeOn, startWith, take, takeUntil, tap } from 'rxjs/operators';
 import { FocusMonitor } from '@angular/cdk/a11y';
-import { asyncScheduler, Observable, of, Subject, zip } from 'rxjs';
+import { asyncScheduler, Observable, of, Subject } from 'rxjs';
 
 import { PortalSettingsService } from '../../../../../services-ngx/portal-settings.service';
-import { ApiService } from '../../../../../services-ngx/api.service';
 import { PathV4 } from '../../../../../entities/management-api-v2';
+import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
 
 const PATH_PATTERN_REGEX = new RegExp(/^\/[/.a-zA-Z0-9-_]*$/);
 
@@ -61,7 +61,7 @@ const DEFAULT_LISTENER: PathV4 = {
 })
 export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, ControlValueAccessor, AsyncValidator {
   @Input()
-  public pathsToIgnore: PathV4[] = [];
+  public apiId?: string;
 
   public listeners: PathV4[] = [DEFAULT_LISTENER];
   public mainForm: FormGroup;
@@ -90,7 +90,7 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
   constructor(
     private readonly fm: FocusMonitor,
     private readonly elRef: ElementRef,
-    protected readonly apiService: ApiService,
+    protected readonly apiV2Service: ApiV2Service,
     private readonly portalSettingsService: PortalSettingsService,
   ) {
     this.mainForm = new FormGroup({
@@ -243,29 +243,36 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
 
   private listenersAsyncValidator(): AsyncValidatorFn {
     return (listenerFormArrayControl: FormArray): Observable<ValidationErrors | null> => {
-      const listenerFormArrayControls = listenerFormArrayControl.controls;
+      if (listenerFormArrayControl) {
+        return this.apiV2Service
+          .verifyPath(
+            this.apiId,
+            this.getValue()?.map((v) => {
+              return { host: v.host, path: v.path };
+            }),
+          )
+          .pipe(
+            map((res) => {
+              if (res.ok) {
+                // Clear error
+                setTimeout(() => this.mainForm.setErrors(null), 0);
+                return null;
+              } else {
+                const error = { listeners: res.reason };
+                this.mainForm.setErrors(error);
+                return of(error);
+              }
+            }),
+          );
+      }
 
-      const contextPathsToIgnore = this.pathsToIgnore?.map((p) => p.path) ?? [];
-      const pathValidations$: Observable<ValidationErrors | null>[] = listenerFormArrayControls.map((listenerControl) => {
-        const listenerPathControl = listenerControl.get('path');
-        const contextPathValue = listenerPathControl.value;
-        if (contextPathsToIgnore.includes(contextPathValue)) {
-          return of(null);
-        }
-        return this.apiService.verify(contextPathValue);
-      });
-
-      return zip(...pathValidations$).pipe(
-        map((errors: (ValidationErrors | null)[]) => {
-          errors.forEach((error, index) => {
-            setTimeout(() => listenerFormArrayControls.at(index).get('path').setErrors(error), 0);
-          });
-          if (errors.filter((v) => v !== null).length === 0) {
-            return null;
-          }
-          return { listeners: true };
-        }),
-      );
+      return null;
     };
+  }
+
+  protected getValue(): PathV4[] {
+    return this.listenerFormArray?.controls.map((control) => {
+      return { path: control.get('path').value };
+    });
   }
 }

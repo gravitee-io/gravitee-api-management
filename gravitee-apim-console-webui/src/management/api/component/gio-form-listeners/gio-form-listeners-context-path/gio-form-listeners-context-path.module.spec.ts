@@ -28,16 +28,13 @@ import { GioFormListenersContextPathHarness } from './gio-form-listeners-context
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
 import { AjsRootScope } from '../../../../../ajs-upgraded-providers';
 import { PortalSettings } from '../../../../../entities/portal/portalSettings';
-import { PathV4 } from '../../../../../entities/management-api-v2';
 
 @Component({
-  template: `
-    <gio-form-listeners-context-path [formControl]="formControl" [pathsToIgnore]="pathsToIgnore"></gio-form-listeners-context-path>
-  `,
+  template: ` <gio-form-listeners-context-path [formControl]="formControl" [apiId]="apiId"></gio-form-listeners-context-path> `,
 })
 class TestComponent {
   public formControl = new FormControl([]);
-  public pathsToIgnore: PathV4[] = [];
+  public apiId?: string;
 }
 
 describe('GioFormListenersContextPathModule', () => {
@@ -88,9 +85,9 @@ describe('GioFormListenersContextPathModule', () => {
 
   const expectApiVerify = (inError = false) => {
     httpTestingController
-      .match({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/verify`, method: 'POST' })
+      .match({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_verify/paths`, method: 'POST' })
       .filter((r) => !r.cancelled)
-      .map((c) => (inError ? c.error(new ProgressEvent('invalid')) : c.flush({})));
+      .map((c) => c.flush({ ok: inError, reason: inError ? 'error reason' : '' }));
   };
 
   it('should display paths', async () => {
@@ -195,8 +192,8 @@ describe('GioFormListenersContextPathModule', () => {
     expect(await (await rows[0].pathInput.host()).hasClass('ng-invalid')).toEqual(false);
   });
 
-  it('should not validate path if included in pathsToIgnore', async () => {
-    testComponent.pathsToIgnore = [{ path: '/ignored-path' }];
+  it('should send the API ID when verifying paths', async () => {
+    testComponent.apiId = 'api-id';
     const formPaths = await loader.getHarness(GioFormListenersContextPathHarness);
 
     expect((await formPaths.getListenerRows()).length).toEqual(1);
@@ -208,11 +205,15 @@ describe('GioFormListenersContextPathModule', () => {
     expectApiVerify();
     httpTestingController.verify({ ignoreCancelled: true });
 
-    // Invalid start with /
     await emptyLastContextPathRow.pathInput.setValue('/ignored-path');
     expect(await pathInputHost.hasClass('ng-invalid')).toEqual(false);
 
-    // check no new call has been done
+    const req = httpTestingController.match({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_verify/paths`, method: 'POST' });
+    req
+      .filter((r) => !r.cancelled)
+      .forEach((req) => {
+        expect(req.request.body.apiId).toEqual('api-id');
+      });
     httpTestingController.verify({ ignoreCancelled: true });
   });
 
