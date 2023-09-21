@@ -19,7 +19,7 @@ import { Subject } from 'rxjs';
 import { FormControl, FormGroup } from '@angular/forms';
 import { filter, startWith, takeUntil } from 'rxjs/operators';
 
-import { EndpointGroupV2, ProtocolVersion } from '../../../../../../entities/management-api-v2';
+import { EndpointGroupV2, HttpHeader, ProtocolVersion } from '../../../../../../entities/management-api-v2';
 
 export interface EndpointHttpConfigValue {
   httpClientOptions: {
@@ -35,6 +35,7 @@ export interface EndpointHttpConfigValue {
     propagateClientAcceptEncoding?: boolean;
     clearTextUpgrade?: boolean;
   };
+  headers: HttpHeader[];
 }
 
 @Component({
@@ -93,6 +94,7 @@ export class EndpointHttpConfigComponent implements OnInit, OnDestroy {
 
     return new FormGroup({
       httpClientOptions,
+      headers: new FormControl(endpointGroup.headers ?? []),
     });
   }
 

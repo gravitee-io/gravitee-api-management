@@ -18,6 +18,7 @@ import { MatSelectHarness } from '@angular/material/select/testing';
 import { keyBy, mapValues } from 'lodash';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
+import { GioFormHeadersHarness } from '@gravitee/ui-particles-angular';
 
 import { EndpointHttpConfigValue } from './endpoint-http-config.component';
 
@@ -61,8 +62,12 @@ export class EndpointHttpConfigHarness extends ComponentHarness {
     return this.locatorForOptional(MatInputHarness.with({ selector: `[formControlName="${formControlName}"]` }))();
   }
 
+  async getHttpFormHeaders(): Promise<GioFormHeadersHarness> {
+    return this.locatorForOptional(GioFormHeadersHarness.with({ selector: '[formControlName="headers"]' }))();
+  }
+
   async getHttpConfigValues(): Promise<EndpointHttpConfigValue> {
-    const keyValues = await parallel(() =>
+    const httpClientOptionsKeyValues = await parallel(() =>
       formControlNameList.map(async (formControlName) => {
         let value = null;
         if (matSelectControlNameList.includes(formControlName)) {
@@ -83,8 +88,18 @@ export class EndpointHttpConfigHarness extends ComponentHarness {
         };
       }),
     );
+    const httpFormHeaders = await this.getHttpFormHeaders().then((h) => h?.getHeaderRows());
 
-    return mapValues(keyBy(keyValues, 'key'), 'value') as EndpointHttpConfigValue;
+    const headersNameValue = (
+      await parallel(() => httpFormHeaders.map(async (h) => ({ name: await h.keyInput.getValue(), value: await h.valueInput.getValue() })))
+    ).filter(
+      (h) => h.name, // remove last empty row
+    );
+
+    return {
+      httpClientOptions: mapValues(keyBy(httpClientOptionsKeyValues, 'key'), 'value') as EndpointHttpConfigValue['httpClientOptions'],
+      headers: headersNameValue,
+    };
   }
 
   async setHttpVersion(versionLabel: string): Promise<void> {

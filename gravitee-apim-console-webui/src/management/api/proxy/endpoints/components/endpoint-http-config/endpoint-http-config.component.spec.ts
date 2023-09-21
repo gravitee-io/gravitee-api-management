@@ -25,6 +25,7 @@ import { EndpointHttpConfigModule } from './endpoint-http-config.module';
 import { EndpointHttpConfigHarness } from './endpoint-http-config.harness';
 
 import { GioHttpTestingModule } from '../../../../../../shared/testing';
+import { MatIconTestingModule } from '@angular/material/icon/testing';
 
 describe('ApiPropertiesComponent', () => {
   let fixture: ComponentFixture<EndpointHttpConfigComponent>;
@@ -34,7 +35,7 @@ describe('ApiPropertiesComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, EndpointHttpConfigModule],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, EndpointHttpConfigModule, MatIconTestingModule],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {
@@ -76,17 +77,20 @@ describe('ApiPropertiesComponent', () => {
     const values = await endpointHttpConfigHarness.getHttpConfigValues();
 
     expect(values).toEqual({
-      clearTextUpgrade: true,
-      connectTimeout: 1000,
-      followRedirects: true,
-      idleTimeout: 1000,
-      keepAlive: true,
-      maxConcurrentConnections: 1000,
-      pipelining: true,
-      propagateClientAcceptEncoding: false,
-      readTimeout: 1000,
-      useCompression: true,
-      version: 'HTTP/2',
+      httpClientOptions: {
+        clearTextUpgrade: true,
+        connectTimeout: 1000,
+        followRedirects: true,
+        idleTimeout: 1000,
+        keepAlive: true,
+        maxConcurrentConnections: 1000,
+        pipelining: true,
+        propagateClientAcceptEncoding: false,
+        readTimeout: 1000,
+        useCompression: true,
+        version: 'HTTP/2',
+      },
+      headers: [],
     });
   });
 
@@ -100,17 +104,20 @@ describe('ApiPropertiesComponent', () => {
     expect(await clearTextUpgrade.isDisabled()).toEqual(true);
 
     expect(await endpointHttpConfigHarness.getHttpConfigValues()).toEqual({
-      clearTextUpgrade: false,
-      connectTimeout: 1000,
-      followRedirects: true,
-      idleTimeout: 1000,
-      keepAlive: true,
-      maxConcurrentConnections: 1000,
-      pipelining: true,
-      propagateClientAcceptEncoding: false,
-      readTimeout: 1000,
-      useCompression: true,
-      version: 'HTTP/1.1',
+      httpClientOptions: {
+        clearTextUpgrade: false,
+        connectTimeout: 1000,
+        followRedirects: true,
+        idleTimeout: 1000,
+        keepAlive: true,
+        maxConcurrentConnections: 1000,
+        pipelining: true,
+        propagateClientAcceptEncoding: false,
+        readTimeout: 1000,
+        useCompression: true,
+        version: 'HTTP/1.1',
+      },
+      headers: [],
     });
   });
 
@@ -124,17 +131,48 @@ describe('ApiPropertiesComponent', () => {
     await propagateClientAcceptEncoding.toggle();
 
     expect(await endpointHttpConfigHarness.getHttpConfigValues()).toEqual({
-      clearTextUpgrade: true,
-      connectTimeout: 1000,
-      followRedirects: true,
-      idleTimeout: 1000,
-      keepAlive: true,
-      maxConcurrentConnections: 1000,
-      pipelining: true,
-      propagateClientAcceptEncoding: true,
-      readTimeout: 1000,
-      useCompression: false,
-      version: 'HTTP/2',
+      httpClientOptions: {
+        clearTextUpgrade: true,
+        connectTimeout: 1000,
+        followRedirects: true,
+        idleTimeout: 1000,
+        keepAlive: true,
+        maxConcurrentConnections: 1000,
+        pipelining: true,
+        propagateClientAcceptEncoding: true,
+        readTimeout: 1000,
+        useCompression: false,
+        version: 'HTTP/2',
+      },
+      headers: [],
+    });
+  });
+
+  it('should add headers', async () => {
+    const httpFormHeaders = await endpointHttpConfigHarness.getHttpFormHeaders();
+
+    await httpFormHeaders.addHeader({ key: 'key1', value: 'value1' });
+
+    expect(await endpointHttpConfigHarness.getHttpConfigValues()).toEqual({
+      httpClientOptions: {
+        clearTextUpgrade: true,
+        connectTimeout: 1000,
+        followRedirects: true,
+        idleTimeout: 1000,
+        keepAlive: true,
+        maxConcurrentConnections: 1000,
+        pipelining: true,
+        propagateClientAcceptEncoding: false,
+        readTimeout: 1000,
+        useCompression: true,
+        version: 'HTTP/2',
+      },
+      headers: [
+        {
+          name: 'key1',
+          value: 'value1',
+        },
+      ],
     });
   });
 });
