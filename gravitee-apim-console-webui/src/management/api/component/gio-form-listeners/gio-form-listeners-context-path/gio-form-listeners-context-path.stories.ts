@@ -93,35 +93,3 @@ export const ReactiveForm: Story = {
     ],
   },
 };
-
-export const ReactiveFormValidationIgnoresExistingPaths: Story = {
-  render: (args) => {
-    const formControl = new FormControl(args.listeners);
-    formControl.valueChanges.subscribe((value) => {
-      action('Listeners')(value);
-    });
-    const pathsToIgnore = args.pathsToIgnore;
-
-    return {
-      template: `<gio-form-listeners-context-path [formControl]="formControl" [pathsToIgnore]="pathsToIgnore"></gio-form-listeners-context-path>`,
-      props: {
-        formControl,
-        pathsToIgnore,
-      },
-    };
-  },
-  args: {
-    listeners: [
-      {
-        path: '/api/my-api-1',
-      },
-      {
-        path: '/api/my-api-2',
-      },
-      {
-        path: '/api/my-api-3',
-      },
-    ],
-    pathsToIgnore: ['/api/my-api-1', '/api/my-api-2', '/api/my-api-3'],
-  },
-};

@@ -106,6 +106,10 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       await createComponent(ENV, API);
     });
 
+    afterEach(() => {
+      expectApiVerify();
+    });
+
     it('should show context paths only', async () => {
       const contextPath = await loader.getAllHarnesses(GioFormListenersContextPathHarness);
       expect(contextPath.length).toEqual(1);
@@ -146,6 +150,10 @@ describe('ApiProxyV4EntrypointsComponent', () => {
 
     beforeEach(async () => {
       await createComponent(ENV, API);
+    });
+
+    afterEach(() => {
+      expectApiVerify();
     });
 
     it('should show context paths', async () => {
@@ -223,6 +231,10 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       await createComponent(ENV, API);
     });
 
+    afterEach(() => {
+      expectApiVerify();
+    });
+
     it('should show virtual host', async () => {
       const harness = await loader.getHarness(GioFormListenersVirtualHostHarness);
       const listeners = await harness.getListenerRows();
@@ -292,6 +304,10 @@ describe('ApiProxyV4EntrypointsComponent', () => {
 
     beforeEach(async () => {
       await createComponent(ENV, API());
+    });
+
+    afterEach(() => {
+      expectApiVerify();
     });
 
     it('should show entrypoints list with action buttons', async () => {
@@ -446,6 +462,10 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       await createComponent(ENV, API);
     });
 
+    afterEach(() => {
+      expectApiVerify();
+    });
+
     it('should remove empty HTTP listener and attached context-path on save', async () => {
       const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiEntrypointsV4GeneralHarness);
 
@@ -489,6 +509,10 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       await createComponent(ENV, API);
     });
 
+    afterEach(() => {
+      expectApiVerify();
+    });
+
     it('should add the corresponding listener', async () => {
       const addListenerButton = await loader.getHarness(MatButtonHarness.with({ text: 'Add an entrypoint' }));
       expect(await addListenerButton.isDisabled()).toBeFalsy();
@@ -528,6 +552,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
 
     beforeEach(async () => {
       await createComponent(ENV, API);
+      expectApiVerify();
     });
 
     it('should disable add button if no listener type available', async () => {
@@ -597,6 +622,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
 
     beforeEach(async () => {
       await createComponent(ENV, API, undefined, ['api-definition-r']);
+      expectApiVerify();
     });
     it('should not show buttons that require permissions', async () => {
       // switch to virtual host mode/context path mode
@@ -644,7 +670,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
   }
 
   function expectApiVerify(): void {
-    httpTestingController.match({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/verify`, method: 'POST' });
+    httpTestingController.match({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_verify/paths`, method: 'POST' });
   }
 
   function expectGetEntrypoints(): void {

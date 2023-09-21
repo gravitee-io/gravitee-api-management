@@ -98,6 +98,9 @@
     </tr>
   </tbody>
 </table>
+<mat-error *ngIf="mainForm.hasError('listeners')">
+  Invalid paths{{ mainForm.getError('listeners') ? ': ' : '' }}{{ mainForm.getError('listeners') }}</mat-error
+>
 
 <button *ngIf="!isDisabled" class="gio-form-listeners__add-button" type="button" mat-stroked-button (click)="addEmptyListener()">
   Add context-path
