@@ -19,19 +19,22 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { MatIconTestingModule } from '@angular/material/icon/testing';
 
 import { EndpointHttpConfigComponent } from './endpoint-http-config.component';
 import { EndpointHttpConfigModule } from './endpoint-http-config.module';
 import { EndpointHttpConfigHarness } from './endpoint-http-config.harness';
 
 import { GioHttpTestingModule } from '../../../../../../shared/testing';
-import { MatIconTestingModule } from '@angular/material/icon/testing';
+import { EndpointGroupV2 } from '../../../../../../entities/management-api-v2';
 
 describe('ApiPropertiesComponent', () => {
   let fixture: ComponentFixture<EndpointHttpConfigComponent>;
   let component: EndpointHttpConfigComponent;
   let httpTestingController: HttpTestingController;
   let endpointHttpConfigHarness: EndpointHttpConfigHarness;
+
+  let initialEndpointGroupV2: EndpointGroupV2;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -48,24 +51,32 @@ describe('ApiPropertiesComponent', () => {
     httpTestingController = TestBed.inject(HttpTestingController);
     component = fixture.componentInstance;
 
-    component.httpConfigFormGroup = EndpointHttpConfigComponent.getHttpConfigFormGroup(
-      {
-        httpClientOptions: {
-          version: 'HTTP_2',
-          connectTimeout: 1000,
-          readTimeout: 1000,
-          idleTimeout: 1000,
-          maxConcurrentConnections: 1000,
-          keepAlive: true,
-          pipelining: true,
-          useCompression: true,
-          followRedirects: true,
-          propagateClientAcceptEncoding: true,
-          clearTextUpgrade: true,
-        },
+    initialEndpointGroupV2 = {
+      httpClientOptions: {
+        version: 'HTTP_2',
+        connectTimeout: 1000,
+        readTimeout: 1000,
+        idleTimeout: 1000,
+        maxConcurrentConnections: 1000,
+        keepAlive: true,
+        pipelining: true,
+        useCompression: true,
+        followRedirects: true,
+        propagateClientAcceptEncoding: true,
+        clearTextUpgrade: true,
       },
-      false,
-    );
+      httpProxy: {
+        enabled: true,
+        useSystemProxy: false,
+        type: 'HTTP',
+        host: 'host',
+        port: 1000,
+        username: 'username',
+        password: 'password',
+      },
+    };
+    component.httpConfigFormGroup = EndpointHttpConfigComponent.getHttpConfigFormGroup(initialEndpointGroupV2, false);
+    fixture.detectChanges();
     endpointHttpConfigHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, EndpointHttpConfigHarness);
   });
 
@@ -88,9 +99,10 @@ describe('ApiPropertiesComponent', () => {
         propagateClientAcceptEncoding: false,
         readTimeout: 1000,
         useCompression: true,
-        version: 'HTTP/2',
+        version: 'HTTP_2',
       },
       headers: [],
+      httpProxy: initialEndpointGroupV2.httpProxy,
     });
   });
 
@@ -115,9 +127,10 @@ describe('ApiPropertiesComponent', () => {
         propagateClientAcceptEncoding: false,
         readTimeout: 1000,
         useCompression: true,
-        version: 'HTTP/1.1',
+        version: 'HTTP_1_1',
       },
       headers: [],
+      httpProxy: initialEndpointGroupV2.httpProxy,
     });
   });
 
@@ -142,9 +155,10 @@ describe('ApiPropertiesComponent', () => {
         propagateClientAcceptEncoding: true,
         readTimeout: 1000,
         useCompression: false,
-        version: 'HTTP/2',
+        version: 'HTTP_2',
       },
       headers: [],
+      httpProxy: initialEndpointGroupV2.httpProxy,
     });
   });
 
@@ -165,7 +179,7 @@ describe('ApiPropertiesComponent', () => {
         propagateClientAcceptEncoding: false,
         readTimeout: 1000,
         useCompression: true,
-        version: 'HTTP/2',
+        version: 'HTTP_2',
       },
       headers: [
         {
@@ -173,6 +187,7 @@ describe('ApiPropertiesComponent', () => {
           value: 'value1',
         },
       ],
+      httpProxy: initialEndpointGroupV2.httpProxy,
     });
   });
 });
