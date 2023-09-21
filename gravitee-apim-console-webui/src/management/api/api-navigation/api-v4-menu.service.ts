@@ -61,7 +61,7 @@ export class ApiV4MenuService implements ApiMenuService {
     }
     if (logsTabs.length > 0) {
       subMenuItems.push({
-        displayName: 'Runtime Logs',
+        displayName: 'Analytics and logs',
         header: {
           title: 'Runtime Logs',
           subtitle: 'Debug and Optimize your API by displaying logs from your API runtime activities',
