@@ -27,7 +27,7 @@ import { APISubscriptionsApi } from '@gravitee/management-v2-webclient-sdk/src/l
 import { teardownV4ApisAndApplications } from '@gravitee/utils/management';
 import { verifyWiremockRequest } from '@gravitee/utils/wiremock';
 import faker from '@faker-js/faker';
-import { sleep } from '@gravitee/utils/gateway';
+import { sleep } from '@gravitee/utils/apim-http';
 import { describeIfV4EmulationEngine } from '@lib/jest-utils';
 import { Api, APIPlansApi, APIsApi, Plan, PlanMode, PlanValidation } from '@gravitee/management-v2-webclient-sdk/src/lib';
 

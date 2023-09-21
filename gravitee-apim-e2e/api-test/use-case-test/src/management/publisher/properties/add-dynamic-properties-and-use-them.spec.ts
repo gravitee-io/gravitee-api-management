@@ -25,7 +25,7 @@ import { LifecycleAction } from '@gravitee/management-webclient-sdk/src/lib/mode
 import { PathOperatorOperatorEnum } from '@gravitee/management-webclient-sdk/src/lib/models/PathOperator';
 import { teardownApisAndApplications } from '@gravitee/utils/management';
 import { DynamicPropertyServiceProviderEnum } from '@gravitee/management-webclient-sdk/src/lib/models/DynamicPropertyService';
-import { fetchGatewaySuccess } from '@gravitee/utils/gateway';
+import { fetchGatewaySuccess } from '@gravitee/utils/apim-http';
 import { setWiremockState } from '@gravitee/utils/wiremock';
 import { UpdateApiEntityFromJSON } from '@gravitee/management-webclient-sdk/src/lib/models/UpdateApiEntity';
 
