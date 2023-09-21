@@ -16,7 +16,7 @@
 
 -->
 <ng-container *ngIf="httpConfigFormGroup" [formGroup]="httpConfigFormGroup">
-  <ng-container formGroupName="httpClientOptions">
+  <div class="httpClientOptions" formGroupName="httpClientOptions">
     <h2>HTTP Options</h2>
 
     <mat-form-field class="endpointHttpConfig__formField">
@@ -117,10 +117,12 @@
         name="propagateClientAcceptEncoding"
       ></mat-slide-toggle>
     </gio-form-slide-toggle>
-  </ng-container>
+  </div>
 
-  <h2>HTTP Headers</h2>
-  🚧
+  <div class="headers">
+    <h2>HTTP Headers</h2>
+    <gio-form-headers [headerFieldMapper]="{ keyName: 'name', valueName: 'value' }" formControlName="headers"></gio-form-headers>
+  </div>
 
   <h2>Proxy Options</h2>
   🚧

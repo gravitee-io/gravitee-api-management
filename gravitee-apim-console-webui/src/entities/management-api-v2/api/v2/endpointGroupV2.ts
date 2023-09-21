@@ -19,6 +19,7 @@ import { HttpClientSslOptions } from './httpClientSslOptions';
 import { HttpProxy } from './httpProxy';
 import { HttpClientOptions } from './httpClientOptions';
 import { EndpointDiscoveryService } from './endpointDiscoveryService';
+import { HttpHeader } from './httpHeader';
 
 import { LoadBalancer } from '../loadBalancer';
 
@@ -40,4 +41,5 @@ export interface EndpointGroupV2 {
   httpProxy?: HttpProxy;
   httpClientOptions?: HttpClientOptions;
   httpClientSslOptions?: HttpClientSslOptions;
+  headers?: HttpHeader[];
 }
