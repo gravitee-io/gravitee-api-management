@@ -20,7 +20,7 @@
 
 import { EventSourceMessage, getBytes, getLines, getMessages } from './eventsource-parse';
 import fetchApi from 'node-fetch';
-import { sleep } from './gateway';
+import { sleep } from './apim-http';
 
 export const EventStreamContentType = 'text/event-stream';
 

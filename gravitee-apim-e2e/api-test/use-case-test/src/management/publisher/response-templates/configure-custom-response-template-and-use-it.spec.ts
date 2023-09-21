@@ -23,7 +23,7 @@ import { PlanSecurityType } from '@gravitee/management-webclient-sdk/src/lib/mod
 import { PlanStatus } from '@gravitee/management-webclient-sdk/src/lib/models/PlanStatus';
 import { LifecycleAction } from '@gravitee/management-webclient-sdk/src/lib/models/LifecycleAction';
 import { teardownApisAndApplications } from '@gravitee/utils/management';
-import { fetchGatewayBadRequest, fetchGatewaySuccess } from '@gravitee/utils/gateway';
+import { fetchGatewayBadRequest, fetchGatewaySuccess } from '@gravitee/utils/apim-http';
 import { PathOperatorOperatorEnum } from '@gravitee/management-webclient-sdk/src/lib/models/PathOperator';
 
 const orgId = 'DEFAULT';
