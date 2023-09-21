@@ -1,0 +1,36 @@
+@use 'sass:map';
+
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+@use '../../../../../scss/gio-layout' as gio-layout;
+
+:host {
+  @include gio-layout.gio-responsive-margin-container;
+}
+
+.checkbox-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.checkbox-container__checkbox {
+  flex-basis: calc(50% - 8px);
+  margin: 4px;
+}
+
+.notifications-form__email {
+  width: 100%;
+}
+
+.notifications-form__title {
+  margin-bottom: 16px;
+}
+
+.notifications-hooks-categories {
+  margin-bottom: 20px;
+
+  h6 {
+    margin: 0;
+  }
+}

@@ -44,9 +44,16 @@
     <ng-container matColumnDef="name">
       <th mat-header-cell *matHeaderCellDef id="name">Name</th>
       <td mat-cell *matCellDef="let element">
-        <a [uiSref]="'management.apis.notifications-ng.details'" [uiParams]="{ notificationId: element.id || element.configType }">
+        <a [uiSref]="'management.apis.notification-details'" [uiParams]="{ notificationId: element.id || element.configType }">
           {{ element.name }}
         </a>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="notifier">
+      <th mat-header-cell *matHeaderCellDef id="notifier">Notifier</th>
+      <td mat-cell *matCellDef="let element">
+        <span class="gio-badge-neutral" *ngIf="element.notifierName">{{ element.notifierName }}</span>
       </td>
     </ng-container>
 

@@ -15,12 +15,35 @@
  */
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { GioFormFocusInvalidModule, GioFormHeadersModule, GioIconsModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import { ReactiveFormsModule } from '@angular/forms';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatInputModule } from '@angular/material/input';
+import { MatCardModule } from '@angular/material/card';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { NotificationDetailsComponent } from './notification-details.component';
+
+import { GioPermissionModule } from '../../../../../shared/components/gio-permission/gio-permission.module';
+import { GioGoBackButtonModule } from '../../../../../shared/components/gio-go-back-button/gio-go-back-button.module';
 
 @NgModule({
   declarations: [NotificationDetailsComponent],
   exports: [NotificationDetailsComponent],
-  imports: [CommonModule],
+  imports: [
+    CommonModule,
+    GioPermissionModule,
+    GioIconsModule,
+    GioPermissionModule,
+    GioSaveBarModule,
+    GioFormHeadersModule,
+    GioFormFocusInvalidModule,
+    GioGoBackButtonModule,
+    ReactiveFormsModule,
+    MatCheckboxModule,
+    MatInputModule,
+    MatCardModule,
+    MatSnackBarModule,
+  ],
 })
 export class NotificationDetailsModule {}

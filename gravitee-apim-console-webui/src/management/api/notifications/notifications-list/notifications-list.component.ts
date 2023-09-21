@@ -36,6 +36,7 @@ type NotificationSettingsTable = {
   name: string;
   id: string;
   configType: string;
+  notifierName?: string;
 };
 
 @Component({
@@ -47,7 +48,7 @@ export class NotificationsListComponent implements OnInit {
   public notificationsSettingsTable: NotificationSettingsTable[] = [];
   public notifiersGroup: Notifier[] = [];
   public isLoadingData = true;
-  public displayedColumns = ['name', 'actions'];
+  public displayedColumns = ['name', 'notifier', 'actions'];
   public notificationUnpaginatedLength = 0;
   public filteredNotificationsSettingsTable = [];
 
@@ -64,22 +65,24 @@ export class NotificationsListComponent implements OnInit {
     this.isLoadingData = true;
     this.filteredNotificationsSettingsTable = [];
     combineLatest([
-      this.notificationSettingsService.getNotificationSettings(this.ajsStateParams.apiId),
+      this.notificationSettingsService.getAll(this.ajsStateParams.apiId),
       this.notificationSettingsService.getNotifiers(this.ajsStateParams.apiId),
     ])
       .pipe(
         tap(([notificationsList, notifiers]) => {
+          this.notifiersGroup = notifiers;
+
           this.notificationsSettingsTable = notificationsList.map((notificationSettings) => {
             return {
               id: notificationSettings.id,
               configType: notificationSettings.config_type,
               name: notificationSettings.name,
+              notifier: notificationSettings.notifier || 'none',
+              notifierName: this.setNotifierName(notificationSettings),
             };
           });
           this.filteredNotificationsSettingsTable = this.notificationsSettingsTable;
           this.notificationUnpaginatedLength = this.filteredNotificationsSettingsTable.length;
-
-          this.notifiersGroup = notifiers;
         }),
         takeUntil(this.unsubscribe$),
       )
@@ -152,5 +155,11 @@ export class NotificationsListComponent implements OnInit {
         takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.ngOnInit());
+  }
+
+  setNotifierName(element) {
+    if (element.id) {
+      return this.notifiersGroup.find((i) => i.id === element.notifier).name;
+    }
   }
 }

@@ -833,16 +833,22 @@ export const states: Ng2StateDeclaration[] = [
       apiPermissions: {
         only: ['api-notification-r'],
       },
+      docs: {
+        page: 'management-api-notifications',
+      },
       useAngularMaterial: true,
     },
   },
   {
-    name: 'management.apis.notifications-ng.details',
+    name: 'management.apis.notification-details',
     component: NotificationDetailsComponent,
-    url: '/:notificationId',
+    url: '/notifications-ng/:notificationId',
     data: {
       apiPermissions: {
-        only: ['api-notification-r'],
+        only: ['api-notification-r', 'api-notification-c', 'api-notification-u'],
+      },
+      docs: {
+        page: 'management-api-notifications',
       },
       useAngularMaterial: true,
     },
