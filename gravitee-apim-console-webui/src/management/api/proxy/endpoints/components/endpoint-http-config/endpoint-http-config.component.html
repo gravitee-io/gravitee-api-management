@@ -124,8 +124,58 @@
     <gio-form-headers [headerFieldMapper]="{ keyName: 'name', valueName: 'value' }" formControlName="headers"></gio-form-headers>
   </div>
 
-  <h2>Proxy Options</h2>
-  🚧
+  <div class="proxyOptions" formGroupName="httpProxy">
+    <h2>Proxy Options</h2>
+
+    <gio-form-slide-toggle class="endpointHttpConfig__formField">
+      <gio-form-label>Use proxy</gio-form-label>
+      Use proxy for client connections
+      <mat-slide-toggle
+        gioFormSlideToggle
+        formControlName="enabled"
+        aria-label="Use proxy for client connections"
+        name="enabled"
+      ></mat-slide-toggle>
+    </gio-form-slide-toggle>
+
+    <gio-form-slide-toggle class="endpointHttpConfig__formField">
+      <gio-form-label>Use system proxy</gio-form-label>
+      Use proxy configured at system level
+      <mat-slide-toggle
+        gioFormSlideToggle
+        formControlName="useSystemProxy"
+        aria-label="Use proxy configured at system level"
+        name="useSystemProxy"
+      ></mat-slide-toggle>
+    </gio-form-slide-toggle>
+
+    <mat-form-field class="endpointHttpConfig__formField">
+      <mat-label>Proxy Type</mat-label>
+      <mat-select formControlName="type">
+        <mat-option *ngFor="let type of proxyTypes" [value]="type.value">{{ type.label }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field class="endpointHttpConfig__formField">
+      <mat-label>Proxy host</mat-label>
+      <input matInput formControlName="host" />
+    </mat-form-field>
+
+    <mat-form-field class="endpointHttpConfig__formField">
+      <mat-label>Proxy port</mat-label>
+      <input matInput formControlName="port" type="number" />
+    </mat-form-field>
+
+    <mat-form-field class="endpointHttpConfig__formField">
+      <mat-label>Proxy username</mat-label>
+      <input matInput formControlName="username" />
+    </mat-form-field>
+
+    <mat-form-field class="endpointHttpConfig__formField">
+      <mat-label>Proxy password</mat-label>
+      <input matInput formControlName="password" type="password" />
+    </mat-form-field>
+  </div>
 
   <h2>SSL Options</h2>
   🚧

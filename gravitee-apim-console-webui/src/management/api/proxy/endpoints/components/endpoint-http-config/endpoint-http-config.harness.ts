@@ -22,7 +22,7 @@ import { GioFormHeadersHarness } from '@gravitee/ui-particles-angular';
 
 import { EndpointHttpConfigValue } from './endpoint-http-config.component';
 
-const formControlNameList = [
+const httpClientOptionsControlNames = [
   'version',
   'connectTimeout',
   'readTimeout',
@@ -36,16 +36,7 @@ const formControlNameList = [
   'clearTextUpgrade',
 ];
 
-const matSelectControlNameList = ['version'];
-const matSlideToggleControlNameList = [
-  'keepAlive',
-  'pipelining',
-  'useCompression',
-  'followRedirects',
-  'propagateClientAcceptEncoding',
-  'clearTextUpgrade',
-];
-const matInputControlNameList = ['connectTimeout', 'readTimeout', 'idleTimeout', 'maxConcurrentConnections'];
+const httpProxyControlNames = ['enabled', 'useSystemProxy', 'type', 'host', 'port', 'username', 'password'];
 
 export class EndpointHttpConfigHarness extends ComponentHarness {
   static hostSelector = 'endpoint-http-config';
@@ -67,27 +58,6 @@ export class EndpointHttpConfigHarness extends ComponentHarness {
   }
 
   async getHttpConfigValues(): Promise<EndpointHttpConfigValue> {
-    const httpClientOptionsKeyValues = await parallel(() =>
-      formControlNameList.map(async (formControlName) => {
-        let value = null;
-        if (matSelectControlNameList.includes(formControlName)) {
-          value = await this.getMatSelect(formControlName).then((matSelect) => matSelect?.getValueText());
-        }
-        if (matSlideToggleControlNameList.includes(formControlName)) {
-          value = await this.getMatSlideToggle(formControlName).then((matSlideToggle) => matSlideToggle?.isChecked());
-        }
-        if (matInputControlNameList.includes(formControlName)) {
-          value = await this.getMatInput(formControlName)
-            .then((matInput) => matInput?.getValue())
-            .then((v) => (Number(v) ? Number(v) : v));
-        }
-
-        return {
-          key: formControlName,
-          value,
-        };
-      }),
-    );
     const httpFormHeaders = await this.getHttpFormHeaders().then((h) => h?.getHeaderRows());
 
     const headersNameValue = (
@@ -97,7 +67,8 @@ export class EndpointHttpConfigHarness extends ComponentHarness {
     );
 
     return {
-      httpClientOptions: mapValues(keyBy(httpClientOptionsKeyValues, 'key'), 'value') as EndpointHttpConfigValue['httpClientOptions'],
+      httpClientOptions: await this.getHttpClientOptions(),
+      httpProxy: await this.getHttpProxyValues(),
       headers: headersNameValue,
     };
   }
@@ -122,5 +93,74 @@ export class EndpointHttpConfigHarness extends ComponentHarness {
     if ((await matSlideToggle.isChecked()) !== enable) {
       await matSlideToggle.toggle();
     }
+  }
+
+  async getHttpClientOptions(): Promise<EndpointHttpConfigValue['httpClientOptions']> {
+    const httpClientOptionsKeyValues = await parallel(() =>
+      httpClientOptionsControlNames.map(async (formControlName) => {
+        let value = null;
+        if (formControlName === 'version') {
+          const labelToValue = {
+            'HTTP/1.1': 'HTTP_1_1',
+            'HTTP/2': 'HTTP_2',
+          };
+
+          value = await this.getMatSelect(formControlName)
+            .then((matSelect) => matSelect?.getValueText())
+            .then((v) => labelToValue[v]);
+        }
+        if (
+          ['keepAlive', 'pipelining', 'useCompression', 'followRedirects', 'propagateClientAcceptEncoding', 'clearTextUpgrade'].includes(
+            formControlName,
+          )
+        ) {
+          value = await this.getMatSlideToggle(formControlName).then((matSlideToggle) => matSlideToggle?.isChecked());
+        }
+        if (['connectTimeout', 'readTimeout', 'idleTimeout', 'maxConcurrentConnections'].includes(formControlName)) {
+          value = await this.getMatInput(formControlName)
+            .then((matInput) => matInput?.getValue())
+            .then((v) => (Number(v) ? Number(v) : v));
+        }
+
+        return {
+          key: formControlName,
+          value,
+        };
+      }),
+    );
+
+    return mapValues(keyBy(httpClientOptionsKeyValues, 'key'), 'value') as EndpointHttpConfigValue['httpClientOptions'];
+  }
+
+  async getHttpProxyValues(): Promise<EndpointHttpConfigValue['httpProxy']> {
+    const httpProxyKeyValues = await parallel(() =>
+      httpProxyControlNames.map(async (formControlName) => {
+        let value = null;
+        if (formControlName === 'type') {
+          const labelToValue = {
+            'HTTP CONNECT proxy': 'HTTP',
+            'SOCKS4/4a tcp proxy': 'SOCKS4',
+            'SOCKS5 tcp proxy': 'SOCKS5',
+          };
+
+          value = await this.getMatSelect(formControlName).then((matSelect) => matSelect?.getValueText().then((v) => labelToValue[v]));
+        }
+        if (['enabled', 'useSystemProxy'].includes(formControlName)) {
+          value = await this.getMatSlideToggle(formControlName).then((matSlideToggle) => matSlideToggle?.isChecked());
+        }
+        if (['host', 'port', 'username', 'password'].includes(formControlName)) {
+          value = await this.getMatInput(formControlName)
+            .then((matInput) => matInput?.getValue())
+            .then((v) => (Number(v) ? Number(v) : v));
+        }
+
+        return {
+          key: formControlName,
+          value,
+        };
+      }),
+    );
+
+    return mapValues(keyBy(httpProxyKeyValues, 'key'), 'value') as EndpointHttpConfigValue['httpProxy'];
   }
 }

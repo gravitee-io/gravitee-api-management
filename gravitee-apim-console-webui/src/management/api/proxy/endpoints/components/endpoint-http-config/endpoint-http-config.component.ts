@@ -19,7 +19,7 @@ import { Subject } from 'rxjs';
 import { FormControl, FormGroup } from '@angular/forms';
 import { filter, startWith, takeUntil } from 'rxjs/operators';
 
-import { EndpointGroupV2, HttpHeader, ProtocolVersion } from '../../../../../../entities/management-api-v2';
+import { EndpointGroupV2, HttpHeader, HttpProxy, HttpProxyType, ProtocolVersion } from '../../../../../../entities/management-api-v2';
 
 export interface EndpointHttpConfigValue {
   httpClientOptions: {
@@ -36,6 +36,7 @@ export interface EndpointHttpConfigValue {
     clearTextUpgrade?: boolean;
   };
   headers: HttpHeader[];
+  httpProxy: HttpProxy;
 }
 
 @Component({
@@ -92,9 +93,41 @@ export class EndpointHttpConfigComponent implements OnInit, OnDestroy {
       }),
     });
 
+    const httpProxy = new FormGroup({
+      enabled: new FormControl({
+        value: endpointGroup.httpProxy?.enabled,
+        disabled: isReadonly,
+      }),
+      useSystemProxy: new FormControl({
+        value: endpointGroup.httpProxy?.useSystemProxy,
+        disabled: isReadonly,
+      }),
+      host: new FormControl({
+        value: endpointGroup.httpProxy?.host,
+        disabled: isReadonly,
+      }),
+      port: new FormControl({
+        value: endpointGroup.httpProxy?.port,
+        disabled: isReadonly,
+      }),
+      type: new FormControl({
+        value: endpointGroup.httpProxy?.type,
+        disabled: isReadonly,
+      }),
+      username: new FormControl({
+        value: endpointGroup.httpProxy?.username,
+        disabled: isReadonly,
+      }),
+      password: new FormControl({
+        value: endpointGroup.httpProxy?.password,
+        disabled: isReadonly,
+      }),
+    });
+
     return new FormGroup({
       httpClientOptions,
       headers: new FormControl(endpointGroup.headers ?? []),
+      httpProxy,
     });
   }
 
@@ -113,6 +146,21 @@ export class EndpointHttpConfigComponent implements OnInit, OnDestroy {
     {
       label: 'HTTP/2',
       value: 'HTTP_2',
+    },
+  ];
+
+  public proxyTypes: { label: string; value: HttpProxyType }[] = [
+    {
+      label: 'HTTP CONNECT proxy',
+      value: 'HTTP',
+    },
+    {
+      label: 'SOCKS4/4a tcp proxy',
+      value: 'SOCKS4',
+    },
+    {
+      label: 'SOCKS5 tcp proxy',
+      value: 'SOCKS5',
     },
   ];
 
@@ -162,6 +210,58 @@ export class EndpointHttpConfigComponent implements OnInit, OnDestroy {
           httpClientOptions.get('propagateClientAcceptEncoding').disable();
         } else {
           httpClientOptions.get('propagateClientAcceptEncoding').enable();
+        }
+      });
+
+    const httpProxy = this.httpConfigFormGroup.get('httpProxy');
+
+    httpProxy
+      .get('enabled')
+      .valueChanges.pipe(
+        startWith(httpProxy.get('enabled').value),
+        // Only if enabled is not disabled
+        filter(() => !httpProxy.get('enabled').disabled),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe((enabled) => {
+        if (enabled === true) {
+          httpProxy.get('useSystemProxy').enable();
+          httpProxy.get('host').enable();
+          httpProxy.get('port').enable();
+          httpProxy.get('type').enable();
+          httpProxy.get('username').enable();
+          httpProxy.get('password').enable();
+        } else {
+          httpProxy.get('useSystemProxy').disable();
+          httpProxy.get('host').disable();
+          httpProxy.get('port').disable();
+          httpProxy.get('type').disable();
+          httpProxy.get('username').disable();
+          httpProxy.get('password').disable();
+        }
+      });
+
+    httpProxy
+      .get('useSystemProxy')
+      .valueChanges.pipe(
+        startWith(httpProxy.get('useSystemProxy').value),
+        // Only if useSystemProxy is not disabled
+        filter(() => !httpProxy.get('useSystemProxy').disabled),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe((useSystemProxy) => {
+        if (useSystemProxy) {
+          httpProxy.get('host').disable();
+          httpProxy.get('port').disable();
+          httpProxy.get('type').disable();
+          httpProxy.get('username').disable();
+          httpProxy.get('password').disable();
+        } else {
+          httpProxy.get('host').enable();
+          httpProxy.get('port').enable();
+          httpProxy.get('type').enable();
+          httpProxy.get('username').enable();
+          httpProxy.get('password').enable();
         }
       });
   }
