@@ -24,7 +24,7 @@ import { PlanEntity } from '@gravitee/management-webclient-sdk/src/lib/models/Pl
 import { RuleMethodsEnum } from '@gravitee/management-webclient-sdk/src/lib/models/Rule';
 import { describeIfV3, noContent, succeed } from '@lib/jest-utils';
 import { LifecycleAction } from '@gravitee/management-webclient-sdk/src/lib/models/LifecycleAction';
-import { fetchGatewaySuccess } from '@gravitee/utils/gateway';
+import { fetchGatewaySuccess } from '@gravitee/utils/apim-http';
 import { PathOperatorOperatorEnum } from '@gravitee/management-webclient-sdk/src/lib/models/PathOperator';
 import { PlanStatus } from '@gravitee/management-webclient-sdk/src/lib/models/PlanStatus';
 

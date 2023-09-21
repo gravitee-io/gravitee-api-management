@@ -22,7 +22,7 @@ import { ApiEntity } from '@gravitee/management-webclient-sdk/src/lib/models/Api
 import { PlansFaker } from '@gravitee/fixtures/management/PlansFaker';
 import { LifecycleAction } from '@gravitee/management-webclient-sdk/src/lib/models/LifecycleAction';
 import { PlanStatus } from '@gravitee/management-webclient-sdk/src/lib/models/PlanStatus';
-import { fetchGatewayServiceUnavailable, fetchGatewaySuccess } from '@gravitee/utils/gateway';
+import { fetchGatewayServiceUnavailable, fetchGatewaySuccess } from '@gravitee/utils/apim-http';
 import { teardownApisAndApplications } from '@gravitee/utils/management';
 import { verifyWiremockRequest } from '@gravitee/utils/wiremock';
 import fetchApi from 'node-fetch';
