@@ -74,14 +74,42 @@ jobs:
                                 fi;
 
                                 if [ "x${CIRCLE_PULL_REQUEST}" == "x" ]; then
-                                  echo "No pull request -> stopping build"
+                                  echo "No opened pull request for this branch -> try to find the base branch with commits."
+                                  # Loop over the last 100 commits maximum and find the first commit that is on a branch matching `master` or `[0-9].[0-9].x`
+                                  MAX_COMMITS=100
+                                
+                                  # Define the pattern for matching branch names: master or [0-9].[0-9].x
+                                  PATTERN="master|[0-9]+\.[0-9]+\.x"
+                                
+                                  # Loop over the last $MAX_COMMITS commits
+                                  for (( i = 0; i < MAX_COMMITS; i++ )); do
+                                    # Get the commit hash
+                                    hash=$(git rev-parse HEAD~$i)
+                                  
+                                    # Get the branch name that contains the commit hash and matches the pattern
+                                    branch=$(git --no-pager branch --contains $hash | grep -oE $PATTERN || true)
+                                  
+                                    # If the branch name is not empty, then the matching branch has been found
+                                    if [ -n "$branch" ]; then
+                                      BASE_REF=$branch
+                                      echo "Base branch is $branch (common ancestor is commit: $hash)"
+                                      break
+                                    fi
+                                  done
+                                
+                                # else use the pull request info
+                                else
+                                  PULL_REQUEST_URL=$(echo https://api.github.com/repos/${CIRCLE_PULL_REQUEST:19} | sed "s/\/pull\//\/pulls\//")
+                                  BASE_REF=$(curl -s -H "Authorization: token ${GITHUB_TOKEN}" ${PULL_REQUEST_URL} | jq -r '.base.ref // "master"')
+                                fi;
+                              
+                                # if BASE_REF is empty just stop
+                                if [ "x${BASE_REF}" == "x" ]; then
+                                  echo "No base branch found, stopping"
                                   circleci step halt
                                 fi;
-
-                                PULL_REQUEST_URL=$(echo https://api.github.com/repos/${CIRCLE_PULL_REQUEST:19} | sed "s/\/pull\//\/pulls\//")
-                                BASE_REF=$(curl -s -H "Authorization: token ${GITHUB_TOKEN}" ${PULL_REQUEST_URL} | jq -r '.base.ref // "master"')
+                                
                                 echo "export GIT_BASE_BRANCH=${BASE_REF}" >> $BASH_ENV
-
                                 echo "The base branch is ${BASE_REF}"
 
             - node/install-packages:
