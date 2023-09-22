@@ -13,20 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { get, isEmpty, isNil } from 'lodash';
 import { combineLatest, EMPTY, Subject } from 'rxjs';
 import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 
 import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { EnvironmentService } from '../../../../services-ngx/environment.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
-import { Proxy } from '../../../../entities/management-api-v2';
+import { ApiV1, ApiV2, PathV4, Proxy, UpdateApiV2, VirtualHost } from '../../../../entities/management-api-v2';
 import { onlyApiV1V2Filter, onlyApiV2Filter } from '../../../../util/apiFilter.operator';
+import { Environment } from '../../../../entities/environment/environment';
 
 @Component({
   selector: 'api-proxy-entrypoints',
@@ -38,9 +40,13 @@ export class ApiProxyEntrypointsComponent implements OnInit, OnDestroy {
 
   public virtualHostModeEnabled = false;
   public domainRestrictions: string[] = [];
+  public formGroup: FormGroup;
+  public pathsFormControl: FormControl;
 
   public apiProxy: Proxy;
   public isReadOnly = false;
+  public api: ApiV1 | ApiV2;
+  private environment: Environment;
 
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
@@ -49,6 +55,8 @@ export class ApiProxyEntrypointsComponent implements OnInit, OnDestroy {
     private readonly matDialog: MatDialog,
     private readonly permissionService: GioPermissionService,
     private readonly snackBarService: SnackBarService,
+    private readonly formBuilder: FormBuilder,
+    private readonly changeDetector: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
@@ -58,19 +66,12 @@ export class ApiProxyEntrypointsComponent implements OnInit, OnDestroy {
     ])
       .pipe(
         tap(([api, environment]) => {
-          this.apiProxy = api.proxy;
+          this.api = api;
+          this.environment = environment;
 
-          // virtual host mode is enabled if there are domain restrictions or if there is more than one virtual host or if the first virtual host has a host
-          this.virtualHostModeEnabled =
-            !isEmpty(environment.domainRestrictions) ||
-            get(api, 'proxy.virtualHosts', []) > 1 ||
-            !isNil(get(api, 'proxy.virtualHosts[0].host', null));
+          this.domainRestrictions = this.environment.domainRestrictions ?? [];
 
-          this.domainRestrictions = environment.domainRestrictions ?? [];
-
-          this.isReadOnly =
-            !this.permissionService.hasAnyMatching(['api-definition-u', 'api-gateway_definition-u']) ||
-            api.definitionContext?.origin === 'KUBERNETES';
+          this.initForm(api);
         }),
         takeUntil(this.unsubscribe$),
       )
@@ -82,12 +83,26 @@ export class ApiProxyEntrypointsComponent implements OnInit, OnDestroy {
     this.unsubscribe$.unsubscribe();
   }
 
-  onSubmit(apiProxy: Proxy) {
+  onSubmit() {
     return this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
         onlyApiV2Filter(this.snackBarService),
-        switchMap((api) => this.apiService.update(api.id, { ...api, proxy: apiProxy })),
+        switchMap((api) => {
+          const formValue: PathV4[] = this.pathsFormControl.value;
+          const virtualHosts: VirtualHost[] = formValue.map((p) => {
+            return { host: p.host, path: p.path, overrideEntrypoint: p.overrideAccess };
+          });
+          const apiUpdate: UpdateApiV2 = {
+            ...(this.api as ApiV2),
+            proxy: {
+              ...this.api.proxy,
+              virtualHosts,
+            },
+          };
+
+          return this.apiService.update(api.id, apiUpdate);
+        }),
         onlyApiV2Filter(this.snackBarService),
         tap((api) => (this.apiProxy = api.proxy)),
         tap(() => this.snackBarService.success('Configuration successfully saved!')),
@@ -117,16 +132,11 @@ export class ApiProxyEntrypointsComponent implements OnInit, OnDestroy {
         .pipe(
           tap((response) => {
             if (response) {
-              // Keep only the first virtual_host path
-              this.onSubmit({
-                ...this.apiProxy,
-                virtualHosts: [
-                  {
-                    path: this.apiProxy.virtualHosts[0].path,
-                  },
-                ],
-              });
+              // Keep only the path
+              const currentValue = this.formGroup.getRawValue().paths;
+              this.formGroup.get('paths').setValue(currentValue.map(({ path }) => ({ path })));
               this.virtualHostModeEnabled = !this.virtualHostModeEnabled;
+              this.changeDetector.detectChanges();
             }
           }),
           takeUntil(this.unsubscribe$),
@@ -136,5 +146,40 @@ export class ApiProxyEntrypointsComponent implements OnInit, OnDestroy {
     }
 
     this.virtualHostModeEnabled = !this.virtualHostModeEnabled;
+  }
+
+  onReset() {
+    this.formGroup.reset();
+    this.initForm(this.api);
+  }
+
+  private getApiPaths(api: ApiV1 | ApiV2): PathV4[] {
+    if (api.proxy.virtualHosts.length > 0) {
+      return api.proxy.virtualHosts.map((p) => {
+        const path: PathV4 = { path: p.path, host: p.host, overrideAccess: p.overrideEntrypoint };
+        return path;
+      });
+    }
+    return [{ path: api.contextPath }];
+  }
+
+  private initForm(api: ApiV1 | ApiV2) {
+    this.apiProxy = api.proxy;
+    this.formGroup = new FormGroup({});
+
+    this.isReadOnly =
+      !this.permissionService.hasAnyMatching(['api-definition-u', 'api-gateway_definition-u']) ||
+      api.definitionContext?.origin === 'KUBERNETES' ||
+      api.definitionVersion === 'V1';
+
+    const paths: PathV4[] = this.getApiPaths(api);
+    this.pathsFormControl = this.formBuilder.control({ value: paths, disabled: this.isReadOnly }, Validators.required);
+    this.formGroup.addControl('paths', this.pathsFormControl);
+
+    // virtual host mode is enabled if there are domain restrictions or if there is more than one virtual host or if the first virtual host has a host
+    this.virtualHostModeEnabled =
+      !isEmpty(this.environment.domainRestrictions) ||
+      get(api, 'proxy.virtualHosts', []) > 1 ||
+      !isNil(get(api, 'proxy.virtualHosts[0].host', null));
   }
 }

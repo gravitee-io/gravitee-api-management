@@ -70,7 +70,7 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
   public domainRestrictions: string[] = [];
   public entrypointAvailableForAdd: ConnectorVM[] = [];
   public shouldUpgrade = false;
-  private canUpdate = false;
+  public canUpdate = false;
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
     @Inject(UIRouterState) private readonly ajsState: StateService,
