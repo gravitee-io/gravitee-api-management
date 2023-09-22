@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.management.v2.rest;
 
 import io.gravitee.rest.api.management.v2.rest.exceptionMapper.*;
-import io.gravitee.rest.api.management.v2.rest.filter.*;
 import io.gravitee.rest.api.management.v2.rest.provider.ByteArrayOutputStreamWriter;
 import io.gravitee.rest.api.management.v2.rest.provider.CommaSeparatedQueryParamConverterProvider;
 import io.gravitee.rest.api.management.v2.rest.provider.ObjectMapperResolver;
@@ -35,6 +34,10 @@ import io.gravitee.rest.api.management.v2.rest.resource.installation.Organizatio
 import io.gravitee.rest.api.management.v2.rest.resource.plugin.EndpointsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.plugin.EntrypointsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.plugin.PoliciesResource;
+import io.gravitee.rest.api.rest.filter.GraviteeContextResponseFilter;
+import io.gravitee.rest.api.rest.filter.PermissionsFilter;
+import io.gravitee.rest.api.rest.filter.SecurityContextFilter;
+import io.gravitee.rest.api.rest.filter.UriBuilderRequestFilter;
 import jakarta.inject.Inject;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;

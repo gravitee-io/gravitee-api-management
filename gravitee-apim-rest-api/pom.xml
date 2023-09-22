@@ -39,6 +39,7 @@
         <module>gravitee-apim-rest-api-model</module>
         <module>gravitee-apim-rest-api-idp</module>
         <module>gravitee-apim-rest-api-repository</module>
+        <module>gravitee-apim-rest-api-rest</module>
         <module>gravitee-apim-rest-api-service</module>
         <module>gravitee-apim-rest-api-security</module>
         <module>gravitee-apim-rest-api-services</module>

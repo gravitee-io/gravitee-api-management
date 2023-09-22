@@ -15,12 +15,12 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import io.gravitee.rest.api.portal.rest.filter.GraviteeContextRequestFilter;
-import io.gravitee.rest.api.portal.rest.filter.GraviteeContextResponseFilter;
-import io.gravitee.rest.api.portal.rest.filter.PermissionsFilter;
-import io.gravitee.rest.api.portal.rest.filter.SecurityContextFilter;
 import io.gravitee.rest.api.portal.rest.mapper.ObjectMapperResolver;
 import io.gravitee.rest.api.portal.rest.provider.*;
+import io.gravitee.rest.api.rest.filter.GraviteeContextResponseFilter;
+import io.gravitee.rest.api.rest.filter.PermissionsFilter;
+import io.gravitee.rest.api.rest.filter.SecurityContextFilter;
+import io.gravitee.rest.api.rest.filter.UriBuilderRequestFilter;
 import io.gravitee.rest.api.security.authentication.AuthenticationProviderManager;
 import jakarta.inject.Inject;
 import org.glassfish.jersey.jackson.JacksonFeature;

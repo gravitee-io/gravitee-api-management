@@ -20,12 +20,12 @@ import static java.util.stream.Collectors.toList;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.resource.AbstractResource;
-import io.gravitee.rest.api.management.rest.security.Permission;
-import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.NewTokenEntity;
 import io.gravitee.rest.api.model.TokenEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.rest.annotation.Permission;
+import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.TokenService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Operation;

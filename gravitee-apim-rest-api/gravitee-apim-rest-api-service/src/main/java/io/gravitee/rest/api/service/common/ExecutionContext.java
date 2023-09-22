@@ -19,7 +19,6 @@ import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.Organization;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
-
 import java.util.Objects;
 import java.util.Optional;
 

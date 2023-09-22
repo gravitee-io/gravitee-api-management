@@ -23,14 +23,14 @@ import io.gravitee.rest.api.management.rest.resource.auth.OAuth2AuthenticationRe
 import io.gravitee.rest.api.management.rest.resource.organization.CurrentUserResource;
 import io.gravitee.rest.api.management.rest.resource.organization.UsersResource;
 import io.gravitee.rest.api.management.rest.resource.search.SearchResource;
-import io.gravitee.rest.api.management.rest.security.Permission;
-import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationEntity;
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType;
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderEntity;
 import io.gravitee.rest.api.model.permissions.EnvironmentPermission;
 import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.rest.annotation.Permission;
+import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;

@@ -143,8 +143,6 @@ public class ScheduledSubscriptionPreExpirationNotificationServiceTest {
         String subscriberEmail = "subscriber@gravitee.io";
 
         ApiEntity api = mock(ApiEntity.class);
-        // here api.getReferenceId() = environmentId
-        when(api.getReferenceId()).thenReturn(UUID.randomUUID().toString());
 
         PlanEntity plan = mock(PlanEntity.class);
         ApplicationEntity application = mock(ApplicationEntity.class);
