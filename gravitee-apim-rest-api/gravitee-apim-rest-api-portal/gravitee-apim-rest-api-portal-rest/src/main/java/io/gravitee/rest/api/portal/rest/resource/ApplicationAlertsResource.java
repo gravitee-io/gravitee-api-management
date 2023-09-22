@@ -15,19 +15,13 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
-
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.alert.AlertStatusEntity;
 import io.gravitee.rest.api.model.alert.AlertTriggerEntity;
 import io.gravitee.rest.api.model.alert.NewAlertTriggerEntity;
-import io.gravitee.rest.api.model.permissions.RolePermission;
-import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.portal.rest.mapper.AlertMapper;
 import io.gravitee.rest.api.portal.rest.model.Alert;
 import io.gravitee.rest.api.portal.rest.model.AlertInput;
-import io.gravitee.rest.api.portal.rest.security.Permission;
-import io.gravitee.rest.api.portal.rest.security.Permissions;
 import io.gravitee.rest.api.service.ApplicationAlertService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -61,7 +55,6 @@ public class ApplicationAlertsResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_ALERT, acls = RolePermissionAction.READ) })
     public Response getAlertsByApplicationId(@PathParam("applicationId") String applicationId) {
         checkPlugins(GraviteeContext.getExecutionContext());
         List<Alert> alerts = applicationAlertService
@@ -77,7 +70,6 @@ public class ApplicationAlertsResource extends AbstractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_ALERT, acls = RolePermissionAction.CREATE) })
     public Response createApplicationAlert(
         @PathParam("applicationId") String applicationId,
         @Valid @NotNull(message = "Input must not be null.") AlertInput alertInput
@@ -103,7 +95,6 @@ public class ApplicationAlertsResource extends AbstractResource {
     @Path("status")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_ALERT, acls = READ) })
     public Response getApplicationAlertStatus() {
         return Response.ok(applicationAlertService.getStatus(GraviteeContext.getExecutionContext())).build();
     }

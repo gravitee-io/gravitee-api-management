@@ -19,13 +19,9 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.alert.AlertStatusEntity;
 import io.gravitee.rest.api.model.alert.AlertTriggerEntity;
 import io.gravitee.rest.api.model.alert.UpdateAlertTriggerEntity;
-import io.gravitee.rest.api.model.permissions.RolePermission;
-import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.portal.rest.mapper.AlertMapper;
 import io.gravitee.rest.api.portal.rest.model.Alert;
 import io.gravitee.rest.api.portal.rest.model.AlertInput;
-import io.gravitee.rest.api.portal.rest.security.Permission;
-import io.gravitee.rest.api.portal.rest.security.Permissions;
 import io.gravitee.rest.api.service.ApplicationAlertService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -55,7 +51,6 @@ public class ApplicationAlertResource extends AbstractResource {
 
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_ALERT, acls = RolePermissionAction.DELETE) })
     public Response deleteApplicationAlert(@PathParam("applicationId") String applicationId, @PathParam("alertId") String alertId) {
         LOGGER.info("Deleting alert {}", alertId);
 
@@ -67,7 +62,6 @@ public class ApplicationAlertResource extends AbstractResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_ALERT, acls = RolePermissionAction.UPDATE) })
     public Response updateAlert(
         @PathParam("applicationId") String applicationId,
         @PathParam("alertId") String alertId,

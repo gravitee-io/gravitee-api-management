@@ -19,14 +19,10 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.ApplicationMetadataEntity;
 import io.gravitee.rest.api.model.NewApplicationMetadataEntity;
 import io.gravitee.rest.api.model.UpdateApplicationMetadataEntity;
-import io.gravitee.rest.api.model.permissions.RolePermission;
-import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.portal.rest.mapper.ReferenceMetadataMapper;
 import io.gravitee.rest.api.portal.rest.model.ReferenceMetadata;
 import io.gravitee.rest.api.portal.rest.model.ReferenceMetadataInput;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
-import io.gravitee.rest.api.portal.rest.security.Permission;
-import io.gravitee.rest.api.portal.rest.security.Permissions;
 import io.gravitee.rest.api.service.ApplicationMetadataService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
@@ -51,7 +47,6 @@ public class ApplicationMetadataResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_METADATA, acls = RolePermissionAction.READ) })
     public Response getMetadataByApplicationId(
         @PathParam("applicationId") String applicationId,
         @BeanParam PaginationParam paginationParam
@@ -69,7 +64,6 @@ public class ApplicationMetadataResource extends AbstractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_METADATA, acls = RolePermissionAction.CREATE) })
     public Response createApplicationMetadata(
         @PathParam("applicationId") String applicationId,
         @Valid @NotNull final ReferenceMetadataInput metadata
@@ -90,7 +84,6 @@ public class ApplicationMetadataResource extends AbstractResource {
     @GET
     @Path("{metadataId}")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_METADATA, acls = RolePermissionAction.READ) })
     public Response getApplicationMetadataByApplicationIdAndMetadataId(
         @PathParam("applicationId") String applicationId,
         @PathParam("metadataId") String metadataId
@@ -102,7 +95,6 @@ public class ApplicationMetadataResource extends AbstractResource {
     @Path("{metadataId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_METADATA, acls = RolePermissionAction.UPDATE) })
     public Response updateApplicationMetadataByApplicationIdAndMetadataId(
         @PathParam("applicationId") String applicationId,
         @PathParam("metadataId") String metadataId,
@@ -123,7 +115,6 @@ public class ApplicationMetadataResource extends AbstractResource {
 
     @DELETE
     @Path("{metadataId}")
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_METADATA, acls = RolePermissionAction.DELETE) })
     public Response deleteApplicationMetadata(
         @PathParam("applicationId") String applicationId,
         @PathParam("metadataId") String metadataId

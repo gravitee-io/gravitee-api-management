@@ -24,12 +24,8 @@ import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.OAuthClientSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
 import io.gravitee.rest.api.model.configuration.application.ApplicationTypeEntity;
-import io.gravitee.rest.api.model.permissions.RolePermission;
-import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.portal.rest.mapper.ApplicationMapper;
 import io.gravitee.rest.api.portal.rest.model.Application;
-import io.gravitee.rest.api.portal.rest.security.Permission;
-import io.gravitee.rest.api.portal.rest.security.Permissions;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -64,7 +60,6 @@ public class ApplicationResource extends AbstractResource {
 
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.DELETE) })
     public Response deleteApplicationByApplicationId(@PathParam("applicationId") String applicationId) {
         applicationService.archive(GraviteeContext.getExecutionContext(), applicationId);
         return Response.noContent().build();
@@ -72,7 +67,6 @@ public class ApplicationResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ) })
     public Response getApplicationByApplicationId(@PathParam("applicationId") String applicationId) {
         Application application = applicationMapper.convert(
             GraviteeContext.getExecutionContext(),
@@ -86,7 +80,6 @@ public class ApplicationResource extends AbstractResource {
     @GET
     @Path("configuration")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ) })
     public Response getApplicationType(@PathParam("applicationId") String applicationId) {
         ApplicationEntity applicationEntity = applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);
         ApplicationTypeEntity applicationType = applicationTypeService.getApplicationType(applicationEntity.getType());
@@ -96,7 +89,6 @@ public class ApplicationResource extends AbstractResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.UPDATE) })
     public Response updateApplicationByApplicationId(
         @PathParam("applicationId") String applicationId,
         @Valid @NotNull(message = "Input must not be null.") Application application
@@ -151,7 +143,6 @@ public class ApplicationResource extends AbstractResource {
     @GET
     @Path("picture")
     @Produces({ MediaType.WILDCARD, MediaType.APPLICATION_JSON })
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ) })
     public Response getPictureByApplicationId(@Context Request request, @PathParam("applicationId") String applicationId) {
         applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);
         InlinePictureEntity image = applicationService.getPicture(GraviteeContext.getExecutionContext(), applicationId);
@@ -161,7 +152,6 @@ public class ApplicationResource extends AbstractResource {
     @GET
     @Path("background")
     @Produces({ MediaType.WILDCARD, MediaType.APPLICATION_JSON })
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ) })
     public Response getBackgroundByApplicationId(@Context Request request, @PathParam("applicationId") String applicationId) {
         applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);
         InlinePictureEntity image = applicationService.getBackground(GraviteeContext.getExecutionContext(), applicationId);
@@ -172,7 +162,6 @@ public class ApplicationResource extends AbstractResource {
     @Path("/_renew_secret")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.UPDATE) })
     public Response renewApplicationSecret(@PathParam("applicationId") String applicationId) {
         Application renwedApplication = applicationMapper.convert(
             GraviteeContext.getExecutionContext(),

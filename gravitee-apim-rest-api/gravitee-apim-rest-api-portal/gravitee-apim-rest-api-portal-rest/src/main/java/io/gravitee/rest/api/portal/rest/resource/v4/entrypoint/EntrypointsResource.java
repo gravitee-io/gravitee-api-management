@@ -16,13 +16,9 @@
 package io.gravitee.rest.api.portal.rest.resource.v4.entrypoint;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.model.permissions.RolePermission;
-import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.platform.plugin.SchemaDisplayFormat;
 import io.gravitee.rest.api.model.v4.connector.ConnectorExpandPluginEntity;
 import io.gravitee.rest.api.portal.rest.resource.v4.connector.AbstractConnectorsResource;
-import io.gravitee.rest.api.portal.rest.security.Permission;
-import io.gravitee.rest.api.portal.rest.security.Permissions;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
@@ -44,7 +40,6 @@ public class EntrypointsResource extends AbstractConnectorsResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
     public Collection<ConnectorExpandPluginEntity> getEntrypoints(@QueryParam("expand") List<String> expands) {
         final Collection<ConnectorExpandPluginEntity> connectors = super.expand(entrypointService.findAll(), expands);
         if (expands != null && expands.contains("subscriptionSchema")) {

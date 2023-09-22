@@ -21,14 +21,10 @@ import io.gravitee.rest.api.model.analytics.HistogramAnalytics;
 import io.gravitee.rest.api.model.analytics.HitsAnalytics;
 import io.gravitee.rest.api.model.analytics.TopHitsAnalytics;
 import io.gravitee.rest.api.model.analytics.query.*;
-import io.gravitee.rest.api.model.permissions.RolePermission;
-import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.portal.rest.mapper.AnalyticsMapper;
 import io.gravitee.rest.api.portal.rest.resource.param.Aggregation;
 import io.gravitee.rest.api.portal.rest.resource.param.AnalyticsParam;
 import io.gravitee.rest.api.portal.rest.resource.param.Range;
-import io.gravitee.rest.api.portal.rest.security.Permission;
-import io.gravitee.rest.api.portal.rest.security.Permissions;
 import io.gravitee.rest.api.service.AnalyticsService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -62,7 +58,6 @@ public class ApplicationAnalyticsResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_ANALYTICS, acls = RolePermissionAction.READ) })
     public Response hits(@PathParam("applicationId") String applicationId, @BeanParam AnalyticsParam analyticsParam) {
         //Does application exists ?
         applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);

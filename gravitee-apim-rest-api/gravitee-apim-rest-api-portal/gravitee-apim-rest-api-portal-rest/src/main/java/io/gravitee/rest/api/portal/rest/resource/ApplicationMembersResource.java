@@ -20,8 +20,6 @@ import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.RoleEntity;
-import io.gravitee.rest.api.model.permissions.RolePermission;
-import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.portal.rest.mapper.MemberMapper;
@@ -29,8 +27,6 @@ import io.gravitee.rest.api.portal.rest.model.Member;
 import io.gravitee.rest.api.portal.rest.model.MemberInput;
 import io.gravitee.rest.api.portal.rest.model.TransferOwnershipInput;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
-import io.gravitee.rest.api.portal.rest.security.Permission;
-import io.gravitee.rest.api.portal.rest.security.Permissions;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.UserService;
@@ -69,7 +65,6 @@ public class ApplicationMembersResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.READ) })
     public Response getMembersByApplicationId(
         @PathParam("applicationId") String applicationId,
         @BeanParam PaginationParam paginationParam
@@ -90,7 +85,6 @@ public class ApplicationMembersResource extends AbstractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.CREATE) })
     public Response createApplicationMember(
         @PathParam("applicationId") String applicationId,
         @Valid @NotNull(message = "Input must not be null.") MemberInput memberInput
@@ -119,7 +113,6 @@ public class ApplicationMembersResource extends AbstractResource {
     @GET
     @Path("/{memberId}")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.READ) })
     public Response getApplicationMemberByApplicationIdAndMemberId(
         @PathParam("applicationId") String applicationId,
         @PathParam("memberId") String memberId
@@ -145,7 +138,6 @@ public class ApplicationMembersResource extends AbstractResource {
     @DELETE
     @Path("/{memberId}")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.DELETE) })
     public Response deleteApplicationMember(@PathParam("applicationId") String applicationId, @PathParam("memberId") String memberId) {
         //Does application exist ?
         applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);
@@ -167,7 +159,6 @@ public class ApplicationMembersResource extends AbstractResource {
     @Path("/{memberId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.UPDATE) })
     public Response updateApplicationMemberByApplicationIdAndMemberId(
         @PathParam("applicationId") String applicationId,
         @PathParam("memberId") String memberId,
@@ -202,7 +193,6 @@ public class ApplicationMembersResource extends AbstractResource {
     @Path("/_transfer_ownership")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.UPDATE) })
     public Response transferMemberOwnership(
         @PathParam("applicationId") String applicationId,
         @NotNull(message = "Input must not be null.") TransferOwnershipInput transferOwnershipInput

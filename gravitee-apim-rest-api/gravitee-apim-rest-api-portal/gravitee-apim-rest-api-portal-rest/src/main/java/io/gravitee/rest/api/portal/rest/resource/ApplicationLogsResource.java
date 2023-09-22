@@ -22,14 +22,10 @@ import io.gravitee.rest.api.model.analytics.query.LogQuery;
 import io.gravitee.rest.api.model.log.ApplicationRequest;
 import io.gravitee.rest.api.model.log.ApplicationRequestItem;
 import io.gravitee.rest.api.model.log.SearchLogResponse;
-import io.gravitee.rest.api.model.permissions.RolePermission;
-import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.portal.rest.mapper.LogMapper;
 import io.gravitee.rest.api.portal.rest.model.Log;
 import io.gravitee.rest.api.portal.rest.resource.param.LogsParam;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
-import io.gravitee.rest.api.portal.rest.security.Permission;
-import io.gravitee.rest.api.portal.rest.security.Permissions;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.LogsService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -59,7 +55,6 @@ public class ApplicationLogsResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_LOG, acls = RolePermissionAction.READ) })
     public Response applicationLogs(
         @PathParam("applicationId") String applicationId,
         @BeanParam PaginationParam paginationParam,
@@ -107,7 +102,6 @@ public class ApplicationLogsResource extends AbstractResource {
     @GET
     @Path("/{logId}")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_LOG, acls = RolePermissionAction.READ) })
     public Response applicationLog(
         @PathParam("applicationId") String applicationId,
         @PathParam("logId") String logId,
@@ -123,7 +117,6 @@ public class ApplicationLogsResource extends AbstractResource {
 
     @POST
     @Path("_export")
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_LOG, acls = RolePermissionAction.READ) })
     public Response exportApplicationLogsAsCSV(
         @PathParam("applicationId") String applicationId,
         @BeanParam PaginationParam paginationParam,
