@@ -16,13 +16,18 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import com.fasterxml.jackson.databind.JavaType;
-import io.gravitee.rest.api.management.rest.filter.*;
 import io.gravitee.rest.api.management.rest.mapper.ObjectMapperResolver;
 import io.gravitee.rest.api.management.rest.provider.*;
 import io.gravitee.rest.api.management.rest.resource.auth.CockpitAuthenticationResource;
 import io.gravitee.rest.api.management.rest.resource.organization.OrganizationsResource;
 import io.gravitee.rest.api.management.rest.resource.organization.V1OrganizationsResource;
 import io.gravitee.rest.api.management.rest.resource.swagger.OpenAPIResource;
+import io.gravitee.rest.api.rest.filter.GraviteeContextResponseFilter;
+import io.gravitee.rest.api.rest.filter.GraviteeLicenseFilter;
+import io.gravitee.rest.api.rest.filter.MaintenanceFilter;
+import io.gravitee.rest.api.rest.filter.PermissionsFilter;
+import io.gravitee.rest.api.rest.filter.SecurityContextFilter;
+import io.gravitee.rest.api.rest.filter.UriBuilderRequestFilter;
 import io.swagger.converter.ModelConverter;
 import io.swagger.converter.ModelConverterContext;
 import io.swagger.converter.ModelConverters;
@@ -99,7 +104,6 @@ public class GraviteeManagementApplication extends ResourceConfig {
         register(SecurityContextFilter.class);
         register(PermissionsFilter.class);
         register(GraviteeLicenseFilter.class);
-        register(GraviteeContextRequestFilter.class);
         register(GraviteeContextResponseFilter.class);
         register(UriBuilderRequestFilter.class);
         register(MaintenanceFilter.class);

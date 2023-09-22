@@ -22,8 +22,6 @@ import io.gravitee.rest.api.management.rest.resource.param.AnalyticsAverageParam
 import io.gravitee.rest.api.management.rest.resource.param.healthcheck.HealthcheckField;
 import io.gravitee.rest.api.management.rest.resource.param.healthcheck.HealthcheckType;
 import io.gravitee.rest.api.management.rest.resource.param.healthcheck.LogsParam;
-import io.gravitee.rest.api.management.rest.security.Permission;
-import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.EventEntity;
 import io.gravitee.rest.api.model.analytics.Analytics;
 import io.gravitee.rest.api.model.analytics.query.Aggregation;
@@ -35,6 +33,8 @@ import io.gravitee.rest.api.model.healthcheck.Log;
 import io.gravitee.rest.api.model.healthcheck.SearchLogResponse;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.rest.annotation.Permission;
+import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.HealthCheckService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Operation;

@@ -24,12 +24,12 @@ import io.gravitee.rest.api.management.rest.resource.configuration.dictionary.Di
 import io.gravitee.rest.api.management.rest.resource.configuration.identity.IdentityProvidersResource;
 import io.gravitee.rest.api.management.rest.resource.organization.RoleScopesResource;
 import io.gravitee.rest.api.management.rest.resource.quality.QualityRulesResource;
-import io.gravitee.rest.api.management.rest.security.Permission;
-import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.configuration.application.ApplicationTypesEntity;
 import io.gravitee.rest.api.model.notification.NotifierEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.rest.annotation.Permission;
+import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.NotifierService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
