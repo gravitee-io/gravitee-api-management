@@ -19,7 +19,7 @@
   <form [formGroup]="formGroup" *ngIf="formGroup" (ngSubmit)="onSubmit()">
     <div class="title">
       <button
-        *ngIf="!this.isReadOnly && (!this.virtualHostModeEnabled || (this.virtualHostModeEnabled && !this.domainRestrictions.length))"
+        *ngIf="!this.isReadOnly && (!this.virtualHostModeEnabled || (this.virtualHostModeEnabled && this.domainRestrictions.length === 0))"
         (click)="switchEntrypointMode()"
         mat-button
         type="button"

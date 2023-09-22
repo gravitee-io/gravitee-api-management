@@ -235,13 +235,14 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       expectApiVerify();
     });
 
-    it('should show virtual host', async () => {
-      const harness = await loader.getHarness(GioFormListenersVirtualHostHarness);
-      const listeners = await harness.getListenerRows();
+    it('should show virtual host and no disable button', async () => {
+      const listeners = await loader.getHarness(GioFormListenersVirtualHostHarness).then((h) => h.getListenerRows());
       expect(listeners.length).toEqual(1);
       expect(await listeners[0].pathInput.getValue()).toEqual('/context-path');
 
       expect(await listeners[0].hostDomainSuffix.getText()).toEqual('host');
+      const harness = await loader.getHarness(ApiEntrypointsV4GeneralHarness);
+      expect(await harness.canToggleListenerMode()).toEqual(false);
     });
 
     it('should save changes to virtual host', async () => {
@@ -276,8 +277,22 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       expect(saveReq.request.body).toEqual(expectedUpdateApi);
       saveReq.flush(API);
     });
+  });
+  describe('API with virtual host but no domain restrictions', () => {
+    const ENV = fakeEnvironment({ domainRestrictions: [] });
+    const API = fakeApiV4({
+      listeners: [{ type: 'HTTP', paths: [{ path: '/context-path', host: 'host' }], entrypoints: [{ type: 'http-get' }] }],
+    });
 
-    it('should switch to context path mode', async () => {
+    beforeEach(async () => {
+      await createComponent(ENV, API);
+    });
+
+    afterEach(() => {
+      expectApiVerify();
+    });
+
+    it('should allow to switch to context path mode', async () => {
       const switchButton = await loader.getHarness(MatButtonHarness.with({ text: 'Disable virtual hosts' }));
       await switchButton.click();
 

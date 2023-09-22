@@ -21,6 +21,7 @@ export class ApiEntrypointsV4GeneralHarness extends ComponentHarness {
   public static hostSelector = '.entrypoints';
 
   private tableLocator = this.locatorFor(MatTableHarness);
+  private switchListenerModeLocator = this.locatorFor(MatButtonHarness.with({ selector: '#switchListenerType' }));
 
   async hasEntrypointsTable(): Promise<boolean> {
     return this.tableLocator()
@@ -39,5 +40,15 @@ export class ApiEntrypointsV4GeneralHarness extends ComponentHarness {
   }
   async deleteEntrypointByIndex(index: number): Promise<void> {
     return this.getDeleteBtnByRowIndex(index).then((btn) => btn.click());
+  }
+
+  async canToggleListenerMode(): Promise<boolean> {
+    return this.switchListenerModeLocator()
+      .then((btn) => !btn.isDisabled())
+      .catch((_) => false);
+  }
+
+  async getToggleBtn(): Promise<MatButtonHarness> {
+    return this.switchListenerModeLocator();
   }
 }
