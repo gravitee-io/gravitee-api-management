@@ -542,6 +542,32 @@ describe('ApiCreationV4Component', () => {
         expectEndpointsGetRequest([]);
       });
 
+      it('should not allow to disable virtual host when domain restrictions are set', async () => {
+        await fillAndValidateStep1ApiDetails('API', '3.0', 'Description');
+        const step2Harness0Architecture = await harnessLoader.getHarness(Step2Entrypoints0ArchitectureHarness);
+        expectEntrypointsGetRequest([]);
+        await step2Harness0Architecture.fillAndValidate('MESSAGE');
+        const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
+
+        expectEntrypointsGetRequest([{ id: 'sse', supportedApiType: 'MESSAGE', name: 'SSE' }]);
+        expectLicenseGetRequest({ tier: '', features: [], packs: [] });
+
+        await step2Harness.getEntrypoints().then((form) => form.selectOptionsByIds(['sse']));
+
+        await step2Harness.clickValidate();
+        expect(component.currentStep.payload.selectedEntrypoints).toEqual([
+          { icon: 'gio-literal:sse', id: 'sse', name: 'SSE', supportedListenerType: 'HTTP', deployed: true },
+        ]);
+        exceptEnvironmentGetRequest(fakeEnvironment({ domainRestrictions: ['domain.com', 'domain.net'] }));
+        expectSchemaGetRequest([{ id: 'sse', name: 'SSE' }]);
+        expectVerifyContextPathGetRequest();
+        expectApiGetPortalSettings();
+
+        const step21Harness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
+        expect(await step21Harness.canSwitchListenerMode()).toEqual(false);
+        expectApiGetPortalSettings();
+      });
+
       it('should configure entrypoints in the list', async () => {
         await fillAndValidateStep1ApiDetails('API', '2.0', 'Description');
         await fillAndValidateStep2Entrypoints0Architecture('MESSAGE');

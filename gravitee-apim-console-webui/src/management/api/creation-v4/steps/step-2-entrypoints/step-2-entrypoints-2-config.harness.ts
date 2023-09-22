@@ -109,4 +109,10 @@ export class Step2Entrypoints2ConfigHarness extends ComponentHarness {
     const gioFormQos = await this.getQosSelect(entrypointId)();
     await gioFormQos.selectOption(qos);
   }
+
+  async canSwitchListenerMode() {
+    return this.getSwitchListenersTypeButton()
+      .then(async (elt) => elt != null && !(await elt.isDisabled()))
+      .catch(() => false);
+  }
 }

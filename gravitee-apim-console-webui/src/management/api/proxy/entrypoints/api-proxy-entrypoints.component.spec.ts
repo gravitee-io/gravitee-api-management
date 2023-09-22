@@ -147,6 +147,7 @@ describe('ApiProxyEntrypointsComponent', () => {
       expectApiGetRequest(api);
       expectVerifyContextPathGetRequest();
       const switchButton = await loader.getHarness(MatButtonHarness.with({ text: 'Enable virtual hosts' }));
+      expect(await switchButton.isDisabled()).toEqual(false);
       await switchButton.click();
 
       expectApiGetPortalSettings();
@@ -448,6 +449,16 @@ describe('ApiProxyEntrypointsComponent', () => {
           overrideEntrypoint: false,
         },
       ]);
+    });
+
+    it('should not allow to switch to context-path mode', async () => {
+      const api = fakeApiV2({ id: API_ID, proxy: { virtualHosts: [{ path: '/path-foo', host: 'host.io' }, { path: '/path-bar' }] } });
+      expectApiGetRequest(api);
+      expectApiGetPortalSettings();
+      expectVerifyContextPathGetRequest();
+
+      const switchButton = await loader.getAllHarnesses(MatButtonHarness.with({ text: 'Disable virtual hosts' }));
+      expect(switchButton.length).toEqual(0);
     });
   });
 

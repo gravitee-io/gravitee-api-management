@@ -22,7 +22,14 @@
         <div class="entrypoints__context-path__title">
           <span class="mat-body-strong">Entrypoint context-paths</span>
 
-          <button *ngIf="canUpdate" id="switchListenerType" mat-button type="button" (click)="switchEntrypointsMode()">
+          <button
+            *ngIf="canUpdate"
+            id="switchListenerType"
+            mat-button
+            type="button"
+            (click)="switchEntrypointsMode()"
+            [disabled]="this.enableVirtualHost && this.domainRestrictions.length > 1"
+          >
             <ng-container *ngIf="!this.enableVirtualHost"> <mat-icon svgIcon="gio:check"></mat-icon> Enable virtual hosts </ng-container>
             <ng-container *ngIf="this.enableVirtualHost"> <mat-icon svgIcon="gio:cancel"></mat-icon> Disable virtual hosts </ng-container>
           </button>
