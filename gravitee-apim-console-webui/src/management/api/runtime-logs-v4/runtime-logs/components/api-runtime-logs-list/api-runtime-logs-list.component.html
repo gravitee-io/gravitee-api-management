@@ -21,7 +21,7 @@
 
 <ng-template #showList>
   <div class="logs-table">
-    <gio-banner-info *ngIf="!logEnabled">
+    <gio-banner-info *ngIf="logEnabled !== undefined && logEnabled === false">
       Configuration impact
       <span gioBannerBody>Runtime logs might not be up-to-date as they have been disabled in the settings</span>
       <div gioBannerAction>
