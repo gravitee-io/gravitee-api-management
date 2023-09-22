@@ -118,11 +118,11 @@ public class ApiIdsCalculatorServiceImpl implements ApiIdsCalculatorService {
 
         plansToRecalculate
             .stream()
+            .map(plan -> recalculateGeneralConditionsPageId(plan, newPageIdsByOldPageIds))
             .filter(plan -> plan.getCrossId() != null && !plan.getCrossId().isEmpty())
             .forEach(plan -> {
                 PlanEntity matchingPlan = plansByCrossId.get(plan.getCrossId());
                 plan.setId(matchingPlan != null ? matchingPlan.getId() : UuidString.generateRandom());
-                recalculateGeneralConditionsPageId(plan, newPageIdsByOldPageIds);
             });
     }
 
@@ -171,10 +171,10 @@ public class ApiIdsCalculatorServiceImpl implements ApiIdsCalculatorService {
     ) {
         plans
             .stream()
+            .map(plan -> recalculateGeneralConditionsPageId(plan, pagesIdsMap))
             .filter(plan -> plan.getId() != null && !plan.getId().isEmpty())
             .forEach(plan -> {
                 plan.setId(UuidString.generateForEnvironment(environmentId, apiId, plan.getId()));
-                recalculateGeneralConditionsPageId(plan, pagesIdsMap);
             });
     }
 
@@ -182,10 +182,11 @@ public class ApiIdsCalculatorServiceImpl implements ApiIdsCalculatorService {
         return apiCrossId == null ? Optional.empty() : apiService.findByEnvironmentIdAndCrossId(environmentId, apiCrossId);
     }
 
-    private static void recalculateGeneralConditionsPageId(PlanEntity plan, Map<String, String> newPageIdsByOldPageIds) {
+    private static PlanEntity recalculateGeneralConditionsPageId(PlanEntity plan, Map<String, String> newPageIdsByOldPageIds) {
         if (plan.getGeneralConditions() != null && !plan.getGeneralConditions().isEmpty()) {
             plan.setGeneralConditions(newPageIdsByOldPageIds.get(plan.getGeneralConditions()));
         }
+        return plan;
     }
 
     private boolean canRecalculateIds(ExportApiEntity api) {
