@@ -18,6 +18,9 @@ import { NotifyOnFailureCommand, RestoreMavenJobCacheCommand, SaveMavenJobCacheC
 import { Executor } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Executors';
 import { config } from '../../config';
 import { JobOptionalProperties } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Job/types/Job.types';
+import { SonarCloudAnalysisJob } from '../job-sonarcloud-analysis';
+import { CircleCIEnvironment } from '../../pipelines';
+import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
 
 export abstract class AbstractTestJob {
   protected static create(
@@ -27,6 +30,7 @@ export abstract class AbstractTestJob {
     executor: Executor,
     pathsToPersist: string[],
     properties?: JobOptionalProperties,
+    environment?: CircleCIEnvironment,
   ) {
     const restoreMavenJobCacheCmd = RestoreMavenJobCacheCommand.get();
     const saveMavenJobCacheCmd = SaveMavenJobCacheCommand.get();
@@ -35,34 +39,35 @@ export abstract class AbstractTestJob {
     dynamicConfig.addReusableCommand(saveMavenJobCacheCmd);
     dynamicConfig.addReusableCommand(notifyOnFailureCmd);
 
-    return new Job(
-      jobName,
-      executor,
-      [
-        new commands.Checkout(),
-        new commands.workspace.Attach({ at: '.' }),
-        new reusable.ReusedCommand(restoreMavenJobCacheCmd, { jobName }),
-        new commands.cache.Restore({
-          keys: [`${config.cache.prefix}-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}`],
-        }),
-        testStep,
-        new commands.Run({
-          name: 'Save test results',
-          command: `mkdir -p ~/test-results/junit/
+    const steps: Command[] = [
+      new commands.Checkout(),
+      new commands.workspace.Attach({ at: '.' }),
+      new reusable.ReusedCommand(restoreMavenJobCacheCmd, { jobName }),
+      new commands.cache.Restore({
+        keys: [`${config.cache.prefix}-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}`],
+      }),
+      testStep,
+      new commands.Run({
+        name: 'Save test results',
+        command: `mkdir -p ~/test-results/junit/
 find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \\;`,
-          when: 'always',
-        }),
-        new reusable.ReusedCommand(notifyOnFailureCmd),
-        new reusable.ReusedCommand(saveMavenJobCacheCmd, { jobName }),
-        new commands.StoreTestResults({
-          path: '~/test-results',
-        }),
-        new commands.workspace.Persist({
-          root: '.',
-          paths: pathsToPersist,
-        }),
-      ],
-      properties,
-    );
+        when: 'always',
+      }),
+      new reusable.ReusedCommand(notifyOnFailureCmd),
+      new reusable.ReusedCommand(saveMavenJobCacheCmd, { jobName }),
+      new commands.StoreTestResults({
+        path: '~/test-results',
+      }),
+      new commands.workspace.Persist({
+        root: '.',
+        paths: pathsToPersist,
+      }),
+    ];
+
+    if (environment) {
+      steps.push(...SonarCloudAnalysisJob.getSonarSteps(dynamicConfig, environment, properties?.working_directory));
+    }
+
+    return new Job(jobName, executor, steps, properties);
   }
 }

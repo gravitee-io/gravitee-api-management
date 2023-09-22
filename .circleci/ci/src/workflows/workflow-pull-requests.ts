@@ -101,7 +101,7 @@ export class PullRequestsWorkflow {
       const testGatewayJob = TestGatewayJob.create(dynamicConfig);
       dynamicConfig.addJob(testGatewayJob);
 
-      const testRestApiJob = TestRestApiJob.create(dynamicConfig);
+      const testRestApiJob = TestRestApiJob.createJob(dynamicConfig, environment);
       dynamicConfig.addJob(testRestApiJob);
 
       const testIntegrationJob = TestIntegrationJob.create(dynamicConfig);
@@ -175,13 +175,6 @@ export class PullRequestsWorkflow {
           requires: ['Test gateway'],
           working_directory: 'gravitee-apim-gateway',
         }),
-        new workflow.WorkflowJob(sonarCloudAnalysisJob, {
-          name: 'Sonar - gravitee-apim-rest-api',
-          context: config.jobContext,
-          requires: ['Test rest-api'],
-          working_directory: 'gravitee-apim-rest-api',
-        }),
-
         new workflow.WorkflowJob(sonarCloudAnalysisJob, {
           name: 'Sonar - gravitee-apim-plugin',
           context: config.jobContext,

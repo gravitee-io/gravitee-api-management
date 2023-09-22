@@ -35,9 +35,17 @@ export class SonarCloudAnalysisJob {
   ]);
 
   public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
-    dynamicConfig.importOrb(orbs.keeper);
+    return new reusable.ParameterizedJob(
+      SonarCloudAnalysisJob.jobName,
+      SonarScannerExecutor.create('large'),
+      SonarCloudAnalysisJob.customParametersList,
+      this.getSonarSteps(dynamicConfig, environment, '<< parameters.working_directory >>'),
+    );
+  }
 
+  public static getSonarSteps(dynamicConfig: Config, environment: CircleCIEnvironment, workingDirectory: string = '.') {
     const apimVersion = computeApimVersion(environment);
+    dynamicConfig.importOrb(orbs.keeper);
 
     const restoreMavenJobCacheCmd = RestoreMavenJobCacheCommand.get();
     const saveMavenJobCacheCmd = SaveMavenJobCacheCommand.get();
@@ -67,7 +75,7 @@ export class SonarCloudAnalysisJob {
       new commands.Run({
         name: 'Run Sonarcloud Analysis',
         command: `sonar-scanner -Dsonar.projectVersion=${apimVersion}`,
-        working_directory: '<< parameters.working_directory >>',
+        working_directory: workingDirectory,
       }),
       new reusable.ReusedCommand(notifyOnFailureCmd),
       new commands.cache.Save({
@@ -77,11 +85,6 @@ export class SonarCloudAnalysisJob {
       }),
     ];
 
-    return new reusable.ParameterizedJob(
-      SonarCloudAnalysisJob.jobName,
-      SonarScannerExecutor.create('large'),
-      SonarCloudAnalysisJob.customParametersList,
-      steps,
-    );
+    return steps;
   }
 }

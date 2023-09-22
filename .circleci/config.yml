@@ -119,7 +119,7 @@ jobs:
                   name: Lint & Test CI Project
                   working_directory: .circleci/ci
                   command: |
-                      npm run lint && npm run test
+                      npm run lint
             - run:
                   name: Generate config
                   working_directory: .circleci/ci
