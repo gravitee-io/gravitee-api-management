@@ -47,8 +47,8 @@ describe('API - V4 - Import - Gravitee Definition - With everything', () => {
       let importedApi: ApiV4;
 
       // plans
-      let savedKeylessPlanId: string;
-      let savedApiKeyPlanId: string;
+      let savedKeylessPlan: PlanV4;
+      let savedApiKeyPlan: PlanV4;
       const keylessPlan = MAPIV2PlansFaker.planV4();
       const apiKeyPlan = MAPIV2PlansFaker.planV4({
         security: { type: PlanSecurityType.API_KEY },
@@ -64,7 +64,9 @@ describe('API - V4 - Import - Gravitee Definition - With everything', () => {
 
       // pages
       const pageToImport = MAPIV2PagesFaker.page();
+      const generalConditionsPageToImport = MAPIV2PagesFaker.page({ id: 'general-condition-id' });
       let importedPage: PageEntity;
+      let importedGeneralConditionsPage: PageEntity;
 
       test('should create member and role first', async () => {
         memberToImport = await succeed(
@@ -84,6 +86,7 @@ describe('API - V4 - Import - Gravitee Definition - With everything', () => {
       });
 
       test('should import v4 API with everything', async () => {
+        keylessPlan.generalConditions = generalConditionsPageToImport.id;
         importedApi = await created(
           v2ApisResourceAsApiPublisher.createApiWithImportDefinitionRaw({
             envId,
@@ -104,7 +107,7 @@ describe('API - V4 - Import - Gravitee Definition - With everything', () => {
                 }),
               ],
               metadata: [metadataToImport],
-              pages: [pageToImport],
+              pages: [pageToImport, generalConditionsPageToImport],
             }),
           }),
         );
@@ -134,7 +137,7 @@ describe('API - V4 - Import - Gravitee Definition - With everything', () => {
         expect(plans).toHaveLength(2);
         // Verifying keyless plan
         const keylessPlanResult = plans.find((p) => p.name === keylessPlan.name) as PlanV4;
-        savedKeylessPlanId = keylessPlanResult.id;
+        savedKeylessPlan = keylessPlanResult;
         expect(keylessPlanResult.name).toStrictEqual(keylessPlan.name);
         expect(keylessPlanResult.apiId).toStrictEqual(importedApi.id);
         expect(keylessPlanResult.description).toStrictEqual(keylessPlan.description);
@@ -145,11 +148,11 @@ describe('API - V4 - Import - Gravitee Definition - With everything', () => {
         expect(keylessPlanResult.mode).toStrictEqual(keylessPlan.mode);
         expect(keylessPlanResult.flows).toStrictEqual(keylessPlan.flows);
         expect(keylessPlanResult.characteristics).toStrictEqual(keylessPlan.characteristics);
-        expect(keylessPlanResult.generalConditions).toStrictEqual(keylessPlan.generalConditions);
+        expect(keylessPlanResult.generalConditions).not.toEqual(keylessPlan.generalConditions);
 
         // Verifying apikey plan
         const apiKeyPlanResult = plans.find((p) => p.name === apiKeyPlan.name) as PlanV4;
-        savedApiKeyPlanId = apiKeyPlanResult.id;
+        savedApiKeyPlan = apiKeyPlanResult;
         expect(apiKeyPlanResult.name).toStrictEqual(apiKeyPlan.name);
         expect(apiKeyPlanResult.apiId).toStrictEqual(importedApi.id);
         expect(apiKeyPlanResult.description).toStrictEqual(apiKeyPlan.description);
@@ -201,12 +204,16 @@ describe('API - V4 - Import - Gravitee Definition - With everything', () => {
             api: importedApi.id,
           }),
         );
-        expect(pagesResponse).toHaveLength(2);
+        expect(pagesResponse).toHaveLength(3);
         // By default, one page is here a system folder
         expect(pagesResponse.filter((p) => p.type === 'SYSTEM_FOLDER')).toHaveLength(1);
 
         importedPage = pagesResponse.find((p) => p.name === pageToImport.name);
         expect(importedPage.id).toBeDefined();
+        importedGeneralConditionsPage = pagesResponse.find((p) => p.name === generalConditionsPageToImport.name);
+        expect(importedGeneralConditionsPage.id).toBeDefined();
+        expect(importedGeneralConditionsPage.generalConditions).toBeTruthy();
+        expect(importedGeneralConditionsPage.id).toStrictEqual(savedKeylessPlan.generalConditions);
       });
 
       test('should get API picture', async () => {
@@ -235,7 +242,7 @@ describe('API - V4 - Import - Gravitee Definition - With everything', () => {
         expect(base64Image).toStrictEqual(ImagesUtils.fakeImage150x35);
       });
 
-      afterAll(async () => {
+      test('yann', async () => {
         // members
         await noContent(
           v1ConfigurationResourceAsAdmin.deleteRoleRaw({
@@ -257,14 +264,14 @@ describe('API - V4 - Import - Gravitee Definition - With everything', () => {
           v2APlansResourceAsApiPublisher.deleteApiPlanRaw({
             envId,
             apiId: importedApi.id,
-            planId: savedKeylessPlanId,
+            planId: savedKeylessPlan.id,
           }),
         );
         await noContent(
           v2APlansResourceAsApiPublisher.deleteApiPlanRaw({
             envId,
             apiId: importedApi.id,
-            planId: savedApiKeyPlanId,
+            planId: savedApiKeyPlan.id,
           }),
         );
 
@@ -275,6 +282,14 @@ describe('API - V4 - Import - Gravitee Definition - With everything', () => {
             envId,
             api: importedApi.id,
             page: importedPage.id,
+          }),
+        );
+        await noContent(
+          v1ApiPagesResourceAsApiPublisher.deleteApiPageRaw({
+            orgId,
+            envId,
+            api: importedApi.id,
+            page: importedGeneralConditionsPage.id,
           }),
         );
 
