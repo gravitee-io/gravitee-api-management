@@ -34,14 +34,14 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 
-import { ApiProxyEntrypointsVirtualHostComponent } from './virtual-host/api-proxy-entrypoints-virtual-host.component';
-import { ApiProxyEntrypointsContextPathComponent } from './context-path/api-proxy-entrypoints-context-path.component';
 import { ApiProxyEntrypointsComponent } from './api-proxy-entrypoints.component';
 
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
+import { GioFormListenersContextPathModule } from '../../component/gio-form-listeners/gio-form-listeners-context-path/gio-form-listeners-context-path.module';
+import { GioFormListenersVirtualHostModule } from '../../component/gio-form-listeners/gio-form-listeners-virtual-host/gio-form-listeners-virtual-host.module';
 
 @NgModule({
-  declarations: [ApiProxyEntrypointsComponent, ApiProxyEntrypointsContextPathComponent, ApiProxyEntrypointsVirtualHostComponent],
+  declarations: [ApiProxyEntrypointsComponent],
   exports: [ApiProxyEntrypointsComponent],
   imports: [
     CommonModule,
@@ -61,6 +61,8 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
     GioIconsModule,
     GioFormFocusInvalidModule,
     GioClipboardModule,
+    GioFormListenersContextPathModule,
+    GioFormListenersVirtualHostModule,
   ],
 })
 export class ApiProxyEntrypointsModule {}
