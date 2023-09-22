@@ -121,6 +121,84 @@ export class MAPIV2ApisFaker {
     };
   }
 
+  /**
+   * A MESSAGE v4 API configured with HTTP-GET entrypoint and MOCK endpoint
+   * @param attributes
+   */
+  static apiV4Message(attributes?: Partial<ApiV4>): ApiV4 {
+    const name = faker.lorem.words(10);
+    const apiVersion = this.version();
+    const description = faker.lorem.words(10);
+
+    return {
+      apiVersion,
+      definitionVersion: DefinitionVersion.V4,
+      description,
+      name,
+      endpointGroups: [
+        {
+          name: 'default-mock-group',
+          type: 'mock',
+          sharedConfiguration: {},
+          endpoints: [
+            {
+              name: 'default-mock-endpoint',
+              type: 'mock',
+              inheritConfiguration: true,
+              configuration: {
+                messageContent: 'Mock message',
+                messageInterval: 20,
+                headers: [
+                  {
+                    name: 'X-Header',
+                    value: 'header-value',
+                  },
+                ],
+                metadata: [
+                  {
+                    name: 'Metadata',
+                    value: 'metadata-value',
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      ],
+      flowExecution: {
+        flowMode: FlowMode.DEFAULT,
+        matchRequired: false,
+      } as FlowExecution,
+      flows: [],
+      groups: [],
+      listeners: [
+        {
+          type: ListenerType.HTTP,
+          paths: [
+            {
+              path: `${faker.helpers.slugify(faker.lorem.words(3))}`,
+            },
+          ],
+          entrypoints: [
+            {
+              type: 'http-get',
+              qos: 'AUTO',
+              configuration: {
+                headersInPayload: true,
+                messagesLimitCount: 40,
+                messagesLimitDurationMs: 2000,
+                metadataInPayload: true,
+              },
+            },
+          ],
+        },
+      ],
+      tags: [],
+      type: ApiType.MESSAGE,
+      ...attributes,
+    };
+  }
+
   static apiImportV4(attributes?: Partial<ExportApiV4>): ExportApiV4 {
     return {
       api: this.apiV4(),
