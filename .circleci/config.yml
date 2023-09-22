@@ -75,11 +75,11 @@ jobs:
 
                                 if [ "x${CIRCLE_PULL_REQUEST}" == "x" ]; then
                                   echo "No opened pull request for this branch -> try to find the base branch with commits."
-                                  # Loop over the last 100 commits maximum and find the first commit that is on a branch matching `master` or `[0-9].[0-9].x`
+                                  # Loop over the last 100 commits maximum and find the first commit that is on a branch matching `origin/master` or `origin/[0-9].[0-9].x`
                                   MAX_COMMITS=100
                                 
-                                  # Define the pattern for matching branch names: master or [0-9].[0-9].x
-                                  PATTERN="master|[0-9]+\.[0-9]+\.x"
+                                  # Define the pattern for matching branch names: origin/master or origin/[0-9].[0-9].x
+                                  PATTERN="origin/master|origin/[0-9]+\.[0-9]+\.x"
                                 
                                   # Loop over the last $MAX_COMMITS commits
                                   for (( i = 0; i < MAX_COMMITS; i++ )); do
@@ -87,7 +87,7 @@ jobs:
                                     hash=$(git rev-parse HEAD~$i)
                                   
                                     # Get the branch name that contains the commit hash and matches the pattern
-                                    branch=$(git --no-pager branch --contains $hash | grep -oE $PATTERN || true)
+                                    branch=$(git --no-pager branch -r --contains $hash | grep -oE $PATTERN || true)
                                   
                                     # If the branch name is not empty, then the matching branch has been found
                                     if [ -n "$branch" ]; then
@@ -100,7 +100,7 @@ jobs:
                                 # else use the pull request info
                                 else
                                   PULL_REQUEST_URL=$(echo https://api.github.com/repos/${CIRCLE_PULL_REQUEST:19} | sed "s/\/pull\//\/pulls\//")
-                                  BASE_REF=$(curl -s -H "Authorization: token ${GITHUB_TOKEN}" ${PULL_REQUEST_URL} | jq -r '.base.ref // "master"')
+                                  BASE_REF=origin/$(curl -s -H "Authorization: token ${GITHUB_TOKEN}" ${PULL_REQUEST_URL} | jq -r '.base.ref // "master"')
                                 fi;
                               
                                 # if BASE_REF is empty just stop
