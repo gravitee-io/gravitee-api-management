@@ -35,6 +35,7 @@ import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.CommandService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.ReferenceContext;
 import io.gravitee.rest.api.service.impl.search.SearchEngineServiceImpl;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
 import io.gravitee.rest.api.service.impl.search.configuration.SearchEngineConfiguration;
@@ -626,7 +627,7 @@ public class SearchEngineServiceTest {
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setId("api-" + index);
         apiEntity.setReferenceId(envId);
-        apiEntity.setReferenceType(GraviteeContext.ReferenceContextType.ENVIRONMENT.name());
+        apiEntity.setReferenceType(ReferenceContext.Type.ENVIRONMENT.name());
         apiEntity.setName(apiName);
         apiEntity.setUpdatedAt(new Date());
         apiEntity.setLabels(labels);
@@ -665,7 +666,7 @@ public class SearchEngineServiceTest {
             pageEntity.setReferenceId("api-" + i);
         } else {
             pageEntity.setReferenceId(GraviteeContext.getCurrentEnvironment());
-            pageEntity.setReferenceType(GraviteeContext.ReferenceContextType.ENVIRONMENT.name());
+            pageEntity.setReferenceType(ReferenceContext.Type.ENVIRONMENT.name());
         }
 
         pageEntity.setVisibility(Visibility.PUBLIC);

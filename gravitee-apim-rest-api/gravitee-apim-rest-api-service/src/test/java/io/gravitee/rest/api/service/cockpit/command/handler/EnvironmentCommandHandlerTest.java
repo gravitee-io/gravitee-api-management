@@ -33,7 +33,6 @@ import io.reactivex.rxjava3.observers.TestObserver;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -49,15 +48,15 @@ public class EnvironmentCommandHandlerTest {
 
     @Mock
     private EnvironmentService environmentService;
+
     @Mock
     private AccessPointService accessPointService;
-
 
     public EnvironmentCommandHandler cut;
 
     @Before
     public void before() {
-        cut = new EnvironmentCommandHandler(environmentService,accessPointService);
+        cut = new EnvironmentCommandHandler(environmentService, accessPointService);
     }
 
     @Test
@@ -76,7 +75,12 @@ public class EnvironmentCommandHandlerTest {
         environmentPayload.setOrganizationId("orga#1");
         environmentPayload.setDescription("Environment description");
         environmentPayload.setName("Environment name");
-        environmentPayload.setAccessPoints(List.of(AccessPoint.builder().target(AccessPoint.Target.CONSOLE).host("domain.restriction1.io").build(),AccessPoint.builder().target(AccessPoint.Target.CONSOLE).host("domain.restriction2.io").build()));
+        environmentPayload.setAccessPoints(
+            List.of(
+                AccessPoint.builder().target(AccessPoint.Target.CONSOLE).host("domain.restriction1.io").build(),
+                AccessPoint.builder().target(AccessPoint.Target.CONSOLE).host("domain.restriction2.io").build()
+            )
+        );
 
         when(
             environmentService.createOrUpdate(
@@ -108,7 +112,12 @@ public class EnvironmentCommandHandlerTest {
         environmentPayload.setOrganizationId("orga#1");
         environmentPayload.setDescription("Environment description");
         environmentPayload.setName("Environment name");
-        environmentPayload.setAccessPoints(List.of(AccessPoint.builder().target(AccessPoint.Target.CONSOLE).host("domain.restriction1.io").build(),AccessPoint.builder().target(AccessPoint.Target.CONSOLE).host("domain.restriction2.io").build()));
+        environmentPayload.setAccessPoints(
+            List.of(
+                AccessPoint.builder().target(AccessPoint.Target.CONSOLE).host("domain.restriction1.io").build(),
+                AccessPoint.builder().target(AccessPoint.Target.CONSOLE).host("domain.restriction2.io").build()
+            )
+        );
 
         when(environmentService.createOrUpdate(eq("orga#1"), eq("env#1"), any(UpdateEnvironmentEntity.class)))
             .thenThrow(new RuntimeException("fake error"));

@@ -19,7 +19,6 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.AccessPoint;
 import io.gravitee.repository.management.model.AccessPointReferenceType;
 import io.gravitee.repository.management.model.AccessPointTarget;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -30,8 +29,11 @@ import java.util.Optional;
 public interface AccessPointRepository extends CrudRepository<AccessPoint, String> {
     Optional<AccessPoint> findByHost(final String host) throws TechnicalException;
 
-    List<AccessPoint> findByReferenceAndTarget(final AccessPointReferenceType referenceType, final String referenceId, final AccessPointTarget target)
-            throws TechnicalException;
+    List<AccessPoint> findByReferenceAndTarget(
+        final AccessPointReferenceType referenceType,
+        final String referenceId,
+        final AccessPointTarget target
+    ) throws TechnicalException;
 
     void deleteByReference(AccessPointReferenceType referenceType, String referenceId) throws TechnicalException;
 }

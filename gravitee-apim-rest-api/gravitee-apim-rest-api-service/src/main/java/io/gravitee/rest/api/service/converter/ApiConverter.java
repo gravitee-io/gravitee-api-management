@@ -41,6 +41,7 @@ import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.ReferenceContext;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.mapper.CategoryMapper;
@@ -95,7 +96,7 @@ public class ApiConverter {
         apiEntity.setCreatedAt(api.getCreatedAt());
         apiEntity.setGroups(api.getGroups());
         apiEntity.setDisableMembershipNotifications(api.isDisableMembershipNotifications());
-        apiEntity.setReferenceType(GraviteeContext.ReferenceContextType.ENVIRONMENT.name());
+        apiEntity.setReferenceType(ReferenceContext.Type.ENVIRONMENT.name());
         apiEntity.setReferenceId(api.getEnvironmentId());
         apiEntity.setCategories(api.getCategories());
         apiEntity.setDefinitionContext(new DefinitionContext(api.getOrigin(), api.getMode()));

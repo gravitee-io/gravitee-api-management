@@ -33,7 +33,6 @@ import io.reactivex.rxjava3.observers.TestObserver;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -49,6 +48,7 @@ public class OrganizationCommandHandlerTest {
 
     @Mock
     private OrganizationService organizationService;
+
     @Mock
     private AccessPointService accessPointService;
 
@@ -56,7 +56,7 @@ public class OrganizationCommandHandlerTest {
 
     @Before
     public void before() {
-        cut = new OrganizationCommandHandler(organizationService,accessPointService);
+        cut = new OrganizationCommandHandler(organizationService, accessPointService);
     }
 
     @Test
@@ -74,7 +74,12 @@ public class OrganizationCommandHandlerTest {
         organizationPayload.setHrids(Collections.singletonList("orga-1"));
         organizationPayload.setDescription("Organization description");
         organizationPayload.setName("Organization name");
-        organizationPayload.setAccessPoints(List.of(AccessPoint.builder().target(AccessPoint.Target.CONSOLE).host("domain.restriction1.io").build(),AccessPoint.builder().target(AccessPoint.Target.CONSOLE).host("domain.restriction2.io").build()));
+        organizationPayload.setAccessPoints(
+            List.of(
+                AccessPoint.builder().target(AccessPoint.Target.CONSOLE).host("domain.restriction1.io").build(),
+                AccessPoint.builder().target(AccessPoint.Target.CONSOLE).host("domain.restriction2.io").build()
+            )
+        );
 
         when(
             organizationService.createOrUpdate(
@@ -103,7 +108,12 @@ public class OrganizationCommandHandlerTest {
         organizationPayload.setId("orga#1");
         organizationPayload.setDescription("Organization description");
         organizationPayload.setName("Organization name");
-        organizationPayload.setAccessPoints(List.of(AccessPoint.builder().target(AccessPoint.Target.CONSOLE).host("domain.restriction1.io").build(),AccessPoint.builder().target(AccessPoint.Target.CONSOLE).host("domain.restriction2.io").build()));
+        organizationPayload.setAccessPoints(
+            List.of(
+                AccessPoint.builder().target(AccessPoint.Target.CONSOLE).host("domain.restriction1.io").build(),
+                AccessPoint.builder().target(AccessPoint.Target.CONSOLE).host("domain.restriction2.io").build()
+            )
+        );
 
         when(
             organizationService.createOrUpdate(

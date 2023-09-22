@@ -32,13 +32,12 @@ import io.gravitee.rest.api.service.OrganizationService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.reactivex.rxjava3.core.Single;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -51,6 +50,7 @@ public class OrganizationCommandHandler implements CommandHandler<OrganizationCo
 
     private final OrganizationService organizationService;
     private final AccessPointService accessPointService;
+
     @Override
     public Command.Type handleType() {
         return Command.Type.ORGANIZATION_COMMAND;
@@ -71,20 +71,22 @@ public class OrganizationCommandHandler implements CommandHandler<OrganizationCo
             final OrganizationEntity organization = organizationService.createOrUpdate(executionContext, newOrganization);
 
             List<AccessPoint> accessPoints = organizationPayload.getAccessPoints();
-            if (accessPoints != null){
+            if (accessPoints != null) {
                 List<io.gravitee.repository.management.model.AccessPoint> accessPointsToCreate = accessPoints
-                        .stream()
-                        .map(cockpitAccessPoint -> io.gravitee.repository.management.model.AccessPoint
-                                .builder()
-                                .referenceType(AccessPointReferenceType.ORGANIZATION)
-                                .referenceId(organization.getId())
-                                .target(AccessPointTarget.valueOf(cockpitAccessPoint.getTarget().name()))
-                                .host(cockpitAccessPoint.getHost())
-                                .secured(cockpitAccessPoint.isSecured())
-                                .overriding(cockpitAccessPoint.isOverriding())
-                                .build())
-                        .toList();
-                accessPointService.updateAccessPoints(AccessPointReferenceType.ORGANIZATION, organization.getId(),accessPointsToCreate);
+                    .stream()
+                    .map(cockpitAccessPoint ->
+                        io.gravitee.repository.management.model.AccessPoint
+                            .builder()
+                            .referenceType(AccessPointReferenceType.ORGANIZATION)
+                            .referenceId(organization.getId())
+                            .target(AccessPointTarget.valueOf(cockpitAccessPoint.getTarget().name()))
+                            .host(cockpitAccessPoint.getHost())
+                            .secured(cockpitAccessPoint.isSecured())
+                            .overriding(cockpitAccessPoint.isOverriding())
+                            .build()
+                    )
+                    .toList();
+                accessPointService.updateAccessPoints(AccessPointReferenceType.ORGANIZATION, organization.getId(), accessPointsToCreate);
             }
             log.info("Organization [{}] handled with id [{}].", organization.getName(), organization.getId());
             return Single.just(new OrganizationReply(command.getId(), CommandStatus.SUCCEEDED));

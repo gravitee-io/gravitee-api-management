@@ -48,6 +48,7 @@ import io.gravitee.rest.api.service.CategoryService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.ReferenceContext;
 import io.gravitee.rest.api.service.v4.FlowService;
 import io.gravitee.rest.api.service.v4.PlanService;
 import java.util.Date;
@@ -142,7 +143,7 @@ public class ApiMapperTest {
         assertThat(apiEntity.getCreatedAt()).isNotNull();
         assertThat(apiEntity.getDescription()).isEqualTo("description");
         assertThat(apiEntity.getGroups().size()).isEqualTo(1);
-        assertThat(apiEntity.getReferenceType()).isEqualTo(GraviteeContext.ReferenceContextType.ENVIRONMENT.name());
+        assertThat(apiEntity.getReferenceType()).isEqualTo(ReferenceContext.Type.ENVIRONMENT.name());
         assertThat(apiEntity.getReferenceId()).isEqualTo("environmentId");
         assertThat(apiEntity.getCategories().size()).isEqualTo(1);
         assertThat(apiEntity.getPicture()).isEqualTo("picture");
@@ -207,7 +208,7 @@ public class ApiMapperTest {
         assertThat(apiEntity.getCreatedAt()).isNotNull();
         assertThat(apiEntity.getDescription()).isEqualTo("description");
         assertThat(apiEntity.getGroups().size()).isEqualTo(1);
-        assertThat(apiEntity.getReferenceType()).isEqualTo(GraviteeContext.ReferenceContextType.ENVIRONMENT.name());
+        assertThat(apiEntity.getReferenceType()).isEqualTo(ReferenceContext.Type.ENVIRONMENT.name());
         assertThat(apiEntity.getReferenceId()).isEqualTo("environmentId");
         assertThat(apiEntity.getCategories().size()).isEqualTo(1);
         assertThat(apiEntity.getPicture()).isEqualTo("picture");

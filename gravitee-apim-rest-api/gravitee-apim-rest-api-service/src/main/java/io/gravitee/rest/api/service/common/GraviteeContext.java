@@ -22,10 +22,8 @@ import io.gravitee.rest.api.model.parameters.Key;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -98,51 +96,27 @@ public class GraviteeContext {
         return (ConcurrentMap) contextThread.get().get(USERS_METADATA_CONTEXT_CACHE_KEY);
     }
 
+    public static void fromExecutionContext(final ExecutionContext executionContext) {
+        setCurrentOrganization(executionContext.getOrganizationId());
+        if (executionContext.hasEnvironmentId()) {
+            setCurrentEnvironment(executionContext.getEnvironmentId());
+        } else {
+            setCurrentEnvironment(null);
+        }
+    }
+
     public static ExecutionContext getExecutionContext() {
         return new ExecutionContext(getCurrentOrganization(), getCurrentEnvironment());
     }
 
     public static ReferenceContext getCurrentContext() {
         if (getCurrentEnvironment() == null) {
-            return new ReferenceContext(getCurrentOrganization(), ReferenceContextType.ORGANIZATION);
+            return ReferenceContext
+                .builder()
+                .referenceType(ReferenceContext.Type.ORGANIZATION)
+                .referenceId(getCurrentOrganization())
+                .build();
         }
-        return new ReferenceContext(getCurrentEnvironment(), ReferenceContextType.ENVIRONMENT);
-    }
-
-    public static class ReferenceContext {
-
-        String referenceId;
-        ReferenceContextType referenceType;
-
-        public ReferenceContext(String referenceId, ReferenceContextType referenceType) {
-            this.referenceId = referenceId;
-            this.referenceType = referenceType;
-        }
-
-        public String getReferenceId() {
-            return referenceId;
-        }
-
-        public ReferenceContextType getReferenceType() {
-            return referenceType;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            ReferenceContext that = (ReferenceContext) o;
-            return Objects.equals(referenceId, that.referenceId) && referenceType == that.referenceType;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(referenceId, referenceType);
-        }
-    }
-
-    public enum ReferenceContextType {
-        ENVIRONMENT,
-        ORGANIZATION,
+        return ReferenceContext.builder().referenceType(ReferenceContext.Type.ENVIRONMENT).referenceId(getCurrentEnvironment()).build();
     }
 }
