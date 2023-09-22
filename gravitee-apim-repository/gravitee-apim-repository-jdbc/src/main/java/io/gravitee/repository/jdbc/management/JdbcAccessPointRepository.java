@@ -21,13 +21,12 @@ import io.gravitee.repository.management.api.AccessPointRepository;
 import io.gravitee.repository.management.model.AccessPoint;
 import io.gravitee.repository.management.model.AccessPointReferenceType;
 import io.gravitee.repository.management.model.AccessPointTarget;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Repository;
-
 import java.sql.Types;
 import java.util.List;
 import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -91,10 +90,13 @@ public class JdbcAccessPointRepository extends JdbcAbstractCrudRepository<Access
     @Override
     public void deleteByReference(final AccessPointReferenceType referenceType, final String referenceId) throws TechnicalException {
         try {
-            jdbcTemplate.update("delete from " + tableName + " where reference_id = ? and reference_type = ?", referenceId, referenceType.name());
+            jdbcTemplate.update(
+                "delete from " + tableName + " where reference_id = ? and reference_type = ?",
+                referenceId,
+                referenceType.name()
+            );
         } catch (final Exception ex) {
             throw new TechnicalException("Failed to delete access points by reference", ex);
         }
     }
-
 }

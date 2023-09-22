@@ -22,15 +22,16 @@ import io.gravitee.repository.management.model.AccessPointReferenceType;
 import io.gravitee.repository.management.model.AccessPointTarget;
 import io.gravitee.rest.api.model.RestrictedDomainEntity;
 import io.gravitee.rest.api.service.AccessPointService;
+import io.gravitee.rest.api.service.common.ReferenceContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -45,7 +46,11 @@ public class AccessPointServiceImpl extends AbstractService implements AccessPoi
     private AccessPointRepository accessPointRepository;
 
     @Override
-    public void updateAccessPoints(final AccessPointReferenceType referenceType, final String referenceId, final List<AccessPoint> accessPoints) {
+    public void updateAccessPoints(
+        final AccessPointReferenceType referenceType,
+        final String referenceId,
+        final List<AccessPoint> accessPoints
+    ) {
         try {
             accessPointRepository.deleteByReference(referenceType, referenceId);
 
@@ -61,13 +66,31 @@ public class AccessPointServiceImpl extends AbstractService implements AccessPoi
     }
 
     @Override
+    public Optional<ReferenceContext> getReferenceContext(final String host) {
+        try {
+            return accessPointRepository
+                .findByHost(host)
+                .map(accessPoint ->
+                    ReferenceContext
+                        .builder()
+                        .referenceId(accessPoint.getReferenceId())
+                        .referenceType(ReferenceContext.Type.valueOf(accessPoint.getReferenceType().name()))
+                        .build()
+                );
+        } catch (TechnicalException e) {
+            log.debug("Unable to retrieve access point from given host '{}'", host, e);
+            return Optional.empty();
+        }
+    }
+
+    @Override
     public String getConsoleUrl(final String organizationId) {
         try {
             return buildHttpUrl(findCustomDomain(AccessPointReferenceType.ORGANIZATION, organizationId, AccessPointTarget.CONSOLE));
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
-                    String.format("An error occurs while getting console access point for environment '%s'", organizationId),
-                    e
+                String.format("An error occurs while getting console access point for environment '%s'", organizationId),
+                e
             );
         }
     }
@@ -102,17 +125,14 @@ public class AccessPointServiceImpl extends AbstractService implements AccessPoi
             }
 
             return filteredList
-                    .stream()
-                    .map(customDomain ->
-                            RestrictedDomainEntity.builder().domain(customDomain.getHost()).secured(customDomain.isSecured()).build()
-                    )
-                    .toList();
+                .stream()
+                .map(customDomain ->
+                    RestrictedDomainEntity.builder().domain(customDomain.getHost()).secured(customDomain.isSecured()).build()
+                )
+                .toList();
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
-                String.format(
-                    "An error occurs while getting gateway restricted domain from environment '%s'",
-                    environmentId
-                ),
+                String.format("An error occurs while getting gateway restricted domain from environment '%s'", environmentId),
                 e
             );
         }

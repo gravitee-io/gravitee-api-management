@@ -17,8 +17,8 @@ package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.rest.api.model.alert.AlertReferenceType.API;
 import static io.gravitee.rest.api.model.alert.AlertReferenceType.APPLICATION;
-import static io.gravitee.rest.api.service.common.GraviteeContext.ReferenceContextType.ENVIRONMENT;
-import static io.gravitee.rest.api.service.common.GraviteeContext.ReferenceContextType.ORGANIZATION;
+import static io.gravitee.rest.api.service.common.ReferenceContext.Type.ENVIRONMENT;
+import static io.gravitee.rest.api.service.common.ReferenceContext.Type.ORGANIZATION;
 import static io.gravitee.rest.api.service.impl.AbstractService.convert;
 import static java.util.Comparator.*;
 import static java.util.Optional.ofNullable;
@@ -44,11 +44,9 @@ import io.gravitee.repository.management.api.AlertTriggerRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.AlertEventCriteria;
 import io.gravitee.repository.management.api.search.ApiCriteria;
-import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.AlertEvent;
 import io.gravitee.repository.management.model.AlertTrigger;
-import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.AlertEventQuery;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.alert.*;
@@ -57,7 +55,7 @@ import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.ReferenceContext;
 import io.gravitee.rest.api.service.converter.AlertTriggerConverter;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.alert.EmailNotifierConfiguration;
@@ -761,7 +759,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
         return (alertEventsRepo.getPageElements() == 0) ? Optional.empty() : Optional.of(alertEventsRepo.getContent().get(0));
     }
 
-    private StringCondition stringMatchesCondition(GraviteeContext.ReferenceContextType key, String value) {
+    private StringCondition stringMatchesCondition(ReferenceContext.Type key, String value) {
         return StringCondition.matches(key.name().toLowerCase(), "(?:.*,|^)" + value + "(?:,.*|$)|\\*").build();
     }
 }

@@ -86,9 +86,9 @@ public class MongoAccessPointRepository implements AccessPointRepository {
 
     @Override
     public void deleteByReference(final AccessPointReferenceType referenceType, final String referenceId) {
-        log.debug("Delete access point by reference [{}, {}]", referenceType,referenceId);
+        log.debug("Delete access point by reference [{}, {}]", referenceType, referenceId);
         internalRepository.deleteAllByReference(referenceType.name(), referenceId);
-        log.debug("Delete access point by reference [{}, {}] - Done", referenceType,referenceId);
+        log.debug("Delete access point by reference [{}, {}] - Done", referenceType, referenceId);
     }
 
     @Override

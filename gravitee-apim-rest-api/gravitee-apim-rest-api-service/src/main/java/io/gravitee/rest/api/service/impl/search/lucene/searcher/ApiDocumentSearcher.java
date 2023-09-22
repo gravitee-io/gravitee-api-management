@@ -24,6 +24,7 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.ReferenceContext;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
 import io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer;
 import jakarta.annotation.Nullable;
@@ -429,10 +430,7 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
 
     private BooleanQuery buildEnvCriteria(ExecutionContext executionContext) {
         return new BooleanQuery.Builder()
-            .add(
-                new TermQuery(new Term(FIELD_REFERENCE_TYPE, GraviteeContext.ReferenceContextType.ENVIRONMENT.name())),
-                BooleanClause.Occur.FILTER
-            )
+            .add(new TermQuery(new Term(FIELD_REFERENCE_TYPE, ReferenceContext.Type.ENVIRONMENT.name())), BooleanClause.Occur.FILTER)
             .add(new TermQuery(new Term(FIELD_REFERENCE_ID, executionContext.getEnvironmentId())), BooleanClause.Occur.FILTER)
             .build();
     }

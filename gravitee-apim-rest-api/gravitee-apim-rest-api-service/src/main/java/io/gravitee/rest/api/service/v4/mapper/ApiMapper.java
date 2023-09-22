@@ -44,6 +44,7 @@ import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.ReferenceContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.v4.FlowService;
@@ -129,7 +130,7 @@ public class ApiMapper {
         }
         apiEntity.setGroups(api.getGroups());
         apiEntity.setDisableMembershipNotifications(api.isDisableMembershipNotifications());
-        apiEntity.setReferenceType(GraviteeContext.ReferenceContextType.ENVIRONMENT.name());
+        apiEntity.setReferenceType(ReferenceContext.Type.ENVIRONMENT.name());
         apiEntity.setReferenceId(api.getEnvironmentId());
         apiEntity.setCategories(api.getCategories());
         apiEntity.setPicture(api.getPicture());

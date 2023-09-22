@@ -13,41 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.model;
+package io.gravitee.rest.api.service.common;
 
-import io.gravitee.definition.model.FlowMode;
-import io.gravitee.definition.model.flow.Flow;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
-import java.util.List;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.Setter;
+import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
-/**
- * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
- * @author GraviteeSource Team
- */
+@RequiredArgsConstructor
+@Builder
 @Getter
-@Setter
 @EqualsAndHashCode
 @ToString
-public class OrganizationEntity {
+public class ReferenceContext {
 
-    private String id;
+    private final Type referenceType;
+    private final String referenceId;
 
-    private String cockpitId;
-
-    private List<String> hrids;
-
-    @NotNull
-    @Size(min = 1)
-    private String name;
-
-    private String description;
-
-    private FlowMode flowMode;
-
-    private List<Flow> flows;
+    public enum Type {
+        ENVIRONMENT,
+        ORGANIZATION,
+    }
 }

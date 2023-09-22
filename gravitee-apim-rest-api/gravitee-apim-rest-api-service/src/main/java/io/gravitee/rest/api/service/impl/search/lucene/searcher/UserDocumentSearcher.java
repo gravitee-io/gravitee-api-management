@@ -20,6 +20,7 @@ import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.ReferenceContext;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
 import io.gravitee.rest.api.service.search.query.Query;
 import java.util.UUID;
@@ -78,7 +79,7 @@ public class UserDocumentSearcher extends AbstractDocumentSearcher {
 
             BooleanQuery.Builder orgCriteria = new BooleanQuery.Builder();
             orgCriteria.add(
-                new TermQuery(new Term(FIELD_REFERENCE_TYPE, GraviteeContext.ReferenceContextType.ORGANIZATION.name())),
+                new TermQuery(new Term(FIELD_REFERENCE_TYPE, ReferenceContext.Type.ORGANIZATION.name())),
                 BooleanClause.Occur.MUST
             );
             orgCriteria.add(new TermQuery(new Term(FIELD_REFERENCE_ID, executionContext.getOrganizationId())), BooleanClause.Occur.MUST);

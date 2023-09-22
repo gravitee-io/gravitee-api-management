@@ -16,15 +16,22 @@
 package io.gravitee.rest.api.management.v2.rest;
 
 import io.gravitee.rest.api.management.v2.rest.provider.ObjectMapperResolver;
+import io.gravitee.rest.api.service.EnvironmentService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.annotation.Priority;
+import jakarta.inject.Inject;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.core.Application;
+import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.SecurityContext;
+import jakarta.ws.rs.ext.Provider;
+import java.io.IOException;
 import java.security.Principal;
 import java.util.Collections;
+import java.util.Objects;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.HttpUrlConnectorProvider;
@@ -119,6 +126,7 @@ public abstract class JerseySpringTest {
 
     protected void decorate(ResourceConfig resourceConfig) {
         resourceConfig.register(AuthenticationFilter.class);
+        resourceConfig.register(GraviteeContextRequestFilter.class);
 
         final HttpServletResponse response = Mockito.mock(HttpServletResponse.class);
         resourceConfig.register(
@@ -162,6 +170,45 @@ public abstract class JerseySpringTest {
                     }
                 }
             );
+        }
+    }
+
+    @Provider
+    @Priority(10)
+    public static class GraviteeContextRequestFilter implements ContainerRequestFilter {
+
+        private final EnvironmentService environmentService;
+
+        @Inject
+        public GraviteeContextRequestFilter(EnvironmentService environmentService) {
+            this.environmentService = environmentService;
+        }
+
+        @Override
+        public void filter(ContainerRequestContext requestContext) throws IOException {
+            var principal = (UsernamePasswordAuthenticationToken) requestContext.getSecurityContext().getUserPrincipal();
+            var userDetails = Objects.isNull(principal)
+                ? null
+                : (io.gravitee.rest.api.idp.api.authentication.UserDetails) principal.getPrincipal();
+
+            MultivaluedMap<String, String> pathsParams = requestContext.getUriInfo().getPathParameters();
+
+            String organizationId = null;
+            if (Objects.nonNull(userDetails)) {
+                if (Objects.isNull(userDetails.getOrganizationId())) {
+                    throw new IllegalStateException("No organization associated to user");
+                }
+                organizationId = userDetails.getOrganizationId();
+            }
+
+            String environmentId = null;
+            if (pathsParams.containsKey("envId")) { // The id or hrid of an environment
+                String idOrHrid = pathsParams.getFirst("envId");
+                environmentId = environmentService.findByOrgAndIdOrHrid(organizationId, idOrHrid).getId();
+            }
+
+            GraviteeContext.setCurrentEnvironment(environmentId);
+            GraviteeContext.setCurrentOrganization(organizationId);
         }
     }
 }
