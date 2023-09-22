@@ -29,13 +29,12 @@ import io.gravitee.rest.api.model.UpdateEnvironmentEntity;
 import io.gravitee.rest.api.service.AccessPointService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.reactivex.rxjava3.core.Single;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -71,20 +70,22 @@ public class EnvironmentCommandHandler implements CommandHandler<EnvironmentComm
                 newEnvironment
             );
             List<AccessPoint> accessPoints = environmentPayload.getAccessPoints();
-            if (accessPoints != null){
+            if (accessPoints != null) {
                 List<io.gravitee.repository.management.model.AccessPoint> accessPointsToCreate = accessPoints
-                        .stream()
-                                .map(cockpitAccessPoint -> io.gravitee.repository.management.model.AccessPoint
-                                        .builder()
-                                        .referenceType(AccessPointReferenceType.ENVIRONMENT)
-                                        .referenceId(environment.getId())
-                                        .target(AccessPointTarget.valueOf(cockpitAccessPoint.getTarget().name()))
-                                        .host(cockpitAccessPoint.getHost())
-                                        .secured(cockpitAccessPoint.isSecured())
-                                        .overriding(cockpitAccessPoint.isOverriding())
-                                        .build())
-                                        .toList();
-                accessPointService.updateAccessPoints(AccessPointReferenceType.ENVIRONMENT, environment.getId(),accessPointsToCreate);
+                    .stream()
+                    .map(cockpitAccessPoint ->
+                        io.gravitee.repository.management.model.AccessPoint
+                            .builder()
+                            .referenceType(AccessPointReferenceType.ENVIRONMENT)
+                            .referenceId(environment.getId())
+                            .target(AccessPointTarget.valueOf(cockpitAccessPoint.getTarget().name()))
+                            .host(cockpitAccessPoint.getHost())
+                            .secured(cockpitAccessPoint.isSecured())
+                            .overriding(cockpitAccessPoint.isOverriding())
+                            .build()
+                    )
+                    .toList();
+                accessPointService.updateAccessPoints(AccessPointReferenceType.ENVIRONMENT, environment.getId(), accessPointsToCreate);
             }
             log.info("Environment [{}] handled with id [{}].", environment.getName(), environment.getId());
             return Single.just(new EnvironmentReply(command.getId(), CommandStatus.SUCCEEDED));

@@ -64,6 +64,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.JWTHelper.ACTION;
 import io.gravitee.rest.api.service.common.JWTHelper.Claims;
+import io.gravitee.rest.api.service.common.ReferenceContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderService;
 import io.gravitee.rest.api.service.converter.UserConverter;
@@ -413,8 +414,8 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
     private void checkUserRegistrationEnabled(ExecutionContext executionContext) {
         boolean userCreationEnabled;
-        GraviteeContext.ReferenceContext currentContext = executionContext.getReferenceContext();
-        if (currentContext.getReferenceType().equals(GraviteeContext.ReferenceContextType.ORGANIZATION)) {
+        ReferenceContext currentContext = executionContext.getReferenceContext();
+        if (currentContext.getReferenceType().equals(ReferenceContext.Type.ORGANIZATION)) {
             userCreationEnabled =
                 parameterService.findAsBoolean(
                     executionContext,
@@ -792,7 +793,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         final NewExternalUserEntity newExternalUserEntity,
         final String confirmationPageUrl
     ) {
-        final GraviteeContext.ReferenceContext currentContext = executionContext.getReferenceContext();
+        final ReferenceContext currentContext = executionContext.getReferenceContext();
 
         if (confirmationPageUrl != null) {
             UrlSanitizerUtils.checkAllowed(confirmationPageUrl, portalWhitelist, true);
@@ -811,8 +812,8 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         );
     }
 
-    private boolean isAutoRegistrationEnabled(ExecutionContext executionContext, GraviteeContext.ReferenceContext currentContext) {
-        if (currentContext.getReferenceType().equals(GraviteeContext.ReferenceContextType.ORGANIZATION)) {
+    private boolean isAutoRegistrationEnabled(ExecutionContext executionContext, ReferenceContext currentContext) {
+        if (currentContext.getReferenceType().equals(ReferenceContext.Type.ORGANIZATION)) {
             return parameterService.findAsBoolean(
                 executionContext,
                 Key.CONSOLE_USERCREATION_AUTOMATICVALIDATION_ENABLED,

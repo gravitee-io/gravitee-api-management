@@ -23,7 +23,7 @@ import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.ReferenceContext;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -39,7 +39,7 @@ public class GraviteeJavaMailManager implements EventListener<Key, Parameter> {
     private static final String MAILAPI_PROPERTIES_PREFIX = "mail.smtp.";
 
     private final ParameterService parameterService;
-    private final Map<GraviteeContext.ReferenceContext, JavaMailSenderImpl> mailSenderByReference;
+    private final Map<ReferenceContext, JavaMailSenderImpl> mailSenderByReference;
 
     public GraviteeJavaMailManager(ParameterService parameterService, EventManager eventManager) {
         this.parameterService = parameterService;
@@ -49,7 +49,7 @@ public class GraviteeJavaMailManager implements EventListener<Key, Parameter> {
     }
 
     public JavaMailSender getOrCreateMailSender(ExecutionContext executionContext, String referenceId, ParameterReferenceType type) {
-        GraviteeContext.ReferenceContext ref = executionContext.getReferenceContext();
+        ReferenceContext ref = executionContext.getReferenceContext();
         JavaMailSenderImpl mailSender = this.getMailSenderByReference(ref);
         if (mailSender == null) {
             mailSender = new JavaMailSenderImpl();
@@ -120,14 +120,12 @@ public class GraviteeJavaMailManager implements EventListener<Key, Parameter> {
         }
     }
 
-    JavaMailSenderImpl getMailSenderByReference(GraviteeContext.ReferenceContext ref) {
+    JavaMailSenderImpl getMailSenderByReference(ReferenceContext ref) {
         return this.mailSenderByReference.get(ref);
     }
 
     JavaMailSenderImpl getMailSenderByReference(String referenceId, ParameterReferenceType referenceType) {
-        return this.getMailSenderByReference(
-                new GraviteeContext.ReferenceContext(referenceId, GraviteeContext.ReferenceContextType.valueOf(referenceType.name()))
-            );
+        return this.getMailSenderByReference(new ReferenceContext(ReferenceContext.Type.valueOf(referenceType.name()), referenceId));
     }
 
     private String computeMailProperty(String graviteeProperty) {

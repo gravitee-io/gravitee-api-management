@@ -22,6 +22,7 @@ import io.gravitee.rest.api.model.NewExternalUserEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.UserMetadataEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.ReferenceContext;
 import java.util.List;
 import org.springframework.stereotype.Component;
 
@@ -87,7 +88,7 @@ public class UserConverter {
         userEntity.setLastConnectionAt(user.getLastConnectionAt());
         userEntity.setFirstConnectionAt(user.getFirstConnectionAt());
         userEntity.setPicture(user.getPicture());
-        userEntity.setReferenceType(GraviteeContext.ReferenceContextType.ORGANIZATION.name());
+        userEntity.setReferenceType(ReferenceContext.Type.ORGANIZATION.name());
         userEntity.setReferenceId(user.getOrganizationId());
 
         if (user.getStatus() != null) {

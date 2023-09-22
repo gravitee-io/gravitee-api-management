@@ -365,9 +365,9 @@ public class PathValidationServiceTest {
         when(accessPointService.getGatewayRestrictedDomains(any()))
             .thenReturn(
                 List.of(
-                        RestrictedDomainEntity.builder().domain("test.gravitee.io").build(),
-                        RestrictedDomainEntity.builder().domain("other.gravitee.io").build(),
-                        RestrictedDomainEntity.builder().domain(domainConstraint).build()
+                    RestrictedDomainEntity.builder().domain("test.gravitee.io").build(),
+                    RestrictedDomainEntity.builder().domain("other.gravitee.io").build(),
+                    RestrictedDomainEntity.builder().domain(domainConstraint).build()
                 )
             );
 
@@ -386,7 +386,10 @@ public class PathValidationServiceTest {
 
         when(accessPointService.getGatewayRestrictedDomains(any()))
             .thenReturn(
-                List.of(RestrictedDomainEntity.builder().domain("test.gravitee.io").build(), RestrictedDomainEntity.builder().domain("other.gravitee.io").build())
+                List.of(
+                    RestrictedDomainEntity.builder().domain("test.gravitee.io").build(),
+                    RestrictedDomainEntity.builder().domain("other.gravitee.io").build()
+                )
             );
 
         pathValidationService.validateAndSanitizePaths(GraviteeContext.getExecutionContext(), null, Collections.singletonList(path));
@@ -421,7 +424,10 @@ public class PathValidationServiceTest {
 
         when(accessPointService.getGatewayRestrictedDomains(any()))
             .thenReturn(
-                List.of(RestrictedDomainEntity.builder().domain("test.gravitee.io").build(), RestrictedDomainEntity.builder().domain("other.gravitee.io").build())
+                List.of(
+                    RestrictedDomainEntity.builder().domain("test.gravitee.io").build(),
+                    RestrictedDomainEntity.builder().domain("other.gravitee.io").build()
+                )
             );
 
         final List<Path> paths = pathValidationService.validateAndSanitizePaths(

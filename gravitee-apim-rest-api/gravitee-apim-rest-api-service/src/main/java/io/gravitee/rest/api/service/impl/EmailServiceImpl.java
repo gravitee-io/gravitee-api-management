@@ -29,6 +29,7 @@ import io.gravitee.rest.api.service.EmailService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.ReferenceContext;
 import io.gravitee.rest.api.service.common.TimeBoundedCharSequence;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
@@ -86,7 +87,7 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
 
     @Override
     public void sendEmailNotification(ExecutionContext executionContext, final EmailNotification emailNotification) {
-        final GraviteeContext.ReferenceContext context = executionContext.getReferenceContext();
+        final ReferenceContext context = executionContext.getReferenceContext();
         this.sendEmailNotification(
                 executionContext,
                 emailNotification,

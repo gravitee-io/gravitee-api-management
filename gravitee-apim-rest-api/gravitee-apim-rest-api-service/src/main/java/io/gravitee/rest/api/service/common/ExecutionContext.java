@@ -19,22 +19,29 @@ import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.Organization;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
-import java.util.Objects;
 import java.util.Optional;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
  * @author GraviteeSource Team
  */
+@ToString
+@EqualsAndHashCode
 public class ExecutionContext {
 
-    private final String organizationId;
+    private final Optional<String> organizationId;
 
     private final Optional<String> environmentId;
 
     public ExecutionContext(String organizationId, String environmentId) {
-        this.organizationId = organizationId;
+        this.organizationId = Optional.ofNullable(organizationId);
         this.environmentId = Optional.ofNullable(environmentId);
+    }
+
+    public ExecutionContext(String organizationId) {
+        this(organizationId, null);
     }
 
     public ExecutionContext(EnvironmentEntity environment) {
@@ -50,34 +57,29 @@ public class ExecutionContext {
     }
 
     public String getOrganizationId() {
-        return organizationId;
+        return organizationId.orElse(null);
     }
 
     public String getEnvironmentId() throws EnvironmentNotFoundException {
         return environmentId.orElseThrow(() -> new EnvironmentNotFoundException(null));
     }
 
+    public boolean hasOrganizationId() {
+        return organizationId.isPresent();
+    }
+
     public boolean hasEnvironmentId() {
         return environmentId.isPresent();
     }
 
-    public GraviteeContext.ReferenceContext getReferenceContext() {
+    public ReferenceContext getReferenceContext() {
         return environmentId
-            .map(id -> new GraviteeContext.ReferenceContext(id, GraviteeContext.ReferenceContextType.ENVIRONMENT))
-            .orElseGet(() -> new GraviteeContext.ReferenceContext(organizationId, GraviteeContext.ReferenceContextType.ORGANIZATION));
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ExecutionContext that = (ExecutionContext) o;
-        return Objects.equals(organizationId, that.organizationId) && Objects.equals(environmentId, that.environmentId);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(organizationId, environmentId);
+            .map(envId -> ReferenceContext.builder().referenceId(envId).referenceType(ReferenceContext.Type.ENVIRONMENT).build())
+            .orElseGet(() ->
+                organizationId
+                    .map(orgId -> ReferenceContext.builder().referenceId(orgId).referenceType(ReferenceContext.Type.ORGANIZATION).build())
+                    .orElse(null)
+            );
     }
 
     @Override

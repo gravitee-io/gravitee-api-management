@@ -15,12 +15,12 @@
  */
 package io.gravitee.rest.api.service;
 
-import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.AccessPoint;
 import io.gravitee.repository.management.model.AccessPointReferenceType;
 import io.gravitee.rest.api.model.RestrictedDomainEntity;
-
+import io.gravitee.rest.api.service.common.ReferenceContext;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -28,6 +28,8 @@ import java.util.List;
  */
 public interface AccessPointService {
     void updateAccessPoints(final AccessPointReferenceType referenceType, final String referenceId, final List<AccessPoint> accessPoints);
+
+    Optional<ReferenceContext> getReferenceContext(final String host);
 
     String getConsoleUrl(final String organizationId);
 
