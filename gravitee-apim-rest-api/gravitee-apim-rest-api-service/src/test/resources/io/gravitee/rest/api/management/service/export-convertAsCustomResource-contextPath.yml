@@ -30,7 +30,7 @@ spec:
   path_mappings: []
   proxy:
     virtual_hosts:
-    - path: "/test-updated"
+    - path: "/test-updated/"
     strip_context_path: false
     preserve_host: false
     logging:

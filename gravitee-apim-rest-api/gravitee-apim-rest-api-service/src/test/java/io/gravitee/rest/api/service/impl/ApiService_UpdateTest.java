@@ -110,7 +110,6 @@ import io.gravitee.rest.api.service.ResourceService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.TagService;
 import io.gravitee.rest.api.service.UserService;
-import io.gravitee.rest.api.service.VirtualHostService;
 import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.ExecutionContext;
