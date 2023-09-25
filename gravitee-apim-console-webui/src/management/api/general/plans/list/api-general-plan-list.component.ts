@@ -16,7 +16,7 @@
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { EMPTY, Observable, of, Subject } from 'rxjs';
-import { StateService, UIRouterGlobals } from '@uirouter/core';
+import { StateService } from '@uirouter/core';
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { orderBy } from 'lodash';
 import {
@@ -26,10 +26,8 @@ import {
   GioConfirmDialogData,
 } from '@gravitee/ui-particles-angular';
 import { MatDialog } from '@angular/material/dialog';
-import { IRootScopeService } from 'angular';
 
-import { AjsRootScope, UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
-import { PlanService } from '../../../../../services-ngx/plan.service';
+import { UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { SubscriptionService } from '../../../../../services-ngx/subscription.service';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
@@ -54,14 +52,10 @@ export class ApiGeneralPlanListComponent implements OnInit, OnDestroy {
   public isReadOnly = false;
   public isV2Api: boolean;
   public planMenuItems: PlanMenuItemVM[];
-  private routeBase: string;
 
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
     @Inject(UIRouterState) private readonly ajsState: StateService,
-    @Inject(AjsRootScope) private readonly ajsRootScope: IRootScopeService,
-    private readonly ajsGlobals: UIRouterGlobals,
-    private readonly plansV1Service: PlanService,
     private readonly plansService: ApiPlanV2Service,
     private readonly constantsService: ConstantsService,
     private readonly apiService: ApiV2Service,
@@ -72,7 +66,6 @@ export class ApiGeneralPlanListComponent implements OnInit, OnDestroy {
   ) {}
 
   public ngOnInit(): void {
-    this.routeBase = this.ajsGlobals.current?.data?.baseRouteState ?? 'management.apis';
     this.status = this.ajsStateParams.status ?? 'PUBLISHED';
 
     this.apiService
@@ -136,11 +129,11 @@ export class ApiGeneralPlanListComponent implements OnInit, OnDestroy {
   }
 
   public navigateToPlan(planId: string): void {
-    this.ajsState.go(`${this.routeBase}.plan.edit`, { planId });
+    this.ajsState.go(`management.apis.plan.edit`, { planId });
   }
 
   public navigateToNewPlan(selectedPlanMenuItem: string): void {
-    this.ajsState.go(`${this.routeBase}.plan.new`, { selectedPlanMenuItem });
+    this.ajsState.go(`management.apis.plan.new`, { selectedPlanMenuItem });
   }
 
   public designPlan(planId: string): void {
@@ -278,7 +271,7 @@ export class ApiGeneralPlanListComponent implements OnInit, OnDestroy {
     getApiPlans$
       .pipe(
         tap((plans) => {
-          this.ajsState.go(`${this.routeBase}.plans`, { status: this.status }, { notify: false });
+          this.ajsState.go(`management.apis.plans`, { status: this.status }, { notify: false });
           this.plansTableDS = orderBy(plans, 'order', 'asc');
           this.isLoadingData = false;
         }),

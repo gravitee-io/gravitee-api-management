@@ -202,9 +202,6 @@ export const states: Ng2StateDeclaration[] = [
     url: '/apis/:apiId',
     abstract: true,
     component: ApiNavigationComponent,
-    data: {
-      baseRouteState: 'management.apis',
-    },
   },
 
   /**

@@ -16,7 +16,7 @@
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { BehaviorSubject, EMPTY, Observable, of, Subject } from 'rxjs';
-import { StateService, UIRouterGlobals } from '@uirouter/core';
+import { StateService } from '@uirouter/core';
 import { isEqual } from 'lodash';
 import { FormControl, FormGroup } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
@@ -105,12 +105,10 @@ export class ApiGeneralSubscriptionListComponent implements OnInit, OnDestroy {
 
   public isLoadingData = true;
   public canUpdate = false;
-  private routeBase: string;
   private isKubernetesOrigin = false;
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
     @Inject(UIRouterState) private readonly ajsState: StateService,
-    private readonly ajsGlobals: UIRouterGlobals,
     private readonly apiService: ApiV2Service,
     private readonly apiPlanService: ApiPlanV2Service,
     private readonly apiSubscriptionService: ApiSubscriptionV2Service,
@@ -122,7 +120,6 @@ export class ApiGeneralSubscriptionListComponent implements OnInit, OnDestroy {
 
   public ngOnInit(): void {
     this.initFilters();
-    this.routeBase = this.ajsGlobals.current?.data?.baseRouteState ?? 'management.apis';
 
     this.filtersForm.valueChanges
       .pipe(distinctUntilChanged(isEqual), takeUntil(this.unsubscribe$))
@@ -232,7 +229,7 @@ export class ApiGeneralSubscriptionListComponent implements OnInit, OnDestroy {
   }
 
   public navigateToSubscription(subscriptionId: string): void {
-    this.ajsState.go(`${this.routeBase}.subscription.edit`, { subscriptionId });
+    this.ajsState.go(`management.apis.subscription.edit`, { subscriptionId });
   }
 
   public exportAsCSV(): void {

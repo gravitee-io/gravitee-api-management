@@ -23,7 +23,6 @@ import { ComponentFixture, fakeAsync, flush, TestBed, tick } from '@angular/core
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { UIRouterGlobals } from '@uirouter/core';
 import { set } from 'lodash';
 import { MatButtonHarness } from '@angular/material/button/testing';
 
@@ -78,7 +77,7 @@ describe('ApiGeneralSubscriptionListComponent', () => {
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
-  const init = async (ajsGlobals: any = {}, planSecurity?: any) => {
+  const init = async (planSecurity?: any) => {
     await TestBed.configureTestingModule({
       declarations: [TestComponent],
       imports: [ApiGeneralSubscriptionsModule, NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule],
@@ -91,10 +90,6 @@ describe('ApiGeneralSubscriptionListComponent', () => {
             isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
             isTabbable: () => true, // This traps tabbable checks and so avoid warnings when dealing with
           },
-        },
-        {
-          provide: UIRouterGlobals,
-          useValue: ajsGlobals,
         },
         {
           provide: 'Constants',
@@ -378,13 +373,10 @@ describe('ApiGeneralSubscriptionListComponent', () => {
 
   describe('create subscription', () => {
     it('should create subscription to an API Key plan in exclusive API Key mode without customApiKey', fakeAsync(async () => {
-      await init(
-        {},
-        {
-          customApiKey: { enabled: true },
-          sharedApiKey: { enabled: true },
-        },
-      );
+      await init({
+        customApiKey: { enabled: true },
+        sharedApiKey: { enabled: true },
+      });
       const planV4 = fakePlanV4({ generalConditions: undefined });
       const application = fakeApplication();
 
@@ -433,13 +425,10 @@ describe('ApiGeneralSubscriptionListComponent', () => {
       flush();
     }));
     it('should create subscription to a api key plan in shared API Key mode without customApiKey', fakeAsync(async () => {
-      await init(
-        {},
-        {
-          customApiKey: { enabled: true },
-          sharedApiKey: { enabled: true },
-        },
-      );
+      await init({
+        customApiKey: { enabled: true },
+        sharedApiKey: { enabled: true },
+      });
       const planV4 = fakePlanV4({ generalConditions: undefined });
       const application = fakeApplication();
 
