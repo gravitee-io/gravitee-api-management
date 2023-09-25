@@ -20,6 +20,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.HttpStatusCode;
@@ -55,6 +56,7 @@ public class ApplicationAnalyticsResourceTest extends AbstractResourceTest {
     @Before
     public void setUp() {
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
+        reset(analyticsService);
     }
 
     @Test
