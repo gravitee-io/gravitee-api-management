@@ -91,7 +91,7 @@ describe('ApiRuntimeLogsComponent', () => {
 
     it('should navigate to logs settings', async () => {
       await componentHarness.clickOpenSettings();
-      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.ng.runtimeLogs-settings');
+      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.runtimeLogs-settings');
     });
 
     it('should not display the list', async () => {
@@ -172,7 +172,7 @@ describe('ApiRuntimeLogsComponent', () => {
 
     it('should navigate to logs settings', async () => {
       await componentHarness.clickOpenSettings();
-      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.ng.runtimeLogs-settings');
+      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.runtimeLogs-settings');
     });
   });
 
