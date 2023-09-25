@@ -610,6 +610,9 @@ api:
   supportEnabled: true
   ratingEnabled: true
   newsletterEnabled: true
+  # Specify the visibility duration of a gateway in Unknown State (in seconds)
+  gateway:
+    unknownExpireAfter: 604800
   service:
     type: ClusterIP
     # externalTrafficPolicy is used only when configuring type "NodePort" or "LoadBalancer"
