@@ -22,7 +22,6 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { set } from 'lodash';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { MatButtonHarness } from '@angular/material/button/testing';
-import { UIRouterGlobals } from '@uirouter/core';
 
 import { ApiGeneralPlanEditComponent } from './api-general-plan-edit.component';
 
@@ -50,7 +49,6 @@ describe('ApiGeneralPlanEditComponent', () => {
   const API_ID = 'my-api';
   const currentUser = new User();
   const fakeUiRouter = { go: jest.fn() };
-  const fakeAjsGlobals = { current: { data: { baseRouteState: 'management.apis' } } };
 
   currentUser.userPermissions = ['api-plan-u'];
 
@@ -58,7 +56,7 @@ describe('ApiGeneralPlanEditComponent', () => {
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
-  const configureTestingModule = (planId: string = undefined, ajsGlobals: any = {}) => {
+  const configureTestingModule = (planId: string = undefined) => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiGeneralPlansModule, MatIconTestingModule],
       providers: [
@@ -76,7 +74,6 @@ describe('ApiGeneralPlanEditComponent', () => {
             return constants;
           },
         },
-        { provide: UIRouterGlobals, useValue: ajsGlobals },
       ],
     });
 
@@ -435,55 +432,6 @@ describe('ApiGeneralPlanEditComponent', () => {
         const nameInput = await planForm.getNameInput();
         expect(await nameInput.isDisabled()).toEqual(true);
       });
-    });
-  });
-
-  describe('with new Angular router', () => {
-    const TAG_1_ID = 'tag-1';
-
-    beforeEach(() => {
-      configureTestingModule(null, fakeAjsGlobals);
-      fixture.detectChanges();
-      expectApiGetRequest(fakeApiV2({ id: API_ID }));
-    });
-
-    it('should create new plan', async () => {
-      const saveBar = await loader.getHarness(GioSaveBarHarness);
-      const planForm = await loader.getHarness(ApiPlanFormHarness);
-
-      planForm
-        .httpRequest(httpTestingController)
-        .expectTagsListRequest([fakeTag({ id: TAG_1_ID, name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
-      planForm.httpRequest(httpTestingController).expectGroupLisRequest([
-        fakeGroup({
-          id: 'group-a',
-          name: 'Group A',
-        }),
-      ]);
-      planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API_ID, [
-        {
-          id: 'doc-1',
-          name: 'Doc 1',
-        },
-      ]);
-      planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
-      planForm.httpRequest(httpTestingController).expectPolicySchemaV2GetRequest('jwt', {});
-
-      await planForm.getNameInput().then((i) => i.setValue('My new plan'));
-
-      // Click on Next buttons to display Save one
-      await loader.getHarness(MatButtonHarness.with({ text: 'Next' })).then((b) => b.click());
-      await loader.getHarness(MatButtonHarness.with({ text: 'Next' })).then((b) => b.click());
-
-      await saveBar.clickSubmit();
-
-      httpTestingController
-        .expectOne({
-          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans`,
-          method: 'POST',
-        })
-        .flush({});
-      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.plans', { status: 'STAGING' });
     });
   });
 

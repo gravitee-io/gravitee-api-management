@@ -27,7 +27,6 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { GioConfirmAndValidateDialogHarness } from '@gravitee/ui-particles-angular';
 import { castArray, set } from 'lodash';
 import { MatMenuHarness } from '@angular/material/menu/testing';
-import { UIRouterGlobals } from '@uirouter/core';
 
 import { ApiGeneralPlanListComponent } from './api-general-plan-list.component';
 
@@ -63,9 +62,8 @@ describe('ApiGeneralPlanListComponent', () => {
   let httpTestingController: HttpTestingController;
 
   const fakeRootScope = { $broadcast: jest.fn(), $on: jest.fn() };
-  const fakeAjsGlobals = { current: { data: { baseRouteState: 'management.apis' } } };
 
-  const init = async (ajsGlobals: any = {}) => {
+  const init = async () => {
     await TestBed.configureTestingModule({
       imports: [ApiGeneralPlansModule, NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule],
       providers: [
@@ -107,10 +105,6 @@ describe('ApiGeneralPlanListComponent', () => {
             });
             return constants;
           },
-        },
-        {
-          provide: UIRouterGlobals,
-          useValue: ajsGlobals,
         },
       ],
     }).compileComponents();
@@ -272,7 +266,7 @@ describe('ApiGeneralPlanListComponent', () => {
   describe('actions tests', () => {
     describe('with Angular router', () => {
       it('should navigate to edit when click on the action button', async () => {
-        await init(fakeAjsGlobals);
+        await init();
         const plan = fakePlanV2();
         await initComponent([plan]);
         fakeUiRouter.go.mockReset();
@@ -282,7 +276,7 @@ describe('ApiGeneralPlanListComponent', () => {
         expect(fakeUiRouter.go).toBeCalledWith('management.apis.plan.edit', { planId: plan.id });
       });
       it('should navigate to new plan', async () => {
-        await init(fakeAjsGlobals);
+        await init();
         await initComponent([]);
         fixture.componentInstance.isLoadingData = false;
         fakeUiRouter.go.mockReset();
@@ -296,7 +290,7 @@ describe('ApiGeneralPlanListComponent', () => {
         expect(fakeUiRouter.go).toBeCalledWith('management.apis.plan.new', { selectedPlanMenuItem: 'KEY_LESS' });
       });
       it('should navigate to edit when click on the name', async () => {
-        await init(fakeAjsGlobals);
+        await init();
         const plan = fakePlanV2();
         await initComponent([plan]);
         fakeUiRouter.go.mockReset();

@@ -18,7 +18,6 @@ import { FormControl, FormGroup } from '@angular/forms';
 import { EMPTY, of, Subject } from 'rxjs';
 import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { StateService } from '@uirouter/angularjs';
-import { UIRouterGlobals } from '@uirouter/core';
 
 import { UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
@@ -44,7 +43,6 @@ export class ApiGeneralPlanEditComponent implements OnInit, OnDestroy {
   public api: Api;
   public isReadOnly = false;
   public planMenuItem: PlanMenuItemVM;
-  public portalPlansRoute: string;
 
   @ViewChild('apiPlanForm')
   private apiPlanForm: ApiPlanFormComponent;
@@ -53,7 +51,6 @@ export class ApiGeneralPlanEditComponent implements OnInit, OnDestroy {
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
     @Inject(UIRouterState) private readonly ajsState: StateService,
-    private readonly ajsGlobals: UIRouterGlobals,
     private readonly apiService: ApiV2Service,
     private readonly planService: ApiPlanV2Service,
     private readonly snackBarService: SnackBarService,
@@ -62,9 +59,6 @@ export class ApiGeneralPlanEditComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    const baseRoute = this.ajsGlobals.current?.data?.baseRouteState ?? 'management.apis';
-    this.portalPlansRoute = baseRoute + '.plans';
-
     this.mode = this.ajsStateParams.planId ? 'edit' : 'create';
 
     this.apiService
@@ -145,9 +139,9 @@ export class ApiGeneralPlanEditComponent implements OnInit, OnDestroy {
       )
       .subscribe(() => {
         if (this.mode === 'edit') {
-          this.ajsState.go(this.portalPlansRoute, { status: this.currentPlanStatus ?? 'PUBLISHED' });
+          this.ajsState.go('management.apis.plans', { status: this.currentPlanStatus ?? 'PUBLISHED' });
         } else {
-          this.ajsState.go(this.portalPlansRoute, { status: 'STAGING' });
+          this.ajsState.go('management.apis.plans', { status: 'STAGING' });
         }
       });
   }
