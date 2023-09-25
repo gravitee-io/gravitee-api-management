@@ -65,7 +65,7 @@ describe('ApiGeneralPlanListComponent', () => {
   const fakeRootScope = { $broadcast: jest.fn(), $on: jest.fn() };
   const fakeAjsGlobals = { current: { data: { baseRouteState: 'management.apis.ng' } } };
 
-  const init = async (ajsGlobals: any = {}) => {
+  const init = async (ajsGlobals = fakeAjsGlobals) => {
     await TestBed.configureTestingModule({
       imports: [ApiGeneralPlansModule, NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule],
       providers: [

@@ -58,7 +58,7 @@ describe('ApiGeneralPlanEditComponent', () => {
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
-  const configureTestingModule = (planId: string = undefined, ajsGlobals: any = {}) => {
+  const configureTestingModule = (planId: string = undefined, ajsGlobals = fakeAjsGlobals) => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiGeneralPlansModule, MatIconTestingModule],
       providers: [

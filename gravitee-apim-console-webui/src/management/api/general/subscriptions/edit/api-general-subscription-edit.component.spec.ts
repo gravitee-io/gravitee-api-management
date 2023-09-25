@@ -27,6 +27,7 @@ import { MatDatepickerInputHarness, MatDateRangeInputHarness } from '@angular/ma
 import { MatInputHarness } from '@angular/material/input/testing';
 import { set } from 'lodash';
 import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
+import { UIRouterGlobals } from '@uirouter/angular';
 
 import { ApiGeneralSubscriptionEditComponent } from './api-general-subscription-edit.component';
 import { ApiGeneralSubscriptionEditHarness } from './api-general-subscription-edit.harness';
@@ -95,6 +96,10 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
             isTabbable: () => true, // Allows tabbing and avoids warnings
           },
         },
+        {
+          provide: UIRouterGlobals,
+          useValue: {},
+        },
       ],
     }).compileComponents();
   };
@@ -143,7 +148,7 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       expect(await harness.rejectBtnIsVisible()).toEqual(false);
 
       await harness.goBackToSubscriptionsList();
-      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.ng.subscriptions');
+      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.detail.portal.subscriptions');
     });
 
     it('should load pending subscription', async () => {
