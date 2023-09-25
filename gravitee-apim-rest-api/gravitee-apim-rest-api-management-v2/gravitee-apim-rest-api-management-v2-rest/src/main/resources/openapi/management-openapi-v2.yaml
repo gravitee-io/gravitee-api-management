@@ -3256,7 +3256,7 @@ components:
                     format: int64
                     description: The total number of items.
 
-        PathToVerify:
+        Path:
             type: object
             properties:
                 host:
@@ -3264,6 +3264,9 @@ components:
                 path:
                     type: string
                     default: "/"
+                overrideAccess:
+                    type: boolean
+                    default: false
 
         PathV4:
             type: object
@@ -4363,7 +4366,7 @@ components:
                 paths:
                     type: array
                     items:
-                        $ref: "#/components/schemas/PathToVerify"
+                        $ref: "#/components/schemas/Path"
             required: [paths]
 
         ## API V2 specific schemas

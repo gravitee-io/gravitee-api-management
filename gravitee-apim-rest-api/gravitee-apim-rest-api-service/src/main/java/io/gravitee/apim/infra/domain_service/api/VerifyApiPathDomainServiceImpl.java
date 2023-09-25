@@ -62,7 +62,8 @@ public class VerifyApiPathDomainServiceImpl implements VerifyApiPathDomainServic
         }
         List<Path> sanitizedPaths = paths
             .stream()
-            .map(path -> Path.builder().host(path.getHost()).path(path.getPath()).build().sanitize())
+            .map(path -> Path.builder().host(path.getHost()).path(path.getPath()).overrideAccess(path.isOverrideAccess()).build().sanitize()
+            )
             .toList();
 
         List<Path> pathsWithDomain = validateAndSetDomain(executionContext.getEnvironmentId(), sanitizedPaths);
@@ -142,7 +143,15 @@ public class VerifyApiPathDomainServiceImpl implements VerifyApiPathDomainServic
                             httpListener
                                 .getPaths()
                                 .stream()
-                                .map(path -> Path.builder().host(path.getHost()).path(path.getPath()).build().sanitize())
+                                .map(path ->
+                                    Path
+                                        .builder()
+                                        .host(path.getHost())
+                                        .path(path.getPath())
+                                        .overrideAccess(path.isOverrideAccess())
+                                        .build()
+                                        .sanitize()
+                                )
                         )
                         .collect(Collectors.toList());
                 } catch (IOException ioe) {
@@ -158,7 +167,15 @@ public class VerifyApiPathDomainServiceImpl implements VerifyApiPathDomainServic
                         .getProxy()
                         .getVirtualHosts()
                         .stream()
-                        .map(virtualHost -> Path.builder().host(virtualHost.getHost()).path(virtualHost.getPath()).build().sanitize())
+                        .map(virtualHost ->
+                            Path
+                                .builder()
+                                .host(virtualHost.getHost())
+                                .path(virtualHost.getPath())
+                                .overrideAccess(virtualHost.isOverrideEntrypoint())
+                                .build()
+                                .sanitize()
+                        )
                         .collect(Collectors.toList());
                 } catch (IOException ioe) {
                     log.error("Unexpected error while getting API definition", ioe);
