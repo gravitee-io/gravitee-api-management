@@ -13,18 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CommonModule } from '@angular/common';
-import { NgModule } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { MatIconModule } from '@angular/material/icon';
-import { GioIconsModule } from '@gravitee/ui-particles-angular';
+import { Meta, moduleMetadata } from '@storybook/angular';
+import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
 
+import { ApiRuntimeLogsProxySettingsModule } from './api-runtime-logs-proxy-settings.module';
 import { ApiRuntimeLogsProxySettingsComponent } from './api-runtime-logs-proxy-settings.component';
 
-@NgModule({
-  declarations: [ApiRuntimeLogsProxySettingsComponent],
-  exports: [ApiRuntimeLogsProxySettingsComponent],
-  imports: [CommonModule, MatButtonModule, MatCardModule, MatIconModule, GioIconsModule],
-})
-export class ApiRuntimeLogsProxySettingsModule {}
+export default {
+  title: 'API / Logs / Runtime logs proxy settings',
+  component: ApiRuntimeLogsProxySettingsComponent,
+  decorators: [
+    moduleMetadata({
+      imports: [ApiRuntimeLogsProxySettingsModule],
+    }),
+  ],
+  argTypes: {},
+  render: (args) => ({
+    template: `
+      <div style="width: 870px">
+        <api-runtime-logs-proxy-settings></api-runtime-logs-proxy-settings>
+      </div>
+    `,
+    props: args,
+  }),
+} as Meta;
+
+export const Default: Story = {};
+Default.args = {};
