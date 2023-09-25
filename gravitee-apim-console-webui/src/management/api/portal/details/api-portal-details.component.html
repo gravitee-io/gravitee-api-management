@@ -61,7 +61,7 @@
 
           <mat-form-field class="details-card__header__info-inputs__first-row__version-field">
             <mat-label>Version</mat-label>
-            <input matInput formControlName="version" required maxlength="32" />
+            <input #apiVersion matInput formControlName="version" required maxlength="32" />
             <mat-error *ngIf="apiDetailsForm.controls.version.hasError('required')">Version is required.</mat-error>
             <mat-error *ngIf="apiDetailsForm.controls.version.hasError('version')">{{
               apiDetailsForm.controls.version.getError('version')
@@ -116,11 +116,11 @@
               <gio-avatar
                 class="details-card__header__right-coll__media__picture__btn__default-avatar"
                 size="114"
-                [name]="apiName.value"
+                [name]="apiName.value + ' ' + apiVersion.value"
               ></gio-avatar>
             </gio-form-file-picker-add-button>
             <gio-form-file-picker-empty>
-              <gio-avatar size="114" [name]="apiName.value"></gio-avatar>
+              <gio-avatar size="114" [name]="apiName.value + ' ' + apiVersion.value"></gio-avatar>
             </gio-form-file-picker-empty>
           </gio-form-file-picker>
           <gio-form-file-picker class="details-card__header__right-coll__media__background" formControlName="background" accept="image/*">
