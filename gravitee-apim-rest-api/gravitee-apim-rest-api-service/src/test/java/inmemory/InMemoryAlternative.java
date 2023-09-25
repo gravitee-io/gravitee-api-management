@@ -16,6 +16,10 @@
 package inmemory;
 
 import java.util.List;
+import java.util.OptionalInt;
+import java.util.function.IntPredicate;
+import java.util.function.Predicate;
+import java.util.stream.IntStream;
 
 public interface InMemoryAlternative<T> {
     /**
@@ -29,4 +33,9 @@ public interface InMemoryAlternative<T> {
 
     /** @return the storage */
     List<T> storage();
+
+    default OptionalInt findIndex(List<T> storage, Predicate<T> predicate) {
+        IntPredicate intPredicate = i -> predicate.test(storage.get(i));
+        return IntStream.range(0, storage.size()).filter(intPredicate).findFirst();
+    }
 }
