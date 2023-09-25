@@ -15,16 +15,16 @@
  */
 import { ComponentHarness } from '@angular/cdk/testing';
 import { DivHarness } from '@gravitee/ui-particles-angular/testing';
-import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatButtonToggleGroupHarness } from '@angular/material/button-toggle/testing';
+import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 
 export class ApiRuntimeLogsMessageSettingsHarness extends ComponentHarness {
   static hostSelector = 'api-runtime-logs-settings';
 
   public getLogsBanner = this.locatorFor(DivHarness.with({ text: /Logging smartly/ }));
-  private getSaveButton = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Save Settings"]' }));
+  private getSaveButton = this.locatorFor(GioSaveBarHarness);
   private getEntrypointCheckbox = this.locatorFor(MatCheckboxHarness.with({ selector: '[formControlName="entrypoint"]' }));
   private getEndpointCheckbox = this.locatorFor(MatCheckboxHarness.with({ selector: '[formControlName="endpoint"]' }));
   private getRequestPhaseCheckbox = this.locatorFor(MatCheckboxHarness.with({ selector: '[formControlName="request"]' }));
@@ -39,7 +39,11 @@ export class ApiRuntimeLogsMessageSettingsHarness extends ComponentHarness {
   private getSamplingValueInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="samplingValue"]' }));
 
   public saveSettings = async (): Promise<void> => {
-    return this.getSaveButton().then((saveButton) => saveButton.click());
+    return this.getSaveButton().then((saveButton) => saveButton.clickSubmit());
+  };
+
+  public resetSettings = async (): Promise<void> => {
+    return this.getSaveButton().then((saveButton) => saveButton.clickReset());
   };
 
   public isEntrypointChecked = async (): Promise<boolean> => {
