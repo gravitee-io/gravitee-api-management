@@ -19,18 +19,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.google.common.net.InternetDomainName;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
-import io.gravitee.apim.core.api.model.Path;
+import io.gravitee.apim.core.api.model.*;
+import io.gravitee.apim.core.api.query_service.ApiQueryService;
+import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.api.EnvironmentRepository;
-import io.gravitee.repository.management.api.search.ApiCriteria;
-import io.gravitee.repository.management.api.search.ApiFieldFilter;
-import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.v4.exception.HttpListenerPathMissingException;
 import io.gravitee.rest.api.service.v4.exception.InvalidHostException;
 import io.gravitee.rest.api.service.v4.exception.PathAlreadyExistsException;
@@ -47,17 +41,17 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class VerifyApiPathDomainServiceImpl implements VerifyApiPathDomainService {
 
-    private final EnvironmentRepository environmentRepository;
-    private final ApiRepository apiRepository;
+    private final EnvironmentCrudService environmentCrudService;
+    private final ApiQueryService apiSearchService;
     private final ObjectMapper objectMapper;
 
     public VerifyApiPathDomainServiceImpl(
-        @Lazy final EnvironmentRepository environmentRepository,
-        @Lazy final ApiRepository apiRepository,
+        @Lazy final EnvironmentCrudService environmentCrudService,
+        @Lazy final ApiQueryService apiSearchService,
         final ObjectMapper objectMapper
     ) {
-        this.environmentRepository = environmentRepository;
-        this.apiRepository = apiRepository;
+        this.environmentCrudService = environmentCrudService;
+        this.apiSearchService = apiSearchService;
         this.objectMapper = objectMapper;
     }
 
@@ -90,11 +84,11 @@ public class VerifyApiPathDomainServiceImpl implements VerifyApiPathDomainServic
     }
 
     private void checkPathsAreAvailable(String environmentId, String apiId, List<Path> paths) {
-        apiRepository
+        apiSearchService
             .search(
-                new ApiCriteria.Builder().environmentId(environmentId).build(),
+                ApiSearchCriteria.builder().environmentId(environmentId).build(),
                 null,
-                new ApiFieldFilter.Builder().excludePicture().build()
+                ApiFieldFilter.builder().pictureExcluded(true).build()
             )
             .filter(api -> !api.getId().equals(apiId))
             .map(this::extractPaths)
@@ -133,7 +127,7 @@ public class VerifyApiPathDomainServiceImpl implements VerifyApiPathDomainServic
 
     private List<Path> extractPaths(final Api api) {
         if (api.getDefinition() != null) {
-            if (api.getDefinitionVersion() == DefinitionVersion.V4) {
+            if (api.getDefinitionVersion() != null && DefinitionVersion.V4.name().equals(api.getDefinitionVersion().name())) {
                 try {
                     io.gravitee.definition.model.v4.Api apiDefinition = objectMapper.readValue(
                         api.getDefinition(),
@@ -185,28 +179,24 @@ public class VerifyApiPathDomainServiceImpl implements VerifyApiPathDomainServic
     }
 
     private List<Path> validateAndSetDomain(String environmentId, List<Path> sanitizedPaths) {
-        try {
-            var env = environmentRepository.findById(environmentId).orElseThrow(() -> new EnvironmentNotFoundException(environmentId));
+        var env = environmentCrudService.get(environmentId);
 
-            var domainRestrictions = env.getDomainRestrictions();
-            if (domainRestrictions != null && !domainRestrictions.isEmpty()) {
-                return sanitizedPaths
-                    .stream()
-                    .map(path -> {
-                        if (path.hasHost()) {
-                            checkDomainIsValid(path, domainRestrictions);
-                            return path;
-                        }
+        var domainRestrictions = env.getDomainRestrictions();
+        if (domainRestrictions != null && !domainRestrictions.isEmpty()) {
+            return sanitizedPaths
+                .stream()
+                .map(path -> {
+                    if (path.hasHost()) {
+                        checkDomainIsValid(path, domainRestrictions);
+                        return path;
+                    }
 
-                        return path.withHost(env.getDomainRestrictions().get(0));
-                    })
-                    .collect(Collectors.toList());
-            }
-
-            return sanitizedPaths;
-        } catch (TechnicalException e) {
-            throw new TechnicalManagementException(e);
+                    return path.withHost(env.getDomainRestrictions().get(0));
+                })
+                .collect(Collectors.toList());
         }
+
+        return sanitizedPaths;
     }
 
     private void checkDomainIsValid(Path path, List<String> domainRestrictions) {

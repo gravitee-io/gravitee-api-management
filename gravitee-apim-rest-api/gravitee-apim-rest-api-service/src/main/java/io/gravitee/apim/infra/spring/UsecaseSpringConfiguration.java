@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.infra.spring;
 
+import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
+import io.gravitee.apim.core.api.usecase.VerifyApiPathsUsecase;
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
 import io.gravitee.apim.core.log.crud_service.ConnectionLogCrudService;
 import io.gravitee.apim.core.log.crud_service.MessageLogCrudService;
@@ -39,5 +41,10 @@ public class UsecaseSpringConfiguration {
     @Bean
     public SearchMessageLogUsecase searchMessageLogUsecase(MessageLogCrudService messageLogCrudService) {
         return new SearchMessageLogUsecase(messageLogCrudService);
+    }
+
+    @Bean
+    public VerifyApiPathsUsecase verifyApiPathDomainUsecase(VerifyApiPathDomainService verifyApiPathDomainService) {
+        return new VerifyApiPathsUsecase(verifyApiPathDomainService);
     }
 }
