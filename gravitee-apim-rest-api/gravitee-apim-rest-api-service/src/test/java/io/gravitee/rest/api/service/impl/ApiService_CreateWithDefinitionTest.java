@@ -22,6 +22,7 @@ import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.*;
@@ -76,7 +77,7 @@ public class ApiService_CreateWithDefinitionTest {
     private ApiRepository apiRepository;
 
     @Mock
-    private VirtualHostService virtualHostService;
+    private VerifyApiPathDomainService verifyApiPathDomainService;
 
     @Mock
     private ConnectorService connectorService;

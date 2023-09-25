@@ -33,6 +33,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
+import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
+import io.gravitee.apim.core.api.model.Path;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.model.*;
@@ -217,7 +219,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private WorkflowService workflowService;
 
     @Autowired
-    private VirtualHostService virtualHostService;
+    private VerifyApiPathDomainService verifyApiPathDomainService;
 
     @Autowired
     private AlertService alertService;
@@ -425,10 +427,20 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             checkShardingTags(api, null, executionContext);
 
             // format context-path and check if context path is unique
-            final Collection<VirtualHost> sanitizedVirtualHosts = virtualHostService.sanitizeAndValidate(
-                executionContext,
-                api.getProxy().getVirtualHosts()
-            );
+            final Collection<VirtualHost> sanitizedVirtualHosts = verifyApiPathDomainService
+                .verifyApiPaths(
+                    executionContext,
+                    apiId,
+                    api
+                        .getProxy()
+                        .getVirtualHosts()
+                        .stream()
+                        .map(vh -> Path.builder().host(vh.getHost()).path(vh.getPath()).build())
+                        .collect(toList())
+                )
+                .stream()
+                .map(sanitized -> new VirtualHost(sanitized.getHost(), sanitized.getPath(), sanitized.isOverrideAccess()))
+                .toList();
             api.getProxy().setVirtualHosts(new ArrayList<>(sanitizedVirtualHosts));
 
             // check endpoints configuration
@@ -859,13 +871,24 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             proxy.setGroups(merge(proxy.getGroups(), swaggerApiEntity.getProxy().getGroups()));
 
-            List<VirtualHost> virtualHostsToAdd = swaggerApiEntity.getProxy().getVirtualHosts();
+            List<VirtualHost> virtualHostsToAdd = swaggerApiEntity
+                .getProxy()
+                .getVirtualHosts()
+                .stream()
+                .map(v -> new VirtualHost(v.getHost(), Path.sanitizePath(v.getPath()), v.isOverrideEntrypoint()))
+                .collect(toList());
             if (virtualHostsToAdd != null && !virtualHostsToAdd.isEmpty()) {
                 // Sanitize both current vHost and vHost to add to avoid duplicates
-                virtualHostsToAdd = virtualHostsToAdd.stream().map(this.virtualHostService::sanitize).collect(toList());
                 proxy.setVirtualHosts(
                     new ArrayList<>(
-                        merge(proxy.getVirtualHosts().stream().map(this.virtualHostService::sanitize).collect(toSet()), virtualHostsToAdd)
+                        merge(
+                            proxy
+                                .getVirtualHosts()
+                                .stream()
+                                .map(v -> new VirtualHost(v.getHost(), Path.sanitizePath(v.getPath()), v.isOverrideEntrypoint()))
+                                .collect(toSet()),
+                            virtualHostsToAdd
+                        )
                     )
                 );
             }
@@ -968,11 +991,20 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             }
 
             // check if entrypoints are unique
-            final Collection<VirtualHost> sanitizedVirtualHosts = virtualHostService.sanitizeAndValidate(
-                executionContext,
-                updateApiEntity.getProxy().getVirtualHosts(),
-                apiId
-            );
+            final Collection<VirtualHost> sanitizedVirtualHosts = verifyApiPathDomainService
+                .verifyApiPaths(
+                    executionContext,
+                    apiId,
+                    updateApiEntity
+                        .getProxy()
+                        .getVirtualHosts()
+                        .stream()
+                        .map(h -> Path.builder().host(h.getHost()).path(h.getPath()).overrideAccess(h.isOverrideEntrypoint()).build())
+                        .collect(toList())
+                )
+                .stream()
+                .map(r -> new VirtualHost(r.getHost(), r.getPath(), r.isOverrideAccess()))
+                .toList();
             updateApiEntity.getProxy().setVirtualHosts(new ArrayList<>(sanitizedVirtualHosts));
 
             // check endpoints presence

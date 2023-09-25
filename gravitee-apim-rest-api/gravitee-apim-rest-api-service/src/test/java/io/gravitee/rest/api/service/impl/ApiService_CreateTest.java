@@ -29,6 +29,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ExecutionMode;
@@ -148,7 +149,7 @@ public class ApiService_CreateTest {
     private ApiMetadataService apiMetadataService;
 
     @Mock
-    private VirtualHostService virtualHostService;
+    private VerifyApiPathDomainService verifyApiPathDomainService;
 
     @Mock
     private AlertService alertService;
@@ -211,7 +212,7 @@ public class ApiService_CreateTest {
         //            .thenReturn("toDecode=decoded-value");
         //        when(parameterService.find(GraviteeContext.getExecutionContext(), Key.API_PRIMARY_OWNER_MODE, ParameterReferenceType.ENVIRONMENT))
         //            .thenReturn("USER");
-        when(virtualHostService.sanitizeAndValidate(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
+        when(verifyApiPathDomainService.verifyApiPaths(any(), any(), any())).thenAnswer(invocation -> invocation.getArgument(2));
         reset(searchEngineService);
         UserEntity admin = new UserEntity();
         admin.setId(USER_NAME);
