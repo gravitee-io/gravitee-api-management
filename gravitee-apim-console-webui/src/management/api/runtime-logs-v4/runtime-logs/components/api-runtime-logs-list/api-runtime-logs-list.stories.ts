@@ -21,7 +21,14 @@ import { ApiRuntimeLogsListModule } from './api-runtime-logs-list.module';
 
 import { fakeConnectionLog } from '../../../../../../entities/management-api-v2/log/connectionLog.fixture';
 
-const logs = [fakeConnectionLog(), fakeConnectionLog(), fakeConnectionLog()];
+const logs = [
+  fakeConnectionLog(),
+  fakeConnectionLog(),
+  fakeConnectionLog({
+    method: 'POST',
+    status: 400,
+  }),
+];
 
 export default {
   title: 'API / Logs / Runtime logs list',
