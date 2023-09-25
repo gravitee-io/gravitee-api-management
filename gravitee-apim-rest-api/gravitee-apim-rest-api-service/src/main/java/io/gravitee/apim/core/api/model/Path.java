@@ -43,7 +43,7 @@ public class Path {
         return this.withPath(sanitizePath(this.getPath()));
     }
 
-    static String sanitizePath(String path) {
+    public static String sanitizePath(String path) {
         String sanitizedPath = path;
         if (sanitizedPath == null || sanitizedPath.isEmpty()) {
             sanitizedPath = URI_PATH_SEPARATOR;

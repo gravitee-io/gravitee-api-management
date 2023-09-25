@@ -52,6 +52,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -265,7 +266,7 @@ public class ApiService_UpdateTest {
     private WorkflowService workflowService;
 
     @Mock
-    private VirtualHostService virtualHostService;
+    private VerifyApiPathDomainService verifyApiPathDomainService;
 
     @Mock
     private CategoryService categoryService;
@@ -371,7 +372,7 @@ public class ApiService_UpdateTest {
 
         when(primaryOwnerService.getPrimaryOwner(any(), any())).thenReturn(new PrimaryOwnerEntity(new UserEntity()));
         reset(searchEngineService);
-        when(virtualHostService.sanitizeAndValidate(any(), any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
+        when(verifyApiPathDomainService.verifyApiPaths(any(), any(), any())).thenAnswer(invocation -> invocation.getArgument(2));
         when(apiMetadataService.fetchMetadataForApi(any(ExecutionContext.class), any(ApiEntity.class)))
             .thenAnswer(invocation -> invocation.getArgument(1));
     }
@@ -645,7 +646,7 @@ public class ApiService_UpdateTest {
             "{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"} ,\"tags\": [\"public\"]}"
         );
         proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/context")));
-        when(virtualHostService.sanitizeAndValidate(any(), any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
+        when(verifyApiPathDomainService.verifyApiPaths(any(), any(), any())).thenAnswer(invocation -> invocation.getArgument(2));
         when(tagService.findByUser(any(), any(), any())).thenReturn(Sets.newSet("public", "private"));
         final ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
         assertNotNull(apiEntity);
