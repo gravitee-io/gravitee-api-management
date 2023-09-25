@@ -12,6 +12,7 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
 - Add nodePort value to all services
 - Remove smtp default example values
 - Allow wildcard in ingress host
+- Add unknownExpireAfter in management-api configuration
 
 ### 4.0.2
 
