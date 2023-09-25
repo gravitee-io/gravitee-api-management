@@ -26,7 +26,6 @@ import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.rest.api.management.rest.model.Pageable;
 import io.gravitee.rest.api.management.rest.model.PagedResult;
 import io.gravitee.rest.api.management.rest.model.wrapper.ApiListItemPagedResult;
@@ -54,7 +53,6 @@ import io.gravitee.rest.api.service.CategoryService;
 import io.gravitee.rest.api.service.RatingService;
 import io.gravitee.rest.api.service.SwaggerService;
 import io.gravitee.rest.api.service.TopApiService;
-import io.gravitee.rest.api.service.VirtualHostService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
@@ -89,7 +87,6 @@ import jakarta.ws.rs.core.UriBuilder;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -119,9 +116,6 @@ public class ApisResource extends AbstractResource {
 
     @Inject
     private RatingService ratingService;
-
-    @Inject
-    private VirtualHostService virtualHostService;
 
     @Inject
     private CategoryService categoryService;

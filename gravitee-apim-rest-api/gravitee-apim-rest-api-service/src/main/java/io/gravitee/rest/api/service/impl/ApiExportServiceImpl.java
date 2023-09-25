@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.impl;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.gravitee.apim.core.api.model.Path;
 import io.gravitee.definition.model.kubernetes.v1alpha1.ApiDefinitionResource;
 import io.gravitee.kubernetes.mapper.CustomResourceDefinitionMapper;
 import io.gravitee.rest.api.model.PageEntity;
@@ -56,7 +57,6 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
     private final PageService pageService;
     private final PlanService planService;
     private final ApiService apiService;
-    private final PathValidationService pathValidationService;
     private final ApiConverter apiConverter;
     private final PlanConverter planConverter;
     private final CustomResourceDefinitionMapper customResourceDefinitionMapper;
@@ -66,7 +66,6 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
         PageService pageService,
         PlanService planService,
         ApiService apiService,
-        PathValidationService pathValidationService,
         ApiConverter apiConverter,
         PlanConverter planConverter,
         CustomResourceDefinitionMapper customResourceDefinitionMapper
@@ -75,7 +74,6 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
         this.pageService = pageService;
         this.planService = planService;
         this.apiService = apiService;
-        this.pathValidationService = pathValidationService;
         this.apiConverter = apiConverter;
         this.planConverter = planConverter;
         this.customResourceDefinitionMapper = customResourceDefinitionMapper;
@@ -122,7 +120,7 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
             }
 
             if (exportQuery.hasContextPath()) {
-                String contextPath = pathValidationService.sanitizePath(exportQuery.getContextPath());
+                String contextPath = Path.sanitizePath(exportQuery.getContextPath());
                 apiDefinitionResource.setContextPath(contextPath);
             }
 

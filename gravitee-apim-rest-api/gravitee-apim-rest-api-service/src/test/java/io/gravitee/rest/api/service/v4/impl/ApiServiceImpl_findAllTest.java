@@ -15,67 +15,26 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
-import static io.gravitee.definition.model.DefinitionContext.ORIGIN_KUBERNETES;
-import static io.gravitee.definition.model.DefinitionContext.ORIGIN_MANAGEMENT;
-import static io.gravitee.rest.api.model.api.ApiLifecycleState.*;
 import static io.gravitee.rest.api.service.impl.promotion.PromotionServiceTest.USER_ID;
-import static java.util.Arrays.asList;
-import static java.util.Collections.*;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.eq;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.definition.model.v4.analytics.Analytics;
-import io.gravitee.definition.model.v4.analytics.logging.Logging;
-import io.gravitee.definition.model.v4.analytics.logging.LoggingMode;
-import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
-import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
-import io.gravitee.definition.model.v4.flow.Flow;
-import io.gravitee.definition.model.v4.listener.http.HttpListener;
-import io.gravitee.definition.model.v4.listener.http.Path;
-import io.gravitee.definition.model.v4.plan.PlanStatus;
-import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiQualityRuleRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
-import io.gravitee.repository.management.model.*;
-import io.gravitee.repository.management.model.flow.FlowReferenceType;
-import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.EventType;
-import io.gravitee.rest.api.model.MembershipMemberType;
-import io.gravitee.rest.api.model.MembershipReferenceType;
-import io.gravitee.rest.api.model.MetadataFormat;
-import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
-import io.gravitee.rest.api.model.common.Pageable;
+import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.common.PageableImpl;
-import io.gravitee.rest.api.model.parameters.Key;
-import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
-import io.gravitee.rest.api.model.permissions.RoleScope;
-import io.gravitee.rest.api.model.permissions.SystemRole;
-import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
-import io.gravitee.rest.api.model.v4.api.NewApiEntity;
-import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
-import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.service.*;
-import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
-import io.gravitee.rest.api.service.exceptions.*;
-import io.gravitee.rest.api.service.impl.NotifierServiceImpl;
-import io.gravitee.rest.api.service.impl.upgrade.initializer.DefaultMetadataInitializer;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.v4.*;
@@ -86,7 +45,8 @@ import io.gravitee.rest.api.service.v4.mapper.CategoryMapper;
 import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
 import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
 import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
-import java.util.*;
+import java.util.List;
+import java.util.Set;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
@@ -137,9 +97,6 @@ public class ApiServiceImpl_findAllTest {
 
     @Mock
     private ApiMetadataService apiMetadataService;
-
-    @Mock
-    private VirtualHostService virtualHostService;
 
     @Mock
     private CategoryService categoryService;

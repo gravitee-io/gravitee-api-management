@@ -127,7 +127,6 @@ import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.TopApiService;
 import io.gravitee.rest.api.service.UserService;
-import io.gravitee.rest.api.service.VirtualHostService;
 import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -211,9 +210,6 @@ public class ApiServiceImplTest {
 
     @Mock
     private ApiMetadataService apiMetadataService;
-
-    @Mock
-    private VirtualHostService virtualHostService;
 
     @Mock
     private CategoryService categoryService;

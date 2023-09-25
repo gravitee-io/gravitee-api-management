@@ -65,7 +65,6 @@ import io.gravitee.rest.api.service.PolicyService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.V4EmulationEngineService;
-import io.gravitee.rest.api.service.VirtualHostService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.ApiConverter;
