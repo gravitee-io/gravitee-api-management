@@ -293,7 +293,7 @@ export class ApiPortalSubscriptionListComponent implements OnInit, OnDestroy {
       .subscribe(
         (subscription) => {
           this.snackBarService.success(`Subscription successfully created`);
-          this.ajsState.go('management.apis.ng.subscription.edit', { subscriptionId: subscription.id });
+          this.ajsState.go(`${this.routeBase}.subscription.edit`, { subscriptionId: subscription.id });
         },
         (err) => this.snackBarService.error(err.message),
       );
