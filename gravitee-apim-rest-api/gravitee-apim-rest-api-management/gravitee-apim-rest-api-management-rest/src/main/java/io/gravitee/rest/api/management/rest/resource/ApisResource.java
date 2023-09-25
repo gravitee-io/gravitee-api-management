@@ -21,6 +21,7 @@ import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import io.gravitee.apim.core.api.usecase.VerifyApiPathsUsecase;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
@@ -127,6 +128,9 @@ public class ApisResource extends AbstractResource {
 
     @Inject
     private FlowService flowService;
+
+    @Inject
+    private VerifyApiPathsUsecase verifyApiPathsUsecase;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -396,7 +400,7 @@ public class ApisResource extends AbstractResource {
     @POST
     @Path("verify")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Check if an API match the following criteria")
+    @Operation(summary = "Check if an API match the following criteria", deprecated = true)
     @ApiResponse(
         responseCode = "200",
         description = "No API match the following criteria",
@@ -404,12 +408,13 @@ public class ApisResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "400", description = "API already exist with the following criteria")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE) })
+    @Deprecated
     public Response verifyApi(@Valid VerifyApiParam verifyApiParam) {
-        // TODO : create verify service to query repository with criteria
-        virtualHostService.sanitizeAndValidate(
-            GraviteeContext.getExecutionContext(),
-            Collections.singletonList(new VirtualHost(verifyApiParam.getContextPath())),
-            verifyApiParam.getApiId()
+        verifyApiPathsUsecase.execute(
+            new VerifyApiPathsUsecase.Request(
+                verifyApiParam.getApiId(),
+                List.of(io.gravitee.apim.core.api.model.Path.builder().path(verifyApiParam.getContextPath()).build())
+            )
         );
         return Response.ok("API context [" + verifyApiParam.getContextPath() + "] is available").build();
     }

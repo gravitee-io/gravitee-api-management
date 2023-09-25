@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.rest.spring;
 
+import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
 import io.gravitee.el.ExpressionLanguageInitializer;
 import io.gravitee.plugin.core.spring.PluginConfiguration;
 import io.gravitee.rest.api.idp.core.spring.IdentityProviderPluginConfiguration;
@@ -28,7 +29,9 @@ import org.springframework.context.annotation.Import;
  * @author GraviteeSource Team
  */
 @Configuration
-@Import({ PluginConfiguration.class, ServiceConfiguration.class, IdentityProviderPluginConfiguration.class })
+@Import(
+    { PluginConfiguration.class, ServiceConfiguration.class, IdentityProviderPluginConfiguration.class, UsecaseSpringConfiguration.class }
+)
 public class RestManagementConfiguration {
 
     @Bean

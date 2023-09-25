@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.management.v2.rest.spring;
+package io.gravitee.rest.api.management.rest.spring;
 
 import inmemory.*;
+import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -43,12 +44,12 @@ public class InMemoryConfiguration {
     }
 
     @Bean
-    public ApiQueryServiceInMemory apiSearchCrudServiceInMemory() {
-        return new ApiQueryServiceInMemory();
+    public EnvironmentCrudService environmentCrudService() {
+        return new EnvironmentCrudServiceInMemory();
     }
 
     @Bean
-    public EnvironmentCrudServiceInMemory environmentCrudServiceInMemory() {
-        return new EnvironmentCrudServiceInMemory();
+    ApiSearchServiceInMemory apiSearchServiceInMemory() {
+        return new ApiSearchServiceInMemory();
     }
 }
