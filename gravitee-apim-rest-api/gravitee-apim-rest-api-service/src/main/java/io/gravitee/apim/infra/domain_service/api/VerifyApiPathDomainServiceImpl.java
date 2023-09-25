@@ -136,8 +136,8 @@ public class VerifyApiPathDomainServiceImpl implements VerifyApiPathDomainServic
                     return apiDefinition
                         .getListeners()
                         .stream()
-                        .filter(listener -> listener instanceof HttpListener)
-                        .map(listener -> (HttpListener) listener)
+                        .filter(HttpListener.class::isInstance)
+                        .map(HttpListener.class::cast)
                         .flatMap(httpListener ->
                             httpListener
                                 .getPaths()
