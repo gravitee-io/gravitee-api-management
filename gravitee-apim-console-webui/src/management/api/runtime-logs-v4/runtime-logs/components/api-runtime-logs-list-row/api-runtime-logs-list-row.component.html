@@ -27,7 +27,7 @@
         <div class="log-row__line-2__data">
           <div class="property">Http method:</div>
           <div class="value">
-            <span class="gio-method-badge-get">{{ log.method }}</span>
+            <span class="{{ 'gio-method-badge-' + log.method?.toLowerCase() }}">{{ log.method }}</span>
           </div>
         </div>
 
@@ -44,7 +44,7 @@
         <div class="log-row__line-2__data">
           <div class="property">Initial request status:</div>
           <div class="value">
-            <span class="gio-badge-success">{{ log.status }}</span>
+            <span [class.gio-badge-warning]="log.status >= 400" [class.gio-badge-success]="log.status < 400">{{ log.status }}</span>
           </div>
         </div>
 
