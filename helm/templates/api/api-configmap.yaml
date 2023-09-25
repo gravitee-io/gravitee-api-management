@@ -452,6 +452,9 @@ data:
     # Set the Subscribe to newsletter feature (default value: true)
     newsletter :
       enabled: {{ .Values.api.newsletterEnabled }}
+    
+    gateway:
+      unknown-expire-after: {{ .Values.api.gateway.unknownExpireAfter }}
 
     # Alert Engine communication
     {{ if .Values.alerts.enabled }}

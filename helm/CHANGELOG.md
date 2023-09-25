@@ -7,6 +7,7 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
 
 - Allow wildcard in ingress host
 - Remove smtp default example values
+- Add unknownExpireAfter in management-api configuration
 
 ### 3.19.22
 
