@@ -16,18 +16,9 @@
 import { Inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
 
 import { Constants } from '../entities/Constants';
 import { ClientRegistrationProvider } from '../entities/client-registration-provider/clientRegistrationProvider';
-
-export type ClientRegistrationProvidersResponse = {
-  data: ClientRegistrationProvider[];
-};
-
-export type ClientRegistrationProviderResponse = {
-  data: ClientRegistrationProvider;
-};
 
 @Injectable({
   providedIn: 'root',
@@ -36,20 +27,13 @@ export class ClientRegistrationProvidersService {
   constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
 
   list(): Observable<ClientRegistrationProvider[]> {
-    return this.http
-      .get<ClientRegistrationProvidersResponse>(`${this.constants.env.baseURL}/configuration/applications/registration/providers`)
-      .pipe(map(({ data }) => data));
+    return this.http.get<ClientRegistrationProvider[]>(`${this.constants.env.baseURL}/configuration/applications/registration/providers`);
   }
 
   get(id: string): Observable<ClientRegistrationProvider> {
-    return this.http
-      .get<ClientRegistrationProviderResponse>(`${this.constants.env.baseURL}/configuration/applications/registration/providers/${id}`)
-      .pipe(
-        map(({ data }) => {
-          data.scopes = data.scopes || [];
-          return data;
-        }),
-      );
+    return this.http.get<ClientRegistrationProvider>(
+      `${this.constants.env.baseURL}/configuration/applications/registration/providers/${id}`,
+    );
   }
 
   create(clientRegistrationProvider: ClientRegistrationProvider): Observable<ClientRegistrationProvider> {
@@ -60,30 +44,23 @@ export class ClientRegistrationProvidersService {
   }
 
   update(clientRegistrationProvider: ClientRegistrationProvider): Observable<ClientRegistrationProvider> {
-    return this.http
-      .put<ClientRegistrationProviderResponse>(
-        `${this.constants.env.baseURL}/configuration/applications/registration/providers/${clientRegistrationProvider.id}`,
-        {
-          name: clientRegistrationProvider.name,
-          description: clientRegistrationProvider.description,
-          discovery_endpoint: clientRegistrationProvider.discovery_endpoint,
-          initial_access_token_type: clientRegistrationProvider.initial_access_token_type,
-          client_id: clientRegistrationProvider.client_id,
-          client_secret: clientRegistrationProvider.client_secret,
-          scopes: clientRegistrationProvider.scopes,
-          initial_access_token: clientRegistrationProvider.initial_access_token,
-          renew_client_secret_support: clientRegistrationProvider.renew_client_secret_support,
-          renew_client_secret_endpoint: clientRegistrationProvider.renew_client_secret_endpoint,
-          renew_client_secret_method: clientRegistrationProvider.renew_client_secret_method,
-          software_id: clientRegistrationProvider.software_id,
-        },
-      )
-      .pipe(
-        map(({ data }) => {
-          data.scopes = data.scopes || [];
-          return data;
-        }),
-      );
+    return this.http.put<ClientRegistrationProvider>(
+      `${this.constants.env.baseURL}/configuration/applications/registration/providers/${clientRegistrationProvider.id}`,
+      {
+        name: clientRegistrationProvider.name,
+        description: clientRegistrationProvider.description,
+        discovery_endpoint: clientRegistrationProvider.discovery_endpoint,
+        initial_access_token_type: clientRegistrationProvider.initial_access_token_type,
+        client_id: clientRegistrationProvider.client_id,
+        client_secret: clientRegistrationProvider.client_secret,
+        scopes: clientRegistrationProvider.scopes,
+        initial_access_token: clientRegistrationProvider.initial_access_token,
+        renew_client_secret_support: clientRegistrationProvider.renew_client_secret_support,
+        renew_client_secret_endpoint: clientRegistrationProvider.renew_client_secret_endpoint,
+        renew_client_secret_method: clientRegistrationProvider.renew_client_secret_method,
+        software_id: clientRegistrationProvider.software_id,
+      },
+    );
   }
 
   delete(clientRegistrationProvider: ClientRegistrationProvider): Observable<any> {

@@ -151,9 +151,9 @@
     >
       <!-- Name Column -->
       <ng-container matColumnDef="name">
-        <th mat-header-cell *matHeaderCellDef id="name" width="30%">Name</th>
+        <th mat-header-cell *matHeaderCellDef id="name">Name</th>
         <td mat-cell *matCellDef="let element">
-          <span [matTooltip]="element.name">
+          <span>
             {{ element.name }}
           </span>
         </td>
@@ -161,9 +161,9 @@
 
       <!-- Description Column -->
       <ng-container matColumnDef="description">
-        <th mat-header-cell *matHeaderCellDef id="description" width="40%">Description</th>
+        <th mat-header-cell *matHeaderCellDef id="description">Description</th>
         <td mat-cell *matCellDef="let element">
-          <span [matTooltip]="element.description">
+          <span>
             {{ element.description }}
           </span>
         </td>
@@ -171,9 +171,9 @@
 
       <!-- updatedAt Column -->
       <ng-container matColumnDef="updatedAt">
-        <th mat-header-cell *matHeaderCellDef id="updatedAt" width="20%">Last updated at</th>
+        <th mat-header-cell *matHeaderCellDef id="updatedAt">Last updated at</th>
         <td mat-cell *matCellDef="let element">
-          <span [matTooltip]="element.updatedAt">
+          <span>
             {{ element.updatedAt | date : 'medium' }}
           </span>
         </td>
@@ -181,20 +181,27 @@
 
       <!-- Actions Column -->
       <ng-container matColumnDef="actions">
-        <th mat-header-cell *matHeaderCellDef id="actions" width="10%">Actions</th>
+        <th mat-header-cell *matHeaderCellDef id="actions">Actions</th>
         <td mat-cell *matCellDef="let element">
-          <button (click)="onEditActionClicked(element)" mat-icon-button aria-label="Button to edit a provider" matTooltip="Edit provider">
-            <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
-          </button>
-          <button
-            *gioPermission="{ anyOf: ['environment-client_registration_provider-d'] }"
-            (click)="onRemoveActionClicked(element)"
-            mat-icon-button
-            aria-label="Button to remove a provider"
-            matTooltip="Remove provider"
-          >
-            <mat-icon svgIcon="gio:trash"></mat-icon>
-          </button>
+          <div class="actions">
+            <button
+              (click)="onEditActionClicked(element)"
+              mat-icon-button
+              aria-label="Button to edit a provider"
+              matTooltip="Edit provider"
+            >
+              <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
+            </button>
+            <button
+              *gioPermission="{ anyOf: ['environment-client_registration_provider-d'] }"
+              (click)="onRemoveActionClicked(element)"
+              mat-icon-button
+              aria-label="Button to remove a provider"
+              matTooltip="Remove provider"
+            >
+              <mat-icon svgIcon="gio:trash"></mat-icon>
+            </button>
+          </div>
         </td>
       </ng-container>
 
