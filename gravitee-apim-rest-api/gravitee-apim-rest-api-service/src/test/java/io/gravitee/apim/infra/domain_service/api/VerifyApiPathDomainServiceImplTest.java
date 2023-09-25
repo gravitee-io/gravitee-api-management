@@ -22,25 +22,20 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.apim.core.api.model.Path;
+import io.gravitee.apim.core.api.model.*;
+import io.gravitee.apim.core.api.query_service.ApiQueryService;
+import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
+import io.gravitee.apim.core.environment.model.Environment;
 import io.gravitee.apim.core.exception.InvalidPathException;
 import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
-import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
-import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.api.EnvironmentRepository;
-import io.gravitee.repository.management.api.search.ApiCriteria;
-import io.gravitee.repository.management.api.search.ApiFieldFilter;
-import io.gravitee.repository.management.model.Api;
-import io.gravitee.repository.management.model.Environment;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
 import io.gravitee.rest.api.service.v4.exception.InvalidHostException;
 import io.gravitee.rest.api.service.v4.exception.PathAlreadyExistsException;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.SneakyThrows;
@@ -62,10 +57,10 @@ class VerifyApiPathDomainServiceImplTest {
     public static final String ENVIRONMENT_ID = "environment-id";
 
     @Mock
-    ApiRepository apiRepository;
+    ApiQueryService apiSearchService;
 
     @Mock
-    EnvironmentRepository environmentRepository;
+    EnvironmentCrudService environmentCrudService;
 
     VerifyApiPathDomainServiceImpl service;
     private ObjectMapper objectMapper;
@@ -94,7 +89,7 @@ class VerifyApiPathDomainServiceImplTest {
     @BeforeEach
     void setup() {
         objectMapper = GraviteeJacksonMapper.getInstance();
-        service = new VerifyApiPathDomainServiceImpl(environmentRepository, apiRepository, objectMapper);
+        service = new VerifyApiPathDomainServiceImpl(environmentCrudService, apiSearchService, objectMapper);
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT_ID);
     }
 
@@ -105,7 +100,7 @@ class VerifyApiPathDomainServiceImplTest {
 
     @Test
     public void should_return_an_exception_if_environment_not_found() {
-        // Given no environment
+        givenNoEnvironment();
 
         Throwable throwable = catchThrowable(() ->
             service.verifyApiPaths(GraviteeContext.getExecutionContext(), "api-id", List.of(Path.builder().build()))
@@ -389,23 +384,24 @@ class VerifyApiPathDomainServiceImplTest {
         assertThat(pathAlreadyExistExceptionIfDefaultDomain).isInstanceOf(PathAlreadyExistsException.class);
     }
 
+    private void givenNoEnvironment() {
+        lenient().when(environmentCrudService.get(any())).thenThrow(new EnvironmentNotFoundException("env-id"));
+    }
+
     @SneakyThrows
     private void givenExistingEnvironment(String environmentId, List<String> domainRestrictions) {
-        var env = new Environment();
-        env.setId(environmentId);
-        env.setDomainRestrictions(domainRestrictions);
+        var env = Environment.builder().id(environmentId).domainRestrictions(domainRestrictions).build();
 
-        lenient().when(environmentRepository.findById(any())).thenReturn(Optional.empty());
-        lenient().when(environmentRepository.findById(environmentId)).thenReturn(Optional.of(env));
+        lenient().when(environmentCrudService.get(eq(environmentId))).thenReturn(env);
     }
 
     private void givenExistingApis(String environmentId, Stream<Api> apis) {
         lenient()
             .when(
-                apiRepository.search(
-                    eq(new ApiCriteria.Builder().environmentId(environmentId).build()),
+                apiSearchService.search(
+                    eq(ApiSearchCriteria.builder().environmentId(environmentId).build()),
                     eq(null),
-                    eq(new ApiFieldFilter.Builder().excludePicture().build())
+                    eq(ApiFieldFilter.builder().pictureExcluded(true).build())
                 )
             )
             .thenReturn(apis);
@@ -428,12 +424,13 @@ class VerifyApiPathDomainServiceImplTest {
         );
         apiDefV2.setProxy(proxy);
 
-        Api api = new Api();
-        api.setId(apiId);
-        api.setEnvironmentId(environmentId);
-        api.setDefinitionVersion(DefinitionVersion.V2);
-        api.setDefinition(objectMapper.writeValueAsString(apiDefV2));
-        return api;
+        return Api
+            .builder()
+            .id(apiId)
+            .environmentId(environmentId)
+            .definitionVersion(Api.DefinitionVersion.V2)
+            .definition(objectMapper.writeValueAsString(apiDefV2))
+            .build();
     }
 
     @SneakyThrows
@@ -452,11 +449,12 @@ class VerifyApiPathDomainServiceImplTest {
         apiDefV4.setListeners(List.of(listener));
         apiDefV4.setId(apiId);
 
-        Api api = new Api();
-        api.setId(apiId);
-        api.setEnvironmentId(environmentId);
-        api.setDefinitionVersion(DefinitionVersion.V4);
-        api.setDefinition(objectMapper.writeValueAsString(apiDefV4));
-        return api;
+        return Api
+            .builder()
+            .id(apiId)
+            .environmentId(environmentId)
+            .definitionVersion(Api.DefinitionVersion.V4)
+            .definition(objectMapper.writeValueAsString(apiDefV4))
+            .build();
     }
 }

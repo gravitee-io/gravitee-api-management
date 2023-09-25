@@ -19,7 +19,7 @@ import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDoc
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_TYPE_VALUE;
 
 import com.google.common.base.Strings;
-import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
+import io.gravitee.apim.core.api.usecase.VerifyApiPathsUsecase;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.exception.InvalidImageException;
@@ -79,7 +79,7 @@ public class ApisResource extends AbstractResource {
     private ApiStateService apiStateService;
 
     @Inject
-    private VerifyApiPathDomainService verifyApiPathService;
+    private VerifyApiPathsUsecase verifyApiPathsUsecase;
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
@@ -225,12 +225,17 @@ public class ApisResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.READ }) })
     public Response verifyPaths(VerifyApiPaths verifyPayload) {
         try {
-            List<io.gravitee.apim.core.api.model.Path> pathsToVerify = verifyPayload
-                .getPaths()
-                .stream()
-                .map(p -> io.gravitee.apim.core.api.model.Path.builder().path(p.getPath()).host(p.getHost()).build())
-                .toList();
-            verifyApiPathService.verifyApiPaths(GraviteeContext.getExecutionContext(), verifyPayload.getApiId(), pathsToVerify);
+            verifyApiPathsUsecase.execute(
+                new VerifyApiPathsUsecase.Request(
+                    verifyPayload.getApiId(),
+                    verifyPayload
+                        .getPaths()
+                        .stream()
+                        .map(p -> io.gravitee.apim.core.api.model.Path.builder().path(p.getPath()).host(p.getHost()).build())
+                        .toList()
+                )
+            );
+
             return Response.accepted(VerifyApiPathsResponse.builder().ok(true).build()).build();
         } catch (Exception e) {
             return Response.accepted(VerifyApiPathsResponse.builder().ok(false).reason(e.getMessage()).build()).build();
