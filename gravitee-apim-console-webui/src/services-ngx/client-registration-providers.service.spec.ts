@@ -52,7 +52,7 @@ describe('ClientRegistrationProviderService', () => {
       url: `${CONSTANTS_TESTING.env.baseURL}/configuration/applications/registration/providers`,
     });
 
-    req.flush({ data: mockProviders });
+    req.flush(mockProviders);
   });
 
   it('should get provider by id', (done) => {
@@ -69,7 +69,7 @@ describe('ClientRegistrationProviderService', () => {
       url: `${CONSTANTS_TESTING.env.baseURL}/configuration/applications/registration/providers/foobar`,
     });
 
-    req.flush({ data: mockProvider });
+    req.flush(mockProvider);
   });
 
   it('should delete provider by id', (done) => {
@@ -117,6 +117,6 @@ describe('ClientRegistrationProviderService', () => {
       url: `${CONSTANTS_TESTING.env.baseURL}/configuration/applications/registration/providers/${mockProvider.id}`,
     });
 
-    req.flush({ data: mockProvider });
+    req.flush(mockProvider);
   });
 });

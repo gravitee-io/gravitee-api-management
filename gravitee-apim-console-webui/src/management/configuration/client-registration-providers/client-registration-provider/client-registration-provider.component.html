@@ -16,7 +16,10 @@
 
 -->
 <form *ngIf="providerForm" [formGroup]="providerForm" (ngSubmit)="onSubmit()" gioFormFocusInvalid>
-  <h1><gio-go-back-button [ajsGo]="{ to: 'management.settings.clientregistrationproviders.list' }"></gio-go-back-button>{{ title }}</h1>
+  <h1>
+    <gio-go-back-button [ajsGo]="{ to: 'management.settings.clientregistrationproviders.list' }"></gio-go-back-button>
+    {{ updateMode ? 'Update client registration provider' : 'New client registration provider' }}
+  </h1>
 
   <mat-card class="client-registration-provider__card">
     <mat-card-content class="client-registration-provider__card__content">
@@ -62,12 +65,12 @@
       <ng-container *ngIf="isClientCredentials()">
         <mat-form-field appearance="outline" class="client-registration-provider__card__content__form-field">
           <mat-label>Client ID</mat-label>
-          <input type="text" matInput formControlName="client_id" [required]="isClientCredentials()" />
+          <input type="text" matInput formControlName="client_id" required />
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="client-registration-provider__card__content__form-field">
           <mat-label>Client Secret</mat-label>
-          <input type="text" matInput formControlName="client_secret" [required]="isClientCredentials()" />
+          <input type="text" matInput formControlName="client_secret" required />
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="client-registration-provider__card__content__form-field">
@@ -84,7 +87,7 @@
       <ng-container *ngIf="isInitialAccessToken()">
         <mat-form-field appearance="outline" class="client-registration-provider__card__content__form-field">
           <mat-label>Initial Access Token</mat-label>
-          <input type="text" matInput formControlName="initial_access_token" [required]="isInitialAccessToken()" />
+          <input type="text" matInput formControlName="initial_access_token" required />
         </mat-form-field>
       </ng-container>
 
@@ -118,24 +121,10 @@
     </mat-card-content>
   </mat-card>
 
-  <ng-container *ngIf="!updateMode">
-    <gio-save-bar
-      *gioPermission="{ anyOf: ['environment-client_registration_provider-c'] }"
-      [creationMode]="true"
-      [invalidState]="invalidStateSaveBar"
-      (resetClicked)="onReset()"
-      [form]="providerForm"
-    >
-    </gio-save-bar>
-  </ng-container>
-  <ng-container *ngIf="updateMode">
-    <gio-save-bar
-      *gioPermission="{ anyOf: ['environment-client_registration_provider-u'] }"
-      [creationMode]="false"
-      [invalidState]="invalidStateSaveBar"
-      (resetClicked)="onReset()"
-      [form]="providerForm"
-    >
-    </gio-save-bar>
-  </ng-container>
+  <gio-save-bar
+    *gioPermission="{ anyOf: ['environment-client_registration_provider-c', 'environment-client_registration_provider-u'] }"
+    [creationMode]="!updateMode"
+    [form]="providerForm"
+  >
+  </gio-save-bar>
 </form>
