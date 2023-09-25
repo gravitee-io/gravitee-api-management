@@ -67,10 +67,9 @@
           <md-card-header>
             <md-card-avatar>
               <gravitee-identity-picture
-                class="md-user-avatar"
-                image-id="'hc_' + api.id"
-                image-url=""
-                image-name="$ctrl.getPictureDisplayName(api)"
+                image-id="api.id"
+                image-url="::api.picture_url"
+                image-name="api.name + '  ' + api.version"
                 image-width="40"
               ></gravitee-identity-picture>
             </md-card-avatar>
