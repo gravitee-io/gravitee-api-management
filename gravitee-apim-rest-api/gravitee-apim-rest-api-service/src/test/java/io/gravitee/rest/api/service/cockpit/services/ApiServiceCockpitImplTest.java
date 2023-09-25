@@ -31,6 +31,8 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
+import io.gravitee.apim.core.api.model.Path;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
@@ -63,6 +65,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.PageConverter;
 import io.gravitee.rest.api.service.exceptions.ApiContextPathAlreadyExistsException;
+import io.gravitee.rest.api.service.v4.exception.PathAlreadyExistsException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -106,7 +109,7 @@ public class ApiServiceCockpitImplTest {
     private PlanService planService;
 
     @Mock
-    private VirtualHostService virtualHostService;
+    private VerifyApiPathDomainService verifyApiPathsDomainService;
 
     private ApiServiceCockpitImpl service;
 
@@ -138,9 +141,9 @@ public class ApiServiceCockpitImplTest {
                 pageService,
                 apiMetadataService,
                 planService,
-                virtualHostService,
                 apiConverter,
-                pageConverter
+                pageConverter,
+                verifyApiPathsDomainService
             );
     }
 
@@ -562,7 +565,8 @@ public class ApiServiceCockpitImplTest {
 
         when(swaggerService.createAPI(eq(executionContext), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2)))
             .thenReturn(swaggerApi);
-        when(virtualHostService.sanitizeAndValidate(any(), any(), eq(API_ID))).thenReturn(List.of(virtualHost));
+        when(verifyApiPathsDomainService.verifyApiPaths(any(), eq(API_ID), any()))
+            .thenReturn(List.of(Path.builder().path(virtualHost.getPath()).host(virtualHost.getHost()).build()));
 
         ApiEntity updatedApiEntity = new ApiEntity();
         updatedApiEntity.setName("updated api");
@@ -715,7 +719,8 @@ public class ApiServiceCockpitImplTest {
 
         when(swaggerService.createAPI(eq(executionContext), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2)))
             .thenReturn(swaggerApi);
-        when(virtualHostService.sanitizeAndValidate(any(), any(), eq(API_ID))).thenReturn(List.of(virtualHost));
+        when(verifyApiPathsDomainService.verifyApiPaths(any(), eq(API_ID), any()))
+            .thenReturn(List.of(Path.builder().path(virtualHost.getPath()).host(virtualHost.getHost()).build()));
 
         ApiEntity updatedApiEntity = new ApiEntity();
         updatedApiEntity.setName("updated api");
@@ -775,7 +780,8 @@ public class ApiServiceCockpitImplTest {
 
         when(apiService.start(GraviteeContext.getExecutionContext(), API_ID, USER_ID)).thenReturn(updatedApiEntity);
         when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(null);
-        when(virtualHostService.sanitizeAndValidate(any(), any(), eq(API_ID))).thenReturn(List.of(virtualHost));
+        when(verifyApiPathsDomainService.verifyApiPaths(any(), eq(API_ID), any()))
+            .thenReturn(List.of(Path.builder().path(virtualHost.getPath()).host(virtualHost.getHost()).build()));
 
         service.updateApi(
             GraviteeContext.getExecutionContext(),
@@ -819,7 +825,8 @@ public class ApiServiceCockpitImplTest {
             .thenReturn(updatedApiEntity);
         when(apiService.start(any(), eq(API_ID), eq(USER_ID))).thenReturn(updatedApiEntity);
 
-        when(virtualHostService.sanitizeAndValidate(any(), any(), eq(API_ID))).thenReturn(List.of(virtualHost));
+        when(verifyApiPathsDomainService.verifyApiPaths(any(), eq(API_ID), any()))
+            .thenReturn(List.of(Path.builder().path(virtualHost.getPath()).host(virtualHost.getHost()).build()));
 
         preparePageServiceMock();
 
@@ -863,7 +870,8 @@ public class ApiServiceCockpitImplTest {
             .thenReturn(updatedApiEntity);
 
         when(planService.findByApi(executionContext, API_ID)).thenReturn(Collections.singleton(new PlanEntity()));
-        when(virtualHostService.sanitizeAndValidate(any(), any(), eq(API_ID))).thenReturn(List.of(virtualHost));
+        when(verifyApiPathsDomainService.verifyApiPaths(any(), eq(API_ID), any()))
+            .thenReturn(List.of(Path.builder().path(virtualHost.getPath()).host(virtualHost.getHost()).build()));
 
         preparePageServiceMock();
 
@@ -890,10 +898,12 @@ public class ApiServiceCockpitImplTest {
         proxy.setVirtualHosts(List.of(virtualHost));
         api.setProxy(proxy);
 
-        when(virtualHostService.sanitizeAndValidate(any(), anyList(), eq(null))).thenReturn(List.of(virtualHost));
+        when(verifyApiPathsDomainService.verifyApiPaths(any(), eq(null), anyList()))
+            .thenReturn(List.of(Path.builder().path(virtualHost.getPath()).host(virtualHost.getHost()).build()));
         var message = service.checkContextPath(GraviteeContext.getExecutionContext(), api);
 
-        verify(virtualHostService).sanitizeAndValidate(any(), eq(List.of(virtualHost)), eq(null));
+        verify(verifyApiPathsDomainService)
+            .verifyApiPaths(any(), eq(null), eq(List.of(Path.builder().path(virtualHost.getPath()).host(virtualHost.getHost()).build())));
         assertThat(message.isPresent()).isFalse();
     }
 
@@ -905,11 +915,12 @@ public class ApiServiceCockpitImplTest {
         proxy.setVirtualHosts(List.of(virtualHost));
         api.setProxy(proxy);
 
-        when(virtualHostService.sanitizeAndValidate(any(), anyList(), eq(null)))
-            .thenThrow(new ApiContextPathAlreadyExistsException("contextPath"));
+        when(verifyApiPathsDomainService.verifyApiPaths(any(), eq(null), anyList()))
+            .thenThrow(new PathAlreadyExistsException("contextPath"));
         var message = service.checkContextPath(GraviteeContext.getExecutionContext(), api);
 
-        verify(virtualHostService).sanitizeAndValidate(any(), eq(List.of(virtualHost)), eq(null));
+        verify(verifyApiPathsDomainService)
+            .verifyApiPaths(any(), eq(null), eq(List.of(Path.builder().path(virtualHost.getPath()).host(virtualHost.getHost()).build())));
         assertThat(message.isPresent()).isTrue();
         assertThat(message.get())
             .isEqualTo("The context [contextPath] automatically generated from the name is already covered by another API.");

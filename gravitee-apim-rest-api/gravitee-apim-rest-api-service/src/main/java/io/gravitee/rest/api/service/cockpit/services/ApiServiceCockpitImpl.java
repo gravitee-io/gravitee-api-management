@@ -20,6 +20,8 @@ import static io.gravitee.rest.api.service.cockpit.services.ImportSwaggerDescrip
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
+import io.gravitee.apim.core.api.model.Path;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.*;
@@ -31,7 +33,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.PageConverter;
-import io.gravitee.rest.api.service.exceptions.ApiContextPathAlreadyExistsException;
+import io.gravitee.rest.api.service.v4.exception.PathAlreadyExistsException;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -55,8 +57,8 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
     private final PageService pageService;
     private final ApiMetadataService apiMetadataService;
     private final PlanService planService;
-    private final VirtualHostService virtualHostService;
     private final PageConverter pageConverter;
+    private final VerifyApiPathDomainService verifyApiPathDomainService;
 
     public ApiServiceCockpitImpl(
         ObjectMapper objectMapper,
@@ -65,9 +67,9 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
         PageService pageService,
         ApiMetadataService apiMetadataService,
         PlanService planService,
-        VirtualHostService virtualHostService,
         ApiConverter apiConverter,
-        PageConverter pageConverter
+        PageConverter pageConverter,
+        VerifyApiPathDomainService verifyApiPathDomainService
     ) {
         this.objectMapper = objectMapper;
         this.apiService = apiService;
@@ -75,9 +77,9 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
         this.pageService = pageService;
         this.apiMetadataService = apiMetadataService;
         this.planService = planService;
-        this.virtualHostService = virtualHostService;
         this.apiConverter = apiConverter;
         this.pageConverter = pageConverter;
+        this.verifyApiPathDomainService = verifyApiPathDomainService;
     }
 
     @Override
@@ -293,9 +295,13 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
 
     Optional<String> checkContextPath(ExecutionContext executionContext, SwaggerApiEntity api, String apiId) {
         try {
-            virtualHostService.sanitizeAndValidate(executionContext, api.getProxy().getVirtualHosts(), apiId);
-        } catch (ApiContextPathAlreadyExistsException e) {
-            String ctxPath = e.getParameters().get("contextPath");
+            verifyApiPathDomainService.verifyApiPaths(
+                executionContext,
+                apiId,
+                api.getProxy().getVirtualHosts().stream().map(h -> Path.builder().path(h.getPath()).host(h.getHost()).build()).toList()
+            );
+        } catch (PathAlreadyExistsException e) {
+            String ctxPath = e.getPathValue();
             return Optional.of("The context [" + ctxPath + "] automatically generated from the name is already covered by another API.");
         } catch (Exception e) {
             return Optional.of(e.getMessage());
