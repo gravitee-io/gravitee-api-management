@@ -48,7 +48,7 @@ export class ApiRuntimeLogsComponent {
   }
 
   openLogsSettings() {
-    return this.ajsState.go('management.apis.ng.runtimeLogs-settings');
+    return this.ajsState.go('management.apis.runtimeLogs-settings');
   }
 
   private static isLogEnabled = (api: ApiV4) => {
