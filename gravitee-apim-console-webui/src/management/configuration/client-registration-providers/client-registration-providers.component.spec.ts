@@ -108,7 +108,7 @@ describe('ClientRegistrationProviders', () => {
         method: 'GET',
         url: `${CONSTANTS_TESTING.env.baseURL}/configuration/applications/registration/providers`,
       })
-      .flush({ data: providers });
+      .flush(providers);
     httpTestingController
       .expectOne({
         method: 'GET',
@@ -160,6 +160,15 @@ describe('ClientRegistrationProviders', () => {
         value: settings.application.types.backend_to_backend.enabled,
         isDisabled: settings.metadata.readonly.includes('application.types.backend_to_backend.enabled'),
       },
+    ]);
+  });
+
+  it('should init DCR providers table', async () => {
+    const matTable = await loader.getHarness(MatTableHarness);
+
+    expect(await matTable.getCellTextByIndex()).toEqual([
+      ['Fake ClientRegistrationProvider', 'My ClientRegistrationProvider', 'Nov 10, 2021, 9:26:15 AM', ''],
+      ['Fake ClientRegistrationProvider', 'My ClientRegistrationProvider', 'Nov 10, 2021, 9:26:15 AM', ''],
     ]);
   });
 
