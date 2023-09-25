@@ -27,3 +27,4 @@ annotations:
     - Remove smtp default example values
     - Allow wildcard in ingress host
     - Add unknownExpireAfter in management-api configuration
+    - Allow users to define extra manifests
