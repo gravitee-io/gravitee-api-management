@@ -115,19 +115,7 @@
         </mat-form-field>
       </div>
 
-      <div>
-        <button
-          class="settings__save"
-          [disabled]="form.invalid"
-          *gioPermission="{ anyOf: ['api-definition-u'] }"
-          mat-flat-button
-          color="primary"
-          aria-label="Save Settings"
-          (click)="save()"
-        >
-          Save Settings
-        </button>
-      </div>
+      <gio-save-bar *ngIf="form.dirty" [form]="form" [formInitialValues]="initialFormValue" (submitted)="save()"></gio-save-bar>
     </form>
   </div>
 </mat-card>
