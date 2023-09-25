@@ -36,6 +36,7 @@ export class ApiRuntimeLogsMessageSettingsComponent implements OnInit, OnDestroy
   form: FormGroup;
   samplingType: SamplingTypeEnum;
   loggingModeDisabled = false;
+  initialFormValue: unknown;
   private unsubscribe$: Subject<void> = new Subject<void>();
 
   constructor(
@@ -90,6 +91,8 @@ export class ApiRuntimeLogsMessageSettingsComponent implements OnInit, OnDestroy
         }),
         tap((api: ApiV4) => {
           this.api = api;
+          this.initialFormValue = this.form.getRawValue();
+          this.form.markAsPristine();
         }),
         map(() => {
           this.snackBarService.success(`Runtime logs settings successfully saved!`);
@@ -133,6 +136,7 @@ export class ApiRuntimeLogsMessageSettingsComponent implements OnInit, OnDestroy
         this.getSamplingValueValidators(this.samplingType),
       ),
     });
+    this.initialFormValue = this.form.getRawValue();
   }
 
   private handleSamplingTypeChanges(): void {

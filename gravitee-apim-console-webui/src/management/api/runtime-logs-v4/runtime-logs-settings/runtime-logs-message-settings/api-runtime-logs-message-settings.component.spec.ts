@@ -339,6 +339,22 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
         expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(false);
       });
     });
+
+    it('should reset the form', async () => {
+      await initComponent();
+      expect(await componentHarness.isEntrypointChecked()).toBe(false);
+      expect(await componentHarness.isEndpointChecked()).toBe(false);
+
+      await componentHarness.toggleEntrypoint();
+      await componentHarness.toggleEndpoint();
+      expect(await componentHarness.isEntrypointChecked()).toBe(true);
+      expect(await componentHarness.isEndpointChecked()).toBe(true);
+
+      await componentHarness.resetSettings();
+
+      expect(await componentHarness.isEntrypointChecked()).toBe(false);
+      expect(await componentHarness.isEndpointChecked()).toBe(false);
+    });
   });
 
   function expectApiGetRequest(api: ApiV4) {
