@@ -21,3 +21,4 @@ annotations:
   artifacthub.io/changes: |
     - Allow wildcard in ingress host
     - Remove smtp default example values
+    - Add unknownExpireAfter in management-api configuration
