@@ -51,6 +51,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextImpl;
 
@@ -152,9 +153,19 @@ public class TaskServiceTest {
     }
 
     @AfterClass
-    public static void afterClass() {
-        // Clean up Spring security context.
-        SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_THREADLOCAL);
+    public static void cleanSecurityContextHolder() {
+        // reset authentication to avoid side effect during test executions.
+        SecurityContextHolder.setContext(
+            new SecurityContext() {
+                @Override
+                public Authentication getAuthentication() {
+                    return null;
+                }
+
+                @Override
+                public void setAuthentication(Authentication authentication) {}
+            }
+        );
     }
 
     @Test
