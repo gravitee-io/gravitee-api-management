@@ -114,10 +114,15 @@ class VerifyApiPathDomainServiceImplTest {
     public void should_sanitize_path(String path, String expectedPath) {
         givenExistingEnvironment(ENVIRONMENT_ID, null);
 
-        var res = service.verifyApiPaths(GraviteeContext.getExecutionContext(), "api-id", List.of(Path.builder().path(path).build()));
+        var res = service.verifyApiPaths(
+            GraviteeContext.getExecutionContext(),
+            "api-id",
+            List.of(Path.builder().path(path).overrideAccess(true).build())
+        );
         assertThat(res).hasSize(1);
         assertThat(res.get(0).getPath()).isEqualTo(expectedPath);
         assertThat(res.get(0).getHost()).isNull();
+        assertThat(res.get(0).isOverrideAccess()).isTrue();
     }
 
     @Test

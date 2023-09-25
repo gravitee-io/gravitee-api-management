@@ -33,6 +33,7 @@ public class Path {
 
     String host;
     String path;
+    boolean overrideAccess;
 
     public boolean hasHost() {
         return host != null && !host.isEmpty();
