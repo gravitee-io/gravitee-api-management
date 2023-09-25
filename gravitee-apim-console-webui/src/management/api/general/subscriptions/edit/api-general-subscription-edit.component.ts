@@ -16,7 +16,7 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { combineLatest, EMPTY, Observable, Subject } from 'rxjs';
 import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { StateService } from '@uirouter/core';
+import { StateService, UIRouterGlobals } from '@uirouter/core';
 import { DatePipe } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
 import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
@@ -100,6 +100,7 @@ interface ApiKeyVM {
 })
 export class ApiGeneralSubscriptionEditComponent implements OnInit {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+  routeBase: string;
   subscription: SubscriptionDetailVM;
   apiKeys: ApiKeyVM[];
   apiKeysTotalCount: number;
@@ -113,6 +114,7 @@ export class ApiGeneralSubscriptionEditComponent implements OnInit {
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
     @Inject(UIRouterState) private readonly ajsState: StateService,
     @Inject('Constants') private readonly constants: Constants,
+    private readonly ajsGlobals: UIRouterGlobals,
     private readonly apiSubscriptionService: ApiSubscriptionV2Service,
     private readonly applicationService: ApplicationService,
     private datePipe: DatePipe,
@@ -121,6 +123,7 @@ export class ApiGeneralSubscriptionEditComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.routeBase = this.ajsGlobals.current?.data?.baseRouteState ?? 'management.apis.detail.portal';
     this.apiId = this.ajsStateParams.apiId;
     this.canUseCustomApiKey = this.constants.env?.settings?.plan?.security?.customApiKey?.enabled;
     this.displayedColumns = ['key', 'createdAt', 'endDate', 'actions'];
@@ -532,7 +535,7 @@ export class ApiGeneralSubscriptionEditComponent implements OnInit {
   }
 
   goBackToSubscriptions() {
-    this.ajsState.go('management.apis.ng.subscriptions');
+    this.ajsState.go(`${this.routeBase}.subscriptions`);
   }
 
   private serializeDate(date: Date): string {

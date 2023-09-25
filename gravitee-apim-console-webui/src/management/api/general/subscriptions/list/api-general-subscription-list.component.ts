@@ -122,7 +122,7 @@ export class ApiGeneralSubscriptionListComponent implements OnInit, OnDestroy {
 
   public ngOnInit(): void {
     this.initFilters();
-    this.routeBase = this.ajsGlobals.current?.data?.baseRouteState ?? 'management.apis.ng';
+    this.routeBase = this.ajsGlobals.current?.data?.baseRouteState ?? 'management.apis.detail.portal';
 
     this.filtersForm.valueChanges
       .pipe(distinctUntilChanged(isEqual), takeUntil(this.unsubscribe$))
@@ -296,7 +296,7 @@ export class ApiGeneralSubscriptionListComponent implements OnInit, OnDestroy {
       .subscribe(
         (subscription) => {
           this.snackBarService.success(`Subscription successfully created`);
-          this.ajsState.go('management.apis.ng.subscription.edit', { subscriptionId: subscription.id });
+          this.ajsState.go(`${this.routeBase}.subscription.edit`, { subscriptionId: subscription.id });
         },
         (err) => this.snackBarService.error(err.message),
       );

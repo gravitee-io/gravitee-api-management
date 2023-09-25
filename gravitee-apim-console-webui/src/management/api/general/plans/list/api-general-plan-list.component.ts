@@ -72,7 +72,7 @@ export class ApiGeneralPlanListComponent implements OnInit, OnDestroy {
   ) {}
 
   public ngOnInit(): void {
-    this.routeBase = this.ajsGlobals.current?.data?.baseRouteState ?? 'management.apis.ng';
+    this.routeBase = this.ajsGlobals.current?.data?.baseRouteState ?? 'management.apis.detail.portal';
     this.status = this.ajsStateParams.status ?? 'PUBLISHED';
 
     this.apiService
