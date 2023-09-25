@@ -20,7 +20,6 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { catchError, takeUntil, tap } from 'rxjs/operators';
 
 import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
-import { Constants } from '../../../../entities/Constants';
 import { ClientRegistrationProvidersService } from '../../../../services-ngx/client-registration-providers.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { ClientRegistrationProvider } from '../../../../entities/client-registration-provider/clientRegistrationProvider';
@@ -34,7 +33,7 @@ export class ClientRegistrationProviderComponent implements OnInit, OnDestroy {
   private unsubscribe$ = new Subject();
   public updateMode: boolean;
   public providerForm: FormGroup;
-  public initialAccessTokenTypes = [
+  public initialAccessTokenTypes: { name: string; value: ClientRegistrationProvider['initial_access_token_type'] }[] = [
     {
       name: 'Client Credentials',
       value: 'CLIENT_CREDENTIALS',
@@ -46,14 +45,10 @@ export class ClientRegistrationProviderComponent implements OnInit, OnDestroy {
   ];
   public renewClientSecretMethods = ['POST', 'PATCH', 'PUT'];
   public renewClientSecretEndpointUrlExample: 'https://authorization_server/oidc/dcr/{#client_id}/renew_secret';
-  public title = 'Create a new client registration provider';
-  public invalidStateSaveBar = false;
-  private clientRegistrationProvider?: ClientRegistrationProvider;
 
   constructor(
     @Inject(UIRouterStateParams) private ajsStateParams,
     @Inject(UIRouterState) private readonly ajsState: StateService,
-    @Inject('Constants') private readonly constants: Constants,
     private readonly clientRegistrationProvidersService: ClientRegistrationProvidersService,
     private readonly snackBarService: SnackBarService,
   ) {}
@@ -65,8 +60,6 @@ export class ClientRegistrationProviderComponent implements OnInit, OnDestroy {
         .pipe(
           tap((clientRegistrationProvider) => {
             this.updateMode = true;
-            this.clientRegistrationProvider = clientRegistrationProvider;
-            this.title = clientRegistrationProvider.name;
             this.initProviderForm(clientRegistrationProvider);
           }),
           takeUntil(this.unsubscribe$),
@@ -81,54 +74,45 @@ export class ClientRegistrationProviderComponent implements OnInit, OnDestroy {
     this.unsubscribe$.next();
     this.unsubscribe$.unsubscribe();
   }
+
   onSubmit() {
-    if (!this.providerForm.valid) {
-      return;
+    if (!this.providerForm?.valid) {
+      throw new Error('Form is not valid');
     }
+
     const clientRegistrationProvider = this.providerForm.value;
-    if (this.updateMode) {
-      this.clientRegistrationProvidersService
-        .update({ ...clientRegistrationProvider, id: this.ajsStateParams.id })
-        .pipe(
-          tap((clientRegistrationProvider) => {
-            this.snackBarService.success(`Client registration provider  ${clientRegistrationProvider.name} has been updated`);
-          }),
-          catchError(({ error }) => {
-            this.snackBarService.error(error.message);
-            return EMPTY;
-          }),
-          tap(() => {
-            this.ajsState.go(
-              'management.settings.clientregistrationproviders.clientregistrationprovider',
-              { id: clientRegistrationProvider.id },
-              { reload: true },
-            );
-          }),
-          takeUntil(this.unsubscribe$),
-        )
-        .subscribe();
-    } else {
-      this.clientRegistrationProvidersService
-        .create(clientRegistrationProvider)
-        .pipe(
-          tap((clientRegistrationProvider) => {
-            this.snackBarService.success(`Client registration provider  ${clientRegistrationProvider.name} has been created`);
-          }),
-          catchError(({ error }) => {
-            this.snackBarService.error(error.message);
-            return EMPTY;
-          }),
-          tap(() => {
-            this.ajsState.go(
-              'management.settings.clientregistrationproviders.clientregistrationprovider',
-              { id: clientRegistrationProvider.id },
-              { reload: true },
-            );
-          }),
-          takeUntil(this.unsubscribe$),
-        )
-        .subscribe();
-    }
+    const createUpdate$ = this.updateMode
+      ? this.clientRegistrationProvidersService
+          .update({ ...clientRegistrationProvider, id: this.ajsStateParams.id })
+          .pipe(
+            tap((clientRegistrationProvider) =>
+              this.snackBarService.success(`Client registration provider  ${clientRegistrationProvider.name} has been updated.`),
+            ),
+          )
+      : this.clientRegistrationProvidersService
+          .create(clientRegistrationProvider)
+          .pipe(
+            tap((clientRegistrationProvider) =>
+              this.snackBarService.success(`Client registration provider  ${clientRegistrationProvider.name} has been created.`),
+            ),
+          );
+
+    createUpdate$
+      .pipe(
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        }),
+        tap(() => {
+          this.ajsState.go(
+            'management.settings.clientregistrationproviders.clientregistrationprovider',
+            { id: clientRegistrationProvider.id },
+            { reload: true },
+          );
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe();
   }
 
   private initProviderForm(clientRegistrationProvider?: ClientRegistrationProvider) {
@@ -147,9 +131,30 @@ export class ClientRegistrationProviderComponent implements OnInit, OnDestroy {
       renew_client_secret_endpoint: new FormControl(clientRegistrationProvider?.renew_client_secret_endpoint),
     });
 
-    this.providerForm.statusChanges.pipe(takeUntil(this.unsubscribe$)).subscribe((status) => {
-      this.invalidStateSaveBar = status !== 'VALID';
-    });
+    this.providerForm
+      .get('initial_access_token_type')
+      .valueChanges.pipe(takeUntil(this.unsubscribe$))
+      .subscribe((value) => {
+        // Clear or add validators depending on the selected value
+        if (value === 'INITIAL_ACCESS_TOKEN') {
+          this.providerForm.get('client_id').clearValidators();
+          this.providerForm.get('client_secret').clearValidators();
+
+          this.providerForm.get('initial_access_token').setValidators([Validators.required]);
+        }
+        if (value === 'CLIENT_CREDENTIALS') {
+          this.providerForm.get('initial_access_token').clearValidators();
+
+          this.providerForm.get('client_id').setValidators([Validators.required]);
+          this.providerForm.get('client_secret').setValidators([Validators.required]);
+        }
+
+        // Needed by angular after changing validators
+        this.providerForm.get('client_id').updateValueAndValidity();
+        this.providerForm.get('client_secret').updateValueAndValidity();
+        this.providerForm.get('initial_access_token').updateValueAndValidity();
+        this.providerForm.updateValueAndValidity();
+      });
   }
 
   onReset() {

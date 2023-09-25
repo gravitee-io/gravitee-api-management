@@ -21,8 +21,7 @@ import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { GioConfirmDialogComponent, GioConfirmDialogData, GioLicenseService, LicenseOptions } from '@gravitee/ui-particles-angular';
 import { MatDialog } from '@angular/material/dialog';
 
-import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
-import { Constants } from '../../../entities/Constants';
+import { UIRouterState } from '../../../ajs-upgraded-providers';
 import { ClientRegistrationProvidersService } from '../../../services-ngx/client-registration-providers.service';
 import { ClientRegistrationProvider } from '../../../entities/client-registration-provider/clientRegistrationProvider';
 import { PortalSettingsService } from '../../../services-ngx/portal-settings.service';
@@ -56,9 +55,7 @@ export class ClientRegistrationProvidersComponent implements OnInit, OnDestroy {
   private settings: PortalSettings;
 
   constructor(
-    @Inject(UIRouterStateParams) private ajsStateParams,
     @Inject(UIRouterState) private readonly ajsState: StateService,
-    @Inject('Constants') private readonly constants: Constants,
     private readonly clientRegistrationProvidersService: ClientRegistrationProvidersService,
     private readonly portalSettingsService: PortalSettingsService,
     private readonly snackBarService: SnackBarService,
@@ -87,6 +84,7 @@ export class ClientRegistrationProvidersComponent implements OnInit, OnDestroy {
         tap(([settings, providers]) => {
           this.settings = settings;
           this.providersTableDS = ClientRegistrationProvidersComponent.toProvidersTableDS(providers);
+
           this.initApplicationForm(settings.application);
         }),
         takeUntil(this.unsubscribe$),
@@ -130,7 +128,7 @@ export class ClientRegistrationProvidersComponent implements OnInit, OnDestroy {
       .pipe(
         filter((confirm) => confirm === true),
         switchMap(() => this.clientRegistrationProvidersService.delete(provider.id)),
-        tap(() => this.snackBarService.success(`"${provider.name}" has been deleted"`)),
+        tap(() => this.snackBarService.success(`"${provider.name}" has been deleted.`)),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
           return EMPTY;

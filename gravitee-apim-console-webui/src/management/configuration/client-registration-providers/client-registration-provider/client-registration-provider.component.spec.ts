@@ -52,10 +52,6 @@ describe('ClientRegistrationProvider', () => {
           },
         },
         {
-          provide: 'Constants',
-          useValue: CONSTANTS_TESTING,
-        },
-        {
           provide: GioPermissionService,
           useValue: {
             hasAnyMatching: () => true,
@@ -84,11 +80,6 @@ describe('ClientRegistrationProvider', () => {
       expect(fixture.componentInstance.updateMode).toBeFalsy();
     });
 
-    it('should not submit empty form', async () => {
-      expect(loader).toBeTruthy();
-      fixture.componentInstance.onSubmit();
-    });
-
     it('should submit form', async () => {
       expect(loader).toBeTruthy();
       fixture.componentInstance.providerForm.setValue(fakeNewClientRegistrationProvider());
@@ -98,7 +89,7 @@ describe('ClientRegistrationProvider', () => {
         method: 'POST',
         url: `${CONSTANTS_TESTING.env.baseURL}/configuration/applications/registration/providers`,
       });
-      req.flush({ data: PROVIDER });
+      req.flush(PROVIDER);
     });
   });
 
@@ -110,7 +101,7 @@ describe('ClientRegistrationProvider', () => {
           method: 'GET',
           url: `${CONSTANTS_TESTING.env.baseURL}/configuration/applications/registration/providers/${PROVIDER.id}`,
         })
-        .flush({ data: PROVIDER });
+        .flush(PROVIDER);
       fixture.detectChanges();
     });
 
