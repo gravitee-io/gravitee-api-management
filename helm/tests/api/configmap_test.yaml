@@ -117,3 +117,21 @@ tests:
           pattern: " * users:\n
 				    *  - user:\n
                     *  - user:"
+
+  - it: check default api.gateway.unknownExpireAfter
+    template: api/api-configmap.yaml
+    asserts:
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: "gateway:\n  unknown-expire-after: 604800"
+
+  - it: Set api.gateway.unknownExpireAfter to 60
+    template: api/api-configmap.yaml
+    set:
+      api:
+        gateway:
+          unknownExpireAfter: 60
+    asserts:
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: "gateway:\n  unknown-expire-after: 60"
