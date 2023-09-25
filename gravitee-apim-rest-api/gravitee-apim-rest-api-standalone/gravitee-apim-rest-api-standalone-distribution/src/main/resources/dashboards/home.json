@@ -56,12 +56,14 @@
       "labels": [
         "CREATED",
         "PUBLISHED",
-        "UNPUBLISHED"
+        "UNPUBLISHED",
+        "DEPRECATED"
       ],
       "colors": [
         "#42a5f5",
         "#66bb6a",
-        "#ffee58"
+        "#ffee58",
+        "#bf3f0e"
       ]
     }
   },
