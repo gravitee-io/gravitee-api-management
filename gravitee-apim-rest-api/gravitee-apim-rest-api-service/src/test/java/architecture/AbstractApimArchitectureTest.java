@@ -40,6 +40,7 @@ public class AbstractApimArchitectureTest {
     public final String CRUD_SERVICE_PACKAGE = "crud_service";
     public final String QUERY_SERVICE_PACKAGE = "query_service";
     public final String DOMAIN_SERVICE_PACKAGE = "domain_service";
+    public final String NOTIFICATION_PACKAGE = "notification";
     public final String ADAPTER_PACKAGE = "adapter";
     public final String MODEL_PACKAGE = "model";
 
