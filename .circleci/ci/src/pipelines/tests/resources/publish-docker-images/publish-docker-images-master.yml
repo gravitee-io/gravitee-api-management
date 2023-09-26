@@ -296,6 +296,9 @@ jobs:
       - image: cimg/node:16.10
     resource_class: small
     steps:
+      - checkout
+      - attach_workspace:
+          at: .
       - keeper/env-export:
           secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
           var-name: GITHUB_TOKEN
