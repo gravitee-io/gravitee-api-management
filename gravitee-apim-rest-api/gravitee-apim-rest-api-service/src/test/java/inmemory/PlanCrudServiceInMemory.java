@@ -18,6 +18,7 @@ package inmemory;
 import io.gravitee.apim.crud_service.plan.PlanCrudService;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -28,6 +29,9 @@ public class PlanCrudServiceInMemory implements PlanCrudService, InMemoryCrudSer
 
     @Override
     public GenericPlanEntity findById(String planId) {
+        if (planId == null) {
+            throw new TechnicalManagementException("planId should not be null");
+        }
         return storage
             .stream()
             .filter(plan -> planId.equals(plan.getId()))
