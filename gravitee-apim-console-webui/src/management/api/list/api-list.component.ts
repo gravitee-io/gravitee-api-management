@@ -182,7 +182,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
             const apiv4 = api as ApiV4;
             return {
               ...tableDS,
-              contextPath: this.getContextPath(apiv4),
+              contextPath: this.getContextPathForApiV4(apiv4),
               isNotSynced$: undefined,
               qualityScore$: null,
               targetRoute: 'management.apis.general',
@@ -191,7 +191,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
             const apiv2 = api as ApiV2;
             return {
               ...tableDS,
-              contextPath: [apiv2.contextPath],
+              contextPath: this.getContextPathForApiV2(apiv2),
               isNotSynced$: this.apiService.isAPISynchronized(apiv2.id).pipe(map((a) => !a.is_synchronized)),
               qualityScore$: this.isQualityDisplayed
                 ? this.apiService.getQualityMetrics(apiv2.id).pipe(map((a) => this.getQualityScore(Math.floor(a.score * 100))))
@@ -203,7 +203,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
       : [];
   }
 
-  private getContextPath(api: ApiV4): string[] {
+  private getContextPathForApiV4(api: ApiV4): string[] {
     if (api.listeners?.length > 0) {
       const httpListener = api.listeners.find((listener) => listener.type === 'HTTP');
       if (httpListener) {
@@ -211,6 +211,13 @@ export class ApiListComponent implements OnInit, OnDestroy {
       }
     }
     return null;
+  }
+
+  private getContextPathForApiV2(api: ApiV2): string[] {
+    if (api.proxy.virtualHosts?.length > 0) {
+      return api.proxy.virtualHosts.map((vh) => `${vh.host ?? ''}${vh.path}`);
+    }
+    return [api.contextPath];
   }
 
   private getDefinitionVersion(api: Api) {
