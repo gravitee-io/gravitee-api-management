@@ -141,6 +141,28 @@ describe('ApisListComponent', () => {
       expect(await loader.getHarness(MatIconHarness.with({ selector: '.states__api-started' }))).toBeTruthy();
     }));
 
+    it('should display v2 api', fakeAsync(async () => {
+      const api = fakeApiV2();
+      await initComponent([api]);
+
+      const { headerCells, rowCells } = await computeApisTableCells();
+      expect(headerCells).toEqual([
+        {
+          actions: '',
+          contextPath: 'Context Path',
+          definitionVersion: 'Definition',
+          name: 'Name',
+          owner: 'Owner',
+          picture: '',
+          states: 'Status',
+          tags: 'Tags',
+          visibility: 'Visibility',
+        },
+      ]);
+      expect(rowCells).toEqual([['', '🪐 Planets (1.0)', '', '/planets', '', 'admin', 'V2', 'public', 'edit']]);
+      expect(await loader.getHarness(MatIconHarness.with({ selector: '.states__api-started' }))).toBeTruthy();
+    }));
+
     it('should display v4 api with multiple context path', fakeAsync(async () => {
       const api = fakeApiV4({
         listeners: [
@@ -177,6 +199,125 @@ describe('ApisListComponent', () => {
         },
       ]);
       expect(rowCells).toEqual([['', '🪐 Planets (1.0)', '', '/test/ws 2 more', '', 'admin', 'V4 - Message', 'public', 'edit']]);
+      expect(await loader.getHarness(MatIconHarness.with({ selector: '.states__api-started' }))).toBeTruthy();
+    }));
+
+    it('should display v2 api with multiple context path', fakeAsync(async () => {
+      const api = fakeApiV2({
+        proxy: {
+          virtualHosts: [
+            {
+              path: '/test/ws',
+            },
+            {
+              path: '/preprod/ws',
+            },
+            {
+              path: '/prod/ws',
+            },
+          ],
+        },
+      });
+      await initComponent([api]);
+
+      const { headerCells, rowCells } = await computeApisTableCells();
+      expect(headerCells).toEqual([
+        {
+          actions: '',
+          contextPath: 'Context Path',
+          definitionVersion: 'Definition',
+          name: 'Name',
+          owner: 'Owner',
+          picture: '',
+          states: 'Status',
+          tags: 'Tags',
+          visibility: 'Visibility',
+        },
+      ]);
+      expect(rowCells).toEqual([['', '🪐 Planets (1.0)', '', '/test/ws 2 more', '', 'admin', 'V2', 'public', 'edit']]);
+      expect(await loader.getHarness(MatIconHarness.with({ selector: '.states__api-started' }))).toBeTruthy();
+    }));
+
+    it('should display v4 api with virtual host', fakeAsync(async () => {
+      const api = fakeApiV4({
+        listeners: [
+          {
+            type: 'HTTP',
+            paths: [
+              {
+                path: '/test/ws',
+                host: 'test.domain.com',
+              },
+              {
+                path: '/preprod/ws',
+                host: 'pp.domain.com',
+              },
+              {
+                path: '/prod/ws',
+                host: 'domain.com',
+              },
+            ],
+          },
+        ],
+      });
+      await initComponent([api]);
+
+      const { headerCells, rowCells } = await computeApisTableCells();
+      expect(headerCells).toEqual([
+        {
+          actions: '',
+          contextPath: 'Context Path',
+          definitionVersion: 'Definition',
+          name: 'Name',
+          owner: 'Owner',
+          picture: '',
+          states: 'Status',
+          tags: 'Tags',
+          visibility: 'Visibility',
+        },
+      ]);
+      expect(rowCells).toEqual([
+        ['', '🪐 Planets (1.0)', '', 'test.domain.com/test/ws 2 more', '', 'admin', 'V4 - Message', 'public', 'edit'],
+      ]);
+      expect(await loader.getHarness(MatIconHarness.with({ selector: '.states__api-started' }))).toBeTruthy();
+    }));
+
+    it('should display v2 api with virtual host', fakeAsync(async () => {
+      const api = fakeApiV2({
+        proxy: {
+          virtualHosts: [
+            {
+              path: '/test/ws',
+              host: 'test.domain.com',
+            },
+            {
+              path: '/preprod/ws',
+              host: 'pp.domain.com',
+            },
+            {
+              path: '/prod/ws',
+              host: 'domain.com',
+            },
+          ],
+        },
+      });
+      await initComponent([api]);
+
+      const { headerCells, rowCells } = await computeApisTableCells();
+      expect(headerCells).toEqual([
+        {
+          actions: '',
+          contextPath: 'Context Path',
+          definitionVersion: 'Definition',
+          name: 'Name',
+          owner: 'Owner',
+          picture: '',
+          states: 'Status',
+          tags: 'Tags',
+          visibility: 'Visibility',
+        },
+      ]);
+      expect(rowCells).toEqual([['', '🪐 Planets (1.0)', '', 'test.domain.com/test/ws 2 more', '', 'admin', 'V2', 'public', 'edit']]);
       expect(await loader.getHarness(MatIconHarness.with({ selector: '.states__api-started' }))).toBeTruthy();
     }));
 
