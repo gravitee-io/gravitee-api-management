@@ -79,6 +79,7 @@ class LogEndpointRequestTest {
         when(request.chunks()).thenReturn(Flowable.empty()).thenAnswer(i -> chunksCaptor.getValue());
 
         final LogEndpointRequest logRequest = new LogEndpointRequest(loggingContext, ctx);
+        logRequest.capture();
         verify(request).chunks(chunksCaptor.capture());
 
         final TestSubscriber<Buffer> obs = chunksCaptor.getValue().test();
@@ -106,6 +107,7 @@ class LogEndpointRequestTest {
         when(request.chunks()).thenReturn(Flowable.empty()).thenAnswer(i -> chunksCaptor.getValue());
 
         final LogEndpointRequest logRequest = new LogEndpointRequest(loggingContext, ctx);
+        logRequest.capture();
         verify(request).chunks(chunksCaptor.capture());
 
         final TestSubscriber<Buffer> obs = chunksCaptor.getValue().test();
@@ -130,6 +132,7 @@ class LogEndpointRequestTest {
         when(loggingContext.isContentTypeLoggable(any())).thenReturn(true);
 
         final LogEndpointRequest logRequest = new LogEndpointRequest(loggingContext, ctx);
+        logRequest.capture();
         verify(request, times(2)).chunks(any(Flowable.class));
 
         final TestSubscriber<Buffer> obs = chunksCaptor.getValue().test();
@@ -154,6 +157,7 @@ class LogEndpointRequestTest {
         when(loggingContext.isContentTypeLoggable("application/octet-stream")).thenReturn(false);
 
         final LogEndpointRequest logRequest = new LogEndpointRequest(loggingContext, ctx);
+        logRequest.capture();
         verify(request).chunks(chunksCaptor.capture());
 
         final TestSubscriber<Buffer> obs = chunksCaptor.getValue().test();
@@ -178,6 +182,7 @@ class LogEndpointRequestTest {
         when(loggingContext.getMaxSizeLogMessage()).thenReturn(maxPayloadSize);
 
         final LogEndpointRequest logRequest = new LogEndpointRequest(loggingContext, ctx);
+        logRequest.capture();
         verify(request, times(2)).chunks(any(Flowable.class));
 
         final TestSubscriber<Buffer> obs = chunksCaptor.getAllValues().get(chunksCaptor.getAllValues().size() - 1).test();
