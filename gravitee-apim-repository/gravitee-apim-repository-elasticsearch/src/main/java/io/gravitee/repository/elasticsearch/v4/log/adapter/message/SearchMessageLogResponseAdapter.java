@@ -15,8 +15,11 @@
  */
 package io.gravitee.repository.elasticsearch.v4.log.adapter.message;
 
+import static io.gravitee.repository.elasticsearch.utils.JsonNodeUtils.asTextOrNull;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.elasticsearch.model.SearchResponse;
+import io.gravitee.repository.elasticsearch.utils.JsonNodeUtils;
 import io.gravitee.repository.log.v4.model.LogResponse;
 import io.gravitee.repository.log.v4.model.message.MessageLog;
 import java.util.List;
@@ -44,20 +47,20 @@ public class SearchMessageLogResponseAdapter {
         final JsonNode messageJson = json.get("message");
         return MessageLog
             .builder()
-            .apiId(json.get("api-id").asText())
-            .requestId(json.get("request-id").asText())
-            .timestamp(json.get("@timestamp").asText())
-            .clientIdentifier(json.get("client-identifier").asText())
-            .correlationId(json.get("correlation-id").asText())
-            .operation(json.get("operation").asText())
-            .connectorId(json.get("connector-id").asText())
-            .connectorType(json.get("connector-type").asText())
+            .apiId(asTextOrNull(json.get("api-id")))
+            .requestId(asTextOrNull(json.get("request-id")))
+            .timestamp(asTextOrNull(json.get("@timestamp")))
+            .clientIdentifier(asTextOrNull(json.get("client-identifier")))
+            .correlationId(asTextOrNull(json.get("correlation-id")))
+            .operation(asTextOrNull(json.get("operation")))
+            .connectorId(asTextOrNull(json.get("connector-id")))
+            .connectorType(asTextOrNull(json.get("connector-type")))
             .message(
                 MessageLog.Message
                     .builder()
-                    .id(messageJson.get("id").asText())
+                    .id(asTextOrNull(messageJson.get("id")))
                     .isError(messageJson.get("isError") != null && messageJson.get("isError").asBoolean())
-                    .payload(messageJson.get("payload").asText())
+                    .payload(asTextOrNull(messageJson.get("payload")))
                     .headers(
                         messageJson
                             .get("headers")
@@ -69,8 +72,8 @@ public class SearchMessageLogResponseAdapter {
                                     entry ->
                                         StreamSupport
                                             .stream(entry.getValue().spliterator(), false)
-                                            .map(JsonNode::asText)
-                                            .collect(Collectors.toList())
+                                            .map(JsonNodeUtils::asTextOrNull)
+                                            .toList()
                                 )
                             )
                     )
@@ -79,7 +82,7 @@ public class SearchMessageLogResponseAdapter {
                             .get("metadata")
                             .properties()
                             .stream()
-                            .collect(Collectors.toMap(Map.Entry::getKey, value -> value.getValue().asText()))
+                            .collect(Collectors.toMap(Map.Entry::getKey, value -> asTextOrNull(value.getValue())))
                     )
                     .build()
             )

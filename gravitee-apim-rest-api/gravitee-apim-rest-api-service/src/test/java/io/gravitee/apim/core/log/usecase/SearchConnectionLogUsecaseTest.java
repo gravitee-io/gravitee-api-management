@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.log.usecase;
 
+import static io.gravitee.apim.core.log.usecase.SearchConnectionLogUsecase.UNKNOWN;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
@@ -157,7 +158,19 @@ public class SearchConnectionLogUsecaseTest {
         var result = usecase.execute(GraviteeContext.getExecutionContext(), new Request(API_ID, USER_ID));
         assertThat(result.data())
             .extracting(ConnectionLogModel::getPlan)
-            .isEqualTo(List.of(BasePlanEntity.builder().id(unknownPlan).name("Unknown plan").build()));
+            .isEqualTo(List.of(BasePlanEntity.builder().id(unknownPlan).name(UNKNOWN).build()));
+    }
+
+    @Test
+    void should_return_api_connection_logs_with_only_available_info() {
+        logStorageService.initWith(
+            List.of(connectionLogFixtures.aConnectionLog().toBuilder().planId(null).clientIdentifier(null).applicationId("1").build())
+        );
+
+        var result = usecase.execute(GraviteeContext.getExecutionContext(), new Request(API_ID, USER_ID));
+        assertThat(result.data())
+            .extracting(ConnectionLogModel::getPlan)
+            .isEqualTo(List.of(BasePlanEntity.builder().id(null).name(UNKNOWN).build()));
     }
 
     @Test
@@ -169,6 +182,6 @@ public class SearchConnectionLogUsecaseTest {
         var result = usecase.execute(GraviteeContext.getExecutionContext(), new Request(API_ID, USER_ID));
         assertThat(result.data())
             .extracting(ConnectionLogModel::getApplication)
-            .isEqualTo(List.of(BaseApplicationEntity.builder().id(unknownApp).name("Unknown application").build()));
+            .isEqualTo(List.of(BaseApplicationEntity.builder().id(unknownApp).name(UNKNOWN).build()));
     }
 }
