@@ -30,6 +30,8 @@ export class PublishPrEnvUrlsJob {
     dynamicConfig.addReusableCommand(notifyOnFailureCommand);
 
     return new Job(PublishPrEnvUrlsJob.jobName, NodeLtsExecutor.create('small'), [
+      new commands.Checkout(),
+      new commands.workspace.Attach({ at: '.' }),
       new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
         'secret-url': config.secrets.githubApiToken,
         'var-name': 'GITHUB_TOKEN',
