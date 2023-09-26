@@ -32,14 +32,16 @@ import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
 abstract class LogRequest extends io.gravitee.reporter.api.common.Request {
 
     protected final LoggingContext loggingContext;
-    protected final GenericRequest request;
+    protected final HttpRequest request;
 
     protected LogRequest(LoggingContext loggingContext, HttpRequest request) {
         this.loggingContext = loggingContext;
         this.request = request;
 
         this.setMethod(request.method());
+    }
 
+    public void capture() {
         if (isLogPayload() && loggingContext.isContentTypeLoggable(request.headers().get(HttpHeaderNames.CONTENT_TYPE))) {
             final Buffer buffer = Buffer.buffer();
 

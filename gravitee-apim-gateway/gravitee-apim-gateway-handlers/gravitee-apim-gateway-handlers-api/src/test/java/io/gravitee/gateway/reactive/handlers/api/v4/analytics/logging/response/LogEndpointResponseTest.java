@@ -63,6 +63,7 @@ class LogEndpointResponseTest {
         when(loggingContext.endpointResponsePayload()).thenReturn(false);
 
         final LogEndpointResponse logResponse = new LogEndpointResponse(loggingContext, response);
+        logResponse.capture();
 
         assertThat(logResponse.getStatus()).isEqualTo(HttpStatusCode.OK_200);
         assertNull(logResponse.getHeaders());
@@ -83,6 +84,7 @@ class LogEndpointResponseTest {
         when(loggingContext.endpointResponsePayload()).thenReturn(false);
 
         final LogEndpointResponse logResponse = new LogEndpointResponse(loggingContext, response);
+        logResponse.capture();
 
         assertNotSame(headers, logResponse.getHeaders());
         assertThat(logResponse.getHeaders().deeplyEquals(headers)).isTrue();
@@ -104,6 +106,7 @@ class LogEndpointResponseTest {
         when(loggingContext.endpointResponsePayload()).thenReturn(false);
 
         final LogEndpointResponse logResponse = new LogEndpointResponse(loggingContext, response);
+        logResponse.capture();
 
         assertNotSame(headers, logResponse.getHeaders());
         assertThat(logResponse.getHeaders().deeplyEquals(HttpHeaders.create())).isTrue();
@@ -123,6 +126,7 @@ class LogEndpointResponseTest {
         when(loggingContext.isContentTypeLoggable(any())).thenReturn(true);
 
         final LogEndpointResponse logResponse = new LogEndpointResponse(loggingContext, response);
+        logResponse.capture();
         verify(response).chunks(chunksCaptor.capture());
 
         final TestSubscriber<Buffer> obs = chunksCaptor.getValue().test();
@@ -143,6 +147,7 @@ class LogEndpointResponseTest {
         when(loggingContext.isContentTypeLoggable("application/octet-stream")).thenReturn(false);
 
         final LogEndpointResponse logResponse = new LogEndpointResponse(loggingContext, response);
+        logResponse.capture();
         verify(response, times(0)).chunks(any(Flowable.class));
 
         assertNull(logResponse.getHeaders());
@@ -163,6 +168,7 @@ class LogEndpointResponseTest {
         when(loggingContext.isContentTypeLoggable(any())).thenReturn(true);
 
         final LogEndpointResponse logResponse = new LogEndpointResponse(loggingContext, response);
+        logResponse.capture();
         verify(response).chunks(chunksCaptor.capture());
 
         final TestSubscriber<Buffer> obs = chunksCaptor.getValue().test();
