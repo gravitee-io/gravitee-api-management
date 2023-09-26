@@ -51,15 +51,7 @@ public class OnionArchitectureTest extends AbstractApimArchitectureTest {
                 "io.gravitee.apim.core.*." + DOMAIN_SERVICE_PACKAGE + ".."
             )
             .applicationServices(anyPackageThatContains(CORE_PACKAGE + ".*." + USECASE_PACKAGE))
-            .adapter(
-                "persistence",
-                anyPackageThatContains(INFRA_PACKAGE + "." + CRUD_SERVICE_PACKAGE),
-                anyPackageThatContains(INFRA_PACKAGE + "." + QUERY_SERVICE_PACKAGE),
-                anyPackageThatContains(INFRA_PACKAGE + "." + DOMAIN_SERVICE_PACKAGE),
-                anyPackageThatContains(INFRA_PACKAGE + "." + ADAPTER_PACKAGE)
-            )
-            .adapter("templating", anyPackageThatContains(INFRA_PACKAGE + ".template"))
-            .adapter("spring", anyPackageThatContains(INFRA_PACKAGE + ".spring"))
+            .adapter("infra", anyPackageThatContains(INFRA_PACKAGE), anyPackageThatContains("io.gravitee.rest.api.service"))
             .check(apimClassesWithoutTests());
     }
 }
