@@ -26,7 +26,6 @@ import io.gravitee.definition.model.v4.analytics.logging.Logging;
 import io.gravitee.definition.model.v4.analytics.logging.LoggingMode;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
-import io.gravitee.definition.model.v4.flow.selector.Selector;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
 import io.gravitee.gateway.reactive.core.processor.Processor;
@@ -41,6 +40,7 @@ import io.gravitee.gateway.reactive.handlers.api.processor.shutdown.ShutdownProc
 import io.gravitee.gateway.reactive.handlers.api.processor.subscription.SubscriptionProcessor;
 import io.gravitee.gateway.reactive.handlers.api.processor.transaction.TransactionPostProcessor;
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
+import io.gravitee.gateway.reactive.handlers.api.v4.processor.logging.LogInitProcessor;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.logging.LogRequestProcessor;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.logging.LogResponseProcessor;
 import io.gravitee.gateway.report.ReporterService;
@@ -123,7 +123,12 @@ class ApiProcessorChainFactoryTest {
         ProcessorChain processorChain = apiProcessorChainFactory.beforeHandle(api);
         assertThat(processorChain.getId()).isEqualTo("processor-chain-before-api-handle");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
-        processors.test().assertComplete().assertValueCount(1).assertValueAt(0, processor -> processor instanceof LogRequestProcessor);
+        processors
+            .test()
+            .assertComplete()
+            .assertValueCount(2)
+            .assertValueAt(0, processor -> processor instanceof LogInitProcessor)
+            .assertValueAt(1, processor -> processor instanceof LogRequestProcessor);
     }
 
     @Test

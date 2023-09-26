@@ -38,6 +38,7 @@ import io.gravitee.gateway.reactive.handlers.api.processor.subscription.Subscrip
 import io.gravitee.gateway.reactive.handlers.api.processor.transaction.TransactionPostProcessor;
 import io.gravitee.gateway.reactive.handlers.api.processor.transaction.TransactionPostProcessorConfiguration;
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
+import io.gravitee.gateway.reactive.handlers.api.v4.processor.logging.LogInitProcessor;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.logging.LogRequestProcessor;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.logging.LogResponseProcessor;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.pathparameters.PathParametersExtractor;
@@ -90,6 +91,7 @@ public class ApiProcessorChainFactory {
         io.gravitee.definition.model.v4.Api apiDefinition = api.getDefinition();
         Analytics analytics = apiDefinition.getAnalytics();
         if (AnalyticsUtils.isLoggingEnabled(analytics)) {
+            processors.add(LogInitProcessor.instance());
             processors.add(LogRequestProcessor.instance());
         }
 

@@ -28,6 +28,8 @@ import io.gravitee.gateway.reactive.core.context.MutableRequest;
 import io.gravitee.gateway.reactive.core.context.MutableResponse;
 import io.gravitee.gateway.reactive.core.v4.analytics.AnalyticsContext;
 import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
+import io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.request.LogEndpointRequest;
+import io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.response.LogEndpointResponse;
 import io.gravitee.reporter.api.common.Request;
 import io.gravitee.reporter.api.v4.log.Log;
 import io.gravitee.reporter.api.v4.metric.Metrics;
@@ -106,6 +108,8 @@ class LoggingHookTest {
         when(loggingContext.endpointRequest()).thenReturn(true);
         when(request.chunks()).thenReturn(Flowable.empty());
 
+        log.setEndpointRequest(new LogEndpointRequest(loggingContext, ctx));
+
         final TestObserver<Void> obs = cut.pre("test", ctx, ExecutionPhase.REQUEST).test();
         obs.assertComplete();
 
@@ -166,6 +170,7 @@ class LoggingHookTest {
     @Test
     void shouldSetEndpointResponseWhenEndpointResponse() {
         Log log = Log.builder().timestamp(System.currentTimeMillis()).build();
+        log.setEndpointResponse(new LogEndpointResponse(loggingContext, response));
 
         when(metrics.getLog()).thenReturn(log);
         when(loggingContext.endpointResponse()).thenReturn(true);
@@ -180,6 +185,7 @@ class LoggingHookTest {
     @Test
     void shouldSetEndpointResponseWhenEndpointResponseAndInterrupt() {
         Log log = Log.builder().timestamp(System.currentTimeMillis()).build();
+        log.setEndpointResponse(new LogEndpointResponse(loggingContext, response));
 
         when(metrics.getLog()).thenReturn(log);
         when(loggingContext.endpointResponse()).thenReturn(true);
@@ -194,6 +200,7 @@ class LoggingHookTest {
     @Test
     void shouldSetEndpointResponseWhenProxyModeAndInterruptWith() {
         Log log = Log.builder().timestamp(System.currentTimeMillis()).build();
+        log.setEndpointResponse(new LogEndpointResponse(loggingContext, response));
 
         when(metrics.getLog()).thenReturn(log);
         when(loggingContext.endpointResponse()).thenReturn(true);
