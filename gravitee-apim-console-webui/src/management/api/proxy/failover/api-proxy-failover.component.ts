@@ -98,13 +98,6 @@ export class ApiProxyFailoverComponent implements OnInit, OnDestroy {
 
   onSubmit() {
     const { enabled, maxAttempts, retryTimeout } = this.failoverForm.getRawValue();
-    const failover: Failover = enabled
-      ? {
-          maxAttempts,
-          retryTimeout,
-        }
-      : undefined;
-
     return this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
@@ -114,7 +107,13 @@ export class ApiProxyFailoverComponent implements OnInit, OnDestroy {
             ...api,
             proxy: {
               ...proxy,
-              failover,
+              failover: enabled
+                ? {
+                    cases: ['TIMEOUT'],
+                    maxAttempts,
+                    retryTimeout,
+                  }
+                : undefined,
             },
           }),
         ),
