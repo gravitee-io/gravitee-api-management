@@ -4596,6 +4596,7 @@ components:
                     description: The list of cases associated with this failover.
                     items:
                         $ref: "#/components/schemas/FailoverCase"
+                    default: [ "TIMEOUT" ]
         FailoverCase:
             type: string
             description: The case of the failover.
