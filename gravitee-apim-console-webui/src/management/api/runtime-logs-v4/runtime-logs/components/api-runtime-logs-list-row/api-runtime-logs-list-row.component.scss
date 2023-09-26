@@ -56,8 +56,9 @@
 
     &__request {
       display: grid;
-      grid-template-columns: minmax(200px, 2fr) minmax(200px, 2fr) minmax(200px, 2fr);
-      grid-gap: 4px;
+      grid-template-columns: 190px 300px 300px;
+      grid-gap: 16px;
+      row-gap: 4px;
     }
 
     &__data {
