@@ -103,6 +103,7 @@ describe('ApiProxyFailoverComponent', () => {
     expectApiGetRequest(api);
     const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` });
     expect(req.request.body.proxy.failover).toStrictEqual({
+      cases: ['TIMEOUT'],
       maxAttempts: 2,
       retryTimeout: 22,
     });
@@ -139,6 +140,7 @@ describe('ApiProxyFailoverComponent', () => {
     expectApiGetRequest(api);
     const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` });
     expect(req.request.body.proxy.failover).toStrictEqual({
+      cases: ['TIMEOUT'],
       maxAttempts: 3,
       retryTimeout: 33,
     });
