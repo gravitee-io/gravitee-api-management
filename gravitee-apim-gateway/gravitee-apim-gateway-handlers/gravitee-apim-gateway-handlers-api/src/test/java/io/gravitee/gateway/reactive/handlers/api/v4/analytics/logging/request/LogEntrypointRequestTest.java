@@ -65,7 +65,7 @@ class LogEntrypointRequestTest {
         when(loggingContext.entrypointRequestPayload()).thenReturn(false);
 
         final LogEntrypointRequest logRequest = new LogEntrypointRequest(loggingContext, request);
-
+        logRequest.capture();
         assertThat(logRequest.getMethod()).isEqualTo(HttpMethod.POST);
         assertThat(logRequest.getUri()).isEqualTo(URI);
         assertNull(logRequest.getHeaders());
@@ -85,6 +85,7 @@ class LogEntrypointRequestTest {
         when(loggingContext.entrypointRequestPayload()).thenReturn(false);
 
         final LogEntrypointRequest logRequest = new LogEntrypointRequest(loggingContext, request);
+        logRequest.capture();
 
         assertNotSame(headers, logRequest.getHeaders());
         assertThat(logRequest.getHeaders().deeplyEquals(headers)).isTrue();
@@ -104,6 +105,7 @@ class LogEntrypointRequestTest {
         when(loggingContext.isContentTypeLoggable(any())).thenReturn(true);
 
         final LogEntrypointRequest logRequest = new LogEntrypointRequest(loggingContext, request);
+        logRequest.capture();
         verify(request).chunks(chunksCaptor.capture());
 
         final TestSubscriber<Buffer> obs = chunksCaptor.getValue().test();
@@ -123,6 +125,7 @@ class LogEntrypointRequestTest {
         when(loggingContext.isContentTypeLoggable("application/octet-stream")).thenReturn(false);
 
         final LogEntrypointRequest logRequest = new LogEntrypointRequest(loggingContext, request);
+        logRequest.capture();
         verify(request, times(0)).chunks(any(Flowable.class));
 
         assertNull(logRequest.getHeaders());
@@ -143,6 +146,7 @@ class LogEntrypointRequestTest {
         when(loggingContext.isContentTypeLoggable(any())).thenReturn(true);
 
         final LogEntrypointRequest logRequest = new LogEntrypointRequest(loggingContext, request);
+        logRequest.capture();
         verify(request).chunks(chunksCaptor.capture());
 
         final TestSubscriber<Buffer> obs = chunksCaptor.getValue().test();

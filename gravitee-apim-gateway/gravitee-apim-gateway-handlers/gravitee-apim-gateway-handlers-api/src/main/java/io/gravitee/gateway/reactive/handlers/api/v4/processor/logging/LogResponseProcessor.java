@@ -44,15 +44,14 @@ public class LogResponseProcessor implements Processor {
     }
 
     @Override
-    public Completable execute(MutableExecutionContext ctx) {
+    public Completable execute(final MutableExecutionContext ctx) {
         return Completable.fromRunnable(() -> {
             final Log log = ctx.metrics().getLog();
             final AnalyticsContext analyticsContext = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT);
             LoggingContext loggingContext = analyticsContext.getLoggingContext();
 
             if (log != null && loggingContext.entrypointResponse()) {
-                final LogEntrypointResponse logResponse = new LogEntrypointResponse(loggingContext, ctx.response());
-                log.setEntrypointResponse(logResponse);
+                ((LogEntrypointResponse) log.getEntrypointResponse()).capture();
             }
         });
     }

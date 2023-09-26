@@ -37,6 +37,7 @@ import io.gravitee.gateway.reactive.handlers.api.processor.shutdown.ShutdownProc
 import io.gravitee.gateway.reactive.handlers.api.processor.subscription.SubscriptionProcessor;
 import io.gravitee.gateway.reactive.handlers.api.processor.transaction.TransactionPostProcessor;
 import io.gravitee.gateway.reactive.handlers.api.processor.transaction.TransactionPostProcessorConfiguration;
+import io.gravitee.gateway.reactive.handlers.api.v4.processor.logging.LogInitProcessor;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.logging.LogRequestProcessor;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.logging.LogResponseProcessor;
 import io.gravitee.node.api.Node;
@@ -78,6 +79,7 @@ public class ApiProcessorChainFactory {
         final List<Processor> processors = new ArrayList<>();
 
         if (LoggingUtils.getLoggingContext(api.getDefinition()) != null) {
+            processors.add(LogInitProcessor.instance());
             processors.add(LogRequestProcessor.instance());
         }
 

@@ -16,19 +16,23 @@
 package io.gravitee.gateway.reactive.handlers.api.v4.processor.logging;
 
 import static io.gravitee.gateway.reactive.handlers.api.v4.processor.logging.LogRequestProcessor.ID;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.core.v4.analytics.AnalyticsContext;
 import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
+import io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.request.LogEntrypointRequest;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.AbstractV4ProcessorTest;
 import io.gravitee.reporter.api.v4.log.Log;
 import io.reactivex.rxjava3.observers.TestObserver;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -39,7 +43,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class LogRequestProcessorTest extends AbstractV4ProcessorTest {
 
-    protected static final String REQUEST_ID = "requestId";
     private final LogRequestProcessor cut = LogRequestProcessor.instance();
 
     @Mock
@@ -52,84 +55,42 @@ class LogRequestProcessorTest extends AbstractV4ProcessorTest {
     public void beforeEach() {
         lenient().when(analyticsContext.isEnabled()).thenReturn(true);
         lenient().when(analyticsContext.getLoggingContext()).thenReturn(loggingContext);
-        lenient().when(analyticsContext.isLoggingEnabled()).thenReturn(true);
         ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT, analyticsContext);
     }
 
     @Test
-    void shouldNotLogWhenLoggingDisabled() {
-        when(analyticsContext.isLoggingEnabled()).thenReturn(false);
+    void shouldNotLogWhenNoLog() {
+        ctx.metrics().setLog(null);
 
         final TestObserver<Void> obs = cut.execute(ctx).test();
         obs.assertComplete();
-
-        verifyNoInteractions(mockMetrics);
-        verifyNoInteractions(mockRequest);
+        assertThat(ctx.metrics().getLog()).isNull();
     }
 
     @Test
-    void shouldNotLogWhenLoggingConditionIsEvaluatedToFalse() {
-        when(loggingContext.getCondition()).thenReturn("false");
-
-        final TestObserver<Void> obs = cut.execute(ctx).test();
-        obs.assertComplete();
-        verifyNoInteractions(mockMetrics);
-        verifyNoInteractions(mockRequest);
-    }
-
-    @Test
-    void shouldCreateLogWhenLoggingConditionIsEvaluatedToTrue() {
-        final long timestamp = System.currentTimeMillis();
-
-        when(loggingContext.getCondition()).thenReturn("true");
+    void shouldNotLogWhenEntrypointResponseLogNotEnable() {
+        Log log = Log.builder().timestamp(System.currentTimeMillis()).build();
+        when(mockMetrics.getLog()).thenReturn(log);
         when(loggingContext.entrypointRequest()).thenReturn(false);
-        when(mockRequest.timestamp()).thenReturn(timestamp);
-        when(mockRequest.id()).thenReturn(REQUEST_ID);
 
         final TestObserver<Void> obs = cut.execute(ctx).test();
         obs.assertComplete();
 
-        ArgumentCaptor<Log> logCaptor = ArgumentCaptor.forClass(Log.class);
-        verify(mockMetrics).setLog(logCaptor.capture());
-
-        final Log log = logCaptor.getValue();
-        assertNotNull(log);
-        assertEquals(timestamp, log.getTimestamp());
-        assertEquals(REQUEST_ID, log.getRequestId());
         assertNull(log.getEntrypointRequest());
     }
 
     @Test
-    void shouldCreateLogWhenLoggingConditionIsNull() {
-        when(loggingContext.getCondition()).thenReturn(null);
-        when(loggingContext.entrypointRequest()).thenReturn(false);
+    void shouldSetClientResponseWhenEntrypointResponseLogEnabled() {
+        Log log = Log.builder().timestamp(System.currentTimeMillis()).build();
+        log.setEntrypointRequest(new LogEntrypointRequest(loggingContext, mockRequest));
 
-        final TestObserver<Void> obs = cut.execute(ctx).test();
-        obs.assertComplete();
-
-        verify(mockMetrics).setLog(any(Log.class));
-    }
-
-    @Test
-    void shouldCreateLogWhenLoggingConditionIsEmpty() {
-        when(loggingContext.getCondition()).thenReturn("");
-        when(loggingContext.entrypointRequest()).thenReturn(false);
-
-        final TestObserver<Void> obs = cut.execute(ctx).test();
-        obs.assertComplete();
-
-        verify(mockMetrics).setLog(any(Log.class));
-    }
-
-    @Test
-    void shouldSetClientRequestWhenEntrypointRequestLogEnabled() {
+        when(mockMetrics.getLog()).thenReturn(log);
         when(loggingContext.entrypointRequest()).thenReturn(true);
 
         final TestObserver<Void> obs = cut.execute(ctx).test();
         obs.assertComplete();
 
-        ArgumentCaptor<Log> logCaptor = ArgumentCaptor.forClass(Log.class);
-        verify(mockMetrics).setLog(logCaptor.capture());
+        assertNotNull(log.getEntrypointRequest());
     }
 
     @Test

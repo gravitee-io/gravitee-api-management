@@ -21,6 +21,8 @@ import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactive.core.processor.Processor;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.report.ReporterService;
+import io.gravitee.reporter.api.common.Request;
+import io.gravitee.reporter.api.common.Response;
 import io.gravitee.reporter.api.v4.log.Log;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
@@ -54,6 +56,9 @@ public class ReporterProcessor implements Processor {
                 Metrics metrics = ctx.metrics();
                 if (metrics != null && metrics.isEnabled()) {
                     metrics.setRequestEnded(true);
+
+                    executeReportActions(metrics);
+
                     ReactableApi<?> reactableApi = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API);
                     if (reactableApi != null) {
                         DefinitionVersion definitionVersion = reactableApi.getDefinitionVersion();
@@ -84,5 +89,28 @@ public class ReporterProcessor implements Processor {
             })
             .doOnError(throwable -> LOGGER.error("An error occurs while reporting metrics", throwable))
             .onErrorComplete();
+    }
+
+    private void executeReportActions(Metrics metrics) {
+        final Log log = metrics.getLog();
+
+        if (log != null) {
+            executeReportActions(log.getEntrypointRequest());
+            executeReportActions(log.getEntrypointResponse());
+            executeReportActions(log.getEndpointRequest());
+            executeReportActions(log.getEndpointResponse());
+        }
+    }
+
+    private void executeReportActions(Request request) {
+        if (request != null && request.getOnReportActions() != null) {
+            request.getOnReportActions().forEach(action -> action.accept(request));
+        }
+    }
+
+    private void executeReportActions(Response response) {
+        if (response != null && response.getOnReportActions() != null) {
+            response.getOnReportActions().forEach(action -> action.accept(response));
+        }
     }
 }

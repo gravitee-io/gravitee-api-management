@@ -17,20 +17,19 @@ package io.gravitee.gateway.reactive.handlers.api.v4.processor.logging;
 
 import static io.gravitee.gateway.reactive.handlers.api.v4.processor.logging.LogResponseProcessor.ID;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.core.v4.analytics.AnalyticsContext;
 import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
-import io.gravitee.gateway.reactive.handlers.api.processor.AbstractProcessorTest;
+import io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.response.LogEntrypointResponse;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.AbstractV4ProcessorTest;
-import io.gravitee.gateway.reactive.handlers.api.v4.processor.logging.LogResponseProcessor;
 import io.gravitee.reporter.api.v4.log.Log;
 import io.reactivex.rxjava3.observers.TestObserver;
-import org.checkerframework.checker.units.qual.A;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -83,6 +82,8 @@ class LogResponseProcessorTest extends AbstractV4ProcessorTest {
     @Test
     void shouldSetClientResponseWhenEntrypointResponseLogEnabled() {
         Log log = Log.builder().timestamp(System.currentTimeMillis()).build();
+        log.setEntrypointResponse(new LogEntrypointResponse(loggingContext, mockResponse));
+
         when(mockMetrics.getLog()).thenReturn(log);
         when(loggingContext.entrypointResponse()).thenReturn(true);
 
