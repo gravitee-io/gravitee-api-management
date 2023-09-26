@@ -18,7 +18,6 @@ import { ReusableCommand } from '@circleci/circleci-config-sdk/dist/src/lib/Comp
 import { config } from '../config';
 import { keeper } from '../orbs/keeper';
 import { slack } from '../orbs/slack';
-import { supportBranchPattern } from '../utils';
 
 export class NotifyOnFailureCommand {
   private static commandName = 'cmd-notify-on-failure';
@@ -34,7 +33,7 @@ export class NotifyOnFailureCommand {
       }),
       new reusable.ReusedCommand(slack.commands.notify, {
         channel: config.slack.channels.apiManagementTeamNotifications,
-        branch_pattern: `master,${supportBranchPattern}`,
+        branch_pattern: 'master,[0-9]+\\.[0-9]+\\.x', // Slack orb only supports POSIX regex. So we must use [0-9] instead of \d.
         event: 'fail',
         template: 'basic_fail_1',
       }),
