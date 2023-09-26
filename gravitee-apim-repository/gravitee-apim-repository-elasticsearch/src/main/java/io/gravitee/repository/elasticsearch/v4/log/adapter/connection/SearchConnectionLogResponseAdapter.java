@@ -15,12 +15,18 @@
  */
 package io.gravitee.repository.elasticsearch.v4.log.adapter.connection;
 
+import static io.gravitee.repository.elasticsearch.utils.JsonNodeUtils.asBooleanOrFalse;
+import static io.gravitee.repository.elasticsearch.utils.JsonNodeUtils.asIntOr;
+import static io.gravitee.repository.elasticsearch.utils.JsonNodeUtils.asTextOrNull;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.elasticsearch.model.SearchResponse;
+import io.gravitee.repository.elasticsearch.utils.JsonNodeUtils;
 import io.gravitee.repository.log.v4.model.LogResponse;
 import io.gravitee.repository.log.v4.model.connection.ConnectionLog;
 import java.util.List;
+import java.util.Optional;
 
 public class SearchConnectionLogResponseAdapter {
 
@@ -42,15 +48,15 @@ public class SearchConnectionLogResponseAdapter {
         return ConnectionLog
             .builder()
             .requestId(json.get("request-id").asText())
-            .timestamp(json.get("@timestamp").asText())
-            .applicationId(json.get("application-id").asText())
-            .apiId(json.get("api-id").asText())
-            .planId(json.get("plan-id").asText())
-            .clientIdentifier(json.get("client-identifier").asText())
-            .transactionId(json.get("transaction-id").asText())
-            .method(HttpMethod.get(json.get("http-method").asInt()))
-            .status(json.get("status").asInt())
-            .requestEnded(json.get("request-ended").asBoolean())
+            .timestamp(asTextOrNull(json.get("@timestamp")))
+            .applicationId(asTextOrNull(json.get("application-id")))
+            .apiId(asTextOrNull(json.get("api-id")))
+            .planId(asTextOrNull(json.get("plan-id")))
+            .clientIdentifier(asTextOrNull(json.get("client-identifier")))
+            .transactionId(asTextOrNull(json.get("transaction-id")))
+            .method(HttpMethod.get(asIntOr(json.get("http-method"), 0)))
+            .status(asIntOr(json.get("status"), 0))
+            .requestEnded(asBooleanOrFalse(json.get("request-ended")))
             .build();
     }
 }

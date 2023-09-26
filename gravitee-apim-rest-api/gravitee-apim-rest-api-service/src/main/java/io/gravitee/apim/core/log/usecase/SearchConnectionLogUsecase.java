@@ -35,6 +35,7 @@ import java.util.Optional;
 
 public class SearchConnectionLogUsecase {
 
+    static final String UNKNOWN = "Unknown";
     private final ConnectionLogCrudService connectionLogCrudService;
     private final PlanCrudService planCrudService;
     private final ApplicationCrudService applicationCrudService;
@@ -70,7 +71,7 @@ public class SearchConnectionLogUsecase {
             .requestId(connectionLog.getRequestId())
             .timestamp(connectionLog.getTimestamp())
             .application(getApplicationEntity(executionContext, connectionLog.getApplicationId()))
-            .clientIdentifier(connectionLog.getClientIdentifier())
+            .clientIdentifier(connectionLog.getClientIdentifier() != null ? connectionLog.getClientIdentifier() : UNKNOWN)
             .method(connectionLog.getMethod())
             .plan(getPlanInfo(connectionLog.getPlanId()))
             .requestEnded(connectionLog.isRequestEnded())
@@ -80,10 +81,11 @@ public class SearchConnectionLogUsecase {
     }
 
     private GenericPlanEntity getPlanInfo(String planId) {
+        final BasePlanEntity unknownPlan = BasePlanEntity.builder().id(planId).name(UNKNOWN).build();
         try {
-            return planCrudService.findById(planId);
+            return planId != null ? planCrudService.findById(planId) : unknownPlan;
         } catch (PlanNotFoundException | TechnicalManagementException e) {
-            return BasePlanEntity.builder().id(planId).name("Unknown plan").build();
+            return unknownPlan;
         }
     }
 
@@ -91,7 +93,7 @@ public class SearchConnectionLogUsecase {
         try {
             return applicationCrudService.findById(executionContext, applicationId);
         } catch (ApplicationNotFoundException | TechnicalManagementException e) {
-            return BaseApplicationEntity.builder().id(applicationId).name("Unknown application").build();
+            return BaseApplicationEntity.builder().id(applicationId).name(UNKNOWN).build();
         }
     }
 
