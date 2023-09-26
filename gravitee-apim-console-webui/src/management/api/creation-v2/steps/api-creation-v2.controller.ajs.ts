@@ -299,11 +299,15 @@ class ApiCreationV2ControllerAjs {
    */
   validFirstStep(stepData) {
     if (this.contextPathInvalid) {
-      const criteria = { context_path: this.api.proxy.context_path };
-      this.ApiService.verify(criteria).then(
-        () => {
-          this.contextPathInvalid = false;
-          this.submitCurrentStep(stepData);
+      const pathToVerify = [{ path: this.api.proxy.context_path }];
+      this.ngApiV2Service.verifyPath(null, pathToVerify).subscribe(
+        (res) => {
+          this.contextPathInvalid = !res.ok;
+          if (this.contextPathInvalid) {
+            this.NotificationService.show(`Invalid context path ${res.reason}`);
+          } else {
+            this.submitCurrentStep(stepData);
+          }
         },
         () => {
           this.contextPathInvalid = true;
