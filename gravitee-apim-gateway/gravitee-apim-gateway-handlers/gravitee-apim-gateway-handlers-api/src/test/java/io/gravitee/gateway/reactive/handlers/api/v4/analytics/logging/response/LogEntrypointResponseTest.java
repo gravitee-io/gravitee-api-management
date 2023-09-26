@@ -62,6 +62,7 @@ class LogEntrypointResponseTest {
         when(loggingContext.entrypointResponsePayload()).thenReturn(false);
 
         final LogEntrypointResponse logResponse = new LogEntrypointResponse(loggingContext, response);
+        logResponse.capture();
 
         assertThat(logResponse.getStatus()).isEqualTo(HttpStatusCode.OK_200);
         assertNull(logResponse.getHeaders());
@@ -81,6 +82,7 @@ class LogEntrypointResponseTest {
         when(loggingContext.entrypointResponsePayload()).thenReturn(false);
 
         final LogEntrypointResponse logResponse = new LogEntrypointResponse(loggingContext, response);
+        logResponse.capture();
 
         assertNotSame(headers, logResponse.getHeaders());
         assertThat(logResponse.getHeaders().deeplyEquals(headers)).isTrue();
@@ -100,6 +102,7 @@ class LogEntrypointResponseTest {
         when(loggingContext.isContentTypeLoggable(any())).thenReturn(true);
 
         final LogEntrypointResponse logResponse = new LogEntrypointResponse(loggingContext, response);
+        logResponse.capture();
         verify(response).chunks(chunksCaptor.capture());
 
         final TestSubscriber<Buffer> obs = chunksCaptor.getValue().test();
@@ -120,7 +123,7 @@ class LogEntrypointResponseTest {
         when(loggingContext.isContentTypeLoggable("application/octet-stream")).thenReturn(false);
 
         final LogEntrypointResponse logResponse = new LogEntrypointResponse(loggingContext, response);
-
+        logResponse.capture();
         verify(response, times(0)).chunks(any(Flowable.class));
 
         assertNull(logResponse.getHeaders());
@@ -141,6 +144,7 @@ class LogEntrypointResponseTest {
         when(loggingContext.isContentTypeLoggable(any())).thenReturn(true);
 
         final LogEntrypointResponse logResponse = new LogEntrypointResponse(loggingContext, response);
+        logResponse.capture();
         verify(response).chunks(chunksCaptor.capture());
 
         final TestSubscriber<Buffer> obs = chunksCaptor.getValue().test();
