@@ -35,7 +35,9 @@ abstract class LogResponse extends io.gravitee.reporter.api.common.Response {
     protected LogResponse(LoggingContext loggingContext, HttpResponse response) {
         this.loggingContext = loggingContext;
         this.response = response;
+    }
 
+    public void capture() {
         if (isLogPayload() && loggingContext.isContentTypeLoggable(response.headers().get(HttpHeaderNames.CONTENT_TYPE))) {
             final Buffer buffer = Buffer.buffer();
             response.chunks(

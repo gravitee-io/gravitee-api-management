@@ -15,12 +15,7 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.v4.processor.logging;
 
-import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_API;
-
-import io.gravitee.gateway.reactive.api.context.HttpExecutionContext;
-import io.gravitee.gateway.reactive.api.context.HttpRequest;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
-import io.gravitee.gateway.reactive.core.condition.ExpressionLanguageConditionFilter;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactive.core.processor.Processor;
 import io.gravitee.gateway.reactive.core.v4.analytics.AnalyticsContext;
@@ -30,7 +25,7 @@ import io.gravitee.reporter.api.v4.log.Log;
 import io.reactivex.rxjava3.core.Completable;
 
 /**
- * Processor in charge of initializing the {@link Log} entity during the request phase if logging condition is evaluated to true.
+ * Processor allowing to manage request logging.
  *
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
@@ -38,7 +33,6 @@ import io.reactivex.rxjava3.core.Completable;
 public class LogRequestProcessor implements Processor {
 
     public static final String ID = "processor-logging-request";
-    private static final ExpressionLanguageConditionFilter<LoggingContext> CONDITION_FILTER = new ExpressionLanguageConditionFilter<>();
 
     public static LogRequestProcessor instance() {
         return Holder.INSTANCE;
@@ -51,36 +45,15 @@ public class LogRequestProcessor implements Processor {
 
     @Override
     public Completable execute(final MutableExecutionContext ctx) {
-        return Completable.defer(() -> {
+        return Completable.fromRunnable(() -> {
+            final Log log = ctx.metrics().getLog();
             final AnalyticsContext analyticsContext = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT);
+            LoggingContext loggingContext = analyticsContext.getLoggingContext();
 
-            if (!analyticsContext.isLoggingEnabled()) {
-                return Completable.complete();
+            if (log != null && loggingContext.entrypointRequest()) {
+                ((LogEntrypointRequest) log.getEntrypointRequest()).capture();
             }
-
-            return CONDITION_FILTER
-                .filter(ctx, analyticsContext.getLoggingContext())
-                .doOnSuccess(activeLoggingContext -> initLogEntity(ctx, activeLoggingContext))
-                .ignoreElement();
         });
-    }
-
-    private void initLogEntity(final HttpExecutionContext ctx, final LoggingContext loggingContext) {
-        HttpRequest request = ctx.request();
-
-        Log log = Log
-            .builder()
-            .timestamp(request.timestamp())
-            .requestId(request.id())
-            .clientIdentifier(request.clientIdentifier())
-            .apiId(ctx.getAttribute(ATTR_API))
-            .build();
-        ctx.metrics().setLog(log);
-
-        if (loggingContext.entrypointRequest()) {
-            final LogEntrypointRequest logRequest = new LogEntrypointRequest(loggingContext, request);
-            log.setEntrypointRequest(logRequest);
-        }
     }
 
     private static class Holder {

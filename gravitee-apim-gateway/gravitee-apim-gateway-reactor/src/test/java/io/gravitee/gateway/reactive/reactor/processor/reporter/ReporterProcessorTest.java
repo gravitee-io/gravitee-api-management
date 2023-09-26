@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.reactive.reactor.processor.reporter;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -27,13 +28,16 @@ import static org.mockito.Mockito.when;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.analytics.Analytics;
+import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.reactor.processor.AbstractProcessorTest;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.report.ReporterService;
+import io.gravitee.reporter.api.common.Response;
 import io.gravitee.reporter.api.v4.log.Log;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.gravitee.reporter.api.v4.metric.NoopMetrics;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -53,6 +57,9 @@ class ReporterProcessorTest extends AbstractProcessorTest {
 
     @Mock
     private ReporterService reporterService;
+
+    @Mock
+    private Response response;
 
     private ReporterProcessor reporterProcessor;
 
@@ -107,6 +114,25 @@ class ReporterProcessorTest extends AbstractProcessorTest {
             verify(reporterService).report(ctx.metrics());
             verify(reporterService).report(ctx.metrics().getLog());
         }
+
+        @Test
+        void should_execute_report_actions_when_analytics_and_log_are_enabled() {
+            // Given
+            when(reactableApi.getDefinitionVersion()).thenReturn(DefinitionVersion.V4);
+            ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API, reactableApi);
+            Log log = Log.builder().entrypointResponse(response).build();
+            HttpHeaders headers = HttpHeaders.create();
+            when(response.getHeaders()).thenReturn(headers);
+            when(response.getOnReportActions()).thenReturn(List.of(response -> response.getHeaders().set("X-Gravitee-Test", "test")));
+            ctx.metrics().setLog(log);
+
+            // When
+            reporterProcessor.execute(ctx).test().assertResult();
+
+            // Then
+            assertNotNull(ctx.metrics().getLog());
+            assertEquals("test", ctx.metrics().getLog().getEntrypointResponse().getHeaders().get("X-Gravitee-Test"));
+        }
     }
 
     @Nested
@@ -158,6 +184,25 @@ class ReporterProcessorTest extends AbstractProcessorTest {
             assertNotNull(ctx.metrics().getLog());
             verify(reporterService).report(any(io.gravitee.reporter.api.log.Log.class));
             verify(reporterService, never()).report(any(Log.class));
+        }
+
+        @Test
+        void should_execute_report_actions_when_analytics_and_log_are_enabled() {
+            // Given
+            when(reactableApi.getDefinitionVersion()).thenReturn(DefinitionVersion.V2);
+            ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API, reactableApi);
+            Log log = Log.builder().entrypointResponse(response).build();
+            HttpHeaders headers = HttpHeaders.create();
+            when(response.getHeaders()).thenReturn(headers);
+            when(response.getOnReportActions()).thenReturn(List.of(response -> response.getHeaders().set("X-Gravitee-Test", "test")));
+            ctx.metrics().setLog(log);
+
+            // When
+            reporterProcessor.execute(ctx).test().assertResult();
+
+            // Then
+            assertNotNull(ctx.metrics().getLog());
+            assertEquals("test", ctx.metrics().getLog().getEntrypointResponse().getHeaders().get("X-Gravitee-Test"));
         }
     }
 
