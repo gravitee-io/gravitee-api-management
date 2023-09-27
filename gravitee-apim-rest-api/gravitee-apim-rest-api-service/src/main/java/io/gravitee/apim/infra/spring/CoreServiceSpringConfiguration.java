@@ -19,6 +19,9 @@ import io.gravitee.apim.core.api.domain_service.ApiDefinitionParserDomainService
 import io.gravitee.apim.core.api.domain_service.ApiHostValidatorDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
+import io.gravitee.apim.core.api_key.crud_service.ApiKeyCrudService;
+import io.gravitee.apim.core.api_key.domain_service.RevokeApiKeyDomainService;
+import io.gravitee.apim.core.api_key.query_service.ApiKeyQueryService;
 import io.gravitee.apim.core.audit.crud_service.AuditCrudService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
@@ -37,6 +40,15 @@ public class CoreServiceSpringConfiguration {
         JacksonJsonDiffProcessor jacksonJsonDiffProcessor
     ) {
         return new AuditDomainService(auditCrudService, userCrudService, jacksonJsonDiffProcessor);
+    }
+
+    @Bean
+    public RevokeApiKeyDomainService revokeApiKeyDomainService(
+        ApiKeyCrudService apiKeyCrudService,
+        ApiKeyQueryService apiKeyQueryService,
+        AuditDomainService auditDomainService
+    ) {
+        return new RevokeApiKeyDomainService(apiKeyCrudService, apiKeyQueryService, auditDomainService);
     }
 
     @Bean
