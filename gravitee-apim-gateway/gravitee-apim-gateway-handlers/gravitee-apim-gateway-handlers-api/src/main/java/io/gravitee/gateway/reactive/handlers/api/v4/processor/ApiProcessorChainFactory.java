@@ -153,7 +153,6 @@ public class ApiProcessorChainFactory {
      */
     public ProcessorChain afterApiExecution(final Api api) {
         final List<Processor> processors = getAfterApiExecutionProcessors(api);
-
         return new ProcessorChain("processor-chain-after-api-execution", processors, processorHooks);
     }
 
@@ -206,17 +205,7 @@ public class ApiProcessorChainFactory {
      * @return the chain of processors.
      */
     public ProcessorChain afterHandle(final Api api) {
-        final List<Processor> processors = new ArrayList<>();
-
-        io.gravitee.definition.model.v4.Api apiDefinition = api.getDefinition();
-        Analytics analytics = apiDefinition.getAnalytics();
-        if (analytics != null) {
-            if (AnalyticsUtils.isLoggingEnabled(analytics)) {
-                processors.add(LogResponseProcessor.instance());
-            }
-        }
-
-        return new ProcessorChain("processor-chain-after-api-handle", processors, processorHooks);
+        return new ProcessorChain("processor-chain-after-api-handle", afterHandleProcessors(api), processorHooks);
     }
 
     protected List<Processor> afterHandleProcessors(Api api) {
