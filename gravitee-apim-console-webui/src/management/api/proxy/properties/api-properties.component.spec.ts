@@ -34,6 +34,7 @@ import { User } from '../../../../entities/user';
 import { CurrentUserService, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { GioUiRouterTestingModule } from '../../../../shared/testing/gio-uirouter-testing-module';
 import { Api, fakeApiV4 } from '../../../../entities/management-api-v2/api';
+import { PropertiesAddDialogHarness } from './properties-add-dialog/properties-add-dialog.harness';
 
 describe('ApiPropertiesComponent', () => {
   const API_ID = 'apiId';
@@ -41,9 +42,10 @@ describe('ApiPropertiesComponent', () => {
   let component: ApiPropertiesComponent;
   let httpTestingController: HttpTestingController;
   let loader: HarnessLoader;
+  let rootLoader: HarnessLoader;
 
   const currentUser = new User();
-  currentUser.userPermissions = ['api-plan-r', 'api-plan-u'];
+  currentUser.userPermissions = ['api-definition-u'];
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -66,6 +68,7 @@ describe('ApiPropertiesComponent', () => {
     fixture = TestBed.createComponent(ApiPropertiesComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
     loader = TestbedHarnessEnvironment.loader(fixture);
+    rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
@@ -255,6 +258,20 @@ describe('ApiPropertiesComponent', () => {
     });
 
     expect(postApiReq.request.body.properties).toEqual([]);
+  });
+
+  it('should add property', async () => {
+    expectGetApi(
+      fakeApiV4({
+        id: API_ID,
+        properties: [],
+      }),
+    );
+
+    await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Add property"]' })).then((btn) => btn.click());
+
+    const addPropertyButton = await rootLoader.getHarness(PropertiesAddDialogHarness);
+    expect(addPropertyButton).toBeTruthy();
   });
 
   async function getCellContentByIndex(table: MatTableHarness) {
