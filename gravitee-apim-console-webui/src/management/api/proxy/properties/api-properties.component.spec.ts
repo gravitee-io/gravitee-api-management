@@ -278,7 +278,7 @@ describe('ApiPropertiesComponent', () => {
     expectGetApi(
       fakeApiV4({
         id: API_ID,
-        properties: [{ key: 'existing', value: '', encrypted: false }],
+        properties: [{ key: 'x-existing', value: '', encrypted: false }],
       }),
     );
 
@@ -288,12 +288,12 @@ describe('ApiPropertiesComponent', () => {
     });
 
     expect(postApiReq.request.body.properties).toEqual([
-      { key: 'existing', value: '', encrypted: false },
       {
         key: 'NewProperty',
         value: 'value1',
         encryptable: true,
       },
+      { key: 'x-existing', value: '', encrypted: false },
     ]);
   });
 
