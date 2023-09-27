@@ -55,7 +55,7 @@ export class ApiPortalGroupsComponent implements OnInit, OnDestroy {
       .subscribe(([groups, api]) => {
         this.groups = groups;
 
-        const userGroupList: Group[] = this.groups.filter((group) => api.groups.includes(group.id));
+        const userGroupList: Group[] = this.groups.filter((group) => api.groups?.includes(group.id));
         this.form = this.formBuilder.group({
           selectedGroups: {
             value: userGroupList.map((g) => g.id),
