@@ -49,5 +49,8 @@
         "policy": "message-flow-ready"
       }
     ]
-  }]
+  }],
+  "analytics": {
+    "enabled": false
+  }
 }
