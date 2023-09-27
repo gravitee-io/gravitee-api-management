@@ -253,7 +253,7 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
             .chainWith(apiPlanFlowChain.execute(ctx, REQUEST))
             .chainWith(apiFlowChain.execute(ctx, REQUEST))
             // Invoke the backend.
-            .chainWith(invokeBackendWithMetrics(ctx))
+            .chainWith(invokeBackend(ctx))
             // Execute all flows for response phases.
             .chainWith(apiPlanFlowChain.execute(ctx, RESPONSE))
             .chainWith(apiFlowChain.execute(ctx, RESPONSE))
@@ -315,23 +315,19 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
         return HookHelper.hook(() -> processorChain.execute(ctx, phase), processorChain.getId(), processorChainHooks, ctx, phase);
     }
 
-    private Completable invokeBackendWithMetrics(final MutableExecutionContext ctx) {
-        return invokeBackend(ctx)
-            .doOnSubscribe(disposable -> initEndpointResponseTimeMetric(ctx))
-            .doFinally(() -> computeEndpointResponseTimeMetric(ctx));
-    }
-
     protected Completable invokeBackend(final MutableExecutionContext ctx) {
         return defer(() -> {
-            if (!TRUE.equals(ctx.<Boolean>getInternalAttribute(ATTR_INTERNAL_INVOKER_SKIP))) {
-                Invoker invoker = getInvoker(ctx);
+                if (!TRUE.equals(ctx.<Boolean>getInternalAttribute(ATTR_INTERNAL_INVOKER_SKIP))) {
+                    Invoker invoker = getInvoker(ctx);
 
-                if (invoker != null) {
-                    return HookHelper.hook(() -> invoker.invoke(ctx), invoker.getId(), invokerHooks, ctx, null);
+                    if (invoker != null) {
+                        return HookHelper.hook(() -> invoker.invoke(ctx), invoker.getId(), invokerHooks, ctx, null);
+                    }
                 }
-            }
-            return Completable.complete();
-        });
+                return Completable.complete();
+            })
+            .doOnSubscribe(disposable -> initEndpointResponseTimeMetric(ctx))
+            .doFinally(() -> computeEndpointResponseTimeMetric(ctx));
     }
 
     private Invoker getInvoker(final MutableExecutionContext ctx) {
