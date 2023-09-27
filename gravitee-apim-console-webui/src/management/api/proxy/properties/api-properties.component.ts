@@ -28,6 +28,11 @@ import {
   PropertiesAddDialogData,
   PropertiesAddDialogResult,
 } from './properties-add-dialog/properties-add-dialog.component';
+import {
+  PropertiesImportDialogComponent,
+  PropertiesImportDialogData,
+  PropertiesImportDialogResult,
+} from './properties-import-dialog/properties-import-dialog.component';
 
 import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { GioTableWrapperFilters } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
@@ -107,7 +112,17 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
     this.unsubscribe$.unsubscribe();
   }
 
-  addProperties() {
+  importProperties() {
+    this.matDialog
+      .open<PropertiesImportDialogComponent, PropertiesImportDialogData, PropertiesImportDialogResult>(PropertiesImportDialogComponent, {
+        width: GIO_DIALOG_WIDTH.MEDIUM,
+        data: undefined,
+      })
+      .beforeClosed()
+      .subscribe();
+  }
+
+  addProperty() {
     this.matDialog
       .open<PropertiesAddDialogComponent, PropertiesAddDialogData, PropertiesAddDialogResult>(PropertiesAddDialogComponent, {
         width: GIO_DIALOG_WIDTH.MEDIUM,

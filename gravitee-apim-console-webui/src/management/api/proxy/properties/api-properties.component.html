@@ -23,13 +23,22 @@
       For example, to get the value of the property <code>my-property</code> defined in API properties:
       <code [innerHTML]="'{#properties[\'my-property\']}'"> </code>
     </div>
-    <div *ngIf="!isReadOnly">
+    <div *ngIf="!isReadOnly" class="apiProperties__header__btn">
+      <button
+        *gioPermission="{ anyOf: ['api-definition-u'] }"
+        mat-raised-button
+        type="button"
+        (click)="importProperties()"
+        aria-label="Import properties"
+      >
+        <mat-icon svgIcon="gio:download"></mat-icon> Import
+      </button>
       <button
         *gioPermission="{ anyOf: ['api-definition-u'] }"
         mat-raised-button
         type="button"
         color="primary"
-        (click)="addProperties()"
+        (click)="addProperty()"
         aria-label="Add property"
       >
         <mat-icon svgIcon="gio:plus"></mat-icon> Add property

@@ -29,6 +29,7 @@ import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { ApiPropertiesComponent } from './api-properties.component';
 import { ApiPropertiesModule } from './api-properties.module';
 import { PropertiesAddDialogHarness } from './properties-add-dialog/properties-add-dialog.harness';
+import { PropertiesImportDialogHarness } from './properties-import-dialog/properties-import-dialog.harness';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { User } from '../../../../entities/user';
@@ -295,6 +296,20 @@ describe('ApiPropertiesComponent', () => {
       },
       { key: 'x-existing', value: '', encrypted: false },
     ]);
+  });
+
+  it('should import properties', async () => {
+    expectGetApi(
+      fakeApiV4({
+        id: API_ID,
+        properties: [],
+      }),
+    );
+
+    await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Import properties"]' })).then((btn) => btn.click());
+
+    const importDialog = await rootLoader.getHarness(PropertiesImportDialogHarness);
+    expect(importDialog).toBeTruthy();
   });
 
   async function getCellContentByIndex(table: MatTableHarness) {
