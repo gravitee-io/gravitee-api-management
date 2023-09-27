@@ -17,7 +17,7 @@
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { EMPTY, Subject } from 'rxjs';
 import { StateParams } from '@uirouter/angularjs';
-import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { catchError, filter, switchMap, takeUntil, tap, map } from 'rxjs/operators';
 import { isEmpty, omit, uniqueId } from 'lodash';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
@@ -31,10 +31,11 @@ import {
 
 import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { GioTableWrapperFilters } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
-import { Property } from '../../../../entities/management-api-v2';
+import { ApiV2, ApiV4, Property } from '../../../../entities/management-api-v2';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { gioTableFilterCollection } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
+import { isUnique } from '../../../../shared/utils';
 
 type TableDataSource = {
   _id: string;
@@ -78,6 +79,7 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.isLoading = true;
     this.isDirty = false;
+    this.filteredTableData = [];
     this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
@@ -109,10 +111,30 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
     this.matDialog
       .open<PropertiesAddDialogComponent, PropertiesAddDialogData, PropertiesAddDialogResult>(PropertiesAddDialogComponent, {
         width: GIO_DIALOG_WIDTH.MEDIUM,
-        data: undefined,
+        data: {
+          properties: this.apiProperties,
+        },
       })
-      .afterClosed()
-      .pipe(takeUntil(this.unsubscribe$))
+      .beforeClosed()
+      .pipe(
+        filter((result) => !!result),
+        switchMap((propertyToAdd) => this.apiService.get(this.ajsStateParams.apiId).pipe(map((api) => [propertyToAdd, api]))),
+        switchMap(([propertyToAdd, api]: [Property, ApiV2 | ApiV4]) => {
+          return this.apiService.update(this.ajsStateParams.apiId, {
+            ...api,
+            properties: [...api.properties, propertyToAdd],
+          });
+        }),
+        tap(() => {
+          this.snackBarService.success('Property successfully added!');
+          this.ngOnInit();
+        }),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        }),
+        takeUntil(this.unsubscribe$),
+      )
       .subscribe();
   }
 
@@ -226,7 +248,7 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
 
     this.propertiesFormGroup = new FormGroup(
       this.apiProperties.reduce((previousValue, currentValue) => {
-        const keyControl = new FormControl(currentValue.key, [Validators.required]);
+        const keyControl = new FormControl(currentValue.key, [Validators.required, isUnique(this.apiProperties.map((p) => p.key))]);
         keyControl.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe((value) => this.editKeyProperty(currentValue._id, value));
 
         const valueControl = new FormControl({

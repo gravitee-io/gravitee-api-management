@@ -16,15 +16,32 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatDialogModule } from '@angular/material/dialog';
-import { GioIconsModule } from '@gravitee/ui-particles-angular';
+import { GioFormSlideToggleModule, GioIconsModule } from '@gravitee/ui-particles-angular';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { ReactiveFormsModule } from '@angular/forms';
+import { MatInputModule } from '@angular/material/input';
 
 import { PropertiesAddDialogComponent } from './properties-add-dialog.component';
 
 @NgModule({
   declarations: [PropertiesAddDialogComponent],
   exports: [PropertiesAddDialogComponent],
-  imports: [CommonModule, MatDialogModule, MatButtonModule, MatIconModule, GioIconsModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+
+    MatDialogModule,
+    MatFormFieldModule,
+    MatButtonModule,
+    MatIconModule,
+    MatSlideToggleModule,
+    MatInputModule,
+
+    GioIconsModule,
+    GioFormSlideToggleModule,
+  ],
 })
 export class PropertiesAddDialogModule {}

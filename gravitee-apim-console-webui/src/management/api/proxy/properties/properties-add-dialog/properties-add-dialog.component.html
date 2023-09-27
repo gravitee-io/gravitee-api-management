@@ -18,9 +18,37 @@
 <div class="title">
   <h2 mat-dialog-title>New property</h2>
   <mat-icon class="title__cancel"></mat-icon>
-  <button mat-icon-button [attr.aria-label]="'Close'" [mat-dialog-close]="{}">
+  <button mat-icon-button [attr.aria-label]="'Close'" [mat-dialog-close]="">
     <mat-icon class="title__cancel" svgIcon="gio:cancel"> </mat-icon>
   </button>
 </div>
 
-<mat-dialog-content> 🦊 </mat-dialog-content>
+<mat-dialog-content [formGroup]="formGroup">
+  <mat-form-field class="field">
+    <mat-label>Key</mat-label>
+    <input type="text" aria-label="Key input" matInput formControlName="key" required />
+    <mat-error *ngIf="formGroup.get('key').hasError('required')">Key is required.</mat-error>
+    <mat-error *ngIf="formGroup.get('key').hasError('isUnique')">Key already exists.</mat-error>
+  </mat-form-field>
+
+  <mat-form-field class="field">
+    <mat-label>Value</mat-label>
+    <input type="text" aria-label="Value input" matInput formControlName="value" />
+  </mat-form-field>
+
+  <gio-form-slide-toggle class="field">
+    <gio-form-label>Encrypt</gio-form-label>
+    The value will be encrypted on save, and cannot be retrieved later on.
+    <mat-slide-toggle
+      gioFormSlideToggle
+      formControlName="toEncrypt"
+      aria-label="Encrypt on save toggle"
+      name="toEncrypt"
+    ></mat-slide-toggle>
+  </gio-form-slide-toggle>
+</mat-dialog-content>
+
+<mat-dialog-actions class="actions" align="end">
+  <button mat-button [mat-dialog-close]="">Cancel</button>
+  <button mat-button [disabled]="formGroup.invalid" color="primary" type="button" (click)="onSave()">Add</button>
+</mat-dialog-actions>

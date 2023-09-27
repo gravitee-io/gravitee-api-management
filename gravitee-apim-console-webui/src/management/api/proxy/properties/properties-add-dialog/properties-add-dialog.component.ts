@@ -13,15 +13,47 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component } from '@angular/core';
+import { Component, Inject } from '@angular/core';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
-export type PropertiesAddDialogData = undefined;
+import { Property } from '../../../../../entities/management-api-v2';
+import { isUnique } from '../../../../../shared/utils';
 
-export type PropertiesAddDialogResult = undefined;
+export type PropertiesAddDialogData = {
+  properties: Property[];
+};
+
+export type PropertiesAddDialogResult = Property;
 
 @Component({
   selector: 'properties-add-dialog',
   template: require('./properties-add-dialog.component.html'),
   styles: [require('./properties-add-dialog.component.scss')],
 })
-export class PropertiesAddDialogComponent {}
+export class PropertiesAddDialogComponent {
+  private existingKeys: string[] = [];
+
+  public formGroup = new FormGroup({
+    key: new FormControl('', [Validators.required]),
+    value: new FormControl(''),
+    toEncrypt: new FormControl(false),
+  });
+
+  constructor(
+    private readonly dialogRef: MatDialogRef<PropertiesAddDialogData, PropertiesAddDialogResult>,
+    @Inject(MAT_DIALOG_DATA) dialogData: PropertiesAddDialogData,
+  ) {
+    this.existingKeys = dialogData.properties.map((p) => p.key);
+    this.formGroup.get('key').addValidators([isUnique(this.existingKeys)]);
+    this.formGroup.get('key').updateValueAndValidity();
+  }
+
+  public onSave(): void {
+    this.dialogRef.close({
+      key: this.formGroup.get('key').value,
+      value: this.formGroup.get('value').value,
+      encryptable: this.formGroup.get('toEncrypt').value,
+    });
+  }
+}

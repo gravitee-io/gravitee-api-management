@@ -28,13 +28,13 @@ import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 
 import { ApiPropertiesComponent } from './api-properties.component';
 import { ApiPropertiesModule } from './api-properties.module';
+import { PropertiesAddDialogHarness } from './properties-add-dialog/properties-add-dialog.harness';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { User } from '../../../../entities/user';
 import { CurrentUserService, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { GioUiRouterTestingModule } from '../../../../shared/testing/gio-uirouter-testing-module';
 import { Api, fakeApiV4 } from '../../../../entities/management-api-v2/api';
-import { PropertiesAddDialogHarness } from './properties-add-dialog/properties-add-dialog.harness';
 
 describe('ApiPropertiesComponent', () => {
   const API_ID = 'apiId';
@@ -270,8 +270,31 @@ describe('ApiPropertiesComponent', () => {
 
     await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Add property"]' })).then((btn) => btn.click());
 
-    const addPropertyButton = await rootLoader.getHarness(PropertiesAddDialogHarness);
-    expect(addPropertyButton).toBeTruthy();
+    const addPropertyDialog = await rootLoader.getHarness(PropertiesAddDialogHarness);
+    await addPropertyDialog.setPropertyValue({ key: 'NewProperty', value: 'value1', encryptable: true });
+
+    await addPropertyDialog.add();
+
+    expectGetApi(
+      fakeApiV4({
+        id: API_ID,
+        properties: [{ key: 'existing', value: '', encrypted: false }],
+      }),
+    );
+
+    const postApiReq = httpTestingController.expectOne({
+      method: 'PUT',
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`,
+    });
+
+    expect(postApiReq.request.body.properties).toEqual([
+      { key: 'existing', value: '', encrypted: false },
+      {
+        key: 'NewProperty',
+        value: 'value1',
+        encryptable: true,
+      },
+    ]);
   });
 
   async function getCellContentByIndex(table: MatTableHarness) {

@@ -1,10 +1,14 @@
 .title {
   display: flex;
-  padding-bottom: 32px;
+  padding-bottom: 16px;
   align-items: center;
   justify-content: space-between;
 
   h2 {
     margin: 0;
   }
+}
+
+.field {
+  width: 100%;
 }
