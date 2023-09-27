@@ -24,7 +24,14 @@
       <code [innerHTML]="'{#properties[\'my-property\']}'"> </code>
     </div>
     <div *ngIf="!isReadOnly">
-      <button *gioPermission="{ anyOf: ['api-definition-u'] }" mat-raised-button type="button" color="primary" (click)="addProperties()">
+      <button
+        *gioPermission="{ anyOf: ['api-definition-u'] }"
+        mat-raised-button
+        type="button"
+        color="primary"
+        (click)="addProperties()"
+        aria-label="Add property"
+      >
         <mat-icon svgIcon="gio:plus"></mat-icon> Add property
       </button>
     </div>

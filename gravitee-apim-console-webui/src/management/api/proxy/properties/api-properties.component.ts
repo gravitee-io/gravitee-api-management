@@ -20,6 +20,14 @@ import { StateParams } from '@uirouter/angularjs';
 import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { isEmpty, omit, uniqueId } from 'lodash';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { MatDialog } from '@angular/material/dialog';
+import { GIO_DIALOG_WIDTH } from '@gravitee/ui-particles-angular';
+
+import {
+  PropertiesAddDialogComponent,
+  PropertiesAddDialogData,
+  PropertiesAddDialogResult,
+} from './properties-add-dialog/properties-add-dialog.component';
 
 import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { GioTableWrapperFilters } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
@@ -64,6 +72,7 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
     @Inject(UIRouterStateParams) private readonly ajsStateParams: StateParams,
     private readonly apiService: ApiV2Service,
     private readonly snackBarService: SnackBarService,
+    private readonly matDialog: MatDialog,
   ) {}
 
   ngOnInit(): void {
@@ -97,7 +106,14 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
   }
 
   addProperties() {
-    // TODO: implement
+    this.matDialog
+      .open<PropertiesAddDialogComponent, PropertiesAddDialogData, PropertiesAddDialogResult>(PropertiesAddDialogComponent, {
+        width: GIO_DIALOG_WIDTH.MEDIUM,
+        data: undefined,
+      })
+      .afterClosed()
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe();
   }
 
   editKeyProperty(_id: string, newKey: string) {
