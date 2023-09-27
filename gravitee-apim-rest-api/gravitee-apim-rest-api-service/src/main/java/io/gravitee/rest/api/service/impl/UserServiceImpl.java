@@ -17,10 +17,15 @@ package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.USER;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
-import static io.gravitee.rest.api.service.common.JWTHelper.ACTION.*;
+import static io.gravitee.rest.api.service.common.JWTHelper.ACTION.GROUP_INVITATION;
+import static io.gravitee.rest.api.service.common.JWTHelper.ACTION.RESET_PASSWORD;
+import static io.gravitee.rest.api.service.common.JWTHelper.ACTION.USER_CREATION;
+import static io.gravitee.rest.api.service.common.JWTHelper.ACTION.USER_REGISTRATION;
 import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_EMAIL_REGISTRATION_EXPIRE_AFTER;
 import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_ISSUER;
-import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.*;
+import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.DEFAULT_MANAGEMENT_URL;
+import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.REGISTRATION_PATH;
+import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.RESET_PASSWORD_PATH;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -44,7 +49,29 @@ import io.gravitee.repository.management.api.search.UserCriteria;
 import io.gravitee.repository.management.model.Membership;
 import io.gravitee.repository.management.model.User;
 import io.gravitee.repository.management.model.UserStatus;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.GroupEntity;
+import io.gravitee.rest.api.model.InlinePictureEntity;
+import io.gravitee.rest.api.model.InvitationEntity;
+import io.gravitee.rest.api.model.MemberEntity;
+import io.gravitee.rest.api.model.MembershipEntity;
+import io.gravitee.rest.api.model.MembershipMemberType;
+import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.MetadataFormat;
+import io.gravitee.rest.api.model.NewApplicationEntity;
+import io.gravitee.rest.api.model.NewExternalUserEntity;
+import io.gravitee.rest.api.model.NewPreRegisterUserEntity;
+import io.gravitee.rest.api.model.NewUserMetadataEntity;
+import io.gravitee.rest.api.model.PictureEntity;
+import io.gravitee.rest.api.model.RegisterUserEntity;
+import io.gravitee.rest.api.model.ResetPasswordUserEntity;
+import io.gravitee.rest.api.model.RoleEntity;
+import io.gravitee.rest.api.model.UpdateUserEntity;
+import io.gravitee.rest.api.model.UpdateUserMetadataEntity;
+import io.gravitee.rest.api.model.UrlPictureEntity;
+import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.UserMetadataEntity;
+import io.gravitee.rest.api.model.UserRoleEntity;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
 import io.gravitee.rest.api.model.audit.AuditEntity;
@@ -58,7 +85,28 @@ import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.AccessPointService;
+import io.gravitee.rest.api.service.ApplicationService;
+import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.EmailService;
+import io.gravitee.rest.api.service.EmailValidator;
+import io.gravitee.rest.api.service.EnvironmentService;
+import io.gravitee.rest.api.service.GenericNotificationConfigService;
+import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.InvitationService;
+import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.service.NewsletterService;
+import io.gravitee.rest.api.service.NotifierService;
+import io.gravitee.rest.api.service.OrganizationService;
+import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.PasswordValidator;
+import io.gravitee.rest.api.service.PermissionService;
+import io.gravitee.rest.api.service.PortalNotificationConfigService;
+import io.gravitee.rest.api.service.PortalNotificationService;
+import io.gravitee.rest.api.service.RoleService;
+import io.gravitee.rest.api.service.TokenService;
+import io.gravitee.rest.api.service.UserMetadataService;
+import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -68,7 +116,22 @@ import io.gravitee.rest.api.service.common.ReferenceContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderService;
 import io.gravitee.rest.api.service.converter.UserConverter;
-import io.gravitee.rest.api.service.exceptions.*;
+import io.gravitee.rest.api.service.exceptions.AbstractManagementException;
+import io.gravitee.rest.api.service.exceptions.DefaultRoleNotFoundException;
+import io.gravitee.rest.api.service.exceptions.EmailFormatInvalidException;
+import io.gravitee.rest.api.service.exceptions.EmailRequiredException;
+import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
+import io.gravitee.rest.api.service.exceptions.PasswordAlreadyResetException;
+import io.gravitee.rest.api.service.exceptions.PasswordFormatInvalidException;
+import io.gravitee.rest.api.service.exceptions.StillPrimaryOwnerException;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.service.exceptions.UserAlreadyExistsException;
+import io.gravitee.rest.api.service.exceptions.UserAlreadyFinalizedException;
+import io.gravitee.rest.api.service.exceptions.UserNotActiveException;
+import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
+import io.gravitee.rest.api.service.exceptions.UserNotInternallyManagedException;
+import io.gravitee.rest.api.service.exceptions.UserRegistrationUnavailableException;
+import io.gravitee.rest.api.service.exceptions.UserStateConflictException;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
 import io.gravitee.rest.api.service.notification.PortalHook;
@@ -80,7 +143,18 @@ import jakarta.xml.bind.DatatypeConverter;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -156,6 +230,9 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
     @Autowired
     private ParameterService parameterService;
+
+    @Autowired
+    private AccessPointService accessPointService;
 
     @Autowired
     private SearchEngineService searchEngineService;
@@ -236,9 +313,9 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             // First connection: create default application for user & notify
             if (user.getLastConnectionAt() == null && user.getFirstConnectionAt() == null) {
                 notifierService.trigger(
-                    executionContext,
+                    new ExecutionContext(user.getOrganizationId()),
                     PortalHook.USER_FIRST_LOGIN,
-                    new NotificationParamsBuilder().user(convert(executionContext, user, false)).build()
+                    new NotificationParamsBuilder().user(convert(user, false)).build()
                 );
                 user.setFirstConnectionAt(new Date());
                 if (defaultApplicationForFirstConnection) {
@@ -255,13 +332,9 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
                     try {
                         environmentService
-                            .findByUser(executionContext.getOrganizationId(), userId)
+                            .findByUser(user.getOrganizationId(), userId)
                             .forEach(env ->
-                                applicationService.create(
-                                    new ExecutionContext(executionContext.getOrganizationId(), env.getId()),
-                                    defaultApp,
-                                    userId
-                                )
+                                applicationService.create(new ExecutionContext(env.getOrganizationId(), env.getId()), defaultApp, userId)
                             );
                     } catch (IllegalStateException ex) {
                         //do not fail to create a user even if we are not able to create its default app
@@ -281,7 +354,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             User updatedUser = userRepository.update(user);
             auditService.createOrganizationAuditLog(
                 executionContext,
-                executionContext.getOrganizationId(),
+                updatedUser.getOrganizationId(),
                 Collections.singletonMap(USER, userId),
                 User.AuditEvent.USER_CONNECTED,
                 user.getUpdatedAt(),
@@ -289,7 +362,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 user
             );
 
-            final UserEntity userEntity = convert(executionContext, updatedUser, true);
+            final UserEntity userEntity = convert(updatedUser, true);
             searchEngineService.index(executionContext, userEntity, false);
             return userEntity;
         } catch (TechnicalException ex) {
@@ -299,7 +372,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     }
 
     @Override
-    public UserEntity findById(ExecutionContext executionContext, String id, boolean defaultValue) {
+    public UserEntity findById(String id, boolean defaultValue) {
         return GraviteeContext
             .getCurrentUsers()
             .computeIfAbsent(
@@ -311,7 +384,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                         Optional<User> optionalUser = userRepository.findById(k);
 
                         if (optionalUser.isPresent()) {
-                            return convert(executionContext, optionalUser.get(), false, userMetadataService.findAllByUserId(k), true);
+                            return convert(optionalUser.get(), false, userMetadataService.findAllByUserId(k), true);
                         }
 
                         if (defaultValue) {
@@ -336,7 +409,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         try {
             LOGGER.debug("Find user by Email: {}", email);
             Optional<User> optionalUser = userRepository.findByEmail(email, executionContext.getOrganizationId());
-            return optionalUser.map(user -> convert(executionContext, optionalUser.get(), false));
+            return optionalUser.map(user -> convert(optionalUser.get(), false));
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find user using its email", ex);
             throw new TechnicalManagementException("An error occurs while trying to find user using its email", ex);
@@ -347,10 +420,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     public UserEntity findByIdWithRoles(ExecutionContext executionContext, String userId) {
         LOGGER.debug("Find user by ID: {}", userId);
         try {
-            return userRepository
-                .findById(userId)
-                .map(user -> convertWithFlags(executionContext, user))
-                .orElseThrow(() -> new UserNotFoundException(userId)); // should never happen
+            return userRepository.findById(userId).map(user -> convertWithFlags(user)).orElseThrow(() -> new UserNotFoundException(userId)); // should never happen
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find user using its ID {}", userId, ex);
             throw new TechnicalManagementException("An error occurs while trying to find user using its ID " + userId, ex);
@@ -364,7 +434,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
             return userRepository
                 .findBySource(source, sourceId, executionContext.getOrganizationId())
-                .map(user -> convert(executionContext, user, loadRoles, emptyList(), false))
+                .map(user -> convert(user, loadRoles, emptyList(), false))
                 .orElseThrow(() -> new UserNotFoundException(sourceId));
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find user using source[{}], user[{}]", source, sourceId, ex);
@@ -373,12 +443,12 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     }
 
     @Override
-    public Set<UserEntity> findByIds(ExecutionContext executionContext, Collection<String> ids) {
-        return this.findByIds(executionContext, ids, true);
+    public Set<UserEntity> findByIds(Collection<String> ids) {
+        return this.findByIds(ids, true);
     }
 
     @Override
-    public Set<UserEntity> findByIds(ExecutionContext executionContext, Collection<String> ids, boolean withUserMetadata) {
+    public Set<UserEntity> findByIds(Collection<String> ids, boolean withUserMetadata) {
         try {
             LOGGER.debug("Find users by ID: {}", ids);
 
@@ -387,15 +457,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             if (!users.isEmpty()) {
                 return users
                     .stream()
-                    .map(u ->
-                        this.convert(
-                                executionContext,
-                                u,
-                                false,
-                                withUserMetadata ? userMetadataService.findAllByUserId(u.getId()) : emptyList(),
-                                true
-                            )
-                    )
+                    .map(u -> this.convert(u, false, withUserMetadata ? userMetadataService.findAllByUserId(u.getId()) : emptyList(), true))
                     .collect(toSet());
             }
 
@@ -418,7 +480,6 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         if (currentContext.getReferenceType().equals(ReferenceContext.Type.ORGANIZATION)) {
             userCreationEnabled =
                 parameterService.findAsBoolean(
-                    executionContext,
                     Key.CONSOLE_USERCREATION_ENABLED,
                     currentContext.getReferenceId(),
                     ParameterReferenceType.ORGANIZATION
@@ -426,7 +487,6 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         } else {
             userCreationEnabled =
                 parameterService.findAsBoolean(
-                    executionContext,
                     Key.PORTAL_USERCREATION_ENABLED,
                     currentContext.getReferenceId(),
                     ParameterReferenceType.ENVIRONMENT
@@ -540,7 +600,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             // Do not send back the password
             user.setPassword(null);
 
-            final UserEntity userEntity = convert(executionContext, user, true);
+            final UserEntity userEntity = convert(user, true);
             searchEngineService.index(executionContext, userEntity, false);
             return userEntity;
         } catch (AbstractManagementException ex) {
@@ -593,7 +653,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             // Do not send back the password
             user.setPassword(null);
 
-            return convert(executionContext, user, true);
+            return convert(user, true);
         } catch (AbstractManagementException ex) {
             throw ex;
         } catch (Exception ex) {
@@ -629,8 +689,8 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     }
 
     @Override
-    public PictureEntity getPicture(ExecutionContext executionContext, String id) {
-        UserEntity user = findById(executionContext, id);
+    public PictureEntity getPicture(String id) {
+        UserEntity user = findById(id);
 
         if (user.getPicture() != null) {
             String picture = user.getPicture();
@@ -675,11 +735,11 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         boolean autoRegistrationEnabled
     ) {
         try {
-            /*
-             TODO: getCurrentEnvironnemenet and call database to fetch the corresponding organization OR add parameters in methods
-              Because, this method is called by portal and console. And in portal, we don't have a "current organization" in path.
-             */
             String organizationId = executionContext.getOrganizationId();
+            if (executionContext.hasEnvironmentId() && !executionContext.hasOrganizationId()) {
+                EnvironmentEntity environmentEntity = environmentService.findById(executionContext.getEnvironmentId());
+                organizationId = environmentEntity.getOrganizationId();
+            }
 
             // First we check that organization exist
             this.organizationService.findById(organizationId);
@@ -735,7 +795,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 addDefaultMembership(executionContext, createdUser);
             }
 
-            final UserEntity userEntity = convert(executionContext, createdUser, true, metadata, true);
+            final UserEntity userEntity = convert(createdUser, true, metadata, true);
             searchEngineService.index(executionContext, userEntity, false);
             return userEntity;
         } catch (TechnicalException ex) {
@@ -789,7 +849,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
     @Override
     public UserEntity register(
-        ExecutionContext executionContext,
+        final ExecutionContext executionContext,
         final NewExternalUserEntity newExternalUserEntity,
         final String confirmationPageUrl
     ) {
@@ -800,7 +860,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         }
 
         checkUserRegistrationEnabled(executionContext);
-        boolean autoRegistrationEnabled = isAutoRegistrationEnabled(executionContext, currentContext);
+        boolean autoRegistrationEnabled = isAutoRegistrationEnabled(currentContext);
 
         return createAndSendEmail(
             executionContext,
@@ -812,17 +872,17 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         );
     }
 
-    private boolean isAutoRegistrationEnabled(ExecutionContext executionContext, ReferenceContext currentContext) {
+    private boolean isAutoRegistrationEnabled(ReferenceContext currentContext) {
+        // Organization type is used for the console
         if (currentContext.getReferenceType().equals(ReferenceContext.Type.ORGANIZATION)) {
             return parameterService.findAsBoolean(
-                executionContext,
                 Key.CONSOLE_USERCREATION_AUTOMATICVALIDATION_ENABLED,
                 currentContext.getReferenceId(),
                 ParameterReferenceType.ORGANIZATION
             );
         }
+        // Environment type is used for the portal
         return parameterService.findAsBoolean(
-            executionContext,
             Key.PORTAL_USERCREATION_AUTOMATICVALIDATION_ENABLED,
             currentContext.getReferenceId(),
             ParameterReferenceType.ENVIRONMENT
@@ -902,13 +962,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
         if (!isServiceUser) {
             if (IDP_SOURCE_GRAVITEE.equals(newExternalUserEntity.getSource())) {
-                final Map<String, Object> params = getTokenRegistrationParams(
-                    executionContext,
-                    userEntity,
-                    REGISTRATION_PATH,
-                    action,
-                    confirmationPageUrl
-                );
+                final Map<String, Object> params = getTokenRegistrationParams(userEntity, REGISTRATION_PATH, action, confirmationPageUrl);
                 emailService.sendAsyncEmailNotification(
                     executionContext,
                     new EmailNotificationBuilder()
@@ -940,8 +994,8 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
     @Override
     public UserEntity processRegistration(ExecutionContext executionContext, String userId, boolean accepted) {
-        UserEntity userToProcess = findById(executionContext, userId);
-        UserEntity processedUser = this.changeUserStatus(executionContext, userId, accepted ? UserStatus.ACTIVE : UserStatus.REJECTED);
+        UserEntity userToProcess = findById(userId);
+        UserEntity processedUser = this.changeUserStatus(userId, accepted ? UserStatus.ACTIVE : UserStatus.REJECTED);
         final Map<String, Object> params = new NotificationParamsBuilder().user(processedUser).build();
         emailService.sendAsyncEmailNotification(
             executionContext,
@@ -965,7 +1019,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     }
 
     @NotNull
-    private UserEntity changeUserStatus(ExecutionContext executionContext, String userId, UserStatus newStatus) {
+    private UserEntity changeUserStatus(String userId, UserStatus newStatus) {
         try {
             Optional<User> optionalUser = this.userRepository.findById(userId);
             if (optionalUser.isPresent()) {
@@ -980,7 +1034,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 if (updatedUser == null) {
                     throw new TechnicalManagementException("An error occurs while trying to update user");
                 }
-                return convert(executionContext, updatedUser, true);
+                return convert(updatedUser, true);
             }
             throw new UserNotFoundException(userId);
         } catch (TechnicalException ex) {
@@ -990,18 +1044,12 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     }
 
     @Override
-    public Map<String, Object> getTokenRegistrationParams(
-        ExecutionContext executionContext,
-        final UserEntity userEntity,
-        final String managementUri,
-        final ACTION action
-    ) {
-        return getTokenRegistrationParams(executionContext, userEntity, managementUri, action, null);
+    public Map<String, Object> getTokenRegistrationParams(final UserEntity userEntity, final String managementUri, final ACTION action) {
+        return getTokenRegistrationParams(userEntity, managementUri, action, null);
     }
 
     @Override
     public Map<String, Object> getTokenRegistrationParams(
-        ExecutionContext executionContext,
         final UserEntity userEntity,
         final String managementUri,
         final ACTION action,
@@ -1036,7 +1084,10 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             .withClaim(Claims.ACTION, action.name())
             .sign(algorithm);
 
-        String managementURL = parameterService.find(executionContext, Key.MANAGEMENT_URL, ParameterReferenceType.ORGANIZATION);
+        String managementURL = accessPointService.getConsoleUrl(userEntity.getOrganizationId());
+        if (!StringUtils.isEmpty(managementURL)) {
+            managementURL = parameterService.find(Key.MANAGEMENT_URL, userEntity.getOrganizationId(), ParameterReferenceType.ORGANIZATION);
+        }
         String userURL = "";
         if (!StringUtils.isEmpty(managementURL)) {
             if (managementURL.endsWith("/")) {
@@ -1166,7 +1217,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 }
             }
 
-            return convert(executionContext, updatedUser, true, updatedMetadata, true);
+            return convert(updatedUser, true, updatedMetadata, true);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to update {}", updateUserEntity, ex);
             throw new TechnicalManagementException("An error occurs while trying update " + updateUserEntity, ex);
@@ -1192,21 +1243,18 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         SearchResult results = searchEngineService.search(executionContext, userQuery);
 
         if (results.hasResults()) {
-            List<UserEntity> users = new ArrayList<>((findByIds(executionContext, results.getDocuments())));
+            List<UserEntity> users = new ArrayList<>((findByIds(results.getDocuments())));
 
-            populateUserFlags(executionContext, users);
+            populateUserFlags(executionContext.getOrganizationId(), users);
 
             return new Page<>(users, pageable.getPageNumber(), pageable.getPageSize(), results.getHits());
         }
         return new Page<>(emptyList(), 1, 0, 0);
     }
 
-    private void populateUserFlags(ExecutionContext executionContext, final List<UserEntity> users) {
-        RoleEntity apiPORole = roleService.findPrimaryOwnerRoleByOrganization(executionContext.getOrganizationId(), RoleScope.API);
-        RoleEntity applicationPORole = roleService.findPrimaryOwnerRoleByOrganization(
-            executionContext.getOrganizationId(),
-            RoleScope.APPLICATION
-        );
+    private void populateUserFlags(String organizationId, final List<UserEntity> users) {
+        RoleEntity apiPORole = roleService.findPrimaryOwnerRoleByOrganization(organizationId, RoleScope.API);
+        RoleEntity applicationPORole = roleService.findPrimaryOwnerRoleByOrganization(organizationId, RoleScope.APPLICATION);
 
         users.forEach(user -> {
             final boolean apiPO = !membershipService
@@ -1245,9 +1293,9 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
             Page<User> users = userRepository.search(newCriteria, convert(pageable));
 
-            List<UserEntity> entities = users.getContent().stream().map(u -> convert(executionContext, u, false)).collect(toList());
+            List<UserEntity> entities = users.getContent().stream().map(u -> convert(u, false)).collect(toList());
 
-            populateUserFlags(executionContext, entities);
+            populateUserFlags(executionContext.getOrganizationId(), entities);
 
             return new Page<>(entities, users.getPageNumber() + 1, (int) users.getPageElements(), users.getTotalElements());
         } catch (TechnicalException ex) {
@@ -1320,7 +1368,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
             userRepository.update(user);
 
-            final UserEntity userEntity = convert(executionContext, user, false);
+            final UserEntity userEntity = convert(user, false);
             searchEngineService.delete(executionContext, userEntity);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete user", ex);
@@ -1398,8 +1446,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             }
 
             final Map<String, Object> params = getTokenRegistrationParams(
-                executionContext,
-                convert(executionContext, user, false),
+                convert(user, false),
                 RESET_PASSWORD_PATH,
                 RESET_PASSWORD,
                 resetPageUrl
@@ -1443,23 +1490,17 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         );
     }
 
-    private UserEntity convertWithFlags(final ExecutionContext executionContext, User user) {
-        UserEntity userEntity = convert(executionContext, user, true, userMetadataService.findAllByUserId(user.getId()), true);
-        populateUserFlags(executionContext, List.of(userEntity));
+    private UserEntity convertWithFlags(User user) {
+        UserEntity userEntity = convert(user, true, userMetadataService.findAllByUserId(user.getId()), true);
+        populateUserFlags(userEntity.getOrganizationId(), List.of(userEntity));
         return userEntity;
     }
 
-    private UserEntity convert(ExecutionContext executionContext, User user, boolean loadRoles) {
-        return convert(executionContext, user, loadRoles, emptyList(), true);
+    private UserEntity convert(User user, boolean loadRoles) {
+        return convert(user, loadRoles, emptyList(), true);
     }
 
-    private UserEntity convert(
-        ExecutionContext executionContext,
-        User user,
-        boolean loadRoles,
-        List<UserMetadataEntity> customUserFields,
-        boolean nullifyPassword
-    ) {
+    private UserEntity convert(User user, boolean loadRoles, List<UserMetadataEntity> customUserFields, boolean nullifyPassword) {
         if (user == null) {
             return null;
         }
@@ -1470,7 +1511,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             Set<UserRoleEntity> roles = new HashSet<>();
             Set<RoleEntity> roleEntities = membershipService.getRoles(
                 MembershipReferenceType.ORGANIZATION,
-                executionContext.getOrganizationId(),
+                user.getOrganizationId(),
                 MembershipMemberType.USER,
                 user.getId()
             );
@@ -1478,7 +1519,8 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 roleEntities.forEach(roleEntity -> roles.add(convert(roleEntity)));
             }
 
-            this.environmentService.findByOrganization(executionContext.getOrganizationId())
+            List<EnvironmentEntity> environments = this.environmentService.findByOrganization(user.getOrganizationId());
+            environments
                 .stream()
                 .flatMap(env ->
                     membershipService
@@ -1491,20 +1533,19 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             userEntity.setRoles(roles);
 
             Map<String, Set<UserRoleEntity>> envRolesMap = new HashMap<>();
-            this.environmentService.findByOrganization(executionContext.getOrganizationId())
-                .forEach(env -> {
-                    Set<UserRoleEntity> envRoles = new HashSet<>();
-                    Set<RoleEntity> envRoleEntities = membershipService.getRoles(
-                        MembershipReferenceType.ENVIRONMENT,
-                        env.getId(),
-                        MembershipMemberType.USER,
-                        user.getId()
-                    );
-                    if (!envRoleEntities.isEmpty()) {
-                        envRoleEntities.forEach(roleEntity -> envRoles.add(convert(roleEntity)));
-                    }
-                    envRolesMap.put(env.getId(), envRoles);
-                });
+            environments.forEach(env -> {
+                Set<UserRoleEntity> envRoles = new HashSet<>();
+                Set<RoleEntity> envRoleEntities = membershipService.getRoles(
+                    MembershipReferenceType.ENVIRONMENT,
+                    env.getId(),
+                    MembershipMemberType.USER,
+                    user.getId()
+                );
+                if (!envRoleEntities.isEmpty()) {
+                    envRoleEntities.forEach(roleEntity -> envRoles.add(convert(roleEntity)));
+                }
+                envRolesMap.put(env.getId(), envRoles);
+            });
             userEntity.setEnvRoles(envRolesMap);
         }
 
@@ -2053,7 +2094,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         List<String> roleIds
     ) {
         // check if user exist
-        this.findById(executionContext, userId);
+        this.findById(userId);
         MemberEntity userMember = membershipService.getUserMember(executionContext, referenceType, referenceId, userId);
         if (userMember != null) {
             userMember

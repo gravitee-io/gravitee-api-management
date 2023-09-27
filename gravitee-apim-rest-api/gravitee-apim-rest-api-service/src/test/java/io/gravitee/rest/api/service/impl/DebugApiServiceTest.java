@@ -76,7 +76,7 @@ public class DebugApiServiceTest {
 
     @Before
     public void setup() {
-        debugApiService = new DebugApiServiceImpl(apiService, eventService, objectMapper, instanceService, new PlanConverter(objectMapper));
+        debugApiService = new DebugApiServiceImpl(apiService, eventService, instanceService, new PlanConverter(objectMapper));
 
         ApiEntity apiEntity = mock(ApiEntity.class);
         when(apiEntity.getReferenceId()).thenReturn(ENVIRONMENT_ID);
@@ -94,14 +94,7 @@ public class DebugApiServiceTest {
         ArgumentCaptor<Map<String, String>> propertiesCaptor = ArgumentCaptor.forClass(Map.class);
         DebugApi debugApi = debugApiService.convert(debugApiEntity, API_ID);
 
-        verify(eventService)
-            .createDebugApiEvent(
-                eq(GraviteeContext.getExecutionContext()),
-                any(),
-                eq(EventType.DEBUG_API),
-                eq(debugApi),
-                propertiesCaptor.capture()
-            );
+        verify(eventService).createDebugApiEvent(any(), eq(EventType.DEBUG_API), eq(debugApi), propertiesCaptor.capture());
         verify(apiService, times(1)).checkPolicyConfigurations(anyMap(), anyList(), anySet());
 
         assertThat(propertiesCaptor.getValue())
@@ -127,14 +120,7 @@ public class DebugApiServiceTest {
         debugApiService.debug(GraviteeContext.getExecutionContext(), API_ID, USER_ID, debugApiEntity);
 
         ArgumentCaptor<Map<String, String>> propertiesCaptor = ArgumentCaptor.forClass(Map.class);
-        verify(eventService)
-            .createDebugApiEvent(
-                eq(GraviteeContext.getExecutionContext()),
-                any(),
-                eq(EventType.DEBUG_API),
-                any(),
-                propertiesCaptor.capture()
-            );
+        verify(eventService).createDebugApiEvent(any(), eq(EventType.DEBUG_API), any(), propertiesCaptor.capture());
         verify(apiService, times(1)).checkPolicyConfigurations(anyMap(), anyList(), anySet());
 
         assertThat(propertiesCaptor.getValue()).contains(entry(Event.EventProperties.GATEWAY_ID.getValue(), "instance#young"));
@@ -201,14 +187,7 @@ public class DebugApiServiceTest {
             assertNotNull(e);
         }
         ArgumentCaptor<Map<String, String>> propertiesCaptor = ArgumentCaptor.forClass(Map.class);
-        verify(eventService, times(0))
-            .createDebugApiEvent(
-                eq(GraviteeContext.getExecutionContext()),
-                any(),
-                eq(EventType.DEBUG_API),
-                any(),
-                propertiesCaptor.capture()
-            );
+        verify(eventService, times(0)).createDebugApiEvent(any(), eq(EventType.DEBUG_API), any(), propertiesCaptor.capture());
         verify(apiService, times(1)).checkPolicyConfigurations(anyMap(), anyList(), anySet());
     }
 

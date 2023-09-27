@@ -85,7 +85,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         planWrongStatus.setValidation(PlanValidationType.MANUAL);
         planWrongStatus.setStatus(PlanStatus.STAGING);
 
-        when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API)).thenReturn(Set.of(plan1, plan2, planWrongStatus));
+        when(planSearchService.findByApi(API)).thenReturn(Set.of(plan1, plan2, planWrongStatus));
 
         when(planMapper.convert(any(GenericPlanEntity.class))).thenCallRealMethod();
     }

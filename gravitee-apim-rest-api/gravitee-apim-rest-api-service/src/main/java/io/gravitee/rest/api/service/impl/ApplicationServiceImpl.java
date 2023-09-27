@@ -323,7 +323,11 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         // Check that shared API Key mode is enabled
         if (
             newApplicationEntity.getApiKeyMode() == ApiKeyMode.SHARED &&
-            !parameterService.findAsBoolean(executionContext, Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED, ParameterReferenceType.ENVIRONMENT)
+            !parameterService.findAsBoolean(
+                Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED,
+                executionContext.getEnvironmentId(),
+                ParameterReferenceType.ENVIRONMENT
+            )
         ) {
             throw new InvalidApplicationApiKeyModeException(
                 "Can't create application with SHARED API Key mode cause environment setting is disabled"
@@ -337,8 +341,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         if (newApplicationEntity.getSettings().getApp() != null) {
             // If client registration is enabled, check that the simple type is allowed
             if (
-                isClientRegistrationEnabled(executionContext, executionContext.getEnvironmentId()) &&
-                !isApplicationTypeAllowed(executionContext, "simple", executionContext.getEnvironmentId())
+                isClientRegistrationEnabled(executionContext.getEnvironmentId()) &&
+                !isApplicationTypeAllowed("simple", executionContext.getEnvironmentId())
             ) {
                 throw new IllegalStateException("Application type 'simple' is not allowed");
             }
@@ -351,11 +355,11 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             }
         } else {
             // Check that client registration is enabled
-            checkClientRegistrationEnabled(executionContext, executionContext.getEnvironmentId());
+            checkClientRegistrationEnabled(executionContext.getEnvironmentId());
 
             String appType = newApplicationEntity.getSettings().getoAuthClient().getApplicationType();
             // Check that the application_type is allowed
-            if (!isApplicationTypeAllowed(executionContext, appType, executionContext.getEnvironmentId())) {
+            if (!isApplicationTypeAllowed(appType, executionContext.getEnvironmentId())) {
                 throw new IllegalStateException("Application type '" + appType + "' is not allowed");
             }
             checkClientSettings(newApplicationEntity.getSettings().getoAuthClient(), newApplicationEntity.getType());
@@ -430,7 +434,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             );
 
             // create the default mail notification
-            UserEntity userEntity = userService.findById(executionContext, userId);
+            UserEntity userEntity = userService.findById(userId);
             if (userEntity.getEmail() != null && !userEntity.getEmail().isEmpty()) {
                 GenericNotificationConfigEntity notificationConfigEntity = new GenericNotificationConfigEntity();
                 notificationConfigEntity.setName("Default Mail Notifications");
@@ -531,7 +535,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             }
 
             // Check that application API Key mode is valid
-            checkApiKeyModeUpdate(executionContext, updateApplicationEntity, applicationToUpdate);
+            checkApiKeyModeUpdate(updateApplicationEntity, applicationToUpdate);
 
             // Update application metadata
             Map<String, String> metadata = new HashMap<>();
@@ -558,7 +562,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 }
             } else {
                 // Check that client registration is enabled
-                checkClientRegistrationEnabled(executionContext, executionContext.getEnvironmentId());
+                checkClientRegistrationEnabled(executionContext.getEnvironmentId());
                 checkClientSettings(updateApplicationEntity.getSettings().getoAuthClient(), applicationToUpdate.getType().name());
 
                 // Update an OAuth client
@@ -653,7 +657,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
             if (!planIds.isEmpty()) {
                 Set<GenericPlanEntity> plans =
-                    this.planSearchService.findByIdIn(executionContext, planIds)
+                    this.planSearchService.findByIdIn(planIds)
                         .stream()
                         .filter(planEntity -> PlanMode.STANDARD.equals(planEntity.getPlanMode()))
                         .filter(planEntity -> {
@@ -685,7 +689,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             }
 
             // Check that client registration is enabled
-            checkClientRegistrationEnabled(executionContext, executionContext.getEnvironmentId());
+            checkClientRegistrationEnabled(executionContext.getEnvironmentId());
 
             ApplicationEntity applicationEntity = findById(executionContext, applicationId);
 
@@ -790,7 +794,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 }
             });
 
-            UserEntity userEntity = userService.findById(executionContext, userId);
+            UserEntity userEntity = userService.findById(userId);
 
             // Audit
             auditService.createApplicationAuditLog(
@@ -810,24 +814,19 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         }
     }
 
-    private void checkClientRegistrationEnabled(ExecutionContext executionContext, String environmentId) {
-        if (!isClientRegistrationEnabled(executionContext, environmentId)) {
+    private void checkClientRegistrationEnabled(String environmentId) {
+        if (!isClientRegistrationEnabled(environmentId)) {
             throw new IllegalStateException("The client registration is disabled");
         }
     }
 
-    private boolean isClientRegistrationEnabled(ExecutionContext executionContext, String environmentId) {
-        return parameterService.findAsBoolean(
-            executionContext,
-            Key.APPLICATION_REGISTRATION_ENABLED,
-            environmentId,
-            ParameterReferenceType.ENVIRONMENT
-        );
+    private boolean isClientRegistrationEnabled(String environmentId) {
+        return parameterService.findAsBoolean(Key.APPLICATION_REGISTRATION_ENABLED, environmentId, ParameterReferenceType.ENVIRONMENT);
     }
 
-    private boolean isApplicationTypeAllowed(ExecutionContext executionContext, String applicationType, String environmentId) {
+    private boolean isApplicationTypeAllowed(String applicationType, String environmentId) {
         Key key = Key.valueOf("APPLICATION_TYPE_" + applicationType.toUpperCase() + "_ENABLED");
-        return parameterService.findAsBoolean(executionContext, key, environmentId, ParameterReferenceType.ENVIRONMENT);
+        return parameterService.findAsBoolean(key, environmentId, ParameterReferenceType.ENVIRONMENT);
     }
 
     @Override
@@ -940,7 +939,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
             // We don't need user metadata, only global information
             userService
-                .findByIds(executionContext, memberships.stream().map(MembershipEntity::getMemberId).collect(toList()), false)
+                .findByIds(memberships.stream().map(MembershipEntity::getMemberId).collect(toList()), false)
                 .forEach(userEntity -> userIdToUserEntity.put(userEntity.getId(), userEntity));
         }
 
@@ -1281,11 +1280,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         }
     }
 
-    private void checkApiKeyModeUpdate(
-        ExecutionContext executionContext,
-        UpdateApplicationEntity updateApplicationEntity,
-        Application applicationToUpdate
-    ) {
+    private void checkApiKeyModeUpdate(UpdateApplicationEntity updateApplicationEntity, Application applicationToUpdate) {
         // Retro-compatibility : If input apiKey mode is not specified, get it from existing application
         if (updateApplicationEntity.getApiKeyMode() == null && applicationToUpdate.getApiKeyMode() != null) {
             updateApplicationEntity.setApiKeyMode(ApiKeyMode.valueOf(applicationToUpdate.getApiKeyMode().name()));
@@ -1304,7 +1299,11 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         } else if (
             updateApplicationEntity.getApiKeyMode() == ApiKeyMode.SHARED &&
             applicationToUpdate.getApiKeyMode() != io.gravitee.repository.management.model.ApiKeyMode.SHARED &&
-            !parameterService.findAsBoolean(executionContext, Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED, ParameterReferenceType.ENVIRONMENT)
+            !parameterService.findAsBoolean(
+                Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED,
+                applicationToUpdate.getEnvironmentId(),
+                ParameterReferenceType.ENVIRONMENT
+            )
         ) {
             throw new InvalidApplicationApiKeyModeException(
                 String.format(
@@ -1328,6 +1327,6 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             return convert(executionContext, application, null);
         }
 
-        return convert(executionContext, application, userService.findById(executionContext, primaryOwnerMemberEntity.getMemberId()));
+        return convert(executionContext, application, userService.findById(primaryOwnerMemberEntity.getMemberId()));
     }
 }

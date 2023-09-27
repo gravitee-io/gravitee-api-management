@@ -144,7 +144,7 @@ public class ApiMapperTest {
 
         doReturn(true)
             .when(parameterService)
-            .findAsBoolean(GraviteeContext.getExecutionContext(), Key.PORTAL_APIS_CATEGORY_ENABLED, ParameterReferenceType.ENVIRONMENT);
+            .findAsBoolean(Key.PORTAL_APIS_CATEGORY_ENABLED, GraviteeContext.getCurrentEnvironment(), ParameterReferenceType.ENVIRONMENT);
         Proxy proxy = new Proxy();
         proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/foo")));
         apiEntity.setProxy(proxy);
@@ -207,7 +207,7 @@ public class ApiMapperTest {
         apiEntity.setCategories(new HashSet<>(Arrays.asList(API_CATEGORY, API_CATEGORY_HIDDEN)));
         doReturn(false)
             .when(parameterService)
-            .findAsBoolean(GraviteeContext.getExecutionContext(), Key.PORTAL_APIS_CATEGORY_ENABLED, ParameterReferenceType.ENVIRONMENT);
+            .findAsBoolean(Key.PORTAL_APIS_CATEGORY_ENABLED, GraviteeContext.getCurrentEnvironment(), ParameterReferenceType.ENVIRONMENT);
 
         apiEntity.setLifecycleState(ApiLifecycleState.CREATED);
 

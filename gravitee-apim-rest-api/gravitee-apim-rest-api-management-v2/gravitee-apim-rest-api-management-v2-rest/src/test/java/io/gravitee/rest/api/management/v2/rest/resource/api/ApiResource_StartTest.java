@@ -168,8 +168,8 @@ public class ApiResource_StartTest extends ApiResourceTest {
 
         when(
             parameterService.findAsBoolean(
-                eq(GraviteeContext.getExecutionContext()),
                 eq(Key.API_REVIEW_ENABLED),
+                eq(GraviteeContext.getCurrentEnvironment()),
                 eq(ParameterReferenceType.ENVIRONMENT)
             )
         )
@@ -194,8 +194,8 @@ public class ApiResource_StartTest extends ApiResourceTest {
 
         when(
             parameterService.findAsBoolean(
-                eq(GraviteeContext.getExecutionContext()),
                 eq(Key.API_REVIEW_ENABLED),
+                eq(GraviteeContext.getCurrentEnvironment()),
                 eq(ParameterReferenceType.ENVIRONMENT)
             )
         )

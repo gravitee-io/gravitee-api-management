@@ -143,13 +143,13 @@ public class RatingServiceTest {
         when(rating.getRate()).thenReturn(RATE);
         when(rating.getUser()).thenReturn(USER);
 
-        when(userService.findById(GraviteeContext.getExecutionContext(), USER)).thenReturn(user);
+        when(userService.findById(USER)).thenReturn(user);
         when(user.getId()).thenReturn(USER);
 
         when(
             mockParameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
                 Key.PORTAL_RATING_ENABLED,
+                GraviteeContext.getCurrentEnvironment(),
                 ParameterReferenceType.ENVIRONMENT
             )
         )

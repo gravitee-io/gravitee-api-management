@@ -20,7 +20,7 @@ import static io.gravitee.rest.api.model.alert.AlertReferenceType.APPLICATION;
 import static io.gravitee.rest.api.service.common.ReferenceContext.Type.ENVIRONMENT;
 import static io.gravitee.rest.api.service.common.ReferenceContext.Type.ORGANIZATION;
 import static io.gravitee.rest.api.service.impl.AbstractService.convert;
-import static java.util.Comparator.*;
+import static java.util.Comparator.comparing;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 
@@ -49,19 +49,42 @@ import io.gravitee.repository.management.model.AlertEvent;
 import io.gravitee.repository.management.model.AlertTrigger;
 import io.gravitee.rest.api.model.AlertEventQuery;
 import io.gravitee.rest.api.model.EnvironmentEntity;
-import io.gravitee.rest.api.model.alert.*;
+import io.gravitee.rest.api.model.alert.AlertEventEntity;
+import io.gravitee.rest.api.model.alert.AlertReferenceType;
+import io.gravitee.rest.api.model.alert.AlertStatusEntity;
+import io.gravitee.rest.api.model.alert.AlertTriggerEntity;
+import io.gravitee.rest.api.model.alert.NewAlertTriggerEntity;
+import io.gravitee.rest.api.model.alert.UpdateAlertTriggerEntity;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.AlertService;
+import io.gravitee.rest.api.service.ApiService;
+import io.gravitee.rest.api.service.ApplicationService;
+import io.gravitee.rest.api.service.EnvironmentService;
+import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.ReferenceContext;
 import io.gravitee.rest.api.service.converter.AlertTriggerConverter;
-import io.gravitee.rest.api.service.exceptions.*;
+import io.gravitee.rest.api.service.exceptions.AlertNotFoundException;
+import io.gravitee.rest.api.service.exceptions.AlertTemplateInvalidException;
+import io.gravitee.rest.api.service.exceptions.AlertUnavailableException;
+import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
+import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
+import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.alert.EmailNotifierConfiguration;
 import java.io.IOException;
 import java.time.Duration;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -173,7 +196,9 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
     public AlertStatusEntity getStatus(final ExecutionContext executionContext) {
         AlertStatusEntity status = new AlertStatusEntity();
 
-        status.setEnabled(parameterService.findAsBoolean(executionContext, Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION));
+        status.setEnabled(
+            parameterService.findAsBoolean(Key.ALERT_ENABLED, executionContext.getOrganizationId(), ParameterReferenceType.ORGANIZATION)
+        );
         status.setPlugins(triggerProviderManager.findAll().size());
 
         return status;
@@ -185,7 +210,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
 
         try {
             // Get trigger
-            AlertTrigger alertTrigger = alertTriggerConverter.toAlertTrigger(executionContext, newAlertTrigger);
+            AlertTrigger alertTrigger = alertTriggerConverter.toAlertTrigger(executionContext.getEnvironmentId(), newAlertTrigger);
 
             alertTrigger.setCreatedAt(new Date());
             alertTrigger.setUpdatedAt(alertTrigger.getCreatedAt());
@@ -231,7 +256,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
                 throw new AlertNotFoundException(updateAlertTrigger.getId());
             }
 
-            AlertTrigger trigger = alertTriggerConverter.toAlertTrigger(executionContext, updateAlertTrigger);
+            AlertTrigger trigger = alertTriggerConverter.toAlertTrigger(executionContext.getEnvironmentId(), updateAlertTrigger);
             trigger.setReferenceId(alertToUpdate.getReferenceId());
             trigger.setReferenceType(alertToUpdate.getReferenceType());
             trigger.setCreatedAt(alertToUpdate.getCreatedAt());
@@ -510,15 +535,25 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
         EmailNotifierConfiguration configuration = new EmailNotifierConfiguration();
 
         if (host == null) {
-            configuration.setHost(parameterService.find(executionContext, Key.EMAIL_HOST, ParameterReferenceType.ORGANIZATION));
-            final String emailPort = parameterService.find(executionContext, Key.EMAIL_PORT, ParameterReferenceType.ORGANIZATION);
+            configuration.setHost(
+                parameterService.find(Key.EMAIL_HOST, executionContext.getOrganizationId(), ParameterReferenceType.ORGANIZATION)
+            );
+            final String emailPort = parameterService.find(
+                Key.EMAIL_PORT,
+                executionContext.getOrganizationId(),
+                ParameterReferenceType.ORGANIZATION
+            );
             if (emailPort != null) {
                 configuration.setPort(Integer.parseInt(emailPort));
             }
-            configuration.setUsername(parameterService.find(executionContext, Key.EMAIL_USERNAME, ParameterReferenceType.ORGANIZATION));
-            configuration.setPassword(parameterService.find(executionContext, Key.EMAIL_PASSWORD, ParameterReferenceType.ORGANIZATION));
+            configuration.setUsername(
+                parameterService.find(Key.EMAIL_USERNAME, executionContext.getOrganizationId(), ParameterReferenceType.ORGANIZATION)
+            );
+            configuration.setPassword(
+                parameterService.find(Key.EMAIL_PASSWORD, executionContext.getOrganizationId(), ParameterReferenceType.ORGANIZATION)
+            );
             configuration.setStartTLSEnabled(
-                parameterService.findAsBoolean(executionContext, Key.EMAIL_HOST, ParameterReferenceType.ORGANIZATION)
+                parameterService.findAsBoolean(Key.EMAIL_HOST, executionContext.getOrganizationId(), ParameterReferenceType.ORGANIZATION)
             );
         } else {
             configuration.setHost(host);
@@ -549,7 +584,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
 
     private void checkAlert(final ExecutionContext executionContext) {
         if (
-            !parameterService.findAsBoolean(executionContext, Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION) ||
+            !parameterService.findAsBoolean(Key.ALERT_ENABLED, executionContext.getOrganizationId(), ParameterReferenceType.ORGANIZATION) ||
             triggerProviderManager.findAll().isEmpty()
         ) {
             throw new AlertUnavailableException();

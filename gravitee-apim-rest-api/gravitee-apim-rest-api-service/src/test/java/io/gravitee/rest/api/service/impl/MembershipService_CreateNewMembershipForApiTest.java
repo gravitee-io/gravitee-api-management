@@ -208,7 +208,7 @@ public class MembershipService_CreateNewMembershipForApiTest {
     private void mockExistingUser(String existingUserId) {
         UserEntity userEntity = new UserEntity();
         userEntity.setId(existingUserId);
-        when(userService.findById(GraviteeContext.getExecutionContext(), existingUserId)).thenReturn(userEntity);
+        when(userService.findById(existingUserId)).thenReturn(userEntity);
     }
 
     private void mockRole() {

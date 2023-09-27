@@ -57,20 +57,17 @@ public class DebugApiServiceImpl implements DebugApiService {
     private static final Logger LOGGER = LoggerFactory.getLogger(DebugApiServiceImpl.class);
     private final ApiService apiService;
     private final EventService eventService;
-    private final ObjectMapper objectMapper;
     private final InstanceService instanceService;
     private final PlanConverter planConverter;
 
     public DebugApiServiceImpl(
         ApiService apiService,
         EventService eventService,
-        ObjectMapper objectMapper,
         InstanceService instanceService,
         PlanConverter planConverter
     ) {
         this.apiService = apiService;
         this.eventService = eventService;
-        this.objectMapper = objectMapper;
         this.instanceService = instanceService;
         this.planConverter = planConverter;
     }
@@ -98,13 +95,7 @@ public class DebugApiServiceImpl implements DebugApiService {
         validatePlan(debugApi);
         validateDefinitionVersion(apiId, debugApi);
 
-        return eventService.createDebugApiEvent(
-            executionContext,
-            singleton(executionContext.getEnvironmentId()),
-            EventType.DEBUG_API,
-            debugApi,
-            properties
-        );
+        return eventService.createDebugApiEvent(singleton(executionContext.getEnvironmentId()), EventType.DEBUG_API, debugApi, properties);
     }
 
     private void validateDefinitionVersion(String apiId, DebugApi debugApi) {

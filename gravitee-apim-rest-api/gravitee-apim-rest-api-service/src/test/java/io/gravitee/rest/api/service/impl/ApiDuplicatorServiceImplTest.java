@@ -111,7 +111,7 @@ public class ApiDuplicatorServiceImplTest {
         userEntity.setSource("user-source");
         userEntity.setSourceId("user-source-id");
 
-        when(userService.findById(GraviteeContext.getExecutionContext(), "user-id")).thenReturn(userEntity);
+        when(userService.findById("user-id")).thenReturn(userEntity);
 
         final Set<ApiDuplicatorServiceImpl.MemberToImport> apiCurrentMembers = apiDuplicatorService.getAPICurrentMembers(
             GraviteeContext.getExecutionContext(),
@@ -273,10 +273,10 @@ public class ApiDuplicatorServiceImplTest {
         ImportApiJsonNode emptyPlansNode = loadTestNode(IMPORT_FILES_FOLDER + "import-api.plans.empty.json");
         PlanEntity planEntity = new PlanEntity();
         planEntity.setId("existing-plan-id");
-        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(singleton(planEntity));
+        when(planService.findByApi(API_ID)).thenReturn(singleton(planEntity));
         apiDuplicatorService.createOrUpdatePlans(GraviteeContext.getExecutionContext(), apiEntity, emptyPlansNode);
 
-        verify(planService, times(1)).findByApi(GraviteeContext.getExecutionContext(), API_ID);
+        verify(planService, times(1)).findByApi(API_ID);
         verify(planService, times(1)).delete(GraviteeContext.getExecutionContext(), "existing-plan-id");
         verify(planService, never()).createOrUpdatePlan(any(), any());
     }
@@ -286,7 +286,7 @@ public class ApiDuplicatorServiceImplTest {
         ImportApiJsonNode plansNode = loadTestNode(IMPORT_FILES_FOLDER + "import-api.plans.default.json");
         apiDuplicatorService.createOrUpdatePlans(GraviteeContext.getExecutionContext(), apiEntity, plansNode);
 
-        verify(planService, times(1)).findByApi(GraviteeContext.getExecutionContext(), API_ID);
+        verify(planService, times(1)).findByApi(API_ID);
         verify(planService, never()).delete(any(), any());
         verify(planService, times(2)).createOrUpdatePlan(eq(GraviteeContext.getExecutionContext()), any(PlanEntity.class));
     }

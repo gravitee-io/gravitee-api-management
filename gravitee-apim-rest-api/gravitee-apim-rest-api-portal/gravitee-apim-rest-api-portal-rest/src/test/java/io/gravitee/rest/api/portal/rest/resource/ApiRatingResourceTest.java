@@ -116,7 +116,7 @@ public class ApiRatingResourceTest extends AbstractResourceTest {
         rating.setId(RATING);
         rating.setValue(2);
 
-        doReturn(rating).when(ratingMapper).convert(eq(GraviteeContext.getExecutionContext()), any(), any());
+        doReturn(rating).when(ratingMapper).convert(any(), any());
         final Response response = target(API).path("ratings").path(RATING).request().put(Entity.json(ratingInput));
         Rating updatedRatingResponse = response.readEntity(Rating.class);
         assertNotNull(updatedRatingResponse);

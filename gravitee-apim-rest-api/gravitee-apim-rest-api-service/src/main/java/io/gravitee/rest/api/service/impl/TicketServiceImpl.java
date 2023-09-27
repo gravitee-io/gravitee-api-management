@@ -108,11 +108,11 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
     @Inject
     private TicketRepository ticketRepository;
 
-    private boolean isEnabled(ExecutionContext executionContext, String referenceId, ParameterReferenceType referenceType) {
+    private boolean isEnabled(String referenceId, ParameterReferenceType referenceType) {
         if (referenceType == ParameterReferenceType.ENVIRONMENT) {
-            return parameterService.findAsBoolean(executionContext, Key.PORTAL_SUPPORT_ENABLED, referenceId, referenceType);
+            return parameterService.findAsBoolean(Key.PORTAL_SUPPORT_ENABLED, referenceId, referenceType);
         }
-        return parameterService.findAsBoolean(executionContext, Key.CONSOLE_SUPPORT_ENABLED, referenceId, referenceType);
+        return parameterService.findAsBoolean(Key.CONSOLE_SUPPORT_ENABLED, referenceId, referenceType);
     }
 
     @Override
@@ -124,14 +124,14 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
         final ParameterReferenceType referenceType
     ) {
         try {
-            if (!isEnabled(executionContext, referenceId, referenceType)) {
+            if (!isEnabled(referenceId, referenceType)) {
                 throw new SupportUnavailableException();
             }
             LOGGER.info("Creating a support ticket: {}", ticketEntity);
 
             final Map<String, Object> parameters = new HashMap<>();
 
-            final UserEntity user = userService.findById(executionContext, userId);
+            final UserEntity user = userService.findById(userId);
             if (user.getEmail() == null) {
                 throw new EmailRequiredException(userId);
             }

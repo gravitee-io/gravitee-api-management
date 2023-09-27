@@ -243,7 +243,7 @@ public class ApiMapperTest {
         newApiEntity.setFlowExecution(new FlowExecution());
         newApiEntity.setFlows(List.of(new Flow(), new Flow()));
 
-        Api api = apiMapper.toRepository(GraviteeContext.getExecutionContext(), newApiEntity);
+        Api api = apiMapper.toRepository(GraviteeContext.getDefaultEnvironment(), newApiEntity);
 
         assertThat(api.getId()).isNotNull();
         assertThat(api.getType()).isEqualTo(ApiType.MESSAGE);
@@ -311,7 +311,7 @@ public class ApiMapperTest {
         when(categoryService.findAll(GraviteeContext.getCurrentEnvironment()))
             .thenReturn(List.of(existingCategoryByIdEntity, existingCategoryByKeyEntity));
 
-        Api api = apiMapper.toRepository(GraviteeContext.getExecutionContext(), updateApiEntity);
+        Api api = apiMapper.toRepository(GraviteeContext.getDefaultEnvironment(), updateApiEntity);
 
         assertThat(api.getId()).isEqualTo("id");
         assertThat(api.getEnvironmentId()).isEqualTo("DEFAULT");
@@ -389,7 +389,7 @@ public class ApiMapperTest {
         when(categoryService.findAll(GraviteeContext.getCurrentEnvironment()))
             .thenReturn(List.of(existingCategoryByIdEntity, existingCategoryByKeyEntity));
 
-        Api api = apiMapper.toRepository(GraviteeContext.getExecutionContext(), apiEntity);
+        Api api = apiMapper.toRepository(GraviteeContext.getDefaultEnvironment(), apiEntity);
 
         assertThat(api.getId()).isEqualTo("id");
         assertThat(api.getEnvironmentId()).isEqualTo("DEFAULT");

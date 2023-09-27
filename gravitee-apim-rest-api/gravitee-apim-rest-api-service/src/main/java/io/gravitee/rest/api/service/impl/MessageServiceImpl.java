@@ -159,7 +159,7 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
     private int send(ExecutionContext executionContext, Api api, MessageEntity message, Set<String> recipientsId) {
         switch (message.getChannel()) {
             case MAIL:
-                Set<String> mails = getRecipientsEmails(executionContext, recipientsId);
+                Set<String> mails = getRecipientsEmails(recipientsId);
                 if (!mails.isEmpty()) {
                     emailService.sendAsyncEmailNotification(
                         executionContext,
@@ -340,18 +340,17 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
             .collect(Collectors.toSet());
     }
 
-    private Set<String> getRecipientsEmails(ExecutionContext executionContext, Set<String> recipientsId) {
+    private Set<String> getRecipientsEmails(Set<String> recipientsId) {
         if (recipientsId.isEmpty()) {
             return Collections.emptySet();
         }
 
-        Set<String> emails = userService
-            .findByIds(executionContext, new ArrayList<>(recipientsId))
+        return userService
+            .findByIds(new ArrayList<>(recipientsId))
             .stream()
             .filter(userEntity -> !StringUtils.isEmpty(userEntity.getEmail()))
             .map(UserEntity::getEmail)
             .collect(Collectors.toSet());
-        return emails;
     }
 
     private void assertMessageNotEmpty(MessageEntity messageEntity) {

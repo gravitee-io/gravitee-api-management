@@ -102,7 +102,7 @@ public class PortalApisResource extends AbstractResource {
                 apiQuery.setLifecycleStates(singletonList(PUBLISHED));
                 if (isAuthenticated()) {
                     apis = apiService.findByUser(executionContext, getAuthenticatedUser(), apiQuery, false);
-                } else if (configService.portalLoginForced(executionContext)) {
+                } else if (configService.portalLoginForced(executionContext.getEnvironmentId())) {
                     // if portal requires login, this endpoint should hide the APIS even PUBLIC ones
                     return Response.ok().entity(emptyList()).build();
                 } else {

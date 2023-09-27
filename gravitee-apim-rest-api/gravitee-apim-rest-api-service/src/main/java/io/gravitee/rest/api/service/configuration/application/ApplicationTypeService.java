@@ -24,7 +24,7 @@ import io.gravitee.rest.api.model.configuration.application.ApplicationTypesEnti
 import io.gravitee.rest.api.service.common.ExecutionContext;
 
 public interface ApplicationTypeService {
-    ApplicationTypesEntity getEnabledApplicationTypes(ExecutionContext executionContext);
+    ApplicationTypesEntity getEnabledApplicationTypes(String environmentId);
 
     ApplicationTypeEntity getApplicationType(String typeId);
 }

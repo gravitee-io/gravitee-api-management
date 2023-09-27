@@ -125,8 +125,8 @@ public class ApiSubscriptionsResource_CreateTest extends ApiSubscriptionsResourc
 
         when(
             parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
                 Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED,
+                GraviteeContext.getCurrentEnvironment(),
                 ParameterReferenceType.ENVIRONMENT
             )
         )
@@ -160,8 +160,8 @@ public class ApiSubscriptionsResource_CreateTest extends ApiSubscriptionsResourc
 
         when(
             parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
                 Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED,
+                GraviteeContext.getCurrentEnvironment(),
                 ParameterReferenceType.ENVIRONMENT
             )
         )
@@ -196,8 +196,8 @@ public class ApiSubscriptionsResource_CreateTest extends ApiSubscriptionsResourc
 
         when(
             parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
                 Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED,
+                GraviteeContext.getCurrentEnvironment(),
                 ParameterReferenceType.ENVIRONMENT
             )
         )

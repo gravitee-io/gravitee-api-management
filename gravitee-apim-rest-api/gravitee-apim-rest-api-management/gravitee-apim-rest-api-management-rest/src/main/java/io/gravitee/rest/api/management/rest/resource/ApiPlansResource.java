@@ -109,7 +109,7 @@ public class ApiPlansResource extends AbstractResource {
         ApiEntity apiEntity = apiService.findById(executionContext, api);
 
         return planService
-            .findByApi(executionContext, api)
+            .findByApi(api)
             .stream()
             .filter(plan ->
                 wishedStatus.contains(plan.getStatus()) &&
@@ -172,7 +172,7 @@ public class ApiPlansResource extends AbstractResource {
         updatePlanEntity.setId(plan);
 
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        PlanEntity planEntity = planService.findById(executionContext, plan);
+        PlanEntity planEntity = planService.findById(plan);
         if (!planEntity.getApi().contains(api)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("'plan' parameter does not correspond to the current API").build();
         }
@@ -197,7 +197,7 @@ public class ApiPlansResource extends AbstractResource {
             Visibility.PUBLIC.equals(apiService.findById(executionContext, api).getVisibility()) ||
             hasPermission(GraviteeContext.getExecutionContext(), API_PLAN, api, READ)
         ) {
-            PlanEntity planEntity = planService.findById(executionContext, plan);
+            PlanEntity planEntity = planService.findById(plan);
             if (!planEntity.getApi().equals(api)) {
                 return Response
                     .status(Response.Status.BAD_REQUEST)
@@ -219,7 +219,7 @@ public class ApiPlansResource extends AbstractResource {
     @Permissions({ @Permission(value = API_PLAN, acls = DELETE) })
     public Response deleteApiPlan(@PathParam("plan") String plan) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        PlanEntity planEntity = planService.findById(executionContext, plan);
+        PlanEntity planEntity = planService.findById(plan);
         if (!planEntity.getApi().equals(api)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("'plan' parameter does not correspond to the current API").build();
         }
@@ -242,7 +242,7 @@ public class ApiPlansResource extends AbstractResource {
     @Permissions({ @Permission(value = API_PLAN, acls = UPDATE) })
     public Response closeApiPlan(@PathParam("plan") String plan) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        PlanEntity planEntity = planService.findById(executionContext, plan);
+        PlanEntity planEntity = planService.findById(plan);
         if (!planEntity.getApi().equals(api)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("'plan' parameter does not correspond to the current API").build();
         }
@@ -265,7 +265,7 @@ public class ApiPlansResource extends AbstractResource {
     @Permissions({ @Permission(value = API_PLAN, acls = UPDATE) })
     public Response publishApiPlan(@PathParam("plan") String plan) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        PlanEntity planEntity = planService.findById(executionContext, plan);
+        PlanEntity planEntity = planService.findById(plan);
         if (!planEntity.getApi().equals(api)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("'plan' parameter does not correspond to the current API").build();
         }
@@ -306,7 +306,7 @@ public class ApiPlansResource extends AbstractResource {
     @Permissions({ @Permission(value = API_PLAN, acls = UPDATE) })
     public Response deprecateApiPlan(@PathParam("plan") String plan) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        PlanEntity planEntity = planService.findById(executionContext, plan);
+        PlanEntity planEntity = planService.findById(plan);
         if (!planEntity.getApi().equals(api)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("'plan' parameter does not correspond to the current API").build();
         }

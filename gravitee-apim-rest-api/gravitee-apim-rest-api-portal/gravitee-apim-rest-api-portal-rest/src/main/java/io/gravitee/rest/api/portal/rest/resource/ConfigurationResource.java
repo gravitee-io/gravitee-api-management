@@ -82,8 +82,8 @@ public class ConfigurationResource extends AbstractResource {
         return Response
             .ok(
                 configMapper.convert(
-                    configService.getPortalSettings(GraviteeContext.getExecutionContext()),
-                    configService.getConsoleSettings(GraviteeContext.getExecutionContext())
+                    configService.getPortalSettings(GraviteeContext.getCurrentEnvironment()),
+                    configService.getConsoleSettings(GraviteeContext.getCurrentOrganization())
                 )
             )
             .build();
@@ -228,7 +228,7 @@ public class ConfigurationResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getEnabledApplicationTypes() {
         ApplicationTypesEntity enabledApplicationTypes = applicationTypeService.getEnabledApplicationTypes(
-            GraviteeContext.getExecutionContext()
+            GraviteeContext.getCurrentEnvironment()
         );
         return Response.ok(convert(enabledApplicationTypes)).build();
     }

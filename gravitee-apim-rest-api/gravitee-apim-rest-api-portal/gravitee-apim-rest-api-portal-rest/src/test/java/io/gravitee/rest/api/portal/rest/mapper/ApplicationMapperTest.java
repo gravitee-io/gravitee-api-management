@@ -127,7 +127,7 @@ public class ApplicationMapperTest {
         when(userEntity.getEmail()).thenReturn(APPLICATION_USER_EMAIL);
         when(userEntity.getId()).thenReturn(APPLICATION_USER_ID);
 
-        when(userService.findById(GraviteeContext.getExecutionContext(), APPLICATION_USER_ID)).thenReturn(userEntity);
+        when(userService.findById(APPLICATION_USER_ID)).thenReturn(userEntity);
         when(userMapper.convert(userEntity)).thenCallRealMethod();
         when(userMapper.computeUserLinks(anyString(), any())).thenCallRealMethod();
 

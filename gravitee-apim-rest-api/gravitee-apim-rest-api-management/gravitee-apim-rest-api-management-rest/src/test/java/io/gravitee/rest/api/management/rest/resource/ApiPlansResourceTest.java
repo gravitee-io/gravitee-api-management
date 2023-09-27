@@ -92,7 +92,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         PlanEntity closedPlan = new PlanEntity();
         closedPlan.setId("closed-plan-id");
         when(apiService.findById(GraviteeContext.getExecutionContext(), API)).thenReturn(api);
-        when(planService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(existingPlan);
+        when(planService.findById(PLAN)).thenReturn(existingPlan);
         when(planService.close(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(closedPlan);
 
         final Response response = envTarget().path(API).path("plans").path(PLAN).path("_close").request().post(Entity.json(""));
@@ -111,7 +111,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         existingPlan.setApi(API);
 
         when(apiService.findById(GraviteeContext.getExecutionContext(), API)).thenReturn(api);
-        when(planService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(existingPlan);
+        when(planService.findById(PLAN)).thenReturn(existingPlan);
 
         final Response response = envTarget().path(API).path("plans").path(PLAN).request().delete();
 

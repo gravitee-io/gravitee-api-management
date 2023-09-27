@@ -69,7 +69,7 @@ public class VirtualHostServiceTest {
         sanitizedPath.setHost("valid.host.gravitee.io");
         sanitizedPath.setPath("/validVhostPath/");
 
-        when(pathValidationService.validateAndSanitizePaths(eq(GraviteeContext.getExecutionContext()), isNull(), anyList()))
+        when(pathValidationService.validateAndSanitizePaths(eq(GraviteeContext.getCurrentEnvironment()), isNull(), anyList()))
             .thenReturn(List.of(sanitizedPath));
 
         List<VirtualHost> virtualHosts = virtualHostService.sanitizeAndValidate(

@@ -30,8 +30,6 @@ import org.junit.Test;
  */
 public class PortalPagesResourceAnonymousTest extends AbstractResourceTest {
 
-    private static final String PAGE_NAME = "p";
-
     @Override
     protected String contextPath() {
         return "portal/pages/";
@@ -48,11 +46,7 @@ public class PortalPagesResourceAnonymousTest extends AbstractResourceTest {
         page.setPublished(true);
         page.setVisibility(Visibility.PUBLIC);
         doReturn(page).when(pageService).findById(any(), any());
-        doReturn(false).when(configService).portalLoginForced(GraviteeContext.getExecutionContext());
-        //        final Response response = envTarget(PAGE_NAME).request().get();
-        //
-        //        assertNotNull("Response should be present", response);
-        //        assertEquals("Response should be 200", OK.getStatusCode(), response.getStatus());
+        doReturn(false).when(configService).portalLoginForced(GraviteeContext.getCurrentEnvironment());
     }
 
     @Test
@@ -61,10 +55,6 @@ public class PortalPagesResourceAnonymousTest extends AbstractResourceTest {
         page.setPublished(true);
         page.setVisibility(Visibility.PUBLIC);
         doReturn(page).when(pageService).findById(any(), any());
-        doReturn(true).when(configService).portalLoginForced(GraviteeContext.getExecutionContext());
-        //        final Response response = envTarget(PAGE_NAME).request().get();
-        //
-        //        assertNotNull("Response should be present", response);
-        //        assertEquals("Response should be 401", UNAUTHORIZED.getStatusCode(), response.getStatus());
+        doReturn(true).when(configService).portalLoginForced(GraviteeContext.getCurrentEnvironment());
     }
 }

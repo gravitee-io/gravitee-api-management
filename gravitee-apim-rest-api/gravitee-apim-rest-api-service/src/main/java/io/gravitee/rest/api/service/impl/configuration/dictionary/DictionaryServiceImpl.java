@@ -90,7 +90,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
     }
 
     @Override
-    public DictionaryEntity deploy(ExecutionContext executionContext, String id) {
+    public DictionaryEntity deploy(String id) {
         try {
             LOGGER.debug("Deploy dictionary {}", id);
 
@@ -104,8 +104,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
             // And create event
             eventService.createDictionaryEvent(
-                executionContext,
-                Collections.singleton(executionContext.getEnvironmentId()),
+                Collections.singleton(dictionary.getEnvironmentId()),
                 EventType.PUBLISH_DICTIONARY,
                 dictionary
             );
@@ -117,7 +116,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
     }
 
     @Override
-    public DictionaryEntity undeploy(ExecutionContext executionContext, String id) {
+    public DictionaryEntity undeploy(String id) {
         try {
             LOGGER.debug("Undeploy dictionary {}", id);
 
@@ -131,8 +130,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
             // And create event
             eventService.createDictionaryEvent(
-                executionContext,
-                Collections.singleton(executionContext.getEnvironmentId()),
+                Collections.singleton(dictionary.getEnvironmentId()),
                 EventType.UNPUBLISH_DICTIONARY,
                 dictionary
             );
@@ -144,7 +142,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
     }
 
     @Override
-    public DictionaryEntity start(ExecutionContext executionContext, String id) {
+    public DictionaryEntity start(String id) {
         try {
             LOGGER.debug("Start dictionary {}", id);
 
@@ -157,16 +155,11 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             Dictionary updatedDictionary = dictionaryRepository.update(dictionary);
 
             // And create event
-            eventService.createDynamicDictionaryEvent(
-                executionContext,
-                Collections.singleton(executionContext.getEnvironmentId()),
-                EventType.START_DICTIONARY,
-                id
-            );
+            eventService.createDynamicDictionaryEvent(Collections.singleton(dictionary.getEnvironmentId()), EventType.START_DICTIONARY, id);
 
             // Audit
             createAuditLog(
-                executionContext,
+                dictionary.getEnvironmentId(),
                 Dictionary.AuditEvent.DICTIONARY_UPDATED,
                 updatedDictionary.getUpdatedAt(),
                 dictionary,
@@ -181,7 +174,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
     }
 
     @Override
-    public DictionaryEntity stop(ExecutionContext executionContext, String id) {
+    public DictionaryEntity stop(String id) {
         try {
             LOGGER.debug("Stop dictionary {}", id);
 
@@ -194,16 +187,11 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             Dictionary updatedDictionary = dictionaryRepository.update(dictionary);
 
             // And create event
-            eventService.createDynamicDictionaryEvent(
-                executionContext,
-                Collections.singleton(executionContext.getEnvironmentId()),
-                EventType.STOP_DICTIONARY,
-                id
-            );
+            eventService.createDynamicDictionaryEvent(Collections.singleton(dictionary.getEnvironmentId()), EventType.STOP_DICTIONARY, id);
 
             // Audit
             createAuditLog(
-                executionContext,
+                dictionary.getEnvironmentId(),
                 Dictionary.AuditEvent.DICTIONARY_UPDATED,
                 updatedDictionary.getUpdatedAt(),
                 dictionary,
@@ -238,7 +226,13 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
             Dictionary createdDictionary = dictionaryRepository.create(dictionary);
 
-            createAuditLog(executionContext, Dictionary.AuditEvent.DICTIONARY_CREATED, dictionary.getCreatedAt(), null, dictionary);
+            createAuditLog(
+                dictionary.getEnvironmentId(),
+                Dictionary.AuditEvent.DICTIONARY_CREATED,
+                dictionary.getCreatedAt(),
+                null,
+                dictionary
+            );
             return convert(createdDictionary);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to create dictionary {}", newDictionaryEntity, ex);
@@ -247,7 +241,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
     }
 
     @Override
-    public DictionaryEntity update(ExecutionContext executionContext, String id, UpdateDictionaryEntity updateDictionaryEntity) {
+    public DictionaryEntity update(String id, UpdateDictionaryEntity updateDictionaryEntity) {
         try {
             LOGGER.debug("Update dictionary {}", updateDictionaryEntity);
 
@@ -269,8 +263,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             // Force a new start event if the dictionary is already started when updating.
             if (updatedDictionary.getType() == DictionaryType.DYNAMIC && updatedDictionary.getState() == LifecycleState.STARTED) {
                 eventService.createDynamicDictionaryEvent(
-                    executionContext,
-                    Collections.singleton(executionContext.getEnvironmentId()),
+                    Collections.singleton(dictionary.getEnvironmentId()),
                     EventType.START_DICTIONARY,
                     id
                 );
@@ -278,7 +271,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
             // Audit
             createAuditLog(
-                executionContext,
+                dictionary.getEnvironmentId(),
                 Dictionary.AuditEvent.DICTIONARY_UPDATED,
                 updatedDictionary.getUpdatedAt(),
                 optDictionary.get(),
@@ -293,7 +286,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
     }
 
     @Override
-    public DictionaryEntity updateProperties(ExecutionContext executionContext, final String id, final Map<String, String> properties) {
+    public DictionaryEntity updateProperties(final String id, final Map<String, String> properties) {
         try {
             LOGGER.debug("Update dictionary properties {}", id);
 
@@ -309,14 +302,13 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
             // Create publish event
             eventService.createDictionaryEvent(
-                executionContext,
-                Collections.singleton(executionContext.getEnvironmentId()),
+                Collections.singleton(dictionary.getEnvironmentId()),
                 EventType.PUBLISH_DICTIONARY,
                 dictionary
             );
             // Audit
             createAuditLog(
-                executionContext,
+                dictionary.getEnvironmentId(),
                 Dictionary.AuditEvent.DICTIONARY_UPDATED,
                 updatedDictionary.getUpdatedAt(),
                 optDictionary.get(),
@@ -341,22 +333,21 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
     }
 
     @Override
-    public void delete(ExecutionContext executionContext, String id) {
+    public void delete(String id) {
         try {
             LOGGER.debug("Delete dictionary: {}", id);
 
             Dictionary dictionary = dictionaryRepository.findById(id).orElseThrow(() -> new DictionaryNotFoundException(id));
 
             if (dictionary.getType() == DictionaryType.DYNAMIC) {
-                this.stop(executionContext, id);
+                this.stop(id);
             }
 
             dictionaryRepository.delete(id);
 
             // And create event
             eventService.createDictionaryEvent(
-                executionContext,
-                Collections.singleton(executionContext.getEnvironmentId()),
+                Collections.singleton(dictionary.getEnvironmentId()),
                 EventType.UNPUBLISH_DICTIONARY,
                 dictionary
             );
@@ -366,17 +357,11 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         }
     }
 
-    private void createAuditLog(
-        ExecutionContext executionContext,
-        Audit.AuditEvent event,
-        Date createdAt,
-        Dictionary oldValue,
-        Dictionary newValue
-    ) {
+    private void createAuditLog(String environmentId, Audit.AuditEvent event, Date createdAt, Dictionary oldValue, Dictionary newValue) {
         String dictionaryName = oldValue != null ? oldValue.getName() : newValue.getName();
 
         auditService.createAuditLog(
-            executionContext,
+            new ExecutionContext(null, environmentId),
             Collections.singletonMap(DICTIONARY, dictionaryName),
             event,
             createdAt,

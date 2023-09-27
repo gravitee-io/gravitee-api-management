@@ -191,7 +191,7 @@ public class ApplicationMembersResource extends AbstractResource {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         applicationService.findById(executionContext, application);
         try {
-            userService.findById(executionContext, userId);
+            userService.findById(userId);
         } catch (UserNotFoundException unfe) {
             return Response.status(Response.Status.BAD_REQUEST).entity(unfe.getMessage()).build();
         }

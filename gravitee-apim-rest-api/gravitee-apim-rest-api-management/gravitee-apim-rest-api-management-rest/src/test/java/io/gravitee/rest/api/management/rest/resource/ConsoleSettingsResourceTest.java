@@ -50,13 +50,11 @@ public class ConsoleSettingsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldCallSaveMethod() {
-        ExecutionContext executionContext = new ExecutionContext(GraviteeContext.getCurrentOrganization(), null);
         ConsoleSettingsEntity config = new ConsoleSettingsEntity();
         config.setMaintenance(new Maintenance());
 
         when(
             parameterService.findAsBoolean(
-                executionContext,
                 Key.MAINTENANCE_MODE_ENABLED,
                 GraviteeContext.getCurrentOrganization(),
                 ParameterReferenceType.ORGANIZATION
@@ -67,7 +65,7 @@ public class ConsoleSettingsResourceTest extends AbstractResourceTest {
         final Response response = orgTarget().request().post(Entity.json(config));
 
         assertEquals(response.readEntity(String.class), OK_200, response.getStatus());
-        verify(configService).save(eq(executionContext), any(ConsoleSettingsEntity.class));
+        verify(configService).save(eq(GraviteeContext.getCurrentOrganization()), any(ConsoleSettingsEntity.class));
     }
 
     @Test
@@ -80,7 +78,6 @@ public class ConsoleSettingsResourceTest extends AbstractResourceTest {
 
         when(
             parameterService.findAsBoolean(
-                executionContext,
                 Key.MAINTENANCE_MODE_ENABLED,
                 GraviteeContext.getCurrentOrganization(),
                 ParameterReferenceType.ORGANIZATION
@@ -91,7 +88,7 @@ public class ConsoleSettingsResourceTest extends AbstractResourceTest {
         final Response response = orgTarget().request().post(Entity.json(config));
 
         assertEquals(response.readEntity(String.class), OK_200, response.getStatus());
-        verify(configService).save(eq(executionContext), any(ConsoleSettingsEntity.class));
+        verify(configService).save(eq(GraviteeContext.getCurrentOrganization()), any(ConsoleSettingsEntity.class));
     }
 
     @Test
@@ -103,7 +100,6 @@ public class ConsoleSettingsResourceTest extends AbstractResourceTest {
 
         when(
             parameterService.findAsBoolean(
-                any(),
                 eq(Key.MAINTENANCE_MODE_ENABLED),
                 eq(GraviteeContext.getCurrentOrganization()),
                 eq(ParameterReferenceType.ORGANIZATION)
@@ -114,7 +110,7 @@ public class ConsoleSettingsResourceTest extends AbstractResourceTest {
         final Response response = orgTarget().request().post(Entity.json(config));
 
         assertEquals(response.readEntity(String.class), SERVICE_UNAVAILABLE_503, response.getStatus());
-        verify(configService, never()).save(eq(GraviteeContext.getExecutionContext()), any(ConsoleSettingsEntity.class));
+        verify(configService, never()).save(eq(GraviteeContext.getCurrentOrganization()), any(ConsoleSettingsEntity.class));
     }
 
     @Test
@@ -123,7 +119,6 @@ public class ConsoleSettingsResourceTest extends AbstractResourceTest {
 
         when(
             parameterService.findAsBoolean(
-                any(),
                 eq(Key.MAINTENANCE_MODE_ENABLED),
                 eq(GraviteeContext.getCurrentOrganization()),
                 eq(ParameterReferenceType.ORGANIZATION)
@@ -134,6 +129,6 @@ public class ConsoleSettingsResourceTest extends AbstractResourceTest {
         final Response response = orgTarget().request().post(Entity.json(config));
 
         assertEquals(response.readEntity(String.class), SERVICE_UNAVAILABLE_503, response.getStatus());
-        verify(configService, never()).save(eq(GraviteeContext.getExecutionContext()), any(ConsoleSettingsEntity.class));
+        verify(configService, never()).save(eq(GraviteeContext.getCurrentOrganization()), any(ConsoleSettingsEntity.class));
     }
 }

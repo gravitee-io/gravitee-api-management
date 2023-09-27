@@ -774,7 +774,7 @@ public class ApiServiceCockpitImplTest {
             .thenReturn(updatedApiEntity);
 
         when(apiService.start(GraviteeContext.getExecutionContext(), API_ID, USER_ID)).thenReturn(updatedApiEntity);
-        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(null);
+        when(planService.findByApi(API_ID)).thenReturn(null);
         when(virtualHostService.sanitizeAndValidate(any(), any(), eq(API_ID))).thenReturn(List.of(virtualHost));
 
         service.updateApi(
@@ -787,7 +787,7 @@ public class ApiServiceCockpitImplTest {
             LABELS
         );
 
-        verify(planService).findByApi(eq(GraviteeContext.getExecutionContext()), eq(API_ID));
+        verify(planService).findByApi(eq(API_ID));
         verify(planService).create(eq(GraviteeContext.getExecutionContext()), newPlanCaptor.capture());
         assertThat(newPlanCaptor.getValue())
             .extracting(NewPlanEntity::getApi, NewPlanEntity::getSecurity, NewPlanEntity::getStatus)
@@ -825,7 +825,7 @@ public class ApiServiceCockpitImplTest {
 
         service.updateApi(executionContext, API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_PUBLISHED, LABELS);
 
-        verify(planService).findByApi(eq(executionContext), eq(API_ID));
+        verify(planService).findByApi(eq(API_ID));
         verify(planService).create(eq(executionContext), newPlanCaptor.capture());
         assertThat(newPlanCaptor.getValue())
             .extracting(NewPlanEntity::getApi, NewPlanEntity::getSecurity, NewPlanEntity::getStatus)
@@ -862,14 +862,14 @@ public class ApiServiceCockpitImplTest {
         when(apiService.deploy(eq(executionContext), eq(API_ID), eq(USER_ID), eq(EventType.PUBLISH_API), any(ApiDeploymentEntity.class)))
             .thenReturn(updatedApiEntity);
 
-        when(planService.findByApi(executionContext, API_ID)).thenReturn(Collections.singleton(new PlanEntity()));
+        when(planService.findByApi(API_ID)).thenReturn(Collections.singleton(new PlanEntity()));
         when(virtualHostService.sanitizeAndValidate(any(), any(), eq(API_ID))).thenReturn(List.of(virtualHost));
 
         preparePageServiceMock();
 
         service.updateApi(executionContext, API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_PUBLISHED, LABELS);
 
-        verify(planService).findByApi(eq(executionContext), eq(API_ID));
+        verify(planService).findByApi(eq(API_ID));
         verify(planService, never()).create(eq(executionContext), any(NewPlanEntity.class));
 
         verify(apiService, never()).start(eq(executionContext), eq(API_ID), eq(USER_ID));

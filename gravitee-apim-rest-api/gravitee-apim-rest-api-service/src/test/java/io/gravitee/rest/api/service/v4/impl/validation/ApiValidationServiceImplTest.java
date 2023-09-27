@@ -133,7 +133,7 @@ public class ApiValidationServiceImplTest {
 
         verify(tagsValidationService, times(1)).validateAndSanitize(GraviteeContext.getExecutionContext(), null, null);
         verify(groupValidationService, times(1)).validateAndSanitize(GraviteeContext.getExecutionContext(), null, null, primaryOwnerEntity);
-        verify(listenerValidationService, times(1)).validateAndSanitize(GraviteeContext.getExecutionContext(), null, null, null);
+        verify(listenerValidationService, times(1)).validateAndSanitize(GraviteeContext.getCurrentEnvironment(), null, null, null);
         verify(endpointGroupsValidationService, times(1)).validateAndSanitize(null);
         verify(loggingValidationService, times(1)).validateAndSanitize(GraviteeContext.getExecutionContext(), newApiEntity.getType(), null);
         verify(flowValidationService, times(1)).validateAndSanitize(newApiEntity.getType(), null);
@@ -155,7 +155,7 @@ public class ApiValidationServiceImplTest {
 
         verify(tagsValidationService, times(1)).validateAndSanitize(GraviteeContext.getExecutionContext(), null, Set.of());
         verify(groupValidationService, times(1)).validateAndSanitize(GraviteeContext.getExecutionContext(), null, null, primaryOwnerEntity);
-        verify(listenerValidationService, times(1)).validateAndSanitize(GraviteeContext.getExecutionContext(), null, null, null);
+        verify(listenerValidationService, times(1)).validateAndSanitize(GraviteeContext.getCurrentEnvironment(), null, null, null);
         verify(endpointGroupsValidationService, times(1)).validateAndSanitize(null);
         verify(loggingValidationService, times(1)).validateAndSanitize(GraviteeContext.getExecutionContext(), apiEntity.getType(), null);
         verify(flowValidationService, times(1)).validateAndSanitize(apiEntity.getType(), null);
@@ -313,8 +313,7 @@ public class ApiValidationServiceImplTest {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final String apiId = "api-id";
 
-        when(planSearchService.findByApi(executionContext, apiId))
-            .thenReturn(Set.of(PlanEntity.builder().status(PlanStatus.PUBLISHED).build()));
+        when(planSearchService.findByApi(apiId)).thenReturn(Set.of(PlanEntity.builder().status(PlanStatus.PUBLISHED).build()));
         assertTrue(apiValidationService.canDeploy(executionContext, apiId));
     }
 
@@ -323,8 +322,7 @@ public class ApiValidationServiceImplTest {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final String apiId = "api-id";
 
-        when(planSearchService.findByApi(executionContext, apiId))
-            .thenReturn(Set.of(PlanEntity.builder().status(PlanStatus.DEPRECATED).build()));
+        when(planSearchService.findByApi(apiId)).thenReturn(Set.of(PlanEntity.builder().status(PlanStatus.DEPRECATED).build()));
         assertTrue(apiValidationService.canDeploy(executionContext, apiId));
     }
 
@@ -333,7 +331,7 @@ public class ApiValidationServiceImplTest {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final String apiId = "api-id";
 
-        when(planSearchService.findByApi(executionContext, apiId)).thenReturn(Set.of());
+        when(planSearchService.findByApi(apiId)).thenReturn(Set.of());
         assertFalse(apiValidationService.canDeploy(executionContext, apiId));
     }
 
@@ -342,7 +340,7 @@ public class ApiValidationServiceImplTest {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final String apiId = "api-id";
 
-        when(planSearchService.findByApi(executionContext, apiId))
+        when(planSearchService.findByApi(apiId))
             .thenReturn(
                 Set.of(PlanEntity.builder().status(PlanStatus.STAGING).build(), PlanEntity.builder().status(PlanStatus.CLOSED).build())
             );

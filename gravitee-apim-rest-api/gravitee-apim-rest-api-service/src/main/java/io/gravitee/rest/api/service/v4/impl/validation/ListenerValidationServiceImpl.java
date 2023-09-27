@@ -78,7 +78,7 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
 
     @Override
     public List<Listener> validateAndSanitize(
-        final ExecutionContext executionContext,
+        final String environmentId,
         final String apiId,
         final List<Listener> listeners,
         final List<EndpointGroup> endpointGroups
@@ -88,7 +88,7 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
             listeners.forEach(listener -> {
                 switch (listener.getType()) {
                     case HTTP:
-                        validateAndSanitizeHttpListener(executionContext, apiId, (HttpListener) listener, endpointGroups);
+                        validateAndSanitizeHttpListener(environmentId, apiId, (HttpListener) listener, endpointGroups);
                         break;
                     case SUBSCRIPTION:
                         validateAndSanitizeSubscriptionListener((SubscriptionListener) listener, endpointGroups);
@@ -115,12 +115,12 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
     }
 
     private void validateAndSanitizeHttpListener(
-        final ExecutionContext executionContext,
+        final String environmentId,
         final String apiId,
         final HttpListener httpListener,
         final List<EndpointGroup> endpointGroups
     ) {
-        httpListener.setPaths(pathValidationService.validateAndSanitizePaths(executionContext, apiId, httpListener.getPaths()));
+        httpListener.setPaths(pathValidationService.validateAndSanitizePaths(environmentId, apiId, httpListener.getPaths()));
         validatePathMappings(httpListener.getPathMappings());
         // Validate and clean entrypoints
         validateEntrypoints(httpListener.getType(), httpListener.getEntrypoints(), endpointGroups);

@@ -61,14 +61,12 @@ public class OrganizationCommandHandler implements CommandHandler<OrganizationCo
         OrganizationPayload organizationPayload = command.getPayload();
 
         try {
-            ExecutionContext executionContext = new ExecutionContext(organizationPayload.getId(), null);
-
             UpdateOrganizationEntity newOrganization = new UpdateOrganizationEntity();
             newOrganization.setCockpitId(organizationPayload.getCockpitId());
             newOrganization.setHrids(organizationPayload.getHrids());
             newOrganization.setName(organizationPayload.getName());
             newOrganization.setDescription(organizationPayload.getDescription());
-            final OrganizationEntity organization = organizationService.createOrUpdate(executionContext, newOrganization);
+            final OrganizationEntity organization = organizationService.createOrUpdate(organizationPayload.getId(), newOrganization);
 
             List<AccessPoint> accessPoints = organizationPayload.getAccessPoints();
             if (accessPoints != null) {

@@ -176,7 +176,7 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
                         .stream()
                         .filter(m -> m.getType() == MembershipMemberType.USER)
                         .forEach(m -> {
-                            UserEntity userEntity = userService.findById(GraviteeContext.getExecutionContext(), m.getId());
+                            UserEntity userEntity = userService.findById(m.getId());
                             if (userEntity != null) {
                                 Member member = new Member();
                                 member.setRoles(m.getRoles().stream().map(RoleEntity::getId).collect(Collectors.toList()));
@@ -232,9 +232,7 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
 
             // plans
             if (!filteredFieldsList.contains("plans")) {
-                Set<PlanEntity> plans = applicationContext
-                    .getBean(PlanService.class)
-                    .findByApi(GraviteeContext.getExecutionContext(), apiEntity.getId());
+                Set<PlanEntity> plans = applicationContext.getBean(PlanService.class).findByApi(apiEntity.getId());
                 Set<PlanEntity> plansToAdd = plans == null
                     ? Collections.emptySet()
                     : plans.stream().filter(p -> !PlanStatus.CLOSED.equals(p.getStatus())).collect(Collectors.toSet());

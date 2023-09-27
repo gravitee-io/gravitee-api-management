@@ -129,7 +129,7 @@ public class ApiService_StopTest {
             new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter))
         );
         UserEntity u = new UserEntity();
-        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(u);
+        when(userService.findById(any())).thenReturn(u);
         when(primaryOwnerService.getPrimaryOwner(any(), any())).thenReturn(new PrimaryOwnerEntity(u));
         when(api.getId()).thenReturn(API_ID);
     }
@@ -154,7 +154,6 @@ public class ApiService_StopTest {
         verify(apiRepository).update(api);
         verify(eventService)
             .createApiEvent(
-                eq(GraviteeContext.getExecutionContext()),
                 eq(singleton(GraviteeContext.getCurrentEnvironment())),
                 eq(EventType.STOP_API),
                 argThat((ArgumentMatcher<Api>) apiArg -> apiArg.getId().equals(API_ID)),

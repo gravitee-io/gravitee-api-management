@@ -56,8 +56,8 @@ public class ApiSubscriptionsResource_RenewApiKeysTest extends ApiSubscriptionsR
     public void before() {
         when(
             parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
                 Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED,
+                GraviteeContext.getCurrentEnvironment(),
                 ParameterReferenceType.ENVIRONMENT
             )
         )
@@ -68,8 +68,8 @@ public class ApiSubscriptionsResource_RenewApiKeysTest extends ApiSubscriptionsR
     public void should_return_400_if_custom_api_key_not_enabled() {
         when(
             parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
                 Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED,
+                GraviteeContext.getCurrentEnvironment(),
                 ParameterReferenceType.ENVIRONMENT
             )
         )

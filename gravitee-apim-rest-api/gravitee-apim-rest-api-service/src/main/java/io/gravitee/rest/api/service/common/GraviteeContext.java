@@ -105,6 +105,10 @@ public class GraviteeContext {
         }
     }
 
+    /**
+     * As {@link GraviteeContext} is initialized by Rest Filter and uses a thread local to store references it <b>MUST</b> be used only from a REST Resource
+     * @return {@link ExecutionContext} build from current thread local values
+     */
     public static ExecutionContext getExecutionContext() {
         return new ExecutionContext(getCurrentOrganization(), getCurrentEnvironment());
     }

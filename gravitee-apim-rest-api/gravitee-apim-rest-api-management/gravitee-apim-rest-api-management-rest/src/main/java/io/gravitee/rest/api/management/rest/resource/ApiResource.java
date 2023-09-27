@@ -1000,8 +1000,8 @@ public class ApiResource extends AbstractResource {
                 }
 
                 final boolean apiReviewEnabled = parameterService.findAsBoolean(
-                    GraviteeContext.getExecutionContext(),
                     Key.API_REVIEW_ENABLED,
+                    api.getEnvironmentId(),
                     ParameterReferenceType.ENVIRONMENT
                 );
                 if (apiReviewEnabled) {

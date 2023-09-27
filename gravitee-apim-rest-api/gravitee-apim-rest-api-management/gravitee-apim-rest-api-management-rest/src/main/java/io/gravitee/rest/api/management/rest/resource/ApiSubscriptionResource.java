@@ -252,13 +252,13 @@ public class ApiSubscriptionResource extends AbstractResource {
         subscription.setSubscribedBy(
             new Subscription.User(
                 subscriptionEntity.getSubscribedBy(),
-                userService.findById(executionContext, subscriptionEntity.getSubscribedBy(), true).getDisplayName()
+                userService.findById(subscriptionEntity.getSubscribedBy(), true).getDisplayName()
             )
         );
         subscription.setClientId(subscriptionEntity.getClientId());
         subscription.setMetadata(subscriptionEntity.getMetadata());
 
-        GenericPlanEntity plan = planSearchService.findById(executionContext, subscriptionEntity.getPlan());
+        GenericPlanEntity plan = planSearchService.findById(subscriptionEntity.getPlan());
         subscription.setPlan(new Subscription.Plan(plan.getId(), plan.getName()));
         if (plan.getPlanMode() == PlanMode.STANDARD) {
             subscription.getPlan().setSecurity(plan.getPlanSecurity().getType());

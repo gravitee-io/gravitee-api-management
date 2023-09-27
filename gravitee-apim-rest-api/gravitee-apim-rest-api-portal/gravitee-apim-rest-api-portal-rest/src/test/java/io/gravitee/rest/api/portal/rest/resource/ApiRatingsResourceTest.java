@@ -68,7 +68,7 @@ public class ApiRatingsResourceTest extends AbstractResourceTest {
         rating.setComment(RATING);
         rating.setValue(1);
 
-        doReturn(rating).when(ratingMapper).convert(eq(GraviteeContext.getExecutionContext()), any(), any());
+        doReturn(rating).when(ratingMapper).convert(any(), any());
 
         RatingEntity createdRating = new RatingEntity();
         createdRating.setId(RATING);

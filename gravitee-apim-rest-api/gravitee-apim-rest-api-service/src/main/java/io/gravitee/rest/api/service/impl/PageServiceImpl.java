@@ -487,7 +487,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         boolean result = false;
         if (PageType.MARKDOWN.name().equals(page.getType())) {
             Optional<GenericPlanEntity> optPlan = planSearchService
-                .findByApi(executionContext, apiId)
+                .findByApi(apiId)
                 .stream()
                 .filter(p -> p.getGeneralConditions() != null)
                 .filter(p -> !(PlanStatus.CLOSED == p.getPlanStatus() || PlanStatus.STAGING == p.getPlanStatus()))
@@ -1290,7 +1290,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             if (PageReferenceType.API.equals(pageToUpdate.getReferenceType())) {
                 if (updatePageEntity.isPublished() != null && !updatePageEntity.isPublished()) {
                     Optional<GenericPlanEntity> activePlan = planSearchService
-                        .findByApi(executionContext, pageToUpdate.getReferenceId())
+                        .findByApi(pageToUpdate.getReferenceId())
                         .stream()
                         .filter(plan -> plan.getGeneralConditions() != null)
                         .filter(plan -> pageToUpdate.getId().equals(plan.getGeneralConditions()))
@@ -2128,7 +2128,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             // we can't remove it until the plan is closed
             if (page.getReferenceType() != null && page.getReferenceType().equals(PageReferenceType.API)) {
                 Optional<GenericPlanEntity> activePlan = planSearchService
-                    .findByApi(executionContext, page.getReferenceId())
+                    .findByApi(page.getReferenceId())
                     .stream()
                     .filter(plan -> plan.getGeneralConditions() != null)
                     .filter(plan -> // check the page and the parent for translations.

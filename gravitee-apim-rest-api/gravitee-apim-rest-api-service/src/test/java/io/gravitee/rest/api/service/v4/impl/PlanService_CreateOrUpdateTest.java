@@ -138,13 +138,13 @@ public class PlanService_CreateOrUpdateTest {
         when(planEntity.getId()).thenReturn(PLAN_ID);
         when(planEntity.getSecurity()).thenReturn(new PlanSecurity("oauth2", "{ \"foo\": \"bar\"}"));
         when(planEntity.getValidation()).thenReturn(PlanValidationType.AUTO);
-        doReturn(new PlanEntity()).when(planSearchService).findById(GraviteeContext.getExecutionContext(), PLAN_ID);
+        doReturn(new PlanEntity()).when(planSearchService).findById(PLAN_ID);
         mockPrivateUpdate(expected);
 
         final PlanEntity actual = planService.createOrUpdatePlan(GraviteeContext.getExecutionContext(), planEntity);
 
         assertThat(actual.getId()).isEqualTo(expected.getId());
-        verify(planSearchService, times(1)).findById(GraviteeContext.getExecutionContext(), PLAN_ID);
+        verify(planSearchService, times(1)).findById(PLAN_ID);
         verify(pathParametersValidationService, never()).validate(any(), any(), any());
     }
 
@@ -174,12 +174,12 @@ public class PlanService_CreateOrUpdateTest {
         when(planEntity.getApiId()).thenReturn(API_ID);
         mockPrivateCreate(expected);
 
-        doThrow(PlanNotFoundException.class).when(planSearchService).findById(GraviteeContext.getExecutionContext(), PLAN_ID);
+        doThrow(PlanNotFoundException.class).when(planSearchService).findById(PLAN_ID);
 
         final PlanEntity actual = planService.createOrUpdatePlan(GraviteeContext.getExecutionContext(), planEntity);
 
         assertThat(actual.getId()).isEqualTo(expected.getId());
-        verify(planSearchService, times(1)).findById(GraviteeContext.getExecutionContext(), PLAN_ID);
+        verify(planSearchService, times(1)).findById(PLAN_ID);
         verify(pathParametersValidationService, never()).validate(any(), any(), any());
     }
 
@@ -209,7 +209,7 @@ public class PlanService_CreateOrUpdateTest {
         when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
         when(plan.getMode()).thenReturn(Plan.PlanMode.STANDARD);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
-        when(parameterService.findAsBoolean(eq(GraviteeContext.getExecutionContext()), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+        when(parameterService.findAsBoolean(any(), eq(GraviteeContext.getCurrentEnvironment()), eq(ParameterReferenceType.ENVIRONMENT)))
             .thenReturn(true);
 
         when(planRepository.update(any())).thenAnswer(returnsFirstArg());
@@ -226,7 +226,7 @@ public class PlanService_CreateOrUpdateTest {
         when(plan.getMode()).thenReturn(Plan.PlanMode.STANDARD);
         lenient().when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.create(any())).thenReturn(plan);
-        when(parameterService.findAsBoolean(eq(GraviteeContext.getExecutionContext()), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+        when(parameterService.findAsBoolean(any(), eq(GraviteeContext.getCurrentEnvironment()), eq(ParameterReferenceType.ENVIRONMENT)))
             .thenReturn(true);
     }
 

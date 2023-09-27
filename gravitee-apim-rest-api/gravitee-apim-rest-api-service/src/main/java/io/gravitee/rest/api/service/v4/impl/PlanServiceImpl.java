@@ -37,8 +37,17 @@ import io.gravitee.rest.api.model.PlanSecurityEntity;
 import io.gravitee.rest.api.model.PlansConfigurationEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
-import io.gravitee.rest.api.model.v4.plan.*;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
+import io.gravitee.rest.api.model.v4.plan.NewPlanEntity;
+import io.gravitee.rest.api.model.v4.plan.PlanEntity;
+import io.gravitee.rest.api.model.v4.plan.PlanMode;
+import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
+import io.gravitee.rest.api.model.v4.plan.UpdatePlanEntity;
+import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.PageService;
+import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.PolicyService;
+import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.ApiDeprecatedException;
@@ -153,13 +162,13 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     private PathParametersValidationService pathParametersValidationService;
 
     @Override
-    public PlanEntity findById(final ExecutionContext executionContext, final String planId) {
-        return (PlanEntity) planSearchService.findById(executionContext, planId);
+    public PlanEntity findById(final String planId) {
+        return (PlanEntity) planSearchService.findById(planId);
     }
 
     @Override
-    public Set<PlanEntity> findByApi(final ExecutionContext executionContext, final String api) {
-        return planSearchService.findByApi(executionContext, api).stream().map(PlanEntity.class::cast).collect(Collectors.toSet());
+    public Set<PlanEntity> findByApi(final String api) {
+        return planSearchService.findByApi(api).stream().map(PlanEntity.class::cast).collect(Collectors.toSet());
     }
 
     @Override
@@ -245,7 +254,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
                 // No need to validate again the path param in this case
                 resultPlanEntity = create(executionContext, planMapper.toNewPlanEntity(planEntity), false);
             } else {
-                planSearchService.findById(executionContext, planEntity.getId());
+                planSearchService.findById(planEntity.getId());
                 // No need to validate again the path param in this case
                 resultPlanEntity = update(executionContext, planMapper.toUpdatePlanEntity(planEntity), false);
             }
@@ -701,7 +710,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             default:
                 return;
         }
-        if (!parameterService.findAsBoolean(executionContext, securityKey, ParameterReferenceType.ENVIRONMENT)) {
+        if (!parameterService.findAsBoolean(securityKey, executionContext.getEnvironmentId(), ParameterReferenceType.ENVIRONMENT)) {
             throw new UnauthorizedPlanSecurityTypeException(io.gravitee.rest.api.model.PlanSecurityType.valueOf(planSecurityType.name()));
         }
     }

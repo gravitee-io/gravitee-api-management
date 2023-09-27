@@ -29,20 +29,20 @@ import java.util.Set;
 public interface DictionaryService {
     DictionaryEntity create(ExecutionContext executionContext, NewDictionaryEntity dictionary);
 
-    DictionaryEntity update(ExecutionContext executionContext, String id, UpdateDictionaryEntity dictionary);
-    DictionaryEntity updateProperties(ExecutionContext executionContext, String id, Map<String, String> properties);
+    DictionaryEntity update(String id, UpdateDictionaryEntity dictionary);
+    DictionaryEntity updateProperties(String id, Map<String, String> properties);
 
     DictionaryEntity findById(String id);
 
-    void delete(ExecutionContext executionContext, String id);
+    void delete(String id);
 
     Set<DictionaryEntity> findAll(ExecutionContext executionContext);
 
-    DictionaryEntity deploy(ExecutionContext executionContext, String id);
+    DictionaryEntity deploy(String id);
 
-    DictionaryEntity undeploy(ExecutionContext executionContext, String id);
+    DictionaryEntity undeploy(String id);
 
-    DictionaryEntity start(ExecutionContext executionContext, String id);
+    DictionaryEntity start(String id);
 
-    DictionaryEntity stop(ExecutionContext executionContext, String id);
+    DictionaryEntity stop(String id);
 }

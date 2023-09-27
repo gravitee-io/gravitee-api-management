@@ -85,13 +85,13 @@ public class PlanService_CreateOrUpdateTest {
 
         when(this.planEntity.getId()).thenReturn(PLAN_ID);
         when(planConverter.toUpdatePlanEntity(planEntity)).thenCallRealMethod();
-        doReturn(new PlanEntity()).when(planSearchService).findById(GraviteeContext.getExecutionContext(), PLAN_ID);
+        doReturn(new PlanEntity()).when(planSearchService).findById(PLAN_ID);
         doReturn(expected).when(planService).update(eq(GraviteeContext.getExecutionContext()), any(UpdatePlanEntity.class));
 
         final PlanEntity actual = planService.createOrUpdatePlan(GraviteeContext.getExecutionContext(), this.planEntity);
 
         assertThat(actual.getId()).isEqualTo(expected.getId());
-        verify(planSearchService, times(1)).findById(GraviteeContext.getExecutionContext(), PLAN_ID);
+        verify(planSearchService, times(1)).findById(PLAN_ID);
         verify(planService, times(1)).update(eq(GraviteeContext.getExecutionContext()), any(UpdatePlanEntity.class));
     }
 
@@ -101,13 +101,13 @@ public class PlanService_CreateOrUpdateTest {
         expected.setId("created");
 
         when(planEntity.getId()).thenReturn(PLAN_ID);
-        doThrow(PlanNotFoundException.class).when(planSearchService).findById(GraviteeContext.getExecutionContext(), PLAN_ID);
+        doThrow(PlanNotFoundException.class).when(planSearchService).findById(PLAN_ID);
         doReturn(expected).when(planService).create(eq(GraviteeContext.getExecutionContext()), any());
 
         final PlanEntity actual = planService.createOrUpdatePlan(GraviteeContext.getExecutionContext(), planEntity);
 
         assertThat(actual.getId()).isEqualTo(expected.getId());
-        verify(planSearchService, times(1)).findById(GraviteeContext.getExecutionContext(), PLAN_ID);
+        verify(planSearchService, times(1)).findById(PLAN_ID);
         verify(planService, times(1)).create(eq(GraviteeContext.getExecutionContext()), any());
     }
 

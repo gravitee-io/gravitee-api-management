@@ -83,8 +83,8 @@ public class ApiSubscriptionResourceTest extends AbstractResourceTest {
         fakeApplicationEntity.setApiKeyMode(ApiKeyMode.UNSPECIFIED);
         fakeApplicationEntity.setPrimaryOwner(new PrimaryOwnerEntity(fakeUserEntity));
 
-        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any(), anyBoolean())).thenReturn(fakeUserEntity);
-        when(planService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(fakePlanEntity);
+        when(userService.findById(any(), anyBoolean())).thenReturn(fakeUserEntity);
+        when(planService.findById(any())).thenReturn(fakePlanEntity);
         when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(fakeApplicationEntity);
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
     }
@@ -137,7 +137,7 @@ public class ApiSubscriptionResourceTest extends AbstractResourceTest {
 
         PlanEntity planV3 = new PlanEntity();
         planV3.setSecurity(PlanSecurityType.OAUTH2);
-        when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), eq(PLAN_ID))).thenReturn(planV3);
+        when(planSearchService.findById(eq(PLAN_ID))).thenReturn(planV3);
 
         Response response = envTarget(SUBSCRIPTION_ID).request().get();
 
@@ -155,7 +155,7 @@ public class ApiSubscriptionResourceTest extends AbstractResourceTest {
         planSecurity.setType("oauth2");
         planV4.setSecurity(planSecurity);
         planV4.setMode(PlanMode.STANDARD);
-        when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), eq(PLAN_ID))).thenReturn(planV4);
+        when(planSearchService.findById(eq(PLAN_ID))).thenReturn(planV4);
 
         Response response = envTarget(SUBSCRIPTION_ID).request().get();
 
@@ -170,7 +170,7 @@ public class ApiSubscriptionResourceTest extends AbstractResourceTest {
 
         io.gravitee.rest.api.model.v4.plan.PlanEntity planV4 = new io.gravitee.rest.api.model.v4.plan.PlanEntity();
         planV4.setMode(PlanMode.PUSH);
-        when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), eq(PLAN_ID))).thenReturn(planV4);
+        when(planSearchService.findById(eq(PLAN_ID))).thenReturn(planV4);
 
         Response response = envTarget(SUBSCRIPTION_ID).request().get();
 

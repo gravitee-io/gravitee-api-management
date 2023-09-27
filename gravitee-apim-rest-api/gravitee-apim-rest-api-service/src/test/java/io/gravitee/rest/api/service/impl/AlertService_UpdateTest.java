@@ -25,6 +25,7 @@ import io.gravitee.repository.management.model.AlertTrigger;
 import io.gravitee.rest.api.model.alert.UpdateAlertTriggerEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.AlertNotFoundException;
 import io.gravitee.rest.api.service.exceptions.AlertUnavailableException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -90,7 +91,10 @@ public class AlertService_UpdateTest extends AlertServiceTest {
         final UpdateAlertTriggerEntity alert = getUpdateAlertTriggerEntity();
         final AlertTrigger alertTrigger = getAlertTriggerFromUpdate(alert);
 
-        when(parameterService.findAsBoolean(executionContext, Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION)).thenReturn(true);
+        when(
+            parameterService.findAsBoolean(Key.ALERT_ENABLED, GraviteeContext.getCurrentEnvironment(), ParameterReferenceType.ORGANIZATION)
+        )
+            .thenReturn(true);
         when(alertTriggerProviderManager.findAll()).thenReturn(List.of(mock(TriggerProvider.class)));
         when(alertTriggerRepository.findById(any())).thenReturn(Optional.of(alertTrigger));
         when(alertTriggerRepository.update(any())).thenThrow(new TechnicalException("An unexpected error has occurred"));
@@ -121,7 +125,10 @@ public class AlertService_UpdateTest extends AlertServiceTest {
         final UpdateAlertTriggerEntity alert = getUpdateAlertTriggerEntity();
         final AlertTrigger alertTrigger = getAlertTriggerFromUpdate(alert);
 
-        when(parameterService.findAsBoolean(executionContext, Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION)).thenReturn(true);
+        when(
+            parameterService.findAsBoolean(Key.ALERT_ENABLED, GraviteeContext.getCurrentEnvironment(), ParameterReferenceType.ORGANIZATION)
+        )
+            .thenReturn(true);
         when(alertTriggerProviderManager.findAll()).thenReturn(List.of(mock(TriggerProvider.class)));
         when(alertTriggerRepository.findById(any())).thenReturn(Optional.of(alertTrigger));
         when(alertTriggerRepository.update(any())).thenReturn(alertTrigger);
@@ -132,7 +139,10 @@ public class AlertService_UpdateTest extends AlertServiceTest {
     }
 
     private void mockAlertSetting(boolean enabled) {
-        when(parameterService.findAsBoolean(executionContext, Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION)).thenReturn(enabled);
+        when(
+            parameterService.findAsBoolean(Key.ALERT_ENABLED, GraviteeContext.getCurrentEnvironment(), ParameterReferenceType.ORGANIZATION)
+        )
+            .thenReturn(enabled);
         when(alertTriggerProviderManager.findAll()).thenReturn(List.of(mock(TriggerProvider.class), mock(TriggerProvider.class)));
     }
 }

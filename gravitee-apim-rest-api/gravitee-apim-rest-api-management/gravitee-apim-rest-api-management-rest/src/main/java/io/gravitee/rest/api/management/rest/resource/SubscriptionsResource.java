@@ -102,7 +102,7 @@ public class SubscriptionsResource {
             )
         );
 
-        PlanEntity plan = planService.findById(executionContext, subscriptionEntity.getPlan());
+        PlanEntity plan = planService.findById(subscriptionEntity.getPlan());
         subscription.setPlan(new Subscription.Plan(plan.getId(), plan.getName()));
 
         subscription.setClosedAt(subscriptionEntity.getClosedAt());

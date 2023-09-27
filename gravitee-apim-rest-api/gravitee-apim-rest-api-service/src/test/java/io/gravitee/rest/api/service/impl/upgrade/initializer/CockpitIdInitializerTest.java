@@ -64,8 +64,7 @@ public class CockpitIdInitializerTest {
 
         initializer.initialize();
 
-        verify(organizationService, times(1))
-            .updateOrganization(any(ExecutionContext.class), argThat(org -> org.getCockpitId().equals("org-1")));
+        verify(organizationService, times(1)).updateOrganization(anyString(), argThat(org -> org.getCockpitId().equals("org-1")));
 
         verify(environmentService, times(1)).createOrUpdate(eq("org-1"), anyString(), argThat(env -> env.getCockpitId().equals("env-1")));
 

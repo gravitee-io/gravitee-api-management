@@ -150,7 +150,6 @@ public class EventServiceTest {
         when(newEvent.getProperties()).thenReturn(EVENT_PROPERTIES);
 
         final EventEntity eventEntity = eventService.createNewEventEntity(
-            GraviteeContext.getExecutionContext(),
             Collections.singleton(GraviteeContext.getCurrentEnvironment()),
             newEvent
         );
@@ -169,7 +168,7 @@ public class EventServiceTest {
 
         when(eventRepository.findById(EVENT_ID)).thenReturn(Optional.of(event));
 
-        final EventEntity eventEntity = eventService.findById(GraviteeContext.getExecutionContext(), EVENT_ID);
+        final EventEntity eventEntity = eventService.findById(EVENT_ID);
 
         assertNotNull(eventEntity);
     }
@@ -178,14 +177,14 @@ public class EventServiceTest {
     public void shouldNotFindByIdBecauseTechnicalException() throws TechnicalException {
         when(eventRepository.findById(any(String.class))).thenThrow(TechnicalException.class);
 
-        eventService.findById(GraviteeContext.getExecutionContext(), EVENT_ID);
+        eventService.findById(EVENT_ID);
     }
 
     @Test(expected = EventNotFoundException.class)
     public void shouldNotFindByNameBecauseNotExists() throws TechnicalException {
         when(eventRepository.findById(EVENT_ID)).thenReturn(Optional.empty());
 
-        eventService.findById(GraviteeContext.getExecutionContext(), EVENT_ID);
+        eventService.findById(EVENT_ID);
     }
 
     @Test
@@ -215,7 +214,6 @@ public class EventServiceTest {
             .thenReturn(eventPage);
 
         Page<EventEntity> eventPageEntity = eventService.search(
-            GraviteeContext.getExecutionContext(),
             Collections.singletonList(io.gravitee.rest.api.model.EventType.START_API),
             null,
             1420070400000L,
@@ -260,7 +258,6 @@ public class EventServiceTest {
             .thenReturn(eventPage);
 
         Page<EventEntity> eventPageEntity = eventService.search(
-            GraviteeContext.getExecutionContext(),
             Collections.singletonList(io.gravitee.rest.api.model.EventType.START_API),
             null,
             1420070400000L,
@@ -304,7 +301,6 @@ public class EventServiceTest {
             .thenReturn(eventPage);
 
         Page<EventEntity> eventPageEntity = eventService.search(
-            GraviteeContext.getExecutionContext(),
             Arrays.asList(io.gravitee.rest.api.model.EventType.START_API, io.gravitee.rest.api.model.EventType.STOP_API),
             null,
             1420070400000L,
@@ -351,7 +347,6 @@ public class EventServiceTest {
             .thenReturn(eventPage);
 
         Page<EventEntity> eventPageEntity = eventService.search(
-            GraviteeContext.getExecutionContext(),
             null,
             values,
             1420070400000L,
@@ -399,7 +394,6 @@ public class EventServiceTest {
             .thenReturn(eventPage);
 
         Page<EventEntity> eventPageEntity = eventService.search(
-            GraviteeContext.getExecutionContext(),
             Arrays.asList(io.gravitee.rest.api.model.EventType.START_API, io.gravitee.rest.api.model.EventType.STOP_API),
             values,
             1420070400000L,
@@ -433,7 +427,6 @@ public class EventServiceTest {
 
         // test without predicate
         Page<Map<String, String>> page = eventService.search(
-            GraviteeContext.getExecutionContext(),
             List.of(io.gravitee.rest.api.model.EventType.GATEWAY_STARTED),
             Collections.EMPTY_MAP,
             0,
@@ -455,7 +448,6 @@ public class EventServiceTest {
         // test with predicate
         page =
             eventService.search(
-                GraviteeContext.getExecutionContext(),
                 List.of(io.gravitee.rest.api.model.EventType.GATEWAY_STARTED),
                 Collections.EMPTY_MAP,
                 0,
@@ -480,13 +472,7 @@ public class EventServiceTest {
     public void createDebugApiEvent_shouldCreateEvent_withoutPayload() throws TechnicalException {
         when(eventRepository.create(any())).thenAnswer(i -> i.getArguments()[0]);
 
-        eventService.createDebugApiEvent(
-            GraviteeContext.getExecutionContext(),
-            Set.of(),
-            io.gravitee.rest.api.model.EventType.DEBUG_API,
-            null,
-            Map.of()
-        );
+        eventService.createDebugApiEvent(Set.of(), io.gravitee.rest.api.model.EventType.DEBUG_API, null, Map.of());
 
         verify(eventRepository, times(1)).create(argThat(e -> e.getPayload() == null));
         verifyNoMoreInteractions(eventRepository);
@@ -499,13 +485,7 @@ public class EventServiceTest {
         when(objectMapper.writeValueAsString(debugApi)).thenReturn(jsonValue);
         when(eventRepository.create(any())).thenAnswer(i -> i.getArguments()[0]);
 
-        eventService.createDebugApiEvent(
-            GraviteeContext.getExecutionContext(),
-            Set.of(),
-            io.gravitee.rest.api.model.EventType.DEBUG_API,
-            debugApi,
-            Map.of()
-        );
+        eventService.createDebugApiEvent(Set.of(), io.gravitee.rest.api.model.EventType.DEBUG_API, debugApi, Map.of());
 
         verify(eventRepository, times(1)).create(argThat(e -> jsonValue.equals(e.getPayload())));
         verifyNoMoreInteractions(eventRepository);
@@ -515,12 +495,7 @@ public class EventServiceTest {
     public void createDynamicDictionaryEvent_shouldCreateEvent_withId() throws TechnicalException {
         when(eventRepository.create(any())).thenAnswer(i -> i.getArguments()[0]);
 
-        eventService.createDynamicDictionaryEvent(
-            GraviteeContext.getExecutionContext(),
-            Set.of(),
-            io.gravitee.rest.api.model.EventType.START_DICTIONARY,
-            "dictionaryId"
-        );
+        eventService.createDynamicDictionaryEvent(Set.of(), io.gravitee.rest.api.model.EventType.START_DICTIONARY, "dictionaryId");
 
         verify(eventRepository, times(1))
             .create(argThat(e -> e.getPayload() == null && e.getProperties().containsKey(Event.EventProperties.DICTIONARY_ID.getValue())));
@@ -534,12 +509,7 @@ public class EventServiceTest {
         when(objectMapper.writeValueAsString(dictionary)).thenReturn(jsonValue);
         when(eventRepository.create(any())).thenAnswer(i -> i.getArguments()[0]);
 
-        eventService.createDictionaryEvent(
-            GraviteeContext.getExecutionContext(),
-            Set.of(),
-            io.gravitee.rest.api.model.EventType.DEBUG_API,
-            dictionary
-        );
+        eventService.createDictionaryEvent(Set.of(), io.gravitee.rest.api.model.EventType.DEBUG_API, dictionary);
         verify(eventRepository, times(1))
             .create(
                 argThat(e ->
@@ -554,12 +524,7 @@ public class EventServiceTest {
     public void createOrganizationEvent_shouldCreateEvent_withId() throws TechnicalException {
         when(eventRepository.create(any())).thenAnswer(i -> i.getArguments()[0]);
 
-        eventService.createOrganizationEvent(
-            GraviteeContext.getExecutionContext(),
-            Set.of(),
-            io.gravitee.rest.api.model.EventType.DEBUG_API,
-            null
-        );
+        eventService.createOrganizationEvent(Set.of(), io.gravitee.rest.api.model.EventType.DEBUG_API, null);
 
         verify(eventRepository, times(1)).create(argThat(e -> e.getPayload() == null));
         verifyNoMoreInteractions(eventRepository);
@@ -572,12 +537,7 @@ public class EventServiceTest {
         when(objectMapper.writeValueAsString(organization)).thenReturn(jsonValue);
         when(eventRepository.create(any())).thenAnswer(i -> i.getArguments()[0]);
 
-        eventService.createOrganizationEvent(
-            GraviteeContext.getExecutionContext(),
-            Set.of(),
-            io.gravitee.rest.api.model.EventType.DEBUG_API,
-            organization
-        );
+        eventService.createOrganizationEvent(Set.of(), io.gravitee.rest.api.model.EventType.DEBUG_API, organization);
         verify(eventRepository, times(1))
             .create(
                 argThat(e ->
@@ -592,13 +552,7 @@ public class EventServiceTest {
     public void createApiEvent_shouldCreateEvent_withoutPayload() throws TechnicalException {
         when(eventRepository.create(any())).thenAnswer(i -> i.getArguments()[0]);
 
-        eventService.createApiEvent(
-            GraviteeContext.getExecutionContext(),
-            Set.of(),
-            io.gravitee.rest.api.model.EventType.DEBUG_API,
-            (Api) null,
-            Map.of()
-        );
+        eventService.createApiEvent(Set.of(), io.gravitee.rest.api.model.EventType.DEBUG_API, (Api) null, Map.of());
         verify(eventRepository, times(1)).create(argThat(e -> e.getPayload() == null));
 
         verifyNoMoreInteractions(eventRepository);
@@ -608,13 +562,7 @@ public class EventServiceTest {
     public void createApiEvent_shouldCreateEventFromId_withoutPayload() throws TechnicalException {
         when(eventRepository.create(any())).thenAnswer(i -> i.getArguments()[0]);
 
-        eventService.createApiEvent(
-            GraviteeContext.getExecutionContext(),
-            Set.of(),
-            io.gravitee.rest.api.model.EventType.DEBUG_API,
-            "apiId",
-            Map.of()
-        );
+        eventService.createApiEvent(Set.of(), io.gravitee.rest.api.model.EventType.DEBUG_API, "apiId", Map.of());
         verify(eventRepository, times(1)).create(argThat(e -> e.getPayload() == null));
 
         verifyNoMoreInteractions(eventRepository);
@@ -632,7 +580,7 @@ public class EventServiceTest {
         api.setId(API_ID);
         api.setDefinition("{}");
 
-        when(planService.findByApi(any(), eq(API_ID)))
+        when(planService.findByApi(eq(API_ID)))
             .thenReturn(
                 Set.of(
                     buildPlanEntity("plan1", PlanStatus.STAGING),
@@ -641,13 +589,7 @@ public class EventServiceTest {
                 )
             );
 
-        eventService.createApiEvent(
-            GraviteeContext.getExecutionContext(),
-            Set.of(),
-            io.gravitee.rest.api.model.EventType.START_API,
-            api,
-            Map.of()
-        );
+        eventService.createApiEvent(Set.of(), io.gravitee.rest.api.model.EventType.START_API, api, Map.of());
 
         // check event has been created and capture his payload
         ArgumentCaptor<Event> createdEvent = ArgumentCaptor.forClass(Event.class);
@@ -679,13 +621,7 @@ public class EventServiceTest {
 
         when(flowService.findByReference(FlowReferenceType.API, API_ID)).thenReturn(List.of(buildFlow("flow1"), buildFlow("flow2")));
 
-        eventService.createApiEvent(
-            GraviteeContext.getExecutionContext(),
-            Set.of(),
-            io.gravitee.rest.api.model.EventType.PUBLISH_API,
-            api,
-            new HashMap<>()
-        );
+        eventService.createApiEvent(Set.of(), io.gravitee.rest.api.model.EventType.PUBLISH_API, api, new HashMap<>());
 
         // check event has been created and capture his payload
         ArgumentCaptor<Event> createdEvent = ArgumentCaptor.forClass(Event.class);

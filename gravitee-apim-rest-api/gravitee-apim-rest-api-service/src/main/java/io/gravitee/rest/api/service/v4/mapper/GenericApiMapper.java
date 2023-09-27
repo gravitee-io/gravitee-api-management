@@ -20,7 +20,6 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
-import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import java.util.List;
 import org.springframework.stereotype.Component;
@@ -48,16 +47,11 @@ public class GenericApiMapper {
         }
     }
 
-    public GenericApiEntity toGenericApi(
-        final ExecutionContext executionContext,
-        final Api api,
-        final PrimaryOwnerEntity primaryOwner,
-        final List<CategoryEntity> categories
-    ) {
+    public GenericApiEntity toGenericApi(final Api api, final PrimaryOwnerEntity primaryOwner, final List<CategoryEntity> categories) {
         if (api.getDefinitionVersion() == DefinitionVersion.V4) {
-            return apiMapper.toEntity(executionContext, api, primaryOwner, categories, true);
+            return apiMapper.toEntity(api, primaryOwner, categories, true);
         } else {
-            return apiConverter.toApiEntity(executionContext, api, primaryOwner, categories, true);
+            return apiConverter.toApiEntity(api, primaryOwner, categories, true);
         }
     }
 }

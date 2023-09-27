@@ -113,14 +113,14 @@ public class EventServiceImpl extends TransactionalService implements EventServi
     private ObjectMapper objectMapper;
 
     @Override
-    public EventEntity findById(ExecutionContext executionContext, String id) {
+    public EventEntity findById(String id) {
         try {
             LOGGER.debug("Find event by ID: {}", id);
 
             Optional<Event> event = eventRepository.findById(id);
 
             if (event.isPresent()) {
-                return convert(executionContext, event.get());
+                return convert(event.get());
             }
 
             throw new EventNotFoundException(id);
@@ -131,36 +131,24 @@ public class EventServiceImpl extends TransactionalService implements EventServi
     }
 
     @Override
-    public EventEntity createApiEvent(
-        ExecutionContext executionContext,
-        Set<String> environmentsIds,
-        EventType type,
-        String apiId,
-        Map<String, String> properties
-    ) {
+    public EventEntity createApiEvent(Set<String> environmentsIds, EventType type, String apiId, Map<String, String> properties) {
         Map<String, String> eventProperties = initializeEventProperties(properties);
         if (apiId != null) {
             eventProperties.put(Event.EventProperties.API_ID.getValue(), apiId);
         }
-        EventEntity event = createEvent(executionContext, environmentsIds, type, null, eventProperties);
+        EventEntity event = createEvent(environmentsIds, type, null, eventProperties);
         createOrPatchLatestEvent(apiId, event);
         return event;
     }
 
     @Override
-    public EventEntity createApiEvent(
-        ExecutionContext executionContext,
-        Set<String> environmentsIds,
-        EventType type,
-        Api api,
-        Map<String, String> properties
-    ) {
+    public EventEntity createApiEvent(Set<String> environmentsIds, EventType type, Api api, Map<String, String> properties) {
         Map<String, String> eventProperties = initializeEventProperties(properties);
-        Api apiDefinition = api != null ? buildApiEventPayload(executionContext, api) : null;
+        Api apiDefinition = api != null ? buildApiEventPayload(api) : null;
         if (apiDefinition != null) {
             eventProperties.put(Event.EventProperties.API_ID.getValue(), apiDefinition.getId());
         }
-        EventEntity event = createEvent(executionContext, environmentsIds, type, apiDefinition, eventProperties);
+        EventEntity event = createEvent(environmentsIds, type, apiDefinition, eventProperties);
         if (apiDefinition != null) {
             createOrPatchLatestEvent(apiDefinition.getId(), event);
         }
@@ -168,28 +156,17 @@ public class EventServiceImpl extends TransactionalService implements EventServi
     }
 
     @Override
-    public EventEntity createDebugApiEvent(
-        ExecutionContext executionContext,
-        Set<String> environmentsIds,
-        EventType type,
-        DebugApi debugApi,
-        Map<String, String> properties
-    ) {
-        return createEvent(executionContext, environmentsIds, type, debugApi, properties);
+    public EventEntity createDebugApiEvent(Set<String> environmentsIds, EventType type, DebugApi debugApi, Map<String, String> properties) {
+        return createEvent(environmentsIds, type, debugApi, properties);
     }
 
     @Override
-    public EventEntity createDictionaryEvent(
-        ExecutionContext executionContext,
-        Set<String> environmentsIds,
-        EventType type,
-        Dictionary dictionary
-    ) {
+    public EventEntity createDictionaryEvent(Set<String> environmentsIds, EventType type, Dictionary dictionary) {
         Map<String, String> eventProperties = new HashMap<>();
         if (dictionary != null) {
             eventProperties.put(Event.EventProperties.DICTIONARY_ID.getValue(), dictionary.getId());
         }
-        EventEntity event = createEvent(executionContext, environmentsIds, type, dictionary, eventProperties);
+        EventEntity event = createEvent(environmentsIds, type, dictionary, eventProperties);
         if (dictionary != null) {
             createOrPatchLatestEvent(dictionary.getId(), event);
         }
@@ -197,33 +174,23 @@ public class EventServiceImpl extends TransactionalService implements EventServi
     }
 
     @Override
-    public EventEntity createDynamicDictionaryEvent(
-        ExecutionContext executionContext,
-        Set<String> environmentsIds,
-        EventType type,
-        String dictionaryId
-    ) {
+    public EventEntity createDynamicDictionaryEvent(Set<String> environmentsIds, EventType type, String dictionaryId) {
         Map<String, String> eventProperties = new HashMap<>();
         if (dictionaryId != null) {
             eventProperties.put(Event.EventProperties.DICTIONARY_ID.getValue(), dictionaryId);
         }
-        EventEntity event = createEvent(executionContext, environmentsIds, type, null, eventProperties);
+        EventEntity event = createEvent(environmentsIds, type, null, eventProperties);
         createOrPatchLatestEvent(dictionaryId + "-dynamic", event);
         return event;
     }
 
     @Override
-    public EventEntity createOrganizationEvent(
-        ExecutionContext executionContext,
-        Set<String> environmentsIds,
-        EventType type,
-        OrganizationEntity organization
-    ) {
+    public EventEntity createOrganizationEvent(Set<String> environmentsIds, EventType type, OrganizationEntity organization) {
         Map<String, String> eventProperties = new HashMap<>();
         if (organization != null) {
             eventProperties.put(Event.EventProperties.ORGANIZATION_ID.getValue(), organization.getId());
         }
-        EventEntity event = createEvent(executionContext, environmentsIds, type, organization, eventProperties);
+        EventEntity event = createEvent(environmentsIds, type, organization, eventProperties);
         if (organization != null) {
             createOrPatchLatestEvent(organization.getId(), event);
         }
@@ -238,27 +205,17 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         return eventProperties;
     }
 
-    private EventEntity createEvent(
-        ExecutionContext executionContext,
-        final Set<String> environmentsIds,
-        EventType type,
-        Object object,
-        Map<String, String> properties
-    ) {
+    private EventEntity createEvent(final Set<String> environmentsIds, EventType type, Object object, Map<String, String> properties) {
         try {
             String payload = object != null ? objectMapper.writeValueAsString(object) : null;
             NewEventEntity event = NewEventEntity.builder().type(type).payload(payload).properties(properties).build();
-            return createNewEventEntity(executionContext, environmentsIds, event);
+            return createNewEventEntity(environmentsIds, event);
         } catch (JsonProcessingException e) {
             throw new TechnicalManagementException(String.format("Failed to create event [%s]", type), e);
         }
     }
 
-    protected EventEntity createNewEventEntity(
-        ExecutionContext executionContext,
-        final Set<String> environmentsIds,
-        NewEventEntity newEventEntity
-    ) {
+    protected EventEntity createNewEventEntity(final Set<String> environmentsIds, NewEventEntity newEventEntity) {
         String hostAddress = "";
         try {
             hostAddress = InetAddress.getLocalHost().getHostAddress();
@@ -275,7 +232,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
 
             Event createdEvent = eventRepository.create(event);
 
-            return convert(executionContext, createdEvent);
+            return convert(createdEvent);
         } catch (UnknownHostException e) {
             LOGGER.error("An error occurs while getting the server IP address", e);
             throw new TechnicalManagementException("An error occurs while getting the server IP address", e);
@@ -312,7 +269,6 @@ public class EventServiceImpl extends TransactionalService implements EventServi
 
     @Override
     public Page<EventEntity> search(
-        ExecutionContext executionContext,
         List<EventType> eventTypes,
         Map<String, Object> properties,
         long from,
@@ -335,18 +291,13 @@ public class EventServiceImpl extends TransactionalService implements EventServi
 
         Page<Event> pageEvent = eventRepository.search(builder.build(), new PageableBuilder().pageNumber(page).pageSize(size).build());
 
-        List<EventEntity> content = pageEvent
-            .getContent()
-            .stream()
-            .map(event -> convert(executionContext, event))
-            .collect(Collectors.toList());
+        List<EventEntity> content = pageEvent.getContent().stream().map(this::convert).collect(Collectors.toList());
 
         return new Page<>(content, pageEvent.getPageNumber(), (int) pageEvent.getPageElements(), pageEvent.getTotalElements());
     }
 
     @Override
     public <T> Page<T> search(
-        ExecutionContext executionContext,
         List<EventType> eventTypes,
         Map<String, Object> properties,
         long from,
@@ -356,12 +307,11 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         Function<EventEntity, T> mapper,
         final List<String> environmentsIds
     ) {
-        return search(executionContext, eventTypes, properties, from, to, page, size, mapper, (T t) -> true, environmentsIds);
+        return search(eventTypes, properties, from, to, page, size, mapper, (T t) -> true, environmentsIds);
     }
 
     @Override
     public <T> Page<T> search(
-        ExecutionContext executionContext,
         List<EventType> eventTypes,
         Map<String, Object> properties,
         long from,
@@ -372,7 +322,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         Predicate<T> filter,
         final List<String> environmentsIds
     ) {
-        Page<EventEntity> result = search(executionContext, eventTypes, properties, from, to, page, size, environmentsIds);
+        Page<EventEntity> result = search(eventTypes, properties, from, to, page, size, environmentsIds);
         return new Page<>(
             result.getContent().stream().map(mapper).filter(filter).collect(Collectors.toList()),
             page,
@@ -384,7 +334,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
     @Override
     public Collection<EventEntity> search(ExecutionContext executionContext, final EventQuery query) {
         LOGGER.debug("Search APIs by {}", query);
-        return convert(executionContext, eventRepository.search(queryToCriteria(executionContext, query).build()));
+        return convert(eventRepository.search(queryToCriteria(executionContext, query).build()));
     }
 
     private EventCriteria.EventCriteriaBuilder queryToCriteria(ExecutionContext executionContext, EventQuery query) {
@@ -418,11 +368,11 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         return builder;
     }
 
-    private Set<EventEntity> convert(ExecutionContext executionContext, List<Event> events) {
-        return events.stream().map(event -> convert(executionContext, event)).collect(toSet());
+    private Set<EventEntity> convert(List<Event> events) {
+        return events.stream().map(this::convert).collect(toSet());
     }
 
-    private EventEntity convert(ExecutionContext executionContext, Event event) {
+    private EventEntity convert(Event event) {
         EventEntity eventEntity = new EventEntity();
         eventEntity.setId(event.getId());
         eventEntity.setType(io.gravitee.rest.api.model.EventType.valueOf(event.getType().toString()));
@@ -437,7 +387,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
             final String userId = event.getProperties().get(Event.EventProperties.USER.getValue());
             if (userId != null && !userId.isEmpty()) {
                 try {
-                    eventEntity.setUser(userService.findById(executionContext, userId));
+                    eventEntity.setUser(userService.findById(userId));
                 } catch (UserNotFoundException unfe) {
                     UserEntity user = new UserEntity();
                     user.setSource("system");
@@ -463,18 +413,17 @@ public class EventServiceImpl extends TransactionalService implements EventServi
     /**
      * Build gateway API event payload for given API.
      *
-     * @param executionContext
      * @param api
      * @return Gateway API event payload
      * @throws JsonProcessingException
      */
-    private Api buildApiEventPayload(ExecutionContext executionContext, Api api) {
+    private Api buildApiEventPayload(Api api) {
         try {
             Api apiForGatewayEvent = new Api(api);
             if (api.getDefinitionVersion() == null || !api.getDefinitionVersion().equals(DefinitionVersion.V4)) {
-                apiForGatewayEvent.setDefinition(objectMapper.writeValueAsString(buildGatewayApiDefinition(executionContext, api)));
+                apiForGatewayEvent.setDefinition(objectMapper.writeValueAsString(buildGatewayApiDefinition(api)));
             } else {
-                apiForGatewayEvent.setDefinition(objectMapper.writeValueAsString(buildGatewayApiDefinitionV4(executionContext, api)));
+                apiForGatewayEvent.setDefinition(objectMapper.writeValueAsString(buildGatewayApiDefinitionV4(api)));
             }
             return apiForGatewayEvent;
         } catch (JsonProcessingException e) {
@@ -488,17 +437,15 @@ public class EventServiceImpl extends TransactionalService implements EventServi
      * It reads API plans from plan collections, and API flows from flow collection ;
      * And generates gateway API definition from management API definition (containing no plans or flows).
      *
-     * @param executionContext
      * @param api
      * @return API definition
      * @throws JsonProcessingException
      */
-    private io.gravitee.definition.model.Api buildGatewayApiDefinition(ExecutionContext executionContext, Api api)
-        throws JsonProcessingException {
+    private io.gravitee.definition.model.Api buildGatewayApiDefinition(Api api) throws JsonProcessingException {
         var apiDefinition = objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.Api.class);
 
         Set<PlanEntity> plans = planService
-            .findByApi(executionContext, api.getId())
+            .findByApi(api.getId())
             .stream()
             .filter(p -> p.getStatus() != io.gravitee.rest.api.model.PlanStatus.CLOSED)
             .collect(toSet());
@@ -514,17 +461,15 @@ public class EventServiceImpl extends TransactionalService implements EventServi
      * It reads API plans from plan collections, and API flows from flow collection ;
      * And generates gateway API definition from management API definition (containing no plans or flows).
      *
-     * @param executionContext
      * @param api
      * @return API definition
      * @throws JsonProcessingException
      */
-    private io.gravitee.definition.model.v4.Api buildGatewayApiDefinitionV4(ExecutionContext executionContext, Api api)
-        throws JsonProcessingException {
+    private io.gravitee.definition.model.v4.Api buildGatewayApiDefinitionV4(Api api) throws JsonProcessingException {
         var apiDefinitionV4 = objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.v4.Api.class);
 
         Set<io.gravitee.rest.api.model.v4.plan.PlanEntity> plans = planServiceV4
-            .findByApi(executionContext, api.getId())
+            .findByApi(api.getId())
             .stream()
             .filter(p -> p.getPlanStatus() != PlanStatus.CLOSED)
             .collect(toSet());

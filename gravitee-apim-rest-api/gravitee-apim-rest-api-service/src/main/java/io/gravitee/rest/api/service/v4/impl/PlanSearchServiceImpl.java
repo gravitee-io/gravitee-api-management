@@ -78,7 +78,7 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
     }
 
     @Override
-    public GenericPlanEntity findById(final ExecutionContext executionContext, final String plan) {
+    public GenericPlanEntity findById(final String plan) {
         try {
             logger.debug("Find plan by id : {}", plan);
             return planRepository.findById(plan).map(this::mapToGeneric).orElseThrow(() -> new PlanNotFoundException(plan));
@@ -88,7 +88,7 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
     }
 
     @Override
-    public Set<GenericPlanEntity> findByIdIn(final ExecutionContext executionContext, final Set<String> ids) {
+    public Set<GenericPlanEntity> findByIdIn(final Set<String> ids) {
         try {
             return planRepository.findByIdIn(ids).stream().map(this::mapToGeneric).collect(Collectors.toSet());
         } catch (TechnicalException e) {
@@ -97,7 +97,7 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
     }
 
     @Override
-    public Set<GenericPlanEntity> findByApi(final ExecutionContext executionContext, final String apiId) {
+    public Set<GenericPlanEntity> findByApi(final String apiId) {
         try {
             logger.debug("Find plan by api : {}", apiId);
             Optional<Api> apiOptional = apiRepository.findById(apiId);
@@ -124,7 +124,7 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
 
         GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, query.getApiId());
 
-        return findByApi(executionContext, query.getApiId())
+        return findByApi(query.getApiId())
             .stream()
             .filter(p -> {
                 boolean filtered = true;

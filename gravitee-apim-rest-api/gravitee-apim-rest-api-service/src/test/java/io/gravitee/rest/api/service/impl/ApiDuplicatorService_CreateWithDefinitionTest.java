@@ -211,7 +211,7 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         memberEntity.setId(admin.getId());
         memberEntity.setRoles(Collections.singletonList(poRoleEntity));
         when(userService.findBySource(GraviteeContext.getExecutionContext(), user.getSource(), user.getSourceId(), false)).thenReturn(user);
-        when(userService.findById(GraviteeContext.getExecutionContext(), memberEntity.getId())).thenReturn(admin);
+        when(userService.findById(memberEntity.getId())).thenReturn(admin);
 
         when(apiIdsCalculatorService.recalculateApiDefinitionIds(any(), any())).then(AdditionalAnswers.returnsSecondArg());
 
@@ -250,7 +250,7 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         user.setSource(SOURCE);
         user.setSourceId("ref-user");
         when(userService.findBySource(GraviteeContext.getExecutionContext(), user.getSource(), user.getSourceId(), false)).thenReturn(user);
-        when(userService.findById(GraviteeContext.getExecutionContext(), admin.getId())).thenReturn(admin);
+        when(userService.findById(admin.getId())).thenReturn(admin);
 
         RoleEntity poRoleEntity = new RoleEntity();
         poRoleEntity.setId("API_PRIMARY_OWNER");
@@ -475,7 +475,7 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
             );
 
         // check find plans by API has been called once to remove potential pre-existing plans on target API
-        verify(planService, times(2)).findByApi(eq(GraviteeContext.getExecutionContext()), any());
+        verify(planService, times(2)).findByApi(any());
         // check planService has been called twice to create 2 plans, with same IDs as API definition
         verify(planService, times(1))
             .createOrUpdatePlan(eq(GraviteeContext.getExecutionContext()), argThat(plan -> plan.getId().equals(plan1newId)));
@@ -527,7 +527,7 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         user.setSource(SOURCE);
         user.setSourceId("ref-user");
         when(userService.findBySource(GraviteeContext.getExecutionContext(), user.getSource(), user.getSourceId(), false)).thenReturn(user);
-        when(userService.findById(GraviteeContext.getExecutionContext(), admin.getId())).thenReturn(admin);
+        when(userService.findById(admin.getId())).thenReturn(admin);
 
         RoleEntity poRoleEntity = new RoleEntity();
         poRoleEntity.setId("API_PRIMARY_OWNER");

@@ -118,7 +118,7 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
     @Override
     public RoleEntity create(ExecutionContext executionContext, final NewRoleEntity roleEntity) {
         try {
-            Role role = convert(executionContext, roleEntity);
+            Role role = convert(executionContext.getOrganizationId(), roleEntity);
             if (
                 roleRepository
                     .findByScopeAndNameAndReferenceIdAndReferenceType(
@@ -159,13 +159,13 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
 
     @Override
     public RoleEntity update(final ExecutionContext executionContext, final UpdateRoleEntity roleEntity) {
-        if (isReserved(executionContext, roleEntity.getScope(), roleEntity.getName())) {
+        if (isReserved(executionContext.getOrganizationId(), roleEntity.getScope(), roleEntity.getName())) {
             throw new RoleReservedNameException(roleEntity.getName());
         }
         RoleScope scope = roleEntity.getScope();
         try {
             Role role = roleRepository.findById(roleEntity.getId()).orElseThrow(() -> new RoleNotFoundException(roleEntity.getId()));
-            Role updatedRole = convert(executionContext, roleEntity);
+            Role updatedRole = convert(executionContext.getOrganizationId(), roleEntity);
             updatedRole.setCreatedAt(role.getCreatedAt());
             updatedRole.setReferenceId(role.getReferenceId());
             updatedRole.setReferenceType(role.getReferenceType());
@@ -331,9 +331,9 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
         }
     }
 
-    private Role convert(final ExecutionContext executionContext, final NewRoleEntity roleEntity) {
+    private Role convert(final String organizationId, final NewRoleEntity roleEntity) {
         final Role role = new Role();
-        role.setName(generateId(executionContext, roleEntity.getScope(), roleEntity.getName()));
+        role.setName(generateId(organizationId, roleEntity.getScope(), roleEntity.getName()));
         role.setDescription(roleEntity.getDescription());
         role.setScope(convert(roleEntity.getScope()));
         role.setDefaultRole(roleEntity.isDefaultRole());
@@ -343,12 +343,12 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
         return role;
     }
 
-    private Role convert(final ExecutionContext executionContext, final UpdateRoleEntity roleEntity) {
+    private Role convert(final String organizationId, final UpdateRoleEntity roleEntity) {
         if (roleEntity == null) {
             return null;
         }
         final Role role = new Role();
-        role.setName(generateId(executionContext, roleEntity.getScope(), roleEntity.getName()));
+        role.setName(generateId(organizationId, roleEntity.getScope(), roleEntity.getName()));
         role.setId(roleEntity.getId());
         role.setDescription(roleEntity.getDescription());
         role.setScope(convert(roleEntity.getScope()));
@@ -426,16 +426,16 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
         return RoleScope.valueOf(scope.name());
     }
 
-    private String generateId(ExecutionContext executionContext, RoleScope scope, String name) {
+    private String generateId(String organizationId, RoleScope scope, String name) {
         String id = name.trim().toUpperCase().replaceAll(" +", " ").replaceAll(" ", "_").replaceAll("[^\\w\\s]", "_").replaceAll("-+", "_");
-        if (isReserved(executionContext, scope, id)) {
+        if (isReserved(organizationId, scope, id)) {
             throw new RoleReservedNameException(id);
         }
         return id;
     }
 
-    private boolean isReserved(ExecutionContext executionContext, RoleScope scope, String name) {
-        ConsoleConfigEntity config = configService.getConsoleConfig(executionContext);
+    private boolean isReserved(String organizationId, RoleScope scope, String name) {
+        ConsoleConfigEntity config = configService.getConsoleConfig(organizationId);
         if (config.getManagement().getSystemRoleEdition().isEnabled()) {
             return scope == RoleScope.ORGANIZATION && SystemRole.ADMIN.name().equals(name);
         }

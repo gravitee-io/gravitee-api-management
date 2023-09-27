@@ -76,4 +76,6 @@ public interface GenericApiEntity extends Indexable {
     String getPicture();
 
     String getBackground();
+
+    String getEnvironmentId();
 }

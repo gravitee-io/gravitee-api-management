@@ -34,10 +34,10 @@ import java.util.*;
 public interface UserService {
     UserEntity connect(ExecutionContext executionContext, String userId);
 
-    UserEntity findById(ExecutionContext executionContext, String id, boolean defaultValue);
+    UserEntity findById(String id, boolean defaultValue);
 
-    default UserEntity findById(ExecutionContext executionContext, String id) {
-        return findById(executionContext, id, false);
+    default UserEntity findById(String id) {
+        return findById(id, false);
     }
 
     Optional<UserEntity> findByEmail(ExecutionContext executionContext, String email);
@@ -46,9 +46,9 @@ public interface UserService {
 
     UserEntity findBySource(ExecutionContext executionContext, String source, String sourceId, boolean loadRoles);
 
-    Set<UserEntity> findByIds(ExecutionContext executionContext, Collection<String> ids);
+    Set<UserEntity> findByIds(Collection<String> ids);
 
-    Set<UserEntity> findByIds(ExecutionContext executionContext, Collection<String> ids, boolean withUserMetadata);
+    Set<UserEntity> findByIds(Collection<String> ids, boolean withUserMetadata);
 
     UserEntity create(ExecutionContext executionContext, NewExternalUserEntity newExternalUserEntity, boolean addDefaultRole);
 
@@ -70,7 +70,7 @@ public interface UserService {
 
     UserEntity processRegistration(ExecutionContext executionContext, String userId, boolean accepted);
 
-    PictureEntity getPicture(ExecutionContext executionContext, String id);
+    PictureEntity getPicture(String id);
 
     void delete(ExecutionContext executionContext, String id);
 
@@ -78,20 +78,9 @@ public interface UserService {
 
     UserEntity resetPasswordFromSourceId(ExecutionContext executionContext, String sourceId, String resetPageUrl);
 
-    Map<String, Object> getTokenRegistrationParams(
-        ExecutionContext executionContext,
-        UserEntity userEntity,
-        String portalUri,
-        ACTION action
-    );
+    Map<String, Object> getTokenRegistrationParams(UserEntity userEntity, String portalUri, ACTION action);
 
-    Map<String, Object> getTokenRegistrationParams(
-        ExecutionContext executionContext,
-        UserEntity userEntity,
-        String portalUri,
-        ACTION action,
-        String confirmationPageUrl
-    );
+    Map<String, Object> getTokenRegistrationParams(UserEntity userEntity, String portalUri, ACTION action, String confirmationPageUrl);
 
     UserEntity create(ExecutionContext executionContext, NewPreRegisterUserEntity newPreRegisterUserEntity);
 

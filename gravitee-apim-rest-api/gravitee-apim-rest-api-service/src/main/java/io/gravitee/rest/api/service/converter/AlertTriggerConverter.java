@@ -71,7 +71,7 @@ public class AlertTriggerConverter {
         return alert;
     }
 
-    public AlertTrigger toAlertTrigger(ExecutionContext executionContext, final NewAlertTriggerEntity alertEntity) {
+    public AlertTrigger toAlertTrigger(String environmentId, final NewAlertTriggerEntity alertEntity) {
         final AlertTrigger alert = new AlertTrigger();
         alert.setId(UUID.toString(UUID.random()));
         alertEntity.setId(alert.getId());
@@ -83,7 +83,7 @@ public class AlertTriggerConverter {
         alert.setType(alertEntity.getType());
         alert.setSeverity(alertEntity.getSeverity().name());
         alert.setTemplate(alertEntity.isTemplate());
-        alert.setEnvironmentId(executionContext.getEnvironmentId());
+        alert.setEnvironmentId(environmentId);
 
         buildAlertTriggerEventRulesFromEntities(alert, alertEntity.getEventRules());
 
@@ -103,14 +103,14 @@ public class AlertTriggerConverter {
         }
     }
 
-    public AlertTrigger toAlertTrigger(ExecutionContext executionContext, final UpdateAlertTriggerEntity alertEntity) {
+    public AlertTrigger toAlertTrigger(String environmentId, final UpdateAlertTriggerEntity alertEntity) {
         final AlertTrigger alert = new AlertTrigger();
         alert.setId(alertEntity.getId());
         alert.setName(alertEntity.getName());
         alert.setDescription(alertEntity.getDescription());
         alert.setEnabled(alertEntity.isEnabled());
         alert.setSeverity(alertEntity.getSeverity().name());
-        alert.setEnvironmentId(executionContext.getEnvironmentId());
+        alert.setEnvironmentId(environmentId);
 
         alert.setEventRules(null);
         buildAlertTriggerEventRulesFromEntities(alert, alertEntity.getEventRules());

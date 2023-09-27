@@ -202,7 +202,7 @@ public class ApiSubscriptionsResource_ListTest extends ApiSubscriptionsResourceT
         when(subscriptionService.search(eq(GraviteeContext.getExecutionContext()), eq(subscriptionQuery), any(), eq(false), eq(false)))
             .thenReturn(new Page<>(subscriptionsEntities, 1, 10, 2));
 
-        when(planSearchService.findByIdIn(GraviteeContext.getExecutionContext(), Set.of("plan-1", "plan-2", "plan-3")))
+        when(planSearchService.findByIdIn(Set.of("plan-1", "plan-2", "plan-3")))
             .thenReturn(
                 Set.of(
                     PlanFixtures.aPlanEntityV4().toBuilder().id("plan-1").build(),

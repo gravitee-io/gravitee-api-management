@@ -37,7 +37,7 @@ public interface MediaService {
     List<MediaEntity> findAllWithoutContent(List<PageMediaEntity> pageMediaEntities);
     List<MediaEntity> findAllWithoutContent(List<PageMediaEntity> pageMediaEntities, String api);
 
-    Long getMediaMaxSize(ExecutionContext executionContext);
+    Long getMediaMaxSize(String environmentId);
 
     List<MediaEntity> findAllByApiId(String apiId);
 

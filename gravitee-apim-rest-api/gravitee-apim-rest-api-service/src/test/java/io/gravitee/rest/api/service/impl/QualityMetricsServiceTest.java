@@ -84,8 +84,8 @@ public class QualityMetricsServiceTest {
     public void shouldThrowExceptionIfDisabled() {
         when(
             parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
                 Key.API_QUALITY_METRICS_ENABLED,
+                GraviteeContext.getCurrentEnvironment(),
                 ParameterReferenceType.ENVIRONMENT
             )
         )
@@ -101,17 +101,17 @@ public class QualityMetricsServiceTest {
     public void shouldReturnEmptyEntityWithoutConfiguration() {
         when(
             parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
                 Key.API_QUALITY_METRICS_ENABLED,
+                GraviteeContext.getCurrentEnvironment(),
                 ParameterReferenceType.ENVIRONMENT
             )
         )
             .thenReturn(Boolean.TRUE);
         when(
             parameterService.findAll(
-                eq(GraviteeContext.getExecutionContext()),
                 anyList(),
                 any(Function.class),
+                eq(GraviteeContext.getCurrentEnvironment()),
                 any(ParameterReferenceType.class)
             )
         )
@@ -128,8 +128,8 @@ public class QualityMetricsServiceTest {
     public void shouldScore50Percent() {
         when(
             parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
                 Key.API_QUALITY_METRICS_ENABLED,
+                GraviteeContext.getCurrentEnvironment(),
                 ParameterReferenceType.ENVIRONMENT
             )
         )
@@ -139,9 +139,9 @@ public class QualityMetricsServiceTest {
         map.put(Key.API_QUALITY_METRICS_CATEGORIES_WEIGHT.key(), singletonList(1));
         when(
             parameterService.findAll(
-                eq(GraviteeContext.getExecutionContext()),
                 anyList(),
                 any(Function.class),
+                eq(GraviteeContext.getCurrentEnvironment()),
                 any(ParameterReferenceType.class)
             )
         )
@@ -162,8 +162,8 @@ public class QualityMetricsServiceTest {
     public void shouldScore100Percent() {
         when(
             parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
                 Key.API_QUALITY_METRICS_ENABLED,
+                GraviteeContext.getCurrentEnvironment(),
                 ParameterReferenceType.ENVIRONMENT
             )
         )
@@ -173,9 +173,9 @@ public class QualityMetricsServiceTest {
         map.put(Key.API_QUALITY_METRICS_CATEGORIES_WEIGHT.key(), singletonList(1));
         when(
             parameterService.findAll(
-                eq(GraviteeContext.getExecutionContext()),
                 anyList(),
                 any(Function.class),
+                eq(GraviteeContext.getCurrentEnvironment()),
                 any(ParameterReferenceType.class)
             )
         )
@@ -196,8 +196,8 @@ public class QualityMetricsServiceTest {
     public void shouldScore33Percent() {
         when(
             parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
                 Key.API_QUALITY_METRICS_ENABLED,
+                GraviteeContext.getCurrentEnvironment(),
                 ParameterReferenceType.ENVIRONMENT
             )
         )
@@ -207,9 +207,9 @@ public class QualityMetricsServiceTest {
         map.put(Key.API_QUALITY_METRICS_CATEGORIES_WEIGHT.key(), singletonList(2));
         when(
             parameterService.findAll(
-                eq(GraviteeContext.getExecutionContext()),
                 anyList(),
                 any(Function.class),
+                eq(GraviteeContext.getCurrentEnvironment()),
                 any(ParameterReferenceType.class)
             )
         )
@@ -230,8 +230,8 @@ public class QualityMetricsServiceTest {
     public void shouldScore100PercentWithManualRules() {
         when(
             parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
                 Key.API_QUALITY_METRICS_ENABLED,
+                GraviteeContext.getCurrentEnvironment(),
                 ParameterReferenceType.ENVIRONMENT
             )
         )
@@ -241,9 +241,9 @@ public class QualityMetricsServiceTest {
         map.put(Key.API_QUALITY_METRICS_CATEGORIES_WEIGHT.key(), singletonList(1));
         when(
             parameterService.findAll(
-                eq(GraviteeContext.getExecutionContext()),
                 anyList(),
                 any(Function.class),
+                eq(GraviteeContext.getCurrentEnvironment()),
                 any(ParameterReferenceType.class)
             )
         )
@@ -277,8 +277,8 @@ public class QualityMetricsServiceTest {
     public void shouldScore50PercentWithManualRules() {
         when(
             parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
                 Key.API_QUALITY_METRICS_ENABLED,
+                GraviteeContext.getCurrentEnvironment(),
                 ParameterReferenceType.ENVIRONMENT
             )
         )
@@ -288,9 +288,9 @@ public class QualityMetricsServiceTest {
         map.put(Key.API_QUALITY_METRICS_CATEGORIES_WEIGHT.key(), singletonList(1));
         when(
             parameterService.findAll(
-                eq(GraviteeContext.getExecutionContext()),
                 anyList(),
                 any(Function.class),
+                eq(GraviteeContext.getCurrentEnvironment()),
                 any(ParameterReferenceType.class)
             )
         )

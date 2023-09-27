@@ -153,7 +153,7 @@ public class MembershipService_GetMemberPermissionsTest {
             );
 
         UserEntity userEntity = mock(UserEntity.class);
-        doReturn(userEntity).when(userService).findById(GraviteeContext.getExecutionContext(), USERNAME);
+        doReturn(userEntity).when(userService).findById(USERNAME);
 
         RoleEntity roleEntity = mock(RoleEntity.class);
         Map<String, char[]> rolePerms = new HashMap<>();
@@ -189,7 +189,7 @@ public class MembershipService_GetMemberPermissionsTest {
                 GROUP_ID1
             );
         verify(apiRepository, times(1)).findById(API_ID);
-        verify(userService, times(1)).findById(GraviteeContext.getExecutionContext(), USERNAME);
+        verify(userService, times(1)).findById(USERNAME);
         verify(roleService, times(1)).findById("API_" + ROLENAME);
     }
 
@@ -220,7 +220,7 @@ public class MembershipService_GetMemberPermissionsTest {
             );
 
         UserEntity userEntity = mock(UserEntity.class);
-        doReturn(userEntity).when(userService).findById(GraviteeContext.getExecutionContext(), USERNAME);
+        doReturn(userEntity).when(userService).findById(USERNAME);
 
         RoleEntity roleEntity = mock(RoleEntity.class);
         Map<String, char[]> rolePerms = new HashMap<>();
@@ -257,7 +257,7 @@ public class MembershipService_GetMemberPermissionsTest {
                 GROUP_ID1
             );
         verify(apiRepository, times(1)).findById(API_ID);
-        verify(userService, times(1)).findById(GraviteeContext.getExecutionContext(), USERNAME);
+        verify(userService, times(1)).findById(USERNAME);
         verify(roleService, times(1)).findById("API_" + ROLENAME);
     }
 
@@ -290,7 +290,7 @@ public class MembershipService_GetMemberPermissionsTest {
             );
 
         UserEntity userEntity = mock(UserEntity.class);
-        doReturn(userEntity).when(userService).findById(GraviteeContext.getExecutionContext(), USERNAME);
+        doReturn(userEntity).when(userService).findById(USERNAME);
 
         RoleEntity roleEntity = mock(RoleEntity.class);
         Map<String, char[]> rolePerms = new HashMap<>();
@@ -348,7 +348,7 @@ public class MembershipService_GetMemberPermissionsTest {
                 GROUP_ID1
             );
         verify(apiRepository, times(1)).findById(API_ID);
-        verify(userService, times(1)).findById(GraviteeContext.getExecutionContext(), USERNAME);
+        verify(userService, times(1)).findById(USERNAME);
         verify(roleService, times(1)).findById("API_" + ROLENAME);
         verify(roleService, times(1)).findById("API_" + ROLENAME2);
     }

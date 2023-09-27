@@ -110,18 +110,18 @@ public class PrimaryOwnerServiceImpl extends TransactionalService implements Pri
         final PrimaryOwnerEntity currentPrimaryOwner
     ) {
         ApiPrimaryOwnerMode poMode = ApiPrimaryOwnerMode.valueOf(
-            this.parameterService.find(executionContext, Key.API_PRIMARY_OWNER_MODE, ParameterReferenceType.ENVIRONMENT)
+            this.parameterService.find(Key.API_PRIMARY_OWNER_MODE, executionContext.getEnvironmentId(), ParameterReferenceType.ENVIRONMENT)
         );
         switch (poMode) {
             case USER:
                 if (currentPrimaryOwner == null || ApiPrimaryOwnerMode.GROUP.name().equals(currentPrimaryOwner.getType())) {
-                    return new PrimaryOwnerEntity(userService.findById(executionContext, userId));
+                    return new PrimaryOwnerEntity(userService.findById(userId));
                 }
                 if (ApiPrimaryOwnerMode.USER.name().equals(currentPrimaryOwner.getType())) {
                     try {
-                        return new PrimaryOwnerEntity(userService.findById(executionContext, currentPrimaryOwner.getId()));
+                        return new PrimaryOwnerEntity(userService.findById(currentPrimaryOwner.getId()));
                     } catch (UserNotFoundException unfe) {
-                        return new PrimaryOwnerEntity(userService.findById(executionContext, userId));
+                        return new PrimaryOwnerEntity(userService.findById(userId));
                     }
                 }
                 break;
@@ -140,7 +140,7 @@ public class PrimaryOwnerServiceImpl extends TransactionalService implements Pri
                 if (ApiPrimaryOwnerMode.USER.name().equals(currentPrimaryOwner.getType())) {
                     try {
                         final String poUserId = currentPrimaryOwner.getId();
-                        userService.findById(executionContext, poUserId);
+                        userService.findById(poUserId);
                         final Set<GroupEntity> poGroupsOfPoUser = groupService
                             .findByUser(poUserId)
                             .stream()
@@ -160,7 +160,7 @@ public class PrimaryOwnerServiceImpl extends TransactionalService implements Pri
             case HYBRID:
             default:
                 if (currentPrimaryOwner == null) {
-                    return new PrimaryOwnerEntity(userService.findById(executionContext, userId));
+                    return new PrimaryOwnerEntity(userService.findById(userId));
                 }
                 if (ApiPrimaryOwnerMode.GROUP.name().equals(currentPrimaryOwner.getType())) {
                     try {
@@ -170,21 +170,21 @@ public class PrimaryOwnerServiceImpl extends TransactionalService implements Pri
                         try {
                             return getFirstPoGroupUserBelongsTo(executionContext, userId);
                         } catch (NoPrimaryOwnerGroupForUserException ex) {
-                            return new PrimaryOwnerEntity(userService.findById(executionContext, userId));
+                            return new PrimaryOwnerEntity(userService.findById(userId));
                         }
                     }
                 }
                 if (ApiPrimaryOwnerMode.USER.name().equals(currentPrimaryOwner.getType())) {
                     try {
-                        return new PrimaryOwnerEntity(userService.findById(executionContext, currentPrimaryOwner.getId()));
+                        return new PrimaryOwnerEntity(userService.findById(currentPrimaryOwner.getId()));
                     } catch (UserNotFoundException unfe) {
-                        return new PrimaryOwnerEntity(userService.findById(executionContext, userId));
+                        return new PrimaryOwnerEntity(userService.findById(userId));
                     }
                 }
                 break;
         }
 
-        return new PrimaryOwnerEntity(userService.findById(executionContext, userId));
+        return new PrimaryOwnerEntity(userService.findById(userId));
     }
 
     @NotNull
@@ -233,7 +233,7 @@ public class PrimaryOwnerServiceImpl extends TransactionalService implements Pri
         });
         if (!userIds.isEmpty()) {
             userService
-                .findByIds(executionContext, userIds)
+                .findByIds(userIds)
                 .forEach(userEntity -> primaryOwnerIdToPrimaryOwnerEntity.put(userEntity.getId(), new PrimaryOwnerEntity(userEntity)));
         }
         if (!groupIds.isEmpty()) {

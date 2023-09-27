@@ -71,10 +71,10 @@ public class TopApiServiceTest {
 
         when(
             parameterService.findAll(
-                eq(GraviteeContext.getExecutionContext()),
                 eq(PORTAL_TOP_APIS),
                 any(Function.class),
                 any(Predicate.class),
+                eq(GraviteeContext.getCurrentEnvironment()),
                 any(ParameterReferenceType.class)
             )
         )
@@ -101,13 +101,13 @@ public class TopApiServiceTest {
         topApiService.create(GraviteeContext.getExecutionContext(), topApi);
 
         verify(parameterService)
-            .save(GraviteeContext.getExecutionContext(), PORTAL_TOP_APIS, singletonList("api"), ParameterReferenceType.ENVIRONMENT);
+            .save(PORTAL_TOP_APIS, singletonList("api"), GraviteeContext.getCurrentEnvironment(), ParameterReferenceType.ENVIRONMENT);
         verify(parameterService)
             .findAll(
-                eq(GraviteeContext.getExecutionContext()),
                 eq(PORTAL_TOP_APIS),
                 any(Function.class),
                 any(Predicate.class),
+                eq(GraviteeContext.getCurrentEnvironment()),
                 any(ParameterReferenceType.class)
             );
     }
@@ -117,7 +117,7 @@ public class TopApiServiceTest {
         final NewTopApiEntity topApi = new NewTopApiEntity();
         topApi.setApi("api");
 
-        when(parameterService.findAll(GraviteeContext.getExecutionContext(), PORTAL_TOP_APIS, ParameterReferenceType.ENVIRONMENT))
+        when(parameterService.findAll(PORTAL_TOP_APIS, GraviteeContext.getCurrentEnvironment(), ParameterReferenceType.ENVIRONMENT))
             .thenReturn(singletonList("api"));
 
         topApiService.create(GraviteeContext.getExecutionContext(), topApi);
@@ -132,19 +132,19 @@ public class TopApiServiceTest {
         topApi2.setApi("api2");
         topApi.setOrder(1);
 
-        when(parameterService.findAll(GraviteeContext.getExecutionContext(), PORTAL_TOP_APIS, ParameterReferenceType.ENVIRONMENT))
+        when(parameterService.findAll(PORTAL_TOP_APIS, GraviteeContext.getCurrentEnvironment(), ParameterReferenceType.ENVIRONMENT))
             .thenReturn(asList("api", "api2"));
 
         topApiService.update(GraviteeContext.getExecutionContext(), asList(topApi, topApi2));
 
         verify(parameterService)
-            .save(GraviteeContext.getExecutionContext(), PORTAL_TOP_APIS, asList("api2", "api"), ParameterReferenceType.ENVIRONMENT);
+            .save(PORTAL_TOP_APIS, asList("api2", "api"), GraviteeContext.getCurrentEnvironment(), ParameterReferenceType.ENVIRONMENT);
         verify(parameterService)
             .findAll(
-                eq(GraviteeContext.getExecutionContext()),
                 eq(PORTAL_TOP_APIS),
                 any(Function.class),
                 any(Predicate.class),
+                eq(GraviteeContext.getCurrentEnvironment()),
                 any(ParameterReferenceType.class)
             );
     }
@@ -158,7 +158,7 @@ public class TopApiServiceTest {
         topApi2.setApi("api2");
         topApi.setOrder(1);
 
-        when(parameterService.findAll(GraviteeContext.getExecutionContext(), PORTAL_TOP_APIS, ParameterReferenceType.ENVIRONMENT))
+        when(parameterService.findAll(PORTAL_TOP_APIS, GraviteeContext.getCurrentEnvironment(), ParameterReferenceType.ENVIRONMENT))
             .thenReturn(singletonList("api"));
 
         topApiService.update(GraviteeContext.getExecutionContext(), asList(topApi, topApi2));
@@ -176,10 +176,10 @@ public class TopApiServiceTest {
 
         when(
             parameterService.findAll(
-                eq(GraviteeContext.getExecutionContext()),
                 eq(PORTAL_TOP_APIS),
                 any(Function.class),
                 any(Predicate.class),
+                eq(GraviteeContext.getCurrentEnvironment()),
                 any(ParameterReferenceType.class)
             )
         )
@@ -188,6 +188,6 @@ public class TopApiServiceTest {
         topApiService.delete(GraviteeContext.getExecutionContext(), "1");
 
         verify(parameterService)
-            .save(GraviteeContext.getExecutionContext(), PORTAL_TOP_APIS, singletonList("2"), ParameterReferenceType.ENVIRONMENT);
+            .save(PORTAL_TOP_APIS, singletonList("2"), GraviteeContext.getCurrentEnvironment(), ParameterReferenceType.ENVIRONMENT);
     }
 }

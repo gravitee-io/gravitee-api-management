@@ -97,7 +97,7 @@ public class ScheduledSubscriptionPreExpirationNotificationServiceTest {
         SubscriptionEntity subscription = mock(SubscriptionEntity.class);
         when(subscription.getSubscribedBy()).thenReturn(subscriberId);
 
-        when(userService.findById(GraviteeContext.getExecutionContext(), subscriberId)).thenReturn(subscriber);
+        when(userService.findById(subscriberId)).thenReturn(subscriber);
 
         PrimaryOwnerEntity primaryOwner = mock(PrimaryOwnerEntity.class);
         when(primaryOwner.getEmail()).thenReturn("primary_owner@gravitee.io");
@@ -122,7 +122,7 @@ public class ScheduledSubscriptionPreExpirationNotificationServiceTest {
         SubscriptionEntity subscription = mock(SubscriptionEntity.class);
         when(subscription.getSubscribedBy()).thenReturn(subscriberId);
 
-        when(userService.findById(GraviteeContext.getExecutionContext(), subscriberId)).thenReturn(subscriber);
+        when(userService.findById(subscriberId)).thenReturn(subscriber);
 
         PrimaryOwnerEntity primaryOwner = mock(PrimaryOwnerEntity.class);
         when(primaryOwner.getEmail()).thenReturn("primary_owner@gravitee.io");
@@ -143,8 +143,6 @@ public class ScheduledSubscriptionPreExpirationNotificationServiceTest {
         String subscriberEmail = "subscriber@gravitee.io";
 
         ApiEntity api = mock(ApiEntity.class);
-        // here api.getReferenceId() = environmentId
-        when(api.getReferenceId()).thenReturn(UUID.randomUUID().toString());
 
         PlanEntity plan = mock(PlanEntity.class);
         ApplicationEntity application = mock(ApplicationEntity.class);

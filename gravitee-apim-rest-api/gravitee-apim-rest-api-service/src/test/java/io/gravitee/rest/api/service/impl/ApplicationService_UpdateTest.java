@@ -59,6 +59,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import joptsimple.internal.Strings;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -78,6 +79,7 @@ public class ApplicationService_UpdateTest {
     private static final String APPLICATION_NAME = "myApplication";
     private static final String USER_NAME = "myUser";
     private static final String CLIENT_ID = "myClientId";
+    private static final String ENV_ID = "envId";
 
     @InjectMocks
     private ApplicationServiceImpl applicationService = new ApplicationServiceImpl();
@@ -121,6 +123,12 @@ public class ApplicationService_UpdateTest {
     @Mock
     private PlanSearchService planSearchService;
 
+    @Before
+    public void before() {
+        when(existingApplication.getEnvironmentId()).thenReturn(ENV_ID);
+        GraviteeContext.setCurrentEnvironment(ENV_ID);
+    }
+
     @Test
     public void shouldUpdate() throws TechnicalException {
         ApplicationSettings settings = new ApplicationSettings();
@@ -129,13 +137,7 @@ public class ApplicationService_UpdateTest {
         settings.setApp(clientSettings);
 
         // 'Shared API KEY' setting is enabled, allows to update to SHARED mode
-        when(
-            parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
-                Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED,
-                ParameterReferenceType.ENVIRONMENT
-            )
-        )
+        when(parameterService.findAsBoolean(Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED, ENV_ID, ParameterReferenceType.ENVIRONMENT))
             .thenReturn(true);
 
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
@@ -143,6 +145,7 @@ public class ApplicationService_UpdateTest {
         when(existingApplication.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
         when(existingApplication.getType()).thenReturn(ApplicationType.SIMPLE);
         when(existingApplication.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
+        when(existingApplication.getEnvironmentId()).thenReturn(GraviteeContext.getCurrentEnvironment());
 
         when(updateApplication.getSettings()).thenReturn(settings);
         when(updateApplication.getName()).thenReturn(APPLICATION_NAME);
@@ -185,8 +188,8 @@ public class ApplicationService_UpdateTest {
         // 'Shared API KEY' setting is enabled, allows to update to SHARED mode
         when(
             parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
                 Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED,
+                GraviteeContext.getCurrentEnvironment(),
                 ParameterReferenceType.ENVIRONMENT
             )
         )
@@ -211,8 +214,7 @@ public class ApplicationService_UpdateTest {
         pushPlanEntity.setId(pushPlanId);
         pushPlanEntity.setSecurity(null);
         pushPlanEntity.setMode(PlanMode.PUSH);
-        when(planSearchService.findByIdIn(GraviteeContext.getExecutionContext(), Set.of(apiKeyPlanId, pushPlanId)))
-            .thenReturn(Set.of(apiKeyPlanEntity, pushPlanEntity));
+        when(planSearchService.findByIdIn(Set.of(apiKeyPlanId, pushPlanId))).thenReturn(Set.of(apiKeyPlanEntity, pushPlanEntity));
 
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
         when(existingApplication.getName()).thenReturn(APPLICATION_NAME);
@@ -251,7 +253,7 @@ public class ApplicationService_UpdateTest {
         assertEquals(APPLICATION_NAME, applicationEntity.getName());
 
         verify(subscriptionService).findByApplicationAndPlan(any(ExecutionContext.class), eq(APPLICATION_ID), isNull());
-        verify(planSearchService).findByIdIn(any(ExecutionContext.class), eq(Set.of(apiKeyPlanId, pushPlanId)));
+        verify(planSearchService).findByIdIn(eq(Set.of(apiKeyPlanId, pushPlanId)));
     }
 
     @Test(expected = ApplicationNotFoundException.class)
@@ -331,6 +333,7 @@ public class ApplicationService_UpdateTest {
     public void shouldNotUpdateBecauseDifferentApplication() throws TechnicalException {
         Application other = mock(Application.class);
         when(other.getId()).thenReturn("other-app");
+        other.setEnvironmentId(ENV_ID);
 
         Map<String, String> metadata = new HashMap<>();
         metadata.put(METADATA_CLIENT_ID, CLIENT_ID);
@@ -338,7 +341,7 @@ public class ApplicationService_UpdateTest {
 
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
         when(existingApplication.getType()).thenReturn(ApplicationType.SIMPLE);
-        when(applicationRepository.findAllByEnvironment("DEFAULT", ApplicationStatus.ACTIVE)).thenReturn(Sets.newSet(other));
+        when(applicationRepository.findAllByEnvironment(ENV_ID, ApplicationStatus.ACTIVE)).thenReturn(Sets.newSet(other));
 
         when(existingApplication.getId()).thenReturn(APPLICATION_ID);
 
@@ -364,14 +367,7 @@ public class ApplicationService_UpdateTest {
         when(updateApplication.getSettings()).thenReturn(settings);
 
         // client registration is disabled
-        when(
-            parameterService.findAsBoolean(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(Key.APPLICATION_REGISTRATION_ENABLED),
-                any(),
-                eq(ParameterReferenceType.ENVIRONMENT)
-            )
-        )
+        when(parameterService.findAsBoolean(eq(Key.APPLICATION_REGISTRATION_ENABLED), any(), eq(ParameterReferenceType.ENVIRONMENT)))
             .thenReturn(false);
 
         applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
@@ -397,8 +393,8 @@ public class ApplicationService_UpdateTest {
         // 'Shared API KEY' setting is disabled
         when(
             parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
                 Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED,
+                GraviteeContext.getCurrentEnvironment(),
                 ParameterReferenceType.ENVIRONMENT
             )
         )
@@ -430,14 +426,7 @@ public class ApplicationService_UpdateTest {
         when(updateApplication.getSettings()).thenReturn(settings);
 
         // client registration is enabled
-        when(
-            parameterService.findAsBoolean(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(Key.APPLICATION_REGISTRATION_ENABLED),
-                any(),
-                eq(ParameterReferenceType.ENVIRONMENT)
-            )
-        )
+        when(parameterService.findAsBoolean(eq(Key.APPLICATION_REGISTRATION_ENABLED), any(), eq(ParameterReferenceType.ENVIRONMENT)))
             .thenReturn(true);
 
         applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
@@ -465,14 +454,7 @@ public class ApplicationService_UpdateTest {
         when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
 
         // client registration is enabled
-        when(
-            parameterService.findAsBoolean(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(Key.APPLICATION_REGISTRATION_ENABLED),
-                any(),
-                eq(ParameterReferenceType.ENVIRONMENT)
-            )
-        )
+        when(parameterService.findAsBoolean(eq(Key.APPLICATION_REGISTRATION_ENABLED), any(), eq(ParameterReferenceType.ENVIRONMENT)))
             .thenReturn(true);
 
         // oauth app settings contains everything required
@@ -526,14 +508,7 @@ public class ApplicationService_UpdateTest {
         when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
 
         // client registration is enabled
-        when(
-            parameterService.findAsBoolean(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(Key.APPLICATION_REGISTRATION_ENABLED),
-                any(),
-                eq(ParameterReferenceType.ENVIRONMENT)
-            )
-        )
+        when(parameterService.findAsBoolean(eq(Key.APPLICATION_REGISTRATION_ENABLED), any(), eq(ParameterReferenceType.ENVIRONMENT)))
             .thenReturn(true);
 
         // oauth app settings contains everything required
@@ -646,7 +621,7 @@ public class ApplicationService_UpdateTest {
         PlanEntity oauthPlanEntity = new PlanEntity();
         oauthPlanEntity.setId(oauthPlanId);
         oauthPlanEntity.setSecurity(PlanSecurityType.OAUTH2);
-        when(planSearchService.findByIdIn(GraviteeContext.getExecutionContext(), Set.of(jwtPlanId, apiKeyPlanId, oauthPlanId)))
+        when(planSearchService.findByIdIn(Set.of(jwtPlanId, apiKeyPlanId, oauthPlanId)))
             .thenReturn(Set.of(jwtPlanEntity, apiKeyPlanEntity, oauthPlanEntity));
 
         assertThrows(
@@ -655,7 +630,7 @@ public class ApplicationService_UpdateTest {
         );
 
         verify(subscriptionService).findByApplicationAndPlan(any(ExecutionContext.class), eq(APPLICATION_ID), isNull());
-        verify(planSearchService).findByIdIn(any(ExecutionContext.class), eq(Set.of(jwtPlanId, apiKeyPlanId, oauthPlanId)));
+        verify(planSearchService).findByIdIn(eq(Set.of(jwtPlanId, apiKeyPlanId, oauthPlanId)));
     }
 
     @Test
@@ -688,13 +663,12 @@ public class ApplicationService_UpdateTest {
         jwtPlanEntity.setSecurity(PlanSecurityType.JWT);
         PlanEntity apiKeyPlanEntity = new PlanEntity();
         apiKeyPlanEntity.setId(apiKeyPlanId);
-        when(planSearchService.findByIdIn(GraviteeContext.getExecutionContext(), Set.of(apiKeyPlanId)))
-            .thenReturn(Set.of(apiKeyPlanEntity));
+        when(planSearchService.findByIdIn(Set.of(apiKeyPlanId))).thenReturn(Set.of(apiKeyPlanEntity));
 
         when(
             parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
                 Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED,
+                GraviteeContext.getCurrentEnvironment(),
                 ParameterReferenceType.ENVIRONMENT
             )
         )
@@ -731,7 +705,7 @@ public class ApplicationService_UpdateTest {
         verify(applicationRepository)
             .update(argThat(application -> APPLICATION_NAME.equals(application.getName()) && application.getUpdatedAt() != null));
         verify(subscriptionService).findByApplicationAndPlan(any(ExecutionContext.class), eq(APPLICATION_ID), isNull());
-        verify(planSearchService).findByIdIn(any(ExecutionContext.class), eq(Set.of(apiKeyPlanId)));
+        verify(planSearchService).findByIdIn(eq(Set.of(apiKeyPlanId)));
     }
 
     @Test

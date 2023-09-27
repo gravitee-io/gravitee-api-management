@@ -274,7 +274,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
         if (!duplicateApiEntity.getFilteredFields().contains(API_DEFINITION_FIELD_PLANS)) {
             planService
-                .findByApi(executionContext, apiId)
+                .findByApi(apiId)
                 .forEach(plan -> {
                     plan.setId(plansIdsMap.get(plan.getId()));
                     plan.setApi(duplicatedApi.getId());
@@ -331,7 +331,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
         // merge existing plans data with plans definition data
         // cause plans definition may contain less data than plans entities (for example when rollback an API from gateway event)
-        Map<String, PlanEntity> existingPlans = readApiPlansById(executionContext, apiJsonNode.getId());
+        Map<String, PlanEntity> existingPlans = readApiPlansById(apiJsonNode.getId());
         importedApi.setPlans(readPlansToImportFromDefinition(apiJsonNode, existingPlans));
 
         return importedApi;
@@ -442,7 +442,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             .stream()
             .filter(member -> member.getType() == MembershipMemberType.USER)
             .map(member -> {
-                UserEntity userEntity = userService.findById(executionContext, member.getId());
+                UserEntity userEntity = userService.findById(member.getId());
                 return new MemberToImport(
                     userEntity.getSource(),
                     userEntity.getSourceId(),
@@ -594,7 +594,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     protected void createOrUpdatePlans(final ExecutionContext executionContext, ApiEntity apiEntity, ImportApiJsonNode apiJsonNode)
         throws IOException {
         if (apiJsonNode.hasPlans()) {
-            Map<String, PlanEntity> existingPlans = readApiPlansById(executionContext, apiEntity.getId());
+            Map<String, PlanEntity> existingPlans = readApiPlansById(apiEntity.getId());
             Set<PlanEntity> plansToImport = readPlansToImportFromDefinition(apiJsonNode, existingPlans);
 
             findRemovedPlans(existingPlans.values(), plansToImport)
@@ -611,8 +611,8 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         }
     }
 
-    private Map<String, PlanEntity> readApiPlansById(ExecutionContext executionContext, String apiId) {
-        return planService.findByApi(executionContext, apiId).stream().collect(toMap(PlanEntity::getId, Function.identity()));
+    private Map<String, PlanEntity> readApiPlansById(String apiId) {
+        return planService.findByApi(apiId).stream().collect(toMap(PlanEntity::getId, Function.identity()));
     }
 
     protected void createOrUpdatePages(final ExecutionContext executionContext, ApiEntity apiEntity, ImportApiJsonNode apiJsonNode)

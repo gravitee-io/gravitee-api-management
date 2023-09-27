@@ -95,26 +95,13 @@ public class DictionaryRefresher implements Handler<Long> {
         if (!properties.equals(dictionary.getProperties())) {
             try {
                 // Get a fresh version of the dictionary before updating its properties.
-                dictionary = dictionaryService.updateProperties(GraviteeContext.getExecutionContext(), dictionary.getId(), properties);
+                dictionary = dictionaryService.updateProperties(dictionary.getId(), properties);
             } catch (DictionaryNotFoundException e) {
                 logger.info("Trying to update a deleted dictionary {} - nothing to do...", dictionary.getId());
             } catch (Exception ex) {
                 logger.error("Unexpected error while updating and deploying the dictionary {}", dictionary.getId(), ex);
             }
         }
-    }
-
-    private UpdateDictionaryEntity convert(DictionaryEntity dictionaryEntity) {
-        UpdateDictionaryEntity dictionary = new UpdateDictionaryEntity();
-
-        dictionary.setName(dictionaryEntity.getName());
-        dictionary.setDescription(dictionaryEntity.getDescription());
-        dictionary.setType(dictionaryEntity.getType());
-        dictionary.setProperties(dictionaryEntity.getProperties());
-        dictionary.setProvider(dictionaryEntity.getProvider());
-        dictionary.setTrigger(dictionaryEntity.getTrigger());
-
-        return dictionary;
     }
 
     public void setDictionaryService(io.gravitee.rest.api.service.configuration.dictionary.DictionaryService dictionaryService) {

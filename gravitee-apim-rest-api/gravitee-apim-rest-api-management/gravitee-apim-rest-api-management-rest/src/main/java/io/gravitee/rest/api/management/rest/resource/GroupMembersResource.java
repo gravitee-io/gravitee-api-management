@@ -398,7 +398,7 @@ public class GroupMembersResource extends AbstractResource {
 
                 // Send notification
                 if (previousApiRole == null && previousApplicationRole == null && previousGroupRole == null && updatedMembership != null) {
-                    UserEntity userEntity = this.userService.findById(executionContext, updatedMembership.getId());
+                    UserEntity userEntity = this.userService.findById(updatedMembership.getId());
                     Map<String, Object> params = new HashMap<>();
                     params.put("group", groupEntity);
                     params.put("user", userEntity);

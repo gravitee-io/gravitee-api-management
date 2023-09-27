@@ -24,11 +24,9 @@ import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
-import io.gravitee.repository.management.model.AccessPoint;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.RestrictedDomainEntity;
 import io.gravitee.rest.api.service.AccessPointService;
-import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.v4.exception.HttpListenerPathMissingException;
 import io.gravitee.rest.api.service.v4.exception.InvalidHostException;
 import io.gravitee.rest.api.service.v4.exception.PathAlreadyExistsException;
@@ -70,7 +68,7 @@ public class PathValidationServiceImpl implements PathValidationService {
     }
 
     @Override
-    public List<Path> validateAndSanitizePaths(final ExecutionContext executionContext, final String apiId, final List<Path> paths) {
+    public List<Path> validateAndSanitizePaths(final String environmentId, final String apiId, final List<Path> paths) {
         if (paths == null || paths.isEmpty()) {
             throw new HttpListenerPathMissingException();
         }
@@ -80,12 +78,12 @@ public class PathValidationServiceImpl implements PathValidationService {
             .toList();
 
         // validate domain restrictions
-        validateDomainRestrictions(executionContext, sanitizedPaths);
+        validateDomainRestrictions(environmentId, sanitizedPaths);
 
         // Get all the paths declared on all API of the currentEnvironment, except the one to update
         apiRepository
             .search(
-                new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId()).build(),
+                new ApiCriteria.Builder().environmentId(environmentId).build(),
                 null,
                 new ApiFieldFilter.Builder().excludePicture().build()
             )
@@ -194,10 +192,8 @@ public class PathValidationServiceImpl implements PathValidationService {
         return DUPLICATE_SLASH_REMOVER.matcher(sanitizedPath).replaceAll(URI_PATH_SEPARATOR);
     }
 
-    private void validateDomainRestrictions(final ExecutionContext executionContext, final List<Path> paths) {
-        final List<RestrictedDomainEntity> restrictedDomains = accessPointService.getGatewayRestrictedDomains(
-            executionContext.getEnvironmentId()
-        );
+    private void validateDomainRestrictions(final String environmentId, final List<Path> paths) {
+        final List<RestrictedDomainEntity> restrictedDomains = accessPointService.getGatewayRestrictedDomains(environmentId);
         if (restrictedDomains != null && !restrictedDomains.isEmpty()) {
             for (Path path : paths) {
                 String host = path.getHost();

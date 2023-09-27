@@ -118,7 +118,11 @@ public class ApiSubscriptionApiKeysResource extends AbstractApiKeyResource {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (
             StringUtils.isNotEmpty(customApiKey) &&
-            !parameterService.findAsBoolean(executionContext, Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED, ParameterReferenceType.ENVIRONMENT)
+            !parameterService.findAsBoolean(
+                Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED,
+                executionContext.getEnvironmentId(),
+                ParameterReferenceType.ENVIRONMENT
+            )
         ) {
             return Response.status(Response.Status.BAD_REQUEST).entity("You are not allowed to provide a custom API Key").build();
         }

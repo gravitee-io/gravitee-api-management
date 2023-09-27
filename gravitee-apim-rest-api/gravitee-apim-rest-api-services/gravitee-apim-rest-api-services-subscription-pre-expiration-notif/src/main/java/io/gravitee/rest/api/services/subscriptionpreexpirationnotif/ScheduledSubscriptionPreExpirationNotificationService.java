@@ -148,8 +148,8 @@ public class ScheduledSubscriptionPreExpirationNotificationService extends Abstr
             .stream()
             .filter(subscription -> !notifiedSubscriptionIds.contains(subscription.getId()))
             .forEach(subscription -> {
-                GenericApiEntity api = apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), subscription.getApi());
-                GenericPlanEntity plan = planSearchService.findById(GraviteeContext.getExecutionContext(), subscription.getPlan());
+                GenericApiEntity api = apiSearchService.findGenericById(subscription.getApi());
+                GenericPlanEntity plan = planSearchService.findById(subscription.getPlan());
 
                 findEmailsToNotify(subscription, application)
                     .forEach(email -> this.sendEmail(email, daysToExpiration, api, plan, application, apiKey));
@@ -174,7 +174,7 @@ public class ScheduledSubscriptionPreExpirationNotificationService extends Abstr
 
     private void notifySubscriptionExpiration(Integer daysToExpiration, SubscriptionEntity subscription) {
         GenericApiEntity api = apiSearchService.findById(GraviteeContext.getExecutionContext(), subscription.getApi());
-        GenericPlanEntity plan = planSearchService.findById(GraviteeContext.getExecutionContext(), subscription.getPlan());
+        GenericPlanEntity plan = planSearchService.findById(subscription.getPlan());
 
         ApplicationEntity application = applicationService.findById(GraviteeContext.getExecutionContext(), subscription.getApplication());
 
@@ -232,7 +232,7 @@ public class ScheduledSubscriptionPreExpirationNotificationService extends Abstr
     @VisibleForTesting
     Set<String> findEmailsToNotify(SubscriptionEntity subscription, ApplicationEntity application) {
         Set<String> emails = new HashSet<>();
-        emails.add(userService.findById(GraviteeContext.getExecutionContext(), subscription.getSubscribedBy()).getEmail());
+        emails.add(userService.findById(subscription.getSubscribedBy()).getEmail());
         emails.add(application.getPrimaryOwner().getEmail());
 
         // Email can be null, in that case we can't send a notification so just remove it

@@ -81,7 +81,6 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
         // If empty, get the default entrypoint
         if (apiEntrypoints.isEmpty()) {
             String defaultEntrypoint = parameterService.find(
-                executionContext,
                 Key.PORTAL_ENTRYPOINT,
                 executionContext.getEnvironmentId(),
                 ParameterReferenceType.ENVIRONMENT

@@ -15,9 +15,15 @@
  */
 package io.gravitee.rest.api.service.spring;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.event.impl.SimpleEvent;
@@ -49,8 +55,8 @@ public class GraviteeJavaMailManagerTest {
     @Before
     public void setUp() {
         reset(parameterService, eventManager);
-        GraviteeContext.setCurrentOrganization("DEFAULT");
-        GraviteeContext.setCurrentEnvironment("DEFAULT");
+        GraviteeContext.setCurrentOrganization(GraviteeContext.getDefaultEnvironment());
+        GraviteeContext.setCurrentEnvironment(GraviteeContext.getDefaultEnvironment());
 
         graviteeJavaMailManager = new GraviteeJavaMailManager(parameterService, eventManager);
     }
@@ -62,13 +68,13 @@ public class GraviteeJavaMailManagerTest {
 
     @Test
     public void shouldInializeOnlyOnceWhenGettingMailManager() {
-        GraviteeContext.setCurrentEnvironment("DEFAULT");
+        GraviteeContext.setCurrentEnvironment(GraviteeContext.getDefaultEnvironment());
         assertNull(graviteeJavaMailManager.getMailSenderByReference(GraviteeContext.getCurrentContext()));
 
         // Initialize the field only when we get the mail sender for the first time.
         JavaMailSender mailSender = graviteeJavaMailManager.getOrCreateMailSender(
             GraviteeContext.getExecutionContext(),
-            "DEFAULT",
+            GraviteeContext.getDefaultEnvironment(),
             ParameterReferenceType.ENVIRONMENT
         );
         assertNotNull(mailSender);
@@ -76,21 +82,21 @@ public class GraviteeJavaMailManagerTest {
         // If we call this getter a second time, then we do not initialize anymore
         JavaMailSender mailSender2 = graviteeJavaMailManager.getOrCreateMailSender(
             GraviteeContext.getExecutionContext(),
-            "DEFAULT",
+            GraviteeContext.getDefaultEnvironment(),
             ParameterReferenceType.ENVIRONMENT
         );
         assertSame(mailSender, mailSender2);
 
         verify(parameterService, times(1))
-            .find(GraviteeContext.getExecutionContext(), Key.EMAIL_HOST, "DEFAULT", ParameterReferenceType.ENVIRONMENT);
+            .find(Key.EMAIL_HOST, GraviteeContext.getDefaultEnvironment(), ParameterReferenceType.ENVIRONMENT);
         verify(parameterService, times(1))
-            .find(GraviteeContext.getExecutionContext(), Key.EMAIL_PORT, "DEFAULT", ParameterReferenceType.ENVIRONMENT);
+            .find(Key.EMAIL_PORT, GraviteeContext.getDefaultEnvironment(), ParameterReferenceType.ENVIRONMENT);
         verify(parameterService, times(1))
-            .find(GraviteeContext.getExecutionContext(), Key.EMAIL_USERNAME, "DEFAULT", ParameterReferenceType.ENVIRONMENT);
+            .find(Key.EMAIL_USERNAME, GraviteeContext.getDefaultEnvironment(), ParameterReferenceType.ENVIRONMENT);
         verify(parameterService, times(1))
-            .find(GraviteeContext.getExecutionContext(), Key.EMAIL_PASSWORD, "DEFAULT", ParameterReferenceType.ENVIRONMENT);
+            .find(Key.EMAIL_PASSWORD, GraviteeContext.getDefaultEnvironment(), ParameterReferenceType.ENVIRONMENT);
         verify(parameterService, times(1))
-            .find(GraviteeContext.getExecutionContext(), Key.EMAIL_PROTOCOL, "DEFAULT", ParameterReferenceType.ENVIRONMENT);
+            .find(Key.EMAIL_PROTOCOL, GraviteeContext.getDefaultEnvironment(), ParameterReferenceType.ENVIRONMENT);
         verify(parameterService, times(1))
             .findAll(
                 argThat((List<Key> o) ->
@@ -98,18 +104,17 @@ public class GraviteeJavaMailManagerTest {
                     o.contains(Key.EMAIL_PROPERTIES_STARTTLS_ENABLE) &&
                     o.contains(Key.EMAIL_PROPERTIES_SSL_TRUST)
                 ),
-                eq("DEFAULT"),
-                eq(ParameterReferenceType.ENVIRONMENT),
-                eq(GraviteeContext.getExecutionContext())
+                eq(GraviteeContext.getDefaultEnvironment()),
+                eq(ParameterReferenceType.ENVIRONMENT)
             );
     }
 
     @Test
     public void shouldSetFieldsOnEvent() {
-        GraviteeContext.setCurrentEnvironment("DEFAULT");
+        GraviteeContext.setCurrentEnvironment(GraviteeContext.getDefaultEnvironment());
         JavaMailSenderImpl mailSender = (JavaMailSenderImpl) graviteeJavaMailManager.getOrCreateMailSender(
             GraviteeContext.getExecutionContext(),
-            "DEFAULT",
+            GraviteeContext.getDefaultEnvironment(),
             ParameterReferenceType.ENVIRONMENT
         );
         assertNotNull(mailSender);
@@ -135,17 +140,17 @@ public class GraviteeJavaMailManagerTest {
 
     @Test
     public void shouldNotSetFieldsOnEventWithAnotherRef() {
-        GraviteeContext.setCurrentEnvironment("DEFAULT");
+        GraviteeContext.setCurrentEnvironment(GraviteeContext.getDefaultEnvironment());
         JavaMailSenderImpl mailSender = (JavaMailSenderImpl) graviteeJavaMailManager.getOrCreateMailSender(
             GraviteeContext.getExecutionContext(),
-            "DEFAULT",
+            GraviteeContext.getDefaultEnvironment(),
             ParameterReferenceType.ENVIRONMENT
         );
 
         GraviteeContext.setCurrentEnvironment("ANOTHER_ENVIRONMENT");
         JavaMailSenderImpl otherMailSender = (JavaMailSenderImpl) graviteeJavaMailManager.getOrCreateMailSender(
             GraviteeContext.getExecutionContext(),
-            "DEFAULT",
+            GraviteeContext.getDefaultEnvironment(),
             ParameterReferenceType.ENVIRONMENT
         );
 
@@ -176,6 +181,6 @@ public class GraviteeJavaMailManagerTest {
     }
 
     private Parameter buildParameter(String value) {
-        return this.buildParameter(value, "DEFAULT", ParameterReferenceType.ENVIRONMENT);
+        return this.buildParameter(value, GraviteeContext.getDefaultEnvironment(), ParameterReferenceType.ENVIRONMENT);
     }
 }

@@ -74,7 +74,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         doReturn(api).when(apiMapper).convert(eq(GraviteeContext.getExecutionContext()), any());
         doReturn(new Page()).when(pageMapper).convert(any());
         doReturn(new Plan()).when(planMapper).convert(any());
-        doReturn(new Rating()).when(ratingMapper).convert(eq(GraviteeContext.getExecutionContext()), any(), any());
+        doReturn(new Rating()).when(ratingMapper).convert(any(), any());
     }
 
     @Test
@@ -123,9 +123,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         plan3.setValidation(PlanValidationType.MANUAL);
         plan3.setStatus(PlanStatus.CLOSED);
 
-        doReturn(new HashSet<>(Arrays.asList(plan1, plan2, plan3)))
-            .when(planSearchService)
-            .findByApi(GraviteeContext.getExecutionContext(), API);
+        doReturn(new HashSet<>(Arrays.asList(plan1, plan2, plan3))).when(planSearchService).findByApi(API);
 
         // For pages
         doReturn(true).when(accessControlService).canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API);

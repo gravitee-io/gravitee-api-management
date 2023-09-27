@@ -76,7 +76,7 @@ public class ApplicationMembersResource extends AbstractResource {
         List<Member> membersList = membershipService
             .getMembersByReference(executionContext, MembershipReferenceType.APPLICATION, applicationId)
             .stream()
-            .map(membership -> memberMapper.convert(executionContext, membership, uriInfo))
+            .map(membership -> memberMapper.convert(membership, uriInfo))
             .collect(Collectors.toList());
 
         return createListResponse(executionContext, membersList, paginationParam);
@@ -104,10 +104,7 @@ public class ApplicationMembersResource extends AbstractResource {
             new MembershipService.MembershipRole(RoleScope.APPLICATION, memberInput.getRole())
         );
 
-        return Response
-            .created(this.getLocationHeader(membership.getId()))
-            .entity(memberMapper.convert(GraviteeContext.getExecutionContext(), membership, uriInfo))
-            .build();
+        return Response.created(this.getLocationHeader(membership.getId())).entity(memberMapper.convert(membership, uriInfo)).build();
     }
 
     @GET
@@ -121,7 +118,7 @@ public class ApplicationMembersResource extends AbstractResource {
         applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);
 
         //Does user exist ?
-        userService.findById(GraviteeContext.getExecutionContext(), memberId);
+        userService.findById(memberId);
 
         MemberEntity memberEntity = membershipService.getUserMember(
             GraviteeContext.getExecutionContext(),
@@ -130,7 +127,7 @@ public class ApplicationMembersResource extends AbstractResource {
             memberId
         );
         if (memberEntity != null) {
-            return Response.ok(memberMapper.convert(GraviteeContext.getExecutionContext(), memberEntity, uriInfo)).build();
+            return Response.ok(memberMapper.convert(memberEntity, uriInfo)).build();
         }
         throw new NotFoundException();
     }
@@ -143,7 +140,7 @@ public class ApplicationMembersResource extends AbstractResource {
         applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);
 
         //Does user exist ?
-        userService.findById(GraviteeContext.getExecutionContext(), memberId);
+        userService.findById(memberId);
 
         membershipService.deleteReferenceMember(
             GraviteeContext.getExecutionContext(),
@@ -168,7 +165,7 @@ public class ApplicationMembersResource extends AbstractResource {
         applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);
 
         //Does user exist ?
-        userService.findById(GraviteeContext.getExecutionContext(), memberId);
+        userService.findById(memberId);
 
         if (memberInput.getUser() != null && !memberId.equals(memberInput.getUser())) {
             throw new BadRequestException("'memberInput.user' should the same as 'memberId'");
@@ -186,7 +183,7 @@ public class ApplicationMembersResource extends AbstractResource {
             new MembershipService.MembershipRole(RoleScope.APPLICATION, memberInput.getRole())
         );
 
-        return Response.ok(memberMapper.convert(GraviteeContext.getExecutionContext(), membership, uriInfo)).build();
+        return Response.ok(memberMapper.convert(membership, uriInfo)).build();
     }
 
     @POST

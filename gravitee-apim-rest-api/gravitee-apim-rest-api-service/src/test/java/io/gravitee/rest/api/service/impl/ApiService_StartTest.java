@@ -129,7 +129,7 @@ public class ApiService_StartTest {
             new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter))
         );
         UserEntity u = new UserEntity();
-        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(u);
+        when(userService.findById(any())).thenReturn(u);
         when(primaryOwnerService.getPrimaryOwner(any(), any())).thenReturn(new PrimaryOwnerEntity(new UserEntity()));
         when(api.getId()).thenReturn(API_ID);
     }
@@ -154,7 +154,6 @@ public class ApiService_StartTest {
         verify(apiRepository).update(api);
         verify(eventService)
             .createApiEvent(
-                eq(GraviteeContext.getExecutionContext()),
                 eq(singleton(GraviteeContext.getCurrentEnvironment())),
                 eq(EventType.START_API),
                 argThat((ArgumentMatcher<Api>) argApi -> argApi.getId().equals(API_ID)),
@@ -179,7 +178,7 @@ public class ApiService_StartTest {
         verify(api).setUpdatedAt(any());
         verify(api).setLifecycleState(LifecycleState.STARTED);
         verify(apiRepository).update(api);
-        verify(eventService, times(0)).createApiEvent(any(), any(), any(), any(Api.class), any());
+        verify(eventService, times(0)).createApiEvent(any(), any(), any(Api.class), any());
         verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.API_STARTED), eq(API_ID), any());
     }
 

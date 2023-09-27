@@ -192,7 +192,7 @@ public class ApiImportExportServiceImplTest {
 
         verify(apiSearchService).findGenericById(GraviteeContext.getExecutionContext(), API_ID);
         verify(apiMetadataService, never()).findAllByApi(API_ID);
-        verify(planService, never()).findByApi(GraviteeContext.getExecutionContext(), API_ID);
+        verify(planService, never()).findByApi(API_ID);
         verify(pageService, never()).findByApi(GraviteeContext.getCurrentEnvironment(), API_ID);
         verify(mediaService, never()).findAllByApiId(API_ID);
     }
@@ -215,7 +215,7 @@ public class ApiImportExportServiceImplTest {
         verify(apiSearchService).findGenericById(GraviteeContext.getExecutionContext(), API_ID);
         verify(membershipService).getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID);
         verify(apiMetadataService, never()).findAllByApi(API_ID);
-        verify(planService, never()).findByApi(GraviteeContext.getExecutionContext(), API_ID);
+        verify(planService, never()).findByApi(API_ID);
         verify(pageService, never()).findByApi(GraviteeContext.getCurrentEnvironment(), API_ID);
         verify(mediaService, never()).findAllByApiId(API_ID);
     }
@@ -237,7 +237,7 @@ public class ApiImportExportServiceImplTest {
         verify(membershipService, never())
             .getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID);
         verify(apiMetadataService).findAllByApi(API_ID);
-        verify(planService, never()).findByApi(GraviteeContext.getExecutionContext(), API_ID);
+        verify(planService, never()).findByApi(API_ID);
         verify(pageService, never()).findByApi(GraviteeContext.getCurrentEnvironment(), API_ID);
         verify(mediaService, never()).findAllByApiId(API_ID);
     }
@@ -247,7 +247,7 @@ public class ApiImportExportServiceImplTest {
         mockPermissions(false, false, true, false);
 
         doReturn(this.fakeApiEntityV4()).when(apiSearchService).findGenericById(GraviteeContext.getExecutionContext(), API_ID);
-        doReturn(this.fakeApiPlans()).when(planService).findByApi(GraviteeContext.getExecutionContext(), API_ID);
+        doReturn(this.fakeApiPlans()).when(planService).findByApi(API_ID);
 
         final ExportApiEntity export = cut.exportApi(GraviteeContext.getExecutionContext(), API_ID, USER_ID);
         assertNull(export.getMembers());
@@ -260,7 +260,7 @@ public class ApiImportExportServiceImplTest {
         verify(membershipService, never())
             .getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID);
         verify(apiMetadataService, never()).findAllByApi(API_ID);
-        verify(planService).findByApi(GraviteeContext.getExecutionContext(), API_ID);
+        verify(planService).findByApi(API_ID);
         verify(pageService, never()).findByApi(GraviteeContext.getCurrentEnvironment(), API_ID);
         verify(mediaService, never()).findAllByApiId(API_ID);
     }
@@ -284,7 +284,7 @@ public class ApiImportExportServiceImplTest {
         verify(membershipService, never())
             .getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID);
         verify(apiMetadataService, never()).findAllByApi(API_ID);
-        verify(planService, never()).findByApi(GraviteeContext.getExecutionContext(), API_ID);
+        verify(planService, never()).findByApi(API_ID);
         verify(pageService).findByApi(GraviteeContext.getCurrentEnvironment(), API_ID);
         verify(mediaService).findAllByApiId(API_ID);
     }

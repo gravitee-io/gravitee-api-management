@@ -90,7 +90,7 @@ public class TokenAuthenticationFilterTest {
         UserEntity user = mock(UserEntity.class);
         when(user.getId()).thenReturn(USER_ID);
         when(user.getOrganizationId()).thenReturn(ORG_ID);
-        when(userService.findById(GraviteeContext.getExecutionContext(), USER_ID)).thenReturn(user);
+        when(userService.findById(USER_ID)).thenReturn(user);
 
         filter.doFilter(request, response, filterChain);
 
@@ -143,7 +143,7 @@ public class TokenAuthenticationFilterTest {
         when(token.getReferenceId()).thenReturn(USER_ID);
         when(tokenService.findByToken(TOKEN)).thenReturn(token);
 
-        when(userService.findById(GraviteeContext.getExecutionContext(), USER_ID)).thenThrow(new UserNotFoundException(USER_ID));
+        when(userService.findById(USER_ID)).thenThrow(new UserNotFoundException(USER_ID));
 
         filter.doFilter(request, response, filterChain);
 

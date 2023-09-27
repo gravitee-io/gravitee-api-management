@@ -24,7 +24,7 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface PathValidationService {
-    List<Path> validateAndSanitizePaths(ExecutionContext executionContext, String apiId, List<Path> paths);
+    List<Path> validateAndSanitizePaths(String environmentId, String apiId, List<Path> paths);
 
     String sanitizePath(String path);
 }

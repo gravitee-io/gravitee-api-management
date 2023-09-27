@@ -130,7 +130,7 @@ public class ApplicationService_RestoreTest {
         when(applicationRepository.update(app)).thenReturn(fakeApp(true));
         when(subscriptionService.findByApplicationAndPlan(eq(GraviteeContext.getExecutionContext()), any(), any()))
             .thenReturn(Collections.emptyList());
-        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(new UserEntity());
+        when(userService.findById(any())).thenReturn(new UserEntity());
 
         ApplicationEntity result = applicationService.restore(GraviteeContext.getExecutionContext(), APP);
 

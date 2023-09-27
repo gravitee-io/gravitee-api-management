@@ -74,7 +74,7 @@ public class ApiIdsCalculatorServiceImpl implements ApiIdsCalculatorService {
             api,
             toRecalculate.getPages()
         );
-        recalculatePlanIdsFromCrossIds(executionContext, api, toRecalculate.getPlans(), newPageIdsByOldPageIds);
+        recalculatePlanIdsFromCrossIds(api, toRecalculate.getPlans(), newPageIdsByOldPageIds);
     }
 
     /**
@@ -105,13 +105,12 @@ public class ApiIdsCalculatorServiceImpl implements ApiIdsCalculatorService {
     }
 
     private void recalculatePlanIdsFromCrossIds(
-        ExecutionContext executionContext,
         ApiEntity api,
         Set<PlanEntity> plansToRecalculate,
         Map<String, String> newPageIdsByOldPageIds
     ) {
         Map<String, PlanEntity> plansByCrossId = planService
-            .findByApi(executionContext, api.getId())
+            .findByApi(api.getId())
             .stream()
             .filter(plan -> plan.getCrossId() != null)
             .collect(toMap(PlanEntity::getCrossId, Function.identity()));

@@ -39,6 +39,7 @@ import io.gravitee.rest.api.service.exceptions.ApplicationRenewClientSecretExcep
 import io.gravitee.rest.api.service.impl.ApplicationServiceImpl;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.register.ClientRegistrationResponse;
 import java.util.*;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -52,8 +53,8 @@ import org.mockito.junit.MockitoJUnitRunner;
 public class ApplicationService_RenewClientSecretTest {
 
     private static final String APP = "my-app";
-    private static final String ORGANIZATION_ID = "DEFAULT";
-    private static final String ENVIRONMENT_ID = "DEFAULT";
+    private static final String ORGANIZATION_ID = "orgaId";
+    private static final String ENVIRONMENT_ID = "envId";
 
     @InjectMocks
     private ApplicationServiceImpl applicationService = new ApplicationServiceImpl();
@@ -78,6 +79,12 @@ public class ApplicationService_RenewClientSecretTest {
 
     @Mock
     private RoleService roleService;
+
+    @Before
+    public void before() {
+        GraviteeContext.setCurrentOrganization(ORGANIZATION_ID);
+        GraviteeContext.setCurrentEnvironment(ENVIRONMENT_ID);
+    }
 
     @Test(expected = ApplicationNotFoundException.class)
     public void should_throw_exception_cause_application_not_exists() throws TechnicalException {
@@ -106,9 +113,8 @@ public class ApplicationService_RenewClientSecretTest {
         // client registration is disabled
         when(
             parameterService.findAsBoolean(
-                eq(GraviteeContext.getExecutionContext()),
                 eq(Key.APPLICATION_REGISTRATION_ENABLED),
-                any(),
+                eq(ENVIRONMENT_ID),
                 eq(ParameterReferenceType.ENVIRONMENT)
             )
         )
@@ -128,9 +134,8 @@ public class ApplicationService_RenewClientSecretTest {
         // client registration is enabled
         when(
             parameterService.findAsBoolean(
-                eq(GraviteeContext.getExecutionContext()),
                 eq(Key.APPLICATION_REGISTRATION_ENABLED),
-                any(),
+                eq(ENVIRONMENT_ID),
                 eq(ParameterReferenceType.ENVIRONMENT)
             )
         )
@@ -157,9 +162,8 @@ public class ApplicationService_RenewClientSecretTest {
         // client registration is enabled
         when(
             parameterService.findAsBoolean(
-                eq(GraviteeContext.getExecutionContext()),
                 eq(Key.APPLICATION_REGISTRATION_ENABLED),
-                any(),
+                eq(ENVIRONMENT_ID),
                 eq(ParameterReferenceType.ENVIRONMENT)
             )
         )

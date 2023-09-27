@@ -192,18 +192,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
         eventEntity.setType(EventType.PUBLISH_API);
         eventEntity.setPayload(objectMapper.writeValueAsString(apiEntity));
 
-        when(
-            eventService.search(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(Arrays.asList(PUBLISH_API, EventType.UNPUBLISH_API)),
-                any(),
-                eq(0L),
-                eq(0L),
-                eq(0),
-                eq(1),
-                any()
-            )
-        )
+        when(eventService.search(eq(Arrays.asList(PUBLISH_API, EventType.UNPUBLISH_API)), any(), eq(0L), eq(0L), eq(0), eq(1), any()))
             .thenReturn(new Page<>(singletonList(eventEntity), 0, 1, 1));
 
         final boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), apiEntity);
@@ -211,16 +200,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
         assertThat(isSynchronized).isTrue();
 
         verify(eventService, times(1))
-            .search(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(Arrays.asList(PUBLISH_API, EventType.UNPUBLISH_API)),
-                any(),
-                eq(0L),
-                eq(0L),
-                eq(0),
-                eq(1),
-                any()
-            );
+            .search(eq(Arrays.asList(PUBLISH_API, EventType.UNPUBLISH_API)), any(), eq(0L), eq(0L), eq(0), eq(1), any());
         verify(synchronizationService, times(1)).checkSynchronization(any(), any(), any());
     }
 
@@ -239,39 +219,18 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
         eventEntity.setType(EventType.PUBLISH_API);
         eventEntity.setPayload(objectMapper.writeValueAsString(apiEntity));
 
-        when(
-            eventService.search(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(Arrays.asList(PUBLISH_API, EventType.UNPUBLISH_API)),
-                any(),
-                eq(0L),
-                eq(0L),
-                eq(0),
-                eq(1),
-                any()
-            )
-        )
+        when(eventService.search(eq(Arrays.asList(PUBLISH_API, EventType.UNPUBLISH_API)), any(), eq(0L), eq(0L), eq(0), eq(1), any()))
             .thenReturn(new Page<>(singletonList(eventEntity), 0, 1, 1));
 
         // Mock apiConverter to return the defined apiEntity
-        when(apiConverter.toApiEntity(eq(GraviteeContext.getExecutionContext()), any(), eq(null), eq(null), eq(false)))
-            .thenReturn(apiEntity);
+        when(apiConverter.toApiEntity(any(), eq(null), eq(null), eq(false))).thenReturn(apiEntity);
 
         final boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertThat(isSynchronized).isTrue();
 
         verify(eventService, times(1))
-            .search(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(Arrays.asList(PUBLISH_API, EventType.UNPUBLISH_API)),
-                any(),
-                eq(0L),
-                eq(0L),
-                eq(0),
-                eq(1),
-                any()
-            );
+            .search(eq(Arrays.asList(PUBLISH_API, EventType.UNPUBLISH_API)), any(), eq(0L), eq(0L), eq(0), eq(1), any());
         verify(synchronizationService, times(1)).checkSynchronization(any(), any(), any());
     }
 
@@ -290,23 +249,11 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
         eventEntity.setType(EventType.PUBLISH_API);
         eventEntity.setPayload(objectMapper.writeValueAsString(apiEntity));
 
-        when(
-            eventService.search(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(Arrays.asList(PUBLISH_API, EventType.UNPUBLISH_API)),
-                any(),
-                eq(0L),
-                eq(0L),
-                eq(0),
-                eq(1),
-                any()
-            )
-        )
+        when(eventService.search(eq(Arrays.asList(PUBLISH_API, EventType.UNPUBLISH_API)), any(), eq(0L), eq(0L), eq(0), eq(1), any()))
             .thenReturn(new Page<>(singletonList(eventEntity), 0, 1, 1));
 
         // Mock apiConverter to return the defined apiEntity
-        when(apiConverter.toApiEntity(eq(GraviteeContext.getExecutionContext()), any(), eq(null), eq(null), eq(false)))
-            .thenReturn(apiEntity);
+        when(apiConverter.toApiEntity(any(), eq(null), eq(null), eq(false))).thenReturn(apiEntity);
 
         // Add second flow to simulate a change
         io.gravitee.definition.model.flow.Flow secondFlow = new io.gravitee.definition.model.flow.Flow();
@@ -317,16 +264,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
         assertThat(isSynchronized).isTrue();
 
         verify(eventService, times(1))
-            .search(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(Arrays.asList(PUBLISH_API, EventType.UNPUBLISH_API)),
-                any(),
-                eq(0L),
-                eq(0L),
-                eq(0),
-                eq(1),
-                any()
-            );
+            .search(eq(Arrays.asList(PUBLISH_API, EventType.UNPUBLISH_API)), any(), eq(0L), eq(0L), eq(0), eq(1), any());
         verify(synchronizationService, times(1)).checkSynchronization(any(), any(), any());
     }
 
@@ -344,18 +282,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
         List<Flow> apiFlows = List.of(mock(Flow.class), mock(Flow.class));
         apiEntity.setFlows(apiFlows);
 
-        when(
-            eventService.search(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(Arrays.asList(PUBLISH_API, EventType.UNPUBLISH_API)),
-                any(),
-                eq(0L),
-                eq(0L),
-                eq(0),
-                eq(1),
-                any()
-            )
-        )
+        when(eventService.search(eq(Arrays.asList(PUBLISH_API, EventType.UNPUBLISH_API)), any(), eq(0L), eq(0L), eq(0), eq(1), any()))
             .thenReturn(new Page<>(singletonList(eventEntity), 0, 1, 1));
 
         final boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), apiEntity);
@@ -363,16 +290,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
         assertThat(isSynchronized).isFalse();
 
         verify(eventService, times(1))
-            .search(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(Arrays.asList(PUBLISH_API, EventType.UNPUBLISH_API)),
-                any(),
-                eq(0L),
-                eq(0L),
-                eq(0),
-                eq(1),
-                any()
-            );
+            .search(eq(Arrays.asList(PUBLISH_API, EventType.UNPUBLISH_API)), any(), eq(0L), eq(0L), eq(0), eq(1), any());
         verify(synchronizationService, times(1)).checkSynchronization(any(), any(), any());
     }
 
@@ -390,18 +308,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
         eventEntity.setType(EventType.PUBLISH_API);
         eventEntity.setPayload(objectMapper.writeValueAsString(apiEntity));
 
-        when(
-            eventService.search(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(Arrays.asList(PUBLISH_API, EventType.UNPUBLISH_API)),
-                any(),
-                eq(0L),
-                eq(0L),
-                eq(0),
-                eq(1),
-                any()
-            )
-        )
+        when(eventService.search(eq(Arrays.asList(PUBLISH_API, EventType.UNPUBLISH_API)), any(), eq(0L), eq(0L), eq(0), eq(1), any()))
             .thenReturn(new Page<>(singletonList(eventEntity), 0, 1, 1));
 
         final PlanEntity planPublished = new PlanEntity();
@@ -414,26 +321,16 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
         // Date after API but not published -> No redeploy needed
         planStaging.setNeedRedeployAt(Date.from(now.plus(1, ChronoUnit.DAYS)));
 
-        when(planSearchService.findByApi(eq(GraviteeContext.getExecutionContext()), eq(apiEntity.getId())))
-            .thenReturn(Set.of(planPublished, planStaging));
+        when(planSearchService.findByApi(eq(apiEntity.getId()))).thenReturn(Set.of(planPublished, planStaging));
 
         final boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertThat(isSynchronized).isTrue();
 
         verify(eventService, times(1))
-            .search(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(Arrays.asList(PUBLISH_API, EventType.UNPUBLISH_API)),
-                any(),
-                eq(0L),
-                eq(0L),
-                eq(0),
-                eq(1),
-                any()
-            );
+            .search(eq(Arrays.asList(PUBLISH_API, EventType.UNPUBLISH_API)), any(), eq(0L), eq(0L), eq(0), eq(1), any());
         verify(synchronizationService, times(1)).checkSynchronization(any(), any(), any());
-        verify(planSearchService, times(1)).findByApi(any(), any());
+        verify(planSearchService, times(1)).findByApi(any());
     }
 
     @Test
@@ -450,18 +347,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
         eventEntity.setType(EventType.PUBLISH_API);
         eventEntity.setPayload(objectMapper.writeValueAsString(apiEntity));
 
-        when(
-            eventService.search(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(Arrays.asList(PUBLISH_API, EventType.UNPUBLISH_API)),
-                any(),
-                eq(0L),
-                eq(0L),
-                eq(0),
-                eq(1),
-                any()
-            )
-        )
+        when(eventService.search(eq(Arrays.asList(PUBLISH_API, EventType.UNPUBLISH_API)), any(), eq(0L), eq(0L), eq(0), eq(1), any()))
             .thenReturn(new Page<>(singletonList(eventEntity), 0, 1, 1));
 
         final PlanEntity planPublished = new PlanEntity();
@@ -469,25 +355,15 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
         // Date after API -> Redeploy needed
         planPublished.setNeedRedeployAt(Date.from(now.plus(1, ChronoUnit.DAYS)));
 
-        when(planSearchService.findByApi(eq(GraviteeContext.getExecutionContext()), eq(apiEntity.getId())))
-            .thenReturn(Set.of(planPublished));
+        when(planSearchService.findByApi(eq(apiEntity.getId()))).thenReturn(Set.of(planPublished));
 
         final boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertThat(isSynchronized).isFalse();
 
         verify(eventService, times(1))
-            .search(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(Arrays.asList(PUBLISH_API, EventType.UNPUBLISH_API)),
-                any(),
-                eq(0L),
-                eq(0L),
-                eq(0),
-                eq(1),
-                any()
-            );
+            .search(eq(Arrays.asList(PUBLISH_API, EventType.UNPUBLISH_API)), any(), eq(0L), eq(0L), eq(0), eq(1), any());
         verify(synchronizationService, times(1)).checkSynchronization(any(), any(), any());
-        verify(planSearchService, times(1)).findByApi(any(), any());
+        verify(planSearchService, times(1)).findByApi(any());
     }
 }

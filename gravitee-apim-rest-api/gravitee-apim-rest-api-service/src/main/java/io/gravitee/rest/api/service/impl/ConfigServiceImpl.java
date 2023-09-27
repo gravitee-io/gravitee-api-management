@@ -84,9 +84,9 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
     private static final String SENSITIVE_VALUE = "********";
 
     @Override
-    public boolean portalLoginForced(ExecutionContext executionContext) {
+    public boolean portalLoginForced(String environmentId) {
         boolean result = false;
-        final PortalAuthentication auth = getPortalSettings(executionContext).getAuthentication();
+        final PortalAuthentication auth = getPortalSettings(environmentId).getAuthentication();
         if (auth.getForceLogin() != null) {
             result = auth.getForceLogin().isEnabled();
         }
@@ -94,54 +94,41 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
     }
 
     @Override
-    public PortalConfigEntity getPortalConfig(ExecutionContext executionContext) {
-        return MAPPER.convertValue(getPortalSettings(executionContext), PortalConfigEntity.class);
+    public PortalConfigEntity getPortalConfig(String environmentId) {
+        return MAPPER.convertValue(getPortalSettings(environmentId), PortalConfigEntity.class);
     }
 
     @Override
-    public PortalSettingsEntity getPortalSettings(ExecutionContext executionContext) {
+    public PortalSettingsEntity getPortalSettings(String environmentId) {
         PortalSettingsEntity portalConfigEntity = new PortalSettingsEntity();
         Object[] objects = getObjectArray(portalConfigEntity);
 
-        loadConfigByReference(
-            executionContext,
-            objects,
-            portalConfigEntity,
-            executionContext.getEnvironmentId(),
-            ParameterReferenceType.ENVIRONMENT
-        );
+        loadConfigByReference(objects, portalConfigEntity, environmentId, ParameterReferenceType.ENVIRONMENT);
         enhanceFromConfigFile(portalConfigEntity);
-        enhanceFromRepository(executionContext, portalConfigEntity);
+        enhanceFromRepository(environmentId, portalConfigEntity);
 
         return portalConfigEntity;
     }
 
     @Override
-    public ConsoleConfigEntity getConsoleConfig(ExecutionContext executionContext) {
-        return MAPPER.convertValue(getConsoleSettings(executionContext), ConsoleConfigEntity.class);
+    public ConsoleConfigEntity getConsoleConfig(String organizationId) {
+        return MAPPER.convertValue(getConsoleSettings(organizationId), ConsoleConfigEntity.class);
     }
 
     @Override
-    public ConsoleSettingsEntity getConsoleSettings(ExecutionContext executionContext) {
+    public ConsoleSettingsEntity getConsoleSettings(String organizationId) {
         ConsoleSettingsEntity consoleConfigEntity = new ConsoleSettingsEntity();
         Object[] objects = getObjectArray(consoleConfigEntity);
 
-        loadConfigByReference(
-            executionContext,
-            objects,
-            consoleConfigEntity,
-            executionContext.getOrganizationId(),
-            ParameterReferenceType.ORGANIZATION
-        );
+        loadConfigByReference(objects, consoleConfigEntity, organizationId, ParameterReferenceType.ORGANIZATION);
         enhanceFromConfigFile(consoleConfigEntity);
 
-        enhanceFromRepository(executionContext, consoleConfigEntity);
+        enhanceFromRepository(organizationId, consoleConfigEntity);
 
         return consoleConfigEntity;
     }
 
     private void loadConfigByReference(
-        ExecutionContext executionContext,
         Object[] objects,
         AbstractCommonSettingsEntity configEntity,
         String referenceId,
@@ -158,7 +145,6 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
             }
         }
         Map<String, List<String>> parameterMap = parameterService.findAll(
-            executionContext,
             parameterKeys,
             value -> value == null ? null : value.trim(),
             referenceId,
@@ -279,8 +265,8 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
         portalConfigEntity.setReCaptcha(reCaptcha);
     }
 
-    private void enhanceFromRepository(final ExecutionContext executionContext, final PortalSettingsEntity portalConfigEntity) {
-        String portalCustomUrl = accessPointService.getPortalUrl(executionContext.getEnvironmentId());
+    private void enhanceFromRepository(final String environmentId, final PortalSettingsEntity portalConfigEntity) {
+        String portalCustomUrl = accessPointService.getPortalUrl(environmentId);
         if (portalCustomUrl != null) {
             portalConfigEntity.getPortal().setUrl(portalCustomUrl);
             portalConfigEntity.getMetadata().add(PortalSettingsEntity.METADATA_READONLY, Key.PORTAL_URL.key());
@@ -299,8 +285,8 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
         consoleSettingsEntity.setNewsletter(newsletter);
     }
 
-    private void enhanceFromRepository(final ExecutionContext executionContext, final ConsoleSettingsEntity consoleConfigEntity) {
-        String consoleCustomUrl = accessPointService.getConsoleUrl(executionContext.getOrganizationId());
+    private void enhanceFromRepository(final String executionContext, final ConsoleSettingsEntity consoleConfigEntity) {
+        String consoleCustomUrl = accessPointService.getConsoleUrl(executionContext);
         if (consoleCustomUrl != null) {
             consoleConfigEntity.getManagement().setUrl(consoleCustomUrl);
             consoleConfigEntity.getMetadata().add(PortalSettingsEntity.METADATA_READONLY, Key.MANAGEMENT_URL.key());
@@ -308,23 +294,18 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
     }
 
     @Override
-    public void save(ExecutionContext executionContext, PortalSettingsEntity portalSettingsEntity) {
+    public void save(String environmentId, PortalSettingsEntity portalSettingsEntity) {
         Object[] objects = getObjectArray(portalSettingsEntity);
-        saveConfigByReference(executionContext, objects, executionContext.getEnvironmentId(), ParameterReferenceType.ENVIRONMENT);
+        saveConfigByReference(objects, environmentId, ParameterReferenceType.ENVIRONMENT);
     }
 
     @Override
-    public void save(ExecutionContext executionContext, ConsoleSettingsEntity consoleSettingsEntity) {
+    public void save(String organizationId, ConsoleSettingsEntity consoleSettingsEntity) {
         Object[] objects = getObjectArray(consoleSettingsEntity);
-        saveConfigByReference(executionContext, objects, executionContext.getOrganizationId(), ParameterReferenceType.ORGANIZATION);
+        saveConfigByReference(objects, organizationId, ParameterReferenceType.ORGANIZATION);
     }
 
-    private void saveConfigByReference(
-        ExecutionContext executionContext,
-        Object[] objects,
-        String referenceId,
-        ParameterReferenceType referenceType
-    ) {
+    private void saveConfigByReference(Object[] objects, String referenceId, ParameterReferenceType referenceType) {
         for (Object o : objects) {
             for (Field f : o.getClass().getDeclaredFields()) {
                 ParameterKey parameterKey = f.getAnnotation(ParameterKey.class);
@@ -334,30 +315,24 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
                     try {
                         if (Enabled.class.isAssignableFrom(f.getType())) {
                             final String value = f.get(o) == null ? null : Boolean.toString(((Enabled) f.get(o)).isEnabled());
-                            parameterService.save(executionContext, parameterKey.value(), value, referenceId, referenceType);
+                            parameterService.save(parameterKey.value(), value, referenceId, referenceType);
                         } else if (Boolean.class.isAssignableFrom(f.getType())) {
                             final String value = f.get(o) == null ? null : Boolean.toString((Boolean) f.get(o));
-                            parameterService.save(executionContext, parameterKey.value(), value, referenceId, referenceType);
+                            parameterService.save(parameterKey.value(), value, referenceId, referenceType);
                         } else if (Integer.class.isAssignableFrom(f.getType())) {
                             final String value = f.get(o) == null ? null : Integer.toString((Integer) f.get(o));
-                            parameterService.save(executionContext, parameterKey.value(), value, referenceId, referenceType);
+                            parameterService.save(parameterKey.value(), value, referenceId, referenceType);
                         } else if (Long.class.isAssignableFrom(f.getType())) {
                             final String value = f.get(o) == null ? null : Long.toString((Long) f.get(o));
-                            parameterService.save(executionContext, parameterKey.value(), value, referenceId, referenceType);
+                            parameterService.save(parameterKey.value(), value, referenceId, referenceType);
                         } else if (List.class.isAssignableFrom(f.getType())) {
-                            parameterService.save(executionContext, parameterKey.value(), (List) f.get(o), referenceId, referenceType);
+                            parameterService.save(parameterKey.value(), (List) f.get(o), referenceId, referenceType);
                         } else if (Map.class.isAssignableFrom(f.getType())) {
-                            parameterService.save(executionContext, parameterKey.value(), (Map) f.get(o), referenceId, referenceType);
+                            parameterService.save(parameterKey.value(), (Map) f.get(o), referenceId, referenceType);
                         } else {
                             final String value = (String) f.get(o);
                             if (!parameterKey.sensitive() || !SENSITIVE_VALUE.equals(value)) {
-                                parameterService.save(
-                                    executionContext,
-                                    parameterKey.value(),
-                                    (String) f.get(o),
-                                    referenceId,
-                                    referenceType
-                                );
+                                parameterService.save(parameterKey.value(), (String) f.get(o), referenceId, referenceType);
                             }
                         }
                     } catch (IllegalAccessException e) {

@@ -84,7 +84,7 @@ public class ConfigurationIdentitiesResourceTest extends AbstractResourceTest {
             .findAll(eq(GraviteeContext.getExecutionContext()), any());
 
         PortalSettingsEntity configEntity = new PortalSettingsEntity();
-        doReturn(configEntity).when(configService).getPortalSettings(GraviteeContext.getExecutionContext());
+        doReturn(configEntity).when(configService).getPortalSettings(GraviteeContext.getCurrentEnvironment());
 
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());

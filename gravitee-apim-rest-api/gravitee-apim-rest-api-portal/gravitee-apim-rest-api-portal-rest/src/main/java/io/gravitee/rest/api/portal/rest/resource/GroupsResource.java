@@ -77,7 +77,7 @@ public class GroupsResource extends AbstractResource {
                 groupMemberEntity != null &&
                 groupMemberEntity.getRoles().stream().anyMatch(role -> role.getScope().equals(RoleScope.APPLICATION))
             )
-            .map(groupMemberEntity -> memberMapper.convert(executionContext, groupMemberEntity, uriInfo))
+            .map(groupMemberEntity -> memberMapper.convert(groupMemberEntity, uriInfo))
             .collect(toList());
 
         return createListResponse(executionContext, groupsMembers, paginationParam);

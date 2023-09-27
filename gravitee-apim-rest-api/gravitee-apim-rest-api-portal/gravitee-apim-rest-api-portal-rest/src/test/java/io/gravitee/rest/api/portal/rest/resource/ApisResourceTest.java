@@ -153,8 +153,8 @@ public class ApisResourceTest extends AbstractResourceTest {
 
         when(
             parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
                 Key.PORTAL_APIS_SHOW_TAGS_IN_APIHEADER,
+                GraviteeContext.getCurrentEnvironment(),
                 ParameterReferenceType.ENVIRONMENT
             )
         )
@@ -235,8 +235,8 @@ public class ApisResourceTest extends AbstractResourceTest {
     public void shouldGetAllApisWithoutLabels() {
         when(
             parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
                 Key.PORTAL_APIS_SHOW_TAGS_IN_APIHEADER,
+                GraviteeContext.getCurrentEnvironment(),
                 ParameterReferenceType.ENVIRONMENT
             )
         )
@@ -330,8 +330,8 @@ public class ApisResourceTest extends AbstractResourceTest {
     public void shouldSearchApisWithoutLabel() throws TechnicalException {
         when(
             parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
                 Key.PORTAL_APIS_SHOW_TAGS_IN_APIHEADER,
+                GraviteeContext.getCurrentEnvironment(),
                 ParameterReferenceType.ENVIRONMENT
             )
         )

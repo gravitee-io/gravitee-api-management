@@ -92,8 +92,8 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
         fakeApplicationEntity.setPrimaryOwner(new PrimaryOwnerEntity(fakeUserEntity));
         fakeApplicationEntity.setApiKeyMode(ApiKeyMode.EXCLUSIVE);
 
-        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(fakeUserEntity);
-        when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(fakePlanEntity);
+        when(userService.findById(any())).thenReturn(fakeUserEntity);
+        when(planSearchService.findById(any())).thenReturn(fakePlanEntity);
         when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(fakeApplicationEntity);
 
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
@@ -114,8 +114,8 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
             .thenReturn(fakeSubscriptionEntity);
         when(
             parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
                 Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED,
+                GraviteeContext.getCurrentEnvironment(),
                 ParameterReferenceType.ENVIRONMENT
             )
         )
@@ -152,8 +152,8 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
             .thenReturn(fakeSubscriptionEntity);
         when(
             parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
                 Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED,
+                GraviteeContext.getCurrentEnvironment(),
                 ParameterReferenceType.ENVIRONMENT
             )
         )

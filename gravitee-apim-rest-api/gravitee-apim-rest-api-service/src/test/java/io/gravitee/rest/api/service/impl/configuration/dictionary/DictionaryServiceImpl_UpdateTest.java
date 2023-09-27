@@ -98,30 +98,14 @@ public class DictionaryServiceImpl_UpdateTest {
         )
             .thenReturn(updatedDictionary);
 
-        DictionaryEntity dictionaryEntityUpdated = dictionaryService.update(
-            GraviteeContext.getExecutionContext(),
-            dictionaryInDb.getId(),
-            updateDictionaryEntity
-        );
+        DictionaryEntity dictionaryEntityUpdated = dictionaryService.update(dictionaryInDb.getId(), updateDictionaryEntity);
         assertNotNull(dictionaryEntityUpdated);
 
         verify(dictionaryRepository, times(1)).update(any(Dictionary.class));
         verify(eventService, never())
-            .createDynamicDictionaryEvent(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(Collections.singleton(ENVIRONMENT_ID)),
-                eq(EventType.START_DICTIONARY),
-                eq("dictionaryId")
-            );
+            .createDynamicDictionaryEvent(eq(Collections.singleton(ENVIRONMENT_ID)), eq(EventType.START_DICTIONARY), eq("dictionaryId"));
         verify(auditService, times(1))
-            .createAuditLog(
-                eq(GraviteeContext.getExecutionContext()),
-                any(),
-                eq(Dictionary.AuditEvent.DICTIONARY_UPDATED),
-                eq(updatedDictionary.getUpdatedAt()),
-                any(),
-                any()
-            );
+            .createAuditLog(any(), any(), eq(Dictionary.AuditEvent.DICTIONARY_UPDATED), eq(updatedDictionary.getUpdatedAt()), any(), any());
     }
 
     @Test
@@ -160,30 +144,14 @@ public class DictionaryServiceImpl_UpdateTest {
         )
             .thenReturn(updatedDictionary);
 
-        DictionaryEntity dictionaryEntityUpdated = dictionaryService.update(
-            GraviteeContext.getExecutionContext(),
-            dictionaryInDb.getId(),
-            updateDictionaryEntity
-        );
+        DictionaryEntity dictionaryEntityUpdated = dictionaryService.update(dictionaryInDb.getId(), updateDictionaryEntity);
         assertNotNull(dictionaryEntityUpdated);
 
         verify(dictionaryRepository, times(1)).update(any(Dictionary.class));
         verify(eventService, times(1))
-            .createDynamicDictionaryEvent(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(Collections.singleton(ENVIRONMENT_ID)),
-                eq(EventType.START_DICTIONARY),
-                eq("dictionaryId")
-            );
+            .createDynamicDictionaryEvent(eq(Collections.singleton(ENVIRONMENT_ID)), eq(EventType.START_DICTIONARY), eq("dictionaryId"));
         verify(auditService, times(1))
-            .createAuditLog(
-                eq(GraviteeContext.getExecutionContext()),
-                any(),
-                eq(Dictionary.AuditEvent.DICTIONARY_UPDATED),
-                eq(updatedDictionary.getUpdatedAt()),
-                any(),
-                any()
-            );
+            .createAuditLog(any(), any(), eq(Dictionary.AuditEvent.DICTIONARY_UPDATED), eq(updatedDictionary.getUpdatedAt()), any(), any());
     }
 
     @Test(expected = DictionaryNotFoundException.class)
@@ -192,6 +160,6 @@ public class DictionaryServiceImpl_UpdateTest {
 
         UpdateDictionaryEntity updateDictionaryEntity = new UpdateDictionaryEntity();
         updateDictionaryEntity.setName("UpdatedName");
-        dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, updateDictionaryEntity);
+        dictionaryService.update(DICTIONARY_ID, updateDictionaryEntity);
     }
 }

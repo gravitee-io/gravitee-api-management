@@ -212,9 +212,15 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             apiValidationService.validateAndSanitizeNewApi(executionContext, newApiEntity, primaryOwner);
 
-            Api repositoryApi = apiMapper.toRepository(executionContext, newApiEntity);
+            Api repositoryApi = apiMapper.toRepository(executionContext.getEnvironmentId(), newApiEntity);
             repositoryApi.setApiLifecycleState(ApiLifecycleState.CREATED);
-            if (parameterService.findAsBoolean(executionContext, Key.API_REVIEW_ENABLED, ParameterReferenceType.ENVIRONMENT)) {
+            if (
+                parameterService.findAsBoolean(
+                    Key.API_REVIEW_ENABLED,
+                    executionContext.getEnvironmentId(),
+                    ParameterReferenceType.ENVIRONMENT
+                )
+            ) {
                 workflowService.create(WorkflowReferenceType.API, repositoryApi.getId(), REVIEW, userId, DRAFT, "");
             }
 
@@ -244,7 +250,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             flowService.save(FlowReferenceType.API, createdApi.getId(), newApiEntity.getFlows());
 
             //TODO add membership log
-            ApiEntity apiEntity = apiMapper.toEntity(executionContext, createdApi, primaryOwner, null, true);
+            ApiEntity apiEntity = apiMapper.toEntity(createdApi, primaryOwner, null, true);
             GenericApiEntity apiWithMetadata = apiMetadataService.fetchMetadataForApi(executionContext, apiEntity);
 
             searchEngineService.index(executionContext, apiWithMetadata, false);
@@ -277,8 +283,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext, userId, apiEntity.getPrimaryOwner());
         apiValidationService.validateAndSanitizeImportApiForCreation(executionContext, apiEntity, primaryOwner);
 
-        Api repositoryApi = apiMapper.toRepository(executionContext, apiEntity);
-        repositoryApi.setEnvironmentId(executionContext.getEnvironmentId());
+        Api repositoryApi = apiMapper.toRepository(executionContext.getEnvironmentId(), apiEntity);
         // Set date fields
         repositoryApi.setCreatedAt(new Date());
         repositoryApi.setUpdatedAt(repositoryApi.getCreatedAt());
@@ -317,7 +322,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             repositoryApi.getGroups().add(primaryOwner.getId());
         }
 
-        if (parameterService.findAsBoolean(executionContext, Key.API_REVIEW_ENABLED, ParameterReferenceType.ENVIRONMENT)) {
+        if (
+            parameterService.findAsBoolean(Key.API_REVIEW_ENABLED, executionContext.getEnvironmentId(), ParameterReferenceType.ENVIRONMENT)
+        ) {
             workflowService.create(WorkflowReferenceType.API, id, REVIEW, userId, DRAFT, "");
         }
 
@@ -354,7 +361,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         // create the API flows
         flowService.save(FlowReferenceType.API, createdApi.getId(), apiEntity.getFlows());
 
-        ApiEntity createdApiEntity = apiMapper.toEntity(executionContext, createdApi, primaryOwner, null, true);
+        ApiEntity createdApiEntity = apiMapper.toEntity(createdApi, primaryOwner, null, true);
         GenericApiEntity apiWithMetadata = apiMetadataService.fetchMetadataForApi(executionContext, createdApiEntity);
 
         searchEngineService.index(executionContext, apiWithMetadata, false);
@@ -408,7 +415,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext, userId, null);
 
             Api apiToUpdate = apiRepository.findById(apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
-            final ApiEntity existingApiEntity = apiMapper.toEntity(executionContext, apiToUpdate, primaryOwner, null, false);
+            final ApiEntity existingApiEntity = apiMapper.toEntity(apiToUpdate, primaryOwner, null, false);
 
             apiValidationService.validateAndSanitizeUpdateApi(executionContext, updateApiEntity, primaryOwner, existingApiEntity);
 
@@ -464,7 +471,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             if (io.gravitee.rest.api.model.api.ApiLifecycleState.DEPRECATED == updateApiEntity.getLifecycleState()) {
                 planSearchService
-                    .findByApi(executionContext, apiId)
+                    .findByApi(apiId)
                     .forEach(plan -> {
                         if (PlanStatus.PUBLISHED == plan.getPlanStatus() || PlanStatus.STAGING == plan.getPlanStatus()) {
                             planService.deprecate(executionContext, plan.getId(), true);
@@ -477,10 +484,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     });
             }
 
-            Api api = apiMapper.toRepository(executionContext, updateApiEntity);
+            Api api = apiMapper.toRepository(apiToUpdate.getEnvironmentId(), updateApiEntity);
 
             // Copy fields from existing values
-            api.setEnvironmentId(apiToUpdate.getEnvironmentId());
             api.setDeployedAt(apiToUpdate.getDeployedAt());
             api.setCreatedAt(apiToUpdate.getCreatedAt());
             api.setLifecycleState(apiToUpdate.getLifecycleState());
@@ -531,7 +537,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 updatedApi
             );
 
-            if (parameterService.findAsBoolean(executionContext, Key.LOGGING_AUDIT_TRAIL_ENABLED, ParameterReferenceType.ENVIRONMENT)) {
+            if (
+                parameterService.findAsBoolean(Key.LOGGING_AUDIT_TRAIL_ENABLED, api.getEnvironmentId(), ParameterReferenceType.ENVIRONMENT)
+            ) {
                 Logging existingApiLogging = null;
                 if (existingApiEntity.getAnalytics() != null) {
                     existingApiLogging = existingApiEntity.getAnalytics().getLogging();
@@ -544,7 +552,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 auditApiLogging(executionContext, updateApiEntity.getId(), existingApiLogging, updateApiLogging);
             }
 
-            ApiEntity apiEntity = apiMapper.toEntity(executionContext, updatedApi, primaryOwner, null, true);
+            ApiEntity apiEntity = apiMapper.toEntity(updatedApi, primaryOwner, null, true);
             GenericApiEntity apiWithMetadata = apiMetadataService.fetchMetadataForApi(executionContext, apiEntity);
             apiNotificationService.triggerUpdateNotification(executionContext, apiWithMetadata);
 
@@ -575,7 +583,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 throw new ApiRunningStateException(apiId);
             }
 
-            Set<GenericPlanEntity> plans = planSearchService.findByApi(executionContext, apiId);
+            Set<GenericPlanEntity> plans = planSearchService.findByApi(apiId);
             if (closePlans) {
                 plans =
                     plans
@@ -614,13 +622,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             if (getAuthenticatedUser() != null) {
                 properties.put(Event.EventProperties.USER.getValue(), getAuthenticatedUser().getUsername());
             }
-            eventService.createApiEvent(
-                executionContext,
-                singleton(executionContext.getEnvironmentId()),
-                EventType.UNPUBLISH_API,
-                apiId,
-                properties
-            );
+            eventService.createApiEvent(singleton(executionContext.getEnvironmentId()), EventType.UNPUBLISH_API, apiId, properties);
 
             // Delete pages
             pageService.deleteAllByApi(executionContext, apiId);
@@ -642,7 +644,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             // Audit
             auditService.createApiAuditLog(executionContext, apiId, Collections.emptyMap(), API_DELETED, new Date(), api, null);
             // remove from search engine
-            searchEngineService.delete(executionContext, apiMapper.toEntity(executionContext, api, null, null, false));
+            searchEngineService.delete(executionContext, apiMapper.toEntity(api, null, null, false));
 
             mediaService.deleteAllByApi(apiId);
 

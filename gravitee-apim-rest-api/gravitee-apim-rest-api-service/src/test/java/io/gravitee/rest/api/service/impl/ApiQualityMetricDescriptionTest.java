@@ -51,8 +51,8 @@ public class ApiQualityMetricDescriptionTest {
     public void shouldNotBeValidWithNull() {
         when(
             parameterService.findAll(
-                GraviteeContext.getExecutionContext(),
                 Key.API_QUALITY_METRICS_DESCRIPTION_MIN_LENGTH,
+                GraviteeContext.getCurrentEnvironment(),
                 ParameterReferenceType.ENVIRONMENT
             )
         )
@@ -69,8 +69,8 @@ public class ApiQualityMetricDescriptionTest {
     public void shouldNotBeValidWithNotEnoughDefaultLength() {
         when(
             parameterService.findAll(
-                GraviteeContext.getExecutionContext(),
                 Key.API_QUALITY_METRICS_DESCRIPTION_MIN_LENGTH,
+                GraviteeContext.getCurrentEnvironment(),
                 ParameterReferenceType.ENVIRONMENT
             )
         )
@@ -87,8 +87,8 @@ public class ApiQualityMetricDescriptionTest {
     public void shouldBeValidWithEnoughDefaultLength() {
         when(
             parameterService.findAll(
-                GraviteeContext.getExecutionContext(),
                 Key.API_QUALITY_METRICS_DESCRIPTION_MIN_LENGTH,
+                GraviteeContext.getCurrentEnvironment(),
                 ParameterReferenceType.ENVIRONMENT
             )
         )
@@ -117,8 +117,8 @@ public class ApiQualityMetricDescriptionTest {
     public void shouldBeValidWithEnoughCustomLength() {
         when(
             parameterService.findAll(
-                GraviteeContext.getExecutionContext(),
                 Key.API_QUALITY_METRICS_DESCRIPTION_MIN_LENGTH,
+                GraviteeContext.getCurrentEnvironment(),
                 ParameterReferenceType.ENVIRONMENT
             )
         )
@@ -135,8 +135,8 @@ public class ApiQualityMetricDescriptionTest {
     public void shouldNotBeValidWithNotEnoughCustomLength() {
         when(
             parameterService.findAll(
-                GraviteeContext.getExecutionContext(),
                 Key.API_QUALITY_METRICS_DESCRIPTION_MIN_LENGTH,
+                GraviteeContext.getCurrentEnvironment(),
                 ParameterReferenceType.ENVIRONMENT
             )
         )

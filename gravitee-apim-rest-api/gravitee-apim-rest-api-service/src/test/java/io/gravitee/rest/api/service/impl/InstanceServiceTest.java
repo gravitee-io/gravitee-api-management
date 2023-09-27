@@ -86,7 +86,7 @@ public class InstanceServiceTest {
         final EventEntity evt = new EventEntity();
         evt.setProperties(Map.of("id", "evt-id"));
 
-        when(eventService.findById(executionContext, "evt-id")).thenReturn(evt);
+        when(eventService.findById("evt-id")).thenReturn(evt);
 
         final InstanceEntity result = cut.findByEvent(executionContext, "evt-id");
 
@@ -100,7 +100,7 @@ public class InstanceServiceTest {
         final EventEntity evt = new EventEntity();
         evt.setProperties(Map.of("id", "evt-id", Event.EventProperties.ENVIRONMENTS_HRIDS_PROPERTY.getValue(), "evt-env"));
 
-        when(eventService.findById(executionContext, "evt-id")).thenReturn(evt);
+        when(eventService.findById("evt-id")).thenReturn(evt);
 
         final InstanceEntity result = cut.findByEvent(executionContext, "evt-id");
 
@@ -114,7 +114,7 @@ public class InstanceServiceTest {
         final EventEntity evt = new EventEntity();
         evt.setProperties(Map.of("id", "evt-id", Event.EventProperties.ORGANIZATIONS_HRIDS_PROPERTY.getValue(), "evt-org"));
 
-        when(eventService.findById(executionContext, "evt-id")).thenReturn(evt);
+        when(eventService.findById("evt-id")).thenReturn(evt);
 
         final InstanceEntity result = cut.findByEvent(executionContext, "evt-id");
 
@@ -147,7 +147,7 @@ public class InstanceServiceTest {
         evt.setType(EventType.GATEWAY_STARTED);
         evt.setPayload("{\"hostname\":\"myhost\",\"clusterId\":\"cluster\" }");
 
-        when(eventService.findById(executionContext, "evt-id")).thenReturn(evt);
+        when(eventService.findById("evt-id")).thenReturn(evt);
 
         final InstanceEntity result = cut.findByEvent(executionContext, "evt-id");
 
@@ -177,7 +177,7 @@ public class InstanceServiceTest {
         );
         evt.setType(EventType.GATEWAY_STARTED);
 
-        when(eventService.findById(executionContext, "evt-id")).thenReturn(evt);
+        when(eventService.findById("evt-id")).thenReturn(evt);
 
         final InstanceEntity result = cut.findByEvent(executionContext, "evt-id");
 
@@ -203,7 +203,7 @@ public class InstanceServiceTest {
             )
         );
 
-        when(eventService.findById(executionContext, "evt-id")).thenReturn(evt);
+        when(eventService.findById("evt-id")).thenReturn(evt);
 
         final InstanceEntity result = cut.findByEvent(executionContext, "evt-id");
 
@@ -281,7 +281,7 @@ public class InstanceServiceTest {
         EventEntity event = new EventEntity();
         event.setType(EventType.GATEWAY_STARTED);
 
-        when(eventService.search(any(ExecutionContext.class), any(), any(), anyLong(), anyLong(), anyInt(), anyInt(), any(), any(), any()))
+        when(eventService.search(any(), any(), anyLong(), anyLong(), anyInt(), anyInt(), any(), any(), any()))
             .thenReturn(new Page<>(List.of(event), 0, 1, 1));
 
         cut.search(executionContext, query);
@@ -291,7 +291,6 @@ public class InstanceServiceTest {
 
         verify(eventService)
             .search(
-                eq(executionContext),
                 argThat(collection -> collection.stream().allMatch(e -> e.equals(EventType.GATEWAY_STARTED))),
                 isNull(),
                 fromCaptor.capture(),

@@ -69,7 +69,13 @@ public class ApiEntrypointServiceImplTest {
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         HttpListener httpListener = HttpListener.builder().paths(List.of(Path.builder().host("host").path("path").build())).build();
         apiEntity.setListeners(List.of(httpListener));
-        when(parameterService.find(any(), eq(Key.PORTAL_ENTRYPOINT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+        when(
+            parameterService.find(
+                eq(Key.PORTAL_ENTRYPOINT),
+                eq(GraviteeContext.getDefaultEnvironment()),
+                eq(ParameterReferenceType.ENVIRONMENT)
+            )
+        )
             .thenReturn("https://default-entrypoint");
         List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
@@ -85,7 +91,13 @@ public class ApiEntrypointServiceImplTest {
         apiEntity.setTags(Set.of("tag"));
         HttpListener httpListener = HttpListener.builder().paths(List.of(Path.builder().host("host").path("path").build())).build();
         apiEntity.setListeners(List.of(httpListener));
-        when(parameterService.find(any(), eq(Key.PORTAL_ENTRYPOINT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+        when(
+            parameterService.find(
+                eq(Key.PORTAL_ENTRYPOINT),
+                eq(GraviteeContext.getDefaultEnvironment()),
+                eq(ParameterReferenceType.ENVIRONMENT)
+            )
+        )
             .thenReturn("https://default-entrypoint");
         EntrypointEntity entrypointEntity = new EntrypointEntity();
         entrypointEntity.setTags(Arrays.array("tag-unmatching"));
@@ -126,7 +138,13 @@ public class ApiEntrypointServiceImplTest {
         virtualHost.setPath("path");
         proxy.setVirtualHosts(List.of(virtualHost));
         apiEntity.setProxy(proxy);
-        when(parameterService.find(any(), eq(Key.PORTAL_ENTRYPOINT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+        when(
+            parameterService.find(
+                eq(Key.PORTAL_ENTRYPOINT),
+                eq(GraviteeContext.getDefaultEnvironment()),
+                eq(ParameterReferenceType.ENVIRONMENT)
+            )
+        )
             .thenReturn("https://default-entrypoint");
         List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
@@ -145,7 +163,13 @@ public class ApiEntrypointServiceImplTest {
         virtualHost.setPath("path");
         proxy.setVirtualHosts(List.of(virtualHost));
         apiEntity.setProxy(proxy);
-        when(parameterService.find(any(), eq(Key.PORTAL_ENTRYPOINT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+        when(
+            parameterService.find(
+                eq(Key.PORTAL_ENTRYPOINT),
+                eq(GraviteeContext.getDefaultEnvironment()),
+                eq(ParameterReferenceType.ENVIRONMENT)
+            )
+        )
             .thenReturn("https://default-entrypoint");
         EntrypointEntity entrypointEntity = new EntrypointEntity();
         entrypointEntity.setTags(Arrays.array("tag-unmatching"));

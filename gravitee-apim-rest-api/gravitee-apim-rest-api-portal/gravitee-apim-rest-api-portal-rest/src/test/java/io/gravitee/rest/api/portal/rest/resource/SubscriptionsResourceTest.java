@@ -97,7 +97,7 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
 
         PlanEntity planEntity = new PlanEntity();
         planEntity.setApi(API);
-        doReturn(planEntity).when(planSearchService).findById(GraviteeContext.getExecutionContext(), PLAN);
+        doReturn(planEntity).when(planSearchService).findById(PLAN);
     }
 
     @Test

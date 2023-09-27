@@ -138,7 +138,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
     @Override
     public ApiKeyEntity renew(ExecutionContext executionContext, SubscriptionEntity subscription, String customApiKey) {
-        final GenericPlanEntity genericPlanEntity = planSearchService.findById(executionContext, subscription.getPlan());
+        final GenericPlanEntity genericPlanEntity = planSearchService.findById(subscription.getPlan());
         io.gravitee.rest.api.model.v4.plan.PlanSecurityType planSecurityType = null;
         if (genericPlanEntity.getPlanSecurity() != null) {
             planSecurityType =
@@ -745,7 +745,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         NotificationParamsBuilder paramsBuilder
     ) {
         subscriptions.forEach(subscription -> {
-            GenericPlanEntity genericPlanEntity = planSearchService.findById(executionContext, subscription.getPlan());
+            GenericPlanEntity genericPlanEntity = planSearchService.findById(subscription.getPlan());
             GenericApiModel genericApiModel = apiTemplateService.findByIdForTemplates(executionContext, subscription.getApi());
             PrimaryOwnerEntity owner = application.getPrimaryOwner();
             Map<String, Object> params = paramsBuilder

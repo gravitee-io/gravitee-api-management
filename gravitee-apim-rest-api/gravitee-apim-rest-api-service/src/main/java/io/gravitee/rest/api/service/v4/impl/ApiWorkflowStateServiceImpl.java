@@ -152,7 +152,7 @@ public class ApiWorkflowStateServiceImpl implements ApiWorkflowStateService {
         // Get updated API with new workflow state for notification
         GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId);
 
-        final UserEntity user = userService.findById(executionContext, userId);
+        final UserEntity user = userService.findById(userId);
         GenericApiEntity apiWithMetadata = apiMetadataService.fetchMetadataForApi(executionContext, genericApiEntity);
         notifierService.trigger(
             executionContext,
@@ -210,7 +210,7 @@ public class ApiWorkflowStateServiceImpl implements ApiWorkflowStateService {
             .filter(m -> m.getMemberType().equals(MembershipMemberType.USER))
             .map(MembershipEntity::getMemberId)
             .distinct()
-            .map(id -> this.userService.findById(executionContext, id))
+            .map(id -> this.userService.findById(id))
             .map(UserEntity::getEmail)
             .filter(Objects::nonNull)
             .collect(toSet());
@@ -231,7 +231,7 @@ public class ApiWorkflowStateServiceImpl implements ApiWorkflowStateService {
                         .filter(m -> m.getMemberType().equals(MembershipMemberType.USER))
                         .map(MembershipEntity::getMemberId)
                         .distinct()
-                        .map(id -> this.userService.findById(executionContext, id))
+                        .map(this.userService::findById)
                         .map(UserEntity::getEmail)
                         .filter(Objects::nonNull)
                         .collect(toSet())

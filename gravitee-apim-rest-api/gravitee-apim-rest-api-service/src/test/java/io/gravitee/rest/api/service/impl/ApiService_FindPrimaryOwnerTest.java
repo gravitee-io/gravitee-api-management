@@ -435,7 +435,7 @@ public class ApiService_FindPrimaryOwnerTest {
     }
 
     private void setPrimaryOwnerMode(String mode) {
-        when(parameterService.find(GraviteeContext.getExecutionContext(), Key.API_PRIMARY_OWNER_MODE, ParameterReferenceType.ENVIRONMENT))
+        when(parameterService.find(Key.API_PRIMARY_OWNER_MODE, GraviteeContext.getCurrentEnvironment(), ParameterReferenceType.ENVIRONMENT))
             .thenReturn(mode);
     }
 
@@ -472,7 +472,7 @@ public class ApiService_FindPrimaryOwnerTest {
     private void defineUser(String username) {
         UserEntity userEntity = new UserEntity();
         userEntity.setId(username);
-        when(userService.findById(GraviteeContext.getExecutionContext(), username)).thenReturn(userEntity);
+        when(userService.findById(username)).thenReturn(userEntity);
     }
 
     private void defineGroup(String groupId) {
@@ -482,7 +482,7 @@ public class ApiService_FindPrimaryOwnerTest {
     }
 
     private void setPoUserNonExisting() {
-        when(userService.findById(GraviteeContext.getExecutionContext(), PO_USER_ID)).thenThrow(new UserNotFoundException(PO_USER_ID));
+        when(userService.findById(PO_USER_ID)).thenThrow(new UserNotFoundException(PO_USER_ID));
     }
 
     private void setPoGroupNonExisting() {

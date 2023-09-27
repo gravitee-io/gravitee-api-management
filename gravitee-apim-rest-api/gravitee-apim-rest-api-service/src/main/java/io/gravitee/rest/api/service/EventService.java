@@ -35,57 +35,23 @@ import java.util.function.Predicate;
  * @author Titouan COMPIEGNE
  */
 public interface EventService {
-    EventEntity findById(ExecutionContext executionContext, String id);
+    EventEntity findById(String id);
 
-    EventEntity createApiEvent(
-        ExecutionContext executionContext,
-        Set<String> environmentsIds,
-        EventType type,
-        String apiId,
-        Map<String, String> properties
-    );
+    EventEntity createApiEvent(Set<String> environmentsIds, EventType type, String apiId, Map<String, String> properties);
 
-    EventEntity createApiEvent(
-        ExecutionContext executionContext,
-        final Set<String> environmentsIds,
-        EventType type,
-        Api api,
-        Map<String, String> properties
-    );
+    EventEntity createApiEvent(final Set<String> environmentsIds, EventType type, Api api, Map<String, String> properties);
 
-    EventEntity createDictionaryEvent(
-        ExecutionContext executionContext,
-        final Set<String> environmentsIds,
-        EventType type,
-        Dictionary dictionary
-    );
+    EventEntity createDictionaryEvent(final Set<String> environmentsIds, EventType type, Dictionary dictionary);
 
-    EventEntity createDynamicDictionaryEvent(
-        ExecutionContext executionContext,
-        Set<String> environmentsIds,
-        EventType type,
-        String dictionaryId
-    );
+    EventEntity createDynamicDictionaryEvent(Set<String> environmentsIds, EventType type, String dictionaryId);
 
-    EventEntity createDebugApiEvent(
-        ExecutionContext executionContext,
-        final Set<String> environmentsIds,
-        EventType type,
-        DebugApi debugApi,
-        Map<String, String> properties
-    );
+    EventEntity createDebugApiEvent(final Set<String> environmentsIds, EventType type, DebugApi debugApi, Map<String, String> properties);
 
-    EventEntity createOrganizationEvent(
-        ExecutionContext executionContext,
-        final Set<String> environmentsIds,
-        EventType type,
-        OrganizationEntity organizationEntity
-    );
+    EventEntity createOrganizationEvent(final Set<String> environmentsIds, EventType type, OrganizationEntity organizationEntity);
 
     void deleteApiEvents(final ExecutionContext executionContext, String apiId);
 
     Page<EventEntity> search(
-        ExecutionContext executionContext,
         List<EventType> eventTypes,
         Map<String, Object> properties,
         long from,
@@ -96,7 +62,6 @@ public interface EventService {
     );
 
     <T> Page<T> search(
-        ExecutionContext executionContext,
         List<EventType> eventTypes,
         Map<String, Object> properties,
         long from,
@@ -108,7 +73,6 @@ public interface EventService {
     );
 
     <T> Page<T> search(
-        ExecutionContext executionContext,
         List<EventType> eventTypes,
         Map<String, Object> properties,
         long from,

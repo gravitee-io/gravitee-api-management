@@ -25,10 +25,5 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface ListenerValidationService {
-    List<Listener> validateAndSanitize(
-        ExecutionContext executionContext,
-        String apiId,
-        List<Listener> listeners,
-        List<EndpointGroup> endpointGroups
-    );
+    List<Listener> validateAndSanitize(String environmentId, String apiId, List<Listener> listeners, List<EndpointGroup> endpointGroups);
 }

@@ -131,7 +131,6 @@ public class OrganizationResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response update(UpdateOrganizationEntity organizationEntity) {
         OrganizationEntity updatedOrganization = organizationService.updateOrganizationAndFlows(
-            GraviteeContext.getExecutionContext(),
             GraviteeContext.getCurrentOrganization(),
             organizationEntity
         );

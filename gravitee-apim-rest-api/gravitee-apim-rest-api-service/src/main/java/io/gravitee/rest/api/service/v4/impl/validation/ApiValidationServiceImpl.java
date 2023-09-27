@@ -113,7 +113,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         // Validate and clean listeners
         newApiEntity.setListeners(
             listenerValidationService.validateAndSanitize(
-                executionContext,
+                executionContext.getEnvironmentId(),
                 null,
                 newApiEntity.getListeners(),
                 newApiEntity.getEndpointGroups()
@@ -164,7 +164,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         // Validate and clean listeners
         updateApiEntity.setListeners(
             listenerValidationService.validateAndSanitize(
-                executionContext,
+                executionContext.getEnvironmentId(),
                 updateApiEntity.getId(),
                 updateApiEntity.getListeners(),
                 updateApiEntity.getEndpointGroups()
@@ -211,7 +211,12 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         apiEntity.setGroups(groupValidationService.validateAndSanitize(executionContext, null, apiEntity.getGroups(), primaryOwnerEntity));
         // Validate and clean listeners
         apiEntity.setListeners(
-            listenerValidationService.validateAndSanitize(executionContext, null, apiEntity.getListeners(), apiEntity.getEndpointGroups())
+            listenerValidationService.validateAndSanitize(
+                executionContext.getEnvironmentId(),
+                null,
+                apiEntity.getListeners(),
+                apiEntity.getEndpointGroups()
+            )
         );
         // Validate and clean endpoints
         apiEntity.setEndpointGroups(endpointGroupsValidationService.validateAndSanitize(apiEntity.getEndpointGroups()));
@@ -239,7 +244,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
     @Override
     public boolean canDeploy(ExecutionContext executionContext, String apiId) {
         return planSearchService
-            .findByApi(executionContext, apiId)
+            .findByApi(apiId)
             .stream()
             .anyMatch(planEntity ->
                 PlanStatus.PUBLISHED.equals(planEntity.getPlanStatus()) || PlanStatus.DEPRECATED.equals(planEntity.getPlanStatus())

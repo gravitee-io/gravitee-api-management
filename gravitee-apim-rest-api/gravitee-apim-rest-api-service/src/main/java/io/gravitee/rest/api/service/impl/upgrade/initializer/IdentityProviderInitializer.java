@@ -79,8 +79,11 @@ public class IdentityProviderInitializer implements Initializer {
 
     @Override
     public boolean initialize() {
-        // FIXME : this initializer uses the default ExecutionContext, but should handle all environments/organizations
-        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        // providers defines in the gravitee.yml will only be applied on DEFAULT orga and env
+        ExecutionContext executionContext = new ExecutionContext(
+            GraviteeContext.getDefaultOrganization(),
+            GraviteeContext.getDefaultEnvironment()
+        );
 
         boolean found = true;
         int idx = 0;

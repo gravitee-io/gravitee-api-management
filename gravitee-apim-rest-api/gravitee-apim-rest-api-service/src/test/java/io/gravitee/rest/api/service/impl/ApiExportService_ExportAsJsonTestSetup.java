@@ -235,7 +235,7 @@ public class ApiExportService_ExportAsJsonTestSetup {
         userEntity.setId(memberEntity.getId());
         userEntity.setSource(userEntity.getId() + "-source");
         userEntity.setSourceId(userEntity.getId() + "-sourceId");
-        when(userService.findById(GraviteeContext.getExecutionContext(), memberEntity.getId())).thenReturn(userEntity);
+        when(userService.findById(memberEntity.getId())).thenReturn(userEntity);
 
         PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity();
         primaryOwnerEntity.setDisplayName("johndoe-sourceId");
@@ -296,7 +296,7 @@ public class ApiExportService_ExportAsJsonTestSetup {
         Set<PlanEntity> set = new HashSet<>();
         set.add(publishedPlan);
         set.add(closedPlan);
-        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(set);
+        when(planService.findByApi(API_ID)).thenReturn(set);
         ApiMetadataEntity apiMetadataEntity = new ApiMetadataEntity();
         apiMetadataEntity.setApiId(API_ID);
         apiMetadataEntity.setKey("metadata-key");

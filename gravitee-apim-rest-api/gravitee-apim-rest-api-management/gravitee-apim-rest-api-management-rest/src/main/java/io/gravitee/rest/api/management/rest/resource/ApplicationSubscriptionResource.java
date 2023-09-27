@@ -212,11 +212,11 @@ public class ApplicationSubscriptionResource extends AbstractResource {
         subscription.setSubscribedBy(
             new Subscription.User(
                 subscriptionEntity.getSubscribedBy(),
-                userService.findById(executionContext, subscriptionEntity.getSubscribedBy(), true).getDisplayName()
+                userService.findById(subscriptionEntity.getSubscribedBy(), true).getDisplayName()
             )
         );
 
-        GenericPlanEntity plan = planSearchService.findById(executionContext, subscriptionEntity.getPlan());
+        GenericPlanEntity plan = planSearchService.findById(subscriptionEntity.getPlan());
         subscription.setPlan(new Subscription.Plan(plan.getId(), plan.getName()));
         if (plan.getPlanSecurity() != null) {
             subscription.getPlan().setSecurity(PlanSecurityType.valueOfLabel(plan.getPlanSecurity().getType()).name());

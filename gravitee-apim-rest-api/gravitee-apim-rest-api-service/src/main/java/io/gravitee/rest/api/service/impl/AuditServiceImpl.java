@@ -166,22 +166,16 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
 
         List<AuditEntity> content = auditPage.getContent().stream().map(this::convert).collect(Collectors.toList());
 
-        return new MetadataPage<>(
-            content,
-            query.getPage(),
-            query.getSize(),
-            auditPage.getTotalElements(),
-            getMetadata(executionContext, content)
-        );
+        return new MetadataPage<>(content, query.getPage(), query.getSize(), auditPage.getTotalElements(), getMetadata(content));
     }
 
-    private Map<String, String> getMetadata(ExecutionContext executionContext, List<AuditEntity> content) {
+    private Map<String, String> getMetadata(List<AuditEntity> content) {
         Map<String, String> metadata = new HashMap<>();
         for (AuditEntity auditEntity : content) {
             //add user's display name
             String metadataKey = "USER:" + auditEntity.getUser() + ":name";
             try {
-                UserEntity user = userService.findById(executionContext, auditEntity.getUser());
+                UserEntity user = userService.findById(auditEntity.getUser());
                 metadata.put(metadataKey, user.getDisplayName());
             } catch (TechnicalManagementException e) {
                 LOGGER.error("Error finding metadata {}", auditEntity.getUser());
@@ -303,7 +297,7 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
                                     break;
                                 case USER:
                                     try {
-                                        UserEntity user = userService.findById(executionContext, property.getValue());
+                                        UserEntity user = userService.findById(property.getValue());
                                         name = user.getDisplayName();
                                     } catch (UserNotFoundException unfe) {
                                         name = property.getValue();
@@ -377,7 +371,7 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
                 oldValue,
                 newValue
             );
-        } else {
+        } else if (executionContext.hasOrganizationId()) {
             createOrganizationAuditLog(
                 executionContext,
                 executionContext.getOrganizationId(),
@@ -457,7 +451,7 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
         final String user;
         if (authenticatedUser != null && "token".equals(authenticatedUser.getSource())) {
             user =
-                userService.findById(executionContext, authenticatedUser.getUsername()).getDisplayName() +
+                userService.findById(authenticatedUser.getUsername()).getDisplayName() +
                 " - (using token \"" +
                 authenticatedUser.getSourceId() +
                 "\")";

@@ -232,7 +232,7 @@ class ApiIdsCalculatorServiceImplTest {
                         buildPageEntity("a-child-id", "a-child-cross-id", "a-page-id")
                     )
                 );
-            when(planService.findByApi(executionContext, API_DB_ID))
+            when(planService.findByApi(API_DB_ID))
                 .thenReturn(
                     Set.of(buildPlanEntity("keyless-plan-id", "keyless-plan-cross-id"), buildPlanEntity("a-plan-id", "a-plan-cross-id"))
                 );
@@ -289,7 +289,7 @@ class ApiIdsCalculatorServiceImplTest {
 
             verify(apiService).findByEnvironmentIdAndCrossId(any(), any());
             verify(pageService).findByApi(executionContext.getEnvironmentId(), API_DB_ID);
-            verify(planService).findByApi(executionContext, API_DB_ID);
+            verify(planService).findByApi(API_DB_ID);
         }
 
         private Optional<ApiEntity> buildApiEntityDbResult() {
@@ -368,7 +368,7 @@ class ApiIdsCalculatorServiceImplTest {
 
             // When recalculated from definition ids, no need to get pages and plans for the api
             verify(pageService, never()).findByApi(any(), any());
-            verify(planService, never()).findByApi(any(), any());
+            verify(planService, never()).findByApi(any());
         }
 
         @Test
@@ -425,7 +425,7 @@ class ApiIdsCalculatorServiceImplTest {
 
             // When recalculated from definition ids, no need to get pages and plans for the api
             verify(pageService, never()).findByApi(any(), any());
-            verify(planService, never()).findByApi(any(), any());
+            verify(planService, never()).findByApi(any());
         }
     }
 

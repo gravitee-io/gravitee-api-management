@@ -245,7 +245,6 @@ public class ApiStateServiceImplTest {
 
         verify(eventService)
             .createApiEvent(
-                eq(GraviteeContext.getExecutionContext()),
                 eq(singleton(GraviteeContext.getCurrentEnvironment())),
                 eq(EventType.PUBLISH_API),
                 argThat((ArgumentMatcher<Api>) argApi -> argApi.getId().equals(API_ID)),
@@ -285,7 +284,6 @@ public class ApiStateServiceImplTest {
 
         verify(eventService)
             .createApiEvent(
-                eq(GraviteeContext.getExecutionContext()),
                 eq(singleton(GraviteeContext.getCurrentEnvironment())),
                 eq(EventType.START_API),
                 argThat((ArgumentMatcher<Api>) argApi -> argApi.getId().equals(API_ID)),
@@ -346,7 +344,6 @@ public class ApiStateServiceImplTest {
 
         verify(eventService)
             .createApiEvent(
-                eq(GraviteeContext.getExecutionContext()),
                 eq(singleton(GraviteeContext.getCurrentEnvironment())),
                 eq(EventType.STOP_API),
                 argThat((ArgumentMatcher<Api>) argApi -> argApi.getId().equals(API_ID)),

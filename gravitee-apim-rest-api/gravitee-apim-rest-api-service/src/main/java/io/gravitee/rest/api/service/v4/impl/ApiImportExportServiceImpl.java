@@ -107,55 +107,27 @@ public class ApiImportExportServiceImpl implements ApiImportExportService {
         final ExportApiEntity exportApi = new ExportApiEntity();
         exportApi.setApiEntity((ApiEntity) apiEntity);
 
-        if (
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.API_MEMBER,
-                apiId,
-                RolePermissionAction.READ
-            )
-        ) {
+        if (permissionService.hasPermission(executionContext, RolePermission.API_MEMBER, apiId, RolePermissionAction.READ)) {
             var members = membershipService
-                .getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, apiId)
+                .getMembersByReference(executionContext, MembershipReferenceType.API, apiId)
                 .stream()
                 .filter(memberEntity -> memberEntity.getType() == MembershipMemberType.USER)
                 .collect(Collectors.toSet());
             exportApi.setMembers(members);
         }
 
-        if (
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.API_METADATA,
-                apiId,
-                RolePermissionAction.READ
-            )
-        ) {
+        if (permissionService.hasPermission(executionContext, RolePermission.API_METADATA, apiId, RolePermissionAction.READ)) {
             var metadataList = apiMetadataService.findAllByApi(apiId);
             exportApi.setMetadata(new HashSet<>(metadataList));
         }
 
-        if (
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.API_PLAN,
-                apiId,
-                RolePermissionAction.READ
-            )
-        ) {
-            var plansSet = planService.findByApi(GraviteeContext.getExecutionContext(), apiId);
+        if (permissionService.hasPermission(executionContext, RolePermission.API_PLAN, apiId, RolePermissionAction.READ)) {
+            var plansSet = planService.findByApi(apiId);
             exportApi.setPlans(plansSet);
         }
 
-        if (
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.API_DOCUMENTATION,
-                apiId,
-                RolePermissionAction.READ
-            )
-        ) {
-            var pageList = pageService.findByApi(GraviteeContext.getCurrentEnvironment(), apiId);
+        if (permissionService.hasPermission(executionContext, RolePermission.API_DOCUMENTATION, apiId, RolePermissionAction.READ)) {
+            var pageList = pageService.findByApi(executionContext.getEnvironmentId(), apiId);
             exportApi.setPages(pageList);
 
             var apiMediaList = mediaService.findAllByApiId(apiId);

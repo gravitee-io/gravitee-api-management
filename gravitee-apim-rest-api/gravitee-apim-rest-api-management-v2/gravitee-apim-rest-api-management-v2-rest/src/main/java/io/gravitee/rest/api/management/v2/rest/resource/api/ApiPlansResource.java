@@ -151,8 +151,7 @@ public class ApiPlansResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_PLAN, acls = { RolePermissionAction.READ }) })
     public Response getApiPlan(@PathParam("planId") String planId) {
-        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        final GenericPlanEntity planEntity = planSearchService.findById(executionContext, planId);
+        final GenericPlanEntity planEntity = planSearchService.findById(planId);
 
         if (!planEntity.getApiId().equals(apiId)) {
             return Response.status(Response.Status.NOT_FOUND).entity(planNotFoundError(planId)).build();
@@ -168,7 +167,7 @@ public class ApiPlansResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_PLAN, acls = { RolePermissionAction.UPDATE }) })
     public Response updateApiPlan(@PathParam("planId") String planId, @Valid @NotNull UpdateGenericPlan updatePlan) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        final GenericPlanEntity planEntity = planSearchService.findById(executionContext, planId);
+        final GenericPlanEntity planEntity = planSearchService.findById(planId);
 
         if (!planEntity.getApiId().equals(apiId)) {
             return Response.status(Response.Status.NOT_FOUND).entity(planNotFoundError(planId)).build();
@@ -203,7 +202,7 @@ public class ApiPlansResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_PLAN, acls = { RolePermissionAction.DELETE }) })
     public Response deleteApiPlan(@PathParam("planId") String planId) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        final GenericPlanEntity planEntity = planSearchService.findById(executionContext, planId);
+        final GenericPlanEntity planEntity = planSearchService.findById(planId);
 
         if (!planEntity.getApiId().equals(apiId)) {
             return Response.status(Response.Status.NOT_FOUND).entity(planNotFoundError(planId)).build();
@@ -220,7 +219,7 @@ public class ApiPlansResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_PLAN, acls = { RolePermissionAction.UPDATE }) })
     public Response closeApiPlan(@PathParam("planId") String planId) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        final GenericPlanEntity planEntity = planSearchService.findById(executionContext, planId);
+        final GenericPlanEntity planEntity = planSearchService.findById(planId);
 
         if (!planEntity.getApiId().equals(apiId)) {
             return Response.status(Response.Status.NOT_FOUND).entity(planNotFoundError(planId)).build();
@@ -235,7 +234,7 @@ public class ApiPlansResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_PLAN, acls = { RolePermissionAction.UPDATE }) })
     public Response publishApiPlan(@PathParam("planId") String planId) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        final GenericPlanEntity planEntity = planSearchService.findById(executionContext, planId);
+        final GenericPlanEntity planEntity = planSearchService.findById(planId);
 
         if (!planEntity.getApiId().equals(apiId)) {
             return Response.status(Response.Status.NOT_FOUND).entity(planNotFoundError(planId)).build();
@@ -254,7 +253,7 @@ public class ApiPlansResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_PLAN, acls = { RolePermissionAction.UPDATE }) })
     public Response deprecateApiPlan(@PathParam("planId") String planId) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        final GenericPlanEntity planEntity = planSearchService.findById(executionContext, planId);
+        final GenericPlanEntity planEntity = planSearchService.findById(planId);
 
         if (!planEntity.getApiId().equals(apiId)) {
             return Response.status(Response.Status.NOT_FOUND).entity(planNotFoundError(planId)).build();

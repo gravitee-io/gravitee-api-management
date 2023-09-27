@@ -177,7 +177,7 @@ public class EnvironmentConfigurationResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getEnabledApplicationTypes() {
         ApplicationTypesEntity enabledApplicationTypes = applicationTypeService.getEnabledApplicationTypes(
-            GraviteeContext.getExecutionContext()
+            GraviteeContext.getCurrentEnvironment()
         );
         return Response.ok(enabledApplicationTypes.getData()).build();
     }

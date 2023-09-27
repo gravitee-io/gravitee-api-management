@@ -51,8 +51,8 @@ public class ApplicationTypeServiceImpl implements ApplicationTypeService {
     private ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
-    public ApplicationTypesEntity getEnabledApplicationTypes(ExecutionContext executionContext) {
-        JsonNode jsonTypes = this.getApplicationTypesConfiguration(executionContext);
+    public ApplicationTypesEntity getEnabledApplicationTypes(String environmentId) {
+        JsonNode jsonTypes = this.getApplicationTypesConfiguration(environmentId);
         return getFilteredApplicationTypes(jsonTypes);
     }
 
@@ -89,8 +89,8 @@ public class ApplicationTypeServiceImpl implements ApplicationTypeService {
         return applicationTypesEntity;
     }
 
-    public JsonNode getApplicationTypesConfiguration(ExecutionContext executionContext) {
-        PortalApplicationSettings applicationConfig = configService.getPortalSettings(executionContext).getApplication();
+    public JsonNode getApplicationTypesConfiguration(String environmentId) {
+        PortalApplicationSettings applicationConfig = configService.getPortalSettings(environmentId).getApplication();
         PortalApplicationSettings.ApplicationTypes types = applicationConfig.getTypes();
         if (!applicationConfig.getRegistration().getEnabled()) {
             types.getBrowserType().setEnabled(false);

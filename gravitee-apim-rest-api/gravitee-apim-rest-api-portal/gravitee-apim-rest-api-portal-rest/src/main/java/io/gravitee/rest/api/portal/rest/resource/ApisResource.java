@@ -144,8 +144,8 @@ public class ApisResource extends AbstractResource<Api, String> {
             return Collections.emptyList();
         }
         final boolean apiShowTagsInApiHeaders = parameterService.findAsBoolean(
-            executionContext,
             Key.PORTAL_APIS_SHOW_TAGS_IN_APIHEADER,
+            executionContext.getEnvironmentId(),
             ParameterReferenceType.ENVIRONMENT
         );
 

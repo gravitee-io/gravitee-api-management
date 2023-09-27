@@ -156,7 +156,7 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
             "members",
             "groups"
         );
-        UserEntity author = userService.findById(executionContext, userId);
+        UserEntity author = userService.findById(userId);
 
         PromotionQuery promotionQuery = new PromotionQuery();
         promotionQuery.setStatuses(List.of(PromotionEntityStatus.CREATED, PromotionEntityStatus.TO_BE_VALIDATED));

@@ -189,11 +189,15 @@ public class UserServiceTest {
     @Mock
     private UserConverter userConverter;
 
+    @Mock
+    private AccessPointService accessPointService;
+
     @Before
     public void setup() {
         GraviteeContext.cleanContext();
         when(userConverter.toUser(any(NewExternalUserEntity.class))).thenCallRealMethod();
         when(userConverter.toUserEntity(any(User.class), any())).thenCallRealMethod();
+        when(user.getOrganizationId()).thenReturn(ORGANIZATION);
     }
 
     @Test
@@ -278,7 +282,7 @@ public class UserServiceTest {
         when(user.getPassword()).thenReturn(PASSWORD);
         when(userRepository.findById(USER_NAME)).thenReturn(of(user));
 
-        final UserEntity userEntity = userService.findById(GraviteeContext.getExecutionContext(), USER_NAME);
+        final UserEntity userEntity = userService.findById(USER_NAME);
 
         assertEquals(USER_NAME, userEntity.getId());
         assertEquals(FIRST_NAME, userEntity.getFirstname());
@@ -829,6 +833,7 @@ public class UserServiceTest {
         setField(userService, "defaultApplicationForFirstConnection", true);
         when(user.getLastConnectionAt()).thenReturn(null);
         when(userRepository.findById(USER_NAME)).thenReturn(of(user));
+        when(userRepository.update(any())).thenReturn(user);
         EnvironmentEntity environment1 = new EnvironmentEntity();
         environment1.setId("envId1");
         EnvironmentEntity environment2 = new EnvironmentEntity();
@@ -854,6 +859,7 @@ public class UserServiceTest {
         setField(userService, "defaultApplicationForFirstConnection", false);
         when(user.getLastConnectionAt()).thenReturn(null);
         when(userRepository.findById(USER_NAME)).thenReturn(of(user));
+        when(userRepository.update(any())).thenReturn(user);
 
         userService.connect(GraviteeContext.getExecutionContext(), USER_NAME);
 
@@ -864,6 +870,7 @@ public class UserServiceTest {
     public void shouldNotCreateDefaultApplicationBecauseAlreadyConnected() throws TechnicalException {
         when(user.getLastConnectionAt()).thenReturn(new Date());
         when(userRepository.findById(USER_NAME)).thenReturn(of(user));
+        when(userRepository.update(any())).thenReturn(user);
 
         userService.connect(GraviteeContext.getExecutionContext(), USER_NAME);
 
@@ -884,9 +891,8 @@ public class UserServiceTest {
     public void createNewRegistrationUserThatIsNotCreatedYet() throws TechnicalException {
         when(
             mockParameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
                 Key.PORTAL_USERCREATION_ENABLED,
-                "DEFAULT",
+                GraviteeContext.getDefaultEnvironment(),
                 ParameterReferenceType.ENVIRONMENT
             )
         )
@@ -977,9 +983,8 @@ public class UserServiceTest {
         when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
         when(
             mockParameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
                 Key.PORTAL_USERCREATION_ENABLED,
-                "DEFAULT",
+                GraviteeContext.getDefaultEnvironment(),
                 ParameterReferenceType.ENVIRONMENT
             )
         )
@@ -996,9 +1001,8 @@ public class UserServiceTest {
     public void createAlreadyPreRegisteredUser() throws TechnicalException {
         when(
             mockParameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
                 Key.PORTAL_USERCREATION_ENABLED,
-                "DEFAULT",
+                GraviteeContext.getDefaultEnvironment(),
                 ParameterReferenceType.ENVIRONMENT
             )
         )

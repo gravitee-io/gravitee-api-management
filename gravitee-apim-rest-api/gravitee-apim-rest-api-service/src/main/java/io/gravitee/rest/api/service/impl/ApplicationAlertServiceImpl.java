@@ -28,7 +28,6 @@ import io.gravitee.alert.api.trigger.Dampening;
 import io.gravitee.alert.api.trigger.Trigger;
 import io.gravitee.common.event.Event;
 import io.gravitee.notifier.api.Notification;
-import io.gravitee.repository.management.api.AlertTriggerRepository;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.MembershipEntity;
 import io.gravitee.rest.api.model.MembershipReferenceType;
@@ -50,7 +49,6 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -103,7 +101,7 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
         alert.setDampening(Dampening.strictCount(1));
         alert.setFilters(combineFilters(applicationId, alert.getFilters()));
 
-        final List<String> recipients = getNotificationRecipients(executionContext, application.getId(), application.getGroups());
+        final List<String> recipients = getNotificationRecipients(application.getId(), application.getGroups());
         if (!CollectionUtils.isEmpty(recipients)) {
             alert.setNotifications(
                 combineNotifications(
@@ -318,12 +316,7 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
         final Map<String, List<String>> recipientsByApplicationId = applicationService
             .findByIds(executionContext, new ArrayList<>(applicationIds))
             .stream()
-            .collect(
-                Collectors.toMap(
-                    ApplicationListItem::getId,
-                    app -> getNotificationRecipients(executionContext, app.getId(), app.getGroups())
-                )
-            );
+            .collect(Collectors.toMap(ApplicationListItem::getId, app -> getNotificationRecipients(app.getId(), app.getGroups())));
 
         // apply new recipients to each AlertTrigger related to applications to update
         alertService
@@ -359,7 +352,7 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
         return String.format("%s - %s", alert.getType(), application.getId());
     }
 
-    private List<String> getNotificationRecipients(ExecutionContext executionContext, String applicationId, Set<String> groupIds) {
+    private List<String> getNotificationRecipients(String applicationId, Set<String> groupIds) {
         final List<String> members = membershipService
             .getMembershipsByReference(MembershipReferenceType.APPLICATION, applicationId)
             .stream()
@@ -379,7 +372,7 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
         }
 
         return userService
-            .findByIds(executionContext, members)
+            .findByIds(members)
             .stream()
             .map(UserEntity::getEmail)
             .filter(mail -> !StringUtils.isEmpty(mail))

@@ -39,14 +39,10 @@ public class CategoryMapper {
         this.categoryService = categoryService;
     }
 
-    public Set<String> toIdentifier(
-        final ExecutionContext executionContext,
-        final Set<String> apiCategories,
-        List<CategoryEntity> categories
-    ) {
+    public Set<String> toIdentifier(final String environmentId, final Set<String> apiCategories, List<CategoryEntity> categories) {
         if (apiCategories != null) {
             if (categories == null) {
-                categories = categoryService.findAll(executionContext.getEnvironmentId());
+                categories = categoryService.findAll(environmentId);
             }
             final Set<String> newApiCategories = new HashSet<>(apiCategories.size());
             for (final String apiView : apiCategories) {

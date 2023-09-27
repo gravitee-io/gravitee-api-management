@@ -225,7 +225,7 @@ public class ApiMembersResource extends AbstractResource {
     public Response deleteApiMember(@Parameter(name = "user", required = true) @NotNull @QueryParam("user") String userId) {
         isExistingApi();
         try {
-            userService.findById(GraviteeContext.getExecutionContext(), userId);
+            userService.findById(userId);
         } catch (UserNotFoundException unfe) {
             return Response.status(Response.Status.BAD_REQUEST).entity(unfe.getMessage()).build();
         }

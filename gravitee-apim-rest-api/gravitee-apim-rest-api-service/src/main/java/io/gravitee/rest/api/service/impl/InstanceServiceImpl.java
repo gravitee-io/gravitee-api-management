@@ -105,7 +105,6 @@ public class InstanceServiceImpl implements InstanceService {
         long from = query.getFrom() > 0 ? query.getFrom() : Instant.now().minus(unknownExpireAfterInSec, ChronoUnit.SECONDS).toEpochMilli();
 
         return eventService.search(
-            executionContext,
             types,
             query.getProperties(),
             from,
@@ -156,7 +155,7 @@ public class InstanceServiceImpl implements InstanceService {
         try {
             LOGGER.debug("Find instance by event ID: {}", eventId);
 
-            EventEntity event = eventService.findById(executionContext, eventId);
+            EventEntity event = eventService.findById(eventId);
             List<String> environments = extractProperty(event, Event.EventProperties.ENVIRONMENTS_HRIDS_PROPERTY.getValue());
             List<String> organizations = extractProperty(event, Event.EventProperties.ORGANIZATIONS_HRIDS_PROPERTY.getValue());
 

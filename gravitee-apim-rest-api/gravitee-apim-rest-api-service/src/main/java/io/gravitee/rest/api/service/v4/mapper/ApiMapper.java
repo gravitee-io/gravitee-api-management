@@ -155,7 +155,6 @@ public class ApiMapper {
     }
 
     public ApiEntity toEntity(
-        final ExecutionContext executionContext,
         final Api api,
         final PrimaryOwnerEntity primaryOwner,
         List<CategoryEntity> categories,
@@ -163,7 +162,7 @@ public class ApiMapper {
     ) {
         ApiEntity apiEntity = toEntity(api, primaryOwner);
 
-        Set<PlanEntity> plans = planService.findByApi(executionContext, api.getId());
+        Set<PlanEntity> plans = planService.findByApi(api.getId());
         apiEntity.setPlans(plans);
 
         if (readDatabaseFlows) {
@@ -171,16 +170,9 @@ public class ApiMapper {
             apiEntity.setFlows(flows);
         }
 
-        apiEntity.setCategories(categoryMapper.toIdentifier(executionContext, api.getCategories(), categories));
+        apiEntity.setCategories(categoryMapper.toIdentifier(api.getEnvironmentId(), api.getCategories(), categories));
 
-        if (
-            parameterService.findAsBoolean(
-                executionContext,
-                Key.API_REVIEW_ENABLED,
-                api.getEnvironmentId(),
-                ParameterReferenceType.ENVIRONMENT
-            )
-        ) {
+        if (parameterService.findAsBoolean(Key.API_REVIEW_ENABLED, api.getEnvironmentId(), ParameterReferenceType.ENVIRONMENT)) {
             final List<Workflow> workflows = workflowService.findByReferenceAndType(API, api.getId(), REVIEW);
             if (workflows != null && !workflows.isEmpty()) {
                 apiEntity.setWorkflowState(WorkflowState.valueOf(workflows.get(0).getState()));
@@ -190,11 +182,11 @@ public class ApiMapper {
         return apiEntity;
     }
 
-    public Api toRepository(final ExecutionContext executionContext, final NewApiEntity newApiEntity) {
+    public Api toRepository(final String environmentId, final NewApiEntity newApiEntity) {
         Api repoApi = new Api();
         String generatedApiId = UuidString.generateRandom();
         repoApi.setId(generatedApiId);
-        repoApi.setEnvironmentId(executionContext.getEnvironmentId());
+        repoApi.setEnvironmentId(environmentId);
         // Set date fields
         repoApi.setCreatedAt(new Date());
         repoApi.setUpdatedAt(repoApi.getCreatedAt());
@@ -237,12 +229,12 @@ public class ApiMapper {
         }
     }
 
-    public Api toRepository(final ExecutionContext executionContext, final UpdateApiEntity updateApiEntity) {
+    public Api toRepository(final String environmentId, final UpdateApiEntity updateApiEntity) {
         Api repoApi = new Api();
         String apiId = updateApiEntity.getId();
         repoApi.setId(apiId.trim());
         repoApi.setCrossId(updateApiEntity.getCrossId());
-        repoApi.setEnvironmentId(executionContext.getEnvironmentId());
+        repoApi.setEnvironmentId(environmentId);
         repoApi.setType(updateApiEntity.getType());
         repoApi.setUpdatedAt(new Date());
         if (updateApiEntity.getLifecycleState() != null) {
@@ -261,7 +253,7 @@ public class ApiMapper {
         repoApi.setDefinitionVersion(updateApiEntity.getDefinitionVersion());
         repoApi.setDefinition(toApiDefinition(updateApiEntity));
 
-        repoApi.setCategories(categoryMapper.toIdentifier(executionContext, updateApiEntity.getCategories(), null));
+        repoApi.setCategories(categoryMapper.toIdentifier(environmentId, updateApiEntity.getCategories(), null));
 
         if (updateApiEntity.getLabels() != null) {
             repoApi.setLabels(new ArrayList<>(new HashSet<>(updateApiEntity.getLabels())));
@@ -310,13 +302,13 @@ public class ApiMapper {
         }
     }
 
-    public Api toRepository(final ExecutionContext executionContext, final ApiEntity apiEntity) {
+    public Api toRepository(final String environmentId, final ApiEntity apiEntity) {
         Api repoApi = new Api();
         if (apiEntity.getLifecycleState() != null) {
             repoApi.setApiLifecycleState(ApiLifecycleState.valueOf(apiEntity.getLifecycleState().name()));
         }
         repoApi.setBackground(apiEntity.getBackground());
-        repoApi.setCategories(categoryMapper.toIdentifier(executionContext, apiEntity.getCategories(), null));
+        repoApi.setCategories(categoryMapper.toIdentifier(environmentId, apiEntity.getCategories(), null));
         repoApi.setCrossId(apiEntity.getCrossId());
         repoApi.setCreatedAt(apiEntity.getCreatedAt());
         repoApi.setDefinition(toApiDefinition(apiEntity));
@@ -324,7 +316,7 @@ public class ApiMapper {
         repoApi.setDeployedAt(apiEntity.getDeployedAt());
         repoApi.setDescription(apiEntity.getDescription());
         repoApi.setDisableMembershipNotifications(apiEntity.isDisableMembershipNotifications());
-        repoApi.setEnvironmentId(executionContext.getEnvironmentId());
+        repoApi.setEnvironmentId(environmentId);
         repoApi.setGroups(apiEntity.getGroups());
         repoApi.setId(apiEntity.getId());
         if (apiEntity.getLabels() != null) {

@@ -110,7 +110,7 @@ class LogsServiceTest {
     void findApiLogShouldFindWithKeyLessPlan() throws Exception {
         when(logRepository.findById(LOG_ID, LOG_TIMESTAMP)).thenReturn(newLog(KEY_LESS));
         when(applicationService.findById(EXECUTION_CONTEXT, LOG_APPLICATION_ID)).thenReturn(newApplication());
-        when(planSearchService.findById(EXECUTION_CONTEXT, LOG_PLAN_ID)).thenReturn(newPlan(KEY_LESS));
+        when(planSearchService.findById(LOG_PLAN_ID)).thenReturn(newPlan(KEY_LESS));
 
         ApiRequest apiLog = logService.findApiLog(EXECUTION_CONTEXT, LOG_ID, LOG_TIMESTAMP);
 
@@ -125,7 +125,7 @@ class LogsServiceTest {
     void findApiLogShouldFindWithApiKeyPlan() throws Exception {
         when(logRepository.findById(LOG_ID, LOG_TIMESTAMP)).thenReturn(newLog(API_KEY));
         when(applicationService.findById(EXECUTION_CONTEXT, LOG_APPLICATION_ID)).thenReturn(newApplication());
-        when(planSearchService.findById(EXECUTION_CONTEXT, LOG_PLAN_ID)).thenReturn(newPlan(API_KEY));
+        when(planSearchService.findById(LOG_PLAN_ID)).thenReturn(newPlan(API_KEY));
         when(apiKeyService.findByKeyAndApi(EXECUTION_CONTEXT, LOG_API_KEY, LOG_API_ID)).thenReturn(newApiKey());
 
         ApiRequest apiLog = logService.findApiLog(EXECUTION_CONTEXT, LOG_ID, LOG_TIMESTAMP);
@@ -142,7 +142,7 @@ class LogsServiceTest {
     void findApiLogShouldFindWithJwtPlan() throws Exception {
         when(logRepository.findById(LOG_ID, LOG_TIMESTAMP)).thenReturn(newLog(JWT));
         when(applicationService.findById(EXECUTION_CONTEXT, LOG_APPLICATION_ID)).thenReturn(newApplication());
-        when(planSearchService.findById(EXECUTION_CONTEXT, LOG_PLAN_ID)).thenReturn(newPlan(JWT));
+        when(planSearchService.findById(LOG_PLAN_ID)).thenReturn(newPlan(JWT));
         when(subscriptionService.findByApplicationAndPlan(EXECUTION_CONTEXT, LOG_APPLICATION_ID, LOG_PLAN_ID))
             .thenReturn(Set.of(newSubscription()));
 
@@ -160,7 +160,7 @@ class LogsServiceTest {
     void findApiLogShouldHaveEmptySubscriptionWithNoSecurity() throws Exception {
         when(logRepository.findById(LOG_ID, LOG_TIMESTAMP)).thenReturn(newLog(null));
         when(applicationService.findById(EXECUTION_CONTEXT, LOG_APPLICATION_ID)).thenReturn(newApplication());
-        when(planSearchService.findById(EXECUTION_CONTEXT, LOG_PLAN_ID)).thenReturn(newPlan(null));
+        when(planSearchService.findById(LOG_PLAN_ID)).thenReturn(newPlan(null));
 
         ApiRequest apiLog = logService.findApiLog(EXECUTION_CONTEXT, LOG_ID, LOG_TIMESTAMP);
 
@@ -176,7 +176,7 @@ class LogsServiceTest {
     void findApiLogShouldHaveEmptySubscriptionWithNoSecurityInV4Plan() throws Exception {
         when(logRepository.findById(LOG_ID, LOG_TIMESTAMP)).thenReturn(newLog(null));
         when(applicationService.findById(EXECUTION_CONTEXT, LOG_APPLICATION_ID)).thenReturn(newApplication());
-        when(planSearchService.findById(EXECUTION_CONTEXT, LOG_PLAN_ID)).thenReturn(newPlanV4(null));
+        when(planSearchService.findById(LOG_PLAN_ID)).thenReturn(newPlanV4(null));
 
         ApiRequest apiLog = logService.findApiLog(EXECUTION_CONTEXT, LOG_ID, LOG_TIMESTAMP);
 
@@ -192,7 +192,7 @@ class LogsServiceTest {
     void findApiLogShouldNotFailOnApiKeyNotFoundException() throws Exception {
         when(logRepository.findById(LOG_ID, LOG_TIMESTAMP)).thenReturn(newLog(API_KEY));
         when(applicationService.findById(EXECUTION_CONTEXT, LOG_APPLICATION_ID)).thenReturn(newApplication());
-        when(planSearchService.findById(EXECUTION_CONTEXT, LOG_PLAN_ID)).thenReturn(newPlan(API_KEY));
+        when(planSearchService.findById(LOG_PLAN_ID)).thenReturn(newPlan(API_KEY));
         when(apiKeyService.findByKeyAndApi(EXECUTION_CONTEXT, LOG_API_KEY, LOG_API_ID)).thenThrow(new ApiKeyNotFoundException());
 
         ApiRequest apiLog = logService.findApiLog(EXECUTION_CONTEXT, LOG_ID, LOG_TIMESTAMP);
@@ -209,7 +209,7 @@ class LogsServiceTest {
     void findApiLogShouldNotFailOnPlanNotFoundException() throws Exception {
         when(logRepository.findById(LOG_ID, LOG_TIMESTAMP)).thenReturn(newLog(JWT));
         when(applicationService.findById(EXECUTION_CONTEXT, LOG_APPLICATION_ID)).thenReturn(newApplication());
-        when(planSearchService.findById(EXECUTION_CONTEXT, LOG_PLAN_ID)).thenThrow(new PlanNotFoundException(LOG_PLAN_ID));
+        when(planSearchService.findById(LOG_PLAN_ID)).thenThrow(new PlanNotFoundException(LOG_PLAN_ID));
 
         ApiRequest apiLog = logService.findApiLog(EXECUTION_CONTEXT, LOG_ID, LOG_TIMESTAMP);
 
@@ -224,7 +224,7 @@ class LogsServiceTest {
     void findApiLogShouldNotFailOnDuplicatedSubscription() throws Exception {
         when(logRepository.findById(LOG_ID, LOG_TIMESTAMP)).thenReturn(newLog(JWT));
         when(applicationService.findById(EXECUTION_CONTEXT, LOG_APPLICATION_ID)).thenReturn(newApplication());
-        when(planSearchService.findById(EXECUTION_CONTEXT, LOG_PLAN_ID)).thenReturn(newPlan(JWT));
+        when(planSearchService.findById(LOG_PLAN_ID)).thenReturn(newPlan(JWT));
         when(subscriptionService.findByApplicationAndPlan(EXECUTION_CONTEXT, LOG_APPLICATION_ID, LOG_PLAN_ID))
             .thenReturn(Set.of(newSubscription(), new SubscriptionEntity()));
 
@@ -364,14 +364,14 @@ class LogsServiceTest {
         log.setClientResponse(newResponse());
         when(logRepository.findById(eq(LOG_ID), anyLong())).thenReturn(log);
         when(apiSearchService.findGenericById(any(), anyString())).thenReturn(newApiEntity());
-        when(planSearchService.findById(any(), anyString())).thenReturn(newPlan(KEY_LESS));
+        when(planSearchService.findById(anyString())).thenReturn(newPlan(KEY_LESS));
 
         ApplicationRequest result = logService.findApplicationLog(EXECUTION_CONTEXT, LOG_ID, Instant.now().toEpochMilli());
 
         assertThat(result).isNotNull();
         verify(logRepository, times(1)).findById(eq(LOG_ID), anyLong());
         verify(apiSearchService, times(1)).findGenericById(any(), anyString());
-        verify(planSearchService, times(1)).findById(any(), anyString());
+        verify(planSearchService, times(1)).findById(anyString());
     }
 
     @Test

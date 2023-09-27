@@ -48,7 +48,14 @@ import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.ApiKeyService;
+import io.gravitee.rest.api.service.ApplicationService;
+import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.CsvUtils;
+import io.gravitee.rest.api.service.InstanceService;
+import io.gravitee.rest.api.service.LogsService;
+import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.ApiKeyNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
@@ -190,7 +197,13 @@ public class LogsServiceImpl implements LogsService {
                 return null;
             }
 
-            if (parameterService.findAsBoolean(executionContext, Key.LOGGING_AUDIT_ENABLED, ParameterReferenceType.ORGANIZATION)) {
+            if (
+                parameterService.findAsBoolean(
+                    Key.LOGGING_AUDIT_ENABLED,
+                    executionContext.getOrganizationId(),
+                    ParameterReferenceType.ORGANIZATION
+                )
+            ) {
                 auditService.createApiAuditLog(
                     executionContext,
                     log.getApi(),
@@ -397,7 +410,7 @@ public class LogsServiceImpl implements LogsService {
                     metadata.put(METADATA_NAME, METADATA_UNKNOWN_PLAN_NAME);
                     metadata.put(METADATA_UNKNOWN, Boolean.TRUE.toString());
                 } else {
-                    GenericPlanEntity planEntity = planSearchService.findById(executionContext, plan);
+                    GenericPlanEntity planEntity = planSearchService.findById(plan);
                     metadata.put(METADATA_NAME, planEntity.getName());
                 }
             } catch (PlanNotFoundException anfe) {
@@ -459,7 +472,7 @@ public class LogsServiceImpl implements LogsService {
     }
 
     private String getJwtOrOauth2Subscription(ExecutionContext executionContext, ExtendedLog log) {
-        GenericPlanEntity plan = planSearchService.findById(executionContext, log.getPlan());
+        GenericPlanEntity plan = planSearchService.findById(log.getPlan());
         if (plan.getPlanSecurity() == null || plan.getPlanSecurity().getType() == null) {
             return null;
         }
@@ -510,8 +523,8 @@ public class LogsServiceImpl implements LogsService {
         sb.append("Plan");
         sb.append(separator);
         final boolean userEnabled = parameterService.findAsBoolean(
-            executionContext,
             Key.LOGGING_USER_DISPLAYED,
+            executionContext.getOrganizationId(),
             ParameterReferenceType.ORGANIZATION
         );
 

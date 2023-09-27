@@ -381,7 +381,7 @@ public class PromotionServiceTest {
 
     @Test
     public void shouldPromote() throws TechnicalException {
-        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(getAUserEntity());
+        when(userService.findById(any())).thenReturn(getAUserEntity());
         EnvironmentEntity environmentEntity = new EnvironmentEntity();
         environmentEntity.setCockpitId("env#cockpit-1");
         environmentEntity.setName("Env 1");
@@ -416,7 +416,7 @@ public class PromotionServiceTest {
 
     @Test(expected = PromotionAlreadyInProgressException.class)
     public void shouldNotPromoteIfThereIsAlreadyAnInProgressPromotionForTheSameEnv() throws TechnicalException {
-        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(getAUserEntity());
+        when(userService.findById(any())).thenReturn(getAUserEntity());
         EnvironmentEntity environmentEntity = new EnvironmentEntity();
         environmentEntity.setCockpitId("env#cockpit-1");
         environmentEntity.setName("Env 1");

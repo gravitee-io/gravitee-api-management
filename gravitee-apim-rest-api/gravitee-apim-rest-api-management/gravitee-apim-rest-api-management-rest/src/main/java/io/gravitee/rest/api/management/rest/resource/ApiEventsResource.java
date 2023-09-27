@@ -122,7 +122,6 @@ public class ApiEventsResource extends AbstractResource {
         Map<String, Object> properties = new HashMap<>();
         properties.put(Event.EventProperties.API_ID.getValue(), List.of(api));
         final Page<EventEntity> apiEvents = eventService.search(
-            executionContext,
             eventSearchParam.getEventTypeListParam(),
             properties,
             eventSearchParam.getFrom(),

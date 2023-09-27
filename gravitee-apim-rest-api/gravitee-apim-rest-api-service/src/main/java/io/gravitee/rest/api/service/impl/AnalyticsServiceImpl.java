@@ -33,7 +33,6 @@ import io.gravitee.repository.analytics.query.response.histogram.DateHistogramRe
 import io.gravitee.repository.analytics.query.stats.StatsResponse;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.rest.api.model.ApplicationEntity;
-import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.TenantEntity;
 import io.gravitee.rest.api.model.TenantReferenceType;
 import io.gravitee.rest.api.model.analytics.Bucket;
@@ -51,7 +50,6 @@ import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.AnalyticsService;
 import io.gravitee.rest.api.service.ApplicationService;
-import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.TenantService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.AnalyticsCalculateException;
@@ -357,7 +355,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                             metadata.put(key, getApplicationMetadata(executionContext, key));
                             break;
                         case FIELD_PLAN:
-                            metadata.put(key, getPlanMetadata(executionContext, key));
+                            metadata.put(key, getPlanMetadata(key));
                             break;
                         case FIELD_TENANT:
                             metadata.put(key, getTenantMetadata(executionContext.getOrganizationId(), key));
@@ -425,14 +423,14 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         return metadata;
     }
 
-    private Map<String, String> getPlanMetadata(final ExecutionContext executionContext, String plan) {
+    private Map<String, String> getPlanMetadata(String plan) {
         Map<String, String> metadata = new HashMap<>();
         try {
             if (plan.equals(UNKNOWN_SERVICE) || plan.equals(UNKNOWN_SERVICE_MAPPED)) {
                 metadata.put(METADATA_NAME, METADATA_UNKNOWN_PLAN_NAME);
                 metadata.put(METADATA_UNKNOWN, Boolean.TRUE.toString());
             } else {
-                GenericPlanEntity genericPlanEntity = planSearchService.findById(executionContext, plan);
+                GenericPlanEntity genericPlanEntity = planSearchService.findById(plan);
                 metadata.put(METADATA_NAME, genericPlanEntity.getName());
             }
         } catch (PlanNotFoundException anfe) {

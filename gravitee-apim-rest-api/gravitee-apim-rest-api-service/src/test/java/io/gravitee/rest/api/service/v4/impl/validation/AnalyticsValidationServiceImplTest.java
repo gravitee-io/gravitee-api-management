@@ -71,9 +71,9 @@ public class AnalyticsValidationServiceImplTest {
 
         when(
             parameterService.findAll(
-                eq(GraviteeContext.getExecutionContext()),
                 eq(Key.LOGGING_DEFAULT_MAX_DURATION),
                 any(Function.class),
+                eq(GraviteeContext.getCurrentOrganization()),
                 eq(ParameterReferenceType.ORGANIZATION)
             )
         )
@@ -130,9 +130,9 @@ public class AnalyticsValidationServiceImplTest {
 
         when(
             parameterService.findAll(
-                eq(GraviteeContext.getExecutionContext()),
                 eq(Key.LOGGING_DEFAULT_MAX_DURATION),
                 any(Function.class),
+                eq(GraviteeContext.getCurrentOrganization()),
                 eq(ParameterReferenceType.ORGANIZATION)
             )
         )
@@ -335,9 +335,9 @@ public class AnalyticsValidationServiceImplTest {
 
         when(
             parameterService.findAll(
-                eq(GraviteeContext.getExecutionContext()),
                 eq(Key.LOGGING_DEFAULT_MAX_DURATION),
                 any(Function.class),
+                eq(GraviteeContext.getCurrentOrganization()),
                 eq(ParameterReferenceType.ORGANIZATION)
             )
         )

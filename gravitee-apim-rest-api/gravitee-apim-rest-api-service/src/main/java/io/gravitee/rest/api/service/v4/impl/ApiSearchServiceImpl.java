@@ -29,6 +29,7 @@ import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.*;
 import io.gravitee.rest.api.model.CategoryEntity;
+import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.common.Pageable;
@@ -36,8 +37,8 @@ import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.CategoryService;
+import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.PaginationInvalidException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -73,6 +74,7 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
     private final CategoryService categoryService;
     private final SearchEngineService searchEngineService;
     private final ApiAuthorizationService apiAuthorizationService;
+    private final EnvironmentService environmentService;
 
     public ApiSearchServiceImpl(
         @Lazy final ApiRepository apiRepository,
@@ -81,7 +83,8 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
         @Lazy final PrimaryOwnerService primaryOwnerService,
         @Lazy final CategoryService categoryService,
         final SearchEngineService searchEngineService,
-        @Lazy final ApiAuthorizationService apiAuthorizationService
+        @Lazy final ApiAuthorizationService apiAuthorizationService,
+        final EnvironmentService environmentService
     ) {
         this.apiRepository = apiRepository;
         this.apiMapper = apiMapper;
@@ -90,13 +93,24 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
         this.categoryService = categoryService;
         this.searchEngineService = searchEngineService;
         this.apiAuthorizationService = apiAuthorizationService;
+        this.environmentService = environmentService;
     }
 
     @Override
     public ApiEntity findById(final ExecutionContext executionContext, final String apiId) {
         final Api api = this.findV4RepositoryApiById(executionContext, apiId);
         PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext, api.getId());
-        return apiMapper.toEntity(executionContext, api, primaryOwner, null, true);
+        return apiMapper.toEntity(api, primaryOwner, null, true);
+    }
+
+    @Override
+    public GenericApiEntity findGenericById(final String apiId) {
+        // Workaround because we don't have any context
+        final Api api = this.findRepositoryApiById(new ExecutionContext(null, null), apiId);
+        EnvironmentEntity environmentEntity = environmentService.findById(api.getEnvironmentId());
+        PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(new ExecutionContext(environmentEntity), api.getId());
+        final List<CategoryEntity> categories = categoryService.findAll(environmentEntity.getId());
+        return genericApiMapper.toGenericApi(api, primaryOwner, categories);
     }
 
     @Override
@@ -104,7 +118,7 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
         final Api api = this.findRepositoryApiById(executionContext, apiId);
         PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext, api.getId());
         final List<CategoryEntity> categories = categoryService.findAll(executionContext.getEnvironmentId());
-        return genericApiMapper.toGenericApi(executionContext, api, primaryOwner, categories);
+        return genericApiMapper.toGenericApi(api, primaryOwner, categories);
     }
 
     @Override
@@ -221,7 +235,7 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
     ) {
         // Step 1: find apiIds from lucene indexer from 'query' parameter without any pagination and sorting
         var apiQuery = apiQueryBuilder.build();
-        SearchResult apiIdsResult = searchEngineService.search(GraviteeContext.getExecutionContext(), apiQuery);
+        SearchResult apiIdsResult = searchEngineService.search(executionContext, apiQuery);
 
         if (!apiIdsResult.hasResults() && apiIdsResult.getDocuments().isEmpty()) {
             return new Page<>(List.of(), 0, 0, 0);
@@ -231,7 +245,7 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
 
         // Step 2: if user is not admin, get list of apiIds in their scope and join with Lucene results
         if (!isAdmin) {
-            Set<String> userApiIds = apiAuthorizationService.findApiIdsByUserId(GraviteeContext.getExecutionContext(), userId, null);
+            Set<String> userApiIds = apiAuthorizationService.findApiIdsByUserId(executionContext, userId, null);
 
             // User has no associated apis
             if (userApiIds.isEmpty()) {
@@ -248,7 +262,7 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
         List<String> apiIdPageSubset = this.getApiIdPageSubset(apiIds, pageable);
 
         ApiCriteria.Builder apiCriteriaBuilder = new ApiCriteria.Builder()
-            .environmentId(GraviteeContext.getExecutionContext().getEnvironmentId())
+            .environmentId(executionContext.getEnvironmentId())
             .ids(apiIdPageSubset);
 
         if (Objects.nonNull(apiQuery.getFilters()) && apiQuery.getFilters().containsKey(FIELD_DEFINITION_VERSION)) {
@@ -276,8 +290,7 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
 
         if (mapToFullGenericApiEntity) {
             final List<CategoryEntity> categories = categoryService.findAll(executionContext.getEnvironmentId());
-            apisStream =
-                apis.stream().map(api -> genericApiMapper.toGenericApi(executionContext, api, primaryOwners.get(api.getId()), categories));
+            apisStream = apis.stream().map(api -> genericApiMapper.toGenericApi(api, primaryOwners.get(api.getId()), categories));
         } else {
             // Map to simple GenericApiEntity
             apisStream = apis.stream().map(api -> genericApiMapper.toGenericApi(api, primaryOwners.get(api.getId())));
@@ -440,7 +453,7 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
         final List<CategoryEntity> categories = categoryService.findAll(executionContext.getEnvironmentId());
 
         return streamApis
-            .map(publicApi -> genericApiMapper.toGenericApi(executionContext, publicApi, primaryOwners.get(publicApi.getId()), categories))
+            .map(publicApi -> genericApiMapper.toGenericApi(publicApi, primaryOwners.get(publicApi.getId()), categories))
             .collect(Collectors.toSet());
     }
 }

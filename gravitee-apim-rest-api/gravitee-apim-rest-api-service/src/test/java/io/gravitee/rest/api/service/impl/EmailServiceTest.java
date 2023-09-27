@@ -68,8 +68,7 @@ public class EmailServiceTest {
         service = new EmailServiceImpl(mailManager, notificationTemplateService, parameterService, file.getCanonicalPath());
 
         Map<String, List<String>> mailParameters = Map.of("email.enabled", List.of("true"), "email.subject", List.of("[Gravitee.io] %s"));
-        when(parameterService.findAll(anyList(), anyString(), any(ParameterReferenceType.class), any(ExecutionContext.class)))
-            .thenReturn(mailParameters);
+        when(parameterService.findAll(anyList(), anyString(), any(ParameterReferenceType.class))).thenReturn(mailParameters);
 
         doNothing().when(mailSender).send(any(MimeMessage.class));
 
@@ -211,7 +210,7 @@ public class EmailServiceTest {
 
     @Test
     public void shouldNotSendEmailNotification_WhenEmailIsDisabled() {
-        when(parameterService.findAll(anyList(), anyString(), any(ParameterReferenceType.class), any(ExecutionContext.class)))
+        when(parameterService.findAll(anyList(), anyString(), any(ParameterReferenceType.class)))
             .thenReturn(Map.of("email.enabled", List.of("false")));
 
         service.sendEmailNotification(EXECUTION_CONTEXT, getEmailNotification());

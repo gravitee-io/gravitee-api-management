@@ -241,7 +241,7 @@ public class ApiExportService_ExportAsCustomResourceTest extends ApiExportServic
         userEntity.setId(memberEntity.getId());
         userEntity.setSource(userEntity.getId() + "-source");
         userEntity.setSourceId(userEntity.getId() + "-sourceId");
-        when(userService.findById(GraviteeContext.getExecutionContext(), memberEntity.getId())).thenReturn(userEntity);
+        when(userService.findById(memberEntity.getId())).thenReturn(userEntity);
 
         PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity();
         primaryOwnerEntity.setDisplayName("johndoe-sourceId");
@@ -261,7 +261,7 @@ public class ApiExportService_ExportAsCustomResourceTest extends ApiExportServic
 
         Set<PlanEntity> set = new HashSet<>();
         set.add(publishedPlan);
-        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(set);
+        when(planService.findByApi(API_ID)).thenReturn(set);
 
         when(pathValidationService.sanitizePath(anyString())).then(returnsFirstArg());
     }

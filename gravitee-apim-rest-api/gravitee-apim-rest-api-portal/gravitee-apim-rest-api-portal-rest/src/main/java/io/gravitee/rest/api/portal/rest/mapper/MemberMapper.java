@@ -41,12 +41,12 @@ public class MemberMapper {
     @Autowired
     private UserService userService;
 
-    public Member convert(ExecutionContext executionContext, MemberEntity member, UriInfo uriInfo) {
+    public Member convert(MemberEntity member, UriInfo uriInfo) {
         final Member memberItem = new Member();
 
         memberItem.setCreatedAt(member.getCreatedAt().toInstant().atOffset(ZoneOffset.UTC));
 
-        UserEntity userEntity = userService.findById(executionContext, member.getId());
+        UserEntity userEntity = userService.findById(member.getId());
         User memberUser = userMapper.convert(userEntity);
         memberUser.setLinks(
             userMapper.computeUserLinks(usersURL(uriInfo.getBaseUriBuilder(), userEntity.getId()), userEntity.getUpdatedAt())

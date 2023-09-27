@@ -142,7 +142,7 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
             api.setCrossId(UuidString.generateRandom());
             apiService.update(executionContext, api.getId(), apiConverter.toUpdateApiEntity(api));
         }
-        planService.findByApi(executionContext, api.getId()).forEach(plan -> generateAndSaveCrossId(executionContext, plan));
+        planService.findByApi(api.getId()).forEach(plan -> generateAndSaveCrossId(executionContext, plan));
         pageService
             .findByApi(executionContext.getEnvironmentId(), api.getId())
             .forEach(page -> generateAndSaveCrossId(executionContext, page));

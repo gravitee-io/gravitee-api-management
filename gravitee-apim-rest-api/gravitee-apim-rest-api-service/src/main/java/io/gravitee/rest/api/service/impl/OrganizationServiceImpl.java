@@ -20,7 +20,6 @@ import io.gravitee.definition.model.FlowMode;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.OrganizationRepository;
-import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.Organization;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.model.EnvironmentEntity;
@@ -69,9 +68,6 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
     @Autowired
     private EnvironmentService environmentService;
 
-    @Autowired
-    private ObjectMapper mapper;
-
     @Override
     public OrganizationEntity findById(String organizationId) {
         try {
@@ -90,69 +86,14 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
     }
 
     @Override
-    public OrganizationEntity updateOrganization(ExecutionContext executionContext, final UpdateOrganizationEntity organizationEntity) {
+    public OrganizationEntity updateOrganization(String organizationId, final UpdateOrganizationEntity organizationEntity) {
         try {
-            Optional<Organization> organizationOptional = organizationRepository.findById(executionContext.getOrganizationId());
+            Optional<Organization> organizationOptional = organizationRepository.findById(organizationId);
             if (organizationOptional.isPresent()) {
                 Organization organization = convert(organizationEntity);
                 organization.setId(organizationOptional.get().getId());
                 OrganizationEntity updatedOrganization = convert(organizationRepository.update(organization));
-                createPublishOrganizationEvent(executionContext, updatedOrganization);
-                return updatedOrganization;
-            } else {
-                throw new OrganizationNotFoundException(executionContext.getOrganizationId());
-            }
-        } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to update organization {}", organizationEntity.getName(), ex);
-            throw new TechnicalManagementException(
-                "An error occurs while trying to update organization " + organizationEntity.getName(),
-                ex
-            );
-        }
-    }
-
-    @Override
-    public OrganizationEntity createOrUpdate(ExecutionContext executionContext, final UpdateOrganizationEntity organizationEntity) {
-        try {
-            String organizationId = executionContext.getOrganizationId();
-            try {
-                return this.updateOrganizationAndFlows(executionContext, organizationId, organizationEntity);
-            } catch (OrganizationNotFoundException e) {
-                Organization organization = convert(organizationEntity);
-                organization.setId(organizationId);
-                flowService.save(FlowReferenceType.ORGANIZATION, organizationId, organizationEntity.getFlows());
-                OrganizationEntity createdOrganization = convert(organizationRepository.create(organization));
-
-                //create Default role for organization
-                roleService.initialize(executionContext, createdOrganization.getId());
-                roleService.createOrUpdateSystemRoles(executionContext, createdOrganization.getId());
-                createPublishOrganizationEvent(executionContext, createdOrganization);
-
-                return createdOrganization;
-            }
-        } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to update organization {}", organizationEntity.getName(), ex);
-            throw new TechnicalManagementException(
-                "An error occurs while trying to update organization " + organizationEntity.getName(),
-                ex
-            );
-        }
-    }
-
-    @Override
-    public OrganizationEntity updateOrganizationAndFlows(
-        ExecutionContext executionContext,
-        String organizationId,
-        final UpdateOrganizationEntity organizationEntity
-    ) {
-        try {
-            Optional<Organization> organizationOptional = organizationRepository.findById(organizationId);
-            if (organizationOptional.isPresent()) {
-                flowService.save(FlowReferenceType.ORGANIZATION, organizationId, organizationEntity.getFlows());
-                Organization organization = convert(organizationEntity);
-                organization.setId(organizationId);
-                OrganizationEntity updatedOrganization = convert(organizationRepository.update(organization));
-                createPublishOrganizationEvent(executionContext, updatedOrganization);
+                createPublishOrganizationEvent(updatedOrganization);
                 return updatedOrganization;
             } else {
                 throw new OrganizationNotFoundException(organizationId);
@@ -166,14 +107,65 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
         }
     }
 
-    private void createPublishOrganizationEvent(ExecutionContext executionContext, OrganizationEntity organizationEntity) {
+    @Override
+    public OrganizationEntity createOrUpdate(String organizationId, final UpdateOrganizationEntity organizationEntity) {
+        try {
+            try {
+                return this.updateOrganizationAndFlows(organizationId, organizationEntity);
+            } catch (OrganizationNotFoundException e) {
+                Organization organization = convert(organizationEntity);
+                organization.setId(organizationId);
+                flowService.save(FlowReferenceType.ORGANIZATION, organizationId, organizationEntity.getFlows());
+                OrganizationEntity createdOrganization = convert(organizationRepository.create(organization));
+
+                //create Default role for organization
+                ExecutionContext executionContext = new ExecutionContext(createdOrganization.getId());
+                roleService.initialize(executionContext, createdOrganization.getId());
+                roleService.createOrUpdateSystemRoles(executionContext, createdOrganization.getId());
+                createPublishOrganizationEvent(createdOrganization);
+
+                return createdOrganization;
+            }
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to update organization {}", organizationEntity.getName(), ex);
+            throw new TechnicalManagementException(
+                "An error occurs while trying to update organization " + organizationEntity.getName(),
+                ex
+            );
+        }
+    }
+
+    @Override
+    public OrganizationEntity updateOrganizationAndFlows(String organizationId, final UpdateOrganizationEntity organizationEntity) {
+        try {
+            Optional<Organization> organizationOptional = organizationRepository.findById(organizationId);
+            if (organizationOptional.isPresent()) {
+                flowService.save(FlowReferenceType.ORGANIZATION, organizationId, organizationEntity.getFlows());
+                Organization organization = convert(organizationEntity);
+                organization.setId(organizationId);
+                OrganizationEntity updatedOrganization = convert(organizationRepository.update(organization));
+                createPublishOrganizationEvent(updatedOrganization);
+                return updatedOrganization;
+            } else {
+                throw new OrganizationNotFoundException(organizationId);
+            }
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to update organization {}", organizationEntity.getName(), ex);
+            throw new TechnicalManagementException(
+                "An error occurs while trying to update organization " + organizationEntity.getName(),
+                ex
+            );
+        }
+    }
+
+    private void createPublishOrganizationEvent(OrganizationEntity organizationEntity) {
         Set<String> environmentIds = environmentService
             .findByOrganization(organizationEntity.getId())
             .stream()
             .map(EnvironmentEntity::getId)
             .collect(Collectors.toSet());
 
-        eventService.createOrganizationEvent(executionContext, environmentIds, EventType.PUBLISH_ORGANIZATION, organizationEntity);
+        eventService.createOrganizationEvent(environmentIds, EventType.PUBLISH_ORGANIZATION, organizationEntity);
     }
 
     @Override

@@ -72,13 +72,13 @@ public class ApplicationSubscriptionsResourceTest extends AbstractResourceTest {
         newSubscriptionEntity.setPlan(PLAN);
         newSubscriptionEntity.setRequest("request");
 
-        when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(mock(PlanEntity.class));
+        when(planSearchService.findById(any())).thenReturn(mock(PlanEntity.class));
 
         SubscriptionEntity createdSubscription = new SubscriptionEntity();
         createdSubscription.setPlan(PLAN);
         createdSubscription.setId(SUBSCRIPTION);
         when(subscriptionService.create(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(createdSubscription);
-        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any(), anyBoolean())).thenReturn(mock(UserEntity.class));
+        when(userService.findById(any(), anyBoolean())).thenReturn(mock(UserEntity.class));
 
         ApiEntity foundApi = new ApiEntity();
         foundApi.setPrimaryOwner(mock(PrimaryOwnerEntity.class));
@@ -86,7 +86,7 @@ public class ApplicationSubscriptionsResourceTest extends AbstractResourceTest {
 
         PlanEntity foundPlan = new PlanEntity();
         foundPlan.setSecurity(PlanSecurityType.OAUTH2);
-        when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), eq(PLAN))).thenReturn(foundPlan);
+        when(planSearchService.findById(eq(PLAN))).thenReturn(foundPlan);
 
         final Response response = envTarget()
             .path(APPLICATION)
@@ -114,14 +114,13 @@ public class ApplicationSubscriptionsResourceTest extends AbstractResourceTest {
         newSubscriptionEntity.setPlan(PLAN);
         newSubscriptionEntity.setRequest("request");
 
-        when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), any()))
-            .thenReturn(mock(io.gravitee.rest.api.model.v4.plan.PlanEntity.class));
+        when(planSearchService.findById(any())).thenReturn(mock(io.gravitee.rest.api.model.v4.plan.PlanEntity.class));
 
         SubscriptionEntity createdSubscription = new SubscriptionEntity();
         createdSubscription.setPlan(PLAN);
         createdSubscription.setId(SUBSCRIPTION);
         when(subscriptionService.create(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(createdSubscription);
-        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any(), anyBoolean())).thenReturn(mock(UserEntity.class));
+        when(userService.findById(any(), anyBoolean())).thenReturn(mock(UserEntity.class));
 
         ApiEntity foundApi = new ApiEntity();
         foundApi.setPrimaryOwner(mock(PrimaryOwnerEntity.class));
@@ -132,7 +131,7 @@ public class ApplicationSubscriptionsResourceTest extends AbstractResourceTest {
         planSecurity.setType("oauth2");
         foundPlan.setSecurity(planSecurity);
         foundPlan.setMode(PlanMode.STANDARD);
-        when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), eq(PLAN))).thenReturn(foundPlan);
+        when(planSearchService.findById(eq(PLAN))).thenReturn(foundPlan);
 
         final Response response = envTarget()
             .path(APPLICATION)

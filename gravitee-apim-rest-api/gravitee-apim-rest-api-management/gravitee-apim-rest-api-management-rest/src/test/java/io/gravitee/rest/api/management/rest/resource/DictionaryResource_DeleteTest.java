@@ -36,6 +36,6 @@ public class DictionaryResource_DeleteTest extends AbstractResourceTest {
         final Response response = envTarget(DICTIONARY_ID).request().delete();
         assertEquals(HttpStatusCode.NO_CONTENT_204, response.getStatus());
 
-        verify(dictionaryService, times(1)).delete(eq(GraviteeContext.getExecutionContext()), eq(DICTIONARY_ID));
+        verify(dictionaryService, times(1)).delete(eq(DICTIONARY_ID));
     }
 }

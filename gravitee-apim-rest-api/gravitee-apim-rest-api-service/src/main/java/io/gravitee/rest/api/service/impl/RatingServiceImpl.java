@@ -25,7 +25,6 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.RatingAnswerRepository;
 import io.gravitee.repository.management.api.RatingRepository;
 import io.gravitee.repository.management.api.search.RatingCriteria;
-import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Rating;
 import io.gravitee.repository.management.model.RatingAnswer;
 import io.gravitee.repository.management.model.RatingReferenceType;
@@ -114,7 +113,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
                 new NotificationParamsBuilder().api(apiSearchService.findGenericById(executionContext, rating.getReferenceId())).build()
             );
 
-            return convert(executionContext, rating);
+            return convert(rating);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurred while trying to create rating on api {}", ratingEntity.getApi(), ex);
             throw new TechnicalManagementException("An error occurred while trying to create rating on api " + ratingEntity.getApi(), ex);
@@ -153,7 +152,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
                 new NotificationParamsBuilder().api(apiSearchService.findGenericById(executionContext, rating.getReferenceId())).build()
             );
 
-            return convert(executionContext, rating);
+            return convert(rating);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurred while trying to create a rating answer on rating {}", answerEntity.getRatingId(), ex);
             throw new TechnicalManagementException(
@@ -165,7 +164,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
 
     @Override
     public RatingEntity findById(ExecutionContext executionContext, String id) {
-        return convert(executionContext, findModelById(executionContext, id));
+        return convert(findModelById(executionContext, id));
     }
 
     @Override
@@ -179,11 +178,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
                 RatingReferenceType.API,
                 convert(pageable)
             );
-            final List<RatingEntity> ratingEntities = pageRating
-                .getContent()
-                .stream()
-                .map(rating -> convert(executionContext, rating))
-                .collect(toList());
+            final List<RatingEntity> ratingEntities = pageRating.getContent().stream().map(rating -> convert(rating)).collect(toList());
             return new Page<>(
                 ratingEntities,
                 pageRating.getPageNumber(),
@@ -203,7 +198,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
         }
         try {
             final List<Rating> ratings = ratingRepository.findByReferenceIdAndReferenceType(api, RatingReferenceType.API);
-            final List<RatingEntity> ratingEntities = ratings.stream().map(rating -> convert(executionContext, rating)).collect(toList());
+            final List<RatingEntity> ratingEntities = ratings.stream().map(rating -> convert(rating)).collect(toList());
             return ratingEntities;
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurred while trying to find ratings for api {}", api, ex);
@@ -258,7 +253,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
                 getAuthenticatedUsername()
             );
             if (ratingOptional.isPresent()) {
-                return convert(executionContext, ratingOptional.get());
+                return convert(ratingOptional.get());
             }
             return null;
         } catch (final TechnicalException ex) {
@@ -301,7 +296,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
                 oldRating,
                 updatedRating
             );
-            return convert(executionContext, updatedRating);
+            return convert(updatedRating);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurred while trying to update rating {}", ratingEntity.getId(), ex);
             throw new TechnicalManagementException("An error occurred while trying to update rating " + ratingEntity.getId(), ex);
@@ -356,7 +351,11 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
 
     @Override
     public boolean isEnabled(ExecutionContext executionContext) {
-        return parameterService.findAsBoolean(executionContext, Key.PORTAL_RATING_ENABLED, ParameterReferenceType.ENVIRONMENT);
+        return parameterService.findAsBoolean(
+            Key.PORTAL_RATING_ENABLED,
+            executionContext.getEnvironmentId(),
+            ParameterReferenceType.ENVIRONMENT
+        );
     }
 
     private Rating findModelById(ExecutionContext executionContext, String id) {
@@ -375,10 +374,10 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
         }
     }
 
-    private RatingEntity convert(ExecutionContext executionContext, final Rating rating) {
+    private RatingEntity convert(final Rating rating) {
         final RatingEntity ratingEntity = new RatingEntity();
 
-        final UserEntity user = userService.findById(executionContext, rating.getUser());
+        final UserEntity user = userService.findById(rating.getUser());
         ratingEntity.setUser(user.getId());
         ratingEntity.setUserDisplayName(user.getDisplayName());
         ratingEntity.setId(rating.getId());
@@ -398,7 +397,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
                         .map(ratingAnswer -> {
                             final RatingAnswerEntity ratingAnswerEntity = new RatingAnswerEntity();
                             ratingAnswerEntity.setId(ratingAnswer.getId());
-                            final UserEntity userAnswer = userService.findById(executionContext, ratingAnswer.getUser());
+                            final UserEntity userAnswer = userService.findById(ratingAnswer.getUser());
                             ratingAnswerEntity.setUser(userAnswer.getId());
 
                             if (userAnswer.getFirstname() != null && userAnswer.getLastname() != null) {

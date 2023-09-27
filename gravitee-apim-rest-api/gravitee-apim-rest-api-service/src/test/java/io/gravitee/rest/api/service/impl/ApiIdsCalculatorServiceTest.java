@@ -137,7 +137,7 @@ class ApiIdsCalculatorServiceTest {
 
         ExecutionContext executionContext = new ExecutionContext("default", "dev");
 
-        when(planService.findByApi(executionContext, "api-id-1")).thenReturn(Set.of(firstMatchingPlan, secondMatchingPlan));
+        when(planService.findByApi("api-id-1")).thenReturn(Set.of(firstMatchingPlan, secondMatchingPlan));
 
         ImportApiJsonNode newApiDefinition = cut.recalculateApiDefinitionIds(executionContext, new ImportApiJsonNode(apiDefinition));
 
@@ -263,7 +263,7 @@ class ApiIdsCalculatorServiceTest {
 
         ExecutionContext executionContext = new ExecutionContext("default", "dev");
 
-        when(planService.findByApi(executionContext, "api-id-1")).thenReturn(Set.of(matchingPlan));
+        when(planService.findByApi("api-id-1")).thenReturn(Set.of(matchingPlan));
 
         ImportApiJsonNode newApiDefinition = cut.recalculateApiDefinitionIds(executionContext, new ImportApiJsonNode(apiDefinition));
 

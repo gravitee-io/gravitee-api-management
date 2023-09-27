@@ -58,6 +58,6 @@ public class ApiEventResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_EVENT, acls = RolePermissionAction.READ) })
     public Response getEvent() {
-        return Response.ok(eventService.findById(GraviteeContext.getExecutionContext(), eventId)).build();
+        return Response.ok(eventService.findById(eventId)).build();
     }
 }

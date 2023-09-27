@@ -127,7 +127,7 @@ public class TokenAuthenticationFilter extends GenericFilterBean {
                             .setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, authorities));
                     } else if (tokenService != null && userService != null) {
                         final Token token = tokenService.findByToken(tokenValue);
-                        final UserEntity user = userService.findById(GraviteeContext.getExecutionContext(), token.getReferenceId());
+                        final UserEntity user = userService.findById(token.getReferenceId());
 
                         final Set<GrantedAuthority> authorities = this.authoritiesProvider.retrieveAuthorities(user.getId());
 

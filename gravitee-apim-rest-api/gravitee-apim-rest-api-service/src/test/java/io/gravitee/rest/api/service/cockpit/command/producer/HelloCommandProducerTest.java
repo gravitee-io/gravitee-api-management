@@ -156,7 +156,7 @@ public class HelloCommandProducerTest {
         Flow flow = new Flow();
         flow.setName("My-Flow");
 
-        String defaultOrgId = "DEFAULT";
+        String defaultOrgId = GraviteeContext.getDefaultOrganization();
         OrganizationEntity defaultOrganization = new OrganizationEntity();
         defaultOrganization.setId(defaultOrgId);
         defaultOrganization.setFlows(Collections.singletonList(flow));
@@ -169,7 +169,7 @@ public class HelloCommandProducerTest {
 
         verify(organizationService)
             .updateOrganization(
-                argThat(executionContext -> executionContext.getOrganizationId().equals(defaultOrgId)),
+                argThat(orgId -> orgId.equals(defaultOrgId)),
                 argThat(org ->
                     org.getCockpitId().equals("org#cockpit-1") &&
                     FlowMode.DEFAULT.equals(org.getFlowMode()) &&

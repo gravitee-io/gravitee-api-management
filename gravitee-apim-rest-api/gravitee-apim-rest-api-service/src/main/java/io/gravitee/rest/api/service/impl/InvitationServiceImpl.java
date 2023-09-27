@@ -211,7 +211,7 @@ public class InvitationServiceImpl extends TransactionalService implements Invit
             new EmailNotificationBuilder()
                 .to(invitation.getEmail())
                 .template(EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_USER_GROUP_INVITATION)
-                .params(userService.getTokenRegistrationParams(executionContext, userEntity, REGISTRATION_PATH, GROUP_INVITATION))
+                .params(userService.getTokenRegistrationParams(userEntity, REGISTRATION_PATH, GROUP_INVITATION))
                 .param("group", group)
                 .build()
         );

@@ -107,7 +107,7 @@ public class GroupService_AssociateTest extends TestCase {
         UserEntity fakeUserEntity = new UserEntity();
         fakeUserEntity.setFirstname("firstName");
         fakeUserEntity.setLastname("lastName");
-        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(fakeUserEntity);
+        when(userService.findById(any())).thenReturn(fakeUserEntity);
 
         groupService.associate(executionContext, GROUP_ID, "api");
 

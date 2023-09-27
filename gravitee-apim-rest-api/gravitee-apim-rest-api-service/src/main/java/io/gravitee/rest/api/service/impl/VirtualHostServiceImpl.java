@@ -52,7 +52,7 @@ public class VirtualHostServiceImpl extends TransactionalService implements Virt
 
         try {
             int index = 0;
-            List<Path> sanitizedPaths = pathValidationService.validateAndSanitizePaths(executionContext, apiId, paths);
+            List<Path> sanitizedPaths = pathValidationService.validateAndSanitizePaths(executionContext.getEnvironmentId(), apiId, paths);
             for (Path path : sanitizedPaths) {
                 // sanitized list of Path has same order as input list, so we can rely on index to update the input list.
                 // The goal here is to change only the path and host of the vHost and to keep the value of overrideEntrypoint.

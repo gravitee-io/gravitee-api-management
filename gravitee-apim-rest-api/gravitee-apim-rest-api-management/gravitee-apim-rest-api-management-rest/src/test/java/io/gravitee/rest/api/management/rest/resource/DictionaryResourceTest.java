@@ -46,7 +46,7 @@ public class DictionaryResourceTest extends AbstractResourceTest {
         dictionary.setState(Lifecycle.State.STOPPED);
         doReturn(dictionary).when(dictionaryService).findById(eq(DICTIONARY_ID));
 
-        doReturn(dictionary).when(dictionaryService).start(eq(GraviteeContext.getExecutionContext()), eq(DICTIONARY_ID));
+        doReturn(dictionary).when(dictionaryService).start(eq(DICTIONARY_ID));
 
         final Response response = envTarget().queryParam("action", LifecycleAction.START).request().post(null);
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -61,7 +61,7 @@ public class DictionaryResourceTest extends AbstractResourceTest {
         dictionary.setState(Lifecycle.State.STARTED);
         doReturn(dictionary).when(dictionaryService).findById(eq(DICTIONARY_ID));
 
-        doReturn(dictionary).when(dictionaryService).stop(eq(GraviteeContext.getExecutionContext()), eq(DICTIONARY_ID));
+        doReturn(dictionary).when(dictionaryService).stop(eq(DICTIONARY_ID));
 
         final Response response = envTarget().queryParam("action", LifecycleAction.STOP).request().post(null);
         assertEquals(HttpStatusCode.OK_200, response.getStatus());

@@ -166,7 +166,11 @@ public class ApiSubscriptionsResource extends AbstractResource {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (
             StringUtils.isNotEmpty(customApiKey) &&
-            !parameterService.findAsBoolean(executionContext, Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED, ParameterReferenceType.ENVIRONMENT)
+            !parameterService.findAsBoolean(
+                Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED,
+                executionContext.getEnvironmentId(),
+                ParameterReferenceType.ENVIRONMENT
+            )
         ) {
             return Response.status(Response.Status.BAD_REQUEST).entity("You are not allowed to provide a custom API Key").build();
         }
@@ -272,13 +276,13 @@ public class ApiSubscriptionsResource extends AbstractResource {
         subscription.setSubscribedBy(
             new Subscription.User(
                 subscriptionEntity.getSubscribedBy(),
-                userService.findById(executionContext, subscriptionEntity.getSubscribedBy()).getDisplayName()
+                userService.findById(subscriptionEntity.getSubscribedBy()).getDisplayName()
             )
         );
         subscription.setMetadata(subscriptionEntity.getMetadata());
         subscription.setConfiguration(subscriptionEntity.getConfiguration());
 
-        GenericPlanEntity plan = planSearchService.findById(executionContext, subscriptionEntity.getPlan());
+        GenericPlanEntity plan = planSearchService.findById(subscriptionEntity.getPlan());
         subscription.setPlan(new Subscription.Plan(plan.getId(), plan.getName()));
 
         ApplicationEntity application = applicationService.findById(executionContext, subscriptionEntity.getApplication());

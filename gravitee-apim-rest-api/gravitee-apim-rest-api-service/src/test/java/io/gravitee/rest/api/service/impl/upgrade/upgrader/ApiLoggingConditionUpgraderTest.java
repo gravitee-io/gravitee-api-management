@@ -180,7 +180,6 @@ public class ApiLoggingConditionUpgraderTest {
         verify(apiRepository, times(1)).update(argThat(apiUpdated -> apiUpdated.getDefinition().contains("{#request.timestamp < 1}")));
         verify(eventService, times(0))
             .createApiEvent(
-                eq(executionContext),
                 any(),
                 eq(PUBLISH_API),
                 argThat((ArgumentMatcher<Api>) argApi -> argApi.getDefinition().contains("{#request.timestamp < 1}")),
@@ -213,7 +212,6 @@ public class ApiLoggingConditionUpgraderTest {
         verify(apiRepository, times(1)).update(argThat(apiUpdated -> apiUpdated.getDefinition().contains("{#request.timestamp < 1}")));
         verify(eventService, times(1))
             .createApiEvent(
-                eq(executionContext),
                 any(),
                 eq(PUBLISH_API),
                 argThat((ArgumentMatcher<Api>) argApi -> argApi.getDefinition().contains("{#request.timestamp < 1}")),

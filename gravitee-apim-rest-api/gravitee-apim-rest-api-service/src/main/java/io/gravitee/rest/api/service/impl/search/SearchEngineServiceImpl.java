@@ -175,7 +175,7 @@ public class SearchEngineServiceImpl implements SearchEngineService {
             } else if (PageEntity.class.getName().equals(clazz) || ApiPageEntity.class.getName().equals(clazz)) {
                 return pageService.findById(id);
             } else if (UserEntity.class.getName().equals(clazz)) {
-                return userService.findById(executionContext, id);
+                return userService.findById(id);
             }
         } catch (final AbstractNotFoundException nfe) {
             // ignore not found exception because may be due to synchronization not yet processed by DBs

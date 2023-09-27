@@ -80,7 +80,8 @@ public class UserResource extends AbstractResource {
                     permissionService.hasManagementRights(GraviteeContext.getExecutionContext(), authenticatedUser)
                 );
             if (withManagement) {
-                Management managementConfig = this.configService.getConsoleSettings(GraviteeContext.getExecutionContext()).getManagement();
+                Management managementConfig =
+                    this.configService.getConsoleSettings(GraviteeContext.getCurrentOrganization()).getManagement();
                 if (managementConfig != null && managementConfig.getUrl() != null) {
                     UserConfig userConfig = new UserConfig();
                     userConfig.setManagementUrl(managementConfig.getUrl());
@@ -103,7 +104,7 @@ public class UserResource extends AbstractResource {
         if (!getAuthenticatedUser().equals(user.getId())) {
             throw new UnauthorizedAccessException();
         }
-        UserEntity existingUser = userService.findById(GraviteeContext.getExecutionContext(), getAuthenticatedUser());
+        UserEntity existingUser = userService.findById(getAuthenticatedUser());
 
         UpdateUserEntity updateUserEntity = new UpdateUserEntity();
         // if avatar starts with "http" ignore it because it is not the right format
@@ -135,8 +136,8 @@ public class UserResource extends AbstractResource {
     @GET
     @Path("avatar")
     public Response getCurrentUserAvatar(@Context Request request) {
-        String userId = userService.findById(GraviteeContext.getExecutionContext(), getAuthenticatedUser()).getId();
-        PictureEntity picture = userService.getPicture(GraviteeContext.getExecutionContext(), userId);
+        String userId = userService.findById(getAuthenticatedUser()).getId();
+        PictureEntity picture = userService.getPicture(userId);
 
         if (picture == null) {
             return Response.ok().build();

@@ -77,7 +77,7 @@ public class ConsoleSettingsResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ORGANIZATION_SETTINGS, acls = READ) })
     public ConsoleSettingsEntity getConsoleSettings() {
-        return configService.getConsoleSettings(GraviteeContext.getExecutionContext());
+        return configService.getConsoleSettings(GraviteeContext.getCurrentOrganization());
     }
 
     @POST
@@ -98,13 +98,12 @@ public class ConsoleSettingsResource {
         // check that organization exists
         organizationService.findById(GraviteeContext.getCurrentOrganization());
 
-        configService.save(GraviteeContext.getExecutionContext(), consoleSettingsEntity);
+        configService.save(GraviteeContext.getCurrentOrganization(), consoleSettingsEntity);
         return Response.ok().entity(consoleSettingsEntity).build();
     }
 
     private void checkMaintenanceMode(ConsoleSettingsEntity consoleSettingsEntity) {
         boolean maintenanceMode = parameterService.findAsBoolean(
-            GraviteeContext.getExecutionContext(),
             Key.MAINTENANCE_MODE_ENABLED,
             GraviteeContext.getCurrentOrganization(),
             ParameterReferenceType.ORGANIZATION

@@ -19,6 +19,7 @@ import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.Organization;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
+import java.util.Objects;
 import java.util.Optional;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -27,8 +28,6 @@ import lombok.ToString;
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
  * @author GraviteeSource Team
  */
-@ToString
-@EqualsAndHashCode
 public class ExecutionContext {
 
     private final Optional<String> organizationId;
@@ -80,6 +79,19 @@ public class ExecutionContext {
                     .map(orgId -> ReferenceContext.builder().referenceId(orgId).referenceType(ReferenceContext.Type.ORGANIZATION).build())
                     .orElse(null)
             );
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ExecutionContext that = (ExecutionContext) o;
+        return Objects.equals(organizationId, that.organizationId) && Objects.equals(environmentId, that.environmentId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(organizationId, environmentId);
     }
 
     @Override

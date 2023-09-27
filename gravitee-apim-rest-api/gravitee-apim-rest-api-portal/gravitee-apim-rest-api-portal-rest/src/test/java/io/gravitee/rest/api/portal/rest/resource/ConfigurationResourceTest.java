@@ -60,14 +60,14 @@ public class ConfigurationResourceTest extends AbstractResourceTest {
 
         PortalSettingsEntity portalConfigEntity = new PortalSettingsEntity();
         ConsoleSettingsEntity consoleSettingsEntity = new ConsoleSettingsEntity();
-        doReturn(portalConfigEntity).when(configService).getPortalSettings(GraviteeContext.getExecutionContext());
-        doReturn(consoleSettingsEntity).when(configService).getConsoleSettings(GraviteeContext.getExecutionContext());
+        doReturn(portalConfigEntity).when(configService).getPortalSettings(GraviteeContext.getCurrentEnvironment());
+        doReturn(consoleSettingsEntity).when(configService).getConsoleSettings(GraviteeContext.getCurrentOrganization());
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         Mockito.verify(configMapper).convert(portalConfigEntity, consoleSettingsEntity);
-        Mockito.verify(configService).getPortalSettings(GraviteeContext.getExecutionContext());
-        Mockito.verify(configService).getConsoleSettings(GraviteeContext.getExecutionContext());
+        Mockito.verify(configService).getPortalSettings(GraviteeContext.getCurrentEnvironment());
+        Mockito.verify(configService).getConsoleSettings(GraviteeContext.getCurrentOrganization());
     }
 
     @Test
@@ -216,7 +216,7 @@ public class ConfigurationResourceTest extends AbstractResourceTest {
         data.add(web);
 
         typesEntity.setData(data);
-        when(applicationTypeService.getEnabledApplicationTypes(GraviteeContext.getExecutionContext())).thenReturn(typesEntity);
+        when(applicationTypeService.getEnabledApplicationTypes(GraviteeContext.getCurrentEnvironment())).thenReturn(typesEntity);
 
         final Response response = target().path("applications").path("types").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());

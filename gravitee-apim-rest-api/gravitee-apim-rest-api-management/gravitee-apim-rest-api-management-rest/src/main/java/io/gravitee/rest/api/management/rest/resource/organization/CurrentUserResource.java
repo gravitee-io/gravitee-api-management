@@ -263,7 +263,7 @@ public class CurrentUserResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response updateCurrentUser(@Valid @NotNull final UpdateUserEntity user) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        UserEntity userEntity = userService.findById(executionContext, getAuthenticatedUser());
+        UserEntity userEntity = userService.findById(getAuthenticatedUser());
         try {
             if (user.getPicture() != null) {
                 user.setPicture(ImageUtils.verifyAndRescale(user.getPicture()).toBase64());
@@ -290,9 +290,7 @@ public class CurrentUserResource extends AbstractResource {
     @ApiResponse(responseCode = "404", description = "User not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response getCurrentUserPicture(@Context Request request) {
-        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        String userId = userService.findById(executionContext, getAuthenticatedUser()).getId();
-        PictureEntity picture = userService.getPicture(executionContext, userId);
+        PictureEntity picture = userService.getPicture(getAuthenticatedUser());
 
         if (picture instanceof UrlPictureEntity) {
             return Response.temporaryRedirect(URI.create(((UrlPictureEntity) picture).getUrl())).build();

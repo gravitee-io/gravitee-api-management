@@ -164,20 +164,14 @@ public class ApiConverter {
         return apiEntity;
     }
 
-    public ApiEntity toApiEntity(
-        ExecutionContext executionContext,
-        Api api,
-        PrimaryOwnerEntity primaryOwner,
-        List<CategoryEntity> categories,
-        boolean readDatabaseFlows
-    ) {
+    public ApiEntity toApiEntity(Api api, PrimaryOwnerEntity primaryOwner, List<CategoryEntity> categories, boolean readDatabaseFlows) {
         ApiEntity apiEntity = toApiEntity(api, primaryOwner);
         if (apiEntity.getDefinitionContext() == null) {
             // Set context to management for backward compatibility.
             apiEntity.setDefinitionContext(new DefinitionContext(Api.ORIGIN_MANAGEMENT, Api.MODE_FULLY_MANAGED));
         }
 
-        Set<PlanEntity> plans = planService.findByApi(executionContext, api.getId());
+        Set<PlanEntity> plans = planService.findByApi(api.getId());
         apiEntity.setPlans(plans);
 
         if (readDatabaseFlows) {
@@ -185,16 +179,9 @@ public class ApiConverter {
             apiEntity.setFlows(flows);
         }
 
-        apiEntity.setCategories(categoryMapper.toIdentifier(executionContext, api.getCategories(), categories));
+        apiEntity.setCategories(categoryMapper.toIdentifier(api.getEnvironmentId(), api.getCategories(), categories));
 
-        if (
-            parameterService.findAsBoolean(
-                executionContext,
-                Key.API_REVIEW_ENABLED,
-                api.getEnvironmentId(),
-                ParameterReferenceType.ENVIRONMENT
-            )
-        ) {
+        if (parameterService.findAsBoolean(Key.API_REVIEW_ENABLED, api.getEnvironmentId(), ParameterReferenceType.ENVIRONMENT)) {
             final List<Workflow> workflows = workflowService.findByReferenceAndType(API, api.getId(), REVIEW);
             if (workflows != null && !workflows.isEmpty()) {
                 apiEntity.setWorkflowState(WorkflowState.valueOf(workflows.get(0).getState()));

@@ -231,7 +231,6 @@ public class ApiStateServiceImpl_DeployTest {
 
         verify(eventService)
             .createApiEvent(
-                any(ExecutionContext.class),
                 any(Set.class),
                 eq(EventType.PUBLISH_API),
                 eq(api),

@@ -69,8 +69,8 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
 
         MemberEntity memberEntity2 = new MemberEntity();
         memberEntity2.setId(MEMBER_2);
-        doReturn(new Member().id(MEMBER_2)).when(memberMapper).convert(eq(GraviteeContext.getExecutionContext()), eq(memberEntity2), any());
-        doReturn(new Member().id(MEMBER_1)).when(memberMapper).convert(eq(GraviteeContext.getExecutionContext()), eq(memberEntity1), any());
+        doReturn(new Member().id(MEMBER_2)).when(memberMapper).convert(eq(memberEntity2), any());
+        doReturn(new Member().id(MEMBER_1)).when(memberMapper).convert(eq(memberEntity1), any());
         doReturn(Sets.newSet(memberEntity1, memberEntity2))
             .when(membershipService)
             .getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.APPLICATION, APPLICATION);
@@ -84,7 +84,7 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
         doThrow(ApplicationNotFoundException.class)
             .when(applicationService)
             .findById(GraviteeContext.getExecutionContext(), UNKNOWN_APPLICATION);
-        doThrow(UserNotFoundException.class).when(userService).findById(GraviteeContext.getExecutionContext(), UNKNOWN_MEMBER);
+        doThrow(UserNotFoundException.class).when(userService).findById(UNKNOWN_MEMBER);
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
     }
 

@@ -114,6 +114,7 @@ import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.CategoryService;
 import io.gravitee.rest.api.service.ConnectorService;
+import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.GenericNotificationConfigService;
 import io.gravitee.rest.api.service.GroupService;
@@ -145,7 +146,16 @@ import io.gravitee.rest.api.service.impl.upgrade.initializer.DefaultMetadataInit
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.processor.SynchronizationService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
-import io.gravitee.rest.api.service.v4.*;
+import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
+import io.gravitee.rest.api.service.v4.ApiNotificationService;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
+import io.gravitee.rest.api.service.v4.ApiService;
+import io.gravitee.rest.api.service.v4.ApiStateService;
+import io.gravitee.rest.api.service.v4.FlowService;
+import io.gravitee.rest.api.service.v4.PlanSearchService;
+import io.gravitee.rest.api.service.v4.PlanService;
+import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
+import io.gravitee.rest.api.service.v4.PropertiesService;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
 import io.gravitee.rest.api.service.v4.mapper.CategoryMapper;
 import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
@@ -162,7 +172,10 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.*;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -284,6 +297,9 @@ public class ApiServiceImplTest {
     @Mock
     private TagsValidationService tagsValidationService;
 
+    @Mock
+    private EnvironmentService environmentService;
+
     @InjectMocks
     private SynchronizationService synchronizationService = Mockito.spy(new SynchronizationService(this.objectMapper));
 
@@ -362,7 +378,8 @@ public class ApiServiceImplTest {
                 primaryOwnerService,
                 categoryService,
                 searchEngineService,
-                apiAuthorizationService
+                apiAuthorizationService,
+                environmentService
             );
         apiStateService =
             new ApiStateServiceImpl(
@@ -557,7 +574,7 @@ public class ApiServiceImplTest {
         api.setLifecycleState(LifecycleState.STOPPED);
 
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
-        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Collections.emptySet());
+        when(planService.findByApi(API_ID)).thenReturn(Collections.emptySet());
 
         apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
 
@@ -577,7 +594,7 @@ public class ApiServiceImplTest {
         PlanEntity planEntity = new PlanEntity();
         planEntity.setId(PLAN_ID);
         planEntity.setStatus(PlanStatus.PUBLISHED);
-        when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(singleton(planEntity));
+        when(planSearchService.findByApi(API_ID)).thenReturn(singleton(planEntity));
 
         apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
         verify(membershipService, times(1)).deleteReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID);
@@ -593,7 +610,7 @@ public class ApiServiceImplTest {
         PlanEntity planEntity = new PlanEntity();
         planEntity.setId(PLAN_ID);
         planEntity.setStatus(PlanStatus.CLOSED);
-        when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(singleton(planEntity));
+        when(planSearchService.findByApi(API_ID)).thenReturn(singleton(planEntity));
 
         apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
 
@@ -612,7 +629,7 @@ public class ApiServiceImplTest {
         PlanEntity planEntity = new PlanEntity();
         planEntity.setId(PLAN_ID);
         planEntity.setStatus(PlanStatus.STAGING);
-        when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(singleton(planEntity));
+        when(planSearchService.findByApi(API_ID)).thenReturn(singleton(planEntity));
 
         apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
 
@@ -634,7 +651,7 @@ public class ApiServiceImplTest {
         io.gravitee.rest.api.model.PlanEntity planEntity = new io.gravitee.rest.api.model.PlanEntity();
         planEntity.setId(PLAN_ID);
         planEntity.setStatus(io.gravitee.rest.api.model.PlanStatus.STAGING);
-        when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(singleton(planEntity));
+        when(planSearchService.findByApi(API_ID)).thenReturn(singleton(planEntity));
 
         apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
 
@@ -678,7 +695,7 @@ public class ApiServiceImplTest {
         final PlanEntity closedPlan = new PlanEntity();
         closedPlan.setId(PLAN_ID);
         closedPlan.setStatus(PlanStatus.CLOSED);
-        when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Collections.singleton(planEntity));
+        when(planSearchService.findByApi(API_ID)).thenReturn(Collections.singleton(planEntity));
         when(planService.close(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(closedPlan);
 
         apiService.delete(GraviteeContext.getExecutionContext(), API_ID, true);
@@ -717,7 +734,9 @@ public class ApiServiceImplTest {
             .getPrimaryOwner(executionContext, USER_NAME, apiEntity.getPrimaryOwner());
         doReturn(emptySet()).when(groupService).findByEvent(GraviteeContext.getCurrentEnvironment(), GroupEvent.API_CREATE);
         doReturn(new ApiEntity()).when(apiMetadataService).fetchMetadataForApi(any(), any());
-        doReturn(false).when(parameterService).findAsBoolean(executionContext, Key.API_REVIEW_ENABLED, ParameterReferenceType.ENVIRONMENT);
+        doReturn(false)
+            .when(parameterService)
+            .findAsBoolean(Key.API_REVIEW_ENABLED, GraviteeContext.getDefaultEnvironment(), ParameterReferenceType.ENVIRONMENT);
 
         Api createdApi = new Api();
         createdApi.setId(API_ID);
@@ -905,7 +924,7 @@ public class ApiServiceImplTest {
         PlanEntity originalPlan = new PlanEntity();
         originalPlan.setId("MALICIOUS");
         originalPlan.setStatus(PlanStatus.CLOSED);
-        when(planService.findByApi(any(), eq(API_ID))).thenReturn(Set.of(originalPlan));
+        when(planService.findByApi(eq(API_ID))).thenReturn(Set.of(originalPlan));
 
         ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, true, USER_NAME);
         verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
@@ -924,7 +943,7 @@ public class ApiServiceImplTest {
         PlanEntity originalPlan = new PlanEntity();
         originalPlan.setId("MALICIOUS");
         originalPlan.setStatus(PlanStatus.CLOSED);
-        when(planService.findByApi(any(), eq(API_ID))).thenReturn(Set.of(originalPlan));
+        when(planService.findByApi(eq(API_ID))).thenReturn(Set.of(originalPlan));
 
         ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, true, USER_NAME);
         verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
@@ -948,7 +967,7 @@ public class ApiServiceImplTest {
         PlanEntity originalPlan = new PlanEntity();
         originalPlan.setId("TAGPLAN");
         originalPlan.setStatus(PlanStatus.PUBLISHED);
-        when(planService.findByApi(any(), eq(API_ID))).thenReturn(Set.of(originalPlan));
+        when(planService.findByApi(eq(API_ID))).thenReturn(Set.of(originalPlan));
 
         doThrow(new TagNotAllowedException(new String[0]))
             .when(tagsValidationService)
@@ -973,7 +992,7 @@ public class ApiServiceImplTest {
         PlanEntity originalPlan = new PlanEntity();
         originalPlan.setId("VALID");
         originalPlan.setStatus(PlanStatus.PUBLISHED);
-        when(planService.findByApi(any(), eq(API_ID))).thenReturn(Set.of(originalPlan));
+        when(planService.findByApi(eq(API_ID))).thenReturn(Set.of(originalPlan));
 
         ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, true, USER_NAME);
         verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
@@ -1058,8 +1077,8 @@ public class ApiServiceImplTest {
     public void shouldCreateAuditApiLoggingDisabledWhenSwitchingLogging() throws TechnicalException, JsonProcessingException {
         when(
             parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
                 Key.LOGGING_AUDIT_TRAIL_ENABLED,
+                GraviteeContext.getDefaultEnvironment(),
                 ParameterReferenceType.ENVIRONMENT
             )
         )
@@ -1104,8 +1123,8 @@ public class ApiServiceImplTest {
     public void shouldCreateAuditApiLoggingEnabledWhenSwitchingLogging() throws TechnicalException, JsonProcessingException {
         when(
             parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
                 Key.LOGGING_AUDIT_TRAIL_ENABLED,
+                GraviteeContext.getDefaultEnvironment(),
                 ParameterReferenceType.ENVIRONMENT
             )
         )
@@ -1147,8 +1166,8 @@ public class ApiServiceImplTest {
     public void shouldCreateAuditApiLoggingUpdatedWhenSwitchingLogging() throws TechnicalException, JsonProcessingException {
         when(
             parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
                 Key.LOGGING_AUDIT_TRAIL_ENABLED,
+                GraviteeContext.getDefaultEnvironment(),
                 ParameterReferenceType.ENVIRONMENT
             )
         )
@@ -1218,7 +1237,6 @@ public class ApiServiceImplTest {
 
         verify(eventService)
             .createApiEvent(
-                any(ExecutionContext.class),
                 any(Set.class),
                 eq(EventType.PUBLISH_API),
                 eq(api),

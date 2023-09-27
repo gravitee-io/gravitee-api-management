@@ -159,7 +159,7 @@ public class UsersResource extends AbstractResource {
     @GET
     @Path("/{userId}/avatar")
     public Response getUserAvatar(@Context Request request, @PathParam("userId") String userId) {
-        PictureEntity picture = userService.getPicture(GraviteeContext.getExecutionContext(), userId);
+        PictureEntity picture = userService.getPicture(userId);
 
         if (picture == null) {
             return Response.ok().build();

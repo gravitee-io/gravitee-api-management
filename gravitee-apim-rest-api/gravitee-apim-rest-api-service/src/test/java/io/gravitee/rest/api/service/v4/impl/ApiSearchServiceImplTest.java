@@ -56,6 +56,7 @@ import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.CategoryService;
+import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.ParameterService;
@@ -147,6 +148,9 @@ public class ApiSearchServiceImplTest {
     @Mock
     private ApiAuthorizationService apiAuthorizationService;
 
+    @Mock
+    private EnvironmentService environmentService;
+
     private ApiSearchService apiSearchService;
     private Api api;
 
@@ -184,7 +188,8 @@ public class ApiSearchServiceImplTest {
                 primaryOwnerService,
                 categoryService,
                 searchEngineService,
-                apiAuthorizationService
+                apiAuthorizationService,
+                environmentService
             );
 
         reset(searchEngineService);

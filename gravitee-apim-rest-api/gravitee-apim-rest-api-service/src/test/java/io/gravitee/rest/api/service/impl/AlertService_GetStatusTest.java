@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.impl;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -40,7 +41,9 @@ public class AlertService_GetStatusTest extends AlertServiceTest {
     @Test
     public void getStatus_should_get_enabled_status() {
         when(alertTriggerProviderManager.findAll()).thenReturn(List.of(mock(TriggerProvider.class), mock(TriggerProvider.class)));
-        when(parameterService.findAsBoolean(GraviteeContext.getExecutionContext(), Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION))
+        when(
+            parameterService.findAsBoolean(Key.ALERT_ENABLED, GraviteeContext.getCurrentEnvironment(), ParameterReferenceType.ORGANIZATION)
+        )
             .thenReturn(true);
 
         AlertStatusEntity alertStatus = alertService.getStatus(executionContext);
@@ -52,7 +55,9 @@ public class AlertService_GetStatusTest extends AlertServiceTest {
     @Test
     public void getStatus_should_get_disabled_status() {
         when(alertTriggerProviderManager.findAll()).thenReturn(List.of());
-        when(parameterService.findAsBoolean(GraviteeContext.getExecutionContext(), Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION))
+        when(
+            parameterService.findAsBoolean(Key.ALERT_ENABLED, GraviteeContext.getCurrentEnvironment(), ParameterReferenceType.ORGANIZATION)
+        )
             .thenReturn(false);
 
         AlertStatusEntity alertStatus = alertService.getStatus(executionContext);

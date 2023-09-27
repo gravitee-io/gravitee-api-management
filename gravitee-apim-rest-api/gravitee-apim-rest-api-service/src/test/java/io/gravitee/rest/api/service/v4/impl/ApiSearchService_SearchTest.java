@@ -95,6 +95,9 @@ public class ApiSearchService_SearchTest {
     @Mock
     private ApiAuthorizationService apiAuthorizationService;
 
+    @Mock
+    private EnvironmentService environmentService;
+
     private ApiSearchService apiSearchService;
 
     @AfterClass
@@ -131,7 +134,8 @@ public class ApiSearchService_SearchTest {
                 primaryOwnerService,
                 categoryService,
                 searchEngineService,
-                apiAuthorizationService
+                apiAuthorizationService,
+                environmentService
             );
     }
 
@@ -294,7 +298,7 @@ public class ApiSearchService_SearchTest {
         verify(apiRepository, times(1)).search(any(), any());
         verify(primaryOwnerService, times(1)).getPrimaryOwners(any(), any());
         verify(categoryService, never()).findAll(any());
-        verify(planService, never()).findByApi(any(), any());
+        verify(planService, never()).findByApi(any());
     }
 
     @Test
@@ -517,6 +521,6 @@ public class ApiSearchService_SearchTest {
         verify(apiRepository, times(1)).search(any(), any());
         verify(primaryOwnerService, times(1)).getPrimaryOwners(any(), any());
         verify(categoryService, times(1)).findAll(GraviteeContext.getCurrentEnvironment());
-        verify(planService, times(2)).findByApi(eq(GraviteeContext.getExecutionContext()), any());
+        verify(planService, times(2)).findByApi(any());
     }
 }

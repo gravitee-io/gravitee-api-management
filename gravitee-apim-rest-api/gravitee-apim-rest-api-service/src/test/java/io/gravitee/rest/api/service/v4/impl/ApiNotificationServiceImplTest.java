@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.v4.impl;
 
 import static io.gravitee.rest.api.service.common.SecurityContextHelper.authenticateAs;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -63,7 +64,7 @@ public class ApiNotificationServiceImplTest {
         apiNotificationService = new ApiNotificationServiceImpl(indexableApiMapper, notifierService, userService);
 
         when(indexableApiMapper.toGenericApi(any(), any())).thenReturn(new ApiEntity());
-        when(userService.findById(any(), any())).thenReturn(new UserEntity());
+        when(userService.findById(any())).thenReturn(new UserEntity());
     }
 
     @Test

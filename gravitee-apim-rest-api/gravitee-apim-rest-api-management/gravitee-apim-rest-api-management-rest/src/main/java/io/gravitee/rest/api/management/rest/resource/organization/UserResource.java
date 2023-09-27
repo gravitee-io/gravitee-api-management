@@ -201,7 +201,7 @@ public class UserResource extends AbstractResource {
     @ApiResponse(responseCode = "404", description = "User not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response getUserAvatar(@Context Request request) {
-        PictureEntity picture = userService.getPicture(GraviteeContext.getExecutionContext(), userId);
+        PictureEntity picture = userService.getPicture(userId);
 
         if (picture instanceof UrlPictureEntity) {
             return Response.temporaryRedirect(URI.create(((UrlPictureEntity) picture).getUrl())).build();

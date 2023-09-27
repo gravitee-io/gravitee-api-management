@@ -36,6 +36,18 @@ import java.util.Set;
 public interface ApiSearchService {
     ApiEntity findById(ExecutionContext executionContext, String apiId);
 
+    /**
+     * This method will extract environment and organization for the found api.
+     * @param apiId
+     * @return {@link GenericApiEntity } found
+     */
+    GenericApiEntity findGenericById(String apiId);
+
+    /**
+     * This method will use execution context provided to extract related environment and organization of the api.
+     * @param apiId
+     * @return {@link GenericApiEntity } found
+     */
     GenericApiEntity findGenericById(final ExecutionContext executionContext, final String apiId);
 
     Set<GenericApiEntity> findAllGenericByEnvironment(ExecutionContext executionContext);

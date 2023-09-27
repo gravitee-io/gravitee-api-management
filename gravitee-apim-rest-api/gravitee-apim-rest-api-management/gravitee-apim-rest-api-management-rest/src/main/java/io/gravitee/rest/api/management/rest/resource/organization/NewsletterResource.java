@@ -66,7 +66,7 @@ public class NewsletterResource extends AbstractResource {
     @ApiResponse(responseCode = "404", description = "User not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response subscribeNewsletterToCurrentUser(@Valid @NotNull final String email) {
-        UserEntity userEntity = userService.findById(GraviteeContext.getExecutionContext(), getAuthenticatedUser());
+        UserEntity userEntity = userService.findById(getAuthenticatedUser());
         UpdateUserEntity user = new UpdateUserEntity(userEntity);
         user.setNewsletter(true);
         return ok(userService.update(GraviteeContext.getExecutionContext(), userEntity.getId(), user, email)).build();

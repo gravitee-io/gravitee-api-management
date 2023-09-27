@@ -352,7 +352,7 @@ public class ApiService_UpdateTest {
         when(securityContext.getAuthentication()).thenReturn(authentication);
         when(authentication.getPrincipal()).thenReturn(new UserDetails("username", "", emptyList()));
         SecurityContextHolder.setContext(securityContext);
-        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(new UserEntity());
+        when(userService.findById(any())).thenReturn(new UserEntity());
 
         api = new Api();
         api.setId(API_ID);
@@ -599,7 +599,7 @@ public class ApiService_UpdateTest {
         PlanEntity originalPlan = new PlanEntity();
         originalPlan.setId("Plan");
         originalPlan.setStatus(PlanStatus.PUBLISHED);
-        when(planService.findByApi(any(), eq(API_ID))).thenReturn(Set.of(originalPlan));
+        when(planService.findByApi(eq(API_ID))).thenReturn(Set.of(originalPlan));
 
         api.setDefinition(
             "{\"id\": \"" + API_ID + "\", \"gravitee\": \"2.0.0\", \"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"}}"
@@ -721,7 +721,7 @@ public class ApiService_UpdateTest {
         PlanEntity originalPlan = new PlanEntity();
         originalPlan.setId("MALICIOUS");
         originalPlan.setStatus(PlanStatus.CLOSED);
-        when(planService.findByApi(any(), eq(API_ID))).thenReturn(Set.of(originalPlan));
+        when(planService.findByApi(eq(API_ID))).thenReturn(Set.of(originalPlan));
 
         api.setDefinition(
             "{\"id\": \"" + API_ID + "\", \"gravitee\": \"2.0.0\", \"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"}}"
@@ -743,7 +743,7 @@ public class ApiService_UpdateTest {
         PlanEntity originalPlan = new PlanEntity();
         originalPlan.setId("MALICIOUS");
         originalPlan.setStatus(PlanStatus.CLOSED);
-        when(planService.findByApi(any(), eq(API_ID))).thenReturn(Set.of(originalPlan));
+        when(planService.findByApi(eq(API_ID))).thenReturn(Set.of(originalPlan));
 
         api.setDefinition(
             "{\"id\": \"" + API_ID + "\", \"gravitee\": \"2.0.0\", \"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"}}"
@@ -765,7 +765,7 @@ public class ApiService_UpdateTest {
         PlanEntity originalPlan = new PlanEntity();
         originalPlan.setId("VALID");
         originalPlan.setStatus(PlanStatus.PUBLISHED);
-        when(planService.findByApi(any(), eq(API_ID))).thenReturn(Set.of(originalPlan));
+        when(planService.findByApi(eq(API_ID))).thenReturn(Set.of(originalPlan));
 
         api.setDefinition(
             "{\"id\": \"" + API_ID + "\", \"gravitee\": \"2.0.0\", \"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"}}"
@@ -977,7 +977,7 @@ public class ApiService_UpdateTest {
 
         UserEntity reviewerEntity = mock(UserEntity.class);
         when(reviewerEntity.getEmail()).thenReturn("Reviewer@ema.il");
-        when(userService.findById(GraviteeContext.getExecutionContext(), "reviewerID")).thenReturn(reviewerEntity);
+        when(userService.findById("reviewerID")).thenReturn(reviewerEntity);
 
         final ReviewEntity reviewEntity = new ReviewEntity();
         reviewEntity.setMessage("Test Review msg");
@@ -1032,7 +1032,7 @@ public class ApiService_UpdateTest {
         api.setId(API_ID);
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
 
-        when(userService.findById(GraviteeContext.getExecutionContext(), USER_NAME)).thenReturn(mock(UserEntity.class));
+        when(userService.findById(USER_NAME)).thenReturn(mock(UserEntity.class));
 
         final Workflow workflow = new Workflow();
         workflow.setState(WorkflowState.REQUEST_FOR_CHANGES.name());
@@ -1050,15 +1050,7 @@ public class ApiService_UpdateTest {
     @Test
     public void shouldNotChangeLifecycleStateFromCreatedInReview() throws TechnicalException {
         prepareUpdate();
-        when(
-            parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
-                Key.API_REVIEW_ENABLED,
-                "DEFAULT",
-                ParameterReferenceType.ENVIRONMENT
-            )
-        )
-            .thenReturn(true);
+        when(parameterService.findAsBoolean(Key.API_REVIEW_ENABLED, "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenReturn(true);
         final Workflow workflow = new Workflow();
         workflow.setState("IN_REVIEW");
         when(workflowService.findByReferenceAndType(API, API_ID, REVIEW)).thenReturn(singletonList(workflow));
@@ -1122,8 +1114,8 @@ public class ApiService_UpdateTest {
     public void shouldCreateAuditApiLoggingDisabledWhenSwitchingLogging() throws TechnicalException {
         when(
             parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
                 Key.LOGGING_AUDIT_TRAIL_ENABLED,
+                GraviteeContext.getCurrentEnvironment(),
                 ParameterReferenceType.ENVIRONMENT
             )
         )
@@ -1166,8 +1158,8 @@ public class ApiService_UpdateTest {
     public void shouldCreateAuditApiLoggingEnabledWhenSwitchingLogging() throws TechnicalException {
         when(
             parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
                 Key.LOGGING_AUDIT_TRAIL_ENABLED,
+                GraviteeContext.getCurrentEnvironment(),
                 ParameterReferenceType.ENVIRONMENT
             )
         )
@@ -1210,8 +1202,8 @@ public class ApiService_UpdateTest {
     public void shouldCreateAuditApiLoggingUpdatedWhenSwitchingLogging() throws TechnicalException {
         when(
             parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
                 Key.LOGGING_AUDIT_TRAIL_ENABLED,
+                GraviteeContext.getCurrentEnvironment(),
                 ParameterReferenceType.ENVIRONMENT
             )
         )

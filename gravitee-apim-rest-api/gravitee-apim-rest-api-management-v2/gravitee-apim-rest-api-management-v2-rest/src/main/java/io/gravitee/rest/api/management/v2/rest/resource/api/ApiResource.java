@@ -684,8 +684,8 @@ public class ApiResource extends AbstractResource {
 
             if (
                 parameterService.findAsBoolean(
-                    GraviteeContext.getExecutionContext(),
                     Key.API_REVIEW_ENABLED,
+                    GraviteeContext.getCurrentEnvironment(),
                     ParameterReferenceType.ENVIRONMENT
                 ) &&
                 !WorkflowState.REVIEW_OK.equals(api.getWorkflowState())

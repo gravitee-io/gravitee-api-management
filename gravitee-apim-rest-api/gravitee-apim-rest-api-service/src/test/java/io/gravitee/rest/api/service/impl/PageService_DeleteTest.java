@@ -168,7 +168,7 @@ public class PageService_DeleteTest {
         page.setReferenceId(API_ID);
         page.setVisibility("PUBLIC");
 
-        when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Collections.emptySet());
+        when(planSearchService.findByApi(API_ID)).thenReturn(Collections.emptySet());
 
         pageService.delete(GraviteeContext.getExecutionContext(), PAGE_ID);
 
@@ -184,7 +184,7 @@ public class PageService_DeleteTest {
         planEntity.setGeneralConditions(PAGE_ID);
         planEntity.setStatus(PlanStatus.CLOSED);
 
-        when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Set.of(planEntity));
+        when(planSearchService.findByApi(API_ID)).thenReturn(Set.of(planEntity));
 
         pageService.delete(GraviteeContext.getExecutionContext(), PAGE_ID);
 
@@ -199,7 +199,7 @@ public class PageService_DeleteTest {
         planEntity.setGeneralConditions(PAGE_ID);
         planEntity.setStatus(PlanStatus.PUBLISHED);
 
-        when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Set.of(planEntity));
+        when(planSearchService.findByApi(API_ID)).thenReturn(Set.of(planEntity));
 
         pageService.delete(GraviteeContext.getExecutionContext(), PAGE_ID);
     }
@@ -216,7 +216,7 @@ public class PageService_DeleteTest {
         planEntity.setStatus(PlanStatus.PUBLISHED);
 
         when(pageRepository.findById(TRANSLATE_PAGE_ID)).thenReturn(Optional.of(translationPage));
-        when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Set.of(planEntity));
+        when(planSearchService.findByApi(API_ID)).thenReturn(Set.of(planEntity));
 
         pageService.delete(GraviteeContext.getExecutionContext(), TRANSLATE_PAGE_ID);
     }
@@ -229,7 +229,7 @@ public class PageService_DeleteTest {
         planEntity.setGeneralConditions(PAGE_ID);
         planEntity.setStatus(PlanStatus.DEPRECATED);
 
-        when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Set.of(planEntity));
+        when(planSearchService.findByApi(API_ID)).thenReturn(Set.of(planEntity));
 
         pageService.delete(GraviteeContext.getExecutionContext(), PAGE_ID);
     }
@@ -242,7 +242,7 @@ public class PageService_DeleteTest {
         planEntity.setGeneralConditions(PAGE_ID);
         planEntity.setStatus(PlanStatus.STAGING);
 
-        when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Set.of(planEntity));
+        when(planSearchService.findByApi(API_ID)).thenReturn(Set.of(planEntity));
 
         pageService.delete(GraviteeContext.getExecutionContext(), PAGE_ID);
     }

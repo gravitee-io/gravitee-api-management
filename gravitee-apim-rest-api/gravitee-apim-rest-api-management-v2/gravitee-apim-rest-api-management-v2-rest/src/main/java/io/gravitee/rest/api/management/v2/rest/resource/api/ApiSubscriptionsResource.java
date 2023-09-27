@@ -174,7 +174,11 @@ public class ApiSubscriptionsResource extends AbstractResource {
 
         if (
             StringUtils.isNotEmpty(createSubscription.getCustomApiKey()) &&
-            !parameterService.findAsBoolean(executionContext, Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED, ParameterReferenceType.ENVIRONMENT)
+            !parameterService.findAsBoolean(
+                Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED,
+                executionContext.getEnvironmentId(),
+                ParameterReferenceType.ENVIRONMENT
+            )
         ) {
             return Response
                 .status(Response.Status.BAD_REQUEST)
@@ -419,7 +423,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
                 .stream()
                 .map(subscription -> (subscription.getPlan()).getId())
                 .collect(Collectors.toSet());
-            final Collection<BasePlan> plans = planMapper.mapToBasePlans(planSearchService.findByIdIn(executionContext, planIds));
+            final Collection<BasePlan> plans = planMapper.mapToBasePlans(planSearchService.findByIdIn(planIds));
             plans.forEach(plan ->
                 subscriptions
                     .stream()
@@ -449,7 +453,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
                 .stream()
                 .map(subscription -> subscription.getSubscribedBy().getId())
                 .collect(Collectors.toSet());
-            final Collection<BaseUser> users = userMapper.mapToBaseUserList(userService.findByIds(executionContext, userIds));
+            final Collection<BaseUser> users = userMapper.mapToBaseUserList(userService.findByIds(userIds));
             users.forEach(user ->
                 subscriptions
                     .stream()
@@ -500,7 +504,11 @@ public class ApiSubscriptionsResource extends AbstractResource {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (
             StringUtils.isNotEmpty(renewApiKey.getCustomApiKey()) &&
-            !parameterService.findAsBoolean(executionContext, Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED, ParameterReferenceType.ENVIRONMENT)
+            !parameterService.findAsBoolean(
+                Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED,
+                executionContext.getEnvironmentId(),
+                ParameterReferenceType.ENVIRONMENT
+            )
         ) {
             return Response
                 .status(Response.Status.BAD_REQUEST)

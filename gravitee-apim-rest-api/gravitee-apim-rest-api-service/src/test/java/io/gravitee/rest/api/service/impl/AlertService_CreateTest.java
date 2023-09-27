@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -29,6 +30,7 @@ import io.gravitee.repository.management.model.AlertTrigger;
 import io.gravitee.rest.api.model.alert.NewAlertTriggerEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.AlertUnavailableException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.List;
@@ -43,7 +45,10 @@ public class AlertService_CreateTest extends AlertServiceTest {
     public void must_throw_AlertUnavailableException_when_create_new_alert_trigger_entity() {
         final NewAlertTriggerEntity alert = getNewAlertTriggerEntity();
 
-        when(parameterService.findAsBoolean(executionContext, Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION)).thenReturn(false);
+        when(
+            parameterService.findAsBoolean(Key.ALERT_ENABLED, GraviteeContext.getCurrentOrganization(), ParameterReferenceType.ORGANIZATION)
+        )
+            .thenReturn(false);
 
         alertService.create(executionContext, alert);
     }
@@ -53,7 +58,10 @@ public class AlertService_CreateTest extends AlertServiceTest {
         throws TechnicalException {
         final NewAlertTriggerEntity alert = getNewAlertTriggerEntity();
 
-        when(parameterService.findAsBoolean(executionContext, Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION)).thenReturn(true);
+        when(
+            parameterService.findAsBoolean(Key.ALERT_ENABLED, GraviteeContext.getCurrentOrganization(), ParameterReferenceType.ORGANIZATION)
+        )
+            .thenReturn(true);
         when(alertTriggerProviderManager.findAll()).thenReturn(List.of(mock(TriggerProvider.class)));
         when(alertTriggerRepository.create(any())).thenThrow(new TechnicalException("An unexpected error has occurred"));
 
@@ -65,7 +73,10 @@ public class AlertService_CreateTest extends AlertServiceTest {
         final NewAlertTriggerEntity alert = getNewAlertTriggerEntity();
         final AlertTrigger alertTrigger = getAlertTriggerFromNew(alert);
 
-        when(parameterService.findAsBoolean(executionContext, Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION)).thenReturn(true);
+        when(
+            parameterService.findAsBoolean(Key.ALERT_ENABLED, GraviteeContext.getCurrentOrganization(), ParameterReferenceType.ORGANIZATION)
+        )
+            .thenReturn(true);
         when(alertTriggerProviderManager.findAll()).thenReturn(List.of(mock(TriggerProvider.class)));
         when(alertTriggerRepository.create(any())).thenReturn(alertTrigger);
 
@@ -79,7 +90,10 @@ public class AlertService_CreateTest extends AlertServiceTest {
         final NewAlertTriggerEntity alert = getNewAlertTriggerEntity();
         final AlertTrigger alertTrigger = getAlertTriggerFromNew(alert);
 
-        when(parameterService.findAsBoolean(executionContext, Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION)).thenReturn(true);
+        when(
+            parameterService.findAsBoolean(Key.ALERT_ENABLED, GraviteeContext.getCurrentOrganization(), ParameterReferenceType.ORGANIZATION)
+        )
+            .thenReturn(true);
         when(alertTriggerProviderManager.findAll()).thenReturn(List.of(mock(TriggerProvider.class)));
         when(alertTriggerRepository.create(any())).thenReturn(alertTrigger);
 

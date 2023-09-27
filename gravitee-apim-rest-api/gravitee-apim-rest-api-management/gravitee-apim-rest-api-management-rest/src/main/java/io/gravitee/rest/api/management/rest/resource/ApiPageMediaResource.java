@@ -92,14 +92,9 @@ public class ApiPageMediaResource extends AbstractResource {
     ) throws IOException {
         final String mediaId;
 
-        if (request.getContentLength() > this.mediaService.getMediaMaxSize(GraviteeContext.getExecutionContext())) {
-            throw new UploadUnauthorized(
-                "Max size is " +
-                this.mediaService.getMediaMaxSize(GraviteeContext.getExecutionContext()) +
-                "bytes. Actual size is " +
-                request.getContentLength() +
-                "bytes."
-            );
+        Long mediaMaxSize = this.mediaService.getMediaMaxSize(GraviteeContext.getCurrentEnvironment());
+        if (request.getContentLength() > mediaMaxSize) {
+            throw new UploadUnauthorized("Max size is " + mediaMaxSize + "bytes. Actual size is " + request.getContentLength() + "bytes.");
         }
         final String originalFileName = fileDetail.getFileName();
         MediaEntity mediaEntity = new MediaEntity();

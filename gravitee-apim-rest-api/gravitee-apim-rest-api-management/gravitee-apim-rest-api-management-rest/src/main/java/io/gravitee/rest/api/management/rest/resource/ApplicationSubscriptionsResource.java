@@ -107,7 +107,7 @@ public class ApplicationSubscriptionsResource extends AbstractResource {
         }
 
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        GenericPlanEntity planEntity = planSearchService.findById(executionContext, plan);
+        GenericPlanEntity planEntity = planSearchService.findById(plan);
 
         if (
             planEntity.isCommentRequired() && (newSubscriptionEntity.getRequest() == null || newSubscriptionEntity.getRequest().isEmpty())
@@ -194,11 +194,11 @@ public class ApplicationSubscriptionsResource extends AbstractResource {
         subscription.setSubscribedBy(
             new Subscription.User(
                 subscriptionEntity.getSubscribedBy(),
-                userService.findById(executionContext, subscriptionEntity.getSubscribedBy(), true).getDisplayName()
+                userService.findById(subscriptionEntity.getSubscribedBy(), true).getDisplayName()
             )
         );
 
-        GenericPlanEntity plan = planSearchService.findById(executionContext, subscriptionEntity.getPlan());
+        GenericPlanEntity plan = planSearchService.findById(subscriptionEntity.getPlan());
         subscription.setPlan(new Subscription.Plan(plan.getId(), plan.getName()));
         if (plan.getPlanMode() == PlanMode.STANDARD) {
             subscription.getPlan().setSecurity(plan.getPlanSecurity().getType());

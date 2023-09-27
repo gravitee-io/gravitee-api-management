@@ -96,7 +96,7 @@ public class DictionaryResource extends AbstractResource {
         @PathParam("dictionary") String dictionary,
         @Parameter(name = "dictionary", required = true) @Valid @NotNull final UpdateDictionaryEntity updatedDictionary
     ) {
-        return dictionaryService.update(GraviteeContext.getExecutionContext(), dictionary, updatedDictionary);
+        return dictionaryService.update(dictionary, updatedDictionary);
     }
 
     @POST
@@ -117,7 +117,7 @@ public class DictionaryResource extends AbstractResource {
         DictionaryEntity dictionaryEntity = dictionaryService.findById(dictionary);
 
         if (dictionaryEntity.getType() == DictionaryType.MANUAL) {
-            dictionaryEntity = dictionaryService.deploy(GraviteeContext.getExecutionContext(), dictionary);
+            dictionaryEntity = dictionaryService.deploy(dictionary);
             return Response
                 .ok(dictionaryEntity)
                 .tag(Long.toString(dictionaryEntity.getUpdatedAt().getTime()))
@@ -146,7 +146,7 @@ public class DictionaryResource extends AbstractResource {
         DictionaryEntity dictionaryEntity = dictionaryService.findById(dictionary);
 
         if (dictionaryEntity.getType() == DictionaryType.MANUAL) {
-            dictionaryEntity = dictionaryService.undeploy(GraviteeContext.getExecutionContext(), dictionary);
+            dictionaryEntity = dictionaryService.undeploy(dictionary);
             return Response
                 .ok(dictionaryEntity)
                 .tag(Long.toString(dictionaryEntity.getUpdatedAt().getTime()))
@@ -167,7 +167,7 @@ public class DictionaryResource extends AbstractResource {
     )
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DICTIONARY, acls = RolePermissionAction.DELETE) })
     public Response deleteDictionary(@PathParam("dictionary") String dictionary) {
-        dictionaryService.delete(GraviteeContext.getExecutionContext(), dictionary);
+        dictionaryService.delete(dictionary);
         return Response.noContent().build();
     }
 
@@ -195,11 +195,11 @@ public class DictionaryResource extends AbstractResource {
             switch (action) {
                 case START:
                     checkLifecycle(dictionaryEntity, action);
-                    dictionaryEntity = dictionaryService.start(GraviteeContext.getExecutionContext(), dictionary);
+                    dictionaryEntity = dictionaryService.start(dictionary);
                     break;
                 case STOP:
                     checkLifecycle(dictionaryEntity, action);
-                    dictionaryEntity = dictionaryService.stop(GraviteeContext.getExecutionContext(), dictionary);
+                    dictionaryEntity = dictionaryService.stop(dictionary);
                     break;
             }
 

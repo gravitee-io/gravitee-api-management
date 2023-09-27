@@ -86,17 +86,12 @@ public class ApiIdsCalculatorServiceImpl implements ApiIdsCalculatorService {
     private void recalculateIdsFromCrossId(ExecutionContext executionContext, ImportApiJsonNode apiJsonNode, ApiEntity api) {
         apiJsonNode.setId(api.getId());
         Map<String, String> pagesIdsMap = recalculatePageIdsFromCrossIds(executionContext.getEnvironmentId(), api, apiJsonNode.getPages());
-        recalculatePlanIdsFromCrossIds(executionContext, api, apiJsonNode.getPlans(), pagesIdsMap);
+        recalculatePlanIdsFromCrossIds(api, apiJsonNode.getPlans(), pagesIdsMap);
     }
 
-    private void recalculatePlanIdsFromCrossIds(
-        ExecutionContext executionContext,
-        ApiEntity api,
-        List<ImportPlanJsonNode> plansNodes,
-        Map<String, String> pagesIdsMap
-    ) {
+    private void recalculatePlanIdsFromCrossIds(ApiEntity api, List<ImportPlanJsonNode> plansNodes, Map<String, String> pagesIdsMap) {
         Map<String, PlanEntity> plansByCrossId = planService
-            .findByApi(executionContext, api.getId())
+            .findByApi(api.getId())
             .stream()
             .filter(plan -> plan.getCrossId() != null)
             .collect(toMap(PlanEntity::getCrossId, Function.identity()));

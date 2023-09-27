@@ -104,7 +104,7 @@ public class PlanSearchServiceImplTest {
         PlanEntity planEntity = new PlanEntity();
         when(genericPlanMapper.toGenericPlan(api, plan)).thenReturn(planEntity);
 
-        final GenericPlanEntity resultPlanEntity = planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID);
+        final GenericPlanEntity resultPlanEntity = planSearchService.findById(PLAN_ID);
 
         assertSame(resultPlanEntity, planEntity);
     }
@@ -126,7 +126,7 @@ public class PlanSearchServiceImplTest {
         planEntity2.setId(plan2.getId());
         when(genericPlanMapper.toGenericPlan(api, plan2)).thenReturn(planEntity2);
 
-        final Set<GenericPlanEntity> entities = planSearchService.findByIdIn(GraviteeContext.getExecutionContext(), ids);
+        final Set<GenericPlanEntity> entities = planSearchService.findByIdIn(ids);
 
         assertEquals(2, entities.size());
         assertTrue(entities.contains(planEntity));
@@ -137,14 +137,14 @@ public class PlanSearchServiceImplTest {
     public void shouldNotFindByIdBecauseNotExists() throws TechnicalException {
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.empty());
 
-        planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID);
+        planSearchService.findById(PLAN_ID);
     }
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotFindByIdBecauseTechnicalException() throws TechnicalException {
         when(planRepository.findById(PLAN_ID)).thenThrow(TechnicalException.class);
 
-        planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID);
+        planSearchService.findById(PLAN_ID);
     }
 
     @Test
@@ -159,7 +159,7 @@ public class PlanSearchServiceImplTest {
         when(genericPlanMapper.toGenericPlan(api, plan1)).thenReturn(planEntity1);
         when(genericPlanMapper.toGenericPlan(api, plan2)).thenReturn(planEntity2);
         when(planRepository.findByApi(API_ID)).thenReturn(Set.of(plan1, plan2));
-        Set<GenericPlanEntity> plans = planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID);
+        Set<GenericPlanEntity> plans = planSearchService.findByApi(API_ID);
 
         assertNotNull(plans);
         assertEquals(2, plans.size());
@@ -178,7 +178,7 @@ public class PlanSearchServiceImplTest {
     public void shouldNotFindByApiBecauseTechnicalException() throws TechnicalException {
         when(planRepository.findByApi(API_ID)).thenThrow(TechnicalException.class);
 
-        planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID);
+        planSearchService.findByApi(API_ID);
     }
 
     @Test

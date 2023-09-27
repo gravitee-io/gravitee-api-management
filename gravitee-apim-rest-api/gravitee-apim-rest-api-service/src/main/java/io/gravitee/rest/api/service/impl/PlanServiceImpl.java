@@ -144,13 +144,13 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     private TagsValidationService tagsValidationService;
 
     @Override
-    public PlanEntity findById(final ExecutionContext executionContext, final String plan) {
-        return (PlanEntity) planSearchService.findById(executionContext, plan);
+    public PlanEntity findById(final String plan) {
+        return (PlanEntity) planSearchService.findById(plan);
     }
 
     @Override
-    public Set<PlanEntity> findByApi(final ExecutionContext executionContext, final String api) {
-        return planSearchService.findByApi(executionContext, api).stream().map(PlanEntity.class::cast).collect(Collectors.toSet());
+    public Set<PlanEntity> findByApi(final String api) {
+        return planSearchService.findByApi(api).stream().map(PlanEntity.class::cast).collect(Collectors.toSet());
     }
 
     @Override
@@ -208,7 +208,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             if (planEntity.getId() == null) {
                 resultPlanEntity = create(executionContext, planConverter.toNewPlanEntity(planEntity));
             } else {
-                planSearchService.findById(executionContext, planEntity.getId());
+                planSearchService.findById(planEntity.getId());
                 resultPlanEntity = update(executionContext, planConverter.toUpdatePlanEntity(planEntity));
             }
         } catch (PlanNotFoundException npe) {
@@ -626,7 +626,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             default:
                 return;
         }
-        if (!parameterService.findAsBoolean(executionContext, securityKey, ParameterReferenceType.ENVIRONMENT)) {
+        if (!parameterService.findAsBoolean(securityKey, executionContext.getEnvironmentId(), ParameterReferenceType.ENVIRONMENT)) {
             throw new UnauthorizedPlanSecurityTypeException(securityType);
         }
     }

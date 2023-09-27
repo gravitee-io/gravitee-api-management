@@ -377,7 +377,7 @@ public class PortalPagesResource extends AbstractResource {
     }
 
     private boolean isDisplayable(final ExecutionContext executionContext, PageEntity pageEntity) {
-        if (!isAuthenticated() && configService.portalLoginForced(executionContext)) {
+        if (!isAuthenticated() && configService.portalLoginForced(executionContext.getEnvironmentId())) {
             // if portal requires login, this endpoint should hide the api pages even PUBLIC ones
             return false;
         } else if (isAuthenticated() && isAdmin()) {

@@ -67,10 +67,7 @@ public class ApiRatingAnswersResource extends AbstractResource {
                 ratingAnswerEntity.setComment(ratingAnswerInput.getComment());
                 ratingAnswerEntity.setRatingId(ratingId);
                 RatingEntity updatedRating = ratingService.createAnswer(GraviteeContext.getExecutionContext(), ratingAnswerEntity);
-                return Response
-                    .status(Status.CREATED)
-                    .entity(ratingMapper.convert(GraviteeContext.getExecutionContext(), updatedRating, uriInfo))
-                    .build();
+                return Response.status(Status.CREATED).entity(ratingMapper.convert(updatedRating, uriInfo)).build();
             }
             throw new RatingNotFoundException(ratingId, apiId);
         }

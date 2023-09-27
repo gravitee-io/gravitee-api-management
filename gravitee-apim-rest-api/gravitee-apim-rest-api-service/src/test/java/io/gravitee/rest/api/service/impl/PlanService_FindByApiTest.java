@@ -67,9 +67,9 @@ public class PlanService_FindByApiTest {
         PlanEntity plan1 = createPlanEntity("plan1");
         PlanEntity plan2 = createPlanEntity("plan2");
 
-        when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Set.of(plan1, plan2));
+        when(planSearchService.findByApi(API_ID)).thenReturn(Set.of(plan1, plan2));
 
-        List<PlanEntity> plans = new ArrayList<>(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID));
+        List<PlanEntity> plans = new ArrayList<>(planService.findByApi(API_ID));
 
         assertNotNull(plans);
         assertEquals(2, plans.size());

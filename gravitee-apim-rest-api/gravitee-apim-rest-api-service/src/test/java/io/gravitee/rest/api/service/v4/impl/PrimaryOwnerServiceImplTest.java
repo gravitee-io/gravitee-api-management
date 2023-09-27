@@ -128,7 +128,7 @@ public class PrimaryOwnerServiceImplTest {
         when(membershipService.getMembersByReferencesAndRole(EXECUTION_CONTEXT, MembershipReferenceType.API, apiIds, "API_PRIMARY_OWNER"))
             .thenReturn(new LinkedHashSet<>(Arrays.asList(poMember, poMember2, poMember3)));
 
-        when(userService.findByIds(eq(EXECUTION_CONTEXT), argThat(argument -> argument.containsAll(Set.of(admin.getId(), user.getId())))))
+        when(userService.findByIds(argThat(argument -> argument.containsAll(Set.of(admin.getId(), user.getId())))))
             .thenReturn(new LinkedHashSet<>(List.of(admin, user)));
         when(groupService.findByIds(new LinkedHashSet<>(List.of(group.getId())))).thenReturn(new LinkedHashSet<>(List.of(group)));
 

@@ -27,17 +27,17 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
  * @author GraviteeSource Team
  */
 public interface ConfigService {
-    boolean portalLoginForced(ExecutionContext executionContext);
+    boolean portalLoginForced(String environmentId);
 
-    PortalSettingsEntity getPortalSettings(ExecutionContext executionContext);
+    PortalSettingsEntity getPortalSettings(String environmentId);
 
-    void save(ExecutionContext executionContext, PortalSettingsEntity portalSettingsEntity);
+    void save(String environmentId, PortalSettingsEntity portalSettingsEntity);
 
-    ConsoleSettingsEntity getConsoleSettings(ExecutionContext executionContext);
+    ConsoleSettingsEntity getConsoleSettings(String organizationId);
 
-    void save(ExecutionContext executionContext, ConsoleSettingsEntity consoleSettingsEntity);
+    void save(String organizationId, ConsoleSettingsEntity consoleSettingsEntity);
 
-    ConsoleConfigEntity getConsoleConfig(ExecutionContext executionContext);
+    ConsoleConfigEntity getConsoleConfig(String organizationId);
 
-    PortalConfigEntity getPortalConfig(ExecutionContext executionContext);
+    PortalConfigEntity getPortalConfig(String environmentId);
 }

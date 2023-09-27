@@ -254,9 +254,7 @@ public class UsersResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetUserAvatarRedirectUrl() throws IOException {
-        doReturn(new UrlPictureEntity(root().path("openapi").getUri().toURL().toString()))
-            .when(userService)
-            .getPicture(eq(GraviteeContext.getExecutionContext()), any());
+        doReturn(new UrlPictureEntity(root().path("openapi").getUri().toURL().toString())).when(userService).getPicture(any());
         final Response response = target().path("userId").path("avatar").request().get();
         assertEquals(OK_200, response.getStatus());
     }

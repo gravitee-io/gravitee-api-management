@@ -91,7 +91,6 @@ public class PlatformEventsResource extends AbstractResource {
         }
 
         Page<EventEntity> events = eventService.search(
-            executionContext,
             eventSearchParam.getEventTypeListParam(),
             properties,
             eventSearchParam.getFrom(),

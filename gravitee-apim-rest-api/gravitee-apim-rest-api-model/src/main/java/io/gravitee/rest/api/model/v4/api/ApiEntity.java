@@ -25,7 +25,6 @@ import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
-import io.gravitee.definition.model.v4.flow.execution.FlowMode;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
@@ -206,4 +205,9 @@ public class ApiEntity implements GenericApiEntity {
 
     @JsonIgnore
     private String referenceId;
+
+    @JsonIgnore
+    public String getEnvironmentId() {
+        return referenceId;
+    }
 }

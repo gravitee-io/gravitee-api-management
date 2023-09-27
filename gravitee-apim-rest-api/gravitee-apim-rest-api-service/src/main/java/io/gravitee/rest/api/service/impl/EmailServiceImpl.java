@@ -28,7 +28,6 @@ import io.gravitee.rest.api.service.EmailNotification;
 import io.gravitee.rest.api.service.EmailService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.ReferenceContext;
 import io.gravitee.rest.api.service.common.TimeBoundedCharSequence;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -102,7 +101,7 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
         String referenceId,
         ParameterReferenceType referenceType
     ) {
-        Map<Key, String> mailParameters = getMailSenderConfiguration(executionContext, referenceId, referenceType);
+        Map<Key, String> mailParameters = getMailSenderConfiguration(referenceId, referenceType);
 
         if (
             Boolean.parseBoolean(mailParameters.get(EMAIL_ENABLED)) &&
@@ -252,13 +251,9 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
         return matcher.group(1).toLowerCase();
     }
 
-    private Map<Key, String> getMailSenderConfiguration(
-        ExecutionContext executionContext,
-        String referenceId,
-        ParameterReferenceType referenceType
-    ) {
+    private Map<Key, String> getMailSenderConfiguration(String referenceId, ParameterReferenceType referenceType) {
         return parameterService
-            .findAll(Arrays.asList(EMAIL_ENABLED, EMAIL_SUBJECT, EMAIL_FROM), referenceId, referenceType, executionContext)
+            .findAll(Arrays.asList(EMAIL_ENABLED, EMAIL_SUBJECT, EMAIL_FROM), referenceId, referenceType)
             .entrySet()
             .stream()
             .collect(Collectors.toMap(e -> Key.findByKey(e.getKey()), e -> e.getValue().isEmpty() ? "" : e.getValue().get(0)));

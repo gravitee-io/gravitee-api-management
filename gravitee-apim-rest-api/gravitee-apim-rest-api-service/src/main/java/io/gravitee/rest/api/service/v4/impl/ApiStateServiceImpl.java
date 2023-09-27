@@ -170,7 +170,7 @@ public class ApiStateServiceImpl implements ApiStateService {
             addDeploymentLabelToProperties(executionContext, api.getId(), properties, apiDeploymentEntity);
 
             // And create event
-            eventService.createApiEvent(executionContext, singleton(executionContext.getEnvironmentId()), PUBLISH_API, api, properties);
+            eventService.createApiEvent(singleton(executionContext.getEnvironmentId()), PUBLISH_API, api, properties);
         } catch (TechnicalException e) {
             log.error("An error occurs while trying to deploy API: {}", api.getId(), e);
             throw new TechnicalManagementException("An error occurs while trying to deploy API: " + api.getId(), e);
@@ -319,13 +319,7 @@ public class ApiStateServiceImpl implements ApiStateService {
                 lastPublishedAPI.setPicture(null);
 
                 // And create event
-                eventService.createApiEvent(
-                    executionContext,
-                    singleton(executionContext.getEnvironmentId()),
-                    eventType,
-                    lastPublishedAPI,
-                    properties
-                );
+                eventService.createApiEvent(singleton(executionContext.getEnvironmentId()), eventType, lastPublishedAPI, properties);
                 return null;
             } else {
                 // this is the first time we start the api without previously deployed id.
@@ -368,7 +362,6 @@ public class ApiStateServiceImpl implements ApiStateService {
             Map<String, Object> properties = Map.of(Event.EventProperties.API_ID.getValue(), genericApiEntity.getId());
 
             io.gravitee.common.data.domain.Page<EventEntity> events = eventService.search(
-                executionContext,
                 Arrays.asList(PUBLISH_API, EventType.UNPUBLISH_API),
                 properties,
                 0,
@@ -392,7 +385,6 @@ public class ApiStateServiceImpl implements ApiStateService {
                         io.gravitee.rest.api.model.api.ApiEntity apiEntity = (io.gravitee.rest.api.model.api.ApiEntity) genericApiEntity;
 
                         io.gravitee.rest.api.model.api.ApiEntity deployedApiEntity = apiConverter.toApiEntity(
-                            executionContext,
                             payloadEntity,
                             null,
                             null,
@@ -417,7 +409,7 @@ public class ApiStateServiceImpl implements ApiStateService {
                             );
                     } else {
                         ApiEntity apiEntity = (ApiEntity) genericApiEntity;
-                        ApiEntity deployedApiEntity = apiMapper.toEntity(executionContext, payloadEntity, null, null, false);
+                        ApiEntity deployedApiEntity = apiMapper.toEntity(payloadEntity, null, null, false);
 
                         sync = synchronizationService.checkSynchronization(ApiEntity.class, deployedApiEntity, apiEntity);
                     }
@@ -425,7 +417,7 @@ public class ApiStateServiceImpl implements ApiStateService {
                     // 2 - If API definition is synchronized, check if there is any modification for API's plans
                     // but only for published or closed plan
                     if (sync) {
-                        Set<GenericPlanEntity> plans = planSearchService.findByApi(executionContext, genericApiEntity.getId());
+                        Set<GenericPlanEntity> plans = planSearchService.findByApi(genericApiEntity.getId());
                         sync =
                             plans
                                 .stream()

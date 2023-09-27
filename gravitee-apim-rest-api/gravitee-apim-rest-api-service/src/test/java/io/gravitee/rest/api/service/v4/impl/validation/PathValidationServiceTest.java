@@ -57,6 +57,8 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class PathValidationServiceTest {
 
+    private static final String CURRENT_ENVIRONMENT = "env";
+
     @Spy
     private ObjectMapper objectMapper = new GraviteeMapper();
 
@@ -70,7 +72,6 @@ public class PathValidationServiceTest {
 
     @Before
     public void init() {
-        GraviteeContext.setCurrentEnvironment("DEFAULT");
         pathValidationService = new PathValidationServiceImpl(apiRepository, objectMapper, accessPointService);
     }
 
@@ -83,7 +84,7 @@ public class PathValidationServiceTest {
     public void shouldSucceed_create_noApi() {
         when(
             apiRepository.search(
-                new ApiCriteria.Builder().environmentId(GraviteeContext.getCurrentEnvironment()).build(),
+                new ApiCriteria.Builder().environmentId(CURRENT_ENVIRONMENT).build(),
                 null,
                 new ApiFieldFilter.Builder().excludePicture().build()
             )
@@ -91,7 +92,7 @@ public class PathValidationServiceTest {
             .thenReturn(Stream.empty());
 
         List<Path> paths = pathValidationService.validateAndSanitizePaths(
-            GraviteeContext.getExecutionContext(),
+            CURRENT_ENVIRONMENT,
             null,
             Collections.singletonList(new Path("/context"))
         );
@@ -105,7 +106,7 @@ public class PathValidationServiceTest {
         Api api1 = createMock("mock1", "/existing");
         when(
             apiRepository.search(
-                new ApiCriteria.Builder().environmentId(GraviteeContext.getCurrentEnvironment()).build(),
+                new ApiCriteria.Builder().environmentId(CURRENT_ENVIRONMENT).build(),
                 null,
                 new ApiFieldFilter.Builder().excludePicture().build()
             )
@@ -113,7 +114,7 @@ public class PathValidationServiceTest {
             .thenReturn(Stream.of(api1));
 
         List<Path> paths = pathValidationService.validateAndSanitizePaths(
-            GraviteeContext.getExecutionContext(),
+            CURRENT_ENVIRONMENT,
             null,
             Collections.singletonList(new Path("/context"))
         );
@@ -127,7 +128,7 @@ public class PathValidationServiceTest {
         Api api1 = createMock("mock1", "/existing");
         when(
             apiRepository.search(
-                new ApiCriteria.Builder().environmentId(GraviteeContext.getCurrentEnvironment()).build(),
+                new ApiCriteria.Builder().environmentId(CURRENT_ENVIRONMENT).build(),
                 null,
                 new ApiFieldFilter.Builder().excludePicture().build()
             )
@@ -135,7 +136,7 @@ public class PathValidationServiceTest {
             .thenReturn(Stream.of(api1));
 
         List<Path> paths = pathValidationService.validateAndSanitizePaths(
-            GraviteeContext.getExecutionContext(),
+            CURRENT_ENVIRONMENT,
             null,
             Collections.singletonList(new Path("host", "path", true))
         );
@@ -149,18 +150,14 @@ public class PathValidationServiceTest {
         Api api1 = createMock("mock1", "/context");
         when(
             apiRepository.search(
-                new ApiCriteria.Builder().environmentId(GraviteeContext.getCurrentEnvironment()).build(),
+                new ApiCriteria.Builder().environmentId(CURRENT_ENVIRONMENT).build(),
                 null,
                 new ApiFieldFilter.Builder().excludePicture().build()
             )
         )
             .thenReturn(Stream.of(api1));
 
-        pathValidationService.validateAndSanitizePaths(
-            GraviteeContext.getExecutionContext(),
-            null,
-            Collections.singletonList(new Path("/context"))
-        );
+        pathValidationService.validateAndSanitizePaths(CURRENT_ENVIRONMENT, null, Collections.singletonList(new Path("/context")));
     }
 
     @Test
@@ -168,7 +165,7 @@ public class PathValidationServiceTest {
         Api api1 = createMock("mock1", "/context2");
         when(
             apiRepository.search(
-                new ApiCriteria.Builder().environmentId(GraviteeContext.getCurrentEnvironment()).build(),
+                new ApiCriteria.Builder().environmentId(CURRENT_ENVIRONMENT).build(),
                 null,
                 new ApiFieldFilter.Builder().excludePicture().build()
             )
@@ -176,7 +173,7 @@ public class PathValidationServiceTest {
             .thenReturn(Stream.of(api1));
 
         List<Path> paths = pathValidationService.validateAndSanitizePaths(
-            GraviteeContext.getExecutionContext(),
+            CURRENT_ENVIRONMENT,
             null,
             Collections.singletonList(new Path("/context"))
         );
@@ -190,7 +187,7 @@ public class PathValidationServiceTest {
         Api api1 = createMock("mock1", "/context");
 
         List<Path> paths = pathValidationService.validateAndSanitizePaths(
-            GraviteeContext.getExecutionContext(),
+            CURRENT_ENVIRONMENT,
             null,
             Collections.singletonList(new Path("/context2"))
         );
@@ -204,18 +201,14 @@ public class PathValidationServiceTest {
         Api api1 = createMock("mock1", "/context");
         when(
             apiRepository.search(
-                new ApiCriteria.Builder().environmentId(GraviteeContext.getCurrentEnvironment()).build(),
+                new ApiCriteria.Builder().environmentId(CURRENT_ENVIRONMENT).build(),
                 null,
                 new ApiFieldFilter.Builder().excludePicture().build()
             )
         )
             .thenReturn(Stream.of(api1));
 
-        pathValidationService.validateAndSanitizePaths(
-            GraviteeContext.getExecutionContext(),
-            null,
-            Collections.singletonList(new Path("/context/"))
-        );
+        pathValidationService.validateAndSanitizePaths(CURRENT_ENVIRONMENT, null, Collections.singletonList(new Path("/context/")));
     }
 
     @Test(expected = PathAlreadyExistsException.class)
@@ -223,18 +216,14 @@ public class PathValidationServiceTest {
         Api api1 = createMock("mock1", "/context/");
         when(
             apiRepository.search(
-                new ApiCriteria.Builder().environmentId(GraviteeContext.getCurrentEnvironment()).build(),
+                new ApiCriteria.Builder().environmentId(CURRENT_ENVIRONMENT).build(),
                 null,
                 new ApiFieldFilter.Builder().excludePicture().build()
             )
         )
             .thenReturn(Stream.of(api1));
 
-        pathValidationService.validateAndSanitizePaths(
-            GraviteeContext.getExecutionContext(),
-            null,
-            Collections.singletonList(new Path("/context"))
-        );
+        pathValidationService.validateAndSanitizePaths(CURRENT_ENVIRONMENT, null, Collections.singletonList(new Path("/context")));
     }
 
     @Test(expected = PathAlreadyExistsException.class)
@@ -242,18 +231,14 @@ public class PathValidationServiceTest {
         Api api1 = createMock("mock1", "/context/subpath");
         when(
             apiRepository.search(
-                new ApiCriteria.Builder().environmentId(GraviteeContext.getCurrentEnvironment()).build(),
+                new ApiCriteria.Builder().environmentId(CURRENT_ENVIRONMENT).build(),
                 null,
                 new ApiFieldFilter.Builder().excludePicture().build()
             )
         )
             .thenReturn(Stream.of(api1));
 
-        pathValidationService.validateAndSanitizePaths(
-            GraviteeContext.getExecutionContext(),
-            null,
-            Collections.singletonList(new Path("/context"))
-        );
+        pathValidationService.validateAndSanitizePaths(CURRENT_ENVIRONMENT, null, Collections.singletonList(new Path("/context")));
     }
 
     @Test
@@ -261,7 +246,7 @@ public class PathValidationServiceTest {
         Api api1 = createMock("mock1", "/context", "api.gravitee.io");
         when(
             apiRepository.search(
-                new ApiCriteria.Builder().environmentId(GraviteeContext.getCurrentEnvironment()).build(),
+                new ApiCriteria.Builder().environmentId(CURRENT_ENVIRONMENT).build(),
                 null,
                 new ApiFieldFilter.Builder().excludePicture().build()
             )
@@ -269,7 +254,7 @@ public class PathValidationServiceTest {
             .thenReturn(Stream.of(api1));
 
         List<Path> paths = pathValidationService.validateAndSanitizePaths(
-            GraviteeContext.getExecutionContext(),
+            CURRENT_ENVIRONMENT,
             null,
             Collections.singletonList(new Path("/context"))
         );
@@ -283,7 +268,7 @@ public class PathValidationServiceTest {
         Api api1 = createMock("mock1", "/context", "api.gravitee.io");
         when(
             apiRepository.search(
-                new ApiCriteria.Builder().environmentId(GraviteeContext.getCurrentEnvironment()).build(),
+                new ApiCriteria.Builder().environmentId(CURRENT_ENVIRONMENT).build(),
                 null,
                 new ApiFieldFilter.Builder().excludePicture().build()
             )
@@ -291,7 +276,7 @@ public class PathValidationServiceTest {
             .thenReturn(Stream.of(api1));
 
         List<Path> paths = pathValidationService.validateAndSanitizePaths(
-            GraviteeContext.getExecutionContext(),
+            CURRENT_ENVIRONMENT,
             null,
             Collections.singletonList(new Path("api.gravitee.io", "/context"))
         );
@@ -305,7 +290,7 @@ public class PathValidationServiceTest {
         Api api1 = createMock("mock1", "/context", "api.gravitee.io");
         when(
             apiRepository.search(
-                new ApiCriteria.Builder().environmentId(GraviteeContext.getCurrentEnvironment()).build(),
+                new ApiCriteria.Builder().environmentId(CURRENT_ENVIRONMENT).build(),
                 null,
                 new ApiFieldFilter.Builder().excludePicture().build()
             )
@@ -313,7 +298,7 @@ public class PathValidationServiceTest {
             .thenReturn(Stream.of(api1));
 
         pathValidationService.validateAndSanitizePaths(
-            GraviteeContext.getExecutionContext(),
+            CURRENT_ENVIRONMENT,
             null,
             Collections.singletonList(new Path("api.gravitee.io", "/context/subpath"))
         );
@@ -326,14 +311,10 @@ public class PathValidationServiceTest {
         when(accessPointService.getGatewayRestrictedDomains(any()))
             .thenReturn(List.of(RestrictedDomainEntity.builder().domain(path.getHost()).build()));
 
-        List<Path> paths = pathValidationService.validateAndSanitizePaths(
-            GraviteeContext.getExecutionContext(),
-            null,
-            Collections.singletonList(path)
-        );
+        List<Path> paths = pathValidationService.validateAndSanitizePaths(CURRENT_ENVIRONMENT, null, Collections.singletonList(path));
 
         assertEquals(1, paths.size());
-        assertEquals(new Path("valid.host.gravitee.io", "/validPath/", false), paths.get(0));
+        assertEquals(new Path("valid.host.gravitee.io", "/validPath/", true), paths.get(0));
     }
 
     @Test
@@ -345,13 +326,9 @@ public class PathValidationServiceTest {
         when(accessPointService.getGatewayRestrictedDomains(any()))
             .thenReturn(List.of(RestrictedDomainEntity.builder().domain(domainConstraint).build()));
 
-        List<Path> paths = pathValidationService.validateAndSanitizePaths(
-            GraviteeContext.getExecutionContext(),
-            null,
-            Collections.singletonList(path)
-        );
+        List<Path> paths = pathValidationService.validateAndSanitizePaths(CURRENT_ENVIRONMENT, null, Collections.singletonList(path));
         assertEquals(1, paths.size());
-        assertEquals(new Path("level2.level1.valid.host.gravitee.io", "/validPath/", false), paths.get(0));
+        assertEquals(new Path("level2.level1.valid.host.gravitee.io", "/validPath/", true), paths.get(0));
     }
 
     @Test
@@ -371,13 +348,9 @@ public class PathValidationServiceTest {
                 )
             );
 
-        List<Path> paths = pathValidationService.validateAndSanitizePaths(
-            GraviteeContext.getExecutionContext(),
-            null,
-            Collections.singletonList(path)
-        );
+        List<Path> paths = pathValidationService.validateAndSanitizePaths(CURRENT_ENVIRONMENT, null, Collections.singletonList(path));
         assertEquals(1, paths.size());
-        assertEquals(new Path("level2.level1.valid.host.gravitee.io", "/validPath/", false), paths.get(0));
+        assertEquals(new Path("level2.level1.valid.host.gravitee.io", "/validPath/", true), paths.get(0));
     }
 
     @Test(expected = InvalidHostException.class)
@@ -392,7 +365,7 @@ public class PathValidationServiceTest {
                 )
             );
 
-        pathValidationService.validateAndSanitizePaths(GraviteeContext.getExecutionContext(), null, Collections.singletonList(path));
+        pathValidationService.validateAndSanitizePaths(CURRENT_ENVIRONMENT, null, Collections.singletonList(path));
     }
 
     @Test
@@ -401,11 +374,7 @@ public class PathValidationServiceTest {
         final Path path2 = new Path(null, "/path_2");
         final Path path3 = new Path("host3", "/path_3");
 
-        List<Path> paths = pathValidationService.validateAndSanitizePaths(
-            GraviteeContext.getExecutionContext(),
-            null,
-            List.of(path1, path2, path3)
-        );
+        List<Path> paths = pathValidationService.validateAndSanitizePaths(CURRENT_ENVIRONMENT, null, List.of(path1, path2, path3));
 
         assertEquals(3, paths.size());
         assertEquals(new Path("host1", "/path_1/", false), paths.get(0));
@@ -430,13 +399,9 @@ public class PathValidationServiceTest {
                 )
             );
 
-        final List<Path> paths = pathValidationService.validateAndSanitizePaths(
-            GraviteeContext.getExecutionContext(),
-            null,
-            Collections.singletonList(path)
-        );
+        final List<Path> paths = pathValidationService.validateAndSanitizePaths(CURRENT_ENVIRONMENT, null, Collections.singletonList(path));
         assertEquals(1, paths.size());
-        assertEquals(new Path("test.gravitee.io", "/validPath/", false), paths.get(0));
+        assertEquals(new Path("test.gravitee.io", "/validPath/", true), paths.get(0));
     }
 
     private Api createMock(String api, String path) {

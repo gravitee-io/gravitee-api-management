@@ -467,7 +467,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 .map(MemberEntity::getId)
                 .collect(toList());
             if (userIds != null && userIds.size() > 0) {
-                userEntities.addAll(userService.findByIds(executionContext, userIds, false));
+                userEntities.addAll(userService.findByIds(userIds, false));
             }
 
             final Set<GroupEntity> groupEntities = new HashSet<>();
@@ -504,7 +504,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     private UserEntity findUserFromMembershipMember(ExecutionContext executionContext, MembershipMember member) {
         UserEntity userEntity;
         if (member.getMemberId() != null) {
-            userEntity = userService.findById(executionContext, member.getMemberId());
+            userEntity = userService.findById(member.getMemberId());
         } else {
             // We have a user reference, meaning that the user is coming from an external system
             // User does not exist so we are looking into defined providers
@@ -1365,7 +1365,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             }
 
             MemberEntity memberEntity = new MemberEntity();
-            UserEntity userEntity = userService.findById(executionContext, userId);
+            UserEntity userEntity = userService.findById(userId);
             memberEntity.setCreatedAt(userEntity.getCreatedAt());
             memberEntity.setDisplayName(userEntity.getDisplayName());
             memberEntity.setEmail(userEntity.getEmail());
@@ -1800,12 +1800,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         MembershipService.MembershipRole role = new MembershipService.MembershipRole(RoleScope.API, roleName);
 
         if (member.getMemberId() != null) {
-            MemberEntity userMember = getUserMember(
-                GraviteeContext.getExecutionContext(),
-                MembershipReferenceType.API,
-                apiId,
-                member.getMemberId()
-            );
+            MemberEntity userMember = getUserMember(executionContext, MembershipReferenceType.API, apiId, member.getMemberId());
             if (userMember != null && userMember.getRoles() != null && !userMember.getRoles().isEmpty()) {
                 throw new MembershipAlreadyExistsException(
                     member.getMemberId(),
@@ -1815,20 +1810,20 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 );
             }
         }
-        return addRoleToMemberOnReference(GraviteeContext.getExecutionContext(), reference, member, role);
+        return addRoleToMemberOnReference(executionContext, reference, member, role);
     }
 
     @Override
     public MemberEntity updateMembershipForApi(ExecutionContext executionContext, String apiId, String memberId, String roleName) {
         MemberEntity membership = null;
-        MemberEntity userMember = getUserMember(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, apiId, memberId);
+        MemberEntity userMember = getUserMember(executionContext, MembershipReferenceType.API, apiId, memberId);
 
         MembershipService.MembershipReference reference = new MembershipService.MembershipReference(MembershipReferenceType.API, apiId);
         MembershipService.MembershipMember member = new MembershipService.MembershipMember(memberId, null, MembershipMemberType.USER);
         MembershipService.MembershipRole role = new MembershipService.MembershipRole(RoleScope.API, roleName);
 
         if (userMember != null && userMember.getRoles() != null && !userMember.getRoles().isEmpty()) {
-            membership = updateRoleToMemberOnReference(GraviteeContext.getExecutionContext(), reference, member, role);
+            membership = updateRoleToMemberOnReference(executionContext, reference, member, role);
         }
         return membership;
     }

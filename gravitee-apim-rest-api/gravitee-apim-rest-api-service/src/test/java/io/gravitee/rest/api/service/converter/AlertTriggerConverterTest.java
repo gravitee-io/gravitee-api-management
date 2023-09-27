@@ -94,10 +94,10 @@ public class AlertTriggerConverterTest {
 
         when(objectMapper.writeValueAsString(newAlertTriggerEntity)).thenReturn("NewAlertTriggerEntity in json format");
 
-        AlertTrigger alertTrigger = converter.toAlertTrigger(GraviteeContext.getExecutionContext(), newAlertTriggerEntity);
+        AlertTrigger alertTrigger = converter.toAlertTrigger("env-id", newAlertTriggerEntity);
 
-        assertEquals("DEFAULT", alertTrigger.getEnvironmentId());
-        assertEquals("APPLICATION", alertTrigger.getReferenceType());
+        assertEquals("env-id", alertTrigger.getEnvironmentId());
+        assertEquals(AlertReferenceType.APPLICATION.name(), alertTrigger.getReferenceType());
         assertEquals("application-id", alertTrigger.getReferenceId());
         assertEquals("INFO", alertTrigger.getSeverity());
         assertEquals("description", alertTrigger.getDescription());
@@ -119,9 +119,9 @@ public class AlertTriggerConverterTest {
 
         when(objectMapper.writeValueAsString(updateAlertTriggerEntity)).thenReturn("UpdateAlertTriggerEntity in json format");
 
-        AlertTrigger alertTrigger = converter.toAlertTrigger(GraviteeContext.getExecutionContext(), updateAlertTriggerEntity);
+        AlertTrigger alertTrigger = converter.toAlertTrigger("env-id", updateAlertTriggerEntity);
 
-        assertEquals("DEFAULT", alertTrigger.getEnvironmentId());
+        assertEquals("env-id", alertTrigger.getEnvironmentId());
         assertEquals("INFO", alertTrigger.getSeverity());
         assertEquals("description", alertTrigger.getDescription());
         assertEquals("UpdateAlertTriggerEntity in json format", alertTrigger.getDefinition());

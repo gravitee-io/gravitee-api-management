@@ -74,7 +74,7 @@ public class QualityMetricsServiceImpl extends AbstractService implements Qualit
 
         return Collections.unmodifiableMap(
             parameterService
-                .findAll(executionContext, keys, Integer::parseInt, ParameterReferenceType.ENVIRONMENT)
+                .findAll(keys, Integer::parseInt, executionContext.getEnvironmentId(), ParameterReferenceType.ENVIRONMENT)
                 .entrySet()
                 .stream()
                 .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().get(0)))
@@ -83,7 +83,11 @@ public class QualityMetricsServiceImpl extends AbstractService implements Qualit
 
     @Override
     public boolean isApiMetricsEnabled(ExecutionContext executionContext) {
-        return parameterService.findAsBoolean(executionContext, Key.API_QUALITY_METRICS_ENABLED, ParameterReferenceType.ENVIRONMENT);
+        return parameterService.findAsBoolean(
+            Key.API_QUALITY_METRICS_ENABLED,
+            executionContext.getEnvironmentId(),
+            ParameterReferenceType.ENVIRONMENT
+        );
     }
 
     @Override

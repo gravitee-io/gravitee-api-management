@@ -122,10 +122,8 @@ public class MembershipService_TransferOwnershipTest {
 
         UserEntity user = new UserEntity();
         user.setId(USER_ID);
-        lenient()
-            .when(userService.findByIds(EXECUTION_CONTEXT, Collections.singletonList(USER_ID), false))
-            .thenReturn(Collections.singleton(user));
-        lenient().when(userService.findById(EXECUTION_CONTEXT, USER_ID)).thenReturn(user);
+        lenient().when(userService.findByIds(Collections.singletonList(USER_ID), false)).thenReturn(Collections.singleton(user));
+        lenient().when(userService.findById(USER_ID)).thenReturn(user);
 
         Api api = new Api();
         api.setId(API_ID);

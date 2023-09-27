@@ -115,7 +115,7 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
         UserEntity userEntity = new UserEntity();
         userEntity.setId("my name");
         userEntity.setEmail("me@mail.com");
-        when(userService.findById(GraviteeContext.getExecutionContext(), userEntity.getId())).thenReturn(userEntity);
+        when(userService.findById(userEntity.getId())).thenReturn(userEntity);
 
         Membership newMembership = new Membership();
         newMembership.setReferenceType(io.gravitee.repository.management.model.MembershipReferenceType.API);
@@ -142,7 +142,7 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
             new MembershipService.MembershipRole(RoleScope.API, "OWNER")
         );
 
-        verify(userService, times(1)).findById(GraviteeContext.getExecutionContext(), userEntity.getId());
+        verify(userService, times(1)).findById(userEntity.getId());
         verify(membershipRepository, times(2))
             .findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
                 userEntity.getId(),
@@ -167,7 +167,7 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
         UserEntity userEntity = new UserEntity();
         userEntity.setId("my name");
         userEntity.setEmail("me@mail.com");
-        when(userService.findById(GraviteeContext.getExecutionContext(), userEntity.getId())).thenReturn(userEntity);
+        when(userService.findById(userEntity.getId())).thenReturn(userEntity);
 
         Membership newMembership = new Membership();
         newMembership.setReferenceType(io.gravitee.repository.management.model.MembershipReferenceType.API);
@@ -194,7 +194,7 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
             new MembershipService.MembershipRole(RoleScope.API, "PRIMARY_OWNER")
         );
 
-        verify(userService, times(1)).findById(GraviteeContext.getExecutionContext(), userEntity.getId());
+        verify(userService, times(1)).findById(userEntity.getId());
         verify(membershipRepository, times(2))
             .findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
                 userEntity.getId(),

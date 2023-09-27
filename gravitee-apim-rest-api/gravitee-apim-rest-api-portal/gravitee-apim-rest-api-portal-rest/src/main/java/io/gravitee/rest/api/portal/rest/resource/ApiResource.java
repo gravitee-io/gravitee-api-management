@@ -110,7 +110,7 @@ public class ApiResource extends AbstractResource {
             }
             if (include.contains(INCLUDE_PLANS)) {
                 List<Plan> plans = planSearchService
-                    .findByApi(executionContext, apiId)
+                    .findByApi(apiId)
                     .stream()
                     .filter(plan -> PlanStatus.PUBLISHED.equals(plan.getPlanStatus()))
                     .filter(plan -> groupService.isUserAuthorizedToAccessApiData(genericApiEntity, plan.getExcludedGroups(), username))
@@ -128,8 +128,8 @@ public class ApiResource extends AbstractResource {
             );
             if (
                 !parameterService.findAsBoolean(
-                    executionContext,
                     Key.PORTAL_APIS_SHOW_TAGS_IN_APIHEADER,
+                    executionContext.getEnvironmentId(),
                     ParameterReferenceType.ENVIRONMENT
                 )
             ) {
@@ -137,8 +137,8 @@ public class ApiResource extends AbstractResource {
             }
             if (
                 !parameterService.findAsBoolean(
-                    executionContext,
                     Key.PORTAL_APIS_SHOW_CATEGORIES_IN_APIHEADER,
+                    executionContext.getEnvironmentId(),
                     ParameterReferenceType.ENVIRONMENT
                 )
             ) {

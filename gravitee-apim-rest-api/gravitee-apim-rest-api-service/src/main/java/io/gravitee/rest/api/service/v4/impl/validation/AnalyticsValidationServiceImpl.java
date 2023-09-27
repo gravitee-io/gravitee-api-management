@@ -140,7 +140,12 @@ public class AnalyticsValidationServiceImpl extends TransactionalService impleme
 
     private String computeMaxDurationCondition(final ExecutionContext executionContext, final String existingCondition) {
         Optional<Long> optionalMaxDuration = parameterService
-            .findAll(executionContext, Key.LOGGING_DEFAULT_MAX_DURATION, Long::valueOf, ParameterReferenceType.ORGANIZATION)
+            .findAll(
+                Key.LOGGING_DEFAULT_MAX_DURATION,
+                Long::valueOf,
+                executionContext.getOrganizationId(),
+                ParameterReferenceType.ORGANIZATION
+            )
             .stream()
             .findFirst();
         if (optionalMaxDuration.isPresent() && optionalMaxDuration.get() > 0) {

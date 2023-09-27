@@ -964,7 +964,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     @Override
     public void deleteUserFromGroup(ExecutionContext executionContext, String groupId, String username) {
         //check if user exist
-        this.userService.findById(executionContext, username);
+        this.userService.findById(username);
 
         eventManager.publishEvent(
             ApplicationAlertEventType.APPLICATION_MEMBERSHIP_UPDATE,
@@ -1025,7 +1025,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             executionContext,
             ApiHook.API_UPDATED,
             api.getId(),
-            new NotificationParamsBuilder().api(apiEntity).user(userService.findById(executionContext, getAuthenticatedUsername())).build()
+            new NotificationParamsBuilder().api(apiEntity).user(userService.findById(getAuthenticatedUsername())).build()
         );
     }
 }

@@ -121,12 +121,12 @@ public class RatingMapperTest {
         User responseAuthor = new User();
         responseAuthor.setId(RATING_RESPONSE_AUTHOR);
 
-        doReturn(authorEntity).when(userService).findById(GraviteeContext.getExecutionContext(), RATING_AUTHOR);
-        doReturn(responseAuthorEntity).when(userService).findById(GraviteeContext.getExecutionContext(), RATING_RESPONSE_AUTHOR);
+        doReturn(authorEntity).when(userService).findById(RATING_AUTHOR);
+        doReturn(responseAuthorEntity).when(userService).findById(RATING_RESPONSE_AUTHOR);
         doReturn(author).when(userMapper).convert(authorEntity);
         doReturn(responseAuthor).when(userMapper).convert(responseAuthorEntity);
 
-        Rating responseRating = ratingMapper.convert(GraviteeContext.getExecutionContext(), ratingEntity, uriInfo);
+        Rating responseRating = ratingMapper.convert(ratingEntity, uriInfo);
         assertNotNull(responseRating);
 
         List<RatingAnswer> answers = responseRating.getAnswers();

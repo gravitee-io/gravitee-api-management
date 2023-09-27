@@ -18,8 +18,12 @@ package io.gravitee.rest.api.service.impl;
 import static io.gravitee.repository.management.model.Application.METADATA_CLIENT_ID;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
@@ -37,15 +41,28 @@ import io.gravitee.rest.api.model.configuration.application.ApplicationGrantType
 import io.gravitee.rest.api.model.configuration.application.ApplicationTypeEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import io.gravitee.rest.api.service.configuration.application.ClientRegistrationService;
 import io.gravitee.rest.api.service.converter.ApplicationConverter;
-import io.gravitee.rest.api.service.exceptions.*;
+import io.gravitee.rest.api.service.exceptions.ApplicationGrantTypesNotAllowedException;
+import io.gravitee.rest.api.service.exceptions.ApplicationGrantTypesNotFoundException;
+import io.gravitee.rest.api.service.exceptions.ApplicationRedirectUrisNotFound;
+import io.gravitee.rest.api.service.exceptions.ClientIdAlreadyExistsException;
+import io.gravitee.rest.api.service.exceptions.InvalidApplicationApiKeyModeException;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.register.ClientRegistrationResponse;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -123,7 +140,7 @@ public class ApplicationService_CreateTest {
         when(newApplication.getName()).thenReturn(APPLICATION_NAME);
         when(newApplication.getDescription()).thenReturn("My description");
         when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(Collections.emptySet());
-        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(mock(UserEntity.class));
+        when(userService.findById(any())).thenReturn(mock(UserEntity.class));
         when(applicationConverter.toApplication(any(NewApplicationEntity.class))).thenCallRealMethod();
 
         final ApplicationEntity applicationEntity = applicationService.create(
@@ -144,14 +161,7 @@ public class ApplicationService_CreateTest {
         settings.setoAuthClient(clientSettings);
         when(newApplication.getSettings()).thenReturn(settings);
 
-        when(
-            parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
-                Key.APPLICATION_REGISTRATION_ENABLED,
-                "DEFAULT",
-                ParameterReferenceType.ENVIRONMENT
-            )
-        )
+        when(parameterService.findAsBoolean(Key.APPLICATION_REGISTRATION_ENABLED, "DEFAULT", ParameterReferenceType.ENVIRONMENT))
             .thenReturn(Boolean.FALSE);
 
         applicationService.create(GraviteeContext.getExecutionContext(), newApplication, USER_NAME);
@@ -164,14 +174,7 @@ public class ApplicationService_CreateTest {
         clientSettings.setApplicationType("web");
         settings.setoAuthClient(clientSettings);
         when(newApplication.getSettings()).thenReturn(settings);
-        when(
-            parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
-                Key.APPLICATION_REGISTRATION_ENABLED,
-                "DEFAULT",
-                ParameterReferenceType.ENVIRONMENT
-            )
-        )
+        when(parameterService.findAsBoolean(Key.APPLICATION_REGISTRATION_ENABLED, "DEFAULT", ParameterReferenceType.ENVIRONMENT))
             .thenReturn(Boolean.TRUE);
         applicationService.create(GraviteeContext.getExecutionContext(), newApplication, USER_NAME);
     }
@@ -183,23 +186,9 @@ public class ApplicationService_CreateTest {
         clientSettings.setApplicationType("web");
         settings.setoAuthClient(clientSettings);
         when(newApplication.getSettings()).thenReturn(settings);
-        when(
-            parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
-                Key.APPLICATION_REGISTRATION_ENABLED,
-                "DEFAULT",
-                ParameterReferenceType.ENVIRONMENT
-            )
-        )
+        when(parameterService.findAsBoolean(Key.APPLICATION_REGISTRATION_ENABLED, "DEFAULT", ParameterReferenceType.ENVIRONMENT))
             .thenReturn(Boolean.TRUE);
-        when(
-            parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
-                Key.APPLICATION_TYPE_WEB_ENABLED,
-                "DEFAULT",
-                ParameterReferenceType.ENVIRONMENT
-            )
-        )
+        when(parameterService.findAsBoolean(Key.APPLICATION_TYPE_WEB_ENABLED, "DEFAULT", ParameterReferenceType.ENVIRONMENT))
             .thenReturn(Boolean.TRUE);
         applicationService.create(GraviteeContext.getExecutionContext(), newApplication, USER_NAME);
     }
@@ -214,23 +203,9 @@ public class ApplicationService_CreateTest {
         ApplicationTypeEntity applicationType = mock(ApplicationTypeEntity.class);
         when(applicationTypeService.getApplicationType(any())).thenReturn(applicationType);
         when(newApplication.getSettings()).thenReturn(settings);
-        when(
-            parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
-                Key.APPLICATION_REGISTRATION_ENABLED,
-                "DEFAULT",
-                ParameterReferenceType.ENVIRONMENT
-            )
-        )
+        when(parameterService.findAsBoolean(Key.APPLICATION_REGISTRATION_ENABLED, "DEFAULT", ParameterReferenceType.ENVIRONMENT))
             .thenReturn(Boolean.TRUE);
-        when(
-            parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
-                Key.APPLICATION_TYPE_WEB_ENABLED,
-                "DEFAULT",
-                ParameterReferenceType.ENVIRONMENT
-            )
-        )
+        when(parameterService.findAsBoolean(Key.APPLICATION_TYPE_WEB_ENABLED, "DEFAULT", ParameterReferenceType.ENVIRONMENT))
             .thenReturn(Boolean.TRUE);
         applicationService.create(GraviteeContext.getExecutionContext(), newApplication, USER_NAME);
     }
@@ -249,23 +224,9 @@ public class ApplicationService_CreateTest {
         when(applicationType.getAllowed_grant_types()).thenReturn(Arrays.asList(foobar));
         when(applicationTypeService.getApplicationType(any())).thenReturn(applicationType);
         when(newApplication.getSettings()).thenReturn(settings);
-        when(
-            parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
-                Key.APPLICATION_REGISTRATION_ENABLED,
-                "DEFAULT",
-                ParameterReferenceType.ENVIRONMENT
-            )
-        )
+        when(parameterService.findAsBoolean(Key.APPLICATION_REGISTRATION_ENABLED, "DEFAULT", ParameterReferenceType.ENVIRONMENT))
             .thenReturn(Boolean.TRUE);
-        when(
-            parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
-                Key.APPLICATION_TYPE_WEB_ENABLED,
-                "DEFAULT",
-                ParameterReferenceType.ENVIRONMENT
-            )
-        )
+        when(parameterService.findAsBoolean(Key.APPLICATION_TYPE_WEB_ENABLED, "DEFAULT", ParameterReferenceType.ENVIRONMENT))
             .thenReturn(Boolean.TRUE);
         applicationService.create(GraviteeContext.getExecutionContext(), newApplication, USER_NAME);
     }
@@ -311,8 +272,8 @@ public class ApplicationService_CreateTest {
 
         when(
             parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
                 Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED,
+                GraviteeContext.getCurrentEnvironment(),
                 ParameterReferenceType.ENVIRONMENT
             )
         )
@@ -332,12 +293,24 @@ public class ApplicationService_CreateTest {
         when(newApplication.getName()).thenReturn(APPLICATION_NAME);
         when(newApplication.getDescription()).thenReturn("My description");
         when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(Collections.emptySet());
-        when(userService.findById(any(), any())).thenReturn(mock(UserEntity.class));
+        when(userService.findById(any())).thenReturn(mock(UserEntity.class));
 
         // client registration is enabled, and browser app type also
-        when(parameterService.findAsBoolean(any(), eq(Key.APPLICATION_REGISTRATION_ENABLED), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+        when(
+            parameterService.findAsBoolean(
+                eq(Key.APPLICATION_REGISTRATION_ENABLED),
+                eq(GraviteeContext.getCurrentEnvironment()),
+                eq(ParameterReferenceType.ENVIRONMENT)
+            )
+        )
             .thenReturn(true);
-        when(parameterService.findAsBoolean(any(), eq(Key.APPLICATION_TYPE_BROWSER_ENABLED), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+        when(
+            parameterService.findAsBoolean(
+                eq(Key.APPLICATION_TYPE_BROWSER_ENABLED),
+                eq(GraviteeContext.getCurrentEnvironment()),
+                eq(ParameterReferenceType.ENVIRONMENT)
+            )
+        )
             .thenReturn(true);
 
         // oauth app settings contains everything required

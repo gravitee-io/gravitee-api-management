@@ -109,7 +109,7 @@ public class PageService_CreateOrUpdatePagesTest {
         // Simulate the fact that page 1 is already created
         when(pageRepository.findById(updatedPageId)).thenReturn(Optional.of(page));
 
-        when(planSearchService.findByApi(eq(GraviteeContext.getExecutionContext()), anyString())).thenReturn(Collections.emptySet());
+        when(planSearchService.findByApi(anyString())).thenReturn(Collections.emptySet());
 
         pageService.createOrUpdatePages(GraviteeContext.getExecutionContext(), List.of(page1, page2, page3), API_ID);
 

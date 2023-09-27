@@ -567,7 +567,7 @@ public class ApplicationAlertServiceTest {
         Set<UserEntity> users = new HashSet<>();
         users.add(user1);
         users.add(user2);
-        when(userService.findByIds(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(users);
+        when(userService.findByIds(any())).thenReturn(users);
 
         // body
         List<Condition> conditions = new ArrayList<>();

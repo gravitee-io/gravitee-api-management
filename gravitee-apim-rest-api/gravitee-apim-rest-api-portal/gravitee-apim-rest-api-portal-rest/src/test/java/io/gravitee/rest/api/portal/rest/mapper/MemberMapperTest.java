@@ -90,12 +90,12 @@ public class MemberMapperTest {
 
         when(uriInfo.getBaseUriBuilder()).thenReturn(UriBuilder.fromPath(""));
 
-        when(userService.findById(GraviteeContext.getExecutionContext(), MEMBER_ID)).thenReturn(userEntity);
+        when(userService.findById(MEMBER_ID)).thenReturn(userEntity);
         when(userMapper.convert(userEntity)).thenCallRealMethod();
         when(userMapper.computeUserLinks(anyString(), any())).thenCallRealMethod();
 
         //Test
-        Member responseMember = memberMapper.convert(GraviteeContext.getExecutionContext(), memberEntity, uriInfo);
+        Member responseMember = memberMapper.convert(memberEntity, uriInfo);
         assertNotNull(responseMember);
         assertEquals(now.toEpochMilli(), responseMember.getCreatedAt().toInstant().toEpochMilli());
         assertNull(responseMember.getId());
