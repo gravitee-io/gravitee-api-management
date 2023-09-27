@@ -102,7 +102,7 @@ export class ApiGeneralMembersComponent implements OnInit {
           this.members = members.data ?? [];
           this.roles = roles.map((r) => r.name) ?? [];
           this.defaultRole = roles.find((role) => role.default);
-          this.groupData = api.groups.map((id) => ({
+          this.groupData = api.groups?.map((id) => ({
             id,
             name: groups.data.find((g) => g.id === id)?.name,
             isVisible: true,
