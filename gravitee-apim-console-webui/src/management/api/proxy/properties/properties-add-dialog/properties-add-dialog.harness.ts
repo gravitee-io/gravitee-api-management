@@ -14,7 +14,32 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatInputHarness } from '@angular/material/input/testing';
+import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 
 export class PropertiesAddDialogHarness extends ComponentHarness {
   public static hostSelector = 'properties-add-dialog';
+
+  protected getMatInputHarness = (formControlName: string) =>
+    this.locatorFor(MatInputHarness.with({ selector: `[formControlName="${formControlName}"]` }))();
+
+  protected getMatToggleHarness = (formControlName: string) =>
+    this.locatorFor(MatSlideToggleHarness.with({ selector: `[formControlName="${formControlName}"]` }))();
+
+  async setPropertyValue({ key, value, encryptable }: { key?: string; value?: string; encryptable?: boolean }): Promise<void> {
+    if (key) {
+      await this.getMatInputHarness('key').then((input) => input.setValue(key));
+    }
+    if (value) {
+      await this.getMatInputHarness('value').then((input) => input.setValue(value));
+    }
+    if (encryptable) {
+      await this.getMatToggleHarness('toEncrypt').then((toggle) => (encryptable ? toggle.check() : toggle.uncheck()));
+    }
+  }
+
+  async add(): Promise<void> {
+    await this.locatorFor(MatButtonHarness.with({ text: 'Add' }))().then((btn) => btn.click());
+  }
 }

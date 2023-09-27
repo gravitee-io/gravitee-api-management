@@ -50,6 +50,8 @@
           <mat-form-field class="apiProperties__table__field">
             <mat-label>Key</mat-label>
             <input matInput formControlName="key" required />
+            <mat-error *ngIf="propertiesFormGroup.get(element._id).get('key').hasError('required')">Key is required.</mat-error>
+            <mat-error *ngIf="propertiesFormGroup.get(element._id).get('key').hasError('isUnique')">Key already exists.</mat-error>
           </mat-form-field>
         </td>
       </ng-container>
