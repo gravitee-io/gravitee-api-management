@@ -20,5 +20,5 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 
 public interface VerifyApiPathDomainService {
-    List<Path> verifyApiPaths(ExecutionContext executionContext, String apiId, List<Path> paths);
+    List<Path> verifyApiPaths(String environmentId, String apiId, List<Path> paths);
 }

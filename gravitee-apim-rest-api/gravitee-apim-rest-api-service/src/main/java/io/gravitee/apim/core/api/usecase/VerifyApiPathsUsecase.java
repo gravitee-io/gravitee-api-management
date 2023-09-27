@@ -29,7 +29,13 @@ public class VerifyApiPathsUsecase {
     }
 
     public Response execute(Request request) {
-        return new Response(verifyApiPathDomainService.verifyApiPaths(GraviteeContext.getExecutionContext(), request.apiId, request.paths));
+        return new Response(
+            verifyApiPathDomainService.verifyApiPaths(
+                GraviteeContext.getExecutionContext().getEnvironmentId(),
+                request.apiId,
+                request.paths
+            )
+        );
     }
 
     public record Request(String apiId, List<Path> paths) {}

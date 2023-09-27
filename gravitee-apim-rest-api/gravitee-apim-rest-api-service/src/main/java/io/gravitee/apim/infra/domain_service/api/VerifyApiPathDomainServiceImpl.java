@@ -24,7 +24,6 @@ import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
-import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.v4.exception.HttpListenerPathMissingException;
 import io.gravitee.rest.api.service.v4.exception.InvalidHostException;
 import io.gravitee.rest.api.service.v4.exception.PathAlreadyExistsException;
@@ -56,7 +55,7 @@ public class VerifyApiPathDomainServiceImpl implements VerifyApiPathDomainServic
     }
 
     @Override
-    public List<Path> verifyApiPaths(ExecutionContext executionContext, String apiId, List<Path> paths) {
+    public List<Path> verifyApiPaths(String environmentId, String apiId, List<Path> paths) {
         if (paths == null || paths.isEmpty()) {
             throw new HttpListenerPathMissingException();
         }
@@ -66,11 +65,11 @@ public class VerifyApiPathDomainServiceImpl implements VerifyApiPathDomainServic
             )
             .toList();
 
-        List<Path> pathsWithDomain = validateAndSetDomain(executionContext.getEnvironmentId(), sanitizedPaths);
+        List<Path> pathsWithDomain = validateAndSetDomain(environmentId, sanitizedPaths);
 
         checkNoDuplicate(pathsWithDomain);
 
-        checkPathsAreAvailable(executionContext.getEnvironmentId(), apiId, pathsWithDomain);
+        checkPathsAreAvailable(environmentId, apiId, pathsWithDomain);
 
         return pathsWithDomain;
     }

@@ -22,7 +22,10 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.apim.core.api.model.*;
+import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.api.model.ApiFieldFilter;
+import io.gravitee.apim.core.api.model.ApiSearchCriteria;
+import io.gravitee.apim.core.api.model.Path;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
 import io.gravitee.apim.core.environment.model.Environment;
@@ -31,7 +34,6 @@ import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
 import io.gravitee.rest.api.service.v4.exception.InvalidHostException;
 import io.gravitee.rest.api.service.v4.exception.PathAlreadyExistsException;
@@ -40,7 +42,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.tuple.Pair;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -90,21 +91,13 @@ class VerifyApiPathDomainServiceImplTest {
     void setup() {
         objectMapper = GraviteeJacksonMapper.getInstance();
         service = new VerifyApiPathDomainServiceImpl(environmentCrudService, apiSearchService, objectMapper);
-        GraviteeContext.setCurrentEnvironment(ENVIRONMENT_ID);
-    }
-
-    @AfterEach
-    void tearDown() {
-        GraviteeContext.cleanContext();
     }
 
     @Test
     public void should_return_an_exception_if_environment_not_found() {
         givenNoEnvironment();
 
-        Throwable throwable = catchThrowable(() ->
-            service.verifyApiPaths(GraviteeContext.getExecutionContext(), "api-id", List.of(Path.builder().build()))
-        );
+        Throwable throwable = catchThrowable(() -> service.verifyApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().build())));
 
         assertThat(throwable).isInstanceOf(EnvironmentNotFoundException.class);
     }
@@ -114,11 +107,7 @@ class VerifyApiPathDomainServiceImplTest {
     public void should_sanitize_path(String path, String expectedPath) {
         givenExistingEnvironment(ENVIRONMENT_ID, null);
 
-        var res = service.verifyApiPaths(
-            GraviteeContext.getExecutionContext(),
-            "api-id",
-            List.of(Path.builder().path(path).overrideAccess(true).build())
-        );
+        var res = service.verifyApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().path(path).overrideAccess(true).build()));
         assertThat(res).hasSize(1);
         assertThat(res.get(0).getPath()).isEqualTo(expectedPath);
         assertThat(res.get(0).getHost()).isNull();
@@ -130,7 +119,7 @@ class VerifyApiPathDomainServiceImplTest {
         givenExistingEnvironment(ENVIRONMENT_ID, null);
 
         var throwable = catchThrowable(() ->
-            service.verifyApiPaths(GraviteeContext.getExecutionContext(), "api-id", List.of(Path.builder().path("invalid+path").build()))
+            service.verifyApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().path("invalid+path").build()))
         );
 
         assertThat(throwable).isInstanceOf(InvalidPathException.class);
@@ -141,11 +130,7 @@ class VerifyApiPathDomainServiceImplTest {
     public void should_set_domain_with_domain_restrictions(String host, String expectedHost) {
         givenExistingEnvironment(ENVIRONMENT_ID, List.of("domain.com", "domain.net"));
 
-        var res = service.verifyApiPaths(
-            GraviteeContext.getExecutionContext(),
-            "api-id",
-            List.of(Path.builder().host(host).path("/path/").build())
-        );
+        var res = service.verifyApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().host(host).path("/path/").build()));
 
         assertThat(res).hasSize(1);
         assertThat(res.get(0).getPath()).isEqualTo("/path/");
@@ -158,11 +143,7 @@ class VerifyApiPathDomainServiceImplTest {
         givenExistingEnvironment(ENVIRONMENT_ID, List.of("domain.com", "domain.net"));
 
         var throwable = catchThrowable(() ->
-            service.verifyApiPaths(
-                GraviteeContext.getExecutionContext(),
-                "api-id",
-                List.of(Path.builder().host(host).path("/path/").build())
-            )
+            service.verifyApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().host(host).path("/path/").build()))
         );
 
         assertThat(throwable).isInstanceOf(InvalidHostException.class);
@@ -174,7 +155,7 @@ class VerifyApiPathDomainServiceImplTest {
 
         var throwable = catchThrowable(() ->
             service.verifyApiPaths(
-                GraviteeContext.getExecutionContext(),
+                ENVIRONMENT_ID,
                 null,
                 List.of(Path.builder().path("/abc/").build(), Path.builder().path("/path/").build(), Path.builder().path("/path/").build())
             )
@@ -189,9 +170,7 @@ class VerifyApiPathDomainServiceImplTest {
 
         givenExistingApis(ENVIRONMENT_ID, Stream.of(buildApiV2WithPaths(ENVIRONMENT_ID, "api1", List.of(Pair.of("", "/path/")))));
 
-        var throwable = catchThrowable(() ->
-            service.verifyApiPaths(GraviteeContext.getExecutionContext(), null, List.of(Path.builder().path("/path/").build()))
-        );
+        var throwable = catchThrowable(() -> service.verifyApiPaths(ENVIRONMENT_ID, null, List.of(Path.builder().path("/path/").build())));
         assertThat(throwable).isInstanceOf(PathAlreadyExistsException.class);
     }
 
@@ -202,7 +181,7 @@ class VerifyApiPathDomainServiceImplTest {
         givenExistingApis(ENVIRONMENT_ID, Stream.of(buildApiV2WithPaths(ENVIRONMENT_ID, "api1", List.of(Pair.of("", "/path/")))));
 
         var throwable = catchThrowable(() ->
-            service.verifyApiPaths(GraviteeContext.getExecutionContext(), "api-id", List.of(Path.builder().path("/path/").build()))
+            service.verifyApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().path("/path/").build()))
         );
         assertThat(throwable).isInstanceOf(PathAlreadyExistsException.class);
     }
@@ -214,7 +193,7 @@ class VerifyApiPathDomainServiceImplTest {
         givenExistingApis(ENVIRONMENT_ID, Stream.of(buildApiV2WithPaths(ENVIRONMENT_ID, "api1", List.of(Pair.of("domain.com", "/path/")))));
 
         var pathAlreadyExistExceptionIfDefaultDomain = catchThrowable(() ->
-            service.verifyApiPaths(GraviteeContext.getExecutionContext(), "api-id", List.of(Path.builder().path("/path/").build()))
+            service.verifyApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().path("/path/").build()))
         );
         assertThat(pathAlreadyExistExceptionIfDefaultDomain).isInstanceOf(PathAlreadyExistsException.class);
     }
@@ -227,11 +206,7 @@ class VerifyApiPathDomainServiceImplTest {
 
         // If domain is not set, first domain of domain restriction is used
         var pathAlreadyExistExceptionIfDefaultDomain = catchThrowable(() ->
-            service.verifyApiPaths(
-                GraviteeContext.getExecutionContext(),
-                "api-id",
-                List.of(Path.builder().host("domain.com").path("/path/").build())
-            )
+            service.verifyApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().host("domain.com").path("/path/").build()))
         );
         assertThat(pathAlreadyExistExceptionIfDefaultDomain).isInstanceOf(PathAlreadyExistsException.class);
     }
@@ -246,11 +221,7 @@ class VerifyApiPathDomainServiceImplTest {
         );
 
         // Check should be ok if same path but different domain
-        var res = service.verifyApiPaths(
-            GraviteeContext.getExecutionContext(),
-            "api-id",
-            List.of(Path.builder().host("domain.com").path("/path/").build())
-        );
+        var res = service.verifyApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().host("domain.com").path("/path/").build()));
         assertThat(res).hasSize(1);
         assertThat(res.get(0).getPath()).isEqualTo("/path/");
         assertThat(res.get(0).getHost()).isEqualTo("domain.com");
@@ -264,7 +235,7 @@ class VerifyApiPathDomainServiceImplTest {
 
         // If domain is not set, first domain of domain restriction is used
         var pathAlreadyExistExceptionIfDefaultDomain = catchThrowable(() ->
-            service.verifyApiPaths(GraviteeContext.getExecutionContext(), "api-id", List.of(Path.builder().path("/path/subpath").build()))
+            service.verifyApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().path("/path/subpath").build()))
         );
         assertThat(pathAlreadyExistExceptionIfDefaultDomain).isInstanceOf(PathAlreadyExistsException.class);
     }
@@ -277,11 +248,7 @@ class VerifyApiPathDomainServiceImplTest {
 
         // If domain is not set, first domain of domain restriction is used
         var pathAlreadyExistExceptionIfDefaultDomain = catchThrowable(() ->
-            service.verifyApiPaths(
-                GraviteeContext.getExecutionContext(),
-                "api-id",
-                List.of(Path.builder().host("domain.com").path("/path/subpath").build())
-            )
+            service.verifyApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().host("domain.com").path("/path/subpath").build()))
         );
         assertThat(pathAlreadyExistExceptionIfDefaultDomain).isInstanceOf(PathAlreadyExistsException.class);
     }
@@ -293,7 +260,7 @@ class VerifyApiPathDomainServiceImplTest {
         givenExistingApis(ENVIRONMENT_ID, Stream.of(buildApiV4WithPaths(ENVIRONMENT_ID, "api1", List.of(Pair.of("", "/path/")))));
 
         var throwable = catchThrowable(() ->
-            service.verifyApiPaths(GraviteeContext.getExecutionContext(), "api-id", List.of(Path.builder().host("").path("/path/").build()))
+            service.verifyApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().host("").path("/path/").build()))
         );
         assertThat(throwable).isInstanceOf(PathAlreadyExistsException.class);
     }
@@ -304,7 +271,7 @@ class VerifyApiPathDomainServiceImplTest {
 
         givenExistingApis(ENVIRONMENT_ID, Stream.of(buildApiV4WithPaths(ENVIRONMENT_ID, "api-id", List.of(Pair.of("", "/path/")))));
 
-        var res = service.verifyApiPaths(GraviteeContext.getExecutionContext(), "api-id", List.of(Path.builder().path("/path/").build()));
+        var res = service.verifyApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().path("/path/").build()));
         assertThat(res).hasSize(1);
         assertThat(res.get(0).getPath()).isEqualTo("/path/");
         assertThat(res.get(0).getHost()).isNullOrEmpty();
@@ -317,7 +284,7 @@ class VerifyApiPathDomainServiceImplTest {
         givenExistingApis(ENVIRONMENT_ID, Stream.of(buildApiV4WithPaths(ENVIRONMENT_ID, "api1", List.of(Pair.of("domain.com", "/path/")))));
 
         var pathAlreadyExistExceptionIfDefaultDomain = catchThrowable(() ->
-            service.verifyApiPaths(GraviteeContext.getExecutionContext(), "api-id", List.of(Path.builder().path("/path/").build()))
+            service.verifyApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().path("/path/").build()))
         );
         assertThat(pathAlreadyExistExceptionIfDefaultDomain).isInstanceOf(PathAlreadyExistsException.class);
     }
@@ -330,11 +297,7 @@ class VerifyApiPathDomainServiceImplTest {
 
         // If domain is not set, first domain of domain restriction is used
         var pathAlreadyExistExceptionIfDefaultDomain = catchThrowable(() ->
-            service.verifyApiPaths(
-                GraviteeContext.getExecutionContext(),
-                "api-id",
-                List.of(Path.builder().host("domain.com").path("/path/").build())
-            )
+            service.verifyApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().host("domain.com").path("/path/").build()))
         );
         assertThat(pathAlreadyExistExceptionIfDefaultDomain).isInstanceOf(PathAlreadyExistsException.class);
     }
@@ -349,11 +312,7 @@ class VerifyApiPathDomainServiceImplTest {
         );
 
         // Check should be ok if same path but different domain
-        var res = service.verifyApiPaths(
-            GraviteeContext.getExecutionContext(),
-            "api-id",
-            List.of(Path.builder().host("domain.com").path("/path/").build())
-        );
+        var res = service.verifyApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().host("domain.com").path("/path/").build()));
         assertThat(res).hasSize(1);
         assertThat(res.get(0).getPath()).isEqualTo("/path/");
         assertThat(res.get(0).getHost()).isEqualTo("domain.com");
@@ -367,7 +326,7 @@ class VerifyApiPathDomainServiceImplTest {
 
         // If domain is not set, first domain of domain restriction is used
         var pathAlreadyExistExceptionIfDefaultDomain = catchThrowable(() ->
-            service.verifyApiPaths(GraviteeContext.getExecutionContext(), "api-id", List.of(Path.builder().path("/path/subpath").build()))
+            service.verifyApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().path("/path/subpath").build()))
         );
         assertThat(pathAlreadyExistExceptionIfDefaultDomain).isInstanceOf(PathAlreadyExistsException.class);
     }
@@ -380,11 +339,7 @@ class VerifyApiPathDomainServiceImplTest {
 
         // If domain is not set, first domain of domain restriction is used
         var pathAlreadyExistExceptionIfDefaultDomain = catchThrowable(() ->
-            service.verifyApiPaths(
-                GraviteeContext.getExecutionContext(),
-                "api-id",
-                List.of(Path.builder().host("domain.com").path("/path/subpath").build())
-            )
+            service.verifyApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().host("domain.com").path("/path/subpath").build()))
         );
         assertThat(pathAlreadyExistExceptionIfDefaultDomain).isInstanceOf(PathAlreadyExistsException.class);
     }
