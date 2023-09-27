@@ -18,14 +18,14 @@
 <mat-card class="apiProperties">
   <div class="apiProperties__header">
     <div class="apiProperties__header__text">
-      As an API publisher, you can define properties for your API. These properties are automatically injected into the expression language
-      context to be used later.<br />
+      <h2>API properties</h2>
+      These properties are automatically injected into the expression language context to be used later.<br />
       For example, to get the value of the property <code>my-property</code> defined in API properties:
       <code [innerHTML]="'{#properties[\'my-property\']}'"> </code>
     </div>
     <div *ngIf="!isReadOnly">
       <button *gioPermission="{ anyOf: ['api-definition-u'] }" mat-raised-button type="button" color="primary" (click)="addProperties()">
-        <mat-icon svgIcon="gio:plus"></mat-icon> Add Properties
+        <mat-icon svgIcon="gio:plus"></mat-icon> Add property
       </button>
     </div>
   </div>
@@ -60,7 +60,9 @@
       <ng-container matColumnDef="encrypted">
         <th mat-header-cell *matHeaderCellDef mat-sort-header>Encrypted</th>
         <td mat-cell *matCellDef="let element" [formGroupName]="element._id">
-          {{ element.encrypted ? 'Encrypted' : element.encryptable ? 'To Encrypt' : 'Not Encrypted' }}
+          <span *ngIf="element.encrypted" class="gio-badge-success">Encrypted</span>
+          <span *ngIf="!element.encrypted && element.encryptable" class="gio-badge-accent">Encrypted on save</span>
+          <span *ngIf="!element.encrypted && !element.encryptable" class="gio-badge-neutral">Unencrypted </span>
         </td>
       </ng-container>
 
