@@ -319,6 +319,8 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 }
                 importedApi.getGroups().add(group.getId());
             }
+        } else {
+            importedApi.setGroups(Collections.emptySet());
         }
 
         // Views & Categories
