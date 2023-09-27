@@ -120,9 +120,10 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
         filter((result) => !!result),
         switchMap((propertyToAdd) => this.apiService.get(this.ajsStateParams.apiId).pipe(map((api) => [propertyToAdd, api]))),
         switchMap(([propertyToAdd, api]: [Property, ApiV2 | ApiV4]) => {
+          const propertiesSorted = [...api.properties, propertyToAdd].sort((a, b) => a.key.localeCompare(b.key));
           return this.apiService.update(this.ajsStateParams.apiId, {
             ...api,
-            properties: [...api.properties, propertyToAdd],
+            properties: propertiesSorted,
           });
         }),
         tap(() => {
