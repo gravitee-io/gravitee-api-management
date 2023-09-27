@@ -132,7 +132,7 @@ describe('API - V4 - MESSAGE - Search logs', () => {
       for (let connectionLog of apiLogsResponse.data) {
         expect(connectionLog.plan.security.type).toEqual('KEY_LESS');
         expect(connectionLog.application.id).toEqual('1');
-        expect(connectionLog.application.name).toEqual('Unknown application');
+        expect(connectionLog.application.name).toEqual('Unknown');
         expect(connectionLog.status).toEqual(200);
         expect(connectionLog.method).toEqual('GET');
       }
