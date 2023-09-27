@@ -292,5 +292,8 @@
       "enabled": true
     }
   ],
-  "resources": []
+  "resources": [],
+  "analytics": {
+    "enabled": false
+  }
 }
