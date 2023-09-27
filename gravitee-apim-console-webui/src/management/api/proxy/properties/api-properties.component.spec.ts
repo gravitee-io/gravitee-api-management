@@ -98,7 +98,7 @@ describe('ApiPropertiesComponent', () => {
         key: 'key1',
         value: 'value1',
         isValueDisabled: false,
-        encrypted: 'Not Encrypted',
+        encrypted: 'Unencrypted',
       },
       {
         key: 'key2',
@@ -135,7 +135,7 @@ describe('ApiPropertiesComponent', () => {
         key: 'key2',
         value: 'newEncryptedValue',
         isValueDisabled: false,
-        encrypted: 'To Encrypt',
+        encrypted: 'Encrypted on save',
       },
     ]);
     const saveBar = await loader.getHarness(GioSaveBarHarness);
@@ -188,7 +188,7 @@ describe('ApiPropertiesComponent', () => {
         key: 'key2',
         value: 'ValueToEncrypt',
         isValueDisabled: false,
-        encrypted: 'To Encrypt',
+        encrypted: 'Encrypted on save',
       },
     ]);
     const saveBar = await loader.getHarness(GioSaveBarHarness);
@@ -232,7 +232,7 @@ describe('ApiPropertiesComponent', () => {
     const cellContentByIndex = await getCellContentByIndex(table);
     expect(cellContentByIndex).toEqual([
       {
-        encrypted: 'Not Encrypted',
+        encrypted: 'Unencrypted',
         isValueDisabled: false,
         key: 'key2',
         value: 'ValueToEncrypt',
