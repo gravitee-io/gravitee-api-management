@@ -113,22 +113,6 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
 
     @Override
     @Async
-    public void triggerEmail(
-        final ExecutionContext executionContext,
-        final ApplicationHook hook,
-        final String appId,
-        Map<String, Object> params,
-        String recipient
-    ) {
-        if (!(recipient == null || recipient.isEmpty())) {
-            emailNotifierService.trigger(executionContext, hook, params, List.of(recipient));
-        } else {
-            LOGGER.debug("Recipient email is missing, ignore email trigger '{}' for application '{}'", hook, appId);
-        }
-    }
-
-    @Override
-    @Async
     public void trigger(
         final ExecutionContext executionContext,
         final ApplicationHook hook,
@@ -150,38 +134,6 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
     ) {
         triggerPortalNotifications(executionContext, hook, NotificationReferenceType.APPLICATION, applicationId, params);
         triggerGenericNotifications(executionContext, hook, NotificationReferenceType.APPLICATION, applicationId, params, recipients);
-    }
-
-    @Override
-    public boolean hasEmailNotificationFor(
-        final ExecutionContext executionContext,
-        final ApplicationHook hook,
-        final String applicationId,
-        Map<String, Object> params,
-        final String recipient
-    ) {
-        boolean result = false;
-        try {
-            for (GenericNotificationConfig genericNotificationConfig : genericNotificationConfigRepository.findByReferenceAndHook(
-                hook.name(),
-                NotificationReferenceType.APPLICATION,
-                applicationId
-            )) {
-                if (genericNotificationConfig.getNotifier().equals(DEFAULT_EMAIL_NOTIFIER_ID)) {
-                    List<String> mails = emailNotifierService.getMails(executionContext, genericNotificationConfig, params);
-                    result = mails != null && mails.contains(recipient);
-                }
-            }
-        } catch (TechnicalException e) {
-            LOGGER.error(
-                "Error looking for GenericNotificationConfig with {}/{}/{}",
-                hook,
-                NotificationReferenceType.APPLICATION,
-                applicationId,
-                e
-            );
-        }
-        return result;
     }
 
     @Override

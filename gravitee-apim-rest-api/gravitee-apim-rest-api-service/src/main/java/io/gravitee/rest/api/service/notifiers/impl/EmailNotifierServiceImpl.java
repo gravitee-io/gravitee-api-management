@@ -46,46 +46,11 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
 
     private final EmailService emailService;
 
-    private final NotificationTemplateService notificationTemplateService;
-
     private final TemplateProcessor templateProcessor;
 
-    public EmailNotifierServiceImpl(
-        @Autowired EmailService emailService,
-        @Autowired NotificationTemplateService notificationTemplateService,
-        @Autowired TemplateProcessor templateProcessor
-    ) {
+    public EmailNotifierServiceImpl(@Autowired EmailService emailService, @Autowired TemplateProcessor templateProcessor) {
         this.emailService = emailService;
-        this.notificationTemplateService = notificationTemplateService;
         this.templateProcessor = templateProcessor;
-    }
-
-    @Override
-    public void trigger(
-        ExecutionContext executionContext,
-        final Hook hook,
-        GenericNotificationConfig genericNotificationConfig,
-        final Map<String, Object> params
-    ) {
-        if (
-            genericNotificationConfig == null ||
-            genericNotificationConfig.getConfig() == null ||
-            genericNotificationConfig.getConfig().isEmpty()
-        ) {
-            LOGGER.error("Email Notifier configuration is empty");
-            return;
-        }
-        EmailNotificationBuilder.EmailTemplate emailTemplate = getEmailTemplate(hook);
-        if (emailTemplate == null) {
-            LOGGER.error("Email template not found for hook {}", hook);
-            return;
-        }
-
-        String[] mails = getMails(executionContext, genericNotificationConfig, params).toArray(new String[0]);
-        emailService.sendAsyncEmailNotification(
-            executionContext,
-            new EmailNotificationBuilder().to(mails).template(emailTemplate).params(params).build()
-        );
     }
 
     public void trigger(
@@ -110,54 +75,6 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
             executionContext,
             new EmailNotificationBuilder().bcc(mails.toArray(new String[0])).template(emailTemplate.get()).params(templateData).build()
         );
-    }
-
-    public List<String> getMails(
-        ExecutionContext executionContext,
-        final GenericNotificationConfig genericNotificationConfig,
-        final Map<String, Object> params
-    ) {
-        if (
-            genericNotificationConfig == null ||
-            genericNotificationConfig.getConfig() == null ||
-            genericNotificationConfig.getConfig().isEmpty()
-        ) {
-            LOGGER.error("Email Notifier configuration is empty");
-            return Collections.emptyList();
-        }
-
-        String[] mails = genericNotificationConfig.getConfig().split(",|;|\\s");
-        List<String> result = new ArrayList<>();
-        for (String mail : mails) {
-            if (!mail.isEmpty()) {
-                if (mail.contains("$")) {
-                    String tmpMail =
-                        this.notificationTemplateService.resolveInlineTemplateWithParam(
-                                executionContext.getOrganizationId(),
-                                mail,
-                                mail,
-                                params
-                            );
-                    if (!tmpMail.isEmpty()) {
-                        result.add(tmpMail);
-                    }
-                } else {
-                    result.add(mail);
-                }
-            }
-        }
-        if (result.isEmpty()) {
-            LOGGER.warn("Email recipient not found with: {}", genericNotificationConfig.getConfig());
-        }
-        return result;
-    }
-
-    private EmailNotificationBuilder.EmailTemplate getEmailTemplate(final Hook hook) {
-        if (hook == null) {
-            return null;
-        }
-
-        return EmailNotificationBuilder.EmailTemplate.fromHook(hook);
     }
 
     private Optional<EmailNotificationBuilder.EmailTemplate> getEmailTemplateOptional(final Hook hook) {
