@@ -54,14 +54,14 @@ export class ReleaseWorkflow {
       new workflow.WorkflowJob(webuiBuildJob, {
         context: config.jobContext,
         name: 'Build APIM Portal and publish image',
-        'apim-ui-project': 'gravitee-apim-portal-webui',
+        'apim-ui-project': config.dockerImages.portal.project,
         'docker-image-name': 'apim-portal-ui',
         requires: ['Setup'],
       }),
       new workflow.WorkflowJob(webuiPublishArtifactoryJob, {
         context: config.jobContext,
         name: 'Publish APIM Portal to artifactory',
-        'apim-ui-project': 'gravitee-apim-portal-webui',
+        'apim-ui-project': config.dockerImages.portal.project,
         requires: ['Build APIM Portal and publish image'],
       }),
 
@@ -69,14 +69,14 @@ export class ReleaseWorkflow {
       new workflow.WorkflowJob(webuiBuildJob, {
         context: config.jobContext,
         name: 'Build APIM Console and publish image',
-        'apim-ui-project': 'gravitee-apim-console-webui',
+        'apim-ui-project': config.dockerImages.console.project,
         'docker-image-name': 'apim-management-ui',
         requires: ['Setup'],
       }),
       new workflow.WorkflowJob(webuiPublishArtifactoryJob, {
         context: config.jobContext,
         name: 'Publish APIM Console to artifactory',
-        'apim-ui-project': 'gravitee-apim-console-webui',
+        'apim-ui-project': config.dockerImages.console.project,
         requires: ['Build APIM Console and publish image'],
       }),
 
