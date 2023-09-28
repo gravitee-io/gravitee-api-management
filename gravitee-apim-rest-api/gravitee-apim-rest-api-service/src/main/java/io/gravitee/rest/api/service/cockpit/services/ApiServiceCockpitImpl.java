@@ -295,7 +295,7 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
 
     Optional<String> checkContextPath(ExecutionContext executionContext, SwaggerApiEntity api, String apiId) {
         try {
-            verifyApiPathDomainService.verifyApiPaths(
+            verifyApiPathDomainService.checkAndSanitizeApiPaths(
                 executionContext.getEnvironmentId(),
                 apiId,
                 api.getProxy().getVirtualHosts().stream().map(h -> Path.builder().path(h.getPath()).host(h.getHost()).build()).toList()

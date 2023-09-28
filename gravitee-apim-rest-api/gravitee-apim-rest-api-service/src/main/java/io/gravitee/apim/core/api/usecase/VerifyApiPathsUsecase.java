@@ -30,7 +30,7 @@ public class VerifyApiPathsUsecase {
 
     public Response execute(Request request) {
         return new Response(
-            verifyApiPathDomainService.verifyApiPaths(
+            verifyApiPathDomainService.checkAndSanitizeApiPaths(
                 GraviteeContext.getExecutionContext().getEnvironmentId(),
                 request.apiId,
                 request.paths

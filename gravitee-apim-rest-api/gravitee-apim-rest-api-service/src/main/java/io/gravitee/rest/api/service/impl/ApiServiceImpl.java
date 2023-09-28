@@ -428,7 +428,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             // format context-path and check if context path is unique
             final Collection<VirtualHost> sanitizedVirtualHosts = verifyApiPathDomainService
-                .verifyApiPaths(
+                .checkAndSanitizeApiPaths(
                     executionContext.getEnvironmentId(),
                     apiId,
                     api
@@ -992,7 +992,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             // check if entrypoints are unique
             final Collection<VirtualHost> sanitizedVirtualHosts = verifyApiPathDomainService
-                .verifyApiPaths(
+                .checkAndSanitizeApiPaths(
                     executionContext.getEnvironmentId(),
                     apiId,
                     updateApiEntity
