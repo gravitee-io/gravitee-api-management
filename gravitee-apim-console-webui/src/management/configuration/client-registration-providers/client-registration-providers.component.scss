@@ -48,10 +48,7 @@ $textColor: map.get(gio.$mat-dove-palette, default);
       align-items: center;
       justify-content: space-between;
       margin-bottom: 24px;
-
-      h3 {
-        margin-bottom: 0;
-      }
+      gap: 16px;
     }
 
     &__subtitle {
