@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service;
 
+import io.gravitee.apim.core.notification.model.Recipient;
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.rest.api.model.notification.NotifierEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -33,6 +34,13 @@ import java.util.Set;
 public interface NotifierService {
     void trigger(ExecutionContext executionContext, final ApiHook hook, final String apiId, Map<String, Object> params);
     void trigger(ExecutionContext executionContext, final ApplicationHook hook, final String applicationId, Map<String, Object> params);
+    void trigger(
+        ExecutionContext executionContext,
+        final ApplicationHook hook,
+        final String applicationId,
+        Map<String, Object> params,
+        List<Recipient> additionalRecipients
+    );
     void trigger(ExecutionContext executionContext, final PortalHook hook, Map<String, Object> params);
     void triggerEmail(
         ExecutionContext executionContext,

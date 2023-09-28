@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import io.gravitee.apim.core.notification.model.Recipient;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.notifier.NotifierPlugin;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -45,6 +46,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -138,6 +140,19 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
     }
 
     @Override
+    @Async
+    public void trigger(
+        final ExecutionContext executionContext,
+        final ApplicationHook hook,
+        final String applicationId,
+        Map<String, Object> params,
+        List<Recipient> recipients
+    ) {
+        triggerPortalNotifications(executionContext, hook, NotificationReferenceType.APPLICATION, applicationId, params);
+        triggerGenericNotifications(executionContext, hook, NotificationReferenceType.APPLICATION, applicationId, params, recipients);
+    }
+
+    @Override
     public boolean hasEmailNotificationFor(
         final ExecutionContext executionContext,
         final ApplicationHook hook,
@@ -216,6 +231,17 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
         final String refId,
         final Map<String, Object> params
     ) {
+        triggerGenericNotifications(executionContext, hook, refType, refId, params, Collections.emptyList());
+    }
+
+    private void triggerGenericNotifications(
+        ExecutionContext executionContext,
+        final Hook hook,
+        final NotificationReferenceType refType,
+        final String refId,
+        final Map<String, Object> params,
+        List<Recipient> additionalRecipients
+    ) {
         try {
             var notificationConfigs = genericNotificationConfigRepository
                 .findByReferenceAndHook(hook.name(), refType, refId)
@@ -226,11 +252,19 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
                 .forEach(notifier -> {
                     switch (notifier.getType()) {
                         case DEFAULT_EMAIL_NOTIFIER_ID:
+                            var emailAdditionalRecipients = additionalRecipients
+                                .stream()
+                                .filter(r -> r.type().equals(DEFAULT_EMAIL_NOTIFIER_ID))
+                                .map(Recipient::value)
+                                .toList();
+
                             var recipients = notificationConfigs
                                 .get(notifier.getType())
                                 .stream()
                                 .map(GenericNotificationConfig::getConfig)
-                                .toList();
+                                .collect(Collectors.toList());
+                            recipients.addAll(emailAdditionalRecipients);
+
                             emailNotifierService.trigger(executionContext, hook, params, recipients);
                             break;
                         case DEFAULT_WEBHOOK_NOTIFIER_ID:
