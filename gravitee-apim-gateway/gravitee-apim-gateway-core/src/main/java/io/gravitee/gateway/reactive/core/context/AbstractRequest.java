@@ -190,14 +190,15 @@ public abstract class AbstractRequest implements MutableRequest {
 
     @Override
     public MutableRequest contextPath(String contextPath) {
+        if (this.contextPath != null) {
+            this.path = this.path.replaceFirst(this.contextPath, contextPath);
+        }
         this.contextPath = contextPath;
-        this.pathInfo = path().substring((contextPath.length() == 1) ? 0 : contextPath.length() - 1);
-        return this;
-    }
-
-    @Override
-    public MutableRequest pathInfo(String pathInfo) {
-        this.pathInfo = pathInfo;
+        if (contextPath == null || contextPath.isEmpty()) {
+            this.pathInfo = path();
+        } else {
+            this.pathInfo = path().substring(contextPath.length() - 1);
+        }
         return this;
     }
 
