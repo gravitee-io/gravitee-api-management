@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import io.gravitee.apim.core.notification.model.Recipient;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.notifier.NotifierPlugin;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -43,7 +44,12 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -107,25 +113,6 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
 
     @Override
     @Async
-    public void triggerEmail(
-        final ExecutionContext executionContext,
-        final ApplicationHook hook,
-        final String appId,
-        Map<String, Object> params,
-        String recipient
-    ) {
-        if (!(recipient == null || recipient.isEmpty())) {
-            GenericNotificationConfig genericNotificationConfig = new GenericNotificationConfig();
-            genericNotificationConfig.setConfig(recipient);
-            genericNotificationConfig.setNotifier(DEFAULT_EMAIL_NOTIFIER_ID);
-            emailNotifierService.trigger(executionContext, hook, genericNotificationConfig, params);
-        } else {
-            LOGGER.debug("Recipient email is missing, ignore email trigger '{}' for application '{}'", hook, appId);
-        }
-    }
-
-    @Override
-    @Async
     public void trigger(
         final ExecutionContext executionContext,
         final ApplicationHook hook,
@@ -137,35 +124,16 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
     }
 
     @Override
-    public boolean hasEmailNotificationFor(
+    @Async
+    public void trigger(
         final ExecutionContext executionContext,
         final ApplicationHook hook,
         final String applicationId,
         Map<String, Object> params,
-        final String recipient
+        List<Recipient> recipients
     ) {
-        boolean result = false;
-        try {
-            for (GenericNotificationConfig genericNotificationConfig : genericNotificationConfigRepository.findByReferenceAndHook(
-                hook.name(),
-                NotificationReferenceType.APPLICATION,
-                applicationId
-            )) {
-                if (genericNotificationConfig.getNotifier().equals(DEFAULT_EMAIL_NOTIFIER_ID)) {
-                    List<String> mails = emailNotifierService.getMails(executionContext, genericNotificationConfig, params);
-                    result = mails != null && mails.contains(recipient);
-                }
-            }
-        } catch (TechnicalException e) {
-            LOGGER.error(
-                "Error looking for GenericNotificationConfig with {}/{}/{}",
-                hook,
-                NotificationReferenceType.APPLICATION,
-                applicationId,
-                e
-            );
-        }
-        return result;
+        triggerPortalNotifications(executionContext, hook, NotificationReferenceType.APPLICATION, applicationId, params);
+        triggerGenericNotifications(executionContext, hook, NotificationReferenceType.APPLICATION, applicationId, params, recipients);
     }
 
     @Override
@@ -215,24 +183,50 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
         final String refId,
         final Map<String, Object> params
     ) {
+        triggerGenericNotifications(executionContext, hook, refType, refId, params, Collections.emptyList());
+    }
+
+    private void triggerGenericNotifications(
+        ExecutionContext executionContext,
+        final Hook hook,
+        final NotificationReferenceType refType,
+        final String refId,
+        final Map<String, Object> params,
+        List<Recipient> additionalRecipients
+    ) {
         try {
-            for (GenericNotificationConfig genericNotificationConfig : genericNotificationConfigRepository.findByReferenceAndHook(
-                hook.name(),
-                refType,
-                refId
-            )) {
-                switch (genericNotificationConfig.getNotifier()) {
-                    case DEFAULT_EMAIL_NOTIFIER_ID:
-                        emailNotifierService.trigger(executionContext, hook, genericNotificationConfig, params);
-                        break;
-                    case DEFAULT_WEBHOOK_NOTIFIER_ID:
-                        webhookNotifierService.trigger(hook, genericNotificationConfig, params);
-                        break;
-                    default:
-                        LOGGER.error("Unknown notifier {}", genericNotificationConfig.getNotifier());
-                        break;
-                }
-            }
+            var notificationConfigs = genericNotificationConfigRepository
+                .findByReferenceAndHook(hook.name(), refType, refId)
+                .stream()
+                .collect(Collectors.groupingBy(GenericNotificationConfig::getNotifier));
+
+            list(refType, refId)
+                .forEach(notifier -> {
+                    switch (notifier.type()) {
+                        case EMAIL -> {
+                            var emailAdditionalRecipients = additionalRecipients
+                                .stream()
+                                .filter(r -> r.type().equals(DEFAULT_EMAIL_NOTIFIER_ID))
+                                .map(Recipient::value)
+                                .toList();
+
+                            var recipients = notificationConfigs
+                                .getOrDefault(notifier.getId(), Collections.emptyList())
+                                .stream()
+                                .map(GenericNotificationConfig::getConfig)
+                                .collect(Collectors.toList());
+                            recipients.addAll(emailAdditionalRecipients);
+
+                            emailNotifierService.trigger(executionContext, hook, params, recipients);
+                        }
+                        case WEBHOOK -> {
+                            notificationConfigs
+                                .getOrDefault(notifier.getId(), Collections.emptyList())
+                                .forEach(config -> webhookNotifierService.trigger(hook, config, params));
+                        }
+                        default -> LOGGER.error("Unknown notifier {}", notifier.getType());
+                    }
+                });
         } catch (TechnicalException e) {
             LOGGER.error("Error looking for GenericNotificationConfig with {}/{}/{}", hook, refType, refId, e);
         }
@@ -240,16 +234,10 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
 
     @Override
     public List<NotifierEntity> list(NotificationReferenceType referenceType, String referenceId) {
-        NotifierEntity emailNotifier = new NotifierEntity();
-        emailNotifier.setId(DEFAULT_EMAIL_NOTIFIER_ID);
-        emailNotifier.setName("Default Email Notifier");
-        emailNotifier.setType("EMAIL");
-
-        NotifierEntity webHookNotifier = new NotifierEntity();
-        webHookNotifier.setId(DEFAULT_WEBHOOK_NOTIFIER_ID);
-        webHookNotifier.setName("Default Webhook Notifier");
-        webHookNotifier.setType("WEBHOOK");
-        return Arrays.asList(emailNotifier, webHookNotifier);
+        return Arrays.asList(
+            new NotifierEntity(DEFAULT_EMAIL_NOTIFIER_ID, NotifierEntity.Type.EMAIL, "Default Email Notifier"),
+            new NotifierEntity(DEFAULT_WEBHOOK_NOTIFIER_ID, NotifierEntity.Type.WEBHOOK, "Default Webhook Notifier")
+        );
     }
 
     @Override

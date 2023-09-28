@@ -66,7 +66,7 @@ public class EmailNotificationBuilder {
         return this;
     }
 
-    public EmailNotificationBuilder bcc(String[] bcc) {
+    public EmailNotificationBuilder bcc(String... bcc) {
         this.emailNotification.setBcc(bcc);
         return this;
     }

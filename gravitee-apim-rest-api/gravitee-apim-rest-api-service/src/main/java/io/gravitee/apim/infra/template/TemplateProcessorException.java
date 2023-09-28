@@ -13,38 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.model.notification;
+package io.gravitee.apim.infra.template;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
+public class TemplateProcessorException extends Exception {
 
-/**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
- * @author GraviteeSource Team
- */
-@AllArgsConstructor
-@Builder
-public class NotifierEntity {
-
-    @Getter
-    private String id;
-
-    private Type type;
-
-    @Getter
-    private String name;
-
-    public String getType() {
-        return type.name();
-    }
-
-    public Type type() {
-        return type;
-    }
-
-    public enum Type {
-        EMAIL,
-        WEBHOOK,
+    public TemplateProcessorException(Throwable cause) {
+        super(cause);
     }
 }
