@@ -17,6 +17,7 @@ package io.gravitee.apim.core.api.usecase;
 
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.model.Path;
+import io.gravitee.apim.core.exception.InvalidPathsException;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.List;
 
@@ -28,7 +29,7 @@ public class VerifyApiPathsUsecase {
         this.verifyApiPathDomainService = verifyApiPathDomainService;
     }
 
-    public Response execute(Request request) {
+    public Response execute(Request request) throws InvalidPathsException {
         return new Response(
             verifyApiPathDomainService.checkAndSanitizeApiPaths(
                 GraviteeContext.getExecutionContext().getEnvironmentId(),

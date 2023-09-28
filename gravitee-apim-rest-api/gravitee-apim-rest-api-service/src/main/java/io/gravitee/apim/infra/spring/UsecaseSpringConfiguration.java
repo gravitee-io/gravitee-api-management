@@ -25,8 +25,10 @@ import io.gravitee.apim.core.log.usecase.SearchMessageLogUsecase;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
 @Configuration
+@Import({ CoreServiceSpringConfiguration.class })
 public class UsecaseSpringConfiguration {
 
     @Bean

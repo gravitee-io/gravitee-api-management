@@ -22,6 +22,8 @@ import static java.util.stream.Collectors.toList;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.apim.core.api.usecase.VerifyApiPathsUsecase;
+import io.gravitee.apim.core.exception.DomainException;
+import io.gravitee.apim.core.exception.InvalidPathsException;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
@@ -404,13 +406,17 @@ public class ApisResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE) })
     @Deprecated
     public Response verifyApi(@Valid VerifyApiParam verifyApiParam) {
-        verifyApiPathsUsecase.execute(
-            new VerifyApiPathsUsecase.Request(
-                verifyApiParam.getApiId(),
-                List.of(io.gravitee.apim.core.api.model.Path.builder().path(verifyApiParam.getContextPath()).build())
-            )
-        );
-        return Response.ok("API context [" + verifyApiParam.getContextPath() + "] is available").build();
+        try {
+            verifyApiPathsUsecase.execute(
+                new VerifyApiPathsUsecase.Request(
+                    verifyApiParam.getApiId(),
+                    List.of(io.gravitee.apim.core.api.model.Path.builder().path(verifyApiParam.getContextPath()).build())
+                )
+            );
+            return Response.ok("API context [" + verifyApiParam.getContextPath() + "] is available").build();
+        } catch (InvalidPathsException e) {
+            return Response.status(Response.Status.BAD_REQUEST.getStatusCode(), e.getMessage()).build();
+        }
     }
 
     @GET

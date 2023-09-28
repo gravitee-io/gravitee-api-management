@@ -46,6 +46,7 @@ public class CoreRulesTest extends AbstractApimArchitectureTest {
                     // TODO: ideally, core should be independent from model.
                     "io.gravitee.rest.api.model..",
                     // Common and Exceptions are an accepted case of reusability
+                    "io.gravitee.definition.model..",
                     "io.gravitee.rest.api.service.common..",
                     "io.gravitee.rest.api.service.exceptions.."
                 )
