@@ -15,7 +15,6 @@
  */
 package io.gravitee.apim.core.subscription.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.time.ZonedDateTime;
 import java.util.Map;
 import lombok.AllArgsConstructor;
@@ -97,6 +96,38 @@ public class SubscriptionEntity {
      */
     public boolean canBeStoppedByConsumer() {
         return ConsumerStatus.STARTED.equals(consumerStatus) || ConsumerStatus.FAILURE.equals(consumerStatus);
+    }
+
+    public SubscriptionEntity rejectBy(String userId, String reason) {
+        if (Status.PENDING.equals(this.status)) {
+            final ZonedDateTime now = ZonedDateTime.now();
+            return this.toBuilder().processedBy(userId).updatedAt(now).closedAt(now).status(Status.REJECTED).reasonMessage(reason).build();
+        }
+        throw new IllegalStateException("Cannot reject subscription");
+    }
+
+    public SubscriptionEntity rejectBy(String userId) {
+        return this.rejectBy(userId, "Subscription has been closed.");
+    }
+
+    public boolean isAccepted() {
+        return this.status == Status.ACCEPTED;
+    }
+
+    public boolean isPaused() {
+        return this.status == Status.PAUSED;
+    }
+
+    public boolean isPending() {
+        return this.status == Status.PENDING;
+    }
+
+    public boolean isRejected() {
+        return this.status == Status.REJECTED;
+    }
+
+    public boolean isClosed() {
+        return this.status == Status.CLOSED;
     }
 
     public enum Status {

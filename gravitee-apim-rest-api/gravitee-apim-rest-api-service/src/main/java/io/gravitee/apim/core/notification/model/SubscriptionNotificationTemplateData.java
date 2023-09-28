@@ -13,11 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.notification.model.hook;
+package io.gravitee.apim.core.notification.model;
 
-public enum HookContextEntry {
-    API_ID,
-    APPLICATION_ID,
-    PLAN_ID,
-    SUBSCRIPTION_ID,
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+
+@Builder
+@AllArgsConstructor
+@Data
+public class SubscriptionNotificationTemplateData {
+
+    private String id;
+    private String request;
+    private String reason;
 }

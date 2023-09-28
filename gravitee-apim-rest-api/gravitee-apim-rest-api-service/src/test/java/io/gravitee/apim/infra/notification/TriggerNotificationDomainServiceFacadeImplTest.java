@@ -33,6 +33,7 @@ import io.gravitee.apim.core.notification.model.ApplicationNotificationTemplateD
 import io.gravitee.apim.core.notification.model.PlanNotificationTemplateData;
 import io.gravitee.apim.core.notification.model.PrimaryOwnerNotificationTemplateData;
 import io.gravitee.apim.core.notification.model.Recipient;
+import io.gravitee.apim.core.notification.model.SubscriptionNotificationTemplateData;
 import io.gravitee.apim.core.notification.model.hook.ApiHookContext;
 import io.gravitee.apim.core.notification.model.hook.ApplicationHookContext;
 import io.gravitee.apim.core.notification.model.hook.HookContextEntry;
@@ -42,12 +43,14 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.PlanRepository;
+import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiKeyMode;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.ApplicationType;
 import io.gravitee.repository.management.model.Plan;
+import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.rest.api.model.MetadataFormat;
 import io.gravitee.rest.api.service.NotifierService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -89,6 +92,9 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
     @Mock
     PlanRepository planRepository;
 
+    @Mock
+    SubscriptionRepository subscriptionRepository;
+
     PrimaryOwnerDomainServiceInMemory primaryOwnerDomainService = new PrimaryOwnerDomainServiceInMemory();
 
     ApiMetadataQueryServiceInMemory apiMetadataQueryService = new ApiMetadataQueryServiceInMemory();
@@ -107,6 +113,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                     apiRepository,
                     applicationRepository,
                     planRepository,
+                    subscriptionRepository,
                     primaryOwnerDomainService,
                     primaryOwnerDomainService,
                     apiMetadataQueryService,
@@ -345,6 +352,38 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                         .validation("MANUAL")
                         .commentMessage("my-comment-message")
                         .build()
+                );
+        }
+
+        @Test
+        public void should_fetch_subscription_notification_data() {
+            // Given
+            givenExistingApi(
+                anApi().withId("api-id"),
+                PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type("USER").build()
+            );
+
+            givenExistingSubscription(Subscription.builder().id("subscription-id").request("my-request").reason("my-reason").build());
+            // When
+            final SimpleApiHookContextForTest apiHookContext = new SimpleApiHookContextForTest(
+                "api-id",
+                Map.of(HookContextEntry.SUBSCRIPTION_ID, "subscription-id")
+            );
+            service.triggerApiNotification(ORGANIZATION_ID, apiHookContext);
+
+            // Then
+            verify(notifierService)
+                .trigger(
+                    eq(new ExecutionContext(ORGANIZATION_ID, null)),
+                    eq(ApiHook.SUBSCRIPTION_CLOSED),
+                    eq("api-id"),
+                    paramsCaptor.capture()
+                );
+            var params = paramsCaptor.getValue();
+            assertThat(params)
+                .containsEntry(
+                    "subscription",
+                    SubscriptionNotificationTemplateData.builder().id("subscription-id").request("my-request").reason("my-reason").build()
                 );
         }
 
@@ -718,5 +757,11 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
     private void givenExistingPlan(Plan plan) {
         lenient().when(planRepository.findById(any())).thenReturn(Optional.empty());
         lenient().when(planRepository.findById(eq(plan.getId()))).thenReturn(Optional.of(plan));
+    }
+
+    @SneakyThrows
+    private void givenExistingSubscription(Subscription subscription) {
+        lenient().when(subscriptionRepository.findById(any())).thenReturn(Optional.empty());
+        lenient().when(subscriptionRepository.findById(eq(subscription.getId()))).thenReturn(Optional.of(subscription));
     }
 }
