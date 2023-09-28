@@ -46,6 +46,8 @@ export class ClientRegistrationProviderComponent implements OnInit, OnDestroy {
   public renewClientSecretMethods = ['POST', 'PATCH', 'PUT'];
   public renewClientSecretEndpointUrlExample: 'https://authorization_server/oidc/dcr/{#client_id}/renew_secret';
 
+  public formInitialValues: unknown;
+
   constructor(
     @Inject(UIRouterStateParams) private ajsStateParams,
     @Inject(UIRouterState) private readonly ajsState: StateService,
@@ -80,17 +82,17 @@ export class ClientRegistrationProviderComponent implements OnInit, OnDestroy {
       throw new Error('Form is not valid');
     }
 
-    const clientRegistrationProvider = this.providerForm.value;
+    const providerFormValueToSave = this.providerForm.value;
     const createUpdate$ = this.updateMode
       ? this.clientRegistrationProvidersService
-          .update({ ...clientRegistrationProvider, id: this.ajsStateParams.id })
+          .update({ ...providerFormValueToSave, id: this.ajsStateParams.id })
           .pipe(
             tap((clientRegistrationProvider) =>
               this.snackBarService.success(`Client registration provider  ${clientRegistrationProvider.name} has been updated.`),
             ),
           )
       : this.clientRegistrationProvidersService
-          .create(clientRegistrationProvider)
+          .create(providerFormValueToSave)
           .pipe(
             tap((clientRegistrationProvider) =>
               this.snackBarService.success(`Client registration provider  ${clientRegistrationProvider.name} has been created.`),
@@ -103,7 +105,7 @@ export class ClientRegistrationProviderComponent implements OnInit, OnDestroy {
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
-        tap(() => {
+        tap((clientRegistrationProvider) => {
           this.ajsState.go(
             'management.settings.clientregistrationproviders.clientregistrationprovider',
             { id: clientRegistrationProvider.id },
@@ -155,11 +157,7 @@ export class ClientRegistrationProviderComponent implements OnInit, OnDestroy {
         this.providerForm.get('initial_access_token').updateValueAndValidity();
         this.providerForm.updateValueAndValidity();
       });
-  }
-
-  onReset() {
-    this.providerForm = undefined;
-    this.ngOnInit();
+    this.formInitialValues = this.providerForm.value;
   }
 
   isClientCredentials(): boolean {

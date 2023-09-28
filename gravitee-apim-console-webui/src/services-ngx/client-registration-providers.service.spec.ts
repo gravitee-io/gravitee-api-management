@@ -73,16 +73,16 @@ describe('ClientRegistrationProviderService', () => {
   });
 
   it('should delete provider by id', (done) => {
-    const mockProvider: ClientRegistrationProvider = fakeClientRegistrationProvider();
+    const mockProviderId = 'foobar';
 
-    clientRegistrationProvidersService.delete(mockProvider).subscribe((response) => {
+    clientRegistrationProvidersService.delete(mockProviderId).subscribe((response) => {
       expect(response).toMatchObject({});
       done();
     });
 
     const req = httpTestingController.expectOne({
       method: 'DELETE',
-      url: `${CONSTANTS_TESTING.env.baseURL}/configuration/applications/registration/providers/${mockProvider.id}`,
+      url: `${CONSTANTS_TESTING.env.baseURL}/configuration/applications/registration/providers/${mockProviderId}`,
     });
 
     req.flush({});
