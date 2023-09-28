@@ -219,14 +219,14 @@ export class PullRequestsWorkflow {
         new workflow.WorkflowJob(webuiLintTestJob, {
           name: 'Lint & test APIM Console',
           context: config.jobContext,
-          'apim-ui-project': 'gravitee-apim-console-webui',
+          'apim-ui-project': config.dockerImages.console.project,
           resource_class: 'large',
         }),
         new workflow.WorkflowJob(webuiBuildJob, {
           name: 'Build APIM Console and publish image',
           context: config.jobContext,
-          'apim-ui-project': 'gravitee-apim-console-webui',
-          'docker-image-name': config.dockerImages.console,
+          'apim-ui-project': config.dockerImages.console.project,
+          'docker-image-name': config.dockerImages.console.image,
         }),
         new workflow.WorkflowJob(storybookConsoleJob, {
           name: 'Build Console Storybook',
@@ -241,7 +241,7 @@ export class PullRequestsWorkflow {
           name: 'Sonar - gravitee-apim-console-webui',
           context: config.jobContext,
           requires: ['Lint & test APIM Console'],
-          working_directory: 'gravitee-apim-console-webui',
+          working_directory: config.dockerImages.console.project,
         }),
       );
 
@@ -262,20 +262,20 @@ export class PullRequestsWorkflow {
         new workflow.WorkflowJob(webuiLintTestJob, {
           name: 'Lint & test APIM Portal',
           context: config.jobContext,
-          'apim-ui-project': 'gravitee-apim-portal-webui',
+          'apim-ui-project': config.dockerImages.portal.project,
           resource_class: 'large',
         }),
         new workflow.WorkflowJob(webuiBuildJob, {
           name: 'Build APIM Portal and publish image',
           context: config.jobContext,
-          'apim-ui-project': 'gravitee-apim-portal-webui',
-          'docker-image-name': config.dockerImages.portal,
+          'apim-ui-project': config.dockerImages.portal.project,
+          'docker-image-name': config.dockerImages.portal.image,
         }),
         new workflow.WorkflowJob(sonarCloudAnalysisJob, {
           name: 'Sonar - gravitee-apim-portal-webui',
           context: config.jobContext,
           requires: ['Lint & test APIM Portal'],
-          working_directory: 'gravitee-apim-portal-webui',
+          working_directory: config.dockerImages.portal.project,
         }),
       );
 
@@ -407,11 +407,11 @@ export class PullRequestsWorkflow {
 }
 
 export function shouldBuildConsole(changedFiles: string[]): boolean {
-  return changedFiles.some((file) => file.includes('gravitee-apim-console-webui'));
+  return changedFiles.some((file) => file.includes(config.dockerImages.console.project));
 }
 
 export function shouldBuildPortal(changedFiles: string[]): boolean {
-  return changedFiles.some((file) => file.includes('gravitee-apim-portal-webui'));
+  return changedFiles.some((file) => file.includes(config.dockerImages.portal.project));
 }
 
 export function shouldBuildBackend(changedFiles: string[]): boolean {

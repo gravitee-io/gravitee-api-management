@@ -46,19 +46,19 @@ export class AddDockerImagesInSnykJob {
         'var-name': 'SNYK_INTEGRATION_ID',
       }),
       new reusable.ReusedCommand(addDockerImageInSnykCommand, {
-        'docker-image-name': config.dockerImages.gateway,
+        'docker-image-name': config.dockerImages.gateway.image,
         version: tag,
       }),
       new reusable.ReusedCommand(addDockerImageInSnykCommand, {
-        'docker-image-name': config.dockerImages.managementApi,
+        'docker-image-name': config.dockerImages.managementApi.image,
         version: tag,
       }),
       new reusable.ReusedCommand(addDockerImageInSnykCommand, {
-        'docker-image-name': config.dockerImages.console,
+        'docker-image-name': config.dockerImages.console.image,
         version: tag,
       }),
       new reusable.ReusedCommand(addDockerImageInSnykCommand, {
-        'docker-image-name': config.dockerImages.portal,
+        'docker-image-name': config.dockerImages.portal.image,
         version: tag,
       }),
     ];
