@@ -17,7 +17,7 @@
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { EMPTY, Subject } from 'rxjs';
 import { StateParams } from '@uirouter/angularjs';
-import { catchError, filter, switchMap, takeUntil, tap, map } from 'rxjs/operators';
+import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { isEmpty, omit, uniqueId } from 'lodash';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
@@ -40,7 +40,7 @@ import { ApiV2, ApiV4, Property } from '../../../../entities/management-api-v2';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { gioTableFilterCollection } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
-import { isUnique } from '../../../../shared/utils';
+import { isUniqueAndDoesNotMatchDefaultValue } from '../../../../shared/utils';
 
 type TableDataSource = {
   _id: string;
@@ -70,7 +70,7 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
   };
   public displayedColumns = ['key', 'value', 'encrypted', 'actions'];
   public filteredTableData: TableDataSource[] = [];
-  public apiProperties: (Property & { _id: string })[];
+  public apiProperties: (Property & { _id: string })[] = [];
   public propertiesFormGroup: FormGroup = new FormGroup({});
   public isDirty = false;
 
@@ -92,7 +92,7 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
           if (api.definitionVersion === 'V1') {
             throw new Error('Unexpected API type. This page is compatible only for API > V1');
           }
-          this.apiProperties = api.properties.map((p) => ({ ...p, _id: uniqueId() }));
+          this.apiProperties = api.properties?.map((p) => ({ ...p, _id: uniqueId() })) ?? [];
 
           // Initialize the properties form group
           this.initPropertiesFormGroup();
@@ -133,21 +133,10 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
       .beforeClosed()
       .pipe(
         filter((result) => !!result),
-        switchMap((propertyToAdd) => this.apiService.get(this.ajsStateParams.apiId).pipe(map((api) => [propertyToAdd, api]))),
-        switchMap(([propertyToAdd, api]: [Property, ApiV2 | ApiV4]) => {
-          const propertiesSorted = [...api.properties, propertyToAdd].sort((a, b) => a.key.localeCompare(b.key));
-          return this.apiService.update(this.ajsStateParams.apiId, {
-            ...api,
-            properties: propertiesSorted,
-          });
-        }),
+        switchMap((propertyToAdd) => this.saveProperties$((existingProperties) => [...existingProperties, propertyToAdd])),
         tap(() => {
           this.snackBarService.success('Property successfully added!');
           this.ngOnInit();
-        }),
-        catchError(({ error }) => {
-          this.snackBarService.error(error.message);
-          return EMPTY;
         }),
         takeUntil(this.unsubscribe$),
       )
@@ -206,8 +195,6 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
   }
 
   onFiltersChanged(filters: GioTableWrapperFilters) {
-    if (isEmpty(this.apiProperties)) return;
-
     const propertiesCollection: TableDataSource[] = this.apiProperties.map((p) => {
       return {
         _id: p._id,
@@ -225,26 +212,11 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
   }
 
   onSave() {
-    this.apiService
-      .get(this.ajsStateParams.apiId)
+    this.saveProperties$((_) => this.apiProperties.map((p) => omit(p, ['_id'])))
       .pipe(
-        switchMap((api) => {
-          if (api.definitionVersion === 'V1') {
-            throw new Error('Unexpected API type. This page is compatible only for API > V1');
-          }
-
-          return this.apiService.update(this.ajsStateParams.apiId, {
-            ...api,
-            properties: this.apiProperties.map((p) => omit(p, ['_id'])),
-          });
-        }),
         tap(() => {
           this.snackBarService.success('Configuration successfully saved!');
           this.isDirty = false;
-        }),
-        catchError(({ error }) => {
-          this.snackBarService.error(error.message);
-          return EMPTY;
         }),
         takeUntil(this.unsubscribe$),
       )
@@ -264,7 +236,13 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
 
     this.propertiesFormGroup = new FormGroup(
       this.apiProperties.reduce((previousValue, currentValue) => {
-        const keyControl = new FormControl(currentValue.key, [Validators.required, isUnique(this.apiProperties.map((p) => p.key))]);
+        const keyControl = new FormControl(currentValue.key, [
+          Validators.required,
+          isUniqueAndDoesNotMatchDefaultValue(
+            this.apiProperties.map((p) => p.key),
+            currentValue.key,
+          ),
+        ]);
         keyControl.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe((value) => this.editKeyProperty(currentValue._id, value));
 
         const valueControl = new FormControl({
@@ -287,6 +265,25 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
           }),
         };
       }, {}),
+    );
+  }
+
+  private saveProperties$(propertiesToSave: (existingProperties: Property[]) => Property[]) {
+    this.isLoading = true;
+    this.filteredTableData = [];
+
+    return this.apiService.get(this.ajsStateParams.apiId).pipe(
+      switchMap((api: ApiV2 | ApiV4) => {
+        const propertiesSorted = propertiesToSave(api.properties ?? []).sort((a, b) => a.key.localeCompare(b.key));
+        return this.apiService.update(this.ajsStateParams.apiId, {
+          ...api,
+          properties: propertiesSorted,
+        });
+      }),
+      catchError(({ error }) => {
+        this.snackBarService.error(error.message);
+        return EMPTY;
+      }),
     );
   }
 }

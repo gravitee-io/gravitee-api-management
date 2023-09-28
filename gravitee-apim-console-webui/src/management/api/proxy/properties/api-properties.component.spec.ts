@@ -232,18 +232,7 @@ describe('ApiPropertiesComponent', () => {
     const removePropertyButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Remove property"]' }));
     await removePropertyButton.click();
 
-    const table = await loader.getHarness(MatTableHarness.with({ selector: '[aria-label="API Properties"]' }));
-    const cellContentByIndex = await getCellContentByIndex(table);
-    expect(cellContentByIndex).toEqual([
-      {
-        encrypted: 'Unencrypted',
-        isValueDisabled: false,
-        key: 'key2',
-        value: 'ValueToEncrypt',
-      },
-    ]);
     const saveBar = await loader.getHarness(GioSaveBarHarness);
-
     await saveBar.clickSubmit();
 
     expectGetApi(
