@@ -14,7 +14,40 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatInputHarness } from '@angular/material/input/testing';
 
 export class PropertiesImportDialogHarness extends ComponentHarness {
   public static hostSelector = 'properties-import-dialog';
+
+  protected getMatInputHarness = (formControlName: string) =>
+    this.locatorFor(MatInputHarness.with({ selector: `[formControlName="${formControlName}"]` }))();
+
+  public setProperties(properties: string): Promise<void> {
+    return this.getMatInputHarness('properties').then((input) => input.setValue(properties));
+  }
+
+  async getErrorMessage(): Promise<string | null> {
+    const errorBanner = await this.locatorForOptional('gio-banner-error')();
+
+    if (errorBanner) {
+      return errorBanner.text();
+    }
+
+    return null;
+  }
+
+  async getWarningMessage(): Promise<string | null> {
+    const warningBanner = await this.locatorForOptional('gio-banner-warning')();
+
+    if (warningBanner) {
+      return warningBanner.text();
+    }
+
+    return null;
+  }
+
+  async import(): Promise<void> {
+    await this.locatorFor(MatButtonHarness.with({ text: 'Import properties' }))().then((btn) => btn.click());
+  }
 }

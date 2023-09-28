@@ -116,9 +116,20 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
     this.matDialog
       .open<PropertiesImportDialogComponent, PropertiesImportDialogData, PropertiesImportDialogResult>(PropertiesImportDialogComponent, {
         width: GIO_DIALOG_WIDTH.MEDIUM,
-        data: undefined,
+        data: {
+          properties: this.apiProperties,
+        },
       })
       .beforeClosed()
+      .pipe(
+        filter((importPropertiesFn) => importPropertiesFn !== undefined),
+        switchMap((importPropertiesFn) => this.saveProperties$(importPropertiesFn)),
+        tap(() => {
+          this.snackBarService.success('Property successfully added!');
+          this.ngOnInit();
+        }),
+        takeUntil(this.unsubscribe$),
+      )
       .subscribe();
   }
 
