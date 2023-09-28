@@ -23,6 +23,7 @@ import io.gravitee.apim.core.notification.model.ApiNotificationTemplateData;
 import io.gravitee.apim.core.notification.model.ApplicationNotificationTemplateData;
 import io.gravitee.apim.core.notification.model.PlanNotificationTemplateData;
 import io.gravitee.apim.core.notification.model.PrimaryOwnerNotificationTemplateData;
+import io.gravitee.apim.core.notification.model.SubscriptionNotificationTemplateData;
 import io.gravitee.apim.core.notification.model.hook.HookContext;
 import io.gravitee.apim.core.notification.model.hook.HookContextEntry;
 import io.gravitee.apim.infra.template.TemplateProcessor;
@@ -31,6 +32,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.PlanRepository;
+import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -54,6 +56,7 @@ public class TemplateDataFetcher {
     private final ApiRepository apiRepository;
     private final ApplicationRepository applicationRepository;
     private final PlanRepository planRepository;
+    private final SubscriptionRepository subscriptionRepository;
     private final ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService;
     private final ApplicationPrimaryOwnerDomainService applicationPrimaryOwnerDomainService;
     private final ApiMetadataQueryService metadataQueryService;
@@ -63,6 +66,7 @@ public class TemplateDataFetcher {
         @Lazy ApiRepository apiRepository,
         @Lazy ApplicationRepository applicationRepository,
         @Lazy PlanRepository planRepository,
+        @Lazy SubscriptionRepository subscriptionRepository,
         ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService,
         ApplicationPrimaryOwnerDomainService applicationPrimaryOwnerDomainService,
         ApiMetadataQueryService metadataQueryService,
@@ -71,6 +75,7 @@ public class TemplateDataFetcher {
         this.apiRepository = apiRepository;
         this.applicationRepository = applicationRepository;
         this.planRepository = planRepository;
+        this.subscriptionRepository = subscriptionRepository;
         this.apiPrimaryOwnerDomainService = apiPrimaryOwnerDomainService;
         this.applicationPrimaryOwnerDomainService = applicationPrimaryOwnerDomainService;
         this.metadataQueryService = metadataQueryService;
@@ -89,6 +94,7 @@ public class TemplateDataFetcher {
                         case API_ID -> buildApiNotificationTemplateData(organizationId, entry.getValue());
                         case APPLICATION_ID -> buildApplicationNotificationTemplateData(organizationId, entry.getValue());
                         case PLAN_ID -> buildPlanNotificationTemplateData(entry.getValue());
+                        case SUBSCRIPTION_ID -> buildSubscriptionNotificationTemplateData(entry.getValue());
                     }
                 )
             )
@@ -102,6 +108,7 @@ public class TemplateDataFetcher {
             case API_ID -> "api";
             case APPLICATION_ID -> "application";
             case PLAN_ID -> "plan";
+            case SUBSCRIPTION_ID -> "subscription";
         };
     }
 
@@ -181,6 +188,23 @@ public class TemplateDataFetcher {
                         .commentMessage(plan.getCommentMessage())
                         .security(plan.getSecurity() != null ? plan.getSecurity().name() : null)
                         .validation(plan.getValidation().name())
+                        .build()
+                );
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException(e);
+        }
+    }
+
+    private Optional<SubscriptionNotificationTemplateData> buildSubscriptionNotificationTemplateData(String subscriptionId) {
+        try {
+            return subscriptionRepository
+                .findById(subscriptionId)
+                .map(subscription ->
+                    SubscriptionNotificationTemplateData
+                        .builder()
+                        .id(subscription.getId())
+                        .reason(subscription.getReason())
+                        .request(subscription.getRequest())
                         .build()
                 );
         } catch (TechnicalException e) {
