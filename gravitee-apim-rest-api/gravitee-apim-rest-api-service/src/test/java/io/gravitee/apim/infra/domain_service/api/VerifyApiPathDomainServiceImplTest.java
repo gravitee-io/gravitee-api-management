@@ -97,7 +97,9 @@ class VerifyApiPathDomainServiceImplTest {
     public void should_return_an_exception_if_environment_not_found() {
         givenNoEnvironment();
 
-        Throwable throwable = catchThrowable(() -> service.verifyApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().build())));
+        Throwable throwable = catchThrowable(() ->
+            service.checkAndSanitizeApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().build()))
+        );
 
         assertThat(throwable).isInstanceOf(EnvironmentNotFoundException.class);
     }
@@ -107,7 +109,11 @@ class VerifyApiPathDomainServiceImplTest {
     public void should_sanitize_path(String path, String expectedPath) {
         givenExistingEnvironment(ENVIRONMENT_ID, null);
 
-        var res = service.verifyApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().path(path).overrideAccess(true).build()));
+        var res = service.checkAndSanitizeApiPaths(
+            ENVIRONMENT_ID,
+            "api-id",
+            List.of(Path.builder().path(path).overrideAccess(true).build())
+        );
         assertThat(res).hasSize(1);
         assertThat(res.get(0).getPath()).isEqualTo(expectedPath);
         assertThat(res.get(0).getHost()).isNull();
@@ -119,7 +125,7 @@ class VerifyApiPathDomainServiceImplTest {
         givenExistingEnvironment(ENVIRONMENT_ID, null);
 
         var throwable = catchThrowable(() ->
-            service.verifyApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().path("invalid>path").build()))
+            service.checkAndSanitizeApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().path("invalid>path").build()))
         );
 
         assertThat(throwable).isInstanceOf(InvalidPathException.class);
@@ -130,7 +136,7 @@ class VerifyApiPathDomainServiceImplTest {
     public void should_set_domain_with_domain_restrictions(String host, String expectedHost) {
         givenExistingEnvironment(ENVIRONMENT_ID, List.of("domain.com", "domain.net"));
 
-        var res = service.verifyApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().host(host).path("/path/").build()));
+        var res = service.checkAndSanitizeApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().host(host).path("/path/").build()));
 
         assertThat(res).hasSize(1);
         assertThat(res.get(0).getPath()).isEqualTo("/path/");
@@ -143,7 +149,7 @@ class VerifyApiPathDomainServiceImplTest {
         givenExistingEnvironment(ENVIRONMENT_ID, List.of("domain.com", "domain.net"));
 
         var throwable = catchThrowable(() ->
-            service.verifyApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().host(host).path("/path/").build()))
+            service.checkAndSanitizeApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().host(host).path("/path/").build()))
         );
 
         assertThat(throwable).isInstanceOf(InvalidHostException.class);
@@ -154,7 +160,7 @@ class VerifyApiPathDomainServiceImplTest {
         givenExistingEnvironment(ENVIRONMENT_ID, null);
 
         var throwable = catchThrowable(() ->
-            service.verifyApiPaths(
+            service.checkAndSanitizeApiPaths(
                 ENVIRONMENT_ID,
                 null,
                 List.of(Path.builder().path("/abc/").build(), Path.builder().path("/path/").build(), Path.builder().path("/path/").build())
@@ -170,7 +176,9 @@ class VerifyApiPathDomainServiceImplTest {
 
         givenExistingApis(ENVIRONMENT_ID, Stream.of(buildApiV2WithPaths(ENVIRONMENT_ID, "api1", List.of(Pair.of("", "/path/")))));
 
-        var throwable = catchThrowable(() -> service.verifyApiPaths(ENVIRONMENT_ID, null, List.of(Path.builder().path("/path/").build())));
+        var throwable = catchThrowable(() ->
+            service.checkAndSanitizeApiPaths(ENVIRONMENT_ID, null, List.of(Path.builder().path("/path/").build()))
+        );
         assertThat(throwable).isInstanceOf(PathAlreadyExistsException.class);
     }
 
@@ -181,7 +189,7 @@ class VerifyApiPathDomainServiceImplTest {
         givenExistingApis(ENVIRONMENT_ID, Stream.of(buildApiV2WithPaths(ENVIRONMENT_ID, "api1", List.of(Pair.of("", "/path/")))));
 
         var throwable = catchThrowable(() ->
-            service.verifyApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().path("/path/").build()))
+            service.checkAndSanitizeApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().path("/path/").build()))
         );
         assertThat(throwable).isInstanceOf(PathAlreadyExistsException.class);
     }
@@ -193,7 +201,7 @@ class VerifyApiPathDomainServiceImplTest {
         givenExistingApis(ENVIRONMENT_ID, Stream.of(buildApiV2WithPaths(ENVIRONMENT_ID, "api1", List.of(Pair.of("domain.com", "/path/")))));
 
         var pathAlreadyExistExceptionIfDefaultDomain = catchThrowable(() ->
-            service.verifyApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().path("/path/").build()))
+            service.checkAndSanitizeApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().path("/path/").build()))
         );
         assertThat(pathAlreadyExistExceptionIfDefaultDomain).isInstanceOf(PathAlreadyExistsException.class);
     }
@@ -206,7 +214,7 @@ class VerifyApiPathDomainServiceImplTest {
 
         // If domain is not set, first domain of domain restriction is used
         var pathAlreadyExistExceptionIfDefaultDomain = catchThrowable(() ->
-            service.verifyApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().host("domain.com").path("/path/").build()))
+            service.checkAndSanitizeApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().host("domain.com").path("/path/").build()))
         );
         assertThat(pathAlreadyExistExceptionIfDefaultDomain).isInstanceOf(PathAlreadyExistsException.class);
     }
@@ -221,7 +229,11 @@ class VerifyApiPathDomainServiceImplTest {
         );
 
         // Check should be ok if same path but different domain
-        var res = service.verifyApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().host("domain.com").path("/path/").build()));
+        var res = service.checkAndSanitizeApiPaths(
+            ENVIRONMENT_ID,
+            "api-id",
+            List.of(Path.builder().host("domain.com").path("/path/").build())
+        );
         assertThat(res).hasSize(1);
         assertThat(res.get(0).getPath()).isEqualTo("/path/");
         assertThat(res.get(0).getHost()).isEqualTo("domain.com");
@@ -235,7 +247,7 @@ class VerifyApiPathDomainServiceImplTest {
 
         // If domain is not set, first domain of domain restriction is used
         var pathAlreadyExistExceptionIfDefaultDomain = catchThrowable(() ->
-            service.verifyApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().path("/path/subpath").build()))
+            service.checkAndSanitizeApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().path("/path/subpath").build()))
         );
         assertThat(pathAlreadyExistExceptionIfDefaultDomain).isInstanceOf(PathAlreadyExistsException.class);
     }
@@ -248,7 +260,11 @@ class VerifyApiPathDomainServiceImplTest {
 
         // If domain is not set, first domain of domain restriction is used
         var pathAlreadyExistExceptionIfDefaultDomain = catchThrowable(() ->
-            service.verifyApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().host("domain.com").path("/path/subpath").build()))
+            service.checkAndSanitizeApiPaths(
+                ENVIRONMENT_ID,
+                "api-id",
+                List.of(Path.builder().host("domain.com").path("/path/subpath").build())
+            )
         );
         assertThat(pathAlreadyExistExceptionIfDefaultDomain).isInstanceOf(PathAlreadyExistsException.class);
     }
@@ -260,7 +276,7 @@ class VerifyApiPathDomainServiceImplTest {
         givenExistingApis(ENVIRONMENT_ID, Stream.of(buildApiV4WithPaths(ENVIRONMENT_ID, "api1", List.of(Pair.of("", "/path/")))));
 
         var throwable = catchThrowable(() ->
-            service.verifyApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().host("").path("/path/").build()))
+            service.checkAndSanitizeApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().host("").path("/path/").build()))
         );
         assertThat(throwable).isInstanceOf(PathAlreadyExistsException.class);
     }
@@ -271,7 +287,7 @@ class VerifyApiPathDomainServiceImplTest {
 
         givenExistingApis(ENVIRONMENT_ID, Stream.of(buildApiV4WithPaths(ENVIRONMENT_ID, "api-id", List.of(Pair.of("", "/path/")))));
 
-        var res = service.verifyApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().path("/path/").build()));
+        var res = service.checkAndSanitizeApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().path("/path/").build()));
         assertThat(res).hasSize(1);
         assertThat(res.get(0).getPath()).isEqualTo("/path/");
         assertThat(res.get(0).getHost()).isNullOrEmpty();
@@ -284,7 +300,7 @@ class VerifyApiPathDomainServiceImplTest {
         givenExistingApis(ENVIRONMENT_ID, Stream.of(buildApiV4WithPaths(ENVIRONMENT_ID, "api1", List.of(Pair.of("domain.com", "/path/")))));
 
         var pathAlreadyExistExceptionIfDefaultDomain = catchThrowable(() ->
-            service.verifyApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().path("/path/").build()))
+            service.checkAndSanitizeApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().path("/path/").build()))
         );
         assertThat(pathAlreadyExistExceptionIfDefaultDomain).isInstanceOf(PathAlreadyExistsException.class);
     }
@@ -297,7 +313,7 @@ class VerifyApiPathDomainServiceImplTest {
 
         // If domain is not set, first domain of domain restriction is used
         var pathAlreadyExistExceptionIfDefaultDomain = catchThrowable(() ->
-            service.verifyApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().host("domain.com").path("/path/").build()))
+            service.checkAndSanitizeApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().host("domain.com").path("/path/").build()))
         );
         assertThat(pathAlreadyExistExceptionIfDefaultDomain).isInstanceOf(PathAlreadyExistsException.class);
     }
@@ -312,7 +328,11 @@ class VerifyApiPathDomainServiceImplTest {
         );
 
         // Check should be ok if same path but different domain
-        var res = service.verifyApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().host("domain.com").path("/path/").build()));
+        var res = service.checkAndSanitizeApiPaths(
+            ENVIRONMENT_ID,
+            "api-id",
+            List.of(Path.builder().host("domain.com").path("/path/").build())
+        );
         assertThat(res).hasSize(1);
         assertThat(res.get(0).getPath()).isEqualTo("/path/");
         assertThat(res.get(0).getHost()).isEqualTo("domain.com");
@@ -326,7 +346,7 @@ class VerifyApiPathDomainServiceImplTest {
 
         // If domain is not set, first domain of domain restriction is used
         var pathAlreadyExistExceptionIfDefaultDomain = catchThrowable(() ->
-            service.verifyApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().path("/path/subpath").build()))
+            service.checkAndSanitizeApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().path("/path/subpath").build()))
         );
         assertThat(pathAlreadyExistExceptionIfDefaultDomain).isInstanceOf(PathAlreadyExistsException.class);
     }
@@ -339,7 +359,11 @@ class VerifyApiPathDomainServiceImplTest {
 
         // If domain is not set, first domain of domain restriction is used
         var pathAlreadyExistExceptionIfDefaultDomain = catchThrowable(() ->
-            service.verifyApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().host("domain.com").path("/path/subpath").build()))
+            service.checkAndSanitizeApiPaths(
+                ENVIRONMENT_ID,
+                "api-id",
+                List.of(Path.builder().host("domain.com").path("/path/subpath").build())
+            )
         );
         assertThat(pathAlreadyExistExceptionIfDefaultDomain).isInstanceOf(PathAlreadyExistsException.class);
     }

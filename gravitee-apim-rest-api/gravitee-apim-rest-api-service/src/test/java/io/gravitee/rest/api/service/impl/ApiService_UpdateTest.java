@@ -371,7 +371,7 @@ public class ApiService_UpdateTest {
 
         when(primaryOwnerService.getPrimaryOwner(any(), any())).thenReturn(new PrimaryOwnerEntity(new UserEntity()));
         reset(searchEngineService);
-        when(verifyApiPathDomainService.verifyApiPaths(any(), any(), any())).thenAnswer(invocation -> invocation.getArgument(2));
+        when(verifyApiPathDomainService.checkAndSanitizeApiPaths(any(), any(), any())).thenAnswer(invocation -> invocation.getArgument(2));
         when(apiMetadataService.fetchMetadataForApi(any(ExecutionContext.class), any(ApiEntity.class)))
             .thenAnswer(invocation -> invocation.getArgument(1));
     }
@@ -645,7 +645,7 @@ public class ApiService_UpdateTest {
             "{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"} ,\"tags\": [\"public\"]}"
         );
         proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/context")));
-        when(verifyApiPathDomainService.verifyApiPaths(any(), any(), any())).thenAnswer(invocation -> invocation.getArgument(2));
+        when(verifyApiPathDomainService.checkAndSanitizeApiPaths(any(), any(), any())).thenAnswer(invocation -> invocation.getArgument(2));
         when(tagService.findByUser(any(), any(), any())).thenReturn(Sets.newSet("public", "private"));
         final ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
         assertNotNull(apiEntity);

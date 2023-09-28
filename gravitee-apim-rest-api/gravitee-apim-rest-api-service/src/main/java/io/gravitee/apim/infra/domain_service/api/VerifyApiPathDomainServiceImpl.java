@@ -55,7 +55,7 @@ public class VerifyApiPathDomainServiceImpl implements VerifyApiPathDomainServic
     }
 
     @Override
-    public List<Path> verifyApiPaths(String environmentId, String apiId, List<Path> paths) {
+    public List<Path> checkAndSanitizeApiPaths(String environmentId, String apiId, List<Path> paths) {
         if (paths == null || paths.isEmpty()) {
             throw new HttpListenerPathMissingException();
         }

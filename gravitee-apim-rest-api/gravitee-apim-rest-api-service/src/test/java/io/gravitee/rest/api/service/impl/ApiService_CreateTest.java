@@ -211,7 +211,7 @@ public class ApiService_CreateTest {
         //            .thenReturn("toDecode=decoded-value");
         //        when(parameterService.find(GraviteeContext.getExecutionContext(), Key.API_PRIMARY_OWNER_MODE, ParameterReferenceType.ENVIRONMENT))
         //            .thenReturn("USER");
-        when(verifyApiPathDomainService.verifyApiPaths(any(), any(), any())).thenAnswer(invocation -> invocation.getArgument(2));
+        when(verifyApiPathDomainService.checkAndSanitizeApiPaths(any(), any(), any())).thenAnswer(invocation -> invocation.getArgument(2));
         reset(searchEngineService);
         UserEntity admin = new UserEntity();
         admin.setId(USER_NAME);

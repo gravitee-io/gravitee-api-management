@@ -16,9 +16,8 @@
 package io.gravitee.apim.core.api.domain_service;
 
 import io.gravitee.apim.core.api.model.Path;
-import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 
 public interface VerifyApiPathDomainService {
-    List<Path> verifyApiPaths(String environmentId, String apiId, List<Path> paths);
+    List<Path> checkAndSanitizeApiPaths(String environmentId, String apiId, List<Path> paths);
 }
