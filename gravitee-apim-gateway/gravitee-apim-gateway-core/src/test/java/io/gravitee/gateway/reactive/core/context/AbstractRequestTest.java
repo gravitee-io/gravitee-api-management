@@ -71,6 +71,58 @@ class AbstractRequestTest {
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("Http method should not be null");
         }
+
+        @Test
+        void should_init_context_path_and_path_info() {
+            String initialPath = "/contextPath/pathInfo";
+
+            cut.path = initialPath;
+            assertThat(cut.path()).isEqualTo(initialPath);
+            assertThat(cut.contextPath()).isNull();
+            assertThat(cut.pathInfo()).isNull();
+
+            String newContextPath = "/contextPath/";
+
+            cut.contextPath(newContextPath);
+            assertThat(cut.path()).isEqualTo(initialPath);
+            assertThat(cut.contextPath()).isEqualTo(newContextPath);
+            assertThat(cut.pathInfo()).isEqualTo("/pathInfo");
+        }
+
+        @Test
+        void should_override_context_path_and_path_and_path_info() {
+            String initialPath = "/eventId-contextPath/pathInfo";
+            String initialContextPath = "/eventId-contextPath/";
+
+            cut.path = initialPath;
+            cut.contextPath = initialContextPath;
+            assertThat(cut.path()).isEqualTo(initialPath);
+            assertThat(cut.contextPath()).isEqualTo(initialContextPath);
+            assertThat(cut.pathInfo()).isNull();
+
+            String newContextPath = "/contextPath/";
+
+            cut.contextPath(newContextPath);
+            assertThat(cut.path()).isEqualTo("/contextPath/pathInfo");
+            assertThat(cut.contextPath()).isEqualTo(newContextPath);
+            assertThat(cut.pathInfo()).isEqualTo("/pathInfo");
+        }
+
+        @Test
+        void should_set_path_info_to_path() {
+            String initialPath = "/unknownContextPath/pathInfo";
+
+            cut.path = initialPath;
+            assertThat(cut.path()).isEqualTo(initialPath);
+            assertThat(cut.contextPath()).isNull();
+            assertThat(cut.pathInfo()).isNull();
+
+            cut.contextPath("/");
+
+            assertThat(cut.path()).isEqualTo(initialPath);
+            assertThat(cut.contextPath()).isEqualTo("/");
+            assertThat(cut.pathInfo()).isEqualTo(initialPath);
+        }
     }
 
     @Nested
