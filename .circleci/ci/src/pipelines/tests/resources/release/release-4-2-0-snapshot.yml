@@ -358,16 +358,13 @@ jobs:
             git tag 4.2.0
 
             # Set the version to the next version (bump patch version + '-SNAPSHOT')
-            export MVN_PRJ_NEXT_VERSION="4.2.$((0+1))"
-            export MVN_PRJ_NEXT_QUALIFIER=""
-
-            sed -i "s#<revision>.*</revision>#<revision>${MVN_PRJ_NEXT_VERSION}</revision>#" pom.xml                   
+            sed -i "s#<revision>.*</revision>#<revision>4.2.1</revision>#" pom.xml                   
             sed -i "s#<changelist>.*</changelist>#<changelist>-SNAPSHOT</changelist>#" pom.xml
-            sed -i "s#<sha1>.*</sha1>#<sha1>${MVN_PRJ_NEXT_QUALIFIER}</sha1>#" pom.xml
+            sed -i "s#<sha1>.*</sha1>#<sha1></sha1>#" pom.xml
 
-            sed -i 's#version: ".*"#version: "${MVN_PRJ_NEXT_VERSION}${MVN_PRJ_NEXT_QUALIFIER}-SNAPSHOT"#' gravitee-apim-rest-api/gravitee-apim-rest-api-portal/gravitee-apim-rest-api-portal-rest/src/main/resources/portal-openapi.yaml
-            sed -i 's#"version": ".*"#"version": "${MVN_PRJ_NEXT_VERSION}${MVN_PRJ_NEXT_QUALIFIER}-SNAPSHOT"#' gravitee-apim-console-webui/build.json
-            sed -i 's#"version": ".*"#"version": "${MVN_PRJ_NEXT_VERSION}${MVN_PRJ_NEXT_QUALIFIER}-SNAPSHOT"#' gravitee-apim-portal-webui/build.json
+            sed -i 's#version: ".*"#version: "4.2.1-SNAPSHOT"#' gravitee-apim-rest-api/gravitee-apim-rest-api-portal/gravitee-apim-rest-api-portal-rest/src/main/resources/portal-openapi.yaml
+            sed -i 's#"version": ".*"#"version": "4.2.1-SNAPSHOT"#' gravitee-apim-console-webui/build.json
+            sed -i 's#"version": ".*"#"version": "4.2.1-SNAPSHOT"#' gravitee-apim-portal-webui/build.json
 
             git add --update
             git commit -m 'chore: prepare next version [skip ci]'
