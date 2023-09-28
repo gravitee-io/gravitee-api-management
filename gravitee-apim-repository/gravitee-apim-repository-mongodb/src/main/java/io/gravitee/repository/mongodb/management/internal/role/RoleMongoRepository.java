@@ -36,4 +36,7 @@ public interface RoleMongoRepository extends MongoRepository<RoleMongo, String> 
 
     @Query("{ 'referenceId': ?0, 'referenceType': ?1 }")
     List<RoleMongo> findByReferenceIdAndReferenceType(String referenceId, String referenceType);
+
+    @Query("{ '_id' : ?0, 'referenceId' : ?1, 'referenceType': ?2 }")
+    RoleMongo findByIdAndReferenceIdAndReferenceType(String roleId, String referenceId, String referenceType);
 }

@@ -31,16 +31,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
-import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
-import io.gravitee.rest.api.model.MemberEntity;
-import io.gravitee.rest.api.model.MembershipMemberType;
-import io.gravitee.rest.api.model.MembershipReferenceType;
-import io.gravitee.rest.api.model.PlanEntity;
-import io.gravitee.rest.api.model.RoleEntity;
-import io.gravitee.rest.api.model.UpdateApiMetadataEntity;
-import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.ApiIdsCalculatorService;
@@ -63,10 +56,7 @@ import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import io.gravitee.rest.api.service.spring.ServiceConfiguration;
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
@@ -91,6 +81,8 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
 
     private static final String API_ID = "id-api";
     private static final String SOURCE = "source";
+    private static final String PO_ROLE_ID = "API_PRIMARY_OWNER";
+    private static final String OWNER_ROLE_ID = "API_OWNER";
 
     @InjectMocks
     protected ApiDuplicatorServiceImpl apiDuplicatorService;
@@ -166,7 +158,7 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
     }
 
     @Test
-    public void shouldCreateImportApiWithMembersAndPages() throws IOException, TechnicalException {
+    public void shouldCreateImportApiWithMembersAndPages() throws IOException {
         URL url = Resources.getResource("io/gravitee/rest/api/management/service/import-api.definition+members+pages.json");
         String toBeImport = Resources.toString(url, Charsets.UTF_8);
         ApiEntity apiEntity = new ApiEntity();
@@ -176,12 +168,25 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         when(apiService.createWithApiDefinition(eq(GraviteeContext.getExecutionContext()), any(), any(), any())).thenReturn(apiEntity);
         when(userService.findBySource(eq(GraviteeContext.getExecutionContext()), anyString(), anyString(), eq(false)))
             .thenReturn(new UserEntity());
+
         RoleEntity poRoleEntity = new RoleEntity();
-        poRoleEntity.setId("API_PRIMARY_OWNER");
+        poRoleEntity.setId(PO_ROLE_ID);
+        poRoleEntity.setScope(RoleScope.API);
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), eq(RoleScope.API))).thenReturn(poRoleEntity);
 
         RoleEntity ownerRoleEntity = new RoleEntity();
-        ownerRoleEntity.setId("API_OWNER");
+        ownerRoleEntity.setId(OWNER_ROLE_ID);
+        ownerRoleEntity.setScope(RoleScope.API);
+
+        when(roleService.findByIdAndOrganizationId(anyString(), eq(GraviteeContext.getExecutionContext().getOrganizationId())))
+            .thenAnswer(invocationOnMock -> {
+                if (PO_ROLE_ID.equals(invocationOnMock.getArgument(0))) {
+                    return Optional.of(poRoleEntity);
+                } else if (OWNER_ROLE_ID.equals(invocationOnMock.getArgument(0))) {
+                    return Optional.of(ownerRoleEntity);
+                }
+                return Optional.empty();
+            });
 
         MemberEntity po = new MemberEntity();
         po.setId("admin");
@@ -227,12 +232,12 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
                 API_ID,
                 MembershipMemberType.USER,
                 user.getId(),
-                "API_OWNER"
+                OWNER_ROLE_ID
             );
     }
 
     @Test
-    public void shouldCreateImportApiWithMembers() throws IOException, TechnicalException {
+    public void shouldCreateImportApiWithMembers() throws IOException {
         URL url = Resources.getResource("io/gravitee/rest/api/management/service/import-api.definition+members.json");
         String toBeImport = Resources.toString(url, Charsets.UTF_8);
         ApiEntity apiEntity = new ApiEntity();
@@ -253,11 +258,23 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         when(userService.findById(GraviteeContext.getExecutionContext(), admin.getId())).thenReturn(admin);
 
         RoleEntity poRoleEntity = new RoleEntity();
-        poRoleEntity.setId("API_PRIMARY_OWNER");
+        poRoleEntity.setId(PO_ROLE_ID);
+        poRoleEntity.setScope(RoleScope.API);
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), eq(RoleScope.API))).thenReturn(poRoleEntity);
 
         RoleEntity ownerRoleEntity = new RoleEntity();
-        ownerRoleEntity.setId("API_OWNER");
+        ownerRoleEntity.setId(OWNER_ROLE_ID);
+        ownerRoleEntity.setScope(RoleScope.API);
+
+        when(roleService.findByIdAndOrganizationId(anyString(), eq(GraviteeContext.getExecutionContext().getOrganizationId())))
+            .thenAnswer(invocationOnMock -> {
+                if (PO_ROLE_ID.equals(invocationOnMock.getArgument(0))) {
+                    return Optional.of(poRoleEntity);
+                } else if (OWNER_ROLE_ID.equals(invocationOnMock.getArgument(0))) {
+                    return Optional.of(ownerRoleEntity);
+                }
+                return Optional.empty();
+            });
 
         MemberEntity po = new MemberEntity();
         po.setId("admin");
@@ -291,13 +308,13 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
                 API_ID,
                 MembershipMemberType.USER,
                 user.getId(),
-                "API_OWNER"
+                OWNER_ROLE_ID
             );
         verify(membershipService, never()).transferApiOwnership(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
     }
 
     @Test
-    public void shouldCreateImportApiWithPages() throws IOException, TechnicalException {
+    public void shouldCreateImportApiWithPages() throws IOException {
         URL url = Resources.getResource("io/gravitee/rest/api/management/service/import-api.definition+pages.json");
         String toBeImport = Resources.toString(url, Charsets.UTF_8);
         ApiEntity apiEntity = new ApiEntity();
@@ -511,7 +528,7 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
     }
 
     @Test
-    public void shouldCreateImportApiEvenIfMemberRoleIsInvalid() throws IOException, TechnicalException {
+    public void shouldCreateImportApiEvenIfMemberRoleIsInvalid() throws IOException {
         URL url = Resources.getResource("io/gravitee/rest/api/management/service/import-api.definition+members.json");
         String toBeImport = Resources.toString(url, Charsets.UTF_8);
         ApiEntity apiEntity = new ApiEntity();
@@ -530,11 +547,23 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         when(userService.findById(GraviteeContext.getExecutionContext(), admin.getId())).thenReturn(admin);
 
         RoleEntity poRoleEntity = new RoleEntity();
-        poRoleEntity.setId("API_PRIMARY_OWNER");
+        poRoleEntity.setId(PO_ROLE_ID);
+        poRoleEntity.setScope(RoleScope.API);
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), eq(RoleScope.API))).thenReturn(poRoleEntity);
 
         RoleEntity ownerRoleEntity = new RoleEntity();
-        ownerRoleEntity.setId("API_OWNER");
+        ownerRoleEntity.setId(OWNER_ROLE_ID);
+        ownerRoleEntity.setScope(RoleScope.API);
+
+        when(roleService.findByIdAndOrganizationId(anyString(), eq(GraviteeContext.getExecutionContext().getOrganizationId())))
+            .thenAnswer(invocationOnMock -> {
+                if (PO_ROLE_ID.equals(invocationOnMock.getArgument(0))) {
+                    return Optional.of(poRoleEntity);
+                } else if (OWNER_ROLE_ID.equals(invocationOnMock.getArgument(0))) {
+                    return Optional.of(ownerRoleEntity);
+                }
+                return Optional.empty();
+            });
 
         MemberEntity po = new MemberEntity();
         po.setId("admin");
@@ -552,7 +581,7 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
                 API_ID,
                 MembershipMemberType.USER,
                 user.getId(),
-                "API_OWNER"
+                OWNER_ROLE_ID
             )
         )
             .thenThrow(new RoleNotFoundException("API_OWNER Not found"));
@@ -647,5 +676,70 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
                 })
             );
         verify(pageService, times(1)).createAsideFolder(eq(GraviteeContext.getExecutionContext()), eq(apiId));
+    }
+
+    @Test
+    public void shouldImportApiWithoutMembersWrongRoles() throws IOException {
+        URL url = Resources.getResource("io/gravitee/rest/api/management/service/import-api.definition+members.json");
+        String toBeImport = Resources.toString(url, Charsets.UTF_8);
+        ApiEntity apiEntity = new ApiEntity();
+        Api api = new Api();
+        api.setId(API_ID);
+        apiEntity.setId(API_ID);
+        when(apiService.createWithApiDefinition(eq(GraviteeContext.getExecutionContext()), any(), any(), any())).thenReturn(apiEntity);
+
+        UserEntity admin = new UserEntity();
+        admin.setId("admin");
+        admin.setSource(SOURCE);
+        admin.setSourceId("ref-admin");
+        UserEntity user = new UserEntity();
+        user.setId("user");
+        user.setSource(SOURCE);
+        user.setSourceId("ref-user");
+        when(userService.findBySource(GraviteeContext.getExecutionContext(), user.getSource(), user.getSourceId(), false)).thenReturn(user);
+        when(userService.findById(GraviteeContext.getExecutionContext(), admin.getId())).thenReturn(admin);
+
+        RoleEntity poRoleEntity = new RoleEntity();
+        poRoleEntity.setId(PO_ROLE_ID);
+        poRoleEntity.setScope(RoleScope.API);
+        when(roleService.findPrimaryOwnerRoleByOrganization(any(), eq(RoleScope.API))).thenReturn(poRoleEntity);
+
+        RoleEntity ownerRoleEntity = new RoleEntity();
+        ownerRoleEntity.setId(OWNER_ROLE_ID);
+        ownerRoleEntity.setScope(RoleScope.ENVIRONMENT);
+
+        when(roleService.findByIdAndOrganizationId(anyString(), eq(GraviteeContext.getExecutionContext().getOrganizationId())))
+            .thenAnswer(invocationOnMock -> {
+                if (PO_ROLE_ID.equals(invocationOnMock.getArgument(0))) {
+                    return Optional.of(poRoleEntity);
+                } else if (OWNER_ROLE_ID.equals(invocationOnMock.getArgument(0))) {
+                    return Optional.of(ownerRoleEntity);
+                }
+                return Optional.empty();
+            });
+
+        MemberEntity po = new MemberEntity();
+        po.setId("admin");
+        po.setReferenceId(API_ID);
+        po.setReferenceType(MembershipReferenceType.API);
+        po.setRoles(Arrays.asList(poRoleEntity));
+        po.setType(MembershipMemberType.USER);
+        MemberEntity owner = new MemberEntity();
+        owner.setId("user");
+        owner.setReferenceId(API_ID);
+        owner.setReferenceType(MembershipReferenceType.API);
+        owner.setType(MembershipMemberType.USER);
+        owner.setRoles(Arrays.asList(ownerRoleEntity));
+        when(membershipService.getMembersByReference(eq(GraviteeContext.getExecutionContext()), any(), any()))
+            .thenReturn(Collections.singleton(po));
+
+        when(apiIdsCalculatorService.recalculateApiDefinitionIds(any(), any())).then(AdditionalAnswers.returnsSecondArg());
+
+        apiDuplicatorService.createWithImportedDefinition(GraviteeContext.getExecutionContext(), toBeImport);
+
+        verify(apiService, times(1)).createWithApiDefinition(eq(GraviteeContext.getExecutionContext()), any(), eq("admin"), any());
+        verify(pageService, times(1)).createAsideFolder(eq(GraviteeContext.getExecutionContext()), eq(API_ID));
+        verify(membershipService, never()).addRoleToMemberOnReference(any(), any(), any(), any(), any(), any());
+        verify(membershipService, never()).transferApiOwnership(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
     }
 }
