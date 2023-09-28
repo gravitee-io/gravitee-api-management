@@ -17,9 +17,8 @@ package io.gravitee.apim.core.api.model;
 
 import static org.assertj.core.api.Assertions.*;
 
-import io.gravitee.apim.core.exception.InvalidPathException;
+import io.gravitee.apim.core.exception.InvalidPathsException;
 import java.util.stream.Stream;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -54,6 +53,6 @@ class PathTest {
     @MethodSource("invalidPaths")
     void should_throw_exception_if_path_is_invalid(String invalidPath) {
         var throwable = catchThrowable(() -> Path.sanitizePath(invalidPath));
-        assertThat(throwable).isInstanceOf(InvalidPathException.class);
+        assertThat(throwable).isInstanceOf(InvalidPathsException.class);
     }
 }

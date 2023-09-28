@@ -20,6 +20,7 @@ import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDoc
 
 import com.google.common.base.Strings;
 import io.gravitee.apim.core.api.usecase.VerifyApiPathsUsecase;
+import io.gravitee.apim.core.exception.InvalidPathsException;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.exception.InvalidImageException;
@@ -238,7 +239,7 @@ public class ApisResource extends AbstractResource {
             );
 
             return Response.accepted(VerifyApiPathsResponse.builder().ok(true).build()).build();
-        } catch (Exception e) {
+        } catch (InvalidPathsException e) {
             return Response.accepted(VerifyApiPathsResponse.builder().ok(false).reason(e.getMessage()).build()).build();
         }
     }

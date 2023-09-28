@@ -15,7 +15,7 @@
  */
 package io.gravitee.apim.core.api.model;
 
-import io.gravitee.apim.core.exception.InvalidPathException;
+import io.gravitee.apim.core.exception.InvalidPathsException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -66,7 +66,7 @@ public class Path {
             try {
                 new URL("https", "localhost", 80, sanitizedPath).toURI();
             } catch (MalformedURLException | URISyntaxException e) {
-                throw new InvalidPathException(e.getMessage());
+                throw new InvalidPathsException(e.getMessage());
             }
         }
         return sanitizedPath;

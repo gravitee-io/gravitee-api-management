@@ -21,7 +21,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
-import io.gravitee.apim.infra.domain_service.api.VerifyApiPathDomainServiceImpl;
+import io.gravitee.apim.infra.domain_service.api.ApiDefinitionParserDomainServiceImpl;
+import io.gravitee.apim.infra.domain_service.api.ApiHostValidatorDomainServiceImpl;
 import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
@@ -424,6 +425,11 @@ public class ResourceContextConfiguration {
 
     @Bean
     public VerifyApiPathDomainService verifyApiPathDomainService() {
-        return new VerifyApiPathDomainServiceImpl(environmentCrudService, apiQueryService, new GraviteeMapper());
+        return new VerifyApiPathDomainService(
+            environmentCrudService,
+            apiQueryService,
+            new ApiDefinitionParserDomainServiceImpl(objectMapper()),
+            new ApiHostValidatorDomainServiceImpl()
+        );
     }
 }

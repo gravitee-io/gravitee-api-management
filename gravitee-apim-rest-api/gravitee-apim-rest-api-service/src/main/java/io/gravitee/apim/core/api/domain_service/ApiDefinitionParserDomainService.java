@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.exception;
+package io.gravitee.apim.core.api.domain_service;
 
-public class InvalidPathException extends RuntimeException {
-
-    public InvalidPathException(String message) {
-        super(message);
-    }
+public interface ApiDefinitionParserDomainService {
+    io.gravitee.definition.model.v4.Api readV4ApiDefinition(String apiDefinition);
+    io.gravitee.definition.model.Api readV2ApiDefinition(String apiDefinition);
 }
