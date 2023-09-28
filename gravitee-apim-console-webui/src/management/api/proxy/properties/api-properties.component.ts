@@ -125,7 +125,7 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
   addProperty() {
     this.matDialog
       .open<PropertiesAddDialogComponent, PropertiesAddDialogData, PropertiesAddDialogResult>(PropertiesAddDialogComponent, {
-        width: GIO_DIALOG_WIDTH.MEDIUM,
+        width: GIO_DIALOG_WIDTH.SMALL,
         data: {
           properties: this.apiProperties,
         },
