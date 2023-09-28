@@ -36,15 +36,25 @@ import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.gateway.tests.fakes.policies.PathParamToHeaderPolicy;
 import io.gravitee.plugin.policy.PolicyPlugin;
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.rxjava3.core.buffer.Buffer;
 import io.vertx.rxjava3.core.http.HttpClient;
 import io.vertx.rxjava3.core.http.HttpClientRequest;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -61,6 +71,7 @@ class PathParametersIntegrationTest extends AbstractGatewayTest {
     protected void configureGateway(GatewayConfigurationBuilder gatewayConfigurationBuilder) {
         super.configureGateway(gatewayConfigurationBuilder);
         gatewayConfigurationBuilder.set("api.jupiterMode.enabled", "true");
+        gatewayConfigurationBuilder.set("http.instances", 0);
     }
 
     @Override
@@ -78,13 +89,7 @@ class PathParametersIntegrationTest extends AbstractGatewayTest {
     void should_not_add_path_param_to_headers_when_no_param(HttpClient httpClient) throws InterruptedException {
         wiremock.stubFor(get("/endpoint").willReturn(ok("response from backend")));
 
-        httpClient
-            .rxRequest(HttpMethod.GET, "/test")
-            .flatMap(HttpClientRequest::rxSend)
-            .flatMap(response -> {
-                assertThat(response.statusCode()).isEqualTo(200);
-                return response.body();
-            })
+        callUrl(httpClient, HttpMethod.GET, "/test")
             .test()
             .await()
             .assertComplete()
@@ -109,13 +114,7 @@ class PathParametersIntegrationTest extends AbstractGatewayTest {
     ) throws InterruptedException {
         wiremock.stubFor(request(method, urlEqualTo("/endpoint" + path)).willReturn(ok("response from backend")));
 
-        httpClient
-            .rxRequest(HttpMethod.valueOf(method), "/test" + path)
-            .flatMap(HttpClientRequest::rxSend)
-            .flatMap(response -> {
-                assertThat(response.statusCode()).isEqualTo(200);
-                return response.body();
-            })
+        callUrl(httpClient, HttpMethod.valueOf(method), "/test" + path)
             .test()
             .await()
             .assertComplete()
@@ -130,6 +129,40 @@ class PathParametersIntegrationTest extends AbstractGatewayTest {
         excludedHeaders.forEach(key -> requestedFor.withoutHeader(PathParamToHeaderPolicy.X_PATH_PARAM + key));
 
         wiremock.verify(1, requestedFor);
+    }
+
+    private static Single<Buffer> callUrl(HttpClient httpClient, HttpMethod method, String path) {
+        return httpClient
+            .rxRequest(method, path)
+            .flatMap(HttpClientRequest::rxSend)
+            .flatMap(response -> {
+                assertThat(response.statusCode()).isEqualTo(200);
+                return response.body();
+            });
+    }
+
+    @Test
+    @DeployApi("/apis/http/pathparam/api-path-param.json")
+    void should_handle_mulitple_parallel_execution_when_path_param(HttpClient httpClient) throws InterruptedException {
+        wiremock.stubFor(request("GET", urlEqualTo("/endpoint/products")).willReturn(ok("response from backend")));
+
+        int nbCall = 1_000;
+
+        Flowable
+            .range(1, nbCall)
+            .subscribeOn(Schedulers.io()) // Change scheduler to avoid blocking the main thread
+            .flatMap(i -> callUrl(httpClient, HttpMethod.GET, "/test/products").toFlowable())
+            .test()
+            .awaitDone(5, TimeUnit.SECONDS)
+            .assertComplete()
+            .assertNoErrors()
+            .assertValueCount(nbCall)
+            .assertValueSequence(
+                IntStream.range(0, nbCall).mapToObj(i -> Buffer.buffer("response from backend")).collect(Collectors.toList())
+            );
+
+        final RequestPatternBuilder requestedFor = requestedFor("GET", urlPathEqualTo("/endpoint/products"));
+        wiremock.verify(nbCall, requestedFor);
     }
 
     private RequestPatternBuilder requestedFor(String method, UrlPattern urlPattern) {

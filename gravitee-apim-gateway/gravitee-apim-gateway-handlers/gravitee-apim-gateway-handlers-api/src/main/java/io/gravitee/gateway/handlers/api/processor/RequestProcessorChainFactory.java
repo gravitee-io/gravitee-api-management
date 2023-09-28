@@ -137,8 +137,7 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
         } else if (api.getDefinitionVersion() == DefinitionVersion.V2) {
             final PathParametersExtractor extractor = new PathParametersExtractor(api);
             if (extractor.canExtractPathParams()) {
-                final PathParametersProcessor pathParametersProcessor = new PathParametersProcessor(extractor);
-                add(() -> pathParametersProcessor);
+                add(() -> new PathParametersProcessor(extractor));
             }
 
             if (api.getDefinition().getFlowMode() == null || api.getDefinition().getFlowMode() == FlowMode.DEFAULT) {
