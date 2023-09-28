@@ -77,16 +77,12 @@ public class DebugSyncApiReactor extends SyncApiReactor {
     public Completable handle(final MutableExecutionContext ctx) {
         /*
          * Debug path contains a generated uuid to isolate each debug request.
-         * The code bellow remove this generated uuid from both context path and path the uuid and override request attributes to be sure the gateway find the right api
+         * The code bellow remove this generated uuid from both context path, path and pathInfo and override request attributes to be sure the gateway find the right api
          */
         String debugContextPath = ctx.request().contextPath();
         String cleanContextPath = PathTransformer.removeEventIdFromPath(((DebugApi) api).getEventId(), debugContextPath);
         ctx.request().contextPath(cleanContextPath);
 
-        String debugPath = ctx.request().path();
-        String cleanPath = PathTransformer.removeEventIdFromPath(((DebugApi) api).getEventId(), debugPath);
-        String pathInfo = cleanPath.substring((cleanContextPath.length() == 1) ? 0 : cleanContextPath.length() - 1);
-        ctx.request().pathInfo(pathInfo);
         return super.handle(ctx);
     }
 
