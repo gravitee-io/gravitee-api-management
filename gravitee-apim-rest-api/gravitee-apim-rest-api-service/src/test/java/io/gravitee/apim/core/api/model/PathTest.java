@@ -15,9 +15,11 @@
  */
 package io.gravitee.apim.core.api.model;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
+import io.gravitee.apim.core.exception.InvalidPathException;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -32,13 +34,26 @@ class PathTest {
             Arguments.of("/path", "/path/"),
             Arguments.of("path/", "/path/"),
             Arguments.of("//path/", "/path/"),
-            Arguments.of("path//subpath", "/path/subpath/")
+            Arguments.of("path//subpath", "/path/subpath/"),
+            Arguments.of("path?param=value", "/path?param=value/"),
+            Arguments.of("path?param=value%20s", "/path?param=value%20s/")
         );
+    }
+
+    public static Stream<Arguments> invalidPaths() {
+        return Stream.of(Arguments.of("invalid%path"), Arguments.of("invalid path"), Arguments.of("invalid>path"));
     }
 
     @ParameterizedTest
     @MethodSource("sanitizeParams")
-    void should_add_initial_slash(String input, String expected) {
+    void should_sanitize_path(String input, String expected) {
         assertThat(Path.sanitizePath(input)).isEqualTo(expected);
+    }
+
+    @ParameterizedTest
+    @MethodSource("invalidPaths")
+    void should_throw_exception_if_path_is_invalid(String invalidPath) {
+        var throwable = catchThrowable(() -> Path.sanitizePath(invalidPath));
+        assertThat(throwable).isInstanceOf(InvalidPathException.class);
     }
 }

@@ -119,7 +119,7 @@ class VerifyApiPathDomainServiceImplTest {
         givenExistingEnvironment(ENVIRONMENT_ID, null);
 
         var throwable = catchThrowable(() ->
-            service.verifyApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().path("invalid+path").build()))
+            service.verifyApiPaths(ENVIRONMENT_ID, "api-id", List.of(Path.builder().path("invalid>path").build()))
         );
 
         assertThat(throwable).isInstanceOf(InvalidPathException.class);
