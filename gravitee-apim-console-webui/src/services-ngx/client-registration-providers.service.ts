@@ -63,9 +63,9 @@ export class ClientRegistrationProvidersService {
     );
   }
 
-  delete(clientRegistrationProvider: ClientRegistrationProvider): Observable<any> {
+  delete(clientRegistrationProviderId: string): Observable<any> {
     return this.http.delete(
-      `${this.constants.env.baseURL}/configuration/applications/registration/providers/${clientRegistrationProvider.id}`,
+      `${this.constants.env.baseURL}/configuration/applications/registration/providers/${clientRegistrationProviderId}`,
     );
   }
 }
