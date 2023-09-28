@@ -29,6 +29,16 @@ export class ReleaseCommitAndPrepareNextVersionJob {
 
     dynamicConfig.importOrb(orbs.keeper);
 
+    let nextVersion = '';
+    let nextQualifier = '';
+    if (parsedVersion.qualifier.full === '') {
+      nextVersion = `${parsedVersion.version.major}.${parsedVersion.version.minor}.${Number(parsedVersion.version.patch) + 1}`;
+      nextQualifier = '';
+    } else {
+      nextVersion = `${parsedVersion.version.major}.${parsedVersion.version.minor}.${parsedVersion.version.patch}`;
+      nextQualifier = `-${parsedVersion.qualifier.name}.${Number(parsedVersion.qualifier.version) + 1}`;
+    }
+
     const steps: Command[] = [
       new commands.Checkout(),
       new commands.workspace.Attach({ at: '.' }),
@@ -64,21 +74,13 @@ git commit -m "${environment.graviteeioVersion}"
 git tag ${environment.graviteeioVersion}
 
 # Set the version to the next version (bump patch version + '-SNAPSHOT')
-${
-  parsedVersion.qualifier.full === ''
-    ? `export MVN_PRJ_NEXT_VERSION="${parsedVersion.version.major}.${parsedVersion.version.minor}.$((${parsedVersion.version.patch}+1))"
-export MVN_PRJ_NEXT_QUALIFIER=""`
-    : `export MVN_PRJ_NEXT_VERSION="${parsedVersion.version.major}.${parsedVersion.version.minor}.${parsedVersion.version.patch}"
-export MVN_PRJ_NEXT_QUALIFIER="-${parsedVersion.qualifier.name}.$((${parsedVersion.qualifier.version}+1))"`
-}
-
-sed -i "s#<revision>.*</revision>#<revision>\${MVN_PRJ_NEXT_VERSION}</revision>#" pom.xml                   
+sed -i "s#<revision>.*</revision>#<revision>${nextVersion}</revision>#" pom.xml                   
 sed -i "s#<changelist>.*</changelist>#<changelist>-SNAPSHOT</changelist>#" pom.xml
-sed -i "s#<sha1>.*</sha1>#<sha1>\${MVN_PRJ_NEXT_QUALIFIER}</sha1>#" pom.xml
+sed -i "s#<sha1>.*</sha1>#<sha1>${nextQualifier}</sha1>#" pom.xml
 
-sed -i 's#version: ".*"#version: "\${MVN_PRJ_NEXT_VERSION}\${MVN_PRJ_NEXT_QUALIFIER}-SNAPSHOT"#' gravitee-apim-rest-api/gravitee-apim-rest-api-portal/gravitee-apim-rest-api-portal-rest/src/main/resources/portal-openapi.yaml
-sed -i 's#"version": ".*"#"version": "\${MVN_PRJ_NEXT_VERSION}\${MVN_PRJ_NEXT_QUALIFIER}-SNAPSHOT"#' gravitee-apim-console-webui/build.json
-sed -i 's#"version": ".*"#"version": "\${MVN_PRJ_NEXT_VERSION}\${MVN_PRJ_NEXT_QUALIFIER}-SNAPSHOT"#' gravitee-apim-portal-webui/build.json
+sed -i 's#version: ".*"#version: "${nextVersion}${nextQualifier}-SNAPSHOT"#' gravitee-apim-rest-api/gravitee-apim-rest-api-portal/gravitee-apim-rest-api-portal-rest/src/main/resources/portal-openapi.yaml
+sed -i 's#"version": ".*"#"version": "${nextVersion}${nextQualifier}-SNAPSHOT"#' gravitee-apim-console-webui/build.json
+sed -i 's#"version": ".*"#"version": "${nextVersion}${nextQualifier}-SNAPSHOT"#' gravitee-apim-portal-webui/build.json
 
 git add --update
 git commit -m 'chore: prepare next version [skip ci]'
