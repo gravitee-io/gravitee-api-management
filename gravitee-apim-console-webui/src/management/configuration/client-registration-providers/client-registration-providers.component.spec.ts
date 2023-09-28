@@ -22,7 +22,9 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
-import { GioLicenseTestingModule } from '@gravitee/ui-particles-angular';
+import { GioConfirmDialogHarness, GioLicenseTestingModule } from '@gravitee/ui-particles-angular';
+import { MatButtonHarness } from '@angular/material/button/testing';
+import { InteractivityChecker } from '@angular/cdk/a11y';
 
 import { ClientRegistrationProvidersComponent } from './client-registration-providers.component';
 import { ClientRegistrationProvidersModule } from './client-registration-providers.module';
@@ -70,6 +72,7 @@ describe('ClientRegistrationProviders', () => {
 
   let fixture: ComponentFixture<ClientRegistrationProvidersComponent>;
   let loader: HarnessLoader;
+  let rootLoader: HarnessLoader;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -95,13 +98,21 @@ describe('ClientRegistrationProviders', () => {
           },
         },
       ],
-    }).compileComponents();
+    })
+      .overrideProvider(InteractivityChecker, {
+        useValue: {
+          isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
+          isTabbable: () => true, // Allows to choose a day in the calendar
+        },
+      })
+      .compileComponents();
   });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(ClientRegistrationProvidersComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
     loader = TestbedHarnessEnvironment.loader(fixture);
+    rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     fixture.detectChanges();
     httpTestingController
       .expectOne({
@@ -170,6 +181,23 @@ describe('ClientRegistrationProviders', () => {
       ['Fake ClientRegistrationProvider', 'My ClientRegistrationProvider', 'Nov 10, 2021, 9:26:15 AM', ''],
       ['Fake ClientRegistrationProvider', 'My ClientRegistrationProvider', 'Nov 10, 2021, 9:26:15 AM', ''],
     ]);
+  });
+
+  it('should delete DCR providers', async () => {
+    const matTable = await loader.getHarness(MatTableHarness);
+
+    const actionsCell = await matTable.getRows().then(async (rows) => rows[0].getCells().then(async (cells) => cells[3]));
+
+    const deleteButton = await actionsCell.getHarness(MatButtonHarness.with({ selector: `[aria-label="Button to remove a provider"]` }));
+    await deleteButton.click();
+
+    const confirmDialog = await rootLoader.getHarness(GioConfirmDialogHarness);
+    await confirmDialog.confirm();
+
+    httpTestingController.expectOne({
+      method: 'DELETE',
+      url: `${CONSTANTS_TESTING.env.baseURL}/configuration/applications/registration/providers/${providers[0].id}`,
+    });
   });
 
   async function checkToggle(toggles: { dataTestId: string; value: boolean; isDisabled: boolean }[]) {
