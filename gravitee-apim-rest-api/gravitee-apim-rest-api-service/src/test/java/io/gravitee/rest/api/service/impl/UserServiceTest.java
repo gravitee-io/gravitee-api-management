@@ -73,6 +73,9 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
@@ -1061,6 +1064,18 @@ public class UserServiceTest {
         )
             .thenReturn(mock(MetadataPage.class));
 
+        SecurityContextHolder.setContext(
+            new SecurityContext() {
+                @Override
+                public Authentication getAuthentication() {
+                    return null;
+                }
+
+                @Override
+                public void setAuthentication(final Authentication authentication) {}
+            }
+        );
+
         userService.resetPassword(GraviteeContext.getExecutionContext(), USER_NAME);
 
         verify(user, never()).setPassword(null);
@@ -1089,6 +1104,18 @@ public class UserServiceTest {
         )
             .thenReturn(mdPage);
 
+        SecurityContextHolder.setContext(
+            new SecurityContext() {
+                @Override
+                public Authentication getAuthentication() {
+                    return null;
+                }
+
+                @Override
+                public void setAuthentication(final Authentication authentication) {}
+            }
+        );
+
         userService.resetPassword(GraviteeContext.getExecutionContext(), USER_NAME);
 
         verify(user, never()).setPassword(null);
@@ -1113,6 +1140,18 @@ public class UserServiceTest {
             )
         )
             .thenReturn(mdPage);
+
+        SecurityContextHolder.setContext(
+            new SecurityContext() {
+                @Override
+                public Authentication getAuthentication() {
+                    return null;
+                }
+
+                @Override
+                public void setAuthentication(final Authentication authentication) {}
+            }
+        );
 
         userService.resetPassword(GraviteeContext.getExecutionContext(), USER_NAME);
 
