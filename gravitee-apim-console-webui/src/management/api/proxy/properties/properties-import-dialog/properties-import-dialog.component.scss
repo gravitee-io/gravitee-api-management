@@ -1,3 +1,7 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
 .title {
   display: flex;
   padding-bottom: 32px;
@@ -6,5 +10,16 @@
 
   h2 {
     margin: 0;
+  }
+}
+
+.field {
+  width: 100%;
+}
+
+.actions {
+  &__importInvalid {
+    background-color: mat.get-color-from-palette(gio.$mat-error-palette, default);
+    color: mat.get-color-from-palette(gio.$mat-error-palette, default-contrast);
   }
 }

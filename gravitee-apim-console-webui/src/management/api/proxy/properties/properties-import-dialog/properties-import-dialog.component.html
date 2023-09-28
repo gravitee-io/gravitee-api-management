@@ -28,9 +28,43 @@
     <mat-icon class="title__cancel" svgIcon="gio:cancel"> </mat-icon>
   </button>
 </div>
-<mat-dialog-content> 🚧 </mat-dialog-content>
+<mat-dialog-content [formGroup]="formGroup">
+  <mat-form-field class="field">
+    <textarea matInput formControlName="properties" placeholder='NEW_PROPERTY_KEY="New property value"' rows="10"></textarea>
+  </mat-form-field>
 
-<mat-dialog-actions class="actions">
+  <gio-banner-error *ngIf="formGroup.get('properties').hasError('propertiesFormat')">
+    Errors detected in properties filled
+    <span gioBannerBody [innerHTML]="formGroup.get('properties').getError('propertiesFormat')"></span>
+  </gio-banner-error>
+  <gio-banner-warning
+    *ngIf="
+      formGroup.get('properties').hasError('duplicateKeysReplaced') || formGroup.get('properties').hasError('duplicateKeysNotReplaced')
+    "
+  >
+    Conflicts detected with existing properties
+    <span gioBannerBody>
+      <div *ngIf="formGroup.get('properties').hasError('duplicateKeysReplaced')">
+        {{ formGroup.get('properties').getError('duplicateKeysReplaced') }}
+      </div>
+      <div *ngIf="formGroup.get('properties').hasError('duplicateKeysNotReplaced')">
+        {{ formGroup.get('properties').getError('duplicateKeysNotReplaced') }}
+      </div>
+    </span>
+  </gio-banner-warning>
+</mat-dialog-content>
+
+<mat-dialog-actions class="actions" align="end">
   <button mat-button [mat-dialog-close]="">Cancel</button>
-  <button mat-button [disabled]="formGroup.invalid" color="primary" type="button" (click)="onSave()">Import properties</button>
+  <button
+    [class.actions__importInvalid]="formGroup.invalid"
+    mat-button
+    matTooltip="Import valid properties only!"
+    [matTooltipDisabled]="formGroup.valid"
+    color="primary"
+    type="button"
+    (click)="onSave()"
+  >
+    Import properties
+  </button>
 </mat-dialog-actions>

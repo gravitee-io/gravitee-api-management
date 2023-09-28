@@ -291,14 +291,65 @@ describe('ApiPropertiesComponent', () => {
     expectGetApi(
       fakeApiV4({
         id: API_ID,
-        properties: [],
+        properties: [
+          { key: 'ExistingProp', value: 'To overwrite', encrypted: false },
+          { key: 'ExistingEncryptedProp', value: 'Not changed', encrypted: true },
+        ],
       }),
     );
 
     await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Import properties"]' })).then((btn) => btn.click());
 
     const importDialog = await rootLoader.getHarness(PropertiesImportDialogHarness);
-    expect(importDialog).toBeTruthy();
+
+    const properties = `ExistingProp=New Value
+    ExistingEncryptedProp=New Value
+newKey=value
+newKey=value
+# key4=value4
+BadProperty
+`;
+    await importDialog.setProperties(properties);
+
+    expect(await importDialog.getErrorMessage()).toEqual(
+      "Errors detected in properties filled Line 4 is not valid. Key 'newKey' is duplicatedLine 6 is not valid. It must contain '='",
+    );
+    expect(await importDialog.getWarningMessage()).toEqual(
+      'Conflicts detected with existing properties  Overwritten keys: ExistingProp  Skipped keys (encrypted): ExistingEncryptedProp',
+    );
+
+    await importDialog.import();
+
+    expectGetApi(
+      fakeApiV4({
+        id: API_ID,
+        properties: [
+          { key: 'ExistingProp', value: 'To overwrite', encrypted: false },
+          { key: 'ExistingEncryptedProp', value: 'Not changed', encrypted: true },
+        ],
+      }),
+    );
+
+    const postApiReq = httpTestingController.expectOne({
+      method: 'PUT',
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`,
+    });
+
+    expect(postApiReq.request.body.properties).toEqual([
+      {
+        encrypted: true,
+        key: 'ExistingEncryptedProp',
+        value: 'Not changed',
+      },
+      {
+        key: 'ExistingProp',
+        value: 'New Value',
+      },
+      {
+        key: 'newKey',
+        value: 'value',
+      },
+    ]);
   });
 
   async function getCellContentByIndex(table: MatTableHarness) {

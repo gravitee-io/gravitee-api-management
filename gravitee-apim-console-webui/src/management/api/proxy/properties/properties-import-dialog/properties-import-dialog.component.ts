@@ -14,12 +14,18 @@
  * limitations under the License.
  */
 import { Component, Inject } from '@angular/core';
-import { FormGroup } from '@angular/forms';
+import { FormControl, FormGroup, ValidatorFn } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { isEmpty } from 'lodash';
 
-export type PropertiesImportDialogData = undefined;
+import { Property } from '../../../../../entities/management-api-v2';
+import { parsePropertiesStringFormat } from '../../../../../shared/utils';
 
-export type PropertiesImportDialogResult = undefined;
+export type PropertiesImportDialogData = {
+  properties: Property[];
+};
+
+export type PropertiesImportDialogResult = (existingProperties: Property[]) => Property[];
 
 @Component({
   selector: 'properties-import-dialog',
@@ -27,14 +33,64 @@ export type PropertiesImportDialogResult = undefined;
   styles: [require('./properties-import-dialog.component.scss')],
 })
 export class PropertiesImportDialogComponent {
-  public formGroup = new FormGroup({});
+  public formGroup = new FormGroup({
+    properties: new FormControl(''),
+  });
 
   constructor(
     private readonly dialogRef: MatDialogRef<PropertiesImportDialogData, PropertiesImportDialogResult>,
     @Inject(MAT_DIALOG_DATA) dialogData: PropertiesImportDialogData,
-  ) {}
+  ) {
+    this.formGroup.get('properties').addValidators([this.validateProperties(dialogData?.properties ?? [])]);
+    this.formGroup.get('properties').updateValueAndValidity();
+  }
 
   public onSave(): void {
-    this.dialogRef.close();
+    const propertiesParsed = parsePropertiesStringFormat(this.formGroup.get('properties').value);
+
+    this.dialogRef.close((existingProperties: Property[]) => {
+      const existingKeysEncrypted = existingProperties.filter((p) => p.encrypted).map((p) => p.key);
+
+      // Remove encrypted properties from import
+      const propertiesToImport = propertiesParsed.properties.filter((p) => !existingKeysEncrypted.includes(p.key));
+
+      // Get existing properties not updated by import
+      const existingPropertiesToKeep = existingProperties.filter((p) => !propertiesToImport.map((p) => p.key).includes(p.key));
+
+      return [...existingPropertiesToKeep, ...propertiesToImport];
+    });
+  }
+
+  // Validate properties format
+  public validateProperties(properties: Property[]): ValidatorFn {
+    return (control) => {
+      const result: Record<string, string> = {};
+      const value = control.value;
+
+      if (!value) {
+        return null;
+      }
+
+      const propertiesParsed = parsePropertiesStringFormat(value);
+      if (propertiesParsed.errors.length > 0) {
+        result.propertiesFormat = propertiesParsed.errors.join('<br>');
+      }
+
+      if (propertiesParsed.properties.length > 0) {
+        const existingKeysNotEncrypted = properties.filter((p) => !p.encrypted).map((p) => p.key);
+        const duplicateKeysReplaced = propertiesParsed.properties.map((p) => p.key).filter((k) => existingKeysNotEncrypted.includes(k));
+        if (duplicateKeysReplaced.length > 0) {
+          result.duplicateKeysReplaced = `Overwritten keys: ${duplicateKeysReplaced.join(', ')}`;
+        }
+
+        const existingKeysEncrypted = properties.filter((p) => p.encrypted).map((p) => p.key);
+        const duplicateKeysNotReplaced = propertiesParsed.properties.map((p) => p.key).filter((k) => existingKeysEncrypted.includes(k));
+        if (duplicateKeysNotReplaced.length > 0) {
+          result.duplicateKeysNotReplaced = `Skipped keys (encrypted): ${duplicateKeysNotReplaced.join(', ')}`;
+        }
+      }
+
+      return isEmpty(result) ? null : result;
+    };
   }
 }
