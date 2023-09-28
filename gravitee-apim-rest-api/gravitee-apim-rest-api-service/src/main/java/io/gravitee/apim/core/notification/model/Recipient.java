@@ -13,38 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.model.notification;
+package io.gravitee.apim.core.notification.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-
-/**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
- * @author GraviteeSource Team
- */
-@AllArgsConstructor
-@Builder
-public class NotifierEntity {
-
-    @Getter
-    private String id;
-
-    private Type type;
-
-    @Getter
-    private String name;
-
-    public String getType() {
-        return type.name();
-    }
-
-    public Type type() {
-        return type;
-    }
-
-    public enum Type {
-        EMAIL,
-        WEBHOOK,
-    }
-}
+public record Recipient(String type, String value) {}

@@ -36,6 +36,7 @@ import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.notification.model.Recipient;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.listener.ListenerType;
@@ -822,50 +823,26 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 .build();
             if (subscription.getStatus() == Subscription.Status.ACCEPTED) {
                 notifierService.trigger(executionContext, ApiHook.SUBSCRIPTION_ACCEPTED, apiId, params);
-                notifierService.trigger(executionContext, ApplicationHook.SUBSCRIPTION_ACCEPTED, application.getId(), params);
-                searchSubscriberEmail(executionContext, subscriptionEntity)
-                    .ifPresent(subscriberEmail -> {
-                        if (
-                            !notifierService.hasEmailNotificationFor(
-                                executionContext,
-                                ApplicationHook.SUBSCRIPTION_ACCEPTED,
-                                application.getId(),
-                                params,
-                                subscriberEmail
-                            )
-                        ) {
-                            notifierService.triggerEmail(
-                                executionContext,
-                                ApplicationHook.SUBSCRIPTION_ACCEPTED,
-                                apiId,
-                                params,
-                                subscriberEmail
-                            );
-                        }
-                    });
+                notifierService.trigger(
+                    executionContext,
+                    ApplicationHook.SUBSCRIPTION_ACCEPTED,
+                    subscription.getApplication(),
+                    params,
+                    searchSubscriberEmail(executionContext, subscriptionEntity)
+                        .map(email -> List.of(new Recipient("EMAIL", email)))
+                        .orElse(Collections.emptyList())
+                );
             } else {
                 notifierService.trigger(executionContext, ApiHook.SUBSCRIPTION_REJECTED, apiId, params);
-                notifierService.trigger(executionContext, ApplicationHook.SUBSCRIPTION_REJECTED, application.getId(), params);
-                searchSubscriberEmail(executionContext, subscriptionEntity)
-                    .ifPresent(subscriberEmail -> {
-                        if (
-                            !notifierService.hasEmailNotificationFor(
-                                executionContext,
-                                ApplicationHook.SUBSCRIPTION_REJECTED,
-                                application.getId(),
-                                params,
-                                subscriberEmail
-                            )
-                        ) {
-                            notifierService.triggerEmail(
-                                executionContext,
-                                ApplicationHook.SUBSCRIPTION_REJECTED,
-                                apiId,
-                                params,
-                                subscriberEmail
-                            );
-                        }
-                    });
+                notifierService.trigger(
+                    executionContext,
+                    ApplicationHook.SUBSCRIPTION_REJECTED,
+                    subscription.getApplication(),
+                    params,
+                    searchSubscriberEmail(executionContext, subscriptionEntity)
+                        .map(email -> List.of(new Recipient("EMAIL", email)))
+                        .orElse(Collections.emptyList())
+                );
             }
 
             return subscriptionEntity;

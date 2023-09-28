@@ -49,6 +49,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.notification.model.Recipient;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
@@ -1118,8 +1119,6 @@ public class SubscriptionServiceTest {
         when(userService.findById(GraviteeContext.getExecutionContext(), SUBSCRIBER_ID)).thenReturn(subscriberUser);
 
         // Stub
-        when(notifierService.hasEmailNotificationFor(eq(GraviteeContext.getExecutionContext()), any(), any(), anyMap(), anyString()))
-            .thenReturn(false);
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
         when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
@@ -1135,7 +1134,16 @@ public class SubscriptionServiceTest {
         // Verify
         verify(apiKeyService, never()).generate(eq(GraviteeContext.getExecutionContext()), any(), any(), anyString());
         verify(userService).findById(GraviteeContext.getExecutionContext(), SUBSCRIBER_ID);
-        verify(notifierService).triggerEmail(eq(GraviteeContext.getExecutionContext()), any(), anyString(), anyMap(), anyString());
+        verify(notifierService)
+            .trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.SUBSCRIPTION_REJECTED), anyString(), anyMap());
+        verify(notifierService)
+            .trigger(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(ApplicationHook.SUBSCRIPTION_REJECTED),
+                eq(APPLICATION_ID),
+                anyMap(),
+                eq(List.of(new Recipient("EMAIL", SUBSCRIBER_ID + "@acme.net")))
+            );
 
         assertEquals(SubscriptionStatus.REJECTED, subscriptionEntity.getStatus());
         assertEquals(USER_ID, subscriptionEntity.getProcessedBy());
@@ -1156,8 +1164,6 @@ public class SubscriptionServiceTest {
         when(userService.findById(GraviteeContext.getExecutionContext(), SUBSCRIBER_ID)).thenReturn(subscriberUser);
 
         // Stub
-        when(notifierService.hasEmailNotificationFor(eq(GraviteeContext.getExecutionContext()), any(), any(), anyMap(), anyString()))
-            .thenReturn(true);
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
         when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
@@ -1173,7 +1179,6 @@ public class SubscriptionServiceTest {
         // Verify
         verify(apiKeyService, never()).generate(eq(GraviteeContext.getExecutionContext()), any(), any(), anyString());
         verify(userService).findById(GraviteeContext.getExecutionContext(), SUBSCRIBER_ID);
-        verify(notifierService, never()).triggerEmail(eq(GraviteeContext.getExecutionContext()), any(), anyString(), anyMap(), anyString());
 
         assertEquals(SubscriptionStatus.REJECTED, subscriptionEntity.getStatus());
         assertEquals(USER_ID, subscriptionEntity.getProcessedBy());

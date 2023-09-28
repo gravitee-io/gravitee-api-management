@@ -26,13 +26,13 @@ import org.junit.jupiter.api.Test;
 public class OnionArchitectureTest extends AbstractApimArchitectureTest {
 
     /**
-     * Code from {@link AbstractApimArchitectureTest#GRAVITEE_APIM_PACKAGE} should respect onion architecture
-     * https://www.archunit.org/userguide/html/000_Index.html#_onion_architecture
+     * Code from {@link AbstractApimArchitectureTest#GRAVITEE_APIM_PACKAGE} should respect
+     * <a href="https://www.archunit.org/userguide/html/000_Index.html#_onion_architecture">onion architecture</a>
      * The domain package is the core of the application. It consists of two parts.
      *
      * - The domainModels packages contain the domain entities.
      *
-     * - The packages in domainServices contains services that use the entities in the domainModel packages.
+     * - The packages in domainServices contain services that use the entities in the domainModel packages.
      *
      * The applicationServices packages contain services and configuration to run the application and use cases.
      * It can use the items of the domain package but there must not be any dependency from the domain to the application packages.
@@ -58,6 +58,7 @@ public class OnionArchitectureTest extends AbstractApimArchitectureTest {
                 anyPackageThatContains(INFRA_PACKAGE + "." + DOMAIN_SERVICE_PACKAGE),
                 anyPackageThatContains(INFRA_PACKAGE + "." + ADAPTER_PACKAGE)
             )
+            .adapter("templating", anyPackageThatContains(INFRA_PACKAGE + ".template"))
             .adapter("spring", anyPackageThatContains(INFRA_PACKAGE + ".spring"))
             .check(apimClassesWithoutTests());
     }
