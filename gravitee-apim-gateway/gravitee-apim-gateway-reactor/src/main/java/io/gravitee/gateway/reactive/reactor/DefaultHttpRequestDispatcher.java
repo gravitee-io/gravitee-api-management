@@ -198,7 +198,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
     }
 
     private Completable handleNotFound(final MutableExecutionContext ctx) {
-        ctx.request().pathInfo(ctx.request().path());
+        ctx.request().contextPath("/");
         ProcessorChain processorChain = notFoundProcessorChainFactory.processorChain();
         return HookHelper.hook(
             () -> processorChain.execute(ctx, ExecutionPhase.RESPONSE),
