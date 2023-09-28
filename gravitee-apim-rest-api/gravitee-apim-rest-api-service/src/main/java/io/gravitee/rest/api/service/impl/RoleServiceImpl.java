@@ -101,6 +101,18 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
     }
 
     @Override
+    public Optional<RoleEntity> findByIdAndOrganizationId(String roleId, String organizationId) {
+        try {
+            return roleRepository
+                .findByIdAndReferenceIdAndReferenceType(roleId, organizationId, RoleReferenceType.ORGANIZATION)
+                .map(this::convert);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to find roles by id and organizationId", ex);
+            throw new TechnicalManagementException("An error occurs while trying to find roles by id and organizationId", ex);
+        }
+    }
+
+    @Override
     public List<RoleEntity> findAllByOrganization(String organizationId) {
         try {
             LOGGER.debug("Find all Roles");
