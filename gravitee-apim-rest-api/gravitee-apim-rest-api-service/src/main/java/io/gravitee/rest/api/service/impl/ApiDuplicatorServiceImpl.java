@@ -407,7 +407,21 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 MemberToImport memberToImport = objectMapper.readValue(memberNode.toString(), MemberToImport.class);
                 boolean presentWithSameRole = isPresentWithSameRole(membersAlreadyPresent, memberToImport);
 
-                List<String> roleIdsToImport = getRoleIdsToImport(executionContext, memberToImport);
+                List<String> roleIdsToImport = getRoleIdsToImport(executionContext, memberToImport)
+                    .stream()
+                    .filter(roleId -> {
+                        var role = roleService.findByIdAndOrganizationId(roleId, executionContext.getOrganizationId());
+                        var isValidRole = role != null && RoleScope.API.equals(role.getScope());
+                        if (!isValidRole) {
+                            LOGGER.warn(
+                                "Role {} does not exist in organization {} or is not an API role",
+                                roleId,
+                                executionContext.getOrganizationId()
+                            );
+                        }
+                        return isValidRole;
+                    })
+                    .toList();
                 addOrUpdateMembers(
                     executionContext,
                     apiEntity.getId(),

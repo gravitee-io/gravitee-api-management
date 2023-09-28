@@ -174,6 +174,12 @@ public class MongoRoleRepository implements RoleRepository {
     }
 
     @Override
+    public Role findByIdAndReferenceIdAndReferenceType(String roleId, String referenceId, RoleReferenceType referenceType)
+        throws TechnicalException {
+        return this.map(internalRoleRepo.findByIdAndReferenceIdAndReferenceType(roleId, referenceId, referenceType.name()));
+    }
+
+    @Override
     public Set<Role> findByScopeAndReferenceIdAndReferenceType(RoleScope scope, String referenceId, RoleReferenceType referenceType)
         throws TechnicalException {
         LOGGER.debug("Find role by scope and ref [{}, {}, {}]", scope, referenceId, referenceType);

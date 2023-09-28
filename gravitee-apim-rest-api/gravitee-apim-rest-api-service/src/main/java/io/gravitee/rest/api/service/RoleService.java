@@ -45,6 +45,7 @@ public interface RoleService {
     void delete(ExecutionContext executionContext, String roleId);
     List<RoleEntity> findAllByOrganization(String organizationId);
     RoleEntity findById(String roleId);
+    RoleEntity findByIdAndOrganizationId(String roleId, String organizationId);
     List<RoleEntity> findByScope(RoleScope scope, String organizationId);
     Optional<RoleEntity> findByScopeAndName(RoleScope scope, String name, String organizationId);
     List<RoleEntity> findDefaultRoleByScopes(String organizationId, RoleScope... scopes);

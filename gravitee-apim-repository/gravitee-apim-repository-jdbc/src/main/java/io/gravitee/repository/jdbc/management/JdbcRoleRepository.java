@@ -28,6 +28,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.*;
+import javax.management.relation.RoleNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -284,6 +285,31 @@ public class JdbcRoleRepository extends JdbcAbstractCrudRepository<Role, String>
         } catch (final Exception ex) {
             LOGGER.error("Failed to find all roles by ref:", ex);
             throw new TechnicalException("Failed to find all roles by ref", ex);
+        }
+    }
+
+    @Override
+    public Role findByIdAndReferenceIdAndReferenceType(String roleId, String referenceId, RoleReferenceType referenceType)
+        throws TechnicalException {
+        LOGGER.debug("JdbcRoleRepository.findByIdAndReferenceIdAndReferenceType({}, {}, {})", roleId, referenceId, referenceType);
+        try {
+            JdbcHelper.CollatingRowMapper<Role> rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
+            jdbcTemplate.query(
+                getOrm().getSelectAllSql() +
+                " r " +
+                " left join " +
+                ROLE_PERMISSIONS +
+                " rp on rp.role_id = r.id" +
+                " where r.id = ? and r.reference_id = ? and r.reference_type = ?",
+                rowMapper,
+                roleId,
+                referenceId,
+                referenceType.name()
+            );
+            return rowMapper.getRows().stream().findFirst().orElse(null);
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to find role by id and organization id:", ex);
+            throw new TechnicalException("Failed to find role by id and organization id:", ex);
         }
     }
 
