@@ -22,25 +22,7 @@
 <form [formGroup]="applicationForm" autocomplete="off" *ngIf="!isLoadingData">
   <mat-card class="client-registration-providers__card">
     <mat-card-content>
-      <h3>Configuration</h3>
-      <strong class="client-registration-providers__card__subtitle">Enable Dynamic Client Registration</strong>
-
-      <gio-form-slide-toggle
-        class="client-registration-providers__card__toggle"
-        formGroupName="registration"
-        [matTooltip]="disabledMessage"
-        [matTooltipDisabled]="!this.applicationForm.get('registration.enabled').disabled"
-      >
-        <gio-form-label> Client registration for applications (OpenID Connect - Dynamic Client Registration) </gio-form-label>
-        <mat-slide-toggle
-          data-testid="registrationEnabled"
-          gioFormSlideToggle
-          formControlName="enabled"
-          aria-label="Client registration for applications (OpenID Connect - Dynamic Client Registration)"
-        ></mat-slide-toggle>
-      </gio-form-slide-toggle>
-
-      <strong class="client-registration-providers__card__subtitle">Allowed application types</strong>
+      <h3>Allowed application types</h3>
       <div formGroupName="types">
         <gio-form-slide-toggle
           class="client-registration-providers__card__toggle"
@@ -126,20 +108,53 @@
 <mat-card class="client-registration-providers__card">
   <mat-card-content>
     <div class="client-registration-providers__card__title">
-      <h3>DCR Providers</h3>
-      <button
-        *gioPermission="{ anyOf: ['environment-client_registration_provider-c'] }"
-        [gioLicense]="dcrRegistrationLicenseOptions"
-        mat-button
-        type="button"
-        mat-raised-button
-        color="primary"
-        (click)="onAddProvider()"
-      >
-        <mat-icon>add</mat-icon> Add a provider
-        <mat-icon *ngIf="hasDcrRegistrationLock$ | async" class="mat-icon-right" svgIcon="gio:lock"></mat-icon>
-      </button>
+      <div>
+        <h3>Client registration providers (DCR)</h3>
+        <span>
+          Client registration providers allows to plug any authorization server compliant with the
+          <a href="https://openid.net/specs/openid-connect-registration-1_0.html" target="_blank" rel="noopener noreferrer"
+            >OpenID Connect Dynamic Client Registration</a
+          >.
+          <br />
+          By defining this DCR (Dynamic Client Registration) provider it allows to associate auto-magically an OAuth client to an
+          application and apply security best practices according to the application type you choose.
+        </span>
+      </div>
+      <div>
+        <button
+          *gioPermission="{ anyOf: ['environment-client_registration_provider-c'] }"
+          [gioLicense]="dcrRegistrationLicenseOptions"
+          mat-button
+          type="button"
+          mat-raised-button
+          color="primary"
+          (click)="onAddProvider()"
+          [disabled]="providersTableDS.length >= 1"
+          matTooltip="Only one DCR provider is allowed."
+          [matTooltipDisabled]="providersTableDS.length < 1"
+        >
+          <mat-icon>add</mat-icon> Add a provider
+          <mat-icon *ngIf="hasDcrRegistrationLock$ | async" class="mat-icon-right" svgIcon="gio:lock"></mat-icon>
+        </button>
+      </div>
     </div>
+
+    <form [formGroup]="applicationForm" autocomplete="off" *ngIf="!isLoadingData">
+      <gio-form-slide-toggle
+        class="client-registration-providers__card__toggle"
+        formGroupName="registration"
+        [matTooltip]="disabledMessage"
+        [matTooltipDisabled]="!this.applicationForm.get('registration.enabled').disabled"
+      >
+        <gio-form-label> Enable client registration providers (DCR) for applications</gio-form-label>
+        <mat-slide-toggle
+          data-testid="registrationEnabled"
+          gioFormSlideToggle
+          formControlName="enabled"
+          aria-label="Client registration for applications (OpenID Connect - Dynamic Client Registration)"
+        ></mat-slide-toggle>
+      </gio-form-slide-toggle>
+    </form>
 
     <table
       mat-table
@@ -181,7 +196,7 @@
 
       <!-- Actions Column -->
       <ng-container matColumnDef="actions">
-        <th mat-header-cell *matHeaderCellDef id="actions">Actions</th>
+        <th mat-header-cell *matHeaderCellDef id="actions"></th>
         <td mat-cell *matCellDef="let element">
           <div class="actions">
             <button
@@ -211,7 +226,7 @@
       <!-- Row shown when there is no data -->
       <tr class="mat-row" *matNoDataRow>
         <td *ngIf="!isLoadingData && providersTableDS.length === 0" class="mat-cell" [attr.colspan]="displayedColumns.length">
-          {{ 'There is no API (yet).' }}
+          {{ 'No DCR provider configured.' }}
         </td>
         <td *ngIf="isLoadingData" class="mat-cell" [attr.colspan]="displayedColumns.length">
           {{ 'Loading...' }}
