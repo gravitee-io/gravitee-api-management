@@ -21,10 +21,22 @@ const cache = {
 
 const dockerImages = {
   cacheDir: '/tmp/docker-cache',
-  gateway: 'apim-gateway',
-  managementApi: 'apim-management-api',
-  console: 'apim-management-ui',
-  portal: 'apim-portal-ui',
+  gateway: {
+    project: 'gravitee-apim-gateway',
+    image: 'apim-gateway',
+  },
+  managementApi: {
+    project: 'gravitee-apim-rest-api',
+    image: 'apim-management-api',
+  },
+  console: {
+    project: 'gravitee-apim-console-webui',
+    image: 'apim-management-ui',
+  },
+  portal: {
+    project: 'gravitee-apim-portal-webui',
+    image: 'apim-portal-ui',
+  },
 };
 
 const executor = {
