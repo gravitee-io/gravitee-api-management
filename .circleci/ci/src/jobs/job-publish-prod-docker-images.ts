@@ -72,7 +72,11 @@ ${this.dockerBuildCommand(environment, config.dockerImages.portal, graviteeioVer
     return command;
   }
 
-  private static dockerBuildCommand(environment: CircleCIEnvironment, image: string, graviteeioVersion: GraviteeioVersion) {
+  private static dockerBuildCommand(
+    environment: CircleCIEnvironment,
+    { project, image }: { project: string; image: string },
+    graviteeioVersion: GraviteeioVersion,
+  ) {
     const graviteeioDownloadUrl = this.getGraviteeioDownloadUrl(environment, graviteeioVersion);
     const dockerBuildArgs = `--build-arg GRAVITEEIO_VERSION=${graviteeioVersion.full} --build-arg GRAVITEEIO_DOWNLOAD_URL=${graviteeioDownloadUrl}`;
 
@@ -85,7 +89,7 @@ ${this.dockerBuildCommand(environment, config.dockerImages.portal, graviteeioVer
 
     command += ` --platform=linux/arm64,linux/amd64 ${dockerBuildArgs}`;
     command += ` --quiet ${this.dockerTagArgument(environment, image, graviteeioVersion)}`;
-    command += ` ${this.dockerFileArgument(image)}`;
+    command += ` ${this.dockerFileArgument(project)}`;
 
     return command;
   }
@@ -123,7 +127,7 @@ ${this.dockerBuildCommand(environment, config.dockerImages.portal, graviteeioVer
     return downloadHost + targetFolder;
   }
 
-  private static dockerFileArgument(image: string) {
-    return ` -f ./gravitee-${image}/docker/Dockerfile-from-download ./gravitee-${image}/docker`;
+  private static dockerFileArgument(project: string) {
+    return ` -f ./${project}/docker/Dockerfile-from-download ./${project}/docker`;
   }
 }
