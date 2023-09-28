@@ -32,6 +32,10 @@ public interface EmailNotifierService {
         GenericNotificationConfig genericNotificationConfig,
         final Map<String, Object> params
     );
+
+    void trigger(ExecutionContext executionContext, final Hook hook, final Map<String, Object> templateData, List<String> recipients);
+
+    @Deprecated
     List<String> getMails(
         ExecutionContext executionContext,
         final GenericNotificationConfig genericNotificationConfig,

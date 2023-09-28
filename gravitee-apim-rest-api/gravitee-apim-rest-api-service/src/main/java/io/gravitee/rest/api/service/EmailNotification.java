@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import lombok.Builder;
 
 /**
  * @author Azize Elamrani (azize.elamrani at graviteesource.com)
@@ -102,15 +103,14 @@ public class EmailNotification {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof EmailNotification)) return false;
-        EmailNotification that = (EmailNotification) o;
+        if (!(o instanceof EmailNotification that)) return false;
         return (
             Objects.equals(from, that.from) &&
             Objects.equals(fromName, that.fromName) &&
             Arrays.equals(to, that.to) &&
             Objects.equals(template, that.template) &&
             Objects.equals(params, that.params) &&
-            Objects.equals(bcc, that.bcc) &&
+            Arrays.equals(bcc, that.bcc) &&
             Objects.equals(copyToSender, that.copyToSender) &&
             Objects.equals(replyTo, that.replyTo)
         );
