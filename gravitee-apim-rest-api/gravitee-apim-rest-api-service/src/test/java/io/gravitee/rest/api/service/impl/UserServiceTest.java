@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 import static io.gravitee.rest.api.service.common.JWTHelper.ACTION.RESET_PASSWORD;
 import static io.gravitee.rest.api.service.common.JWTHelper.ACTION.USER_REGISTRATION;
 import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_EMAIL_REGISTRATION_EXPIRE_AFTER;
@@ -48,8 +47,6 @@ import io.gravitee.rest.api.model.configuration.identity.RoleMappingEntity;
 import io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
-import io.gravitee.rest.api.model.permissions.RolePermission;
-import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -76,6 +73,9 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
@@ -191,9 +191,6 @@ public class UserServiceTest {
 
     @Mock
     private UserConverter userConverter;
-
-    @Mock
-    private PermissionService permissionService;
 
     @Before
     public void setup() {
@@ -1067,6 +1064,18 @@ public class UserServiceTest {
         )
             .thenReturn(mock(MetadataPage.class));
 
+        SecurityContextHolder.setContext(
+            new SecurityContext() {
+                @Override
+                public Authentication getAuthentication() {
+                    return null;
+                }
+
+                @Override
+                public void setAuthentication(final Authentication authentication) {}
+            }
+        );
+
         userService.resetPassword(GraviteeContext.getExecutionContext(), USER_NAME);
 
         verify(user, never()).setPassword(null);
@@ -1095,6 +1104,18 @@ public class UserServiceTest {
         )
             .thenReturn(mdPage);
 
+        SecurityContextHolder.setContext(
+            new SecurityContext() {
+                @Override
+                public Authentication getAuthentication() {
+                    return null;
+                }
+
+                @Override
+                public void setAuthentication(final Authentication authentication) {}
+            }
+        );
+
         userService.resetPassword(GraviteeContext.getExecutionContext(), USER_NAME);
 
         verify(user, never()).setPassword(null);
@@ -1119,6 +1140,18 @@ public class UserServiceTest {
             )
         )
             .thenReturn(mdPage);
+
+        SecurityContextHolder.setContext(
+            new SecurityContext() {
+                @Override
+                public Authentication getAuthentication() {
+                    return null;
+                }
+
+                @Override
+                public void setAuthentication(final Authentication authentication) {}
+            }
+        );
 
         userService.resetPassword(GraviteeContext.getExecutionContext(), USER_NAME);
 
