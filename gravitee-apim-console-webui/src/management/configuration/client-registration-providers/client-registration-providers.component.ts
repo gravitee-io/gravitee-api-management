@@ -35,7 +35,7 @@ export type ProvidersTableDS = {
   name: string;
   description: string;
   updatedAt: number;
-}[];
+};
 
 @Component({
   selector: 'client-registration-providers',
@@ -44,7 +44,7 @@ export type ProvidersTableDS = {
 })
 export class ClientRegistrationProvidersComponent implements OnInit, OnDestroy {
   applicationForm: FormGroup;
-  providersTableDS: ProvidersTableDS = [];
+  providersTableDS: ProvidersTableDS[] = [];
   displayedColumns = ['name', 'description', 'updatedAt', 'actions'];
   isLoadingData = true;
   disabledMessage = 'Configuration provided by the system';
@@ -83,7 +83,7 @@ export class ClientRegistrationProvidersComponent implements OnInit, OnDestroy {
       .pipe(
         tap(([settings, providers]) => {
           this.settings = settings;
-          this.providersTableDS = ClientRegistrationProvidersComponent.toProvidersTableDS(providers);
+          this.providersTableDS = toProvidersTableDS(providers);
 
           this.initApplicationForm(settings.application);
         }),
@@ -94,25 +94,15 @@ export class ClientRegistrationProvidersComponent implements OnInit, OnDestroy {
       });
   }
 
-  static toProvidersTableDS(providers: ClientRegistrationProvider[]): ProvidersTableDS {
-    return (providers || []).map((provider) => {
-      return {
-        id: provider.id,
-        name: provider.name,
-        description: provider.description,
-        updatedAt: provider.updated_at,
-      };
-    });
-  }
   onAddProvider() {
     this.ajsState.go('management.settings.clientregistrationproviders.create');
   }
 
-  onEditActionClicked(provider) {
+  onEditActionClicked(provider: ProvidersTableDS) {
     this.ajsState.go('management.settings.clientregistrationproviders.clientregistrationprovider', { id: provider.id });
   }
 
-  onRemoveActionClicked(provider) {
+  onRemoveActionClicked(provider: ProvidersTableDS) {
     this.matDialog
       .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
         width: '500px',
@@ -194,3 +184,14 @@ export class ClientRegistrationProvidersComponent implements OnInit, OnDestroy {
     return PortalSettingsService.isReadonly(this.settings, property);
   }
 }
+
+const toProvidersTableDS = (providers: ClientRegistrationProvider[]): ProvidersTableDS[] => {
+  return (providers || []).map((provider) => {
+    return {
+      id: provider.id,
+      name: provider.name,
+      description: provider.description,
+      updatedAt: provider.updated_at,
+    };
+  });
+};
