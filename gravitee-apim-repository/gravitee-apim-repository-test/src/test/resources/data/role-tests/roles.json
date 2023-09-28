@@ -17,7 +17,7 @@
     "permissions": [1,2,3]
   },
   {
-    "id": "API_find_by_scope_1",
+    "id": "an_api_organisation_role",
     "name": "find by scope 1",
     "referenceId": "DEFAULT",
     "referenceType": "ORGANIZATION",

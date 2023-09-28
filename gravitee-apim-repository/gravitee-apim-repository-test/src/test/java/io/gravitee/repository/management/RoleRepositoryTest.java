@@ -15,12 +15,15 @@
  */
 package io.gravitee.repository.management;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Role;
 import io.gravitee.repository.management.model.RoleReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
@@ -29,6 +32,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.Test;
 
 public class RoleRepositoryTest extends AbstractManagementRepositoryTest {
@@ -142,7 +146,7 @@ public class RoleRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldFindById() throws Exception {
-        Optional<Role> role = roleRepository.findById("API_find_by_scope_1");
+        Optional<Role> role = roleRepository.findById("an_api_organisation_role");
         assertTrue("role not found", role.isPresent());
         assertEquals("invalid name", "find by scope 1", role.get().getName());
         assertEquals("invalid description", "role description", role.get().getDescription());
@@ -168,5 +172,38 @@ public class RoleRepositoryTest extends AbstractManagementRepositoryTest {
     public void shouldNotUpdateNull() throws Exception {
         roleRepository.update(null);
         fail("A null role should not be updated");
+    }
+
+    @Test
+    public void shouldFindByIdAndOrganisationId() throws TechnicalException {
+        var id = "an_api_organisation_role";
+        Optional<Role> result = roleRepository.findByIdAndReferenceIdAndReferenceType(id, REFERENCE_ID, REFERENCE_TYPE);
+        SoftAssertions.assertSoftly(soft -> {
+            // check that role is present
+            soft.assertThat(result).isPresent();
+            var role = result.get();
+            soft.assertThat(role).isNotNull();
+            soft.assertThat(role.getId()).isEqualTo(id);
+            soft.assertThat(role.getReferenceId()).isEqualTo(REFERENCE_ID);
+            soft.assertThat(role.getReferenceType()).isEqualTo(REFERENCE_TYPE);
+        });
+    }
+
+    @Test
+    public void shouldNotFindByIdAndOrganisationIdWhenOrganisationIdIsWrong() throws TechnicalException {
+        assertThat(roleRepository.findByIdAndReferenceIdAndReferenceType("an_api_organisation_role", "dummy", REFERENCE_TYPE)).isEmpty();
+    }
+
+    @Test
+    public void shouldNotFindByIdAndOrganisationIdWhenRoleIdIsWrong() throws TechnicalException {
+        assertThat(roleRepository.findByIdAndReferenceIdAndReferenceType("dummy", REFERENCE_ID, REFERENCE_TYPE)).isEmpty();
+    }
+
+    @Test
+    public void shouldNotFindByIdAndOrganisationIdWhenReferenceTypeIsWrong() throws TechnicalException {
+        assertThat(
+            roleRepository.findByIdAndReferenceIdAndReferenceType("API_find_by_id_and_org_id", REFERENCE_ID, RoleReferenceType.ENVIRONMENT)
+        )
+            .isEmpty();
     }
 }

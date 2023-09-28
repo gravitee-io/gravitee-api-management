@@ -288,6 +288,31 @@ public class JdbcRoleRepository extends JdbcAbstractCrudRepository<Role, String>
     }
 
     @Override
+    public Optional<Role> findByIdAndReferenceIdAndReferenceType(String roleId, String referenceId, RoleReferenceType referenceType)
+        throws TechnicalException {
+        LOGGER.debug("JdbcRoleRepository.findByIdAndReferenceIdAndReferenceType({}, {}, {})", roleId, referenceId, referenceType);
+        try {
+            JdbcHelper.CollatingRowMapper<Role> rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
+            jdbcTemplate.query(
+                getOrm().getSelectAllSql() +
+                " r " +
+                " left join " +
+                ROLE_PERMISSIONS +
+                " rp on rp.role_id = r.id" +
+                " where r.id = ? and r.reference_id = ? and r.reference_type = ?",
+                rowMapper,
+                roleId,
+                referenceId,
+                referenceType.name()
+            );
+            return rowMapper.getRows().stream().findFirst();
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to find role by id and organization id:", ex);
+            throw new TechnicalException("Failed to find role by id and organization id:", ex);
+        }
+    }
+
+    @Override
     public Set<Role> findByScopeAndReferenceIdAndReferenceType(RoleScope scope, String referenceId, RoleReferenceType referenceType)
         throws TechnicalException {
         LOGGER.debug("JdbcRoleRepository.findByScopeAndReferenceIdAndReferenceType({}, {}, {})", scope, referenceId, referenceType);
