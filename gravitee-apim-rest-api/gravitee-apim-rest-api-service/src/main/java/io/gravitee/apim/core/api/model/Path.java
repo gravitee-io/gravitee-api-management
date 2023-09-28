@@ -16,6 +16,9 @@
 package io.gravitee.apim.core.api.model;
 
 import io.gravitee.apim.core.exception.InvalidPathException;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.regex.Pattern;
 import lombok.Builder;
 import lombok.Data;
@@ -27,7 +30,7 @@ import lombok.With;
 public class Path {
 
     private static final Pattern DUPLICATE_SLASH_REMOVER = Pattern.compile("[//]+");
-    private static final Pattern VALID_PATH = Pattern.compile("^[/.a-zA-Z0-9-_]*$");
+    private static final Pattern VALID_PATH = Pattern.compile("^[/.a-zA-Z0-9-_]*$"); //[-a-zA-Z0-9@:%_\+.~#?&//=]
     private static final String URI_PATH_SEPARATOR = "/";
     private static final char URI_PATH_SEPARATOR_CHAR = '/';
 
@@ -59,7 +62,13 @@ public class Path {
 
         sanitizedPath = DUPLICATE_SLASH_REMOVER.matcher(sanitizedPath).replaceAll(URI_PATH_SEPARATOR);
 
-        if (!VALID_PATH.matcher(sanitizedPath).matches()) throw new InvalidPathException(sanitizedPath);
+        if (sanitizedPath != null) {
+            try {
+                new URL("https", "localhost", 80, sanitizedPath).toURI();
+            } catch (MalformedURLException | URISyntaxException e) {
+                throw new InvalidPathException(e.getMessage());
+            }
+        }
         return sanitizedPath;
     }
 }
