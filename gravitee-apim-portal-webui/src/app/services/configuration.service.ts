@@ -45,19 +45,28 @@ export class ConfigurationService {
         }
 
         this.http
-          .get(configJson.baseURL + '/theme')
+          .get(`${configJson.baseURL}/ui/bootstrap`)
           .toPromise()
-          .then(theme => {
-            applyTheme(theme);
-          });
+          .then((bootstrapResponse: any) => {
+            const environmentBaseUrl = `${bootstrapResponse.baseURL}/environments/${bootstrapResponse.environmentId}`;
+            this.config = {};
+            this.config.baseURL = environmentBaseUrl;
+            this.http
+              .get(`${this.config.baseURL}/theme`)
+              .toPromise()
+              .then(theme => {
+                applyTheme(theme);
+              });
 
-        this.http.get(configJson.baseURL + '/configuration').subscribe(
-          configPortal => {
-            this.config = this._deepMerge(configJson, configPortal);
-            resolve(true);
-          },
-          () => resolve(false),
-        );
+            this.http.get(`${this.config.baseURL}/configuration`).subscribe(
+              configPortal => {
+                this.config = this._deepMerge(configJson, configPortal);
+                this.config.baseURL = environmentBaseUrl;
+                resolve(true);
+              },
+              () => resolve(false),
+            );
+          });
       });
     });
   }

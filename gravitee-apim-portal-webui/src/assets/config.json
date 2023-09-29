@@ -1,5 +1,5 @@
 {
-  "baseURL": "/portal/environments/DEFAULT",
+  "baseURL": "/portal",
   "homepage": {
     "featured": {
       "size": 9

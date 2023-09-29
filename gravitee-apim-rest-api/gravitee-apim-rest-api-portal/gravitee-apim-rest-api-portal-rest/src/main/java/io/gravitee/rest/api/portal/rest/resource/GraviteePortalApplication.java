@@ -15,8 +15,10 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import io.gravitee.rest.api.model.bootstrap.PortalUIBootstrapEntity;
 import io.gravitee.rest.api.portal.rest.mapper.ObjectMapperResolver;
 import io.gravitee.rest.api.portal.rest.provider.*;
+import io.gravitee.rest.api.portal.rest.resource.bootstrap.PortalUIBootstrapResource;
 import io.gravitee.rest.api.rest.filter.GraviteeContextResponseFilter;
 import io.gravitee.rest.api.rest.filter.PermissionsFilter;
 import io.gravitee.rest.api.rest.filter.SecurityContextFilter;
@@ -41,6 +43,7 @@ public class GraviteePortalApplication extends ResourceConfig {
         this.authenticationProviderManager = authenticationProviderManager;
 
         //Main resource
+        register(PortalUIBootstrapResource.class);
         register(EnvironmentsResource.class);
         register(OpenApiResource.class);
 

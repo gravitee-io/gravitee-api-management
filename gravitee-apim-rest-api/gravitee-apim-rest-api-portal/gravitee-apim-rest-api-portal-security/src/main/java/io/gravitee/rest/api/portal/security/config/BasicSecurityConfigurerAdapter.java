@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.rest.api.idp.api.IdentityProvider;
 import io.gravitee.rest.api.idp.core.plugin.IdentityProviderManager;
+import io.gravitee.rest.api.model.settings.Management;
 import io.gravitee.rest.api.security.authentication.AuthenticationProvider;
 import io.gravitee.rest.api.security.authentication.AuthenticationProviderManager;
 import io.gravitee.rest.api.security.authentication.GraviteeAuthenticationDetails;
@@ -26,11 +27,15 @@ import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.security.csrf.CookieCsrfSignedTokenRepository;
 import io.gravitee.rest.api.security.csrf.CsrfRequestMatcher;
 import io.gravitee.rest.api.security.filter.CsrfIncludeFilter;
+import io.gravitee.rest.api.security.filter.GraviteeContextAuthorizationFilter;
+import io.gravitee.rest.api.security.filter.GraviteeContextFilter;
 import io.gravitee.rest.api.security.filter.RecaptchaFilter;
 import io.gravitee.rest.api.security.filter.TokenAuthenticationFilter;
 import io.gravitee.rest.api.security.listener.AuthenticationFailureListener;
 import io.gravitee.rest.api.security.listener.AuthenticationSuccessListener;
 import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
+import io.gravitee.rest.api.service.AccessPointService;
+import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.ReCaptchaService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -39,6 +44,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.checkerframework.checker.guieffect.qual.UI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,6 +62,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.intercept.AuthorizationFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.csrf.*;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -98,6 +105,12 @@ public class BasicSecurityConfigurerAdapter {
 
     @Autowired
     private EventManager eventManager;
+
+    @Autowired
+    private AccessPointService accessPointService;
+
+    @Autowired
+    private EnvironmentService environmentService;
 
     @Bean
     public AuthenticationSuccessListener authenticationSuccessListener() {
@@ -159,6 +172,8 @@ public class BasicSecurityConfigurerAdapter {
             BasicAuthenticationFilter.class
         );
         http.addFilterBefore(new RecaptchaFilter(reCaptchaService, objectMapper), TokenAuthenticationFilter.class);
+        http.addFilterBefore(new GraviteeContextFilter(accessPointService, environmentService), TokenAuthenticationFilter.class);
+        http.addFilterAfter(new GraviteeContextAuthorizationFilter(), AuthorizationFilter.class);
 
         return http.build();
     }
@@ -221,6 +236,9 @@ public class BasicSecurityConfigurerAdapter {
         return security
             .authorizeHttpRequests()
             .requestMatchers(HttpMethod.OPTIONS, "**")
+            .permitAll()
+            // Portal UI bootstrap resources.
+            .requestMatchers(HttpMethod.GET, "/ui/bootstrap")
             .permitAll()
             // OpenApi
             .requestMatchers(HttpMethod.GET, "/openapi")
