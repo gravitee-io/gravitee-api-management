@@ -9,6 +9,9 @@
 
   .title {
     color: var(--gv-theme-color-darker);
+    margin-bottom: 0;
+    font-size: 28px;
+    font-weight: 400;
   }
 
   md-input-container {
@@ -22,7 +25,6 @@
 
   .text-muted {
     margin-top: 5px;
-    color: #90939a;
   }
 
   .form {
