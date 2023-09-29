@@ -432,6 +432,6 @@ export function shouldBuildHelm(changedFiles: string[]): boolean {
 }
 
 export function shouldBuildAll(changedFiles: string[]): boolean {
-  const baseDepsIdentifiers = [/^.circleci/, /^pom.xml$/, /^.gitignore$/, /^.prettierrc$/];
+  const baseDepsIdentifiers = [/^.circleci/, /^pom.xml$/, /^.gitignore$/, /^.prettierrc$/, /^gravitee-apim-e2e/];
   return changedFiles.some((file) => baseDepsIdentifiers.some((identifier) => identifier.test(file)));
 }
