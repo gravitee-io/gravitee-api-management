@@ -27,6 +27,7 @@ import io.gravitee.rest.api.management.v2.rest.resource.api.ApiSubscriptionsReso
 import io.gravitee.rest.api.management.v2.rest.resource.api.ApisResource;
 import io.gravitee.rest.api.management.v2.rest.resource.api.log.ApiLogsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.documentation.ApiPagesResource;
+import io.gravitee.rest.api.management.v2.rest.resource.bootstrap.ManagementUIBootstrapResource;
 import io.gravitee.rest.api.management.v2.rest.resource.group.GroupsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.installation.EnvironmentsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.installation.GraviteeLicenseResource;
@@ -54,6 +55,7 @@ public class GraviteeManagementV2Application extends ResourceConfig {
     @Inject
     public GraviteeManagementV2Application() {
         //Main resource
+        register(ManagementUIBootstrapResource.class);
         register(GraviteeLicenseResource.class);
         register(OrganizationResource.class);
         register(EnvironmentsResource.class);

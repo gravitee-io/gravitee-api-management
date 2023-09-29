@@ -675,10 +675,6 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         boolean autoRegistrationEnabled
     ) {
         try {
-            /*
-             TODO: getCurrentEnvironnemenet and call database to fetch the corresponding organization OR add parameters in methods
-              Because, this method is called by portal and console. And in portal, we don't have a "current organization" in path.
-             */
             String organizationId = executionContext.getOrganizationId();
 
             // First we check that organization exist

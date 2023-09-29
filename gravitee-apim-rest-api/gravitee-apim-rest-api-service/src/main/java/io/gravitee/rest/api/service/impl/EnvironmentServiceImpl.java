@@ -83,11 +83,6 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
 
     @Override
     public List<EnvironmentEntity> findByUser(final String organizationId, String userId) {
-        return findByUserAndIdOrHrid(organizationId, userId, null);
-    }
-
-    @Override
-    public List<EnvironmentEntity> findByUserAndIdOrHrid(final String organizationId, String userId, String idOrHrid) {
         try {
             LOGGER.debug("Find all environments by user");
 
@@ -102,14 +97,6 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
 
                 envStream = envStream.filter(env -> stringStream.contains(env.getId()));
             }
-
-            if (!StringUtils.isEmpty(idOrHrid)) {
-                envStream =
-                    envStream.filter(env ->
-                        idOrHrid.equals(env.getId()) || !CollectionUtils.isEmpty(env.getHrids()) && env.getHrids().contains(idOrHrid)
-                    );
-            }
-
             return envStream.map(this::convert).collect(Collectors.toList());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find all environments", ex);

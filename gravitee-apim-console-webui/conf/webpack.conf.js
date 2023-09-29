@@ -176,6 +176,7 @@ module.exports = {
   entry: `./${path.join('src', 'index')}`,
   devServer: {
     port: 3000,
+    allowedHosts: 'all',
     proxy: {
       '/management': {
         target: env ? `https://${env}` : 'http://localhost:8083',

@@ -37,7 +37,6 @@ Object.assign(angular, { lowercase: _.toLower, uppercase: _.toUpper });
 const initInjector: ng.auto.IInjectorService = angular.injector(['ng']);
 const $http: ng.IHttpService = initInjector.get('$http');
 const $q: ng.IQService = initInjector.get('$q');
-const $window: ng.IWindowService = initInjector.get('$window');
 const configNoCache = { headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' } };
 let ConstantsJSON: any;
 
@@ -50,17 +49,21 @@ fetchData().then((constants: Constants) => {
 
 function fetchData() {
   return $q
-    .all([$http.get('constants.json', configNoCache), $http.get('build.json', configNoCache)])
+    .all([$http.get('build.json', configNoCache), $http.get('constants.json', configNoCache)])
     .then((responses: any) => {
-      ConstantsJSON = responses[0].data;
-      const build = responses[1].data;
-      angular.module('gravitee-management').constant('Build', build);
-      ConstantsJSON = computeBaseURLs(ConstantsJSON);
+      // Store build information
+      angular.module('gravitee-management').constant('Build', responses[0].data);
+      // Store build information
+      const baseURL = sanitizeBaseURLs(responses[1].data);
+      return $http.get(`${baseURL}/v2/ui/bootstrap`);
+    })
+    .then((bootstrapResponse: any) => {
+      ConstantsJSON = prepareConstants(bootstrapResponse.data);
       return $http.get(`${ConstantsJSON.org.baseURL}/console`);
     })
-    .then((responses: any) => {
+    .then((consoleResponse: any) => {
       const constants = _.assign(ConstantsJSON);
-      constants.org.settings = responses.data;
+      constants.org.settings = consoleResponse.data;
 
       angular.module('gravitee-management').constant('Constants', constants);
 
@@ -79,51 +82,30 @@ function fetchData() {
     });
 }
 
-function computeBaseURLs(constants: any): any {
+function sanitizeBaseURLs(constants: any): any {
   if (constants.baseURL.endsWith('/')) {
-    constants.baseURL = constants.baseURL.slice(0, -1);
+    return constants.baseURL.slice(0, -1);
+  }
+  return constants.baseURL;
+}
+
+function prepareConstants(bootstrap: any): any {
+  const constants: any = {};
+  if (bootstrap.baseURL.endsWith('/')) {
+    bootstrap.baseURL = bootstrap.baseURL.slice(0, -1);
   }
 
-  const orgEnvIndex = constants.baseURL.indexOf('/organizations');
-  if (orgEnvIndex >= 0) {
-    constants.baseURL = constants.baseURL.substr(0, orgEnvIndex);
-  }
-
+  constants.baseURL = bootstrap.baseURL;
   constants.org = {};
-  preselectEnvironment();
-  const organizationId = preselectOrganization();
+  const organizationId = bootstrap.organizationId;
   constants.org.baseURL = `${constants.baseURL}/organizations/${organizationId}`;
   constants.env = {};
   // we use a placeholder here ({:envId}) that will be replaced in management.interceptor
   constants.env.baseURL = `${constants.org.baseURL}/environments/{:envId}`;
-
   constants.v2BaseURL = `${constants.baseURL}/v2`;
   constants.env.v2BaseURL = `${constants.v2BaseURL}/environments/{:envId}`;
 
   return constants;
-}
-
-function preselectEnvironment() {
-  const environmentRegex = /environments\/([\w|-]+)/;
-  const environment = environmentRegex.exec(document.location.toString());
-  if (environment && environment[1]) {
-    $window.localStorage.setItem('gv-last-environment-loaded', environment[1]);
-  }
-}
-
-function preselectOrganization() {
-  const organizationParam = new URL(document.location.toString()).searchParams.get('organization');
-  let orgId = 'DEFAULT';
-  const lastOrganization = $window.localStorage.getItem('gv-last-organization-loaded');
-  if (organizationParam) {
-    orgId = organizationParam.replace(/\/$/, '');
-    window.history.replaceState({}, '', `${window.location.origin}${window.location.pathname}${window.location.hash}`);
-  } else if (lastOrganization) {
-    orgId = lastOrganization.replace(/\/$/, '');
-  }
-
-  $window.localStorage.setItem('gv-last-organization-loaded', orgId);
-  return orgId;
 }
 
 function initLoader(constants: Constants) {

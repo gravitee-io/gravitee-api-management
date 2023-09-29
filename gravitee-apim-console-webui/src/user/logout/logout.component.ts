@@ -41,7 +41,6 @@ class LogoutComponentController implements IOnInit {
       const idToken = this.$window.localStorage.getItem('user-id-token');
       this.$window.localStorage.removeItem('user-logout-url');
       this.$window.localStorage.removeItem('user-id-token');
-      this.reinitToDefaultOrganization();
       if (userLogoutEndpoint != null) {
         const redirectUri = window.location.origin + (window.location.pathname === '/' ? '' : window.location.pathname);
         if (userLogoutEndpoint.endsWith('target_url=')) {
@@ -71,21 +70,6 @@ class LogoutComponentController implements IOnInit {
     } else {
       return url;
     }
-  }
-
-  private reinitToDefaultOrganization() {
-    this.$window.localStorage.setItem('gv-last-organization-loaded', 'DEFAULT');
-    if (this.Constants.baseURL.endsWith('/')) {
-      this.Constants.baseURL = this.Constants.baseURL.slice(0, -1);
-    }
-
-    const orgEnvIndex = this.Constants.baseURL.indexOf('/organizations');
-    if (orgEnvIndex >= 0) {
-      this.Constants.baseURL = this.Constants.baseURL.substr(0, orgEnvIndex);
-    }
-
-    this.Constants.org.baseURL = `${this.Constants.baseURL}/organizations/DEFAULT`;
-    this.Constants.env.baseURL = `${this.Constants.org.baseURL}/environments/{:envId}`;
   }
 }
 

@@ -67,43 +67,4 @@ public class EnvironmentsResource extends AbstractResource {
     ) {
         return resourceContext.getResource(EnvironmentResource.class);
     }
-
-    @GET
-    @Produces(io.gravitee.common.http.MediaType.APPLICATION_JSON)
-    @Path("/permissions")
-    @Operation(summary = "List available environments with their permissions for current user organization")
-    @ApiResponse(
-        responseCode = "200",
-        description = "Current user permissions on its environments",
-        content = @Content(
-            mediaType = io.gravitee.common.http.MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = EnvironmentPermissionsEntity.class))
-        )
-    )
-    @ApiResponse(responseCode = "500", description = "Internal server error")
-    public List<EnvironmentPermissionsEntity> getEnvironmentsPermissions(
-        @Parameter(description = "To filter on environment id or hrid") @QueryParam("idOrHrid") String id
-    ) {
-        List<EnvironmentEntity> environments =
-            this.environmentService.findByUserAndIdOrHrid(GraviteeContext.getCurrentOrganization(), getAuthenticatedUserOrNull(), id);
-
-        return environments
-            .stream()
-            .map(environment -> {
-                Map<String, char[]> permissions = new HashMap<>();
-                if (isAuthenticated()) {
-                    final String username = getAuthenticatedUser();
-                    permissions = membershipService.getUserMemberPermissions(GraviteeContext.getExecutionContext(), environment, username);
-                }
-
-                EnvironmentPermissionsEntity environmentPermissions = new EnvironmentPermissionsEntity();
-                environmentPermissions.setId(environment.getId());
-                environmentPermissions.setName(environment.getName());
-                environmentPermissions.setHrids(environment.getHrids());
-                environmentPermissions.setPermissions(permissions);
-
-                return environmentPermissions;
-            })
-            .collect(Collectors.toList());
-    }
 }
