@@ -3,8 +3,6 @@
 @use '@gravitee/ui-particles-angular' as gio;
 @use '../../../../../scss/gio-layout' as gio-layout;
 
-@import './../../../../../components/gio-button-toggle/gio-button-toggle';
-
 $typography: map.get(gio.$mat-theme, typography);
 
 :host {
@@ -72,7 +70,7 @@ $typography: map.get(gio.$mat-theme, typography);
     }
 
     .sampling-type {
-      @include gio-button-toggle;
+      @include gio.gio-button-toggle-group;
     }
   }
 
