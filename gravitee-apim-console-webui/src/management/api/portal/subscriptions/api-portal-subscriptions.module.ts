@@ -90,6 +90,8 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
     MatRadioModule,
     MatTableModule,
     MatTooltipModule,
+    MatButtonToggleModule,
+    MatMomentDateModule,
 
     GioAvatarModule,
     GioClipboardModule,
@@ -99,7 +101,6 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
     GioLoaderModule,
     GioPermissionModule,
     GioTableWrapperModule,
-    MatButtonToggleModule,
   ],
   providers: [DatePipe, { provide: MAT_MOMENT_DATE_ADAPTER_OPTIONS, useValue: { useUtc: true } }],
 })
