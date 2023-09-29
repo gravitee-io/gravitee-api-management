@@ -43,17 +43,13 @@ import org.springframework.stereotype.Component;
 @Component("cockpitHelloCommandProducer")
 public class HelloCommandProducer implements CommandProducer<HelloCommand, HelloReply> {
 
-    private static final String UI_URL = "UI_URL";
-    private static final String API_URL = "API_URL";
-
-    @Value("${console.ui.url:http://localhost:3000}")
-    private String uiURL;
-
-    @Value("${console.api.url:http://localhost:8083/management}")
-    private String apiURL;
+    public static final String AUTH_PATH = "AUTH_PATH";
 
     @Value("${installation.type:" + HelloPayload.ONPREM_INSTALLATION_TYPE + "}")
     private String installationType;
+
+    @Value("${cockpit.auth.path:/management/auth/cockpit?token={token}}")
+    private String authPath;
 
     private final Node node;
     private final InstallationService installationService;
@@ -84,8 +80,7 @@ public class HelloCommandProducer implements CommandProducer<HelloCommand, Hello
         command.getPayload().getNode().setInstallationId(installation.getId());
         command.getPayload().getNode().setHostname(node.hostname());
         command.getPayload().getAdditionalInformation().putAll(installation.getAdditionalInformation());
-        command.getPayload().getAdditionalInformation().put(UI_URL, uiURL);
-        command.getPayload().getAdditionalInformation().put(API_URL, apiURL);
+        command.getPayload().getAdditionalInformation().put(AUTH_PATH, authPath);
         command.getPayload().getAdditionalInformation().put(HelloPayload.ADDITIONAL_INFO_INSTALLATION_TYPE, installationType);
         command.getPayload().setDefaultOrganizationId(GraviteeContext.getDefaultOrganization());
         command.getPayload().setDefaultEnvironmentId(GraviteeContext.getDefaultEnvironment());

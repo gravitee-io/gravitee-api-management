@@ -11,16 +11,9 @@
 # Please have a look to http://docs.gravitee.io/ for more options and fine-grained granularity
 ############################################################################################################
 
-# Console settings
-#console:
-## Specify the URL of the Management API and UI of this instance, mandatory if you want to connect it to Cockpit
-#  ui:
-#    url: http://localhost:3000
-#  api:
-#    url: http://localhost:8083/management
-
 ## Pendo Analysis Tool
 # To make our SaaS offering easier to use, we now have the ability to track activity in Pendo. This is disabled by
+# default, but if you'd like to help us in this journey, don't hesitate to reach us to get our key ;)
 # default, but if you'd like to help us in this journey, don't hesitate to reach us to get our key ;)
 #  analytics:
 #    pendo:
@@ -567,9 +560,12 @@ notifiers:
 #  unknown-expire-after: 604800
 
 # Cockpit
-# Specify the URL to cockpit instance. Default is the Gravitee SAAS instance
 #cockpit:
+# Specify the URL to cockpit instance. Default is the Gravitee SAAS instance
 #  url: https://cockpit.gravitee.io
+# Specify the auth path used to authenticate from cockpit. {token} placeholder can be used and will be replaced by cockpit token.
+#  auth:
+#    path: /management/auth/cockpit?token={token}
 
 api:
   v2:

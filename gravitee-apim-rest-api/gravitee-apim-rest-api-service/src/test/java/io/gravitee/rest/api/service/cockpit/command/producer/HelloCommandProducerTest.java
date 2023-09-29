@@ -103,8 +103,7 @@ public class HelloCommandProducerTest {
         obs.await();
         obs.assertValue(helloCommand -> {
             assertEquals(CUSTOM_VALUE, helloCommand.getPayload().getAdditionalInformation().get(CUSTOM_KEY));
-            assertTrue(helloCommand.getPayload().getAdditionalInformation().containsKey("UI_URL"));
-            assertTrue(helloCommand.getPayload().getAdditionalInformation().containsKey("API_URL"));
+            assertTrue(helloCommand.getPayload().getAdditionalInformation().containsKey("AUTH_PATH"));
             assertTrue(helloCommand.getPayload().getAdditionalInformation().containsKey("INSTALLATION_TYPE"));
 
             assertEquals(HOSTNAME, helloCommand.getPayload().getNode().getHostname());
