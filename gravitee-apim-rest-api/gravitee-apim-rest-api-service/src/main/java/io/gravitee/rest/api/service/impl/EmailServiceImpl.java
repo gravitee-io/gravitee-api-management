@@ -95,6 +95,17 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
             );
     }
 
+    @Override
+    @Async
+    public void sendAsyncEmailNotification(ExecutionContext executionContext, final EmailNotification emailNotification) {
+        sendEmailNotification(
+            executionContext,
+            emailNotification,
+            executionContext.getReferenceContext().getReferenceId(),
+            ParameterReferenceType.valueOf(executionContext.getReferenceContext().getReferenceType().name())
+        );
+    }
+
     private void sendEmailNotification(
         ExecutionContext executionContext,
         final EmailNotification emailNotification,
@@ -103,11 +114,7 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
     ) {
         Map<Key, String> mailParameters = getMailSenderConfiguration(executionContext, referenceId, referenceType);
 
-        if (
-            Boolean.parseBoolean(mailParameters.get(EMAIL_ENABLED)) &&
-            emailNotification.getTo() != null &&
-            emailNotification.getTo().length > 0
-        ) {
+        if (Boolean.parseBoolean(mailParameters.get(EMAIL_ENABLED)) && emailNotification.hasRecipients()) {
             try {
                 JavaMailSender mailSender = mailManager.getOrCreateMailSender(executionContext, referenceId, referenceType);
                 final MimeMessageHelper mailMessage = new MimeMessageHelper(
@@ -151,7 +158,7 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
 
                 if (Arrays.equals(DEFAULT_MAIL_TO, emailNotification.getTo())) {
                     mailMessage.setTo(mailParameters.get(Key.EMAIL_FROM));
-                } else {
+                } else if (emailNotification.getTo() != null && emailNotification.getTo().length > 0) {
                     mailMessage.setTo(emailNotification.getTo());
                 }
 
@@ -167,7 +174,12 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
 
                 final String html = addResourcesInMessage(mailMessage, content);
 
-                LOGGER.debug("Sending an email to: {}\nSubject: {}\nMessage: {}", emailNotification.getTo(), emailSubject, html);
+                LOGGER.debug(
+                    "Sending an email to {} recipient(s)\nSubject: {}\nMessage: {}",
+                    emailNotification.recipientsCount(),
+                    emailSubject,
+                    html
+                );
 
                 mailSender.send(mailMessage.getMimeMessage());
             } catch (final Exception ex) {
@@ -177,35 +189,20 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
         }
     }
 
-    @Override
-    @Async
-    public void sendAsyncEmailNotification(ExecutionContext executionContext, final EmailNotification emailNotification) {
-        sendEmailNotification(
-            executionContext,
-            emailNotification,
-            executionContext.getReferenceContext().getReferenceId(),
-            ParameterReferenceType.valueOf(executionContext.getReferenceContext().getReferenceType().name())
-        );
-    }
-
     private String addResourcesInMessage(final MimeMessageHelper mailMessage, final String htmlText) throws Exception {
         final Document document = Jsoup.parse(htmlText);
 
-        final List<String> resources = new ArrayList<>();
-
         final Elements imageElements = document.getElementsByTag("img");
-        resources.addAll(
-            imageElements
-                .stream()
-                .filter(imageElement -> imageElement.hasAttr("src"))
-                .filter(imageElement -> !imageElement.attr("src").startsWith("http"))
-                .map(imageElement -> {
-                    final String src = imageElement.attr("src");
-                    imageElement.attr("src", "cid:" + src);
-                    return src;
-                })
-                .collect(Collectors.toList())
-        );
+        final List<String> resources = imageElements
+            .stream()
+            .filter(imageElement -> imageElement.hasAttr("src"))
+            .filter(imageElement -> !imageElement.attr("src").startsWith("http"))
+            .map(imageElement -> {
+                final String src = imageElement.attr("src");
+                imageElement.attr("src", "cid:" + src);
+                return src;
+            })
+            .toList();
 
         final String html = document.html();
         mailMessage.setText(html, true);
