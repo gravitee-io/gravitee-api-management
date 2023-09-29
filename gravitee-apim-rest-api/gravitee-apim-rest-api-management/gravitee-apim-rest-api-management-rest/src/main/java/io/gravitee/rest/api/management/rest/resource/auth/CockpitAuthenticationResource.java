@@ -29,8 +29,10 @@ import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
+import io.gravitee.rest.api.service.AccessPointService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import jakarta.annotation.PostConstruct;
@@ -93,6 +95,9 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
     @Autowired
     private ApiSearchService apiSearchService;
 
+    @Autowired
+    private AccessPointService accessPointService;
+
     @PostConstruct
     public void afterPropertiesSet() {
         enabled = environment.getProperty("cockpit.enabled", Boolean.class, false);
@@ -126,9 +131,10 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
             // Verify and get claims from token.
             final JWTClaimsSet jwtClaimsSet = jwtProcessor.process(token, null);
 
-            // Current organization must be set to those coming from cockpit token.
+            // Initialize execution context from cockpit token.
             final String organizationId = jwtClaimsSet.getStringClaim(ORG_CLAIM);
-            GraviteeContext.setCurrentOrganization(organizationId);
+            final String environmentId = jwtClaimsSet.getStringClaim(ENVIRONMENT_CLAIM);
+            GraviteeContext.fromExecutionContext(new ExecutionContext(organizationId, environmentId));
 
             // Retrieve the user.
             final UserEntity user = userService.findBySource(
@@ -139,7 +145,6 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
             );
 
             //set user to Authentication Context
-            final String environmentId = jwtClaimsSet.getStringClaim(ENVIRONMENT_CLAIM);
             final Set<GrantedAuthority> authorities = authoritiesProvider.retrieveAuthorities(user.getId(), organizationId, environmentId);
 
             UserDetails userDetails = new UserDetails(user.getId(), "", authorities);
@@ -157,9 +162,8 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
                 .orElse(null);
 
             String url = String.format(
-                "%s?organization=%s/#!/environments/%s/%s",
-                jwtClaimsSet.getStringClaim(REDIRECT_URI_CLAIM),
-                jwtClaimsSet.getStringClaim(ORG_CLAIM),
+                "%s/#!/environments/%s/%s",
+                accessPointService.getConsoleUrl(organizationId),
                 environmentId,
                 apiId == null ? "" : URLEncoder.encode(String.format("apis/%s/portal", apiId), StandardCharsets.UTF_8)
             );

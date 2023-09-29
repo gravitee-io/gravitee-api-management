@@ -104,57 +104,6 @@ public class EnvironmentServiceTest {
     }
 
     @Nested
-    class FindByUserAndIdOrHridTest {
-
-        @Test
-        public void shouldFindByUserFilteredByEnvId() throws TechnicalException {
-            when(mockEnvironmentRepository.findByOrganization(any())).thenReturn(getEnvironments());
-
-            List<EnvironmentEntity> environments = cut.findByUserAndIdOrHrid(GraviteeContext.getCurrentOrganization(), null, "envId");
-
-            assertThat(environments).hasSize(1);
-        }
-
-        @Test
-        public void shouldFindByUserIdFilteredByEnvId() throws TechnicalException {
-            when(mockEnvironmentRepository.findByOrganization(any())).thenReturn(getEnvironments());
-            MembershipEntity member = mock(MembershipEntity.class);
-            when(member.getReferenceId()).thenReturn("envId");
-
-            when(
-                mockMembershipService.getMembershipsByMemberAndReference(
-                    MembershipMemberType.USER,
-                    "userId",
-                    MembershipReferenceType.ENVIRONMENT
-                )
-            )
-                .thenReturn(Set.of(member));
-
-            List<EnvironmentEntity> environments = cut.findByUserAndIdOrHrid(GraviteeContext.getCurrentOrganization(), "userId", "envId");
-
-            assertThat(environments).hasSize(1);
-        }
-
-        @Test
-        public void shouldFindByUserFilteredByEnvHrid() throws TechnicalException {
-            when(mockEnvironmentRepository.findByOrganization(any())).thenReturn(getEnvironments());
-
-            List<EnvironmentEntity> environments = cut.findByUserAndIdOrHrid(GraviteeContext.getCurrentOrganization(), null, "2env");
-
-            assertThat(environments).hasSize(1);
-        }
-
-        @Test
-        public void shouldFindByUserFilteredByEnvHridAndId_noResult() throws TechnicalException {
-            when(mockEnvironmentRepository.findByOrganization(any())).thenReturn(getEnvironments());
-
-            List<EnvironmentEntity> environments = cut.findByUserAndIdOrHrid(GraviteeContext.getCurrentOrganization(), null, "fake-env");
-
-            assertThat(environments).isEmpty();
-        }
-    }
-
-    @Nested
     class FindByOrgAndIdOrHridTest {
 
         @Test
