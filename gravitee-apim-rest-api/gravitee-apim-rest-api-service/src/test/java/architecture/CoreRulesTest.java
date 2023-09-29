@@ -15,15 +15,9 @@
  */
 package architecture;
 
-import static com.tngtech.archunit.base.DescribedPredicate.not;
-import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.haveNameMatching;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
-import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.slices;
 
-import com.tngtech.archunit.base.DescribedPredicate;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -47,6 +41,8 @@ public class CoreRulesTest extends AbstractApimArchitectureTest {
                     "java..",
                     "org.slf4j..",
                     "lombok..",
+                    // Api Definition can't be in core because it is required for the Gateway
+                    "io.gravitee.definition..",
                     // TODO: ideally, core should be independent from model.
                     "io.gravitee.rest.api.model..",
                     // Common and Exceptions are an accepted case of reusability
