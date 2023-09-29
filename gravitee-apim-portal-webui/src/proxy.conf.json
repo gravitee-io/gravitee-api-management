@@ -1,5 +1,5 @@
 {
-  "/portal/environments/DEFAULT": {
+  "/portal": {
     "target": "http://localhost:8083",
     "secure": false
   },

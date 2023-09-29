@@ -1,5 +1,5 @@
 {
-  "baseURL": "http://localhost:8083/portal/environments/DEFAULT",
+  "baseURL": "http://localhost:8083/portal",
   "homepage": {
     "featured": {
       "size": 9
