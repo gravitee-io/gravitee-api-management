@@ -76,6 +76,7 @@ public class GraviteeContextFilter extends GenericFilterBean {
 
             log.debug("GraviteeContext initialized from incoming request [context={}]", resolvedCtx);
         }
+        // TODO: set empty context path if no organization or env has been resolved
         chain.doFilter(request, response);
     }
 
@@ -137,7 +138,9 @@ public class GraviteeContextFilter extends GenericFilterBean {
     private ExecutionContext getFromAccessPoints(final HttpServletRequest httpServletRequest) {
         ExecutionContext accessPointContext = null;
         String serverName = httpServletRequest.getServerName();
-        Optional<ReferenceContext> optionalReferenceContext = accessPointService.getReferenceContext(serverName);
+        Optional<ReferenceContext> optionalReferenceContext = accessPointService
+            .getReferenceContext(serverName)
+            .or(() -> accessPointService.getReferenceContext(serverName + ":" + httpServletRequest.getServerPort()));
         if (optionalReferenceContext.isPresent()) {
             ReferenceContext referenceContext = optionalReferenceContext.get();
             if (referenceContext.getReferenceType() == ReferenceContext.Type.ENVIRONMENT) {
@@ -158,7 +161,7 @@ public class GraviteeContextFilter extends GenericFilterBean {
         String pathInfo = httpServletRequest.getPathInfo();
         String[] pathParams = pathInfo.split("/");
         int pathIndex = 0;
-        while (pathIndex < pathParams.length && organizationId == null && environmentId == null) {
+        while (pathIndex < pathParams.length && (organizationId == null || environmentId == null)) {
             String param = pathParams[pathIndex];
             if (ORGANIZATIONS_PATH.equals(param)) {
                 pathIndex++;

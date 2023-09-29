@@ -54,7 +54,6 @@ public class EnvironmentsResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Environment getEnvironment(@PathParam("envId") String envId) {
-        // TODO: Determine if hrid or envId is acceptable for envId
         return EnvironmentMapper.INSTANCE.map(environmentService.findByOrgAndIdOrHrid(GraviteeContext.getCurrentOrganization(), envId));
     }
 }

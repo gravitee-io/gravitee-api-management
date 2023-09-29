@@ -339,16 +339,12 @@ class UserService {
     }
 
     const permissions = [] as string[];
-
-    response.data.forEach((envWithPermissions) => {
-      Object.keys(envWithPermissions.permissions).forEach((permission) => {
-        envWithPermissions.permissions[permission].forEach((right) => {
-          const permissionName = `ENVIRONMENT-${permission}-${right}`.toLowerCase();
-          permissions.push(permissionName);
-        });
+    _.forEach(_.keys(response.data), (permission) => {
+      _.forEach(response.data[permission], (right) => {
+        const permissionName = `ENVIRONMENT-${permission}-${right}`.toLowerCase();
+        permissions.push(permissionName);
       });
     });
-
     return permissions;
   }
 

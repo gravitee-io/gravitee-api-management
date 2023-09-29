@@ -16,7 +16,12 @@
 package io.gravitee.rest.api.security.listener;
 
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.MembershipMemberType;
+import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.NewExternalUserEntity;
+import io.gravitee.rest.api.model.RoleEntity;
+import io.gravitee.rest.api.model.UpdateUserEntity;
+import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.MembershipService;
@@ -41,7 +46,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
@@ -106,8 +110,16 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
             details.setOrganizationId(createdUser.getOrganizationId());
 
             if (!addDefaultRole) {
-                addRoles(RoleScope.ENVIRONMENT, createdUser.getId(), event.getAuthentication().getAuthorities());
-                addRoles(RoleScope.ORGANIZATION, createdUser.getId(), event.getAuthentication().getAuthorities());
+                String environmentId = GraviteeContext.getCurrentEnvironment() != null
+                    ? GraviteeContext.getCurrentEnvironment()
+                    : GraviteeContext.getDefaultEnvironment();
+                addRoles(RoleScope.ENVIRONMENT, environmentId, createdUser.getId(), event.getAuthentication().getAuthorities());
+                addRoles(
+                    RoleScope.ORGANIZATION,
+                    createdUser.getOrganizationId(),
+                    createdUser.getId(),
+                    event.getAuthentication().getAuthorities()
+                );
             }
         }
 
@@ -187,23 +199,25 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
      * add a roles to a user.
      * If no role found (not provided or no exist), the default role is set.
      * if no role set, throw an IllegalArgumentException
+     *
      * @param roleScope
+     * @param referenceId
      * @param userId
      * @param authorities
      */
-    private void addRoles(RoleScope roleScope, String userId, Collection<? extends GrantedAuthority> authorities) {
+    private void addRoles(
+        RoleScope roleScope,
+        final String referenceId,
+        String userId,
+        Collection<? extends GrantedAuthority> authorities
+    ) {
         Set<String> rolesFromAuthorities = getRolesFromAuthorities(roleScope, authorities);
         if (!rolesFromAuthorities.isEmpty()) {
             MembershipService.MembershipReference membershipRef;
             if (roleScope == RoleScope.ENVIRONMENT) {
-                membershipRef =
-                    new MembershipService.MembershipReference(MembershipReferenceType.ENVIRONMENT, GraviteeContext.getCurrentEnvironment());
+                membershipRef = new MembershipService.MembershipReference(MembershipReferenceType.ENVIRONMENT, referenceId);
             } else {
-                membershipRef =
-                    new MembershipService.MembershipReference(
-                        MembershipReferenceType.ORGANIZATION,
-                        GraviteeContext.getCurrentOrganization()
-                    );
+                membershipRef = new MembershipService.MembershipReference(MembershipReferenceType.ORGANIZATION, referenceId);
             }
 
             rolesFromAuthorities.forEach(role -> {

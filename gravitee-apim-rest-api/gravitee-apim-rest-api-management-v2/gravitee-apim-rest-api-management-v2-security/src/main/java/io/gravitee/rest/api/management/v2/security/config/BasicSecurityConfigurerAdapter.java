@@ -252,6 +252,11 @@ public class BasicSecurityConfigurerAdapter {
             .permitAll()
             .requestMatchers(HttpMethod.OPTIONS, "**")
             .permitAll()
+            /*
+             * Management UI bootstrap resources.
+             */
+            .requestMatchers(HttpMethod.GET, "/ui/bootstrap")
+            .permitAll()
             // Any other request must be authenticated
             .anyRequest()
             .authenticated()

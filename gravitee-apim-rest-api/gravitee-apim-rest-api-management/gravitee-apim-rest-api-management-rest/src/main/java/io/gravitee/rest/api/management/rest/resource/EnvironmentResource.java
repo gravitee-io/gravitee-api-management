@@ -67,10 +67,6 @@ public class EnvironmentResource extends AbstractResource {
     @Inject
     private IdentityProviderActivationService identityProviderActivationService;
 
-    @PathParam("envId")
-    @Parameter(name = "envId", hidden = true)
-    private String envId;
-
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Get an Environment", tags = { "Environment" })
@@ -81,7 +77,7 @@ public class EnvironmentResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response getEnvironment() {
-        return Response.ok(environmentService.findById(envId)).build();
+        return Response.ok(environmentService.findById(GraviteeContext.getCurrentEnvironment())).build();
     }
 
     @GET
@@ -140,10 +136,10 @@ public class EnvironmentResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/permissions")
-    @Operation(summary = "Get permissions on environment")
+    @Operation(summary = "Get permissions for the current user on the environment")
     @ApiResponse(
         responseCode = "200",
-        description = "Current user permissions on environement",
+        description = "Current user permissions on environment",
         content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PermissionMap.class))
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
@@ -151,7 +147,9 @@ public class EnvironmentResource extends AbstractResource {
         Map<String, char[]> permissions = new HashMap<>();
         if (isAuthenticated()) {
             final String username = getAuthenticatedUser();
-            final EnvironmentEntity environmentEntity = environmentService.findById(envId);
+            // Search for the environment in any  case to make sure it exists
+            // We use the env resolved from context to make sure the hrid has been resolved
+            final EnvironmentEntity environmentEntity = environmentService.findById(GraviteeContext.getCurrentEnvironment());
             if (isAdmin()) {
                 final char[] rights = new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() };
                 for (EnvironmentPermission perm : EnvironmentPermission.values()) {

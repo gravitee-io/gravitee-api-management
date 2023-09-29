@@ -96,12 +96,36 @@ public class AccessPointServiceImpl extends AbstractService implements AccessPoi
     }
 
     @Override
+    public String getConsoleApiUrl(final String organizationId) {
+        try {
+            return buildHttpUrl(findCustomDomain(AccessPointReferenceType.ORGANIZATION, organizationId, AccessPointTarget.CONSOLE_API));
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException(
+                String.format("An error occurs while getting console api access point for environment '%s'", organizationId),
+                e
+            );
+        }
+    }
+
+    @Override
     public String getPortalUrl(final String environmentId) {
         try {
             return buildHttpUrl(findCustomDomain(AccessPointReferenceType.ENVIRONMENT, environmentId, AccessPointTarget.PORTAL));
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
                 String.format("An error occurs while getting portal access point for environment '%s'", environmentId),
+                e
+            );
+        }
+    }
+
+    @Override
+    public String getPortalApiUrl(final String environmentId) {
+        try {
+            return buildHttpUrl(findCustomDomain(AccessPointReferenceType.ENVIRONMENT, environmentId, AccessPointTarget.PORTAL_API));
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException(
+                String.format("An error occurs while getting portal api access point for environment '%s'", environmentId),
                 e
             );
         }

@@ -33,7 +33,11 @@ public interface AccessPointService {
 
     String getConsoleUrl(final String organizationId);
 
+    String getConsoleApiUrl(String organizationId);
+
     String getPortalUrl(final String environmentId);
+
+    String getPortalApiUrl(String environmentId);
 
     List<RestrictedDomainEntity> getGatewayRestrictedDomains(final String environmentId);
 }
