@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, Inject, OnInit } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormControl, FormGroup } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
 import { PlanSecurityType } from '../../../../../../../entities/management-api-v2';
@@ -49,7 +49,7 @@ export class ApiPortalSubscriptionChangeEndDateDialogComponent implements OnInit
 
   ngOnInit(): void {
     this.form = new FormGroup({
-      endDate: new FormControl(this.data.currentEndDate, [Validators.required]),
+      endDate: new FormControl(this.data.currentEndDate),
     });
   }
 
