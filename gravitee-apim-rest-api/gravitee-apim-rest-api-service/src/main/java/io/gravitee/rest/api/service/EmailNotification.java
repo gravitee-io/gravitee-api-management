@@ -19,11 +19,13 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import lombok.Getter;
 
 /**
  * @author Azize Elamrani (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Getter
 public class EmailNotification {
 
     private String from;
@@ -35,64 +37,40 @@ public class EmailNotification {
     private boolean copyToSender;
     private String replyTo;
 
-    public String getFromName() {
-        return fromName;
+    public boolean hasRecipients() {
+        return (getTo() != null && getTo().length > 0) || (getBcc() != null && getBcc().length > 0);
+    }
+
+    public Integer recipientsCount() {
+        return (getTo() != null ? getTo().length : 0) + (getBcc() != null ? getBcc().length : 0);
     }
 
     public void setFromName(String fromName) {
         this.fromName = fromName;
     }
 
-    public String getFrom() {
-        return from;
-    }
-
     public void setFrom(String from) {
         this.from = from;
-    }
-
-    public String[] getTo() {
-        return to;
     }
 
     public void setTo(String... to) {
         this.to = to;
     }
 
-    public String getTemplate() {
-        return template;
-    }
-
     public void setTemplate(String template) {
         this.template = template;
-    }
-
-    public Map<String, Object> getParams() {
-        return params;
     }
 
     public void setParams(Map<String, Object> params) {
         this.params = params;
     }
 
-    public boolean isCopyToSender() {
-        return copyToSender;
-    }
-
     public void setCopyToSender(boolean copyToSender) {
         this.copyToSender = copyToSender;
     }
 
-    public String[] getBcc() {
-        return bcc;
-    }
-
     public void setBcc(String[] bcc) {
         this.bcc = bcc;
-    }
-
-    public String getReplyTo() {
-        return replyTo;
     }
 
     public void setReplyTo(String replyTo) {
@@ -118,7 +96,7 @@ public class EmailNotification {
 
     @Override
     public int hashCode() {
-        return Objects.hash(from, fromName, to, template, params, copyToSender, bcc, replyTo);
+        return Objects.hash(from, fromName, Arrays.hashCode(to), template, params, copyToSender, Arrays.hashCode(bcc), replyTo);
     }
 
     @Override
