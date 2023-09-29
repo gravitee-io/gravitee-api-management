@@ -870,7 +870,7 @@ jobs:
   job-community-build:
     docker:
       - image: cimg/openjdk:17.0
-    resource_class: medium
+    resource_class: large
     steps:
       - checkout
       - cmd-restore-maven-job-cache:
