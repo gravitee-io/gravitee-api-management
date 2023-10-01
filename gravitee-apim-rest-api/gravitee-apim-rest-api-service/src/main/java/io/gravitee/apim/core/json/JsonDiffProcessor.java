@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.infra.spring;
+package io.gravitee.apim.core.json;
 
-import io.gravitee.apim.infra.json.jackson.JacksonSpringConfiguration;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-
-@Configuration
-@Import({ JacksonSpringConfiguration.class })
-@ComponentScan(basePackages = { "io.gravitee.apim.infra" })
-public class InfraServiceSpringConfiguration {}
+public interface JsonDiffProcessor {
+    /**
+     * Create a JSON patch from the old and new values of the audit.
+     * @param object1 the old value.
+     * @param object2 the new value.
+     * @return the JSON patch showing the diff between old value and new one.
+     */
+    String diff(Object object1, Object object2);
+}
