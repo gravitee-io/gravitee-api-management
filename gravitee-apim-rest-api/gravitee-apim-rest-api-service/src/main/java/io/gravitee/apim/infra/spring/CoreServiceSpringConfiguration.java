@@ -22,12 +22,14 @@ import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.api_key.crud_service.ApiKeyCrudService;
 import io.gravitee.apim.core.api_key.domain_service.RevokeApiKeyDomainService;
 import io.gravitee.apim.core.api_key.query_service.ApiKeyQueryService;
+import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
 import io.gravitee.apim.core.audit.crud_service.AuditCrudService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
 import io.gravitee.apim.core.notification.domain_service.TriggerNotificationDomainService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
+import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.RejectSubscriptionDomainService;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
@@ -44,6 +46,25 @@ public class CoreServiceSpringConfiguration {
         JacksonJsonDiffProcessor jacksonJsonDiffProcessor
     ) {
         return new AuditDomainService(auditCrudService, userCrudService, jacksonJsonDiffProcessor);
+    }
+
+    @Bean
+    public CloseSubscriptionDomainService closeSubscriptionDomainService(
+        SubscriptionCrudService subscriptionCrudService,
+        AuditDomainService auditDomainService,
+        ApplicationCrudService applicationCrudService,
+        TriggerNotificationDomainService triggerNotificationDomainService,
+        RejectSubscriptionDomainService rejectSubscriptionDomainService,
+        RevokeApiKeyDomainService revokeApiKeyDomainService
+    ) {
+        return new CloseSubscriptionDomainService(
+            subscriptionCrudService,
+            applicationCrudService,
+            auditDomainService,
+            triggerNotificationDomainService,
+            rejectSubscriptionDomainService,
+            revokeApiKeyDomainService
+        );
     }
 
     @Bean

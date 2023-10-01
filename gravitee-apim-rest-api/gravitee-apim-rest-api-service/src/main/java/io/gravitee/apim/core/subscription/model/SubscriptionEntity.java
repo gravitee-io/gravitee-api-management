@@ -98,6 +98,17 @@ public class SubscriptionEntity {
         return ConsumerStatus.STARTED.equals(consumerStatus) || ConsumerStatus.FAILURE.equals(consumerStatus);
     }
 
+    public SubscriptionEntity close() {
+        return switch (this.status) {
+            case ACCEPTED, PAUSED -> {
+                final ZonedDateTime now = ZonedDateTime.now();
+                yield this.toBuilder().updatedAt(now).closedAt(now).status(Status.CLOSED).build();
+            }
+            case REJECTED, CLOSED -> this;
+            case PENDING -> throw new IllegalStateException("Pending subscription is not closable");
+        };
+    }
+
     public SubscriptionEntity rejectBy(String userId, String reason) {
         if (Status.PENDING.equals(this.status)) {
             final ZonedDateTime now = ZonedDateTime.now();

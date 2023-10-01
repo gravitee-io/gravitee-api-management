@@ -23,6 +23,8 @@ import io.gravitee.apim.core.log.crud_service.MessageLogCrudService;
 import io.gravitee.apim.core.log.usecase.SearchConnectionLogUsecase;
 import io.gravitee.apim.core.log.usecase.SearchMessageLogUsecase;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
+import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
+import io.gravitee.apim.core.subscription.usecase.CloseSubscriptionUsecase;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -30,6 +32,11 @@ import org.springframework.context.annotation.Import;
 @Configuration
 @Import({ CoreServiceSpringConfiguration.class })
 public class UsecaseSpringConfiguration {
+
+    @Bean
+    public CloseSubscriptionUsecase closeSubscriptionUsecase(CloseSubscriptionDomainService closeSubscriptionDomainService) {
+        return new CloseSubscriptionUsecase(closeSubscriptionDomainService);
+    }
 
     @Bean
     public SearchConnectionLogUsecase searchConnectionLogUsecase(
