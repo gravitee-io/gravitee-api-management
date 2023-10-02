@@ -20,14 +20,20 @@
 
   <mat-dialog-content class="expire-api-key__dialog-content">
     <div class="expire-api-key__content">
-      <mat-form-field appearance="outline">
-        <mat-label>Choose a date</mat-label>
-        <div class="expire-api-key__datepicker">
-          <input matInput [min]="minDate" [matDatepicker]="picker" formControlName="expirationDate" />
-          <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
-          <mat-datepicker #picker></mat-datepicker>
-        </div>
-        <mat-hint>MM/DD/YYYY</mat-hint>
+      <mat-form-field>
+        <mat-label>Expire date</mat-label>
+        <input
+          matInput
+          [owlDateTime]="expirationDate"
+          [owlDateTimeTrigger]="expirationDate"
+          [min]="minDate"
+          formControlName="expirationDate"
+        />
+        <mat-icon [owlDateTimeTrigger]="expirationDate" matSuffix svgIcon="gio:calendar"></mat-icon>
+        <owl-date-time #expirationDate></owl-date-time>
+        <mat-error *ngIf="form.get('expirationDate').hasError('owlDateTimeMin')">
+          Date Time value must be after {{ minDate | date : 'medium' }}
+        </mat-error>
       </mat-form-field>
     </div>
   </mat-dialog-content>
