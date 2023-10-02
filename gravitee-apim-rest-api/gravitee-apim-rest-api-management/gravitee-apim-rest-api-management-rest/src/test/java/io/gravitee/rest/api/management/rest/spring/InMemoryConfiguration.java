@@ -15,7 +15,18 @@
  */
 package io.gravitee.rest.api.management.rest.spring;
 
-import inmemory.*;
+import inmemory.ApiKeyCrudServiceInMemory;
+import inmemory.ApiKeyQueryServiceInMemory;
+import inmemory.ApiQueryServiceInMemory;
+import inmemory.ApplicationCrudServiceInMemory;
+import inmemory.AuditCrudServiceInMemory;
+import inmemory.ConnectionLogCrudServiceInMemory;
+import inmemory.EnvironmentCrudServiceInMemory;
+import inmemory.MessageLogCrudServiceInMemory;
+import inmemory.PlanCrudServiceInMemory;
+import inmemory.SubscriptionCrudServiceInMemory;
+import inmemory.TriggerNotificationDomainServiceInMemory;
+import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -49,7 +60,37 @@ public class InMemoryConfiguration {
     }
 
     @Bean
-    ApiSearchServiceInMemory apiSearchServiceInMemory() {
-        return new ApiSearchServiceInMemory();
+    ApiQueryServiceInMemory apiQueryServiceInMemory() {
+        return new ApiQueryServiceInMemory();
+    }
+
+    @Bean
+    AuditCrudServiceInMemory auditCrudServiceInMemory() {
+        return new AuditCrudServiceInMemory();
+    }
+
+    @Bean
+    UserCrudServiceInMemory userCrudServiceInMemory() {
+        return new UserCrudServiceInMemory();
+    }
+
+    @Bean
+    SubscriptionCrudServiceInMemory subscriptionCrudServiceInMemory() {
+        return new SubscriptionCrudServiceInMemory();
+    }
+
+    @Bean
+    ApiKeyCrudServiceInMemory apiKeyCrudServiceInMemory() {
+        return new ApiKeyCrudServiceInMemory();
+    }
+
+    @Bean
+    ApiKeyQueryServiceInMemory apiKeyQueryServiceInMemory(ApiKeyCrudServiceInMemory apiKeyCrudServiceInMemory) {
+        return new ApiKeyQueryServiceInMemory(apiKeyCrudServiceInMemory);
+    }
+
+    @Bean
+    TriggerNotificationDomainServiceInMemory triggerNotificationDomainServiceInMemory() {
+        return new TriggerNotificationDomainServiceInMemory();
     }
 }

@@ -26,6 +26,8 @@ import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_UPDAT
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -93,7 +95,7 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-public class PlanServiceImpl extends TransactionalService implements PlanService {
+public class PlanServiceImpl extends AbstractService implements PlanService {
 
     private static final List<PlanSecurityEntity> DEFAULT_SECURITY_LIST = Collections.unmodifiableList(
         Arrays.asList(
@@ -114,6 +116,9 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
 
     @Autowired
     private SubscriptionService subscriptionService;
+
+    @Autowired
+    private CloseSubscriptionDomainService closeSubscriptionDomainService;
 
     @Autowired
     private PageService pageService;
@@ -357,12 +362,19 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
 
             // Close subscriptions
             if (plan.getSecurity() != Plan.PlanSecurityType.KEY_LESS) {
+                var auditInfo = AuditInfo
+                    .builder()
+                    .organizationId(executionContext.getOrganizationId())
+                    .environmentId(executionContext.getEnvironmentId())
+                    .actor(getAuthenticatedUserAsAuditActor())
+                    .build();
+
                 subscriptionService
                     .findByPlan(executionContext, planId)
                     .stream()
                     .forEach(subscription -> {
                         try {
-                            subscriptionService.close(executionContext, subscription.getId());
+                            closeSubscriptionDomainService.closeSubscription(subscription.getId(), auditInfo);
                         } catch (SubscriptionNotClosableException snce) {
                             // subscription status could not be closed (already closed or rejected)
                             // ignore it

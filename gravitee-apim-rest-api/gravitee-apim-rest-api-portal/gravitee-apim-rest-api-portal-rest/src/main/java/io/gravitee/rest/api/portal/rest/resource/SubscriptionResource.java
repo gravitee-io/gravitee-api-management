@@ -18,6 +18,9 @@ package io.gravitee.rest.api.portal.rest.resource;
 import static io.gravitee.rest.api.model.permissions.RolePermission.APPLICATION_SUBSCRIPTION;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 
+import io.gravitee.apim.core.audit.model.AuditActor;
+import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.subscription.usecase.CloseSubscriptionUsecase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.rest.api.model.SubscriptionConfigurationEntity;
@@ -42,7 +45,14 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
@@ -57,6 +67,9 @@ public class SubscriptionResource extends AbstractResource {
 
     @Context
     private ResourceContext resourceContext;
+
+    @Inject
+    private CloseSubscriptionUsecase closeSubscriptionUsecase;
 
     @Inject
     private SubscriptionService subscriptionService;
@@ -108,8 +121,27 @@ public class SubscriptionResource extends AbstractResource {
     public Response closeSubscription(@PathParam("subscriptionId") String subscriptionId) {
         SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscriptionId);
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        final var user = getAuthenticatedUserDetails();
+
         if (hasPermission(executionContext, APPLICATION_SUBSCRIPTION, subscriptionEntity.getApplication(), RolePermissionAction.DELETE)) {
-            subscriptionService.close(executionContext, subscriptionId);
+            closeSubscriptionUsecase.execute(
+                new CloseSubscriptionUsecase.Input(
+                    subscriptionId,
+                    AuditInfo
+                        .builder()
+                        .organizationId(executionContext.getOrganizationId())
+                        .environmentId(executionContext.getEnvironmentId())
+                        .actor(
+                            AuditActor
+                                .builder()
+                                .userId(user.getUsername())
+                                .userSource(user.getSource())
+                                .userSourceId(user.getSourceId())
+                                .build()
+                        )
+                        .build()
+                )
+            );
             return Response.noContent().build();
         }
         throw new ForbiddenAccessException();

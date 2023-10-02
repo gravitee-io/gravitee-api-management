@@ -24,6 +24,8 @@ import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_PUBLI
 import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_UPDATED;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -56,7 +58,7 @@ import io.gravitee.rest.api.service.exceptions.PlanWithSubscriptionsException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotClosableException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedPlanSecurityTypeException;
-import io.gravitee.rest.api.service.impl.TransactionalService;
+import io.gravitee.rest.api.service.impl.AbstractService;
 import io.gravitee.rest.api.service.processor.SynchronizationService;
 import io.gravitee.rest.api.service.v4.FlowService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
@@ -90,7 +92,7 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component("PlanServiceImplV4")
-public class PlanServiceImpl extends TransactionalService implements PlanService {
+public class PlanServiceImpl extends AbstractService implements PlanService {
 
     private static final List<PlanSecurityEntity> DEFAULT_SECURITY_LIST = Collections.unmodifiableList(
         Arrays.asList(
@@ -111,6 +113,9 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
 
     @Autowired
     private SubscriptionService subscriptionService;
+
+    @Autowired
+    private CloseSubscriptionDomainService closeSubscriptionDomainService;
 
     @Autowired
     private PageService pageService;
@@ -429,11 +434,17 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
 
             // Close subscriptions
             if (plan.getSecurity() != Plan.PlanSecurityType.KEY_LESS) {
+                var auditInfo = AuditInfo
+                    .builder()
+                    .organizationId(executionContext.getOrganizationId())
+                    .environmentId(executionContext.getEnvironmentId())
+                    .actor(getAuthenticatedUserAsAuditActor())
+                    .build();
                 subscriptionService
                     .findByPlan(executionContext, planId)
                     .forEach(subscription -> {
                         try {
-                            subscriptionService.close(executionContext, subscription.getId());
+                            closeSubscriptionDomainService.closeSubscription(subscription.getId(), auditInfo);
                         } catch (SubscriptionNotClosableException snce) {
                             // subscription status could not be closed (already closed or rejected)
                             // ignore it

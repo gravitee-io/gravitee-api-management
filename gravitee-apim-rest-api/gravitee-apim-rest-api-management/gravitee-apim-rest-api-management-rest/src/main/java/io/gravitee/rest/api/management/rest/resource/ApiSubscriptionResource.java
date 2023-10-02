@@ -15,19 +15,33 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import static io.gravitee.rest.api.model.SubscriptionStatus.*;
+import static io.gravitee.rest.api.model.SubscriptionStatus.CLOSED;
+import static io.gravitee.rest.api.model.SubscriptionStatus.PAUSED;
+import static io.gravitee.rest.api.model.SubscriptionStatus.RESUMED;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 
+import io.gravitee.apim.core.audit.model.AuditActor;
+import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.subscription.usecase.CloseSubscriptionUsecase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.model.Subscription;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.ApplicationEntity;
+import io.gravitee.rest.api.model.ProcessSubscriptionEntity;
+import io.gravitee.rest.api.model.SubscriptionConsumerStatus;
+import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.SubscriptionStatus;
+import io.gravitee.rest.api.model.TransferSubscriptionEntity;
+import io.gravitee.rest.api.model.UpdateSubscriptionEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanMode;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.ApplicationService;
+import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.SubscriptionService;
+import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
@@ -40,10 +54,18 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
+import java.sql.Date;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -56,10 +78,10 @@ public class ApiSubscriptionResource extends AbstractResource {
     private ResourceContext resourceContext;
 
     @Inject
-    private SubscriptionService subscriptionService;
+    private CloseSubscriptionUsecase closeSubscriptionUsecase;
 
     @Inject
-    private ApiKeyService apiKeyService;
+    private SubscriptionService subscriptionService;
 
     @Inject
     private PlanSearchService planSearchService;
@@ -73,7 +95,6 @@ public class ApiSubscriptionResource extends AbstractResource {
     @Inject
     private ParameterService parameterService;
 
-    @SuppressWarnings("UnresolvedRestParam")
     @PathParam("api")
     @Parameter(name = "api", hidden = true)
     private String api;
@@ -182,9 +203,28 @@ public class ApiSubscriptionResource extends AbstractResource {
         ) SubscriptionStatus subscriptionStatus
     ) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        final var user = getAuthenticatedUserDetails();
+
         if (CLOSED.equals(subscriptionStatus)) {
-            SubscriptionEntity updatedSubscriptionEntity = subscriptionService.close(executionContext, subscription);
-            return Response.ok(convert(executionContext, updatedSubscriptionEntity)).build();
+            var result = closeSubscriptionUsecase.execute(
+                new CloseSubscriptionUsecase.Input(
+                    subscription,
+                    AuditInfo
+                        .builder()
+                        .organizationId(executionContext.getOrganizationId())
+                        .environmentId(executionContext.getEnvironmentId())
+                        .actor(
+                            AuditActor
+                                .builder()
+                                .userId(user.getUsername())
+                                .userSource(user.getSource())
+                                .userSourceId(user.getSourceId())
+                                .build()
+                        )
+                        .build()
+                )
+            );
+            return Response.ok(convert(executionContext, result.subscription())).build();
         } else if (PAUSED.equals(subscriptionStatus)) {
             SubscriptionEntity updatedSubscriptionEntity = subscriptionService.pause(executionContext, subscription);
             return Response.ok(convert(executionContext, updatedSubscriptionEntity)).build();
@@ -234,6 +274,11 @@ public class ApiSubscriptionResource extends AbstractResource {
         return Response.ok(convert(executionContext, subscriptionEntity)).build();
     }
 
+    @Path("apikeys")
+    public ApiSubscriptionApiKeysResource getApiSubscriptionApiKeysResourceResource() {
+        return resourceContext.getResource(ApiSubscriptionApiKeysResource.class);
+    }
+
     private Subscription convert(final ExecutionContext executionContext, SubscriptionEntity subscriptionEntity) {
         Subscription subscription = new Subscription();
 
@@ -258,24 +303,8 @@ public class ApiSubscriptionResource extends AbstractResource {
         subscription.setClientId(subscriptionEntity.getClientId());
         subscription.setMetadata(subscriptionEntity.getMetadata());
 
-        GenericPlanEntity plan = planSearchService.findById(executionContext, subscriptionEntity.getPlan());
-        subscription.setPlan(new Subscription.Plan(plan.getId(), plan.getName()));
-        if (plan.getPlanMode() == PlanMode.STANDARD) {
-            subscription.getPlan().setSecurity(plan.getPlanSecurity().getType());
-        }
-
-        ApplicationEntity application = applicationService.findById(executionContext, subscriptionEntity.getApplication());
-        subscription.setApplication(
-            new Subscription.Application(
-                application.getId(),
-                application.getName(),
-                application.getType(),
-                application.getDescription(),
-                application.getDomain(),
-                new Subscription.User(application.getPrimaryOwner().getId(), application.getPrimaryOwner().getDisplayName()),
-                application.getApiKeyMode()
-            )
-        );
+        subscription.setPlan(fetchPlan(executionContext, subscriptionEntity.getPlan()));
+        subscription.setApplication(fetchApplication(executionContext, subscriptionEntity.getApplication()));
 
         subscription.setClosedAt(subscriptionEntity.getClosedAt());
         subscription.setPausedAt(subscriptionEntity.getPausedAt());
@@ -284,8 +313,82 @@ public class ApiSubscriptionResource extends AbstractResource {
         return subscription;
     }
 
-    @Path("apikeys")
-    public ApiSubscriptionApiKeysResource getApiSubscriptionApiKeysResourceResource() {
-        return resourceContext.getResource(ApiSubscriptionApiKeysResource.class);
+    private Subscription convert(
+        final ExecutionContext executionContext,
+        io.gravitee.apim.core.subscription.model.SubscriptionEntity subscriptionEntity
+    ) {
+        Subscription subscription = new Subscription();
+
+        subscription.setId(subscriptionEntity.getId());
+        subscription.setCreatedAt(Date.from(subscriptionEntity.getCreatedAt().toInstant()));
+        subscription.setUpdatedAt(Date.from(subscriptionEntity.getUpdatedAt().toInstant()));
+        subscription.setStartingAt(
+            subscriptionEntity.getStartingAt() != null ? Date.from(subscriptionEntity.getStartingAt().toInstant()) : null
+        );
+        subscription.setEndingAt(subscriptionEntity.getEndingAt() != null ? Date.from(subscriptionEntity.getEndingAt().toInstant()) : null);
+        subscription.setClosedAt(subscriptionEntity.getClosedAt() != null ? Date.from(subscriptionEntity.getClosedAt().toInstant()) : null);
+        subscription.setPausedAt(subscriptionEntity.getPausedAt() != null ? Date.from(subscriptionEntity.getPausedAt().toInstant()) : null);
+        subscription.setConsumerPausedAt(
+            subscriptionEntity.getConsumerPausedAt() != null ? Date.from(subscriptionEntity.getConsumerPausedAt().toInstant()) : null
+        );
+        subscription.setProcessedAt(
+            subscriptionEntity.getProcessedAt() != null ? Date.from(subscriptionEntity.getProcessedAt().toInstant()) : null
+        );
+        subscription.setProcessedBy(subscriptionEntity.getProcessedBy());
+        subscription.setRequest(subscriptionEntity.getRequestMessage());
+        subscription.setReason(subscriptionEntity.getReasonMessage());
+        subscription.setStatus(
+            switch (subscriptionEntity.getStatus()) {
+                case PENDING -> SubscriptionStatus.PENDING;
+                case REJECTED -> SubscriptionStatus.REJECTED;
+                case ACCEPTED -> SubscriptionStatus.ACCEPTED;
+                case CLOSED -> SubscriptionStatus.CLOSED;
+                case PAUSED -> SubscriptionStatus.PAUSED;
+            }
+        );
+        subscription.setConsumerStatus(
+            switch (subscriptionEntity.getConsumerStatus()) {
+                case STARTED -> SubscriptionConsumerStatus.STARTED;
+                case STOPPED -> SubscriptionConsumerStatus.STOPPED;
+                case FAILURE -> SubscriptionConsumerStatus.FAILURE;
+            }
+        );
+        subscription.setSubscribedBy(
+            new Subscription.User(
+                subscriptionEntity.getSubscribedBy(),
+                userService.findById(executionContext, subscriptionEntity.getSubscribedBy(), true).getDisplayName()
+            )
+        );
+        subscription.setClientId(subscriptionEntity.getClientId());
+        subscription.setMetadata(subscriptionEntity.getMetadata());
+
+        subscription.setPlan(fetchPlan(executionContext, subscriptionEntity.getPlanId()));
+        subscription.setApplication(fetchApplication(executionContext, subscriptionEntity.getApplicationId()));
+
+        return subscription;
+    }
+
+    private Subscription.Plan fetchPlan(ExecutionContext executionContext, String planId) {
+        GenericPlanEntity genericPlan = planSearchService.findById(executionContext, planId);
+
+        var plan = new Subscription.Plan(genericPlan.getId(), genericPlan.getName());
+        if (genericPlan.getPlanMode() == PlanMode.STANDARD) {
+            plan.setSecurity(genericPlan.getPlanSecurity().getType());
+        }
+
+        return plan;
+    }
+
+    private Subscription.Application fetchApplication(ExecutionContext executionContext, String applicationId) {
+        ApplicationEntity application = applicationService.findById(executionContext, applicationId);
+        return new Subscription.Application(
+            application.getId(),
+            application.getName(),
+            application.getType(),
+            application.getDescription(),
+            application.getDomain(),
+            new Subscription.User(application.getPrimaryOwner().getId(), application.getPrimaryOwner().getDisplayName()),
+            application.getApiKeyMode()
+        );
     }
 }

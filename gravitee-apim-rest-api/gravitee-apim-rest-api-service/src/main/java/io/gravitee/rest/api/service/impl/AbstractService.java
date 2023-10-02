@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
@@ -42,6 +43,18 @@ public abstract class AbstractService extends TransactionalService {
             return (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         }
         return null;
+    }
+
+    protected AuditActor getAuthenticatedUserAsAuditActor() {
+        UserDetails authenticatedUser = getAuthenticatedUser();
+        return authenticatedUser == null
+            ? null
+            : AuditActor
+                .builder()
+                .userId(getAuthenticatedUser().getUsername())
+                .userSource(getAuthenticatedUser().getSource())
+                .userSourceId(getAuthenticatedUser().getSourceId())
+                .build();
     }
 
     protected boolean isAuthenticated() {
