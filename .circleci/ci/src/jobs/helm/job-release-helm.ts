@@ -19,13 +19,12 @@ import { orbs } from '../../orbs';
 import { NodeLtsExecutor } from '../../executors';
 import { config } from '../../config';
 import { CircleCIEnvironment } from '../../pipelines';
-import { computeApimVersion } from '../../utils';
 
 export class ReleaseHelmJob {
   private static jobName = 'job-release-helm';
 
   public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
-    const apimVersion = computeApimVersion(environment);
+    const apimVersion = environment.graviteeioVersion;
 
     dynamicConfig.importOrb(orbs.keeper);
     dynamicConfig.importOrb(orbs.helm);

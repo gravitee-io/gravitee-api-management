@@ -29,7 +29,7 @@ describe('Release helm charts tests', () => {
       buildNum: '1234',
       buildId: '1234',
       graviteeioVersion: '4.2.0',
-      apimVersionPath: './src/pipelines/tests/resources/common/pom.xml',
+      apimVersionPath: './src/pipelines/tests/resources/common/pom-snapshot.xml',
       branch: 'master',
       isDryRun,
     });
