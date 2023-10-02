@@ -37,9 +37,9 @@ import {
   GioIconsModule,
   GioLoaderModule,
 } from '@gravitee/ui-particles-angular';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MAT_MOMENT_DATE_ADAPTER_OPTIONS, MatMomentDateModule } from '@angular/material-moment-adapter';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { OWL_MOMENT_DATE_TIME_ADAPTER_OPTIONS, OwlMomentDateTimeModule } from '@danielmoncada/angular-datetime-picker-moment-adapter';
+import { OwlDateTimeModule } from '@danielmoncada/angular-datetime-picker';
 
 import { ApiPortalSubscriptionCreationDialogComponent } from './components/dialogs/creation/api-portal-subscription-creation-dialog.component';
 import { ApiPortalSubscriptionTransferDialogComponent } from './components/dialogs/transfer/api-portal-subscription-transfer-dialog.component';
@@ -79,11 +79,9 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
     MatAutocompleteModule,
     MatButtonModule,
     MatCardModule,
-    MatDatepickerModule,
     MatDialogModule,
     MatFormFieldModule,
     MatInputModule,
-    MatMomentDateModule,
     MatOptionModule,
     MatSelectModule,
     MatSnackBarModule,
@@ -91,7 +89,8 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
     MatTableModule,
     MatTooltipModule,
     MatButtonToggleModule,
-    MatMomentDateModule,
+    OwlDateTimeModule,
+    OwlMomentDateTimeModule,
 
     GioAvatarModule,
     GioClipboardModule,
@@ -102,6 +101,15 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
     GioPermissionModule,
     GioTableWrapperModule,
   ],
-  providers: [DatePipe, { provide: MAT_MOMENT_DATE_ADAPTER_OPTIONS, useValue: { useUtc: true } }],
+  providers: [
+    DatePipe,
+    {
+      provide: OWL_MOMENT_DATE_TIME_ADAPTER_OPTIONS,
+      useValue: {
+        useUtc: true,
+        parseStrict: false,
+      },
+    },
+  ],
 })
 export class ApiGeneralSubscriptionsModule {}

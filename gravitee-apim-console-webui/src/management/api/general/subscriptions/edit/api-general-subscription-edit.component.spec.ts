@@ -23,7 +23,6 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatRadioGroupHarness } from '@angular/material/radio/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
-import { MatDatepickerInputHarness, MatDateRangeInputHarness } from '@angular/material/datepicker/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { set } from 'lodash';
 import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
@@ -418,14 +417,13 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       );
       expect(await changeEndDateDialog.getTitleText()).toEqual('Change the subscription end date');
 
-      const datepicker = await changeEndDateDialog.getHarness(MatDatepickerInputHarness);
+      const datepicker = await changeEndDateDialog.getHarness(MatInputHarness.with({ selector: '[formControlName="endDate"]' }));
       expect(await datepicker.getValue()).toEqual('');
 
       const changeEndDateBtn = await changeEndDateDialog.getHarness(MatButtonHarness.with({ text: 'Change end date' }));
 
       expect(await changeEndDateBtn.isDisabled()).toEqual(true);
-      await datepicker.openCalendar();
-      await datepicker.setValue('01/01/2080');
+      await datepicker.setValue('01/01/2080, 12:00 AM');
 
       expect(await changeEndDateBtn.isDisabled()).toEqual(false);
       await changeEndDateBtn.click();
@@ -468,14 +466,13 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
         MatDialogHarness.with({ selector: '#changeEndDateDialog' }),
       );
 
-      const datepicker = await changeEndDateDialog.getHarness(MatDatepickerInputHarness);
-      expect(await datepicker.getValue()).toEqual(endingAt.toLocaleDateString());
+      const datepicker = await changeEndDateDialog.getHarness(MatInputHarness.with({ selector: '[formControlName="endDate"]' }));
+      expect(await datepicker.getValue()).toEqual('1/1/2080 12:00 AM');
 
       const changeEndDateBtn = await changeEndDateDialog.getHarness(MatButtonHarness.with({ text: 'Change end date' }));
 
       expect(await changeEndDateBtn.isDisabled()).toEqual(true);
-      await datepicker.openCalendar();
-      await datepicker.setValue('01/02/2080');
+      await datepicker.setValue('01/02/2080, 12:00 AM');
 
       expect(await changeEndDateBtn.isDisabled()).toEqual(false);
       await changeEndDateBtn.click();
@@ -601,11 +598,10 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
         MatDialogHarness.with({ selector: '#validateSubscriptionDialog' }),
       );
 
-      const datePicker = await validateDialog.getHarness(MatDateRangeInputHarness);
+      const datePicker = await validateDialog.getHarness(MatInputHarness.with({ selector: '[formControlName="dateTimeRange"]' }));
+
       expect(await datePicker.getValue()).toEqual('');
-      await datePicker.openCalendar();
-      await datePicker.getStartInput().then((startInput) => startInput.setValue('01/01/2080'));
-      await datePicker.getEndInput().then((endInput) => endInput.setValue('01/02/2080'));
+      await datePicker.setValue('1/1/2080 12:00 AM - 1/2/2080 12:00 AM');
 
       const message = await validateDialog.getHarness(MatInputHarness.with({ selector: '#subscription-message' }));
       expect(await message.getValue()).toEqual('');
@@ -960,14 +956,13 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       );
       expect(await expireApiKeyDialog.getTitleText()).toEqual(`Change your API Key's expiration date`);
 
-      const datepicker = await expireApiKeyDialog.getHarness(MatDatepickerInputHarness);
+      const datepicker = await expireApiKeyDialog.getHarness(MatInputHarness.with({ selector: '[formControlName="expirationDate"]' }));
       expect(await datepicker.getValue()).toEqual('');
 
       const expireApiKeyBtn = await expireApiKeyDialog.getHarness(MatButtonHarness.with({ text: 'Change expiration date' }));
 
       expect(await expireApiKeyBtn.isDisabled()).toEqual(true);
-      await datepicker.openCalendar();
-      await datepicker.setValue('01/01/2080');
+      await datepicker.setValue('01/01/2080, 12:00 AM');
 
       expect(await expireApiKeyBtn.isDisabled()).toEqual(false);
       await expireApiKeyBtn.click();
@@ -994,14 +989,13 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
         MatDialogHarness.with({ selector: '#expireApiKeyDialog' }),
       );
 
-      const datepicker = await expireApiKeyDialog.getHarness(MatDatepickerInputHarness);
-      expect(await datepicker.getValue()).toEqual(endingAt.toLocaleDateString());
+      const datepicker = await expireApiKeyDialog.getHarness(MatInputHarness.with({ selector: '[formControlName="expirationDate"]' }));
+      expect(await datepicker.getValue()).toEqual('1/1/2080 12:00 AM');
 
       const expireApiKeyBtn = await expireApiKeyDialog.getHarness(MatButtonHarness.with({ text: 'Change expiration date' }));
 
       expect(await expireApiKeyBtn.isDisabled()).toEqual(true);
-      await datepicker.openCalendar();
-      await datepicker.setValue('01/02/2080');
+      await datepicker.setValue('01/02/2080, 12:00 AM');
 
       expect(await expireApiKeyBtn.isDisabled()).toEqual(false);
       await expireApiKeyBtn.click();

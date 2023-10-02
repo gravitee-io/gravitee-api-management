@@ -16,6 +16,8 @@
     "@angular/upgrade": "13.3.12",
     "@asciidoctor/core": "2.2.4",
     "@asyncapi/web-component": "1.0.0-next.47",
+    "@danielmoncada/angular-datetime-picker": "^16.0.1",
+    "@danielmoncada/angular-datetime-picker-moment-adapter": "^3.0.1",
     "@fontsource/libre-franklin": "4.4.5",
     "@gravitee/ui-analytics": "7.30.0",
     "@gravitee/ui-components": "3.44.0",
