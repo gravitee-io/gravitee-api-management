@@ -21,6 +21,8 @@ servers:
 tags:
     - name: APIs
       description: Everything about APIs
+    - name: API Documentation
+      description: Everything about API documentation pages
     - name: API Members
       description: Everything about API members
     - name: API Plans
@@ -1618,6 +1620,27 @@ paths:
                     $ref: "#/components/responses/ApiMessageLogsResponse"
                 default:
                     $ref: "#/components/responses/Error"
+
+    # API Documentation
+    /environments/{envId}/apis/{apiId}/pages:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        get:
+            tags:
+                - API Documentation
+            summary: Get API documentation pages
+            description: |-
+                Get API documentation pages. The result contains a list of pages and folders of the API.
+                
+                User must have the API_DOCUMENTATION[READ] permission.
+            operationId: getApiPages
+            responses:
+                "200":
+                    $ref: "#/components/responses/ApiDocumentationPagesResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+
 
     # Plugins - Endpoints
     /plugins/endpoints:
@@ -5942,6 +5965,19 @@ components:
                                 $ref: "#/components/schemas/Pagination"
                             links:
                                 $ref: "#/components/schemas/Links"
+
+        # API Documentation
+        ApiDocumentationPagesResponse:
+            description: API documentation pages
+            content:
+                application/json:
+                    schema:
+                        title: "ApiDocumentationPagesResponse"
+                        properties:
+                            pages:
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/Page"
 
     securitySchemes:
         BasicAuth:
