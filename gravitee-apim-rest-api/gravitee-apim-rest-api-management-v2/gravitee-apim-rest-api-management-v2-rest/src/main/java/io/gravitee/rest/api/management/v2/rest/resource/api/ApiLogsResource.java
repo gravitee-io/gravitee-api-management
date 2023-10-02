@@ -58,7 +58,6 @@ public class ApiLogsResource extends AbstractResource {
     public ApiLogsResponse getApiLogs(@BeanParam @Valid PaginationParam paginationParam) {
         var request = new SearchConnectionLogUsecase.Request(
             apiId,
-            null,
             new PageableImpl(paginationParam.getPage(), paginationParam.getPerPage())
         );
 
@@ -83,7 +82,6 @@ public class ApiLogsResource extends AbstractResource {
         var request = new SearchMessageLogUsecase.Request(
             apiId,
             requestId,
-            null,
             new PageableImpl(paginationParam.getPage(), paginationParam.getPerPage())
         );
 
