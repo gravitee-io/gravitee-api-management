@@ -20,11 +20,16 @@ import static java.util.Collections.emptySet;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.api.domain_service.ApiDefinitionParserDomainService;
+import io.gravitee.apim.core.api.domain_service.ApiHostValidatorDomainService;
+import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
+import io.gravitee.apim.core.api.query_service.ApiQueryService;
+import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
+import io.gravitee.apim.core.environment.model.Environment;
+import io.gravitee.apim.core.exception.InvalidPathsException;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.ConnectorFeature;
 import io.gravitee.definition.model.v4.ConnectorMode;
@@ -38,22 +43,11 @@ import io.gravitee.definition.model.v4.listener.entrypoint.Qos;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
-import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
-import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
-import io.gravitee.rest.api.service.v4.exception.HttpListenerPathMissingException;
-import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointDuplicatedException;
-import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointInvalidDlqException;
-import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointMissingException;
-import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointMissingTypeException;
-import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointUnsupportedDlqException;
-import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointUnsupportedListenerTypeException;
-import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointUnsupportedQosException;
-import io.gravitee.rest.api.service.v4.exception.ListenersDuplicatedException;
+import io.gravitee.rest.api.service.v4.exception.*;
 import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
 import java.util.ArrayList;
 import java.util.List;
@@ -72,14 +66,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class ListenerValidationServiceImplTest {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
-
-    @Mock
-    private ApiRepository apiRepository;
-
-    @Mock
-    private EnvironmentService environmentService;
-
     @Mock
     private CorsValidationService corsValidationService;
 
@@ -91,15 +77,32 @@ public class ListenerValidationServiceImplTest {
 
     private ListenerValidationServiceImpl listenerValidationService;
 
+    @Mock
+    private EnvironmentCrudService environmentCrudService;
+
+    @Mock
+    private ApiQueryService apiQueryService;
+
+    @Mock
+    private ApiHostValidatorDomainService apiHostValidatorDomainService;
+
+    @Mock
+    private ApiDefinitionParserDomainService apiDefinitionParserDomainService;
+
     @Before
     public void setUp() throws Exception {
-        when(environmentService.findById(any())).thenReturn(new EnvironmentEntity());
+        when(environmentCrudService.get(any())).thenReturn(Environment.builder().build());
         lenient()
             .when(entrypointService.validateConnectorConfiguration(any(String.class), any()))
             .thenAnswer(invocation -> invocation.getArgument(1));
         listenerValidationService =
             new ListenerValidationServiceImpl(
-                new PathValidationServiceImpl(apiRepository, objectMapper, environmentService),
+                new VerifyApiPathDomainService(
+                    environmentCrudService,
+                    apiQueryService,
+                    apiDefinitionParserDomainService,
+                    apiHostValidatorDomainService
+                ),
                 entrypointService,
                 endpointService,
                 corsValidationService
@@ -205,7 +208,7 @@ public class ListenerValidationServiceImplTest {
         // Given
         HttpListener httpListener = new HttpListener();
         // When
-        assertThatExceptionOfType(HttpListenerPathMissingException.class)
+        assertThatExceptionOfType(InvalidPathsException.class)
             .isThrownBy(() ->
                 listenerValidationService.validateAndSanitize(
                     GraviteeContext.getExecutionContext(),

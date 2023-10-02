@@ -36,7 +36,6 @@ import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiSerializer;
-import io.gravitee.rest.api.service.v4.validation.PathValidationService;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;

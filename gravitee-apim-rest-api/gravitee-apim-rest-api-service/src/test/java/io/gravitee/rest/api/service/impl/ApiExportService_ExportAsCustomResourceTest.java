@@ -16,55 +16,19 @@
 package io.gravitee.rest.api.service.impl;
 
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.AdditionalAnswers.returnsFirstArg;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.Endpoint;
-import io.gravitee.definition.model.EndpointGroup;
-import io.gravitee.definition.model.ExecutionMode;
-import io.gravitee.definition.model.FlowMode;
-import io.gravitee.definition.model.LoadBalancer;
-import io.gravitee.definition.model.LoadBalancerType;
-import io.gravitee.definition.model.Logging;
-import io.gravitee.definition.model.LoggingMode;
-import io.gravitee.definition.model.Proxy;
-import io.gravitee.definition.model.ResponseTemplate;
-import io.gravitee.definition.model.VirtualHost;
+import io.gravitee.definition.model.*;
 import io.gravitee.kubernetes.mapper.CustomResourceDefinitionMapper;
-import io.gravitee.rest.api.model.MemberEntity;
-import io.gravitee.rest.api.model.MembershipEntity;
-import io.gravitee.rest.api.model.MembershipMemberType;
-import io.gravitee.rest.api.model.MembershipReferenceType;
-import io.gravitee.rest.api.model.PageEntity;
-import io.gravitee.rest.api.model.PageType;
-import io.gravitee.rest.api.model.PlanEntity;
-import io.gravitee.rest.api.model.PlanSecurityType;
-import io.gravitee.rest.api.model.PlanStatus;
-import io.gravitee.rest.api.model.PlanType;
-import io.gravitee.rest.api.model.PlanValidationType;
-import io.gravitee.rest.api.model.PrimaryOwnerEntity;
-import io.gravitee.rest.api.model.RoleEntity;
-import io.gravitee.rest.api.model.UserEntity;
-import io.gravitee.rest.api.model.Visibility;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.kubernetes.v1alpha1.ApiExportQuery;
-import io.gravitee.rest.api.service.ApiMetadataService;
-import io.gravitee.rest.api.service.ApiService;
-import io.gravitee.rest.api.service.GroupService;
-import io.gravitee.rest.api.service.MediaService;
-import io.gravitee.rest.api.service.MembershipService;
-import io.gravitee.rest.api.service.PageService;
-import io.gravitee.rest.api.service.PlanService;
-import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.PlanConverter;
@@ -72,15 +36,10 @@ import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiCompositeSerializer;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiDefaultSerializer;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiSerializer;
-import io.gravitee.rest.api.service.v4.validation.PathValidationService;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
@@ -131,9 +90,6 @@ public class ApiExportService_ExportAsCustomResourceTest extends ApiExportServic
 
     @Mock
     private MediaService mediaService;
-
-    @Mock
-    private PathValidationService pathValidationService;
 
     private ApiEntity apiEntity;
 
