@@ -15,70 +15,98 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api;
 
+import static assertions.MAPIAssertions.assertThat;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
-import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
-import fixtures.SubscriptionFixtures;
-import io.gravitee.rest.api.management.v2.rest.model.Error;
+import inmemory.ApplicationCrudServiceInMemory;
+import inmemory.SubscriptionCrudServiceInMemory;
+import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
+import io.gravitee.apim.core.subscription.usecase.CloseSubscriptionUsecase;
 import io.gravitee.rest.api.management.v2.rest.model.Subscription;
-import io.gravitee.rest.api.model.SubscriptionEntity;
-import io.gravitee.rest.api.model.SubscriptionStatus;
+import io.gravitee.rest.api.management.v2.rest.model.SubscriptionStatus;
+import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
+import io.gravitee.rest.api.model.BaseApplicationEntity;
+import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
+import java.util.List;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
-public class ApiSubscriptionsResource_CloseTest extends ApiSubscriptionsResourceTest {
+public class ApiSubscriptionsResource_CloseTest extends AbstractResourceTest {
+
+    protected static final String API = "my-api";
+    protected static final String PLAN = "my-plan";
+    protected static final String APPLICATION = "my-application";
+    protected static final String SUBSCRIPTION = "my-subscription";
+    protected static final String ENVIRONMENT = "my-env";
+
+    @Autowired
+    protected CloseSubscriptionUsecase closeSubscriptionUsecase;
+
+    @Autowired
+    private SubscriptionCrudServiceInMemory subscriptionCrudServiceInMemory;
+
+    @Autowired
+    private ApplicationCrudServiceInMemory applicationCrudServiceInMemory;
 
     @Override
     protected String contextPath() {
         return "/environments/" + ENVIRONMENT + "/apis/" + API + "/subscriptions" + "/" + SUBSCRIPTION + "/_close";
     }
 
-    @Test
-    public void should_return_404_if_not_found() {
-        when(subscriptionService.findById(SUBSCRIPTION)).thenThrow(new SubscriptionNotFoundException(SUBSCRIPTION));
+    @BeforeEach
+    public void setUp() {
+        super.setUp();
 
-        final Response response = rootTarget().request().post(Entity.json(null));
-        assertEquals(NOT_FOUND_404, response.getStatus());
+        EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
+        doReturn(environmentEntity).when(environmentService).findById(ENVIRONMENT);
+        doReturn(environmentEntity).when(environmentService).findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT);
 
-        var error = response.readEntity(Error.class);
-        assertEquals(NOT_FOUND_404, (int) error.getHttpStatus());
-        assertEquals("Subscription [" + SUBSCRIPTION + "] cannot be found.", error.getMessage());
+        GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
+        GraviteeContext.setCurrentOrganization(ORGANIZATION);
 
-        verify(subscriptionService, never()).close(any(), any());
+        applicationCrudServiceInMemory.initWith(List.of(BaseApplicationEntity.builder().id(APPLICATION).build()));
+    }
+
+    @AfterEach
+    void tearDown() {
+        subscriptionCrudServiceInMemory.reset();
     }
 
     @Test
-    public void should_return_404_if_plan_associated_to_another_api() {
-        final SubscriptionEntity subscriptionEntity = SubscriptionFixtures
-            .aSubscriptionEntity()
-            .toBuilder()
-            .id(SUBSCRIPTION)
-            .api("ANOTHER-API")
-            .build();
+    public void should_return_404_if_not_found() {
+        final Response response = rootTarget().request().post(Entity.json(null));
+        assertThat(response).hasStatus(NOT_FOUND_404).asError().hasMessage("Subscription [" + SUBSCRIPTION + "] cannot be found.");
+    }
 
-        when(subscriptionService.findById(SUBSCRIPTION)).thenReturn(subscriptionEntity);
+    @Test
+    public void should_return_404_if_subscription_associated_to_another_api() {
+        subscriptionCrudServiceInMemory.initWith(
+            List.of(
+                SubscriptionEntity
+                    .builder()
+                    .id(SUBSCRIPTION)
+                    .apiId("ANOTHER_API")
+                    .planId(PLAN)
+                    .applicationId(APPLICATION)
+                    .status(SubscriptionEntity.Status.ACCEPTED)
+                    .build()
+            )
+        );
 
         final Response response = rootTarget().request().post(Entity.json(null));
-        assertEquals(NOT_FOUND_404, response.getStatus());
-
-        var error = response.readEntity(Error.class);
-        assertEquals(NOT_FOUND_404, (int) error.getHttpStatus());
-        assertEquals("Subscription [" + SUBSCRIPTION + "] cannot be found.", error.getMessage());
-
-        verify(subscriptionService, never()).close(any(), any());
+        assertThat(response).hasStatus(NOT_FOUND_404).asError().hasMessage("Subscription [" + SUBSCRIPTION + "] cannot be found.");
     }
 
     @Test
@@ -94,34 +122,29 @@ public class ApiSubscriptionsResource_CloseTest extends ApiSubscriptionsResource
             .thenReturn(false);
 
         final Response response = rootTarget().request().post(Entity.json(null));
-        assertEquals(FORBIDDEN_403, response.getStatus());
-
-        var error = response.readEntity(Error.class);
-        assertEquals(FORBIDDEN_403, (int) error.getHttpStatus());
-        assertEquals("You do not have sufficient rights to access this resource", error.getMessage());
-
-        verify(subscriptionService, never()).close(any(), any());
+        assertThat(response).hasStatus(FORBIDDEN_403).asError().hasMessage("You do not have sufficient rights to access this resource");
     }
 
     @Test
     public void should_return_subscription_when_subscription_closed() {
-        final SubscriptionEntity subscriptionEntity = SubscriptionFixtures
-            .aSubscriptionEntity()
-            .toBuilder()
-            .id(SUBSCRIPTION)
-            .api(API)
-            .build();
-        when(subscriptionService.findById(SUBSCRIPTION)).thenReturn(subscriptionEntity);
-
-        when(subscriptionService.close(GraviteeContext.getExecutionContext(), SUBSCRIPTION))
-            .thenReturn(subscriptionEntity.toBuilder().status(SubscriptionStatus.CLOSED).build());
+        subscriptionCrudServiceInMemory.initWith(
+            List.of(
+                SubscriptionEntity
+                    .builder()
+                    .id(SUBSCRIPTION)
+                    .apiId(API)
+                    .planId(PLAN)
+                    .applicationId(APPLICATION)
+                    .status(SubscriptionEntity.Status.ACCEPTED)
+                    .build()
+            )
+        );
 
         final Response response = rootTarget().request().post(Entity.json(null));
-        assertEquals(OK_200, response.getStatus());
-
-        var subscription = response.readEntity(Subscription.class);
-        assertEquals(subscriptionEntity.getId(), subscription.getId());
-
-        verify(subscriptionService, times(1)).close(GraviteeContext.getExecutionContext(), SUBSCRIPTION);
+        assertThat(response)
+            .hasStatus(OK_200)
+            .asEntity(Subscription.class)
+            .extracting(Subscription::getStatus)
+            .isEqualTo(SubscriptionStatus.CLOSED);
     }
 }
