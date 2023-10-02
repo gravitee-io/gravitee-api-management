@@ -97,12 +97,12 @@ public class SearchConnectionLogUsecase {
         }
     }
 
-    public record Request(String apiId, String userId, Optional<Pageable> pageable) {
-        public Request(String apiId, String userId) {
-            this(apiId, userId, Optional.empty());
+    public record Request(String apiId, Optional<Pageable> pageable) {
+        public Request(String apiId) {
+            this(apiId, Optional.empty());
         }
-        public Request(String apiId, String userId, Pageable pageable) {
-            this(apiId, userId, Optional.of(pageable));
+        public Request(String apiId, Pageable pageable) {
+            this(apiId, Optional.of(pageable));
         }
     }
 

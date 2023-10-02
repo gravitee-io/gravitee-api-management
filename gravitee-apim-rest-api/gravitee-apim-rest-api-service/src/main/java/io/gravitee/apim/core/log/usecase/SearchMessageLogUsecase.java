@@ -49,13 +49,13 @@ public class SearchMessageLogUsecase {
         return new Response(total, data);
     }
 
-    public record Request(String apiId, String requestId, String userId, Optional<Pageable> pageable) {
-        public Request(String apiId, String requestId, String userId) {
-            this(apiId, requestId, userId, Optional.empty());
+    public record Request(String apiId, String requestId, Optional<Pageable> pageable) {
+        public Request(String apiId, String requestId) {
+            this(apiId, requestId, Optional.empty());
         }
 
-        public Request(String apiId, String requestId, String userId, Pageable pageable) {
-            this(apiId, requestId, userId, Optional.of(pageable));
+        public Request(String apiId, String requestId, Pageable pageable) {
+            this(apiId, requestId, Optional.of(pageable));
         }
     }
 
