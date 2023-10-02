@@ -49,7 +49,12 @@ public class InMemoryConfiguration {
     }
 
     @Bean
-    ApiSearchServiceInMemory apiSearchServiceInMemory() {
+    public ApiSearchServiceInMemory apiSearchServiceInMemory() {
         return new ApiSearchServiceInMemory();
+    }
+
+    @Bean
+    public PageQueryServiceInMemory pageQueryServiceInMemory() {
+        return new PageQueryServiceInMemory();
     }
 }

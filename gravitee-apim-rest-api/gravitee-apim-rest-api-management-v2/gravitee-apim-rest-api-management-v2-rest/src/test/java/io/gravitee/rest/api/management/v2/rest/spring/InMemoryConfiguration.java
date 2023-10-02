@@ -51,4 +51,9 @@ public class InMemoryConfiguration {
     public EnvironmentCrudServiceInMemory environmentCrudServiceInMemory() {
         return new EnvironmentCrudServiceInMemory();
     }
+
+    @Bean
+    public PageQueryServiceInMemory pageQueryServiceInMemory() {
+        return new PageQueryServiceInMemory();
+    }
 }

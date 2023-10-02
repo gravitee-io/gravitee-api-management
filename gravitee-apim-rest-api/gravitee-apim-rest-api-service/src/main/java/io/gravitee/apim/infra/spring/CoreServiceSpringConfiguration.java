@@ -19,6 +19,8 @@ import io.gravitee.apim.core.api.domain_service.ApiDefinitionParserDomainService
 import io.gravitee.apim.core.api.domain_service.ApiHostValidatorDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
+import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
+import io.gravitee.apim.core.documentation.query_service.PageQueryService;
 import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -39,5 +41,10 @@ public class CoreServiceSpringConfiguration {
             apiDefinitionParserDomainService,
             apiHostValidatorDomainService
         );
+    }
+
+    @Bean
+    public ApiDocumentationDomainService apiDocumentationDomainService(PageQueryService pageQueryService) {
+        return new ApiDocumentationDomainService(pageQueryService);
     }
 }
