@@ -49,13 +49,18 @@ public class SearchMessageLogUsecase {
         return new Response(total, data);
     }
 
-    public record Request(String apiId, String requestId, String userId, Optional<Pageable> pageable) {
-        public Request(String apiId, String requestId, String userId) {
-            this(apiId, requestId, userId, Optional.empty());
+    public record Request(String apiId, String requestId, Optional<Pageable> pageable) {
+        public Request(String apiId, String requestId) {
+            this(apiId, requestId, Optional.empty());
         }
+<<<<<<< HEAD:gravitee-apim-rest-api/gravitee-apim-rest-api-service/src/main/java/io/gravitee/apim/core/log/usecase/SearchMessageLogUsecase.java
 
         public Request(String apiId, String requestId, String userId, Pageable pageable) {
             this(apiId, requestId, userId, Optional.of(pageable));
+=======
+        public Request(String apiId, String requestId, Pageable pageable) {
+            this(apiId, requestId, Optional.of(pageable));
+>>>>>>> 424a0fd57a (refactor: remove unused userId parameter from LogsResource):gravitee-apim-rest-api/gravitee-apim-rest-api-service/src/main/java/io/gravitee/apim/usecase/log/SearchMessageLogUsecase.java
         }
     }
 
