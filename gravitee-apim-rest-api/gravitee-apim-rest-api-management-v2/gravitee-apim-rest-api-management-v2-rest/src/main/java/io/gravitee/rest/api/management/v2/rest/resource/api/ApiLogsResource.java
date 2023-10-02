@@ -56,7 +56,7 @@ public class ApiLogsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_LOG, acls = { RolePermissionAction.READ }) })
     public ApiLogsResponse getApiLogs(@BeanParam @Valid PaginationParam paginationParam) {
-        var request = new SearchConnectionLogUsecase.Request(
+        var request = new SearchConnectionLogUsecase.Input(
             apiId,
             new PageableImpl(paginationParam.getPage(), paginationParam.getPerPage())
         );
@@ -79,7 +79,7 @@ public class ApiLogsResource extends AbstractResource {
         @BeanParam @Valid PaginationParam paginationParam,
         @PathParam("requestId") String requestId
     ) {
-        var request = new SearchMessageLogUsecase.Request(
+        var request = new SearchMessageLogUsecase.Input(
             apiId,
             requestId,
             new PageableImpl(paginationParam.getPage(), paginationParam.getPerPage())
