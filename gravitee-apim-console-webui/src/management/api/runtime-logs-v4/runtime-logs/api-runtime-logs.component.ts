@@ -32,7 +32,7 @@ import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 })
 export class ApiRuntimeLogsComponent {
   private api$ = this.apiService.get(this.ajsStateParams.apiId).pipe(shareReplay(1));
-  apiLogs$ = this.apiLogsService.searchConnectionLogs(this.ajsStateParams.apiId);
+  apiLogs$ = this.apiLogsService.searchConnectionLogs(this.ajsStateParams.apiId, +this.ajsStateParams.page, +this.ajsStateParams.perPage);
   isMessageApi$ = this.api$.pipe(map((api: ApiV4) => api?.type === 'MESSAGE'));
   apiLogsEnabled$ = this.api$.pipe(map(ApiRuntimeLogsComponent.isLogEnabled));
 
@@ -44,7 +44,17 @@ export class ApiRuntimeLogsComponent {
   ) {}
 
   paginationUpdated(event: PageEvent) {
-    this.apiLogs$ = this.apiLogsService.searchConnectionLogs(this.ajsStateParams.apiId, event.pageIndex + 1, event.pageSize);
+    const page = event.pageIndex + 1;
+    const perPage = event.pageSize;
+    this.apiLogs$ = this.apiLogsService.searchConnectionLogs(this.ajsStateParams.apiId, page, perPage);
+    this.ajsState.go(
+      '.',
+      {
+        page,
+        perPage,
+      },
+      { notify: false },
+    );
   }
 
   openLogsSettings() {
