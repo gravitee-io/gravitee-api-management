@@ -35,34 +35,38 @@ public class SearchMessageLogUsecase {
         this.messageLogCrudService = messageLogCrudService;
     }
 
-    public Response execute(Request request) {
-        var pageable = request.pageable.orElse(new PageableImpl(1, 20));
+    public Output execute(Input input) {
+        var pageable = input.pageable.orElse(new PageableImpl(1, 20));
 
-        var response = messageLogCrudService.searchApiMessageLog(request.apiId(), request.requestId(), pageable);
+        var response = messageLogCrudService.searchApiMessageLog(input.apiId(), input.requestId(), pageable);
         return mapToResponse(response);
     }
 
-    private Response mapToResponse(SearchLogResponse<BaseMessageLog> logs) {
+    private Output mapToResponse(SearchLogResponse<BaseMessageLog> logs) {
         var total = logs.total();
         var data = logs.logs();
 
-        return new Response(total, data);
+        return new Output(total, data);
     }
 
-    public record Request(String apiId, String requestId, Optional<Pageable> pageable) {
-        public Request(String apiId, String requestId) {
+    public record Input(String apiId, String requestId, Optional<Pageable> pageable) {
+        public Input(String apiId, String requestId) {
             this(apiId, requestId, Optional.empty());
         }
+<<<<<<< HEAD:gravitee-apim-rest-api/gravitee-apim-rest-api-service/src/main/java/io/gravitee/apim/core/log/usecase/SearchMessageLogUsecase.java
 <<<<<<< HEAD:gravitee-apim-rest-api/gravitee-apim-rest-api-service/src/main/java/io/gravitee/apim/core/log/usecase/SearchMessageLogUsecase.java
 
         public Request(String apiId, String requestId, String userId, Pageable pageable) {
             this(apiId, requestId, userId, Optional.of(pageable));
 =======
         public Request(String apiId, String requestId, Pageable pageable) {
+=======
+        public Input(String apiId, String requestId, Pageable pageable) {
+>>>>>>> 30bbe07027 (refactor: rename logs use cases Request and Response to Input and Output):gravitee-apim-rest-api/gravitee-apim-rest-api-service/src/main/java/io/gravitee/apim/usecase/log/SearchMessageLogUsecase.java
             this(apiId, requestId, Optional.of(pageable));
 >>>>>>> 424a0fd57a (refactor: remove unused userId parameter from LogsResource):gravitee-apim-rest-api/gravitee-apim-rest-api-service/src/main/java/io/gravitee/apim/usecase/log/SearchMessageLogUsecase.java
         }
     }
 
-    public record Response(long total, List<BaseMessageLog> data) {}
+    public record Output(long total, List<BaseMessageLog> data) {}
 }

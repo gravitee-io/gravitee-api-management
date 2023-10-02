@@ -24,7 +24,11 @@ import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.ConnectionLogCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.PlanCrudServiceInMemory;
+<<<<<<< HEAD:gravitee-apim-rest-api/gravitee-apim-rest-api-service/src/test/java/io/gravitee/apim/core/log/usecase/SearchConnectionLogUsecaseTest.java
 import io.gravitee.apim.core.log.usecase.SearchConnectionLogUsecase.Request;
+=======
+import io.gravitee.apim.usecase.log.SearchConnectionLogUsecase.Input;
+>>>>>>> 30bbe07027 (refactor: rename logs use cases Request and Response to Input and Output):gravitee-apim-rest-api/gravitee-apim-rest-api-service/src/test/java/io/gravitee/apim/usecase/log/SearchConnectionLogUsecaseTest.java
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.model.common.PageableImpl;
@@ -77,7 +81,7 @@ public class SearchConnectionLogUsecaseTest {
             )
         );
 
-        var result = usecase.execute(GraviteeContext.getExecutionContext(), new Request(API_ID));
+        var result = usecase.execute(GraviteeContext.getExecutionContext(), new Input(API_ID));
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.total()).isOne();
@@ -113,7 +117,7 @@ public class SearchConnectionLogUsecaseTest {
             )
         );
 
-        var result = usecase.execute(GraviteeContext.getExecutionContext(), new Request(API_ID));
+        var result = usecase.execute(GraviteeContext.getExecutionContext(), new Input(API_ID));
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.total()).isEqualTo(3);
@@ -137,7 +141,7 @@ public class SearchConnectionLogUsecaseTest {
             IntStream.range(0, expectedTotal).mapToObj(i -> connectionLogFixtures.aConnectionLog(String.valueOf(i))).toList()
         );
 
-        var result = usecase.execute(GraviteeContext.getExecutionContext(), new Request(API_ID, new PageableImpl(pageNumber, pageSize)));
+        var result = usecase.execute(GraviteeContext.getExecutionContext(), new Input(API_ID, new PageableImpl(pageNumber, pageSize)));
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.total()).isEqualTo(expectedTotal);
@@ -151,7 +155,7 @@ public class SearchConnectionLogUsecaseTest {
 
         logStorageService.initWith(List.of(connectionLogFixtures.aConnectionLog().toBuilder().planId(unknownPlan).build()));
 
-        var result = usecase.execute(GraviteeContext.getExecutionContext(), new Request(API_ID));
+        var result = usecase.execute(GraviteeContext.getExecutionContext(), new Input(API_ID));
         assertThat(result.data())
             .extracting(ConnectionLogModel::getPlan)
             .isEqualTo(List.of(BasePlanEntity.builder().id(unknownPlan).name(UNKNOWN).build()));
@@ -163,7 +167,7 @@ public class SearchConnectionLogUsecaseTest {
             List.of(connectionLogFixtures.aConnectionLog().toBuilder().planId(null).clientIdentifier(null).applicationId("1").build())
         );
 
-        var result = usecase.execute(GraviteeContext.getExecutionContext(), new Request(API_ID));
+        var result = usecase.execute(GraviteeContext.getExecutionContext(), new Input(API_ID));
         assertThat(result.data())
             .extracting(ConnectionLogModel::getPlan)
             .isEqualTo(List.of(BasePlanEntity.builder().id(null).name(UNKNOWN).build()));
@@ -175,7 +179,7 @@ public class SearchConnectionLogUsecaseTest {
 
         logStorageService.initWith(List.of(connectionLogFixtures.aConnectionLog().toBuilder().applicationId(unknownApp).build()));
 
-        var result = usecase.execute(GraviteeContext.getExecutionContext(), new Request(API_ID));
+        var result = usecase.execute(GraviteeContext.getExecutionContext(), new Input(API_ID));
         assertThat(result.data())
             .extracting(ConnectionLogModel::getApplication)
             .isEqualTo(List.of(BaseApplicationEntity.builder().id(unknownApp).name(UNKNOWN).build()));
