@@ -221,7 +221,7 @@
 
         <gravitee-resource-cache.version>2.0.0</gravitee-resource-cache.version>
         <gravitee-resource-oauth2-provider-am.version>2.0.0</gravitee-resource-oauth2-provider-am.version>
-        <gravitee-resource-oauth2-provider-generic.version>2.0.0</gravitee-resource-oauth2-provider-generic.version>
+        <gravitee-resource-oauth2-provider-generic.version>2.0.1</gravitee-resource-oauth2-provider-generic.version>
         <gravitee-service-discovery-consul.version>1.3.0</gravitee-service-discovery-consul.version>
         <!-- Management API Only -->
         <gravitee-cockpit-connectors-ws.version>4.0.2</gravitee-cockpit-connectors-ws.version>
