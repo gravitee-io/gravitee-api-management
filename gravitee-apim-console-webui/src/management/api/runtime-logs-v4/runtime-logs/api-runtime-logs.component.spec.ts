@@ -55,7 +55,7 @@ describe('ApiRuntimeLogsComponent', () => {
       ],
       providers: [
         { provide: UIRouterState, useValue: fakeUiRouter },
-        { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
+        { provide: UIRouterStateParams, useValue: { apiId: API_ID, page: 1, perPage: 10 } },
       ],
     });
 
@@ -143,6 +143,14 @@ describe('ApiRuntimeLogsComponent', () => {
         await paginator.goToNextPage();
 
         expectSecondPage(total, pageSize);
+        expect(fakeUiRouter.go).toHaveBeenCalledWith(
+          '.',
+          {
+            page: 2,
+            perPage: 10,
+          },
+          { notify: false },
+        );
       });
 
       it('should change page size', async () => {
@@ -150,6 +158,14 @@ describe('ApiRuntimeLogsComponent', () => {
         await paginator.setPageSize(25);
 
         expectApiWithLogs(total, 25, 1);
+        expect(fakeUiRouter.go).toHaveBeenCalledWith(
+          '.',
+          {
+            page: 1,
+            perPage: 25,
+          },
+          { notify: false },
+        );
       });
     });
   });
