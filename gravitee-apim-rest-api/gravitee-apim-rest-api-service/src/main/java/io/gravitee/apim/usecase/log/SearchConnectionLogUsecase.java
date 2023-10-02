@@ -52,18 +52,18 @@ public class SearchConnectionLogUsecase {
         this.applicationCrudService = applicationCrudService;
     }
 
-    public Response execute(ExecutionContext executionContext, Request request) {
-        var pageable = request.pageable.orElse(new PageableImpl(1, 20));
+    public Output execute(ExecutionContext executionContext, Input input) {
+        var pageable = input.pageable.orElse(new PageableImpl(1, 20));
 
-        var response = connectionLogCrudService.searchApiConnectionLog(request.apiId(), pageable);
+        var response = connectionLogCrudService.searchApiConnectionLog(input.apiId(), pageable);
         return mapToResponse(executionContext, response);
     }
 
-    private Response mapToResponse(ExecutionContext executionContext, SearchLogResponse<BaseConnectionLog> logs) {
+    private Output mapToResponse(ExecutionContext executionContext, SearchLogResponse<BaseConnectionLog> logs) {
         var total = logs.total();
         var data = logs.logs().stream().map(log -> mapToModel(executionContext, log)).toList();
 
-        return new Response(total, data);
+        return new Output(total, data);
     }
 
     private ConnectionLogModel mapToModel(ExecutionContext executionContext, BaseConnectionLog connectionLog) {
@@ -99,14 +99,14 @@ public class SearchConnectionLogUsecase {
         }
     }
 
-    public record Request(String apiId, Optional<Pageable> pageable) {
-        public Request(String apiId) {
+    public record Input(String apiId, Optional<Pageable> pageable) {
+        public Input(String apiId) {
             this(apiId, Optional.empty());
         }
-        public Request(String apiId, Pageable pageable) {
+        public Input(String apiId, Pageable pageable) {
             this(apiId, Optional.of(pageable));
         }
     }
 
-    public record Response(long total, List<ConnectionLogModel> data) {}
+    public record Output(long total, List<ConnectionLogModel> data) {}
 }

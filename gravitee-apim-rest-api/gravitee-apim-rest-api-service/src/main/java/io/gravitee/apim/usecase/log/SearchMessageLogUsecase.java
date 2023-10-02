@@ -37,28 +37,28 @@ public class SearchMessageLogUsecase {
         this.messageLogCrudService = messageLogCrudService;
     }
 
-    public Response execute(Request request) {
-        var pageable = request.pageable.orElse(new PageableImpl(1, 20));
+    public Output execute(Input input) {
+        var pageable = input.pageable.orElse(new PageableImpl(1, 20));
 
-        var response = messageLogCrudService.searchApiMessageLog(request.apiId(), request.requestId(), pageable);
+        var response = messageLogCrudService.searchApiMessageLog(input.apiId(), input.requestId(), pageable);
         return mapToResponse(response);
     }
 
-    private Response mapToResponse(SearchLogResponse<BaseMessageLog> logs) {
+    private Output mapToResponse(SearchLogResponse<BaseMessageLog> logs) {
         var total = logs.total();
         var data = logs.logs();
 
-        return new Response(total, data);
+        return new Output(total, data);
     }
 
-    public record Request(String apiId, String requestId, Optional<Pageable> pageable) {
-        public Request(String apiId, String requestId) {
+    public record Input(String apiId, String requestId, Optional<Pageable> pageable) {
+        public Input(String apiId, String requestId) {
             this(apiId, requestId, Optional.empty());
         }
-        public Request(String apiId, String requestId, Pageable pageable) {
+        public Input(String apiId, String requestId, Pageable pageable) {
             this(apiId, requestId, Optional.of(pageable));
         }
     }
 
-    public record Response(long total, List<BaseMessageLog> data) {}
+    public record Output(long total, List<BaseMessageLog> data) {}
 }
