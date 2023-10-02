@@ -24,14 +24,14 @@
         Be careful, by changing the end date, {{ data.applicationName }} may no longer have access to this API.
       </div>
       <div *ngIf="data.securityType === 'API_KEY'">All API Keys after the new end date will be revoked.</div>
-      <mat-form-field class="change-end-date__datepicker">
-        <mat-label>Choose a date</mat-label>
-        <input matInput [min]="minDate" [matDatepicker]="picker" formControlName="endDate" />
-        <mat-datepicker-toggle matSuffix [for]="picker">
-          <mat-icon matDatepickerToggleIcon svgIcon="gio:calendar"></mat-icon>
-        </mat-datepicker-toggle>
-        <mat-datepicker #picker></mat-datepicker>
-        <mat-hint>MM/DD/YYYY</mat-hint>
+      <mat-form-field>
+        <mat-label>Validation end date (optional)</mat-label>
+        <input matInput [owlDateTime]="endDate" [min]="minDate" formControlName="endDate" />
+        <mat-icon [owlDateTimeTrigger]="endDate" matSuffix svgIcon="gio:calendar"></mat-icon>
+        <owl-date-time #endDate></owl-date-time>
+        <mat-error *ngIf="form.get('endDate').hasError('owlDateTimeMin')">
+          Date Time value must be after {{ minDate | date : 'medium' }}
+        </mat-error>
       </mat-form-field>
     </div>
   </mat-dialog-content>
