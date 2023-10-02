@@ -17,6 +17,9 @@ package io.gravitee.rest.api.management.v2.rest.resource.api;
 
 import static java.lang.String.format;
 
+import io.gravitee.apim.core.audit.model.AuditActor;
+import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.subscription.usecase.CloseSubscriptionUsecase;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.*;
@@ -47,6 +50,7 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.SecurityContext;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
@@ -68,6 +72,9 @@ public class ApiSubscriptionsResource extends AbstractResource {
     private static final String EXPAND_SUBSCRIBED_BY = "subscribedBy";
 
     @Inject
+    private CloseSubscriptionUsecase closeSubscriptionUsecase;
+
+    @Inject
     private SubscriptionService subscriptionService;
 
     @Inject
@@ -84,6 +91,9 @@ public class ApiSubscriptionsResource extends AbstractResource {
 
     @Inject
     private UserService userService;
+
+    @Inject
+    private SecurityContext securityContext;
 
     @PathParam("apiId")
     private String apiId;
@@ -344,13 +354,31 @@ public class ApiSubscriptionsResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = { RolePermissionAction.UPDATE }) })
     public Response closeApiSubscription(@PathParam("subscriptionId") String subscriptionId) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscriptionId);
+        final var user = getAuthenticatedUserDetails();
 
-        if (!subscriptionEntity.getApi().equals(apiId)) {
-            return Response.status(Response.Status.NOT_FOUND).entity(subscriptionNotFoundError(subscriptionId)).build();
-        }
-
-        return Response.ok(subscriptionMapper.map(subscriptionService.close(executionContext, subscriptionId))).build();
+        var result = closeSubscriptionUsecase.execute(
+            CloseSubscriptionUsecase.Input
+                .builder()
+                .subscriptionId(subscriptionId)
+                .apiId(apiId)
+                .auditInfo(
+                    AuditInfo
+                        .builder()
+                        .organizationId(executionContext.getOrganizationId())
+                        .environmentId(executionContext.getEnvironmentId())
+                        .actor(
+                            AuditActor
+                                .builder()
+                                .userId(user.getUsername())
+                                .userSource(user.getSource())
+                                .userSourceId(user.getSourceId())
+                                .build()
+                        )
+                        .build()
+                )
+                .build()
+        );
+        return Response.ok(subscriptionMapper.map(result.subscription())).build();
     }
 
     @POST

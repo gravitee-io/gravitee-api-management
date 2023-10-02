@@ -23,13 +23,38 @@ import org.springframework.context.annotation.Configuration;
 public class InMemoryConfiguration {
 
     @Bean
+    public ApiQueryServiceInMemory apiQueryServiceInMemory() {
+        return new ApiQueryServiceInMemory();
+    }
+
+    @Bean
     public ApplicationCrudServiceInMemory applicationRepository() {
         return new ApplicationCrudServiceInMemory();
     }
 
     @Bean
+    public ApiKeyCrudServiceInMemory apiKeyCrudServiceInMemory() {
+        return new ApiKeyCrudServiceInMemory();
+    }
+
+    @Bean
+    public ApiKeyQueryServiceInMemory apiKeyQueryServiceInMemory(ApiKeyCrudServiceInMemory apiKeyCrudServiceInMemory) {
+        return new ApiKeyQueryServiceInMemory(apiKeyCrudServiceInMemory);
+    }
+
+    @Bean
+    public AuditCrudServiceInMemory auditCrudServiceInMemory() {
+        return new AuditCrudServiceInMemory();
+    }
+
+    @Bean
     public ConnectionLogCrudServiceInMemory connectionLogRepository() {
         return new ConnectionLogCrudServiceInMemory();
+    }
+
+    @Bean
+    public EnvironmentCrudServiceInMemory environmentCrudServiceInMemory() {
+        return new EnvironmentCrudServiceInMemory();
     }
 
     @Bean
@@ -43,13 +68,25 @@ public class InMemoryConfiguration {
     }
 
     @Bean
-    public ApiQueryServiceInMemory apiSearchCrudServiceInMemory() {
-        return new ApiQueryServiceInMemory();
+    public SubscriptionCrudServiceInMemory subscriptionCrudServiceInMemory() {
+        return new SubscriptionCrudServiceInMemory();
     }
 
     @Bean
-    public EnvironmentCrudServiceInMemory environmentCrudServiceInMemory() {
-        return new EnvironmentCrudServiceInMemory();
+    public SubscriptionQueryServiceInMemory subscriptionQueryServiceInMemory(
+        SubscriptionCrudServiceInMemory subscriptionCrudServiceInMemory
+    ) {
+        return new SubscriptionQueryServiceInMemory(subscriptionCrudServiceInMemory);
+    }
+
+    @Bean
+    TriggerNotificationDomainServiceInMemory triggerNotificationDomainServiceInMemory() {
+        return new TriggerNotificationDomainServiceInMemory();
+    }
+
+    @Bean
+    public UserCrudServiceInMemory userCrudServiceInMemory() {
+        return new UserCrudServiceInMemory();
     }
 
     @Bean
