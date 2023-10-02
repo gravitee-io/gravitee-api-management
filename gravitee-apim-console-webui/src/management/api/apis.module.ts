@@ -1344,7 +1344,7 @@ const states: Ng2StateDeclaration[] = [
   },
   {
     name: 'management.apis.ng.runtimeLogs',
-    url: '/runtime-logs',
+    url: '/runtime-logs?page&perPage',
     data: {
       apiPermissions: {
         only: ['api-log-r'],
@@ -1353,6 +1353,18 @@ const states: Ng2StateDeclaration[] = [
         page: 'management-api-logs',
       },
       useAngularMaterial: true,
+    },
+    params: {
+      page: {
+        type: 'int',
+        value: 1,
+        dynamic: true,
+      },
+      perPage: {
+        type: 'int',
+        value: 10,
+        dynamic: true,
+      },
     },
     component: ApiRuntimeLogsComponent,
   },
