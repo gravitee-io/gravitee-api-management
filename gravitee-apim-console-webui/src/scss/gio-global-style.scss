@@ -4,6 +4,8 @@
 
 @import './gio-description-list';
 
+@import '@danielmoncada/angular-datetime-picker/assets/style/picker.min';
+
 $background: map.get(gio.$mat-theme, background);
 
 .gio-snack-bar-success {

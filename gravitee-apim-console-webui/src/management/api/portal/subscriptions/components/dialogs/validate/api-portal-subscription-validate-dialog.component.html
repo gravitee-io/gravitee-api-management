@@ -21,20 +21,26 @@
     <div class="validate-subscription__content">
       <div class="validate-subscription__content__row">
         <mat-form-field>
-          <mat-label>Enter a date range</mat-label>
-          <mat-date-range-input formGroupName="range" [rangePicker]="picker" [min]="minDate">
-            <input matStartDate formControlName="start" placeholder="Start date" />
-            <input matEndDate formControlName="end" placeholder="End date" />
-          </mat-date-range-input>
-          <mat-hint>MM/DD/YYYY – MM/DD/YYYY</mat-hint>
-          <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-          <mat-date-range-picker #picker></mat-date-range-picker>
+          <mat-label>Validation period (optional)</mat-label>
+          <input
+            matInput
+            [owlDateTime]="dateTimeRange"
+            [owlDateTimeTrigger]="dateTimeRange"
+            [selectMode]="'range'"
+            [min]="minDate"
+            formControlName="dateTimeRange"
+          />
+          <mat-icon [owlDateTimeTrigger]="dateTimeRange" matSuffix svgIcon="gio:calendar"></mat-icon>
+          <owl-date-time #dateTimeRange></owl-date-time>
+          <mat-error *ngIf="form.get('dateTimeRange').hasError('owlDateTimeMin')">
+            Date Time value must be after {{ minDate | date : 'medium' }}
+          </mat-error>
         </mat-form-field>
       </div>
       <div class="validate-subscription__content__row">
         <mat-form-field appearance="outline" class="validate-subscription__content__message">
           <input id="subscription-message" type="text" matInput formControlName="message" maxlength="50" />
-          <mat-label>If necessary, add a message</mat-label>
+          <mat-label>Message (optional)</mat-label>
         </mat-form-field>
       </div>
       <div class="validate-subscription__content__row" *ngIf="data.canUseCustomApiKey && !data.sharedApiKeyMode">
