@@ -50,19 +50,18 @@ export class ApiPortalSubscriptionValidateDialogComponent implements OnInit {
     this.minDate = new Date();
 
     this.form = new FormGroup({
-      range: new FormGroup({
-        start: new FormControl(undefined),
-        end: new FormControl(undefined),
-      }),
+      dateTimeRange: new FormControl(),
       message: new FormControl(''),
       apiKey: new FormControl(''),
     });
   }
 
   onClose() {
+    const [start, end] = this.form.getRawValue()?.dateTimeRange ?? [undefined, undefined];
+
     this.dialogRef.close({
-      start: this.form.getRawValue().range.start,
-      end: this.form.getRawValue().range.end,
+      start: start ?? undefined,
+      end: end ?? undefined,
       message: this.form.getRawValue().message,
       customApiKey: this.form.getRawValue().apiKey,
     });

@@ -12,9 +12,6 @@
   flex-direction: column;
   gap: 24px;
 
-  &__nav {
-    padding-bottom: 36px;
-  }
   &__row {
     display: flex;
     border-bottom: 1px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker10');
