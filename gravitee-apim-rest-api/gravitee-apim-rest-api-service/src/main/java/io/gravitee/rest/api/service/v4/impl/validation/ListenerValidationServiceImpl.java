@@ -15,6 +15,9 @@
  */
 package io.gravitee.rest.api.service.v4.impl.validation;
 
+import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
+import io.gravitee.apim.core.api.model.Path;
+import io.gravitee.apim.infra.adapter.PathAdapter;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.ConnectorFeature;
 import io.gravitee.definition.model.v4.ConnectorMode;
@@ -42,7 +45,6 @@ import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointUnsupportedQo
 import io.gravitee.rest.api.service.v4.exception.ListenersDuplicatedException;
 import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
 import io.gravitee.rest.api.service.v4.validation.ListenerValidationService;
-import io.gravitee.rest.api.service.v4.validation.PathValidationService;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -59,18 +61,18 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class ListenerValidationServiceImpl extends TransactionalService implements ListenerValidationService {
 
-    private final PathValidationService pathValidationService;
+    private final VerifyApiPathDomainService verifyApiPathDomainService;
     private final EntrypointConnectorPluginService entrypointService;
     private final EndpointConnectorPluginService endpointService;
     private final CorsValidationService corsValidationService;
 
     public ListenerValidationServiceImpl(
-        final PathValidationService pathValidationService,
+        final VerifyApiPathDomainService verifyApiPathDomainService,
         final EntrypointConnectorPluginService entrypointService,
         EndpointConnectorPluginService endpointService,
         final CorsValidationService corsValidationService
     ) {
-        this.pathValidationService = pathValidationService;
+        this.verifyApiPathDomainService = verifyApiPathDomainService;
         this.entrypointService = entrypointService;
         this.endpointService = endpointService;
         this.corsValidationService = corsValidationService;
@@ -120,7 +122,13 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
         final HttpListener httpListener,
         final List<EndpointGroup> endpointGroups
     ) {
-        httpListener.setPaths(pathValidationService.validateAndSanitizePaths(executionContext, apiId, httpListener.getPaths()));
+        var sanitizedPaths = verifyApiPathDomainService.checkAndSanitizeApiPaths(
+            executionContext.getEnvironmentId(),
+            apiId,
+            PathAdapter.INSTANCE.fromV4HttpListenerPathList(httpListener.getPaths())
+        );
+        httpListener.setPaths(PathAdapter.INSTANCE.toV4HttpListenerPathList(sanitizedPaths));
+
         validatePathMappings(httpListener.getPathMappings());
         // Validate and clean entrypoints
         validateEntrypoints(httpListener.getType(), httpListener.getEntrypoints(), endpointGroups);

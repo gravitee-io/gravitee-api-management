@@ -13,18 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service.v4.validation;
+package io.gravitee.apim.infra.adapter;
 
-import io.gravitee.definition.model.v4.listener.http.Path;
-import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.apim.core.api.model.Path;
 import java.util.List;
+import org.mapstruct.Mapper;
+import org.mapstruct.factory.Mappers;
 
-/**
- * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
- * @author GraviteeSource Team
- */
-public interface PathValidationService {
-    List<Path> validateAndSanitizePaths(ExecutionContext executionContext, String apiId, List<Path> paths);
+@Mapper
+public interface PathAdapter {
+    PathAdapter INSTANCE = Mappers.getMapper(PathAdapter.class);
+    Path fromV4HttpListenerPath(io.gravitee.definition.model.v4.listener.http.Path path);
+    List<Path> fromV4HttpListenerPathList(List<io.gravitee.definition.model.v4.listener.http.Path> path);
 
-    String sanitizePath(String path);
+    io.gravitee.definition.model.v4.listener.http.Path toV4HttpListenerPath(Path path);
+    List<io.gravitee.definition.model.v4.listener.http.Path> toV4HttpListenerPathList(List<Path> path);
 }
