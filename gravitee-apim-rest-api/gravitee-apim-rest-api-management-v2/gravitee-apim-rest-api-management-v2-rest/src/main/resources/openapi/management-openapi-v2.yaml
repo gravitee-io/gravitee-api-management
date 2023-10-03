@@ -4007,6 +4007,14 @@ components:
                     example: iOS
                 primaryOwner:
                     $ref: "#/components/schemas/PrimaryOwner"
+                apiKeyMode:
+                    type: string
+                    description: The API Key mode used for this application.
+                    example: UNSPECIFIED
+                    enum:
+                        - SHARED
+                        - EXCLUSIVE
+                        - UNSPECIFIED
         BaseGroup:
             type: object
             properties:
