@@ -15,36 +15,34 @@
  */
 package inmemory;
 
-import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
-import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
+import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.OptionalInt;
 
-public class SubscriptionCrudServiceInMemory implements SubscriptionCrudService, InMemoryAlternative<SubscriptionEntity> {
+public class SubscriptionQueryServiceInMemory implements SubscriptionQueryService, InMemoryAlternative<SubscriptionEntity> {
 
-    final ArrayList<SubscriptionEntity> storage = new ArrayList<>();
+    private final ArrayList<SubscriptionEntity> storage;
 
-    @Override
-    public SubscriptionEntity get(String subscriptionId) {
-        return storage
-            .stream()
-            .filter(subscription -> subscriptionId.equals(subscription.getId()))
-            .findFirst()
-            .orElseThrow(() -> new SubscriptionNotFoundException(subscriptionId));
+    public SubscriptionQueryServiceInMemory() {
+        storage = new ArrayList<>();
+    }
+
+    public SubscriptionQueryServiceInMemory(SubscriptionCrudServiceInMemory subscriptionCrudServiceInMemory) {
+        storage = subscriptionCrudServiceInMemory.storage;
     }
 
     @Override
-    public SubscriptionEntity update(SubscriptionEntity subscriptionEntity) {
-        OptionalInt index = this.findIndex(this.storage, subscription -> subscription.getId().equals(subscriptionEntity.getId()));
-        if (index.isPresent()) {
-            storage.set(index.getAsInt(), subscriptionEntity);
-            return subscriptionEntity;
-        }
-
-        throw new IllegalStateException("Subscription not found");
+    public List<SubscriptionEntity> findExpiredSubscriptions() {
+        return storage
+            .stream()
+            .filter(subscription ->
+                subscription.getStatus().equals(SubscriptionEntity.Status.ACCEPTED) &&
+                subscription.getEndingAt().isBefore(ZonedDateTime.now())
+            )
+            .toList();
     }
 
     @Override
