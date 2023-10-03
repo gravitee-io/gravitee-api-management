@@ -15,11 +15,15 @@
  */
 package io.gravitee.rest.api.portal.security.config;
 
+import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.Map;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
@@ -27,40 +31,22 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
+@RequiredArgsConstructor
 public class GraviteeUrlBasedCorsConfigurationSource extends UrlBasedCorsConfigurationSource {
 
-    private Map<String, GraviteeCorsConfiguration> corsConfigurationByEnvironment = new HashMap<>();
-
-    private ParameterService parameterService;
-    private EventManager eventManager;
-
-    public GraviteeUrlBasedCorsConfigurationSource(ParameterService parameterService, EventManager eventManager) {
-        this.parameterService = parameterService;
-        this.eventManager = eventManager;
-    }
-
-    private String computeEnvironmentId(HttpServletRequest request) {
-        String path = request.getPathInfo();
-        final String environmentsResourcePath = "/environments/";
-        final int environmentPathIndex = path.indexOf(environmentsResourcePath);
-
-        if (environmentPathIndex > -1) {
-            int envIdStartIndex = environmentPathIndex + environmentsResourcePath.length();
-            return path.substring(envIdStartIndex, path.indexOf('/', envIdStartIndex));
-        }
-        return null;
-    }
+    private final ParameterService parameterService;
+    private final AccessPointQueryService accessPointQueryService;
+    private final EventManager eventManager;
+    private final Map<String, GraviteeCorsConfiguration> corsConfigurationByEnvironment = new HashMap<>();
 
     @Override
-    public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
-        String environmentId = computeEnvironmentId(request);
+    public CorsConfiguration getCorsConfiguration(final @NonNull HttpServletRequest request) {
+        String environmentId = GraviteeContext.getCurrentEnvironment();
         if (environmentId != null) {
-            GraviteeCorsConfiguration corsConfiguration = corsConfigurationByEnvironment.get(environmentId);
-            if (corsConfiguration == null) {
-                corsConfiguration = new GraviteeCorsConfiguration(parameterService, eventManager, environmentId);
-                this.corsConfigurationByEnvironment.put(environmentId, corsConfiguration);
-            }
-            return corsConfiguration;
+            return corsConfigurationByEnvironment.computeIfAbsent(
+                environmentId,
+                id -> new GraviteeCorsConfiguration(parameterService, accessPointQueryService, eventManager, environmentId)
+            );
         }
         return super.getCorsConfiguration(request);
     }

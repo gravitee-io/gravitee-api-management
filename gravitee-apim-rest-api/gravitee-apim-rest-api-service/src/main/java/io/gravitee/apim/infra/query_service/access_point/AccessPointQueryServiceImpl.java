@@ -27,6 +27,8 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -60,9 +62,23 @@ public class AccessPointQueryServiceImpl implements AccessPointQueryService {
     }
 
     @Override
+    public List<String> getConsoleUrls(final String organizationId, final boolean includeDefault) {
+        try {
+            return findUrls(AccessPointReferenceType.ORGANIZATION, organizationId, AccessPointTarget.CONSOLE, includeDefault).toList();
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException(
+                String.format("An error occurs while getting console access point for environment '%s'", organizationId),
+                e
+            );
+        }
+    }
+
+    @Override
     public String getConsoleUrl(final String organizationId) {
         try {
-            return buildHttpUrl(findCustomDomain(AccessPointReferenceType.ORGANIZATION, organizationId, AccessPointTarget.CONSOLE));
+            return findUrls(AccessPointReferenceType.ORGANIZATION, organizationId, AccessPointTarget.CONSOLE, false)
+                .findFirst()
+                .orElse(null);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
                 String.format("An error occurs while getting console access point for organization '%s'", organizationId),
@@ -74,7 +90,9 @@ public class AccessPointQueryServiceImpl implements AccessPointQueryService {
     @Override
     public String getConsoleApiUrl(final String organizationId) {
         try {
-            return buildHttpUrl(findCustomDomain(AccessPointReferenceType.ORGANIZATION, organizationId, AccessPointTarget.CONSOLE_API));
+            return findUrls(AccessPointReferenceType.ORGANIZATION, organizationId, AccessPointTarget.CONSOLE_API, false)
+                .findFirst()
+                .orElse(null);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
                 String.format("An error occurs while getting console api access point for organization '%s'", organizationId),
@@ -84,9 +102,21 @@ public class AccessPointQueryServiceImpl implements AccessPointQueryService {
     }
 
     @Override
+    public List<String> getPortalUrls(final String environmentId, final boolean includeDefault) {
+        try {
+            return findUrls(AccessPointReferenceType.ENVIRONMENT, environmentId, AccessPointTarget.PORTAL, includeDefault).toList();
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException(
+                String.format("An error occurs while getting portal access point for environment '%s'", environmentId),
+                e
+            );
+        }
+    }
+
+    @Override
     public String getPortalUrl(final String environmentId) {
         try {
-            return buildHttpUrl(findCustomDomain(AccessPointReferenceType.ENVIRONMENT, environmentId, AccessPointTarget.PORTAL));
+            return findUrls(AccessPointReferenceType.ENVIRONMENT, environmentId, AccessPointTarget.PORTAL, false).findFirst().orElse(null);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
                 String.format("An error occurs while getting portal access point for environment '%s'", environmentId),
@@ -98,7 +128,9 @@ public class AccessPointQueryServiceImpl implements AccessPointQueryService {
     @Override
     public String getPortalApiUrl(final String environmentId) {
         try {
-            return buildHttpUrl(findCustomDomain(AccessPointReferenceType.ENVIRONMENT, environmentId, AccessPointTarget.PORTAL_API));
+            return findUrls(AccessPointReferenceType.ENVIRONMENT, environmentId, AccessPointTarget.PORTAL_API, false)
+                .findFirst()
+                .orElse(null);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
                 String.format("An error occurs while getting portal api access point for environment '%s'", environmentId),
@@ -110,19 +142,12 @@ public class AccessPointQueryServiceImpl implements AccessPointQueryService {
     @Override
     public List<RestrictedDomainEntity> getGatewayRestrictedDomains(final String environmentId) {
         try {
-            List<AccessPoint> filteredList = new ArrayList<>();
-
-            // Retrieve domain for env
-            List<AccessPoint> domainsForEnv = accessPointRepository.findByReferenceAndTarget(
+            List<AccessPoint> filteredList = findAccessPoints(
                 AccessPointReferenceType.ENVIRONMENT,
                 environmentId,
-                AccessPointTarget.GATEWAY
+                AccessPointTarget.GATEWAY,
+                false
             );
-            if (domainsForEnv.size() == 1) {
-                filteredList.addAll(domainsForEnv);
-            } else {
-                filteredList.addAll(domainsForEnv.stream().filter(AccessPoint::isOverriding).toList());
-            }
 
             return filteredList
                 .stream()
@@ -138,21 +163,31 @@ public class AccessPointQueryServiceImpl implements AccessPointQueryService {
         }
     }
 
-    private AccessPoint findCustomDomain(
+    private Stream<String> findUrls(
         final AccessPointReferenceType referenceType,
         final String referenceId,
-        final AccessPointTarget target
+        final AccessPointTarget target,
+        final boolean includeAll
     ) throws TechnicalException {
-        AccessPoint foundAccessPoint = null;
-        List<AccessPoint> referenceAndTarget = accessPointRepository.findByReferenceAndTarget(referenceType, referenceId, target);
-        if (referenceAndTarget != null && !referenceAndTarget.isEmpty()) {
-            if (referenceAndTarget.size() == 1) {
-                foundAccessPoint = referenceAndTarget.get(0);
-            } else {
-                foundAccessPoint = referenceAndTarget.stream().filter(AccessPoint::isOverriding).findFirst().orElse(null);
-            }
+        return findAccessPoints(referenceType, referenceId, target, includeAll).stream().map(this::buildHttpUrl);
+    }
+
+    private List<AccessPoint> findAccessPoints(
+        final AccessPointReferenceType referenceType,
+        final String referenceId,
+        final AccessPointTarget target,
+        final boolean includeAll
+    ) throws TechnicalException {
+        List<AccessPoint> filteredList = new ArrayList<>();
+
+        // Retrieve domain for env
+        List<AccessPoint> domainsForEnv = accessPointRepository.findByReferenceAndTarget(referenceType, referenceId, target);
+        if (domainsForEnv.size() == 1 || includeAll) {
+            filteredList.addAll(domainsForEnv);
+        } else {
+            filteredList.addAll(domainsForEnv.stream().filter(AccessPoint::isOverriding).toList());
         }
-        return foundAccessPoint;
+        return filteredList;
     }
 
     private String buildHttpUrl(final AccessPoint accessPoint) {
