@@ -35,6 +35,7 @@ export function fakeSubscription(modifier?: Partial<Subscription> | ((baseApi: S
         id: 'my-primary-owner',
         displayName: 'Primary Owner',
       },
+      apiKeyMode: 'UNSPECIFIED',
     },
     plan: {
       id: 'dee23b1e-34b1-4551-a23b-1e34b165516a',
