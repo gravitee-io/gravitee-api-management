@@ -16,14 +16,18 @@
 package io.gravitee.apim.infra.spring;
 
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
+import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.api.usecase.VerifyApiPathsUsecase;
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
+import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
 import io.gravitee.apim.core.log.crud_service.ConnectionLogCrudService;
 import io.gravitee.apim.core.log.crud_service.MessageLogCrudService;
 import io.gravitee.apim.core.log.usecase.SearchConnectionLogUsecase;
 import io.gravitee.apim.core.log.usecase.SearchMessageLogUsecase;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
+import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
+import io.gravitee.apim.core.subscription.usecase.CloseExpiredSubscriptionsUsecase;
 import io.gravitee.apim.core.subscription.usecase.CloseSubscriptionUsecase;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -36,6 +40,21 @@ public class UsecaseSpringConfiguration {
     @Bean
     public CloseSubscriptionUsecase closeSubscriptionUsecase(CloseSubscriptionDomainService closeSubscriptionDomainService) {
         return new CloseSubscriptionUsecase(closeSubscriptionDomainService);
+    }
+
+    @Bean
+    public CloseExpiredSubscriptionsUsecase closeExpiredSubscriptionsUsecase(
+        SubscriptionQueryService subscriptionQueryService,
+        ApiQueryService apiQueryService,
+        EnvironmentCrudService environmentCrudService,
+        CloseSubscriptionDomainService closeSubscriptionDomainService
+    ) {
+        return new CloseExpiredSubscriptionsUsecase(
+            subscriptionQueryService,
+            apiQueryService,
+            environmentCrudService,
+            closeSubscriptionDomainService
+        );
     }
 
     @Bean
