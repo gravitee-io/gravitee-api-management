@@ -22,6 +22,8 @@ import io.gravitee.repository.log.v4.api.LogRepository;
 import io.gravitee.repository.log.v4.model.LogResponse;
 import io.gravitee.repository.log.v4.model.connection.ConnectionLog;
 import io.gravitee.repository.log.v4.model.connection.ConnectionLogQuery;
+import io.gravitee.rest.api.model.analytics.Interval;
+import io.gravitee.rest.api.model.analytics.Timestamp;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.v4.log.SearchLogResponse;
 import io.gravitee.rest.api.model.v4.log.connection.BaseConnectionLog;
@@ -41,12 +43,12 @@ class ConnectionLogCrudServiceImpl implements ConnectionLogCrudService {
     }
 
     @Override
-    public SearchLogResponse<BaseConnectionLog> searchApiConnectionLog(String apiId, Pageable pageable) {
+    public SearchLogResponse<BaseConnectionLog> searchApiConnectionLog(String apiId, Interval interval, Pageable pageable) {
         try {
             var response = logRepository.searchConnectionLog(
                 ConnectionLogQuery
                     .builder()
-                    .filter(ConnectionLogQuery.Filter.builder().apiId(apiId).build())
+                    .filter(ConnectionLogQuery.Filter.builder().apiId(apiId).from(interval.from()).to(interval.to()).build())
                     .page(pageable.getPageNumber())
                     .size(pageable.getPageSize())
                     .build()

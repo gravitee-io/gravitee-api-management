@@ -1581,6 +1581,8 @@ paths:
             parameters:
                 - $ref: "#/components/parameters/pageParam"
                 - $ref: "#/components/parameters/perPageParam"
+                - $ref: "#/components/parameters/from"
+                - $ref: "#/components/parameters/to"
             tags:
                 - Analytics - Logs
             summary: Get API logs
@@ -5714,6 +5716,22 @@ components:
                   type: string
                   enum:
                       - deploymentState
+        from:
+            name: from
+            in: query
+            required: false
+            description: |
+                The timestamp from which the logs will be returned.
+            schema:
+                type: integer
+        to:
+            name: to
+            in: query
+            required: false
+            description: |
+                The timestamp to which the logs will be returned.
+            schema:
+                type: integer
     responses:
         EnvironmentsResponse:
             description: Page of environments

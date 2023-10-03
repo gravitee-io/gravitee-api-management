@@ -16,8 +16,7 @@
 package io.gravitee.rest.api.management.v2.rest.resource.api;
 
 import static assertions.MAPIAssertions.assertThat;
-import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
-import static io.gravitee.common.http.HttpStatusCode.OK_200;
+import static io.gravitee.common.http.HttpStatusCode.*;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
@@ -38,6 +37,7 @@ import io.gravitee.rest.api.management.v2.rest.model.BasePlan;
 import io.gravitee.rest.api.management.v2.rest.model.HttpMethod;
 import io.gravitee.rest.api.management.v2.rest.model.Links;
 import io.gravitee.rest.api.management.v2.rest.model.Pagination;
+import io.gravitee.rest.api.management.v2.rest.resource.param.IntervalParam;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -213,6 +213,100 @@ public class ApiLogsResourceTest extends ApiResourceTest {
                         .last(connectionLogsTarget.queryParam("page", 4).queryParam("perPage", pageSize).getUri().toString())
                         .previous(connectionLogsTarget.queryParam("page", 1).queryParam("perPage", pageSize).getUri().toString())
                         .next(connectionLogsTarget.queryParam("page", 3).queryParam("perPage", pageSize).getUri().toString())
+                        .build()
+                );
+        }
+
+        @Test
+        public void should_return_400_if_negative_interval_params() {
+            when(
+                permissionService.hasPermission(
+                    eq(GraviteeContext.getExecutionContext()),
+                    eq(RolePermission.API_LOG),
+                    eq(API),
+                    eq(RolePermissionAction.READ)
+                )
+            )
+                .thenReturn(true);
+
+            connectionLogsTarget =
+                connectionLogsTarget.queryParam(IntervalParam.FROM_QUERY_PARAM_NAME, -1).queryParam(IntervalParam.TO_QUERY_PARAM_NAME, -1);
+            final Response response = connectionLogsTarget.request().get();
+
+            assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasHttpStatus(BAD_REQUEST_400).hasMessage("Validation error");
+        }
+
+        @Test
+        public void should_return_400_if_to_is_before_from_param() {
+            when(
+                permissionService.hasPermission(
+                    eq(GraviteeContext.getExecutionContext()),
+                    eq(RolePermission.API_LOG),
+                    eq(API),
+                    eq(RolePermissionAction.READ)
+                )
+            )
+                .thenReturn(true);
+
+            connectionLogsTarget =
+                connectionLogsTarget.queryParam(IntervalParam.FROM_QUERY_PARAM_NAME, 2).queryParam(IntervalParam.TO_QUERY_PARAM_NAME, 1);
+            final Response response = connectionLogsTarget.request().get();
+
+            assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasHttpStatus(BAD_REQUEST_400).hasMessage("Validation error");
+        }
+
+        @Test
+        public void should_return_connection_logs_filtered_by_interval() {
+            connectionLogStorageService.initWith(
+                List.of(
+                    connectionLogFixtures.aConnectionLog("req1").toBuilder().timestamp("2020-02-01T20:00:00.00Z").build(),
+                    connectionLogFixtures.aConnectionLog("req2").toBuilder().timestamp("2020-02-02T20:00:00.00Z").build(),
+                    connectionLogFixtures.aConnectionLog("req3").toBuilder().timestamp("2020-02-04T20:00:00.00Z").build()
+                )
+            );
+
+            connectionLogsTarget =
+                connectionLogsTarget
+                    .queryParam(IntervalParam.FROM_QUERY_PARAM_NAME, Instant.parse("2020-02-01T00:01:00.00Z").toEpochMilli())
+                    .queryParam(IntervalParam.TO_QUERY_PARAM_NAME, Instant.parse("2020-02-03T23:59:59.00Z").toEpochMilli());
+            final Response response = connectionLogsTarget.request().get();
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(ApiLogsResponse.class)
+                .isEqualTo(
+                    ApiLogsResponse
+                        .builder()
+                        .data(
+                            List.of(
+                                ApiLog
+                                    .builder()
+                                    .application(BaseApplication.builder().id(APPLICATION.getId()).name(APPLICATION.getName()).build())
+                                    .plan(BasePlan.builder().id(PLAN.getId()).name(PLAN.getName()).apiId(API).build())
+                                    .method(HttpMethod.GET)
+                                    .status(200)
+                                    .clientIdentifier("client-identifier")
+                                    .requestEnded(true)
+                                    .requestId("req2")
+                                    .transactionId("transaction-id")
+                                    .timestamp(Instant.parse("2020-02-02T20:00:00.00Z").atOffset(ZoneOffset.UTC))
+                                    .build(),
+                                ApiLog
+                                    .builder()
+                                    .application(BaseApplication.builder().id(APPLICATION.getId()).name(APPLICATION.getName()).build())
+                                    .plan(BasePlan.builder().id(PLAN.getId()).name(PLAN.getName()).apiId(API).build())
+                                    .method(HttpMethod.GET)
+                                    .status(200)
+                                    .clientIdentifier("client-identifier")
+                                    .requestEnded(true)
+                                    .requestId("req1")
+                                    .transactionId("transaction-id")
+                                    .timestamp(Instant.parse("2020-02-01T20:00:00.00Z").atOffset(ZoneOffset.UTC))
+                                    .build()
+                            )
+                        )
+                        .pagination(Pagination.builder().page(1).perPage(10).pageCount(1).pageItemsCount(2).totalCount(2L).build())
+                        .links(Links.builder().self(connectionLogsTarget.getUri().toString()).build())
                         .build()
                 );
         }
