@@ -392,16 +392,23 @@
   </div>
 </div>
 
+<!--
+  To display the add member button, the user has to be a super admin or a group admin
+-->
 <md-fab-speed-dial
-  ng-if="$ctrl.canAddMembers() || ($ctrl.group.system_invitation && $ctrl.group.email_invitation)"
+  ng-if="$ctrl.canAddMembers"
   md-direction="left"
   md-open="false"
   class="md-scale md-fab-bottom-right md-fab-scrollable"
   ng-class="{'gv-help-displayed': $ctrl.$rootScope.helpDisplayed}"
 >
   <md-fab-trigger>
-    <md-button aria-label="menu" class="md-fab md-success">
-      <md-tooltip md-direction="top" md-visible="false">Add member</md-tooltip>
+    <!-- The button is always displayed, but is disabled if the current user is a group admin and the maximum number of members has been reached -->
+    <md-button aria-label="menu" class="md-fab md-success" ng-disabled="!$ctrl.isSuperAdmin && $ctrl.isMaxInvitationReached()">
+      <md-tooltip md-direction="top" md-visible="false"
+        >Add member{{!$ctrl.isSuperAdmin && $ctrl.isMaxInvitationReached() ? " is not available because maximum number of members has been
+        reached" : ""}}</md-tooltip
+      >
       <ng-md-icon icon="add"></ng-md-icon>
     </md-button>
   </md-fab-trigger>
@@ -427,14 +434,3 @@
     </md-button>
   </md-fab-actions>
 </md-fab-speed-dial>
-
-<md-button
-  ng-if="!$ctrl.isSuperAdmin && !($ctrl.group.system_invitation && $ctrl.group.email_invitation) && ($ctrl.group.system_invitation || $ctrl.group.email_invitation)"
-  ng-click="$ctrl.group.system_invitation?$ctrl.showAddMemberModal(): $ctrl.showInviteMemberModal()"
-  aria-label="Add member"
-  class="md-fab md-fab-bottom-right md-fab-scrollable"
-  ng-class="{'gv-help-displayed': $ctrl.$rootScope.helpDisplayed}"
->
-  <md-tooltip md-direction="top" md-visible="false">Add member</md-tooltip>
-  <ng-md-icon icon="add"></ng-md-icon>
-</md-button>
