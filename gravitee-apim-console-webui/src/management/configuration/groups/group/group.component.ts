@@ -97,6 +97,8 @@ const GroupComponent: ng.IComponentOptions = {
         this.group.event_rules && this.group.event_rules.findIndex((rule) => rule.event === 'APPLICATION_CREATE') !== -1;
 
       this.isSuperAdmin = UserService.isUserHasPermissions(['environment-group-u']);
+      this.canChangeDefaultApiRole = this.isSuperAdmin || !this.group.lock_api_role;
+      this.canChangeDefaultApplicationRole = this.isSuperAdmin || !this.group.lock_application_role;
 
       this.loadGroupApis();
     };
@@ -339,14 +341,6 @@ const GroupComponent: ng.IComponentOptions = {
 
     this.reset = () => {
       $state.reload();
-    };
-
-    this.canChangeDefaultApiRole = () => {
-      return this.isSuperAdmin || !this.group.lock_api_role;
-    };
-
-    this.canChangeDefaultApplicationRole = () => {
-      return this.isSuperAdmin || !this.group.lock_application_role;
     };
 
     this.canAddMembers = () => {
