@@ -117,8 +117,8 @@ public class EmailServiceTest {
 
         MimeMessageParser mimeMessageParser = new MimeMessageParser(mimeMessageCaptor.getValue()).parse();
         assertThat(mimeMessageParser.getFrom()).contains("sender@gravitee.io");
-        assertThat(mimeMessageParser.getTo()).contains(new InternetAddress("test@gravitee.io"));
-        assertThat(mimeMessageParser.getBcc()).contains(new InternetAddress("copy@gravitee.io"));
+        assertThat(mimeMessageParser.getTo()).containsExactly(new InternetAddress("test@gravitee.io"));
+        assertThat(mimeMessageParser.getBcc()).containsExactly(new InternetAddress("copy@gravitee.io"));
         assertThat(mimeMessageParser.getSubject()).isEqualTo("[Gravitee.io] Test email title");
         assertThat(mimeMessageParser.getHtmlContent()).contains("cid:images/GRAVITEE_LOGO_RVB-11.png");
         assertThat(mimeMessageParser.getAttachmentList())
@@ -152,7 +152,37 @@ public class EmailServiceTest {
 
         MimeMessageParser mimeMessageParser = new MimeMessageParser(mimeMessageCaptor.getValue()).parse();
         assertThat(mimeMessageParser.getTo()).isEmpty();
-        assertThat(mimeMessageParser.getBcc()).contains(new InternetAddress("copy@gravitee.io"));
+        assertThat(mimeMessageParser.getBcc()).containsExactly(new InternetAddress("copy@gravitee.io"));
+    }
+
+    @Test
+    public void should_send_email_notification_to_sender_if_requested() throws Exception {
+        when(
+            notificationTemplateService.resolveTemplateWithParam(
+                eq(GraviteeContext.getCurrentOrganization()),
+                eq("API.API_STARTED.EMAIL.TITLE"),
+                anyMap()
+            )
+        )
+            .thenReturn("Test email title");
+        when(
+            notificationTemplateService.resolveTemplateWithParam(
+                eq(GraviteeContext.getCurrentOrganization()),
+                eq("API.API_STARTED.EMAIL"),
+                anyMap()
+            )
+        )
+            .thenReturn(buildEmailTemplateWithImage("images/GRAVITEE_LOGO_RVB-11.png"));
+
+        service.sendEmailNotification(EXECUTION_CONTEXT, anEmailNotification().copyToSender(true).build());
+
+        ArgumentCaptor<MimeMessage> mimeMessageCaptor = ArgumentCaptor.forClass(MimeMessage.class);
+        verify(mailSender).send(mimeMessageCaptor.capture());
+
+        MimeMessageParser mimeMessageParser = new MimeMessageParser(mimeMessageCaptor.getValue()).parse();
+        assertThat(mimeMessageParser.getTo()).containsExactly(new InternetAddress("test@gravitee.io"));
+        assertThat(mimeMessageParser.getBcc())
+            .containsExactly(new InternetAddress("copy@gravitee.io"), new InternetAddress("sender@gravitee.io"));
     }
 
     @Test
