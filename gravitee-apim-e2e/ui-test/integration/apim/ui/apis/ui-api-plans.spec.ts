@@ -80,76 +80,79 @@ describe('API Plans Feature', () => {
     cy.getByDataTestId('confirm-dialog').click();
     cy.contains(`The plan ${planName}-APIKey has been closed with success.`).should('be.visible');
     cy.contains(`${planName}-APIKey`).should('not.exist');
-  }),
-    it('Create a generic New Plan (OAuth2), verify and delete', () => {
-      cy.getByDataTestId('api_list_edit_button').first().click();
-      ApiDetails.plansMenuItem().click();
-      cy.getByDataTestId('api_plans_add_plan_button').click();
-      cy.contains('OAuth2').click();
-      cy.getByDataTestId('api_plans_name_field').type(`${planName}-OAuth2`);
-      cy.getByDataTestId('api_plans_description_field').type(`${planDescription} OAuth2`);
-      cy.getByDataTestId('api_plans_nextstep').click();
-      cy.get('[role="combobox"]').eq(4).type('Test');
-      // ^ I can't find html element for this, this doesn't feel good but was best I could do as OAuth2 Resource a mandatory field
-      cy.contains('selection rule').should('be.visible');
-      cy.getByDataTestId('api_plans_nextstep').click();
-      cy.contains('Rate Limiting').should('be.visible');
-      cy.contains('Quota').should('be.visible');
-      cy.contains('Resource Filtering').should('be.visible');
-      cy.get('[type="submit"]').contains('Create').click();
-      cy.contains('Configuration successfully saved!').should('be.visible');
-      cy.get('[type="button"]').contains('STAGING').click();
-      cy.contains(`${planName}-OAuth2`).should('be.visible');
-      cy.getByDataTestId('api_plans_close_plan_button').first().click();
-      cy.get(`[placeholder="${planName}-OAuth2"]`).type(`${planName}-OAuth2`);
-      cy.getByDataTestId('confirm-dialog').click();
-      cy.contains(`The plan ${planName}-OAuth2 has been closed with success.`).should('be.visible');
-      cy.contains(`${planName}-OAuth2`).should('not.exist');
-    }),
-    it('Create a generic New Plan (JWT), verify and delete', () => {
-      cy.getByDataTestId('api_list_edit_button').first().click();
-      ApiDetails.plansMenuItem().click();
-      cy.getByDataTestId('api_plans_add_plan_button').click();
-      cy.contains('JWT').click();
-      cy.getByDataTestId('api_plans_name_field').type(`${planName}-JWT`);
-      cy.getByDataTestId('api_plans_description_field').type(`${planDescription} JWT`);
-      cy.getByDataTestId('api_plans_nextstep').click();
-      cy.contains('selection rule').should('be.visible');
-      cy.getByDataTestId('api_plans_nextstep').click();
-      cy.contains('Rate Limiting').should('be.visible');
-      cy.contains('Quota').should('be.visible');
-      cy.contains('Resource Filtering').should('be.visible');
-      cy.get('[type="submit"]').contains('Create').click();
-      cy.contains('Configuration successfully saved!').should('be.visible');
-      cy.get('[type="button"]').contains('STAGING').click();
-      cy.contains(`${planName}-JWT`).should('be.visible');
-      cy.getByDataTestId('api_plans_close_plan_button').first().click();
-      cy.get(`[placeholder="${planName}-JWT"]`).type(`${planName}-JWT`);
-      cy.getByDataTestId('confirm-dialog').click();
-      cy.contains(`The plan ${planName}-JWT has been closed with success.`).should('be.visible');
-      cy.contains(`${planName}-JWT`).should('not.exist');
-    }),
-    it('Create a generic New Plan (Keyless), verify and delete', () => {
-      cy.getByDataTestId('api_list_edit_button').first().click();
-      ApiDetails.plansMenuItem().click();
-      cy.getByDataTestId('api_plans_add_plan_button').click();
-      cy.contains('Keyless (public)').click();
-      cy.getByDataTestId('api_plans_name_field').type(`${planName}-Keyless`);
-      cy.getByDataTestId('api_plans_description_field').type(`${planDescription} Keyless`);
-      cy.getByDataTestId('api_plans_nextstep').click();
-      cy.contains('Rate Limiting').should('be.visible');
-      cy.contains('Quota').should('be.visible');
-      cy.contains('Resource Filtering').should('be.visible');
-      cy.get('[type="submit"]').contains('Create').click();
-      cy.contains('Configuration successfully saved!').should('be.visible');
-      cy.get('[type="button"]').contains('STAGING').click();
-      cy.contains(`${planName}-Keyless`).should('be.visible');
-      cy.getByDataTestId('api_plans_close_plan_button').first().click();
-      cy.get(`[placeholder="${planName}-Keyless"]`).type(`${planName}-Keyless`);
-      cy.getByDataTestId('confirm-dialog').click();
-      cy.contains(`The plan ${planName}-Keyless has been closed with success.`).should('be.visible');
-      cy.contains(`${planName}-Keyless`).should('not.exist');
-    });
+  });
+
+  it('Create a generic New Plan (OAuth2), verify and delete', () => {
+    cy.getByDataTestId('api_list_edit_button').first().click();
+    ApiDetails.plansMenuItem().click();
+    cy.getByDataTestId('api_plans_add_plan_button').click();
+    cy.contains('OAuth2').click();
+    cy.getByDataTestId('api_plans_name_field').type(`${planName}-OAuth2`);
+    cy.getByDataTestId('api_plans_description_field').type(`${planDescription} OAuth2`);
+    cy.getByDataTestId('api_plans_nextstep').click();
+    cy.get('[role="combobox"]').eq(4).type('Test');
+    // ^ I can't find html element for this, this doesn't feel good but was best I could do as OAuth2 Resource a mandatory field
+    cy.contains('selection rule').should('be.visible');
+    cy.getByDataTestId('api_plans_nextstep').click();
+    cy.contains('Rate Limiting').should('be.visible');
+    cy.contains('Quota').should('be.visible');
+    cy.contains('Resource Filtering').should('be.visible');
+    cy.get('[type="submit"]').contains('Create').click();
+    cy.contains('Configuration successfully saved!').should('be.visible');
+    cy.get('[type="button"]').contains('STAGING').click();
+    cy.contains(`${planName}-OAuth2`).should('be.visible');
+    cy.getByDataTestId('api_plans_close_plan_button').first().click();
+    cy.get(`[placeholder="${planName}-OAuth2"]`).type(`${planName}-OAuth2`);
+    cy.getByDataTestId('confirm-dialog').click();
+    cy.contains(`The plan ${planName}-OAuth2 has been closed with success.`).should('be.visible');
+    cy.contains(`${planName}-OAuth2`).should('not.exist');
+  });
+
+  it('Create a generic New Plan (JWT), verify and delete', () => {
+    cy.getByDataTestId('api_list_edit_button').first().click();
+    ApiDetails.plansMenuItem().click();
+    cy.getByDataTestId('api_plans_add_plan_button').click();
+    cy.contains('JWT').click();
+    cy.getByDataTestId('api_plans_name_field').type(`${planName}-JWT`);
+    cy.getByDataTestId('api_plans_description_field').type(`${planDescription} JWT`);
+    cy.getByDataTestId('api_plans_nextstep').click();
+    cy.contains('h2', 'Additional selection rule').should('exist').scrollIntoView().should('be.visible');
+    cy.getByDataTestId('api_plans_nextstep').click();
+    cy.contains('Rate Limiting').should('be.visible');
+    cy.contains('Quota').should('be.visible');
+    cy.contains('Resource Filtering').should('be.visible');
+    cy.get('[type="submit"]').contains('Create').click();
+    cy.contains('Configuration successfully saved!').should('be.visible');
+    cy.get('[type="button"]').contains('STAGING').click();
+    cy.contains(`${planName}-JWT`).should('be.visible');
+    cy.getByDataTestId('api_plans_close_plan_button').first().click();
+    cy.get(`[placeholder="${planName}-JWT"]`).type(`${planName}-JWT`);
+    cy.getByDataTestId('confirm-dialog').click();
+    cy.contains(`The plan ${planName}-JWT has been closed with success.`).should('be.visible');
+    cy.contains(`${planName}-JWT`).should('not.exist');
+  });
+
+  it('Create a generic New Plan (Keyless), verify and delete', () => {
+    cy.getByDataTestId('api_list_edit_button').first().click();
+    ApiDetails.plansMenuItem().click();
+    cy.getByDataTestId('api_plans_add_plan_button').click();
+    cy.contains('Keyless (public)').click();
+    cy.getByDataTestId('api_plans_name_field').type(`${planName}-Keyless`);
+    cy.getByDataTestId('api_plans_description_field').type(`${planDescription} Keyless`);
+    cy.getByDataTestId('api_plans_nextstep').click();
+    cy.contains('Rate Limiting').should('be.visible');
+    cy.contains('Quota').should('be.visible');
+    cy.contains('Resource Filtering').should('be.visible');
+    cy.get('[type="submit"]').contains('Create').click();
+    cy.contains('Configuration successfully saved!').should('be.visible');
+    cy.get('[type="button"]').contains('STAGING').click();
+    cy.contains(`${planName}-Keyless`).should('be.visible');
+    cy.getByDataTestId('api_plans_close_plan_button').first().click();
+    cy.get(`[placeholder="${planName}-Keyless"]`).type(`${planName}-Keyless`);
+    cy.getByDataTestId('confirm-dialog').click();
+    cy.contains(`The plan ${planName}-Keyless has been closed with success.`).should('be.visible');
+    cy.contains(`${planName}-Keyless`).should('not.exist');
+  });
 
   it('Create a New Plan (Keyless), select Design the Plan, verify path and delete plan', () => {
     cy.getByDataTestId('api_list_edit_button').first().click();
