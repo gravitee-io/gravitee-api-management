@@ -96,6 +96,8 @@ const GroupComponent: ng.IComponentOptions = {
       this.applicationByDefault =
         this.group.event_rules && this.group.event_rules.findIndex((rule) => rule.event === 'APPLICATION_CREATE') !== -1;
 
+      this.isSuperAdmin = UserService.isUserHasPermissions(['environment-group-u']);
+
       this.loadGroupApis();
     };
 
@@ -340,15 +342,15 @@ const GroupComponent: ng.IComponentOptions = {
     };
 
     this.canChangeDefaultApiRole = () => {
-      return this.isSuperAdmin() || !this.group.lock_api_role;
+      return this.isSuperAdmin || !this.group.lock_api_role;
     };
 
     this.canChangeDefaultApplicationRole = () => {
-      return this.isSuperAdmin() || !this.group.lock_application_role;
+      return this.isSuperAdmin || !this.group.lock_application_role;
     };
 
     this.canAddMembers = () => {
-      if (this.isSuperAdmin()) {
+      if (this.isSuperAdmin) {
         return true;
       } else if (this.group.manageable) {
         const numberOfMembers = this.members ? this.members.length : 0;
@@ -358,10 +360,6 @@ const GroupComponent: ng.IComponentOptions = {
       } else {
         return false;
       }
-    };
-
-    this.isSuperAdmin = () => {
-      return UserService.isUserHasPermissions(['environment-group-u']);
     };
 
     this.canSave = () => {

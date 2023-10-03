@@ -408,7 +408,7 @@
 
   <md-fab-actions>
     <md-button
-      ng-if="$ctrl.isSuperAdmin() || $ctrl.group.system_invitation"
+      ng-if="$ctrl.isSuperAdmin || $ctrl.group.system_invitation"
       class="md-fab md-success md-mini"
       ng-click="$ctrl.showAddMemberModal()"
       aria-label="Add member"
@@ -417,7 +417,7 @@
       <ng-md-icon icon="people"></ng-md-icon>
     </md-button>
     <md-button
-      ng-if="$ctrl.isSuperAdmin() || $ctrl.group.email_invitation"
+      ng-if="$ctrl.isSuperAdmin || $ctrl.group.email_invitation"
       class="md-fab md-success md-mini"
       ng-click="$ctrl.showInviteMemberModal()"
       aria-label="Invite member"
@@ -429,7 +429,7 @@
 </md-fab-speed-dial>
 
 <md-button
-  ng-if="!$ctrl.isSuperAdmin() && !($ctrl.group.system_invitation && $ctrl.group.email_invitation) && ($ctrl.group.system_invitation || $ctrl.group.email_invitation)"
+  ng-if="!$ctrl.isSuperAdmin && !($ctrl.group.system_invitation && $ctrl.group.email_invitation) && ($ctrl.group.system_invitation || $ctrl.group.email_invitation)"
   ng-click="$ctrl.group.system_invitation?$ctrl.showAddMemberModal(): $ctrl.showInviteMemberModal()"
   aria-label="Add member"
   class="md-fab md-fab-bottom-right md-fab-scrollable"
