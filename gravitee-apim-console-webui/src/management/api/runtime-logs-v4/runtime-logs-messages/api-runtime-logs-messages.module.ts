@@ -27,4 +27,4 @@ import { ApiRuntimeLogsMessageModule } from './components';
   exports: [ApiRuntimeLogsMessagesComponent],
   imports: [ApiRuntimeLogsMessageModule, CommonModule, MatButtonModule, MatCardModule, UIRouterModule],
 })
-export class ApiRuntimeLogsMessgesModule {}
+export class ApiRuntimeLogsMessagesModule {}

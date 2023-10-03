@@ -21,7 +21,7 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 import { ApiRuntimeLogsMessagesComponent } from './api-runtime-logs-messages.component';
-import { ApiRuntimeLogsMessgesModule } from './api-runtime-logs-messges.module';
+import { ApiRuntimeLogsMessagesModule } from './api-runtime-logs-messages.module';
 import { ApiRuntimeLogsMessagesHarness } from './api-runtime-logs-messages.harness';
 
 import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
@@ -43,7 +43,7 @@ describe('ApiRuntimeLogsMessagesComponent', () => {
   const initComponent = async () => {
     TestBed.configureTestingModule({
       imports: [
-        ApiRuntimeLogsMessgesModule,
+        ApiRuntimeLogsMessagesModule,
         UIRouterModule.forRoot({
           useHash: true,
         }),
