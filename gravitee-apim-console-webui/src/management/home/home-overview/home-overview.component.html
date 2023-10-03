@@ -22,7 +22,7 @@
   <div class="home-overview__row">
     <mat-card class="home-overview__card flex">
       <div class="mat-subheading-1">Quick Summary</div>
-      <div *ngIf="apiNb && applicationNb; else loader" class="home-overview__card__list">
+      <div *ngIf="apiNb !== undefined && applicationNb !== undefined; else loader" class="home-overview__card__list">
         <div class="home-overview__card__list__row">
           <span class="home-overview__card__list__row__value">{{ apiNb }}</span>
           <span class="home-overview__card__list__row__label">Total APIs</span>
