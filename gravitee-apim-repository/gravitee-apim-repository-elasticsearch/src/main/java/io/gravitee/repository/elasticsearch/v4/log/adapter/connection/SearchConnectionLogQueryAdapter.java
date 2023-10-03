@@ -16,7 +16,10 @@
 package io.gravitee.repository.elasticsearch.v4.log.adapter.connection;
 
 import io.gravitee.repository.log.v4.model.connection.ConnectionLogQuery;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 
 public class SearchConnectionLogQueryAdapter {
@@ -42,13 +45,24 @@ public class SearchConnectionLogQueryAdapter {
             return null;
         }
 
-        var terms = new HashMap<String, Object>();
+        var terms = new ArrayList<JsonObject>();
         if (filter.getApiId() != null) {
-            terms.put("api-id", filter.getApiId());
+            terms.add(JsonObject.of("term", JsonObject.of("api-id", filter.getApiId())));
+        }
+
+        if (filter.getFrom() != null || filter.getTo() != null) {
+            var timestampJsonObject = new JsonObject();
+            if (filter.getFrom() != null) {
+                timestampJsonObject.put("gte", filter.getFrom());
+            }
+            if (filter.getTo() != null) {
+                timestampJsonObject.put("lte", new Date(filter.getTo()));
+            }
+            terms.add(JsonObject.of("range", JsonObject.of("@timestamp", timestampJsonObject)));
         }
 
         if (!terms.isEmpty()) {
-            return JsonObject.of("term", new JsonObject(terms));
+            return JsonObject.of("bool", JsonObject.of("must", JsonArray.of(terms.toArray())));
         }
 
         return null;

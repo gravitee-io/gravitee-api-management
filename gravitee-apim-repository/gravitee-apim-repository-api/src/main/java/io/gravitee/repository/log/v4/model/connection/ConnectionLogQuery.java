@@ -35,5 +35,7 @@ public class ConnectionLogQuery {
     public static class Filter {
 
         private String apiId;
+        private Long from;
+        private Long to;
     }
 }

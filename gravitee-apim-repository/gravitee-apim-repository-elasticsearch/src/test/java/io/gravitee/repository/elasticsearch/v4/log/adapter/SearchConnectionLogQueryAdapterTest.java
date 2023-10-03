@@ -46,32 +46,12 @@ public class SearchConnectionLogQueryAdapterTest {
             );
     }
 
-    @Test
-    void should_build_query_with_filters() {
-        var result = SearchConnectionLogQueryAdapter.adapt(
-            ConnectionLogQuery
-                .builder()
-                .page(1)
-                .size(20)
-                .filter(ConnectionLogQuery.Filter.builder().apiId("f1608475-dd77-4603-a084-75dd775603e9").build())
-                .build()
-        );
+    @ParameterizedTest
+    @MethodSource("getFilters")
+    void should_build_query_with_filters(ConnectionLogQuery.Filter filter, String expected) {
+        var result = SearchConnectionLogQueryAdapter.adapt(ConnectionLogQuery.builder().page(1).size(20).filter(filter).build());
 
-        assertThatJson(result)
-            .isEqualTo(
-                """
-                        {
-                          "from": 0,
-                          "size": 20,
-                          "query": {
-                            "term": { "api-id": "f1608475-dd77-4603-a084-75dd775603e9" }
-                          },
-                          "sort": {
-                            "@timestamp": { "order": "desc" }
-                          }
-                        }
-                        """
-            );
+        assertThatJson(result).isEqualTo(expected);
     }
 
     @Test
@@ -94,5 +74,155 @@ public class SearchConnectionLogQueryAdapterTest {
 
     private static Stream<Arguments> noFilter() {
         return Stream.of(Arguments.of((Object) null), Arguments.of(ConnectionLogQuery.Filter.builder().build()));
+    }
+
+    private static Stream<Arguments> getFilters() {
+        return Stream.of(
+            Arguments.of(
+                ConnectionLogQuery.Filter.builder().apiId("f1608475-dd77-4603-a084-75dd775603e9").build(),
+                """
+                {
+                    "from": 0,
+                    "size": 20,
+                    "query": {
+                        "bool": {
+                            "must": [
+                                {
+                                    "term": {
+                                        "api-id": "f1608475-dd77-4603-a084-75dd775603e9"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "sort": {
+                        "@timestamp": {
+                            "order": "desc"
+                        }
+                    }
+                 }
+                """
+            ),
+            Arguments.of(
+                ConnectionLogQuery.Filter
+                    .builder()
+                    .apiId("f1608475-dd77-4603-a084-75dd775603e9")
+                    .from(1695081660000L)
+                    .to(1695167999000L)
+                    .build(),
+                """
+                {
+                    "from": 0,
+                    "size": 20,
+                    "query": {
+                        "bool": {
+                            "must": [
+                                {
+                                    "term": {
+                                        "api-id": "f1608475-dd77-4603-a084-75dd775603e9"
+                                    }
+                                },
+                                {
+                                    "range": {
+                                        "@timestamp": {
+                                            "gte": 1695081660000,
+                                            "lte": 1695167999000
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "sort": {
+                        "@timestamp": {
+                            "order": "desc"
+                        }
+                    }
+                 }
+                """
+            ),
+            Arguments.of(
+                ConnectionLogQuery.Filter.builder().from(1695081660000L).to(1695167999000L).build(),
+                """
+                {
+                    "from": 0,
+                    "size": 20,
+                    "query": {
+                        "bool": {
+                            "must": [
+                                {
+                                    "range": {
+                                        "@timestamp": {
+                                            "gte": 1695081660000,
+                                            "lte": 1695167999000
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "sort": {
+                        "@timestamp": {
+                            "order": "desc"
+                        }
+                    }
+                 }
+                """
+            ),
+            Arguments.of(
+                ConnectionLogQuery.Filter.builder().to(1695167999000L).build(),
+                """
+                {
+                    "from": 0,
+                    "size": 20,
+                    "query": {
+                        "bool": {
+                            "must": [
+                                {
+                                    "range": {
+                                        "@timestamp": {
+                                            "lte": 1695167999000
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "sort": {
+                        "@timestamp": {
+                            "order": "desc"
+                        }
+                    }
+                 }
+                """
+            ),
+            Arguments.of(
+                ConnectionLogQuery.Filter.builder().from(1695081660000L).build(),
+                """
+                {
+                    "from": 0,
+                    "size": 20,
+                    "query": {
+                        "bool": {
+                            "must": [
+                                {
+                                    "range": {
+                                        "@timestamp": {
+                                            "gte": 1695081660000
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "sort": {
+                        "@timestamp": {
+                            "order": "desc"
+                        }
+                    }
+                 }
+                """
+            )
+        );
     }
 }
