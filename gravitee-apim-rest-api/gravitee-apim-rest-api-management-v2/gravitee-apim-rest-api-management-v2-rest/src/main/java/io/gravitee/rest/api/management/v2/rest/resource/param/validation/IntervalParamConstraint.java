@@ -13,13 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.log.crud_service;
+package io.gravitee.rest.api.management.v2.rest.resource.param.validation;
 
-import io.gravitee.rest.api.model.analytics.Interval;
-import io.gravitee.rest.api.model.common.Pageable;
-import io.gravitee.rest.api.model.v4.log.SearchLogResponse;
-import io.gravitee.rest.api.model.v4.log.connection.BaseConnectionLog;
+import jakarta.validation.Constraint;
+import jakarta.validation.Payload;
+import java.lang.annotation.*;
 
-public interface ConnectionLogCrudService {
-    SearchLogResponse<BaseConnectionLog> searchApiConnectionLog(String apiId, Interval interval, Pageable pageable);
+@Documented
+@Constraint(validatedBy = IntervalParamValidator.class)
+@Target({ ElementType.TYPE })
+@Retention(RetentionPolicy.RUNTIME)
+public @interface IntervalParamConstraint {
+    String message() default "Invalid interval definition";
+
+    Class<?>[] groups() default {};
+
+    Class<? extends Payload>[] payload() default {};
 }

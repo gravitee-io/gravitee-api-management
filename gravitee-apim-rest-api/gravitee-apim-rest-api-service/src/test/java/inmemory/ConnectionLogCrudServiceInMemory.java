@@ -16,13 +16,14 @@
 package inmemory;
 
 import io.gravitee.apim.core.log.crud_service.ConnectionLogCrudService;
+import io.gravitee.rest.api.model.analytics.Interval;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.v4.log.SearchLogResponse;
 import io.gravitee.rest.api.model.v4.log.connection.BaseConnectionLog;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.util.*;
 import java.util.function.Predicate;
 
 public class ConnectionLogCrudServiceInMemory implements ConnectionLogCrudService, InMemoryAlternative<BaseConnectionLog> {
@@ -30,8 +31,16 @@ public class ConnectionLogCrudServiceInMemory implements ConnectionLogCrudServic
     private final List<BaseConnectionLog> storage = new ArrayList<>();
 
     @Override
-    public SearchLogResponse<BaseConnectionLog> searchApiConnectionLog(String apiId, Pageable pageable) {
+    public SearchLogResponse<BaseConnectionLog> searchApiConnectionLog(String apiId, Interval interval, Pageable pageable) {
         Predicate<BaseConnectionLog> predicate = connectionLog -> connectionLog.getApiId().equals(apiId);
+        if (null != interval.from()) {
+            predicate = predicate.and(connectionLog -> Instant.parse(connectionLog.getTimestamp()).toEpochMilli() >= interval.from());
+        }
+
+        if (null != interval.to()) {
+            predicate = predicate.and(connectionLog -> Instant.parse(connectionLog.getTimestamp()).toEpochMilli() <= interval.to());
+        }
+
         var pageNumber = pageable.getPageNumber();
         var pageSize = pageable.getPageSize();
 

@@ -28,6 +28,7 @@ import io.gravitee.repository.log.v4.model.LogResponse;
 import io.gravitee.repository.log.v4.model.connection.ConnectionLog;
 import io.gravitee.repository.log.v4.model.connection.ConnectionLogQuery;
 import io.gravitee.repository.log.v4.model.connection.ConnectionLogQuery.Filter;
+import io.gravitee.rest.api.model.analytics.Interval;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.v4.log.connection.BaseConnectionLog;
 import java.util.List;
@@ -54,15 +55,19 @@ public class ConnectionLogCrudServiceImplTest {
 
         @Test
         void should_search_api_connection_logs() throws AnalyticsException {
+            var from = 1580515239000L;
+            var to = 1580601579000L;
             when(logRepository.searchConnectionLog(any())).thenReturn(new LogResponse<>(0L, List.of()));
 
-            logStorageService.searchApiConnectionLog("apiId", new PageableImpl(1, 10));
+            logStorageService.searchApiConnectionLog("apiId", new Interval(from, to), new PageableImpl(1, 10));
 
             var captor = ArgumentCaptor.forClass(ConnectionLogQuery.class);
             verify(logRepository).searchConnectionLog(captor.capture());
 
             assertThat(captor.getValue())
-                .isEqualTo(ConnectionLogQuery.builder().filter(Filter.builder().apiId("apiId").build()).page(1).size(10).build());
+                .isEqualTo(
+                    ConnectionLogQuery.builder().filter(Filter.builder().apiId("apiId").from(from).to(to).build()).page(1).size(10).build()
+                );
         }
 
         @Test
@@ -88,7 +93,11 @@ public class ConnectionLogCrudServiceImplTest {
                     )
                 );
 
-            var result = logStorageService.searchApiConnectionLog("apiId", new PageableImpl(1, 10));
+            var result = logStorageService.searchApiConnectionLog(
+                "apiId",
+                new Interval(1580515239000L, 1580601579000L),
+                new PageableImpl(1, 10)
+            );
 
             SoftAssertions.assertSoftly(soft -> {
                 assertThat(result.total()).isOne();

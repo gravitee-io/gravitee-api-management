@@ -27,10 +27,12 @@ import inmemory.PlanCrudServiceInMemory;
 import io.gravitee.apim.core.log.usecase.SearchConnectionLogUsecase.Input;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
+import io.gravitee.rest.api.model.analytics.Interval;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.v4.log.connection.ConnectionLogModel;
 import io.gravitee.rest.api.model.v4.plan.BasePlanEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import java.time.Instant;
 import java.util.List;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -44,6 +46,10 @@ public class SearchConnectionLogUsecaseTest {
     private static final String API_ID = "f1608475-dd77-4603-a084-75dd775603e9";
     private static final BasePlanEntity PLAN = BasePlanEntity.builder().id("plan1").name("1st plan").build();
     private static final BaseApplicationEntity APPLICATION = BaseApplicationEntity.builder().id("app1").name("an application name").build();
+    private static final Long FIRST_FEBRUARY_2020 = Instant.parse("2020-02-01T00:01:00.00Z").toEpochMilli();
+    private static final Long SECOND_FEBRUARY_2020 = Instant.parse("2020-02-02T23:59:59.00Z").toEpochMilli();
+    private static final Long FOURTH_FEBRUARY_2020 = Instant.parse("2020-02-04T00:01:00.00Z").toEpochMilli();
+    private static final Long FIFTH_FEBRUARY_2020 = Instant.parse("2020-02-05T00:01:00.00Z").toEpochMilli();
 
     ConnectionLogFixtures connectionLogFixtures = new ConnectionLogFixtures(API_ID, APPLICATION.getId(), PLAN.getId());
 
@@ -77,7 +83,10 @@ public class SearchConnectionLogUsecaseTest {
             )
         );
 
-        var result = usecase.execute(GraviteeContext.getExecutionContext(), new Input(API_ID));
+        var result = usecase.execute(
+            GraviteeContext.getExecutionContext(),
+            new Input(API_ID, new Interval(FIRST_FEBRUARY_2020, SECOND_FEBRUARY_2020))
+        );
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.total()).isOne();
@@ -113,7 +122,10 @@ public class SearchConnectionLogUsecaseTest {
             )
         );
 
-        var result = usecase.execute(GraviteeContext.getExecutionContext(), new Input(API_ID));
+        var result = usecase.execute(
+            GraviteeContext.getExecutionContext(),
+            new Input(API_ID, new Interval(FIRST_FEBRUARY_2020, FIFTH_FEBRUARY_2020))
+        );
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.total()).isEqualTo(3);
@@ -137,7 +149,10 @@ public class SearchConnectionLogUsecaseTest {
             IntStream.range(0, expectedTotal).mapToObj(i -> connectionLogFixtures.aConnectionLog(String.valueOf(i))).toList()
         );
 
-        var result = usecase.execute(GraviteeContext.getExecutionContext(), new Input(API_ID, new PageableImpl(pageNumber, pageSize)));
+        var result = usecase.execute(
+            GraviteeContext.getExecutionContext(),
+            new Input(API_ID, new Interval(FIRST_FEBRUARY_2020, SECOND_FEBRUARY_2020), new PageableImpl(pageNumber, pageSize))
+        );
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.total()).isEqualTo(expectedTotal);
@@ -151,7 +166,10 @@ public class SearchConnectionLogUsecaseTest {
 
         logStorageService.initWith(List.of(connectionLogFixtures.aConnectionLog().toBuilder().planId(unknownPlan).build()));
 
-        var result = usecase.execute(GraviteeContext.getExecutionContext(), new Input(API_ID));
+        var result = usecase.execute(
+            GraviteeContext.getExecutionContext(),
+            new Input(API_ID, new Interval(FIRST_FEBRUARY_2020, SECOND_FEBRUARY_2020))
+        );
         assertThat(result.data())
             .extracting(ConnectionLogModel::getPlan)
             .isEqualTo(List.of(BasePlanEntity.builder().id(unknownPlan).name(UNKNOWN).build()));
@@ -163,7 +181,10 @@ public class SearchConnectionLogUsecaseTest {
             List.of(connectionLogFixtures.aConnectionLog().toBuilder().planId(null).clientIdentifier(null).applicationId("1").build())
         );
 
-        var result = usecase.execute(GraviteeContext.getExecutionContext(), new Input(API_ID));
+        var result = usecase.execute(
+            GraviteeContext.getExecutionContext(),
+            new Input(API_ID, new Interval(FIRST_FEBRUARY_2020, SECOND_FEBRUARY_2020))
+        );
         assertThat(result.data())
             .extracting(ConnectionLogModel::getPlan)
             .isEqualTo(List.of(BasePlanEntity.builder().id(null).name(UNKNOWN).build()));
@@ -175,9 +196,78 @@ public class SearchConnectionLogUsecaseTest {
 
         logStorageService.initWith(List.of(connectionLogFixtures.aConnectionLog().toBuilder().applicationId(unknownApp).build()));
 
-        var result = usecase.execute(GraviteeContext.getExecutionContext(), new Input(API_ID));
+        var result = usecase.execute(
+            GraviteeContext.getExecutionContext(),
+            new Input(API_ID, new Interval(FIRST_FEBRUARY_2020, SECOND_FEBRUARY_2020))
+        );
         assertThat(result.data())
             .extracting(ConnectionLogModel::getApplication)
             .isEqualTo(List.of(BaseApplicationEntity.builder().id(unknownApp).name(UNKNOWN).build()));
+    }
+
+    @Test
+    void should_return_api_connection_logs_filtered_by_timestamp_date_range() {
+        logStorageService.initWith(
+            List.of(
+                connectionLogFixtures.aConnectionLog("req1").toBuilder().timestamp("2020-02-01T20:00:00.00Z").build(),
+                connectionLogFixtures.aConnectionLog("req2").toBuilder().timestamp("2020-02-02T20:00:00.00Z").build(),
+                connectionLogFixtures.aConnectionLog("req3").toBuilder().timestamp("2020-02-04T20:00:00.00Z").build()
+            )
+        );
+
+        var result = usecase.execute(
+            GraviteeContext.getExecutionContext(),
+            new Input(API_ID, new Interval(FIRST_FEBRUARY_2020, FOURTH_FEBRUARY_2020))
+        );
+
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(result.total()).isEqualTo(2);
+            soft
+                .assertThat(result.data())
+                .extracting(ConnectionLogModel::getRequestId, ConnectionLogModel::getTimestamp)
+                .containsExactly(tuple("req2", "2020-02-02T20:00:00.00Z"), tuple("req1", "2020-02-01T20:00:00.00Z"));
+        });
+    }
+
+    @Test
+    void should_return_api_connection_logs_from_timestamp() {
+        logStorageService.initWith(
+            List.of(
+                connectionLogFixtures.aConnectionLog("req1").toBuilder().timestamp("2020-02-01T20:00:00.00Z").build(),
+                connectionLogFixtures.aConnectionLog("req2").toBuilder().timestamp("2020-02-02T20:00:00.00Z").build(),
+                connectionLogFixtures.aConnectionLog("req3").toBuilder().timestamp("2020-02-04T20:00:00.00Z").build()
+            )
+        );
+
+        var result = usecase.execute(GraviteeContext.getExecutionContext(), new Input(API_ID, new Interval(FOURTH_FEBRUARY_2020, null)));
+
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(result.total()).isEqualTo(1);
+            soft
+                .assertThat(result.data())
+                .extracting(ConnectionLogModel::getRequestId, ConnectionLogModel::getTimestamp)
+                .containsExactly(tuple("req3", "2020-02-04T20:00:00.00Z"));
+        });
+    }
+
+    @Test
+    void should_return_api_connection_logs_to_timestamp() {
+        logStorageService.initWith(
+            List.of(
+                connectionLogFixtures.aConnectionLog("req1").toBuilder().timestamp("2020-02-01T20:00:00.00Z").build(),
+                connectionLogFixtures.aConnectionLog("req2").toBuilder().timestamp("2020-02-02T20:00:00.00Z").build(),
+                connectionLogFixtures.aConnectionLog("req3").toBuilder().timestamp("2020-02-04T20:00:00.00Z").build()
+            )
+        );
+
+        var result = usecase.execute(GraviteeContext.getExecutionContext(), new Input(API_ID, new Interval(null, FOURTH_FEBRUARY_2020)));
+
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(result.total()).isEqualTo(2);
+            soft
+                .assertThat(result.data())
+                .extracting(ConnectionLogModel::getRequestId, ConnectionLogModel::getTimestamp)
+                .containsExactly(tuple("req2", "2020-02-02T20:00:00.00Z"), tuple("req1", "2020-02-01T20:00:00.00Z"));
+        });
     }
 }
