@@ -186,7 +186,7 @@ describe('API - V4 - Import - Gravitee Definition - Only API', () => {
             }),
           }),
           400,
-          `The path [${(importedApi.listeners[0] as HttpListener).paths[0].path}] is already covered by an other API.`,
+          `Cannot import API with invalid paths (Path [${(importedApi.listeners[0] as HttpListener).paths[0].path}] already exists)`,
         );
       });
 
@@ -229,7 +229,7 @@ describe('API - V4 - Import - Gravitee Definition - Only API', () => {
           exportApiV4: apiToImport,
         }),
         400,
-        `The path [${(importedApi.listeners[0] as HttpListener).paths[0].path}] is already covered by an other API.`,
+        `Cannot import API with invalid paths (Path [${(importedApi.listeners[0] as HttpListener).paths[0].path}] already exists)`,
       );
     });
 

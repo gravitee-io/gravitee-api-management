@@ -184,7 +184,7 @@ describe('Update API by importing it', () => {
       await fail(
         apisResource.updateApiWithDefinition({ envId, orgId, api: expectedApiId2, body: fakeUpdateApi }),
         400,
-        'The path [/importTest1/] is already covered by an other API.',
+        'API paths are invalid (Path [/importTest1/] already exists)',
       );
     });
 
