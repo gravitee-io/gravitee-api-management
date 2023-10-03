@@ -27,6 +27,7 @@ export function fakeBaseApplication(modifier?: Partial<BaseApplication>): BaseAp
       type: 'USER',
       displayName: 'Primary Owner',
     },
+    apiKeyMode: 'UNSPECIFIED',
   };
 
   return {

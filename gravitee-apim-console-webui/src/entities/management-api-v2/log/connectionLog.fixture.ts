@@ -19,7 +19,7 @@ import { isFunction } from 'lodash';
 import { ConnectionLog } from './connectionLog';
 
 import { fakePlanV4 } from '../plan';
-import { fakeApplication } from '../../application/Application.fixture';
+import { fakeBaseApplication } from '../application';
 
 export function fakeConnectionLog(modifier?: Partial<ConnectionLog> | ((base: ConnectionLog) => ConnectionLog)): ConnectionLog {
   const base: ConnectionLog = {
@@ -32,7 +32,7 @@ export function fakeConnectionLog(modifier?: Partial<ConnectionLog> | ((base: Co
     status: 200,
     requestEnded: true,
     plan: fakePlanV4(),
-    application: fakeApplication(),
+    application: fakeBaseApplication(),
   };
 
   if (isFunction(modifier)) {
