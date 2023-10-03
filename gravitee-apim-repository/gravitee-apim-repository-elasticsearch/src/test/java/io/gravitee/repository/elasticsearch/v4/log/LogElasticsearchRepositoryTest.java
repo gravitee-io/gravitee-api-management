@@ -27,6 +27,8 @@ import io.gravitee.repository.log.v4.model.message.MessageLog;
 import io.gravitee.repository.log.v4.model.message.MessageLogQuery;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -131,6 +133,92 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
                             .timestamp(yesterday + "T14:08:45.994Z")
                             .build()
                     )
+                );
+        }
+
+        @Test
+        void should_return_a_page_of_connection_logs_from_yesterday() {
+            var from =
+                ZonedDateTime
+                    .ofInstant(Instant.now(), ZoneOffset.UTC)
+                    .minusDays(1)
+                    .withHour(0)
+                    .withMinute(1)
+                    .withSecond(0)
+                    .withNano(0)
+                    .toEpochSecond() *
+                1000;
+
+            var to =
+                ZonedDateTime
+                    .ofInstant(Instant.now(), ZoneOffset.UTC)
+                    .minusDays(1)
+                    .withHour(23)
+                    .withMinute(59)
+                    .withSecond(0)
+                    .withNano(0)
+                    .toEpochSecond() *
+                1000;
+
+            var result = logV4Repository.searchConnectionLog(
+                ConnectionLogQuery.builder().page(1).size(10).filter(Filter.builder().from(from).to(to).build()).build()
+            );
+            assertThat(result).isNotNull();
+            assertThat(result.total()).isEqualTo(3);
+            assertThat(result.data())
+                .extracting(ConnectionLog::getRequestId)
+                .containsExactly(
+                    "ebaa9b08-eac8-490d-aa9b-08eac8590d3c",
+                    "aed3a207-d5c0-4073-93a2-07d5c0007336",
+                    "3aa93e93-eaa3-4fcd-a93e-93eaa3bfcd41"
+                );
+        }
+
+        @Test
+        void should_return_a_page_of_connection_logs_from_whenever_to_yesterday() {
+            var to =
+                ZonedDateTime
+                    .ofInstant(Instant.now(), ZoneOffset.UTC)
+                    .minusDays(1)
+                    .withHour(23)
+                    .withMinute(59)
+                    .withSecond(0)
+                    .withNano(0)
+                    .toEpochSecond() *
+                1000;
+
+            var result = logV4Repository.searchConnectionLog(
+                ConnectionLogQuery.builder().page(1).size(10).filter(Filter.builder().to(to).build()).build()
+            );
+            assertThat(result).isNotNull();
+            assertThat(result.total()).isEqualTo(3);
+            assertThat(result.data())
+                .extracting(ConnectionLog::getRequestId)
+                .containsExactly(
+                    "ebaa9b08-eac8-490d-aa9b-08eac8590d3c",
+                    "aed3a207-d5c0-4073-93a2-07d5c0007336",
+                    "3aa93e93-eaa3-4fcd-a93e-93eaa3bfcd41"
+                );
+        }
+
+        @Test
+        void should_return_a_page_of_connection_logs_from_today_to_whenever() {
+            var from =
+                ZonedDateTime.ofInstant(Instant.now(), ZoneOffset.UTC).withHour(0).withMinute(1).withSecond(0).withNano(0).toEpochSecond() *
+                1000;
+
+            var result = logV4Repository.searchConnectionLog(
+                ConnectionLogQuery.builder().page(1).size(10).filter(Filter.builder().from(from).build()).build()
+            );
+            assertThat(result).isNotNull();
+            assertThat(result.total()).isEqualTo(4);
+            assertThat(result.data())
+                .extracting(ConnectionLog::getRequestId)
+                .containsExactly(
+                    "e71f2ae0-7673-4d7e-9f2a-e076730d7e69",
+                    "8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48",
+                    "26c61cfc-a4cc-4272-861c-fca4cc2272ab",
+                    "5fc3b3e5-7aa7-408e-83b3-e57aa7708ed4"
                 );
         }
 
