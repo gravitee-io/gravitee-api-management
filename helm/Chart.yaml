@@ -19,4 +19,11 @@ annotations:
   # List of changes for the release in artifacthub.io
   # https://artifacthub.io/packages/helm/graviteeio/apim?modal=changelog
   artifacthub.io/changes: |
-    - Allow users to define extra manifests
+    - Avoid empty user when disabling admin user
+    - Add revision history limit on portal
+    - Add podSecurityContext
+    - Add support for DB less mode on gateway
+    - Add nodePort value to all services
+    - Remove smtp default example values
+    - Allow wildcard in ingress host
+    - Add unknownExpireAfter in management-api configuration

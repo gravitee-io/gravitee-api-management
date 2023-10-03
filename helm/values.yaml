@@ -5,17 +5,6 @@ common:
   labels: {}
   annotations: {}
 
-# -- Array of extra K8s manifests to deploy
-extraObjects: []
-  #- apiVersion: v1
-  #  kind: Secret
-  #  metadata:
-  #    name: gravitee-license
-  #    namespace: graviteeio
-  #  type: Opaque
-  #  data:
-  #    license.key: myLicenceInBase64==
-
 apim:
   name: apim
   # Whether this chart should self-manage its service account, role, and associated role binding.
