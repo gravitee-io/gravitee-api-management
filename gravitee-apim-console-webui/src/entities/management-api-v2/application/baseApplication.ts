@@ -38,4 +38,8 @@ export interface BaseApplication {
    */
   type?: string;
   primaryOwner?: PrimaryOwner;
+  /**
+   * The API Key mode used for this application.
+   */
+  apiKeyMode: 'SHARED' | 'UNSPECIFIED' | 'EXCLUSIVE';
 }
