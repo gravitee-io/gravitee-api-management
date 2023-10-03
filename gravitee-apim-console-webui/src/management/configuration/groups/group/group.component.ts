@@ -100,6 +100,12 @@ const GroupComponent: ng.IComponentOptions = {
       this.canChangeDefaultApiRole = this.isSuperAdmin || !this.group.lock_api_role;
       this.canChangeDefaultApplicationRole = this.isSuperAdmin || !this.group.lock_application_role;
 
+      /*
+        It is written in the members list: "Enable email invitation and/or user search to allow the group administrator to add users."
+        It means that to add members, the group must be manageable (i.e. the current user is a group admin) and the group must have email invitation or system invitation enabled.
+       */
+      this.canAddMembers = this.isSuperAdmin || (this.group.manageable && (this.group.system_invitation || this.group.email_invitation));
+
       this.loadGroupApis();
     };
 
@@ -341,16 +347,6 @@ const GroupComponent: ng.IComponentOptions = {
 
     this.reset = () => {
       $state.reload();
-    };
-
-    this.canAddMembers = () => {
-      if (this.isSuperAdmin) {
-        return true;
-      } else if (this.group.manageable) {
-        return !this.isMaxInvitationReached();
-      } else {
-        return false;
-      }
     };
 
     this.isMaxInvitationReached = () => {
