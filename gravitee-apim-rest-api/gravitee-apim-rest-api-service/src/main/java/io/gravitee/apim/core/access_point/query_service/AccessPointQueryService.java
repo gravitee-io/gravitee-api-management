@@ -23,10 +23,13 @@ import java.util.Optional;
 public interface AccessPointQueryService {
     Optional<ReferenceContext> getReferenceContext(final String host);
 
+    List<String> getConsoleUrls(final String organizationId, final boolean includeDefault);
+
     String getConsoleUrl(final String organizationId);
 
     String getConsoleApiUrl(String organizationId);
 
+    List<String> getPortalUrls(final String environmentId, final boolean includeDefault);
     String getPortalUrl(final String environmentId);
 
     String getPortalApiUrl(String environmentId);

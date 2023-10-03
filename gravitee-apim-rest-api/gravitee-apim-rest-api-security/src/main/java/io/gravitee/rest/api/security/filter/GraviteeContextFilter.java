@@ -17,7 +17,9 @@ package io.gravitee.rest.api.security.filter;
 
 import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.bootstrap.PortalUIBootstrapEntity;
 import io.gravitee.rest.api.security.filter.error.ErrorHelper;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -30,7 +32,11 @@ import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
 import java.util.Optional;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Nullable;
@@ -137,10 +143,8 @@ public class GraviteeContextFilter extends GenericFilterBean {
 
     private ExecutionContext getFromAccessPoints(final HttpServletRequest httpServletRequest) {
         ExecutionContext accessPointContext = null;
-        String serverName = httpServletRequest.getServerName();
-        Optional<ReferenceContext> optionalReferenceContext = accessPointService
-            .getReferenceContext(serverName)
-            .or(() -> accessPointService.getReferenceContext(serverName + ":" + httpServletRequest.getServerPort()));
+        Optional<ReferenceContext> optionalReferenceContext = getReferenceContextFromServer(httpServletRequest)
+            .or(() -> getReferenceContextFromOrigin(httpServletRequest));
         if (optionalReferenceContext.isPresent()) {
             ReferenceContext referenceContext = optionalReferenceContext.get();
             if (referenceContext.getReferenceType() == ReferenceContext.Type.ENVIRONMENT) {
@@ -153,6 +157,30 @@ public class GraviteeContextFilter extends GenericFilterBean {
             }
         }
         return accessPointContext;
+    }
+
+    private Optional<ReferenceContext> getReferenceContextFromServer(final HttpServletRequest httpServletRequest) {
+        return getReferenceContext(httpServletRequest.getServerName(), httpServletRequest.getServerPort());
+    }
+
+    private Optional<? extends ReferenceContext> getReferenceContextFromOrigin(final HttpServletRequest httpServletRequest) {
+        // Find related api access points
+        String originHeaderValue = httpServletRequest.getHeader(HttpHeaderNames.ORIGIN);
+        if (originHeaderValue != null) {
+            try {
+                URL originUrl = new URL(originHeaderValue);
+                return getReferenceContext(originUrl.getHost(), originUrl.getPort());
+            } catch (MalformedURLException e) {
+                // Ignore this except
+                log.warn("Unable to retrieve access point from origin due to an error when reading header.");
+            }
+        }
+        return Optional.empty();
+    }
+
+    @NonNull
+    private Optional<ReferenceContext> getReferenceContext(final String host, final int port) {
+        return accessPointService.getReferenceContext(host).or(() -> accessPointService.getReferenceContext(host + ":" + port));
     }
 
     private ExecutionContext getFromRequest(final HttpServletRequest httpServletRequest) {

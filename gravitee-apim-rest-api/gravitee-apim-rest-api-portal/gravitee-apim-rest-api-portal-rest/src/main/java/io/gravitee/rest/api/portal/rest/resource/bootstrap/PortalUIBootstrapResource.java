@@ -17,12 +17,9 @@ package io.gravitee.rest.api.portal.rest.resource.bootstrap;
 
 import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.gateway.api.http.HttpHeaderNames;
-import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.bootstrap.PortalUIBootstrapEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.common.ReferenceContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -37,7 +34,6 @@ import jakarta.ws.rs.core.Response;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
-import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -68,30 +64,19 @@ public class PortalUIBootstrapResource {
     public Response bootstrap(@Context final HttpServletRequest httpServletRequest) {
         URI contextPath = URI.create(httpServletRequest.getContextPath());
 
-        // Find related api access points
-        String refererHeaderValue = httpServletRequest.getHeader(HttpHeaderNames.REFERER);
-        if (refererHeaderValue != null) {
-            try {
-                URL url = new URL(refererHeaderValue);
-                PortalUIBootstrapEntity.PortalUIBootstrapEntityBuilder builder = PortalUIBootstrapEntity.builder();
-                Optional<String> portalApiUrlOpt = accessPointService
-                    .getReferenceContext(url.getHost())
-                    .or(() -> accessPointService.getReferenceContext(url.getHost() + ":" + url.getPort()))
-                    .filter(ctx -> ctx.getReferenceType() == ReferenceContext.Type.ENVIRONMENT)
-                    .map(ctx -> {
-                        EnvironmentEntity environmentEntity = environmentService.findById(ctx.getReferenceId());
-                        builder.environmentId(environmentEntity.getId()).organizationId(environmentEntity.getOrganizationId());
-                        return accessPointService.getPortalApiUrl(ctx.getReferenceId());
-                    });
-                if (portalApiUrlOpt.isPresent()) {
-                    String portalUrl = portalApiUrlOpt.get();
-                    URI fullPortalUrl = URI.create(portalUrl).resolve(contextPath);
-                    return Response.ok(builder.baseURL(fullPortalUrl.toString()).build()).build();
-                }
-            } catch (MalformedURLException e) {
-                // Ignore this except
-                log.warn("Unable to build bootstrap portal object due to an error when reading refer header.");
-            }
+        String portalApiUrl = accessPointService.getPortalApiUrl(GraviteeContext.getCurrentEnvironment());
+        if (portalApiUrl != null) {
+            URI fullPortalUrl = URI.create(portalApiUrl).resolve(contextPath);
+            return Response
+                .ok(
+                    PortalUIBootstrapEntity
+                        .builder()
+                        .organizationId(GraviteeContext.getCurrentOrganization())
+                        .environmentId(GraviteeContext.getCurrentEnvironment())
+                        .baseURL(fullPortalUrl.toString())
+                        .build()
+                )
+                .build();
         }
 
         try {

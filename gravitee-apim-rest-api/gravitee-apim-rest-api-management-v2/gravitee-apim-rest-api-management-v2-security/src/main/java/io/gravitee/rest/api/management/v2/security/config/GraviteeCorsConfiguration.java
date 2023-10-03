@@ -19,6 +19,7 @@ import static io.gravitee.rest.api.security.csrf.CookieCsrfSignedTokenRepository
 import static io.gravitee.rest.api.security.filter.RecaptchaFilter.DEFAULT_RECAPTCHA_HEADER_NAME;
 import static java.util.Arrays.asList;
 
+import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
 import io.gravitee.common.event.Event;
 import io.gravitee.common.event.EventListener;
 import io.gravitee.common.event.EventManager;
@@ -27,16 +28,26 @@ import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import java.util.ArrayList;
 import java.util.List;
+import lombok.NonNull;
+import org.springframework.lang.Nullable;
 import org.springframework.web.cors.CorsConfiguration;
 
 public class GraviteeCorsConfiguration extends CorsConfiguration implements EventListener<Key, Parameter> {
 
     private ParameterService parameterService;
+    private final AccessPointQueryService accessPointQueryService;
     private String organizationId;
 
-    public GraviteeCorsConfiguration(ParameterService parameterService, EventManager eventManager, String organizationId) {
+    public GraviteeCorsConfiguration(
+        final ParameterService parameterService,
+        final AccessPointQueryService accessPointQueryService,
+        final EventManager eventManager,
+        final String organizationId
+    ) {
         this.parameterService = parameterService;
+        this.accessPointQueryService = accessPointQueryService;
         this.organizationId = organizationId;
         eventManager.subscribeForEvents(this, Key.class);
 
@@ -69,21 +80,11 @@ public class GraviteeCorsConfiguration extends CorsConfiguration implements Even
     public void onEvent(Event<Key, Parameter> event) {
         if (organizationId.equals(event.content().getReferenceId())) {
             switch (event.type()) {
-                case CONSOLE_HTTP_CORS_ALLOW_ORIGIN:
-                    this.setAllowedOriginPatterns(semicolonStringToList(event.content().getValue()));
-                    break;
-                case CONSOLE_HTTP_CORS_ALLOW_HEADERS:
-                    this.setAllowedHeaders(semicolonStringToList(event.content().getValue()));
-                    break;
-                case CONSOLE_HTTP_CORS_ALLOW_METHODS:
-                    this.setAllowedMethods(semicolonStringToList(event.content().getValue()));
-                    break;
-                case CONSOLE_HTTP_CORS_EXPOSED_HEADERS:
-                    this.setExposedHeaders(semicolonStringToList(event.content().getValue()));
-                    break;
-                case CONSOLE_HTTP_CORS_MAX_AGE:
-                    this.setMaxAge(Long.parseLong(event.content().getValue()));
-                    break;
+                case CONSOLE_HTTP_CORS_ALLOW_ORIGIN -> this.setAllowedOriginPatterns(semicolonStringToList(event.content().getValue()));
+                case CONSOLE_HTTP_CORS_ALLOW_HEADERS -> this.setAllowedHeaders(semicolonStringToList(event.content().getValue()));
+                case CONSOLE_HTTP_CORS_ALLOW_METHODS -> this.setAllowedMethods(semicolonStringToList(event.content().getValue()));
+                case CONSOLE_HTTP_CORS_EXPOSED_HEADERS -> this.setExposedHeaders(semicolonStringToList(event.content().getValue()));
+                case CONSOLE_HTTP_CORS_MAX_AGE -> this.setMaxAge(Long.parseLong(event.content().getValue()));
             }
         }
     }
@@ -103,5 +104,18 @@ public class GraviteeCorsConfiguration extends CorsConfiguration implements Even
 
     private List<String> semicolonStringToList(String listStr) {
         return asList(listStr.replaceAll("\\s+", "").split(";"));
+    }
+
+    @Override
+    public @NonNull CorsConfiguration setAllowedOriginPatterns(@Nullable List<String> allowedOriginPatterns) {
+        List<String> builtAllowedOrigins = new ArrayList<>();
+        if (allowedOriginPatterns != null) {
+            builtAllowedOrigins.addAll(allowedOriginPatterns);
+        }
+        List<String> consoleUrls = accessPointQueryService.getConsoleUrls(GraviteeContext.getCurrentOrganization(), true);
+        if (consoleUrls != null) {
+            builtAllowedOrigins.addAll(consoleUrls);
+        }
+        return super.setAllowedOriginPatterns(builtAllowedOrigins);
     }
 }

@@ -17,10 +17,8 @@ package io.gravitee.rest.api.management.v2.rest.resource.bootstrap;
 
 import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.rest.api.model.bootstrap.ManagementUIBootstrapEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.common.ReferenceContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -35,7 +33,6 @@ import jakarta.ws.rs.core.Response;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
-import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -63,31 +60,19 @@ public class ManagementUIBootstrapResource {
     public Response bootstrap(@Context final HttpServletRequest httpServletRequest) {
         URI contextPath = sanitizeContextPath(httpServletRequest);
 
-        // Find related api access points
-        String refererHeaderValue = httpServletRequest.getHeader(HttpHeaderNames.REFERER);
-        if (refererHeaderValue != null) {
-            try {
-                URL url = new URL(refererHeaderValue);
-                ManagementUIBootstrapEntity.ManagementUIBootstrapEntityBuilder builder = ManagementUIBootstrapEntity.builder();
-                Optional<String> consoleApiUrlOpt = accessPointService
-                    .getReferenceContext(url.getHost())
-                    .or(() -> accessPointService.getReferenceContext(url.getHost() + ":" + url.getPort()))
-                    .filter(ctx -> ctx.getReferenceType() == ReferenceContext.Type.ORGANIZATION)
-                    .map(ctx -> {
-                        builder.organizationId(ctx.getReferenceId());
-                        return accessPointService.getConsoleApiUrl(ctx.getReferenceId());
-                    });
-                if (consoleApiUrlOpt.isPresent()) {
-                    String consoleUrl = consoleApiUrlOpt.get();
-                    URI fullManagementURL = URI.create(consoleUrl).resolve(contextPath);
-                    return Response.ok(builder.baseURL(fullManagementURL.toString()).build()).build();
-                }
-            } catch (MalformedURLException e) {
-                // Ignore this except
-                log.warn("Unable to build bootstrap console object due to an error when reading refer header.");
-            }
+        String consoleApiUrl = accessPointService.getConsoleApiUrl(GraviteeContext.getCurrentOrganization());
+        if (consoleApiUrl != null) {
+            URI fullManagementURL = URI.create(consoleApiUrl).resolve(contextPath);
+            return Response
+                .ok(
+                    ManagementUIBootstrapEntity
+                        .builder()
+                        .organizationId(GraviteeContext.getCurrentOrganization())
+                        .baseURL(fullManagementURL.toString())
+                        .build()
+                )
+                .build();
         }
-
         try {
             URL defaultBaseUrl = new URL(
                 httpServletRequest.getScheme(),

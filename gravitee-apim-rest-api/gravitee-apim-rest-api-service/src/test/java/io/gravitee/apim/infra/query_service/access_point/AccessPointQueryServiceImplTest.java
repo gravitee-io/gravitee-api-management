@@ -204,6 +204,155 @@ public class AccessPointQueryServiceImplTest {
     }
 
     @Nested
+    class GetConsoleUrls {
+
+        @Test
+        void should_return_http_urls_matching_the_only_access_point_of_organization() {
+            // Given
+            givenAccessPoints(
+                List.of(
+                    AccessPoint
+                        .builder()
+                        .referenceId("org-id")
+                        .referenceType(AccessPointReferenceType.ORGANIZATION)
+                        .target(AccessPointTarget.CONSOLE)
+                        .host("my-host")
+                        .build()
+                )
+            );
+
+            // When
+            var result = service.getConsoleUrls("org-id", true);
+
+            // Then
+            Assertions.assertThat(result).containsOnly("http://my-host");
+        }
+
+        @Test
+        void should_return_https_urls_when_access_point_is_secured() {
+            // Given
+            givenAccessPoints(
+                List.of(
+                    AccessPoint
+                        .builder()
+                        .referenceId("org-id")
+                        .referenceType(AccessPointReferenceType.ORGANIZATION)
+                        .target(AccessPointTarget.CONSOLE)
+                        .host("my-host")
+                        .secured(true)
+                        .build()
+                )
+            );
+
+            // When
+            var result = service.getConsoleUrls("org-id", true);
+
+            // Then
+            Assertions.assertThat(result).containsOnly("https://my-host");
+        }
+
+        @Test
+        void should_return_http_urls_matching_access_point_of_organization() {
+            // Given
+            givenAccessPoints(
+                List.of(
+                    AccessPoint
+                        .builder()
+                        .referenceId("org-id")
+                        .referenceType(AccessPointReferenceType.ORGANIZATION)
+                        .target(AccessPointTarget.CONSOLE)
+                        .host("my-host")
+                        .build(),
+                    AccessPoint
+                        .builder()
+                        .referenceId("org-id")
+                        .referenceType(AccessPointReferenceType.ORGANIZATION)
+                        .target(AccessPointTarget.CONSOLE)
+                        .host("override-1")
+                        .overriding(true)
+                        .build(),
+                    AccessPoint
+                        .builder()
+                        .referenceId("org-id")
+                        .referenceType(AccessPointReferenceType.ORGANIZATION)
+                        .target(AccessPointTarget.CONSOLE)
+                        .host("override-2")
+                        .overriding(true)
+                        .build()
+                )
+            );
+
+            // When
+            var result = service.getConsoleUrls("org-id", true);
+
+            // Then
+            Assertions.assertThat(result).containsOnly("http://my-host", "http://override-1", "http://override-2");
+        }
+
+        @Test
+        void should_return_only_http_urls_overriding_access_point_of_organization() {
+            // Given
+            givenAccessPoints(
+                List.of(
+                    AccessPoint
+                        .builder()
+                        .referenceId("org-id")
+                        .referenceType(AccessPointReferenceType.ORGANIZATION)
+                        .target(AccessPointTarget.CONSOLE)
+                        .host("my-host")
+                        .build(),
+                    AccessPoint
+                        .builder()
+                        .referenceId("org-id")
+                        .referenceType(AccessPointReferenceType.ORGANIZATION)
+                        .target(AccessPointTarget.CONSOLE)
+                        .host("override-1")
+                        .overriding(true)
+                        .build(),
+                    AccessPoint
+                        .builder()
+                        .referenceId("org-id")
+                        .referenceType(AccessPointReferenceType.ORGANIZATION)
+                        .target(AccessPointTarget.CONSOLE)
+                        .host("override-2")
+                        .overriding(true)
+                        .build()
+                )
+            );
+
+            // When
+            var result = service.getConsoleUrls("org-id", false);
+
+            // Then
+            Assertions.assertThat(result).containsOnly("http://override-1", "http://override-2");
+        }
+
+        @Test
+        void should_return_null_when_no_access_point_found() {
+            // Given
+            givenAccessPoints(List.of());
+
+            // When
+            var result = service.getConsoleUrls("org-id", true);
+
+            // Then
+            Assertions.assertThat(result).isEmpty();
+        }
+
+        @Test
+        void should_throw_when_exception_rose() throws TechnicalException {
+            // Given
+            when(accessPointRepository.findByReferenceAndTarget(any(), any(), any())).thenThrow(new TechnicalException("error"));
+
+            // When
+            var result = Assertions.catchThrowable(() -> service.getConsoleUrls("org-id", true));
+
+            // Then
+            Assertions.assertThat(result).isInstanceOf(TechnicalManagementException.class).hasMessageContaining("org-id");
+        }
+    }
+
+    @Nested
     class GetConsoleApiUrl {
 
         @Test
@@ -419,6 +568,155 @@ public class AccessPointQueryServiceImplTest {
 
             // When
             var result = Assertions.catchThrowable(() -> service.getPortalUrl("env-id"));
+
+            // Then
+            Assertions.assertThat(result).isInstanceOf(TechnicalManagementException.class).hasMessageContaining("env-id");
+        }
+    }
+
+    @Nested
+    class GetPortalUrls {
+
+        @Test
+        void should_return_http_urls_matching_the_only_access_point_of_environment() {
+            // Given
+            givenAccessPoints(
+                List.of(
+                    AccessPoint
+                        .builder()
+                        .referenceId("env-id")
+                        .referenceType(AccessPointReferenceType.ENVIRONMENT)
+                        .target(AccessPointTarget.PORTAL)
+                        .host("my-host")
+                        .build()
+                )
+            );
+
+            // When
+            var result = service.getPortalUrls("env-id", true);
+
+            // Then
+            Assertions.assertThat(result).containsOnly("http://my-host");
+        }
+
+        @Test
+        void should_return_https_urls_when_access_point_is_secured() {
+            // Given
+            givenAccessPoints(
+                List.of(
+                    AccessPoint
+                        .builder()
+                        .referenceId("env-id")
+                        .referenceType(AccessPointReferenceType.ENVIRONMENT)
+                        .target(AccessPointTarget.PORTAL)
+                        .host("my-host")
+                        .secured(true)
+                        .build()
+                )
+            );
+
+            // When
+            var result = service.getPortalUrls("env-id", true);
+
+            // Then
+            Assertions.assertThat(result).containsOnly("https://my-host");
+        }
+
+        @Test
+        void should_return_http_urls_matching_access_point_of_environment() {
+            // Given
+            givenAccessPoints(
+                List.of(
+                    AccessPoint
+                        .builder()
+                        .referenceId("env-id")
+                        .referenceType(AccessPointReferenceType.ENVIRONMENT)
+                        .target(AccessPointTarget.PORTAL)
+                        .host("my-host")
+                        .build(),
+                    AccessPoint
+                        .builder()
+                        .referenceId("env-id")
+                        .referenceType(AccessPointReferenceType.ENVIRONMENT)
+                        .target(AccessPointTarget.PORTAL)
+                        .host("override-1")
+                        .overriding(true)
+                        .build(),
+                    AccessPoint
+                        .builder()
+                        .referenceId("env-id")
+                        .referenceType(AccessPointReferenceType.ENVIRONMENT)
+                        .target(AccessPointTarget.PORTAL)
+                        .host("override-2")
+                        .overriding(true)
+                        .build()
+                )
+            );
+
+            // When
+            var result = service.getPortalUrls("env-id", true);
+
+            // Then
+            Assertions.assertThat(result).containsOnly("http://my-host", "http://override-1", "http://override-2");
+        }
+
+        @Test
+        void should_return_only_http_urls_overriding_access_point_of_environment() {
+            // Given
+            givenAccessPoints(
+                List.of(
+                    AccessPoint
+                        .builder()
+                        .referenceId("env-id")
+                        .referenceType(AccessPointReferenceType.ENVIRONMENT)
+                        .target(AccessPointTarget.PORTAL)
+                        .host("my-host")
+                        .build(),
+                    AccessPoint
+                        .builder()
+                        .referenceId("env-id")
+                        .referenceType(AccessPointReferenceType.ENVIRONMENT)
+                        .target(AccessPointTarget.PORTAL)
+                        .host("override-1")
+                        .overriding(true)
+                        .build(),
+                    AccessPoint
+                        .builder()
+                        .referenceId("env-id")
+                        .referenceType(AccessPointReferenceType.ENVIRONMENT)
+                        .target(AccessPointTarget.PORTAL)
+                        .host("override-2")
+                        .overriding(true)
+                        .build()
+                )
+            );
+
+            // When
+            var result = service.getPortalUrls("env-id", false);
+
+            // Then
+            Assertions.assertThat(result).containsOnly("http://override-1", "http://override-2");
+        }
+
+        @Test
+        void should_return_null_when_no_access_point_found() {
+            // Given
+            givenAccessPoints(List.of());
+
+            // When
+            var result = service.getPortalUrls("env-id", true);
+
+            // Then
+            Assertions.assertThat(result).isEmpty();
+        }
+
+        @Test
+        void should_throw_when_exception_rose() throws TechnicalException {
+            // Given
+            when(accessPointRepository.findByReferenceAndTarget(any(), any(), any())).thenThrow(new TechnicalException("error"));
+
+            // When
+            var result = Assertions.catchThrowable(() -> service.getPortalUrls("env-id", true));
 
             // Then
             Assertions.assertThat(result).isInstanceOf(TechnicalManagementException.class).hasMessageContaining("env-id");

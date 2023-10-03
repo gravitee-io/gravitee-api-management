@@ -66,6 +66,7 @@ import org.springframework.security.web.csrf.CsrfFilter;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -107,7 +108,7 @@ public class BasicSecurityConfigurerAdapter {
     private EventManager eventManager;
 
     @Autowired
-    private AccessPointQueryService accessPointService;
+    private AccessPointQueryService accessPointQueryService;
 
     @Autowired
     private EnvironmentService environmentService;
@@ -129,7 +130,7 @@ public class BasicSecurityConfigurerAdapter {
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-        return new GraviteeUrlBasedCorsConfigurationSource(parameterService, eventManager);
+        return new GraviteeUrlBasedCorsConfigurationSource(parameterService, accessPointQueryService, eventManager);
     }
 
     /*
@@ -172,7 +173,7 @@ public class BasicSecurityConfigurerAdapter {
             BasicAuthenticationFilter.class
         );
         http.addFilterBefore(new RecaptchaFilter(reCaptchaService, objectMapper), TokenAuthenticationFilter.class);
-        http.addFilterBefore(new GraviteeContextFilter(accessPointService, environmentService), TokenAuthenticationFilter.class);
+        http.addFilterBefore(new GraviteeContextFilter(accessPointQueryService, environmentService), CorsFilter.class);
         http.addFilterAfter(new GraviteeContextAuthorizationFilter(), AuthorizationFilter.class);
 
         return http.build();
