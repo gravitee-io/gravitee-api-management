@@ -25,7 +25,7 @@
           ng-model="$ctrl.group.api_role"
           aria-label="API Role"
           class="md-no-underline"
-          ng-disabled="!$ctrl.canChangeDefaultApiRole()"
+          ng-disabled="!$ctrl.canChangeDefaultApiRole"
         >
           <md-option ng-repeat="role in $ctrl.apiRoles" ng-value="role.name" ng-disabled="$ctrl.isApiRoleDisabled(role)">
             {{role.name}}
@@ -38,7 +38,7 @@
           ng-model="$ctrl.group.application_role"
           aria-label="Application Role"
           class="md-no-underline"
-          ng-disabled="!$ctrl.canChangeDefaultApplicationRole()"
+          ng-disabled="!$ctrl.canChangeDefaultApplicationRole"
         >
           <md-option ng-repeat="role in $ctrl.applicationRoles" ng-value="role.name" ng-disabled="role.system"> {{role.name}} </md-option>
         </md-select>

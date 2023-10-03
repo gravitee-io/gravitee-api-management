@@ -48,7 +48,7 @@
             class="gv-input-number"
             ng-model="$ctrl.selectedApiRole"
             aria-label="Default API Role"
-            ng-disabled="!$ctrl.canChangeDefaultApiRole()"
+            ng-disabled="!$ctrl.canChangeDefaultApiRole"
           >
             <md-option ng-value="role.name" ng-repeat="role in $ctrl.apiRoles" ng-disabled="role.system">{{role.name}} </md-option>
           </md-select>
@@ -60,7 +60,7 @@
             ng-model="$ctrl.selectedApplicationRole"
             class="gv-input-number"
             aria-label="Default Application Role"
-            ng-disabled="!$ctrl.canChangeDefaultApplicationRole()"
+            ng-disabled="!$ctrl.canChangeDefaultApplicationRole"
           >
             <md-option ng-value="role.name" ng-repeat="role in $ctrl.applicationRoles" ng-disabled="role.system">{{role.name}} </md-option>
           </md-select>
@@ -232,7 +232,7 @@
                         ng-model="member.roles['API']"
                         aria-label="API Role"
                         ng-change="$ctrl.updateRole(member)"
-                        ng-disabled="!$ctrl.canChangeDefaultApiRole()"
+                        ng-disabled="!$ctrl.canChangeDefaultApiRole"
                       >
                         <md-option ng-value="role.name" ng-repeat="role in $ctrl.apiRoles" ng-disabled="$ctrl.isApiRoleDisabled(role)"
                           >{{role.name}}</md-option
@@ -244,7 +244,7 @@
                         ng-model="member.roles['APPLICATION']"
                         aria-label="Application Role"
                         ng-change="$ctrl.updateRole(member)"
-                        ng-disabled="!$ctrl.canChangeDefaultApplicationRole()"
+                        ng-disabled="!$ctrl.canChangeDefaultApplicationRole"
                       >
                         <md-option ng-value="role.name" ng-repeat="role in $ctrl.applicationRoles" ng-disabled="role.system"
                           >{{role.name}}</md-option
@@ -283,7 +283,7 @@
                           ng-model="invitation.api_role"
                           aria-label="API Role"
                           ng-change="$ctrl.updateInvitation(invitation)"
-                          ng-disabled="!$ctrl.canChangeDefaultApiRole()"
+                          ng-disabled="!$ctrl.canChangeDefaultApiRole"
                         >
                           <md-option ng-value="role.name" ng-repeat="role in $ctrl.apiRoles" ng-disabled="$ctrl.isApiRoleDisabled(role)"
                             >{{role.name}}</md-option
@@ -295,7 +295,7 @@
                           ng-model="invitation.application_role"
                           aria-label="Application Role"
                           ng-change="$ctrl.updateInvitation(invitation)"
-                          ng-disabled="!$ctrl.canChangeDefaultApplicationRole()"
+                          ng-disabled="!$ctrl.canChangeDefaultApplicationRole"
                         >
                           <md-option ng-value="role.name" ng-repeat="role in $ctrl.applicationRoles" ng-disabled="role.system"
                             >{{role.name}}</md-option
