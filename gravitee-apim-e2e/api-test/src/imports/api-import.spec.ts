@@ -95,7 +95,7 @@ describe('API - Imports', () => {
             body: fakeApi2,
           }),
           400,
-          'The path [/testimport/] is already covered by an other API.',
+          'API paths are invalid (Path [/testimport/] already exists)',
         );
       });
 
@@ -151,7 +151,7 @@ describe('API - Imports', () => {
           body: apiToImport,
         }),
         400,
-        `The path [${importedApi.context_path}/] is already covered by an other API.`,
+        `API paths are invalid (Path [${importedApi.context_path}/] already exists)`,
       );
     });
 

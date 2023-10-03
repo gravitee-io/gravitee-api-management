@@ -255,7 +255,7 @@ describe('API - Imports with pages', () => {
             importSwaggerDescriptorEntity,
           }),
           400,
-          `The path [${api.context_path}/] is already covered by an other API.`,
+          `API paths are invalid (Path [${api.context_path}/] already exists)`,
         );
       });
 
