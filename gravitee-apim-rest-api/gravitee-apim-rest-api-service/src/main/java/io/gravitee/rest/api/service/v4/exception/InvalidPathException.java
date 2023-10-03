@@ -16,9 +16,7 @@
 package io.gravitee.rest.api.service.v4.exception;
 
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.common.util.Maps;
 import io.gravitee.rest.api.service.exceptions.AbstractManagementException;
-import java.util.List;
 import java.util.Map;
 import lombok.Getter;
 
@@ -30,10 +28,8 @@ import lombok.Getter;
 @Getter
 public class InvalidPathException extends AbstractManagementException {
 
-    private final String path;
-
-    public InvalidPathException(String path) {
-        this.path = path;
+    public InvalidPathException(String message, Throwable cause) {
+        super(message, cause);
     }
 
     @Override
@@ -48,11 +44,11 @@ public class InvalidPathException extends AbstractManagementException {
 
     @Override
     public Map<String, String> getParameters() {
-        return Maps.<String, String>builder().put("path", path).build();
+        return Map.of();
     }
 
     @Override
     public String getMessage() {
-        return "Path [" + path + "] is invalid";
+        return super.getMessage() + " (" + this.getCause().getMessage() + ")";
     }
 }

@@ -35,6 +35,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.model.Path;
+import io.gravitee.apim.core.exception.InvalidPathsException;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.model.*;
@@ -104,6 +105,7 @@ import io.gravitee.rest.api.service.v4.ApiNotificationService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.ApiTemplateService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
+import io.gravitee.rest.api.service.v4.exception.InvalidPathException;
 import io.gravitee.rest.api.service.v4.validation.AnalyticsValidationService;
 import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
 import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
@@ -583,6 +585,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             searchEngineService.index(executionContext, apiWithMetadata, false);
             return apiEntity;
+        } catch (InvalidPathsException ex) {
+            LOGGER.error("An error occurs while trying to create {} for user {}", api, userId, ex);
+            throw new InvalidPathException("API paths are invalid", ex);
         } catch (TechnicalException | IllegalStateException ex) {
             LOGGER.error("An error occurs while trying to create {} for user {}", api, userId, ex);
             throw new TechnicalManagementException("An error occurs while trying create " + api + " for user " + userId, ex);
@@ -1214,6 +1219,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             searchEngineService.index(executionContext, apiWithMetadata, false);
 
             return apiEntity;
+        } catch (InvalidPathsException ex) {
+            LOGGER.error("An error occurs while trying to update API {}", apiId, ex);
+            throw new InvalidPathException("API paths are invalid", ex);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to update API {}", apiId, ex);
             throw new TechnicalManagementException("An error occurs while trying to update API " + apiId, ex);

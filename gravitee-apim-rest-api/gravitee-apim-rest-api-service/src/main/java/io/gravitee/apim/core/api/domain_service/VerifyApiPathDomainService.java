@@ -221,7 +221,7 @@ class InvalidHostException extends RuntimeException {
 
 class PathAlreadyExistsException extends RuntimeException {
 
-    public PathAlreadyExistsException(String message) {
-        super(message);
+    public PathAlreadyExistsException(String path) {
+        super("Path [" + path + "] already exists");
     }
 }

@@ -44,6 +44,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.search.query.QueryBuilder;
 import io.gravitee.rest.api.service.v4.ApiImportExportService;
 import io.gravitee.rest.api.service.v4.ApiStateService;
+import io.gravitee.rest.api.service.v4.exception.InvalidPathException;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -53,7 +54,6 @@ import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
@@ -138,18 +138,23 @@ public class ApisResource extends AbstractResource {
         verifyImage(apiToImport.getApiBackground(), "background");
 
         ExportApiEntity exportApiEntity = ImportExportApiMapper.INSTANCE.map(apiToImport);
-        GenericApiEntity fromExportedApi = apiImportExportService.createFromExportedApi(
-            GraviteeContext.getExecutionContext(),
-            exportApiEntity,
-            getAuthenticatedUser()
-        );
 
-        boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), fromExportedApi);
+        try {
+            GenericApiEntity fromExportedApi = apiImportExportService.createFromExportedApi(
+                GraviteeContext.getExecutionContext(),
+                exportApiEntity,
+                getAuthenticatedUser()
+            );
 
-        return Response
-            .created(this.getLocationHeader(fromExportedApi.getId()))
-            .entity(ApiMapper.INSTANCE.map(fromExportedApi, uriInfo, isSynchronized))
-            .build();
+            boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), fromExportedApi);
+
+            return Response
+                .created(this.getLocationHeader(fromExportedApi.getId()))
+                .entity(ApiMapper.INSTANCE.map(fromExportedApi, uriInfo, isSynchronized))
+                .build();
+        } catch (InvalidPathsException e) {
+            throw new InvalidPathException("Cannot import API with invalid paths", e);
+        }
     }
 
     private static void verifyImage(String imageContent, String imageUsage) {

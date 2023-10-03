@@ -33,6 +33,7 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.model.Path;
+import io.gravitee.apim.core.exception.InvalidPathsException;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
@@ -914,11 +915,12 @@ public class ApiServiceCockpitImplTest {
         SwaggerApiEntity api = new SwaggerApiEntity();
         Proxy proxy = new Proxy();
         VirtualHost virtualHost = new VirtualHost();
+        virtualHost.setPath("contextPath");
         proxy.setVirtualHosts(List.of(virtualHost));
         api.setProxy(proxy);
 
         when(verifyApiPathsDomainService.checkAndSanitizeApiPaths(any(), eq(null), anyList()))
-            .thenThrow(new PathAlreadyExistsException("contextPath"));
+            .thenThrow(new InvalidPathsException("Invalid path"));
         var message = service.checkContextPath(GraviteeContext.getExecutionContext(), api);
 
         verify(verifyApiPathsDomainService)
@@ -927,9 +929,7 @@ public class ApiServiceCockpitImplTest {
                 eq(null),
                 eq(List.of(Path.builder().path(virtualHost.getPath()).host(virtualHost.getHost()).build()))
             );
-        assertThat(message.isPresent()).isTrue();
-        assertThat(message.get())
-            .isEqualTo("The context [contextPath] automatically generated from the name is already covered by another API.");
+        assertThat(message).contains("The path [contextPath] automatically generated from the name is already covered by another API.");
     }
 
     private void preparePageServiceMock() {
