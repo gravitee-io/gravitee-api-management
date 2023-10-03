@@ -172,6 +172,37 @@ public class EmailNotifierServiceTest {
         }
 
         @Test
+        public void should_ignore_any_empty_recipients_before_sending_email() {
+            // Given
+            var executionContext = new ExecutionContext(null, null);
+            var templateData = Map.<String, Object>of(
+                "api",
+                ApiEntity.builder().primaryOwner(PrimaryOwnerEntity.builder().email("").build()).build()
+            );
+
+            // When
+            service.trigger(
+                executionContext,
+                ApiHook.API_STARTED,
+                templateData,
+                List.of("recipient1@gravitee.io", "${api.primaryOwner.email}", "recipient2@gravitee.io", "")
+            );
+
+            // Then
+            verify(mockEmailService)
+                .sendAsyncEmailNotification(
+                    same(executionContext),
+                    eq(
+                        new EmailNotificationBuilder()
+                            .bcc("recipient2@gravitee.io", "recipient1@gravitee.io")
+                            .template(EmailNotificationBuilder.EmailTemplate.API_API_STARTED)
+                            .params(templateData)
+                            .build()
+                    )
+                );
+        }
+
+        @Test
         public void should_do_nothing_when_no_hook_is_provided() {
             service.trigger(GraviteeContext.getExecutionContext(), null, Map.of(), List.of());
             verifyNoInteractions(mockEmailService);

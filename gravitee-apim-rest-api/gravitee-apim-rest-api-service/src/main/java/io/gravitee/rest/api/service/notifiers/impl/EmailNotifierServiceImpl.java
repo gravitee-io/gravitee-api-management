@@ -17,17 +17,16 @@ package io.gravitee.rest.api.service.notifiers.impl;
 
 import io.gravitee.apim.infra.template.TemplateProcessor;
 import io.gravitee.apim.infra.template.TemplateProcessorException;
-import io.gravitee.repository.management.model.GenericNotificationConfig;
 import io.gravitee.rest.api.service.EmailService;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.notification.Hook;
-import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.notifiers.EmailNotifierService;
-import java.util.*;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
@@ -108,6 +107,6 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
                     })
             );
 
-        return collect.filter(Optional::isPresent).map(Optional::get).collect(Collectors.toSet());
+        return collect.filter(s -> s.isPresent() && !s.get().isEmpty()).map(Optional::get).collect(Collectors.toSet());
     }
 }
