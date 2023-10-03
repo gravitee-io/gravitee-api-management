@@ -357,7 +357,7 @@ const GroupComponent: ng.IComponentOptions = {
       if (!this.group.max_invitation) {
         return false;
       }
-      const numberOfMembers = this.members ? this.members.length : 0;
+      const numberOfMembers = this.membersPage ? this.membersPage.page.total_elements : 0;
       const numberOfInvitations = this.invitations ? this.invitations.length : 0;
       const numberOfSlots = numberOfMembers + numberOfInvitations;
       return numberOfSlots >= this.group.max_invitation;
