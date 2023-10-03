@@ -22,8 +22,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.model.Path;
+import io.gravitee.apim.core.exception.InvalidPathsException;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.*;
 import io.gravitee.rest.api.model.documentation.PageQuery;
@@ -33,7 +35,6 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.PageConverter;
-import io.gravitee.rest.api.service.v4.exception.PathAlreadyExistsException;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -300,9 +301,9 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
                 apiId,
                 api.getProxy().getVirtualHosts().stream().map(h -> Path.builder().path(h.getPath()).host(h.getHost()).build()).toList()
             );
-        } catch (PathAlreadyExistsException e) {
-            String ctxPath = e.getPathValue();
-            return Optional.of("The context [" + ctxPath + "] automatically generated from the name is already covered by another API.");
+        } catch (InvalidPathsException e) {
+            String ctxPath = api.getProxy().getVirtualHosts().stream().findFirst().map(VirtualHost::getPath).orElse("");
+            return Optional.of("The path [" + ctxPath + "] automatically generated from the name is already covered by another API.");
         } catch (Exception e) {
             return Optional.of(e.getMessage());
         }
