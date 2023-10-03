@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, Inject, OnInit } from '@angular/core';
-import { combineLatest, EMPTY, Observable, Subject } from 'rxjs';
+import { EMPTY, Observable, Subject } from 'rxjs';
 import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { StateService, UIRouterGlobals } from '@uirouter/core';
 import { DatePipe } from '@angular/common';
@@ -35,8 +35,6 @@ import {
   ApiPortalSubscriptionTransferDialogResult,
 } from '../components/dialogs/transfer/api-portal-subscription-transfer-dialog.component';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
-import { ApplicationService } from '../../../../../services-ngx/application.service';
-import { ApiKeyMode } from '../../../../../entities/application/application';
 import {
   ApiPortalSubscriptionChangeEndDateDialogComponent,
   ApiPortalSubscriptionChangeEndDateDialogData,
@@ -116,7 +114,6 @@ export class ApiGeneralSubscriptionEditComponent implements OnInit {
     @Inject('Constants') private readonly constants: Constants,
     private readonly ajsGlobals: UIRouterGlobals,
     private readonly apiSubscriptionService: ApiSubscriptionV2Service,
-    private readonly applicationService: ApplicationService,
     private datePipe: DatePipe,
     private readonly matDialog: MatDialog,
     private readonly snackBarService: SnackBarService,
@@ -168,7 +165,8 @@ export class ApiGeneralSubscriptionEditComponent implements OnInit {
             };
 
             if (this.subscription.plan.securityType === 'API_KEY' && this.subscription.status !== 'REJECTED') {
-              return combineLatest([this.applicationService.getById(subscription.application.id), this.getApiKeysList(1, 10)]);
+              this.hasSharedApiKeyMode = subscription.application.apiKeyMode === 'SHARED';
+              return this.getApiKeysList(1, 10);
             }
           }
           return EMPTY;
@@ -176,9 +174,6 @@ export class ApiGeneralSubscriptionEditComponent implements OnInit {
         catchError((err) => {
           this.snackBarService.error(err.message); // If user is forbidden access to application getById
           return EMPTY;
-        }),
-        tap(([application, _]) => {
-          this.hasSharedApiKeyMode = application.api_key_mode === ApiKeyMode.SHARED;
         }),
         takeUntil(this.unsubscribe$),
       )
