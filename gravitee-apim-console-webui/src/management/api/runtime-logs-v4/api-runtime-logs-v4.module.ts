@@ -18,9 +18,9 @@ import { NgModule } from '@angular/core';
 
 import { ApiRuntimeLogsSettingsModule } from './runtime-logs-settings/api-runtime-logs-settings.module';
 import { ApiRuntimeLogsModule } from './runtime-logs/api-runtime-logs.module';
-import { ApiRuntimeLogsMessgesModule } from './runtime-logs-messages';
+import { ApiRuntimeLogsMessagesModule } from './runtime-logs-messages';
 
 @NgModule({
-  imports: [CommonModule, ApiRuntimeLogsModule, ApiRuntimeLogsSettingsModule, ApiRuntimeLogsMessgesModule],
+  imports: [CommonModule, ApiRuntimeLogsModule, ApiRuntimeLogsSettingsModule, ApiRuntimeLogsMessagesModule],
 })
 export class ApiRuntimeLogsV4Module {}
