@@ -15,11 +15,9 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api;
 
-import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
-import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
-import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
-import static io.gravitee.common.http.HttpStatusCode.OK_200;
+import static io.gravitee.common.http.HttpStatusCode.*;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -181,5 +179,35 @@ public class ApiSubscriptionsResource_UpdateApiKeyTest extends ApiSubscriptionsR
         var apiKey = response.readEntity(ApiKey.class);
         assertEquals(API_KEY_ID, apiKey.getId());
         assertEquals(updateApiKey.getExpireAt().toInstant().toEpochMilli(), apiKey.getExpireAt().toInstant().toEpochMilli());
+    }
+
+    @Test
+    void should_remove_expiration_date_of_api_key() {
+        final ApiKeyEntity apiKeyEntity = SubscriptionFixtures
+            .anApiKeyEntity()
+            .toBuilder()
+            .id(API_KEY_ID)
+            .subscriptions(
+                Set.of(
+                    SubscriptionFixtures.aSubscriptionEntity().toBuilder().id("ANOTHER-SUBSCRIPTION").build(),
+                    SubscriptionFixtures.aSubscriptionEntity().toBuilder().id(SUBSCRIPTION).build()
+                )
+            )
+            .build();
+
+        when(subscriptionService.findById(SUBSCRIPTION)).thenReturn(SubscriptionFixtures.aSubscriptionEntity());
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION))
+            .thenReturn(ApplicationFixtures.anApplicationEntity().toBuilder().id(APPLICATION).build());
+        when(apiKeyService.findById(GraviteeContext.getExecutionContext(), API_KEY_ID)).thenReturn(apiKeyEntity);
+        when(apiKeyService.update(any(), any())).thenAnswer(i -> i.getArgument(1));
+
+        final UpdateApiKey updateApiKey = UpdateApiKey.builder().expireAt(null).build();
+        final Response response = rootTarget().request().put(Entity.json(updateApiKey));
+
+        assertEquals(OK_200, response.getStatus());
+
+        var apiKey = response.readEntity(ApiKey.class);
+        assertEquals(API_KEY_ID, apiKey.getId());
+        assertNull(apiKey.getExpireAt());
     }
 }
