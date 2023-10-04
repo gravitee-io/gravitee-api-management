@@ -71,6 +71,7 @@ import { ApiCreationV4ConfirmationComponent } from './creation-v4/api-creation-v
 import { ApiCreationV2Component } from './creation-v2/steps/api-creation-v2.component';
 import { ApiPropertiesComponent } from './proxy/properties/api-properties.component';
 import { ApiRuntimeLogsMessagesComponent } from './runtime-logs-v4/runtime-logs-messages/api-runtime-logs-messages.component';
+import { ApiDocumentationV4Component } from './documentation-v4/api-documentation-v4.component';
 
 import { NotificationsComponent } from '../../components/notifications/notifications.component';
 import { Scope } from '../../entities/scope';
@@ -1430,6 +1431,15 @@ export const states: Ng2StateDeclaration[] = [
   /**
    * V4 Api state only
    */
+  {
+    name: 'management.apis.documentationV4',
+    url: '/documentation-v4',
+    data: {
+      useAngularMaterial: true,
+      docs: null,
+    },
+    component: ApiDocumentationV4Component,
+  },
   {
     name: 'management.apis.policyStudio',
     url: '/policy-studio',

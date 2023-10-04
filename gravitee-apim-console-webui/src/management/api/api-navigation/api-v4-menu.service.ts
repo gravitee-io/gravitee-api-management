@@ -135,7 +135,8 @@ export class ApiV4MenuService implements ApiMenuService {
     if (this.permissionService.hasAnyMatching(['api-documentation-r'])) {
       generalGroup.items.push({
         displayName: 'Documentation',
-        targetRoute: 'DISABLED',
+        targetRoute: 'management.apis.documentationV4',
+        baseRoute: ['management.apis.documentationV4'],
       });
     }
 
