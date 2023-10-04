@@ -1,0 +1,22 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+$typography: map.get(gio.$mat-theme, typography);
+
+.header {
+  border-bottom: 2px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker10');
+
+  padding: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  &__breadcrumb {
+    display: flex;
+    align-items: flex-end;
+
+    * {
+      margin-right: 8px;
+    }
+  }
+}
