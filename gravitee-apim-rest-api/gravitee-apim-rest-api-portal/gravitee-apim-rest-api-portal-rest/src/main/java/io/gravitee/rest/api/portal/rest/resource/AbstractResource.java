@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.MediaEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -44,6 +45,7 @@ import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -98,6 +100,10 @@ public abstract class AbstractResource<T, K> {
 
     protected String getAuthenticatedUserOrNull() {
         return isAuthenticated() ? getAuthenticatedUser() : null;
+    }
+
+    protected UserDetails getAuthenticatedUserDetails() {
+        return (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 
     protected boolean isAuthenticated() {

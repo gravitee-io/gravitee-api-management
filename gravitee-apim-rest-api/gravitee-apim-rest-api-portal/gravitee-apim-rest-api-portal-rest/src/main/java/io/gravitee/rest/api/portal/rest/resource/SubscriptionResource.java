@@ -18,8 +18,12 @@ package io.gravitee.rest.api.portal.rest.resource;
 import static io.gravitee.rest.api.model.permissions.RolePermission.APPLICATION_SUBSCRIPTION;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 
+import io.gravitee.apim.core.audit.model.AuditActor;
+import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.subscription.usecase.CloseSubscriptionUsecase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.SubscriptionConfigurationEntity;
 import io.gravitee.rest.api.model.SubscriptionConsumerStatus;
 import io.gravitee.rest.api.model.SubscriptionEntity;
@@ -32,6 +36,7 @@ import io.gravitee.rest.api.portal.rest.model.Key;
 import io.gravitee.rest.api.portal.rest.model.Subscription;
 import io.gravitee.rest.api.portal.rest.model.SubscriptionConfigurationInput;
 import io.gravitee.rest.api.portal.rest.model.UpdateSubscriptionInput;
+import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
 import io.gravitee.rest.api.service.ApiKeyService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -42,11 +47,19 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -57,6 +70,9 @@ public class SubscriptionResource extends AbstractResource {
 
     @Context
     private ResourceContext resourceContext;
+
+    @Inject
+    private CloseSubscriptionUsecase closeSubscriptionUsecase;
 
     @Inject
     private SubscriptionService subscriptionService;
@@ -109,7 +125,26 @@ public class SubscriptionResource extends AbstractResource {
         SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscriptionId);
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (hasPermission(executionContext, APPLICATION_SUBSCRIPTION, subscriptionEntity.getApplication(), RolePermissionAction.DELETE)) {
-            subscriptionService.close(executionContext, subscriptionId);
+            final var user = getAuthenticatedUserDetails();
+
+            closeSubscriptionUsecase.execute(
+                new CloseSubscriptionUsecase.Input(
+                    subscriptionId,
+                    AuditInfo
+                        .builder()
+                        .organizationId(executionContext.getOrganizationId())
+                        .environmentId(executionContext.getEnvironmentId())
+                        .actor(
+                            AuditActor
+                                .builder()
+                                .userId(user.getUsername())
+                                .userSource(user.getSource())
+                                .userSourceId(user.getSourceId())
+                                .build()
+                        )
+                        .build()
+                )
+            );
             return Response.noContent().build();
         }
         throw new ForbiddenAccessException();
