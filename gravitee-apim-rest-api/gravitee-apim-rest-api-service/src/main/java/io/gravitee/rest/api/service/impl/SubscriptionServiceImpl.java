@@ -17,7 +17,6 @@ package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.API;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.APPLICATION;
-import static io.gravitee.repository.management.model.Subscription.AuditEvent.SUBSCRIPTION_CLOSED;
 import static io.gravitee.repository.management.model.Subscription.AuditEvent.SUBSCRIPTION_CREATED;
 import static io.gravitee.repository.management.model.Subscription.AuditEvent.SUBSCRIPTION_DELETED;
 import static io.gravitee.repository.management.model.Subscription.AuditEvent.SUBSCRIPTION_PAUSED;
@@ -105,7 +104,6 @@ import io.gravitee.rest.api.service.exceptions.PlanRestrictedException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionAlreadyProcessedException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionConsumerStatusNotUpdatableException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionFailureException;
-import io.gravitee.rest.api.service.exceptions.SubscriptionNotClosableException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotClosedException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotPausableException;
@@ -123,7 +121,13 @@ import io.gravitee.rest.api.service.v4.ApiTemplateService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.validation.SubscriptionValidationService;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -862,76 +866,6 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         } catch (UserNotFoundException e) {
             logger.warn("Subscriber '{}' not found, unable to retrieve email", subscriptionEntity.getSubscribedBy());
             return Optional.empty();
-        }
-    }
-
-    @Override
-    public SubscriptionEntity close(final ExecutionContext executionContext, String subscriptionId) {
-        try {
-            logger.debug("Close subscription {}", subscriptionId);
-
-            Subscription subscription = subscriptionRepository
-                .findById(subscriptionId)
-                .orElseThrow(() -> new SubscriptionNotFoundException(subscriptionId));
-
-            switch (subscription.getStatus()) {
-                case ACCEPTED:
-                case PAUSED:
-                    Subscription previousSubscription = new Subscription(subscription);
-                    final Date now = new Date();
-                    subscription.setUpdatedAt(now);
-                    subscription.setStatus(Subscription.Status.CLOSED);
-
-                    subscription.setClosedAt(new Date());
-
-                    subscription = subscriptionRepository.update(subscription);
-
-                    // Send an email to subscriber
-                    final ApplicationEntity application = applicationService.findById(executionContext, subscription.getApplication());
-                    final GenericPlanEntity plan = planSearchService.findById(executionContext, subscription.getPlan());
-                    String apiId = plan.getApiId();
-                    final GenericApiModel genericApiModel = apiTemplateService.findByIdForTemplates(executionContext, apiId);
-                    final PrimaryOwnerEntity owner = application.getPrimaryOwner();
-                    final Map<String, Object> params = new NotificationParamsBuilder()
-                        .owner(owner)
-                        .api(genericApiModel)
-                        .plan(plan)
-                        .application(application)
-                        .build();
-
-                    notifierService.trigger(executionContext, ApiHook.SUBSCRIPTION_CLOSED, apiId, params);
-                    notifierService.trigger(executionContext, ApplicationHook.SUBSCRIPTION_CLOSED, application.getId(), params);
-                    createAudit(
-                        executionContext,
-                        apiId,
-                        subscription.getApplication(),
-                        SUBSCRIPTION_CLOSED,
-                        subscription.getUpdatedAt(),
-                        previousSubscription,
-                        subscription
-                    );
-
-                    // revoke associated active API Keys (if they are not shared)
-                    if (!application.hasApiKeySharedMode()) {
-                        streamActiveApiKeys(executionContext, subscription.getId())
-                            .forEach(apiKey -> apiKeyService.revoke(executionContext, apiKey, false));
-                    }
-
-                    return convert(subscription);
-                case PENDING:
-                    ProcessSubscriptionEntity processSubscriptionEntity = new ProcessSubscriptionEntity();
-                    processSubscriptionEntity.setId(subscription.getId());
-                    processSubscriptionEntity.setAccepted(false);
-                    processSubscriptionEntity.setReason("Subscription has been closed.");
-                    return this.process(executionContext, processSubscriptionEntity, getAuthenticatedUsername());
-                default:
-                    throw new SubscriptionNotClosableException(subscription);
-            }
-        } catch (TechnicalException ex) {
-            throw new TechnicalManagementException(
-                String.format("An error occurs while trying to close subscription %s", subscriptionId),
-                ex
-            );
         }
     }
 
