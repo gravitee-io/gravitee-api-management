@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.log.v4.model.connection;
 
+import java.util.Set;
 import lombok.Builder;
 import lombok.Data;
 
@@ -37,5 +38,6 @@ public class ConnectionLogQuery {
         private String apiId;
         private Long from;
         private Long to;
+        private Set<String> applicationIds;
     }
 }

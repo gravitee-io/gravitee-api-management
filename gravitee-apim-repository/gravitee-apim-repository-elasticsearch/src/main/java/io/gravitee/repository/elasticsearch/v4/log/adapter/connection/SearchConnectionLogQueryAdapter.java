@@ -21,6 +21,7 @@ import io.vertx.core.json.JsonObject;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import org.springframework.util.CollectionUtils;
 
 public class SearchConnectionLogQueryAdapter {
 
@@ -59,6 +60,10 @@ public class SearchConnectionLogQueryAdapter {
                 timestampJsonObject.put("lte", new Date(filter.getTo()));
             }
             terms.add(JsonObject.of("range", JsonObject.of("@timestamp", timestampJsonObject)));
+        }
+
+        if (!CollectionUtils.isEmpty(filter.getApplicationIds())) {
+            terms.add(JsonObject.of("terms", JsonObject.of("application-id", filter.getApplicationIds())));
         }
 
         if (!terms.isEmpty()) {

@@ -33,6 +33,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,7 +64,7 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
                             .builder()
                             .requestId("e71f2ae0-7673-4d7e-9f2a-e076730d7e69")
                             .apiId("f1608475-dd77-4603-a084-75dd775603e9")
-                            .applicationId("1")
+                            .applicationId("613dc986-41ce-4b5b-bdc9-8641cedb5bdb")
                             .planId("7733172a-8d19-4c4f-b317-2a8d19ec4f1c")
                             .clientIdentifier("12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0")
                             .transactionId("e71f2ae0-7673-4d7e-9f2a-e076730d7e69")
@@ -76,7 +77,7 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
                             .builder()
                             .requestId("8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48")
                             .apiId("f1608475-dd77-4603-a084-75dd775603e9")
-                            .applicationId("1")
+                            .applicationId("1e478236-e6e4-4cf5-8782-36e6e4ccf57d")
                             .planId("7733172a-8d19-4c4f-b317-2a8d19ec4f1c")
                             .clientIdentifier("12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0")
                             .transactionId("8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48")
@@ -110,7 +111,7 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
                             .builder()
                             .requestId("ebaa9b08-eac8-490d-aa9b-08eac8590d3c")
                             .apiId("f1608475-dd77-4603-a084-75dd775603e9")
-                            .applicationId("1")
+                            .applicationId("613dc986-41ce-4b5b-bdc9-8641cedb5bdb")
                             .planId("7733172a-8d19-4c4f-b317-2a8d19ec4f1c")
                             .clientIdentifier("12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0")
                             .transactionId("ebaa9b08-eac8-490d-aa9b-08eac8590d3c")
@@ -123,7 +124,7 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
                             .builder()
                             .requestId("aed3a207-d5c0-4073-93a2-07d5c0007336")
                             .apiId("f1608475-dd77-4603-a084-75dd775603e9")
-                            .applicationId("1")
+                            .applicationId("f37a5799-0490-43f6-ba57-990490f3f678")
                             .planId("7733172a-8d19-4c4f-b317-2a8d19ec4f1c")
                             .clientIdentifier("12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0")
                             .transactionId("aed3a207-d5c0-4073-93a2-07d5c0007336")
@@ -223,17 +224,32 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
         }
 
         @Test
-        void should_return_the_1st_page_of_connection_logs_without_filter() {
+        void should_return_the_applications_logs() {
             var today = DATE_FORMATTER.format(Instant.now());
+            var yesterday = DATE_FORMATTER.format(Instant.now().minus(1, ChronoUnit.DAYS));
 
-            var result = logV4Repository.searchConnectionLog(ConnectionLogQuery.builder().size(2).build());
+            var result = logV4Repository.searchConnectionLog(
+                ConnectionLogQuery
+                    .builder()
+                    .page(1)
+                    .size(10)
+                    .filter(
+                        Filter
+                            .builder()
+                            .applicationIds(Set.of("f37a5799-0490-43f6-ba57-990490f3f678", "613dc986-41ce-4b5b-bdc9-8641cedb5bdb"))
+                            .build()
+                    )
+                    .build()
+            );
             assertThat(result).isNotNull();
-            assertThat(result.total()).isEqualTo(7);
+            assertThat(result.total()).isEqualTo(4);
             assertThat(result.data())
                 .extracting(ConnectionLog::getRequestId, ConnectionLog::getTimestamp)
                 .containsExactly(
                     tuple("e71f2ae0-7673-4d7e-9f2a-e076730d7e69", today + "T06:57:44.893Z"),
-                    tuple("8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48", today + "T06:56:44.552Z")
+                    tuple("ebaa9b08-eac8-490d-aa9b-08eac8590d3c", yesterday + "T14:08:59.901Z"),
+                    tuple("aed3a207-d5c0-4073-93a2-07d5c0007336", yesterday + "T14:08:45.994Z"),
+                    tuple("3aa93e93-eaa3-4fcd-a93e-93eaa3bfcd41", yesterday + "T13:51:36.161Z")
                 );
         }
     }
