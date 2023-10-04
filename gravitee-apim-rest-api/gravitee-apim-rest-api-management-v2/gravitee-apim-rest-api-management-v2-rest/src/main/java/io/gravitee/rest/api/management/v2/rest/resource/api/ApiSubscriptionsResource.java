@@ -545,7 +545,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
             return Response.status(Response.Status.NOT_FOUND).entity(apiKeyNotFoundError(apiKeyId)).build();
         }
 
-        apiKeyEntity.setExpireAt(Date.from(updateApiKey.getExpireAt().toInstant()));
+        apiKeyEntity.setExpireAt(updateApiKey.getExpireAt() != null ? Date.from(updateApiKey.getExpireAt().toInstant()) : null);
 
         return Response.ok(subscriptionMapper.mapToApiKey(apiKeyService.update(executionContext, apiKeyEntity))).build();
     }
