@@ -17,7 +17,12 @@ package io.gravitee.rest.api.service;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.Order;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.NewSubscriptionEntity;
+import io.gravitee.rest.api.model.ProcessSubscriptionEntity;
+import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.TransferSubscriptionEntity;
+import io.gravitee.rest.api.model.UpdateSubscriptionConfigurationEntity;
+import io.gravitee.rest.api.model.UpdateSubscriptionEntity;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
 import io.gravitee.rest.api.model.subscription.SubscriptionMetadataQuery;
@@ -71,7 +76,6 @@ public interface SubscriptionService {
 
     SubscriptionEntity restore(ExecutionContext executionContext, String subscription);
 
-    SubscriptionEntity close(ExecutionContext executionContext, String subscription);
     SubscriptionEntity fail(String subscriptionId, String failureCause);
 
     void delete(ExecutionContext executionContext, String subscription);
