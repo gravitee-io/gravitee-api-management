@@ -22,13 +22,7 @@
     <div class="expire-api-key__content">
       <mat-form-field>
         <mat-label>Expire date</mat-label>
-        <input
-          matInput
-          [owlDateTime]="expirationDate"
-          [owlDateTimeTrigger]="expirationDate"
-          [min]="minDate"
-          formControlName="expirationDate"
-        />
+        <input matInput [owlDateTime]="expirationDate" [min]="minDate" formControlName="expirationDate" />
         <mat-icon [owlDateTimeTrigger]="expirationDate" matSuffix svgIcon="gio:calendar"></mat-icon>
         <owl-date-time #expirationDate></owl-date-time>
         <mat-error *ngIf="form.get('expirationDate').hasError('owlDateTimeMin')">

@@ -15,7 +15,7 @@
  */
 import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormControl, FormGroup } from '@angular/forms';
 
 export interface ApiPortalSubscriptionExpireApiKeyDialogData {
   expirationDate: Date;
@@ -46,7 +46,7 @@ export class ApiPortalSubscriptionExpireApiKeyDialogComponent implements OnInit 
   ngOnInit() {
     this.minDate = new Date();
     this.form = new FormGroup({
-      expirationDate: new FormControl(this.expirationDate, [Validators.required]),
+      expirationDate: new FormControl(this.expirationDate),
     });
   }
 
