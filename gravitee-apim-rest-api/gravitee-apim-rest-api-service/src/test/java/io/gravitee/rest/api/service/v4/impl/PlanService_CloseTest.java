@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.v4.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
+import static org.mockito.ArgumentMatchers.notNull;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.never;
@@ -24,6 +25,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.PlanRepository;
@@ -70,6 +73,9 @@ public class PlanService_CloseTest {
 
     @Mock
     private SubscriptionService subscriptionService;
+
+    @Mock
+    private CloseSubscriptionDomainService closeSubscriptionDomainService;
 
     @Mock
     private SubscriptionEntity subscription;
@@ -142,7 +148,8 @@ public class PlanService_CloseTest {
         assertThat(genericPlanEntity.getApiId()).isEqualTo(API_ID);
 
         verify(planRepository, times(1)).update(plan.toBuilder().status(Plan.Status.CLOSED).build());
-        verify(subscriptionService, times(1)).close(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
+
+        verify(closeSubscriptionDomainService, times(1)).closeSubscription(eq(SUBSCRIPTION_ID), notNull(AuditInfo.class));
         verify(subscriptionService, never()).process(eq(GraviteeContext.getExecutionContext()), any(), any());
     }
 
@@ -177,7 +184,8 @@ public class PlanService_CloseTest {
         assertThat(genericPlanEntity.getApiId()).isEqualTo(API_ID);
 
         verify(planRepository, times(1)).update(plan.toBuilder().status(Plan.Status.CLOSED).build());
-        verify(subscriptionService, times(1)).close(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
+
+        verify(closeSubscriptionDomainService, times(1)).closeSubscription(eq(SUBSCRIPTION_ID), notNull(AuditInfo.class));
     }
 
     @Test
@@ -203,7 +211,8 @@ public class PlanService_CloseTest {
         planService.close(GraviteeContext.getExecutionContext(), PLAN_ID);
 
         verify(planRepository, times(1)).update(plan.toBuilder().status(Plan.Status.CLOSED).build());
-        verify(subscriptionService, times(1)).close(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
+
+        verify(closeSubscriptionDomainService, times(1)).closeSubscription(eq(SUBSCRIPTION_ID), notNull(AuditInfo.class));
         verify(subscriptionService, never()).process(eq(GraviteeContext.getExecutionContext()), any(), any());
     }
 
