@@ -29,7 +29,9 @@ import io.gravitee.repository.log.v4.model.connection.ConnectionLog;
 import io.gravitee.repository.log.v4.model.connection.ConnectionLogQuery;
 import io.gravitee.repository.log.v4.model.message.MessageLog;
 import io.gravitee.repository.log.v4.model.message.MessageLogQuery;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class LogElasticsearchRepository extends AbstractElasticsearchRepository implements LogRepository {
 
     private final RepositoryConfiguration configuration;
@@ -42,10 +44,9 @@ public class LogElasticsearchRepository extends AbstractElasticsearchRepository 
     public LogResponse<ConnectionLog> searchConnectionLog(ConnectionLogQuery query) {
         var clusters = ClusterUtils.extractClusterIndexPrefixes(configuration);
         var index = this.indexNameGenerator.getWildcardIndexName(Type.V4_METRICS, clusters);
-
-        return this.client.search(index, null, SearchConnectionLogQueryAdapter.adapt(query))
-            .map(SearchConnectionLogResponseAdapter::adapt)
-            .blockingGet();
+        var queryString = SearchConnectionLogQueryAdapter.adapt(query);
+        log.info("Search connection log with query: {}", queryString);
+        return this.client.search(index, null, queryString).map(SearchConnectionLogResponseAdapter::adapt).blockingGet();
     }
 
     @Override

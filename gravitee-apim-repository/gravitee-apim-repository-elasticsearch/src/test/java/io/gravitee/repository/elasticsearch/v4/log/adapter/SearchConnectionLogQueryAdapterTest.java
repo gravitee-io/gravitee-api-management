@@ -19,6 +19,7 @@ import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 
 import io.gravitee.repository.elasticsearch.v4.log.adapter.connection.SearchConnectionLogQueryAdapter;
 import io.gravitee.repository.log.v4.model.connection.ConnectionLogQuery;
+import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -67,6 +68,49 @@ public class SearchConnectionLogQueryAdapterTest {
                           "sort": {
                             "@timestamp": { "order": "desc" }
                           }
+                        }
+                        """
+            );
+    }
+
+    @Test
+    void should_build_query_asking_filtering_by_application_ids_and_api() {
+        var result = SearchConnectionLogQueryAdapter.adapt(
+            ConnectionLogQuery
+                .builder()
+                .page(1)
+                .size(10)
+                .filter(ConnectionLogQuery.Filter.builder().apiId("1").applicationIds(Set.of("2", "3")).build())
+                .build()
+        );
+
+        assertThatJson(result)
+            .isEqualTo(
+                """
+                        {
+                            "from": 0,
+                            "size": 10,
+                            "query": {
+                                "bool": {
+                                    "must": [
+                                        {
+                                            "term": {
+                                                "api-id": "1"
+                                            }
+                                        },
+                                        {
+                                            "terms": {
+                                                "application-id": ["2", "3"]
+                                            }
+                                        }
+                                    ]
+                                }
+                            },
+                            "sort": {
+                                "@timestamp": {
+                                    "order": "desc"
+                                }
+                            }
                         }
                         """
             );
