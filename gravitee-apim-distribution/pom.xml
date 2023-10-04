@@ -32,17 +32,39 @@
 
     <name>Gravitee.io APIM - Distribution</name>
 
+    <!-- INSTRUCTIONS -->
     <!--
-        This pom.xml is used to prepare the full distribution of Management API & Gateway.
-        It defines all dependencies that have to be bundled by default in each component.
-        To add a new plugin in the bundle:
-         1. add the version in the <properties> section.
-            please respect alphabetic order and the separation between Gateway only, Management only and both
-         2. add the plugin in the <dependencies> section with <type>zip</type> and <scope>runtime</scope>.
+        TO CONFIGURE THE DISTRIBUTIONS
+        This pom.xml is used to prepare the distribution of Management API & Gateway. It defines all dependencies that have to be bundled by default those components.
 
-        To add plugins only for the dev environment, follow the same steps in the distribution-dev profile defined at the end of this file
+        Keep in my mind that this pom.xml is used by both Management API & Gateway. So every dependency defined here will be bundled in both components by default.
+        To exclude a dependency from one of the component, you have to add an exclusion rule in the right assembly.xml:
+         - gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/src/main/assembly/plugin-assembly-distribution.xml
+         - gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/src/main/assembly/plugin-assembly-distribution.xml
+
+        To add a new dependency in the bundle:
+         1. Add the version in the <properties> section of the parent pom.xml
+         2. Determine the profile to use:
+           - if the dependency is opensource and has to be shipped in the default bundle, add it in the <dependencies> section of this pom.xml
+           - otherwise, add it in the <dependencies> section of the `bundle-dev` profile
+
+         The plugin must be added with <type>zip</type> and <scope>runtime</scope>.
+    -->
+    <!--
+        TO MAKE A DISTRIBUTION
+        There are 2 "flavors" for the distribution:
+
+        - The "Community bundle" which is full OSS.
+          It can be built with `mvn clean install`.
+          Every single user is able to make this distribution, as it requires only OSS plugins.
+
+        - The "Dev bundle" which is based on the "Community bundle" and contains almost all available OSS & EE plugins. This distribution is used internally for our dev & test environments.
+          It can be built with `mvn clean install -Dbundle=dev`.
+          Only Gravitee members are able to make this distribution, as it requires access to an internal repository.
     -->
 
+
+    <!-- Default dependencies, to allow a full OSS distribution with opensource plugins only -->
     <dependencies>
         <!-- Connectors -->
         <dependency>
@@ -177,6 +199,7 @@
             <type>zip</type>
             <scope>runtime</scope>
         </dependency>
+
         <!-- Notifiers -->
         <dependency>
             <groupId>io.gravitee.notifier</groupId>
@@ -199,6 +222,7 @@
             <type>zip</type>
             <scope>runtime</scope>
         </dependency>
+
         <!-- Policies -->
         <dependency>
             <groupId>io.gravitee.policy</groupId>
@@ -572,8 +596,8 @@
             <groupId>io.gravitee.apim.repository</groupId>
             <artifactId>gravitee-apim-repository-elasticsearch</artifactId>
             <version>${project.version}</version>
-            <type>zip</type>
             <scope>runtime</scope>
+            <type>zip</type>
         </dependency>
 
         <!-- Resources -->
@@ -657,12 +681,13 @@
         </pluginManagement>
     </build>
     <profiles>
+        <!-- Developer profile, to add all available plugins not already added in default bundle. Useful to deploy on our dev & test environments-->
         <profile>
-            <id>distribution-dev</id>
+            <id>bundle-dev</id>
             <activation>
                 <property>
-                    <name>distribution-dev</name>
-                    <value>true</value>
+                    <name>bundle</name>
+                    <value>dev</value>
                 </property>
             </activation>
             <dependencies>
@@ -697,6 +722,7 @@
                     <type>zip</type>
                     <scope>runtime</scope>
                 </dependency>
+
                 <!-- Policies -->
                 <dependency>
                     <groupId>com.graviteesource.policy</groupId>
