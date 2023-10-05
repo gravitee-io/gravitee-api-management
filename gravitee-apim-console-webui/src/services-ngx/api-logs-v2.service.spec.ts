@@ -42,18 +42,25 @@ describe('ApiLogsV2Service', () => {
   });
 
   describe('searchConnectionLogs', () => {
-    it('should call the API', (done) => {
+    it.each<any | jest.DoneCallback>([
+      { queryParams: {}, queryURL: '?page=1&perPage=10' },
+      { queryParams: { page: 2, perPage: 12 }, queryURL: '?page=2&perPage=12' },
+      { queryParams: { page: 2, perPage: 12, from: 222 }, queryURL: '?page=2&perPage=12&from=222' },
+      { queryParams: { page: 2, perPage: 12, to: 333 }, queryURL: '?page=2&perPage=12&to=333' },
+      { queryParams: { page: 2, perPage: 12, from: 222, to: 333 }, queryURL: '?page=2&perPage=12&from=222&to=333' },
+      { queryParams: { from: 222, to: 333 }, queryURL: '?page=1&perPage=10&from=222&to=333' },
+    ])('call the service with: $queryParams should call API with: $queryURL', ({ queryParams, queryURL }: any, done: jest.DoneCallback) => {
       const fakeResponse: ApiLogsResponse = {
         data: [fakeConnectionLog({ apiId: API_ID })],
       };
 
-      apiPlanV2Service.searchConnectionLogs(API_ID).subscribe((apiPlansResponse) => {
+      apiPlanV2Service.searchConnectionLogs(API_ID, queryParams).subscribe((apiPlansResponse) => {
         expect(apiPlansResponse.data).toEqual(fakeResponse.data);
         done();
       });
 
       const req = httpTestingController.expectOne({
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/logs?page=1&perPage=10`,
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/logs${queryURL}`,
         method: 'GET',
       });
 

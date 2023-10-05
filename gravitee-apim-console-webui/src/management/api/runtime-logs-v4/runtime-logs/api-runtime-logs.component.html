@@ -15,13 +15,17 @@
     limitations under the License.
 
 -->
-<ng-container *ngIf="apiLogs$ | async as response">
-  <api-runtime-logs-list
-    [pagination]="response.pagination"
-    [logEnabled]="apiLogsEnabled$ | async"
-    [isMessageApi]="isMessageApi$ | async"
-    [logs]="response.data"
-    (navigateToSettings)="openLogsSettings()"
-    (paginationUpdated)="paginationUpdated($event)"
-  ></api-runtime-logs-list>
+<ng-container>
+  <div class="container">
+    <api-runtime-logs-quick-filters (quickFilterSelection)="applyFilter($event)"></api-runtime-logs-quick-filters>
+    <api-runtime-logs-list
+      *ngIf="apiLogsSubject$ | async as response"
+      [pagination]="response.pagination"
+      [logEnabled]="apiLogsEnabled$ | async"
+      [isMessageApi]="isMessageApi$ | async"
+      [logs]="response.data"
+      (navigateToSettings)="openLogsSettings()"
+      (paginationUpdated)="paginationUpdated($event)"
+    ></api-runtime-logs-list>
+  </div>
 </ng-container>

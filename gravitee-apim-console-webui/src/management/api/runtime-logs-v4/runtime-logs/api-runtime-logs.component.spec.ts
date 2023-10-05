@@ -19,6 +19,7 @@ import { HttpClientTestingModule, HttpTestingController } from '@angular/common/
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { UIRouterModule } from '@uirouter/angular';
+import * as moment from 'moment';
 
 import { ApiRuntimeLogsModule } from './api-runtime-logs.module';
 import { ApiRuntimeLogsComponent } from './api-runtime-logs.component';
@@ -170,6 +171,105 @@ describe('ApiRuntimeLogsComponent', () => {
     });
   });
 
+  describe('GIVEN there are logs with filters', () => {
+    beforeEach(async () => {
+      await initComponent();
+    });
+
+    describe('when we arrive at default state', () => {
+      const total = 1;
+      beforeEach(() => {
+        expectApiWithLogs(total);
+        fixture.detectChanges();
+        expectApiWithLogEnabled();
+      });
+
+      it('should display quick filters in default state', async () => {
+        expect(await componentHarness.getRows()).toHaveLength(total);
+        const periodSelectInput = await componentHarness.selectPeriodQuickFilter();
+        expect(await periodSelectInput.isDisabled()).toEqual(false);
+        expect(await periodSelectInput.getValueText()).toEqual('None');
+      });
+    });
+
+    describe('when there is more than one page and we apply a period filter', () => {
+      const total = 50;
+      const pageSize = 10;
+      const fakeNow = moment('2023-10-05T00:00:00.000Z');
+
+      beforeEach(() => {
+        expectApiWithLogs(total, pageSize);
+        fixture.detectChanges();
+        expectApiWithLogEnabled();
+
+        // moment() is relying on Date.now, so fix it to be able to assert on from and to filters
+        jest.spyOn(Date, 'now').mockReturnValue(new Date('2023-10-05T00:00:00.000Z').getTime());
+      });
+
+      it('should display the 1st page with default filter', async () => {
+        expect(await componentHarness.getRows()).toHaveLength(pageSize);
+
+        const paginator = await componentHarness.getPaginator();
+        expect(await paginator.getPageSize()).toBe(pageSize);
+        expect(await paginator.getRangeLabel()).toBe(`1 – ${pageSize} of ${total}`);
+
+        const periodSelectInput = await componentHarness.selectPeriodQuickFilter();
+        expect(await periodSelectInput.isDisabled()).toEqual(false);
+        expect(await periodSelectInput.getValueText()).toEqual('None');
+      });
+
+      it('should navigate filter on last 5 minutes and remove it', async () => {
+        const periodSelectInput = await componentHarness.selectPeriodQuickFilter();
+        expect(await periodSelectInput.isDisabled()).toEqual(false);
+        expect(await periodSelectInput.getValueText()).toEqual('None');
+        await periodSelectInput.clickOptions({ text: 'Last 5 Minutes' });
+        expect(await periodSelectInput.getValueText()).toEqual('Last 5 Minutes');
+
+        const expectedTo = fakeNow.valueOf();
+        const expectedFrom = expectedTo - 5 * 60 * 1000;
+
+        expectApiWithLogs(total, pageSize, 1, expectedFrom, expectedTo);
+
+        // First time, add filters to URL
+        expect(fakeUiRouter.go).toHaveBeenNthCalledWith(
+          1,
+          '.',
+          {
+            page: 1,
+            perPage: 10,
+            from: expectedFrom,
+            to: expectedTo,
+          },
+          { notify: false },
+        );
+
+        const periodChip = await componentHarness.getPeriodChip();
+        const periodChipRemoveButton = await periodChip.getRemoveButton();
+        await periodChipRemoveButton.click();
+
+        expectApiWithLogs(total, pageSize, 1);
+
+        // Second time, we removed the filter from URL
+        expect(fakeUiRouter.go).toHaveBeenNthCalledWith(
+          2,
+          '.',
+          {
+            page: 1,
+            perPage: 10,
+            from: null,
+            to: null,
+          },
+          { notify: false },
+        );
+
+        expect(await periodSelectInput.isDisabled()).toEqual(false);
+        expect(await periodSelectInput.getValueText()).toEqual('None');
+        // We do not expect any chip since there is no filter
+        expect(await componentHarness.getQuickFiltersChips()).toBeNull();
+      });
+    });
+  });
+
   describe('GIVEN there are logs but logs are disabled', () => {
     beforeEach(async () => {
       await initComponent();
@@ -241,7 +341,7 @@ describe('ApiRuntimeLogsComponent', () => {
       .flush(fakeEmptyApiLogsResponse());
   }
 
-  function expectApiWithLogs(total: number, pageSize = 10, page = 1) {
+  function expectApiWithLogs(total: number, pageSize = 10, page = 1, from: number = null, to: number = null) {
     const itemsInPage = total < pageSize ? total : pageSize;
 
     const data: ConnectionLog[] = [];
@@ -249,9 +349,17 @@ describe('ApiRuntimeLogsComponent', () => {
       data.push(fakeConnectionLog());
     }
 
+    let expectedURL = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/logs?page=${page}&perPage=${pageSize}`;
+    if (from) {
+      expectedURL = expectedURL.concat(`&from=${from}`);
+    }
+    if (to) {
+      expectedURL = expectedURL.concat(`&to=${to}`);
+    }
+
     httpTestingController
       .expectOne({
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/logs?page=${page}&perPage=${pageSize}`,
+        url: expectedURL,
         method: 'GET',
       })
       .flush(

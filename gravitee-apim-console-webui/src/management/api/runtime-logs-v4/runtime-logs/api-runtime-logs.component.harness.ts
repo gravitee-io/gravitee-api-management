@@ -15,12 +15,13 @@
  */
 import { ComponentHarness } from '@angular/cdk/testing';
 
-import { ApiRuntimeLogsListHarness } from './components';
+import { ApiRuntimeLogsListHarness, ApiRuntimeLogsQuickFiltersHarness } from './components';
 
 export class ApiRuntimeLogsHarness extends ComponentHarness {
   static hostSelector = 'api-runtime-logs';
 
   public listHarness = this.locatorFor(ApiRuntimeLogsListHarness);
+  public quickFiltersHarness = this.locatorFor(ApiRuntimeLogsQuickFiltersHarness);
 
   async isEmptyPanelDisplayed(): Promise<boolean> {
     return this.listHarness().then((list) => list.isEmptyPanelDisplayed());
@@ -40,5 +41,17 @@ export class ApiRuntimeLogsHarness extends ComponentHarness {
 
   async getPaginator() {
     return this.listHarness().then((list) => list.paginator());
+  }
+
+  async getQuickFiltersChips() {
+    return this.quickFiltersHarness().then((quickFilters) => quickFilters.getChips());
+  }
+
+  async selectPeriodQuickFilter() {
+    return this.quickFiltersHarness().then((quickFilters) => quickFilters.getPeriodSelectInput());
+  }
+
+  async getPeriodChip() {
+    return this.quickFiltersHarness().then((quickFilters) => quickFilters.getPeriodChip());
   }
 }

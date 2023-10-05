@@ -1451,7 +1451,7 @@ export const states: Ng2StateDeclaration[] = [
   },
   {
     name: 'management.apis.runtimeLogs',
-    url: '/runtime-logs?page&perPage',
+    url: '/runtime-logs?page&perPage&from&to',
     data: {
       apiPermissions: {
         only: ['api-log-r'],
@@ -1470,6 +1470,14 @@ export const states: Ng2StateDeclaration[] = [
       perPage: {
         type: 'int',
         value: 10,
+        dynamic: true,
+      },
+      from: {
+        type: 'int',
+        dynamic: true,
+      },
+      to: {
+        type: 'int',
         dynamic: true,
       },
     },

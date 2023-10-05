@@ -25,11 +25,17 @@ import { ApiLogsResponse, MessageLog, PagedResult } from '../entities/management
 })
 export class ApiLogsV2Service {
   constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
-  searchConnectionLogs(apiId: string, page = 1, perPage = 10): Observable<ApiLogsResponse> {
+
+  searchConnectionLogs(
+    apiId: string,
+    queryParam?: { page?: number; perPage?: number; from?: number; to?: number },
+  ): Observable<ApiLogsResponse> {
     return this.http.get<ApiLogsResponse>(`${this.constants.env.v2BaseURL}/apis/${apiId}/logs`, {
       params: {
-        page,
-        perPage,
+        page: queryParam?.page ?? 1,
+        perPage: queryParam?.perPage ?? 10,
+        ...(!!queryParam?.from && { from: queryParam.from }),
+        ...(!!queryParam?.to && { to: queryParam.to }),
       },
     });
   }
