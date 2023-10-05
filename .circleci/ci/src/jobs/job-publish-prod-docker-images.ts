@@ -101,12 +101,16 @@ ${this.dockerBuildCommand(environment, config.dockerImages.portal, graviteeioVer
     let tag = stub + graviteeioVersion.full;
 
     if (isBlank(graviteeioVersion.qualifier.full)) {
-      // Only major and minor for one tag if no qualifier
+      // If no qualifier, adding full-ee + Major.minor + Major.minor-ee
+      tag += stub + graviteeioVersion.full + '-ee';
       tag += stub + graviteeioVersion.version.major + '.' + graviteeioVersion.version.minor;
+      tag += stub + graviteeioVersion.version.major + '.' + graviteeioVersion.version.minor + '-ee';
 
       if (environment.dockerTagAsLatest) {
-        // Add two tags: major and 'latest'
-        tag += stub + graviteeioVersion.version.major + stub + 'latest';
+        // Add three tags: major, major-ee and 'latest'
+        tag += stub + graviteeioVersion.version.major;
+        tag += stub + graviteeioVersion.version.major + '-ee';
+        tag += stub + 'latest';
       }
     } else {
       // Include qualifier name after full version
