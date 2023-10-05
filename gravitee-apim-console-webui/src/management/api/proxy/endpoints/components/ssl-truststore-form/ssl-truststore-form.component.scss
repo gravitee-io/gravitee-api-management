@@ -7,6 +7,16 @@
 
   .field {
     flex: 1 1 auto;
+
+    &.type {
+      padding-bottom: 0;
+    }
+  }
+
+  &__typeSubForm {
+    padding: 0 16px;
+    display: flex;
+    flex-direction: column;
   }
 
   .pathOrContent {
@@ -14,5 +24,9 @@
     flex-direction: row;
     flex: 1 1 auto;
     gap: 16px;
+
+    &__or {
+      padding-top: 16px;
+    }
   }
 }

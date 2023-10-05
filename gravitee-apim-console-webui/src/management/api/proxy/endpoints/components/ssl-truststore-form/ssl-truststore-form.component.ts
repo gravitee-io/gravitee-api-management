@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Component, Input, OnDestroy, OnInit, forwardRef } from '@angular/core';
+import { Component, DoCheck, Input, OnDestroy, OnInit, forwardRef } from '@angular/core';
 import {
   AbstractControl,
   ControlContainer,
@@ -30,7 +30,7 @@ import {
 } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { isEmpty } from 'lodash';
-import { filter, take, map, takeUntil } from 'rxjs/operators';
+import { filter, map, takeUntil } from 'rxjs/operators';
 
 import { JKSTrustStore, PEMTrustStore, PKCS12TrustStore, TrustStore } from '../../../../../../entities/management-api-v2';
 
@@ -82,12 +82,14 @@ export const TRUSTSTORE_TYPE_LABELS: { label: string; value: TrustStore['type'] 
     },
   ],
 })
-export class SslTrustStoreFormComponent implements OnInit, OnDestroy, ControlValueAccessor, Validator {
+export class SslTrustStoreFormComponent implements OnInit, DoCheck, OnDestroy, ControlValueAccessor, Validator {
   private unsubscribe$ = new Subject<boolean>();
 
   private _onChange: (value: TrustStore) => void = () => ({});
 
   private _onTouched: () => void = () => ({});
+
+  private parentIsTouched = false;
 
   @Input() formControlName!: string;
   @Input() formGroupName!: string;
@@ -144,8 +146,9 @@ export class SslTrustStoreFormComponent implements OnInit, OnDestroy, ControlVal
         }
 
         // Update validators
-        this.internalFormGroup.get('jksPassword').updateValueAndValidity();
-        this.internalFormGroup.get('pkcs12Password').updateValueAndValidity();
+        Object.keys(this.internalFormGroup.controls).forEach((controlName) => {
+          this.internalFormGroup.get(controlName)?.updateValueAndValidity({ emitEvent: false });
+        });
         this.internalFormGroup.updateValueAndValidity();
       });
 
@@ -162,20 +165,16 @@ export class SslTrustStoreFormComponent implements OnInit, OnDestroy, ControlVal
       .subscribe(() => {
         this._onTouched();
       });
+  }
 
-    // If parent form control is touched, mark all internal fields as touched
+  ngDoCheck() {
     const parentFormControl = this.controlContainer?.control?.get(this.formControlName);
     if (parentFormControl) {
-      parentFormControl.statusChanges
-        .pipe(
-          map(() => parentFormControl?.touched),
-          filter((touched) => touched === true && this.isDisabled === false),
-          take(1),
-          takeUntil(this.unsubscribe$),
-        )
-        .subscribe(() => {
-          this.internalFormGroup.markAllAsTouched();
-        });
+      // If parent form control is touched, mark all internal fields as touched
+      if (parentFormControl.touched && !this.parentIsTouched) {
+        this.internalFormGroup.markAllAsTouched();
+        // this.internalFormGroup.updateValueAndValidity({ emitEvent: false });
+      }
     }
   }
 
@@ -194,7 +193,7 @@ export class SslTrustStoreFormComponent implements OnInit, OnDestroy, ControlVal
 
   setDisabledState(isDisabled: boolean): void {
     this.isDisabled = isDisabled;
-    isDisabled ? this.internalFormGroup.disable() : this.internalFormGroup.enable();
+    isDisabled ? this.internalFormGroup.disable({ emitEvent: false }) : this.internalFormGroup.enable({ emitEvent: false });
   }
 
   validate(_: AbstractControl): ValidationErrors | null {

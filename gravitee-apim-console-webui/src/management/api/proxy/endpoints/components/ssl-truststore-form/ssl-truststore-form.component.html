@@ -17,14 +17,14 @@
 -->
 <h3>Trust store</h3>
 <div class="form" [formGroup]="internalFormGroup">
-  <mat-form-field class="field">
+  <mat-form-field class="field type">
     <mat-label>Type</mat-label>
     <mat-select formControlName="type">
       <mat-option *ngFor="let type of types" [value]="type.value">{{ type.label }}</mat-option>
     </mat-select>
   </mat-form-field>
 
-  <ng-container [ngSwitch]="internalFormGroup.get('type').value">
+  <div class="form__typeSubForm" [ngSwitch]="internalFormGroup.get('type').value">
     <ng-container *ngSwitchCase="'JKS'">
       <mat-form-field class="field">
         <mat-label>Password</mat-label>
@@ -40,6 +40,8 @@
           <mat-hint>Path to the trust store file</mat-hint>
           <mat-error *ngIf="internalFormGroup.get('jksPath').hasError('pathOrContentRequired')"> Path or content is required </mat-error>
         </mat-form-field>
+
+        <span class="pathOrContent__or">or</span>
 
         <mat-form-field class="field">
           <mat-label>Content</mat-label>
@@ -66,6 +68,8 @@
           <mat-error *ngIf="internalFormGroup.get('pkcs12Path').hasError('pathOrContentRequired')"> Path or content is required </mat-error>
         </mat-form-field>
 
+        <span class="pathOrContent__or">or</span>
+
         <mat-form-field class="field">
           <mat-label>Content</mat-label>
           <textarea matInput formControlName="pkcs12Content" rows="1" name="pkcs12Content"></textarea>
@@ -86,6 +90,8 @@
           <mat-error *ngIf="internalFormGroup.get('pemPath').hasError('pathOrContentRequired')"> Path or content is required </mat-error>
         </mat-form-field>
 
+        <span class="pathOrContent__or">or</span>
+
         <mat-form-field class="field">
           <mat-label>Content</mat-label>
           <textarea matInput formControlName="pemContent" rows="1" name="pemContent"></textarea>
@@ -94,5 +100,5 @@
         </mat-form-field>
       </div>
     </ng-container>
-  </ng-container>
+  </div>
 </div>
