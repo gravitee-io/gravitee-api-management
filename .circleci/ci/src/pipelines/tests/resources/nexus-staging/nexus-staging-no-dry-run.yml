@@ -85,7 +85,7 @@ jobs:
             - .gravitee.settings.xml
   job-nexus-staging:
     docker:
-      - image: cimg/openjdk:17.0.8
+      - image: cimg/openjdk:11.0
     resource_class: xlarge
     steps:
       - checkout
