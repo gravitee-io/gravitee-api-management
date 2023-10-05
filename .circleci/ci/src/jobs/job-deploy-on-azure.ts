@@ -61,8 +61,7 @@ kubectl version --client=true`,
         command: `az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
 az aks get-credentials --admin --resource-group Devs-Preprod-Hosted --name gravitee-devs-preprod-aks-cluster
 
-kubectl rollout restart deployment -n ${k8sNamespace}
-kubectl rollout restart deployment -n ${k8sNamespace}-ce`,
+kubectl rollout restart deployment -n ${k8sNamespace}`,
       }),
       new reusable.ReusedCommand(notifyOnFailureCmd),
     ];

@@ -871,7 +871,6 @@ jobs:
             az aks get-credentials --admin --resource-group Devs-Preprod-Hosted --name gravitee-devs-preprod-aks-cluster
 
             kubectl rollout restart deployment -n apim-apim-master
-            kubectl rollout restart deployment -n apim-apim-master-ce
       - cmd-notify-on-failure
 workflows:
   pull_requests:
