@@ -722,6 +722,15 @@
                     <scope>runtime</scope>
                 </dependency>
 
+                <!-- Reporters -->
+                <dependency>
+                    <groupId>com.graviteesource.reporter</groupId>
+                    <artifactId>gravitee-reporter-tcp</artifactId>
+                    <version>${gravitee-reporter-tcp.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                </dependency>
+
                 <!-- Policies -->
                 <dependency>
                     <groupId>com.graviteesource.policy</groupId>
