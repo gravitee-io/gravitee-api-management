@@ -71,7 +71,7 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
         final UserDetails details = (UserDetails) event.getAuthentication().getPrincipal();
         try {
             UserEntity registeredUser = userService.findBySource(
-                GraviteeContext.getExecutionContext(),
+                GraviteeContext.getCurrentOrganization(),
                 details.getSource(),
                 details.getSourceId(),
                 false

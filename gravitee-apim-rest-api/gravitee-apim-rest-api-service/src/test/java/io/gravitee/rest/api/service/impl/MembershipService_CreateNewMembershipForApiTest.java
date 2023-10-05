@@ -245,7 +245,7 @@ public class MembershipService_CreateNewMembershipForApiTest {
         userEntity.setId("external-user-id");
         userEntity.setSource("source");
         userEntity.setSourceId(externalReference);
-        when(userService.findBySource(any(ExecutionContext.class), anyString(), anyString(), eq(false))).thenReturn(userEntity);
+        when(userService.findBySource(anyString(), anyString(), anyString(), eq(false))).thenReturn(userEntity);
 
         mockExistingUser("external-user-id");
     }

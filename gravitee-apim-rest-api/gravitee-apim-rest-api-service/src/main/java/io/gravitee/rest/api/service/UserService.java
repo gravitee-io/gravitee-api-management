@@ -44,7 +44,7 @@ public interface UserService {
 
     UserEntity findByIdWithRoles(ExecutionContext executionContext, String id);
 
-    UserEntity findBySource(ExecutionContext executionContext, String source, String sourceId, boolean loadRoles);
+    UserEntity findBySource(String organizationId, String source, String sourceId, boolean loadRoles);
 
     Set<UserEntity> findByIds(ExecutionContext executionContext, Collection<String> ids);
 

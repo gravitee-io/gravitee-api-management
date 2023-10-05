@@ -30,6 +30,7 @@ import io.gravitee.rest.api.model.UpdateOrganizationEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.OrganizationService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.reactivex.rxjava3.core.Single;
 import java.util.Map;
@@ -123,6 +124,6 @@ public class HelloCommandProducer implements CommandProducer<HelloCommand, Hello
         UpdateOrganizationEntity updateOrganization = new UpdateOrganizationEntity(defaultOrganization);
         updateOrganization.setCockpitId(defaultOrganizationCockpitId);
 
-        organizationService.updateOrganization(GraviteeContext.getExecutionContext(), updateOrganization);
+        organizationService.updateOrganization(defaultOrganization.getId(), updateOrganization);
     }
 }

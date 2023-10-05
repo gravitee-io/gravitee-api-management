@@ -24,5 +24,10 @@ import io.reactivex.rxjava3.core.Single;
  * @author GraviteeSource Team
  */
 public interface V4ApiServiceCockpit {
-    Single<ApiEntity> createPublishApi(String userId, String apiDefinition) throws JsonProcessingException;
+    Single<ApiEntity> createPublishApi(
+        final String organizationId,
+        final String environmentId,
+        final String userId,
+        final String apiDefinition
+    ) throws JsonProcessingException;
 }

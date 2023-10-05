@@ -18,37 +18,32 @@ package io.gravitee.rest.api.service.cockpit.command.handler;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.withSettings;
 
 import io.gravitee.cockpit.api.command.Command;
 import io.gravitee.cockpit.api.command.CommandStatus;
 import io.gravitee.cockpit.api.command.designer.DeployModelCommand;
 import io.gravitee.cockpit.api.command.designer.DeployModelPayload;
 import io.gravitee.cockpit.api.command.designer.DeployModelReply;
-import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiEntityResult;
-import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.cockpit.model.DeploymentMode;
 import io.gravitee.rest.api.service.cockpit.services.ApiServiceCockpit;
 import io.gravitee.rest.api.service.cockpit.services.CockpitApiPermissionChecker;
-import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.reactivex.rxjava3.observers.TestObserver;
 import java.util.List;
 import java.util.Optional;
 import org.assertj.core.api.Assertions;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.junit.MockitoJUnitRunner;
 
 /**
@@ -60,7 +55,7 @@ public class DeployModelCommandHandlerTest {
 
     public static final String ENVIRONMENT_ID = "environment#id";
     public static final String ORGANIZATION_ID = "organization#id";
-    MockedStatic<GraviteeContext> mockedStaticGraviteeContext;
+    public static final ExecutionContext EXECUTION_CONTEXT = new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID);
 
     @Mock
     private UserService userService;
@@ -68,26 +63,17 @@ public class DeployModelCommandHandlerTest {
     @Mock
     private ApiSearchService apiSearchService;
 
-    @Mock
     private ApiServiceCockpit cockpitApiService;
 
     @Mock
     private CockpitApiPermissionChecker permissionChecker;
 
-    @Mock
-    private EnvironmentService environmentService;
-
     private DeployModelCommandHandler cut;
 
     @Before
     public void setUp() throws Exception {
-        cut = new DeployModelCommandHandler(apiSearchService, cockpitApiService, permissionChecker, userService, environmentService);
-        mockedStaticGraviteeContext = mockStatic(GraviteeContext.class);
-    }
-
-    @After
-    public void tearDown() throws Exception {
-        mockedStaticGraviteeContext.close();
+        cockpitApiService = mock(ApiServiceCockpit.class, withSettings().verboseLogging());
+        cut = new DeployModelCommandHandler(apiSearchService, cockpitApiService, permissionChecker, userService);
     }
 
     @Test
@@ -103,38 +89,26 @@ public class DeployModelCommandHandlerTest {
         payload.setUserId("cockpit_user#id");
         payload.setMode(DeployModelPayload.DeploymentMode.API_DOCUMENTED);
         payload.setLabels(List.of("label1", "label2"));
+        payload.setEnvironmentId(ENVIRONMENT_ID);
+        payload.setOrganizationId(ORGANIZATION_ID);
 
         DeployModelCommand command = new DeployModelCommand(payload);
 
-        UserEntity user = new UserEntity();
-        user.setId("user#id");
-        user.setSourceId(payload.getUserId());
+        UserEntity user = createUserEntity(payload);
         when(userService.findBySource(any(), eq("cockpit"), eq(payload.getUserId()), eq(true))).thenReturn(user);
 
-        EnvironmentEntity environment = new EnvironmentEntity();
-        environment.setId(ENVIRONMENT_ID);
-        environment.setOrganizationId(ORGANIZATION_ID);
-        when(environmentService.findByCockpitId(payload.getEnvironmentId())).thenReturn(environment);
-
-        when(
-            permissionChecker.checkCreatePermission(
-                GraviteeContext.getExecutionContext(),
-                user.getId(),
-                environment.getId(),
-                DeploymentMode.API_DOCUMENTED
-            )
-        )
+        when(permissionChecker.checkCreatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, DeploymentMode.API_DOCUMENTED))
             .thenReturn(Optional.empty());
 
         when(
             cockpitApiService.createApi(
-                any(),
-                eq(payload.getModelId()),
-                eq(user.getId()),
-                eq(payload.getSwaggerDefinition()),
-                eq(environment.getId()),
-                eq(DeploymentMode.API_DOCUMENTED),
-                eq(payload.getLabels())
+                EXECUTION_CONTEXT,
+                payload.getModelId(),
+                user.getId(),
+                payload.getSwaggerDefinition(),
+                payload.getEnvironmentId(),
+                DeploymentMode.API_DOCUMENTED,
+                payload.getLabels()
             )
         )
             .thenAnswer(i -> {
@@ -147,50 +121,29 @@ public class DeployModelCommandHandlerTest {
 
         obs.await();
         obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
-
-        mockedStaticGraviteeContext.verify(() -> GraviteeContext.getExecutionContext(), times(4));
-        GraviteeContext.setCurrentEnvironment(ENVIRONMENT_ID);
     }
 
     @Test
     public void creates_an_API_MOCKED_mode() throws InterruptedException {
-        DeployModelPayload payload = new DeployModelPayload();
-        payload.setModelId("model#1");
-        payload.setSwaggerDefinition("swagger-definition");
-        payload.setUserId("cockpit_user#id");
-        payload.setMode(DeployModelPayload.DeploymentMode.API_MOCKED);
-        payload.setLabels(List.of("label1", "label2"));
+        DeployModelPayload payload = createDeployPayload(DeployModelPayload.DeploymentMode.API_MOCKED);
 
         DeployModelCommand command = new DeployModelCommand(payload);
 
-        UserEntity user = new UserEntity();
-        user.setId("user#id");
-        user.setSourceId(payload.getUserId());
-        when(userService.findBySource(any(), eq("cockpit"), eq(payload.getUserId()), eq(true))).thenReturn(user);
+        UserEntity user = createUserEntity(payload);
+        when(userService.findBySource(ORGANIZATION_ID, "cockpit", payload.getUserId(), true)).thenReturn(user);
 
-        EnvironmentEntity environment = new EnvironmentEntity();
-        environment.setId(ENVIRONMENT_ID);
-        when(environmentService.findByCockpitId(payload.getEnvironmentId())).thenReturn(environment);
-
-        when(
-            permissionChecker.checkCreatePermission(
-                GraviteeContext.getExecutionContext(),
-                user.getId(),
-                environment.getId(),
-                DeploymentMode.API_MOCKED
-            )
-        )
+        when(permissionChecker.checkCreatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, DeploymentMode.API_MOCKED))
             .thenReturn(Optional.empty());
 
         when(
             cockpitApiService.createApi(
-                any(),
-                eq(payload.getModelId()),
-                eq(user.getId()),
-                eq(payload.getSwaggerDefinition()),
-                eq(environment.getId()),
-                eq(DeploymentMode.API_MOCKED),
-                eq(payload.getLabels())
+                EXECUTION_CONTEXT,
+                payload.getModelId(),
+                user.getId(),
+                payload.getSwaggerDefinition(),
+                payload.getEnvironmentId(),
+                DeploymentMode.API_MOCKED,
+                payload.getLabels()
             )
         )
             .thenAnswer(i -> {
@@ -207,43 +160,25 @@ public class DeployModelCommandHandlerTest {
 
     @Test
     public void creates_an_API_PUBLISHED_mode() throws InterruptedException {
-        DeployModelPayload payload = new DeployModelPayload();
-        payload.setModelId("model#1");
-        payload.setSwaggerDefinition("swagger-definition");
-        payload.setUserId("cockpit_user#id");
-        payload.setMode(DeployModelPayload.DeploymentMode.API_PUBLISHED);
-        payload.setLabels(List.of("label1", "label2"));
+        DeployModelPayload payload = createDeployPayload(DeployModelPayload.DeploymentMode.API_PUBLISHED);
 
         DeployModelCommand command = new DeployModelCommand(payload);
 
-        UserEntity user = new UserEntity();
-        user.setId("user#id");
-        user.setSourceId(payload.getUserId());
-        when(userService.findBySource(any(), eq("cockpit"), eq(payload.getUserId()), eq(true))).thenReturn(user);
+        UserEntity user = createUserEntity(payload);
+        when(userService.findBySource(ORGANIZATION_ID, "cockpit", payload.getUserId(), true)).thenReturn(user);
 
-        EnvironmentEntity environment = new EnvironmentEntity();
-        environment.setId(ENVIRONMENT_ID);
-        when(environmentService.findByCockpitId(payload.getEnvironmentId())).thenReturn(environment);
-
-        when(
-            permissionChecker.checkCreatePermission(
-                GraviteeContext.getExecutionContext(),
-                user.getId(),
-                environment.getId(),
-                DeploymentMode.API_PUBLISHED
-            )
-        )
+        when(permissionChecker.checkCreatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, DeploymentMode.API_PUBLISHED))
             .thenReturn(Optional.empty());
 
         when(
             cockpitApiService.createApi(
-                any(),
-                eq(payload.getModelId()),
-                eq(user.getId()),
-                eq(payload.getSwaggerDefinition()),
-                eq(environment.getId()),
-                eq(DeploymentMode.API_PUBLISHED),
-                eq(payload.getLabels())
+                EXECUTION_CONTEXT,
+                payload.getModelId(),
+                user.getId(),
+                payload.getSwaggerDefinition(),
+                payload.getEnvironmentId(),
+                DeploymentMode.API_PUBLISHED,
+                payload.getLabels()
             )
         )
             .thenAnswer(i -> {
@@ -260,48 +195,28 @@ public class DeployModelCommandHandlerTest {
 
     @Test
     public void updates_an_API_DOCUMENTED() throws InterruptedException {
-        DeployModelPayload payload = new DeployModelPayload();
-        payload.setModelId("model#1");
-        payload.setSwaggerDefinition("swagger-definition");
-        payload.setEnvironmentId("env#id");
-        payload.setUserId("cockpit_user#id");
-        payload.setMode(DeployModelPayload.DeploymentMode.API_DOCUMENTED);
-        payload.setLabels(List.of("label1", "label2"));
+        DeployModelPayload payload = createDeployPayload(DeployModelPayload.DeploymentMode.API_DOCUMENTED);
 
         DeployModelCommand command = new DeployModelCommand(payload);
 
         String apiId = "api#id";
         when(apiSearchService.findIdByEnvironmentIdAndCrossId(ENVIRONMENT_ID, payload.getModelId())).thenReturn(Optional.of(apiId));
 
-        UserEntity user = new UserEntity();
-        user.setId("user#id");
-        user.setSourceId(payload.getUserId());
+        UserEntity user = createUserEntity(payload);
         when(userService.findBySource(any(), eq("cockpit"), eq(payload.getUserId()), eq(true))).thenReturn(user);
 
-        EnvironmentEntity environment = new EnvironmentEntity();
-        environment.setId(ENVIRONMENT_ID);
-        when(environmentService.findByCockpitId(payload.getEnvironmentId())).thenReturn(environment);
-
-        when(
-            permissionChecker.checkUpdatePermission(
-                GraviteeContext.getExecutionContext(),
-                user.getId(),
-                environment.getId(),
-                apiId,
-                DeploymentMode.API_DOCUMENTED
-            )
-        )
+        when(permissionChecker.checkUpdatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, apiId, DeploymentMode.API_DOCUMENTED))
             .thenReturn(Optional.empty());
 
         when(
             cockpitApiService.updateApi(
-                any(),
-                eq(apiId),
-                eq(user.getId()),
-                eq(payload.getSwaggerDefinition()),
-                eq(environment.getId()),
-                eq(DeploymentMode.API_DOCUMENTED),
-                eq(payload.getLabels())
+                EXECUTION_CONTEXT,
+                apiId,
+                user.getId(),
+                payload.getSwaggerDefinition(),
+                payload.getEnvironmentId(),
+                DeploymentMode.API_DOCUMENTED,
+                payload.getLabels()
             )
         )
             .thenAnswer(i -> {
@@ -318,48 +233,28 @@ public class DeployModelCommandHandlerTest {
 
     @Test
     public void updates_an_API_MOCKED_mode() throws InterruptedException {
-        DeployModelPayload payload = new DeployModelPayload();
-        payload.setModelId("model#1");
-        payload.setSwaggerDefinition("swagger-definition");
-        payload.setEnvironmentId("env#id");
-        payload.setUserId("cockpit_user#id");
-        payload.setMode(DeployModelPayload.DeploymentMode.API_MOCKED);
-        payload.setLabels(List.of("label1", "label2"));
+        DeployModelPayload payload = createDeployPayload(DeployModelPayload.DeploymentMode.API_MOCKED);
 
         DeployModelCommand command = new DeployModelCommand(payload);
 
         String apiId = "api#id";
         when(apiSearchService.findIdByEnvironmentIdAndCrossId(ENVIRONMENT_ID, payload.getModelId())).thenReturn(Optional.of(apiId));
 
-        UserEntity user = new UserEntity();
-        user.setId("user#id");
-        user.setSourceId(payload.getUserId());
+        UserEntity user = createUserEntity(payload);
         when(userService.findBySource(any(), eq("cockpit"), eq(payload.getUserId()), eq(true))).thenReturn(user);
 
-        EnvironmentEntity environment = new EnvironmentEntity();
-        environment.setId(ENVIRONMENT_ID);
-        when(environmentService.findByCockpitId(payload.getEnvironmentId())).thenReturn(environment);
-
-        when(
-            permissionChecker.checkUpdatePermission(
-                GraviteeContext.getExecutionContext(),
-                user.getId(),
-                environment.getId(),
-                apiId,
-                DeploymentMode.API_MOCKED
-            )
-        )
+        when(permissionChecker.checkUpdatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, apiId, DeploymentMode.API_MOCKED))
             .thenReturn(Optional.empty());
 
         when(
             cockpitApiService.updateApi(
-                any(),
-                eq(apiId),
-                eq(user.getId()),
-                eq(payload.getSwaggerDefinition()),
-                eq(environment.getId()),
-                eq(DeploymentMode.API_MOCKED),
-                eq(payload.getLabels())
+                EXECUTION_CONTEXT,
+                apiId,
+                user.getId(),
+                payload.getSwaggerDefinition(),
+                payload.getEnvironmentId(),
+                DeploymentMode.API_MOCKED,
+                payload.getLabels()
             )
         )
             .thenAnswer(i -> {
@@ -376,48 +271,28 @@ public class DeployModelCommandHandlerTest {
 
     @Test
     public void updates_an_API_PUBLISHED_mode() throws InterruptedException {
-        DeployModelPayload payload = new DeployModelPayload();
-        payload.setModelId("model#1");
-        payload.setSwaggerDefinition("swagger-definition");
-        payload.setEnvironmentId("env#id");
-        payload.setUserId("cockpit_user#id");
-        payload.setMode(DeployModelPayload.DeploymentMode.API_PUBLISHED);
-        payload.setLabels(List.of("label1", "label2"));
+        DeployModelPayload payload = createDeployPayload(DeployModelPayload.DeploymentMode.API_PUBLISHED);
 
         DeployModelCommand command = new DeployModelCommand(payload);
 
         String apiId = "api#id";
         when(apiSearchService.findIdByEnvironmentIdAndCrossId(ENVIRONMENT_ID, payload.getModelId())).thenReturn(Optional.of(apiId));
 
-        UserEntity user = new UserEntity();
-        user.setId("user#id");
-        user.setSourceId(payload.getUserId());
-        when(userService.findBySource(any(), eq("cockpit"), eq(payload.getUserId()), eq(true))).thenReturn(user);
+        UserEntity user = createUserEntity(payload);
+        when(userService.findBySource(ORGANIZATION_ID, "cockpit", payload.getUserId(), true)).thenReturn(user);
 
-        EnvironmentEntity environment = new EnvironmentEntity();
-        environment.setId(ENVIRONMENT_ID);
-        when(environmentService.findByCockpitId(payload.getEnvironmentId())).thenReturn(environment);
-
-        when(
-            permissionChecker.checkUpdatePermission(
-                GraviteeContext.getExecutionContext(),
-                user.getId(),
-                environment.getId(),
-                apiId,
-                DeploymentMode.API_PUBLISHED
-            )
-        )
+        when(permissionChecker.checkUpdatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, apiId, DeploymentMode.API_PUBLISHED))
             .thenReturn(Optional.empty());
 
         when(
             cockpitApiService.updateApi(
-                any(),
-                eq(apiId),
-                eq(user.getId()),
-                eq(payload.getSwaggerDefinition()),
-                eq(environment.getId()),
-                eq(DeploymentMode.API_PUBLISHED),
-                eq(payload.getLabels())
+                EXECUTION_CONTEXT,
+                apiId,
+                user.getId(),
+                payload.getSwaggerDefinition(),
+                payload.getEnvironmentId(),
+                DeploymentMode.API_PUBLISHED,
+                payload.getLabels()
             )
         )
             .thenAnswer(i -> {
@@ -434,43 +309,25 @@ public class DeployModelCommandHandlerTest {
 
     @Test
     public void handle_null_mode() throws InterruptedException {
-        DeployModelPayload payload = new DeployModelPayload();
-        payload.setModelId("model#1");
-        payload.setSwaggerDefinition("swagger-definition");
-        payload.setUserId("cockpit_user#id");
-        payload.setMode(null);
-        payload.setLabels(List.of("label1", "label2"));
+        DeployModelPayload payload = createDeployPayload(null);
 
         DeployModelCommand command = new DeployModelCommand(payload);
 
-        UserEntity user = new UserEntity();
-        user.setId("user#id");
-        user.setSourceId(payload.getUserId());
-        when(userService.findBySource(any(), eq("cockpit"), eq(payload.getUserId()), eq(true))).thenReturn(user);
+        UserEntity user = createUserEntity(payload);
+        when(userService.findBySource(ORGANIZATION_ID, "cockpit", payload.getUserId(), true)).thenReturn(user);
 
-        EnvironmentEntity environment = new EnvironmentEntity();
-        environment.setId(ENVIRONMENT_ID);
-        when(environmentService.findByCockpitId(payload.getEnvironmentId())).thenReturn(environment);
-
-        when(
-            permissionChecker.checkCreatePermission(
-                GraviteeContext.getExecutionContext(),
-                user.getId(),
-                environment.getId(),
-                DeploymentMode.API_DOCUMENTED
-            )
-        )
+        when(permissionChecker.checkCreatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, DeploymentMode.API_DOCUMENTED))
             .thenReturn(Optional.empty());
 
         when(
             cockpitApiService.createApi(
-                any(),
-                eq(payload.getModelId()),
-                eq(user.getId()),
-                eq(payload.getSwaggerDefinition()),
-                eq(environment.getId()),
-                eq(DeploymentMode.API_DOCUMENTED),
-                eq(payload.getLabels())
+                EXECUTION_CONTEXT,
+                payload.getModelId(),
+                user.getId(),
+                payload.getSwaggerDefinition(),
+                payload.getEnvironmentId(),
+                DeploymentMode.API_DOCUMENTED,
+                payload.getLabels()
             )
         )
             .thenAnswer(i -> {
@@ -487,41 +344,23 @@ public class DeployModelCommandHandlerTest {
 
     @Test
     public void handleWithException() throws InterruptedException {
-        DeployModelPayload payload = new DeployModelPayload();
-        payload.setModelId("model#1");
-        payload.setSwaggerDefinition("swagger-definition");
-        payload.setUserId("user#id");
-        payload.setMode(DeployModelPayload.DeploymentMode.API_DOCUMENTED);
-        payload.setLabels(List.of("label1", "label2"));
+        DeployModelPayload payload = createDeployPayload(DeployModelPayload.DeploymentMode.API_DOCUMENTED);
 
         DeployModelCommand command = new DeployModelCommand(payload);
 
-        UserEntity user = new UserEntity();
-        user.setId("user#id");
-        user.setSourceId(payload.getUserId());
-        when(userService.findBySource(any(), eq("cockpit"), eq(payload.getUserId()), eq(true))).thenReturn(user);
+        UserEntity user = createUserEntity(payload);
+        when(userService.findBySource(ORGANIZATION_ID, "cockpit", payload.getUserId(), true)).thenReturn(user);
 
-        EnvironmentEntity environment = new EnvironmentEntity();
-        environment.setId(ENVIRONMENT_ID);
-        when(environmentService.findByCockpitId(payload.getEnvironmentId())).thenReturn(environment);
-
-        when(
-            permissionChecker.checkCreatePermission(
-                GraviteeContext.getExecutionContext(),
-                user.getId(),
-                environment.getId(),
-                DeploymentMode.API_DOCUMENTED
-            )
-        )
+        when(permissionChecker.checkCreatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, DeploymentMode.API_DOCUMENTED))
             .thenReturn(Optional.empty());
 
         when(
             cockpitApiService.createApi(
-                GraviteeContext.getExecutionContext(),
+                EXECUTION_CONTEXT,
                 payload.getModelId(),
-                payload.getUserId(),
+                user.getId(),
                 payload.getSwaggerDefinition(),
-                environment.getId(),
+                payload.getEnvironmentId(),
                 DeploymentMode.API_DOCUMENTED,
                 payload.getLabels()
             )
@@ -537,25 +376,14 @@ public class DeployModelCommandHandlerTest {
 
     @Test
     public void fails_to_create_due_to_permission_issues() throws InterruptedException {
-        DeployModelPayload payload = new DeployModelPayload();
-        payload.setModelId("model#1");
-        payload.setSwaggerDefinition("swagger-definition");
-        payload.setUserId("user#id");
-        payload.setMode(DeployModelPayload.DeploymentMode.API_DOCUMENTED);
-        payload.setLabels(List.of("label1", "label2"));
+        DeployModelPayload payload = createDeployPayload(DeployModelPayload.DeploymentMode.API_DOCUMENTED);
 
         DeployModelCommand command = new DeployModelCommand(payload);
 
-        UserEntity user = new UserEntity();
-        user.setId("user#id");
-        user.setSourceId(payload.getUserId());
-        when(userService.findBySource(any(), eq("cockpit"), eq(payload.getUserId()), eq(true))).thenReturn(user);
+        UserEntity user = createUserEntity(payload);
+        when(userService.findBySource(ORGANIZATION_ID, "cockpit", payload.getUserId(), true)).thenReturn(user);
 
-        EnvironmentEntity environment = new EnvironmentEntity();
-        environment.setId(ENVIRONMENT_ID);
-        when(environmentService.findByCockpitId(payload.getEnvironmentId())).thenReturn(environment);
-
-        when(permissionChecker.checkCreatePermission(any(), eq(user.getId()), eq(environment.getId()), eq(DeploymentMode.API_DOCUMENTED)))
+        when(permissionChecker.checkCreatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, DeploymentMode.API_DOCUMENTED))
             .thenReturn(Optional.of("You are not allowed to create APIs on this environment."));
 
         TestObserver<DeployModelReply> obs = cut.handle(command).test();
@@ -573,37 +401,17 @@ public class DeployModelCommandHandlerTest {
 
     @Test
     public void fails_to_update_due_to_permission_issues() throws InterruptedException {
-        DeployModelPayload payload = new DeployModelPayload();
-        payload.setModelId("model#1");
-        payload.setSwaggerDefinition("swagger-definition");
-        payload.setEnvironmentId("env#id");
-        payload.setUserId("user#id");
-        payload.setMode(DeployModelPayload.DeploymentMode.API_DOCUMENTED);
-        payload.setLabels(List.of("label1", "label2"));
+        DeployModelPayload payload = createDeployPayload(DeployModelPayload.DeploymentMode.API_DOCUMENTED);
 
         DeployModelCommand command = new DeployModelCommand(payload);
 
         String apiId = "api#id";
         when(apiSearchService.findIdByEnvironmentIdAndCrossId(ENVIRONMENT_ID, payload.getModelId())).thenReturn(Optional.of(apiId));
 
-        UserEntity user = new UserEntity();
-        user.setId("user#id");
-        user.setSourceId(payload.getUserId());
-        when(userService.findBySource(any(), eq("cockpit"), eq(payload.getUserId()), eq(true))).thenReturn(user);
+        UserEntity user = createUserEntity(payload);
+        when(userService.findBySource(ORGANIZATION_ID, "cockpit", payload.getUserId(), true)).thenReturn(user);
 
-        EnvironmentEntity environment = new EnvironmentEntity();
-        environment.setId(ENVIRONMENT_ID);
-        when(environmentService.findByCockpitId(payload.getEnvironmentId())).thenReturn(environment);
-
-        when(
-            permissionChecker.checkUpdatePermission(
-                any(),
-                eq(user.getId()),
-                eq(environment.getId()),
-                eq(apiId),
-                eq(DeploymentMode.API_DOCUMENTED)
-            )
-        )
+        when(permissionChecker.checkUpdatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, apiId, DeploymentMode.API_DOCUMENTED))
             .thenReturn(Optional.of("You are not allowed to create APIs on this environment."));
 
         TestObserver<DeployModelReply> obs = cut.handle(command).test();
@@ -621,41 +429,23 @@ public class DeployModelCommandHandlerTest {
 
     @Test
     public void clean_gravitee_context_on_success() throws InterruptedException {
-        DeployModelPayload payload = new DeployModelPayload();
-        payload.setModelId("model#1");
-        payload.setSwaggerDefinition("swagger-definition");
-        payload.setUserId("cockpit_user#id");
-        payload.setMode(DeployModelPayload.DeploymentMode.API_DOCUMENTED);
-        payload.setLabels(List.of("label1", "label2"));
+        DeployModelPayload payload = createDeployPayload(DeployModelPayload.DeploymentMode.API_DOCUMENTED);
 
         DeployModelCommand command = new DeployModelCommand(payload);
 
-        UserEntity user = new UserEntity();
-        user.setId("user#id");
-        user.setSourceId(payload.getUserId());
-        when(userService.findBySource(any(), eq("cockpit"), eq(payload.getUserId()), eq(true))).thenReturn(user);
+        UserEntity user = createUserEntity(payload);
+        when(userService.findBySource(ORGANIZATION_ID, "cockpit", payload.getUserId(), true)).thenReturn(user);
 
-        EnvironmentEntity environment = new EnvironmentEntity();
-        environment.setId(ENVIRONMENT_ID);
-        when(environmentService.findByCockpitId(payload.getEnvironmentId())).thenReturn(environment);
-
-        when(
-            permissionChecker.checkCreatePermission(
-                GraviteeContext.getExecutionContext(),
-                user.getId(),
-                environment.getId(),
-                DeploymentMode.API_DOCUMENTED
-            )
-        )
+        when(permissionChecker.checkCreatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, DeploymentMode.API_DOCUMENTED))
             .thenReturn(Optional.empty());
 
         when(
             cockpitApiService.createApi(
-                GraviteeContext.getExecutionContext(),
+                EXECUTION_CONTEXT,
                 payload.getModelId(),
                 user.getId(),
                 payload.getSwaggerDefinition(),
-                environment.getId(),
+                ENVIRONMENT_ID,
                 DeploymentMode.API_DOCUMENTED,
                 payload.getLabels()
             )
@@ -669,89 +459,47 @@ public class DeployModelCommandHandlerTest {
         TestObserver<DeployModelReply> obs = cut.handle(command).test();
         obs.await();
         obs.assertNoErrors();
-
-        mockedStaticGraviteeContext.verify(() -> GraviteeContext.getExecutionContext(), times(5));
-        GraviteeContext.cleanContext();
     }
 
     @Test
     public void clean_gravitee_context_on_error() throws InterruptedException {
-        DeployModelPayload payload = new DeployModelPayload();
-        payload.setModelId("model#1");
-        payload.setSwaggerDefinition("swagger-definition");
-        payload.setUserId("user#id");
-        payload.setMode(DeployModelPayload.DeploymentMode.API_DOCUMENTED);
-        payload.setLabels(List.of("label1", "label2"));
+        DeployModelPayload payload = createDeployPayload(DeployModelPayload.DeploymentMode.API_DOCUMENTED);
 
         DeployModelCommand command = new DeployModelCommand(payload);
 
-        UserEntity user = new UserEntity();
-        user.setId("user#id");
-        user.setSourceId(payload.getUserId());
-        when(userService.findBySource(any(), eq("cockpit"), eq(payload.getUserId()), eq(true))).thenReturn(user);
+        UserEntity user = createUserEntity(payload);
+        when(userService.findBySource(ORGANIZATION_ID, "cockpit", payload.getUserId(), true)).thenReturn(user);
 
-        EnvironmentEntity environment = new EnvironmentEntity();
-        environment.setId(ENVIRONMENT_ID);
-        when(environmentService.findByCockpitId(payload.getEnvironmentId())).thenReturn(environment);
-
-        when(
-            permissionChecker.checkCreatePermission(
-                GraviteeContext.getExecutionContext(),
-                user.getId(),
-                environment.getId(),
-                DeploymentMode.API_DOCUMENTED
-            )
-        )
+        when(permissionChecker.checkCreatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, DeploymentMode.API_DOCUMENTED))
             .thenReturn(Optional.of("You are not allowed to create APIs on this environment."));
 
         TestObserver<DeployModelReply> obs = cut.handle(command).test();
 
         obs.await();
         obs.assertNoErrors();
-
-        mockedStaticGraviteeContext.verify(() -> GraviteeContext.getExecutionContext(), times(3));
-        GraviteeContext.cleanContext();
     }
 
     @Test
     public void fails_to_create_due_to_context_path_already_used() throws InterruptedException {
-        DeployModelPayload payload = new DeployModelPayload();
-        payload.setModelId("model#1");
-        payload.setSwaggerDefinition("swagger-definition");
-        payload.setUserId("cockpit_user#id");
-        payload.setMode(DeployModelPayload.DeploymentMode.API_DOCUMENTED);
-        payload.setLabels(List.of("label1", "label2"));
+        DeployModelPayload payload = createDeployPayload(DeployModelPayload.DeploymentMode.API_DOCUMENTED);
 
         DeployModelCommand command = new DeployModelCommand(payload);
 
-        UserEntity user = new UserEntity();
-        user.setId("user#id");
-        user.setSourceId(payload.getUserId());
-        when(userService.findBySource(any(), eq("cockpit"), eq(payload.getUserId()), eq(true))).thenReturn(user);
+        UserEntity user = createUserEntity(payload);
+        when(userService.findBySource(ORGANIZATION_ID, "cockpit", payload.getUserId(), true)).thenReturn(user);
 
-        EnvironmentEntity environment = new EnvironmentEntity();
-        environment.setId(ENVIRONMENT_ID);
-        when(environmentService.findByCockpitId(payload.getEnvironmentId())).thenReturn(environment);
-
-        when(
-            permissionChecker.checkCreatePermission(
-                GraviteeContext.getExecutionContext(),
-                user.getId(),
-                environment.getId(),
-                DeploymentMode.API_DOCUMENTED
-            )
-        )
+        when(permissionChecker.checkCreatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, DeploymentMode.API_DOCUMENTED))
             .thenReturn(Optional.empty());
 
         when(
             cockpitApiService.createApi(
-                any(),
-                eq(payload.getModelId()),
-                eq(user.getId()),
-                eq(payload.getSwaggerDefinition()),
-                eq(environment.getId()),
-                eq(DeploymentMode.API_DOCUMENTED),
-                eq(payload.getLabels())
+                EXECUTION_CONTEXT,
+                payload.getModelId(),
+                user.getId(),
+                payload.getSwaggerDefinition(),
+                ENVIRONMENT_ID,
+                DeploymentMode.API_DOCUMENTED,
+                payload.getLabels()
             )
         )
             .thenReturn(ApiEntityResult.failure("context path not available"));
@@ -767,5 +515,25 @@ public class DeployModelCommandHandlerTest {
                 .containsExactly(command.getId(), CommandStatus.FAILED, "context path not available");
             return true;
         });
+    }
+
+    private static DeployModelPayload createDeployPayload(final DeployModelPayload.DeploymentMode deploymentMode) {
+        DeployModelPayload payload = new DeployModelPayload();
+        payload.setModelId("model#1");
+        payload.setSwaggerDefinition("swagger-definition");
+        payload.setUserId("cockpit_user#id");
+        payload.setMode(deploymentMode);
+        payload.setLabels(List.of("label1", "label2"));
+        payload.setEnvironmentId(ENVIRONMENT_ID);
+        payload.setOrganizationId(ORGANIZATION_ID);
+        return payload;
+    }
+
+    private static UserEntity createUserEntity(final DeployModelPayload payload) {
+        UserEntity user = new UserEntity();
+        user.setId("user#id");
+        user.setSourceId(payload.getUserId());
+        user.setOrganizationId(ORGANIZATION_ID);
+        return user;
     }
 }

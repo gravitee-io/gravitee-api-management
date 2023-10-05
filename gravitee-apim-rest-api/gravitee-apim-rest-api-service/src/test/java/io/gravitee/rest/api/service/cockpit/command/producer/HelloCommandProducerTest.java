@@ -168,7 +168,7 @@ public class HelloCommandProducerTest {
 
         verify(organizationService)
             .updateOrganization(
-                argThat(executionContext -> executionContext.getOrganizationId().equals(defaultOrgId)),
+                argThat(organizationId -> organizationId.equals(defaultOrgId)),
                 argThat(org ->
                     org.getCockpitId().equals("org#cockpit-1") &&
                     FlowMode.DEFAULT.equals(org.getFlowMode()) &&

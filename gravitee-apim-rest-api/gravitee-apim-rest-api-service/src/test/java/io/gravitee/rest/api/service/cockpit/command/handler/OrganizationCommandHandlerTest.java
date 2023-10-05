@@ -83,7 +83,7 @@ public class OrganizationCommandHandlerTest {
 
         when(
             organizationService.createOrUpdate(
-                argThat(executionContext -> executionContext.getOrganizationId().equals("orga#1")),
+                argThat(orgaId -> orgaId.equals("orga#1")),
                 argThat(newOrganization ->
                     newOrganization.getCockpitId().equals(organizationPayload.getCockpitId()) &&
                     newOrganization.getHrids().equals(organizationPayload.getHrids()) &&
@@ -115,12 +115,7 @@ public class OrganizationCommandHandlerTest {
             )
         );
 
-        when(
-            organizationService.createOrUpdate(
-                argThat(executionContext -> executionContext.getOrganizationId().equals("orga#1")),
-                any(UpdateOrganizationEntity.class)
-            )
-        )
+        when(organizationService.createOrUpdate(argThat(orgaId -> orgaId.equals("orga#1")), any(UpdateOrganizationEntity.class)))
             .thenThrow(new RuntimeException("fake error"));
 
         TestObserver<OrganizationReply> obs = cut.handle(command).test();

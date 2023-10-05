@@ -58,13 +58,13 @@ public class V4ApiCommandHandler implements CommandHandler<V4ApiCommand, V4ApiRe
     @Override
     public Single<V4ApiReply> handle(V4ApiCommand command) {
         final V4ApiPayload payload = command.getPayload();
-        final UserEntity user = userService.findBySource(GraviteeContext.getExecutionContext(), "cockpit", payload.getUserId(), true);
+        final UserEntity user = userService.findBySource(payload.getOrganizationId(), "cockpit", payload.getUserId(), true);
 
         authenticateAs(user);
 
         try {
             return v4ApiServiceCockpit
-                .createPublishApi(user.getId(), payload.getApiDefinition())
+                .createPublishApi(payload.getOrganizationId(), payload.getEnvironmentId(), user.getId(), payload.getApiDefinition())
                 .flatMap(apiEntity -> {
                     final V4ApiReply reply = new V4ApiReply(command.getId(), CommandStatus.SUCCEEDED);
                     reply.setApiId(apiEntity.getId());

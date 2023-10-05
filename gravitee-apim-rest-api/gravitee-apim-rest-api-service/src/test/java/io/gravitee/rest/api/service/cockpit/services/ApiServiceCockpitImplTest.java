@@ -87,8 +87,10 @@ public class ApiServiceCockpitImplTest {
     private static final List<String> LABELS = List.of("label1", "label2");
     private static final String USER_ID = "user#id";
     private static final String ENVIRONMENT_ID = "environment#id";
+    private static final String ORGANIZATION_ID = "organization#id";
     private static final String PAGE_ID = "page#id";
     private static final String SWAGGER_DEFINITION = "";
+    private static final ExecutionContext EXECUTION_CONTEXT = new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID);
     private final ApiConverter apiConverter = new ApiConverter();
     private final PageConverter pageConverter = new PageConverter();
 
@@ -148,8 +150,6 @@ public class ApiServiceCockpitImplTest {
 
     @Test
     public void should_create_documented_api() {
-        ExecutionContext executionContext = new ExecutionContext(GraviteeContext.getCurrentOrganization(), ENVIRONMENT_ID);
-
         ImportSwaggerDescriptorEntity expectedDescriptor = new ImportSwaggerDescriptorEntity();
         expectedDescriptor.setPayload(SWAGGER_DEFINITION);
         expectedDescriptor.setWithDocumentation(true);
@@ -167,12 +167,12 @@ public class ApiServiceCockpitImplTest {
         api.setId(API_ID);
         api.setLabels(LABELS);
 
-        when(swaggerService.createAPI(eq(executionContext), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2)))
+        when(swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2)))
             .thenReturn(swaggerApi);
-        when(apiService.createWithApiDefinition(eq(executionContext), eq(swaggerApi), eq(USER_ID), any(ObjectNode.class))).thenReturn(api);
+        when(apiService.createWithApiDefinition(eq(EXECUTION_CONTEXT), eq(swaggerApi), eq(USER_ID), any(ObjectNode.class))).thenReturn(api);
 
         service.createApi(
-            executionContext,
+            EXECUTION_CONTEXT,
             API_CROSS_ID,
             USER_ID,
             SWAGGER_DEFINITION,
@@ -181,15 +181,16 @@ public class ApiServiceCockpitImplTest {
             LABELS
         );
 
-        verify(swaggerService).createAPI(eq(executionContext), descriptorCaptor.capture(), eq(DefinitionVersion.V2));
+        verify(swaggerService).createAPI(eq(EXECUTION_CONTEXT), descriptorCaptor.capture(), eq(DefinitionVersion.V2));
         assertThat(descriptorCaptor.getValue()).usingRecursiveComparison().isEqualTo(expectedDescriptor);
 
-        verify(apiService).createWithApiDefinition(eq(executionContext), eq(swaggerApi), eq(USER_ID), apiDefinitionCaptor.capture());
+        verify(apiService).createWithApiDefinition(eq(EXECUTION_CONTEXT), eq(swaggerApi), eq(USER_ID), apiDefinitionCaptor.capture());
         assertThat(apiDefinitionCaptor.getValue().get("crossId")).isEqualTo(new JsonNodeFactory(false).textNode(API_CROSS_ID));
 
-        verify(pageService).createAsideFolder(executionContext, API_ID);
-        verify(pageService).createOrUpdateSwaggerPage(eq(executionContext), eq(API_ID), any(ImportSwaggerDescriptorEntity.class), eq(true));
-        verify(apiMetadataService).create(eq(executionContext), same(swaggerApi.getMetadata()), eq(API_ID));
+        verify(pageService).createAsideFolder(EXECUTION_CONTEXT, API_ID);
+        verify(pageService)
+            .createOrUpdateSwaggerPage(eq(EXECUTION_CONTEXT), eq(API_ID), any(ImportSwaggerDescriptorEntity.class), eq(true));
+        verify(apiMetadataService).create(eq(EXECUTION_CONTEXT), same(swaggerApi.getMetadata()), eq(API_ID));
     }
 
     @Test
@@ -204,41 +205,18 @@ public class ApiServiceCockpitImplTest {
         ApiEntity api = new ApiEntity();
         api.setId(API_ID);
 
-        when(
-            swaggerService.createAPI(
-                eq(GraviteeContext.getExecutionContext()),
-                any(ImportSwaggerDescriptorEntity.class),
-                eq(DefinitionVersion.V2)
-            )
-        )
+        when(swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2)))
             .thenReturn(swaggerApi);
-        when(
-            apiService.createWithApiDefinition(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(swaggerApi),
-                eq(USER_ID),
-                any(ObjectNode.class)
-            )
-        )
-            .thenReturn(api);
+        when(apiService.createWithApiDefinition(eq(EXECUTION_CONTEXT), eq(swaggerApi), eq(USER_ID), any(ObjectNode.class))).thenReturn(api);
 
-        service.createApi(
-            GraviteeContext.getExecutionContext(),
-            API_ID,
-            USER_ID,
-            SWAGGER_DEFINITION,
-            ENVIRONMENT_ID,
-            DeploymentMode.API_DOCUMENTED,
-            LABELS
-        );
+        service.createApi(EXECUTION_CONTEXT, API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_DOCUMENTED, LABELS);
 
         verifyNoInteractions(planService);
-        verify(apiService, never()).start(eq(GraviteeContext.getExecutionContext()), anyString(), anyString());
+        verify(apiService, never()).start(eq(EXECUTION_CONTEXT), anyString(), anyString());
     }
 
     @Test
     public void should_create_a_mocked_api() {
-        ExecutionContext executionContext = new ExecutionContext(GraviteeContext.getCurrentOrganization(), ENVIRONMENT_ID);
         ImportSwaggerDescriptorEntity expectedDescriptor = new ImportSwaggerDescriptorEntity();
         expectedDescriptor.setPayload(SWAGGER_DEFINITION);
         expectedDescriptor.setWithDocumentation(true);
@@ -255,21 +233,22 @@ public class ApiServiceCockpitImplTest {
         ApiEntity api = new ApiEntity();
         api.setId(API_ID);
 
-        when(swaggerService.createAPI(eq(executionContext), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2)))
+        when(swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2)))
             .thenReturn(swaggerApi);
-        when(apiService.createWithApiDefinition(eq(executionContext), eq(swaggerApi), eq(USER_ID), any(ObjectNode.class))).thenReturn(api);
+        when(apiService.createWithApiDefinition(eq(EXECUTION_CONTEXT), eq(swaggerApi), eq(USER_ID), any(ObjectNode.class))).thenReturn(api);
 
-        service.createApi(executionContext, API_CROSS_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_MOCKED, LABELS);
+        service.createApi(EXECUTION_CONTEXT, API_CROSS_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_MOCKED, LABELS);
 
-        verify(swaggerService).createAPI(eq(executionContext), descriptorCaptor.capture(), eq(DefinitionVersion.V2));
+        verify(swaggerService).createAPI(eq(EXECUTION_CONTEXT), descriptorCaptor.capture(), eq(DefinitionVersion.V2));
         assertThat(descriptorCaptor.getValue()).usingRecursiveComparison().isEqualTo(expectedDescriptor);
 
-        verify(apiService).createWithApiDefinition(eq(executionContext), eq(swaggerApi), eq(USER_ID), apiDefinitionCaptor.capture());
+        verify(apiService).createWithApiDefinition(eq(EXECUTION_CONTEXT), eq(swaggerApi), eq(USER_ID), apiDefinitionCaptor.capture());
         assertThat(apiDefinitionCaptor.getValue().get("crossId")).isEqualTo(new JsonNodeFactory(false).textNode(API_CROSS_ID));
 
-        verify(pageService).createAsideFolder(executionContext, API_ID);
-        verify(pageService).createOrUpdateSwaggerPage(eq(executionContext), eq(API_ID), any(ImportSwaggerDescriptorEntity.class), eq(true));
-        verify(apiMetadataService).create(eq(executionContext), same(swaggerApi.getMetadata()), eq(API_ID));
+        verify(pageService).createAsideFolder(EXECUTION_CONTEXT, API_ID);
+        verify(pageService)
+            .createOrUpdateSwaggerPage(eq(EXECUTION_CONTEXT), eq(API_ID), any(ImportSwaggerDescriptorEntity.class), eq(true));
+        verify(apiMetadataService).create(eq(EXECUTION_CONTEXT), same(swaggerApi.getMetadata()), eq(API_ID));
     }
 
     @Test
@@ -284,45 +263,23 @@ public class ApiServiceCockpitImplTest {
         ApiEntity api = new ApiEntity();
         api.setId(API_ID);
 
-        when(
-            swaggerService.createAPI(
-                eq(GraviteeContext.getExecutionContext()),
-                any(ImportSwaggerDescriptorEntity.class),
-                eq(DefinitionVersion.V2)
-            )
-        )
+        when(swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2)))
             .thenReturn(swaggerApi);
-        when(
-            apiService.createWithApiDefinition(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(swaggerApi),
-                eq(USER_ID),
-                any(ObjectNode.class)
-            )
-        )
-            .thenReturn(api);
+        when(apiService.createWithApiDefinition(eq(EXECUTION_CONTEXT), eq(swaggerApi), eq(USER_ID), any(ObjectNode.class))).thenReturn(api);
 
-        service.createApi(
-            GraviteeContext.getExecutionContext(),
-            API_ID,
-            USER_ID,
-            SWAGGER_DEFINITION,
-            ENVIRONMENT_ID,
-            DeploymentMode.API_MOCKED,
-            LABELS
-        );
+        service.createApi(EXECUTION_CONTEXT, API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_MOCKED, LABELS);
 
-        verify(planService).create(eq(GraviteeContext.getExecutionContext()), newPlanCaptor.capture());
+        verify(planService).create(eq(EXECUTION_CONTEXT), newPlanCaptor.capture());
         assertThat(newPlanCaptor.getValue())
             .extracting(NewPlanEntity::getApi, NewPlanEntity::getSecurity, NewPlanEntity::getStatus)
             .containsExactly(API_ID, PlanSecurityType.KEY_LESS, PlanStatus.PUBLISHED);
 
-        verify(apiService).start(GraviteeContext.getExecutionContext(), API_ID, USER_ID);
+        verify(apiService).start(EXECUTION_CONTEXT, API_ID, USER_ID);
     }
 
     @Test
     public void should_create_a_published_api() {
-        ExecutionContext executionContext = new ExecutionContext(GraviteeContext.getCurrentOrganization(), ENVIRONMENT_ID);
+        ExecutionContext EXECUTION_CONTEXT = new ExecutionContext(GraviteeContext.getCurrentOrganization(), ENVIRONMENT_ID);
         ImportSwaggerDescriptorEntity expectedDescriptor = new ImportSwaggerDescriptorEntity();
         expectedDescriptor.setPayload(SWAGGER_DEFINITION);
         expectedDescriptor.setWithDocumentation(true);
@@ -340,15 +297,15 @@ public class ApiServiceCockpitImplTest {
         api.setId(API_ID);
         api.setCrossId(API_CROSS_ID);
 
-        when(swaggerService.createAPI(eq(executionContext), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2)))
+        when(swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2)))
             .thenReturn(swaggerApi);
-        when(apiService.createWithApiDefinition(eq(executionContext), eq(swaggerApi), eq(USER_ID), any(ObjectNode.class))).thenReturn(api);
-        when(apiService.start(executionContext, API_ID, USER_ID)).thenReturn(api);
+        when(apiService.createWithApiDefinition(eq(EXECUTION_CONTEXT), eq(swaggerApi), eq(USER_ID), any(ObjectNode.class))).thenReturn(api);
+        when(apiService.start(EXECUTION_CONTEXT, API_ID, USER_ID)).thenReturn(api);
 
         preparePageServiceMock();
 
         service.createApi(
-            executionContext,
+            EXECUTION_CONTEXT,
             API_CROSS_ID,
             USER_ID,
             SWAGGER_DEFINITION,
@@ -357,15 +314,16 @@ public class ApiServiceCockpitImplTest {
             LABELS
         );
 
-        verify(swaggerService).createAPI(eq(executionContext), descriptorCaptor.capture(), eq(DefinitionVersion.V2));
+        verify(swaggerService).createAPI(eq(EXECUTION_CONTEXT), descriptorCaptor.capture(), eq(DefinitionVersion.V2));
         assertThat(descriptorCaptor.getValue()).usingRecursiveComparison().isEqualTo(expectedDescriptor);
 
-        verify(apiService).createWithApiDefinition(eq(executionContext), eq(swaggerApi), eq(USER_ID), apiDefinitionCaptor.capture());
+        verify(apiService).createWithApiDefinition(eq(EXECUTION_CONTEXT), eq(swaggerApi), eq(USER_ID), apiDefinitionCaptor.capture());
         assertThat(apiDefinitionCaptor.getValue().get("crossId")).isEqualTo(new JsonNodeFactory(false).textNode(API_CROSS_ID));
 
-        verify(pageService).createAsideFolder(executionContext, API_ID);
-        verify(pageService).createOrUpdateSwaggerPage(eq(executionContext), eq(API_ID), any(ImportSwaggerDescriptorEntity.class), eq(true));
-        verify(apiMetadataService).create(eq(executionContext), same(swaggerApi.getMetadata()), eq(API_ID));
+        verify(pageService).createAsideFolder(EXECUTION_CONTEXT, API_ID);
+        verify(pageService)
+            .createOrUpdateSwaggerPage(eq(EXECUTION_CONTEXT), eq(API_ID), any(ImportSwaggerDescriptorEntity.class), eq(true));
+        verify(apiMetadataService).create(eq(EXECUTION_CONTEXT), same(swaggerApi.getMetadata()), eq(API_ID));
     }
 
     @Test
@@ -380,43 +338,21 @@ public class ApiServiceCockpitImplTest {
         ApiEntity api = new ApiEntity();
         api.setId(API_ID);
 
-        when(
-            swaggerService.createAPI(
-                eq(GraviteeContext.getExecutionContext()),
-                any(ImportSwaggerDescriptorEntity.class),
-                eq(DefinitionVersion.V2)
-            )
-        )
+        when(swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2)))
             .thenReturn(swaggerApi);
-        when(
-            apiService.createWithApiDefinition(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(swaggerApi),
-                eq(USER_ID),
-                any(ObjectNode.class)
-            )
-        )
-            .thenReturn(api);
-        when(apiService.start(GraviteeContext.getExecutionContext(), API_ID, USER_ID)).thenReturn(api);
+        when(apiService.createWithApiDefinition(eq(EXECUTION_CONTEXT), eq(swaggerApi), eq(USER_ID), any(ObjectNode.class))).thenReturn(api);
+        when(apiService.start(EXECUTION_CONTEXT, API_ID, USER_ID)).thenReturn(api);
 
         preparePageServiceMock();
 
-        service.createApi(
-            GraviteeContext.getExecutionContext(),
-            API_ID,
-            USER_ID,
-            SWAGGER_DEFINITION,
-            ENVIRONMENT_ID,
-            DeploymentMode.API_PUBLISHED,
-            LABELS
-        );
+        service.createApi(EXECUTION_CONTEXT, API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_PUBLISHED, LABELS);
 
-        verify(planService).create(eq(GraviteeContext.getExecutionContext()), newPlanCaptor.capture());
+        verify(planService).create(eq(EXECUTION_CONTEXT), newPlanCaptor.capture());
         assertThat(newPlanCaptor.getValue())
             .extracting(NewPlanEntity::getApi, NewPlanEntity::getSecurity, NewPlanEntity::getStatus)
             .containsExactly(API_ID, PlanSecurityType.KEY_LESS, PlanStatus.PUBLISHED);
 
-        verify(apiService).start(GraviteeContext.getExecutionContext(), API_ID, USER_ID);
+        verify(apiService).start(EXECUTION_CONTEXT, API_ID, USER_ID);
     }
 
     @Test
@@ -431,38 +367,16 @@ public class ApiServiceCockpitImplTest {
         ApiEntity api = new ApiEntity();
         api.setId(API_ID);
 
-        when(
-            swaggerService.createAPI(
-                eq(GraviteeContext.getExecutionContext()),
-                any(ImportSwaggerDescriptorEntity.class),
-                eq(DefinitionVersion.V2)
-            )
-        )
+        when(swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2)))
             .thenReturn(swaggerApi);
-        when(
-            apiService.createWithApiDefinition(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(swaggerApi),
-                eq(USER_ID),
-                any(ObjectNode.class)
-            )
-        )
-            .thenReturn(api);
-        when(apiService.start(GraviteeContext.getExecutionContext(), API_ID, USER_ID)).thenReturn(api);
+        when(apiService.createWithApiDefinition(eq(EXECUTION_CONTEXT), eq(swaggerApi), eq(USER_ID), any(ObjectNode.class))).thenReturn(api);
+        when(apiService.start(EXECUTION_CONTEXT, API_ID, USER_ID)).thenReturn(api);
 
         preparePageServiceMock();
 
-        service.createApi(
-            GraviteeContext.getExecutionContext(),
-            API_ID,
-            USER_ID,
-            SWAGGER_DEFINITION,
-            ENVIRONMENT_ID,
-            DeploymentMode.API_PUBLISHED,
-            LABELS
-        );
+        service.createApi(EXECUTION_CONTEXT, API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_PUBLISHED, LABELS);
 
-        verify(apiService).update(eq(GraviteeContext.getExecutionContext()), eq(API_ID), updateApiCaptor.capture());
+        verify(apiService).update(eq(EXECUTION_CONTEXT), eq(API_ID), updateApiCaptor.capture());
         assertThat(updateApiCaptor.getValue())
             .extracting(UpdateApiEntity::getLifecycleState, UpdateApiEntity::getVisibility)
             .containsExactly(ApiLifecycleState.PUBLISHED, Visibility.PUBLIC);
@@ -470,7 +384,7 @@ public class ApiServiceCockpitImplTest {
 
     @Test
     public void should_publish_swagger_documentation_of_an_published_api() {
-        ExecutionContext executionContext = new ExecutionContext(GraviteeContext.getCurrentOrganization(), ENVIRONMENT_ID);
+        ExecutionContext EXECUTION_CONTEXT = new ExecutionContext(GraviteeContext.getCurrentOrganization(), ENVIRONMENT_ID);
         SwaggerApiEntity swaggerApi = new SwaggerApiEntity();
         swaggerApi.setMetadata(new ArrayList<>());
         Proxy proxy = new Proxy();
@@ -481,22 +395,22 @@ public class ApiServiceCockpitImplTest {
         ApiEntity api = new ApiEntity();
         api.setId(API_ID);
 
-        when(swaggerService.createAPI(eq(executionContext), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2)))
+        when(swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2)))
             .thenReturn(swaggerApi);
-        when(apiService.createWithApiDefinition(eq(executionContext), eq(swaggerApi), eq(USER_ID), any(ObjectNode.class))).thenReturn(api);
-        when(apiService.start(executionContext, API_ID, USER_ID)).thenReturn(api);
+        when(apiService.createWithApiDefinition(eq(EXECUTION_CONTEXT), eq(swaggerApi), eq(USER_ID), any(ObjectNode.class))).thenReturn(api);
+        when(apiService.start(EXECUTION_CONTEXT, API_ID, USER_ID)).thenReturn(api);
 
         preparePageServiceMock();
 
-        service.createApi(executionContext, API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_PUBLISHED, LABELS);
+        service.createApi(EXECUTION_CONTEXT, API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_PUBLISHED, LABELS);
 
-        verify(pageService).update(eq(executionContext), eq(PAGE_ID), updatePageCaptor.capture());
+        verify(pageService).update(eq(EXECUTION_CONTEXT), eq(PAGE_ID), updatePageCaptor.capture());
         assertThat(updatePageCaptor.getValue()).extracting(UpdatePageEntity::isPublished).isEqualTo(true);
     }
 
     @Test
     public void should_update_documented_api() {
-        ExecutionContext executionContext = new ExecutionContext(GraviteeContext.getCurrentOrganization(), ENVIRONMENT_ID);
+        ExecutionContext EXECUTION_CONTEXT = new ExecutionContext(GraviteeContext.getCurrentOrganization(), ENVIRONMENT_ID);
         ImportSwaggerDescriptorEntity expectedDescriptor = new ImportSwaggerDescriptorEntity();
         expectedDescriptor.setPayload(SWAGGER_DEFINITION);
         expectedDescriptor.setWithDocumentation(true);
@@ -512,17 +426,17 @@ public class ApiServiceCockpitImplTest {
         ApiEntity api = new ApiEntity();
         api.setId(API_ID);
 
-        when(swaggerService.createAPI(eq(executionContext), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2)))
+        when(swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2)))
             .thenReturn(swaggerApi);
 
         ApiEntity updatedApiEntity = new ApiEntity();
         updatedApiEntity.setName("updated api");
         updatedApiEntity.setProxy(proxy);
-        when(apiService.updateFromSwagger(eq(executionContext), eq(API_ID), eq(swaggerApi), any(ImportSwaggerDescriptorEntity.class)))
+        when(apiService.updateFromSwagger(eq(EXECUTION_CONTEXT), eq(API_ID), eq(swaggerApi), any(ImportSwaggerDescriptorEntity.class)))
             .thenReturn(updatedApiEntity);
 
         final var result = service.updateApi(
-            executionContext,
+            EXECUTION_CONTEXT,
             API_ID,
             USER_ID,
             SWAGGER_DEFINITION,
@@ -531,19 +445,19 @@ public class ApiServiceCockpitImplTest {
             LABELS
         );
 
-        verify(swaggerService).createAPI(eq(executionContext), descriptorCaptor.capture(), eq(DefinitionVersion.V2));
+        verify(swaggerService).createAPI(eq(EXECUTION_CONTEXT), descriptorCaptor.capture(), eq(DefinitionVersion.V2));
         assertThat(descriptorCaptor.getValue()).usingRecursiveComparison().isEqualTo(expectedDescriptor);
 
         verify(apiService, times(0))
-            .createWithApiDefinition(eq(executionContext), any(UpdateApiEntity.class), anyString(), any(ObjectNode.class));
+            .createWithApiDefinition(eq(EXECUTION_CONTEXT), any(UpdateApiEntity.class), anyString(), any(ObjectNode.class));
         verify(apiService, times(1))
-            .updateFromSwagger(eq(executionContext), eq(API_ID), eq(swaggerApi), any(ImportSwaggerDescriptorEntity.class));
+            .updateFromSwagger(eq(EXECUTION_CONTEXT), eq(API_ID), eq(swaggerApi), any(ImportSwaggerDescriptorEntity.class));
         assertThat(result.getApi()).isEqualTo(updatedApiEntity);
     }
 
     @Test
     public void should_update_a_mocked_api() {
-        ExecutionContext executionContext = new ExecutionContext(GraviteeContext.getCurrentOrganization(), ENVIRONMENT_ID);
+        ExecutionContext EXECUTION_CONTEXT = new ExecutionContext(GraviteeContext.getCurrentOrganization(), ENVIRONMENT_ID);
         ImportSwaggerDescriptorEntity expectedDescriptor = new ImportSwaggerDescriptorEntity();
         expectedDescriptor.setPayload(SWAGGER_DEFINITION);
         expectedDescriptor.setWithDocumentation(true);
@@ -562,7 +476,7 @@ public class ApiServiceCockpitImplTest {
         api.setId(API_ID);
         api.setProxy(proxy);
 
-        when(swaggerService.createAPI(eq(executionContext), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2)))
+        when(swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2)))
             .thenReturn(swaggerApi);
         when(verifyApiPathsDomainService.checkAndSanitizeApiPaths(any(), eq(API_ID), any()))
             .thenReturn(List.of(Path.builder().path(virtualHost.getPath()).host(virtualHost.getHost()).build()));
@@ -571,13 +485,13 @@ public class ApiServiceCockpitImplTest {
         updatedApiEntity.setName("updated api");
         updatedApiEntity.setProxy(proxy);
 
-        when(apiService.updateFromSwagger(eq(executionContext), eq(API_ID), eq(swaggerApi), any(ImportSwaggerDescriptorEntity.class)))
+        when(apiService.updateFromSwagger(eq(EXECUTION_CONTEXT), eq(API_ID), eq(swaggerApi), any(ImportSwaggerDescriptorEntity.class)))
             .thenReturn(updatedApiEntity);
-        when(apiService.deploy(eq(executionContext), anyString(), anyString(), any(EventType.class), any(ApiDeploymentEntity.class)))
+        when(apiService.deploy(eq(EXECUTION_CONTEXT), anyString(), anyString(), any(EventType.class), any(ApiDeploymentEntity.class)))
             .thenReturn(updatedApiEntity);
 
         final var result = service.updateApi(
-            executionContext,
+            EXECUTION_CONTEXT,
             API_ID,
             USER_ID,
             SWAGGER_DEFINITION,
@@ -587,11 +501,11 @@ public class ApiServiceCockpitImplTest {
         );
         assertThat(result.getApi()).isEqualTo(updatedApiEntity);
 
-        verify(swaggerService).createAPI(eq(executionContext), descriptorCaptor.capture(), eq(DefinitionVersion.V2));
+        verify(swaggerService).createAPI(eq(EXECUTION_CONTEXT), descriptorCaptor.capture(), eq(DefinitionVersion.V2));
         assertThat(descriptorCaptor.getValue()).usingRecursiveComparison().isEqualTo(expectedDescriptor);
 
         verify(apiService, never())
-            .createWithApiDefinition(eq(executionContext), any(UpdateApiEntity.class), anyString(), any(ObjectNode.class));
+            .createWithApiDefinition(eq(EXECUTION_CONTEXT), any(UpdateApiEntity.class), anyString(), any(ObjectNode.class));
     }
 
     @Test
@@ -607,51 +521,23 @@ public class ApiServiceCockpitImplTest {
         api.setProxy(proxy);
         swaggerApi.setProxy(proxy);
 
-        when(
-            swaggerService.createAPI(
-                eq(GraviteeContext.getExecutionContext()),
-                any(ImportSwaggerDescriptorEntity.class),
-                eq(DefinitionVersion.V2)
-            )
-        )
+        when(swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2)))
             .thenReturn(swaggerApi);
 
         ApiEntity updatedApiEntity = new ApiEntity();
         updatedApiEntity.setName("updated api");
-        when(
-            apiService.updateFromSwagger(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(API_ID),
-                eq(swaggerApi),
-                any(ImportSwaggerDescriptorEntity.class)
-            )
-        )
+        when(apiService.updateFromSwagger(eq(EXECUTION_CONTEXT), eq(API_ID), eq(swaggerApi), any(ImportSwaggerDescriptorEntity.class)))
             .thenReturn(updatedApiEntity);
 
-        service.updateApi(
-            GraviteeContext.getExecutionContext(),
-            API_ID,
-            USER_ID,
-            SWAGGER_DEFINITION,
-            ENVIRONMENT_ID,
-            DeploymentMode.API_MOCKED,
-            LABELS
-        );
+        service.updateApi(EXECUTION_CONTEXT, API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_MOCKED, LABELS);
 
-        verify(apiService)
-            .deploy(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(API_ID),
-                eq(USER_ID),
-                eq(EventType.PUBLISH_API),
-                apiDeploymentCaptor.capture()
-            );
+        verify(apiService).deploy(eq(EXECUTION_CONTEXT), eq(API_ID), eq(USER_ID), eq(EventType.PUBLISH_API), apiDeploymentCaptor.capture());
         assertThat(apiDeploymentCaptor.getValue().getDeploymentLabel()).isEqualTo("Model updated");
     }
 
     @Test
     public void should_update_a_published_api() {
-        ExecutionContext executionContext = new ExecutionContext(GraviteeContext.getCurrentOrganization(), ENVIRONMENT_ID);
+        ExecutionContext EXECUTION_CONTEXT = new ExecutionContext(GraviteeContext.getCurrentOrganization(), ENVIRONMENT_ID);
         ImportSwaggerDescriptorEntity expectedDescriptor = new ImportSwaggerDescriptorEntity();
         expectedDescriptor.setPayload(SWAGGER_DEFINITION);
         expectedDescriptor.setWithDocumentation(true);
@@ -670,20 +556,20 @@ public class ApiServiceCockpitImplTest {
         api.setId(API_ID);
         api.setProxy(proxy);
 
-        when(swaggerService.createAPI(eq(executionContext), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2)))
+        when(swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2)))
             .thenReturn(swaggerApi);
 
         ApiEntity updatedApiEntity = new ApiEntity();
         updatedApiEntity.setName("updated api");
         updatedApiEntity.setProxy(proxy);
-        when(apiService.updateFromSwagger(eq(executionContext), eq(API_ID), eq(swaggerApi), any(ImportSwaggerDescriptorEntity.class)))
+        when(apiService.updateFromSwagger(eq(EXECUTION_CONTEXT), eq(API_ID), eq(swaggerApi), any(ImportSwaggerDescriptorEntity.class)))
             .thenReturn(updatedApiEntity);
-        when(apiService.deploy(eq(executionContext), anyString(), anyString(), any(EventType.class), any(ApiDeploymentEntity.class)))
+        when(apiService.deploy(eq(EXECUTION_CONTEXT), anyString(), anyString(), any(EventType.class), any(ApiDeploymentEntity.class)))
             .thenReturn(updatedApiEntity);
-        when(apiService.update(eq(executionContext), eq(API_ID), any(UpdateApiEntity.class))).thenReturn(updatedApiEntity);
+        when(apiService.update(eq(EXECUTION_CONTEXT), eq(API_ID), any(UpdateApiEntity.class))).thenReturn(updatedApiEntity);
 
         final var result = service.updateApi(
-            executionContext,
+            EXECUTION_CONTEXT,
             API_ID,
             USER_ID,
             SWAGGER_DEFINITION,
@@ -693,11 +579,11 @@ public class ApiServiceCockpitImplTest {
         );
         assertThat(result.getApi()).isEqualTo(updatedApiEntity);
 
-        verify(swaggerService).createAPI(eq(executionContext), descriptorCaptor.capture(), eq(DefinitionVersion.V2));
+        verify(swaggerService).createAPI(eq(EXECUTION_CONTEXT), descriptorCaptor.capture(), eq(DefinitionVersion.V2));
         assertThat(descriptorCaptor.getValue()).usingRecursiveComparison().isEqualTo(expectedDescriptor);
 
         verify(apiService, never())
-            .createWithApiDefinition(eq(executionContext), any(UpdateApiEntity.class), anyString(), any(ObjectNode.class));
+            .createWithApiDefinition(eq(EXECUTION_CONTEXT), any(UpdateApiEntity.class), anyString(), any(ObjectNode.class));
     }
 
     @Test
@@ -714,23 +600,23 @@ public class ApiServiceCockpitImplTest {
         api.setId(API_ID);
         api.setProxy(proxy);
 
-        ExecutionContext executionContext = new ExecutionContext(GraviteeContext.getCurrentOrganization(), ENVIRONMENT_ID);
+        ExecutionContext EXECUTION_CONTEXT = new ExecutionContext(GraviteeContext.getCurrentOrganization(), ENVIRONMENT_ID);
 
-        when(swaggerService.createAPI(eq(executionContext), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2)))
+        when(swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2)))
             .thenReturn(swaggerApi);
         when(verifyApiPathsDomainService.checkAndSanitizeApiPaths(any(), eq(API_ID), any()))
             .thenReturn(List.of(Path.builder().path(virtualHost.getPath()).host(virtualHost.getHost()).build()));
 
         ApiEntity updatedApiEntity = new ApiEntity();
         updatedApiEntity.setName("updated api");
-        when(apiService.updateFromSwagger(eq(executionContext), eq(API_ID), eq(swaggerApi), any(ImportSwaggerDescriptorEntity.class)))
+        when(apiService.updateFromSwagger(eq(EXECUTION_CONTEXT), eq(API_ID), eq(swaggerApi), any(ImportSwaggerDescriptorEntity.class)))
             .thenReturn(updatedApiEntity);
-        when(apiService.deploy(eq(executionContext), eq(API_ID), eq(USER_ID), eq(EventType.PUBLISH_API), any(ApiDeploymentEntity.class)))
+        when(apiService.deploy(eq(EXECUTION_CONTEXT), eq(API_ID), eq(USER_ID), eq(EventType.PUBLISH_API), any(ApiDeploymentEntity.class)))
             .thenReturn(updatedApiEntity);
 
-        service.updateApi(executionContext, API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_PUBLISHED, LABELS);
+        service.updateApi(EXECUTION_CONTEXT, API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_PUBLISHED, LABELS);
 
-        verify(apiService).deploy(eq(executionContext), eq(API_ID), eq(USER_ID), eq(EventType.PUBLISH_API), apiDeploymentCaptor.capture());
+        verify(apiService).deploy(eq(EXECUTION_CONTEXT), eq(API_ID), eq(USER_ID), eq(EventType.PUBLISH_API), apiDeploymentCaptor.capture());
         assertThat(apiDeploymentCaptor.getValue().getDeploymentLabel()).isEqualTo("Model updated");
     }
 
@@ -745,66 +631,37 @@ public class ApiServiceCockpitImplTest {
         proxy.setVirtualHosts(List.of(virtualHost));
         api.setProxy(proxy);
         swaggerApi.setProxy(proxy);
-        when(
-            swaggerService.createAPI(
-                eq(GraviteeContext.getExecutionContext()),
-                any(ImportSwaggerDescriptorEntity.class),
-                eq(DefinitionVersion.V2)
-            )
-        )
+        when(swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2)))
             .thenReturn(swaggerApi);
 
         ApiEntity updatedApiEntity = new ApiEntity();
         updatedApiEntity.setName("updated api");
         updatedApiEntity.setState(Lifecycle.State.STOPPED);
-        when(
-            apiService.updateFromSwagger(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(API_ID),
-                eq(swaggerApi),
-                any(ImportSwaggerDescriptorEntity.class)
-            )
-        )
+        when(apiService.updateFromSwagger(eq(EXECUTION_CONTEXT), eq(API_ID), eq(swaggerApi), any(ImportSwaggerDescriptorEntity.class)))
             .thenReturn(updatedApiEntity);
-        when(
-            apiService.deploy(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(API_ID),
-                eq(USER_ID),
-                eq(EventType.PUBLISH_API),
-                any(ApiDeploymentEntity.class)
-            )
-        )
+        when(apiService.deploy(eq(EXECUTION_CONTEXT), eq(API_ID), eq(USER_ID), eq(EventType.PUBLISH_API), any(ApiDeploymentEntity.class)))
             .thenReturn(updatedApiEntity);
 
-        when(apiService.start(GraviteeContext.getExecutionContext(), API_ID, USER_ID)).thenReturn(updatedApiEntity);
-        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(null);
+        when(apiService.start(EXECUTION_CONTEXT, API_ID, USER_ID)).thenReturn(updatedApiEntity);
+        when(planService.findByApi(EXECUTION_CONTEXT, API_ID)).thenReturn(null);
         when(verifyApiPathsDomainService.checkAndSanitizeApiPaths(any(), eq(API_ID), any()))
             .thenReturn(List.of(Path.builder().path(virtualHost.getPath()).host(virtualHost.getHost()).build()));
 
-        service.updateApi(
-            GraviteeContext.getExecutionContext(),
-            API_ID,
-            USER_ID,
-            SWAGGER_DEFINITION,
-            ENVIRONMENT_ID,
-            DeploymentMode.API_PUBLISHED,
-            LABELS
-        );
+        service.updateApi(EXECUTION_CONTEXT, API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_PUBLISHED, LABELS);
 
-        verify(planService).findByApi(eq(GraviteeContext.getExecutionContext()), eq(API_ID));
-        verify(planService).create(eq(GraviteeContext.getExecutionContext()), newPlanCaptor.capture());
+        verify(planService).findByApi(eq(EXECUTION_CONTEXT), eq(API_ID));
+        verify(planService).create(eq(EXECUTION_CONTEXT), newPlanCaptor.capture());
         assertThat(newPlanCaptor.getValue())
             .extracting(NewPlanEntity::getApi, NewPlanEntity::getSecurity, NewPlanEntity::getStatus)
             .containsExactly(API_ID, PlanSecurityType.KEY_LESS, PlanStatus.PUBLISHED);
-        verify(apiService).start(eq(GraviteeContext.getExecutionContext()), eq(API_ID), eq(USER_ID));
+        verify(apiService).start(eq(EXECUTION_CONTEXT), eq(API_ID), eq(USER_ID));
     }
 
     @Test
     public void should_upgrade_documented_to_published_api() {
         SwaggerApiEntity swaggerApi = new SwaggerApiEntity();
         swaggerApi.setMetadata(new ArrayList<>());
-        ExecutionContext executionContext = new ExecutionContext(GraviteeContext.getCurrentOrganization(), ENVIRONMENT_ID);
+        ExecutionContext EXECUTION_CONTEXT = new ExecutionContext(GraviteeContext.getCurrentOrganization(), ENVIRONMENT_ID);
         ApiEntity api = new ApiEntity();
         api.setId(API_ID);
         Proxy proxy = new Proxy();
@@ -812,7 +669,7 @@ public class ApiServiceCockpitImplTest {
         proxy.setVirtualHosts(List.of(virtualHost));
         api.setProxy(proxy);
         swaggerApi.setProxy(proxy);
-        when(swaggerService.createAPI(eq(executionContext), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2)))
+        when(swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2)))
             .thenReturn(swaggerApi);
 
         ApiEntity updatedApiEntity = new ApiEntity();
@@ -829,27 +686,27 @@ public class ApiServiceCockpitImplTest {
 
         preparePageServiceMock();
 
-        service.updateApi(executionContext, API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_PUBLISHED, LABELS);
+        service.updateApi(EXECUTION_CONTEXT, API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_PUBLISHED, LABELS);
 
-        verify(planService).findByApi(eq(executionContext), eq(API_ID));
-        verify(planService).create(eq(executionContext), newPlanCaptor.capture());
+        verify(planService).findByApi(eq(EXECUTION_CONTEXT), eq(API_ID));
+        verify(planService).create(eq(EXECUTION_CONTEXT), newPlanCaptor.capture());
         assertThat(newPlanCaptor.getValue())
             .extracting(NewPlanEntity::getApi, NewPlanEntity::getSecurity, NewPlanEntity::getStatus)
             .containsExactly(API_ID, PlanSecurityType.KEY_LESS, PlanStatus.PUBLISHED);
 
-        verify(apiService).start(eq(executionContext), eq(API_ID), eq(USER_ID));
-        verify(apiService).update(eq(executionContext), eq(API_ID), updateApiCaptor.capture());
+        verify(apiService).start(eq(EXECUTION_CONTEXT), eq(API_ID), eq(USER_ID));
+        verify(apiService).update(eq(EXECUTION_CONTEXT), eq(API_ID), updateApiCaptor.capture());
         assertThat(updateApiCaptor.getValue())
             .extracting(UpdateApiEntity::getLifecycleState, UpdateApiEntity::getVisibility)
             .containsExactly(ApiLifecycleState.PUBLISHED, Visibility.PUBLIC);
 
-        verify(pageService).update(eq(executionContext), eq(PAGE_ID), updatePageCaptor.capture());
+        verify(pageService).update(eq(EXECUTION_CONTEXT), eq(PAGE_ID), updatePageCaptor.capture());
         assertThat(updatePageCaptor.getValue()).extracting(UpdatePageEntity::isPublished).isEqualTo(true);
     }
 
     @Test
     public void should_upgrade_mocked_to_published_api() {
-        ExecutionContext executionContext = new ExecutionContext(GraviteeContext.getCurrentOrganization(), ENVIRONMENT_ID);
+        ExecutionContext EXECUTION_CONTEXT = new ExecutionContext(GraviteeContext.getCurrentOrganization(), ENVIRONMENT_ID);
         SwaggerApiEntity swaggerApi = new SwaggerApiEntity();
         swaggerApi.setMetadata(new ArrayList<>());
         ApiEntity api = new ApiEntity();
@@ -859,33 +716,33 @@ public class ApiServiceCockpitImplTest {
         proxy.setVirtualHosts(List.of(virtualHost));
         api.setProxy(proxy);
         swaggerApi.setProxy(proxy);
-        when(swaggerService.createAPI(eq(executionContext), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2)))
+        when(swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2)))
             .thenReturn(swaggerApi);
 
         ApiEntity updatedApiEntity = new ApiEntity();
         updatedApiEntity.setName("updated api");
         updatedApiEntity.setState(Lifecycle.State.STARTED);
-        when(apiService.deploy(eq(executionContext), eq(API_ID), eq(USER_ID), eq(EventType.PUBLISH_API), any(ApiDeploymentEntity.class)))
+        when(apiService.deploy(eq(EXECUTION_CONTEXT), eq(API_ID), eq(USER_ID), eq(EventType.PUBLISH_API), any(ApiDeploymentEntity.class)))
             .thenReturn(updatedApiEntity);
 
-        when(planService.findByApi(executionContext, API_ID)).thenReturn(Collections.singleton(new PlanEntity()));
+        when(planService.findByApi(EXECUTION_CONTEXT, API_ID)).thenReturn(Collections.singleton(new PlanEntity()));
         when(verifyApiPathsDomainService.checkAndSanitizeApiPaths(any(), eq(API_ID), any()))
             .thenReturn(List.of(Path.builder().path(virtualHost.getPath()).host(virtualHost.getHost()).build()));
 
         preparePageServiceMock();
 
-        service.updateApi(executionContext, API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_PUBLISHED, LABELS);
+        service.updateApi(EXECUTION_CONTEXT, API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_PUBLISHED, LABELS);
 
-        verify(planService).findByApi(eq(executionContext), eq(API_ID));
-        verify(planService, never()).create(eq(executionContext), any(NewPlanEntity.class));
+        verify(planService).findByApi(eq(EXECUTION_CONTEXT), eq(API_ID));
+        verify(planService, never()).create(eq(EXECUTION_CONTEXT), any(NewPlanEntity.class));
 
-        verify(apiService, never()).start(eq(executionContext), eq(API_ID), eq(USER_ID));
-        verify(apiService).update(eq(executionContext), eq(API_ID), updateApiCaptor.capture());
+        verify(apiService, never()).start(eq(EXECUTION_CONTEXT), eq(API_ID), eq(USER_ID));
+        verify(apiService).update(eq(EXECUTION_CONTEXT), eq(API_ID), updateApiCaptor.capture());
         assertThat(updateApiCaptor.getValue())
             .extracting(UpdateApiEntity::getLifecycleState, UpdateApiEntity::getVisibility)
             .containsExactly(ApiLifecycleState.PUBLISHED, Visibility.PUBLIC);
 
-        verify(pageService).update(eq(executionContext), eq(PAGE_ID), updatePageCaptor.capture());
+        verify(pageService).update(eq(EXECUTION_CONTEXT), eq(PAGE_ID), updatePageCaptor.capture());
         assertThat(updatePageCaptor.getValue()).extracting(UpdatePageEntity::isPublished).isEqualTo(true);
     }
 
@@ -899,7 +756,7 @@ public class ApiServiceCockpitImplTest {
 
         when(verifyApiPathsDomainService.checkAndSanitizeApiPaths(any(), eq(null), anyList()))
             .thenReturn(List.of(Path.builder().path(virtualHost.getPath()).host(virtualHost.getHost()).build()));
-        var message = service.checkContextPath(GraviteeContext.getExecutionContext(), api);
+        var message = service.checkContextPath(ENVIRONMENT_ID, api);
 
         verify(verifyApiPathsDomainService)
             .checkAndSanitizeApiPaths(
@@ -921,7 +778,7 @@ public class ApiServiceCockpitImplTest {
 
         when(verifyApiPathsDomainService.checkAndSanitizeApiPaths(any(), eq(null), anyList()))
             .thenThrow(new InvalidPathsException("Invalid path"));
-        var message = service.checkContextPath(GraviteeContext.getExecutionContext(), api);
+        var message = service.checkContextPath(ENVIRONMENT_ID, api);
 
         verify(verifyApiPathsDomainService)
             .checkAndSanitizeApiPaths(

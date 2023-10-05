@@ -29,15 +29,11 @@ public interface OrganizationService {
 
     OrganizationEntity findById(String organizationId);
 
-    OrganizationEntity createOrUpdate(ExecutionContext executionContext, UpdateOrganizationEntity organizationEntity);
+    OrganizationEntity createOrUpdate(String organizationId, UpdateOrganizationEntity organizationEntity);
 
-    OrganizationEntity updateOrganization(ExecutionContext executionContext, UpdateOrganizationEntity organizationEntity);
+    OrganizationEntity updateOrganization(String organizationId, UpdateOrganizationEntity organizationEntity);
 
-    OrganizationEntity updateOrganizationAndFlows(
-        ExecutionContext executionContext,
-        String organizationId,
-        UpdateOrganizationEntity organizationEntity
-    );
+    OrganizationEntity updateOrganizationAndFlows(String organizationId, UpdateOrganizationEntity organizationEntity);
 
     void delete(String organizationId);
 

@@ -28,7 +28,6 @@ import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.v4.ApiService;
 import io.gravitee.rest.api.service.v4.ApiStateService;
 import io.reactivex.rxjava3.core.Single;
@@ -61,11 +60,16 @@ public class V4ApiServiceCockpitImpl implements V4ApiServiceCockpit {
     }
 
     @Override
-    public Single<ApiEntity> createPublishApi(String userId, String apiDefinition) throws JsonProcessingException {
+    public Single<ApiEntity> createPublishApi(
+        final String organizationId,
+        final String environmentId,
+        final String userId,
+        final String apiDefinition
+    ) throws JsonProcessingException {
         final JsonNode node = mapper.readTree(apiDefinition);
         final NewApiEntity newApiEntity = getNewApiEntity(node);
         final UpdateApiEntity updateApiEntity = getUpdateApiEntity(node);
-        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        final ExecutionContext executionContext = new ExecutionContext(organizationId, environmentId);
 
         return Single
             .just(apiServiceV4.create(executionContext, newApiEntity, userId))

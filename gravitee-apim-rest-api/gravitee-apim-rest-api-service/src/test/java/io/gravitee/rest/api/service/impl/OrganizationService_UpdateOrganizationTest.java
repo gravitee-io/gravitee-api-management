@@ -94,12 +94,9 @@ public class OrganizationService_UpdateOrganizationTest {
         UpdateOrganizationEntity updateOrganizationEntity = new UpdateOrganizationEntity();
         updateOrganizationEntity.setCockpitId(COCKPIT_ID);
 
-        when(mockOrganizationRepository.findById(any())).thenReturn(Optional.empty());
+        when(mockOrganizationRepository.findById(ORG_ID)).thenReturn(Optional.empty());
 
-        assertThrows(
-            OrganizationNotFoundException.class,
-            () -> organizationService.updateOrganization(GraviteeContext.getExecutionContext(), updateOrganizationEntity)
-        );
+        assertThrows(OrganizationNotFoundException.class, () -> organizationService.updateOrganization(ORG_ID, updateOrganizationEntity));
     }
 
     @Test
@@ -118,13 +115,10 @@ public class OrganizationService_UpdateOrganizationTest {
         organization.setName(NAME);
         organization.setDescription(DESCRIPTION);
 
-        when(mockOrganizationRepository.findById(any())).thenReturn(Optional.of(organization));
+        when(mockOrganizationRepository.findById(ORG_ID)).thenReturn(Optional.of(organization));
         when(mockOrganizationRepository.update(any())).thenThrow(new TechnicalException("Technical error"));
 
-        assertThrows(
-            TechnicalManagementException.class,
-            () -> organizationService.updateOrganization(GraviteeContext.getExecutionContext(), updateOrganizationEntity)
-        );
+        assertThrows(TechnicalManagementException.class, () -> organizationService.updateOrganization(ORG_ID, updateOrganizationEntity));
     }
 
     @Test
@@ -160,7 +154,7 @@ public class OrganizationService_UpdateOrganizationTest {
 
         when(mockOrganizationRepository.update(any())).thenReturn(expectedOrganization);
 
-        OrganizationEntity result = organizationService.updateOrganization(GraviteeContext.getExecutionContext(), updateOrganizationEntity);
+        OrganizationEntity result = organizationService.updateOrganization(ORG_ID, updateOrganizationEntity);
 
         assertNotNull(result);
         assertEquals(ORG_ID, result.getId());

@@ -522,7 +522,8 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     private UserEntity findOrCreateUser(ExecutionContext executionContext, User identityUser) {
         UserEntity userEntity;
         try {
-            userEntity = userService.findBySource(executionContext, identityUser.getSource(), identityUser.getSourceId(), false);
+            userEntity =
+                userService.findBySource(executionContext.getOrganizationId(), identityUser.getSource(), identityUser.getSourceId(), false);
         } catch (UserNotFoundException unfe) {
             // The user is not yet registered in repository
             // Information will be updated after the first connection of the user

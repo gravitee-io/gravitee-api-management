@@ -62,7 +62,12 @@ public class UserCommandHandler implements CommandHandler<UserCommand, UserReply
         UserPayload userPayload = command.getPayload();
         ExecutionContext executionContext = new ExecutionContext(userPayload.getOrganizationId(), null);
         try {
-            final UserEntity existingUser = userService.findBySource(executionContext, COCKPIT_SOURCE, userPayload.getId(), false);
+            final UserEntity existingUser = userService.findBySource(
+                userPayload.getOrganizationId(),
+                COCKPIT_SOURCE,
+                userPayload.getId(),
+                false
+            );
 
             UpdateUserEntity updatedUser = new UpdateUserEntity();
             updatedUser.setFirstname(userPayload.getFirstName());
