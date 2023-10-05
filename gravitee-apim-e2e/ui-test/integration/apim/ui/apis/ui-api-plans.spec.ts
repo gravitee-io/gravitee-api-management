@@ -116,11 +116,7 @@ describe('API Plans Feature', () => {
     cy.getByDataTestId('api_plans_name_field').type(`${planName}-JWT`);
     cy.getByDataTestId('api_plans_description_field').type(`${planDescription} JWT`);
     cy.getByDataTestId('api_plans_nextstep').click();
-<<<<<<< HEAD
-    cy.contains('h2', 'Additional selection rule').should('exist').scrollIntoView().should('be.visible');
-=======
     cy.contains('JWKS resolver').should('exist').scrollIntoView().should('be.visible');
->>>>>>> cc5ad4e923 (test(ui): plans fix solution, looking for unique string)
     cy.getByDataTestId('api_plans_nextstep').click();
     cy.contains('Rate Limiting').should('be.visible');
     cy.contains('Quota').should('be.visible');
