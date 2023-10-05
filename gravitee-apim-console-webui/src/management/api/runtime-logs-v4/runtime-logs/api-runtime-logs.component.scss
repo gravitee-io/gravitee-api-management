@@ -6,6 +6,10 @@
 
 $typography: map.get(gio.$mat-theme, typography);
 
+.container {
+  @include mat.elevation(3);
+}
+
 :host {
   @include gio-layout.gio-responsive-margin-container;
 }

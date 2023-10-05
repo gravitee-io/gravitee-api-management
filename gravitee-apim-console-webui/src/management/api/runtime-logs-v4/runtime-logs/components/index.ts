@@ -16,3 +16,4 @@
 export * from './api-runtime-logs-empty';
 export * from './api-runtime-logs-list';
 export * from './api-runtime-logs-list-row';
+export * from './api-runtime-logs-quick-filters';

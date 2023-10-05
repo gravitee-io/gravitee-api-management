@@ -14,14 +14,20 @@
  * limitations under the License.
  */
 
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { PageEvent } from '@angular/material/paginator';
-import { map, shareReplay } from 'rxjs/operators';
+import { map, shareReplay, takeUntil, tap } from 'rxjs/operators';
 import { StateParams } from '@uirouter/core';
 import { StateService } from '@uirouter/angular';
+import * as moment from 'moment';
+import { ReplaySubject, Subject } from 'rxjs';
+
+import DurationConstructor = moment.unitOfTime.DurationConstructor;
+
+import { LogFilter, PeriodFilter } from './components/api-runtime-logs-quick-filters/api-runtime-logs-quick-filters.component';
 
 import { ApiLogsV2Service } from '../../../../services-ngx/api-logs-v2.service';
-import { ApiV4 } from '../../../../entities/management-api-v2';
+import { ApiLogsResponse, ApiV4 } from '../../../../entities/management-api-v2';
 import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 
@@ -30,9 +36,10 @@ import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
   template: require('./api-runtime-logs.component.html'),
   styles: [require('./api-runtime-logs.component.scss')],
 })
-export class ApiRuntimeLogsComponent {
+export class ApiRuntimeLogsComponent implements OnInit, OnDestroy {
+  private unsubscribe$: Subject<void> = new Subject<void>();
   private api$ = this.apiService.get(this.ajsStateParams.apiId).pipe(shareReplay(1));
-  apiLogs$ = this.apiLogsService.searchConnectionLogs(this.ajsStateParams.apiId, +this.ajsStateParams.page, +this.ajsStateParams.perPage);
+  apiLogsSubject$ = new ReplaySubject<ApiLogsResponse>(1);
   isMessageApi$ = this.api$.pipe(map((api: ApiV4) => api?.type === 'MESSAGE'));
   apiLogsEnabled$ = this.api$.pipe(map(ApiRuntimeLogsComponent.isLogEnabled));
 
@@ -43,18 +50,50 @@ export class ApiRuntimeLogsComponent {
     private readonly apiService: ApiV2Service,
   ) {}
 
+  ngOnInit(): void {
+    this.apiLogsService
+      .searchConnectionLogs(this.ajsStateParams.apiId, {
+        page: +this.ajsStateParams.page,
+        perPage: +this.ajsStateParams.perPage,
+        from: +this.ajsStateParams.from,
+        to: +this.ajsStateParams.to,
+      })
+      .pipe(
+        tap((apiLogsResponse) => {
+          this.apiLogsSubject$.next(apiLogsResponse);
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe();
+  }
+
+  ngOnDestroy() {
+    this.unsubscribe$.next();
+    this.unsubscribe$.unsubscribe();
+  }
+
   paginationUpdated(event: PageEvent) {
     const page = event.pageIndex + 1;
     const perPage = event.pageSize;
-    this.apiLogs$ = this.apiLogsService.searchConnectionLogs(this.ajsStateParams.apiId, page, perPage);
-    this.ajsState.go(
-      '.',
-      {
-        page,
-        perPage,
-      },
-      { notify: false },
-    );
+    this.apiLogsService
+      .searchConnectionLogs(this.ajsStateParams.apiId, { page, perPage })
+      .pipe(
+        tap((apiLogsResponse) => {
+          this.apiLogsSubject$.next(apiLogsResponse);
+          this.ajsState.go(
+            '.',
+            {
+              page,
+              perPage,
+              ...(!!this.ajsStateParams.from && { from: +this.ajsStateParams.from }),
+              ...(!!this.ajsStateParams.to && { to: +this.ajsStateParams.to }),
+            },
+            { notify: false },
+          );
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe();
   }
 
   openLogsSettings() {
@@ -64,4 +103,60 @@ export class ApiRuntimeLogsComponent {
   private static isLogEnabled = (api: ApiV4) => {
     return api.analytics.enabled && (api.analytics.logging?.mode?.endpoint === true || api.analytics.logging?.mode?.entrypoint === true);
   };
+
+  applyFilter(logFilter: LogFilter) {
+    // prepare query from filter
+    if (logFilter.period) {
+      const periodFilter = this.preparePeriodFilter(logFilter.period);
+
+      let query: Record<string, number> = {};
+
+      if (periodFilter?.from) {
+        query = { ...query, from: periodFilter.from };
+      }
+
+      if (periodFilter?.to) {
+        query = { ...query, to: periodFilter.to };
+      }
+
+      this.apiLogsService
+        .searchConnectionLogs(this.ajsStateParams.apiId, query)
+        .pipe(
+          tap((apiLogsResponse) => {
+            this.apiLogsSubject$.next(apiLogsResponse);
+
+            this.ajsState.go(
+              '.',
+              {
+                page: 1,
+                perPage: +this.ajsStateParams.perPage,
+                // Apply filter or remove param from URL
+                from: query.from ?? null,
+                to: query.to ?? null,
+              },
+              { notify: false },
+            );
+          }),
+          takeUntil(this.unsubscribe$),
+        )
+        .subscribe();
+    }
+  }
+
+  private preparePeriodFilter(period: PeriodFilter): { from: number; to: number } {
+    if (period.value === '0') {
+      return null;
+    }
+    const now = moment();
+    const operation = period.value.charAt(0);
+    const timeUnit: DurationConstructor = period.value.charAt(period.value.length - 1) as DurationConstructor;
+    const duration = Number(period.value.substring(1, period.value.length - 1));
+    let from;
+    if (operation === '-') {
+      from = now.clone().subtract(duration, timeUnit);
+    } else {
+      from = now.clone().add(duration, timeUnit);
+    }
+    return { from: from.valueOf(), to: now.valueOf() };
+  }
 }
