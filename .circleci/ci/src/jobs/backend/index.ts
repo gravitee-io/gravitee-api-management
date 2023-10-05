@@ -20,7 +20,6 @@ export * from './job-nexus-staging';
 export * from './job-publish';
 export * from './job-test-definition';
 export * from './job-test-gateway';
-export * from './job-test-integration';
 export * from './job-test-plugin';
 export * from './job-test-repository';
 export * from './job-test-rest-api';
