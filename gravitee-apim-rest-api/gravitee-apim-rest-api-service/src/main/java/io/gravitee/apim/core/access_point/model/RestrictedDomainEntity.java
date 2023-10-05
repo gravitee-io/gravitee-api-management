@@ -13,16 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.model;
+package io.gravitee.apim.core.access_point.model;
 
-import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -31,16 +27,10 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Getter
-@Setter
-@ToString
-@EqualsAndHashCode
-@Schema(name = "RestrictedDomainEntity")
+@Data
 public class RestrictedDomainEntity {
 
-    @Schema(description = "The restricted domain value.", example = "my-domain")
     private String domain;
 
-    @Schema(description = "Define if the restricted domain is secured", example = "true", defaultValue = "false")
     private boolean secured;
 }

@@ -15,12 +15,12 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import io.gravitee.apim.core.access_point.model.RestrictedDomainEntity;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.AccessPointRepository;
 import io.gravitee.repository.management.model.AccessPoint;
 import io.gravitee.repository.management.model.AccessPointReferenceType;
 import io.gravitee.repository.management.model.AccessPointTarget;
-import io.gravitee.rest.api.model.RestrictedDomainEntity;
 import io.gravitee.rest.api.service.AccessPointService;
 import io.gravitee.rest.api.service.common.ReferenceContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
