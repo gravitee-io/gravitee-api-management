@@ -38,7 +38,6 @@ import {
   TestApimChartsJob,
   TestDefinitionJob,
   TestGatewayJob,
-  TestIntegrationJob,
   TestPluginJob,
   TestRepositoryJob,
   TestRestApiJob,
@@ -100,9 +99,6 @@ export class PullRequestsWorkflow {
       const testRestApiJob = TestRestApiJob.create(dynamicConfig);
       dynamicConfig.addJob(testRestApiJob);
 
-      const testIntegrationJob = TestIntegrationJob.create(dynamicConfig);
-      dynamicConfig.addJob(testIntegrationJob);
-
       const testPluginsJob = TestPluginJob.create(dynamicConfig);
       dynamicConfig.addJob(testPluginsJob);
 
@@ -136,11 +132,6 @@ export class PullRequestsWorkflow {
         }),
         new workflow.WorkflowJob(testRestApiJob, {
           name: 'Test rest-api',
-          context: config.jobContext,
-          requires: ['Build backend'],
-        }),
-        new workflow.WorkflowJob(testIntegrationJob, {
-          name: 'Integration tests',
           context: config.jobContext,
           requires: ['Build backend'],
         }),
