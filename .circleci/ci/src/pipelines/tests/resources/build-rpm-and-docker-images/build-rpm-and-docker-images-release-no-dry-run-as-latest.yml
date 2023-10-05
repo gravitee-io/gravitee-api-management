@@ -120,9 +120,9 @@ jobs:
             export GIT_GRAVITEE_PACKAGES_REPO=$(mktemp -d)
             git clone git@github.com:gravitee-io/packages.git ${GIT_GRAVITEE_PACKAGES_REPO}
 
-            cd ${GIT_GRAVITEE_PACKAGES_REPO}/apim/4.x
+            cd ${GIT_GRAVITEE_PACKAGES_REPO}/apim/3.x
             ./build.sh -v 4.1.0
-            docker run --rm -v "${GIT_GRAVITEE_PACKAGES_REPO}/apim/4.x:/packages" -e PACKAGECLOUD_TOKEN=${GIO_PACKAGECLOUD_TOKEN} digitalocean/packagecloud push --yes --skip-errors --verbose graviteeio/rpms/el/7 /packages/*.rpm
+            docker run --rm -v "${GIT_GRAVITEE_PACKAGES_REPO}/apim/3.x:/packages" -e PACKAGECLOUD_TOKEN=${GIO_PACKAGECLOUD_TOKEN} digitalocean/packagecloud push --yes --skip-errors --verbose graviteeio/rpms/el/7 /packages/*.rpm
 workflows:
   build-rpm-&-docker-images:
     jobs:
