@@ -15,7 +15,7 @@
  */
 import { Config, workflow, Workflow } from '@circleci/circleci-config-sdk';
 import { BuildBackendJob, SetupJob } from '../jobs';
-import { ElasticTestContainerJob, JdbcTestContainerJob, MongoTestContainerJob, RedisTestContainerJob } from '../jobs/test-container';
+import { JdbcTestContainerJob, MongoTestContainerJob } from '../jobs/test-container';
 
 import { CircleCIEnvironment } from '../pipelines';
 
@@ -25,17 +25,11 @@ export class RepositoriesTestsWorkflow {
     const buildJob = BuildBackendJob.create(dynamicConfig, environment);
     const jdbcTestContainerJob = JdbcTestContainerJob.create(dynamicConfig);
     const mongoTestContainerJob = MongoTestContainerJob.create(dynamicConfig);
-    const elasticTestContainerJob = ElasticTestContainerJob.create(dynamicConfig);
-    const opensearchTestContainerJob = ElasticTestContainerJob.create(dynamicConfig);
-    const redisTestContainerJob = RedisTestContainerJob.create(dynamicConfig);
 
     dynamicConfig.addJob(setupJob);
     dynamicConfig.addJob(buildJob);
     dynamicConfig.addJob(jdbcTestContainerJob);
     dynamicConfig.addJob(mongoTestContainerJob);
-    dynamicConfig.addJob(elasticTestContainerJob);
-    dynamicConfig.addJob(opensearchTestContainerJob);
-    dynamicConfig.addJob(redisTestContainerJob);
 
     const setupJobName = 'Setup';
     const buildJobName = 'Build';
@@ -74,32 +68,6 @@ export class RepositoriesTestsWorkflow {
         requires: [buildJobName],
         matrix: {
           mongoVersion: ['4.4', '5.0', '6.0', '7.0'],
-        },
-      }),
-      new workflow.WorkflowJob(elasticTestContainerJob, {
-        name: 'Analytics repository tests - ElasticSearch << matrix.engineVersion >>',
-        context: ['cicd-orchestrator'],
-        requires: [buildJobName],
-        matrix: {
-          engineType: ['elasticsearch'],
-          engineVersion: ['7.17.10', '8.8.1'],
-        },
-      }),
-      new workflow.WorkflowJob(opensearchTestContainerJob, {
-        name: 'Analytics repository tests - OpenSearch << matrix.engineVersion >>',
-        context: ['cicd-orchestrator'],
-        requires: [buildJobName],
-        matrix: {
-          engineType: ['opensearch'],
-          engineVersion: ['1', '2'],
-        },
-      }),
-      new workflow.WorkflowJob(redisTestContainerJob, {
-        name: 'Rate Limit repository tests - Redis << matrix.redisVersion >>',
-        context: ['cicd-orchestrator'],
-        requires: [buildJobName],
-        matrix: {
-          redisVersion: ['6.2.6-v9', '7.0.6-RC9'],
         },
       }),
     ]);
