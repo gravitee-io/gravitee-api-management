@@ -166,7 +166,7 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         api.setId(API_ID);
         apiEntity.setId(API_ID);
         when(apiService.createWithApiDefinition(eq(GraviteeContext.getExecutionContext()), any(), any(), any())).thenReturn(apiEntity);
-        when(userService.findBySource(eq(GraviteeContext.getExecutionContext()), anyString(), anyString(), eq(false)))
+        when(userService.findBySource(eq(GraviteeContext.getCurrentOrganization()), anyString(), anyString(), eq(false)))
             .thenReturn(new UserEntity());
 
         RoleEntity poRoleEntity = new RoleEntity();
@@ -211,11 +211,13 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         user.setId(owner.getId());
         user.setSource(SOURCE);
         user.setSourceId("ref-user");
-        when(userService.findBySource(GraviteeContext.getExecutionContext(), user.getSource(), user.getSourceId(), false)).thenReturn(user);
+        when(userService.findBySource(GraviteeContext.getCurrentOrganization(), user.getSource(), user.getSourceId(), false))
+            .thenReturn(user);
         MemberEntity memberEntity = new MemberEntity();
         memberEntity.setId(admin.getId());
         memberEntity.setRoles(Collections.singletonList(poRoleEntity));
-        when(userService.findBySource(GraviteeContext.getExecutionContext(), user.getSource(), user.getSourceId(), false)).thenReturn(user);
+        when(userService.findBySource(GraviteeContext.getCurrentOrganization(), user.getSource(), user.getSourceId(), false))
+            .thenReturn(user);
         when(userService.findById(GraviteeContext.getExecutionContext(), memberEntity.getId())).thenReturn(admin);
 
         when(apiIdsCalculatorService.recalculateApiDefinitionIds(any(), any())).then(AdditionalAnswers.returnsSecondArg());
@@ -254,7 +256,8 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         user.setId("user");
         user.setSource(SOURCE);
         user.setSourceId("ref-user");
-        when(userService.findBySource(GraviteeContext.getExecutionContext(), user.getSource(), user.getSourceId(), false)).thenReturn(user);
+        when(userService.findBySource(GraviteeContext.getCurrentOrganization(), user.getSource(), user.getSourceId(), false))
+            .thenReturn(user);
         when(userService.findById(GraviteeContext.getExecutionContext(), admin.getId())).thenReturn(admin);
 
         RoleEntity poRoleEntity = new RoleEntity();
@@ -543,7 +546,8 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         user.setId("user");
         user.setSource(SOURCE);
         user.setSourceId("ref-user");
-        when(userService.findBySource(GraviteeContext.getExecutionContext(), user.getSource(), user.getSourceId(), false)).thenReturn(user);
+        when(userService.findBySource(GraviteeContext.getCurrentOrganization(), user.getSource(), user.getSourceId(), false))
+            .thenReturn(user);
         when(userService.findById(GraviteeContext.getExecutionContext(), admin.getId())).thenReturn(admin);
 
         RoleEntity poRoleEntity = new RoleEntity();
@@ -696,7 +700,8 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         user.setId("user");
         user.setSource(SOURCE);
         user.setSourceId("ref-user");
-        when(userService.findBySource(GraviteeContext.getExecutionContext(), user.getSource(), user.getSourceId(), false)).thenReturn(user);
+        when(userService.findBySource(GraviteeContext.getCurrentOrganization(), user.getSource(), user.getSourceId(), false))
+            .thenReturn(user);
         when(userService.findById(GraviteeContext.getExecutionContext(), admin.getId())).thenReturn(admin);
 
         RoleEntity poRoleEntity = new RoleEntity();

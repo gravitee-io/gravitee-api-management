@@ -137,12 +137,7 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
             GraviteeContext.fromExecutionContext(new ExecutionContext(organizationId, environmentId));
 
             // Retrieve the user.
-            final UserEntity user = userService.findBySource(
-                GraviteeContext.getExecutionContext(),
-                COCKPIT_SOURCE,
-                jwtClaimsSet.getSubject(),
-                true
-            );
+            final UserEntity user = userService.findBySource(organizationId, COCKPIT_SOURCE, jwtClaimsSet.getSubject(), true);
 
             //set user to Authentication Context
             final Set<GrantedAuthority> authorities = authoritiesProvider.retrieveAuthorities(user.getId(), organizationId, environmentId);

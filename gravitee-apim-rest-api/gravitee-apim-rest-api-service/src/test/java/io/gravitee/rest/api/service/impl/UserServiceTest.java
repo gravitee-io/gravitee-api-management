@@ -92,15 +92,11 @@ public class UserServiceTest {
     private static final String PASSWORD = "gh2gyf8!zjfnz";
     private static final String JWT_SECRET = "VERYSECURE";
 
-    private static final String ORGANIZATION = "DEFAULT";
+    private static final String ORGANIZATION = "organization#Id";
+    private static final String ENVIRONMENT = "environment#Id";
     private static final Set<UserRoleEntity> ROLES = Collections.singleton(new UserRoleEntity());
 
-    private static ExecutionContext EXECUTION_CONTEXT = new ExecutionContext(
-        "46f4732e-f76b-4f8f-8042-99fbefb01b39",
-        "21a6f466-3521-46d7-912b-83d8f1f1f7e5"
-    );
-
-    private static final ParameterReferenceType REFERENCE_TYPE = ParameterReferenceType.ORGANIZATION;
+    private static final ExecutionContext EXECUTION_CONTEXT = new ExecutionContext(ORGANIZATION, ENVIRONMENT);
 
     static {
         UserRoleEntity r = ROLES.iterator().next();
@@ -194,7 +190,6 @@ public class UserServiceTest {
 
     @Before
     public void setup() {
-        GraviteeContext.cleanContext();
         when(userConverter.toUser(any(NewExternalUserEntity.class))).thenCallRealMethod();
         when(userConverter.toUserEntity(any(User.class), any())).thenCallRealMethod();
     }
@@ -208,7 +203,7 @@ public class UserServiceTest {
         when(user.getPassword()).thenReturn(PASSWORD);
         when(userRepository.findBySource(USER_SOURCE, USER_NAME, ORGANIZATION)).thenReturn(of(user));
 
-        final UserEntity userEntity = userService.findBySource(GraviteeContext.getExecutionContext(), USER_SOURCE, USER_NAME, false);
+        final UserEntity userEntity = userService.findBySource(ORGANIZATION, USER_SOURCE, USER_NAME, false);
 
         assertEquals(USER_NAME, userEntity.getId());
         assertEquals(FIRST_NAME, userEntity.getFirstname());
@@ -222,7 +217,7 @@ public class UserServiceTest {
     public void shouldFindByUsernameThrowsError() throws TechnicalException {
         when(userRepository.findBySource(USER_SOURCE, USER_NAME, ORGANIZATION)).thenThrow(new TechnicalException("user not found"));
 
-        final UserEntity userEntity = userService.findBySource(GraviteeContext.getExecutionContext(), USER_SOURCE, USER_NAME, false);
+        final UserEntity userEntity = userService.findBySource(ORGANIZATION, USER_SOURCE, USER_NAME, false);
     }
 
     @Test
@@ -234,7 +229,7 @@ public class UserServiceTest {
         when(user.getPassword()).thenReturn(PASSWORD);
         when(userRepository.findByEmail(EMAIL, ORGANIZATION)).thenReturn(of(user));
 
-        final Optional<UserEntity> optUserEntity = userService.findByEmail(GraviteeContext.getExecutionContext(), EMAIL);
+        final Optional<UserEntity> optUserEntity = userService.findByEmail(EXECUTION_CONTEXT, EMAIL);
 
         UserEntity userEntity = optUserEntity.get();
         assertNotNull(userEntity);
@@ -254,16 +249,17 @@ public class UserServiceTest {
         when(user.getFirstname()).thenReturn(FIRST_NAME);
         when(user.getLastname()).thenReturn(LAST_NAME);
         when(user.getPassword()).thenReturn(PASSWORD);
+        when(user.getOrganizationId()).thenReturn(ORGANIZATION);
         when(userRepository.findById(USER_NAME)).thenReturn(of(user));
         RoleEntity apiPoRole = new RoleEntity();
         apiPoRole.setId("po-role");
-        when(roleService.findPrimaryOwnerRoleByOrganization("DEFAULT", RoleScope.API)).thenReturn(apiPoRole);
+        when(roleService.findPrimaryOwnerRoleByOrganization(ORGANIZATION, RoleScope.API)).thenReturn(apiPoRole);
 
         RoleEntity appPoRole = new RoleEntity();
         appPoRole.setId("po-role");
-        when(roleService.findPrimaryOwnerRoleByOrganization("DEFAULT", RoleScope.APPLICATION)).thenReturn(appPoRole);
+        when(roleService.findPrimaryOwnerRoleByOrganization(ORGANIZATION, RoleScope.APPLICATION)).thenReturn(appPoRole);
 
-        final UserEntity userEntity = userService.findByIdWithRoles(GraviteeContext.getExecutionContext(), USER_NAME);
+        final UserEntity userEntity = userService.findByIdWithRoles(EXECUTION_CONTEXT, USER_NAME);
 
         assertEquals(USER_NAME, userEntity.getId());
         assertEquals(FIRST_NAME, userEntity.getFirstname());
@@ -281,7 +277,7 @@ public class UserServiceTest {
         when(user.getPassword()).thenReturn(PASSWORD);
         when(userRepository.findById(USER_NAME)).thenReturn(of(user));
 
-        final UserEntity userEntity = userService.findById(GraviteeContext.getExecutionContext(), USER_NAME);
+        final UserEntity userEntity = userService.findById(EXECUTION_CONTEXT, USER_NAME);
 
         assertEquals(USER_NAME, userEntity.getId());
         assertEquals(FIRST_NAME, userEntity.getFirstname());
@@ -295,14 +291,14 @@ public class UserServiceTest {
     public void shouldNotFindByUsernameBecauseNotExists() throws TechnicalException {
         when(userRepository.findBySource(USER_SOURCE, USER_NAME, ORGANIZATION)).thenReturn(Optional.empty());
 
-        userService.findBySource(GraviteeContext.getExecutionContext(), USER_SOURCE, USER_NAME, false);
+        userService.findBySource(ORGANIZATION, USER_SOURCE, USER_NAME, false);
     }
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotFindByUsernameBecauseTechnicalException() throws TechnicalException {
         when(userRepository.findBySource(USER_SOURCE, USER_NAME, ORGANIZATION)).thenThrow(TechnicalException.class);
 
-        userService.findBySource(GraviteeContext.getExecutionContext(), USER_SOURCE, USER_NAME, false);
+        userService.findBySource(ORGANIZATION, USER_SOURCE, USER_NAME, false);
     }
 
     @Test
@@ -311,26 +307,23 @@ public class UserServiceTest {
         String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
 
         RoleEntity orgAdminRole = mockRoleEntity(RoleScope.ORGANIZATION, "ADMIN");
-        when(roleService.findByScopeAndName(RoleScope.ORGANIZATION, "ADMIN", GraviteeContext.getCurrentOrganization()))
-            .thenReturn(Optional.of(orgAdminRole));
+        when(roleService.findByScopeAndName(RoleScope.ORGANIZATION, "ADMIN", ORGANIZATION)).thenReturn(Optional.of(orgAdminRole));
 
         RoleEntity orgUserRole = mockRoleEntity(RoleScope.ORGANIZATION, "USER");
-        when(roleService.findByScopeAndName(RoleScope.ORGANIZATION, "USER", GraviteeContext.getCurrentOrganization()))
-            .thenReturn(Optional.of(orgUserRole));
+        when(roleService.findByScopeAndName(RoleScope.ORGANIZATION, "USER", ORGANIZATION)).thenReturn(Optional.of(orgUserRole));
 
         RoleEntity envUserRole = mockRoleEntity(RoleScope.ENVIRONMENT, "USER");
-        when(roleService.findByScopeAndName(RoleScope.ENVIRONMENT, "USER", GraviteeContext.getCurrentOrganization()))
-            .thenReturn(Optional.of(envUserRole));
+        when(roleService.findByScopeAndName(RoleScope.ENVIRONMENT, "USER", ORGANIZATION)).thenReturn(Optional.of(envUserRole));
 
         Set<RoleEntity> roleEntitiesForOrganization = userService.computeOrganizationRoles(
-            GraviteeContext.getExecutionContext(),
+            EXECUTION_CONTEXT,
             roleMappingEntities,
             USER_NAME,
             userInfo
         );
 
         Map<String, Set<RoleEntity>> roleEntitiesForEnvironments = userService.computeEnvironmentRoles(
-            GraviteeContext.getExecutionContext(),
+            EXECUTION_CONTEXT,
             roleMappingEntities,
             USER_NAME,
             userInfo
@@ -341,8 +334,8 @@ public class UserServiceTest {
         assertTrue(roleEntitiesForOrganization.contains(orgUserRole));
 
         assertEquals(1, roleEntitiesForEnvironments.size());
-        assertEquals(1, roleEntitiesForEnvironments.get("DEFAULT").size());
-        assertTrue(roleEntitiesForEnvironments.get("DEFAULT").contains(envUserRole));
+        assertEquals(1, roleEntitiesForEnvironments.get(ENVIRONMENT).size());
+        assertTrue(roleEntitiesForEnvironments.get(ENVIRONMENT).contains(envUserRole));
     }
 
     @Test
@@ -354,12 +347,12 @@ public class UserServiceTest {
 
         RoleMappingEntity role2 = new RoleMappingEntity();
         role2.setCondition("{#jsonPath(#profile, '$.identity_provider_id') == 'idp_6'}");
-        role2.setEnvironments(Collections.singletonMap("DEFAULT", Collections.singletonList("USER")));
+        role2.setEnvironments(Collections.singletonMap(ENVIRONMENT, Collections.singletonList("USER")));
 
         RoleMappingEntity role3 = new RoleMappingEntity();
         role3.setCondition("{#jsonPath(#profile, '$.job_id') == 'API_BREAKER'}");
         role3.setOrganizations(Collections.singletonList("USER"));
-        role3.setEnvironments(Collections.singletonMap("DEFAULT", Collections.singletonList("USER")));
+        role3.setEnvironments(Collections.singletonMap(ENVIRONMENT, Collections.singletonList("USER")));
         final List<RoleMappingEntity> rolesMapping = Arrays.asList(role1, role2, role3);
 
         RoleEntity orgAdminRole = mockRoleEntity(RoleScope.ORGANIZATION, "ADMIN");
@@ -388,8 +381,8 @@ public class UserServiceTest {
         assertTrue(roleEntitiesForOrganization.contains(orgAdminRole));
 
         assertEquals(1, roleEntitiesForEnvironments.size());
-        assertEquals(1, roleEntitiesForEnvironments.get(EXECUTION_CONTEXT.getEnvironmentId()).size());
-        assertTrue(roleEntitiesForEnvironments.get(EXECUTION_CONTEXT.getEnvironmentId()).contains(envUserRole));
+        assertEquals(1, roleEntitiesForEnvironments.get(ENVIRONMENT).size());
+        assertTrue(roleEntitiesForEnvironments.get(ENVIRONMENT).contains(envUserRole));
     }
 
     @Test
@@ -409,7 +402,7 @@ public class UserServiceTest {
         newPreRegisterUserEntity.setService(false);
         newPreRegisterUserEntity.setEmail("bad./.email");
 
-        userService.create(GraviteeContext.getExecutionContext(), newPreRegisterUserEntity);
+        userService.create(EXECUTION_CONTEXT, newPreRegisterUserEntity);
     }
 
     @Test(expected = UserAlreadyExistsException.class)
@@ -423,7 +416,7 @@ public class UserServiceTest {
 
         when(userRepository.findBySource("gravitee", EMAIL, ORGANIZATION)).thenReturn(Optional.of(new User()));
 
-        userService.create(GraviteeContext.getExecutionContext(), newPreRegisterUserEntity);
+        userService.create(EXECUTION_CONTEXT, newPreRegisterUserEntity);
 
         verify(newPreRegisterUserEntity, times(1)).setSourceId(EMAIL);
     }
@@ -452,7 +445,7 @@ public class UserServiceTest {
         when(user.getLastname()).thenReturn(LAST_NAME);
         when(user.getPassword()).thenReturn(PASSWORD);
         when(user.getCreatedAt()).thenReturn(date);
-        when(user.getUpdatedAt()).thenReturn(date);
+        when(user.getOrganizationId()).thenReturn(ORGANIZATION);
         when(userRepository.create(any(User.class))).thenReturn(user);
         RoleEntity roleEnvironmentAdmin = mockRoleEntity(RoleScope.ENVIRONMENT, "ADMIN");
         RoleEntity roleOrganizationAdmin = mockRoleEntity(RoleScope.ORGANIZATION, "ADMIN");
@@ -461,21 +454,21 @@ public class UserServiceTest {
         RoleEntity roleEnv = mock(RoleEntity.class);
         when(roleEnv.getScope()).thenReturn(RoleScope.ENVIRONMENT);
         when(roleEnv.getName()).thenReturn("USER");
-        when(membershipService.getRoles(MembershipReferenceType.ENVIRONMENT, "DEFAULT", MembershipMemberType.USER, user.getId()))
+        when(membershipService.getRoles(MembershipReferenceType.ENVIRONMENT, ENVIRONMENT, MembershipMemberType.USER, user.getId()))
             .thenReturn(new HashSet<>(List.of(roleEnv)));
         RoleEntity roleOrg = mock(RoleEntity.class);
         when(roleOrg.getScope()).thenReturn(RoleScope.ORGANIZATION);
         when(roleOrg.getName()).thenReturn("USER");
-        when(membershipService.getRoles(MembershipReferenceType.ORGANIZATION, "DEFAULT", MembershipMemberType.USER, user.getId()))
+        when(membershipService.getRoles(MembershipReferenceType.ORGANIZATION, ORGANIZATION, MembershipMemberType.USER, user.getId()))
             .thenReturn(new HashSet<>(List.of(roleOrg)));
 
         // Come back to our method
 
-        userService.create(GraviteeContext.getExecutionContext(), newPreRegisterUserEntity);
+        userService.create(EXECUTION_CONTEXT, newPreRegisterUserEntity);
 
         verify(newPreRegisterUserEntity, times(1)).setSourceId(EMAIL);
-        verify(emailService, times(1)).sendAsyncEmailNotification(eq(GraviteeContext.getExecutionContext()), any());
-        verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(PortalHook.USER_CREATED), any());
+        verify(emailService, times(1)).sendAsyncEmailNotification(eq(EXECUTION_CONTEXT), any());
+        verify(notifierService, times(1)).trigger(eq(EXECUTION_CONTEXT), eq(PortalHook.USER_CREATED), any());
     }
 
     @Test(expected = EmailFormatInvalidException.class)
@@ -484,7 +477,7 @@ public class UserServiceTest {
         newPreRegisterUserEntity.setService(true);
         newPreRegisterUserEntity.setEmail("bad./.email");
 
-        userService.create(GraviteeContext.getExecutionContext(), newPreRegisterUserEntity);
+        userService.create(EXECUTION_CONTEXT, newPreRegisterUserEntity);
     }
 
     @Test
@@ -508,6 +501,7 @@ public class UserServiceTest {
         when(user.getPassword()).thenReturn(PASSWORD);
         when(user.getCreatedAt()).thenReturn(date);
         when(user.getUpdatedAt()).thenReturn(date);
+        when(user.getOrganizationId()).thenReturn(ORGANIZATION);
         when(userRepository.create(any(User.class))).thenReturn(user);
         RoleEntity roleEnvironmentAdmin = mockRoleEntity(RoleScope.ENVIRONMENT, "ADMIN");
         RoleEntity roleOrganizationAdmin = mockRoleEntity(RoleScope.ORGANIZATION, "ADMIN");
@@ -516,21 +510,21 @@ public class UserServiceTest {
         RoleEntity roleEnv = mock(RoleEntity.class);
         when(roleEnv.getScope()).thenReturn(RoleScope.ENVIRONMENT);
         when(roleEnv.getName()).thenReturn("USER");
-        when(membershipService.getRoles(MembershipReferenceType.ENVIRONMENT, "DEFAULT", MembershipMemberType.USER, user.getId()))
+        when(membershipService.getRoles(MembershipReferenceType.ENVIRONMENT, ENVIRONMENT, MembershipMemberType.USER, user.getId()))
             .thenReturn(new HashSet<>(List.of(roleEnv)));
         RoleEntity roleOrg = mock(RoleEntity.class);
         when(roleOrg.getScope()).thenReturn(RoleScope.ORGANIZATION);
         when(roleOrg.getName()).thenReturn("USER");
-        when(membershipService.getRoles(MembershipReferenceType.ORGANIZATION, "DEFAULT", MembershipMemberType.USER, user.getId()))
+        when(membershipService.getRoles(MembershipReferenceType.ORGANIZATION, ORGANIZATION, MembershipMemberType.USER, user.getId()))
             .thenReturn(new HashSet<>(List.of(roleOrg)));
 
         // Come back to our method
 
-        userService.create(GraviteeContext.getExecutionContext(), newPreRegisterUserEntity);
+        userService.create(EXECUTION_CONTEXT, newPreRegisterUserEntity);
 
         verify(newPreRegisterUserEntity, times(1)).setSourceId(LAST_NAME);
-        verify(emailService, never()).sendAsyncEmailNotification(eq(GraviteeContext.getExecutionContext()), any());
-        verify(notifierService, never()).trigger(eq(GraviteeContext.getExecutionContext()), any(), any());
+        verify(emailService, never()).sendAsyncEmailNotification(eq(EXECUTION_CONTEXT), any());
+        verify(notifierService, never()).trigger(eq(EXECUTION_CONTEXT), any(), any());
     }
 
     @Test
@@ -553,6 +547,7 @@ public class UserServiceTest {
         when(user.getPassword()).thenReturn(PASSWORD);
         when(user.getCreatedAt()).thenReturn(date);
         when(user.getUpdatedAt()).thenReturn(date);
+        when(user.getOrganizationId()).thenReturn(ORGANIZATION);
         when(userRepository.create(any(User.class))).thenReturn(user);
         RoleEntity roleEnvironmentAdmin = mockRoleEntity(RoleScope.ENVIRONMENT, "ADMIN");
         RoleEntity roleOrganizationAdmin = mockRoleEntity(RoleScope.ORGANIZATION, "ADMIN");
@@ -561,21 +556,21 @@ public class UserServiceTest {
         RoleEntity roleEnv = mock(RoleEntity.class);
         when(roleEnv.getScope()).thenReturn(RoleScope.ENVIRONMENT);
         when(roleEnv.getName()).thenReturn("USER");
-        when(membershipService.getRoles(MembershipReferenceType.ENVIRONMENT, "DEFAULT", MembershipMemberType.USER, user.getId()))
+        when(membershipService.getRoles(MembershipReferenceType.ENVIRONMENT, ENVIRONMENT, MembershipMemberType.USER, user.getId()))
             .thenReturn(new HashSet<>(List.of(roleEnv)));
         RoleEntity roleOrg = mock(RoleEntity.class);
         when(roleOrg.getScope()).thenReturn(RoleScope.ORGANIZATION);
         when(roleOrg.getName()).thenReturn("USER");
-        when(membershipService.getRoles(MembershipReferenceType.ORGANIZATION, "DEFAULT", MembershipMemberType.USER, user.getId()))
+        when(membershipService.getRoles(MembershipReferenceType.ORGANIZATION, ORGANIZATION, MembershipMemberType.USER, user.getId()))
             .thenReturn(new HashSet<>(List.of(roleOrg)));
 
         // Come back to our method
 
-        userService.create(GraviteeContext.getExecutionContext(), newPreRegisterUserEntity);
+        userService.create(EXECUTION_CONTEXT, newPreRegisterUserEntity);
 
         verify(newPreRegisterUserEntity, times(1)).setSourceId(LAST_NAME);
-        verify(emailService, never()).sendAsyncEmailNotification(eq(GraviteeContext.getExecutionContext()), any());
-        verify(notifierService, never()).trigger(eq(GraviteeContext.getExecutionContext()), any(), any());
+        verify(emailService, never()).sendAsyncEmailNotification(eq(EXECUTION_CONTEXT), any());
+        verify(notifierService, never()).trigger(eq(EXECUTION_CONTEXT), any(), any());
     }
 
     protected void innerShouldCreate(Map<String, Object> customFields) throws TechnicalException {
@@ -598,27 +593,27 @@ public class UserServiceTest {
         when(user.getPassword()).thenReturn(PASSWORD);
         when(user.getCreatedAt()).thenReturn(date);
         when(user.getUpdatedAt()).thenReturn(date);
+        when(user.getOrganizationId()).thenReturn(ORGANIZATION);
         when(userRepository.create(any(User.class))).thenReturn(user);
         RoleEntity roleEnv = mock(RoleEntity.class);
         when(roleEnv.getScope()).thenReturn(RoleScope.ENVIRONMENT);
         when(roleEnv.getName()).thenReturn("USER");
-        when(membershipService.getRoles(MembershipReferenceType.ENVIRONMENT, "DEFAULT", MembershipMemberType.USER, user.getId()))
+        when(membershipService.getRoles(MembershipReferenceType.ENVIRONMENT, ENVIRONMENT, MembershipMemberType.USER, user.getId()))
             .thenReturn(new HashSet<>(Arrays.asList(roleEnv)));
         RoleEntity roleOrg = mock(RoleEntity.class);
         when(roleOrg.getScope()).thenReturn(RoleScope.ORGANIZATION);
         when(roleOrg.getName()).thenReturn("USER");
-        when(membershipService.getRoles(MembershipReferenceType.ORGANIZATION, "DEFAULT", MembershipMemberType.USER, user.getId()))
+        when(membershipService.getRoles(MembershipReferenceType.ORGANIZATION, ORGANIZATION, MembershipMemberType.USER, user.getId()))
             .thenReturn(new HashSet<>(Arrays.asList(roleOrg)));
 
         when(organizationService.findById(ORGANIZATION)).thenReturn(new OrganizationEntity());
         mockDefaultEnvironment();
 
         if (customFields != null) {
-            when(userMetadataService.create(eq(GraviteeContext.getExecutionContext()), any()))
-                .thenAnswer(x -> convertNewUserMetadataEntity(x.getArgument(1)));
+            when(userMetadataService.create(eq(EXECUTION_CONTEXT), any())).thenAnswer(x -> convertNewUserMetadataEntity(x.getArgument(1)));
         }
 
-        final UserEntity createdUserEntity = userService.create(GraviteeContext.getExecutionContext(), newUser, false);
+        final UserEntity createdUserEntity = userService.create(EXECUTION_CONTEXT, newUser, false);
 
         verify(userRepository)
             .create(
@@ -644,7 +639,7 @@ public class UserServiceTest {
         assertEquals(date, createdUserEntity.getUpdatedAt());
 
         if (customFields != null) {
-            verify(userMetadataService, times(2)).create(eq(GraviteeContext.getExecutionContext()), any());
+            verify(userMetadataService, times(2)).create(eq(EXECUTION_CONTEXT), any());
             assertFalse(createdUserEntity.getCustomFields().isEmpty());
 
             assertEquals(customFields.size(), createdUserEntity.getCustomFields().size());
@@ -699,7 +694,7 @@ public class UserServiceTest {
         String UPDATED_FIRST_NAME = FIRST_NAME + "updated";
         when(updateUser.getFirstname()).thenReturn(UPDATED_FIRST_NAME);
         when(updateUser.getLastname()).thenReturn(UPDATED_LAST_NAME);
-        userService.update(GraviteeContext.getExecutionContext(), user.getId(), updateUser);
+        userService.update(EXECUTION_CONTEXT, user.getId(), updateUser);
 
         verify(userRepository)
             .update(
@@ -747,7 +742,7 @@ public class UserServiceTest {
         String UPDATED_FIRST_NAME = FIRST_NAME + "updated";
         when(updateUser.getFirstname()).thenReturn(UPDATED_FIRST_NAME);
         when(updateUser.getLastname()).thenReturn(UPDATED_LAST_NAME);
-        userService.update(GraviteeContext.getExecutionContext(), user.getId(), updateUser);
+        userService.update(EXECUTION_CONTEXT, user.getId(), updateUser);
 
         verify(userRepository)
             .update(
@@ -785,7 +780,7 @@ public class UserServiceTest {
         String UPDATED_FIRST_NAME = FIRST_NAME + "updated";
         when(updateUser.getFirstname()).thenReturn(UPDATED_FIRST_NAME);
         when(updateUser.getLastname()).thenReturn(UPDATED_LAST_NAME);
-        userService.update(GraviteeContext.getExecutionContext(), user.getId(), updateUser);
+        userService.update(EXECUTION_CONTEXT, user.getId(), updateUser);
 
         verify(userRepository, never()).update(any());
     }
@@ -794,7 +789,7 @@ public class UserServiceTest {
     public void shouldNotCreateBecauseOrganizationDoesNotExist() throws TechnicalException {
         when(organizationService.findById(ORGANIZATION)).thenThrow(OrganizationNotFoundException.class);
 
-        userService.create(GraviteeContext.getExecutionContext(), newUser, false);
+        userService.create(EXECUTION_CONTEXT, newUser, false);
 
         verify(userRepository, never()).create(any());
     }
@@ -804,7 +799,7 @@ public class UserServiceTest {
         when(userRepository.findBySource(nullable(String.class), nullable(String.class), nullable(String.class)))
             .thenReturn(of(new User()));
 
-        userService.create(GraviteeContext.getExecutionContext(), newUser, false);
+        userService.create(EXECUTION_CONTEXT, newUser, false);
 
         verify(userRepository, never()).create(any());
     }
@@ -813,7 +808,7 @@ public class UserServiceTest {
     public void shouldNotCreateBecauseTechnicalException() throws TechnicalException {
         when(userRepository.create(any(User.class))).thenThrow(TechnicalException.class);
 
-        userService.create(GraviteeContext.getExecutionContext(), newUser, false);
+        userService.create(EXECUTION_CONTEXT, newUser, false);
 
         verify(userRepository, never()).create(any());
     }
@@ -822,7 +817,7 @@ public class UserServiceTest {
     public void shouldNotConnectBecauseNotExists() throws TechnicalException {
         when(userRepository.findById(USER_NAME)).thenReturn(Optional.empty());
 
-        userService.connect(GraviteeContext.getExecutionContext(), USER_NAME);
+        userService.connect(EXECUTION_CONTEXT, USER_NAME);
 
         verify(userRepository, never()).create(any());
     }
@@ -838,15 +833,14 @@ public class UserServiceTest {
         environment2.setId("envId2");
         EnvironmentEntity environment3 = new EnvironmentEntity();
         environment3.setId("envId3");
-        when(environmentService.findByUser(eq(GraviteeContext.getCurrentOrganization()), any()))
-            .thenReturn(Arrays.asList(environment1, environment2, environment3));
+        when(environmentService.findByUser(eq(ORGANIZATION), any())).thenReturn(Arrays.asList(environment1, environment2, environment3));
 
         ApplicationListItem defaultApp = new ApplicationListItem();
         defaultApp.setName("Default application");
         defaultApp.setDescription("My default application");
         defaultApp.setType(ApplicationType.SIMPLE.name());
 
-        userService.connect(GraviteeContext.getExecutionContext(), USER_NAME);
+        userService.connect(EXECUTION_CONTEXT, USER_NAME);
 
         verify(applicationService, times(1)).create(argThat(context -> context.getEnvironmentId().equals("envId2")), any(), eq(USER_NAME));
         verify(applicationService, times(1)).create(argThat(context -> context.getEnvironmentId().equals("envId3")), any(), eq(USER_NAME));
@@ -858,9 +852,9 @@ public class UserServiceTest {
         when(user.getLastConnectionAt()).thenReturn(null);
         when(userRepository.findById(USER_NAME)).thenReturn(of(user));
 
-        userService.connect(GraviteeContext.getExecutionContext(), USER_NAME);
+        userService.connect(EXECUTION_CONTEXT, USER_NAME);
 
-        verify(applicationService, never()).create(eq(GraviteeContext.getExecutionContext()), any(), eq(USER_NAME));
+        verify(applicationService, never()).create(eq(EXECUTION_CONTEXT), any(), eq(USER_NAME));
     }
 
     @Test
@@ -868,9 +862,9 @@ public class UserServiceTest {
         when(user.getLastConnectionAt()).thenReturn(new Date());
         when(userRepository.findById(USER_NAME)).thenReturn(of(user));
 
-        userService.connect(GraviteeContext.getExecutionContext(), USER_NAME);
+        userService.connect(EXECUTION_CONTEXT, USER_NAME);
 
-        verify(applicationService, never()).create(eq(GraviteeContext.getExecutionContext()), any(), eq(USER_NAME));
+        verify(applicationService, never()).create(eq(EXECUTION_CONTEXT), any(), eq(USER_NAME));
     }
 
     @Test(expected = UserRegistrationUnavailableException.class)
@@ -880,16 +874,16 @@ public class UserServiceTest {
         RegisterUserEntity userEntity = new RegisterUserEntity();
         userEntity.setToken(createJWT(System.currentTimeMillis() / 1000 + 100));
 
-        userService.finalizeRegistration(GraviteeContext.getExecutionContext(), userEntity);
+        userService.finalizeRegistration(EXECUTION_CONTEXT, userEntity);
     }
 
     @Test(expected = UserNotFoundException.class)
     public void createNewRegistrationUserThatIsNotCreatedYet() throws TechnicalException {
         when(
             mockParameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
+                EXECUTION_CONTEXT,
                 Key.PORTAL_USERCREATION_ENABLED,
-                "DEFAULT",
+                ENVIRONMENT,
                 ParameterReferenceType.ENVIRONMENT
             )
         )
@@ -901,7 +895,7 @@ public class UserServiceTest {
         userEntity.setToken(createJWT(System.currentTimeMillis() / 1000 + 100));
         userEntity.setPassword(PASSWORD);
 
-        userService.finalizeRegistration(GraviteeContext.getExecutionContext(), userEntity);
+        userService.finalizeRegistration(EXECUTION_CONTEXT, userEntity);
     }
 
     @Test(expected = UserStateConflictException.class)
@@ -912,7 +906,7 @@ public class UserServiceTest {
         userEntity.setToken(createJWT(System.currentTimeMillis() / 1000 + 100, RESET_PASSWORD.name()));
         userEntity.setPassword(PASSWORD);
 
-        userService.finalizeRegistration(GraviteeContext.getExecutionContext(), userEntity);
+        userService.finalizeRegistration(EXECUTION_CONTEXT, userEntity);
     }
 
     @Test
@@ -932,12 +926,12 @@ public class UserServiceTest {
         userEntity.setToken(createJWT(System.currentTimeMillis() / 1000 + 100, RESET_PASSWORD.name()));
         userEntity.setPassword(PASSWORD);
 
-        userService.finalizeResetPassword(GraviteeContext.getExecutionContext(), userEntity);
+        userService.finalizeResetPassword(EXECUTION_CONTEXT, userEntity);
 
         verify(auditService)
             .createOrganizationAuditLog(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(GraviteeContext.getCurrentOrganization()),
+                eq(EXECUTION_CONTEXT),
+                eq(ORGANIZATION),
                 anyMap(),
                 argThat(evt -> evt.equals(User.AuditEvent.PASSWORD_CHANGED)),
                 any(),
@@ -961,7 +955,7 @@ public class UserServiceTest {
         userEntity.setToken(createJWT(System.currentTimeMillis() / 1000 + 100, RESET_PASSWORD.name()));
         userEntity.setPassword(PASSWORD);
 
-        userService.finalizeResetPassword(GraviteeContext.getExecutionContext(), userEntity);
+        userService.finalizeResetPassword(EXECUTION_CONTEXT, userEntity);
     }
 
     @Test(expected = UserStateConflictException.class)
@@ -972,7 +966,7 @@ public class UserServiceTest {
         userEntity.setToken(createJWT(System.currentTimeMillis() / 1000 + 100));
         userEntity.setPassword(PASSWORD);
 
-        userService.finalizeResetPassword(GraviteeContext.getExecutionContext(), userEntity);
+        userService.finalizeResetPassword(EXECUTION_CONTEXT, userEntity);
     }
 
     @Test(expected = PasswordFormatInvalidException.class)
@@ -980,9 +974,9 @@ public class UserServiceTest {
         when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
         when(
             mockParameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
+                EXECUTION_CONTEXT,
                 Key.PORTAL_USERCREATION_ENABLED,
-                "DEFAULT",
+                ENVIRONMENT,
                 ParameterReferenceType.ENVIRONMENT
             )
         )
@@ -992,16 +986,16 @@ public class UserServiceTest {
         userEntity.setToken(createJWT(System.currentTimeMillis() / 1000 + 100));
         userEntity.setPassword(PASSWORD);
 
-        userService.finalizeRegistration(GraviteeContext.getExecutionContext(), userEntity);
+        userService.finalizeRegistration(EXECUTION_CONTEXT, userEntity);
     }
 
     @Test
     public void createAlreadyPreRegisteredUser() throws TechnicalException {
         when(
             mockParameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
+                EXECUTION_CONTEXT,
                 Key.PORTAL_USERCREATION_ENABLED,
-                "DEFAULT",
+                ENVIRONMENT,
                 ParameterReferenceType.ENVIRONMENT
             )
         )
@@ -1014,6 +1008,7 @@ public class UserServiceTest {
         user.setEmail(EMAIL);
         user.setFirstname(FIRST_NAME);
         user.setLastname(LAST_NAME);
+        user.setOrganizationId(ORGANIZATION);
         when(userRepository.findById(USER_NAME)).thenReturn(Optional.of(user));
         when(userRepository.update(any(User.class))).thenReturn(user);
 
@@ -1021,7 +1016,7 @@ public class UserServiceTest {
         userEntity.setToken(createJWT(System.currentTimeMillis() / 1000 + 100));
         userEntity.setPassword(PASSWORD);
 
-        userService.finalizeRegistration(GraviteeContext.getExecutionContext(), userEntity);
+        userService.finalizeRegistration(EXECUTION_CONTEXT, userEntity);
 
         verify(userRepository)
             .update(
@@ -1044,7 +1039,7 @@ public class UserServiceTest {
 
         verify(userRepository, never()).findBySource(USER_SOURCE, USER_NAME, ORGANIZATION);
 
-        userService.finalizeRegistration(GraviteeContext.getExecutionContext(), userEntity);
+        userService.finalizeRegistration(EXECUTION_CONTEXT, userEntity);
     }
 
     @Test
@@ -1056,12 +1051,7 @@ public class UserServiceTest {
         when(user.getSource()).thenReturn("gravitee");
         when(userRepository.findById(USER_NAME)).thenReturn(of(user));
 
-        when(
-            auditService.search(
-                eq(GraviteeContext.getExecutionContext()),
-                argThat(arg -> arg.getEvents().contains(User.AuditEvent.PASSWORD_RESET.name()))
-            )
-        )
+        when(auditService.search(eq(EXECUTION_CONTEXT), argThat(arg -> arg.getEvents().contains(User.AuditEvent.PASSWORD_RESET.name()))))
             .thenReturn(mock(MetadataPage.class));
 
         SecurityContextHolder.setContext(
@@ -1076,11 +1066,11 @@ public class UserServiceTest {
             }
         );
 
-        userService.resetPassword(GraviteeContext.getExecutionContext(), USER_NAME);
+        userService.resetPassword(EXECUTION_CONTEXT, USER_NAME);
 
         verify(user, never()).setPassword(null);
         verify(userRepository, never()).update(user);
-        verify(emailService).sendAsyncEmailNotification(eq(GraviteeContext.getExecutionContext()), any());
+        verify(emailService).sendAsyncEmailNotification(eq(EXECUTION_CONTEXT), any());
     }
 
     @Test
@@ -1096,12 +1086,7 @@ public class UserServiceTest {
         AuditEntity entity1 = new AuditEntity();
         entity1.setProperties(Collections.singletonMap("USER", "unknown"));
         when(mdPage.getContent()).thenReturn(Arrays.asList(entity1));
-        when(
-            auditService.search(
-                eq(GraviteeContext.getExecutionContext()),
-                argThat(arg -> arg.getEvents().contains(User.AuditEvent.PASSWORD_RESET.name()))
-            )
-        )
+        when(auditService.search(eq(EXECUTION_CONTEXT), argThat(arg -> arg.getEvents().contains(User.AuditEvent.PASSWORD_RESET.name()))))
             .thenReturn(mdPage);
 
         SecurityContextHolder.setContext(
@@ -1116,11 +1101,11 @@ public class UserServiceTest {
             }
         );
 
-        userService.resetPassword(GraviteeContext.getExecutionContext(), USER_NAME);
+        userService.resetPassword(EXECUTION_CONTEXT, USER_NAME);
 
         verify(user, never()).setPassword(null);
         verify(userRepository, never()).update(user);
-        verify(emailService).sendAsyncEmailNotification(eq(GraviteeContext.getExecutionContext()), any());
+        verify(emailService).sendAsyncEmailNotification(eq(EXECUTION_CONTEXT), any());
     }
 
     @Test(expected = PasswordAlreadyResetException.class)
@@ -1133,12 +1118,7 @@ public class UserServiceTest {
         AuditEntity entity1 = new AuditEntity();
         entity1.setProperties(Collections.singletonMap("USER", USER_NAME));
         when(mdPage.getContent()).thenReturn(Arrays.asList(entity1));
-        when(
-            auditService.search(
-                eq(GraviteeContext.getExecutionContext()),
-                argThat(arg -> arg.getEvents().contains(User.AuditEvent.PASSWORD_RESET.name()))
-            )
-        )
+        when(auditService.search(eq(EXECUTION_CONTEXT), argThat(arg -> arg.getEvents().contains(User.AuditEvent.PASSWORD_RESET.name()))))
             .thenReturn(mdPage);
 
         SecurityContextHolder.setContext(
@@ -1153,23 +1133,23 @@ public class UserServiceTest {
             }
         );
 
-        userService.resetPassword(GraviteeContext.getExecutionContext(), USER_NAME);
+        userService.resetPassword(EXECUTION_CONTEXT, USER_NAME);
 
         verify(user, never()).setPassword(null);
         verify(userRepository, never()).update(user);
-        verify(emailService, never()).sendAsyncEmailNotification(eq(GraviteeContext.getExecutionContext()), any());
+        verify(emailService, never()).sendAsyncEmailNotification(eq(EXECUTION_CONTEXT), any());
     }
 
     @Test(expected = UserNotFoundException.class)
     public void shouldNotResetPasswordCauseUserNotFound() throws TechnicalException {
         when(userRepository.findById(USER_NAME)).thenReturn(empty());
-        userService.resetPassword(GraviteeContext.getExecutionContext(), USER_NAME);
+        userService.resetPassword(EXECUTION_CONTEXT, USER_NAME);
     }
 
     @Test(expected = UserNotFoundException.class)
     public void shouldFailWhileResettingPassword() throws TechnicalException {
         when(userRepository.findBySource(any(), any(), any())).thenReturn(Optional.empty());
-        userService.resetPasswordFromSourceId(GraviteeContext.getExecutionContext(), "my@email.com", "HTTP://MY-RESET-PAGE");
+        userService.resetPasswordFromSourceId(EXECUTION_CONTEXT, "my@email.com", "HTTP://MY-RESET-PAGE");
     }
 
     @Test(expected = UserNotActiveException.class)
@@ -1180,7 +1160,7 @@ public class UserServiceTest {
         user.setStatus(UserStatus.ARCHIVED);
         when(userRepository.findBySource(any(), any(), any())).thenReturn(Optional.of(user));
 
-        userService.resetPasswordFromSourceId(GraviteeContext.getExecutionContext(), "my@email.com", "HTTP://MY-RESET-PAGE");
+        userService.resetPasswordFromSourceId(EXECUTION_CONTEXT, "my@email.com", "HTTP://MY-RESET-PAGE");
     }
 
     @Test(expected = UserNotInternallyManagedException.class)
@@ -1192,7 +1172,7 @@ public class UserServiceTest {
         when(userRepository.findBySource(any(), any(), any())).thenReturn(Optional.of(user));
         when(userRepository.findById(any())).thenReturn(Optional.of(user));
 
-        userService.resetPasswordFromSourceId(GraviteeContext.getExecutionContext(), "my@email.com", "HTTP://MY-RESET-PAGE");
+        userService.resetPasswordFromSourceId(EXECUTION_CONTEXT, "my@email.com", "HTTP://MY-RESET-PAGE");
     }
 
     @Test(expected = UserNotInternallyManagedException.class)
@@ -1200,7 +1180,7 @@ public class UserServiceTest {
         when(user.getSource()).thenReturn("external");
         when(userRepository.findById(USER_NAME)).thenReturn(of(user));
 
-        userService.resetPassword(GraviteeContext.getExecutionContext(), USER_NAME);
+        userService.resetPassword(EXECUTION_CONTEXT, USER_NAME);
     }
 
     private String createJWT(long expirationSeconds, String action) {
@@ -1267,11 +1247,11 @@ public class UserServiceTest {
 
         when(userMetadataService.findAllByUserId(USER_ID)).thenReturn(Arrays.asList(existingField));
 
-        userService.update(GraviteeContext.getExecutionContext(), USER_ID, toUpdate);
+        userService.update(EXECUTION_CONTEXT, USER_ID, toUpdate);
 
         verify(userMetadataService)
             .update(
-                eq(GraviteeContext.getExecutionContext()),
+                eq(EXECUTION_CONTEXT),
                 argThat(entity ->
                     entity.getKey().equals(existingField.getKey()) &&
                     entity.getName().equals(existingField.getName()) &&
@@ -1282,7 +1262,7 @@ public class UserServiceTest {
 
         verify(userMetadataService)
             .create(
-                eq(GraviteeContext.getExecutionContext()),
+                eq(EXECUTION_CONTEXT),
                 argThat(entity ->
                     entity.getName().equals("fieldToCreate") &&
                     entity.getUserId().equals(existingField.getUserId()) &&
@@ -1295,7 +1275,7 @@ public class UserServiceTest {
     public void shouldNotDeleteIfAPIPO() throws TechnicalException {
         RoleEntity apiPoRole = new RoleEntity();
         apiPoRole.setId("po-role");
-        when(roleService.findPrimaryOwnerRoleByOrganization("DEFAULT", RoleScope.API)).thenReturn(apiPoRole);
+        when(roleService.findPrimaryOwnerRoleByOrganization(ORGANIZATION, RoleScope.API)).thenReturn(apiPoRole);
         when(
             membershipService.getMembershipsByMemberAndReferenceAndRole(
                 MembershipMemberType.USER,
@@ -1308,7 +1288,7 @@ public class UserServiceTest {
 
         RoleEntity appPoRole = new RoleEntity();
         appPoRole.setId("po-role");
-        when(roleService.findPrimaryOwnerRoleByOrganization("DEFAULT", RoleScope.APPLICATION)).thenReturn(appPoRole);
+        when(roleService.findPrimaryOwnerRoleByOrganization(ORGANIZATION, RoleScope.APPLICATION)).thenReturn(appPoRole);
         when(
             membershipService.getMembershipsByMemberAndReferenceAndRole(
                 MembershipMemberType.USER,
@@ -1320,14 +1300,13 @@ public class UserServiceTest {
             .thenReturn(Set.of());
 
         try {
-            userService.delete(GraviteeContext.getExecutionContext(), USER_NAME);
+            userService.delete(EXECUTION_CONTEXT, USER_NAME);
             fail("should throw StillPrimaryOwnerException");
         } catch (StillPrimaryOwnerException e) {
             //success
-            verify(membershipService, never())
-                .removeMemberMemberships(GraviteeContext.getExecutionContext(), MembershipMemberType.USER, USER_NAME);
+            verify(membershipService, never()).removeMemberMemberships(EXECUTION_CONTEXT, MembershipMemberType.USER, USER_NAME);
             verify(userRepository, never()).update(any());
-            verify(searchEngineService, never()).delete(eq(GraviteeContext.getExecutionContext()), any());
+            verify(searchEngineService, never()).delete(eq(EXECUTION_CONTEXT), any());
         }
     }
 
@@ -1335,7 +1314,7 @@ public class UserServiceTest {
     public void shouldNotDeleteIfApplicationPO() throws TechnicalException {
         RoleEntity apiPoRole = new RoleEntity();
         apiPoRole.setId("po-role");
-        when(roleService.findPrimaryOwnerRoleByOrganization("DEFAULT", RoleScope.API)).thenReturn(apiPoRole);
+        when(roleService.findPrimaryOwnerRoleByOrganization(ORGANIZATION, RoleScope.API)).thenReturn(apiPoRole);
         when(
             membershipService.getMembershipsByMemberAndReferenceAndRole(
                 MembershipMemberType.USER,
@@ -1348,7 +1327,7 @@ public class UserServiceTest {
 
         RoleEntity appPoRole = new RoleEntity();
         appPoRole.setId("po-role");
-        when(roleService.findPrimaryOwnerRoleByOrganization("DEFAULT", RoleScope.APPLICATION)).thenReturn(appPoRole);
+        when(roleService.findPrimaryOwnerRoleByOrganization(ORGANIZATION, RoleScope.APPLICATION)).thenReturn(appPoRole);
         when(
             membershipService.getMembershipsByMemberAndReferenceAndRole(
                 MembershipMemberType.USER,
@@ -1360,14 +1339,13 @@ public class UserServiceTest {
             .thenReturn(Set.of((new MembershipEntity())));
 
         try {
-            userService.delete(GraviteeContext.getExecutionContext(), USER_NAME);
+            userService.delete(EXECUTION_CONTEXT, USER_NAME);
             fail("should throw StillPrimaryOwnerException");
         } catch (StillPrimaryOwnerException e) {
             //success
-            verify(membershipService, never())
-                .removeMemberMemberships(GraviteeContext.getExecutionContext(), MembershipMemberType.USER, USER_NAME);
+            verify(membershipService, never()).removeMemberMemberships(EXECUTION_CONTEXT, MembershipMemberType.USER, USER_NAME);
             verify(userRepository, never()).update(any());
-            verify(searchEngineService, never()).delete(eq(GraviteeContext.getExecutionContext()), any());
+            verify(searchEngineService, never()).delete(eq(EXECUTION_CONTEXT), any());
         }
     }
 
@@ -1388,11 +1366,9 @@ public class UserServiceTest {
         user.setEmail(email);
         when(userRepository.findById(userId)).thenReturn(of(user));
 
-        ExecutionContext organizationContext = new ExecutionContext(GraviteeContext.getCurrentOrganization(), null);
-
         RoleEntity apiPoRole = new RoleEntity();
         apiPoRole.setId("po-role");
-        when(roleService.findPrimaryOwnerRoleByOrganization("DEFAULT", RoleScope.API)).thenReturn(apiPoRole);
+        when(roleService.findPrimaryOwnerRoleByOrganization(ORGANIZATION, RoleScope.API)).thenReturn(apiPoRole);
         when(
             membershipService.getMembershipsByMemberAndReferenceAndRole(
                 MembershipMemberType.USER,
@@ -1405,7 +1381,7 @@ public class UserServiceTest {
 
         RoleEntity appPoRole = new RoleEntity();
         appPoRole.setId("po-role");
-        when(roleService.findPrimaryOwnerRoleByOrganization("DEFAULT", RoleScope.APPLICATION)).thenReturn(appPoRole);
+        when(roleService.findPrimaryOwnerRoleByOrganization(ORGANIZATION, RoleScope.APPLICATION)).thenReturn(appPoRole);
         when(
             membershipService.getMembershipsByMemberAndReferenceAndRole(
                 MembershipMemberType.USER,
@@ -1416,7 +1392,7 @@ public class UserServiceTest {
         )
             .thenReturn(Set.of());
 
-        userService.delete(organizationContext, userId);
+        userService.delete(EXECUTION_CONTEXT, userId);
 
         verify(membershipService, times(1))
             .getMembershipsByMemberAndReferenceAndRole(MembershipMemberType.USER, userId, MembershipReferenceType.API, apiPoRole.getId());
@@ -1428,7 +1404,7 @@ public class UserServiceTest {
                 appPoRole.getId()
             );
 
-        verify(membershipService, times(1)).removeMemberMemberships(organizationContext, MembershipMemberType.USER, userId);
+        verify(membershipService, times(1)).removeMemberMemberships(EXECUTION_CONTEXT, MembershipMemberType.USER, userId);
         verify(userRepository, times(1))
             .update(
                 argThat(
@@ -1448,11 +1424,11 @@ public class UserServiceTest {
                     }
                 )
             );
-        verify(searchEngineService, times(1)).delete(eq(organizationContext), any());
+        verify(searchEngineService, times(1)).delete(eq(EXECUTION_CONTEXT), any());
         verify(portalNotificationService, times(1)).deleteAll(user.getId());
         verify(portalNotificationConfigService, times(1)).deleteByUser(user.getId());
         verify(genericNotificationConfigService, times(1)).deleteByUser(eq(user));
-        verify(tokenService, times(1)).revokeByUser(organizationContext, userId);
+        verify(tokenService, times(1)).revokeByUser(EXECUTION_CONTEXT, userId);
     }
 
     @Test
@@ -1460,7 +1436,7 @@ public class UserServiceTest {
         setField(userService, "anonymizeOnDelete", true);
 
         String userId = "userId";
-        String organizationId = "DEFAULT";
+        String organizationId = ORGANIZATION;
         String firstName = "first";
         String lastName = "last";
         String email = "email";
@@ -1479,7 +1455,7 @@ public class UserServiceTest {
 
         RoleEntity apiPoRole = new RoleEntity();
         apiPoRole.setId("po-role");
-        when(roleService.findPrimaryOwnerRoleByOrganization("DEFAULT", RoleScope.API)).thenReturn(apiPoRole);
+        when(roleService.findPrimaryOwnerRoleByOrganization(ORGANIZATION, RoleScope.API)).thenReturn(apiPoRole);
         when(
             membershipService.getMembershipsByMemberAndReferenceAndRole(
                 MembershipMemberType.USER,
@@ -1492,7 +1468,7 @@ public class UserServiceTest {
 
         RoleEntity appPoRole = new RoleEntity();
         appPoRole.setId("po-role");
-        when(roleService.findPrimaryOwnerRoleByOrganization("DEFAULT", RoleScope.APPLICATION)).thenReturn(appPoRole);
+        when(roleService.findPrimaryOwnerRoleByOrganization(ORGANIZATION, RoleScope.APPLICATION)).thenReturn(appPoRole);
         when(
             membershipService.getMembershipsByMemberAndReferenceAndRole(
                 MembershipMemberType.USER,
@@ -1503,9 +1479,7 @@ public class UserServiceTest {
         )
             .thenReturn(Set.of());
 
-        ExecutionContext organizationContext = new ExecutionContext(GraviteeContext.getCurrentOrganization(), null);
-
-        userService.delete(organizationContext, userId);
+        userService.delete(EXECUTION_CONTEXT, userId);
 
         verify(membershipService, times(1))
             .getMembershipsByMemberAndReferenceAndRole(MembershipMemberType.USER, userId, MembershipReferenceType.API, apiPoRole.getId());
@@ -1517,7 +1491,7 @@ public class UserServiceTest {
                 appPoRole.getId()
             );
 
-        verify(membershipService, times(1)).removeMemberMemberships(organizationContext, MembershipMemberType.USER, userId);
+        verify(membershipService, times(1)).removeMemberMemberships(EXECUTION_CONTEXT, MembershipMemberType.USER, userId);
         verify(userRepository, times(1))
             .update(
                 argThat(
@@ -1539,11 +1513,11 @@ public class UserServiceTest {
                     }
                 )
             );
-        verify(searchEngineService, times(1)).delete(eq(organizationContext), any());
+        verify(searchEngineService, times(1)).delete(eq(EXECUTION_CONTEXT), any());
         verify(portalNotificationService, times(1)).deleteAll(user.getId());
         verify(portalNotificationConfigService, times(1)).deleteByUser(user.getId());
         verify(genericNotificationConfigService, times(1)).deleteByUser(eq(user));
-        verify(tokenService, times(1)).revokeByUser(organizationContext, userId);
+        verify(tokenService, times(1)).revokeByUser(EXECUTION_CONTEXT, userId);
     }
 
     @Test(expected = EmailRequiredException.class)
@@ -1561,7 +1535,7 @@ public class UserServiceTest {
         when(identityProvider.isEmailRequired()).thenReturn(Boolean.TRUE);
 
         String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
-        userService.createOrUpdateUserFromSocialIdentityProvider(GraviteeContext.getExecutionContext(), identityProvider, userInfo);
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo);
     }
 
     @Test(expected = ExpressionEvaluationException.class)
@@ -1584,7 +1558,7 @@ public class UserServiceTest {
         when(identityProvider.getGroupMappings()).thenReturn(Arrays.asList(condition1, condition2, condition3));
 
         String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
-        userService.createOrUpdateUserFromSocialIdentityProvider(GraviteeContext.getExecutionContext(), identityProvider, userInfo);
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo);
     }
 
     @Test
@@ -1596,12 +1570,12 @@ public class UserServiceTest {
         User user = mockUser();
 
         when(userRepository.findBySource(null, user.getSourceId(), ORGANIZATION)).thenReturn(Optional.of(user));
-        when(userRepository.findById(user.getSourceId())).thenReturn(Optional.of(user));
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
         when(userRepository.update(user)).thenReturn(user);
 
         String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
 
-        userService.createOrUpdateUserFromSocialIdentityProvider(GraviteeContext.getExecutionContext(), identityProvider, userInfo);
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo);
         verify(userRepository, times(1)).update(refEq(user));
     }
 
@@ -1614,6 +1588,7 @@ public class UserServiceTest {
         user.setFirstname("Jane");
         user.setEmail("janedoe@example.com");
         user.setPicture("http://example.com/janedoe/me.jpg");
+        user.setOrganizationId(ORGANIZATION);
         return user;
     }
 
@@ -1628,7 +1603,7 @@ public class UserServiceTest {
 
         String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
 
-        userService.createOrUpdateUserFromSocialIdentityProvider(GraviteeContext.getExecutionContext(), identityProvider, userInfo);
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo);
         verify(userRepository, times(1)).create(any(User.class));
     }
 
@@ -1646,7 +1621,7 @@ public class UserServiceTest {
 
         String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
 
-        userService.createOrUpdateUserFromSocialIdentityProvider(GraviteeContext.getExecutionContext(), identityProvider, userInfo);
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo);
         verify(userRepository, times(1)).create(any(User.class));
     }
 
@@ -1663,12 +1638,12 @@ public class UserServiceTest {
         when(userRepository.findBySource("oauth2", "janedoe@example.com", ORGANIZATION)).thenReturn(Optional.empty());
 
         String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body_no_matching.json"), Charset.defaultCharset());
-        userService.createOrUpdateUserFromSocialIdentityProvider(GraviteeContext.getExecutionContext(), identityProvider, userInfo);
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo);
 
         //verify group creations
         verify(membershipService, never())
             .addRoleToMemberOnReference(
-                eq(GraviteeContext.getExecutionContext()),
+                eq(EXECUTION_CONTEXT),
                 any(MembershipService.MembershipReference.class),
                 any(MembershipService.MembershipMember.class),
                 any(MembershipService.MembershipRole.class)
@@ -1685,16 +1660,13 @@ public class UserServiceTest {
         User createdUser = mockUser();
         when(userRepository.create(any(User.class))).thenReturn(createdUser);
 
-        when(identityProvider.getId()).thenReturn("oauth2");
-        when(userRepository.findBySource("oauth2", "janedoe@example.com", ORGANIZATION)).thenReturn(Optional.empty());
+        when(identityProvider.getId()).thenReturn(createdUser.getSource());
+        when(userRepository.findBySource(createdUser.getSource(), createdUser.getSourceId(), ORGANIZATION)).thenReturn(Optional.empty());
 
         //mock group search and association
-        when(groupService.findById(GraviteeContext.getExecutionContext(), "Example group"))
-            .thenReturn(mockGroupEntity("group_id_1", "Example group"));
-        when(groupService.findById(GraviteeContext.getExecutionContext(), "soft user"))
-            .thenReturn(mockGroupEntity("group_id_2", "soft user"));
-        when(groupService.findById(GraviteeContext.getExecutionContext(), "Api consumer"))
-            .thenReturn(mockGroupEntity("group_id_4", "Api consumer"));
+        when(groupService.findById(EXECUTION_CONTEXT, "Example group")).thenReturn(mockGroupEntity("group_id_1", "Example group"));
+        when(groupService.findById(EXECUTION_CONTEXT, "soft user")).thenReturn(mockGroupEntity("group_id_2", "soft user"));
+        when(groupService.findById(EXECUTION_CONTEXT, "Api consumer")).thenReturn(mockGroupEntity("group_id_4", "Api consumer"));
 
         // mock role search
         RoleEntity roleOrganizationAdmin = mockRoleEntity(RoleScope.ORGANIZATION, "ADMIN");
@@ -1703,16 +1675,14 @@ public class UserServiceTest {
         RoleEntity roleApiUser = mockRoleEntity(RoleScope.API, "USER");
         RoleEntity roleApplicationAdmin = mockRoleEntity(RoleScope.APPLICATION, "ADMIN");
 
-        when(roleService.findByScopeAndName(RoleScope.ORGANIZATION, "ADMIN", GraviteeContext.getCurrentOrganization()))
-            .thenReturn(Optional.of(roleOrganizationAdmin));
-        when(roleService.findByScopeAndName(RoleScope.ORGANIZATION, "USER", GraviteeContext.getCurrentOrganization()))
-            .thenReturn(Optional.of(roleOrganizationUser));
-        when(roleService.findDefaultRoleByScopes(GraviteeContext.getCurrentOrganization(), RoleScope.API, RoleScope.APPLICATION))
+        when(roleService.findByScopeAndName(RoleScope.ORGANIZATION, "ADMIN", ORGANIZATION)).thenReturn(Optional.of(roleOrganizationAdmin));
+        when(roleService.findByScopeAndName(RoleScope.ORGANIZATION, "USER", ORGANIZATION)).thenReturn(Optional.of(roleOrganizationUser));
+        when(roleService.findDefaultRoleByScopes(ORGANIZATION, RoleScope.API, RoleScope.APPLICATION))
             .thenReturn(Arrays.asList(roleApiUser, roleApplicationAdmin));
 
         when(
             membershipService.updateRolesToMemberOnReferenceBySource(
-                eq(GraviteeContext.getExecutionContext()),
+                eq(EXECUTION_CONTEXT),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_1")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
                 argThat(roles ->
@@ -1726,7 +1696,7 @@ public class UserServiceTest {
 
         when(
             membershipService.updateRolesToMemberOnReferenceBySource(
-                eq(GraviteeContext.getExecutionContext()),
+                eq(EXECUTION_CONTEXT),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_2")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
                 argThat(roles ->
@@ -1740,7 +1710,7 @@ public class UserServiceTest {
 
         when(
             membershipService.updateRolesToMemberOnReferenceBySource(
-                eq(GraviteeContext.getExecutionContext()),
+                eq(EXECUTION_CONTEXT),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_4")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
                 argThat(roles ->
@@ -1754,8 +1724,8 @@ public class UserServiceTest {
 
         when(
             membershipService.updateRolesToMemberOnReferenceBySource(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(new MembershipService.MembershipReference(MembershipReferenceType.ORGANIZATION, "DEFAULT")),
+                eq(EXECUTION_CONTEXT),
+                eq(new MembershipService.MembershipReference(MembershipReferenceType.ORGANIZATION, ORGANIZATION)),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
                 argThat(roles ->
                     roles.contains(new MembershipService.MembershipRole(RoleScope.ORGANIZATION, "ADMIN")) &&
@@ -1767,12 +1737,12 @@ public class UserServiceTest {
             .thenReturn(Collections.singletonList(mockMemberEntity()));
 
         String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
-        userService.createOrUpdateUserFromSocialIdentityProvider(GraviteeContext.getExecutionContext(), identityProvider, userInfo);
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo);
 
         //verify group creations
         verify(membershipService, times(1))
             .updateRolesToMemberOnReferenceBySource(
-                eq(GraviteeContext.getExecutionContext()),
+                eq(EXECUTION_CONTEXT),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_1")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
                 argThat(roles ->
@@ -1784,7 +1754,7 @@ public class UserServiceTest {
 
         verify(membershipService, times(1))
             .updateRolesToMemberOnReferenceBySource(
-                eq(GraviteeContext.getExecutionContext()),
+                eq(EXECUTION_CONTEXT),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_2")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
                 argThat(roles ->
@@ -1796,7 +1766,7 @@ public class UserServiceTest {
 
         verify(membershipService, times(0))
             .updateRolesToMemberOnReferenceBySource(
-                eq(GraviteeContext.getExecutionContext()),
+                eq(EXECUTION_CONTEXT),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_3")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
                 argThat(roles ->
@@ -1808,7 +1778,7 @@ public class UserServiceTest {
 
         verify(membershipService, times(1))
             .updateRolesToMemberOnReferenceBySource(
-                eq(GraviteeContext.getExecutionContext()),
+                eq(EXECUTION_CONTEXT),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_4")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
                 argThat(roles ->
@@ -1820,8 +1790,8 @@ public class UserServiceTest {
 
         verify(membershipService, times(1))
             .updateRolesToMemberOnReferenceBySource(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(new MembershipService.MembershipReference(MembershipReferenceType.ORGANIZATION, "DEFAULT")),
+                eq(EXECUTION_CONTEXT),
+                eq(new MembershipService.MembershipReference(MembershipReferenceType.ORGANIZATION, ORGANIZATION)),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
                 argThat(roles ->
                     roles.contains(new MembershipService.MembershipRole(RoleScope.ORGANIZATION, "ADMIN")) &&
@@ -1845,12 +1815,9 @@ public class UserServiceTest {
         when(userRepository.findBySource("oauth2", "janedoe@example.com", ORGANIZATION)).thenReturn(Optional.empty());
 
         //mock group search and association
-        when(groupService.findById(GraviteeContext.getExecutionContext(), "Example group"))
-            .thenReturn(mockGroupEntity("group_id_1", "Example group"));
-        when(groupService.findById(GraviteeContext.getExecutionContext(), "soft user"))
-            .thenReturn(mockGroupEntity("group_id_2", "soft user"));
-        when(groupService.findById(GraviteeContext.getExecutionContext(), "Api consumer"))
-            .thenReturn(mockGroupEntity("group_id_4", "Api consumer"));
+        when(groupService.findById(EXECUTION_CONTEXT, "Example group")).thenReturn(mockGroupEntity("group_id_1", "Example group"));
+        when(groupService.findById(EXECUTION_CONTEXT, "soft user")).thenReturn(mockGroupEntity("group_id_2", "soft user"));
+        when(groupService.findById(EXECUTION_CONTEXT, "Api consumer")).thenReturn(mockGroupEntity("group_id_4", "Api consumer"));
 
         // mock role search
         RoleEntity roleOrganizationAdmin = mockRoleEntity(RoleScope.ORGANIZATION, "ADMIN");
@@ -1859,11 +1826,9 @@ public class UserServiceTest {
         RoleEntity roleApiUser = mockRoleEntity(RoleScope.API, "USER");
         RoleEntity roleApplicationAdmin = mockRoleEntity(RoleScope.APPLICATION, "ADMIN");
 
-        when(roleService.findByScopeAndName(RoleScope.ORGANIZATION, "ADMIN", GraviteeContext.getCurrentOrganization()))
-            .thenReturn(Optional.of(roleOrganizationAdmin));
-        when(roleService.findByScopeAndName(RoleScope.ORGANIZATION, "USER", GraviteeContext.getCurrentOrganization()))
-            .thenReturn(Optional.of(roleOrganizationUser));
-        when(roleService.findDefaultRoleByScopes(GraviteeContext.getCurrentOrganization(), RoleScope.API, RoleScope.APPLICATION))
+        when(roleService.findByScopeAndName(RoleScope.ORGANIZATION, "ADMIN", ORGANIZATION)).thenReturn(Optional.of(roleOrganizationAdmin));
+        when(roleService.findByScopeAndName(RoleScope.ORGANIZATION, "USER", ORGANIZATION)).thenReturn(Optional.of(roleOrganizationUser));
+        when(roleService.findDefaultRoleByScopes(ORGANIZATION, RoleScope.API, RoleScope.APPLICATION))
             .thenReturn(Arrays.asList(roleApiUser, roleApplicationAdmin));
 
         Membership membership = new Membership();
@@ -1883,7 +1848,7 @@ public class UserServiceTest {
 
         when(
             membershipService.updateRolesToMemberOnReferenceBySource(
-                eq(GraviteeContext.getExecutionContext()),
+                eq(EXECUTION_CONTEXT),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_1")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
                 argThat(roles ->
@@ -1897,7 +1862,7 @@ public class UserServiceTest {
 
         when(
             membershipService.updateRolesToMemberOnReferenceBySource(
-                eq(GraviteeContext.getExecutionContext()),
+                eq(EXECUTION_CONTEXT),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_2")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
                 argThat(roles ->
@@ -1911,7 +1876,7 @@ public class UserServiceTest {
 
         when(
             membershipService.updateRolesToMemberOnReferenceBySource(
-                eq(GraviteeContext.getExecutionContext()),
+                eq(EXECUTION_CONTEXT),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_4")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
                 argThat(roles ->
@@ -1925,8 +1890,8 @@ public class UserServiceTest {
 
         when(
             membershipService.updateRolesToMemberOnReferenceBySource(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(new MembershipService.MembershipReference(MembershipReferenceType.ORGANIZATION, "DEFAULT")),
+                eq(EXECUTION_CONTEXT),
+                eq(new MembershipService.MembershipReference(MembershipReferenceType.ORGANIZATION, ORGANIZATION)),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
                 argThat(roles ->
                     roles.contains(new MembershipService.MembershipRole(RoleScope.ORGANIZATION, "ADMIN")) &&
@@ -1938,12 +1903,12 @@ public class UserServiceTest {
             .thenReturn(Collections.singletonList(mockMemberEntity()));
 
         String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
-        userService.createOrUpdateUserFromSocialIdentityProvider(GraviteeContext.getExecutionContext(), identityProvider, userInfo);
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo);
 
         //verify group creations
         verify(membershipService, times(1))
             .updateRolesToMemberOnReferenceBySource(
-                eq(GraviteeContext.getExecutionContext()),
+                eq(EXECUTION_CONTEXT),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_1")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
                 argThat(roles ->
@@ -1955,7 +1920,7 @@ public class UserServiceTest {
 
         verify(membershipService, times(1))
             .updateRolesToMemberOnReferenceBySource(
-                eq(GraviteeContext.getExecutionContext()),
+                eq(EXECUTION_CONTEXT),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_2")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
                 argThat(roles ->
@@ -1967,7 +1932,7 @@ public class UserServiceTest {
 
         verify(membershipService, times(0))
             .updateRolesToMemberOnReferenceBySource(
-                eq(GraviteeContext.getExecutionContext()),
+                eq(EXECUTION_CONTEXT),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_3")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
                 argThat(roles ->
@@ -1979,7 +1944,7 @@ public class UserServiceTest {
 
         verify(membershipService, times(1))
             .updateRolesToMemberOnReferenceBySource(
-                eq(GraviteeContext.getExecutionContext()),
+                eq(EXECUTION_CONTEXT),
                 eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_4")),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
                 argThat(roles ->
@@ -1991,8 +1956,8 @@ public class UserServiceTest {
 
         verify(membershipService, times(1))
             .updateRolesToMemberOnReferenceBySource(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(new MembershipService.MembershipReference(MembershipReferenceType.ORGANIZATION, "DEFAULT")),
+                eq(EXECUTION_CONTEXT),
+                eq(new MembershipService.MembershipReference(MembershipReferenceType.ORGANIZATION, ORGANIZATION)),
                 eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
                 argThat(roles ->
                     roles.contains(new MembershipService.MembershipRole(RoleScope.ORGANIZATION, "ADMIN")) &&
@@ -2003,7 +1968,7 @@ public class UserServiceTest {
 
         verify(membershipService, times(1))
             .deleteReferenceMemberBySource(
-                eq(GraviteeContext.getExecutionContext()),
+                eq(EXECUTION_CONTEXT),
                 eq(MembershipReferenceType.GROUP),
                 eq("membershipId"),
                 eq(MembershipMemberType.USER),
@@ -2021,23 +1986,23 @@ public class UserServiceTest {
         User createdUser = mockUser();
         when(userRepository.create(any(User.class))).thenReturn(createdUser);
 
-        when(identityProvider.getId()).thenReturn("oauth2");
-        when(userRepository.findBySource("oauth2", "janedoe@example.com", ORGANIZATION)).thenReturn(Optional.empty());
+        when(identityProvider.getId()).thenReturn(createdUser.getSource());
+        when(userRepository.findBySource(createdUser.getSource(), createdUser.getSourceId(), ORGANIZATION)).thenReturn(Optional.empty());
 
         String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
-        userService.createOrUpdateUserFromSocialIdentityProvider(GraviteeContext.getExecutionContext(), identityProvider, userInfo);
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo);
 
         //verify group creations
         verify(membershipService, never())
             .addRoleToMemberOnReference(
-                eq(GraviteeContext.getExecutionContext()),
+                eq(EXECUTION_CONTEXT),
                 any(MembershipService.MembershipReference.class),
                 any(MembershipService.MembershipMember.class),
                 any(MembershipService.MembershipRole.class)
             );
 
-        verify(roleService, times(1)).findDefaultRoleByScopes(GraviteeContext.getCurrentOrganization(), RoleScope.ORGANIZATION);
-        verify(roleService, times(1)).findDefaultRoleByScopes(GraviteeContext.getCurrentOrganization(), RoleScope.ENVIRONMENT);
+        verify(roleService, times(1)).findDefaultRoleByScopes(ORGANIZATION, RoleScope.ORGANIZATION);
+        verify(roleService, times(1)).findDefaultRoleByScopes(ORGANIZATION, RoleScope.ENVIRONMENT);
     }
 
     private void mockDefaultEnvironment() {
@@ -2051,8 +2016,8 @@ public class UserServiceTest {
         when(identityProvider.getUserProfileMapping()).thenReturn(userProfileMapping);
 
         EnvironmentEntity defaultEnv = new EnvironmentEntity();
-        defaultEnv.setId("DEFAULT");
-        when(environmentService.findByOrganization(ORGANIZATION)).thenReturn(Arrays.asList(defaultEnv));
+        defaultEnv.setId(ENVIRONMENT);
+        when(environmentService.findByOrganization(ORGANIZATION)).thenReturn(List.of(defaultEnv));
     }
 
     private void mockGroupsMapping() {
@@ -2092,7 +2057,7 @@ public class UserServiceTest {
         RoleMappingEntity role3 = new RoleMappingEntity();
         role3.setCondition("{#jsonPath(#profile, '$.job_id') != 'API_BREAKER'}");
         role3.setOrganizations(Collections.singletonList("USER"));
-        role3.setEnvironments(Collections.singletonMap("DEFAULT", Collections.singletonList("USER")));
+        role3.setEnvironments(Collections.singletonMap(ENVIRONMENT, Collections.singletonList("USER")));
         final List<RoleMappingEntity> roleMappingList = Arrays.asList(role1, role2, role3);
         return roleMappingList;
     }

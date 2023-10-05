@@ -65,7 +65,9 @@ public class V4ApiServiceCockpitTest {
         when(apiStateService.deploy(any(), any(), any(), any())).thenReturn(startedApi);
         when(apiServiceV4.update(any(), any(), any(), any())).thenReturn(startedApi);
 
-        TestObserver<ApiEntity> observer = service.createPublishApi(userId, validApiDefinition()).test();
+        TestObserver<ApiEntity> observer = service
+            .createPublishApi("organization-id", "environment-id", userId, validApiDefinition())
+            .test();
         observer.await();
 
         observer.assertValue(Objects::nonNull);
@@ -78,7 +80,10 @@ public class V4ApiServiceCockpitTest {
     @Test
     public void should_throw_exception() {
         final String userId = "any-user-id";
-        assertThrows(JsonProcessingException.class, () -> service.createPublishApi(userId, "{invalid-json}"));
+        assertThrows(
+            JsonProcessingException.class,
+            () -> service.createPublishApi("organization-id", "environment-id", userId, "{invalid-json}")
+        );
     }
 
     private String validApiDefinition() {

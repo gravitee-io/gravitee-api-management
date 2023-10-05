@@ -70,6 +70,7 @@ import org.junit.Test;
  */
 public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
 
+    private static final String ORGANIZATION_ID = "organization-id";
     private static final String USER_SOURCE_OAUTH2 = "oauth2";
 
     @Rule
@@ -443,7 +444,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         mockUserInfo(okJson(userInfoBody));
 
         //mock DB find user by name
-        when(userService.findBySource(GraviteeContext.getExecutionContext(), USER_SOURCE_OAUTH2, "janedoe@example.com", false))
+        when(userService.findBySource(ORGANIZATION_ID, USER_SOURCE_OAUTH2, "janedoe@example.com", false))
             .thenThrow(new UserNotFoundException("janedoe@example.com"));
 
         //mock create user
@@ -462,7 +463,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         RoleEntity roleApiUser = mockRoleEntity(io.gravitee.rest.api.model.permissions.RoleScope.API, "USER");
         RoleEntity roleApplicationAdmin = mockRoleEntity(io.gravitee.rest.api.model.permissions.RoleScope.APPLICATION, "ADMIN");
 
-        when(roleService.findDefaultRoleByScopes(GraviteeContext.getCurrentOrganization(), RoleScope.API, RoleScope.APPLICATION))
+        when(roleService.findDefaultRoleByScopes(ORGANIZATION_ID, RoleScope.API, RoleScope.APPLICATION))
             .thenReturn(Arrays.asList(roleApiUser, roleApplicationAdmin));
 
         //mock DB update user picture
@@ -506,7 +507,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         mockUserInfo(okJson(userInfo));
 
         //mock DB find user by name
-        when(userService.findBySource(GraviteeContext.getExecutionContext(), USER_SOURCE_OAUTH2, "janedoe@example.com", false))
+        when(userService.findBySource(ORGANIZATION_ID, USER_SOURCE_OAUTH2, "janedoe@example.com", false))
             .thenThrow(new UserNotFoundException("janedoe@example.com"));
 
         //mock create user
@@ -563,7 +564,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         mockUserInfo(okJson(userInfo));
 
         //mock DB find user by name
-        when(userService.findBySource(GraviteeContext.getExecutionContext(), USER_SOURCE_OAUTH2, "janedoe@example.com", false))
+        when(userService.findBySource(ORGANIZATION_ID, USER_SOURCE_OAUTH2, "janedoe@example.com", false))
             .thenThrow(new UserNotFoundException("janedoe@example.com"));
 
         //mock group search and association

@@ -534,7 +534,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         ) {
             try {
                 UserEntity userEntity = userService.findBySource(
-                    executionContext,
+                    executionContext.getOrganizationId(),
                     memberToImport.getSource(),
                     memberToImport.getSourceId(),
                     false
@@ -576,7 +576,12 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             !(currentPo.getSource().equals(futurePo.getSource()) && currentPo.getSourceId().equals(futurePo.getSourceId()))
         ) {
             try {
-                UserEntity userEntity = userService.findBySource(executionContext, futurePo.getSource(), futurePo.getSourceId(), false);
+                UserEntity userEntity = userService.findBySource(
+                    executionContext.getOrganizationId(),
+                    futurePo.getSource(),
+                    futurePo.getSourceId(),
+                    false
+                );
                 List<RoleEntity> roleEntity = null;
                 if (roleUsedInTransfert != null && !roleUsedInTransfert.isEmpty()) {
                     roleEntity = roleUsedInTransfert.stream().map(roleService::findById).collect(toList());

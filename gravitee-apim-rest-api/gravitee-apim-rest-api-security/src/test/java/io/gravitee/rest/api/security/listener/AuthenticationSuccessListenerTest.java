@@ -92,7 +92,7 @@ public class AuthenticationSuccessListenerTest {
         when(userEntity.getOrganizationId()).thenReturn(ORG_ID);
         when(
             userServiceMock.findBySource(
-                GraviteeContext.getExecutionContext(),
+                GraviteeContext.getCurrentOrganization(),
                 userDetailsMock.getSource(),
                 userDetailsMock.getSourceId(),
                 false
@@ -103,7 +103,7 @@ public class AuthenticationSuccessListenerTest {
         listener.onApplicationEvent(eventMock);
 
         verify(userServiceMock, times(1))
-            .findBySource(GraviteeContext.getExecutionContext(), USERSOURCE, userDetailsMock.getSourceId(), false);
+            .findBySource(GraviteeContext.getCurrentOrganization(), USERSOURCE, userDetailsMock.getSourceId(), false);
         verify(userServiceMock, never()).create(eq(GraviteeContext.getExecutionContext()), any(NewExternalUserEntity.class), anyBoolean());
         verify(userServiceMock, times(1)).connect(GraviteeContext.getExecutionContext(), userDetailsMock.getUsername());
         verify(userDetailsMock, times(1)).setOrganizationId(ORG_ID);
@@ -119,7 +119,7 @@ public class AuthenticationSuccessListenerTest {
         when(authenticationMock.getAuthorities()).thenReturn(null);
         when(
             userServiceMock.findBySource(
-                GraviteeContext.getExecutionContext(),
+                GraviteeContext.getCurrentOrganization(),
                 userDetailsMock.getSource(),
                 userDetailsMock.getSourceId(),
                 false
@@ -132,7 +132,7 @@ public class AuthenticationSuccessListenerTest {
         listener.onApplicationEvent(eventMock);
 
         verify(userServiceMock, times(1))
-            .findBySource(GraviteeContext.getExecutionContext(), USERSOURCE, userDetailsMock.getSourceId(), false);
+            .findBySource(GraviteeContext.getCurrentOrganization(), USERSOURCE, userDetailsMock.getSourceId(), false);
         verify(userServiceMock, times(1)).create(eq(GraviteeContext.getExecutionContext()), any(NewExternalUserEntity.class), eq(true));
         verify(userServiceMock, times(1)).connect(GraviteeContext.getExecutionContext(), userDetailsMock.getUsername());
         verify(userDetailsMock, times(1)).setOrganizationId(ORG_ID);
@@ -146,7 +146,7 @@ public class AuthenticationSuccessListenerTest {
         when(authenticationMock.getAuthorities()).thenReturn(authorities);
         when(userDetailsMock.getSource()).thenReturn(USERSOURCE);
         when(userDetailsMock.getSourceId()).thenReturn(USERSOURCEID);
-        when(userServiceMock.findBySource(GraviteeContext.getExecutionContext(), USERSOURCE, userDetailsMock.getSourceId(), false))
+        when(userServiceMock.findBySource(GraviteeContext.getCurrentOrganization(), USERSOURCE, userDetailsMock.getSourceId(), false))
             .thenThrow(UserNotFoundException.class);
         RoleEntity roleEntity = mock(RoleEntity.class);
         when(roleEntity.getName()).thenReturn("ROLE");
@@ -161,7 +161,7 @@ public class AuthenticationSuccessListenerTest {
         listener.onApplicationEvent(eventMock);
 
         verify(userServiceMock, times(1))
-            .findBySource(GraviteeContext.getExecutionContext(), USERSOURCE, userDetailsMock.getSourceId(), false);
+            .findBySource(GraviteeContext.getCurrentOrganization(), USERSOURCE, userDetailsMock.getSourceId(), false);
         verify(userServiceMock, times(1)).create(eq(GraviteeContext.getExecutionContext()), any(NewExternalUserEntity.class), eq(false));
         verify(membershipServiceMock, times(1))
             .addRoleToMemberOnReference(
@@ -185,7 +185,7 @@ public class AuthenticationSuccessListenerTest {
         when(authenticationMock.getAuthorities()).thenReturn(authorities);
         when(userDetailsMock.getSource()).thenReturn(USERSOURCE);
         when(userDetailsMock.getSourceId()).thenReturn(USERSOURCEID);
-        when(userServiceMock.findBySource(GraviteeContext.getExecutionContext(), USERSOURCE, userDetailsMock.getSourceId(), false))
+        when(userServiceMock.findBySource(GraviteeContext.getCurrentOrganization(), USERSOURCE, userDetailsMock.getSourceId(), false))
             .thenThrow(UserNotFoundException.class);
         RoleEntity roleEntity1 = mock(RoleEntity.class);
         when(roleEntity1.getName()).thenReturn("ROLE1");
@@ -205,7 +205,7 @@ public class AuthenticationSuccessListenerTest {
         listener.onApplicationEvent(eventMock);
 
         verify(userServiceMock, times(1))
-            .findBySource(GraviteeContext.getExecutionContext(), USERSOURCE, userDetailsMock.getSourceId(), false);
+            .findBySource(GraviteeContext.getCurrentOrganization(), USERSOURCE, userDetailsMock.getSourceId(), false);
         verify(userServiceMock, times(1)).create(eq(GraviteeContext.getExecutionContext()), any(NewExternalUserEntity.class), eq(false));
         verify(membershipServiceMock, times(1))
             .addRoleToMemberOnReference(
@@ -226,7 +226,7 @@ public class AuthenticationSuccessListenerTest {
         when(authenticationMock.getAuthorities()).thenReturn(authorities);
         when(userDetailsMock.getSource()).thenReturn(USERSOURCE);
         when(userDetailsMock.getSourceId()).thenReturn(USERSOURCEID);
-        when(userServiceMock.findBySource(GraviteeContext.getExecutionContext(), USERSOURCE, userDetailsMock.getSourceId(), false))
+        when(userServiceMock.findBySource(GraviteeContext.getCurrentOrganization(), USERSOURCE, userDetailsMock.getSourceId(), false))
             .thenThrow(UserNotFoundException.class);
         RoleEntity roleEntity1 = mock(RoleEntity.class);
         when(roleEntity1.getName()).thenReturn("ROLE");
@@ -246,7 +246,7 @@ public class AuthenticationSuccessListenerTest {
         listener.onApplicationEvent(eventMock);
 
         verify(userServiceMock, times(1))
-            .findBySource(GraviteeContext.getExecutionContext(), USERSOURCE, userDetailsMock.getSourceId(), false);
+            .findBySource(GraviteeContext.getCurrentOrganization(), USERSOURCE, userDetailsMock.getSourceId(), false);
         verify(userServiceMock, times(1)).create(eq(GraviteeContext.getExecutionContext()), any(NewExternalUserEntity.class), eq(false));
         verify(membershipServiceMock, times(1))
             .addRoleToMemberOnReference(
@@ -273,7 +273,7 @@ public class AuthenticationSuccessListenerTest {
         when(authenticationMock.getAuthorities()).thenReturn(authorities);
         when(
             userServiceMock.findBySource(
-                GraviteeContext.getExecutionContext(),
+                GraviteeContext.getCurrentOrganization(),
                 userDetailsMock.getSource(),
                 userDetailsMock.getSourceId(),
                 false
@@ -290,7 +290,7 @@ public class AuthenticationSuccessListenerTest {
         listener.onApplicationEvent(eventMock);
 
         verify(userServiceMock, times(1))
-            .findBySource(GraviteeContext.getExecutionContext(), USERSOURCE, userDetailsMock.getSourceId(), false);
+            .findBySource(GraviteeContext.getCurrentOrganization(), USERSOURCE, userDetailsMock.getSourceId(), false);
         verify(userServiceMock, times(1)).create(eq(GraviteeContext.getExecutionContext()), any(NewExternalUserEntity.class), eq(false));
         verify(membershipServiceMock, times(1))
             .addRoleToMemberOnReference(

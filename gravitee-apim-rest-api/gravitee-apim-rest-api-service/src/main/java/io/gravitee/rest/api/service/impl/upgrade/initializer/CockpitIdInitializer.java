@@ -48,7 +48,7 @@ public class CockpitIdInitializer implements Initializer {
             .forEach(org -> {
                 UpdateOrganizationEntity newOrganization = new UpdateOrganizationEntity(org);
                 newOrganization.setCockpitId(org.getId());
-                organizationService.updateOrganization(executionContext, newOrganization);
+                organizationService.updateOrganization(org.getId(), newOrganization);
             });
 
         organizations.forEach(org ->

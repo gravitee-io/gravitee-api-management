@@ -82,7 +82,7 @@ public class RepositoryAuthenticationProvider
     protected UserDetails retrieveUser(String username, UsernamePasswordAuthenticationToken authentication) throws AuthenticationException {
         try {
             UserEntity user = userService.findBySource(
-                GraviteeContext.getExecutionContext(),
+                GraviteeContext.getCurrentOrganization(),
                 RepositoryIdentityProvider.PROVIDER_TYPE,
                 username,
                 true

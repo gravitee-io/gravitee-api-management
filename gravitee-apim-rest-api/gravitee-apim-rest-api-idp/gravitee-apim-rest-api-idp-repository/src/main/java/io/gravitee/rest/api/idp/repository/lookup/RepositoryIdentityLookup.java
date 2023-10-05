@@ -52,7 +52,7 @@ public class RepositoryIdentityLookup implements IdentityLookup {
         try {
             return new RepositoryUser(
                 userService.findBySource(
-                    GraviteeContext.getExecutionContext(),
+                    GraviteeContext.getCurrentOrganization(),
                     identityReference.getSource(),
                     identityReference.getReference(),
                     false

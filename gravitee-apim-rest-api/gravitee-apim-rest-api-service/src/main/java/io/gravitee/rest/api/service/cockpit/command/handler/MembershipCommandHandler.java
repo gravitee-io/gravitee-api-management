@@ -85,7 +85,12 @@ public class MembershipCommandHandler implements CommandHandler<MembershipComman
                 membershipReferenceType.equals(MembershipReferenceType.ENVIRONMENT) ? membershipPayload.getReferenceId() : null
             );
 
-            final UserEntity userEntity = userService.findBySource(executionContext, COCKPIT_SOURCE, membershipPayload.getUserId(), false);
+            final UserEntity userEntity = userService.findBySource(
+                executionContext.getOrganizationId(),
+                COCKPIT_SOURCE,
+                membershipPayload.getUserId(),
+                false
+            );
             final RoleEntity roleEntity = findRole(executionContext.getOrganizationId(), roleScope, membershipPayload.getRole());
             final MembershipService.MembershipReference membershipReference = new MembershipService.MembershipReference(
                 membershipReferenceType,

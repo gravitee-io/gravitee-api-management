@@ -257,7 +257,7 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
         api.setPaths(null);
         api.setLabels(labels);
 
-        return checkContextPath(executionContext, api, apiId)
+        return checkContextPath(executionContext.getEnvironmentId(), api, apiId)
             .map(ApiEntityResult::failure)
             .orElseGet(() -> ApiEntityResult.success(this.apiService.updateFromSwagger(executionContext, apiId, api, swaggerDescriptor)));
     }
@@ -273,7 +273,7 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
         api.setPaths(null);
         api.setLabels(labels);
 
-        final Optional<String> result = checkContextPath(executionContext, api);
+        final Optional<String> result = checkContextPath(executionContext.getEnvironmentId(), api);
         if (result.isEmpty()) {
             final ObjectNode apiDefinition = objectMapper.valueToTree(api);
             apiDefinition.put("crossId", apiId);
@@ -290,14 +290,14 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
         return ApiEntityResult.failure(result.get());
     }
 
-    Optional<String> checkContextPath(ExecutionContext executionContext, SwaggerApiEntity api) {
-        return checkContextPath(executionContext, api, null);
+    Optional<String> checkContextPath(String environmentId, SwaggerApiEntity api) {
+        return checkContextPath(environmentId, api, null);
     }
 
-    Optional<String> checkContextPath(ExecutionContext executionContext, SwaggerApiEntity api, String apiId) {
+    Optional<String> checkContextPath(String environmentId, SwaggerApiEntity api, String apiId) {
         try {
             verifyApiPathDomainService.checkAndSanitizeApiPaths(
-                executionContext.getEnvironmentId(),
+                environmentId,
                 apiId,
                 api.getProxy().getVirtualHosts().stream().map(h -> Path.builder().path(h.getPath()).host(h.getHost()).build()).toList()
             );

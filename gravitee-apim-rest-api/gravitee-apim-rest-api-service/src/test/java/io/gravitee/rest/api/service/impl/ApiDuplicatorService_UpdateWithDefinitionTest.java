@@ -217,7 +217,8 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
 
         when(membershipService.addRoleToMemberOnReference(eq(GraviteeContext.getExecutionContext()), any(), any(), any(), any(), any()))
             .thenReturn(memberEntity);
-        when(userService.findBySource(GraviteeContext.getExecutionContext(), user.getSource(), user.getSourceId(), false)).thenReturn(user);
+        when(userService.findBySource(GraviteeContext.getCurrentOrganization(), user.getSource(), user.getSourceId(), false))
+            .thenReturn(user);
 
         mockApiIdRecalculation();
         apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), apiEntity.getId(), toBeImport);
@@ -299,7 +300,8 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         user.setSource(SOURCE);
         user.setSourceId(owner.getReferenceId());
 
-        when(userService.findBySource(GraviteeContext.getExecutionContext(), user.getSource(), user.getSourceId(), false)).thenReturn(user);
+        when(userService.findBySource(GraviteeContext.getCurrentOrganization(), user.getSource(), user.getSourceId(), false))
+            .thenReturn(user);
 
         return apiEntity;
     }
