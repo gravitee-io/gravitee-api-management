@@ -15,8 +15,9 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import io.gravitee.apim.core.access_point.model.RestrictedDomainEntity;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.model.RestrictedDomainEntity;
+import io.gravitee.rest.api.management.rest.model.RestrictedDomain;
 import io.gravitee.rest.api.service.AccessPointService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Operation;
@@ -50,7 +51,11 @@ public class RestrictedDomainsResource {
         content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = RestrictedDomainEntity.class))
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    public Collection<RestrictedDomainEntity> getRestrictedDomains() {
-        return accessPointService.getGatewayRestrictedDomains(GraviteeContext.getCurrentEnvironment());
+    public Collection<RestrictedDomain> getRestrictedDomains() {
+        return accessPointService
+            .getGatewayRestrictedDomains(GraviteeContext.getCurrentEnvironment())
+            .stream()
+            .map(restrictedDomainEntity -> new RestrictedDomain(restrictedDomainEntity.getDomain(), restrictedDomainEntity.isSecured()))
+            .toList();
     }
 }
