@@ -35,6 +35,8 @@ public class UsecaseRulesTest extends AbstractApimArchitectureTest {
         classes()
             .that()
             .haveNameMatching(".*Usecase")
+            .and()
+            .areNotAnnotations()
             .should()
             .resideInAPackage(anyPackageThatContains(USECASE_PACKAGE))
             .as("Usecases should reside in a package '" + anyPackageThatContains(USECASE_PACKAGE) + "'")
