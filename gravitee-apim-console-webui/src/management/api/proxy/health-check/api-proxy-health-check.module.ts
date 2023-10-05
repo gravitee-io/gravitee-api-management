@@ -17,7 +17,7 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
-import { GioBannerModule, GioIconsModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import { GioBannerModule, GioFormFocusInvalidModule, GioIconsModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatButtonModule } from '@angular/material/button';
 
@@ -39,6 +39,7 @@ import { ApiProxyHealthCheckFormModule } from '../components/health-check-form/a
     ApiProxyHealthCheckFormModule,
     GioIconsModule,
     GioBannerModule,
+    GioFormFocusInvalidModule,
   ],
 })
 export class ApiProxyHealthCheckModule {}

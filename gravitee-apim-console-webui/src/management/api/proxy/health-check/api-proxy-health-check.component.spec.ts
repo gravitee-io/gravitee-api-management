@@ -22,7 +22,7 @@ import { InteractivityChecker } from '@angular/cdk/a11y';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
-import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
+import { GioFormCronHarness, GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 
 import { ApiProxyHealthCheckComponent } from './api-proxy-health-check.component';
@@ -41,7 +41,6 @@ describe('ApiProxyHealthCheckComponent', () => {
 
   let fixture: ComponentFixture<ApiProxyHealthCheckComponent>;
   let loader: HarnessLoader;
-  let component: ApiProxyHealthCheckComponent;
   let httpTestingController: HttpTestingController;
 
   beforeEach(() => {
@@ -66,7 +65,6 @@ describe('ApiProxyHealthCheckComponent', () => {
 
     httpTestingController = TestBed.inject(HttpTestingController);
 
-    component = fixture.componentInstance;
     fixture.detectChanges();
   });
 
@@ -92,8 +90,9 @@ describe('ApiProxyHealthCheckComponent', () => {
     await enabledSlideToggle.check();
 
     // Trigger
-    component.healthCheckForm.get('schedule').setValue('* * * * *');
-    expect(component.healthCheckForm.get('schedule').disabled).toEqual(false);
+    const cronInput = await loader.getHarness(GioFormCronHarness.with({ selector: '[formControlName="schedule"]' }));
+    expect(await cronInput.isDisabled()).toEqual(false);
+    await cronInput.setCustomValue('* * * * * *');
 
     // Request
     const allowMethodsInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="method"]' }));
@@ -111,7 +110,7 @@ describe('ApiProxyHealthCheckComponent', () => {
     const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` });
     expect(req.request.body.services['healthCheck']).toStrictEqual({
       enabled: true,
-      schedule: '* * * * *',
+      schedule: '* * * * * *',
       steps: [
         {
           request: {
@@ -167,8 +166,9 @@ describe('ApiProxyHealthCheckComponent', () => {
     await enabledSlideToggle.check();
 
     // Trigger
-    component.healthCheckForm.get('schedule').setValue('* * * * *');
-    expect(component.healthCheckForm.get('schedule').disabled).toEqual(false);
+    const cronInput = await loader.getHarness(GioFormCronHarness.with({ selector: '[formControlName="schedule"]' }));
+    expect(await cronInput.isDisabled()).toEqual(false);
+    await cronInput.setCustomValue('* * * * * *');
 
     // Request
     const allowMethodsInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="method"]' }));
@@ -213,7 +213,7 @@ describe('ApiProxyHealthCheckComponent', () => {
       services: {
         healthCheck: {
           enabled: true,
-          schedule: '* * * * *',
+          schedule: '* * * * * *',
           steps: [
             {
               request: {

@@ -22,7 +22,7 @@ import { InteractivityChecker } from '@angular/cdk/a11y';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
-import { GioFormHeadersHarness } from '@gravitee/ui-particles-angular';
+import { GioFormCronHarness, GioFormHeadersHarness } from '@gravitee/ui-particles-angular';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 
@@ -82,7 +82,8 @@ describe('ApiProxyHealthCheckFormComponent', () => {
     expect(await enabledSlideToggle.isChecked()).toEqual(false);
 
     // Trigger
-    expect(component.healthCheckForm.get('schedule').disabled).toEqual(true);
+    const cronInput = await loader.getHarness(GioFormCronHarness.with({ selector: '[formControlName="schedule"]' }));
+    expect(await cronInput.isDisabled()).toEqual(true);
 
     // Request
     const allowMethodsInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="method"]' }));
@@ -122,8 +123,9 @@ describe('ApiProxyHealthCheckFormComponent', () => {
     await enabledSlideToggle.check();
 
     // Trigger
-    component.healthCheckForm.get('schedule').setValue('* * * * *');
-    expect(component.healthCheckForm.get('schedule').disabled).toEqual(false);
+    const cronInput = await loader.getHarness(GioFormCronHarness.with({ selector: '[formControlName="schedule"]' }));
+    expect(await cronInput.isDisabled()).toEqual(false);
+    await cronInput.setCustomValue('* * * * * *');
 
     // Request
     const allowMethodsInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="method"]' }));
@@ -157,7 +159,7 @@ describe('ApiProxyHealthCheckFormComponent', () => {
 
     expect(ApiProxyHealthCheckFormComponent.HealthCheckFromFormGroup(component.healthCheckForm, false)).toEqual({
       enabled: true,
-      schedule: '* * * * *',
+      schedule: '* * * * * *',
       steps: [
         {
           request: {
@@ -182,7 +184,7 @@ describe('ApiProxyHealthCheckFormComponent', () => {
 
     const inheritHealthCheck: HealthCheck = {
       enabled: true,
-      schedule: '1 * * * *',
+      schedule: '1 * * * * *',
       steps: [
         {
           request: {
@@ -214,7 +216,9 @@ describe('ApiProxyHealthCheckFormComponent', () => {
     // Expect inherit preview :
 
     // Trigger
-    component.healthCheckForm.get('schedule').setValue('1 * * * *');
+    const cronInput = await loader.getHarness(GioFormCronHarness.with({ selector: '[formControlName="schedule"]' }));
+    expect(await cronInput.isDisabled()).toEqual(true);
+    expect(await cronInput.getValue()).toEqual('1 * * * * *');
 
     // Request
     const allowMethodsInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="method"]' }));
@@ -251,7 +255,7 @@ describe('ApiProxyHealthCheckFormComponent', () => {
   it('should display configured Health Check', async () => {
     const healthCheck: HealthCheck = {
       enabled: true,
-      schedule: '* * * * *',
+      schedule: '* * * * * *',
       steps: [
         {
           request: {
@@ -273,8 +277,9 @@ describe('ApiProxyHealthCheckFormComponent', () => {
     expect(await enabledSlideToggle.isChecked()).toEqual(true);
 
     // Trigger
-    expect(component.healthCheckForm.get('schedule').disabled).toEqual(false);
-    expect(component.healthCheckForm.get('schedule').value).toEqual('* * * * *');
+    const cronInput = await loader.getHarness(GioFormCronHarness.with({ selector: '[formControlName="schedule"]' }));
+    expect(await cronInput.getValue()).toEqual('* * * * * *');
+    expect(await cronInput.isDisabled()).toEqual(false);
 
     // Request
     const allowMethodsInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="method"]' }));
@@ -317,7 +322,8 @@ describe('ApiProxyHealthCheckFormComponent', () => {
     expect(await enabledSlideToggle.isDisabled()).toEqual(true);
 
     // Trigger
-    expect(component.healthCheckForm.get('schedule').disabled).toEqual(true);
+    const cronInput = await loader.getHarness(GioFormCronHarness.with({ selector: '[formControlName="schedule"]' }));
+    expect(await cronInput.isDisabled()).toEqual(true);
 
     // Request
     const allowMethodsInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="method"]' }));

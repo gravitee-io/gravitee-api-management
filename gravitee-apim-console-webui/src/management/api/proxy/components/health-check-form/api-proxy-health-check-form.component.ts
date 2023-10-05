@@ -18,7 +18,6 @@ import { FormGroup, FormControl, Validators, FormArray } from '@angular/forms';
 import { combineLatest, Observable, Subject } from 'rxjs';
 import { map, shareReplay, startWith, takeUntil } from 'rxjs/operators';
 import { omit } from 'lodash';
-import '@gravitee/ui-components/wc/gv-cron-editor';
 
 import { EndpointHealthCheckService } from '../../../../../entities/management-api-v2';
 
@@ -42,10 +41,13 @@ export class ApiProxyHealthCheckFormComponent implements OnChanges, OnDestroy {
         disabled: isReadOnly,
       }),
       // Trigger
-      schedule: new FormControl({
-        value: healthCheck?.schedule ?? undefined,
-        disabled: isReadOnly,
-      }),
+      schedule: new FormControl(
+        {
+          value: healthCheck?.schedule ?? undefined,
+          disabled: isReadOnly,
+        },
+        [Validators.required],
+      ),
       // Request
       method: new FormControl(
         {

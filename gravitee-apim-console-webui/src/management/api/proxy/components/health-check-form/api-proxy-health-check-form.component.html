@@ -57,8 +57,10 @@
       <!-- Trigger -->
       <h3>Trigger</h3>
       <div class="health-check-card__trigger">
-        <gv-cron-editor required formControlName="schedule" ngDefaultControl label="Schedule"></gv-cron-editor>
-        <div class="health-check-card__trigger__hint">A cron expression to schedule the health check</div>
+        <gio-form-cron class="health-check-card__trigger__field" formControlName="schedule">
+          <gio-form-cron-label>Schedule *</gio-form-cron-label>
+          <gio-form-cron-hint>Cron expression to schedule the health check</gio-form-cron-hint>
+        </gio-form-cron>
       </div>
       <!-- Request -->
       <h3>Request</h3>
