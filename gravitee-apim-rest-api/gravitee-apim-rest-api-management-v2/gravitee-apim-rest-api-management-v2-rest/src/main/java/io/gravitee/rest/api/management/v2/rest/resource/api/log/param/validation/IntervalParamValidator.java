@@ -13,27 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.management.v2.rest.resource.param.validation;
+package io.gravitee.rest.api.management.v2.rest.resource.api.log.param.validation;
 
-import io.gravitee.rest.api.management.v2.rest.resource.param.IntervalParam;
+import io.gravitee.rest.api.management.v2.rest.resource.api.log.param.SearchLogsParam;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
-public class IntervalParamValidator implements ConstraintValidator<IntervalParamConstraint, IntervalParam> {
+public class IntervalParamValidator implements ConstraintValidator<IntervalParamConstraint, SearchLogsParam> {
 
     @Override
     public void initialize(IntervalParamConstraint constraintAnnotation) {}
 
     @Override
-    public boolean isValid(IntervalParam timestampParam, ConstraintValidatorContext context) {
-        if (timestampParam == null) {
+    public boolean isValid(SearchLogsParam logsParam, ConstraintValidatorContext context) {
+        if (logsParam == null) {
             return true;
         }
 
-        Long from = timestampParam.getFrom();
-        Long to = timestampParam.getTo();
+        Long from = logsParam.getFrom();
+        Long to = logsParam.getTo();
 
         if (from != null && to != null && from > to) {
             context.disableDefaultConstraintViolation();

@@ -13,19 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.management.v2.rest.resource.param;
+package io.gravitee.rest.api.management.v2.rest.resource.api.log.param;
 
-import io.gravitee.rest.api.management.v2.rest.resource.param.validation.IntervalParamConstraint;
+import io.gravitee.rest.api.management.v2.rest.resource.api.log.param.validation.IntervalParamConstraint;
 import jakarta.validation.constraints.Min;
 import jakarta.ws.rs.QueryParam;
+import java.util.Set;
 import lombok.Data;
 
 @Data
 @IntervalParamConstraint
-public class IntervalParam {
+public class SearchLogsParam {
 
     public static final String FROM_QUERY_PARAM_NAME = "from";
     public static final String TO_QUERY_PARAM_NAME = "to";
+    public static final String APPLICATION_IDS_QUERY_PARAM_NAME = "applicationIds";
 
     @QueryParam(FROM_QUERY_PARAM_NAME)
     @Min(0)
@@ -34,4 +36,7 @@ public class IntervalParam {
     @QueryParam(TO_QUERY_PARAM_NAME)
     @Min(0)
     Long to;
+
+    @QueryParam(APPLICATION_IDS_QUERY_PARAM_NAME)
+    Set<String> applicationIds;
 }
