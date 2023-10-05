@@ -37,6 +37,10 @@ const GroupsComponent: ng.IComponentOptions = {
   ) {
     this.$rootScope = $rootScope;
 
+    this.$onInit = () => {
+      this.canRemoveGroup = UserService.isUserHasPermissions(['environment-group-d']);
+    };
+
     this.create = () => {
       $state.go('management.settings.groups.create');
     };
