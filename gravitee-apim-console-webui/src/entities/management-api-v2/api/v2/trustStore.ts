@@ -15,6 +15,6 @@
  */
 import { JKSTrustStore } from './jKSTrustStore';
 import { PKCS12TrustStore } from './pKCS12TrustStore';
-import { PEMTrustStore } from './PEMTrustStore';
+import { PEMTrustStore } from './pEMTrustStore';
 
 export type TrustStore = JKSTrustStore | PEMTrustStore | PKCS12TrustStore;
