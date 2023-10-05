@@ -20,9 +20,17 @@ export interface PEMKeyStore extends BaseKeyStore {
   /**
    * The path of the key store
    */
-  path?: string;
+  keyPath?: string;
   /**
    * The content of the key store
    */
-  content?: string;
+  keyContent?: string;
+  /**
+   * The path of the key store
+   */
+  certPath?: string;
+  /**
+   * The content of the key store
+   */
+  certContent?: string;
 }

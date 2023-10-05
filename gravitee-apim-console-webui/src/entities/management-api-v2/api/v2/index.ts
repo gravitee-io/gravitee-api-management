@@ -55,7 +55,7 @@ export * from './noneKeyStore';
 export * from './noneTrustStore';
 export * from './pathOperator';
 export * from './pEMKeyStore';
-export * from './PEMTrustStore';
+export * from './pEMTrustStore';
 export * from './pKCS12KeyStore';
 export * from './pKCS12TrustStore';
 export * from './protocolVersion';

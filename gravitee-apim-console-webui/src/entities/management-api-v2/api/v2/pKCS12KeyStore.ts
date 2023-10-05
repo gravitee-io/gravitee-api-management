@@ -28,4 +28,8 @@ export interface PKCS12KeyStore extends BaseKeyStore {
    * The password of the key store
    */
   password?: string;
+  /**
+   * The key password of the key store
+   */
+  keyPassword?: string;
 }
