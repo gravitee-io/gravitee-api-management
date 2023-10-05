@@ -1585,6 +1585,7 @@ paths:
                 - $ref: "#/components/parameters/perPageParam"
                 - $ref: "#/components/parameters/from"
                 - $ref: "#/components/parameters/to"
+                - $ref: "#/components/parameters/applicationIds"
             tags:
                 - Analytics - Logs
             summary: Get API logs
@@ -5763,6 +5764,15 @@ components:
                 The timestamp to which the logs will be returned.
             schema:
                 type: integer
+        applicationIds:
+            name: applicationIds
+            description: List of application ids to filter on.
+            in: query
+            explode: false
+            schema:
+                type: array
+                items:
+                    type: string
     responses:
         EnvironmentsResponse:
             description: Page of environments

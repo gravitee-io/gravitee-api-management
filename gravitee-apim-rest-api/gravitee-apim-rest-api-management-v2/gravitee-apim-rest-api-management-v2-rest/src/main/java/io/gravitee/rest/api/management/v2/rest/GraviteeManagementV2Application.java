@@ -21,7 +21,12 @@ import io.gravitee.rest.api.management.v2.rest.provider.ByteArrayOutputStreamWri
 import io.gravitee.rest.api.management.v2.rest.provider.CommaSeparatedQueryParamConverterProvider;
 import io.gravitee.rest.api.management.v2.rest.provider.ObjectMapperResolver;
 import io.gravitee.rest.api.management.v2.rest.resource.OpenAPIResource;
-import io.gravitee.rest.api.management.v2.rest.resource.api.*;
+import io.gravitee.rest.api.management.v2.rest.resource.api.ApiMembersResource;
+import io.gravitee.rest.api.management.v2.rest.resource.api.ApiPlansResource;
+import io.gravitee.rest.api.management.v2.rest.resource.api.ApiResource;
+import io.gravitee.rest.api.management.v2.rest.resource.api.ApiSubscriptionsResource;
+import io.gravitee.rest.api.management.v2.rest.resource.api.ApisResource;
+import io.gravitee.rest.api.management.v2.rest.resource.api.log.ApiLogsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.documentation.ApiPagesResource;
 import io.gravitee.rest.api.management.v2.rest.resource.group.GroupsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.installation.EnvironmentsResource;

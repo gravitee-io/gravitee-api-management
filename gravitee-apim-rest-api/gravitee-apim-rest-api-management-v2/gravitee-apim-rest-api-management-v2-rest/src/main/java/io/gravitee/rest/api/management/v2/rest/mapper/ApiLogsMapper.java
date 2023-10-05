@@ -16,6 +16,8 @@
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import io.gravitee.rest.api.management.v2.rest.model.ApiLog;
+import io.gravitee.rest.api.management.v2.rest.resource.api.log.param.SearchLogsParam;
+import io.gravitee.rest.api.model.analytics.SearchLogsFilters;
 import io.gravitee.rest.api.model.v4.log.connection.ConnectionLogModel;
 import java.util.List;
 import org.mapstruct.Mapper;
@@ -33,4 +35,6 @@ public interface ApiLogsMapper {
     ApiLog map(ConnectionLogModel connectionLog);
 
     List<ApiLog> mapToList(List<ConnectionLogModel> logs);
+
+    SearchLogsFilters toSearchLogsFilters(SearchLogsParam searchLogsParam);
 }

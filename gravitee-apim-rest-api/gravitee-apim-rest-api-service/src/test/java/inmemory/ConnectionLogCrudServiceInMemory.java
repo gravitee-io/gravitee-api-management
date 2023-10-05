@@ -16,29 +16,32 @@
 package inmemory;
 
 import io.gravitee.apim.core.log.crud_service.ConnectionLogCrudService;
-import io.gravitee.rest.api.model.analytics.Interval;
+import io.gravitee.rest.api.model.analytics.SearchLogsFilters;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.v4.log.SearchLogResponse;
 import io.gravitee.rest.api.model.v4.log.connection.BaseConnectionLog;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.*;
 import java.util.function.Predicate;
+import org.springframework.util.CollectionUtils;
 
 public class ConnectionLogCrudServiceInMemory implements ConnectionLogCrudService, InMemoryAlternative<BaseConnectionLog> {
 
     private final List<BaseConnectionLog> storage = new ArrayList<>();
 
     @Override
-    public SearchLogResponse<BaseConnectionLog> searchApiConnectionLog(String apiId, Interval interval, Pageable pageable) {
+    public SearchLogResponse<BaseConnectionLog> searchApiConnectionLog(String apiId, SearchLogsFilters logsFilters, Pageable pageable) {
         Predicate<BaseConnectionLog> predicate = connectionLog -> connectionLog.getApiId().equals(apiId);
-        if (null != interval.from()) {
-            predicate = predicate.and(connectionLog -> Instant.parse(connectionLog.getTimestamp()).toEpochMilli() >= interval.from());
+        if (null != logsFilters.from()) {
+            predicate = predicate.and(connectionLog -> Instant.parse(connectionLog.getTimestamp()).toEpochMilli() >= logsFilters.from());
         }
 
-        if (null != interval.to()) {
-            predicate = predicate.and(connectionLog -> Instant.parse(connectionLog.getTimestamp()).toEpochMilli() <= interval.to());
+        if (null != logsFilters.to()) {
+            predicate = predicate.and(connectionLog -> Instant.parse(connectionLog.getTimestamp()).toEpochMilli() <= logsFilters.to());
+        }
+
+        if (!CollectionUtils.isEmpty(logsFilters.applicationIds())) {
+            predicate = predicate.and(connectionLog -> logsFilters.applicationIds().contains(connectionLog.getApplicationId()));
         }
 
         var pageNumber = pageable.getPageNumber();
