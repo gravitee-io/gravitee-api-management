@@ -13,12 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.api.domain_service;
+package io.gravitee.apim.infra.adapter;
 
-import io.gravitee.apim.core.membership.exception.ApiPrimaryOwnerNotFoundException;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
-import io.gravitee.rest.api.service.common.ExecutionContext;
+import org.mapstruct.Mapper;
+import org.mapstruct.factory.Mappers;
 
-public interface ApiPrimaryOwnerDomainService {
-    PrimaryOwnerEntity getApiPrimaryOwner(final String organizationId, String apiId) throws ApiPrimaryOwnerNotFoundException;
+@Mapper
+public interface PrimaryOwnerAdapter {
+    PrimaryOwnerAdapter INSTANCE = Mappers.getMapper(PrimaryOwnerAdapter.class);
+
+    PrimaryOwnerEntity fromRestEntity(io.gravitee.rest.api.model.PrimaryOwnerEntity primaryOwnerEntity);
+
+    io.gravitee.rest.api.model.PrimaryOwnerEntity toRestEntity(PrimaryOwnerEntity primaryOwnerEntity);
 }

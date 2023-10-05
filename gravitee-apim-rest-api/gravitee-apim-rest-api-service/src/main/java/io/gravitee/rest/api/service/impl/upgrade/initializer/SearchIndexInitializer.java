@@ -188,7 +188,7 @@ public class SearchIndexInitializer implements Initializer {
         Indexable indexable;
         PrimaryOwnerEntity primaryOwner = null;
         try {
-            primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext, api.getId());
+            primaryOwner = primaryOwnerService.getPrimaryOwner(organizationId, api.getId());
         } catch (PrimaryOwnerNotFoundException e) {
             LOGGER.warn("Failed to retrieve API primary owner, API will we indexed without his primary owner", e);
         }

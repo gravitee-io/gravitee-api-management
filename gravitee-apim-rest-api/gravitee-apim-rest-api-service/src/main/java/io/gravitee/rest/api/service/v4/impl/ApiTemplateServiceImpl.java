@@ -179,7 +179,7 @@ public class ApiTemplateServiceImpl implements ApiTemplateService {
             if (supportEmail.isBlank()) {
                 decodedMetadata.put(
                     METADATA_EMAIL_SUPPORT_KEY,
-                    primaryOwnerService.getPrimaryOwnerEmail(executionContext, genericApiModel.getId())
+                    primaryOwnerService.getPrimaryOwnerEmail(executionContext.getOrganizationId(), genericApiModel.getId())
                 );
             }
 

@@ -165,7 +165,7 @@ public class ApiGroupServiceImpl implements ApiGroupService {
         GroupEntity memberGroup = groupService.findById(executionContext, groupId);
         String groupDefaultApiRoleName = memberGroup.getRoles() == null ? null : memberGroup.getRoles().get(RoleScope.API);
 
-        PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext, api.getId());
+        PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext.getOrganizationId(), api.getId());
 
         /*
          * If the group is not primary owner and the API, return the default group role for the API scope

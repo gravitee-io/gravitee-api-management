@@ -28,27 +28,27 @@ import java.util.Map;
 public interface PrimaryOwnerService {
     /**
      * Resolves the primary owner for the given API.
-     * @param executionContext the execution context
+     * @param organizationId the organization id
      * @param apiId the API id
      * @return The primary owner
      * @throws TechnicalManagementException if an error occurs while resolving the primary owner
-     * @deprecated use {@link io.gravitee.apim.core.api.domain_service.ApiPrimaryOwnerDomainService#getApiPrimaryOwner(ExecutionContext, String)} instead
+     * @deprecated use {@link io.gravitee.apim.core.api.domain_service.ApiPrimaryOwnerDomainService#getApiPrimaryOwner(String, String)} instead
      */
     @Deprecated
-    PrimaryOwnerEntity getPrimaryOwner(ExecutionContext executionContext, String apiId) throws TechnicalManagementException;
+    PrimaryOwnerEntity getPrimaryOwner(String organizationId, String apiId) throws TechnicalManagementException;
 
     /**
      * Resolves the primary owner email for the given API.
      * If the primary owner is a user, the email is returned.
      * If the primary owner is a group, the email of the member entitled as an API primary owner is returned.
-     * @param executionContext the execution context
+     * @param organizationId the organization id
      * @param apiId the API id
      * @return the primary owner email
      *
-     * @deprecated use {@link io.gravitee.apim.core.api.domain_service.ApiPrimaryOwnerDomainService#getApiPrimaryOwner(ExecutionContext, String)} instead
+     * @deprecated use {@link io.gravitee.apim.core.api.domain_service.ApiPrimaryOwnerDomainService#getApiPrimaryOwner(String, String)} instead
      */
     @Deprecated
-    String getPrimaryOwnerEmail(ExecutionContext executionContext, String apiId);
+    String getPrimaryOwnerEmail(String organizationId, String apiId);
 
     PrimaryOwnerEntity getPrimaryOwner(ExecutionContext executionContext, String userId, PrimaryOwnerEntity currentPrimaryOwner);
 

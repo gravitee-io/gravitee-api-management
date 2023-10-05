@@ -739,7 +739,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     private PrimaryOwnerEntity getPrimaryOwner(ExecutionContext executionContext, Api api) throws TechnicalManagementException {
-        return primaryOwnerService.getPrimaryOwner(executionContext, api.getId());
+        return primaryOwnerService.getPrimaryOwner(executionContext.getOrganizationId(), api.getId());
     }
 
     @Override

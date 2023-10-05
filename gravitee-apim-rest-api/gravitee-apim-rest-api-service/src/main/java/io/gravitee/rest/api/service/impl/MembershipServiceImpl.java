@@ -1429,7 +1429,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     }
 
     private RoleEntity mapApiPrimaryOwnerRoleToGroupRole(ExecutionContext executionContext, String apiId, String groupId, RoleEntity role) {
-        PrimaryOwnerEntity apiPrimaryOwner = primaryOwnerService.getPrimaryOwner(executionContext, apiId);
+        PrimaryOwnerEntity apiPrimaryOwner = primaryOwnerService.getPrimaryOwner(executionContext.getOrganizationId(), apiId);
         if (apiPrimaryOwner.getId().equals(groupId)) {
             return role;
         }

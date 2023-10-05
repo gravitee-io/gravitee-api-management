@@ -37,11 +37,11 @@ import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinWorkerThread;
 import java.util.concurrent.atomic.AtomicLong;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 
@@ -49,12 +49,13 @@ import org.springframework.context.annotation.Lazy;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public class SyncManager {
 
     private static final int TIMEFRAME_BEFORE_DELAY = 10 * 60 * 1000;
     private static final int TIMEFRAME_AFTER_DELAY = 1 * 60 * 1000;
-    private final Logger logger = LoggerFactory.getLogger(SyncManager.class);
     private final AtomicLong counter = new AtomicLong(0);
+    private final Map<String, String> organizationByEnvironment = new ConcurrentHashMap<>();
 
     @Autowired
     private DictionaryManager dictionaryManager;
@@ -84,25 +85,25 @@ public class SyncManager {
     private long lastRefreshAt = -1;
 
     public void refresh() {
-        logger.debug("Synchronization #{} started at {}", counter.incrementAndGet(), Instant.now());
-        logger.debug("Refreshing state...");
+        log.debug("Synchronization #{} started at {}", counter.incrementAndGet(), Instant.now());
+        log.debug("Refreshing state...");
 
         long nextLastRefreshAt = System.currentTimeMillis();
 
         try {
             synchronizeApis(nextLastRefreshAt);
         } catch (Exception ex) {
-            logger.error("An error occurs while synchronizing APIs", ex);
+            log.error("An error occurs while synchronizing APIs", ex);
         }
 
         try {
             synchronizeDictionaries(nextLastRefreshAt);
         } catch (Exception ex) {
-            logger.error("An error occurs while synchronizing dictionaries", ex);
+            log.error("An error occurs while synchronizing dictionaries", ex);
         }
 
         lastRefreshAt = nextLastRefreshAt;
-        logger.debug("Synchronization #{} ended at {}", counter.get(), Instant.now());
+        log.debug("Synchronization #{} ended at {}", counter.get(), Instant.now());
     }
 
     private void synchronizeApis(long nextLastRefreshAt) {
@@ -205,7 +206,7 @@ public class SyncManager {
                         }
                     }
                 } catch (Exception e) {
-                    logger.error("Unable to handle event [" + apiEvent.getType() + "]  for API [" + apiId + "]", e);
+                    log.error("Unable to handle event [" + apiEvent.getType() + "]  for API [" + apiId + "]", e);
                 }
                 break;
             default:
@@ -218,23 +219,27 @@ public class SyncManager {
         if (api.getEnvironmentId() == null) {
             api.setEnvironmentId(GraviteeContext.getDefaultEnvironment());
         }
-
-        // FIXME: Find a way to avoid this context override needed because the same thread synchronize all the apis
-        //  (and they can be related to different organizations)
-        EnvironmentEntity environmentEntity = this.environmentService.findById(api.getEnvironmentId());
-        GraviteeContext.setCurrentOrganization(environmentEntity.getOrganizationId());
-
         PrimaryOwnerEntity primaryOwnerEntity = null;
         try {
-            primaryOwnerEntity = primaryOwnerService.getPrimaryOwner(GraviteeContext.getExecutionContext(), api.getId());
+            primaryOwnerEntity = primaryOwnerService.getPrimaryOwner(getOrganizationId(api.getEnvironmentId()), api.getId());
         } catch (PrimaryOwnerNotFoundException e) {
-            logger.error(e.getMessage());
+            log.error(e.getMessage());
         }
         return apiConverter.toApiEntity(api, primaryOwnerEntity);
     }
 
     private io.gravitee.rest.api.model.v4.api.ApiEntity convertV4(Api api) {
-        PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(GraviteeContext.getExecutionContext(), api.getId());
+        PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(getOrganizationId(api.getEnvironmentId()), api.getId());
         return apiMapper.toEntity(api, primaryOwner);
+    }
+
+    private String getOrganizationId(String environmentId) {
+        return organizationByEnvironment.computeIfAbsent(
+            environmentId,
+            envId -> {
+                EnvironmentEntity environmentEntity = environmentService.findById(environmentId);
+                return environmentEntity.getOrganizationId();
+            }
+        );
     }
 }

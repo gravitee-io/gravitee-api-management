@@ -256,7 +256,7 @@ public class PlansDataFixUpgrader implements Upgrader {
     }
 
     protected void sendEmailToApiOwner(ExecutionContext executionContext, Api api, List<Plan> createdPlans, List<Plan> closedPlans) {
-        getApiOwnerEmail(executionContext, api)
+        getApiOwnerEmail(executionContext.getOrganizationId(), api)
             .ifPresent(apiOwnerEmail -> {
                 log.debug("Sending report email to api {} owner", api.getId());
                 emailService.sendAsyncEmailNotification(
@@ -270,8 +270,8 @@ public class PlansDataFixUpgrader implements Upgrader {
             });
     }
 
-    private Optional<String> getApiOwnerEmail(ExecutionContext executionContext, Api api) {
-        return Optional.ofNullable(primaryOwnerService.getPrimaryOwner(executionContext, api.getId()).getEmail());
+    private Optional<String> getApiOwnerEmail(String organizationId, Api api) {
+        return Optional.ofNullable(primaryOwnerService.getPrimaryOwner(organizationId, api.getId()).getEmail());
     }
 
     private void logWarningHeaderBlock() {

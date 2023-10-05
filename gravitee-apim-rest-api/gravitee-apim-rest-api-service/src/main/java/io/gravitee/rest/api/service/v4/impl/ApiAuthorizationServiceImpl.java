@@ -520,7 +520,10 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
             return apiRepository
                 .search(queryToCriteria(executionContext, apiQuery).groups(poGroupIds).build(), null, ApiFieldFilter.allFields())
                 .filter(api -> {
-                    PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext, api.getId());
+                    PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(
+                        executionContext.getOrganizationId(),
+                        api.getId()
+                    );
                     /*
                      * If one of the groups where the user has the API Primary Owner Role
                      * is the actual Primary Owner of the API, grant permission

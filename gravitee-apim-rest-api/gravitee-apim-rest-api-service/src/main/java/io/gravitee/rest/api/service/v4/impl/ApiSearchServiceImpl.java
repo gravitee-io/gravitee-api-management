@@ -95,14 +95,14 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
     @Override
     public ApiEntity findById(final ExecutionContext executionContext, final String apiId) {
         final Api api = this.findV4RepositoryApiById(executionContext, apiId);
-        PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext, api.getId());
+        PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext.getOrganizationId(), api.getId());
         return apiMapper.toEntity(executionContext, api, primaryOwner, null, true);
     }
 
     @Override
     public GenericApiEntity findGenericById(final ExecutionContext executionContext, final String apiId) {
         final Api api = this.findRepositoryApiById(executionContext, apiId);
-        PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext, api.getId());
+        PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext.getOrganizationId(), api.getId());
         final List<CategoryEntity> categories = categoryService.findAll(executionContext.getEnvironmentId());
         return genericApiMapper.toGenericApi(executionContext, api, primaryOwner, categories);
     }
