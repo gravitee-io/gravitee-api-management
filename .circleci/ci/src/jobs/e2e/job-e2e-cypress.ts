@@ -53,6 +53,6 @@ APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=${dockerImageTag} npm run test:ui`,
         path: './gravitee-apim-e2e/.logs',
       }),
     ];
-    return new Job(E2ECypressJob.jobName, UbuntuExecutor.create('large'), steps);
+    return new Job(E2ECypressJob.jobName, UbuntuExecutor.create(), steps);
   }
 }

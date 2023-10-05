@@ -19,8 +19,6 @@ import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/C
 import { computeImagesTag } from '../../utils';
 import { CircleCIEnvironment } from '../../pipelines';
 import { orbs } from '../../orbs';
-import { keeper } from '../../orbs/keeper';
-import { config } from '../../config';
 import { UbuntuExecutor } from '../../executors';
 
 export class E2ETestJob {
@@ -46,16 +44,12 @@ export class E2ETestJob {
       new commands.Checkout(),
       new commands.workspace.Attach({ at: '.' }),
       new reusable.ReusedCommand(dockerAzureLoginCmd),
-      new reusable.ReusedCommand(keeper.commands['env-export'], {
-        'secret-url': config.secrets.graviteeLicense,
-        'var-name': 'GRAVITEE_LICENSE',
-      }),
       new commands.Run({
         name: `Running API & E2E tests in << parameters.execution_mode >> mode with << parameters.database >> database`,
         command: `cd gravitee-apim-e2e
-if [ "<< parameters.execution_mode >>" = "v3" ]; then
-  echo "Disable v4 emulation engine on APIM Gateway and Rest API"
-  export V4_EMULATION_ENGINE_DEFAULT=no
+if [ "<< parameters.execution_mode >>" = "jupiter" ]; then
+  echo "Enabling jupiter mode on APIM Gateway and Rest API"
+  export JUPITER_MODE_ENABLED=true
 fi
 if [ -z "<< parameters.apim_client_tag >>" ]; then
   APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=${dockerImageTag} APIM_CLIENT_TAG=${dockerImageTag} npm run test:api:<< parameters.database >>
