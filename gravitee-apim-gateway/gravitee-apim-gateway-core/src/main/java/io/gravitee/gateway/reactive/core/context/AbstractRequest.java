@@ -203,6 +203,12 @@ public abstract class AbstractRequest implements MutableRequest {
     }
 
     @Override
+    public MutableRequest pathInfo(String pathInfo) {
+        this.pathInfo = pathInfo;
+        return this;
+    }
+
+    @Override
     public MutableRequest transactionId(String transactionId) {
         this.transactionId = transactionId;
         return this;
