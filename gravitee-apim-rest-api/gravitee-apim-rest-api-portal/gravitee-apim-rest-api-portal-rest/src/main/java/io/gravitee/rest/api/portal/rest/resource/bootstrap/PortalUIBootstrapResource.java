@@ -15,12 +15,11 @@
  */
 package io.gravitee.rest.api.portal.rest.resource.bootstrap;
 
+import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.rest.api.model.EnvironmentEntity;
-import io.gravitee.rest.api.model.bootstrap.ManagementUIBootstrapEntity;
 import io.gravitee.rest.api.model.bootstrap.PortalUIBootstrapEntity;
-import io.gravitee.rest.api.service.AccessPointService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.ReferenceContext;
@@ -52,7 +51,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class PortalUIBootstrapResource {
 
     @Autowired
-    protected AccessPointService accessPointService;
+    protected AccessPointQueryService accessPointService;
 
     @Autowired
     protected EnvironmentService environmentService;

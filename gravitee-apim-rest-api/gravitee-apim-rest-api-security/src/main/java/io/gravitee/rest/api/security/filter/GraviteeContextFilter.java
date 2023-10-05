@@ -15,10 +15,10 @@
  */
 package io.gravitee.rest.api.security.filter;
 
+import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.security.filter.error.ErrorHelper;
-import io.gravitee.rest.api.service.AccessPointService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -47,7 +47,7 @@ public class GraviteeContextFilter extends GenericFilterBean {
     private static final String ERROR_MSG = "Invalid organization or environment";
     private static final String ORGANIZATIONS_PATH = "organizations";
     private static final String ENVIRONMENTS_PATH = "environments";
-    private final AccessPointService accessPointService;
+    private final AccessPointQueryService accessPointService;
     private final EnvironmentService environmentService;
 
     @Override

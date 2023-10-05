@@ -16,9 +16,11 @@
 package io.gravitee.rest.api.service.cockpit.command.handler;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.access_point.crud_service.AccessPointCrudService;
 import io.gravitee.cockpit.api.command.Command;
 import io.gravitee.cockpit.api.command.CommandStatus;
 import io.gravitee.cockpit.api.command.accesspoint.AccessPoint;
@@ -27,10 +29,8 @@ import io.gravitee.cockpit.api.command.organization.OrganizationPayload;
 import io.gravitee.cockpit.api.command.organization.OrganizationReply;
 import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.model.UpdateOrganizationEntity;
-import io.gravitee.rest.api.service.AccessPointService;
 import io.gravitee.rest.api.service.OrganizationService;
 import io.reactivex.rxjava3.observers.TestObserver;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import org.junit.Before;
@@ -50,7 +50,7 @@ public class OrganizationCommandHandlerTest {
     private OrganizationService organizationService;
 
     @Mock
-    private AccessPointService accessPointService;
+    private AccessPointCrudService accessPointService;
 
     public OrganizationCommandHandler cut;
 

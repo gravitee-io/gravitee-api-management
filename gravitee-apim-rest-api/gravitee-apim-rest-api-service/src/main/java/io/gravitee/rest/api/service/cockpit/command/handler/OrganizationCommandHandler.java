@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.cockpit.command.handler;
 
+import io.gravitee.apim.core.access_point.crud_service.AccessPointCrudService;
 import io.gravitee.cockpit.api.command.Command;
 import io.gravitee.cockpit.api.command.CommandHandler;
 import io.gravitee.cockpit.api.command.CommandStatus;
@@ -22,21 +23,14 @@ import io.gravitee.cockpit.api.command.accesspoint.AccessPoint;
 import io.gravitee.cockpit.api.command.organization.OrganizationCommand;
 import io.gravitee.cockpit.api.command.organization.OrganizationPayload;
 import io.gravitee.cockpit.api.command.organization.OrganizationReply;
-import io.gravitee.repository.management.model.AccessPointReferenceType;
-import io.gravitee.repository.management.model.AccessPointTarget;
-import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.model.UpdateOrganizationEntity;
-import io.gravitee.rest.api.service.AccessPointService;
 import io.gravitee.rest.api.service.OrganizationService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.reactivex.rxjava3.core.Single;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 /**
@@ -49,7 +43,7 @@ import org.springframework.stereotype.Component;
 public class OrganizationCommandHandler implements CommandHandler<OrganizationCommand, OrganizationReply> {
 
     private final OrganizationService organizationService;
-    private final AccessPointService accessPointService;
+    private final AccessPointCrudService accessPointService;
 
     @Override
     public Command.Type handleType() {
@@ -72,21 +66,29 @@ public class OrganizationCommandHandler implements CommandHandler<OrganizationCo
 
             List<AccessPoint> accessPoints = organizationPayload.getAccessPoints();
             if (accessPoints != null) {
-                List<io.gravitee.repository.management.model.AccessPoint> accessPointsToCreate = accessPoints
+                List<io.gravitee.apim.core.access_point.model.AccessPoint> accessPointsToCreate = accessPoints
                     .stream()
                     .map(cockpitAccessPoint ->
-                        io.gravitee.repository.management.model.AccessPoint
+                        io.gravitee.apim.core.access_point.model.AccessPoint
                             .builder()
-                            .referenceType(AccessPointReferenceType.ORGANIZATION)
+                            .referenceType(io.gravitee.apim.core.access_point.model.AccessPoint.AccessPointReferenceType.ORGANIZATION)
                             .referenceId(organization.getId())
-                            .target(AccessPointTarget.valueOf(cockpitAccessPoint.getTarget().name()))
+                            .target(
+                                io.gravitee.apim.core.access_point.model.AccessPoint.AccessPointTarget.valueOf(
+                                    cockpitAccessPoint.getTarget().name()
+                                )
+                            )
                             .host(cockpitAccessPoint.getHost())
                             .secured(cockpitAccessPoint.isSecured())
                             .overriding(cockpitAccessPoint.isOverriding())
                             .build()
                     )
                     .toList();
-                accessPointService.updateAccessPoints(AccessPointReferenceType.ORGANIZATION, organization.getId(), accessPointsToCreate);
+                accessPointService.updateAccessPoints(
+                    io.gravitee.apim.core.access_point.model.AccessPoint.AccessPointReferenceType.ORGANIZATION,
+                    organization.getId(),
+                    accessPointsToCreate
+                );
             }
             log.info("Organization [{}] handled with id [{}].", organization.getName(), organization.getId());
             return Single.just(new OrganizationReply(command.getId(), CommandStatus.SUCCEEDED));
