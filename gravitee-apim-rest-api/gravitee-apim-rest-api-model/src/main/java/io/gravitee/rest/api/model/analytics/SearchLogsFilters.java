@@ -15,4 +15,6 @@
  */
 package io.gravitee.rest.api.model.analytics;
 
-public record Interval(Long from, Long to) {}
+import java.util.Set;
+
+public record SearchLogsFilters(Long from, Long to, Set<String> applicationIds) {}

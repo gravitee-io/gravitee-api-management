@@ -19,8 +19,7 @@ import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
 import io.gravitee.apim.core.log.crud_service.ConnectionLogCrudService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
-import io.gravitee.rest.api.model.analytics.Interval;
-import io.gravitee.rest.api.model.analytics.Timestamp;
+import io.gravitee.rest.api.model.analytics.SearchLogsFilters;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.v4.log.SearchLogResponse;
@@ -55,7 +54,7 @@ public class SearchConnectionLogUsecase {
     public Output execute(ExecutionContext executionContext, Input input) {
         var pageable = input.pageable.orElse(new PageableImpl(1, 20));
 
-        var response = connectionLogCrudService.searchApiConnectionLog(input.apiId(), input.interval(), pageable);
+        var response = connectionLogCrudService.searchApiConnectionLog(input.apiId(), input.logsFilters(), pageable);
         return mapToResponse(executionContext, response);
     }
 
@@ -99,12 +98,12 @@ public class SearchConnectionLogUsecase {
         }
     }
 
-    public record Input(String apiId, Interval interval, Optional<Pageable> pageable) {
-        public Input(String apiId, Interval interval) {
-            this(apiId, interval, Optional.empty());
+    public record Input(String apiId, SearchLogsFilters logsFilters, Optional<Pageable> pageable) {
+        public Input(String apiId, SearchLogsFilters logsFilters) {
+            this(apiId, logsFilters, Optional.empty());
         }
-        public Input(String apiId, Interval interval, Pageable pageable) {
-            this(apiId, interval, Optional.of(pageable));
+        public Input(String apiId, SearchLogsFilters logsFilters, Pageable pageable) {
+            this(apiId, logsFilters, Optional.of(pageable));
         }
     }
 

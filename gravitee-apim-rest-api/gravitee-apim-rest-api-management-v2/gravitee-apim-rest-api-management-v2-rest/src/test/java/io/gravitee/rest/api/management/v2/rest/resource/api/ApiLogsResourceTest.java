@@ -37,7 +37,7 @@ import io.gravitee.rest.api.management.v2.rest.model.BasePlan;
 import io.gravitee.rest.api.management.v2.rest.model.HttpMethod;
 import io.gravitee.rest.api.management.v2.rest.model.Links;
 import io.gravitee.rest.api.management.v2.rest.model.Pagination;
-import io.gravitee.rest.api.management.v2.rest.resource.param.IntervalParam;
+import io.gravitee.rest.api.management.v2.rest.resource.api.log.param.SearchLogsParam;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -230,7 +230,9 @@ public class ApiLogsResourceTest extends ApiResourceTest {
                 .thenReturn(true);
 
             connectionLogsTarget =
-                connectionLogsTarget.queryParam(IntervalParam.FROM_QUERY_PARAM_NAME, -1).queryParam(IntervalParam.TO_QUERY_PARAM_NAME, -1);
+                connectionLogsTarget
+                    .queryParam(SearchLogsParam.FROM_QUERY_PARAM_NAME, -1)
+                    .queryParam(SearchLogsParam.TO_QUERY_PARAM_NAME, -1);
             final Response response = connectionLogsTarget.request().get();
 
             assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasHttpStatus(BAD_REQUEST_400).hasMessage("Validation error");
@@ -249,7 +251,9 @@ public class ApiLogsResourceTest extends ApiResourceTest {
                 .thenReturn(true);
 
             connectionLogsTarget =
-                connectionLogsTarget.queryParam(IntervalParam.FROM_QUERY_PARAM_NAME, 2).queryParam(IntervalParam.TO_QUERY_PARAM_NAME, 1);
+                connectionLogsTarget
+                    .queryParam(SearchLogsParam.FROM_QUERY_PARAM_NAME, 2)
+                    .queryParam(SearchLogsParam.TO_QUERY_PARAM_NAME, 1);
             final Response response = connectionLogsTarget.request().get();
 
             assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasHttpStatus(BAD_REQUEST_400).hasMessage("Validation error");
@@ -267,9 +271,19 @@ public class ApiLogsResourceTest extends ApiResourceTest {
 
             connectionLogsTarget =
                 connectionLogsTarget
-                    .queryParam(IntervalParam.FROM_QUERY_PARAM_NAME, Instant.parse("2020-02-01T00:01:00.00Z").toEpochMilli())
-                    .queryParam(IntervalParam.TO_QUERY_PARAM_NAME, Instant.parse("2020-02-03T23:59:59.00Z").toEpochMilli());
+                    .queryParam(SearchLogsParam.FROM_QUERY_PARAM_NAME, Instant.parse("2020-02-01T00:01:00.00Z").toEpochMilli())
+                    .queryParam(SearchLogsParam.TO_QUERY_PARAM_NAME, Instant.parse("2020-02-03T23:59:59.00Z").toEpochMilli());
             final Response response = connectionLogsTarget.request().get();
+
+            var expectedApiLog = ApiLog
+                .builder()
+                .application(BaseApplication.builder().id(APPLICATION.getId()).name(APPLICATION.getName()).build())
+                .plan(BasePlan.builder().id(PLAN.getId()).name(PLAN.getName()).apiId(API).build())
+                .method(HttpMethod.GET)
+                .status(200)
+                .clientIdentifier("client-identifier")
+                .requestEnded(true)
+                .transactionId("transaction-id");
 
             assertThat(response)
                 .hasStatus(OK_200)
@@ -279,32 +293,53 @@ public class ApiLogsResourceTest extends ApiResourceTest {
                         .builder()
                         .data(
                             List.of(
-                                ApiLog
-                                    .builder()
-                                    .application(BaseApplication.builder().id(APPLICATION.getId()).name(APPLICATION.getName()).build())
-                                    .plan(BasePlan.builder().id(PLAN.getId()).name(PLAN.getName()).apiId(API).build())
-                                    .method(HttpMethod.GET)
-                                    .status(200)
-                                    .clientIdentifier("client-identifier")
-                                    .requestEnded(true)
+                                expectedApiLog
                                     .requestId("req2")
-                                    .transactionId("transaction-id")
                                     .timestamp(Instant.parse("2020-02-02T20:00:00.00Z").atOffset(ZoneOffset.UTC))
                                     .build(),
-                                ApiLog
-                                    .builder()
-                                    .application(BaseApplication.builder().id(APPLICATION.getId()).name(APPLICATION.getName()).build())
-                                    .plan(BasePlan.builder().id(PLAN.getId()).name(PLAN.getName()).apiId(API).build())
-                                    .method(HttpMethod.GET)
-                                    .status(200)
-                                    .clientIdentifier("client-identifier")
-                                    .requestEnded(true)
+                                expectedApiLog
                                     .requestId("req1")
-                                    .transactionId("transaction-id")
                                     .timestamp(Instant.parse("2020-02-01T20:00:00.00Z").atOffset(ZoneOffset.UTC))
                                     .build()
                             )
                         )
+                        .pagination(Pagination.builder().page(1).perPage(10).pageCount(1).pageItemsCount(2).totalCount(2L).build())
+                        .links(Links.builder().self(connectionLogsTarget.getUri().toString()).build())
+                        .build()
+                );
+        }
+
+        @Test
+        public void should_return_connection_logs_filtered_by_applications() {
+            connectionLogStorageService.initWith(
+                List.of(
+                    connectionLogFixtures.aConnectionLog("req1").toBuilder().applicationId("app1").build(),
+                    connectionLogFixtures.aConnectionLog("req2").toBuilder().applicationId("app1").build(),
+                    connectionLogFixtures.aConnectionLog("req3").toBuilder().applicationId("app2").build()
+                )
+            );
+
+            connectionLogsTarget = connectionLogsTarget.queryParam(SearchLogsParam.APPLICATION_IDS_QUERY_PARAM_NAME, "app1");
+            final Response response = connectionLogsTarget.request().get();
+
+            var expectedApiLog = ApiLog
+                .builder()
+                .application(BaseApplication.builder().id("app1").name(APPLICATION.getName()).build())
+                .plan(BasePlan.builder().id(PLAN.getId()).name(PLAN.getName()).apiId(API).build())
+                .method(HttpMethod.GET)
+                .status(200)
+                .clientIdentifier("client-identifier")
+                .requestEnded(true)
+                .transactionId("transaction-id")
+                .timestamp(Instant.parse("2020-02-01T20:00:00.00Z").atOffset(ZoneOffset.UTC));
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(ApiLogsResponse.class)
+                .isEqualTo(
+                    ApiLogsResponse
+                        .builder()
+                        .data(List.of(expectedApiLog.requestId("req1").build(), expectedApiLog.requestId("req2").build()))
                         .pagination(Pagination.builder().page(1).perPage(10).pageCount(1).pageItemsCount(2).totalCount(2L).build())
                         .links(Links.builder().self(connectionLogsTarget.getUri().toString()).build())
                         .build()

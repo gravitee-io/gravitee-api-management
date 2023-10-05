@@ -28,10 +28,11 @@ import io.gravitee.repository.log.v4.model.LogResponse;
 import io.gravitee.repository.log.v4.model.connection.ConnectionLog;
 import io.gravitee.repository.log.v4.model.connection.ConnectionLogQuery;
 import io.gravitee.repository.log.v4.model.connection.ConnectionLogQuery.Filter;
-import io.gravitee.rest.api.model.analytics.Interval;
+import io.gravitee.rest.api.model.analytics.SearchLogsFilters;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.v4.log.connection.BaseConnectionLog;
 import java.util.List;
+import java.util.Set;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -59,7 +60,7 @@ public class ConnectionLogCrudServiceImplTest {
             var to = 1580601579000L;
             when(logRepository.searchConnectionLog(any())).thenReturn(new LogResponse<>(0L, List.of()));
 
-            logStorageService.searchApiConnectionLog("apiId", new Interval(from, to), new PageableImpl(1, 10));
+            logStorageService.searchApiConnectionLog("apiId", new SearchLogsFilters(from, to, null), new PageableImpl(1, 10));
 
             var captor = ArgumentCaptor.forClass(ConnectionLogQuery.class);
             verify(logRepository).searchConnectionLog(captor.capture());
@@ -95,7 +96,7 @@ public class ConnectionLogCrudServiceImplTest {
 
             var result = logStorageService.searchApiConnectionLog(
                 "apiId",
-                new Interval(1580515239000L, 1580601579000L),
+                new SearchLogsFilters(1580515239000L, 1580601579000L, Set.of("app-id")),
                 new PageableImpl(1, 10)
             );
 
