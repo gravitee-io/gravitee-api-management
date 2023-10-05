@@ -39,6 +39,6 @@ export class CommunityBuildBackendJob {
       new reusable.ReusedCommand(notifyOnFailureCmd),
       new reusable.ReusedCommand(saveMavenJobCacheCmd, { jobName: jobName }),
     ];
-    return new Job(jobName, OpenJdkExecutor.create('large'), steps);
+    return new Job(jobName, OpenJdkExecutor.create('large', '11.0'), steps);
   }
 }
