@@ -51,6 +51,6 @@ export class NexusStagingJob {
       new reusable.ReusedCommand(saveMavenCacheCmd, { jobName: NexusStagingJob.jobName }),
     ];
 
-    return new Job(NexusStagingJob.jobName, OpenJdkExecutor.create('xlarge'), steps);
+    return new Job(NexusStagingJob.jobName, OpenJdkExecutor.create('xlarge', '11.0'), steps);
   }
 }
