@@ -18,10 +18,8 @@ $typography: map.get(gio.$mat-theme, typography);
   }
 
   &__trigger {
-    &__hint {
-      @include mat.typography-level($typography, caption);
-      color: mat.get-color-from-palette(gio.$mat-dove-palette, 'darker60');
-      padding-left: 8px;
+    &__field {
+      width: 100%;
     }
   }
 

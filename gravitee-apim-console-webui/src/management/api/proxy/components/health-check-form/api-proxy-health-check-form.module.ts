@@ -23,7 +23,13 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { GioBannerModule, GioFormHeadersModule, GioIconsModule, GioFormSlideToggleModule } from '@gravitee/ui-particles-angular';
+import {
+  GioBannerModule,
+  GioFormHeadersModule,
+  GioIconsModule,
+  GioFormSlideToggleModule,
+  GioFormCronModule,
+} from '@gravitee/ui-particles-angular';
 import { MatButtonModule } from '@angular/material/button';
 
 import { ApiProxyHealthCheckFormComponent } from './api-proxy-health-check-form.component';
@@ -45,6 +51,7 @@ import { ApiProxyHealthCheckFormComponent } from './api-proxy-health-check-form.
 
     GioFormSlideToggleModule,
     GioFormHeadersModule,
+    GioFormCronModule,
     GioBannerModule,
     GioIconsModule,
   ],
