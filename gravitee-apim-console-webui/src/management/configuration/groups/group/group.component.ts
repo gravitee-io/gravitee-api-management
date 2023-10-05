@@ -96,6 +96,7 @@ const GroupComponent: ng.IComponentOptions = {
       this.applicationByDefault =
         this.group.event_rules && this.group.event_rules.findIndex((rule) => rule.event === 'APPLICATION_CREATE') !== -1;
 
+      this.currentUserId = UserService.currentUser.id;
       this.isSuperAdmin = UserService.isUserHasPermissions(['environment-group-u']);
       this.canChangeDefaultApiRole = this.isSuperAdmin || !this.group.lock_api_role;
       this.canChangeDefaultApplicationRole = this.isSuperAdmin || !this.group.lock_application_role;

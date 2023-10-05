@@ -224,6 +224,7 @@
                         ng-false-value="''"
                         ng-change="$ctrl.updateRole(member)"
                         aria-label="Administrator of this group"
+                        ng-disabled="!ctrl.isSuperAdmin && !($ctrl.group.manageable && $ctrl.group.system_invitation)"
                       >
                       </md-checkbox>
                     </td>
@@ -253,7 +254,7 @@
                     </td>
                     <td md-cell ng-click="$event.stopPropagation()">
                       <div layout="row" layout-align="end center">
-                        <span ng-if="$ctrl.group.manageable">
+                        <span ng-if="$ctrl.isSuperAdmin || ($ctrl.group.manageable && $ctrl.currentUserId !== member.id)">
                           <md-tooltip md-direction="top">delete</md-tooltip>
                           <ng-md-icon icon="delete" ng-click="$ctrl.removeUser($event, member)" aria-label="delete-user"></ng-md-icon>
                         </span>
