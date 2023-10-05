@@ -31,6 +31,14 @@ public interface MutableRequest extends Request, OnMessagesInterceptor {
     MutableRequest contextPath(final String contextPath);
 
     /**
+     * Allow setting path info.
+     *
+     * @param pathInfo the path info to set.
+     * @return {@link MutableRequest}.
+     */
+    MutableRequest pathInfo(final String pathInfo);
+
+    /**
      * Allow setting transaction id.
      *
      * @param transactionId the transaction identifier to set.
