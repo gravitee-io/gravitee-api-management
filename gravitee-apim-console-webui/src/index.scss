@@ -24,7 +24,6 @@
 
 // Not encapsulated because used when encapsulation is .mat
 @import 'components/contextual/contextual-doc.component';
-@import 'management/api/api';
 @import 'management/application/creation/steps/application-creation';
 @import 'user/login/login';
 @import 'components/newsletter-subcription/newsletter-reminder';
@@ -46,6 +45,7 @@
   @import 'components/alerts/alert/alert';
   @import 'components/dialog/apiKeyMode/api-key-mode-choice.dialog';
 
+  @import 'management/api/api';
   @import 'management/analytics';
   @import 'management/configuration/theme/theme';
   @import 'management/configuration/portal/portal';
