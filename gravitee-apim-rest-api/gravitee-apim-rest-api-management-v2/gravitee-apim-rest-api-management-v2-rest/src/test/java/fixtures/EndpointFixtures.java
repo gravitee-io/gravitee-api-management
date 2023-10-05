@@ -70,7 +70,7 @@ public class EndpointFixtures {
     private static final EndpointGroupServices.EndpointGroupServicesBuilder BASE_ENDPOINTGROUP_SERVICES_V4 = EndpointGroupServices
         .builder()
         .discovery(null)
-        .healthcheck(null);
+        .healthCheck(null);
 
     private static final EndpointV4.EndpointV4Builder BASE_ENDPOINT_V4 = EndpointV4
         .builder()
@@ -82,7 +82,7 @@ public class EndpointFixtures {
         .tenants(List.of("tenant1", "tenant2"))
         .configuration(new LinkedHashMap<>(Map.of("nice", "configuration")))
         .sharedConfigurationOverride(new LinkedHashMap<>(Map.of("nice", "configuration")))
-        .services(EndpointServices.builder().healthcheck(null).build());
+        .services(EndpointServices.builder().healthCheck(null).build());
 
     private static final EndpointGroupV4.EndpointGroupV4Builder BASE_ENDPOINTGROUP_V4 = EndpointGroupV4
         .builder()

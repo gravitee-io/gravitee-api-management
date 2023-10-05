@@ -2911,12 +2911,12 @@ components:
             properties:
                 discovery:
                     $ref: "#/components/schemas/ServiceV4"
-                healthcheck:
+                healthCheck:
                     $ref: "#/components/schemas/ServiceV4"
         EndpointServices:
             type: object
             properties:
-                healthcheck:
+                healthCheck:
                     $ref: "#/components/schemas/ServiceV4"
         Entrypoint:
             type: object
