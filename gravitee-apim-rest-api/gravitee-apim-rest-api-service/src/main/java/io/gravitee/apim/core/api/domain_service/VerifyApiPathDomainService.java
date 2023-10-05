@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.api.domain_service;
 
 import io.gravitee.apim.core.access_point.model.RestrictedDomainEntity;
+import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiFieldFilter;
 import io.gravitee.apim.core.api.model.ApiSearchCriteria;
@@ -24,7 +25,6 @@ import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.exception.InvalidPathsException;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
-import io.gravitee.rest.api.service.AccessPointService;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -36,13 +36,13 @@ import lombok.extern.slf4j.Slf4j;
 public class VerifyApiPathDomainService {
 
     private final ApiQueryService apiSearchService;
-    private final AccessPointService accessPointService;
+    private final AccessPointQueryService accessPointService;
     private final ApiDefinitionParserDomainService apiDefinitionParserDomainService;
     private final ApiHostValidatorDomainService apiHostValidatorDomainService;
 
     public VerifyApiPathDomainService(
         final ApiQueryService apiSearchService,
-        final AccessPointService accessPointService,
+        final AccessPointQueryService accessPointService,
         final ApiDefinitionParserDomainService apiDefinitionParserDomainService,
         final ApiHostValidatorDomainService apiHostValidatorDomainService
     ) {

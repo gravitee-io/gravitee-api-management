@@ -16,9 +16,9 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.apim.core.access_point.model.RestrictedDomainEntity;
+import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.model.RestrictedDomain;
-import io.gravitee.rest.api.service.AccessPointService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -40,7 +40,7 @@ import java.util.Collection;
 public class RestrictedDomainsResource {
 
     @Inject
-    private AccessPointService accessPointService;
+    private AccessPointQueryService accessPointService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)

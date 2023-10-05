@@ -25,11 +25,11 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
 import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 import com.nimbusds.jwt.proc.JWTProcessor;
+import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
-import io.gravitee.rest.api.service.AccessPointService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -96,7 +96,7 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
     private ApiSearchService apiSearchService;
 
     @Autowired
-    private AccessPointService accessPointService;
+    private AccessPointQueryService accessPointService;
 
     @PostConstruct
     public void afterPropertiesSet() {

@@ -15,10 +15,10 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.bootstrap;
 
+import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.rest.api.model.bootstrap.ManagementUIBootstrapEntity;
-import io.gravitee.rest.api.service.AccessPointService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.ReferenceContext;
 import io.swagger.v3.oas.annotations.Operation;
@@ -49,7 +49,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class ManagementUIBootstrapResource {
 
     @Autowired
-    protected AccessPointService accessPointService;
+    protected AccessPointQueryService accessPointService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)

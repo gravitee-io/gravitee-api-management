@@ -18,9 +18,9 @@ package io.gravitee.rest.api.management.rest.spring;
 import static org.mockito.Mockito.mock;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
-import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
 import io.gravitee.apim.infra.domain_service.api.ApiDefinitionParserDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.api.ApiHostValidatorDomainServiceImpl;
 import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
@@ -31,7 +31,54 @@ import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.rest.api.security.authentication.AuthenticationProvider;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.AccessControlService;
+import io.gravitee.rest.api.service.AlertAnalyticsService;
+import io.gravitee.rest.api.service.AlertService;
+import io.gravitee.rest.api.service.AnalyticsService;
+import io.gravitee.rest.api.service.ApiDefinitionContextService;
+import io.gravitee.rest.api.service.ApiDuplicatorService;
+import io.gravitee.rest.api.service.ApiExportService;
+import io.gravitee.rest.api.service.ApiKeyService;
+import io.gravitee.rest.api.service.ApiMetadataService;
+import io.gravitee.rest.api.service.ApiService;
+import io.gravitee.rest.api.service.ApplicationMetadataService;
+import io.gravitee.rest.api.service.ApplicationService;
+import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.CategoryService;
+import io.gravitee.rest.api.service.ConfigService;
+import io.gravitee.rest.api.service.CustomUserFieldService;
+import io.gravitee.rest.api.service.DebugApiService;
+import io.gravitee.rest.api.service.EnvironmentService;
+import io.gravitee.rest.api.service.FetcherService;
+import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.InstallationService;
+import io.gravitee.rest.api.service.JsonPatchService;
+import io.gravitee.rest.api.service.LogsService;
+import io.gravitee.rest.api.service.MediaService;
+import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.service.MessageService;
+import io.gravitee.rest.api.service.NotifierService;
+import io.gravitee.rest.api.service.OrganizationService;
+import io.gravitee.rest.api.service.PageService;
+import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.PermissionService;
+import io.gravitee.rest.api.service.PlanService;
+import io.gravitee.rest.api.service.PolicyService;
+import io.gravitee.rest.api.service.QualityMetricsService;
+import io.gravitee.rest.api.service.RatingService;
+import io.gravitee.rest.api.service.ResourceService;
+import io.gravitee.rest.api.service.RoleService;
+import io.gravitee.rest.api.service.SocialIdentityProviderService;
+import io.gravitee.rest.api.service.SubscriptionService;
+import io.gravitee.rest.api.service.SwaggerService;
+import io.gravitee.rest.api.service.TagService;
+import io.gravitee.rest.api.service.TaskService;
+import io.gravitee.rest.api.service.ThemeService;
+import io.gravitee.rest.api.service.TicketService;
+import io.gravitee.rest.api.service.TokenService;
+import io.gravitee.rest.api.service.TopApiService;
+import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import io.gravitee.rest.api.service.configuration.application.ClientRegistrationService;
 import io.gravitee.rest.api.service.configuration.dictionary.DictionaryService;
@@ -46,7 +93,6 @@ import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.v4.ApiGroupService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.mapper.CategoryMapper;
-import jakarta.inject.Inject;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -418,18 +464,18 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public AccessPointService accessPointService() {
-        return mock(AccessPointService.class);
+    public AccessPointQueryService accessPointQueryService() {
+        return mock(AccessPointQueryService.class);
     }
 
-    @Inject
-    ApiQueryService apiQueryService;
-
     @Bean
-    public VerifyApiPathDomainService verifyApiPathDomainService() {
+    public VerifyApiPathDomainService verifyApiPathDomainService(
+        ApiQueryService apiQueryService,
+        AccessPointQueryService accessPointQueryService
+    ) {
         return new VerifyApiPathDomainService(
             apiQueryService,
-            accessPointService(),
+            accessPointQueryService,
             new ApiDefinitionParserDomainServiceImpl(objectMapper()),
             new ApiHostValidatorDomainServiceImpl()
         );

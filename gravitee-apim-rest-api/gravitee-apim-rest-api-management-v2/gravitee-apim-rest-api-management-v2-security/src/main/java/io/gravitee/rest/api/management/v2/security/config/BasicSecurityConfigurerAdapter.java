@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.v2.security.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.rest.api.idp.api.IdentityProvider;
 import io.gravitee.rest.api.idp.api.authentication.AuthenticationProvider;
@@ -33,7 +34,6 @@ import io.gravitee.rest.api.security.filter.TokenAuthenticationFilter;
 import io.gravitee.rest.api.security.listener.AuthenticationFailureListener;
 import io.gravitee.rest.api.security.listener.AuthenticationSuccessListener;
 import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
-import io.gravitee.rest.api.service.AccessPointService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.ReCaptchaService;
@@ -62,7 +62,9 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.intercept.AuthorizationFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
-import org.springframework.security.web.csrf.*;
+import org.springframework.security.web.csrf.CsrfFilter;
+import org.springframework.security.web.csrf.CsrfToken;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.web.cors.CorsConfigurationSource;
 
 /**
@@ -111,7 +113,7 @@ public class BasicSecurityConfigurerAdapter {
     private EventManager eventManager;
 
     @Autowired
-    private AccessPointService accessPointService;
+    private AccessPointQueryService accessPointService;
 
     @Autowired
     private EnvironmentService environmentService;

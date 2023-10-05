@@ -24,6 +24,7 @@ import static java.util.stream.Collectors.toMap;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
 import io.gravitee.rest.api.model.annotations.ParameterKey;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
@@ -38,7 +39,6 @@ import io.gravitee.rest.api.model.settings.PortalAuthentication;
 import io.gravitee.rest.api.model.settings.PortalConfigEntity;
 import io.gravitee.rest.api.model.settings.PortalReCaptcha;
 import io.gravitee.rest.api.model.settings.PortalSettingsEntity;
-import io.gravitee.rest.api.service.AccessPointService;
 import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.NewsletterService;
 import io.gravitee.rest.api.service.ParameterService;
@@ -79,7 +79,7 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
     private ReCaptchaService reCaptchaService;
 
     @Autowired
-    private AccessPointService accessPointService;
+    private AccessPointQueryService accessPointService;
 
     private static final String SENSITIVE_VALUE = "********";
 

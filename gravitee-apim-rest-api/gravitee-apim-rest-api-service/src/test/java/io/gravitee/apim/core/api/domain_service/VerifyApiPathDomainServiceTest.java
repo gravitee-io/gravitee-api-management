@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import inmemory.ApiDefinitionParserDomainServiceJacksonImpl;
 import inmemory.ApiHostValidatorDomainServiceGoogleImpl;
 import io.gravitee.apim.core.access_point.model.RestrictedDomainEntity;
+import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiFieldFilter;
 import io.gravitee.apim.core.api.model.ApiSearchCriteria;
@@ -35,7 +36,6 @@ import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
-import io.gravitee.rest.api.service.AccessPointService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -62,7 +62,7 @@ class VerifyApiPathDomainServiceTest {
     ApiQueryService apiSearchService;
 
     @Mock
-    AccessPointService accessPointService;
+    AccessPointQueryService accessPointService;
 
     VerifyApiPathDomainService service;
     private ObjectMapper objectMapper = GraviteeJacksonMapper.getInstance();
