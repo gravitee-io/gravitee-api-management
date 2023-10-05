@@ -145,7 +145,7 @@ public class ApiStateServiceImpl implements ApiStateService {
 
         this.deployApi(executionContext, authenticatedUser, apiDeploymentEntity, api);
 
-        PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext, api.getId());
+        PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext.getOrganizationId(), api.getId());
         final GenericApiEntity deployedApi = genericApiMapper.toGenericApi(api, primaryOwner);
         GenericApiEntity apiWithMetadata = apiMetadataService.fetchMetadataForApi(executionContext, deployedApi);
 
@@ -249,7 +249,10 @@ public class ApiStateServiceImpl implements ApiStateService {
             api.setUpdatedAt(new Date());
             api.setLifecycleState(lifecycleState);
             Api updateApi = apiRepository.update(api);
-            ApiEntity apiEntity = apiMapper.toEntity(updateApi, primaryOwnerService.getPrimaryOwner(executionContext, api.getId()));
+            ApiEntity apiEntity = apiMapper.toEntity(
+                updateApi,
+                primaryOwnerService.getPrimaryOwner(executionContext.getOrganizationId(), api.getId())
+            );
             // Audit
             auditService.createApiAuditLog(
                 executionContext,

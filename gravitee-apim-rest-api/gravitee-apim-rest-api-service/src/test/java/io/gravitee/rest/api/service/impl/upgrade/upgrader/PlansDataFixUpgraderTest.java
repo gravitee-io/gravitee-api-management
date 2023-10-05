@@ -243,11 +243,12 @@ public class PlansDataFixUpgraderTest {
         Api api = new Api();
         api.setId("my-api-id");
 
-        when(primaryOwnerService.getPrimaryOwner(GraviteeContext.getExecutionContext(), "my-api-id")).thenReturn(new PrimaryOwnerEntity());
+        when(primaryOwnerService.getPrimaryOwner(GraviteeContext.getCurrentOrganization(), "my-api-id"))
+            .thenReturn(new PrimaryOwnerEntity());
 
         upgrader.sendEmailToApiOwner(GraviteeContext.getExecutionContext(), api, Collections.emptyList(), Collections.emptyList());
 
-        verify(primaryOwnerService, times(1)).getPrimaryOwner(GraviteeContext.getExecutionContext(), "my-api-id");
+        verify(primaryOwnerService, times(1)).getPrimaryOwner(GraviteeContext.getCurrentOrganization(), "my-api-id");
     }
 
     @Test
@@ -257,7 +258,7 @@ public class PlansDataFixUpgraderTest {
 
         PrimaryOwnerEntity primaryOwner = new PrimaryOwnerEntity();
         primaryOwner.setEmail("primary-owner-email");
-        when(primaryOwnerService.getPrimaryOwner(GraviteeContext.getExecutionContext(), "my-api-id")).thenReturn(primaryOwner);
+        when(primaryOwnerService.getPrimaryOwner(GraviteeContext.getCurrentOrganization(), "my-api-id")).thenReturn(primaryOwner);
 
         List<Plan> createdPlans = new ArrayList<>();
         List<Plan> closedPlans = new ArrayList<>();

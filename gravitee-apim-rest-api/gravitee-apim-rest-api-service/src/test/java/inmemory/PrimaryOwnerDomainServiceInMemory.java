@@ -29,7 +29,7 @@ public class PrimaryOwnerDomainServiceInMemory
     Map<String, PrimaryOwnerEntity> storage = new HashMap<>();
 
     @Override
-    public PrimaryOwnerEntity getApiPrimaryOwner(ExecutionContext executionContext, String apiId) throws ApiPrimaryOwnerNotFoundException {
+    public PrimaryOwnerEntity getApiPrimaryOwner(String organizationId, String apiId) throws ApiPrimaryOwnerNotFoundException {
         PrimaryOwnerEntity primaryOwnerEntity = storage.get(apiId);
         if (primaryOwnerEntity == null) {
             throw new ApiPrimaryOwnerNotFoundException(apiId);

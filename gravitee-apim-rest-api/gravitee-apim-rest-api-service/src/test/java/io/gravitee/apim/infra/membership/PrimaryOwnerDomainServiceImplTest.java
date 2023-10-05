@@ -77,8 +77,6 @@ public class PrimaryOwnerDomainServiceImplTest {
         userRepository = new UserCrudServiceInMemory();
         service = new PrimaryOwnerDomainServiceImpl(roleRepository, membershipRepository, userRepository, groupRepository);
 
-        GraviteeContext.setCurrentOrganization("organization-id");
-
         givenPrimaryRoleForOrganizationIs(
             Role.builder().id(PRIMARY_OWNER_ROLE_ID).referenceId("organization-id").referenceType(RoleReferenceType.ORGANIZATION).build()
         );
@@ -112,7 +110,7 @@ public class PrimaryOwnerDomainServiceImplTest {
                 )
             );
 
-            var result = service.getApiPrimaryOwner(GraviteeContext.getExecutionContext(), "api-id");
+            var result = service.getApiPrimaryOwner("organization-id", "api-id");
 
             Assertions
                 .assertThat(result)
@@ -149,7 +147,7 @@ public class PrimaryOwnerDomainServiceImplTest {
                 )
             );
 
-            var result = service.getApiPrimaryOwner(GraviteeContext.getExecutionContext(), "api-id");
+            var result = service.getApiPrimaryOwner("organization-id", "api-id");
 
             Assertions
                 .assertThat(result)
@@ -181,7 +179,7 @@ public class PrimaryOwnerDomainServiceImplTest {
                 )
             );
 
-            var result = service.getApiPrimaryOwner(GraviteeContext.getExecutionContext(), "api-id");
+            var result = service.getApiPrimaryOwner("organization-id", "api-id");
 
             Assertions
                 .assertThat(result)
@@ -204,7 +202,7 @@ public class PrimaryOwnerDomainServiceImplTest {
                 )
             );
 
-            Throwable throwable = catchThrowable(() -> service.getApiPrimaryOwner(GraviteeContext.getExecutionContext(), "api-id"));
+            Throwable throwable = catchThrowable(() -> service.getApiPrimaryOwner("organization-id", "api-id"));
 
             assertThat(throwable).isInstanceOf(ApiPrimaryOwnerNotFoundException.class);
         }
@@ -215,7 +213,7 @@ public class PrimaryOwnerDomainServiceImplTest {
             givenRoleFailToBeFetched("technical exception");
 
             // When
-            Throwable throwable = catchThrowable(() -> service.getApiPrimaryOwner(GraviteeContext.getExecutionContext(), "api-id"));
+            Throwable throwable = catchThrowable(() -> service.getApiPrimaryOwner("organization-id", "api-id"));
 
             // Then
             assertThat(throwable).isInstanceOf(TechnicalManagementException.class).hasMessageContaining("technical exception");
@@ -225,7 +223,7 @@ public class PrimaryOwnerDomainServiceImplTest {
         public void should_throw_when_fail_to_fetch_api_memberships() {
             givenApiPrimaryOwnerMembershipFailToBeFetched("technical exception");
 
-            Throwable throwable = catchThrowable(() -> service.getApiPrimaryOwner(GraviteeContext.getExecutionContext(), "api-id"));
+            Throwable throwable = catchThrowable(() -> service.getApiPrimaryOwner("organization-id", "api-id"));
 
             assertThat(throwable).isInstanceOf(TechnicalManagementException.class).hasMessageContaining("technical exception");
         }
@@ -246,7 +244,7 @@ public class PrimaryOwnerDomainServiceImplTest {
             );
             givenGroupFailToBeFetched("technical exception");
 
-            Throwable throwable = catchThrowable(() -> service.getApiPrimaryOwner(GraviteeContext.getExecutionContext(), "api-id"));
+            Throwable throwable = catchThrowable(() -> service.getApiPrimaryOwner("organization-id", "api-id"));
 
             assertThat(throwable).isInstanceOf(TechnicalManagementException.class).hasMessageContaining("technical exception");
         }
@@ -267,7 +265,7 @@ public class PrimaryOwnerDomainServiceImplTest {
             );
             givenGroupMembershipFailToBeFetched("technical exception");
 
-            Throwable throwable = catchThrowable(() -> service.getApiPrimaryOwner(GraviteeContext.getExecutionContext(), "api-id"));
+            Throwable throwable = catchThrowable(() -> service.getApiPrimaryOwner("organization-id", "api-id"));
 
             assertThat(throwable).isInstanceOf(TechnicalManagementException.class).hasMessageContaining("technical exception");
         }

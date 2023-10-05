@@ -59,8 +59,8 @@ public class PrimaryOwnerDomainServiceImpl implements ApiPrimaryOwnerDomainServi
     }
 
     @Override
-    public PrimaryOwnerEntity getApiPrimaryOwner(ExecutionContext executionContext, String apiId) throws ApiPrimaryOwnerNotFoundException {
-        return findPrimaryOwnerRole(executionContext.getOrganizationId())
+    public PrimaryOwnerEntity getApiPrimaryOwner(final String organizationId, String apiId) throws ApiPrimaryOwnerNotFoundException {
+        return findPrimaryOwnerRole(organizationId)
             .flatMap(role ->
                 findPrimaryOwnerMembership(apiId, role)
                     .flatMap(membership ->

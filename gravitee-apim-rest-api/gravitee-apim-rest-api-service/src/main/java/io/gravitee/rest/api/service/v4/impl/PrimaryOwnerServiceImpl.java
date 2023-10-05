@@ -19,6 +19,7 @@ import static java.util.stream.Collectors.toSet;
 
 import io.gravitee.apim.core.api.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.exception.ApiPrimaryOwnerNotFoundException;
+import io.gravitee.apim.infra.adapter.PrimaryOwnerAdapter;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
@@ -77,24 +78,23 @@ public class PrimaryOwnerServiceImpl extends TransactionalService implements Pri
     }
 
     @Override
-    public PrimaryOwnerEntity getPrimaryOwner(final ExecutionContext executionContext, final String apiId)
-        throws TechnicalManagementException {
+    public PrimaryOwnerEntity getPrimaryOwner(final String organizationId, final String apiId) throws TechnicalManagementException {
         try {
             io.gravitee.apim.core.membership.model.PrimaryOwnerEntity po = primaryOwnerDomainService.getApiPrimaryOwner(
-                executionContext,
+                organizationId,
                 apiId
             );
-            return PrimaryOwnerEntity.builder().id(po.id()).type(po.type()).displayName(po.displayName()).email(po.email()).build();
+            return PrimaryOwnerAdapter.INSTANCE.toRestEntity(po);
         } catch (ApiPrimaryOwnerNotFoundException e) {
             throw new PrimaryOwnerNotFoundException(e.getApiId());
         }
     }
 
     @Override
-    public String getPrimaryOwnerEmail(ExecutionContext executionContext, String apiId) {
+    public String getPrimaryOwnerEmail(final String organizationId, String apiId) {
         try {
             io.gravitee.apim.core.membership.model.PrimaryOwnerEntity po = primaryOwnerDomainService.getApiPrimaryOwner(
-                executionContext,
+                organizationId,
                 apiId
             );
             return po.email();
