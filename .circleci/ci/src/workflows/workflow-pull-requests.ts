@@ -24,7 +24,6 @@ import {
   BuildBackendJob,
   ChromaticConsoleJob,
   CommunityBuildBackendJob,
-  DangerJsJob,
   DeployOnAzureJob,
   E2ECypressJob,
   E2EGenerateSDKJob,
@@ -89,9 +88,6 @@ export class PullRequestsWorkflow {
       const validateBackendJob = ValidateJob.create(dynamicConfig);
       dynamicConfig.addJob(validateBackendJob);
 
-      const dangerJSJob = DangerJsJob.create(dynamicConfig);
-      dynamicConfig.addJob(dangerJSJob);
-
       const buildBackendJob = BuildBackendJob.create(dynamicConfig, environment);
       dynamicConfig.addJob(buildBackendJob);
 
@@ -122,11 +118,6 @@ export class PullRequestsWorkflow {
           name: 'Validate backend',
           context: config.jobContext,
           requires: ['Setup'],
-        }),
-        new workflow.WorkflowJob(dangerJSJob, {
-          name: 'Run Danger JS',
-          context: config.jobContext,
-          requires: ['Validate backend'],
         }),
         new workflow.WorkflowJob(buildBackendJob, {
           name: 'Build backend',
