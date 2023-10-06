@@ -24,7 +24,7 @@ ARG GRAVITEEIO_PACKAGE_NAME=graviteeio-full
 ENV WWW_TARGET /usr/share/nginx/html
 ENV ALLOWED_FRAME_ANCESTOR_URLS "'self'"
 ENV PORTAL_BASE_HREF "/"
-ENV PORTAL_API_URL "http://localhost:8083/portal/environments/DEFAULT"
+ENV PORTAL_API_URL "http://localhost:8083/portal"
 
 RUN apk update \
   && apk add --update --no-cache zip unzip netcat-openbsd wget \

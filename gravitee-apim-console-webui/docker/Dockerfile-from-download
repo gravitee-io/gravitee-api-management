@@ -23,7 +23,7 @@ ARG GRAVITEEIO_PACKAGE_NAME=graviteeio-full
 
 ENV WWW_TARGET /usr/share/nginx/html
 ENV CONSOLE_BASE_HREF "/"
-ENV MGMT_API_URL "http://localhost:8083/management/organizations/DEFAULT/environments/DEFAULT"
+ENV MGMT_API_URL "http://localhost:8083/management"
 
 RUN apk update \
   && apk add --update --no-cache zip unzip netcat-openbsd wget \
