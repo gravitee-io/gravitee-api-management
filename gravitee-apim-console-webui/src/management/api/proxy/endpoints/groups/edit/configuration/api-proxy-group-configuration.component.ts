@@ -13,49 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
-import { FormControl } from '@angular/forms';
-import { Subject } from 'rxjs';
-import { map, takeUntil } from 'rxjs/operators';
-import '@gravitee/ui-components/wc/gv-schema-form-group';
+import { Component, Input } from '@angular/core';
+import { FormGroup } from '@angular/forms';
 
-import { ConnectorService } from '../../../../../../../services-ngx/connector.service';
+import {
+  EndpointHttpConfigComponent,
+  EndpointHttpConfigValue,
+} from '../../../components/endpoint-http-config/endpoint-http-config.component';
+import { EndpointGroupV2 } from '../../../../../../../entities/management-api-v2';
 
 @Component({
   selector: 'api-proxy-group-configuration',
   template: require('./api-proxy-group-configuration.component.html'),
   styles: [require('./api-proxy-group-configuration.component.scss')],
 })
-export class ApiProxyGroupConfigurationComponent implements OnInit, OnDestroy {
-  private unsubscribe$: Subject<boolean> = new Subject<boolean>();
-
-  @Input() groupConfigurationControl: FormControl;
-
-  public schemaForm: unknown;
-
-  constructor(private readonly connectorService: ConnectorService) {}
-
-  ngOnInit(): void {
-    this.connectorService
-      .list(true)
-      .pipe(
-        map((connectors) => {
-          this.schemaForm = JSON.parse(connectors.find((connector) => connector.supportedTypes.includes('http'))?.schema);
-        }),
-        takeUntil(this.unsubscribe$),
-      )
-      .subscribe();
+export class ApiProxyGroupConfigurationComponent {
+  public static getGroupConfigurationFormGroup(endpointGroup: EndpointGroupV2, isReadonly: boolean): FormGroup {
+    return EndpointHttpConfigComponent.getHttpConfigFormGroup(endpointGroup, isReadonly);
   }
 
-  ngOnDestroy(): void {
-    this.unsubscribe$.next(true);
-    this.unsubscribe$.complete();
+  public static getGroupConfigurationFormValue(groupConfigurationFormGroup: FormGroup): EndpointHttpConfigValue {
+    return EndpointHttpConfigComponent.getHttpConfigValue(groupConfigurationFormGroup);
   }
 
-  onConfigurationError(error: unknown) {
-    // Set error at the end of js task. Otherwise it will be reset on value change
-    setTimeout(() => {
-      this.groupConfigurationControl.setErrors(error ? { error: true } : null);
-    }, 0);
-  }
+  @Input() groupConfigurationFormGroup: FormGroup;
 }

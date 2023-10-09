@@ -14,20 +14,21 @@
  * limitations under the License.
  */
 
-import { ProxyGroupServiceDiscoveryConfiguration } from './edit/service-discovery/api-proxy-group-service-discovery.model';
+import { ProxyGroupServiceDiscoveryConfiguration } from './service-discovery/api-proxy-group-service-discovery.model';
 
-import { ProxyConfiguration, ProxyGroup, ProxyGroupLoadBalancerType } from '../../../../../entities/proxy';
+import { EndpointGroupV2, LoadBalancerTypeEnum } from '../../../../../../entities/management-api-v2';
+import { EndpointHttpConfigValue } from '../../components/endpoint-http-config/endpoint-http-config.component';
 
 export const toProxyGroup = (
-  group: ProxyGroup,
-  generalData: { name: string; loadBalancerType: ProxyGroupLoadBalancerType },
-  configuration: ProxyConfiguration,
+  group: EndpointGroupV2,
+  generalData: { name: string; loadBalancerType: LoadBalancerTypeEnum },
+  configuration: EndpointHttpConfigValue,
   serviceDiscoveryConfiguration: ProxyGroupServiceDiscoveryConfiguration,
-): ProxyGroup => {
-  let updatedGroup: ProxyGroup = {
+): EndpointGroupV2 => {
+  let updatedGroup: EndpointGroupV2 = {
     ...group,
     name: generalData.name,
-    load_balancing: {
+    loadBalancer: {
       type: generalData.loadBalancerType,
     },
   };
@@ -35,10 +36,11 @@ export const toProxyGroup = (
   if (configuration) {
     updatedGroup = {
       ...updatedGroup,
-      http: configuration.http,
-      ssl: configuration.ssl,
+      httpClientOptions: configuration.httpClientOptions,
+      httpClientSslOptions: configuration.httpClientSslOptions,
       headers: configuration.headers,
-      proxy: configuration.proxy,
+      // Not send empty proxy if not configured
+      httpProxy: configuration.httpProxy?.enabled ? configuration.httpProxy : undefined,
     };
   }
 

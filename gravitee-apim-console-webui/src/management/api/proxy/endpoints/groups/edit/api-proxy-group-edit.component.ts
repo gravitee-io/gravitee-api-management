@@ -21,17 +21,17 @@ import { StateService } from '@uirouter/core';
 
 import { isUniq, serviceDiscoveryValidator } from './api-proxy-group-edit.validator';
 import { ProxyGroupServiceDiscoveryConfiguration } from './service-discovery/api-proxy-group-service-discovery.model';
+import { toProxyGroup } from './api-proxy-group-edit.adapter';
+import { ApiProxyGroupConfigurationComponent } from './configuration/api-proxy-group-configuration.component';
 
 import { UIRouterState, UIRouterStateParams } from '../../../../../../ajs-upgraded-providers';
-import { ApiService } from '../../../../../../services-ngx/api.service';
-import { Api } from '../../../../../../entities/api';
 import { SnackBarService } from '../../../../../../services-ngx/snack-bar.service';
-import { toProxyGroup } from '../api-proxy-groups.adapter';
-import { ProxyConfiguration } from '../../../../../../entities/proxy';
 import { ResourceListItem } from '../../../../../../entities/resource/resourceListItem';
 import { ServiceDiscoveryService } from '../../../../../../services-ngx/service-discovery.service';
 import { GioPermissionService } from '../../../../../../shared/components/gio-permission/gio-permission.service';
 import { ApiV2Service } from '../../../../../../services-ngx/api-v2.service';
+import { onlyApiV1V2Filter, onlyApiV2Filter } from '../../../../../../util/apiFilter.operator';
+import { ApiV1, ApiV2 } from '../../../../../../entities/management-api-v2';
 
 @Component({
   selector: 'api-proxy-group-edit',
@@ -43,7 +43,7 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
   private mode: 'new' | 'edit';
 
   public apiId: string;
-  public api: Api;
+  public api: ApiV1 | ApiV2;
   public isReadOnly: boolean;
   public generalForm: FormGroup;
   public groupForm: FormGroup;
@@ -55,8 +55,7 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
     @Inject(UIRouterState) private readonly ajsState: StateService,
     private readonly formBuilder: FormBuilder,
-    private readonly apiService: ApiService,
-    private readonly apiV2Service: ApiV2Service,
+    private readonly apiService: ApiV2Service,
     private readonly snackBarService: SnackBarService,
     private readonly serviceDiscoveryService: ServiceDiscoveryService,
     private readonly permissionService: GioPermissionService,
@@ -69,11 +68,10 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
     this.apiService
       .get(this.apiId)
       .pipe(
-        // TODO : remove when this page only use apiV2Service
-        switchMap((api) => this.apiV2Service.get(api.id).pipe(map(() => api))),
+        onlyApiV1V2Filter(this.snackBarService),
         switchMap((api) => {
           this.api = api;
-          this.isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']) || api.definition_context?.origin === 'kubernetes';
+          this.isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']) || api.definitionContext?.origin === 'KUBERNETES';
           return this.serviceDiscoveryService.list();
         }),
         map((serviceDiscoveryItems: ResourceListItem[]) => {
@@ -94,6 +92,7 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
     return this.apiService
       .get(this.apiId)
       .pipe(
+        onlyApiV2Filter(this.snackBarService),
         switchMap((api) => {
           const groupIndex =
             this.mode === 'edit' ? api.proxy.groups.findIndex((group) => group.name === this.ajsStateParams.groupName) : -1;
@@ -101,16 +100,14 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
           const updatedGroup = toProxyGroup(
             api.proxy.groups[groupIndex],
             this.generalForm.getRawValue(),
-            this.getProxyConfiguration(),
+            ApiProxyGroupConfigurationComponent.getGroupConfigurationFormValue(this.groupForm.get('groupConfiguration') as FormGroup),
             this.getServiceDiscoveryConfiguration(),
           );
 
           groupIndex !== -1 ? api.proxy.groups.splice(groupIndex, 1, updatedGroup) : api.proxy.groups.push(updatedGroup);
-          return this.apiService.update(api);
+          return this.apiService.update(api.id, api);
         }),
         tap(() => this.snackBarService.success('Configuration successfully saved!')),
-        // TODO : remove when this page only use apiV2Service
-        switchMap((api) => this.apiV2Service.get(api.id).pipe(map(() => api))),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
           return EMPTY;
@@ -126,10 +123,6 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
         takeUntil(this.unsubscribe$),
       )
       .subscribe();
-  }
-
-  public getProxyConfiguration(): ProxyConfiguration {
-    return this.groupForm.get('groupConfiguration').value;
   }
 
   public getServiceDiscoveryConfiguration(): ProxyGroupServiceDiscoveryConfiguration {
@@ -168,15 +161,15 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
           ),
         ],
       ],
-      loadBalancerType: [{ value: group?.load_balancing?.type ?? null, disabled: this.isReadOnly }, [Validators.required]],
+      loadBalancerType: [{ value: group?.loadBalancer?.type ?? null, disabled: this.isReadOnly }, [Validators.required]],
     });
 
     this.serviceDiscoveryForm = this.formBuilder.group(
       {
-        enabled: [{ value: group?.services?.discovery.enabled ?? false, disabled: this.isReadOnly }],
+        enabled: [{ value: group?.services?.discovery?.enabled ?? false, disabled: this.isReadOnly }],
         provider: [
           {
-            value: group?.services?.discovery.provider ?? null,
+            value: group?.services?.discovery?.provider ?? null,
             disabled: this.isReadOnly,
           },
         ],
@@ -187,7 +180,7 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
 
     this.groupForm = this.formBuilder.group({
       general: this.generalForm,
-      groupConfiguration: [{ value: group ?? {}, disabled: this.isReadOnly }],
+      groupConfiguration: ApiProxyGroupConfigurationComponent.getGroupConfigurationFormGroup(group, this.isReadOnly),
       serviceDiscovery: this.serviceDiscoveryForm,
     });
 

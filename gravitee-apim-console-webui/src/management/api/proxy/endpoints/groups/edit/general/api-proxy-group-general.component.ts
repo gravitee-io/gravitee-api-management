@@ -16,7 +16,7 @@
 import { Component, Input } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 
-import { ProxyGroupLoadBalancerEnum } from '../../../../../../../entities/proxy';
+import { LOAD_BALANCER_TYPES } from '../../../../../../../entities/management-api-v2';
 
 @Component({
   selector: 'api-proxy-group-general',
@@ -25,5 +25,5 @@ import { ProxyGroupLoadBalancerEnum } from '../../../../../../../entities/proxy'
 })
 export class ApiProxyGroupGeneralComponent {
   @Input() generalForm: FormGroup;
-  public loadBalancingValues = ProxyGroupLoadBalancerEnum;
+  public loadBalancingValues = LOAD_BALANCER_TYPES;
 }

@@ -15,12 +15,6 @@
     limitations under the License.
 
 -->
-<mat-card *ngIf="schemaForm">
-  <gv-schema-form-group
-    ngDefaultControl
-    [formControl]="groupConfigurationControl"
-    [schema]="schemaForm"
-    [attr.readonly]="groupConfigurationControl.enabled ? null : true"
-    (:gv-schema-form-group:error)="onConfigurationError($event.detail)"
-  ></gv-schema-form-group>
+<mat-card>
+  <endpoint-http-config *ngIf="groupConfigurationFormGroup" [httpConfigFormGroup]="groupConfigurationFormGroup"></endpoint-http-config>
 </mat-card>
