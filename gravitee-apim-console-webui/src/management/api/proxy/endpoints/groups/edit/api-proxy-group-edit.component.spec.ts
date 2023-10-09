@@ -31,14 +31,12 @@ import { ApiProxyGroupEditComponent } from './api-proxy-group-edit.component';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../../shared/testing';
 import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../../../ajs-upgraded-providers';
 import { ApiProxyGroupsModule } from '../api-proxy-groups.module';
-import { fakeApi } from '../../../../../../entities/api/Api.fixture';
-import { Api } from '../../../../../../entities/api';
 import { SnackBarService } from '../../../../../../services-ngx/snack-bar.service';
-import { fakeConnectorListItem } from '../../../../../../entities/connector/connector-list-item.fixture';
-import { ConnectorListItem } from '../../../../../../entities/connector/connector-list-item';
 import { ResourceListItem } from '../../../../../../entities/resource/resourceListItem';
 import { fakeResourceListItem } from '../../../../../../entities/resource/resourceListItem.fixture';
 import { User } from '../../../../../../entities/user';
+import { ApiV2, fakeApiV2 } from '../../../../../../entities/management-api-v2';
+import { EndpointHttpConfigHarness } from '../../components/endpoint-http-config/endpoint-http-config.harness';
 
 describe('ApiProxyGroupEditComponent', () => {
   const API_ID = 'apiId';
@@ -48,7 +46,6 @@ describe('ApiProxyGroupEditComponent', () => {
   let fixture: ComponentFixture<ApiProxyGroupEditComponent>;
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
-  let connector: ConnectorListItem;
   let serviceDiscovery: ResourceListItem;
 
   const currentUser = new User();
@@ -64,7 +61,6 @@ describe('ApiProxyGroupEditComponent', () => {
       ],
     });
 
-    connector = fakeConnectorListItem();
     serviceDiscovery = fakeResourceListItem({
       name: 'Consul.io Service Discovery',
       id: 'consul-service-discovery',
@@ -86,15 +82,12 @@ describe('ApiProxyGroupEditComponent', () => {
     });
 
     it('should go back to endpoints', async () => {
-      const api = fakeApi({
+      const api = fakeApiV2({
         id: API_ID,
       });
       expectApiGetRequest(api);
 
-      // TODO : remove when this page only use apiV2Service
-      httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush({});
       expectServiceDiscoveryRequest(serviceDiscovery);
-      expectConnectorRequest(connector);
 
       const routerSpy = jest.spyOn(fakeUiRouter, 'go');
 
@@ -104,27 +97,28 @@ describe('ApiProxyGroupEditComponent', () => {
     });
 
     describe('Edit general information of existing group', () => {
-      let api: Api;
+      let api: ApiV2;
 
       beforeEach(async () => {
-        api = fakeApi({
+        api = fakeApiV2((api) => ({
+          ...api,
           id: API_ID,
           proxy: {
+            ...api.proxy,
             groups: [
               {
+                ...api.proxy.groups[0],
                 name: DEFAULT_GROUP_NAME,
                 endpoints: [],
-                load_balancing: { type: 'ROUND_ROBIN' },
+                loadBalancer: { type: 'ROUND_ROBIN' },
+                headers: [{ name: 'header1', value: 'value1' }],
               },
             ],
           },
-        });
+        }));
         expectApiGetRequest(api);
 
-        // TODO : remove when this page only use apiV2Service
-        httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush({});
         expectServiceDiscoveryRequest(serviceDiscovery);
-        expectConnectorRequest(connector);
 
         await loader.getHarness(MatTabHarness.with({ label: 'General' })).then((tab) => tab.select());
         fixture.detectChanges();
@@ -143,18 +137,33 @@ describe('ApiProxyGroupEditComponent', () => {
         await gioSaveBar.clickSubmit();
 
         expectApiGetRequest(api);
-        const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'PUT' });
+        const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'PUT' });
 
         expect(req.request.body.proxy.groups).toEqual([
           {
             name: newGroupName,
             endpoints: [],
-            load_balancing: { type: 'ROUND_ROBIN' },
+            loadBalancer: { type: 'ROUND_ROBIN' },
             services: {
               discovery: {
                 enabled: false,
               },
             },
+            httpClientOptions: {
+              clearTextUpgrade: undefined,
+              connectTimeout: 5000,
+              followRedirects: false,
+              idleTimeout: 60000,
+              keepAlive: true,
+              maxConcurrentConnections: 100,
+              pipelining: false,
+              propagateClientAcceptEncoding: undefined,
+              readTimeout: 10000,
+              useCompression: true,
+              version: undefined,
+            },
+            httpClientSslOptions: {},
+            headers: [{ name: 'header1', value: 'value1' }],
           },
         ]);
       });
@@ -185,18 +194,33 @@ describe('ApiProxyGroupEditComponent', () => {
 
         expectApiGetRequest(api);
 
-        const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'PUT' });
+        const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'PUT' });
 
         expect(req.request.body.proxy.groups).toEqual([
           {
             name: DEFAULT_GROUP_NAME,
             endpoints: [],
-            load_balancing: { type: 'RANDOM' }, // Todo: fix me load_balancing: { type: newLbType },
+            loadBalancer: { type: newLbType },
             services: {
               discovery: {
                 enabled: false,
               },
             },
+            httpClientOptions: {
+              clearTextUpgrade: undefined,
+              connectTimeout: 5000,
+              followRedirects: false,
+              idleTimeout: 60000,
+              keepAlive: true,
+              maxConcurrentConnections: 100,
+              pipelining: false,
+              propagateClientAcceptEncoding: undefined,
+              readTimeout: 10000,
+              useCompression: true,
+              version: undefined,
+            },
+            headers: [{ name: 'header1', value: 'value1' }],
+            httpClientSslOptions: {},
           },
         ]);
       });
@@ -217,28 +241,31 @@ describe('ApiProxyGroupEditComponent', () => {
     });
 
     describe('Edit general information of API with service discovery', () => {
-      let api: Api;
+      let api: ApiV2;
 
       beforeEach(async () => {
-        api = fakeApi({
+        api = fakeApiV2((api) => ({
+          ...api,
           id: API_ID,
           proxy: {
+            ...api.proxy,
             groups: [
               {
+                ...api.proxy.groups[0],
                 name: DEFAULT_GROUP_NAME,
                 endpoints: [],
-                load_balancing: { type: 'ROUND_ROBIN' },
+                loadBalancer: { type: 'ROUND_ROBIN' },
                 services: { discovery: { enabled: true, provider: 'consul-service-discovery' } },
               },
             ],
           },
-        });
+        }));
         expectApiGetRequest(api);
-        // TODO : remove when this page only use apiV2Service
-        httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush({});
+        fixture.detectChanges();
 
         expectServiceDiscoveryRequest(serviceDiscovery);
-        expectConnectorRequest(connector);
+        fixture.detectChanges();
+
         expectServiceDiscoverySchemaRequest();
         await loader.getHarness(MatTabHarness.with({ label: 'General' })).then((tab) => tab.select());
         fixture.detectChanges();
@@ -257,13 +284,13 @@ describe('ApiProxyGroupEditComponent', () => {
         await gioSaveBar.clickSubmit();
 
         expectApiGetRequest(api);
-        const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'PUT' });
+        const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'PUT' });
 
         expect(req.request.body.proxy.groups).toEqual([
           {
             name: newGroupName,
             endpoints: [],
-            load_balancing: { type: 'ROUND_ROBIN' },
+            loadBalancer: { type: 'ROUND_ROBIN' },
             services: {
               discovery: {
                 enabled: true,
@@ -271,46 +298,45 @@ describe('ApiProxyGroupEditComponent', () => {
                 configuration: {},
               },
             },
+            httpClientOptions: api.proxy.groups[0].httpClientOptions,
+            headers: [],
+            httpClientSslOptions: {},
           },
         ]);
       });
     });
 
     describe('Edit configuration of existing group', () => {
-      let api: Api;
+      let api: ApiV2;
 
       beforeEach(async () => {
-        api = fakeApi({
+        api = fakeApiV2({
           id: API_ID,
         });
         expectApiGetRequest(api);
-        // TODO : remove when this page only use apiV2Service
-        httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush({});
 
         expectServiceDiscoveryRequest(serviceDiscovery);
-        expectConnectorRequest(connector);
+        await loader.getHarness(MatTabHarness.with({ label: 'Configuration' })).then((tab) => tab.select());
+        fixture.detectChanges();
       });
 
       it('should update api configuration', async () => {
-        const component = fixture.componentInstance;
-        component.groupForm.get('groupConfiguration').setValue({
-          http: {
-            ...api.proxy.groups[0].http,
-            connectTimeout: 1000,
-          },
-        });
+        const endpointHttpConfigHarness = await loader.getHarness(EndpointHttpConfigHarness);
+        await endpointHttpConfigHarness.setHttpVersion('HTTP/2');
 
-        component.onSubmit();
+        const gioSaveBar = await loader.getHarness(GioSaveBarHarness);
+        expect(await gioSaveBar.isSubmitButtonInvalid()).toBeFalsy();
+        await gioSaveBar.clickSubmit();
+
         expectApiGetRequest(api);
-
-        const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'PUT' });
+        const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'PUT' });
 
         expect(req.request.body.proxy.groups).toEqual([
           {
             ...api.proxy.groups[0],
-            http: {
-              ...api.proxy.groups[0].http,
-              connectTimeout: 1000,
+            httpClientOptions: {
+              ...api.proxy.groups[0].httpClientOptions,
+              version: 'HTTP_2',
             },
           },
         ]);
@@ -318,18 +344,15 @@ describe('ApiProxyGroupEditComponent', () => {
     });
 
     describe('Edit existing service discovery configuration', () => {
-      let api: Api;
+      let api: ApiV2;
 
       beforeEach(async () => {
-        api = fakeApi({
+        api = fakeApiV2({
           id: API_ID,
         });
         expectApiGetRequest(api);
-        // TODO : remove when this page only use apiV2Service
-        httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush({});
 
         expectServiceDiscoveryRequest(serviceDiscovery);
-        expectConnectorRequest(connector);
 
         await loader.getHarness(MatTabHarness.with({ label: 'Service discovery' })).then((tab) => tab.select());
 
@@ -349,7 +372,7 @@ describe('ApiProxyGroupEditComponent', () => {
         await loader.getHarness(GioSaveBarHarness).then((saveBar) => saveBar.clickSubmit());
 
         expectApiGetRequest(api);
-        httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'PUT' });
+        httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'PUT' });
       });
 
       it('should disable select', async () => {
@@ -362,18 +385,15 @@ describe('ApiProxyGroupEditComponent', () => {
     });
 
     describe('Reset', () => {
-      let api: Api;
+      let api: ApiV2;
 
       beforeEach(async () => {
-        api = fakeApi({
+        api = fakeApiV2({
           id: API_ID,
         });
         expectApiGetRequest(api);
-        // TODO : remove when this page only use apiV2Service
-        httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush({});
 
         expectServiceDiscoveryRequest(serviceDiscovery);
-        expectConnectorRequest(connector);
       });
 
       it('should reset the forms', async () => {
@@ -391,12 +411,6 @@ describe('ApiProxyGroupEditComponent', () => {
         const gioSaveBar = await loader.getHarness(GioSaveBarHarness);
         await gioSaveBar.clickReset();
 
-        expectApiGetRequest(api);
-
-        // TODO : remove when this page only use apiV2Service
-        httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush({});
-
-        expectServiceDiscoveryRequest(serviceDiscovery);
         expect(await nameInput.getValue()).toStrictEqual('default-group');
         expect(await lbSelect.getValueText()).toStrictEqual('ROUND_ROBIN');
       });
@@ -404,7 +418,7 @@ describe('ApiProxyGroupEditComponent', () => {
   });
 
   describe('New mode ', () => {
-    let api: Api;
+    let api: ApiV2;
 
     beforeEach(() => {
       TestBed.overrideProvider(UIRouterStateParams, { useValue: { apiId: API_ID, groupName: null } });
@@ -414,15 +428,12 @@ describe('ApiProxyGroupEditComponent', () => {
       httpTestingController = TestBed.inject(HttpTestingController);
       fixture.detectChanges();
 
-      api = fakeApi({
+      api = fakeApiV2({
         id: API_ID,
       });
       expectApiGetRequest(api);
-      // TODO : remove when this page only use apiV2Service
-      httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush({});
 
       expectServiceDiscoveryRequest(serviceDiscovery);
-      expectConnectorRequest(connector);
     });
 
     it('should create new group', async () => {
@@ -439,42 +450,23 @@ describe('ApiProxyGroupEditComponent', () => {
       expect(await lbSelect.getValueText()).toEqual(newLbType);
       fixture.detectChanges();
 
+      await loader.getHarness(MatTabHarness.with({ label: 'Configuration' })).then((tab) => tab.select());
+
+      const endpointHttpConfigHarness = await loader.getHarness(EndpointHttpConfigHarness);
+
+      await endpointHttpConfigHarness.setHttpVersion('HTTP/2');
+
       const gioSaveBar = await loader.getHarness(GioSaveBarHarness);
       expect(await gioSaveBar.isSubmitButtonInvalid()).toBeFalsy();
       await gioSaveBar.clickSubmit();
 
       expectApiGetRequest(api);
-      const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'PUT' });
+      const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'PUT' });
 
       expect(req.request.body.proxy.groups).toEqual([
+        api.proxy.groups[0],
         {
-          endpoints: [
-            {
-              backup: false,
-              inherit: true,
-              name: 'default',
-              target: 'https://api.le-systeme-solaire.net/rest/',
-              type: 'HTTP',
-              weight: 1,
-            },
-          ],
-          http: {
-            connectTimeout: 5000,
-            followRedirects: false,
-            idleTimeout: 60000,
-            keepAlive: true,
-            maxConcurrentConnections: 100,
-            pipelining: false,
-            readTimeout: 10000,
-            useCompression: true,
-          },
-          load_balancing: {
-            type: 'ROUND_ROBIN',
-          },
-          name: 'default-group',
-        },
-        {
-          load_balancing: {
+          loadBalancer: {
             type: 'RANDOM',
           },
           name: newGroupName,
@@ -483,60 +475,67 @@ describe('ApiProxyGroupEditComponent', () => {
               enabled: false,
             },
           },
+          httpClientOptions: {
+            version: 'HTTP_2',
+          },
+          headers: [],
+          httpClientSslOptions: {},
         },
       ]);
     });
 
     it('should not be able to create new group when name is already used', async () => {
-      const newGroupName = 'default-group';
-      await loader
-        .getHarness(MatInputHarness.with({ selector: '[aria-label="Group name input"]' }))
-        .then((inputName) => inputName.setValue(newGroupName));
-      fixture.detectChanges();
-
       const gioSaveBar = await loader.getHarness(GioSaveBarHarness);
+      const newGroupName = 'default-group';
+      const groupNameInput = await loader.getHarness(MatInputHarness.with({ selector: '[aria-label="Group name input"]' }));
+
+      await groupNameInput.setValue(newGroupName);
+
+      const lbSelect = await loader.getHarness(MatSelectHarness.with({ selector: '[aria-label="Load balancing algorithm"]' }));
+      await lbSelect.clickOptions({ text: 'RANDOM' });
+
       expect(await gioSaveBar.isSubmitButtonInvalid()).toBeTruthy();
       expect(fixture.componentInstance.generalForm.get('name').hasError('isUnique')).toBeTruthy();
     });
   });
 
   describe('Read only', () => {
-    let api: Api;
+    let api: ApiV2;
 
-    beforeEach(() => {
+    beforeEach(async () => {
       TestBed.overrideProvider(UIRouterStateParams, { useValue: { apiId: API_ID, groupName: null } });
-      TestBed.compileComponents();
+      await TestBed.compileComponents();
       fixture = TestBed.createComponent(ApiProxyGroupEditComponent);
       loader = TestbedHarnessEnvironment.loader(fixture);
       httpTestingController = TestBed.inject(HttpTestingController);
       fixture.detectChanges();
 
-      api = fakeApi({
+      api = fakeApiV2({
         id: API_ID,
-        definition_context: {
-          origin: 'kubernetes',
+        definitionContext: {
+          origin: 'KUBERNETES',
         },
       });
       expectApiGetRequest(api);
-      // TODO : remove when this page only use apiV2Service
-      httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush({});
 
       expectServiceDiscoveryRequest(serviceDiscovery);
-      expectConnectorRequest(connector);
     });
 
     it('should not allow user to update the form', async () => {
-      expect(
-        await loader
-          .getHarness(MatInputHarness.with({ selector: '[aria-label="Group name input"]' }))
-          .then((nameInput) => nameInput.isDisabled()),
-      ).toBeTruthy();
+      const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[aria-label="Group name input"]' }));
+      expect(await nameInput.isDisabled()).toBeTruthy();
 
       expect(
         await loader
           .getHarness(MatSelectHarness.with({ selector: '[aria-label="Load balancing algorithm"]' }))
           .then((select) => select.isDisabled()),
       ).toBeTruthy();
+
+      await loader.getHarness(MatTabHarness.with({ label: 'Configuration' })).then((tab) => tab.select());
+
+      const endpointHttpConfigHarness = await loader.getHarness(EndpointHttpConfigHarness);
+
+      expect(await endpointHttpConfigHarness.getMatInput('connectTimeout').then((input) => input.isDisabled())).toBeTruthy();
 
       await loader.getHarness(MatTabHarness.with({ label: 'Service discovery' })).then((tab) => tab.select());
 
@@ -552,22 +551,14 @@ describe('ApiProxyGroupEditComponent', () => {
     });
   });
 
-  function expectApiGetRequest(api: Api) {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
-
-    fixture.detectChanges();
-  }
-
-  function expectConnectorRequest(connector: ConnectorListItem) {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/connectors?expand=schema`, method: 'GET' }).flush([connector]);
-    fixture.detectChanges();
+  function expectApiGetRequest(api: ApiV2) {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
   }
 
   function expectServiceDiscoveryRequest(serviceDiscovery: ResourceListItem) {
     httpTestingController
       .expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/services-discovery`, method: 'GET' })
       .flush([serviceDiscovery]);
-    fixture.detectChanges();
   }
 
   function expectServiceDiscoverySchemaRequest() {
@@ -579,7 +570,7 @@ describe('ApiProxyGroupEditComponent', () => {
 
   function expectApiPutRequestError(apiId: string) {
     httpTestingController
-      .expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}`, method: 'PUT' })
+      .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}`, method: 'PUT' })
       .error(new ErrorEvent('error'));
     fixture.detectChanges();
   }
