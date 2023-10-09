@@ -41,6 +41,13 @@ describe('ApiRuntimeLogsComponent', () => {
   let httpTestingController: HttpTestingController;
   let componentHarness: ApiRuntimeLogsHarness;
   let logsRowHarness: ApiRuntimeLogsListRowHarness;
+  const stateParams = {
+    apiId: API_ID,
+    page: 1,
+    perPage: 10,
+    from: null,
+    to: null,
+  };
 
   const initComponent = async () => {
     TestBed.configureTestingModule({
@@ -56,7 +63,7 @@ describe('ApiRuntimeLogsComponent', () => {
       ],
       providers: [
         { provide: UIRouterState, useValue: fakeUiRouter },
-        { provide: UIRouterStateParams, useValue: { apiId: API_ID, page: 1, perPage: 10 } },
+        { provide: UIRouterStateParams, useValue: stateParams },
       ],
     });
 
@@ -216,6 +223,33 @@ describe('ApiRuntimeLogsComponent', () => {
         const periodSelectInput = await componentHarness.selectPeriodQuickFilter();
         expect(await periodSelectInput.isDisabled()).toEqual(false);
         expect(await periodSelectInput.getValueText()).toEqual('None');
+      });
+
+      it('should navigate to second page and keep the period filter', async () => {
+        expect(await componentHarness.getRows()).toHaveLength(pageSize);
+
+        const periodSelectInput = await componentHarness.selectPeriodQuickFilter();
+        await periodSelectInput.clickOptions({ text: 'Last 5 Minutes' });
+
+        const expectedTo = fakeNow.valueOf();
+        const expectedFrom = expectedTo - 5 * 60 * 1000;
+        expectApiWithLogs(total, pageSize, 1, expectedFrom, expectedTo);
+        expect(fakeUiRouter.go).toHaveBeenNthCalledWith(
+          1,
+          '.',
+          {
+            page: 1,
+            perPage: 10,
+            from: expectedFrom,
+            to: expectedTo,
+          },
+          { notify: false },
+        );
+
+        const paginator = await componentHarness.getPaginator();
+        await paginator.goToNextPage();
+
+        expectApiWithLogs(total, pageSize, 2, expectedFrom, expectedTo);
       });
 
       it('should navigate filter on last 5 minutes and remove it', async () => {

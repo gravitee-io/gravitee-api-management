@@ -39,6 +39,7 @@ import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 export class ApiRuntimeLogsComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();
   private api$ = this.apiService.get(this.ajsStateParams.apiId).pipe(shareReplay(1));
+  private currentFilters: Record<string, number>;
   apiLogsSubject$ = new ReplaySubject<ApiLogsResponse>(1);
   isMessageApi$ = this.api$.pipe(map((api: ApiV4) => api?.type === 'MESSAGE'));
   apiLogsEnabled$ = this.api$.pipe(map(ApiRuntimeLogsComponent.isLogEnabled));
@@ -73,23 +74,14 @@ export class ApiRuntimeLogsComponent implements OnInit, OnDestroy {
   }
 
   paginationUpdated(event: PageEvent) {
-    const page = event.pageIndex + 1;
-    const perPage = event.pageSize;
+    this.currentFilters = { ...this.currentFilters, page: event.pageIndex + 1, perPage: event.pageSize };
+
     this.apiLogsService
-      .searchConnectionLogs(this.ajsStateParams.apiId, { page, perPage })
+      .searchConnectionLogs(this.ajsStateParams.apiId, { ...this.currentFilters })
       .pipe(
         tap((apiLogsResponse) => {
           this.apiLogsSubject$.next(apiLogsResponse);
-          this.ajsState.go(
-            '.',
-            {
-              page,
-              perPage,
-              ...(!!this.ajsStateParams.from && { from: +this.ajsStateParams.from }),
-              ...(!!this.ajsStateParams.to && { to: +this.ajsStateParams.to }),
-            },
-            { notify: false },
-          );
+          this.ajsState.go('.', { ...this.currentFilters }, { notify: false });
         }),
         takeUntil(this.unsubscribe$),
       )
@@ -105,42 +97,32 @@ export class ApiRuntimeLogsComponent implements OnInit, OnDestroy {
   };
 
   applyFilter(logFilter: LogFilter) {
+    let query: Record<string, number> = {};
+    query = { ...query, page: 1, perPage: +this.ajsStateParams.perPage };
+
     // prepare query from filter
-    if (logFilter.period) {
+    if (logFilter?.period) {
       const periodFilter = this.preparePeriodFilter(logFilter.period);
-
-      let query: Record<string, number> = {};
-
-      if (periodFilter?.from) {
-        query = { ...query, from: periodFilter.from };
-      }
-
-      if (periodFilter?.to) {
-        query = { ...query, to: periodFilter.to };
-      }
-
-      this.apiLogsService
-        .searchConnectionLogs(this.ajsStateParams.apiId, query)
-        .pipe(
-          tap((apiLogsResponse) => {
-            this.apiLogsSubject$.next(apiLogsResponse);
-
-            this.ajsState.go(
-              '.',
-              {
-                page: 1,
-                perPage: +this.ajsStateParams.perPage,
-                // Apply filter or remove param from URL
-                from: query.from ?? null,
-                to: query.to ?? null,
-              },
-              { notify: false },
-            );
-          }),
-          takeUntil(this.unsubscribe$),
-        )
-        .subscribe();
+      query = { ...query, from: periodFilter?.from ? periodFilter.from : null, to: periodFilter?.to ? periodFilter.to : null };
     }
+    this.currentFilters = query;
+
+    this.apiLogsService
+      .searchConnectionLogs(this.ajsStateParams.apiId, query)
+      .pipe(
+        tap((apiLogsResponse) => {
+          this.apiLogsSubject$.next(apiLogsResponse);
+          this.ajsState.go(
+            '.',
+            {
+              ...this.currentFilters,
+            },
+            { notify: false },
+          );
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe();
   }
 
   private preparePeriodFilter(period: PeriodFilter): { from: number; to: number } {
