@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 
-export class ApiDocumentationV4EmptyStateHarness extends ComponentHarness {
-  static hostSelector = 'api-documentation-empty-state';
-  private addNewPageButtonLocator = this.locatorFor(MatButtonHarness.with({ text: 'Add new page' }));
-  public async clickAddNewPage() {
-    return this.addNewPageButtonLocator().then((btn) => btn.click());
+export class ApiDocumentationV4NavigationHeaderHarness extends ComponentHarness {
+  public static hostSelector = 'api-documentation-navigation-header';
+
+  private addNewFolderButtonLocator = this.locatorFor(MatButtonHarness.with({ text: 'Add new folder' }));
+  public async clickAddNewFolder() {
+    return this.addNewFolderButtonLocator().then((btn) => btn.click());
   }
 }

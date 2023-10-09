@@ -13,14 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { PageType } from './pageType';
+import { Visibility } from './visibility';
+import { PageSource } from './pageSource';
 
-import { ComponentHarness } from '@angular/cdk/testing';
-import { MatButtonHarness } from '@angular/material/button/testing';
+export interface Revision {
+  id?: string;
+  revision?: number;
+}
 
-export class ApiDocumentationV4EmptyStateHarness extends ComponentHarness {
-  static hostSelector = 'api-documentation-empty-state';
-  private addNewPageButtonLocator = this.locatorFor(MatButtonHarness.with({ text: 'Add new page' }));
-  public async clickAddNewPage() {
-    return this.addNewPageButtonLocator().then((btn) => btn.click());
-  }
+export interface Page {
+  id?: string;
+  crossId?: string;
+  name?: string;
+  type?: PageType;
+  content?: string;
+  order?: number;
+  lastContributor?: string;
+  published?: boolean;
+  visibility?: Visibility;
+  updatedAt?: Date;
+  contentType?: string;
+  source?: PageSource;
+  configuration?: { [key: string]: string };
+  homepage?: boolean;
+  parentId?: string;
+  parentPath?: string;
+  contentRevision?: Revision;
 }

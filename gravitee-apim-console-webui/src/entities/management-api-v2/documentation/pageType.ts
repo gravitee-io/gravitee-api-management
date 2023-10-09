@@ -13,14 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { ComponentHarness } from '@angular/cdk/testing';
-import { MatButtonHarness } from '@angular/material/button/testing';
-
-export class ApiDocumentationV4EmptyStateHarness extends ComponentHarness {
-  static hostSelector = 'api-documentation-empty-state';
-  private addNewPageButtonLocator = this.locatorFor(MatButtonHarness.with({ text: 'Add new page' }));
-  public async clickAddNewPage() {
-    return this.addNewPageButtonLocator().then((btn) => btn.click());
-  }
-}
+const PageTypeEnum = {
+  ASCIIDOC: 'ASCIIDOC',
+  ASYNCAPI: 'ASYNCAPI',
+  MARKDOWN: 'MARKDOWN',
+  MARKDOWN_TEMPLATE: 'MARKDOWN_TEMPLATE',
+  SWAGGER: 'SWAGGER',
+  FOLDER: 'FOLDER',
+  LINK: 'LINK',
+  ROOT: 'ROOT',
+  SYSTEM_FOLDER: 'SYSTEM_FOLDER',
+  TRANSLATION: 'TRANSLATION',
+} as const;
+export type PageType = (typeof PageTypeEnum)[keyof typeof PageTypeEnum];

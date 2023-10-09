@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-import { ComponentHarness } from '@angular/cdk/testing';
-import { MatButtonHarness } from '@angular/material/button/testing';
+import { Component, EventEmitter, Output } from '@angular/core';
 
-export class ApiDocumentationV4EmptyStateHarness extends ComponentHarness {
-  static hostSelector = 'api-documentation-empty-state';
-  private addNewPageButtonLocator = this.locatorFor(MatButtonHarness.with({ text: 'Add new page' }));
-  public async clickAddNewPage() {
-    return this.addNewPageButtonLocator().then((btn) => btn.click());
-  }
+@Component({
+  selector: 'api-documentation-navigation-header',
+  template: require('./api-documentation-v4-navigation-header.component.html'),
+  styles: [require('./api-documentation-v4-navigation-header.component.scss')],
+})
+export class ApiDocumentationV4NavigationHeaderComponent {
+  @Output()
+  onAddFolder = new EventEmitter<void>();
 }

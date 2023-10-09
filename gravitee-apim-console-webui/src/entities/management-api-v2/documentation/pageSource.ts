@@ -13,23 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { Component, EventEmitter, OnDestroy, Output } from '@angular/core';
-import { Subject } from 'rxjs';
-
-@Component({
-  selector: 'api-documentation-navigation-header',
-  template: require('./api-documentation-v4-navigation-header.component.html'),
-  styles: [require('./api-documentation-v4-navigation-header.component.scss')],
-})
-export class ApiDocumentationV4NavigationHeaderComponent implements OnDestroy {
-  private unsubscribe$: Subject<void> = new Subject<void>();
-
-  @Output()
-  onAddFolder = new EventEmitter<void>();
-
-  ngOnDestroy() {
-    this.unsubscribe$.next();
-    this.unsubscribe$.unsubscribe();
-  }
+export interface PageSource {
+  type?: string;
+  configuration?: any;
 }

@@ -15,39 +15,94 @@
  */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { InteractivityChecker } from '@angular/cdk/a11y';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
+import { HttpTestingController } from '@angular/common/http/testing';
 
 import { ApiDocumentationV4Component } from './api-documentation-v4.component';
 import { ApiDocumentationV4Module } from './api-documentation-v4.module';
 import { ApiDocumentationV4EmptyStateHarness } from './documentation-empty-state/api-documentation-v4-empty-state.harness';
+import { ApiDocumentationV4NavigationHeaderHarness } from './documentation-navigation-header/api-documentation-v4-navigation-header.harness';
+import { ApiDocumentationV4AddFolderDialogHarness } from './documentation-add-folder-dialog/api-documentation-v4-add-folder-dialog.harness';
+
+import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { Page } from '../../../entities/management-api-v2/documentation/page';
 
 describe('ApiDocumentationV4', () => {
   let fixture: ComponentFixture<ApiDocumentationV4Component>;
   let harnessLoader: HarnessLoader;
+  const fakeUiRouter = { go: jest.fn() };
+  const API_ID = 'api-id';
+  let httpTestingController: HttpTestingController;
 
-  const init = async () => {
+  const init = async (pages: Page[]) => {
     await TestBed.configureTestingModule({
       declarations: [ApiDocumentationV4Component],
-      imports: [NoopAnimationsModule, ApiDocumentationV4Module, MatIconTestingModule],
-    })
-      .overrideProvider(InteractivityChecker, {
-        useValue: {
-          isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
-        },
-      })
-      .compileComponents();
+      imports: [NoopAnimationsModule, ApiDocumentationV4Module, MatIconTestingModule, GioHttpTestingModule],
+      providers: [
+        { provide: UIRouterState, useValue: fakeUiRouter },
+        { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
+      ],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(ApiDocumentationV4Component);
-    harnessLoader = await TestbedHarnessEnvironment.loader(fixture);
+    harnessLoader = TestbedHarnessEnvironment.loader(fixture);
+    httpTestingController = TestBed.inject(HttpTestingController);
+
+    fixture.detectChanges();
+    expectGetPages(pages);
   };
 
-  beforeEach(async () => await init());
+  beforeEach(async () => await init([]));
+
+  afterEach(() => {
+    httpTestingController.verify();
+  });
 
   it('should show empty state when no documentation for API', async () => {
     const emptyState = await harnessLoader.getHarness(ApiDocumentationV4EmptyStateHarness);
     expect(emptyState).toBeDefined();
   });
+
+  it('should show dialog to create folder', async () => {
+    const headerHarness = await harnessLoader.getHarness(ApiDocumentationV4NavigationHeaderHarness);
+    await headerHarness.clickAddNewFolder();
+
+    const dialogHarness = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(ApiDocumentationV4AddFolderDialogHarness);
+    await dialogHarness.setName('folder');
+    await dialogHarness.selectVisibility('PRIVATE');
+    await dialogHarness.clickOnSave();
+
+    const page: Page = { type: 'FOLDER', name: 'folder', visibility: 'PRIVATE' };
+    const req = httpTestingController.expectOne({
+      method: 'POST',
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages`,
+    });
+    req.flush(page);
+    expect(req.request.body).toEqual({
+      type: 'FOLDER',
+      name: 'folder',
+      visibility: 'PRIVATE',
+    });
+
+    expectGetPages([page]);
+  });
+
+  it('should navigate to create page', async () => {
+    const headerHarness = await harnessLoader.getHarness(ApiDocumentationV4EmptyStateHarness);
+    await headerHarness.clickAddNewPage();
+
+    expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.documentationV4-create');
+  });
+
+  const expectGetPages = (result: Page[]) => {
+    const req = httpTestingController.expectOne({
+      method: 'GET',
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages`,
+    });
+
+    req.flush(result);
+  };
 });
