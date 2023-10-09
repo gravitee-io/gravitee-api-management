@@ -16,7 +16,7 @@
 
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { Subject } from 'rxjs';
-import { FormControl, FormGroup } from '@angular/forms';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { filter, startWith, takeUntil } from 'rxjs/operators';
 
 import {
@@ -99,17 +99,23 @@ export class EndpointHttpConfigComponent implements OnInit, OnDestroy {
         value: endpointGroup.httpProxy?.useSystemProxy,
         disabled: isReadonly,
       }),
-      host: new FormControl({
-        value: endpointGroup.httpProxy?.host,
-        disabled: isReadonly,
-      }),
-      port: new FormControl({
-        value: endpointGroup.httpProxy?.port,
-        disabled: isReadonly,
-      }),
-      type: new FormControl(
+      host: new FormControl(
         {
-          value: endpointGroup.httpProxy?.type ?? 'HTTP',
+          value: endpointGroup.httpProxy?.host,
+          disabled: isReadonly,
+        },
+        Validators.required,
+      ),
+      port: new FormControl(
+        {
+          value: endpointGroup.httpProxy?.port,
+          disabled: isReadonly,
+        },
+        Validators.required,
+      ),
+      type: new FormControl(
+
+          {value: endpointGroup.httpProxy?.type ?? 'HTTP',
           disabled: isReadonly,
         },
         Validators.required,
