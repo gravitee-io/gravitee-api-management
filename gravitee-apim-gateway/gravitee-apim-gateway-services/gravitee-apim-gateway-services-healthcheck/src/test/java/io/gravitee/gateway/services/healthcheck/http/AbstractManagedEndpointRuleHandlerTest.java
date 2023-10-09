@@ -18,6 +18,8 @@ package io.gravitee.gateway.services.healthcheck.http;
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -45,7 +47,6 @@ import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
-import org.mockito.Mock;
 import org.springframework.core.env.Environment;
 
 /**
@@ -56,7 +57,6 @@ public abstract class AbstractManagedEndpointRuleHandlerTest {
 
     private Environment environment;
 
-    @Mock
     private TemplateEngine templateEngine;
 
     @RegisterExtension
@@ -66,7 +66,10 @@ public abstract class AbstractManagedEndpointRuleHandlerTest {
     void setup() {
         wm.resetAll();
         environment = mock(Environment.class);
+        templateEngine = mock(TemplateEngine.class);
         when(environment.getProperty("http.ssl.openssl", Boolean.class, false)).thenReturn(useOpenSsl());
+        when(templateEngine.getValue(anyString(), eq(String.class)))
+            .thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0, String.class));
     }
 
     protected abstract Boolean useOpenSsl();
@@ -130,6 +133,42 @@ public abstract class AbstractManagedEndpointRuleHandlerTest {
             (Handler<EndpointStatus>) status -> {
                 assertTrue(status.isSuccess());
                 wm.verify(getRequestedFor(urlEqualTo("/")));
+                checkpoint.flag();
+            }
+        );
+
+        // Run
+        runner.handle(null);
+    }
+
+    @Test
+    void shouldValidateWithEL(Vertx vertx, VertxTestContext context) throws Throwable {
+        // Prepare HTTP endpoint
+        wm.stubFor(get(urlEqualTo("/withProperties/")).willReturn(ok("{\"status\": \"green\"}")));
+
+        final Checkpoint checkpoint = context.checkpoint();
+
+        // Prepare
+        EndpointRule rule = createEndpointRule("{#properties['backend’]}");
+        when(templateEngine.getValue(eq(wm.baseUrl() + "{#properties['backend’]}"), eq(String.class)))
+            .thenReturn(wm.baseUrl() + "/withProperties");
+
+        HealthCheckStep step = new HealthCheckStep();
+        HealthCheckRequest request = new HealthCheckRequest("/", HttpMethod.GET);
+
+        step.setRequest(request);
+        HealthCheckResponse response = new HealthCheckResponse();
+        response.setAssertions(Collections.singletonList(HealthCheckResponse.DEFAULT_ASSERTION));
+        step.setResponse(response);
+        when(rule.steps()).thenReturn(Collections.singletonList(step));
+
+        HttpEndpointRuleHandler runner = new HttpEndpointRuleHandler(vertx, rule, templateEngine, environment);
+
+        // Verify
+        runner.setStatusHandler(
+            (Handler<EndpointStatus>) status -> {
+                assertTrue(status.isSuccess());
+                wm.verify(getRequestedFor(urlEqualTo("/withProperties/")));
                 checkpoint.flag();
             }
         );
