@@ -15,7 +15,7 @@
  */
 package io.gravitee.apim.core.exception;
 
-public class InvalidApiDefinitionException extends RuntimeException {
+public class InvalidApiDefinitionException extends DomainException {
 
     public InvalidApiDefinitionException(String message) {
         super(message);
