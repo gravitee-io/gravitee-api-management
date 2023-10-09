@@ -45,7 +45,8 @@ import org.junit.jupiter.api.Test;
 public class SearchConnectionLogUsecaseTest {
 
     private static final String API_ID = "f1608475-dd77-4603-a084-75dd775603e9";
-    private static final BasePlanEntity PLAN = BasePlanEntity.builder().id("plan1").name("1st plan").build();
+    private static final BasePlanEntity PLAN_1 = BasePlanEntity.builder().id("plan1").name("1st plan").build();
+    private static final BasePlanEntity PLAN_2 = BasePlanEntity.builder().id("plan2").name("2nd plan").build();
     private static final BaseApplicationEntity APPLICATION_1 = BaseApplicationEntity
         .builder()
         .id("app1")
@@ -61,7 +62,7 @@ public class SearchConnectionLogUsecaseTest {
     private static final Long FOURTH_FEBRUARY_2020 = Instant.parse("2020-02-04T00:01:00.00Z").toEpochMilli();
     private static final Long FIFTH_FEBRUARY_2020 = Instant.parse("2020-02-05T00:01:00.00Z").toEpochMilli();
 
-    ConnectionLogFixtures connectionLogFixtures = new ConnectionLogFixtures(API_ID, APPLICATION_1.getId(), PLAN.getId());
+    ConnectionLogFixtures connectionLogFixtures = new ConnectionLogFixtures(API_ID, APPLICATION_1.getId(), PLAN_1.getId());
 
     ConnectionLogCrudServiceInMemory logStorageService = new ConnectionLogCrudServiceInMemory();
     PlanCrudServiceInMemory planStorageService = new PlanCrudServiceInMemory();
@@ -73,7 +74,7 @@ public class SearchConnectionLogUsecaseTest {
     void setUp() {
         usecase = new SearchConnectionLogUsecase(logStorageService, planStorageService, applicationStorageService);
 
-        planStorageService.initWith(List.of(PLAN));
+        planStorageService.initWith(List.of(PLAN_1, PLAN_2));
         applicationStorageService.initWith(List.of(APPLICATION_1, APPLICATION_2));
     }
 
@@ -95,7 +96,7 @@ public class SearchConnectionLogUsecaseTest {
 
         var result = usecase.execute(
             GraviteeContext.getExecutionContext(),
-            new Input(API_ID, new SearchLogsFilters(FIRST_FEBRUARY_2020, SECOND_FEBRUARY_2020, null))
+            new Input(API_ID, SearchLogsFilters.builder().from(FIRST_FEBRUARY_2020).to(SECOND_FEBRUARY_2020).build())
         );
 
         SoftAssertions.assertSoftly(soft -> {
@@ -109,7 +110,7 @@ public class SearchConnectionLogUsecaseTest {
                             .requestId("req1")
                             .apiId(API_ID)
                             .application(APPLICATION_1)
-                            .plan(PLAN)
+                            .plan(PLAN_1)
                             .timestamp("2020-02-01T20:00:00.00Z")
                             .requestEnded(true)
                             .method(HttpMethod.GET)
@@ -134,7 +135,7 @@ public class SearchConnectionLogUsecaseTest {
 
         var result = usecase.execute(
             GraviteeContext.getExecutionContext(),
-            new Input(API_ID, new SearchLogsFilters(FIRST_FEBRUARY_2020, FIFTH_FEBRUARY_2020, null))
+            new Input(API_ID, SearchLogsFilters.builder().from(FIRST_FEBRUARY_2020).to(FIFTH_FEBRUARY_2020).build())
         );
 
         SoftAssertions.assertSoftly(soft -> {
@@ -163,7 +164,7 @@ public class SearchConnectionLogUsecaseTest {
             GraviteeContext.getExecutionContext(),
             new Input(
                 API_ID,
-                new SearchLogsFilters(FIRST_FEBRUARY_2020, SECOND_FEBRUARY_2020, null),
+                SearchLogsFilters.builder().from(FIRST_FEBRUARY_2020).to(SECOND_FEBRUARY_2020).build(),
                 new PageableImpl(pageNumber, pageSize)
             )
         );
@@ -182,7 +183,7 @@ public class SearchConnectionLogUsecaseTest {
 
         var result = usecase.execute(
             GraviteeContext.getExecutionContext(),
-            new Input(API_ID, new SearchLogsFilters(FIRST_FEBRUARY_2020, SECOND_FEBRUARY_2020, null))
+            new Input(API_ID, SearchLogsFilters.builder().from(FIRST_FEBRUARY_2020).to(SECOND_FEBRUARY_2020).build())
         );
         assertThat(result.data())
             .extracting(ConnectionLogModel::getPlan)
@@ -197,7 +198,7 @@ public class SearchConnectionLogUsecaseTest {
 
         var result = usecase.execute(
             GraviteeContext.getExecutionContext(),
-            new Input(API_ID, new SearchLogsFilters(FIRST_FEBRUARY_2020, SECOND_FEBRUARY_2020, null))
+            new Input(API_ID, SearchLogsFilters.builder().from(FIRST_FEBRUARY_2020).to(SECOND_FEBRUARY_2020).build())
         );
         assertThat(result.data())
             .extracting(ConnectionLogModel::getPlan)
@@ -212,7 +213,7 @@ public class SearchConnectionLogUsecaseTest {
 
         var result = usecase.execute(
             GraviteeContext.getExecutionContext(),
-            new Input(API_ID, new SearchLogsFilters(FIRST_FEBRUARY_2020, SECOND_FEBRUARY_2020, null))
+            new Input(API_ID, SearchLogsFilters.builder().from(FIRST_FEBRUARY_2020).to(SECOND_FEBRUARY_2020).build())
         );
         assertThat(result.data())
             .extracting(ConnectionLogModel::getApplication)
@@ -233,7 +234,7 @@ public class SearchConnectionLogUsecaseTest {
 
         var result = usecase.execute(
             GraviteeContext.getExecutionContext(),
-            new Input(API_ID, new SearchLogsFilters(null, null, Set.of("app1", "app2")))
+            new Input(API_ID, SearchLogsFilters.builder().applicationIds(Set.of("app1", "app2")).build())
         );
         assertThat(result.data())
             .extracting(ConnectionLogModel::getRequestId, ConnectionLogModel::getApplication)
@@ -241,6 +242,31 @@ public class SearchConnectionLogUsecaseTest {
                 tuple("req1", BaseApplicationEntity.builder().id("app1").name("an application name").build()),
                 tuple("req2", BaseApplicationEntity.builder().id("app1").name("an application name").build()),
                 tuple("req3", BaseApplicationEntity.builder().id("app2").name("another application name").build())
+            );
+    }
+
+    @Test
+    void should_return_api_connection_logs_for_plans() {
+        logStorageService.initWith(
+            List.of(
+                connectionLogFixtures.aConnectionLog().toBuilder().requestId("req1").planId("plan1").build(),
+                connectionLogFixtures.aConnectionLog().toBuilder().requestId("req2").planId("plan1").build(),
+                connectionLogFixtures.aConnectionLog().toBuilder().requestId("req3").planId("plan2").build(),
+                connectionLogFixtures.aConnectionLog().toBuilder().requestId("req4").planId("plan3").build(),
+                connectionLogFixtures.aConnectionLog().toBuilder().requestId("req5").planId("plan3").build()
+            )
+        );
+
+        var result = usecase.execute(
+            GraviteeContext.getExecutionContext(),
+            new Input(API_ID, SearchLogsFilters.builder().planIds(Set.of("plan1", "plan2")).build())
+        );
+        assertThat(result.data())
+            .extracting(ConnectionLogModel::getRequestId, ConnectionLogModel::getPlan)
+            .containsExactlyInAnyOrder(
+                tuple("req1", BasePlanEntity.builder().id(PLAN_1.getId()).name(PLAN_1.getName()).build()),
+                tuple("req2", BasePlanEntity.builder().id(PLAN_1.getId()).name(PLAN_1.getName()).build()),
+                tuple("req3", BasePlanEntity.builder().id(PLAN_2.getId()).name(PLAN_2.getName()).build())
             );
     }
 
@@ -256,7 +282,7 @@ public class SearchConnectionLogUsecaseTest {
 
         var result = usecase.execute(
             GraviteeContext.getExecutionContext(),
-            new Input(API_ID, new SearchLogsFilters(FIRST_FEBRUARY_2020, FOURTH_FEBRUARY_2020, null))
+            new Input(API_ID, SearchLogsFilters.builder().from(FIRST_FEBRUARY_2020).to(FOURTH_FEBRUARY_2020).build())
         );
 
         SoftAssertions.assertSoftly(soft -> {
@@ -280,7 +306,7 @@ public class SearchConnectionLogUsecaseTest {
 
         var result = usecase.execute(
             GraviteeContext.getExecutionContext(),
-            new Input(API_ID, new SearchLogsFilters(FOURTH_FEBRUARY_2020, null, null))
+            new Input(API_ID, SearchLogsFilters.builder().from(FOURTH_FEBRUARY_2020).build())
         );
 
         SoftAssertions.assertSoftly(soft -> {
@@ -304,7 +330,7 @@ public class SearchConnectionLogUsecaseTest {
 
         var result = usecase.execute(
             GraviteeContext.getExecutionContext(),
-            new Input(API_ID, new SearchLogsFilters(null, FOURTH_FEBRUARY_2020, null))
+            new Input(API_ID, SearchLogsFilters.builder().to(FOURTH_FEBRUARY_2020).build())
         );
 
         SoftAssertions.assertSoftly(soft -> {

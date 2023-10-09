@@ -43,12 +43,12 @@ public class ConnectionLogCrudServiceImplTest {
 
     LogRepository logRepository;
 
-    ConnectionLogCrudServiceImpl logStorageService;
+    ConnectionLogCrudServiceImpl logCrudService;
 
     @BeforeEach
     void setUp() {
         logRepository = mock(LogRepository.class);
-        logStorageService = new ConnectionLogCrudServiceImpl(logRepository);
+        logCrudService = new ConnectionLogCrudServiceImpl(logRepository);
     }
 
     @Nested
@@ -60,7 +60,7 @@ public class ConnectionLogCrudServiceImplTest {
             var to = 1580601579000L;
             when(logRepository.searchConnectionLog(any())).thenReturn(new LogResponse<>(0L, List.of()));
 
-            logStorageService.searchApiConnectionLog("apiId", new SearchLogsFilters(from, to, null), new PageableImpl(1, 10));
+            logCrudService.searchApiConnectionLog("apiId", new SearchLogsFilters(from, to, null, null), new PageableImpl(1, 10));
 
             var captor = ArgumentCaptor.forClass(ConnectionLogQuery.class);
             verify(logRepository).searchConnectionLog(captor.capture());
@@ -94,9 +94,9 @@ public class ConnectionLogCrudServiceImplTest {
                     )
                 );
 
-            var result = logStorageService.searchApiConnectionLog(
+            var result = logCrudService.searchApiConnectionLog(
                 "apiId",
-                new SearchLogsFilters(1580515239000L, 1580601579000L, Set.of("app-id")),
+                new SearchLogsFilters(1580515239000L, 1580601579000L, Set.of("app-id"), Set.of("plan-id")),
                 new PageableImpl(1, 10)
             );
 

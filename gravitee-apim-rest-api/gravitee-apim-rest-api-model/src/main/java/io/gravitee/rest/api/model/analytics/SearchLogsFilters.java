@@ -16,5 +16,7 @@
 package io.gravitee.rest.api.model.analytics;
 
 import java.util.Set;
+import lombok.Builder;
 
-public record SearchLogsFilters(Long from, Long to, Set<String> applicationIds) {}
+@Builder
+public record SearchLogsFilters(Long from, Long to, Set<String> applicationIds, Set<String> planIds) {}

@@ -1586,6 +1586,7 @@ paths:
                 - $ref: "#/components/parameters/from"
                 - $ref: "#/components/parameters/to"
                 - $ref: "#/components/parameters/applicationIds"
+                - $ref: "#/components/parameters/planIds"
             tags:
                 - Analytics - Logs
             summary: Get API logs
@@ -5767,6 +5768,15 @@ components:
         applicationIds:
             name: applicationIds
             description: List of application ids to filter on.
+            in: query
+            explode: false
+            schema:
+                type: array
+                items:
+                    type: string
+        planIds:
+            name: planIds
+            description: List of plan ids to filter on.
             in: query
             explode: false
             schema:

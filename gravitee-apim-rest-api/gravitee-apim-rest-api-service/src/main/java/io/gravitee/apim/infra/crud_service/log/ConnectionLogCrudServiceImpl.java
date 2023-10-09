@@ -54,6 +54,7 @@ class ConnectionLogCrudServiceImpl implements ConnectionLogCrudService {
                             .from(logsFilters.from())
                             .to(logsFilters.to())
                             .applicationIds(logsFilters.applicationIds())
+                            .planIds(logsFilters.planIds())
                             .build()
                     )
                     .page(pageable.getPageNumber())

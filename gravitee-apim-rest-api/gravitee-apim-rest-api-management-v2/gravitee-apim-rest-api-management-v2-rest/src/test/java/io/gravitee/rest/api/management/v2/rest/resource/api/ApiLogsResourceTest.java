@@ -62,11 +62,12 @@ import org.junit.jupiter.api.Test;
 
 public class ApiLogsResourceTest extends ApiResourceTest {
 
-    private static final BasePlanEntity PLAN = BasePlanEntity.builder().id("plan1").name("1st plan").apiId(API).build();
+    private static final BasePlanEntity PLAN_1 = BasePlanEntity.builder().id("plan1").name("1st plan").apiId(API).build();
+    private static final BasePlanEntity PLAN_2 = BasePlanEntity.builder().id("plan2").name("2nd plan").apiId(API).build();
     private static final BaseApplicationEntity APPLICATION = BaseApplicationEntity.builder().id("app1").name("an application name").build();
     public static final String REQUEST_ID = "request-id";
 
-    final ConnectionLogFixtures connectionLogFixtures = new ConnectionLogFixtures(API, APPLICATION.getId(), PLAN.getId());
+    final ConnectionLogFixtures connectionLogFixtures = new ConnectionLogFixtures(API, APPLICATION.getId(), PLAN_1.getId());
     final MessageLogFixtures messageLogFixtures = new MessageLogFixtures(API, REQUEST_ID);
 
     @Inject
@@ -92,7 +93,7 @@ public class ApiLogsResourceTest extends ApiResourceTest {
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
 
-        planStorageService.initWith(List.of(PLAN));
+        planStorageService.initWith(List.of(PLAN_1, PLAN_2));
         applicationStorageService.initWith(List.of(APPLICATION));
     }
 
@@ -152,7 +153,7 @@ public class ApiLogsResourceTest extends ApiResourceTest {
                                 ApiLog
                                     .builder()
                                     .application(BaseApplication.builder().id(APPLICATION.getId()).name(APPLICATION.getName()).build())
-                                    .plan(BasePlan.builder().id(PLAN.getId()).name(PLAN.getName()).apiId(API).build())
+                                    .plan(BasePlan.builder().id(PLAN_1.getId()).name(PLAN_1.getName()).apiId(API).build())
                                     .method(HttpMethod.GET)
                                     .status(200)
                                     .clientIdentifier("client-identifier")
@@ -278,7 +279,7 @@ public class ApiLogsResourceTest extends ApiResourceTest {
             var expectedApiLog = ApiLog
                 .builder()
                 .application(BaseApplication.builder().id(APPLICATION.getId()).name(APPLICATION.getName()).build())
-                .plan(BasePlan.builder().id(PLAN.getId()).name(PLAN.getName()).apiId(API).build())
+                .plan(BasePlan.builder().id(PLAN_1.getId()).name(PLAN_1.getName()).apiId(API).build())
                 .method(HttpMethod.GET)
                 .status(200)
                 .clientIdentifier("client-identifier")
@@ -325,7 +326,44 @@ public class ApiLogsResourceTest extends ApiResourceTest {
             var expectedApiLog = ApiLog
                 .builder()
                 .application(BaseApplication.builder().id("app1").name(APPLICATION.getName()).build())
-                .plan(BasePlan.builder().id(PLAN.getId()).name(PLAN.getName()).apiId(API).build())
+                .plan(BasePlan.builder().id(PLAN_1.getId()).name(PLAN_1.getName()).apiId(API).build())
+                .method(HttpMethod.GET)
+                .status(200)
+                .clientIdentifier("client-identifier")
+                .requestEnded(true)
+                .transactionId("transaction-id")
+                .timestamp(Instant.parse("2020-02-01T20:00:00.00Z").atOffset(ZoneOffset.UTC));
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(ApiLogsResponse.class)
+                .isEqualTo(
+                    ApiLogsResponse
+                        .builder()
+                        .data(List.of(expectedApiLog.requestId("req1").build(), expectedApiLog.requestId("req2").build()))
+                        .pagination(Pagination.builder().page(1).perPage(10).pageCount(1).pageItemsCount(2).totalCount(2L).build())
+                        .links(Links.builder().self(connectionLogsTarget.getUri().toString()).build())
+                        .build()
+                );
+        }
+
+        @Test
+        public void should_return_connection_logs_filtered_by_plans() {
+            connectionLogStorageService.initWith(
+                List.of(
+                    connectionLogFixtures.aConnectionLog("req1").toBuilder().planId(PLAN_1.getId()).build(),
+                    connectionLogFixtures.aConnectionLog("req2").toBuilder().planId(PLAN_1.getId()).build(),
+                    connectionLogFixtures.aConnectionLog("req3").toBuilder().planId(PLAN_2.getId()).build()
+                )
+            );
+
+            connectionLogsTarget = connectionLogsTarget.queryParam(SearchLogsParam.PLAN_IDS_QUERY_PARAM_NAME, PLAN_1.getId());
+            final Response response = connectionLogsTarget.request().get();
+
+            var expectedApiLog = ApiLog
+                .builder()
+                .application(BaseApplication.builder().id("app1").name(APPLICATION.getName()).build())
+                .plan(BasePlan.builder().id(PLAN_1.getId()).name(PLAN_1.getName()).apiId(API).build())
                 .method(HttpMethod.GET)
                 .status(200)
                 .clientIdentifier("client-identifier")
