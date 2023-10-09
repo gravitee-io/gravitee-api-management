@@ -65,7 +65,7 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
                             .requestId("e71f2ae0-7673-4d7e-9f2a-e076730d7e69")
                             .apiId("f1608475-dd77-4603-a084-75dd775603e9")
                             .applicationId("613dc986-41ce-4b5b-bdc9-8641cedb5bdb")
-                            .planId("7733172a-8d19-4c4f-b317-2a8d19ec4f1c")
+                            .planId("733b78f1-1a16-4c16-bb78-f11a16ac1693")
                             .clientIdentifier("12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0")
                             .transactionId("e71f2ae0-7673-4d7e-9f2a-e076730d7e69")
                             .requestEnded(true)
@@ -78,7 +78,7 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
                             .requestId("8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48")
                             .apiId("f1608475-dd77-4603-a084-75dd775603e9")
                             .applicationId("1e478236-e6e4-4cf5-8782-36e6e4ccf57d")
-                            .planId("7733172a-8d19-4c4f-b317-2a8d19ec4f1c")
+                            .planId("733b78f1-1a16-4c16-bb78-f11a16ac1693")
                             .clientIdentifier("12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0")
                             .transactionId("8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48")
                             .requestEnded(true)
@@ -250,6 +250,36 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
                     tuple("ebaa9b08-eac8-490d-aa9b-08eac8590d3c", yesterday + "T14:08:59.901Z"),
                     tuple("aed3a207-d5c0-4073-93a2-07d5c0007336", yesterday + "T14:08:45.994Z"),
                     tuple("3aa93e93-eaa3-4fcd-a93e-93eaa3bfcd41", yesterday + "T13:51:36.161Z")
+                );
+        }
+
+        @Test
+        void should_return_the_connection_logs_for_plans() {
+            var today = DATE_FORMATTER.format(Instant.now());
+            var yesterday = DATE_FORMATTER.format(Instant.now().minus(1, ChronoUnit.DAYS));
+
+            var result = logV4Repository.searchConnectionLog(
+                ConnectionLogQuery
+                    .builder()
+                    .page(1)
+                    .size(10)
+                    .filter(
+                        Filter
+                            .builder()
+                            .planIds(Set.of("972b5d75-7901-4afd-ab5d-757901eafd0b", "733b78f1-1a16-4c16-bb78-f11a16ac1693"))
+                            .build()
+                    )
+                    .build()
+            );
+            assertThat(result).isNotNull();
+            assertThat(result.total()).isEqualTo(4);
+            assertThat(result.data())
+                .extracting(ConnectionLog::getRequestId, ConnectionLog::getTimestamp)
+                .containsExactly(
+                    tuple("e71f2ae0-7673-4d7e-9f2a-e076730d7e69", today + "T06:57:44.893Z"),
+                    tuple("8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48", today + "T06:56:44.552Z"),
+                    tuple("26c61cfc-a4cc-4272-861c-fca4cc2272ab", today + "T06:55:39.245Z"),
+                    tuple("5fc3b3e5-7aa7-408e-83b3-e57aa7708ed4", today + "T06:54:30.047Z")
                 );
         }
     }

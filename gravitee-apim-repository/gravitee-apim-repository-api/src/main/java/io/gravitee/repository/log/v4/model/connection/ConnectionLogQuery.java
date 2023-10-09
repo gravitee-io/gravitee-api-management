@@ -39,5 +39,6 @@ public class ConnectionLogQuery {
         private Long from;
         private Long to;
         private Set<String> applicationIds;
+        private Set<String> planIds;
     }
 }

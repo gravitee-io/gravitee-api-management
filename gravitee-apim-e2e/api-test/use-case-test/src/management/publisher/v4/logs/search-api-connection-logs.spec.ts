@@ -60,7 +60,7 @@ describe('API - V4 - Connection Logs', () => {
       await fetchGatewayWithApiKey(testContext.application2ApiKey.key);
       await fetchGatewayWithApiKey(testContext.application2ApiKey.key);
 
-      // check connection logs
+      // check connection logs filtering by application
       await expectConnectionLogsForApplications(3, [
         { id: testContext.createdApplication1.id, name: testContext.createdApplication1.name },
       ]);
@@ -71,6 +71,9 @@ describe('API - V4 - Connection Logs', () => {
         { id: testContext.createdApplication1.id, name: testContext.createdApplication1.name },
         { id: testContext.createdApplication2.id, name: testContext.createdApplication2.name },
       ]);
+
+      // check connection logs filtering by plan
+      await expectConnectionLogsForPlans(5, [{ id: testContext.apiKeyPlan.id, name: testContext.apiKeyPlan.name }]);
     });
 
     const createApiWithPlan = async () => {
@@ -129,7 +132,7 @@ describe('API - V4 - Connection Logs', () => {
       expect(plans.pagination.totalCount).toStrictEqual(1);
       expect(plans.data[0].security.type).toStrictEqual('API_KEY');
       expect(plans.data[0].validation).toStrictEqual('AUTO');
-      testContext.apiKeyPlanId = plans.data[0].id;
+      testContext.apiKeyPlan = plans.data[0];
 
       testContext.importedApi = importedApi;
     };
@@ -151,7 +154,7 @@ describe('API - V4 - Connection Logs', () => {
           envId,
           createSubscription: {
             applicationId: testContext.createdApplication1.id,
-            planId: testContext.apiKeyPlanId,
+            planId: testContext.apiKeyPlan.id,
           },
         }),
       );
@@ -178,7 +181,7 @@ describe('API - V4 - Connection Logs', () => {
           envId,
           createSubscription: {
             applicationId: testContext.createdApplication2.id,
-            planId: testContext.apiKeyPlanId,
+            planId: testContext.apiKeyPlan.id,
           },
         }),
       );
@@ -224,12 +227,38 @@ describe('API - V4 - Connection Logs', () => {
       });
 
       expect(apiLogsResponse.data).toHaveLength(expectedLogsCount);
-      testContext.apiKeyPlanId = apiLogsResponse.data[0].plan.id;
+      testContext.apiKeyPlan = apiLogsResponse.data[0].plan;
 
       for (let connectionLog of apiLogsResponse.data) {
         expect(connectionLog.plan.security.type).toEqual('API_KEY');
         expect(applications.map((app) => app.id)).toContain(connectionLog.application.id);
         expect(applications.map((app) => app.name)).toContain(connectionLog.application.name);
+        expect(connectionLog.status).toEqual(connectionLog.requestEnded ? 200 : 0);
+        expect(connectionLog.method).toEqual('GET');
+      }
+    };
+
+    const expectConnectionLogsForPlans = async (expectedLogsCount: number, plans: { id: string; name: string }[]) => {
+      let apiLogsResponse = await fetchRestApiSuccess<ApiLogsResponse>({
+        restApiHttpCall: () =>
+          v2ApiLogsResourceAsApiPublisher.getApiLogsRaw({
+            envId,
+            apiId: testContext.importedApi.id,
+            planIds: plans.map((plan) => plan.id),
+          }),
+        maxRetries: 10,
+        expectedResponseValidator: async (response) => {
+          const body = response.value;
+          return body.data.length === expectedLogsCount;
+        },
+      });
+
+      expect(apiLogsResponse.data).toHaveLength(expectedLogsCount);
+
+      for (let connectionLog of apiLogsResponse.data) {
+        expect(connectionLog.plan.security.type).toEqual('API_KEY');
+        expect(plans.map((plan) => plan.id)).toContain(connectionLog.plan.id);
+        expect(plans.map((plan) => plan.name)).toContain(connectionLog.plan.name);
         expect(connectionLog.status).toEqual(connectionLog.requestEnded ? 200 : 0);
         expect(connectionLog.method).toEqual('GET');
       }

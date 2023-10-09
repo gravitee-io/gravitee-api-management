@@ -66,6 +66,10 @@ public class SearchConnectionLogQueryAdapter {
             terms.add(JsonObject.of("terms", JsonObject.of("application-id", filter.getApplicationIds())));
         }
 
+        if (!CollectionUtils.isEmpty(filter.getPlanIds())) {
+            terms.add(JsonObject.of("terms", JsonObject.of("plan-id", filter.getPlanIds())));
+        }
+
         if (!terms.isEmpty()) {
             return JsonObject.of("bool", JsonObject.of("must", JsonArray.of(terms.toArray())));
         }
