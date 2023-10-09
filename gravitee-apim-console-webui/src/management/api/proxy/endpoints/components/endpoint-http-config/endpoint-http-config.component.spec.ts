@@ -190,4 +190,35 @@ describe('ApiPropertiesComponent', () => {
       httpProxy: initialEndpointGroupV2.httpProxy,
     });
   });
+
+  it('should add SSL Options', async () => {
+    const hostnameVerifier = await endpointHttpConfigHarness.getVerifyHostname();
+    await hostnameVerifier.toggle();
+
+    const trustAll = await endpointHttpConfigHarness.getTrustAll();
+    await trustAll.toggle();
+
+    const sslKeyStoreForm = await endpointHttpConfigHarness.getTrustStore();
+    expect(sslKeyStoreForm).toEqual(null);
+
+    const keyStore = await endpointHttpConfigHarness.getKeyStore();
+    await keyStore.setJksKeyStore({
+      type: 'JKS',
+      password: 'password',
+      path: 'path',
+    });
+
+    expect(EndpointHttpConfigComponent.getHttpConfigValue(component.httpConfigFormGroup).httpClientSslOptions).toEqual({
+      hostnameVerifier: true,
+      keyStore: {
+        content: null,
+        keyPassword: null,
+        password: 'password',
+        path: 'path',
+        type: 'JKS',
+      },
+      trustAll: true,
+      trustStore: undefined,
+    });
+  });
 });

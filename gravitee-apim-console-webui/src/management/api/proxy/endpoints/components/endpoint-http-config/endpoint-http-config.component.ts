@@ -19,24 +19,21 @@ import { Subject } from 'rxjs';
 import { FormControl, FormGroup } from '@angular/forms';
 import { filter, startWith, takeUntil } from 'rxjs/operators';
 
-import { EndpointGroupV2, HttpHeader, HttpProxy, HttpProxyType, ProtocolVersion } from '../../../../../../entities/management-api-v2';
+import {
+  EndpointGroupV2,
+  HttpClientOptions,
+  HttpClientSslOptions,
+  HttpHeader,
+  HttpProxy,
+  HttpProxyType,
+  ProtocolVersion,
+} from '../../../../../../entities/management-api-v2';
 
 export interface EndpointHttpConfigValue {
-  httpClientOptions: {
-    version: ProtocolVersion;
-    connectTimeout: number;
-    readTimeout: number;
-    idleTimeout: number;
-    maxConcurrentConnections: number;
-    keepAlive: boolean;
-    pipelining: boolean;
-    useCompression: boolean;
-    followRedirects: boolean;
-    propagateClientAcceptEncoding?: boolean;
-    clearTextUpgrade?: boolean;
-  };
+  httpClientOptions: HttpClientOptions;
   headers: HttpHeader[];
   httpProxy: HttpProxy;
+  httpClientSslOptions?: HttpClientSslOptions;
 }
 
 @Component({
@@ -110,10 +107,13 @@ export class EndpointHttpConfigComponent implements OnInit, OnDestroy {
         value: endpointGroup.httpProxy?.port,
         disabled: isReadonly,
       }),
-      type: new FormControl({
-        value: endpointGroup.httpProxy?.type,
-        disabled: isReadonly,
-      }),
+      type: new FormControl(
+        {
+          value: endpointGroup.httpProxy?.type ?? 'HTTP',
+          disabled: isReadonly,
+        },
+        Validators.required,
+      ),
       username: new FormControl({
         value: endpointGroup.httpProxy?.username,
         disabled: isReadonly,
@@ -124,10 +124,33 @@ export class EndpointHttpConfigComponent implements OnInit, OnDestroy {
       }),
     });
 
+    const httpClientSslOptions = new FormGroup({
+      hostnameVerifier: new FormControl({
+        value: endpointGroup.httpClientSslOptions?.hostnameVerifier,
+        disabled: isReadonly,
+      }),
+      trustAll: new FormControl({
+        value: endpointGroup.httpClientSslOptions?.trustAll,
+        disabled: isReadonly,
+      }),
+      trustStore: new FormControl({
+        value: endpointGroup.httpClientSslOptions?.trustStore,
+        disabled: isReadonly,
+      }),
+      keyStore: new FormControl({
+        value: endpointGroup.httpClientSslOptions?.keyStore,
+        disabled: isReadonly,
+      }),
+    });
+
     return new FormGroup({
       httpClientOptions,
-      headers: new FormControl(endpointGroup.headers ?? []),
+      headers: new FormControl({
+        value: endpointGroup.headers ?? [],
+        disabled: isReadonly,
+      }),
       httpProxy,
+      httpClientSslOptions,
     });
   }
 
@@ -213,7 +236,7 @@ export class EndpointHttpConfigComponent implements OnInit, OnDestroy {
         }
       });
 
-    const httpProxy = this.httpConfigFormGroup.get('httpProxy');
+    const httpProxy = this.httpConfigFormGroup.get('httpProxy') as FormGroup;
 
     httpProxy
       .get('enabled')
@@ -227,18 +250,29 @@ export class EndpointHttpConfigComponent implements OnInit, OnDestroy {
         if (enabled === true) {
           httpProxy.get('useSystemProxy').enable();
           httpProxy.get('host').enable();
+          httpProxy.get('host').addValidators(Validators.required);
           httpProxy.get('port').enable();
+          httpProxy.get('port').addValidators(Validators.required);
           httpProxy.get('type').enable();
           httpProxy.get('username').enable();
           httpProxy.get('password').enable();
         } else {
           httpProxy.get('useSystemProxy').disable();
+          httpProxy.get('useSystemProxy').setValue(false);
           httpProxy.get('host').disable();
+          httpProxy.get('host').clearValidators();
           httpProxy.get('port').disable();
+          httpProxy.get('port').clearValidators();
           httpProxy.get('type').disable();
           httpProxy.get('username').disable();
           httpProxy.get('password').disable();
         }
+
+        // Update validators
+        Object.keys(httpProxy.controls).forEach((controlName) => {
+          httpProxy.get(controlName)?.updateValueAndValidity({ emitEvent: false });
+        });
+        httpProxy.updateValueAndValidity();
       });
 
     httpProxy
@@ -250,19 +284,29 @@ export class EndpointHttpConfigComponent implements OnInit, OnDestroy {
         takeUntil(this.unsubscribe$),
       )
       .subscribe((useSystemProxy) => {
-        if (useSystemProxy) {
+        if (useSystemProxy === true) {
           httpProxy.get('host').disable();
+          httpProxy.get('host').addValidators(Validators.required);
           httpProxy.get('port').disable();
+          httpProxy.get('port').addValidators(Validators.required);
           httpProxy.get('type').disable();
           httpProxy.get('username').disable();
           httpProxy.get('password').disable();
         } else {
           httpProxy.get('host').enable();
+          httpProxy.get('host').clearValidators();
           httpProxy.get('port').enable();
+          httpProxy.get('port').clearValidators();
           httpProxy.get('type').enable();
           httpProxy.get('username').enable();
           httpProxy.get('password').enable();
         }
+
+        // Update validators
+        Object.keys(httpProxy.controls).forEach((controlName) => {
+          httpProxy.get(controlName)?.updateValueAndValidity({ emitEvent: false });
+        });
+        httpProxy.updateValueAndValidity();
       });
   }
 
