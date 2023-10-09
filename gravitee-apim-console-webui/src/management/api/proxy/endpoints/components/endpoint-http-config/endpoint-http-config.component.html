@@ -177,6 +177,31 @@
     </mat-form-field>
   </div>
 
-  <h2>SSL Options</h2>
-  🚧
+  <div class="sslOptions" formGroupName="httpClientSslOptions">
+    <h2>SSL Options</h2>
+
+    <gio-form-slide-toggle class="endpointHttpConfig__formField">
+      <gio-form-label>Verify Host</gio-form-label>
+      Use to enable host name verification
+      <mat-slide-toggle
+        gioFormSlideToggle
+        formControlName="hostnameVerifier"
+        aria-label="Verify Host"
+        name="hostnameVerifier"
+      ></mat-slide-toggle>
+    </gio-form-slide-toggle>
+
+    <gio-form-slide-toggle class="endpointHttpConfig__formField">
+      <gio-form-label>Trust all</gio-form-label>
+      Use this with caution (if over Internet). The gateway must trust any origin certificates. The connection will still be encrypted but
+      this mode is vulnerable to 'man in the middle' attacks.
+      <mat-slide-toggle gioFormSlideToggle formControlName="trustAll" aria-label="Trust all" name="trustAll"></mat-slide-toggle>
+    </gio-form-slide-toggle>
+
+    <ssl-truststore-form
+      *ngIf="httpConfigFormGroup.get('httpClientSslOptions').get('trustAll').value !== true"
+      formControlName="trustStore"
+    ></ssl-truststore-form>
+    <ssl-keystore-form formControlName="keyStore"></ssl-keystore-form>
+  </div>
 </ng-container>

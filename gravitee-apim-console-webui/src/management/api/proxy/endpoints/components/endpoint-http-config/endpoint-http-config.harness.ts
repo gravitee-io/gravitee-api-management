@@ -22,6 +22,9 @@ import { GioFormHeadersHarness } from '@gravitee/ui-particles-angular';
 
 import { EndpointHttpConfigValue } from './endpoint-http-config.component';
 
+import { SslTrustStoreFormHarness } from '../ssl-truststore-form/ssl-truststore-form.harness';
+import { SslKeyStoreFormHarness } from '../ssl-keystore-form/ssl-keystore-form.harness';
+
 const httpClientOptionsControlNames = [
   'version',
   'connectTimeout',
@@ -55,6 +58,22 @@ export class EndpointHttpConfigHarness extends ComponentHarness {
 
   async getHttpFormHeaders(): Promise<GioFormHeadersHarness> {
     return this.locatorForOptional(GioFormHeadersHarness.with({ selector: '[formControlName="headers"]' }))();
+  }
+
+  async getVerifyHostname(): Promise<MatSlideToggleHarness> {
+    return this.locatorForOptional(MatSlideToggleHarness.with({ selector: '[formControlName="hostnameVerifier"]' }))();
+  }
+
+  async getTrustAll(): Promise<MatSlideToggleHarness> {
+    return this.locatorForOptional(MatSlideToggleHarness.with({ selector: '[formControlName="trustAll"]' }))();
+  }
+
+  async getTrustStore(): Promise<SslTrustStoreFormHarness> {
+    return this.locatorForOptional(SslTrustStoreFormHarness)();
+  }
+
+  async getKeyStore(): Promise<SslKeyStoreFormHarness> {
+    return this.locatorForOptional(SslKeyStoreFormHarness)();
   }
 
   async getHttpConfigValues(): Promise<EndpointHttpConfigValue> {

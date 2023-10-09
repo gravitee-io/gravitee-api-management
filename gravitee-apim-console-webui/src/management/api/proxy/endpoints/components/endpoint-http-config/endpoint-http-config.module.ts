@@ -24,6 +24,9 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 
 import { EndpointHttpConfigComponent } from './endpoint-http-config.component';
 
+import { SslTrustStoreFormModule } from '../ssl-truststore-form/ssl-truststore-form.module';
+import { SslKeyStoreFormModule } from '../ssl-keystore-form/ssl-keystore-form.module';
+
 @NgModule({
   imports: [
     CommonModule,
@@ -37,6 +40,8 @@ import { EndpointHttpConfigComponent } from './endpoint-http-config.component';
 
     GioFormSlideToggleModule,
     GioFormHeadersModule,
+    SslTrustStoreFormModule,
+    SslKeyStoreFormModule,
   ],
   declarations: [EndpointHttpConfigComponent],
   exports: [EndpointHttpConfigComponent],
