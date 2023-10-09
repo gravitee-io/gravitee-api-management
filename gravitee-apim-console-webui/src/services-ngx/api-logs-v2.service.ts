@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
@@ -30,13 +30,20 @@ export class ApiLogsV2Service {
     apiId: string,
     queryParam?: { page?: number; perPage?: number; from?: number; to?: number },
   ): Observable<ApiLogsResponse> {
+    let params = new HttpParams();
+    params = params.append('page', queryParam?.page ?? 1);
+    params = params.append('perPage', queryParam?.perPage ?? 10);
+
+    if (queryParam?.from) {
+      params = params.append('from', queryParam.from);
+    }
+
+    if (queryParam?.to) {
+      params = params.append('to', queryParam.to);
+    }
+
     return this.http.get<ApiLogsResponse>(`${this.constants.env.v2BaseURL}/apis/${apiId}/logs`, {
-      params: {
-        page: queryParam?.page ?? 1,
-        perPage: queryParam?.perPage ?? 10,
-        ...(!!queryParam?.from && { from: queryParam.from }),
-        ...(!!queryParam?.to && { to: queryParam.to }),
-      },
+      params,
     });
   }
 
