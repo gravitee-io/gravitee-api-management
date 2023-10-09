@@ -169,7 +169,7 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
     }
 
     protected URL createRequest(T endpoint, HealthCheckStep step) throws MalformedURLException {
-        URL targetURL = new URL(null, endpoint.getTarget());
+        URL targetURL = new URL(null, templateEngine.getValue(endpoint.getTarget(), String.class));
         logger.debug("Health-check step request{}", step.getRequest());
         if (step.getRequest().isFromRoot()) {
             targetURL = new URL(targetURL.getProtocol(), targetURL.getHost(), targetURL.getPort(), "/");
