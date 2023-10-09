@@ -182,4 +182,42 @@ export class EndpointHttpConfigHarness extends ComponentHarness {
 
     return mapValues(keyBy(httpProxyKeyValues, 'key'), 'value') as EndpointHttpConfigValue['httpProxy'];
   }
+
+  async setHttpProxy(value: EndpointHttpConfigValue['httpProxy']): Promise<void> {
+    const enable = await this.locatorFor(MatSlideToggleHarness.with({ name: 'httpProxyEnabled' }))();
+
+    if (value.enabled) {
+      await enable.check();
+
+      if (value.useSystemProxy) {
+        const useSystemProxy = await this.locatorFor(MatSlideToggleHarness.with({ selector: '[formControlName="useSystemProxy"]' }))();
+        await useSystemProxy.check();
+      }
+
+      if (value.host) {
+        const host = await this.locatorFor(MatInputHarness.with({ selector: '[formControlName="host"]' }))();
+        await host.setValue(value.host);
+      }
+
+      if (value.type) {
+        const type = await this.locatorFor(MatSelectHarness.with({ selector: '[formControlName="type"]' }))();
+        await type.clickOptions({ text: new RegExp(value.type, 'i') });
+      }
+
+      if (value.port) {
+        const port = await this.locatorFor(MatInputHarness.with({ selector: '[formControlName="port"]' }))();
+        await port.setValue(`${value.port}`);
+      }
+
+      if (value.username) {
+        const username = await this.locatorFor(MatInputHarness.with({ selector: '[formControlName="username"]' }))();
+        await username.setValue(value.username);
+      }
+
+      if (value.password) {
+        const password = await this.locatorFor(MatInputHarness.with({ selector: '[formControlName="password"]' }))();
+        await password.setValue(value.password);
+      }
+    }
+  }
 }

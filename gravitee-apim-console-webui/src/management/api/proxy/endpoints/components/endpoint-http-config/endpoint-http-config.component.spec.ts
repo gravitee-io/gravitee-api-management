@@ -162,6 +162,56 @@ describe('ApiPropertiesComponent', () => {
     });
   });
 
+  it('should set httpProxy with system proxy', async () => {
+    await endpointHttpConfigHarness.setHttpProxy({
+      enabled: true,
+      useSystemProxy: true,
+    });
+
+    const httpProxy = await endpointHttpConfigHarness.getHttpProxyValues();
+
+    expect(httpProxy).toEqual({
+      enabled: true,
+      useSystemProxy: true,
+      host: 'host',
+      password: 'password',
+      port: 1000,
+      type: 'HTTP',
+      username: 'username',
+    });
+
+    const httpProxyGroup = component.httpConfigFormGroup.get('httpProxy');
+    expect(httpProxyGroup.get('host').disabled).toEqual(true);
+    expect(httpProxyGroup.get('port').disabled).toEqual(true);
+    expect(httpProxyGroup.get('type').disabled).toEqual(true);
+    expect(httpProxyGroup.get('username').disabled).toEqual(true);
+    expect(httpProxyGroup.get('password').disabled).toEqual(true);
+  });
+
+  it('should set httpProxy ', async () => {
+    await endpointHttpConfigHarness.setHttpProxy({
+      enabled: true,
+      useSystemProxy: false,
+      host: 'new host',
+      port: 42,
+      username: 'foo',
+      password: 'bar',
+      type: 'HTTP',
+    });
+
+    const httpProxy = await endpointHttpConfigHarness.getHttpProxyValues();
+
+    expect(httpProxy).toEqual({
+      enabled: true,
+      useSystemProxy: false,
+      type: 'HTTP',
+      host: 'new host',
+      port: 42,
+      username: 'foo',
+      password: 'bar',
+    });
+  });
+
   it('should add headers', async () => {
     const httpFormHeaders = await endpointHttpConfigHarness.getHttpFormHeaders();
 
