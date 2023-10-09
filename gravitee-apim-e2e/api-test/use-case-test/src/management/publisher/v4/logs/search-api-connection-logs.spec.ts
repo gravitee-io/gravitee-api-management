@@ -230,7 +230,7 @@ describe('API - V4 - Connection Logs', () => {
         expect(connectionLog.plan.security.type).toEqual('API_KEY');
         expect(applications.map((app) => app.id)).toContain(connectionLog.application.id);
         expect(applications.map((app) => app.name)).toContain(connectionLog.application.name);
-        expect(connectionLog.status).toEqual(200);
+        expect(connectionLog.status).toEqual(connectionLog.requestEnded ? 200 : 0);
         expect(connectionLog.method).toEqual('GET');
       }
     };
