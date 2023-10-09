@@ -16,16 +16,48 @@
 import { NgModule } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { CommonModule } from '@angular/common';
-import { GioIconsModule } from '@gravitee/ui-particles-angular';
+import { GioIconsModule, GioMonacoEditorModule, GioRadioButtonModule } from '@gravitee/ui-particles-angular';
 import { MatButtonModule } from '@angular/material/button';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MatInputModule } from '@angular/material/input';
+import { MatRadioModule } from '@angular/material/radio';
+import { MatDialogModule } from '@angular/material/dialog';
+import { UIRouterModule } from '@uirouter/angular';
+import { MatStepperModule } from '@angular/material/stepper';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 
 import { ApiDocumentationV4EmptyStateComponent } from './documentation-empty-state/api-documentation-v4-empty-state.component';
-import { ApiDocumentationV4NavigationHeaderComponent } from './document-navigation-header/api-documentation-v4-navigation-header.component';
+import { ApiDocumentationV4NavigationHeaderComponent } from './documentation-navigation-header/api-documentation-v4-navigation-header.component';
 import { ApiDocumentationV4Component } from './api-documentation-v4.component';
+import { ApiDocumentationV4AddFolderDialog } from './documentation-add-folder-dialog/api-documentation-v4-add-folder-dialog.component';
+import { ApiDocumentationV4NewPageComponent } from './documentation-new-page/api-documentation-v4-new-page.component';
+import { ApiDocumentationV4VisibilityComponent } from './components/api-documentation-v4-visibility.component';
 
 @NgModule({
-  declarations: [ApiDocumentationV4Component, ApiDocumentationV4EmptyStateComponent, ApiDocumentationV4NavigationHeaderComponent],
+  declarations: [
+    ApiDocumentationV4Component,
+    ApiDocumentationV4EmptyStateComponent,
+    ApiDocumentationV4NavigationHeaderComponent,
+    ApiDocumentationV4VisibilityComponent,
+    ApiDocumentationV4AddFolderDialog,
+    ApiDocumentationV4NewPageComponent,
+  ],
   exports: [ApiDocumentationV4Component],
-  imports: [CommonModule, MatCardModule, GioIconsModule, MatButtonModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatCardModule,
+    GioIconsModule,
+    MatButtonModule,
+    ReactiveFormsModule,
+    MatInputModule,
+    MatRadioModule,
+    MatDialogModule,
+    UIRouterModule,
+    MatStepperModule,
+    MatButtonToggleModule,
+    GioMonacoEditorModule,
+    GioRadioButtonModule,
+  ],
 })
 export class ApiDocumentationV4Module {}

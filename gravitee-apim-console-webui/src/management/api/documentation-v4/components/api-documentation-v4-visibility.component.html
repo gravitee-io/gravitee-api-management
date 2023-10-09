@@ -1,0 +1,34 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="visibility">Visibility</div>
+<div class="visibility__subtitle">This can be changed later</div>
+
+<mat-radio-group [(ngModel)]="_value" class="gio-radio-group" (change)="_onChange($event.value)">
+  <mat-radio-button value="PUBLIC" class="gio-radio-button">
+    <gio-radio-button-content icon="gio:language">
+      <gio-radio-button-title>Public</gio-radio-button-title>
+      <gio-radio-button-subtitle>Requires no subscription to view</gio-radio-button-subtitle>
+    </gio-radio-button-content>
+  </mat-radio-button>
+  <mat-radio-button value="PRIVATE" class="gio-radio-button">
+    <gio-radio-button-content icon="gio:lock">
+      <gio-radio-button-title>Private</gio-radio-button-title>
+      <gio-radio-button-subtitle>Requires approved subscription to view</gio-radio-button-subtitle>
+    </gio-radio-button-content>
+  </mat-radio-button>
+</mat-radio-group>

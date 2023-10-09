@@ -13,14 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { ComponentHarness } from '@angular/cdk/testing';
-import { MatButtonHarness } from '@angular/material/button/testing';
-
-export class ApiDocumentationV4EmptyStateHarness extends ComponentHarness {
-  static hostSelector = 'api-documentation-empty-state';
-  private addNewPageButtonLocator = this.locatorFor(MatButtonHarness.with({ text: 'Add new page' }));
-  public async clickAddNewPage() {
-    return this.addNewPageButtonLocator().then((btn) => btn.click());
-  }
-}
+const VisibilityEnum = {
+  PUBLIC: 'PUBLIC',
+  PRIVATE: 'PRIVATE',
+} as const;
+export type Visibility = (typeof VisibilityEnum)[keyof typeof VisibilityEnum];

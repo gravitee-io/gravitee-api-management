@@ -13,14 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import { ComponentHarness } from '@angular/cdk/testing';
-import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatRadioButtonHarness } from '@angular/material/radio/testing';
 
-export class ApiDocumentationV4EmptyStateHarness extends ComponentHarness {
-  static hostSelector = 'api-documentation-empty-state';
-  private addNewPageButtonLocator = this.locatorFor(MatButtonHarness.with({ text: 'Add new page' }));
-  public async clickAddNewPage() {
-    return this.addNewPageButtonLocator().then((btn) => btn.click());
+export class ApiDocumentationV4VisibilityHarness extends ComponentHarness {
+  public static hostSelector = 'api-documentation-visibility';
+
+  private publicRadioLocator = this.locatorFor(MatRadioButtonHarness.with({ label: 'PublicRequires no subscription to view' }));
+  private privateRadioLocator = this.locatorFor(MatRadioButtonHarness.with({ label: 'PrivateRequires approved subscription to view' }));
+
+  public getPublicRadioOption() {
+    return this.publicRadioLocator();
+  }
+  public getPrivateRadioOption() {
+    return this.privateRadioLocator();
   }
 }

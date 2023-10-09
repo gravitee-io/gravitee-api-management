@@ -72,6 +72,7 @@ import { ApiCreationV2Component } from './creation-v2/steps/api-creation-v2.comp
 import { ApiPropertiesComponent } from './proxy/properties/api-properties.component';
 import { ApiRuntimeLogsMessagesComponent } from './runtime-logs-v4/runtime-logs-messages/api-runtime-logs-messages.component';
 import { ApiDocumentationV4Component } from './documentation-v4/api-documentation-v4.component';
+import { ApiDocumentationV4NewPageComponent } from './documentation-v4/documentation-new-page/api-documentation-v4-new-page.component';
 
 import { ApiService } from '../../services/api.service';
 import { GioEmptyComponent } from '../../shared/components/gio-empty/gio-empty.component';
@@ -1375,6 +1376,15 @@ export const states: Ng2StateDeclaration[] = [
       docs: null,
     },
     component: ApiDocumentationV4Component,
+  },
+  {
+    name: 'management.apis.documentationV4-create',
+    url: '/documentation-v4/create',
+    data: {
+      useAngularMaterial: true,
+      docs: null,
+    },
+    component: ApiDocumentationV4NewPageComponent,
   },
   {
     name: 'management.apis.policyStudio',
