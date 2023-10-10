@@ -86,4 +86,13 @@ public class GatewayConfigurationBuilder {
     public GatewayConfigurationBuilder httpSslSecret(String secret) {
         return this.set("http.ssl.keystore.secret", secret);
     }
+
+    public GatewayConfigurationBuilder configureTcpGateway(int port) {
+        return this.set("tcp.enabled", true)
+            .set("tcp.secured", true)
+            .set("tcp.port", port)
+            .set("tcp.instances", 1)
+            .set("tcp.ssl.sni", true)
+            .set("tcp.ssl.keystore.type", "self-signed");
+    }
 }

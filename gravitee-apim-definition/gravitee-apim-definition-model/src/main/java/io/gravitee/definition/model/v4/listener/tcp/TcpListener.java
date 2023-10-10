@@ -15,13 +15,16 @@
  */
 package io.gravitee.definition.model.v4.listener.tcp;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.List;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.experimental.Accessors;
 import lombok.experimental.SuperBuilder;
 
 /**
@@ -33,8 +36,12 @@ import lombok.experimental.SuperBuilder;
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "TcpListenerV4")
-@SuperBuilder
+@SuperBuilder(toBuilder = true)
 public class TcpListener extends Listener {
+
+    @JsonProperty(required = true)
+    @Accessors(chain = true)
+    private List<String> hosts;
 
     public TcpListener() {
         super(ListenerType.TCP);
@@ -42,5 +49,6 @@ public class TcpListener extends Listener {
 
     protected TcpListener(TcpListenerBuilder<?, ?> b) {
         super(ListenerType.TCP, b);
+        this.hosts = b.hosts;
     }
 }

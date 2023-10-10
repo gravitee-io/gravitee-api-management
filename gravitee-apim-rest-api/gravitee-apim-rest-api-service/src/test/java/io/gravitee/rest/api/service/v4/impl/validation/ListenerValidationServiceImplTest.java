@@ -17,12 +17,11 @@ package io.gravitee.rest.api.service.v4.impl.validation;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
 import io.gravitee.apim.core.api.domain_service.ApiDefinitionParserDomainService;
@@ -30,7 +29,6 @@ import io.gravitee.apim.core.api.domain_service.ApiHostValidatorDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.exception.InvalidPathsException;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
-import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.ConnectorFeature;
 import io.gravitee.definition.model.v4.ConnectorMode;
@@ -44,65 +42,62 @@ import io.gravitee.definition.model.v4.listener.entrypoint.Qos;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
+import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
 import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
-import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointDuplicatedException;
-import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointInvalidDlqException;
-import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointMissingException;
-import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointMissingTypeException;
-import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointUnsupportedDlqException;
-import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointUnsupportedListenerTypeException;
-import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointUnsupportedQosException;
-import io.gravitee.rest.api.service.v4.exception.ListenersDuplicatedException;
+import io.gravitee.rest.api.service.v4.exception.*;
 import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.assertj.core.api.Assertions;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
-public class ListenerValidationServiceImplTest {
+@ExtendWith(MockitoExtension.class)
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
+class ListenerValidationServiceImplTest {
 
     @Mock
-    private AccessPointQueryService accessPointService;
+    AccessPointQueryService accessPointService;
 
     @Mock
-    private CorsValidationService corsValidationService;
+    CorsValidationService corsValidationService;
 
     @Mock
-    private EntrypointConnectorPluginService entrypointService;
+    EntrypointConnectorPluginService entrypointService;
 
     @Mock
-    private EndpointConnectorPluginService endpointService;
+    EndpointConnectorPluginService endpointService;
 
-    private ListenerValidationServiceImpl listenerValidationService;
-
-    @Mock
-    private EnvironmentCrudService environmentCrudService;
+    ListenerValidationServiceImpl listenerValidationService;
 
     @Mock
-    private ApiQueryService apiQueryService;
+    ApiQueryService apiQueryService;
 
     @Mock
-    private ApiHostValidatorDomainService apiHostValidatorDomainService;
+    ApiHostValidatorDomainService apiHostValidatorDomainService;
 
     @Mock
-    private ApiDefinitionParserDomainService apiDefinitionParserDomainService;
+    ApiDefinitionParserDomainService apiDefinitionParserDomainService;
 
-    @Before
-    public void setUp() throws Exception {
-        when(accessPointService.getGatewayRestrictedDomains(any())).thenReturn(List.of());
+    @BeforeEach
+    void setUp() throws Exception {
         lenient()
             .when(entrypointService.validateConnectorConfiguration(any(String.class), any()))
             .thenAnswer(invocation -> invocation.getArgument(1));
@@ -121,7 +116,7 @@ public class ListenerValidationServiceImplTest {
     }
 
     @Test
-    public void shouldIgnoreEmptyList() {
+    void should_ignore_empty_list() {
         List<Listener> emptyListeners = List.of();
         List<Listener> validatedListeners = listenerValidationService.validateAndSanitize(
             GraviteeContext.getExecutionContext(),
@@ -129,12 +124,11 @@ public class ListenerValidationServiceImplTest {
             emptyListeners,
             emptyList()
         );
-        Assertions.assertThat(validatedListeners).isEmpty();
-        Assertions.assertThat(validatedListeners).isEqualTo(emptyListeners);
+        assertThat(validatedListeners).isEmpty();
     }
 
     @Test
-    public void shouldThrowDuplicatedExceptionWithDuplicatedType() {
+    void should_throw_duplicated_exception_with_duplicated_type() {
         // Given
         Listener httpListener1 = new HttpListener();
         Entrypoint e1 = new Entrypoint();
@@ -153,7 +147,7 @@ public class ListenerValidationServiceImplTest {
     }
 
     @Test
-    public void shouldReturnValidatedListeners() {
+    void should_return_validated_listeners() {
         // Given
         HttpListener httpListener = new HttpListener();
         httpListener.setPaths(List.of(new Path("path")));
@@ -170,19 +164,18 @@ public class ListenerValidationServiceImplTest {
             emptyList()
         );
         // Then
-        assertThat(validatedListeners).isNotNull();
-        assertThat(validatedListeners.size()).isEqualTo(1);
+        assertThat(validatedListeners).hasSize(1);
         Listener actual = validatedListeners.get(0);
         assertThat(actual).isInstanceOf(HttpListener.class);
         HttpListener actualHttpListener = (HttpListener) actual;
-        assertThat(actualHttpListener.getPaths().size()).isEqualTo(1);
+        assertThat(actualHttpListener.getPaths()).hasSize(1);
         Path path = actualHttpListener.getPaths().get(0);
         assertThat(path.getHost()).isNull();
         assertThat(path.getPath()).isEqualTo("/path/");
     }
 
     @Test
-    public void shouldReturnValidatedListenersWithQosValidation() {
+    void should_return_validated_listeners_with_qos_validation() {
         // Given
         HttpListener httpListener = new HttpListener();
         httpListener.setPaths(List.of(new Path("path")));
@@ -203,19 +196,18 @@ public class ListenerValidationServiceImplTest {
             emptyList()
         );
         // Then
-        assertThat(validatedListeners).isNotNull();
-        assertThat(validatedListeners.size()).isEqualTo(1);
+        assertThat(validatedListeners).hasSize(1);
         Listener actual = validatedListeners.get(0);
         assertThat(actual).isInstanceOf(HttpListener.class);
         HttpListener actualHttpListener = (HttpListener) actual;
-        assertThat(actualHttpListener.getPaths().size()).isEqualTo(1);
+        assertThat(actualHttpListener.getPaths()).hasSize(1);
         Path path = actualHttpListener.getPaths().get(0);
         assertThat(path.getHost()).isNull();
         assertThat(path.getPath()).isEqualTo("/path/");
     }
 
     @Test
-    public void shouldThrowMissingPathExceptionWithoutPath() {
+    void should_throw_missing_path_exception_without_path() {
         // Given
         HttpListener httpListener = new HttpListener();
         // When
@@ -231,7 +223,7 @@ public class ListenerValidationServiceImplTest {
     }
 
     @Test
-    public void shouldThrowMissingEntrypointExceptionWithoutEntrypoints() {
+    void should_throw_missing_entrypoint_exception_without_entrypoints() {
         // Given
         HttpListener httpListener = new HttpListener();
         httpListener.setPaths(List.of(new Path("/path")));
@@ -248,7 +240,7 @@ public class ListenerValidationServiceImplTest {
     }
 
     @Test
-    public void shouldThrowMissingEntrypointTypeExceptionWithNoType() {
+    void should_throw_missing_entrypoint_type_exception_with_no_type() {
         // Given
         HttpListener httpListener = new HttpListener();
         httpListener.setPaths(List.of(new Path("/path")));
@@ -266,7 +258,7 @@ public class ListenerValidationServiceImplTest {
     }
 
     @Test
-    public void shouldThrowDuplicatedEntrypointsExceptionWithDuplicated() {
+    void should_throw_duplicated_entrypoints_exception_with_duplicated() {
         // Given
         HttpListener httpListener = new HttpListener();
         httpListener.setPaths(List.of(new Path("/path")));
@@ -286,7 +278,7 @@ public class ListenerValidationServiceImplTest {
     }
 
     @Test
-    public void shouldReturnValidatedSubscriptionListeners() {
+    void should_return_validated_subscription_listeners() {
         // Given
         SubscriptionListener subscriptionListener = new SubscriptionListener();
         subscriptionListener.setType(ListenerType.SUBSCRIPTION);
@@ -304,14 +296,13 @@ public class ListenerValidationServiceImplTest {
             emptyList()
         );
         // Then
-        assertThat(validatedListeners).isNotNull();
-        assertThat(validatedListeners.size()).isEqualTo(1);
+        assertThat(validatedListeners).hasSize(1);
         Listener actual = validatedListeners.get(0);
         assertThat(actual).isInstanceOf(SubscriptionListener.class);
     }
 
     @Test
-    public void shouldThrowMissingEntrypointExceptionWithoutEntrypointsOnSubscriptionListener() {
+    void should_throw_missing_entrypoint_exception_without_entrypoints_on_subscription_listener() {
         // Given
         SubscriptionListener subscriptionListener = new SubscriptionListener();
         // When
@@ -327,7 +318,7 @@ public class ListenerValidationServiceImplTest {
     }
 
     @Test
-    public void shouldThrowMissingEntrypointTypeExceptionWithNotTypeOnSubscriptionListener() {
+    void should_throw_missing_entrypoint_type_exception_with_not_type_on_subscription_listener() {
         // Given
         SubscriptionListener subscriptionListener = new SubscriptionListener();
         Entrypoint entrypoint = new Entrypoint();
@@ -346,7 +337,7 @@ public class ListenerValidationServiceImplTest {
     }
 
     @Test
-    public void shouldThrowDuplicatedEntrypointsExceptionWithDuplicatedOnSubscriptionListener() {
+    void should_throw_duplicated_entrypoints_exception_with_duplicated_on_subscription_listener() {
         // Given
         SubscriptionListener subscriptionListener = new SubscriptionListener();
         Entrypoint entrypoint = new Entrypoint();
@@ -366,7 +357,7 @@ public class ListenerValidationServiceImplTest {
     }
 
     @Test
-    public void shouldThrowUnsupportedQosExceptionWithWrongQos() {
+    void should_throw_unsupported_qos_exception_with_wrong_qos() {
         // Given
         HttpListener httpListener = new HttpListener();
         httpListener.setPaths(List.of(new Path("path")));
@@ -390,7 +381,7 @@ public class ListenerValidationServiceImplTest {
     }
 
     @Test
-    public void shouldThrowUnsupportedDlqExceptionWhenConnectorDoesNotSupportDlqFeature() {
+    void should_throw_unsupported_dlq_exception_when_connector_does_not_support_dlq_feature() {
         HttpListener httpListener = new HttpListener();
         httpListener.setPaths(List.of(new Path("path")));
         httpListener.setType(ListenerType.HTTP);
@@ -414,7 +405,7 @@ public class ListenerValidationServiceImplTest {
     }
 
     @Test
-    public void shouldThrowInvalidDlqExceptionWhenNullTargetEndpoint() {
+    void should_throw_invalid_dlq_exception_when_null_target_endpoint() {
         HttpListener httpListener = new HttpListener();
         httpListener.setPaths(List.of(new Path("path")));
         Entrypoint entrypoint = new Entrypoint();
@@ -437,7 +428,7 @@ public class ListenerValidationServiceImplTest {
     }
 
     @Test
-    public void shouldThrowUnsupportedDlqExceptionWhenUnknownTargetEndpoint() {
+    void should_throw_unsupported_dlq_exception_when_unknown_target_endpoint() {
         HttpListener httpListener = new HttpListener();
         httpListener.setPaths(List.of(new Path("path")));
         httpListener.setType(ListenerType.HTTP);
@@ -461,7 +452,7 @@ public class ListenerValidationServiceImplTest {
     }
 
     @Test
-    public void shouldThrowInvalidDlqExceptionWhenTargetEndpointDoesNotSupportPublish() {
+    void should_throw_invalid_dlq_exception_when_target_endpoint_does_not_support_publish() {
         HttpListener httpListener = new HttpListener();
         httpListener.setPaths(List.of(new Path("path")));
         httpListener.setType(ListenerType.HTTP);
@@ -491,7 +482,7 @@ public class ListenerValidationServiceImplTest {
     }
 
     @Test
-    public void shouldThrowInvalidDlqExceptionWhenTargetEndpointDoesNotHaveConnector() {
+    void should_throw_invalid_dlq_exception_when_target_endpoint_does_not_have_connector() {
         HttpListener httpListener = new HttpListener();
         httpListener.setPaths(List.of(new Path("path")));
         httpListener.setType(ListenerType.HTTP);
@@ -518,7 +509,7 @@ public class ListenerValidationServiceImplTest {
     }
 
     @Test
-    public void shouldValidateDlqConfigWhenTargetingEndpoint() {
+    void should_validate_dlq_config_when_targeting_endpoint() {
         HttpListener httpListener = new HttpListener();
         httpListener.setPaths(List.of(new Path("path")));
         Entrypoint entrypoint = new Entrypoint();
@@ -544,7 +535,7 @@ public class ListenerValidationServiceImplTest {
     }
 
     @Test
-    public void shouldValidateDlqConfigWhenTargetingEndpointGroup() {
+    void should_validate_dlq_config_when_targeting_endpoint_group() {
         HttpListener httpListener = new HttpListener();
         httpListener.setPaths(List.of(new Path("path")));
         httpListener.setType(ListenerType.HTTP);
@@ -571,7 +562,7 @@ public class ListenerValidationServiceImplTest {
     }
 
     @Test
-    public void should_throw_ListenerEntrypointUnsupportedListenerTypeException_when_target_endpoint_does_not_match_ListenerType() {
+    void should_throw_listener_entrypoint_unsupported_listener_type_exception_when_target_endpoint_does_not_match_listener_type() {
         HttpListener httpListener = new HttpListener();
         httpListener.setPaths(List.of(new Path("path")));
         httpListener.setType(ListenerType.HTTP);
@@ -593,6 +584,35 @@ public class ListenerValidationServiceImplTest {
                     List.of(httpListener),
                     List.of(endpointGroup)
                 )
+            );
+    }
+
+    static Stream<Arguments> failingTcpListeners() {
+        var listOfNull = new ArrayList<String>();
+        listOfNull.add(null);
+        var listContainingNull = new ArrayList<String>();
+        listContainingNull.add("localhost");
+        listContainingNull.add(null);
+        return Stream.of(
+            arguments("no hosts", new TcpListener()),
+            arguments("empty hosts", new TcpListener().setHosts(List.of())),
+            arguments("null string hosts", new TcpListener().setHosts(listOfNull)),
+            arguments("empty string hosts", new TcpListener().setHosts(List.of(""))),
+            arguments("blank string hosts", new TcpListener().setHosts(List.of(" \t"))),
+            arguments("null amongst valid", new TcpListener().setHosts(listContainingNull)),
+            arguments("empty amongst valid", new TcpListener().setHosts(List.of("localhost", ""))),
+            arguments("blank amongst valid", new TcpListener().setHosts(List.of("localhost", "   "))),
+            arguments("duplicated hosts", new TcpListener().setHosts(List.of("localhost", "localhost"))),
+            arguments("duplicated hosts amongst valid host", new TcpListener().setHosts(List.of("www.acme.com", "localhost", "localhost")))
+        );
+    }
+
+    @MethodSource("failingTcpListeners")
+    @ParameterizedTest(name = "{0}")
+    void should_throw_error_when_host_is_empty_on_tcp_listener(String _name, TcpListener listener) {
+        assertThatExceptionOfType(TcpListenerInvalidHostsConfigurationException.class)
+            .isThrownBy(() ->
+                listenerValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), null, List.of(listener), emptyList())
             );
     }
 

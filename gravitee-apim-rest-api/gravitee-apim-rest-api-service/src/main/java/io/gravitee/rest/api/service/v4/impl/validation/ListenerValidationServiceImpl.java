@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.service.v4.impl.validation;
 
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
-import io.gravitee.apim.core.api.model.Path;
 import io.gravitee.apim.infra.adapter.PathAdapter;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.ConnectorFeature;
@@ -28,25 +27,19 @@ import io.gravitee.definition.model.v4.listener.entrypoint.Dlq;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
+import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
 import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.TransactionalService;
 import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
-import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointDuplicatedException;
-import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointInvalidDlqException;
-import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointInvalidQosException;
-import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointMissingException;
-import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointMissingTypeException;
-import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointUnsupportedDlqException;
-import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointUnsupportedListenerTypeException;
-import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointUnsupportedQosException;
-import io.gravitee.rest.api.service.v4.exception.ListenersDuplicatedException;
+import io.gravitee.rest.api.service.v4.exception.*;
 import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
 import io.gravitee.rest.api.service.v4.validation.ListenerValidationService;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -96,6 +89,8 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
                         validateAndSanitizeSubscriptionListener((SubscriptionListener) listener, endpointGroups);
                         break;
                     case TCP:
+                        validateAndSanitizeTcpListener((TcpListener) listener, endpointGroups);
+                        break;
                     default:
                         break;
                 }
@@ -134,6 +129,22 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
         validateEntrypoints(httpListener.getType(), httpListener.getEntrypoints(), endpointGroups);
         // Validate and clean cors configuration
         httpListener.setCors(corsValidationService.validateAndSanitize(httpListener.getCors()));
+    }
+
+    private void validateAndSanitizeTcpListener(final TcpListener listener, final List<EndpointGroup> endpointGroups) {
+        if (listener.getHosts() == null) {
+            throw new TcpListenerInvalidHostsConfigurationException("hosts property is mandatory on a TCP listener");
+        }
+        if (listener.getHosts().isEmpty()) {
+            throw new TcpListenerInvalidHostsConfigurationException("hosts property should not be empty");
+        }
+        if (listener.getHosts().stream().anyMatch(host -> host == null || host.isBlank())) {
+            throw new TcpListenerInvalidHostsConfigurationException("hosts property should contain domain names");
+        }
+        if (listener.getHosts().size() > listener.getHosts().stream().distinct().count()) {
+            throw new TcpListenerInvalidHostsConfigurationException("hosts property should not contain duplicated host names");
+        }
+        validateEntrypoints(listener.getType(), listener.getEntrypoints(), endpointGroups);
     }
 
     private void validateAndSanitizeSubscriptionListener(

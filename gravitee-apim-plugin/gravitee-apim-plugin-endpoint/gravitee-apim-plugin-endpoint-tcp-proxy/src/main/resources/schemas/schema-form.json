@@ -1,0 +1,39 @@
+{
+    "$schema":"http://json-schema.org/draft-07/schema#",
+    "type":"object",
+    "definitions":{
+        "target":{
+            "title":"Target server",
+            "description":"The target properties to use to contact the backend",
+            "type":"object",
+            "properties": {
+                "host": {
+                    "type": "string",
+                    "title": "Host",
+                    "description": "Backend host to connect to, name or IP"
+                },
+                "port" : {
+                    "type": "integer",
+                    "title": "Port",
+                    "description": "Backend port",
+                    "minimum": 1,
+                    "maximum": 65535
+                },
+                "additionalProperties": false
+            },
+            "required": [
+                "host",
+                "port"
+            ]
+        }
+    },
+    "properties":{
+        "target":{
+            "$ref":"#/definitions/target"
+        },
+        "additionalProperties": false
+    },
+    "required":[
+        "target"
+    ]
+}

@@ -24,6 +24,8 @@ import io.gravitee.node.certificates.KeyStoreLoaderManager;
 import io.gravitee.node.vertx.server.VertxServer;
 import io.gravitee.node.vertx.server.VertxServerFactory;
 import io.gravitee.node.vertx.server.VertxServerOptions;
+import io.gravitee.node.vertx.server.http.VertxHttpServerOptions;
+import io.gravitee.node.vertx.server.tcp.VertxTcpServerOptions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -144,5 +146,21 @@ class VertxReactorConfigurationTest {
         verify(serverFactory).create(optionsCaptor.capture());
 
         assertThat(optionsCaptor.getValue().getPort()).isEqualTo(5678);
+    }
+
+    @Test
+    void should_create_http_and_tcp_server() {
+        final VertxServer httpVertxServer = mock(VertxServer.class);
+        final VertxServer tcpVertxServer = mock(VertxServer.class);
+
+        environment.setProperty("tcp.enabled", "true");
+
+        when(serverFactory.create(any(VertxHttpServerOptions.class))).thenReturn(httpVertxServer);
+        when(serverFactory.create(any(VertxTcpServerOptions.class))).thenReturn(tcpVertxServer);
+
+        final ServerManager serverManager = cut.serverManager(serverFactory, environment, keyStoreLoaderManager);
+
+        assertThat(serverManager.servers()).isNotNull();
+        assertThat(serverManager.servers()).containsExactlyInAnyOrder(httpVertxServer, tcpVertxServer);
     }
 }

@@ -87,6 +87,7 @@ public abstract class AbstractGatewayTest
     protected Map<String, ReactableApi<?>> deployedApis;
     private int gatewayPort = -1;
     private int technicalApiPort = -1;
+    private int tcpPort = -1;
     private Map<String, ReactableApi<?>> deployedForTestClass;
     private boolean areClassApisPrepared = false;
     protected ApplicationContext applicationContext;
@@ -171,8 +172,8 @@ public abstract class AbstractGatewayTest
     private void resetAllMocks() throws Exception {
         for (String name : applicationContext.getBeanDefinitionNames()) {
             Object bean = applicationContext.getBean(name);
-            if (AopUtils.isAopProxy(bean) && bean instanceof Advised) {
-                bean = ((Advised) bean).getTargetSource().getTarget();
+            if (AopUtils.isAopProxy(bean) && bean instanceof Advised advised) {
+                bean = advised.getTargetSource().getTarget();
             }
             if (Mockito.mockingDetails(bean).isMock()) {
                 Mockito.reset(bean);
@@ -295,6 +296,13 @@ public abstract class AbstractGatewayTest
         return gatewayPort;
     }
 
+    public int tcpPort() {
+        if (tcpPort == -1) {
+            tcpPort = getAvailablePort();
+        }
+        return tcpPort;
+    }
+
     public int technicalApiPort() {
         if (technicalApiPort == -1) {
             technicalApiPort = getAvailablePort();
@@ -325,7 +333,7 @@ public abstract class AbstractGatewayTest
                 .stream()
                 .flatMap(eg -> eg.getEndpoints().stream())
                 .filter(endpoint -> endpoint.getType().equals("http-proxy"))
-                .collect(Collectors.toList());
+                .toList();
 
             httpProxyEndpoints.forEach(endpoint -> {
                 var port = endpoint.getConfiguration().contains("https") ? wiremockHttpsPort : wiremockPort;
@@ -379,9 +387,13 @@ public abstract class AbstractGatewayTest
                     ObjectNode configuration = (ObjectNode) objectMapper.readTree(endpoint.getConfiguration());
                     JsonNode targetNode = configuration.get("target");
                     if (targetNode != null) {
-                        String target = targetNode.asText();
-                        String exchangePort = exchangePort(target, port);
-                        configuration.put("target", exchangePort);
+                        if (targetNode.isTextual()) {
+                            String target = targetNode.asText();
+                            String exchangePort = exchangePort(target, port);
+                            configuration.put("target", exchangePort);
+                        } else {
+                            ((ObjectNode) targetNode).put("port", port);
+                        }
                     }
                     endpoint.setConfiguration(configuration);
                 } catch (Exception e) {
@@ -423,7 +435,7 @@ public abstract class AbstractGatewayTest
     protected final void updateOrganization(String organizationId, Consumer<ReactableOrganization> organizationConsumer) {
         // Get deployed organization and create a new one from it
         final OrganizationManager organizationManager = applicationContext.getBean(OrganizationManager.class);
-        if (organizationId == null) {}
+
         final ReactableOrganization reactableOrganization = organizationManager.getOrganization(organizationId);
 
         if (reactableOrganization == null) {

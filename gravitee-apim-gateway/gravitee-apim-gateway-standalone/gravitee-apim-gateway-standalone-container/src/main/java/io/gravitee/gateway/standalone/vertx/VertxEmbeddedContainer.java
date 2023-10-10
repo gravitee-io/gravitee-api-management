@@ -17,19 +17,21 @@ package io.gravitee.gateway.standalone.vertx;
 
 import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.gateway.reactive.standalone.vertx.HttpProtocolVerticle;
+import io.gravitee.gateway.reactive.standalone.vertx.TcpProtocolVerticle;
 import io.gravitee.node.vertx.verticle.factory.SpringVerticleFactory;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@RequiredArgsConstructor
 public class VertxEmbeddedContainer extends AbstractLifecycleComponent<VertxEmbeddedContainer> {
 
     /**
@@ -38,12 +40,15 @@ public class VertxEmbeddedContainer extends AbstractLifecycleComponent<VertxEmbe
     private final Logger logger = LoggerFactory.getLogger(VertxEmbeddedContainer.class);
 
     @Value("${http.instances:0}")
-    private int instances;
+    private int httpInstances;
 
-    @Autowired
-    private Vertx vertx;
+    @Value("${tcp.instances:0}")
+    private int tcpInstances;
 
-    private String deploymentId;
+    private final Vertx vertx;
+
+    private String httpDeploymentId;
+    private String tcpDeploymentId;
 
     @Override
     public VertxEmbeddedContainer start() throws Exception {
@@ -59,10 +64,21 @@ public class VertxEmbeddedContainer extends AbstractLifecycleComponent<VertxEmbe
 
     @Override
     protected void doStart() throws Exception {
-        instances = (instances < 1) ? VertxOptions.DEFAULT_EVENT_LOOP_POOL_SIZE : instances;
-        logger.info("Starting Vertx container and deploy Gateway Verticles [{} instance(s)]", instances);
+        if (httpInstances < 1 && tcpInstances < 1) {
+            httpInstances = VertxOptions.DEFAULT_EVENT_LOOP_POOL_SIZE / 2;
+            tcpInstances = VertxOptions.DEFAULT_EVENT_LOOP_POOL_SIZE / 2;
+        } else {
+            httpInstances = (httpInstances < 1) ? VertxOptions.DEFAULT_EVENT_LOOP_POOL_SIZE : httpInstances;
+            tcpInstances = (tcpInstances < 1) ? VertxOptions.DEFAULT_EVENT_LOOP_POOL_SIZE : tcpInstances;
+        }
+        startHttpInstances();
+        startTcpInstances();
+    }
 
-        final DeploymentOptions options = new DeploymentOptions().setInstances(instances);
+    private void startHttpInstances() {
+        logger.info("Starting Vertx container and deploy Gateway HTTP Verticles [{} instance(s)]", httpInstances);
+
+        final DeploymentOptions options = new DeploymentOptions().setInstances(httpInstances);
         final String verticleName = SpringVerticleFactory.VERTICLE_PREFIX + ':' + HttpProtocolVerticle.class.getName();
 
         vertx.deployVerticle(
@@ -76,21 +92,45 @@ public class VertxEmbeddedContainer extends AbstractLifecycleComponent<VertxEmbe
                     Runtime.getRuntime().exit(1);
                 }
 
-                deploymentId = event.result();
-                lifecycle.moveToStarted();
+                httpDeploymentId = event.result();
+                moveToStarted();
+            }
+        );
+    }
+
+    private void moveToStarted() {
+        if (httpDeploymentId != null && tcpDeploymentId != null) {
+            lifecycle.moveToStarted();
+        }
+    }
+
+    private void startTcpInstances() {
+        logger.info("Starting Vertx container and deploy Gateway TCP Verticles [{} instance(s)]", tcpInstances);
+
+        final DeploymentOptions options = new DeploymentOptions().setInstances(tcpInstances);
+        final String verticleName = SpringVerticleFactory.VERTICLE_PREFIX + ':' + TcpProtocolVerticle.class.getName();
+
+        vertx.deployVerticle(
+            verticleName,
+            options,
+            event -> {
+                if (event.failed()) {
+                    logger.error("Unable to start TCP server", event.cause());
+                }
+
+                tcpDeploymentId = event.result();
+                moveToStarted();
             }
         );
     }
 
     @Override
-    protected void doStop() throws Exception {
-        if (deploymentId != null) {
-            vertx.undeploy(
-                deploymentId,
-                event -> {
-                    lifecycle.moveToStopped();
-                }
-            );
+    protected void doStop() {
+        if (httpDeploymentId != null) {
+            vertx.undeploy(httpDeploymentId, event -> lifecycle.moveToStopped());
+        }
+        if (tcpDeploymentId != null) {
+            vertx.undeploy(tcpDeploymentId);
         }
     }
 }

@@ -292,6 +292,11 @@ public abstract class AbstractRequest implements MutableRequest {
         return Completable.fromRunnable(() -> lazyMessageFlow().onMessages(onMessages));
     }
 
+    @Override
+    public void pipeUpstream(Completable pipe) {
+        // no op implementation to avoid breaking subtypes
+    }
+
     protected final BufferFlow lazyBufferFlow() {
         if (bufferFlow == null) {
             bufferFlow = new BufferFlow(this::isStreaming);

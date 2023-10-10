@@ -44,6 +44,7 @@ import io.gravitee.gateway.reactive.flow.condition.evaluation.HttpMethodConditio
 import io.gravitee.gateway.reactive.flow.condition.evaluation.PathBasedConditionFilter;
 import io.gravitee.gateway.reactive.handlers.api.processor.ApiProcessorChainFactory;
 import io.gravitee.gateway.reactive.handlers.api.v4.DefaultApiReactorFactory;
+import io.gravitee.gateway.reactive.handlers.api.v4.TcpApiReactorFactory;
 import io.gravitee.gateway.reactive.platform.organization.policy.OrganizationPolicyChainFactoryManager;
 import io.gravitee.gateway.reactive.policy.DefaultPolicyFactory;
 import io.gravitee.gateway.reactive.policy.PolicyFactory;
@@ -66,9 +67,6 @@ import org.springframework.core.env.Environment;
  */
 @Configuration
 public class ApiHandlerConfiguration {
-
-    @Autowired
-    private Environment environment;
 
     @Autowired
     private ApplicationContext applicationContext;
@@ -125,7 +123,7 @@ public class ApiHandlerConfiguration {
     }
 
     @Bean
-    public DataEncryptor apiPropertiesEncryptor() {
+    public DataEncryptor apiPropertiesEncryptor(Environment environment) {
         return new DataEncryptor(environment, "api.properties.encryption.secret", "vvLJ4Q8Khvv9tm2tIPdkGEdmgKUruAL6");
     }
 
@@ -219,6 +217,21 @@ public class ApiHandlerConfiguration {
             flowResolverFactory,
             requestTimeoutConfiguration,
             reporterService
+        );
+    }
+
+    @Bean
+    ReactorFactory<io.gravitee.gateway.reactive.handlers.api.v4.Api> tcpApiReactorFactory(
+        EntrypointConnectorPluginManager entrypointConnectorPluginManager,
+        EndpointConnectorPluginManager endpointConnectorPluginManager,
+        RequestTimeoutConfiguration requestTimeoutConfiguration
+    ) {
+        return new TcpApiReactorFactory(
+            configuration,
+            node,
+            entrypointConnectorPluginManager,
+            endpointConnectorPluginManager,
+            requestTimeoutConfiguration
         );
     }
 }
