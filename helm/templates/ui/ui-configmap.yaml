@@ -30,11 +30,7 @@ data:
       {{- if .Values.ui.baseURL }}
       "baseURL": "{{ .Values.ui.baseURL }}"
       {{- else }}
-      {{- if hasSuffix "/" .Values.api.ingress.management.path }}
-      "baseURL": "{{ .Values.api.ingress.management.scheme }}://{{ index .Values.api.ingress.management.hosts 0 }}{{ .Values.api.ingress.management.path }}organizations/DEFAULT/environments/DEFAULT/"
-      {{- else }}
-      "baseURL": "{{ .Values.api.ingress.management.scheme }}://{{ index .Values.api.ingress.management.hosts 0 }}{{ .Values.api.ingress.management.path }}/organizations/DEFAULT/environments/DEFAULT/"
-      {{- end }}
+      "baseURL": "{{ .Values.api.ingress.management.scheme }}://{{ index .Values.api.ingress.management.hosts 0 }}{{ .Values.api.ingress.management.path }}"
       {{- end }}
       {{- if .Values.ui.managementTitle }},
       "management": {
