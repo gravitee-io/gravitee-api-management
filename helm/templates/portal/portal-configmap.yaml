@@ -30,11 +30,7 @@ data:
       {{- if .Values.portal.baseURL }}
       "baseURL": "{{ .Values.portal.baseURL }}",
       {{- else }}
-      {{- if hasSuffix "/" .Values.api.ingress.portal.path }}
-      "baseURL": "{{ .Values.api.ingress.portal.scheme }}://{{ index .Values.api.ingress.portal.hosts 0 }}{{ .Values.api.ingress.portal.path }}environments/DEFAULT",
-      {{- else }}
-      "baseURL": "{{ .Values.api.ingress.portal.scheme }}://{{ index .Values.api.ingress.portal.hosts 0 }}{{ .Values.api.ingress.portal.path }}/environments/DEFAULT",
-      {{- end }}
+      "baseURL": "{{ .Values.api.ingress.portal.scheme }}://{{ index .Values.api.ingress.portal.hosts 0 }}{{ .Values.api.ingress.portal.path }}",
       {{- end }}
       "loaderURL": "assets/images/gravitee-loader.gif",
       "pagination": {
