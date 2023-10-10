@@ -40,7 +40,7 @@ public abstract class AbstractWebsocketGatewayTest extends AbstractGatewayTest {
     private Disposable serverDispose;
 
     @BeforeAll
-    public void beforeAll(Vertx vertx, VertxTestContext context) {
+    public void startWebsocketServer(Vertx vertx, VertxTestContext context) {
         final HttpServerOptions httpServerOptions = new HttpServerOptions();
         final int serverPort = getAvailablePort();
         httpServerOptions.setPort(serverPort);
@@ -63,7 +63,7 @@ public abstract class AbstractWebsocketGatewayTest extends AbstractGatewayTest {
     }
 
     @AfterAll
-    public void afterAll() {
+    public void stopServers() {
         if (null != serverDispose) {
             serverDispose.dispose();
         }
@@ -89,7 +89,7 @@ public abstract class AbstractWebsocketGatewayTest extends AbstractGatewayTest {
     }
 
     @BeforeEach
-    public void setup(Vertx vertx) {
+    public void beforeEachWebsocketTest(Vertx vertx) {
         wiremock.stop();
         httpClient = vertx.createHttpClient(new HttpClientOptions().setDefaultPort(gatewayPort()).setDefaultHost("localhost"));
     }

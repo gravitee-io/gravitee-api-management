@@ -26,9 +26,13 @@ import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.reactive.reactor.DefaultHttpRequestDispatcher;
+import io.gravitee.gateway.reactive.reactor.DefaultTcpSocketDispatcher;
 import io.gravitee.gateway.reactive.reactor.HttpRequestDispatcher;
+import io.gravitee.gateway.reactive.reactor.TcpSocketDispatcher;
 import io.gravitee.gateway.reactive.reactor.handler.DefaultHttpAcceptorResolver;
+import io.gravitee.gateway.reactive.reactor.handler.DefaultTcpAcceptorResolver;
 import io.gravitee.gateway.reactive.reactor.handler.HttpAcceptorResolver;
+import io.gravitee.gateway.reactive.reactor.handler.TcpAcceptorResolver;
 import io.gravitee.gateway.reactive.reactor.processor.DefaultPlatformProcessorChainFactory;
 import io.gravitee.gateway.reactive.reactor.processor.NotFoundProcessorChainFactory;
 import io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionPreProcessorFactory;
@@ -165,6 +169,21 @@ public class ReactorConfiguration {
             requestTimeoutConfiguration,
             vertx
         );
+    }
+
+    @Bean
+    @Qualifier
+    public TcpSocketDispatcher tcpSocketDispatcher(
+        TcpAcceptorResolver tcpAcceptorResolver,
+        ComponentProvider globalComponentProvider,
+        IdGenerator idGenerator
+    ) {
+        return new DefaultTcpSocketDispatcher(tcpAcceptorResolver, globalComponentProvider, idGenerator);
+    }
+
+    @Bean
+    public TcpAcceptorResolver tcpAcceptorResolver(ReactorHandlerRegistry reactorHandlerRegistry) {
+        return new DefaultTcpAcceptorResolver(reactorHandlerRegistry);
     }
 
     @Bean

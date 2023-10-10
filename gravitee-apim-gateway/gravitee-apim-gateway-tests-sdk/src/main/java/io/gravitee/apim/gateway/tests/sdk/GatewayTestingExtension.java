@@ -21,6 +21,7 @@ import io.gravitee.apim.gateway.tests.sdk.annotations.DeployOrganizations;
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
 import io.gravitee.apim.gateway.tests.sdk.parameters.GatewayTestParameterResolver;
 import io.gravitee.apim.gateway.tests.sdk.runner.GatewayRunner;
+import io.gravitee.apim.gateway.tests.sdk.secrets.SecretProviderException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -78,7 +79,7 @@ public class GatewayTestingExtension
             deployOrganizationForClass(context);
             deployApisForClass(context);
         } catch (Exception e) {
-            LOGGER.error("Before all error: {}", e.getMessage());
+            LOGGER.error("Before all error: ", e);
             exception = e;
             if (gatewayRunner != null && gatewayRunner.isRunning()) {
                 gatewayRunner.stop();
@@ -201,7 +202,7 @@ public class GatewayTestingExtension
         }
     }
 
-    private void deployApisForClass(ExtensionContext context) throws Exception {
+    private void deployApisForClass(ExtensionContext context) throws IOException {
         final Class<?> requiredTestClass = context.getRequiredTestClass();
         if (requiredTestClass.isAnnotationPresent(DeployApi.class)) {
             for (String apiDefinition : requiredTestClass.getAnnotation(DeployApi.class).value()) {
@@ -210,12 +211,13 @@ public class GatewayTestingExtension
         }
     }
 
-    private void startGateway(ExtensionContext context) throws Exception {
+    private void startGateway(ExtensionContext context) throws SecretProviderException, IOException, InterruptedException {
         final Object testInstance = context.getTestInstance().orElseThrow(() -> new IllegalStateException("Cannot find a test instance"));
-        if (testInstance instanceof AbstractGatewayTest) {
-            gatewayTest = (AbstractGatewayTest) testInstance;
+        if (testInstance instanceof AbstractGatewayTest gtwTest) {
+            this.gatewayTest = gtwTest;
             final GatewayConfigurationBuilder gatewayConfigurationBuilder = GatewayConfigurationBuilder.emptyConfiguration();
             gatewayConfigurationBuilder.set("http.instances", 1);
+            gatewayConfigurationBuilder.set("tcp.instances", 1);
             gatewayTest.configureGateway(gatewayConfigurationBuilder);
             gatewayRunner = new GatewayRunner(gatewayConfigurationBuilder, gatewayTest);
 

@@ -1,0 +1,43 @@
+{
+  "id": "simple-tcp-proxy",
+  "name": "TCP Proxy",
+  "apiVersion": "1.0",
+  "definitionVersion": "4.0.0",
+  "type": "proxy",
+  "description": "TCP Proxy",
+  "listeners": [
+    {
+      "type": "tcp",
+      "hosts": [
+        "localhost"
+      ],
+      "entrypoints": [
+        {
+          "type": "tcp-proxy",
+          "configuration": {}
+        }
+      ]
+    }
+  ],
+  "endpointGroups": [
+    {
+      "name": "default-group",
+      "type": "tcp-proxy",
+      "endpoints": [
+        {
+          "name": "default",
+          "type": "tcp-proxy",
+          "configuration": {
+            "target": {
+              "host": "localhost",
+              "port": 10000
+            }
+          },
+          "sharedConfiguration": {
+
+          }
+        }
+      ]
+    }
+  ]
+}

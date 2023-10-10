@@ -36,5 +36,6 @@
         <module>gravitee-apim-plugin-endpoint-handler</module>
         <module>gravitee-apim-plugin-endpoint-mock</module>
         <module>gravitee-apim-plugin-endpoint-http-proxy</module>
+        <module>gravitee-apim-plugin-endpoint-tcp-proxy</module>
     </modules>
 </project>

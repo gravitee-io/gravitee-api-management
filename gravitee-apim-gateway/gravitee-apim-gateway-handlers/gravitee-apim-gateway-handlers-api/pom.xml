@@ -67,6 +67,11 @@
             <artifactId>gravitee-apim-gateway-http</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.gravitee.apim.gateway</groupId>
+            <artifactId>gravitee-apim-gateway-tcp</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>io.gravitee.apim.gateway.security</groupId>

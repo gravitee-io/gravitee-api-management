@@ -4539,6 +4539,19 @@ components:
             title: "TcpListener"
             allOf:
                 - $ref: "#/components/schemas/BaseListener"
+                - type: object
+                  properties:
+                      hosts:
+                          description: >-
+                            A list of hostnames for which the API will match against SNI. 
+                            This must be unique for all TCP listener for a given server id. See 'servers' attribute
+                          type: array
+                          minItems: 1
+                          items:
+                             type: string
+                             minLength: 1
+                  required:
+                      - "hosts"
         VerifyApiPaths:
             title: "VerifyApiPaths"
             properties:

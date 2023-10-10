@@ -169,6 +169,9 @@ public abstract class AbstractResponse implements MutableResponse {
         lazyMessageFlow().unsetOnMessagesInterceptor();
     }
 
+    @Override
+    public void pipeDownstream() {}
+
     protected final BufferFlow lazyBufferFlow() {
         if (bufferFlow == null) {
             bufferFlow = new BufferFlow(this::isStreaming);

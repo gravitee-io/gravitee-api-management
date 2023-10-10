@@ -15,10 +15,8 @@
  */
 package io.gravitee.gateway.reactive.reactor;
 
-import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
-import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.reactivex.rxjava3.core.Completable;
