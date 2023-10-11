@@ -61,6 +61,7 @@ http:
 #    management:
 #      enabled: true
 #      entrypoint: ${http.api.entrypoint}management
+#      proxyPath: ${http.api.management.entrypoint}
 #      cors:
 # Allows to configure the header Access-Control-Allow-Origin (default value: *)
 # '*' is a valid value but is considered as a security risk as it will be opened to cross origin requests from anywhere.
@@ -76,6 +77,7 @@ http:
 #    portal:
 #      enabled: true
 #      entrypoint: ${http.api.entrypoint}portal
+#      proxyPath: ${http.api.portal.entrypoint}
 #      cors:
 # Allows to configure the header Access-Control-Allow-Origin (default value: *)
 # '*' is a valid value but is considered as a security risk as it will be opened to cross origin requests from anywhere.

@@ -31,11 +31,10 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
-import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URL;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.web.util.UriComponents;
@@ -50,11 +49,17 @@ import org.springframework.web.util.UriComponentsBuilder;
 @Slf4j
 public class PortalUIBootstrapResource {
 
+    private static final String PROPERTY_HTTP_API_PORTAL_PROXY_PATH = "http.api.portal.proxyPath";
+    private static final String PROPERTY_HTTP_API_PORTAL_ENTRYPOINT = "http.api.portal.entrypoint";
+
     @Autowired
     protected AccessPointQueryService accessPointService;
 
     @Autowired
     protected EnvironmentService environmentService;
+
+    @Autowired
+    private Environment environment;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -66,11 +71,9 @@ public class PortalUIBootstrapResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response bootstrap(@Context final HttpServletRequest httpServletRequest) {
-        URI contextPath = URI.create(httpServletRequest.getContextPath());
-
         String portalApiUrl = accessPointService.getPortalApiUrl(GraviteeContext.getCurrentEnvironment());
         if (portalApiUrl != null) {
-            URI fullPortalUrl = URI.create(portalApiUrl).resolve(contextPath);
+            URI fullPortalUrl = URI.create(portalApiUrl).resolve(getPortalProxyPath());
             return Response
                 .ok(
                     PortalUIBootstrapEntity
@@ -84,7 +87,7 @@ public class PortalUIBootstrapResource {
         }
 
         ServerHttpRequest request = new ServletServerHttpRequest(httpServletRequest);
-        UriComponents uriComponents = UriComponentsBuilder.fromHttpRequest(request).replacePath(contextPath.toString()).build();
+        UriComponents uriComponents = UriComponentsBuilder.fromHttpRequest(request).replacePath(getPortalProxyPath()).build();
         return Response
             .ok(
                 PortalUIBootstrapEntity
@@ -95,5 +98,10 @@ public class PortalUIBootstrapResource {
                     .build()
             )
             .build();
+    }
+
+    private String getPortalProxyPath() {
+        String entrypoint = environment.getProperty(PROPERTY_HTTP_API_PORTAL_ENTRYPOINT, "/portal");
+        return environment.getProperty(PROPERTY_HTTP_API_PORTAL_PROXY_PATH, entrypoint);
     }
 }
