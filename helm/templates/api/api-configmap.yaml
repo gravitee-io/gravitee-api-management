@@ -96,10 +96,6 @@ data:
       {{- end }}
 
     console:
-      api:
-        url: "https://{{index .Values.api.ingress.management.hosts 0 }}{{ .Values.api.ingress.management.path }}"
-      ui:
-        url: "https://{{index .Values.ui.ingress.hosts 0 }}{{ regexFind "/[a-zA-Z]+" .Values.ui.ingress.path }}"
       {{- if (((.Values.ui).analytics).pendo).enabled }}
       analytics:
         {{ toYaml .Values.ui.analytics | indent 8 | trim -}}
@@ -194,8 +190,10 @@ data:
         entrypoint: {{ .Values.api.http.api.entrypoint }}
         management:
           entrypoint: ${http.api.entrypoint}management
+          proxyPath: {{ .Values.api.ingress.management.path }}
         portal:
           entrypoint: ${http.api.entrypoint}portal
+          proxyPath: {{ .Values.api.ingress.portal.path }}
     {{- end }}
 
     analytics:

@@ -30,11 +30,10 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
-import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URL;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.web.util.UriComponents;
@@ -49,8 +48,14 @@ import org.springframework.web.util.UriComponentsBuilder;
 @Slf4j
 public class ManagementUIBootstrapResource {
 
+    private static final String PROPERTY_HTTP_API_MANAGEMENT_PROXY_PATH = "http.api.management.proxyPath";
+    private static final String PROPERTY_HTTP_API_MANAGEMENT_ENTRYPOINT = "http.api.management.entrypoint";
+
     @Autowired
     protected AccessPointQueryService accessPointService;
+
+    @Autowired
+    private Environment environment;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -62,11 +67,9 @@ public class ManagementUIBootstrapResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response bootstrap(@Context final HttpServletRequest httpServletRequest) {
-        URI contextPath = sanitizeContextPath(httpServletRequest);
-
         String consoleApiUrl = accessPointService.getConsoleApiUrl(GraviteeContext.getCurrentOrganization());
         if (consoleApiUrl != null) {
-            URI fullManagementURL = URI.create(consoleApiUrl).resolve(contextPath);
+            URI fullManagementURL = URI.create(consoleApiUrl).resolve(getManagementProxyPath());
             return Response
                 .ok(
                     ManagementUIBootstrapEntity
@@ -79,7 +82,7 @@ public class ManagementUIBootstrapResource {
         }
 
         ServerHttpRequest request = new ServletServerHttpRequest(httpServletRequest);
-        UriComponents uriComponents = UriComponentsBuilder.fromHttpRequest(request).replacePath(contextPath.toString()).build();
+        UriComponents uriComponents = UriComponentsBuilder.fromHttpRequest(request).replacePath(getManagementProxyPath()).build();
 
         return Response
             .ok(
@@ -92,7 +95,8 @@ public class ManagementUIBootstrapResource {
             .build();
     }
 
-    private static URI sanitizeContextPath(final HttpServletRequest httpServletRequest) {
-        return URI.create(httpServletRequest.getContextPath().replace("/v2", "")).normalize();
+    private String getManagementProxyPath() {
+        String entrypoint = environment.getProperty(PROPERTY_HTTP_API_MANAGEMENT_ENTRYPOINT, "/management");
+        return environment.getProperty(PROPERTY_HTTP_API_MANAGEMENT_PROXY_PATH, entrypoint);
     }
 }
