@@ -35,6 +35,10 @@ import java.net.URI;
 import java.net.URL;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.server.ServerHttpRequest;
+import org.springframework.http.server.ServletServerHttpRequest;
+import org.springframework.web.util.UriComponents;
+import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -73,25 +77,19 @@ public class ManagementUIBootstrapResource {
                 )
                 .build();
         }
-        try {
-            URL defaultBaseUrl = new URL(
-                httpServletRequest.getScheme(),
-                httpServletRequest.getServerName(),
-                httpServletRequest.getServerPort(),
-                contextPath.toString()
-            );
-            return Response
-                .ok(
-                    ManagementUIBootstrapEntity
-                        .builder()
-                        .organizationId(GraviteeContext.getDefaultOrganization())
-                        .baseURL(defaultBaseUrl.toExternalForm())
-                        .build()
-                )
-                .build();
-        } catch (MalformedURLException e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
-        }
+
+        ServerHttpRequest request = new ServletServerHttpRequest(httpServletRequest);
+        UriComponents uriComponents = UriComponentsBuilder.fromHttpRequest(request).replacePath(contextPath.toString()).build();
+
+        return Response
+            .ok(
+                ManagementUIBootstrapEntity
+                    .builder()
+                    .organizationId(GraviteeContext.getDefaultOrganization())
+                    .baseURL(uriComponents.toUriString())
+                    .build()
+            )
+            .build();
     }
 
     private static URI sanitizeContextPath(final HttpServletRequest httpServletRequest) {
