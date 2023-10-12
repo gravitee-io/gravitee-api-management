@@ -49,6 +49,7 @@ describe('ApiLogsV2Service', () => {
       { queryParams: { page: 2, perPage: 12, to: 333 }, queryURL: '?page=2&perPage=12&to=333' },
       { queryParams: { page: 2, perPage: 12, from: 222, to: 333 }, queryURL: '?page=2&perPage=12&from=222&to=333' },
       { queryParams: { from: 222, to: 333 }, queryURL: '?page=1&perPage=10&from=222&to=333' },
+      { queryParams: { applicationIds: '1,2' }, queryURL: '?page=1&perPage=10&applicationIds=1,2' },
     ])('call the service with: $queryParams should call API with: $queryURL', ({ queryParams, queryURL }: any, done: jest.DoneCallback) => {
       const fakeResponse: ApiLogsResponse = {
         data: [fakeConnectionLog({ apiId: API_ID })],

@@ -23,23 +23,29 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatOptionModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { ApiRuntimeLogsQuickFiltersComponent } from './api-runtime-logs-quick-filters.component';
+import { ChipValuePipe } from './pipes';
+import { ApplicationsFilterModule } from './components';
 
 @NgModule({
-  declarations: [ApiRuntimeLogsQuickFiltersComponent],
+  declarations: [ApiRuntimeLogsQuickFiltersComponent, ChipValuePipe],
   exports: [ApiRuntimeLogsQuickFiltersComponent],
   imports: [
+    CommonModule,
+    FormsModule,
     MatButtonModule,
     MatCardModule,
-    GioIconsModule,
-    CommonModule,
-    UIRouterModule,
-    FormsModule,
-    ReactiveFormsModule,
+    MatChipsModule,
     MatOptionModule,
     MatSelectModule,
-    MatChipsModule,
+    MatTooltipModule,
+    ReactiveFormsModule,
+    UIRouterModule,
+
+    ApplicationsFilterModule,
+    GioIconsModule,
   ],
 })
 export class ApiRuntimeLogsQuickFiltersModule {}

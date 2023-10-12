@@ -13,22 +13,5 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { ConnectionLog } from './connectionLog';
-
-import { Links } from '../links';
-import { Pagination } from '../pagination';
-
-export interface ApiLogsParam {
-  page?: number;
-  perPage?: number;
-  from?: number;
-  to?: number;
-  applicationIds?: string;
-}
-
-export interface ApiLogsResponse {
-  data?: ConnectionLog[];
-  pagination?: Pagination;
-  links?: Links;
-}
+export * from './applications-filter.module';
+export * from './applications-filter.component';

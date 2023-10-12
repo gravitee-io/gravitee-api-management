@@ -16,11 +16,22 @@
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatChipHarness, MatChipListHarness } from '@angular/material/chips/testing';
+import { GioFormTagsInputHarness } from '@gravitee/ui-particles-angular';
+import { MatFormFieldHarness } from '@angular/material/form-field/testing';
 
 export class ApiRuntimeLogsQuickFiltersHarness extends ComponentHarness {
   static hostSelector = 'api-runtime-logs-quick-filters';
 
+  private getApplicationFormField = this.locatorFor(MatFormFieldHarness.with({ floatingLabelText: 'Applications' }));
   public getPeriodSelectInput = this.locatorFor(MatSelectHarness.with({ selector: '[formControlName="period"]' }));
-  public getChips = this.locatorForOptional(MatChipListHarness.with({}));
+  public getChips = this.locatorForOptional(MatChipListHarness.with({ selector: '[class="quick-filters__chip_list"]' }));
   public getPeriodChip = this.locatorFor(MatChipHarness.with({ text: /^period:/ }));
+  public getApplicationsTags = this.locatorFor(GioFormTagsInputHarness);
+  public getApplicationsChip = this.locatorFor(MatChipHarness.with({ text: /^applications:/ }));
+
+  public getApplicationAutocomplete() {
+    return this.getApplicationFormField()
+      .then((applicationFormField) => applicationFormField.getControl(GioFormTagsInputHarness))
+      .then((tagsInput) => tagsInput.getMatAutocompleteHarness());
+  }
 }

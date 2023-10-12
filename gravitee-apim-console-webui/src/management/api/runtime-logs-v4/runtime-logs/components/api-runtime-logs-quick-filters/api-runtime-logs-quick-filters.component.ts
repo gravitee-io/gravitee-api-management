@@ -14,21 +14,15 @@
  * limitations under the License.
  */
 
-import { Component, EventEmitter, OnDestroy, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { isEqual } from 'lodash';
 import { Subject } from 'rxjs';
 import { KeyValue } from '@angular/common';
 
-export type PeriodFilter = {
-  label: string;
-  value: string;
-};
-
-export type LogFilter = {
-  period?: PeriodFilter;
-};
+import { DEFAULT_PERIOD, LogFilters, LogFiltersForm, LogFiltersInitialValues, PERIODS } from './models';
+import { CacheEntry } from './components';
 
 @Component({
   selector: 'api-runtime-logs-quick-filters',
@@ -36,56 +30,65 @@ export type LogFilter = {
   styles: [require('./api-runtime-logs-quick-filters.component.scss')],
 })
 export class ApiRuntimeLogsQuickFiltersComponent implements OnInit, OnDestroy {
-  private readonly defaultPeriod: PeriodFilter = { label: 'None', value: '0' };
-  private defaultFilter: LogFilter = {
-    period: this.defaultPeriod,
-  };
-
-  public readonly periods: PeriodFilter[] = [
-    this.defaultPeriod,
-    { label: 'Last 5 Minutes', value: '-5m' },
-    { label: 'Last 30 Minutes', value: '-30m' },
-    { label: 'Last 1 Hour', value: '-1h' },
-    { label: 'Last 3 Hours', value: '-3h' },
-    { label: 'Last 6 Hours', value: '-6h' },
-    { label: 'Last 12 Hours', value: '-12h' },
-    { label: 'Last 1 Day', value: '-1d' },
-    { label: 'Last 3 Days', value: '-3d' },
-    { label: 'Last 7 Days', value: '-7d' },
-  ];
-
-  public isFiltering = false;
-
-  public quickFiltersForm = new FormGroup({
-    period: new FormControl(this.defaultPeriod),
-  });
-
-  public currentFilter: LogFilter = {};
-
-  @Output()
-  quickFilterSelection = new EventEmitter<LogFilter>();
-
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
-  public ngOnInit(): void {
-    this.quickFiltersForm.valueChanges.pipe(distinctUntilChanged(isEqual), takeUntil(this.unsubscribe$)).subscribe(({ period }) => {
-      this.currentFilter.period = period;
+  @Input() initialValues: LogFiltersInitialValues;
+  @Output() quickFilterSelection = new EventEmitter<LogFilters>();
+  defaultFilter: LogFilters = {
+    period: DEFAULT_PERIOD,
+    applications: undefined,
+  };
+  readonly periods = PERIODS;
+  isFiltering = false;
+  quickFiltersForm: FormGroup;
+  currentFilter: LogFilters;
+  applicationsCache: CacheEntry[];
+
+  ngOnInit(): void {
+    this.currentFilter = {
+      ...this.defaultFilter,
+      applications: this.initialValues.applications ?? this.defaultFilter?.applications,
+    };
+
+    this.quickFiltersForm = new FormGroup({
+      period: new FormControl(DEFAULT_PERIOD),
+      applications: new FormControl(
+        this.initialValues.applications?.map((application) => application.value) ?? this.defaultFilter?.applications,
+      ),
+    });
+
+    this.onValuesChanges();
+
+    this.isFiltering = !isEqual(this.currentFilter, this.defaultFilter);
+  }
+
+  ngOnDestroy(): void {
+    this.unsubscribe$.next(true);
+    this.unsubscribe$.unsubscribe();
+  }
+
+  removeFilter(removedFilter: KeyValue<string, LogFilters>) {
+    const defaultValue = this.defaultFilter[removedFilter.key];
+    this.quickFiltersForm.get(removedFilter.key).patchValue(defaultValue);
+    this.currentFilter[removedFilter.key] = defaultValue;
+    this.isFiltering = !isEqual(this.currentFilter, this.defaultFilter);
+  }
+
+  private onValuesChanges() {
+    this.quickFiltersForm.valueChanges.pipe(distinctUntilChanged(isEqual), takeUntil(this.unsubscribe$)).subscribe((values) => {
+      this.currentFilter = this.mapFormValues(values);
       this.isFiltering = !isEqual(this.currentFilter, this.defaultFilter);
       this.quickFilterSelection.emit(this.currentFilter);
     });
   }
 
-  public ngOnDestroy(): void {
-    this.unsubscribe$.next(true);
-    this.unsubscribe$.unsubscribe();
-  }
-
-  removeFilter(removedFilter: KeyValue<string, LogFilter>) {
-    let defaultValue;
-    switch (removedFilter.key) {
-      case 'period':
-        defaultValue = this.defaultPeriod;
-    }
-    this.quickFiltersForm.get(removedFilter.key).setValue(defaultValue);
+  private mapFormValues({ period, applications }: LogFiltersForm) {
+    return {
+      period,
+      applications:
+        applications?.length > 0
+          ? this.applicationsCache?.filter((app) => applications.includes(app.value))
+          : this.defaultFilter.applications,
+    };
   }
 }

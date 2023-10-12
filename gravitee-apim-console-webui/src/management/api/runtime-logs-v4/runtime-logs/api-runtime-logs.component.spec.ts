@@ -28,9 +28,11 @@ import { ApiRuntimeLogsListRowHarness } from './components';
 
 import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
-import { ApiV4, ConnectionLog, fakeApiV4 } from '../../../../entities/management-api-v2';
+import { ApiLogsParam, ApiV4, ConnectionLog, fakeApiV4, fakePagedResult } from '../../../../entities/management-api-v2';
 import { fakeApiLogsResponse, fakeEmptyApiLogsResponse } from '../../../../entities/management-api-v2/log/apiLogsResponse.fixture';
 import { fakeConnectionLog } from '../../../../entities/management-api-v2/log/connectionLog.fixture';
+import { fakeApplication } from '../../../../entities/application/Application.fixture';
+import { Application } from '../../../../entities/application/application';
 
 describe('ApiRuntimeLogsComponent', () => {
   const API_ID = 'an-api-id';
@@ -72,7 +74,6 @@ describe('ApiRuntimeLogsComponent', () => {
     httpTestingController = TestBed.inject(HttpTestingController);
     componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiRuntimeLogsHarness);
     logsRowHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiRuntimeLogsListRowHarness);
-
     fixture.detectChanges();
   };
 
@@ -87,6 +88,7 @@ describe('ApiRuntimeLogsComponent', () => {
       expectApiWithNoLog();
       fixture.detectChanges();
       expectApiWithLogEnabled();
+      expectApplicationList();
     });
 
     it('should display the empty panel', async () => {
@@ -119,6 +121,7 @@ describe('ApiRuntimeLogsComponent', () => {
         expectApiWithLogs(total);
         fixture.detectChanges();
         expectApiWithLogEnabled();
+        expectApplicationList();
       });
 
       it('should display the 1st page with default pagination', async () => {
@@ -131,26 +134,27 @@ describe('ApiRuntimeLogsComponent', () => {
 
     describe('when there is more than one page', () => {
       const total = 50;
-      const pageSize = 10;
+      const perPage = 10;
       beforeEach(() => {
-        expectApiWithLogs(total, pageSize);
+        expectApiWithLogs(total);
         fixture.detectChanges();
         expectApiWithLogEnabled();
+        expectApplicationList();
       });
 
       it('should display the 1st page', async () => {
-        expect(await componentHarness.getRows()).toHaveLength(pageSize);
+        expect(await componentHarness.getRows()).toHaveLength(perPage);
 
         const paginator = await componentHarness.getPaginator();
-        expect(await paginator.getPageSize()).toBe(pageSize);
-        expect(await paginator.getRangeLabel()).toBe(`1 – ${pageSize} of ${total}`);
+        expect(await paginator.getPageSize()).toBe(perPage);
+        expect(await paginator.getRangeLabel()).toBe(`1 – ${perPage} of ${total}`);
       });
 
       it('should navigate to next page', async () => {
         const paginator = await componentHarness.getPaginator();
         await paginator.goToNextPage();
 
-        expectSecondPage(total, pageSize);
+        expectSecondPage(total, perPage);
         expect(fakeUiRouter.go).toHaveBeenCalledWith(
           '.',
           {
@@ -165,7 +169,7 @@ describe('ApiRuntimeLogsComponent', () => {
         const paginator = await componentHarness.getPaginator();
         await paginator.setPageSize(25);
 
-        expectApiWithLogs(total, 25, 1);
+        expectApiWithLogs(total, { perPage: 25, page: 1 });
         expect(fakeUiRouter.go).toHaveBeenCalledWith(
           '.',
           {
@@ -189,6 +193,7 @@ describe('ApiRuntimeLogsComponent', () => {
         expectApiWithLogs(total);
         fixture.detectChanges();
         expectApiWithLogEnabled();
+        expectApplicationList();
       });
 
       it('should display quick filters in default state', async () => {
@@ -201,24 +206,25 @@ describe('ApiRuntimeLogsComponent', () => {
 
     describe('when there is more than one page and we apply a period filter', () => {
       const total = 50;
-      const pageSize = 10;
+      const perPage = 10;
       const fakeNow = moment('2023-10-05T00:00:00.000Z');
 
       beforeEach(() => {
-        expectApiWithLogs(total, pageSize);
+        expectApiWithLogs(total);
         fixture.detectChanges();
         expectApiWithLogEnabled();
+        expectApplicationList();
 
         // moment() is relying on Date.now, so fix it to be able to assert on from and to filters
         jest.spyOn(Date, 'now').mockReturnValue(new Date('2023-10-05T00:00:00.000Z').getTime());
       });
 
       it('should display the 1st page with default filter', async () => {
-        expect(await componentHarness.getRows()).toHaveLength(pageSize);
+        expect(await componentHarness.getRows()).toHaveLength(perPage);
 
         const paginator = await componentHarness.getPaginator();
-        expect(await paginator.getPageSize()).toBe(pageSize);
-        expect(await paginator.getRangeLabel()).toBe(`1 – ${pageSize} of ${total}`);
+        expect(await paginator.getPageSize()).toBe(perPage);
+        expect(await paginator.getRangeLabel()).toBe(`1 – ${perPage} of ${total}`);
 
         const periodSelectInput = await componentHarness.selectPeriodQuickFilter();
         expect(await periodSelectInput.isDisabled()).toEqual(false);
@@ -226,14 +232,14 @@ describe('ApiRuntimeLogsComponent', () => {
       });
 
       it('should navigate to second page and keep the period filter', async () => {
-        expect(await componentHarness.getRows()).toHaveLength(pageSize);
+        expect(await componentHarness.getRows()).toHaveLength(perPage);
 
         const periodSelectInput = await componentHarness.selectPeriodQuickFilter();
         await periodSelectInput.clickOptions({ text: 'Last 5 Minutes' });
 
         const expectedTo = fakeNow.valueOf();
         const expectedFrom = expectedTo - 5 * 60 * 1000;
-        expectApiWithLogs(total, pageSize, 1, expectedFrom, expectedTo);
+        expectApiWithLogs(total, { perPage, page: 1, from: expectedFrom, to: expectedTo });
         expect(fakeUiRouter.go).toHaveBeenNthCalledWith(
           1,
           '.',
@@ -242,6 +248,7 @@ describe('ApiRuntimeLogsComponent', () => {
             perPage: 10,
             from: expectedFrom,
             to: expectedTo,
+            applicationIds: null,
           },
           { notify: false },
         );
@@ -249,7 +256,7 @@ describe('ApiRuntimeLogsComponent', () => {
         const paginator = await componentHarness.getPaginator();
         await paginator.goToNextPage();
 
-        expectApiWithLogs(total, pageSize, 2, expectedFrom, expectedTo);
+        expectApiWithLogs(total, { perPage, page: 2, from: expectedFrom, to: expectedTo });
       });
 
       it('should navigate filter on last 5 minutes and remove it', async () => {
@@ -262,7 +269,7 @@ describe('ApiRuntimeLogsComponent', () => {
         const expectedTo = fakeNow.valueOf();
         const expectedFrom = expectedTo - 5 * 60 * 1000;
 
-        expectApiWithLogs(total, pageSize, 1, expectedFrom, expectedTo);
+        expectApiWithLogs(total, { perPage, page: 1, from: expectedFrom, to: expectedTo });
 
         // First time, add filters to URL
         expect(fakeUiRouter.go).toHaveBeenNthCalledWith(
@@ -273,6 +280,7 @@ describe('ApiRuntimeLogsComponent', () => {
             perPage: 10,
             from: expectedFrom,
             to: expectedTo,
+            applicationIds: null,
           },
           { notify: false },
         );
@@ -281,7 +289,7 @@ describe('ApiRuntimeLogsComponent', () => {
         const periodChipRemoveButton = await periodChip.getRemoveButton();
         await periodChipRemoveButton.click();
 
-        expectApiWithLogs(total, pageSize, 1);
+        expectApiWithLogs(total, { perPage, page: 1 });
 
         // Second time, we removed the filter from URL
         expect(fakeUiRouter.go).toHaveBeenNthCalledWith(
@@ -292,6 +300,7 @@ describe('ApiRuntimeLogsComponent', () => {
             perPage: 10,
             from: null,
             to: null,
+            applicationIds: null,
           },
           { notify: false },
         );
@@ -302,6 +311,85 @@ describe('ApiRuntimeLogsComponent', () => {
         expect(await componentHarness.getQuickFiltersChips()).toBeNull();
       });
     });
+
+    describe('when there is more than one page and we apply a filter on applications', () => {
+      const total = 50;
+      const perPage = 10;
+
+      beforeEach(() => {
+        expectApiWithLogs(total);
+        fixture.detectChanges();
+        expectApiWithLogEnabled();
+        expectApplicationList();
+      });
+
+      it('should filter on application', async () => {
+        const appName = 'a';
+        const application = fakeApplication({ name: appName, owner: { displayName: 'owner' } });
+        expect(await componentHarness.getApplicationsTags()).toHaveLength(0);
+
+        await componentHarness.searchApplication(appName);
+        expectApplicationList(appName, [application]);
+        fixture.detectChanges();
+
+        await componentHarness.selectedApplication('a ( owner )');
+        expect(await componentHarness.getApplicationsTags()).toHaveLength(1);
+        fixture.detectChanges();
+        await fixture.whenStable();
+        expectApiWithLogs(total, { perPage, page: 1, applicationIds: application.id });
+        expect(fakeUiRouter.go).toHaveBeenNthCalledWith(
+          1,
+          '.',
+          { page: 1, perPage: 10, from: null, to: null, applicationIds: application.id },
+          { notify: false },
+        );
+
+        const paginator = await componentHarness.getPaginator();
+        await paginator.goToNextPage();
+        expectApiWithLogs(total, { perPage, page: 2, applicationIds: application.id });
+        expect(fakeUiRouter.go).toHaveBeenNthCalledWith(
+          2,
+          '.',
+          { page: 2, perPage: 10, applicationIds: application.id },
+          { notify: false },
+        );
+      });
+
+      it('should remove application filter', async () => {
+        const appName = 'a';
+        const application = fakeApplication({ name: appName, owner: { displayName: 'owner' } });
+
+        await componentHarness.searchApplication(appName);
+        expectApplicationList(appName, [application]);
+        fixture.detectChanges();
+
+        await componentHarness.selectedApplication('a ( owner )');
+        fixture.detectChanges();
+        await fixture.whenStable();
+        expectApiWithLogs(total, { perPage, page: 1, applicationIds: application.id });
+        expect(fakeUiRouter.go).toHaveBeenNthCalledWith(
+          1,
+          '.',
+          { page: 1, perPage: 10, from: null, to: null, applicationIds: application.id },
+          { notify: false },
+        );
+
+        const appChip = await componentHarness.getApplicationsChip();
+        expect(appChip).toBeTruthy();
+
+        const periodChipRemoveButton = await appChip.getRemoveButton();
+        await periodChipRemoveButton.click();
+
+        expect(await componentHarness.getQuickFiltersChips()).toBeNull();
+        expectApiWithLogs(total, { perPage, page: 1 });
+        expect(fakeUiRouter.go).toHaveBeenNthCalledWith(
+          2,
+          '.',
+          { page: 1, perPage: 10, from: null, to: null, applicationIds: null },
+          { notify: false },
+        );
+      });
+    });
   });
 
   describe('GIVEN there are logs but logs are disabled', () => {
@@ -310,6 +398,7 @@ describe('ApiRuntimeLogsComponent', () => {
       expectApiWithLogs(1);
       fixture.detectChanges();
       expectApiWithLogDisabled();
+      expectApplicationList();
     });
 
     it('should display a banner', async () => {
@@ -334,12 +423,34 @@ describe('ApiRuntimeLogsComponent', () => {
       expectApiWithNoLog();
       fixture.detectChanges();
       expectApiWithLogEnabled({ type: 'PROXY' });
+      expectApplicationList();
 
       try {
         await logsRowHarness.getViewMessageButton();
       } catch (e) {
         expect(e.message).toMatch(/Failed to find element/);
       }
+    });
+  });
+
+  describe('GIVEN there is filters in the url to initialize the form', () => {
+    const application = fakeApplication({ id: '1', owner: { displayName: 'owner' } });
+
+    beforeEach(async () => {
+      await TestBed.overrideProvider(UIRouterStateParams, {
+        useValue: { apiId: API_ID, applicationIds: application.id, page: 1, perPage: 10, from: null, to: null },
+      }).compileComponents();
+      await initComponent();
+      expectApiWithLogs(10, { page: 1, perPage: 10, applicationIds: '1' });
+      expectApiWithLogEnabled();
+      expectApplicationFindById(application);
+      expectApplicationList();
+    });
+
+    it('should init the form with default values', async () => {
+      expect(await componentHarness.getApplicationsTags()).toHaveLength(1);
+      expect(await componentHarness.getApplicationsChip()).toBeTruthy();
+      expectApplicationFindById(application);
     });
   });
 
@@ -375,20 +486,23 @@ describe('ApiRuntimeLogsComponent', () => {
       .flush(fakeEmptyApiLogsResponse());
   }
 
-  function expectApiWithLogs(total: number, pageSize = 10, page = 1, from: number = null, to: number = null) {
-    const itemsInPage = total < pageSize ? total : pageSize;
+  function expectApiWithLogs(total: number, param: ApiLogsParam = { perPage: 10, page: 1 }) {
+    const itemsInPage = total < param.perPage ? total : param.perPage;
 
     const data: ConnectionLog[] = [];
     for (let i = 0; i < itemsInPage; i++) {
       data.push(fakeConnectionLog());
     }
 
-    let expectedURL = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/logs?page=${page}&perPage=${pageSize}`;
-    if (from) {
-      expectedURL = expectedURL.concat(`&from=${from}`);
+    let expectedURL = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/logs?page=${param.page ?? 1}&perPage=${param.perPage ?? 10}`;
+    if (param.from) {
+      expectedURL = expectedURL.concat(`&from=${param.from}`);
     }
-    if (to) {
-      expectedURL = expectedURL.concat(`&to=${to}`);
+    if (param.to) {
+      expectedURL = expectedURL.concat(`&to=${param.to}`);
+    }
+    if (param.applicationIds && param.applicationIds.length > 0) {
+      expectedURL = expectedURL.concat(`&applicationIds=${param.applicationIds}`);
     }
 
     httpTestingController
@@ -401,14 +515,44 @@ describe('ApiRuntimeLogsComponent', () => {
           data,
           pagination: {
             totalCount: total,
-            page: page,
-            perPage: pageSize,
+            page: param.page,
+            perPage: param.perPage,
           },
         }),
       );
+    fixture.detectChanges();
   }
 
-  function expectSecondPage(total: number, pageSize = 10) {
-    return expectApiWithLogs(total, pageSize, 2);
+  function expectApplicationList(searchTerm?: string, applications?: Application[]) {
+    if (searchTerm) {
+      const req = httpTestingController
+        .match({
+          url: `${CONSTANTS_TESTING.env.baseURL}/applications/_paged?page=1&size=10&query=${searchTerm}`,
+          method: 'GET',
+        })
+        .filter((req) => !req.cancelled);
+      expect(req.length).toEqual(1);
+      req[0].flush(fakePagedResult(applications));
+    } else {
+      httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.baseURL}/applications/_paged?page=1&size=10`,
+        method: 'GET',
+      });
+    }
+    fixture.detectChanges();
+  }
+
+  function expectApplicationFindById(application: Application) {
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.baseURL}/applications/${application.id}`,
+        method: 'GET',
+      })
+      .flush(application);
+    fixture.detectChanges();
+  }
+
+  function expectSecondPage(total: number, perPage = 10) {
+    return expectApiWithLogs(total, { perPage, page: 2 });
   }
 });

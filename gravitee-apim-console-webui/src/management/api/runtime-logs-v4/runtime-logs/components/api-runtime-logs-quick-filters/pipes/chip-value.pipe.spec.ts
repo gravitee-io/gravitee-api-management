@@ -13,22 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ChipValuePipe } from './chip-value.pipe';
 
-import { ConnectionLog } from './connectionLog';
+describe('ChipValuePipe', () => {
+  it("should return the value when it's not an array", () => {
+    const pipe = new ChipValuePipe();
 
-import { Links } from '../links';
-import { Pagination } from '../pagination';
+    expect(pipe.transform({ value: '1', label: 'foo' })).toStrictEqual('foo');
+  });
 
-export interface ApiLogsParam {
-  page?: number;
-  perPage?: number;
-  from?: number;
-  to?: number;
-  applicationIds?: string;
-}
+  it("should join values when it's an array", () => {
+    const pipe = new ChipValuePipe();
 
-export interface ApiLogsResponse {
-  data?: ConnectionLog[];
-  pagination?: Pagination;
-  links?: Links;
-}
+    expect(
+      pipe.transform([
+        { value: '2', label: 'foo' },
+        { value: '2', label: 'bar' },
+      ]),
+    ).toStrictEqual('foo, bar');
+  });
+});

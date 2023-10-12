@@ -1387,7 +1387,7 @@ export const states: Ng2StateDeclaration[] = [
   },
   {
     name: 'management.apis.runtimeLogs',
-    url: '/runtime-logs?page&perPage&from&to',
+    url: '/runtime-logs?page&perPage&from&to&applicationIds',
     data: {
       apiPermissions: {
         only: ['api-log-r'],
@@ -1414,6 +1414,10 @@ export const states: Ng2StateDeclaration[] = [
       },
       to: {
         type: 'int',
+        dynamic: true,
+      },
+      applicationIds: {
+        type: 'string',
         dynamic: true,
       },
     },
