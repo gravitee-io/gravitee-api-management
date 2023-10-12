@@ -74,7 +74,12 @@ export class ApiRuntimeLogsComponent implements OnInit, OnDestroy {
   }
 
   paginationUpdated(event: PageEvent) {
-    this.currentFilters = { ...this.currentFilters, page: event.pageIndex + 1, perPage: event.pageSize };
+    this.currentFilters = {
+      page: event.pageIndex + 1,
+      perPage: event.pageSize,
+      ...(!!this.currentFilters.from && { from: +this.currentFilters.from }),
+      ...(!!this.currentFilters.to && { to: +this.currentFilters.to }),
+    };
 
     this.apiLogsService
       .searchConnectionLogs(this.ajsStateParams.apiId, { ...this.currentFilters })
