@@ -126,11 +126,11 @@ describe('ApiPortalSubscriptionEditComponent', () => {
       expect(await harness.getSubscribedBy()).toEqual('My subscriber');
       expect(await harness.getSubscriberMessage()).toEqual('My consumer message');
       expect(await harness.getPublisherMessage()).toEqual('My publisher message');
-      expect(await harness.getCreatedAt()).toEqual('Jan 1, 2020 12:00:00.000 AM');
-      expect(await harness.getProcessedAt()).toEqual('Jan 1, 2020 12:00:00.000 AM');
+      expect(await harness.getCreatedAt()).toEqual('Jan 1, 2020, 12:00:00 AM');
+      expect(await harness.getProcessedAt()).toEqual('Jan 1, 2020, 12:00:00 AM');
       expect(await harness.getClosedAt()).toEqual('-');
       expect(await harness.getPausedAt()).toEqual('-');
-      expect(await harness.getStartingAt()).toEqual('Jan 1, 2020 12:00:00.000 AM');
+      expect(await harness.getStartingAt()).toEqual('Jan 1, 2020, 12:00:00 AM');
       expect(await harness.getEndingAt()).toEqual('-');
       expect(await harness.getDomain()).toEqual('https://my-domain.com');
 
@@ -437,7 +437,7 @@ describe('ApiPortalSubscriptionEditComponent', () => {
       expectApiSubscriptionGet(newEndDateSubscription);
       expectApiKeyListGet();
 
-      expect(await harness.getEndingAt()).toEqual('Jan 1, 2080 12:00:00.000 AM');
+      expect(await harness.getEndingAt()).toEqual('Jan 1, 2080, 12:00:00 AM');
     });
     it('should change existing end date', async () => {
       const endingAt = new Date('01/01/2080');
@@ -449,7 +449,7 @@ describe('ApiPortalSubscriptionEditComponent', () => {
       expectApiKeyListGet();
 
       const harness = await loader.getHarness(ApiPortalSubscriptionEditHarness);
-      expect(await harness.getEndingAt()).toEqual('Jan 1, 2080 12:00:00.000 AM');
+      expect(await harness.getEndingAt()).toEqual('Jan 1, 2080, 12:00:00 AM');
 
       await harness.openChangeEndDateDialog();
 
@@ -486,7 +486,7 @@ describe('ApiPortalSubscriptionEditComponent', () => {
       expectApiSubscriptionGet(newEndDateSubscription);
       expectApiKeyListGet();
 
-      expect(await harness.getEndingAt()).toEqual('Jan 2, 2080 12:00:00.000 AM');
+      expect(await harness.getEndingAt()).toEqual('Jan 2, 2080, 12:00:00 AM');
     });
     it('should not change end date on cancel', async () => {
       await initComponent();
@@ -963,7 +963,7 @@ describe('ApiPortalSubscriptionEditComponent', () => {
       expectApiSubscriptionGet(BASIC_SUBSCRIPTION());
       expectApiKeyListGet(SUBSCRIPTION_ID, [fakeApiKey({ expireAt: endingAt })]);
 
-      expect(await harness.getApiKeyEndDateByRowIndex(0)).toEqual('Jan 1, 2080 12:00:00.000 AM');
+      expect(await harness.getApiKeyEndDateByRowIndex(0)).toEqual('Jan 1, 2080, 12:00:00 AM');
     });
     it('should change existing expiration date', async () => {
       const endingAt = new Date('01/01/2080');
@@ -997,7 +997,7 @@ describe('ApiPortalSubscriptionEditComponent', () => {
       expectApiSubscriptionGet(BASIC_SUBSCRIPTION());
       expectApiKeyListGet(SUBSCRIPTION_ID, [fakeApiKey({ expireAt: newEndingAt })]);
 
-      expect(await harness.getApiKeyEndDateByRowIndex(0)).toEqual('Jan 2, 2080 12:00:00.000 AM');
+      expect(await harness.getApiKeyEndDateByRowIndex(0)).toEqual('Jan 2, 2080, 12:00:00 AM');
     });
     it('should not change expiration date on cancel', async () => {
       await initComponent();
