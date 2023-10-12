@@ -40,12 +40,10 @@ export class ConfigurationService {
       this.http.get('./assets/config.json').subscribe((configJson: any) => {
         document.documentElement.style.setProperty('--gv-theme-loader', `url('${configJson.loaderURL}')`);
 
-        if (configJson.baseURL.endsWith('/')) {
-          configJson.baseURL = configJson.baseURL.slice(0, -1);
-        }
+        const baseURL = this._sanitizeBaseURLs(configJson);
 
         this.http
-          .get(`${configJson.baseURL}/ui/bootstrap`)
+          .get(`${baseURL}/ui/bootstrap`)
           .toPromise()
           .then((bootstrapResponse: any) => {
             const environmentBaseUrl = `${bootstrapResponse.baseURL}/environments/${bootstrapResponse.environmentId}`;
@@ -69,6 +67,18 @@ export class ConfigurationService {
           });
       });
     });
+  }
+
+  _sanitizeBaseURLs(config: any): string {
+    let baseURL = config.baseURL;
+    if (config.baseURL.endsWith('/')) {
+      baseURL = config.baseURL.slice(0, -1);
+    }
+    const envIndex = baseURL.indexOf('/environments');
+    if (envIndex >= 0) {
+      baseURL = baseURL.substr(0, envIndex);
+    }
+    return baseURL;
   }
 
   public hasFeature(feature: FeatureEnum): boolean {

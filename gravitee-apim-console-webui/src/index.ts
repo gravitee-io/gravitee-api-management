@@ -83,10 +83,15 @@ function fetchData() {
 }
 
 function sanitizeBaseURLs(constants: any): any {
+  let baseURL = constants.baseURL;
   if (constants.baseURL.endsWith('/')) {
-    return constants.baseURL.slice(0, -1);
+    baseURL = constants.baseURL.slice(0, -1);
   }
-  return constants.baseURL;
+  const orgIndex = baseURL.indexOf('/organizations');
+  if (orgIndex >= 0) {
+    baseURL = baseURL.substr(0, orgIndex);
+  }
+  return baseURL;
 }
 
 function prepareConstants(bootstrap: any): any {
