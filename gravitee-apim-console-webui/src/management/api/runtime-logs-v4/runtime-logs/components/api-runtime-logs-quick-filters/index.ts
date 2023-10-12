@@ -15,3 +15,5 @@
  */
 export * from './api-runtime-logs-quick-filters.harness';
 export * from './api-runtime-logs-quick-filters.module';
+export * from './models';
+export * from './pipes';

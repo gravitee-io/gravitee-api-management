@@ -15,21 +15,13 @@
     limitations under the License.
 
 -->
-<ng-container>
-  <div class="container">
-    <api-runtime-logs-quick-filters
-      *ngIf="initialValues"
-      [initialValues]="initialValues"
-      (quickFilterSelection)="applyFilter($event)"
-    ></api-runtime-logs-quick-filters>
-    <api-runtime-logs-list
-      *ngIf="apiLogsSubject$ | async as response"
-      [pagination]="response.pagination"
-      [logEnabled]="apiLogsEnabled$ | async"
-      [isMessageApi]="isMessageApi$ | async"
-      [logs]="response.data"
-      (navigateToSettings)="openLogsSettings()"
-      (paginationUpdated)="paginationUpdated($event)"
-    ></api-runtime-logs-list>
-  </div>
-</ng-container>
+<mat-form-field>
+  <mat-label>Applications</mat-label>
+  <gio-form-tags-input
+    [(ngModel)]="selectedApplications"
+    [placeholder]="'Search for an application'"
+    [autocompleteOptions]="autocompleteOptions"
+    [displayValueWith]="displayValueWith"
+    [useAutocompleteOptionValueOnly]="true"
+  ></gio-form-tags-input>
+</mat-form-field>

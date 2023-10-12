@@ -13,22 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Pipe, PipeTransform } from '@angular/core';
 
-import { ConnectionLog } from './connectionLog';
+import { MultiFilter, SimpleFilter } from '../models';
 
-import { Links } from '../links';
-import { Pagination } from '../pagination';
-
-export interface ApiLogsParam {
-  page?: number;
-  perPage?: number;
-  from?: number;
-  to?: number;
-  applicationIds?: string;
-}
-
-export interface ApiLogsResponse {
-  data?: ConnectionLog[];
-  pagination?: Pagination;
-  links?: Links;
+@Pipe({ name: 'chipValue' })
+export class ChipValuePipe implements PipeTransform {
+  transform(filter: SimpleFilter | MultiFilter): string {
+    return Array.isArray(filter) ? filter.map((value) => value.label)?.join(', ') : filter.label;
+  }
 }

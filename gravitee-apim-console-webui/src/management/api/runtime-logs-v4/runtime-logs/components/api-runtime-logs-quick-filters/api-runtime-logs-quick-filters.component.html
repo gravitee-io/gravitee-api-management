@@ -16,28 +16,38 @@
 
 -->
 <div class="quick-filters">
-  <div class="quick-filters__selectors" [formGroup]="quickFiltersForm">
+  <form class="quick-filters__selectors" *ngIf="quickFiltersForm" [formGroup]="quickFiltersForm">
     <mat-form-field class="quick-filters__selector">
       <mat-label>Period</mat-label>
       <mat-select formControlName="period" aria-label="Period selection">
         <mat-option *ngFor="let period of periods" [value]="period">{{ period.label }}</mat-option>
       </mat-select>
     </mat-form-field>
-  </div>
+    <applications-filter
+      formControlName="applications"
+      class="quick-filters__applications"
+      (applicationCache)="this.applicationsCache = $event"
+    >
+    </applications-filter>
+  </form>
+
   <div class="quick-filters__applied">
     <ng-container *ngIf="isFiltering">
-      <mat-chip-list>
+      <mat-chip-list class="quick-filters__chip_list">
         <span>Filters applied:</span>
-        <mat-chip
-          class="gio-badge-neutral quick-filters__chip"
-          *ngFor="let filter of currentFilter | keyvalue"
-          [removable]="true"
-          (removed)="removeFilter(filter)"
-        >
-          <span class="quick-filters__chip__key">{{ filter.key }}:</span>
-          <span class="quick-filters__chip__value">{{ filter.value.label }}</span>
-          <mat-icon matChipRemove>cancel</mat-icon>
-        </mat-chip>
+        <ng-container *ngFor="let filter of currentFilter | keyvalue">
+          <mat-chip
+            class="gio-badge-neutral quick-filters__chip"
+            *ngIf="filter.value && defaultFilter[filter.key] !== filter.value"
+            [removable]="true"
+            (removed)="removeFilter(filter)"
+            [matTooltip]="filter.value | chipValue"
+          >
+            <span class="quick-filters__chip__key">{{ filter.key }}:</span>
+            <span class="quick-filters__chip__value">{{ filter.value | chipValue }}</span>
+            <mat-icon matChipRemove>cancel</mat-icon>
+          </mat-chip>
+        </ng-container>
       </mat-chip-list>
     </ng-container>
     <ng-container *ngIf="!isFiltering"><span>No filter applied</span></ng-container>

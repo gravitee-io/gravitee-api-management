@@ -14,21 +14,17 @@
  * limitations under the License.
  */
 
-import { ConnectionLog } from './connectionLog';
+import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { GioFormTagsInputModule } from '@gravitee/ui-particles-angular';
+import { MatFormFieldModule } from '@angular/material/form-field';
 
-import { Links } from '../links';
-import { Pagination } from '../pagination';
+import { ApplicationsFilterComponent } from './applications-filter.component';
 
-export interface ApiLogsParam {
-  page?: number;
-  perPage?: number;
-  from?: number;
-  to?: number;
-  applicationIds?: string;
-}
-
-export interface ApiLogsResponse {
-  data?: ConnectionLog[];
-  pagination?: Pagination;
-  links?: Links;
-}
+@NgModule({
+  declarations: [ApplicationsFilterComponent],
+  exports: [ApplicationsFilterComponent],
+  imports: [CommonModule, FormsModule, MatFormFieldModule, ReactiveFormsModule, GioFormTagsInputModule],
+})
+export class ApplicationsFilterModule {}
