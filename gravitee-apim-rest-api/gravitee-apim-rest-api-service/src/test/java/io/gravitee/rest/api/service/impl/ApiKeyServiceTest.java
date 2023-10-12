@@ -815,6 +815,25 @@ public class ApiKeyServiceTest {
     }
 
     @Test
+    public void shouldRemoveExpirationDate() throws TechnicalException {
+        ApiKey existingApiKey = new ApiKey();
+        existingApiKey.setExpireAt(Date.from(Instant.now().plusSeconds(60)));
+        when(apiKeyRepository.findById("api-key-id")).thenReturn(Optional.of(existingApiKey));
+
+        ApiKeyEntity apiKeyEntity = new ApiKeyEntity();
+        apiKeyEntity.setId("api-key-id");
+        apiKeyEntity.setKey("ABC");
+        apiKeyEntity.setSubscriptions(Set.of());
+        apiKeyEntity.setRevoked(true);
+        apiKeyEntity.setExpireAt(null);
+
+        apiKeyService.update(GraviteeContext.getExecutionContext(), apiKeyEntity);
+
+        verify(apiKeyRepository, times(1)).update(existingApiKey);
+        verifyNoInteractions(notifierService);
+    }
+
+    @Test
     public void canCreate_should_return_true_cause_key_doesnt_exists_yet() throws Exception {
         String apiKeyToCreate = "apikey-i-want-to-create";
         String apiId = "my-api-id";

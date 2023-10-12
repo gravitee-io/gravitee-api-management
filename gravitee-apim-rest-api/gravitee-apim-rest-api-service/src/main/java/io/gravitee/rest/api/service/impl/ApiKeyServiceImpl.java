@@ -227,7 +227,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         for (ApiKey apiKey : apiKeys) {
             ApiKeyEntity apiKeyEntity = convert(executionContext, apiKey);
             if (!apiKey.equals(activeApiKey) && !apiKeyEntity.isExpired()) {
-                setExpiration(executionContext, expirationDate, apiKeyEntity, apiKey);
+                updateExpirationDate(executionContext, expirationDate, apiKeyEntity, apiKey);
             }
         }
     }
@@ -511,12 +511,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
             key.setSubscriptions(apiKeyEntity.getSubscriptionIds());
             key.setPaused(apiKeyEntity.isPaused());
-            if (apiKeyEntity.getExpireAt() != null) {
-                setExpiration(executionContext, apiKeyEntity.getExpireAt(), apiKeyEntity, key);
-            } else {
-                key.setUpdatedAt(new Date());
-                apiKeyRepository.update(key);
-            }
+            updateExpirationDate(executionContext, apiKeyEntity.getExpireAt(), apiKeyEntity, key);
 
             return convert(executionContext, key);
         } catch (TechnicalException ex) {
@@ -616,49 +611,51 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         */
     }
 
-    private void setExpiration(ExecutionContext executionContext, Date expirationDate, ApiKeyEntity apiKeyEntity, ApiKey key)
+    private void updateExpirationDate(ExecutionContext executionContext, Date expirationDate, ApiKeyEntity apiKeyEntity, ApiKey key)
         throws TechnicalException {
         final Date now = new Date();
 
-        if (now.after(expirationDate)) {
+        key.setUpdatedAt(now);
+        if (key.isRevoked()) {
+            apiKeyRepository.update(key);
+            return;
+        }
+
+        // If the expiration date is before now, then the key is already expired
+        if (expirationDate != null && expirationDate.before(now)) {
             expirationDate = now;
         }
 
-        key.setUpdatedAt(now);
-
-        if (!key.isRevoked()) {
-            // If API key is not shared
-            // The expired date must be <= than the subscription end date
+        // If the API key is not shared
+        // The expired date must be <= than the subscription end date
+        if (
+            apiKeyEntity.getApplication() != null &&
+            !apiKeyEntity.getApplication().hasApiKeySharedMode() &&
+            !key.getSubscriptions().isEmpty()
+        ) {
+            SubscriptionEntity subscription = subscriptionService.findById(key.getSubscriptions().get(0));
             if (
-                apiKeyEntity.getApplication() != null &&
-                !apiKeyEntity.getApplication().hasApiKeySharedMode() &&
-                !key.getSubscriptions().isEmpty()
+                subscription.getEndingAt() != null && (expirationDate == null || subscription.getEndingAt().compareTo(expirationDate) < 0)
             ) {
-                SubscriptionEntity subscription = subscriptionService.findById(key.getSubscriptions().get(0));
-                if (
-                    subscription.getEndingAt() != null &&
-                    (expirationDate == null || subscription.getEndingAt().compareTo(expirationDate) < 0)
-                ) {
-                    expirationDate = subscription.getEndingAt();
-                }
+                expirationDate = subscription.getEndingAt();
             }
+        }
 
-            ApiKey oldkey = new ApiKey(key);
-            key.setExpireAt(expirationDate);
-            key.setDaysToExpirationOnLastNotification(null);
-            apiKeyRepository.update(key);
+        ApiKey oldkey = new ApiKey(key);
+        key.setExpireAt(expirationDate);
+        key.setDaysToExpirationOnLastNotification(null);
+        apiKeyRepository.update(key);
 
-            //notify
+        // Audit
+        createAuditLog(executionContext, convert(executionContext, key), oldkey, APIKEY_EXPIRED, key.getUpdatedAt());
+
+        // If there is an expiration date then notify
+        if (expirationDate != null) {
             NotificationParamsBuilder paramsBuilder = new NotificationParamsBuilder();
             if (key.getExpireAt() != null && now.before(key.getExpireAt())) {
                 paramsBuilder.expirationDate(key.getExpireAt());
             }
             triggerNotifierService(executionContext, ApiHook.APIKEY_EXPIRED, key, paramsBuilder);
-
-            // Audit
-            createAuditLog(executionContext, convert(executionContext, key), oldkey, APIKEY_EXPIRED, key.getUpdatedAt());
-        } else {
-            apiKeyRepository.update(key);
         }
     }
 
