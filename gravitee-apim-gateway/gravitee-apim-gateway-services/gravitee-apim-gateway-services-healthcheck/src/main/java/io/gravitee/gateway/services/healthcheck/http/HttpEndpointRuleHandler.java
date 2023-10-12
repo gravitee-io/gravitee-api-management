@@ -97,7 +97,7 @@ public class HttpEndpointRuleHandler<T extends HttpEndpoint> extends EndpointRul
         HttpProxy proxy = endpoint.getHttpProxy();
         if (proxy != null && proxy.isEnabled()) {
             ProxyOptions proxyOptions = null;
-            if (proxy.isUseSystemProxy() && this.systemProxyOptions != null) {
+            if (proxy.isUseSystemProxy()) {
                 proxyOptions = this.systemProxyOptions;
             } else {
                 proxyOptions =
