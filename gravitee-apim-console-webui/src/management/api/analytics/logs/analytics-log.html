@@ -37,7 +37,7 @@
         <span class="log-header">REQUEST</span>
       </div>
 
-      <span class="log-header" flex="5" ng-if="$ctrl.analytics.endpoint"></span>
+      <span class="log-header" flex="5" ng-if="$ctrl.log.endpoint"></span>
 
       <div flex="45" layout="row" layout-align="center center">
         <span class="log-header">RESPONSE</span>
@@ -52,7 +52,7 @@
                 <td md-cell style="width: 1%; font-weight: bold" nowrap>Date</td>
                 <td md-cell>{{$ctrl.log.timestamp | date:'MMM d, y h:mm:ss.sss a'}}</td>
               </tr>
-              <tr md-row style="height: 30px" ng-if="$ctrl.analytics.host">
+              <tr md-row style="height: 30px" ng-if="$ctrl.log.host">
                 <td md-cell style="width: 1%; font-weight: bold" nowrap>Host</td>
                 <td md-cell>{{$ctrl.log.host}}</td>
               </tr>
@@ -60,7 +60,7 @@
                 <td md-cell style="width: 1%; font-weight: bold" nowrap>Request</td>
                 <td md-cell>
                   <span
-                    class="badge gravitee-policy-method-badge-info ng-binding ng-scope gravitee-policy-method-badge-{{$ctrl.analytics.method | uppercase}}-selected"
+                    class="badge gravitee-policy-method-badge-info ng-binding ng-scope gravitee-policy-method-badge-{{$ctrl.log.method | uppercase}}-selected"
                   >
                     {{$ctrl.log.method | uppercase}}
                   </span>
@@ -93,7 +93,7 @@
             <tbody md-body>
               <tr md-row>
                 <td md-cell style="width: 1%; font-weight: bold" nowrap>Status</td>
-                <td md-cell><span class="gv-statuscode-{{$ctrl.analytics.status / 100 | number:0}}xx">{{$ctrl.log.status}}</span></td>
+                <td md-cell><span class="gv-statuscode-{{$ctrl.log.status / 100 | number:0}}xx">{{$ctrl.log.status}}</span></td>
               </tr>
               <tr md-row>
                 <td md-cell style="width: 1%; font-weight: bold" nowrap>Global response time</td>
@@ -138,7 +138,7 @@
           <span class="log-header">CONTEXT</span>
         </div>
 
-        <span class="log-header" flex="5" ng-if="$ctrl.analytics.endpoint"></span>
+        <span class="log-header" flex="5" ng-if="$ctrl.log.endpoint"></span>
 
         <div flex="45" layout="row" layout-align="center center">
           <span class="log-header">GATEWAY</span>
@@ -149,21 +149,21 @@
           <md-table-container>
             <table md-table class="gv-table-dense">
               <tbody md-body>
-                <tr md-row ng-if="$ctrl.analytics.securityToken">
+                <tr md-row ng-if="$ctrl.log.securityToken">
                   <td md-cell style="width: 1%; font-weight: bold" nowrap>
                     {{$ctrl.log.securityType === 'API_KEY' ? 'API Key' : 'Client id'}}
                   </td>
                   <td md-cell>{{$ctrl.log.securityToken}}</td>
                 </tr>
-                <tr md-row ng-if="$ctrl.analytics.application">
+                <tr md-row ng-if="$ctrl.log.application">
                   <td md-cell style="width: 1%; font-weight: bold" nowrap>Application</td>
                   <td md-cell>{{$ctrl.log.metadata[$ctrl.log.application].name}}</td>
                 </tr>
-                <tr md-row ng-if="$ctrl.analytics.plan">
+                <tr md-row ng-if="$ctrl.log.plan">
                   <td md-cell style="width: 1%; font-weight: bold" nowrap>Plan</td>
                   <td md-cell>{{$ctrl.log.metadata[$ctrl.log.plan].name}}</td>
                 </tr>
-                <tr md-row ng-if="$ctrl.analytics.user && $ctrl.Constants.org.settings.logging.user.displayed">
+                <tr md-row ng-if="$ctrl.log.user && $ctrl.Constants.org.settings.logging.user.displayed">
                   <td md-cell style="width: 1%; font-weight: bold" nowrap>User</td>
                   <td md-cell>{{$ctrl.log.user}}</td>
                 </tr>
@@ -171,7 +171,7 @@
                   <td md-cell style="width: 1%; font-weight: bold" nowrap>Endpoint</td>
                   <td md-cell>{{$ctrl.log.endpoint}}</td>
                 </tr>
-                <tr md-row ng-if="$ctrl.analytics.subscription">
+                <tr md-row ng-if="$ctrl.log.subscription">
                   <td md-cell></td>
                   <td md-cell>
                     <a ui-sref="management.apis.ng.subscription.edit({subscriptionId: $ctrl.log.subscription})">Go to subscription</a>
@@ -193,7 +193,7 @@
                   <td md-cell style="width: 1%; font-weight: bold" nowrap>IP</td>
                   <td md-cell>{{$ctrl.log.metadata[$ctrl.log.gateway].ip}}</td>
                 </tr>
-                <tr md-row ng-if="$ctrl.analytics.tenant">
+                <tr md-row ng-if="$ctrl.log.tenant">
                   <td md-cell style="width: 1%; font-weight: bold" nowrap>Tenant</td>
                   <td md-cell>{{$ctrl.log.tenant}}</td>
                 </tr>
@@ -205,12 +205,12 @@
     </div>
   </div>
 
-  <div class="gv-form gv-form-danger" ng-if="$ctrl.analytics.message">
+  <div class="gv-form gv-form-danger" ng-if="$ctrl.log.message">
     <h2>Error</h2>
     <gv-code
       flex
       readonly
-      ng-attr-value="{{$ctrl.analytics.message}}"
+      ng-attr-value="{{$ctrl.log.message}}"
       ng-attr-options="{{$ctrl.codeMirrorOptions()}}"
       ng-on-gv-code:clipboard-copy="$ctrl.onCopyBodySuccess($event);"
     ></gv-code>
@@ -225,7 +225,7 @@
           <span class="log-header">CONSUMER</span>
         </div>
 
-        <span class="log-header" flex="5" ng-if="$ctrl.analytics.endpoint"></span>
+        <span class="log-header" flex="5" ng-if="$ctrl.log.endpoint"></span>
 
         <div flex="45" layout="row" layout-align="center center">
           <span class="log-header">GATEWAY</span>
@@ -237,14 +237,14 @@
           <span class="vertical-text log-header" style="text-align: center">REQUEST</span>
         </div>
 
-        <div layout="column" flex="45" ng-if="$ctrl.analytics.clientRequest">
+        <div layout="column" flex="45" ng-if="$ctrl.log.clientRequest">
           <md-table-container>
             <table md-table class="gv-table-dense">
               <tbody md-body>
                 <tr md-row>
                   <td md-cell>
                     <span
-                      class="badge gravitee-policy-method-badge-info ng-binding ng-scope gravitee-policy-method-badge-{{$ctrl.analytics.method | uppercase}}-selected"
+                      class="badge gravitee-policy-method-badge-info ng-binding ng-scope gravitee-policy-method-badge-{{$ctrl.log.method | uppercase}}-selected"
                     >
                       {{$ctrl.log.clientRequest.method | uppercase}}
                     </span>
@@ -256,12 +256,12 @@
           </md-table-container>
           <br />
 
-          <div ng-if="$ctrl.analytics.clientRequest.queryParams.length > 0">
+          <div ng-if="$ctrl.log.clientRequest.queryParams.length > 0">
             <div class="log-section-title">Query Params</div>
             <md-table-container>
               <table md-table class="gv-table-dense">
                 <tbody md-body>
-                  <tr md-row ng-repeat="queryParam in $ctrl.analytics.clientRequest.queryParams" style="height: 30px">
+                  <tr md-row ng-repeat="queryParam in $ctrl.log.clientRequest.queryParams" style="height: 30px">
                     <td md-cell><span style="font-weight: bold">{{queryParam.key}}</span></td>
                     <td md-cell>{{queryParam.value}}</td>
                   </tr>
@@ -276,7 +276,7 @@
             <md-table-container>
               <table md-table class="gv-table-dense">
                 <tbody md-body>
-                  <tr md-row ng-repeat="header in $ctrl.analytics.clientRequest.headersAsList" style="height: 30px">
+                  <tr md-row ng-repeat="header in $ctrl.log.clientRequest.headersAsList" style="height: 30px">
                     <td md-cell><span style="font-weight: bold">{{header[0]}}</span></td>
                     <td md-cell>{{header[1]}}</td>
                   </tr>
@@ -286,18 +286,18 @@
             <br />
           </div>
 
-          <div ng-if="$ctrl.analytics.clientRequest.body" class="log-body">
+          <div ng-if="$ctrl.log.clientRequest.body" class="log-body">
             <gv-code
               flex
               readonly
               ng-attr-clipboard="true"
-              ng-attr-value="{{$ctrl.analytics.clientRequest.body}}"
-              ng-attr-options="{{$ctrl.codeMirrorOptions($ctrl.analytics.clientRequest)}}"
+              ng-attr-value="{{$ctrl.log.clientRequest.body}}"
+              ng-attr-options="{{$ctrl.codeMirrorOptions($ctrl.log.clientRequest)}}"
               ng-on-gv-code:clipboard-copy="$ctrl.onCopyBodySuccess($event);"
             ></gv-code>
           </div>
         </div>
-        <div layout="column" flex="45" layout-align="center center" ng-if="!$ctrl.analytics.clientRequest">
+        <div layout="column" flex="45" layout-align="center center" ng-if="!$ctrl.log.clientRequest">
           <p>No log for this request.</p>
           <p permission permission-only="'api-log-u'">
             Please check or <a ui-sref="management.apis.ng.analytics-logs-configuration-v2">configure logging mode</a> (client).
@@ -311,14 +311,14 @@
           </span>
         </div>
 
-        <div layout="column" flex="45" ng-if="$ctrl.analytics.proxyRequest">
+        <div layout="column" flex="45" ng-if="$ctrl.log.proxyRequest">
           <md-table-container>
             <table md-table class="gv-table-dense">
               <tbody md-body>
                 <tr md-row>
                   <td md-cell>
                     <span
-                      class="badge gravitee-policy-method-badge-info ng-binding ng-scope gravitee-policy-method-badge-{{$ctrl.analytics.proxyRequest.method | uppercase}}-selected"
+                      class="badge gravitee-policy-method-badge-info ng-binding ng-scope gravitee-policy-method-badge-{{$ctrl.log.proxyRequest.method | uppercase}}-selected"
                     >
                       {{$ctrl.log.proxyRequest.method | uppercase}}
                     </span>
@@ -329,12 +329,12 @@
             </table>
           </md-table-container>
           <br />
-          <div ng-if="$ctrl.analytics.proxyRequest.queryParams.length > 0">
+          <div ng-if="$ctrl.log.proxyRequest.queryParams.length > 0">
             <div class="log-section-title">Query Params</div>
             <md-table-container>
               <table md-table class="gv-table-dense">
                 <tbody md-body>
-                  <tr md-row ng-repeat="queryParam in $ctrl.analytics.proxyRequest.queryParams" style="height: 30px">
+                  <tr md-row ng-repeat="queryParam in $ctrl.log.proxyRequest.queryParams" style="height: 30px">
                     <td md-cell><span style="font-weight: bold">{{queryParam.key}}</span></td>
                     <td md-cell>{{queryParam.value}}</td>
                   </tr>
@@ -346,10 +346,10 @@
 
           <div>
             <div class="log-section-title">Headers</div>
-            <md-table-container ng-if="$ctrl.analytics.endpoint">
+            <md-table-container ng-if="$ctrl.log.endpoint">
               <table md-table class="gv-table-dense">
                 <tbody md-body>
-                  <tr md-row ng-repeat="header in $ctrl.analytics.proxyRequest.headersAsList" style="height: 30px">
+                  <tr md-row ng-repeat="header in $ctrl.log.proxyRequest.headersAsList" style="height: 30px">
                     <td md-cell><span style="font-weight: bold">{{header[0]}}</span></td>
                     <td md-cell>{{header[1]}}</td>
                   </tr>
@@ -359,18 +359,18 @@
             <br />
           </div>
 
-          <div ng-if="$ctrl.analytics.proxyRequest.body" class="log-body">
+          <div ng-if="$ctrl.log.proxyRequest.body" class="log-body">
             <gv-code
               flex
               readonly
               ng-attr-clipboard="true"
-              ng-attr-value="{{$ctrl.analytics.proxyRequest.body}}"
-              ng-attr-options="{{$ctrl.codeMirrorOptions($ctrl.analytics.proxyRequest)}}"
+              ng-attr-value="{{$ctrl.log.proxyRequest.body}}"
+              ng-attr-options="{{$ctrl.codeMirrorOptions($ctrl.log.proxyRequest)}}"
               ng-on-gv-code:clipboard-copy="$ctrl.onCopyBodySuccess($event);"
             ></gv-code>
           </div>
         </div>
-        <div layout="column" flex="45" layout-align="center center" ng-if="!$ctrl.analytics.proxyRequest">
+        <div layout="column" flex="45" layout-align="center center" ng-if="!$ctrl.log.proxyRequest">
           <p>No log for this request.</p>
           <p permission permission-only="'api-log-u'">
             Please check or <a ui-sref="management.apis.ng.analytics-logs-configuration-v2">configure logging mode</a> (proxy).
@@ -389,14 +389,14 @@
           <span class="vertical-text log-header" style="text-align: center">RESPONSE</span>
         </div>
 
-        <div layout="column" flex="45" ng-if="$ctrl.analytics.clientResponse">
+        <div layout="column" flex="45" ng-if="$ctrl.log.clientResponse">
           <md-table-container>
             <table md-table class="gv-table-dense">
               <tbody md-body>
                 <tr md-row>
                   <td md-cell><span style="font-weight: bold">Status</span></td>
                   <td md-cell>
-                    <span class="gv-statuscode-{{$ctrl.analytics.clientResponse.status / 100 | number:0}}xx"
+                    <span class="gv-statuscode-{{$ctrl.log.clientResponse.status / 100 | number:0}}xx"
                       >{{$ctrl.log.clientResponse.status | number}}</span
                     >
                   </td>
@@ -412,7 +412,7 @@
             <md-table-container>
               <table md-table class="gv-table-dense">
                 <tbody md-body>
-                  <tr md-row ng-repeat="header in $ctrl.analytics.clientResponse.headersAsList" style="height: 30px">
+                  <tr md-row ng-repeat="header in $ctrl.log.clientResponse.headersAsList" style="height: 30px">
                     <td md-cell><span style="font-weight: bold">{{header[0]}}</span></td>
                     <td md-cell>{{header[1]}}</td>
                   </tr>
@@ -422,18 +422,18 @@
             <br />
           </div>
 
-          <div ng-if="$ctrl.analytics.clientResponse.body" class="log-body">
+          <div ng-if="$ctrl.log.clientResponse.body" class="log-body">
             <gv-code
               flex
               readonly
               ng-attr-clipboard="true"
-              ng-attr-value="{{$ctrl.analytics.clientResponse.body}}"
-              ng-attr-options="{{$ctrl.codeMirrorOptions($ctrl.analytics.clientResponse)}}"
+              ng-attr-value="{{$ctrl.log.clientResponse.body}}"
+              ng-attr-options="{{$ctrl.codeMirrorOptions($ctrl.log.clientResponse)}}"
               ng-on-gv-code:clipboard-copy="$ctrl.onCopyBodySuccess($event);"
             ></gv-code>
           </div>
         </div>
-        <div layout="column" flex="45" layout-align="center center" ng-if="!$ctrl.analytics.clientResponse">
+        <div layout="column" flex="45" layout-align="center center" ng-if="!$ctrl.log.clientResponse">
           <p>No log for this response.</p>
           <p permission permission-only="'api-log-u'">
             Please check or <a ui-sref="management.apis.ng.analytics-logs-configuration-v2">configure logging mode</a> (client).
@@ -447,14 +447,14 @@
           </span>
         </div>
 
-        <div layout="column" flex="45" ng-if="$ctrl.analytics.proxyResponse">
+        <div layout="column" flex="45" ng-if="$ctrl.log.proxyResponse">
           <md-table-container>
             <table md-table class="gv-table-dense">
               <tbody md-body>
                 <tr md-row>
                   <td md-cell><span style="font-weight: bold">Status</span></td>
                   <td md-cell>
-                    <span class="gv-statuscode-{{$ctrl.analytics.proxyResponse.status / 100 | number:0}}xx"
+                    <span class="gv-statuscode-{{$ctrl.log.proxyResponse.status / 100 | number:0}}xx"
                       >{{$ctrl.log.proxyResponse.status | number}}</span
                     >
                   </td>
@@ -465,10 +465,10 @@
           <br />
           <div>
             <div class="log-section-title">Headers</div>
-            <md-table-container ng-if="$ctrl.analytics.endpoint">
+            <md-table-container ng-if="$ctrl.log.endpoint">
               <table md-table class="gv-table-dense">
                 <tbody md-body>
-                  <tr md-row ng-repeat="header in $ctrl.analytics.proxyResponse.headersAsList" style="height: 30px">
+                  <tr md-row ng-repeat="header in $ctrl.log.proxyResponse.headersAsList" style="height: 30px">
                     <td md-cell><span style="font-weight: bold">{{header[0]}}</span></td>
                     <td md-cell>{{header[1]}}</td>
                   </tr>
@@ -478,18 +478,18 @@
             <br />
           </div>
 
-          <div ng-if="$ctrl.analytics.proxyResponse.body" class="log-body">
+          <div ng-if="$ctrl.log.proxyResponse.body" class="log-body">
             <gv-code
               flex
               readonly
               ng-attr-clipboard="true"
-              ng-attr-value="{{$ctrl.analytics.proxyResponse.body}}"
-              ng-attr-options="{{$ctrl.codeMirrorOptions($ctrl.analytics.proxyResponse)}}"
+              ng-attr-value="{{$ctrl.log.proxyResponse.body}}"
+              ng-attr-options="{{$ctrl.codeMirrorOptions($ctrl.log.proxyResponse)}}"
               ng-on-gv-code:clipboard-copy="$ctrl.onCopyBodySuccess($event);"
             ></gv-code>
           </div>
         </div>
-        <div layout="column" flex="45" layout-align="center center" ng-if="!$ctrl.analytics.proxyResponse">
+        <div layout="column" flex="45" layout-align="center center" ng-if="!$ctrl.log.proxyResponse">
           <p>No log for this response.</p>
           <p permission permission-only="'api-log-u'">
             Please check or <a ui-sref="management.apis.ng.analytics-logs-configuration-v2">configure logging mode</a> (proxy).
