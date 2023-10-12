@@ -241,8 +241,6 @@ class ApiAnalyticsLogControllerAjs {
 
 export const ApiAnalyticsLogComponentAjs: ng.IComponentOptions = {
   controller: ApiAnalyticsLogControllerAjs,
-  bindings: {
-    log: '<',
-  },
+  bindings: {},
   template: require('./analytics-log.html'),
 };
