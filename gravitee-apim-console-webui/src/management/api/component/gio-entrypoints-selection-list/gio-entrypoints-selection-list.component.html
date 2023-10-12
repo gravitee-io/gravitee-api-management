@@ -15,7 +15,12 @@
     limitations under the License.
 
 -->
-<mat-selection-list class="gio-connector-list" disableRipple="true" [(ngModel)]="entrypointSelection">
+<mat-selection-list
+  *ngIf="entrypoints.length > 0; else noEntrypoints"
+  class="gio-connector-list"
+  disableRipple="true"
+  [(ngModel)]="entrypointSelection"
+>
   <mat-list-option
     *ngFor="let entrypoint of entrypoints"
     [value]="entrypoint.id"
@@ -47,3 +52,5 @@
     </gio-connector-list-option-layout>
   </mat-list-option>
 </mat-selection-list>
+
+<ng-template #noEntrypoints> No entrypoints available </ng-template>
