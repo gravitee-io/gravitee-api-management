@@ -534,7 +534,7 @@ export class ApiGeneralSubscriptionEditComponent implements OnInit {
   }
 
   private serializeDate(date: Date): string {
-    return date ? this.datePipe.transform(date, 'MMM d, y h:mm:ss.sss a') : '-';
+    return date ? this.datePipe.transform(date, 'medium') : '-';
   }
 
   private deserializeDate(dateAsString: string): Date {
