@@ -13,15 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.infra.spring;
+package io.gravitee.apim.core.sanitizer;
 
-import io.gravitee.apim.infra.json.jackson.JacksonSpringConfiguration;
-import io.gravitee.apim.infra.sanitizer.SanitizerSpringConfiguration;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-
-@Configuration
-@Import({ JacksonSpringConfiguration.class, SanitizerSpringConfiguration.class })
-@ComponentScan(basePackages = { "io.gravitee.apim.infra" })
-public class InfraServiceSpringConfiguration {}
+public interface HtmlSanitizer {
+    String sanitize(String content);
+    SanitizeResult isSafe(String content);
+}

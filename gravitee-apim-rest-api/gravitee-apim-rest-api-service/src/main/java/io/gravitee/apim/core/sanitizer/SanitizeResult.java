@@ -13,15 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.infra.spring;
+package io.gravitee.apim.core.sanitizer;
 
-import io.gravitee.apim.infra.json.jackson.JacksonSpringConfiguration;
-import io.gravitee.apim.infra.sanitizer.SanitizerSpringConfiguration;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Configuration
-@Import({ JacksonSpringConfiguration.class, SanitizerSpringConfiguration.class })
-@ComponentScan(basePackages = { "io.gravitee.apim.infra" })
-public class InfraServiceSpringConfiguration {}
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
+public class SanitizeResult {
+
+    boolean safe;
+    String rejectedMessage;
+}
