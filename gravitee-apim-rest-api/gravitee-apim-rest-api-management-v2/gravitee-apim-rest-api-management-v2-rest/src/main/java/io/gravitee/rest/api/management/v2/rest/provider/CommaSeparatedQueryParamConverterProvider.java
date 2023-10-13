@@ -16,6 +16,8 @@
 package io.gravitee.rest.api.management.v2.rest.provider;
 
 import jakarta.annotation.Nonnull;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.ext.ParamConverter;
 import jakarta.ws.rs.ext.ParamConverterProvider;
 import jakarta.ws.rs.ext.Provider;
@@ -29,7 +31,9 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
+import org.glassfish.jersey.internal.inject.InjectionManager;
 import org.glassfish.jersey.internal.inject.ParamConverters;
+import org.glassfish.jersey.internal.inject.Providers;
 
 /**
  * This {@link ParamConverterProvider} brings support for multi-value query parameters with comma-separated style.
@@ -42,16 +46,23 @@ import org.glassfish.jersey.internal.inject.ParamConverters;
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class CommaSeparatedQueryParamConverterProvider implements ParamConverterProvider {
 
-    private final ParamConverters.AggregatedProvider provider = new ParamConverters.AggregatedProvider(null);
+    @Inject
+    private InjectionManager injectionManager;
 
     @Override
     public <T> ParamConverter<T> getConverter(Class<T> rawType, Type genericType, Annotation[] annotations) {
         if (List.class.isAssignableFrom(rawType) || Set.class.isAssignableFrom(rawType)) {
-            final Type actualTypeArgument = ((ParameterizedType) genericType).getActualTypeArguments()[0];
-            final ParamConverter<?> converter = provider.getConverter((Class<?>) actualTypeArgument, genericType, annotations);
             final boolean nonNull = Stream.of(annotations).anyMatch(annotation -> Nonnull.class == annotation.annotationType());
 
-            return (ParamConverter<T>) new CommaSeparatedQueryParamConverter(collectorFromRawType(rawType), converter, nonNull);
+            final Type actualTypeArgument = ((ParameterizedType) genericType).getActualTypeArguments()[0];
+            var providers = Providers.getProviders(injectionManager, ParamConverterProvider.class);
+
+            for (ParamConverterProvider provider : providers) {
+                var converter = provider.getConverter((Class<?>) actualTypeArgument, genericType, annotations);
+                if (converter != null) {
+                    return (ParamConverter<T>) new CommaSeparatedQueryParamConverter(collectorFromRawType(rawType), converter, nonNull);
+                }
+            }
         }
 
         return null;
