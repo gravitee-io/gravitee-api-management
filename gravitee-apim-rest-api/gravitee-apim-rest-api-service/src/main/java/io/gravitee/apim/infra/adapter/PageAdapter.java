@@ -15,10 +15,9 @@
  */
 package io.gravitee.apim.infra.adapter;
 
-import io.gravitee.apim.core.documentation.model.Page;
+import io.gravitee.apim.core.documentation.model.*;
 import java.util.List;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 
 @Mapper
@@ -28,5 +27,18 @@ public interface PageAdapter {
     @Mapping(target = "visibility", source = "visibility")
     Page toEntity(io.gravitee.repository.management.model.Page page);
 
+    io.gravitee.repository.management.model.Page toRepository(Page page);
+
+    @Mapping(target = "createdAt", source = "modificationDate")
+    io.gravitee.repository.management.model.PageRevision toPageRevisionRepository(PageRevision page);
+
+    @Mapping(target = "pageId", source = "id")
+    @Mapping(target = "modificationDate", source = "updatedAt")
+    @Mapping(target = "contributor", source = "lastContributor")
+    PageRevision toPageRevision(Page page);
+
     List<Page> toEntityList(List<io.gravitee.repository.management.model.Page> pages);
+
+    @Mapping(target = "modificationDate", source = "createdAt")
+    PageRevision toEntity(io.gravitee.repository.management.model.PageRevision pageRevision);
 }
