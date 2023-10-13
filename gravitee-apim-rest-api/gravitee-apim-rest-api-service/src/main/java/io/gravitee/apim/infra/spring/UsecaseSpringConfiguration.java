@@ -19,7 +19,10 @@ import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.api.usecase.VerifyApiPathsUsecase;
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
+import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
+import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
+import io.gravitee.apim.core.documentation.usecase.ApiCreateDocumentationPageUsecase;
 import io.gravitee.apim.core.documentation.usecase.ApiGetDocumentationPagesUsecase;
 import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
 import io.gravitee.apim.core.log.crud_service.ConnectionLogCrudService;
@@ -32,6 +35,7 @@ import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomain
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
 import io.gravitee.apim.core.subscription.usecase.CloseExpiredSubscriptionsUsecase;
 import io.gravitee.apim.core.subscription.usecase.CloseSubscriptionUsecase;
+import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -85,5 +89,13 @@ public class UsecaseSpringConfiguration {
     @Bean
     public ApiGetDocumentationPagesUsecase apiGetDocumentationPagesUsecase(ApiDocumentationDomainService apiDocumentationService) {
         return new ApiGetDocumentationPagesUsecase(apiDocumentationService);
+    }
+
+    @Bean
+    public ApiCreateDocumentationPageUsecase apiCreateDocumentationPageUsecase(
+        CreateApiDocumentationDomainService apiDocumentationDomainService,
+        PageCrudService pageCrudService
+    ) {
+        return new ApiCreateDocumentationPageUsecase(apiDocumentationDomainService, pageCrudService, new HtmlSanitizerImpl());
     }
 }
