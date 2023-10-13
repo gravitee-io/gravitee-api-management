@@ -104,11 +104,8 @@ describe('PolicyStudioConfigComponent', () => {
   });
 
   it('should emulate v4 engine', async (done) => {
-    await fixture.whenStable();
-    fixture.detectChanges();
     const activateSupportSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ name: 'emulateV4Engine' }));
     expect(await activateSupportSlideToggle.isDisabled()).toEqual(false);
-    await fixture.whenStable();
 
     // Expect last apiDefinition
     policyStudioService.getApiDefinitionToSave$().subscribe((apiDefinition) => {

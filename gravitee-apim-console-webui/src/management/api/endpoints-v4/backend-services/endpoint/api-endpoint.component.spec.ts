@@ -165,7 +165,15 @@ describe('ApiEndpointComponent', () => {
         endpointGroups: [
           {
             ...apiV4.endpointGroups[0],
-            endpoints: [{ ...apiV4.endpointGroups[0].endpoints[0], name: 'endpoint-name updated', sharedConfigurationOverride: undefined }],
+            endpoints: [
+              {
+                ...apiV4.endpointGroups[0].endpoints[0],
+                name: 'endpoint-name updated',
+                sharedConfigurationOverride: {
+                  test: undefined,
+                },
+              },
+            ],
           },
         ],
       };
