@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, OnInit, ViewChild } from '@angular/core';
 import { STEPPER_GLOBAL_OPTIONS } from '@angular/cdk/stepper';
 import { of, Subject } from 'rxjs';
 import { GioJsonSchema } from '@gravitee/ui-particles-angular';
@@ -41,6 +41,7 @@ import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector
       useValue: { displayDefaultIndicatorType: false, showError: true },
     },
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ApiEndpointGroupCreateComponent implements OnInit {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
@@ -67,6 +68,7 @@ export class ApiEndpointGroupCreateComponent implements OnInit {
     private readonly apiService: ApiV2Service,
     private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
     private readonly snackBarService: SnackBarService,
+    private readonly changeDetectorRef: ChangeDetectorRef,
   ) {}
 
   ngOnInit() {
@@ -83,6 +85,7 @@ export class ApiEndpointGroupCreateComponent implements OnInit {
           if (this.apiType === 'PROXY') {
             this.endpointGroupTypeForm.get('endpointGroupType').setValue('http-proxy');
           }
+          this.changeDetectorRef.detectChanges();
         },
       });
 
