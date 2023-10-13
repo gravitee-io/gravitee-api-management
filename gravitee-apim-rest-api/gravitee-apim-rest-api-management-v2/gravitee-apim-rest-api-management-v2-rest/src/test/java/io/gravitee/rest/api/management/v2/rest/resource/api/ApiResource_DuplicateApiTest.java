@@ -61,11 +61,12 @@ public class ApiResource_DuplicateApiTest extends ApiResourceTest {
         assertThat(error.getMessage()).isEqualTo("Api [" + API + "] cannot be found.");
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = "[{index}] {arguments}")
     @CsvSource(
         delimiterString = "|",
+        useHeadersInDisplayName = true,
         textBlock = """
-        # API_DEFINITION[READ] |  ENVIRONMENT_API[CREATE]
+        API_DEFINITION[READ] |  ENVIRONMENT_API[CREATE]
         false                  |  false
         true                   |  false
         false                  |  true
