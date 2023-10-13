@@ -318,8 +318,11 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 : withUpdatePage.getAccessControls()
         );
 
-        List<PageMedia> pageMediaList = convertMediaEntity(updatePageEntity.getAttachedMedia());
-        page.setAttachedMedia(pageMediaList != null ? pageMediaList : withUpdatePage.getAttachedMedia());
+        page.setAttachedMedia(
+            updatePageEntity.getAttachedMedia() != null
+                ? convertMediaEntity(updatePageEntity.getAttachedMedia())
+                : withUpdatePage.getAttachedMedia()
+        );
         page.setParentId(
             updatePageEntity.getParentId() != null
                 ? updatePageEntity.getParentId().isEmpty() ? null : updatePageEntity.getParentId()
