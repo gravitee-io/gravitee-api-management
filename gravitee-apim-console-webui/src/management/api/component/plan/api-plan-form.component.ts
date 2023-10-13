@@ -28,8 +28,8 @@ import {
   ViewChild,
 } from '@angular/core';
 import { AbstractControl, ControlValueAccessor, FormControl, FormGroup, NgControl, ValidationErrors, Validator } from '@angular/forms';
-import { asyncScheduler, Subject } from 'rxjs';
-import { distinctUntilChanged, map, observeOn, takeUntil, tap } from 'rxjs/operators';
+import { asyncScheduler, interval, Subject } from 'rxjs';
+import { distinctUntilChanged, filter, map, observeOn, take, takeUntil, tap } from 'rxjs/operators';
 import { MatStepper } from '@angular/material/stepper';
 import { GIO_FORM_FOCUS_INVALID_IGNORE_SELECTOR } from '@gravitee/ui-particles-angular';
 import { isEmpty, isEqual } from 'lodash';
@@ -259,6 +259,20 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
 
   nextStep() {
     this.matStepper.next();
+  }
+
+  /**
+   * Wait for the next step to be selected
+   */
+  waitForNextStep() {
+    const nextStep = this.matStepper.selectedIndex + 1;
+    return interval(100)
+      .pipe(
+        map(() => this.nextStep()),
+        filter(() => this.matStepper.selectedIndex === nextStep),
+        take(1),
+      )
+      .toPromise();
   }
 
   hasPreviousStep(): boolean | null {
