@@ -16,37 +16,46 @@
 package inmemory;
 
 import com.google.common.collect.ImmutableList;
-import io.gravitee.apim.core.documentation.model.Page;
-import io.gravitee.apim.core.documentation.query_service.PageQueryService;
+import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
+import io.gravitee.apim.core.documentation.model.*;
+import io.gravitee.apim.infra.adapter.PageAdapter;
+import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
-public class PageQueryServiceInMemory implements InMemoryAlternative<Page>, PageQueryService {
+public class PageCrudServiceInMemory implements InMemoryAlternative<Page>, PageCrudService {
 
     List<Page> pages = new ArrayList<>();
 
     @Override
-    public List<Page> searchByApiId(String apiId) {
-        return pages
-            .stream()
-            .filter(page -> apiId.equals(page.getReferenceId()) && Page.ReferenceType.API.equals(page.getReferenceType()))
-            .toList();
+    public Page createDocumentationPage(Page page) {
+        pages.add(page);
+        return page;
     }
 
     @Override
-    public Optional<Page> findHomepageByApiId(String apiId) {
-        return pages
-            .stream()
-            .filter(page ->
-                apiId.equals(page.getReferenceId()) && Page.ReferenceType.API.equals(page.getReferenceType()) && page.isHomepage()
-            )
-            .findFirst();
+    public Page updateDocumentationPage(Page pageToUpdate) {
+        // Remove page from DB
+        pages = pages.stream().filter(p -> !p.getId().equals(pageToUpdate.getId())).collect(Collectors.toList());
+        pages.add(pageToUpdate);
+
+        return pageToUpdate;
+    }
+
+    @Override
+    public Page get(String id) {
+        var page = pages.stream().filter(p -> p.getId().equals(id)).findFirst();
+        if (page.isPresent()) {
+            return page.get();
+        }
+        throw new PageNotFoundException(id);
     }
 
     @Override
     public void initWith(List<Page> items) {
-        pages = List.copyOf(items);
+        this.reset();
+        this.pages.addAll(items);
     }
 
     @Override

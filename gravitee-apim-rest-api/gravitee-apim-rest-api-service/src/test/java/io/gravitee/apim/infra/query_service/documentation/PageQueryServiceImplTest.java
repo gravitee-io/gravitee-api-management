@@ -62,9 +62,36 @@ class PageQueryServiceImplTest {
         assertThat(res.get(1).getReferenceType()).isEqualTo(io.gravitee.apim.core.documentation.model.Page.ReferenceType.API);
     }
 
+    @Test
+    void search_should_return_api_homepage() {
+        String API_ID = "api-id";
+        Page page1 = aPage(API_ID, "page#1", "page 1");
+        List<Page> pages = List.of(page1);
+        givenMatchingPages(new PageCriteria.Builder().referenceId(API_ID).referenceType("API").homepage(true), pages);
+
+        var res = service.findHomepageByApiId(API_ID).get();
+
+        assertThat(res).isNotNull();
+        assertThat(res.getId()).isEqualTo("page#1");
+        assertThat(res.getName()).isEqualTo("page 1");
+    }
+
+    @Test
+    void search_should_return_no_api_homepage() {
+        String API_ID = "api-id";
+        givenMatchingPages(new PageCriteria.Builder().referenceId(API_ID).referenceType("API").homepage(true), List.of());
+
+        var res = service.findHomepageByApiId(API_ID);
+        assertThat(res.isEmpty()).isTrue();
+    }
+
     @SneakyThrows
     private void givenMatchingPages(String apiId, List<Page> pages) {
-        when(pageRepository.search(eq(new PageCriteria.Builder().referenceId(apiId).referenceType(PageReferenceType.API.name()).build())))
-            .thenReturn(pages);
+        givenMatchingPages(new PageCriteria.Builder().referenceId(apiId).referenceType(PageReferenceType.API.name()), pages);
+    }
+
+    @SneakyThrows
+    private void givenMatchingPages(PageCriteria.Builder pageCriteriaBuilder, List<Page> pages) {
+        when(pageRepository.search(eq(pageCriteriaBuilder.build()))).thenReturn(pages);
     }
 }

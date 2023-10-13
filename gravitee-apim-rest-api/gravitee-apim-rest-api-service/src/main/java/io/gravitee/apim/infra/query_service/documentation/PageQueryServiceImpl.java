@@ -17,12 +17,16 @@ package io.gravitee.apim.infra.query_service.documentation;
 
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
+import io.gravitee.apim.core.exception.DomainException;
 import io.gravitee.apim.infra.adapter.PageAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.api.search.PageCriteria;
 import io.gravitee.repository.management.model.PageReferenceType;
 import java.util.List;
+import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +34,7 @@ import org.springframework.stereotype.Service;
 public class PageQueryServiceImpl implements PageQueryService {
 
     private final PageRepository pageRepository;
+    private static final Logger logger = LoggerFactory.getLogger(PageQueryServiceImpl.class);
 
     public PageQueryServiceImpl(@Lazy final PageRepository pageRepository) {
         this.pageRepository = pageRepository;
@@ -41,7 +46,23 @@ public class PageQueryServiceImpl implements PageQueryService {
         try {
             return PageAdapter.INSTANCE.toEntityList(pageRepository.search(criteria));
         } catch (TechnicalException e) {
-            throw new RuntimeException(e);
+            logger.error("An error occurred while searching for Page by apiId {}", apiId, e);
+            throw new DomainException("Error during repository search", e);
+        }
+    }
+
+    @Override
+    public Optional<Page> findHomepageByApiId(String apiId) {
+        PageCriteria criteria = new PageCriteria.Builder()
+            .referenceType(PageReferenceType.API.name())
+            .referenceId(apiId)
+            .homepage(true)
+            .build();
+        try {
+            return pageRepository.search(criteria).stream().findFirst().map(PageAdapter.INSTANCE::toEntity);
+        } catch (TechnicalException e) {
+            logger.error("An error occurred while finding all homepage pages with apiId {}", apiId, e);
+            throw new DomainException("Error during repository search", e);
         }
     }
 }

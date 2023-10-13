@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.v2.rest.spring;
 
 import inmemory.*;
+import io.gravitee.apim.core.audit.crud_service.AuditCrudService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -92,5 +93,15 @@ public class InMemoryConfiguration {
     @Bean
     public PageQueryServiceInMemory pageQueryServiceInMemory() {
         return new PageQueryServiceInMemory();
+    }
+
+    @Bean
+    public PageCrudServiceInMemory pageCrudServiceInMemory() {
+        return new PageCrudServiceInMemory();
+    }
+
+    @Bean
+    public PageRevisionCrudServiceInMemory pageRevisionCrudServiceInMemory() {
+        return new PageRevisionCrudServiceInMemory();
     }
 }
