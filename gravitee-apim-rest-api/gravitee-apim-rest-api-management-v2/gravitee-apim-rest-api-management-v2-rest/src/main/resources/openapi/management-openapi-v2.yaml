@@ -1642,6 +1642,31 @@ paths:
                     $ref: "#/components/responses/ApiDocumentationPagesResponse"
                 default:
                     $ref: "#/components/responses/Error"
+        post:
+            tags:
+                - API Documentation
+            summary: Create API documentation page
+            description: |-
+                Create API documentation. The result will be the created page or folder.
+                Only MARKDOWN and FOLDER types are supported.
+
+                User must have the API_DOCUMENTATION[CREATE] permission.
+            operationId: createDocumentationPage
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/CreateDocumentation"
+                required: true
+            responses:
+                "201":
+                    description: Created API Documentation
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Page"
+                default:
+                    $ref: "#/components/responses/Error"
 
 
     # Plugins - Endpoints
@@ -5544,6 +5569,89 @@ components:
                 - ROOT
                 - SYSTEM_FOLDER
                 - TRANSLATION
+
+        CreateDocumentation:
+            type: object
+            oneOf:
+                - $ref: "#/components/schemas/CreateDocumentationFolder"
+                - $ref: "#/components/schemas/CreateDocumentationMarkdown"
+            required:
+                - name
+                - type
+            discriminator:
+                propertyName: type
+                mapping:
+                    FOLDER: CreateDocumentationFolder
+                    MARKDOWN: CreateDocumentationMarkdown
+
+        CreateDocumentationType:
+            type: string
+            description: The type of the page. Only MARKDOWN and FOLDER types can be created.
+            example: MARKDOWN
+            enum:
+                - MARKDOWN
+                - FOLDER
+
+        BaseCreateDocumentation:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: Page's name.
+                    example: My Page
+                type:
+                    $ref: "#/components/schemas/CreateDocumentationType"
+                order:
+                    type: integer
+                    description: Page's order.
+                    example: 1
+                visibility:
+                    $ref: "#/components/schemas/Visibility"
+                parentId:
+                    type: string
+                    description: Page's parent id.
+                    example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+            required:
+                - name
+                - type
+            discriminator:
+                propertyName: type
+                mapping:
+                    FOLDER: CreateDocumentationFolder
+                    MARKDOWN: CreateDocumentationMarkdown
+
+        CreateDocumentationFolder:
+            title: "CreateDocumentationFolder"
+            description: Create documentation folder.
+            type: object
+            allOf:
+                - $ref: "#/components/schemas/BaseCreateDocumentation"
+            required:
+                - name
+                - type
+
+        CreateDocumentationMarkdown:
+            title: "CreateDocumentationMarkdown"
+            description: Create documentation markdown page.
+            type: object
+            allOf:
+                - $ref: "#/components/schemas/BaseCreateDocumentation"
+                - properties:
+                    content:
+                        type: string
+                        description: Page's content.
+                        example: My Page content
+                    homepage:
+                        type: boolean
+                        description: Page's homepage status.
+                        example: true
+                    generalConditions:
+                        type: boolean
+                        description: Is the page used as General Conditions for a plan.
+            required:
+                - name
+                - type
+
         Revision:
             type: object
             properties:
