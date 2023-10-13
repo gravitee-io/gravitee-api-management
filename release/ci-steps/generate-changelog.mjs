@@ -12,7 +12,7 @@ const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
 
 const docRepository = 'gravitee-platform-docs';
 const docRepositoryURL = `https://github.com/gravitee-io/${docRepository}`;
-const docApimChangelogFolder = `docs/apim/${versions.trimmed}/releases-and-changelogs/changelogs/`;
+const docApimChangelogFolder = `docs/apim/${versions.trimmed}/releases-and-changelog/changelogs/`;
 const docApimChangelogFile = `${docApimChangelogFolder}apim-${versions.branch}-changelog.md`;
 const localTmpFolder = '.tmp';
 
