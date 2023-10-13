@@ -83,17 +83,32 @@ public class NotificationTemplateRepositoryTest extends AbstractManagementReposi
     public void shouldCreate() throws Exception {
         final NotificationTemplate notificationTemplate = new NotificationTemplate();
         notificationTemplate.setId("new-notificationTemplate");
-        notificationTemplate.setHook("MY_NEW_HOOK");
-        notificationTemplate.setScope("API");
+        notificationTemplate.setHook("USER_REGISTRATION");
+        notificationTemplate.setScope("TEMPLATES_FOR_ACTION");
         notificationTemplate.setReferenceId("DEFAULT");
         notificationTemplate.setReferenceType(NotificationTemplateReferenceType.ORGANIZATION);
         notificationTemplate.setName("My notif 1");
-        notificationTemplate.setDescription("Description for my notif 1");
-        notificationTemplate.setTitle("Title of my notif");
-        notificationTemplate.setContent("Content of my notif");
+        notificationTemplate.setDescription(
+            "Email sent to a user who has self-registered on portal or admin console. Contains a registration link."
+        );
+        notificationTemplate.setTitle("User ${registrationAction} - ${user.displayName} ");
+        notificationTemplate.setContent(
+            "<html>\n" +
+            "\t<body style=\"text-align: center;\">\n" +
+            "\t\t<header>\n" +
+            "\t\t\t<#include \"header.html\" />\n" +
+            "\t\t</header>\n" +
+            "\t\t<div style=\"margin-top: 50px; color: #424e5a;\">\n" +
+            "\t\t\t<h3>Hi ${user.displayName},</h3>\n" +
+            "\t\t\t<p>You have been successfully registered.</p>\n" +
+            "\t\t\t<p><a href=\"${registrationUrl}\">Click here</a> to confirm your registration.</p>\n" +
+            "\t\t</div>\n" +
+            "\t</body>\n" +
+            "</html>\n"
+        );
         notificationTemplate.setCreatedAt(new Date(1000000000000L));
         notificationTemplate.setUpdatedAt(new Date(1439032010883L));
-        notificationTemplate.setType(NotificationTemplateType.PORTAL);
+        notificationTemplate.setType(NotificationTemplateType.EMAIL);
         notificationTemplate.setEnabled(true);
 
         int nbNotificationTemplatesBeforeCreation = notificationTemplateRepository.findAll().size();
@@ -166,9 +181,24 @@ public class NotificationTemplateRepositoryTest extends AbstractManagementReposi
         notificationTemplate.setReferenceId("DEFAULT");
         notificationTemplate.setReferenceType(NotificationTemplateReferenceType.ORGANIZATION);
         notificationTemplate.setName("My notif 1");
-        notificationTemplate.setDescription("Description for my notif 1");
-        notificationTemplate.setTitle("Title of my notif");
-        notificationTemplate.setContent("Content of my notif");
+        notificationTemplate.setDescription(
+            "Email sent to a user who has self-registered on portal or admin console. Contains a registration link."
+        );
+        notificationTemplate.setTitle("User ${registrationAction} - ${user.displayName} ");
+        notificationTemplate.setContent(
+            "<html>\n" +
+            "\t<body style=\"text-align: center;\">\n" +
+            "\t\t<header>\n" +
+            "\t\t\t<#include \"header.html\" />\n" +
+            "\t\t</header>\n" +
+            "\t\t<div style=\"margin-top: 50px; color: #424e5a;\">\n" +
+            "\t\t\t<h3>Hi ${user.displayName},</h3>\n" +
+            "\t\t\t<p>You have been successfully registered.</p>\n" +
+            "\t\t\t<p><a href=\"${registrationUrl}\">Click here</a> to confirm your registration.</p>\n" +
+            "\t\t</div>\n" +
+            "\t</body>\n" +
+            "</html>\n"
+        );
         notificationTemplate.setCreatedAt(new Date(1000000000000L));
         notificationTemplate.setUpdatedAt(new Date(1486771200000L));
         notificationTemplate.setType(NotificationTemplateType.PORTAL);
