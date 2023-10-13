@@ -18,7 +18,6 @@ import { FlowConfigurationSchema } from './configurationSchema';
 export function fakeFlowConfigurationSchema(attributes?: FlowConfigurationSchema): FlowConfigurationSchema {
   const base: FlowConfigurationSchema = {
     type: 'object',
-    id: 'apim',
     properties: {
       flow_mode: {
         title: 'Flow Mode',
@@ -26,17 +25,8 @@ export function fakeFlowConfigurationSchema(attributes?: FlowConfigurationSchema
         type: 'string',
         enum: ['DEFAULT', 'BEST_MATCH'],
         default: 'DEFAULT',
-        'x-schema-form': {
-          titleMap: {
-            DEFAULT: 'Default',
-            BEST_MATCH: 'Best match',
-          },
-        },
       },
     },
-    required: [],
-    disabled: [],
-    execution_mode: 'v3',
   };
 
   return { ...base, ...attributes };
