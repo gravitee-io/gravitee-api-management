@@ -1567,6 +1567,10 @@ jobs:
                   var-name: ARTIFACTORY_PASSWORD
             - checkout
             - run:
+                name: Checkout tag << pipeline.parameters.graviteeio_version >>
+                command: |
+                  git checkout << pipeline.parameters.graviteeio_version >>
+            - run:
                   name: Install dependencies
                   command: npm install
                   working_directory: "./release"
