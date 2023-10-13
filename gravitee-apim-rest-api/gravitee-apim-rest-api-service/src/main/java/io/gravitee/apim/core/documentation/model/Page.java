@@ -16,10 +16,10 @@
 package io.gravitee.apim.core.documentation.model;
 
 import java.util.Date;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import lombok.*;
 
 @Data
 @Builder
@@ -36,18 +36,29 @@ public class Page {
     private String crossId;
 
     private String referenceId;
-    private ReferenceType referenceType;
+    private Page.ReferenceType referenceType;
     private String name;
-    private Type type;
-    private String content;
+    private Page.Type type;
     private String lastContributor;
     private int order;
     private boolean published;
-    private Visibility visibility;
-    private boolean homepage;
+    private Page.Visibility visibility;
     private Date createdAt;
     private Date updatedAt;
     private String parentId;
+
+    private String content;
+    private boolean homepage;
+    private boolean generalConditions;
+
+    // Legacy support
+    private PageSource source;
+    private Map<String, String> configuration;
+    private boolean excludedAccessControls;
+    private Set<AccessControl> accessControls;
+    private Map<String, String> metadata;
+    private Boolean useAutoFetch; // use Boolean to avoid default value of primitive type
+    private List<PageMedia> attachedMedia;
 
     public enum Visibility {
         PUBLIC,
@@ -57,10 +68,27 @@ public class Page {
     public enum Type {
         FOLDER,
         MARKDOWN,
+        // Legacy support
+        ASCIIDOC,
+        ASYNCAPI,
+        LINK,
+        MARKDOWN_TEMPLATE,
+        ROOT,
+        SWAGGER,
+        SYSTEM_FOLDER,
+        TRANSLATION,
     }
 
     public enum ReferenceType {
         ENVIRONMENT,
         API,
+    }
+
+    public boolean isMarkdown() {
+        return Type.MARKDOWN.equals(this.type);
+    }
+
+    public boolean isFolder() {
+        return Type.FOLDER.equals(this.type);
     }
 }
