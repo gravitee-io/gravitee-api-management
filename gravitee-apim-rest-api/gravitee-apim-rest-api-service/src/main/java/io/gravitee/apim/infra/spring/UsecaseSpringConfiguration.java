@@ -19,6 +19,11 @@ import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.api.use_case.VerifyApiPathsUseCase;
+import io.gravitee.apim.core.api_key.domain_service.RevokeApiKeyDomainService;
+import io.gravitee.apim.core.api_key.query_service.ApiKeyQueryService;
+import io.gravitee.apim.core.api_key.use_case.RevokeApiSubscriptionApiKeyUseCase;
+import io.gravitee.apim.core.api_key.use_case.RevokeApplicationApiKeyUseCase;
+import io.gravitee.apim.core.api_key.use_case.RevokeApplicationSubscriptionApiKeyUseCase;
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
 import io.gravitee.apim.core.console.use_case.GetConsoleCustomizationUseCase;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
@@ -77,6 +82,45 @@ public class UsecaseSpringConfiguration {
             apiQueryService,
             environmentCrudService,
             closeSubscriptionDomainService
+        );
+    }
+
+    @Bean
+    public RevokeApiSubscriptionApiKeyUseCase revokeApiSubscriptionApiKeyUsecase(
+        SubscriptionCrudService subscriptionCrudService,
+        ApplicationCrudService applicationCrudService,
+        ApiKeyQueryService apiKeyQueryService,
+        RevokeApiKeyDomainService revokeApiKeyDomainService
+    ) {
+        return new RevokeApiSubscriptionApiKeyUseCase(
+            subscriptionCrudService,
+            applicationCrudService,
+            apiKeyQueryService,
+            revokeApiKeyDomainService
+        );
+    }
+
+    @Bean
+    public RevokeApplicationApiKeyUseCase revokeApplicationApiKeyUsecase(
+        ApplicationCrudService applicationCrudService,
+        ApiKeyQueryService apiKeyQueryService,
+        RevokeApiKeyDomainService revokeApiKeyDomainService
+    ) {
+        return new RevokeApplicationApiKeyUseCase(applicationCrudService, apiKeyQueryService, revokeApiKeyDomainService);
+    }
+
+    @Bean
+    public RevokeApplicationSubscriptionApiKeyUseCase revokeApplicationSubscriptionApiKeyUsecase(
+        SubscriptionCrudService subscriptionCrudService,
+        ApplicationCrudService applicationCrudService,
+        ApiKeyQueryService apiKeyQueryService,
+        RevokeApiKeyDomainService revokeApiKeyDomainService
+    ) {
+        return new RevokeApplicationSubscriptionApiKeyUseCase(
+            subscriptionCrudService,
+            applicationCrudService,
+            apiKeyQueryService,
+            revokeApiKeyDomainService
         );
     }
 

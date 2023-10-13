@@ -34,7 +34,7 @@ public class ApiKeyFixtures {
             .subscriptions(List.of("subscription-id"))
             .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
             .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-            .expireAt(Instant.parse("2021-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+            .expireAt(Instant.parse("2051-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
             .revoked(false)
             .paused(false)
             .daysToExpirationOnLastNotification(310);

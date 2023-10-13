@@ -20,6 +20,7 @@ import io.gravitee.apim.core.api_key.query_service.ApiKeyQueryService;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 public class ApiKeyQueryServiceInMemory implements ApiKeyQueryService, InMemoryAlternative<ApiKeyEntity> {
@@ -32,6 +33,11 @@ public class ApiKeyQueryServiceInMemory implements ApiKeyQueryService, InMemoryA
 
     public ApiKeyQueryServiceInMemory(ApiKeyCrudServiceInMemory apiKeyCrudServiceInMemory) {
         storage = apiKeyCrudServiceInMemory.storage;
+    }
+
+    @Override
+    public Optional<ApiKeyEntity> findById(String apiKeyId) {
+        return storage.stream().filter(apiKey -> apiKey.getId().equals(apiKeyId)).findFirst();
     }
 
     @Override

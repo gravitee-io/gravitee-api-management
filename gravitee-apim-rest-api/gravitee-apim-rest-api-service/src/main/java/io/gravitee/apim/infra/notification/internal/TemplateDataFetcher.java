@@ -34,7 +34,6 @@ import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.model.Api;
-import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -95,6 +94,7 @@ public class TemplateDataFetcher {
                         case APPLICATION_ID -> buildApplicationNotificationTemplateData(organizationId, entry.getValue());
                         case PLAN_ID -> buildPlanNotificationTemplateData(entry.getValue());
                         case SUBSCRIPTION_ID -> buildSubscriptionNotificationTemplateData(entry.getValue());
+                        case API_KEY -> Optional.of(entry.getValue());
                     }
                 )
             )
@@ -109,6 +109,7 @@ public class TemplateDataFetcher {
             case APPLICATION_ID -> "application";
             case PLAN_ID -> "plan";
             case SUBSCRIPTION_ID -> "subscription";
+            case API_KEY -> "apiKey";
         };
     }
 

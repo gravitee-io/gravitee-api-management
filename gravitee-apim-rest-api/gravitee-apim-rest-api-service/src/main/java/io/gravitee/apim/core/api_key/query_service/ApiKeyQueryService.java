@@ -16,8 +16,10 @@
 package io.gravitee.apim.core.api_key.query_service;
 
 import io.gravitee.apim.core.api_key.model.ApiKeyEntity;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 public interface ApiKeyQueryService {
+    Optional<ApiKeyEntity> findById(String apiKeyId);
     Stream<ApiKeyEntity> findBySubscription(String subscriptionId);
 }
