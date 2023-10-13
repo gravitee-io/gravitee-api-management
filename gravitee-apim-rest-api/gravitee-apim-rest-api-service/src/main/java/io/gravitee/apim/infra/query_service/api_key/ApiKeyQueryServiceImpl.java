@@ -21,6 +21,7 @@ import io.gravitee.apim.infra.adapter.ApiKeyAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.util.Optional;
 import java.util.stream.Stream;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -32,6 +33,15 @@ public class ApiKeyQueryServiceImpl implements ApiKeyQueryService {
 
     public ApiKeyQueryServiceImpl(@Lazy ApiKeyRepository apiKeyRepository) {
         this.apiKeyRepository = apiKeyRepository;
+    }
+
+    @Override
+    public Optional<ApiKeyEntity> findById(String id) {
+        try {
+            return apiKeyRepository.findById(id).map(ApiKeyAdapter.INSTANCE::toEntity);
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException("An error occurs while trying to find API key by id: " + id, e);
+        }
     }
 
     @Override

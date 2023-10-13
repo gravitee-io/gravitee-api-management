@@ -72,7 +72,7 @@ public class ApiKeyCrudServiceImplTest {
                         .application("application-id")
                         .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
                         .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
-                        .expireAt(Date.from(Instant.parse("2021-02-01T20:22:02.00Z")))
+                        .expireAt(Date.from(Instant.parse("2051-02-01T20:22:02.00Z")))
                         .revokedAt(null)
                         .revoked(false)
                         .paused(false)

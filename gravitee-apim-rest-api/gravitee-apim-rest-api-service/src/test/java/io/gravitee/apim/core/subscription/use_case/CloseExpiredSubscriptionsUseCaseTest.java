@@ -88,7 +88,9 @@ class CloseExpiredSubscriptionsUseCaseTest {
         var revokeApiKeyDomainService = new RevokeApiKeyDomainService(
             apiKeyCrudService,
             new ApiKeyQueryServiceInMemory(apiKeyCrudService),
-            auditDomainService
+            subscriptionCrudService,
+            auditDomainService,
+            triggerNotificationService
         );
 
         usecase =

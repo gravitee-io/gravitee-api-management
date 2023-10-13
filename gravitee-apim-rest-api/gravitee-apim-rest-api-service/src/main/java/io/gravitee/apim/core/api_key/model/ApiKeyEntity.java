@@ -68,4 +68,8 @@ public class ApiKeyEntity {
     public boolean canBeRevoked() {
         return !this.isRevoked() && !this.isExpired();
     }
+
+    public boolean hasSubscription(String subscriptionId) {
+        return subscriptions.contains(subscriptionId);
+    }
 }

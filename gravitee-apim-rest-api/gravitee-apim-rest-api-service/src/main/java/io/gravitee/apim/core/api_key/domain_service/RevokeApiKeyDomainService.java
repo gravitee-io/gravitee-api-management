@@ -23,6 +23,9 @@ import io.gravitee.apim.core.audit.model.ApiAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.event.ApiKeyAuditEvent;
+import io.gravitee.apim.core.notification.domain_service.TriggerNotificationDomainService;
+import io.gravitee.apim.core.notification.model.hook.ApiKeyRevokedApiHookContext;
+import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -34,16 +37,22 @@ public class RevokeApiKeyDomainService {
 
     private final ApiKeyCrudService apiKeyCrudService;
     private final ApiKeyQueryService apiKeyQueryService;
+    private final SubscriptionCrudService subscriptionCrudService;
     private final AuditDomainService auditService;
+    private final TriggerNotificationDomainService triggerNotificationDomainService;
 
     public RevokeApiKeyDomainService(
         ApiKeyCrudService apiKeyCrudService,
         ApiKeyQueryService apiKeyQueryService,
-        AuditDomainService auditService
+        SubscriptionCrudService subscriptionCrudService,
+        AuditDomainService auditService,
+        TriggerNotificationDomainService triggerNotificationDomainService
     ) {
         this.apiKeyCrudService = apiKeyCrudService;
         this.apiKeyQueryService = apiKeyQueryService;
+        this.subscriptionCrudService = subscriptionCrudService;
         this.auditService = auditService;
+        this.triggerNotificationDomainService = triggerNotificationDomainService;
     }
 
     public Set<ApiKeyEntity> revokeAllSubscriptionsApiKeys(SubscriptionEntity subscription, AuditInfo auditInfo) {
@@ -58,6 +67,32 @@ public class RevokeApiKeyDomainService {
                 return revokedApiKey;
             })
             .collect(Collectors.toSet());
+    }
+
+    public ApiKeyEntity revoke(ApiKeyEntity apiKey, AuditInfo auditInfo) {
+        if (!apiKey.canBeRevoked()) {
+            return apiKey;
+        }
+
+        var revoked = apiKeyCrudService.update(apiKey.revoke());
+
+        apiKey
+            .getSubscriptions()
+            .forEach(subscriptionId -> {
+                var subscription = subscriptionCrudService.get(subscriptionId);
+                createAuditLog(apiKey, revoked, subscription, auditInfo);
+                triggerNotificationDomainService.triggerApiNotification(
+                    auditInfo.organizationId(),
+                    new ApiKeyRevokedApiHookContext(
+                        subscription.getApiId(),
+                        subscription.getApplicationId(),
+                        subscription.getPlanId(),
+                        apiKey.getKey()
+                    )
+                );
+            });
+
+        return revoked;
     }
 
     private void createAuditLog(

@@ -19,16 +19,20 @@ import static fixtures.core.model.AuditInfoFixtures.anAuditInfo;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import fixtures.core.model.ApiKeyFixtures;
+import fixtures.core.model.SubscriptionFixtures;
 import inmemory.ApiKeyCrudServiceInMemory;
 import inmemory.ApiKeyQueryServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
+import inmemory.SubscriptionCrudServiceInMemory;
+import inmemory.TriggerNotificationDomainServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.api_key.model.ApiKeyEntity;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.event.ApiKeyAuditEvent;
+import io.gravitee.apim.core.notification.model.hook.ApiKeyRevokedApiHookContext;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.rest.api.service.common.UuidString;
@@ -40,6 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 import lombok.SneakyThrows;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,11 +57,20 @@ class RevokeApiKeyDomainServiceTest {
     private static final String ENVIRONMENT_ID = "environment-id";
     private static final String USER_ID = "user-id";
     private static final AuditInfo AUDIT_INFO = anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
+    private static final String SUBSCRIPTION_ID_1 = "subscription1";
+    private static final String SUBSCRIPTION_ID_2 = "subscription2";
+    private static final String API_ID_1 = "api1";
+    private static final String API_ID_2 = "api2";
+    private static final String PLAN_ID_1 = "plan1";
+    private static final String PLAN_ID_2 = "plan2";
+    private static final String APPLICATION_ID_1 = "app1";
+    private static final String APPLICATION_ID_2 = "app2";
 
     ApiKeyCrudServiceInMemory apiKeyCrudService = new ApiKeyCrudServiceInMemory();
     AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
-
+    SubscriptionCrudServiceInMemory subscriptionCrudService = new SubscriptionCrudServiceInMemory();
+    TriggerNotificationDomainServiceInMemory triggerNotificationDomainService = new TriggerNotificationDomainServiceInMemory();
     RevokeApiKeyDomainService service;
 
     @BeforeEach
@@ -67,7 +81,9 @@ class RevokeApiKeyDomainServiceTest {
             new RevokeApiKeyDomainService(
                 apiKeyCrudService,
                 new ApiKeyQueryServiceInMemory(apiKeyCrudService),
-                new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor())
+                subscriptionCrudService,
+                new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
+                triggerNotificationDomainService
             );
     }
 
@@ -223,8 +239,155 @@ class RevokeApiKeyDomainServiceTest {
         }
     }
 
+    @Nested
+    class Revoke {
+
+        @Test
+        void should_do_nothing_when_api_key_is_revoked() {
+            // Given
+            var apiKey = ApiKeyFixtures.anApiKey().toBuilder().revoked(true).build();
+
+            // When
+            var result = service.revoke(apiKey, AUDIT_INFO);
+
+            // Then
+            assertThat(auditCrudService.storage()).isEmpty();
+            assertThat(result).isSameAs(apiKey);
+        }
+
+        @Test
+        void should_do_nothing_when_api_key_is_expired() {
+            // Given
+            var apiKey = ApiKeyFixtures.anApiKey().toBuilder().expireAt(ZonedDateTime.now().minusSeconds(30)).build();
+
+            // When
+            var result = service.revoke(apiKey, AUDIT_INFO);
+
+            // Then
+            assertThat(auditCrudService.storage()).isEmpty();
+            assertThat(result).isSameAs(apiKey);
+        }
+
+        @Test
+        void should_revoke_api_key() {
+            // Given
+            var now = ZonedDateTime.now();
+            var subscriptionIds = givenSubscriptions(List.of(SubscriptionFixtures.aSubscription(), SubscriptionFixtures.aSubscription()))
+                .stream()
+                .map(SubscriptionEntity::getId)
+                .toList();
+            var apiKey = givenApiKey(ApiKeyFixtures.anApiKey().toBuilder().subscriptions(subscriptionIds).build());
+
+            // When
+            var result = service.revoke(apiKey, AUDIT_INFO);
+
+            // Then
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(result.isRevoked()).describedAs("ApiKey is not revoked").isTrue();
+                soft.assertThat(result.getRevokedAt()).isEqualTo(result.getUpdatedAt());
+                soft.assertThat(result.getRevokedAt()).isAfterOrEqualTo(now);
+            });
+        }
+
+        @Test
+        void should_create_an_audit_for_each_subscriptions() {
+            // Given
+            var subscriptions = givenSubscriptions();
+            var apiKey = givenApiKey(
+                ApiKeyFixtures.anApiKey().toBuilder().subscriptions(subscriptions.stream().map(SubscriptionEntity::getId).toList()).build()
+            );
+
+            // When
+            var result = service.revoke(apiKey, AUDIT_INFO);
+
+            // Then
+            assertThat(auditCrudService.storage())
+                .hasSize(2)
+                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
+                .contains(
+                    new AuditEntity(
+                        "audit-id",
+                        ORGANIZATION_ID,
+                        ENVIRONMENT_ID,
+                        AuditEntity.AuditReferenceType.API,
+                        API_ID_2,
+                        USER_ID,
+                        Map.of("API_KEY", apiKey.getKey(), "API", API_ID_2, "APPLICATION", APPLICATION_ID_2),
+                        ApiKeyAuditEvent.APIKEY_REVOKED.name(),
+                        result.getRevokedAt(),
+                        ""
+                    ),
+                    new AuditEntity(
+                        "audit-id",
+                        ORGANIZATION_ID,
+                        ENVIRONMENT_ID,
+                        AuditEntity.AuditReferenceType.API,
+                        API_ID_1,
+                        USER_ID,
+                        Map.of("API_KEY", apiKey.getKey(), "API", API_ID_1, "APPLICATION", APPLICATION_ID_1),
+                        ApiKeyAuditEvent.APIKEY_REVOKED.name(),
+                        result.getRevokedAt(),
+                        ""
+                    )
+                );
+        }
+
+        @Test
+        void should_trigger_api_notification_for_each_subscription() {
+            // Given
+            var subscriptions = givenSubscriptions();
+            var apiKey = givenApiKey(
+                ApiKeyFixtures.anApiKey().toBuilder().subscriptions(subscriptions.stream().map(SubscriptionEntity::getId).toList()).build()
+            );
+
+            // When
+            service.revoke(apiKey, AUDIT_INFO);
+
+            // Then
+            assertThat(triggerNotificationDomainService.getApiNotifications())
+                .containsExactly(
+                    new ApiKeyRevokedApiHookContext(API_ID_1, APPLICATION_ID_1, PLAN_ID_1, apiKey.getKey()),
+                    new ApiKeyRevokedApiHookContext(API_ID_2, APPLICATION_ID_2, PLAN_ID_2, apiKey.getKey())
+                );
+        }
+    }
+
     @SneakyThrows
     private void givenApiKeys(List<ApiKeyEntity> keys) {
         apiKeyCrudService.initWith(keys);
+    }
+
+    @SneakyThrows
+    private ApiKeyEntity givenApiKey(ApiKeyEntity key) {
+        apiKeyCrudService.initWith(List.of(key));
+        return key;
+    }
+
+    private List<SubscriptionEntity> givenSubscriptions(List<SubscriptionEntity> subscriptions) {
+        subscriptionCrudService.initWith(subscriptions);
+        return subscriptions;
+    }
+
+    private List<SubscriptionEntity> givenSubscriptions() {
+        var subscriptions = List.of(
+            SubscriptionFixtures
+                .aSubscription()
+                .toBuilder()
+                .id(SUBSCRIPTION_ID_1)
+                .apiId(API_ID_1)
+                .applicationId(APPLICATION_ID_1)
+                .planId(PLAN_ID_1)
+                .build(),
+            SubscriptionFixtures
+                .aSubscription()
+                .toBuilder()
+                .id(SUBSCRIPTION_ID_2)
+                .apiId(API_ID_2)
+                .applicationId(APPLICATION_ID_2)
+                .planId(PLAN_ID_2)
+                .build()
+        );
+        subscriptionCrudService.initWith(subscriptions);
+        return subscriptions;
     }
 }

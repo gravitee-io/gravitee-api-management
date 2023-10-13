@@ -29,6 +29,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -48,6 +49,67 @@ public class ApiKeyQueryServiceImplTest {
     }
 
     @Nested
+    class FindById {
+
+        @Test
+        void should_return_api_key_and_adapt_it() throws TechnicalException {
+            // Given
+            var id = "api-key-id";
+            when(apiKeyRepository.findById(id)).thenAnswer(invocation -> Optional.of(anApiKey().id(invocation.getArgument(0)).build()));
+
+            // When
+            var result = service.findById(id);
+
+            // Then
+            assertThat(result)
+                .contains(
+                    ApiKeyEntity
+                        .builder()
+                        .id(id)
+                        .subscriptions(List.of("subscription-id"))
+                        .key("c080f684-2c35-40a1-903c-627c219e0567")
+                        .applicationId("application-id")
+                        .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                        .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                        .expireAt(Instant.parse("2021-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                        .revokedAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                        .revoked(true)
+                        .paused(true)
+                        .daysToExpirationOnLastNotification(310)
+                        .build()
+                );
+        }
+
+        @Test
+        void should_return_empty_when_no_api_key_found() throws TechnicalException {
+            // Given
+            String id = "unknown";
+            when(apiKeyRepository.findById(id)).thenReturn(Optional.empty());
+
+            // When
+            var result = service.findById(id);
+
+            // Then
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        void should_throw_when_technical_exception_occurs() throws TechnicalException {
+            // Given
+            String id = "my-api-key";
+            when(apiKeyRepository.findById(id)).thenThrow(TechnicalException.class);
+
+            // When
+            Throwable throwable = catchThrowable(() -> service.findById(id));
+
+            // Then
+            assertThat(throwable)
+                .isInstanceOf(TechnicalManagementException.class)
+                .hasMessage("An error occurs while trying to find API key by id: " + id);
+        }
+    }
+
+    @Nested
     class FindBySubscriptionId {
 
         @Test
@@ -55,7 +117,7 @@ public class ApiKeyQueryServiceImplTest {
             // Given
             var subscriptionId = "subscription-id";
             when(apiKeyRepository.findBySubscription(subscriptionId))
-                .thenAnswer(invocation -> Set.of(anApiKey(invocation.getArgument(0)).build()));
+                .thenAnswer(invocation -> Set.of(anApiKeyForSubscription(invocation.getArgument(0)).build()));
 
             // When
             var result = service.findBySubscription(subscriptionId);
@@ -109,13 +171,17 @@ public class ApiKeyQueryServiceImplTest {
         }
     }
 
-    private ApiKey.ApiKeyBuilder anApiKey(String subscriptionId) {
+    private ApiKey.ApiKeyBuilder anApiKeyForSubscription(String subscriptionId) {
+        return anApiKey().subscriptions(List.of(subscriptionId));
+    }
+
+    private ApiKey.ApiKeyBuilder anApiKey() {
         return ApiKey
             .builder()
             .key("c080f684-2c35-40a1-903c-627c219e0567")
-            .subscriptions(List.of(subscriptionId))
             .id("api-key-id")
             .application("application-id")
+            .subscriptions(List.of("subscription-id"))
             .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
             .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
             .revokedAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))

@@ -100,9 +100,17 @@ public class CoreServiceSpringConfiguration {
     public RevokeApiKeyDomainService revokeApiKeyDomainService(
         ApiKeyCrudService apiKeyCrudService,
         ApiKeyQueryService apiKeyQueryService,
-        AuditDomainService auditDomainService
+        SubscriptionCrudService subscriptionCrudService,
+        AuditDomainService auditDomainService,
+        TriggerNotificationDomainService triggerNotificationDomainService
     ) {
-        return new RevokeApiKeyDomainService(apiKeyCrudService, apiKeyQueryService, auditDomainService);
+        return new RevokeApiKeyDomainService(
+            apiKeyCrudService,
+            apiKeyQueryService,
+            subscriptionCrudService,
+            auditDomainService,
+            triggerNotificationDomainService
+        );
     }
 
     @Bean
