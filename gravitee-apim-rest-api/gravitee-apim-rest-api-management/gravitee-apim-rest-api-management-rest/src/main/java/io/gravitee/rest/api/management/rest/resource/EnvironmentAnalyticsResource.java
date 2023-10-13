@@ -36,6 +36,7 @@ import io.gravitee.rest.api.model.analytics.query.StatsAnalytics;
 import io.gravitee.rest.api.model.analytics.query.StatsQuery;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiQuery;
+import io.gravitee.rest.api.model.application.ApplicationExcludeFilter;
 import io.gravitee.rest.api.model.application.ApplicationQuery;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.service.AnalyticsService;
@@ -44,7 +45,6 @@ import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -55,6 +55,7 @@ import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Response;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -232,31 +233,39 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
      */
     private String buildFieldFilterForNonAdmin(ExecutionContext executionContext, AnalyticsParam analyticsParam)
         throws FieldFilterEmptyException {
+        String fieldName;
+        Set<String> ids;
         // add filter by Apis or Applications
         if (isAdmin()) {
-            return null;
-        }
-
-        String fieldName;
-        List<String> ids;
-        if (APPLICATION_FIELD.equalsIgnoreCase(analyticsParam.getField())) {
-            fieldName = APPLICATION_FIELD;
-            ids =
-                applicationService
-                    .findIdsByUser(executionContext, getAuthenticatedUser())
-                    .stream()
-                    .filter(appId -> permissionService.hasPermission(executionContext, APPLICATION_ANALYTICS, appId, READ))
-                    .collect(Collectors.toList());
+            if (APPLICATION_FIELD.equalsIgnoreCase(analyticsParam.getField())) {
+                fieldName = APPLICATION_FIELD;
+                ApplicationQuery applicationQuery = new ApplicationQuery();
+                applicationQuery.setStatus(ApplicationStatus.ACTIVE.name());
+                applicationQuery.setExcludeFilters(List.of(ApplicationExcludeFilter.OWNER));
+                ids = applicationService.searchIds(executionContext, applicationQuery, null);
+            } else {
+                fieldName = API_FIELD;
+                ids = apiAuthorizationService.findIdsByEnvironment(executionContext.getEnvironmentId());
+            }
         } else {
-            fieldName = API_FIELD;
-            ids =
-                apiAuthorizationService
-                    .findIdsByUser(executionContext, getAuthenticatedUser(), true)
-                    .stream()
-                    .filter(apiId -> permissionService.hasPermission(executionContext, API_ANALYTICS, apiId, READ))
-                    .collect(Collectors.toList());
+            if (APPLICATION_FIELD.equalsIgnoreCase(analyticsParam.getField())) {
+                fieldName = APPLICATION_FIELD;
+                ids =
+                    applicationService
+                        .findIdsByUser(executionContext, getAuthenticatedUser())
+                        .stream()
+                        .filter(appId -> permissionService.hasPermission(executionContext, APPLICATION_ANALYTICS, appId, READ))
+                        .collect(Collectors.toSet());
+            } else {
+                fieldName = API_FIELD;
+                ids =
+                    apiAuthorizationService
+                        .findIdsByUser(executionContext, getAuthenticatedUser(), true)
+                        .stream()
+                        .filter(apiId -> permissionService.hasPermission(executionContext, API_ANALYTICS, apiId, READ))
+                        .collect(Collectors.toSet());
+            }
         }
-
         if (ids.isEmpty()) {
             throw new FieldFilterEmptyException();
         } else {

@@ -19,11 +19,14 @@ import static io.gravitee.rest.api.model.permissions.RolePermission.*;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.rest.api.management.rest.resource.param.Aggregation;
 import io.gravitee.rest.api.management.rest.resource.param.AnalyticsParam;
 import io.gravitee.rest.api.management.rest.resource.param.Range;
 import io.gravitee.rest.api.model.analytics.Analytics;
 import io.gravitee.rest.api.model.analytics.query.*;
+import io.gravitee.rest.api.model.application.ApplicationExcludeFilter;
+import io.gravitee.rest.api.model.application.ApplicationQuery;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.AnalyticsService;
@@ -42,6 +45,7 @@ import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Response;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -56,9 +60,6 @@ import org.jetbrains.annotations.NotNull;
  */
 @Tag(name = "Platform Analytics")
 public class PlatformAnalyticsResource extends AbstractResource {
-
-    @Inject
-    ApiService apiService;
 
     @Inject
     PermissionService permissionService;
@@ -129,7 +130,7 @@ public class PlatformAnalyticsResource extends AbstractResource {
     private Set<String> findApiIds() {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (isAdmin()) {
-            return apiAuthorizationService.findIdsByEnvironment(executionContext);
+            return apiAuthorizationService.findIdsByEnvironment(executionContext.getEnvironmentId());
         }
         return apiAuthorizationService
             .findIdsByUser(executionContext, getAuthenticatedUser(), true)
@@ -142,7 +143,10 @@ public class PlatformAnalyticsResource extends AbstractResource {
     private Set<String> findApplicationIds() {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (isAdmin()) {
-            return applicationService.findIdsByUser(executionContext, null);
+            ApplicationQuery applicationQuery = new ApplicationQuery();
+            applicationQuery.setStatus(ApplicationStatus.ACTIVE.name());
+            applicationQuery.setExcludeFilters(List.of(ApplicationExcludeFilter.OWNER));
+            return applicationService.searchIds(executionContext, applicationQuery, null);
         }
         return applicationService
             .findIdsByUser(executionContext, getAuthenticatedUser())
