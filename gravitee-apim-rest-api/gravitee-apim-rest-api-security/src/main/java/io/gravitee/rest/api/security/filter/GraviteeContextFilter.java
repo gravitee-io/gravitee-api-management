@@ -19,7 +19,6 @@ import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.rest.api.model.EnvironmentEntity;
-import io.gravitee.rest.api.model.bootstrap.PortalUIBootstrapEntity;
 import io.gravitee.rest.api.security.filter.error.ErrorHelper;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -33,7 +32,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URL;
 import java.util.Optional;
 import lombok.NonNull;
@@ -144,7 +142,7 @@ public class GraviteeContextFilter extends GenericFilterBean {
     private ExecutionContext getFromAccessPoints(final HttpServletRequest httpServletRequest) {
         ExecutionContext accessPointContext = null;
         Optional<ReferenceContext> optionalReferenceContext = getReferenceContextFromServer(httpServletRequest)
-            .or(() -> getReferenceContextFromOrigin(httpServletRequest));
+            .or(() -> getReferenceContextFromReferer(httpServletRequest));
         if (optionalReferenceContext.isPresent()) {
             ReferenceContext referenceContext = optionalReferenceContext.get();
             if (referenceContext.getReferenceType() == ReferenceContext.Type.ENVIRONMENT) {
@@ -163,13 +161,13 @@ public class GraviteeContextFilter extends GenericFilterBean {
         return getReferenceContext(httpServletRequest.getServerName(), httpServletRequest.getServerPort());
     }
 
-    private Optional<? extends ReferenceContext> getReferenceContextFromOrigin(final HttpServletRequest httpServletRequest) {
+    private Optional<? extends ReferenceContext> getReferenceContextFromReferer(final HttpServletRequest httpServletRequest) {
         // Find related api access points
-        String originHeaderValue = httpServletRequest.getHeader(HttpHeaderNames.ORIGIN);
-        if (originHeaderValue != null) {
+        String refererHeaderValue = httpServletRequest.getHeader(HttpHeaderNames.REFERER);
+        if (refererHeaderValue != null) {
             try {
-                URL originUrl = new URL(originHeaderValue);
-                return getReferenceContext(originUrl.getHost(), originUrl.getPort());
+                URL refererUrl = new URL(refererHeaderValue);
+                return getReferenceContext(refererUrl.getHost(), refererUrl.getPort());
             } catch (MalformedURLException e) {
                 // Ignore this except
                 log.warn("Unable to retrieve access point from origin due to an error when reading header.");
