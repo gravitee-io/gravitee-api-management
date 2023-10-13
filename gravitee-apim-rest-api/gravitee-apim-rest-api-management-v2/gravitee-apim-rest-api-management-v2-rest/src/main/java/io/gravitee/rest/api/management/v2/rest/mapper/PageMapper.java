@@ -81,6 +81,13 @@ public interface PageMapper {
     @Mapping(target = "uploadDate", source = "createdAt")
     MediaEntity mapMedia(Media media);
 
+    io.gravitee.apim.core.documentation.model.Page map(
+        io.gravitee.rest.api.management.v2.rest.model.CreateDocumentationMarkdown createDocumentationMarkdown
+    );
+    io.gravitee.apim.core.documentation.model.Page map(
+        io.gravitee.rest.api.management.v2.rest.model.CreateDocumentationFolder createDocumentationFolder
+    );
+
     @Named("deserializeJsonConfiguration")
     default JsonNode deserializeJsonConfiguration(Object configuration) throws JsonProcessingException {
         if (Objects.isNull(configuration)) {
