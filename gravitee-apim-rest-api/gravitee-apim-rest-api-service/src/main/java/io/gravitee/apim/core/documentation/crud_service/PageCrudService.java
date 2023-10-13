@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.documentation.query_service;
+package io.gravitee.apim.core.documentation.crud_service;
 
 import io.gravitee.apim.core.documentation.model.Page;
-import java.util.List;
-import java.util.Optional;
 
-public interface PageQueryService {
-    List<Page> searchByApiId(String apiId);
-    Optional<Page> findHomepageByApiId(String apiId);
+public interface PageCrudService {
+    Page createDocumentationPage(Page page);
+    Page updateDocumentationPage(Page pageToUpdate);
+    Page get(String id);
 }

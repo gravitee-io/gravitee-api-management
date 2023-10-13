@@ -15,20 +15,7 @@
  */
 package io.gravitee.rest.api.portal.rest.spring;
 
-import inmemory.ApiKeyCrudServiceInMemory;
-import inmemory.ApiKeyQueryServiceInMemory;
-import inmemory.ApiQueryServiceInMemory;
-import inmemory.ApplicationCrudServiceInMemory;
-import inmemory.AuditCrudServiceInMemory;
-import inmemory.ConnectionLogCrudServiceInMemory;
-import inmemory.EnvironmentCrudServiceInMemory;
-import inmemory.MessageLogCrudServiceInMemory;
-import inmemory.PageQueryServiceInMemory;
-import inmemory.PlanCrudServiceInMemory;
-import inmemory.SubscriptionCrudServiceInMemory;
-import inmemory.SubscriptionQueryServiceInMemory;
-import inmemory.TriggerNotificationDomainServiceInMemory;
-import inmemory.UserCrudServiceInMemory;
+import inmemory.*;
 import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -104,5 +91,15 @@ public class InMemoryConfiguration {
     @Bean
     public PageQueryServiceInMemory pageQueryServiceInMemory() {
         return new PageQueryServiceInMemory();
+    }
+
+    @Bean
+    public PageCrudServiceInMemory pageCrudServiceInMemory() {
+        return new PageCrudServiceInMemory();
+    }
+
+    @Bean
+    public PageRevisionCrudServiceInMemory pageRevisionCrudServiceInMemory() {
+        return new PageRevisionCrudServiceInMemory();
     }
 }
