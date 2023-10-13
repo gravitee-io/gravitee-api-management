@@ -178,11 +178,11 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
     }
 
     @Override
-    public Set<String> findIdsByEnvironment(ExecutionContext executionContext) {
-        if (isBlank(executionContext.getEnvironmentId())) {
+    public Set<String> findIdsByEnvironment(final String environmentId) {
+        if (isBlank(environmentId)) {
             return Set.of();
         }
-        final ApiCriteria.Builder builder = new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId());
+        final ApiCriteria.Builder builder = new ApiCriteria.Builder().environmentId(environmentId);
         List<ApiCriteria> apiCriteriaList = new ArrayList<>();
         apiCriteriaList.add(builder.build());
 
