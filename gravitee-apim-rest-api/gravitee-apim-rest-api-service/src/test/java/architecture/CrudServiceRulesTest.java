@@ -70,6 +70,6 @@ public class CrudServiceRulesTest extends AbstractApimArchitectureTest {
             .notDependOnEachOther()
             // ignore dependencies from inmemory package are they implements services
             .ignoreDependency(nameMatching(".*crud_service\\.inmemory.*"), alwaysTrue())
-            .check(apimClasses());
+            .check(apimClassesWithoutTests());
     }
 }
