@@ -268,7 +268,7 @@ describe('ApiPlanFormComponent', () => {
 
         expect(testComponent.apiPlanForm.hasNextStep()).toEqual(true);
         expect(testComponent.apiPlanForm.hasPreviousStep()).toEqual(false);
-        testComponent.apiPlanForm.nextStep();
+        await testComponent.apiPlanForm.waitForNextStep();
         fixture.detectChanges();
 
         // 2- Secure Step
@@ -279,7 +279,7 @@ describe('ApiPlanFormComponent', () => {
 
         expect(testComponent.apiPlanForm.hasNextStep()).toEqual(true);
         expect(testComponent.apiPlanForm.hasPreviousStep()).toEqual(true);
-        testComponent.apiPlanForm.nextStep();
+        await testComponent.apiPlanForm.waitForNextStep();
 
         // 3- Restriction Step
 
@@ -415,7 +415,7 @@ describe('ApiPlanFormComponent', () => {
 
         expect(testComponent.apiPlanForm.hasNextStep()).toEqual(true);
         expect(testComponent.apiPlanForm.hasPreviousStep()).toEqual(false);
-        testComponent.apiPlanForm.nextStep();
+        await testComponent.apiPlanForm.waitForNextStep();
         fixture.detectChanges();
 
         // 2- Secure Step
@@ -429,7 +429,7 @@ describe('ApiPlanFormComponent', () => {
 
         expect(testComponent.apiPlanForm.hasNextStep()).toEqual(true);
         expect(testComponent.apiPlanForm.hasPreviousStep()).toEqual(true);
-        testComponent.apiPlanForm.nextStep();
+        await testComponent.apiPlanForm.waitForNextStep();
 
         // 3- Restriction Step
 

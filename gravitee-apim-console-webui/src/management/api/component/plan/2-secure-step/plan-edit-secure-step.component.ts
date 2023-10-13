@@ -47,6 +47,7 @@ export class PlanEditSecureStepComponent implements OnInit, OnDestroy {
 
   @Input()
   securityType: PlanMenuItemVM;
+
   constructor(
     @Inject('Constants') private readonly constants: Constants,
     private readonly policyService: PolicyV2Service,
