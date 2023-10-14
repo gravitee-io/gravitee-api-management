@@ -15,13 +15,14 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import io.gravitee.apim.core.api_key.use_case.RevokeApplicationApiKeyUseCase;
+import io.gravitee.apim.core.audit.model.AuditActor;
+import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
-import io.gravitee.rest.api.service.ApiKeyService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Operation;
@@ -42,7 +43,7 @@ import jakarta.ws.rs.core.Response;
 public class ApplicationApiKeyResource extends AbstractApiKeyResource {
 
     @Inject
-    private ApiKeyService apiKeyService;
+    private RevokeApplicationApiKeyUseCase revokeApplicationApiKeyUsecase;
 
     @SuppressWarnings("UnresolvedRestParam")
     @PathParam("application")
@@ -62,14 +63,28 @@ public class ApplicationApiKeyResource extends AbstractApiKeyResource {
     @Permissions({ @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.DELETE) })
     public Response revokeApiKeyForApplication(@PathParam("apikey") String apikey) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        ApiKeyEntity apiKeyEntity = apiKeyService.findById(executionContext, apikey);
+        final var user = getAuthenticatedUserDetails();
 
-        if (apiKeyEntity.getApplication() == null || !apiKeyEntity.getApplication().getId().equals(application)) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("'key' parameter does not correspond to the application").build();
-        }
+        revokeApplicationApiKeyUsecase.execute(
+            new RevokeApplicationApiKeyUseCase.Input(
+                apikey,
+                application,
+                AuditInfo
+                    .builder()
+                    .organizationId(executionContext.getOrganizationId())
+                    .environmentId(executionContext.getEnvironmentId())
+                    .actor(
+                        AuditActor
+                            .builder()
+                            .userId(user.getUsername())
+                            .userSource(user.getSource())
+                            .userSourceId(user.getSourceId())
+                            .build()
+                    )
+                    .build()
+            )
+        );
 
-        checkApplicationUsesSharedApiKey(apiKeyEntity.getApplication());
-        apiKeyService.revoke(executionContext, apiKeyEntity, true);
         return Response.status(Response.Status.NO_CONTENT).build();
     }
 }

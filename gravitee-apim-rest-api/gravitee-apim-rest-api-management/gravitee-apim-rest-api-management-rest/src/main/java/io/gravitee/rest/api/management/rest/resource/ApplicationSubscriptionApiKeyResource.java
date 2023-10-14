@@ -15,13 +15,14 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import io.gravitee.apim.core.api_key.use_case.RevokeApplicationSubscriptionApiKeyUseCase;
+import io.gravitee.apim.core.audit.model.AuditActor;
+import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
-import io.gravitee.rest.api.service.ApiKeyService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Operation;
@@ -41,7 +42,7 @@ import jakarta.ws.rs.core.Response;
 public class ApplicationSubscriptionApiKeyResource extends AbstractApiKeyResource {
 
     @Inject
-    private ApiKeyService apiKeyService;
+    private RevokeApplicationSubscriptionApiKeyUseCase revokeApplicationSubscriptionApiKeyUsecase;
 
     @SuppressWarnings("UnresolvedRestParam")
     @PathParam("application")
@@ -66,13 +67,28 @@ public class ApplicationSubscriptionApiKeyResource extends AbstractApiKeyResourc
     @Permissions({ @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.DELETE) })
     public Response revokeApiKeyForApplicationSubscription() {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        checkApplicationDoesntUseSharedApiKey(executionContext, application);
-        ApiKeyEntity apiKeyEntity = apiKeyService.findById(executionContext, apikey);
-        if (!apiKeyEntity.hasSubscription(subscription)) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("'key' parameter does not correspond to the subscription").build();
-        }
+        final var user = getAuthenticatedUserDetails();
 
-        apiKeyService.revoke(executionContext, apiKeyEntity, true);
+        revokeApplicationSubscriptionApiKeyUsecase.execute(
+            new RevokeApplicationSubscriptionApiKeyUseCase.Input(
+                apikey,
+                application,
+                subscription,
+                AuditInfo
+                    .builder()
+                    .organizationId(executionContext.getOrganizationId())
+                    .environmentId(executionContext.getEnvironmentId())
+                    .actor(
+                        AuditActor
+                            .builder()
+                            .userId(user.getUsername())
+                            .userSource(user.getSource())
+                            .userSourceId(user.getSourceId())
+                            .build()
+                    )
+                    .build()
+            )
+        );
         return Response.status(Response.Status.NO_CONTENT).build();
     }
 }

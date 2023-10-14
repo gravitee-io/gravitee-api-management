@@ -17,6 +17,9 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
 
+import io.gravitee.apim.core.api_key.use_case.RevokeApiSubscriptionApiKeyUseCase;
+import io.gravitee.apim.core.audit.model.AuditActor;
+import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
@@ -55,6 +58,9 @@ public class ApiSubscriptionApiKeyResource extends AbstractApiKeyResource {
 
     @Inject
     private ApiKeyService apiKeyService;
+
+    @Inject
+    private RevokeApiSubscriptionApiKeyUseCase revokeApiSubscriptionApiKeyUsecase;
 
     @Inject
     private SubscriptionService subscriptionService;
@@ -99,13 +105,29 @@ public class ApiSubscriptionApiKeyResource extends AbstractApiKeyResource {
     @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.DELETE) })
     public Response revokeApiKeyForApiSubscription() {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        ApiKeyEntity apiKeyEntity = apiKeyService.findById(executionContext, apikey);
+        final var user = getAuthenticatedUserDetails();
 
-        if (!apiKeyEntity.hasSubscription(subscription)) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("API Key in path does not correspond to the subscription").build();
-        }
-        checkApplicationDoesntUseSharedApiKey(apiKeyEntity.getApplication());
-        apiKeyService.revoke(executionContext, apiKeyEntity, true);
+        revokeApiSubscriptionApiKeyUsecase.execute(
+            new RevokeApiSubscriptionApiKeyUseCase.Input(
+                apikey,
+                api,
+                subscription,
+                AuditInfo
+                    .builder()
+                    .organizationId(executionContext.getOrganizationId())
+                    .environmentId(executionContext.getEnvironmentId())
+                    .actor(
+                        AuditActor
+                            .builder()
+                            .userId(user.getUsername())
+                            .userSource(user.getSource())
+                            .userSourceId(user.getSourceId())
+                            .build()
+                    )
+                    .build()
+            )
+        );
+
         return Response.noContent().build();
     }
 
