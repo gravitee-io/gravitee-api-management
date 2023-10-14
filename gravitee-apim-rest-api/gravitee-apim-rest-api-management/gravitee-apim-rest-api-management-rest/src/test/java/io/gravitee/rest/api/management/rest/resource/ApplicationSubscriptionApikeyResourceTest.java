@@ -15,21 +15,30 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.reset;
 
+import fixtures.core.model.ApiKeyFixtures;
+import fixtures.core.model.SubscriptionFixtures;
+import inmemory.ApiKeyCrudServiceInMemory;
+import inmemory.ApplicationCrudServiceInMemory;
+import inmemory.InMemoryAlternative;
+import inmemory.SubscriptionCrudServiceInMemory;
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.ApiKeyMode;
-import io.gravitee.rest.api.model.ApplicationEntity;
-import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import jakarta.ws.rs.core.Response;
-import java.util.Set;
-import org.junit.Before;
+import java.util.List;
+import java.util.stream.Stream;
+import org.assertj.core.api.Assertions;
+import org.junit.After;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author GraviteeSource Team
@@ -40,82 +49,150 @@ public class ApplicationSubscriptionApikeyResourceTest extends AbstractResourceT
     private static final String SUBSCRIPTION_ID = "my-subscription";
     private static final String APIKEY_ID = "my-apikey";
 
+    @Autowired
+    private ApiKeyCrudServiceInMemory apiKeyCrudServiceInMemory;
+
+    @Autowired
+    private ApplicationCrudServiceInMemory applicationCrudServiceInMemory;
+
+    @Autowired
+    private SubscriptionCrudServiceInMemory subscriptionCrudServiceInMemory;
+
     @Override
     protected String contextPath() {
         return "applications/" + APPLICATION_ID + "/subscriptions/" + SUBSCRIPTION_ID + "/apikeys/" + APIKEY_ID;
     }
 
-    @Before
-    public void init() {
-        reset(apiKeyService);
+    @After
+    public void tearDown() {
+        Stream
+            .of(apiKeyCrudServiceInMemory, applicationCrudServiceInMemory, subscriptionCrudServiceInMemory)
+            .forEach(InMemoryAlternative::reset);
+
+        reset(apiKeyCrudServiceInMemory);
+        GraviteeContext.cleanContext();
     }
 
     @Test
-    public void delete_should_call_revoke_service_and_return_http_204() {
-        mockExistingApplication(ApiKeyMode.EXCLUSIVE);
-
-        ApiKeyEntity existingApiKey = new ApiKeyEntity();
-        SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
-        subscriptionEntity.setId(SUBSCRIPTION_ID);
-        existingApiKey.setSubscriptions(Set.of(subscriptionEntity));
-        when(apiKeyService.findById(GraviteeContext.getExecutionContext(), APIKEY_ID)).thenReturn(existingApiKey);
+    public void delete_should_revoke_and_return_http_204() {
+        applicationCrudServiceInMemory.initWith(
+            List.of(BaseApplicationEntity.builder().id(APPLICATION_ID).apiKeyMode(ApiKeyMode.EXCLUSIVE).build())
+        );
+        subscriptionCrudServiceInMemory.initWith(
+            List.of(SubscriptionFixtures.aSubscription().toBuilder().id(SUBSCRIPTION_ID).applicationId(APPLICATION_ID).build())
+        );
+        apiKeyCrudServiceInMemory.initWith(
+            List.of(
+                ApiKeyFixtures
+                    .anApiKey()
+                    .toBuilder()
+                    .id(APIKEY_ID)
+                    .key("my-api-key-value")
+                    .applicationId(APPLICATION_ID)
+                    .subscriptions(List.of(SUBSCRIPTION_ID))
+                    .build()
+            )
+        );
 
         Response response = envTarget().request().delete();
 
-        verify(apiKeyService, times(1)).revoke(GraviteeContext.getExecutionContext(), existingApiKey, true);
-        assertEquals(HttpStatusCode.NO_CONTENT_204, response.getStatus());
+        Assertions
+            .assertThat(apiKeyCrudServiceInMemory.storage())
+            .extracting(
+                io.gravitee.apim.core.api_key.model.ApiKeyEntity::getId,
+                io.gravitee.apim.core.api_key.model.ApiKeyEntity::isRevoked
+            )
+            .containsExactly(tuple(APIKEY_ID, true));
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NO_CONTENT_204);
     }
 
     @Test
     public void delete_should_return_http_400_when_apikey_on_another_subscription() {
-        mockExistingApplication(ApiKeyMode.EXCLUSIVE);
-
-        ApiKeyEntity existingApiKey = new ApiKeyEntity();
-        SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
-        subscriptionEntity.setId("another-subscription");
-        existingApiKey.setSubscriptions(Set.of(subscriptionEntity));
-
-        when(apiKeyService.findById(GraviteeContext.getExecutionContext(), APIKEY_ID)).thenReturn(existingApiKey);
+        subscriptionCrudServiceInMemory.initWith(
+            List.of(SubscriptionFixtures.aSubscription().toBuilder().id(SUBSCRIPTION_ID).applicationId(APPLICATION_ID).build())
+        );
+        applicationCrudServiceInMemory.initWith(
+            List.of(BaseApplicationEntity.builder().apiKeyMode(ApiKeyMode.EXCLUSIVE).id(APPLICATION_ID).build())
+        );
+        apiKeyCrudServiceInMemory.initWith(
+            List.of(
+                ApiKeyFixtures
+                    .anApiKey()
+                    .toBuilder()
+                    .id(APIKEY_ID)
+                    .applicationId(APPLICATION_ID)
+                    .subscriptions(List.of("another-subscription"))
+                    .build()
+            )
+        );
 
         Response response = envTarget().request().delete();
 
-        verify(apiKeyService, never()).revoke(eq(GraviteeContext.getExecutionContext()), any(ApiKeyEntity.class), any(Boolean.class));
-        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
+        Assertions
+            .assertThat(apiKeyCrudServiceInMemory.storage())
+            .extracting(
+                io.gravitee.apim.core.api_key.model.ApiKeyEntity::getId,
+                io.gravitee.apim.core.api_key.model.ApiKeyEntity::isRevoked
+            )
+            .containsExactly(tuple(APIKEY_ID, false));
     }
 
     @Test
     public void delete_should_return_http_500_on_exception() {
-        mockExistingApplication(ApiKeyMode.EXCLUSIVE);
-        doThrow(TechnicalManagementException.class)
-            .when(apiKeyService)
-            .revoke(eq(GraviteeContext.getExecutionContext()), any(String.class), any(Boolean.class));
+        subscriptionCrudServiceInMemory.initWith(
+            List.of(SubscriptionFixtures.aSubscription().toBuilder().id(SUBSCRIPTION_ID).applicationId(APPLICATION_ID).build())
+        );
+        applicationCrudServiceInMemory.initWith(
+            List.of(BaseApplicationEntity.builder().apiKeyMode(ApiKeyMode.EXCLUSIVE).id(APPLICATION_ID).build())
+        );
+        apiKeyCrudServiceInMemory.initWith(
+            List.of(
+                ApiKeyFixtures
+                    .anApiKey()
+                    .toBuilder()
+                    .id(APIKEY_ID)
+                    .applicationId(APPLICATION_ID)
+                    .subscriptions(List.of(SUBSCRIPTION_ID))
+                    .build()
+            )
+        );
+        doThrow(TechnicalManagementException.class).when(apiKeyCrudServiceInMemory).update(any());
 
         Response response = envTarget().request().delete();
 
-        assertEquals(HttpStatusCode.INTERNAL_SERVER_ERROR_500, response.getStatus());
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
     }
 
     @Test
     public void delete_should_return_http_404_if_application_not_found() {
-        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(null);
-
         Response response = envTarget().request().delete();
 
-        assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
     }
 
     @Test
     public void delete_should_return_http_400_if_application_found_has_shared_apiKey_mode() {
-        mockExistingApplication(ApiKeyMode.SHARED);
+        applicationCrudServiceInMemory.initWith(
+            List.of(BaseApplicationEntity.builder().apiKeyMode(ApiKeyMode.SHARED).id(APPLICATION_ID).build())
+        );
+        subscriptionCrudServiceInMemory.initWith(
+            List.of(SubscriptionFixtures.aSubscription().toBuilder().id(SUBSCRIPTION_ID).applicationId(APPLICATION_ID).build())
+        );
+        apiKeyCrudServiceInMemory.initWith(
+            List.of(
+                ApiKeyFixtures
+                    .anApiKey()
+                    .toBuilder()
+                    .id(APIKEY_ID)
+                    .applicationId(APPLICATION_ID)
+                    .subscriptions(List.of(SUBSCRIPTION_ID))
+                    .build()
+            )
+        );
 
         Response response = envTarget().request().delete();
 
-        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
-    }
-
-    private void mockExistingApplication(ApiKeyMode apiKeyMode) {
-        ApplicationEntity application = new ApplicationEntity();
-        application.setApiKeyMode(apiKeyMode);
-        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
     }
 }

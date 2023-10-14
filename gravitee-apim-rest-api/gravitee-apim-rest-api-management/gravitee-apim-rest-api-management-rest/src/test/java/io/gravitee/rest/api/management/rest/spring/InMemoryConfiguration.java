@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.rest.spring;
 
 import inmemory.*;
 import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
+import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -87,7 +88,7 @@ public class InMemoryConfiguration {
 
     @Bean
     public ApiKeyCrudServiceInMemory apiKeyCrudServiceInMemory() {
-        return new ApiKeyCrudServiceInMemory();
+        return Mockito.spy(new ApiKeyCrudServiceInMemory());
     }
 
     @Bean
