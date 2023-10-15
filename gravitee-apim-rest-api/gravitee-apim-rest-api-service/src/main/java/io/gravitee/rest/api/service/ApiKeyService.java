@@ -41,10 +41,6 @@ public interface ApiKeyService {
 
     ApiKeyEntity renew(ExecutionContext executionContext, SubscriptionEntity subscription, String customApiKey);
 
-    void revoke(ExecutionContext executionContext, String keyId, boolean notify);
-
-    void revoke(ExecutionContext executionContext, ApiKeyEntity apiKeyEntity, boolean notify);
-
     ApiKeyEntity reactivate(ExecutionContext executionContext, ApiKeyEntity apiKeyEntity);
 
     List<ApiKeyEntity> findBySubscription(ExecutionContext executionContext, String subscription);
