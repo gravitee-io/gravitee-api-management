@@ -15,25 +15,64 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.argThat;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.repository.management.model.Audit;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.ApiKeyEntity;
+import io.gravitee.rest.api.model.ApiKeyMode;
+import io.gravitee.rest.api.model.ApiModel;
+import io.gravitee.rest.api.model.ApplicationEntity;
+import io.gravitee.rest.api.model.PlanEntity;
+import io.gravitee.rest.api.model.PlanSecurityType;
+import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.ApiKeyGenerator;
+import io.gravitee.rest.api.service.ApiKeyService;
+import io.gravitee.rest.api.service.ApiService;
+import io.gravitee.rest.api.service.ApplicationService;
+import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.EmailService;
+import io.gravitee.rest.api.service.NotifierService;
+import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.exceptions.*;
+import io.gravitee.rest.api.service.exceptions.ApiKeyAlreadyActivatedException;
+import io.gravitee.rest.api.service.exceptions.ApiKeyAlreadyExistingException;
+import io.gravitee.rest.api.service.exceptions.ApiKeyNotFoundException;
+import io.gravitee.rest.api.service.exceptions.InvalidApplicationApiKeyModeException;
+import io.gravitee.rest.api.service.exceptions.SubscriptionNotActiveException;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.v4.ApiTemplateService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -237,87 +276,6 @@ public class ApiKeyServiceTest {
     }
 
     @Test
-    public void shouldRevoke() throws Exception {
-        ApiKey apiKey = new ApiKey();
-        apiKey.setId(API_KEY);
-        apiKey.setKey("123-456-789");
-        apiKey.setCreatedAt(new Date());
-        apiKey.setApplication(APPLICATION_ID);
-
-        ApiModel api = new ApiModel();
-        api.setId("123");
-
-        SubscriptionEntity subscription = new SubscriptionEntity();
-        subscription.setId(SUBSCRIPTION_ID);
-        subscription.setPlan(PLAN_ID);
-        subscription.setApi(api.getId());
-
-        ApplicationEntity application = new ApplicationEntity();
-        application.setId(APPLICATION_ID);
-        application.setApiKeyMode(ApiKeyMode.EXCLUSIVE);
-
-        List<String> subscriptionIds = List.of(SUBSCRIPTION_ID);
-        Set<SubscriptionEntity> subscriptions = Set.of(subscription);
-        apiKey.setSubscriptions(subscriptionIds);
-
-        // Stub
-        when(apiKeyRepository.findById(API_KEY)).thenReturn(Optional.of(apiKey));
-        when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ID))).thenReturn(application);
-        when(planSearchService.findById(GraviteeContext.getExecutionContext(), subscription.getPlan())).thenReturn(plan);
-        when(apiTemplateService.findByIdForTemplates(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(api);
-        when(subscriptionService.findByIdIn(argThat(subscriptionIds::containsAll))).thenReturn(subscriptions);
-
-        // Run
-        apiKeyService.revoke(GraviteeContext.getExecutionContext(), API_KEY, true);
-
-        // Verify
-        verify(apiKeyRepository, times(1)).update(any());
-
-        ArgumentCaptor<Map> argument = ArgumentCaptor.forClass(Map.class);
-        verify(auditService)
-            .createApiAuditLog(eq(GraviteeContext.getExecutionContext()), any(), argument.capture(), any(), any(), any(), any());
-        Map<Audit.AuditProperties, String> properties = argument.getValue();
-        assertEquals(3, properties.size());
-        assertTrue(properties.containsKey(Audit.AuditProperties.API));
-        assertTrue(properties.containsKey(Audit.AuditProperties.API_KEY));
-        assertTrue(properties.containsKey(Audit.AuditProperties.APPLICATION));
-    }
-
-    @Test(expected = ApiKeyAlreadyExpiredException.class)
-    public void shouldNotRevokeBecauseAlreadyRevoked() throws Exception {
-        apiKey = new ApiKey();
-        apiKey.setRevoked(true);
-
-        when(apiKeyRepository.findById(API_KEY)).thenReturn(Optional.of(apiKey));
-
-        apiKeyService.revoke(GraviteeContext.getExecutionContext(), API_KEY, true);
-    }
-
-    @Test(expected = ApiKeyAlreadyExpiredException.class)
-    public void shouldNotRevokeBecauseAlreadyExpired() throws Exception {
-        apiKey = new ApiKey();
-        apiKey.setExpireAt(Date.from(new Date().toInstant().minus(1, ChronoUnit.DAYS)));
-
-        when(apiKeyRepository.findById(API_KEY)).thenReturn(Optional.of(apiKey));
-
-        apiKeyService.revoke(GraviteeContext.getExecutionContext(), API_KEY, true);
-    }
-
-    @Test(expected = ApiKeyNotFoundException.class)
-    public void shouldNotRevokeBecauseNotFound() throws TechnicalException {
-        when(apiKeyRepository.findById(API_KEY)).thenReturn(Optional.empty());
-
-        apiKeyService.revoke(GraviteeContext.getExecutionContext(), API_KEY, true);
-    }
-
-    @Test(expected = TechnicalManagementException.class)
-    public void shouldNotRevokeBecauseTechnicalException() throws TechnicalException {
-        when(apiKeyRepository.findById(API_KEY)).thenThrow(TechnicalException.class);
-
-        apiKeyService.revoke(GraviteeContext.getExecutionContext(), API_KEY, true);
-    }
-
-    @Test
     public void shouldReactivateRevoked() throws Exception {
         apiKey = new ApiKey();
         apiKey.setKey("123-456-789");
@@ -454,14 +412,6 @@ public class ApiKeyServiceTest {
         when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(subscriptionEntity);
 
         apiKeyService.reactivate(GraviteeContext.getExecutionContext(), apiKeyEntity);
-    }
-
-    @Test(expected = TechnicalManagementException.class)
-    public void shouldNotReactivate_technicalException() throws TechnicalException {
-        ApiKeyEntity apiKeyEntity = mock(ApiKeyEntity.class);
-        when(apiKeyEntity.getId()).thenReturn(API_KEY);
-        when(apiKeyRepository.findById(API_KEY)).thenThrow(TechnicalException.class);
-        apiKeyService.revoke(GraviteeContext.getExecutionContext(), apiKeyEntity, false);
     }
 
     @Test
@@ -958,42 +908,6 @@ public class ApiKeyServiceTest {
         String applicationId = "my-application-id";
         when(apiKeyRepository.findByKey(apiKeyToCreate)).thenThrow(TechnicalManagementException.class);
         apiKeyService.canCreate(GraviteeContext.getExecutionContext(), apiKeyToCreate, apiId, applicationId);
-    }
-
-    @Test
-    public void revokeById_should_read_key_by_id_and_update_it() throws TechnicalException {
-        SubscriptionEntity subscription = new SubscriptionEntity();
-        subscription.setId(SUBSCRIPTION_ID);
-
-        ApiKey apiKey = new ApiKey();
-        apiKey.setSubscriptions(List.of(SUBSCRIPTION_ID));
-
-        ApplicationEntity application = new ApplicationEntity();
-        application.setApiKeyMode(ApiKeyMode.EXCLUSIVE);
-
-        when(apiKeyRepository.findById("apiKeyId")).thenReturn(Optional.of(apiKey));
-        when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(new PlanEntity());
-        when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(application);
-        when(apiTemplateService.findByIdForTemplates(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(new ApiModel());
-        when(subscriptionService.findByIdIn(List.of(SUBSCRIPTION_ID))).thenReturn(Set.of(subscription));
-
-        apiKeyService.revoke(GraviteeContext.getExecutionContext(), "apiKeyId", true);
-
-        verify(apiKeyRepository, times(1)).update(apiKey);
-    }
-
-    @Test(expected = ApiKeyNotFoundException.class)
-    public void revokeById_should_throw_apiKeyNotFoundException_when_key_not_found() throws TechnicalException {
-        when(apiKeyRepository.findById("apiKeyId")).thenReturn(Optional.empty());
-
-        apiKeyService.revoke(GraviteeContext.getExecutionContext(), "apiKeyId", true);
-    }
-
-    @Test(expected = TechnicalManagementException.class)
-    public void revokeById_should_throw_technicalManagementException_when_exception_thrown() throws TechnicalException {
-        when(apiKeyRepository.findById("apiKeyId")).thenThrow(TechnicalException.class);
-
-        apiKeyService.revoke(GraviteeContext.getExecutionContext(), "apiKeyId", true);
     }
 
     @Test(expected = TechnicalManagementException.class)

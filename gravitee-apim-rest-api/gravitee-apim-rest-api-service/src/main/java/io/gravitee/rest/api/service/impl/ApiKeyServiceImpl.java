@@ -19,7 +19,6 @@ import static io.gravitee.repository.management.model.ApiKey.AuditEvent.APIKEY_C
 import static io.gravitee.repository.management.model.ApiKey.AuditEvent.APIKEY_EXPIRED;
 import static io.gravitee.repository.management.model.ApiKey.AuditEvent.APIKEY_REACTIVATED;
 import static io.gravitee.repository.management.model.ApiKey.AuditEvent.APIKEY_RENEWED;
-import static io.gravitee.repository.management.model.ApiKey.AuditEvent.APIKEY_REVOKED;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.API;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.API_KEY;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.APPLICATION;
@@ -342,44 +341,6 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         apiKey.setUpdatedAt(apiKey.getCreatedAt());
         apiKey.setKey(isNotEmpty(customApiKey) ? customApiKey : apiKeyGenerator.generate());
         return apiKey;
-    }
-
-    @Override
-    public void revoke(ExecutionContext executionContext, String keyId, boolean notify) {
-        try {
-            ApiKey key = apiKeyRepository.findById(keyId).orElseThrow(ApiKeyNotFoundException::new);
-            revoke(executionContext, key, notify);
-        } catch (TechnicalException e) {
-            String message = String.format("An error occurs while trying to revoke a key with id %s", keyId);
-            LOGGER.error(message, e);
-            throw new TechnicalManagementException(message, e);
-        }
-    }
-
-    @Override
-    public void revoke(ExecutionContext executionContext, ApiKeyEntity apiKeyEntity, boolean notify) {
-        revoke(executionContext, apiKeyEntity.getId(), notify);
-    }
-
-    private void revoke(ExecutionContext executionContext, ApiKey key, boolean notify) throws TechnicalException {
-        LOGGER.debug("Revoke API Key with id {}", key.getId());
-
-        checkApiKeyExpired(executionContext, key);
-
-        ApiKey previousApiKey = new ApiKey(key);
-        key.setRevoked(true);
-        key.setUpdatedAt(new Date());
-        key.setRevokedAt(key.getUpdatedAt());
-
-        apiKeyRepository.update(key);
-
-        // Audit
-        createAuditLog(executionContext, convert(executionContext, previousApiKey), previousApiKey, APIKEY_REVOKED, key.getUpdatedAt());
-
-        // notify
-        if (notify) {
-            triggerNotifierService(executionContext, ApiHook.APIKEY_REVOKED, key, new NotificationParamsBuilder());
-        }
     }
 
     @Override
