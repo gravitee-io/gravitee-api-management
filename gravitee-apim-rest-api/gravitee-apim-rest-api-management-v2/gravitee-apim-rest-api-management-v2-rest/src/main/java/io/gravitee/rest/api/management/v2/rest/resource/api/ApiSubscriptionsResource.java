@@ -17,19 +17,45 @@ package io.gravitee.rest.api.management.v2.rest.resource.api;
 
 import static java.lang.String.format;
 
+import io.gravitee.apim.core.api_key.use_case.RevokeApiSubscriptionApiKeyUseCase;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.subscription.use_case.CloseSubscriptionUseCase;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.management.v2.rest.mapper.*;
-import io.gravitee.rest.api.management.v2.rest.model.*;
+import io.gravitee.rest.api.management.v2.rest.mapper.ApplicationMapper;
+import io.gravitee.rest.api.management.v2.rest.mapper.PageMapper;
+import io.gravitee.rest.api.management.v2.rest.mapper.PlanMapper;
+import io.gravitee.rest.api.management.v2.rest.mapper.SubscriptionMapper;
+import io.gravitee.rest.api.management.v2.rest.mapper.UserMapper;
+import io.gravitee.rest.api.management.v2.rest.model.AcceptSubscription;
+import io.gravitee.rest.api.management.v2.rest.model.ApiKey;
+import io.gravitee.rest.api.management.v2.rest.model.BaseApplication;
+import io.gravitee.rest.api.management.v2.rest.model.BasePlan;
+import io.gravitee.rest.api.management.v2.rest.model.BaseUser;
+import io.gravitee.rest.api.management.v2.rest.model.CreateSubscription;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
+import io.gravitee.rest.api.management.v2.rest.model.RejectSubscription;
+import io.gravitee.rest.api.management.v2.rest.model.RenewApiKey;
+import io.gravitee.rest.api.management.v2.rest.model.Subscription;
+import io.gravitee.rest.api.management.v2.rest.model.SubscriptionApiKeysResponse;
 import io.gravitee.rest.api.management.v2.rest.model.SubscriptionStatus;
+import io.gravitee.rest.api.management.v2.rest.model.SubscriptionsResponse;
+import io.gravitee.rest.api.management.v2.rest.model.TransferSubscription;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateApiKey;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateSubscription;
+import io.gravitee.rest.api.management.v2.rest.model.VerifySubscription;
+import io.gravitee.rest.api.management.v2.rest.model.VerifySubscriptionResponse;
 import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.ApiKeyEntity;
+import io.gravitee.rest.api.model.ApplicationEntity;
+import io.gravitee.rest.api.model.NewSubscriptionEntity;
+import io.gravitee.rest.api.model.ProcessSubscriptionEntity;
+import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.TransferSubscriptionEntity;
+import io.gravitee.rest.api.model.UpdateSubscriptionEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -38,7 +64,11 @@ import io.gravitee.rest.api.model.subscription.SubscriptionMetadataQuery;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.ApiKeyService;
+import io.gravitee.rest.api.service.ApplicationService;
+import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.SubscriptionService;
+import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.InvalidApplicationApiKeyModeException;
@@ -46,12 +76,25 @@ import io.gravitee.rest.api.service.v4.PlanSearchService;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.BeanParam;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DefaultValue;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
-import java.util.*;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 
@@ -72,6 +115,9 @@ public class ApiSubscriptionsResource extends AbstractResource {
 
     @Inject
     private CloseSubscriptionUseCase closeSubscriptionUsecase;
+
+    @Inject
+    private RevokeApiSubscriptionApiKeyUseCase revokeApiSubscriptionApiKeyUsecase;
 
     @Inject
     private SubscriptionService subscriptionService;
@@ -586,23 +632,31 @@ public class ApiSubscriptionsResource extends AbstractResource {
         @PathParam("subscriptionId") String subscriptionId,
         @PathParam("apiKeyId") String apiKeyId
     ) {
-        final SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscriptionId);
-
-        if (!subscriptionEntity.getApi().equals(apiId)) {
-            return Response.status(Response.Status.NOT_FOUND).entity(subscriptionNotFoundError(subscriptionId)).build();
-        }
-
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        final ApiKeyEntity apiKeyEntity = apiKeyService.findById(executionContext, apiKeyId);
+        final var user = getAuthenticatedUserDetails();
 
-        if (!apiKeyEntity.getSubscriptionIds().contains(subscriptionId)) {
-            return Response.status(Response.Status.NOT_FOUND).entity(apiKeyNotFoundError(apiKeyId)).build();
-        }
+        var result = revokeApiSubscriptionApiKeyUsecase.execute(
+            new RevokeApiSubscriptionApiKeyUseCase.Input(
+                apiKeyId,
+                apiId,
+                subscriptionId,
+                AuditInfo
+                    .builder()
+                    .organizationId(executionContext.getOrganizationId())
+                    .environmentId(executionContext.getEnvironmentId())
+                    .actor(
+                        AuditActor
+                            .builder()
+                            .userId(user.getUsername())
+                            .userSource(user.getSource())
+                            .userSourceId(user.getSourceId())
+                            .build()
+                    )
+                    .build()
+            )
+        );
 
-        checkApplicationDoesntUseSharedApiKey(executionContext, apiKeyEntity.getApplication().getId());
-        apiKeyService.revoke(executionContext, apiKeyEntity, true);
-
-        return Response.ok(subscriptionMapper.mapToApiKey(apiKeyService.findById(executionContext, apiKeyId))).build();
+        return Response.ok(subscriptionMapper.mapToApiKey(result.apiKey())).build();
     }
 
     @POST

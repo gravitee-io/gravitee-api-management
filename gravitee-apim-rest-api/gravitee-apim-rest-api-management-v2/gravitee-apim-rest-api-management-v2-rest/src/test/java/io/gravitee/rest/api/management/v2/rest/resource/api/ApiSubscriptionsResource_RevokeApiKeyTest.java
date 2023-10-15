@@ -15,137 +15,165 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api;
 
+import static assertions.MAPIAssertions.assertThat;
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
-import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
-import fixtures.ApplicationFixtures;
-import fixtures.SubscriptionFixtures;
+import fixtures.core.model.ApiKeyFixtures;
+import inmemory.ApiKeyCrudServiceInMemory;
+import inmemory.ApplicationCrudServiceInMemory;
+import inmemory.InMemoryAlternative;
+import inmemory.SubscriptionCrudServiceInMemory;
 import io.gravitee.rest.api.management.v2.rest.model.ApiKey;
-import io.gravitee.rest.api.management.v2.rest.model.Error;
-import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.ApiKeyMode;
-import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.BaseApplicationEntity;
+import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.exceptions.ApiKeyNotFoundException;
-import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
-import java.util.Set;
+import java.util.List;
+import java.util.stream.Stream;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class ApiSubscriptionsResource_RevokeApiKeyTest extends ApiSubscriptionsResourceTest {
 
     private static final String API_KEY_ID = "my-api-key";
+
+    @Autowired
+    private ApiKeyCrudServiceInMemory apiKeyCrudServiceInMemory;
+
+    @Autowired
+    private ApplicationCrudServiceInMemory applicationCrudServiceInMemory;
+
+    @Autowired
+    private SubscriptionCrudServiceInMemory subscriptionCrudServiceInMemory;
 
     @Override
     protected String contextPath() {
         return "/environments/" + ENVIRONMENT + "/apis/" + API + "/subscriptions/" + SUBSCRIPTION + "/api-keys/" + API_KEY_ID + "/_revoke";
     }
 
+    @BeforeEach
+    public void setUp() {
+        super.setUp();
+
+        EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
+        doReturn(environmentEntity).when(environmentService).findById(ENVIRONMENT);
+        doReturn(environmentEntity).when(environmentService).findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT);
+
+        GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
+        GraviteeContext.setCurrentOrganization(ORGANIZATION);
+
+        applicationCrudServiceInMemory.initWith(
+            List.of(BaseApplicationEntity.builder().id(APPLICATION).apiKeyMode(ApiKeyMode.EXCLUSIVE).build())
+        );
+    }
+
+    @AfterEach
+    public void tearDown() {
+        Stream
+            .of(apiKeyCrudServiceInMemory, applicationCrudServiceInMemory, subscriptionCrudServiceInMemory)
+            .forEach(InMemoryAlternative::reset);
+
+        GraviteeContext.cleanContext();
+    }
+
     @Test
     public void should_return_404_if_subscription_not_found() {
-        when(subscriptionService.findById(SUBSCRIPTION)).thenThrow(new SubscriptionNotFoundException(SUBSCRIPTION));
+        apiKeyCrudServiceInMemory.initWith(
+            List.of(
+                ApiKeyFixtures.anApiKey().toBuilder().id(API_KEY_ID).applicationId(APPLICATION).subscriptions(List.of(SUBSCRIPTION)).build()
+            )
+        );
 
         final Response response = rootTarget().request().post(Entity.json(null));
-        assertEquals(NOT_FOUND_404, response.getStatus());
 
-        var error = response.readEntity(Error.class);
-        assertEquals(NOT_FOUND_404, (int) error.getHttpStatus());
-        assertEquals("Subscription [" + SUBSCRIPTION + "] cannot be found.", error.getMessage());
+        assertThat(response).hasStatus(NOT_FOUND_404).asError().hasMessage("Subscription [" + SUBSCRIPTION + "] cannot be found.");
     }
 
     @Test
     public void should_return_404_if_subscription_associated_to_another_api() {
-        final SubscriptionEntity subscriptionEntity = SubscriptionFixtures
-            .aSubscriptionEntity()
-            .toBuilder()
-            .id(SUBSCRIPTION)
-            .api("ANOTHER-API")
-            .build();
-
-        when(subscriptionService.findById(SUBSCRIPTION)).thenReturn(subscriptionEntity);
+        subscriptionCrudServiceInMemory.initWith(
+            List.of(fixtures.core.model.SubscriptionFixtures.aSubscription().toBuilder().id(SUBSCRIPTION).apiId("another-api").build())
+        );
+        apiKeyCrudServiceInMemory.initWith(
+            List.of(
+                ApiKeyFixtures.anApiKey().toBuilder().id(API_KEY_ID).applicationId(APPLICATION).subscriptions(List.of(SUBSCRIPTION)).build()
+            )
+        );
 
         final Response response = rootTarget().request().post(Entity.json(null));
-        assertEquals(NOT_FOUND_404, response.getStatus());
 
-        var error = response.readEntity(Error.class);
-        assertEquals(NOT_FOUND_404, (int) error.getHttpStatus());
-        assertEquals("Subscription [" + SUBSCRIPTION + "] cannot be found.", error.getMessage());
+        assertThat(response).hasStatus(NOT_FOUND_404).asError().hasMessage("Subscription [" + SUBSCRIPTION + "] cannot be found.");
     }
 
     @Test
     public void should_return_404_if_api_key_not_found() {
-        when(subscriptionService.findById(SUBSCRIPTION)).thenReturn(SubscriptionFixtures.aSubscriptionEntity());
-        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION))
-            .thenReturn(ApplicationFixtures.anApplicationEntity().toBuilder().id(APPLICATION).build());
-        when(apiKeyService.findById(GraviteeContext.getExecutionContext(), API_KEY_ID)).thenThrow(new ApiKeyNotFoundException());
-
         final Response response = rootTarget().request().post(Entity.json(null));
-        assertEquals(NOT_FOUND_404, response.getStatus());
 
-        var error = response.readEntity(Error.class);
-        assertEquals(NOT_FOUND_404, (int) error.getHttpStatus());
-        assertEquals("No API Key can be found.", error.getMessage());
+        assertThat(response).hasStatus(NOT_FOUND_404).asError().hasMessage("No API Key can be found.");
     }
 
     @Test
     public void should_return_404_if_api_key_associated_to_another_subscription() {
-        final ApiKeyEntity apiKeyEntity = SubscriptionFixtures
-            .anApiKeyEntity()
-            .toBuilder()
-            .id(API_KEY_ID)
-            .subscriptions(Set.of(SubscriptionFixtures.aSubscriptionEntity().toBuilder().id("ANOTHER-SUBSCRIPTION").build()))
-            .build();
-
-        when(subscriptionService.findById(SUBSCRIPTION)).thenReturn(SubscriptionFixtures.aSubscriptionEntity());
-        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION))
-            .thenReturn(ApplicationFixtures.anApplicationEntity().toBuilder().id(APPLICATION).build());
-        when(apiKeyService.findById(GraviteeContext.getExecutionContext(), API_KEY_ID)).thenReturn(apiKeyEntity);
+        subscriptionCrudServiceInMemory.initWith(
+            List.of(fixtures.core.model.SubscriptionFixtures.aSubscription().toBuilder().id(SUBSCRIPTION).apiId(API).build())
+        );
+        apiKeyCrudServiceInMemory.initWith(
+            List.of(
+                ApiKeyFixtures
+                    .anApiKey()
+                    .toBuilder()
+                    .id(API_KEY_ID)
+                    .applicationId(APPLICATION)
+                    .subscriptions(List.of("another-subscription"))
+                    .build()
+            )
+        );
 
         final Response response = rootTarget().request().post(Entity.json(null));
-        assertEquals(NOT_FOUND_404, response.getStatus());
 
-        var error = response.readEntity(Error.class);
-        assertEquals(NOT_FOUND_404, (int) error.getHttpStatus());
-        assertEquals("No API Key can be found.", error.getMessage());
+        assertThat(response).hasStatus(NOT_FOUND_404).asError().hasMessage("No API Key can be found.");
     }
 
     @Test
     public void should_return_400_if_application_is_in_shared_api_key_mode() {
-        final ApiKeyEntity apiKeyEntity = SubscriptionFixtures
-            .anApiKeyEntity()
-            .toBuilder()
-            .id(API_KEY_ID)
-            .subscriptions(
-                Set.of(
-                    SubscriptionFixtures.aSubscriptionEntity().toBuilder().id("ANOTHER-SUBSCRIPTION").build(),
-                    SubscriptionFixtures.aSubscriptionEntity().toBuilder().id(SUBSCRIPTION).build()
-                )
+        subscriptionCrudServiceInMemory.initWith(
+            List.of(
+                fixtures.core.model.SubscriptionFixtures
+                    .aSubscription()
+                    .toBuilder()
+                    .id(SUBSCRIPTION)
+                    .apiId(API)
+                    .applicationId(APPLICATION)
+                    .build()
             )
-            .build();
-
-        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-
-        when(subscriptionService.findById(SUBSCRIPTION)).thenReturn(SubscriptionFixtures.aSubscriptionEntity());
-        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION))
-            .thenReturn(ApplicationFixtures.anApplicationEntity().toBuilder().id(APPLICATION).apiKeyMode(ApiKeyMode.SHARED).build());
-        when(apiKeyService.findById(executionContext, API_KEY_ID)).thenReturn(apiKeyEntity);
+        );
+        applicationCrudServiceInMemory.initWith(
+            List.of(BaseApplicationEntity.builder().id(APPLICATION).apiKeyMode(ApiKeyMode.SHARED).build())
+        );
+        apiKeyCrudServiceInMemory.initWith(
+            List.of(
+                ApiKeyFixtures.anApiKey().toBuilder().id(API_KEY_ID).applicationId(APPLICATION).subscriptions(List.of(SUBSCRIPTION)).build()
+            )
+        );
 
         final Response response = rootTarget().request().post(Entity.json(null));
-        assertEquals(BAD_REQUEST_400, response.getStatus());
 
-        var error = response.readEntity(Error.class);
-        assertEquals(BAD_REQUEST_400, (int) error.getHttpStatus());
-        assertEquals("Invalid operation for API Key mode [SHARED] of application [my-application].", error.getMessage());
+        assertThat(response)
+            .hasStatus(BAD_REQUEST_400)
+            .asError()
+            .hasMessage("Invalid operation for API Key mode [SHARED] of application [my-application]");
     }
 
     @Test
@@ -161,41 +189,38 @@ public class ApiSubscriptionsResource_RevokeApiKeyTest extends ApiSubscriptionsR
             .thenReturn(false);
 
         final Response response = rootTarget().request().post(Entity.json(null));
-        assertEquals(FORBIDDEN_403, response.getStatus());
 
-        var error = response.readEntity(Error.class);
-        assertEquals(FORBIDDEN_403, (int) error.getHttpStatus());
-        assertEquals("You do not have sufficient rights to access this resource", error.getMessage());
+        assertThat(response).hasStatus(FORBIDDEN_403).asError().hasMessage("You do not have sufficient rights to access this resource");
     }
 
     @Test
     public void should_revoke_api_key() {
-        final ApiKeyEntity apiKeyEntity = SubscriptionFixtures
-            .anApiKeyEntity()
-            .toBuilder()
-            .id(API_KEY_ID)
-            .subscriptions(
-                Set.of(
-                    SubscriptionFixtures.aSubscriptionEntity().toBuilder().id("ANOTHER-SUBSCRIPTION").build(),
-                    SubscriptionFixtures.aSubscriptionEntity().toBuilder().id(SUBSCRIPTION).build()
-                )
+        subscriptionCrudServiceInMemory.initWith(
+            List.of(
+                fixtures.core.model.SubscriptionFixtures
+                    .aSubscription()
+                    .toBuilder()
+                    .id(SUBSCRIPTION)
+                    .apiId(API)
+                    .applicationId(APPLICATION)
+                    .build()
             )
-            .build();
-
-        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-
-        when(subscriptionService.findById(SUBSCRIPTION)).thenReturn(SubscriptionFixtures.aSubscriptionEntity());
-        when(applicationService.findById(executionContext, APPLICATION))
-            .thenReturn(ApplicationFixtures.anApplicationEntity().toBuilder().id(APPLICATION).build());
-        when(apiKeyService.findById(executionContext, API_KEY_ID)).thenReturn(apiKeyEntity);
+        );
+        applicationCrudServiceInMemory.initWith(
+            List.of(BaseApplicationEntity.builder().id(APPLICATION).apiKeyMode(ApiKeyMode.EXCLUSIVE).build())
+        );
+        apiKeyCrudServiceInMemory.initWith(
+            List.of(
+                ApiKeyFixtures.anApiKey().toBuilder().id(API_KEY_ID).applicationId(APPLICATION).subscriptions(List.of(SUBSCRIPTION)).build()
+            )
+        );
 
         final Response response = rootTarget().request().post(Entity.json(null));
 
-        assertEquals(OK_200, response.getStatus());
-
-        var apiKey = response.readEntity(ApiKey.class);
-        assertEquals(API_KEY_ID, apiKey.getId());
-
-        verify(apiKeyService).revoke(executionContext, apiKeyEntity, true);
+        assertThat(response)
+            .hasStatus(OK_200)
+            .asEntity(ApiKey.class)
+            .extracting(ApiKey::getId, ApiKey::getRevoked)
+            .containsExactly(API_KEY_ID, true);
     }
 }

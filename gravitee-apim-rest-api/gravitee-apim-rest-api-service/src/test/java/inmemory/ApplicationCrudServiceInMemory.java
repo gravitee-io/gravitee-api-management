@@ -38,6 +38,7 @@ public class ApplicationCrudServiceInMemory implements ApplicationCrudService, I
 
     @Override
     public void initWith(List<BaseApplicationEntity> items) {
+        storage.clear();
         storage.addAll(items);
     }
 

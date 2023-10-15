@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Set;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
 /**
@@ -89,4 +90,12 @@ public interface SubscriptionMapper {
     ApiKey mapToApiKey(ApiKeyEntity apiKeyEntity);
 
     List<ApiKey> mapToApiKeyList(List<ApiKeyEntity> apiKeyEntities);
+
+    @Named("toBaseSubscriptionsList")
+    default List<BaseSubscription> mapToBaseSubscriptionList(List<String> subscriptionIds) {
+        return subscriptionIds.stream().map(id -> new BaseSubscription().id(id)).toList();
+    }
+
+    @Mapping(source = "subscriptions", target = "subscriptions", qualifiedByName = "toBaseSubscriptionsList")
+    ApiKey mapToApiKey(io.gravitee.apim.core.api_key.model.ApiKeyEntity apiKeyEntity);
 }
