@@ -29,7 +29,6 @@ class MetadataController {
   private canUpdate: boolean;
   private canDelete: boolean;
 
-  /* @ngInject */
   constructor(
     private MetadataService: MetadataService,
     private NotificationService: NotificationService,
@@ -115,5 +114,6 @@ class MetadataController {
     return !this.referenceType || (this.referenceType && metadata.value !== undefined);
   }
 }
+MetadataController.$inject = ['MetadataService', 'NotificationService', '$mdDialog', 'UserService', '$rootScope', '$state'];
 
 export default MetadataController;

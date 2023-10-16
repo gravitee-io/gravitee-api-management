@@ -20,7 +20,6 @@ import { Scope as AlertScope } from '../../../../entities/alert';
 
 export default applicationsNotificationsRouterConfig;
 
-/* @ngInject */
 function applicationsNotificationsRouterConfig($stateProvider) {
   $stateProvider
     .state('management.applications.application.notifications', {
@@ -33,16 +32,31 @@ function applicationsNotificationsRouterConfig($stateProvider) {
       },
       resolve: {
         resolvedHookScope: () => Scope.APPLICATION,
-        resolvedHooks: (NotificationSettingsService: NotificationSettingsService) =>
-          NotificationSettingsService.getHooks(Scope.APPLICATION).then((response) => response.data),
-        resolvedNotifiers: (NotificationSettingsService: NotificationSettingsService, $stateParams) =>
-          NotificationSettingsService.getNotifiers(Scope.APPLICATION, $stateParams.applicationId).then((response) => response.data),
-        notificationSettings: (NotificationSettingsService: NotificationSettingsService, $stateParams) =>
-          NotificationSettingsService.getNotificationSettings(Scope.APPLICATION, $stateParams.applicationId).then(
-            (response) => response.data,
-          ),
-        alerts: (AlertService: AlertService, $stateParams) =>
-          AlertService.listAlerts(AlertScope.APPLICATION, true, $stateParams.applicationId).then((response) => response.data),
+        resolvedHooks: [
+          'NotificationSettingsService',
+          (NotificationSettingsService: NotificationSettingsService) =>
+            NotificationSettingsService.getHooks(Scope.APPLICATION).then((response) => response.data),
+        ],
+        resolvedNotifiers: [
+          'NotificationSettingsService',
+          '$stateParams',
+          (NotificationSettingsService: NotificationSettingsService, $stateParams) =>
+            NotificationSettingsService.getNotifiers(Scope.APPLICATION, $stateParams.applicationId).then((response) => response.data),
+        ],
+        notificationSettings: [
+          'NotificationSettingsService',
+          '$stateParams',
+          (NotificationSettingsService: NotificationSettingsService, $stateParams) =>
+            NotificationSettingsService.getNotificationSettings(Scope.APPLICATION, $stateParams.applicationId).then(
+              (response) => response.data,
+            ),
+        ],
+        alerts: [
+          'AlertService',
+          '$stateParams',
+          (AlertService: AlertService, $stateParams) =>
+            AlertService.listAlerts(AlertScope.APPLICATION, true, $stateParams.applicationId).then((response) => response.data),
+        ],
       },
     })
     .state('management.applications.application.notifications.notification', {
@@ -59,3 +73,4 @@ function applicationsNotificationsRouterConfig($stateProvider) {
       },
     });
 }
+applicationsNotificationsRouterConfig.$inject = ['$stateProvider'];

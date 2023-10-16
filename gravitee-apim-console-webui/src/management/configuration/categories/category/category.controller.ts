@@ -34,7 +34,6 @@ class CategoryController {
   private addedAPIs: any[];
   private formChanged = false;
 
-  /* @ngInject */
   constructor(
     private ApiService: ApiService,
     private CategoryService: CategoryService,
@@ -187,5 +186,16 @@ class CategoryController {
     return this.selectedAPIs;
   }
 }
+CategoryController.$inject = [
+  'ApiService',
+  'CategoryService',
+  'NotificationService',
+  '$q',
+  '$filter',
+  '$state',
+  '$location',
+  '$mdDialog',
+  '$scope',
+];
 
 export default CategoryController;

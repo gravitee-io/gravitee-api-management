@@ -30,7 +30,6 @@ class GroupService {
     };
   }
 
-  /* @ngInject */
   constructor(private $http, private Constants) {}
 
   get(groupId: string): ng.IPromise<any> {
@@ -159,5 +158,6 @@ class GroupService {
       .filter(({ roles }) => !!roles.length); // at least one role is mandatory
   }
 }
+GroupService.$inject = ['$http', 'Constants'];
 
 export default GroupService;

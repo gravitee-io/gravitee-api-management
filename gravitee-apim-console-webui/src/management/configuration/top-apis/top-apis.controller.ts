@@ -22,7 +22,6 @@ import TopApiService from '../../../services/top-api.service';
 class TopApisController {
   private topApis: any[];
 
-  /* @ngInject */
   constructor(
     private TopApiService: TopApiService,
     private $mdDialog: angular.material.IDialogService,
@@ -97,5 +96,6 @@ class TopApisController {
       });
   }
 }
+TopApisController.$inject = ['TopApiService', '$mdDialog', 'NotificationService', '$rootScope'];
 
 export default TopApisController;

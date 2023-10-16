@@ -19,7 +19,6 @@ import { Constants } from '../entities/Constants';
 import { Event } from '../entities/event/event';
 
 export class EventService {
-  /* @ngInject */
   constructor(private readonly $http: IHttpService, private readonly Constants: Constants) {}
 
   public search(type: string, apis: string, from: string, to: string, page: number | string, size: number | string): IHttpPromise<any> {
@@ -32,3 +31,4 @@ export class EventService {
     return this.$http.get<Event>(`${this.Constants.env.baseURL}/apis/${apiId}/events/${eventId}`).then((response) => response.data);
   }
 }
+EventService.$inject = ['$http', 'Constants'];

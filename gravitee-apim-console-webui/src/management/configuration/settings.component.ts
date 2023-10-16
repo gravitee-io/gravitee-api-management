@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 import { StateService } from '@uirouter/core';
-import { IScope } from 'angular';
 
 const SettingsComponent: ng.IComponentOptions = {
   template: require('./settings.html'),
-  /* @ngInject */
-  controller: function ($rootScope: IScope, $state: StateService) {
-    this.$state = $state;
-  },
+  controller: [
+    '$state',
+    function ($state: StateService) {
+      this.$state = $state;
+    },
+  ],
 };
 
 export default SettingsComponent;

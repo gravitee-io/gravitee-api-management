@@ -29,7 +29,6 @@ class CustomUserFieldsController {
 
   private fields: any;
 
-  /* @ngInject */
   constructor(
     private $mdDialog: angular.material.IDialogService,
     private NotificationService: NotificationService,
@@ -109,5 +108,6 @@ class CustomUserFieldsController {
     return this.canDelete;
   }
 }
+CustomUserFieldsController.$inject = ['$mdDialog', 'NotificationService', 'UserService', '$state'];
 
 export default CustomUserFieldsController;

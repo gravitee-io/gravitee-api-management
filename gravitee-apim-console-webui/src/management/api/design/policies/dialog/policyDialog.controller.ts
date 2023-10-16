@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* @ngInject */
 function DialogEditPolicyController($scope, $mdDialog, locals) {
   $scope.description = locals.description;
 
@@ -25,5 +24,6 @@ function DialogEditPolicyController($scope, $mdDialog, locals) {
     $mdDialog.hide($scope.description);
   };
 }
+DialogEditPolicyController.$inject = ['$scope', '$mdDialog', 'locals'];
 
 export default DialogEditPolicyController;

@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* @ngInject */
 function DialogDynamicProviderHttpController($mdDialog: angular.material.IDialogService) {
   this.cancel = $mdDialog.cancel;
 
@@ -54,5 +53,6 @@ function DialogDynamicProviderHttpController($mdDialog: angular.material.IDialog
     2,
   );
 }
+DialogDynamicProviderHttpController.$inject = ['$mdDialog'];
 
 export default DialogDynamicProviderHttpController;

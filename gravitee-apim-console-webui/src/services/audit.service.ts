@@ -26,7 +26,6 @@ export class AuditQuery {
 }
 
 class AuditService {
-  /* @ngInject */
   constructor(private $http, private Constants) {}
 
   list(query?: AuditQuery, api?: string) {
@@ -57,5 +56,6 @@ class AuditService {
     return this.$http.get(url);
   }
 }
+AuditService.$inject = ['$http', 'Constants'];
 
 export default AuditService;

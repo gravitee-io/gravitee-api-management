@@ -16,7 +16,7 @@
 import { ApiService } from '../../../services/api.service';
 import ApplicationService from '../../../services/application.service';
 import MetadataService from '../../../services/metadata.service';
-/* @ngInject */
+
 function UpdateMetadataDialogController(
   MetadataService: MetadataService,
   ApiService: ApiService,
@@ -64,5 +64,14 @@ function UpdateMetadataDialogController(
     }
   };
 }
+UpdateMetadataDialogController.$inject = [
+  'MetadataService',
+  'ApiService',
+  'ApplicationService',
+  '$mdDialog',
+  'metadata',
+  'metadataFormats',
+  '$stateParams',
+];
 
 export default UpdateMetadataDialogController;

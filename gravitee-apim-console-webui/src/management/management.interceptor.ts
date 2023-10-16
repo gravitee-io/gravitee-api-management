@@ -38,7 +38,6 @@ export class Future {
   }
 }
 
-/* @ngInject */
 function interceptorConfig($httpProvider: angular.IHttpProvider, Constants) {
   $httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
@@ -119,6 +118,7 @@ function interceptorConfig($httpProvider: angular.IHttpProvider, Constants) {
       return $q.reject(error);
     },
   });
+  interceptorUnauthorized.$inject = ['$q', '$injector', '$location', '$state'];
 
   const interceptorTimeout = function ($q: angular.IQService, $injector: angular.auto.IInjectorService): angular.IHttpInterceptor {
     return {
@@ -142,6 +142,7 @@ function interceptorConfig($httpProvider: angular.IHttpProvider, Constants) {
       },
     };
   };
+  interceptorTimeout.$inject = ['$q', '$injector'];
 
   const csrfInterceptor = function ($q: angular.IQService): angular.IHttpInterceptor {
     return {
@@ -165,6 +166,7 @@ function interceptorConfig($httpProvider: angular.IHttpProvider, Constants) {
       },
     };
   };
+  csrfInterceptor.$inject = ['$q'];
 
   const reCaptchaInterceptor = function ($q: angular.IQService, $injector: angular.auto.IInjectorService): angular.IHttpInterceptor {
     return {
@@ -181,6 +183,7 @@ function interceptorConfig($httpProvider: angular.IHttpProvider, Constants) {
       },
     };
   };
+  reCaptchaInterceptor.$inject = ['$q', '$injector'];
 
   // This interceptor aims to resolve the problem with Satellizer which, after exchanging oauth provider's token with apim's one, adds the apim token on all requests (through Authorization bearer header).
   // It caused logout problems between Portal and Management console because session Cookie is successfully removed but token is still sent by Satellizer using Authorization header.
@@ -207,6 +210,7 @@ function interceptorConfig($httpProvider: angular.IHttpProvider, Constants) {
       },
     };
   };
+  replaceEnvInterceptor.$inject = ['$q', '$injector'];
 
   if ($httpProvider.interceptors) {
     // Add custom noSatellizerAuthorizationInterceptor at the beginning of the list to make sure they are activated before others interceptors such as Satellizer's interceptors.
@@ -218,5 +222,6 @@ function interceptorConfig($httpProvider: angular.IHttpProvider, Constants) {
     $httpProvider.interceptors.push(replaceEnvInterceptor);
   }
 }
+interceptorConfig.$inject = ['$httpProvider', 'Constants'];
 
 export default interceptorConfig;

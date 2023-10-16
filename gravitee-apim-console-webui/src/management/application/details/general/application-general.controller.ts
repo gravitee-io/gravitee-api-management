@@ -30,7 +30,6 @@ class ApplicationGeneralController {
 
   private readonly = false;
 
-  /* @ngInject */
   constructor(
     private ApplicationService: ApplicationService,
     private NotificationService: NotificationService,
@@ -143,5 +142,6 @@ class ApplicationGeneralController {
     this.readonly = true;
   }
 }
+ApplicationGeneralController.$inject = ['ApplicationService', 'NotificationService', '$state', '$scope', '$mdDialog'];
 
 export default ApplicationGeneralController;

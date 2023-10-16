@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 class FlowService {
-  /* @ngInject */
   constructor(private $http, private Constants) {}
 
   getConfigurationSchema() {
@@ -29,5 +28,6 @@ class FlowService {
     return this.$http.get(`${this.Constants.org.baseURL}/configuration/flows/`);
   }
 }
+FlowService.$inject = ['$http', 'Constants'];
 
 export default FlowService;

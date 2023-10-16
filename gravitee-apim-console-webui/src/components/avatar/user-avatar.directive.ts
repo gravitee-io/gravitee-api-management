@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 class UserAvatarDirective {
-  /* @ngInject */
   constructor() {
     const directive = {
       restrict: 'A',
@@ -47,8 +46,8 @@ class UserAvatarDirective {
 }
 
 class UserAvatarController {
-  /* @ngInject */
   constructor(private $scope, private $q, private Constants) {}
 }
+UserAvatarController.$inject = ['$scope', '$q', 'Constants'];
 
 export default UserAvatarDirective;

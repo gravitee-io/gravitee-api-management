@@ -32,7 +32,6 @@ class EditPageContentComponentController implements IController {
   // for asciidoc & swagger
   codeMirrorOptions: any;
 
-  /* @ngInject */
   constructor(private $scope: IPageScope) {}
 
   isAsciiDoc(): boolean {
@@ -69,6 +68,7 @@ class EditPageContentComponentController implements IController {
     }
   }
 }
+EditPageContentComponentController.$inject = ['$scope'];
 
 export const EditPageContentComponent: ng.IComponentOptions = {
   bindings: {

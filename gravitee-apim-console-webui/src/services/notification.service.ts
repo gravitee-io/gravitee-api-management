@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 class NotificationService {
-  /* @ngInject */
   constructor(private $mdToast: ng.material.IToastService, private $state) {}
 
   show(message: any, errorStatus?: number) {
@@ -49,5 +48,6 @@ class NotificationService {
     );
   }
 }
+NotificationService.$inject = ['$mdToast', '$state'];
 
 export default NotificationService;

@@ -33,7 +33,6 @@ class UserController {
   private fields: any[] = [];
   private groups = '';
 
-  /* @ngInject */
   constructor(
     private UserService: UserService,
     private NotificationService: NotificationService,
@@ -170,5 +169,6 @@ class UserController {
       });
   }
 }
+UserController.$inject = ['UserService', 'NotificationService', '$state', '$scope', '$rootScope', 'TokenService', '$mdDialog', 'Constants'];
 
 export default UserController;

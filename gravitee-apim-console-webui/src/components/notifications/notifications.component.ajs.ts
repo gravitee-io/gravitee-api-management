@@ -33,172 +33,180 @@ const NotificationsComponentAjs: ng.IComponentOptions = {
     resolvedNotifiers: '<',
   },
   template: require('./notifications.html'),
-  /* @ngInject */
-  controller: function (
-    Constants: any,
-    $state: StateService,
-    NotificationSettingsService: NotificationSettingsService,
-    NotificationService: NotificationService,
-    $mdDialog: angular.material.IDialogService,
-    $timeout: ng.ITimeoutService,
-    $rootScope: IScope,
-  ) {
-    if (!$state.params.notificationId) {
-      $state.go('^.notifications.notification', { notificationId: 'portal' }, { reload: true });
-      return;
-    }
-
-    this.$rootScope = $rootScope;
-    this.$mdDialog = $mdDialog;
-    this.readonly = false;
-
-    this.$onInit = () => {
-      this.hooksByCategory = _.groupBy(this.resolvedHooks, 'category');
-      this.hooksCategories = _.keysIn(this.hooksByCategory);
-
-      this.selectNotificationSetting(
-        _.find(this.notificationSettings, { id: $state.params.notificationId }) || this.notificationSettings[0],
-      );
-
-      if ($state.params.apiId) {
-        this.currentReferenceId = $state.params.apiId;
-      } else if ($state.params.applicationId) {
-        this.currentReferenceId = $state.params.applicationId;
-      } else {
-        this.currentReferenceId = 'DEFAULT';
-      }
-    };
-
-    this.selectNotificationSetting = (n, reload) => {
-      this.selectedNotificationSetting = n;
-      this.hookStatus = {};
-      _.forEach(this.resolvedHooks, (hook: Hook) => {
-        this.hookStatus[hook.id] = this.selectedNotificationSetting.hooks.indexOf(hook.id) >= 0;
-      });
-      if (this.selectedNotificationSetting.notifier) {
-        this.selectedNotifier = _.filter(this.resolvedNotifiers, {
-          id: this.selectedNotificationSetting.notifier,
-        })[0];
-      } else {
-        this.selectedNotifier = undefined;
+  controller: [
+    'Constants',
+    '$state',
+    'NotificationSettingsService',
+    'NotificationService',
+    '$mdDialog',
+    '$timeout',
+    '$rootScope',
+    function (
+      Constants: any,
+      $state: StateService,
+      NotificationSettingsService: NotificationSettingsService,
+      NotificationService: NotificationService,
+      $mdDialog: angular.material.IDialogService,
+      $timeout: ng.ITimeoutService,
+      $rootScope: IScope,
+    ) {
+      if (!$state.params.notificationId) {
+        $state.go('^.notifications.notification', { notificationId: 'portal' }, { reload: true });
+        return;
       }
 
-      $timeout(() => {
-        $state.transitionTo(
-          $state.current,
-          {
-            ...$state.params,
-            notificationId: this.selectedNotificationSetting.id || 'portal',
-          },
-          { reload: reload },
-        );
-      });
-    };
-
-    this.save = () => {
-      const cfg = new NotificationConfig();
-      cfg.id = this.selectedNotificationSetting.id;
-      cfg.name = this.selectedNotificationSetting.name;
-      cfg.config_type = this.selectedNotificationSetting.config_type;
-      cfg.referenceType = this.selectedNotificationSetting.referenceType;
-      cfg.referenceId = this.selectedNotificationSetting.referenceId;
-      if (this.selectedNotifier) {
-        cfg.notifier = this.selectedNotifier.id;
-      }
-      cfg.config = this.selectedNotificationSetting.config;
-      cfg.useSystemProxy = this.selectedNotificationSetting.useSystemProxy;
-      cfg.hooks = [];
-      _.forEach(this.hookStatus, (k, v) => {
-        if (k) {
-          cfg.hooks.push(v);
-        }
-      });
-      NotificationSettingsService.update(cfg).then((response) => {
-        const idx = _.findIndex(this.notificationSettings, { id: response.data.id });
-        // portal notification has no id
-        if (idx < 0) {
-          this.notificationSettings[0] = response.data;
-        } else {
-          this.notificationSettings[idx] = response.data;
-        }
-        NotificationService.show('Notifications saved with success');
-        this.formNotification.$setPristine();
-      });
-    };
-
-    this.delete = () => {
-      const alert = this.$mdDialog.confirm({
-        title: 'Warning',
-        textContent: 'Are you sure you want to remove this notification?',
-        ok: 'OK',
-        cancel: 'Cancel',
-      });
-      this.$mdDialog.show(alert).then(() => {
-        NotificationSettingsService.delete(
-          this.resolvedHookScope,
-          this.selectedNotificationSetting.referenceId,
-          this.selectedNotificationSetting.id,
-        ).then(() => {
-          NotificationService.show('Notification deleted with success');
-          this.notificationSettings = _.filter(this.notificationSettings, (n: any) => {
-            return this.selectedNotificationSetting.id !== n.id;
-          });
-          this.selectNotificationSetting(this.notificationSettings[0], true);
-        });
-      });
-    };
-
-    this.onUnauthorized = () => {
-      this.readonly = true;
-    };
-
-    this.onAuthorized = () => {
+      this.$rootScope = $rootScope;
+      this.$mdDialog = $mdDialog;
       this.readonly = false;
-    };
 
-    this.addDialog = () => {
-      this.$mdDialog
-        .show({
-          controller: 'DialogAddNotificationSettingsController',
-          controllerAs: 'dialogAddNotificationSettingsController',
-          template: require('./notificationsettings/addnotificationsettings.dialog.html'),
-          clickOutsideToClose: true,
-          notifiers: this.resolvedNotifiers,
-        })
-        .then((newConfig) => {
-          const cfg = new NotificationConfig();
-          cfg.name = newConfig.name;
-          cfg.config_type = 'GENERIC';
-          cfg.referenceId = this.currentReferenceId;
-          cfg.notifier = newConfig.notifierId;
-          cfg.hooks = [];
-          switch (this.resolvedHookScope) {
-            case Scope.APPLICATION:
-              cfg.referenceType = 'APPLICATION';
-              break;
-            case Scope.API:
-              cfg.referenceType = 'API';
-              break;
-            case Scope.PORTAL:
-              cfg.referenceType = 'PORTAL';
-              break;
-            default:
-              break;
+      this.$onInit = () => {
+        this.hooksByCategory = _.groupBy(this.resolvedHooks, 'category');
+        this.hooksCategories = _.keysIn(this.hooksByCategory);
+
+        this.selectNotificationSetting(
+          _.find(this.notificationSettings, { id: $state.params.notificationId }) || this.notificationSettings[0],
+        );
+
+        if ($state.params.apiId) {
+          this.currentReferenceId = $state.params.apiId;
+        } else if ($state.params.applicationId) {
+          this.currentReferenceId = $state.params.applicationId;
+        } else {
+          this.currentReferenceId = 'DEFAULT';
+        }
+      };
+
+      this.selectNotificationSetting = (n, reload) => {
+        this.selectedNotificationSetting = n;
+        this.hookStatus = {};
+        _.forEach(this.resolvedHooks, (hook: Hook) => {
+          this.hookStatus[hook.id] = this.selectedNotificationSetting.hooks.indexOf(hook.id) >= 0;
+        });
+        if (this.selectedNotificationSetting.notifier) {
+          this.selectedNotifier = _.filter(this.resolvedNotifiers, {
+            id: this.selectedNotificationSetting.notifier,
+          })[0];
+        } else {
+          this.selectedNotifier = undefined;
+        }
+
+        $timeout(() => {
+          $state.transitionTo(
+            $state.current,
+            {
+              ...$state.params,
+              notificationId: this.selectedNotificationSetting.id || 'portal',
+            },
+            { reload: reload },
+          );
+        });
+      };
+
+      this.save = () => {
+        const cfg = new NotificationConfig();
+        cfg.id = this.selectedNotificationSetting.id;
+        cfg.name = this.selectedNotificationSetting.name;
+        cfg.config_type = this.selectedNotificationSetting.config_type;
+        cfg.referenceType = this.selectedNotificationSetting.referenceType;
+        cfg.referenceId = this.selectedNotificationSetting.referenceId;
+        if (this.selectedNotifier) {
+          cfg.notifier = this.selectedNotifier.id;
+        }
+        cfg.config = this.selectedNotificationSetting.config;
+        cfg.useSystemProxy = this.selectedNotificationSetting.useSystemProxy;
+        cfg.hooks = [];
+        _.forEach(this.hookStatus, (k, v) => {
+          if (k) {
+            cfg.hooks.push(v);
           }
-          NotificationSettingsService.create(cfg).then((response) => {
-            this.notificationSettings.push(response.data);
-            this.selectNotificationSetting(response.data);
+        });
+        NotificationSettingsService.update(cfg).then((response) => {
+          const idx = _.findIndex(this.notificationSettings, { id: response.data.id });
+          // portal notification has no id
+          if (idx < 0) {
+            this.notificationSettings[0] = response.data;
+          } else {
+            this.notificationSettings[idx] = response.data;
+          }
+          NotificationService.show('Notifications saved with success');
+          this.formNotification.$setPristine();
+        });
+      };
+
+      this.delete = () => {
+        const alert = this.$mdDialog.confirm({
+          title: 'Warning',
+          textContent: 'Are you sure you want to remove this notification?',
+          ok: 'OK',
+          cancel: 'Cancel',
+        });
+        this.$mdDialog.show(alert).then(() => {
+          NotificationSettingsService.delete(
+            this.resolvedHookScope,
+            this.selectedNotificationSetting.referenceId,
+            this.selectedNotificationSetting.id,
+          ).then(() => {
+            NotificationService.show('Notification deleted with success');
+            this.notificationSettings = _.filter(this.notificationSettings, (n: any) => {
+              return this.selectedNotificationSetting.id !== n.id;
+            });
+            this.selectNotificationSetting(this.notificationSettings[0], true);
           });
         });
-    };
+      };
 
-    this.validate = () => {
-      return (
-        this.selectedNotificationSetting.config_type === 'PORTAL' ||
-        (this.selectedNotificationSetting.config && this.selectedNotificationSetting.config !== '')
-      );
-    };
-  },
+      this.onUnauthorized = () => {
+        this.readonly = true;
+      };
+
+      this.onAuthorized = () => {
+        this.readonly = false;
+      };
+
+      this.addDialog = () => {
+        this.$mdDialog
+          .show({
+            controller: 'DialogAddNotificationSettingsController',
+            controllerAs: 'dialogAddNotificationSettingsController',
+            template: require('./notificationsettings/addnotificationsettings.dialog.html'),
+            clickOutsideToClose: true,
+            notifiers: this.resolvedNotifiers,
+          })
+          .then((newConfig) => {
+            const cfg = new NotificationConfig();
+            cfg.name = newConfig.name;
+            cfg.config_type = 'GENERIC';
+            cfg.referenceId = this.currentReferenceId;
+            cfg.notifier = newConfig.notifierId;
+            cfg.hooks = [];
+            switch (this.resolvedHookScope) {
+              case Scope.APPLICATION:
+                cfg.referenceType = 'APPLICATION';
+                break;
+              case Scope.API:
+                cfg.referenceType = 'API';
+                break;
+              case Scope.PORTAL:
+                cfg.referenceType = 'PORTAL';
+                break;
+              default:
+                break;
+            }
+            NotificationSettingsService.create(cfg).then((response) => {
+              this.notificationSettings.push(response.data);
+              this.selectNotificationSetting(response.data);
+            });
+          });
+      };
+
+      this.validate = () => {
+        return (
+          this.selectedNotificationSetting.config_type === 'PORTAL' ||
+          (this.selectedNotificationSetting.config && this.selectedNotificationSetting.config !== '')
+        );
+      };
+    },
+  ],
 };
 
 export default NotificationsComponentAjs;

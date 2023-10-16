@@ -26,47 +26,50 @@ const AlertNotificationComponent: ng.IComponentOptions = {
     parent: '^gvAlertNotifications',
   },
   template: require('./alert-notification.html'),
-  /* @ngInject */
-  controller: function (NotificationService: NotificationService, NotifierService: NotifierService) {
-    this.notifierJsonSchemaForm = ['*'];
+  controller: [
+    'NotificationService',
+    'NotifierService',
+    function (NotificationService: NotificationService, NotifierService: NotifierService) {
+      this.notifierJsonSchemaForm = ['*'];
 
-    this.$onInit = () => {
-      if (this.notification.type) {
+      this.$onInit = () => {
+        if (this.notification.type) {
+          this.reloadNotifierSchema();
+        }
+      };
+
+      this.onNotifierChange = () => {
+        this.notification.configuration = {};
         this.reloadNotifierSchema();
-      }
-    };
+      };
 
-    this.onNotifierChange = () => {
-      this.notification.configuration = {};
-      this.reloadNotifierSchema();
-    };
-
-    this.reloadNotifierSchema = () => {
-      NotifierService.getSchema(this.notification.type).then(
-        ({ data }) => {
-          this.notifierJsonSchema = { ...data, readonly: this.isReadonly };
-          return {
-            schema: data,
-          };
-        },
-        (response) => {
-          if (response.status === 404) {
-            this.notifierJsonSchema = {};
+      this.reloadNotifierSchema = () => {
+        NotifierService.getSchema(this.notification.type).then(
+          ({ data }) => {
+            this.notifierJsonSchema = { ...data, readonly: this.isReadonly };
             return {
-              schema: {},
+              schema: data,
             };
-          } else {
-            // todo manage errors
-            NotificationService.showError('Unexpected error while loading notifier schema for ' + this.notifier.type);
-          }
-        },
-      );
-    };
+          },
+          (response) => {
+            if (response.status === 404) {
+              this.notifierJsonSchema = {};
+              return {
+                schema: {},
+              };
+            } else {
+              // todo manage errors
+              NotificationService.showError('Unexpected error while loading notifier schema for ' + this.notifier.type);
+            }
+          },
+        );
+      };
 
-    this.remove = () => {
-      this.onNotificationRemove();
-    };
-  },
+      this.remove = () => {
+        this.onNotificationRemove();
+      };
+    },
+  ],
 };
 
 export default AlertNotificationComponent;

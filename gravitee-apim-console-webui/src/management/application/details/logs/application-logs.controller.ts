@@ -29,7 +29,6 @@ class ApplicationLogsController {
   private application: any;
   private init: boolean;
 
-  /* @ngInject */
   constructor(private ApplicationService: ApplicationService, private $state: StateService, private $scope: IScope) {
     this.ApplicationService = ApplicationService;
 
@@ -108,5 +107,6 @@ class ApplicationLogsController {
     });
   }
 }
+ApplicationLogsController.$inject = ['ApplicationService', '$state', '$scope'];
 
 export default ApplicationLogsController;

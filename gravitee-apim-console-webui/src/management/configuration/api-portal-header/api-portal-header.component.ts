@@ -27,122 +27,130 @@ const ApiPortalHeaderComponent: ng.IComponentOptions = {
     settings: '<',
   },
   template: require('./api-portal-header.html'),
-  /* @ngInject */
-  controller: function (
-    ApiHeaderService: ApiHeaderService,
-    NotificationService: NotificationService,
-    PortalSettingsService: PortalSettingsService,
-    $mdDialog: angular.material.IDialogService,
-    Constants,
-    $rootScope: IScope,
-    UserService: UserService,
-  ) {
-    this.$rootScope = $rootScope;
-    this.$mdDialog = $mdDialog;
+  controller: [
+    'ApiHeaderService',
+    'NotificationService',
+    'PortalSettingsService',
+    '$mdDialog',
+    'Constants',
+    '$rootScope',
+    'UserService',
+    function (
+      ApiHeaderService: ApiHeaderService,
+      NotificationService: NotificationService,
+      PortalSettingsService: PortalSettingsService,
+      $mdDialog: angular.material.IDialogService,
+      Constants,
+      $rootScope: IScope,
+      UserService: UserService,
+    ) {
+      this.$rootScope = $rootScope;
+      this.$mdDialog = $mdDialog;
 
-    this.providedConfigurationMessage = 'Configuration provided by the system';
-    this.canUpdateSettings = UserService.isUserHasPermissions([
-      'environment-settings-c',
-      'environment-settings-u',
-      'environment-settings-d',
-    ]);
+      this.providedConfigurationMessage = 'Configuration provided by the system';
+      this.canUpdateSettings = UserService.isUserHasPermissions([
+        'environment-settings-c',
+        'environment-settings-u',
+        'environment-settings-d',
+      ]);
 
-    this.upward = (header: ApiPortalHeader) => {
-      header.order = header.order - 1;
-      ApiHeaderService.update(header).then(() => {
-        NotificationService.show("Header '" + header.name + "' saved");
-        ApiHeaderService.list().then((response) => (this.apiPortalHeaders = response.data));
-      });
-    };
-
-    this.downward = (header: ApiPortalHeader) => {
-      header.order = header.order + 1;
-      ApiHeaderService.update(header).then(() => {
-        NotificationService.show("Header '" + header.name + "' saved");
-        ApiHeaderService.list().then((response) => (this.apiPortalHeaders = response.data));
-      });
-    };
-
-    this.createHeader = () => {
-      this.$mdDialog
-        .show({
-          controller: 'NewApiPortalHeaderDialogController',
-          controllerAs: '$ctrl',
-          template: require('./save.api-portal-header.dialog.html'),
-          locals: {},
-        })
-        .then((newHeader) => {
-          NotificationService.show("Header '" + newHeader.name + "' saved");
+      this.upward = (header: ApiPortalHeader) => {
+        header.order = header.order - 1;
+        ApiHeaderService.update(header).then(() => {
+          NotificationService.show("Header '" + header.name + "' saved");
           ApiHeaderService.list().then((response) => (this.apiPortalHeaders = response.data));
         });
-    };
+      };
 
-    this.updateHeader = (header: ApiPortalHeader) => {
-      this.$mdDialog
-        .show({
-          controller: 'UpdateApiPortalHeaderDialogController',
-          controllerAs: '$ctrl',
-          template: require('./save.api-portal-header.dialog.html'),
-          locals: {
-            header: Object.assign({}, header),
-          },
-        })
-        .then((updatedHeader) => {
-          NotificationService.show("Header '" + updatedHeader.name + "' saved");
+      this.downward = (header: ApiPortalHeader) => {
+        header.order = header.order + 1;
+        ApiHeaderService.update(header).then(() => {
+          NotificationService.show("Header '" + header.name + "' saved");
           ApiHeaderService.list().then((response) => (this.apiPortalHeaders = response.data));
         });
-    };
+      };
 
-    this.deleteHeader = (header: ApiPortalHeader) => {
-      this.$mdDialog
-        .show({
-          controller: 'DialogConfirmController',
-          controllerAs: 'ctrl',
-          template: require('../../../components/dialog/confirmWarning.dialog.html'),
-          clickOutsideToClose: true,
-          locals: {
-            title: 'Are you sure you want to delete this header?',
-            msg: '',
-            confirmButton: 'Delete',
-          },
-        })
-        .then((response) => {
-          if (response) {
-            ApiHeaderService.delete(header).then(() => {
-              NotificationService.show("Header '" + header.name + "' deleted");
-              ApiHeaderService.list().then((response) => (this.apiPortalHeaders = response.data));
-            });
-          }
+      this.createHeader = () => {
+        this.$mdDialog
+          .show({
+            controller: 'NewApiPortalHeaderDialogController',
+            controllerAs: '$ctrl',
+            template: require('./save.api-portal-header.dialog.html'),
+            locals: {},
+          })
+          .then((newHeader) => {
+            NotificationService.show("Header '" + newHeader.name + "' saved");
+            ApiHeaderService.list().then((response) => (this.apiPortalHeaders = response.data));
+          });
+      };
+
+      this.updateHeader = (header: ApiPortalHeader) => {
+        this.$mdDialog
+          .show({
+            controller: 'UpdateApiPortalHeaderDialogController',
+            controllerAs: '$ctrl',
+            template: require('./save.api-portal-header.dialog.html'),
+            locals: {
+              header: Object.assign({}, header),
+            },
+          })
+          .then((updatedHeader) => {
+            NotificationService.show("Header '" + updatedHeader.name + "' saved");
+            ApiHeaderService.list().then((response) => (this.apiPortalHeaders = response.data));
+          });
+      };
+
+      this.deleteHeader = (header: ApiPortalHeader) => {
+        this.$mdDialog
+          .show({
+            controller: 'DialogConfirmController',
+            controllerAs: 'ctrl',
+            template: require('../../../components/dialog/confirmWarning.dialog.html'),
+            clickOutsideToClose: true,
+            locals: {
+              title: 'Are you sure you want to delete this header?',
+              msg: '',
+              confirmButton: 'Delete',
+            },
+          })
+          .then((response) => {
+            if (response) {
+              ApiHeaderService.delete(header).then(() => {
+                NotificationService.show("Header '" + header.name + "' deleted");
+                ApiHeaderService.list().then((response) => (this.apiPortalHeaders = response.data));
+              });
+            }
+          });
+      };
+
+      this.saveShowCategories = () => {
+        PortalSettingsService.save(this.settings).then((response) => {
+          NotificationService.show(
+            'Categories are now ' + (this.settings.portal.apis.apiHeaderShowCategories.enabled ? 'visible' : 'hidden'),
+          );
+          this.settings = response.data;
         });
-    };
+      };
 
-    this.saveShowCategories = () => {
-      PortalSettingsService.save(this.settings).then((response) => {
-        NotificationService.show(
-          'Categories are now ' + (this.settings.portal.apis.apiHeaderShowCategories.enabled ? 'visible' : 'hidden'),
-        );
-        this.settings = response.data;
-      });
-    };
+      this.saveShowTags = () => {
+        PortalSettingsService.save(this.settings).then((response) => {
+          NotificationService.show('Tags are now ' + (this.settings.portal.apis.apiHeaderShowTags.enabled ? 'visible' : 'hidden'));
+          this.settings = response.data;
+        });
+      };
 
-    this.saveShowTags = () => {
-      PortalSettingsService.save(this.settings).then((response) => {
-        NotificationService.show('Tags are now ' + (this.settings.portal.apis.apiHeaderShowTags.enabled ? 'visible' : 'hidden'));
-        this.settings = response.data;
-      });
-    };
+      this.savePromotedApiMode = () => {
+        PortalSettingsService.save(this.settings).then((response) => {
+          NotificationService.show('Promoted API is now ' + (this.settings.portal.apis.promotedApiMode.enabled ? 'visible' : 'hidden'));
+          this.settings = response.data;
+        });
+      };
 
-    this.savePromotedApiMode = () => {
-      PortalSettingsService.save(this.settings).then((response) => {
-        NotificationService.show('Promoted API is now ' + (this.settings.portal.apis.promotedApiMode.enabled ? 'visible' : 'hidden'));
-        this.settings = response.data;
-      });
-    };
-
-    this.isReadonlySetting = (property: string): boolean => {
-      return PortalSettingsService.isReadonly(this.settings, property);
-    };
-  },
+      this.isReadonlySetting = (property: string): boolean => {
+        return PortalSettingsService.isReadonly(this.settings, property);
+      };
+    },
+  ],
 };
 
 export default ApiPortalHeaderComponent;

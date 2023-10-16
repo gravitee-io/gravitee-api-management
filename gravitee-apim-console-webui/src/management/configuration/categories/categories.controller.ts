@@ -30,7 +30,6 @@ class CategoriesController {
   private Constants: any;
   private settings: any;
 
-  /* @ngInject */
   constructor(
     private CategoryService: CategoryService,
     private NotificationService: NotificationService,
@@ -127,5 +126,16 @@ class CategoriesController {
     });
   }
 }
+CategoriesController.$inject = [
+  'CategoryService',
+  'NotificationService',
+  '$q',
+  '$mdDialog',
+  '$state',
+  'PortalSettingsService',
+  'Constants',
+  '$rootScope',
+  'UserService',
+];
 
 export default CategoriesController;

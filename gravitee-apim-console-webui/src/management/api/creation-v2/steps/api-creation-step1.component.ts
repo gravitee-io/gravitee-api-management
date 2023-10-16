@@ -23,34 +23,36 @@ const ApiCreationStep1Component: ng.IComponentOptions = {
     parent: '^apiCreationV2ComponentAjs',
   },
   template: require('./api-creation-step1.html'),
-  controller: class {
-    private parent: ApiCreationV2ControllerAjs;
-    private advancedMode: boolean;
-    private useGroupAsPrimaryOwner: boolean;
-    public shouldDisplayHint = shouldDisplayHint;
+  controller: [
+    'ApiPrimaryOwnerModeService',
+    class {
+      private parent: ApiCreationV2ControllerAjs;
+      private advancedMode: boolean;
+      private useGroupAsPrimaryOwner: boolean;
+      public shouldDisplayHint = shouldDisplayHint;
 
-    /* @ngInject */
-    constructor(private ApiPrimaryOwnerModeService: ApiPrimaryOwnerModeService) {
-      this.advancedMode = false;
-      this.useGroupAsPrimaryOwner = this.ApiPrimaryOwnerModeService.isGroupOnly();
-    }
-
-    toggleAdvancedMode = () => {
-      this.advancedMode = !this.advancedMode;
-      if (!this.advancedMode) {
-        this.parent.api.groups = [];
+      constructor(private ApiPrimaryOwnerModeService: ApiPrimaryOwnerModeService) {
+        this.advancedMode = false;
+        this.useGroupAsPrimaryOwner = this.ApiPrimaryOwnerModeService.isGroupOnly();
       }
-    };
 
-    canUseAdvancedMode = () => {
-      return (
-        (this.ApiPrimaryOwnerModeService.isHybrid() &&
-          ((this.parent.attachableGroups && this.parent.attachableGroups.length > 0) ||
-            (this.parent.poGroups && this.parent.poGroups.length > 0))) ||
-        (this.ApiPrimaryOwnerModeService.isGroupOnly() && this.parent.attachableGroups && this.parent.attachableGroups.length > 0)
-      );
-    };
-  },
+      toggleAdvancedMode = () => {
+        this.advancedMode = !this.advancedMode;
+        if (!this.advancedMode) {
+          this.parent.api.groups = [];
+        }
+      };
+
+      canUseAdvancedMode = () => {
+        return (
+          (this.ApiPrimaryOwnerModeService.isHybrid() &&
+            ((this.parent.attachableGroups && this.parent.attachableGroups.length > 0) ||
+              (this.parent.poGroups && this.parent.poGroups.length > 0))) ||
+          (this.ApiPrimaryOwnerModeService.isGroupOnly() && this.parent.attachableGroups && this.parent.attachableGroups.length > 0)
+        );
+      };
+    },
+  ],
 };
 
 export default ApiCreationStep1Component;

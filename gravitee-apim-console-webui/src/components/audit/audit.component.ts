@@ -25,79 +25,81 @@ const AuditComponent: ng.IComponentOptions = {
     applications: '<',
     events: '<',
   },
-  /* @ngInject */
-  controller: function (AuditService: AuditService) {
-    this.$onInit = () => {
-      this.events = _.map(this.events, (ev: string) => {
-        return ev.toUpperCase();
-      });
-      this.query = new AuditQuery();
-      this.onPaginate = this.onPaginate.bind(this);
-      AuditService.list(null, this.api).then((response) => this.handleAuditResponseData(response.data));
-      this.queryLogType = 'all';
-    };
-
-    this.handleAuditResponseData = (responseData) => {
-      this.auditLogs = responseData.content;
-      this.metadata = responseData.metadata;
-      this.enhanceAuditLogs(this.auditLogs);
-      this.query.page = responseData.pageNumber;
-      this.result = {
-        size: responseData.pageElements,
-        total: responseData.totalElements,
+  controller: [
+    'AuditService',
+    function (AuditService: AuditService) {
+      this.$onInit = () => {
+        this.events = _.map(this.events, (ev: string) => {
+          return ev.toUpperCase();
+        });
+        this.query = new AuditQuery();
+        this.onPaginate = this.onPaginate.bind(this);
+        AuditService.list(null, this.api).then((response) => this.handleAuditResponseData(response.data));
+        this.queryLogType = 'all';
       };
-    };
 
-    this.enhanceAuditLogs = (auditLogs) => {
-      _.forEach(auditLogs, (log) => {
-        log.prettyPatch = JSON.stringify(JSON.parse(log.patch), null, '  ');
-        log.displayPatch = false;
-        log.displayProperties = false;
-      });
-    };
+      this.handleAuditResponseData = (responseData) => {
+        this.auditLogs = responseData.content;
+        this.metadata = responseData.metadata;
+        this.enhanceAuditLogs(this.auditLogs);
+        this.query.page = responseData.pageNumber;
+        this.result = {
+          size: responseData.pageElements,
+          total: responseData.totalElements,
+        };
+      };
 
-    this.onPaginate = () => {
-      AuditService.list(this.query, this.api).then((response) => {
-        this.handleAuditResponseData(response.data);
-      });
-    };
+      this.enhanceAuditLogs = (auditLogs) => {
+        _.forEach(auditLogs, (log) => {
+          log.prettyPatch = JSON.stringify(JSON.parse(log.patch), null, '  ');
+          log.displayPatch = false;
+          log.displayProperties = false;
+        });
+      };
 
-    this.getNameByReference = (ref: { type: string; id: string }) => {
-      if (this.metadata[ref.type + ':' + ref.id + ':name']) {
-        return this.metadata[ref.type + ':' + ref.id + ':name'];
-      }
-      return ref.id;
-    };
+      this.onPaginate = () => {
+        AuditService.list(this.query, this.api).then((response) => {
+          this.handleAuditResponseData(response.data);
+        });
+      };
 
-    this.getDisplayableProperties = (properties) => {
-      return _.mapValues(properties, (v, k) => this.metadata[k + ':' + v + ':name']);
-    };
+      this.getNameByReference = (ref: { type: string; id: string }) => {
+        if (this.metadata[ref.type + ':' + ref.id + ':name']) {
+          return this.metadata[ref.type + ':' + ref.id + ':name'];
+        }
+        return ref.id;
+      };
 
-    this.onOrgEnvFilterChange = () => {
-      if (this.queryLogType === 'env') {
-        this.query.orgLog = false;
-        this.query.envLog = true;
-      } else if (this.queryLogType === 'org') {
-        this.query.orgLog = true;
-        this.query.envLog = false;
-      } else {
-        this.query.orgLog = false;
-        this.query.envLog = false;
-      }
-    };
+      this.getDisplayableProperties = (properties) => {
+        return _.mapValues(properties, (v, k) => this.metadata[k + ':' + v + ':name']);
+      };
 
-    this.search = () => {
-      this.query.page = 1;
-      if (this.query.mgmt) {
-        this.query.api = null;
-        this.query.application = null;
-      }
+      this.onOrgEnvFilterChange = () => {
+        if (this.queryLogType === 'env') {
+          this.query.orgLog = false;
+          this.query.envLog = true;
+        } else if (this.queryLogType === 'org') {
+          this.query.orgLog = true;
+          this.query.envLog = false;
+        } else {
+          this.query.orgLog = false;
+          this.query.envLog = false;
+        }
+      };
 
-      AuditService.list(this.query, this.api).then((response) => {
-        this.handleAuditResponseData(response.data);
-      });
-    };
-  },
+      this.search = () => {
+        this.query.page = 1;
+        if (this.query.mgmt) {
+          this.query.api = null;
+          this.query.application = null;
+        }
+
+        AuditService.list(this.query, this.api).then((response) => {
+          this.handleAuditResponseData(response.data);
+        });
+      };
+    },
+  ],
 };
 
 export default AuditComponent;

@@ -16,7 +16,6 @@
 import { ApiPortalHeader } from '../../../entities/apiPortalHeader';
 import ApiHeaderService from '../../../services/apiHeader.service';
 
-/* @ngInject */
 function NewApiPortalHeaderDialogController(ApiHeaderService: ApiHeaderService, $mdDialog: angular.material.IDialogService) {
   this.header = new ApiPortalHeader();
 
@@ -30,5 +29,6 @@ function NewApiPortalHeaderDialogController(ApiHeaderService: ApiHeaderService, 
     });
   };
 }
+NewApiPortalHeaderDialogController.$inject = ['ApiHeaderService', '$mdDialog'];
 
 export default NewApiPortalHeaderDialogController;

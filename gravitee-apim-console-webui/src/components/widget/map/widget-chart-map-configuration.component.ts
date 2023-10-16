@@ -19,7 +19,6 @@ const WidgetChartMapConfigurationComponent: ng.IComponentOptions = {
   bindings: {
     chart: '<',
   },
-  /* @ngInject */
   controller: function () {
     this.$onInit = () => {
       if (!this.chart.request) {

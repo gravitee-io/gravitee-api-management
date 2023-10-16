@@ -20,14 +20,16 @@ const TicketDetailComponent: ng.IComponentOptions = {
   bindings: {
     ticket: '<',
   },
-  /* @ngInject */
-  controller: function ($state: StateService) {
-    this.backStateParams = {
-      page: $state.params.page,
-      size: $state.params.size,
-      order: $state.params.order,
-    };
-  },
+  controller: [
+    '$state',
+    function ($state: StateService) {
+      this.backStateParams = {
+        page: $state.params.page,
+        size: $state.params.size,
+        order: $state.params.order,
+      };
+    },
+  ],
 };
 
 export default TicketDetailComponent;

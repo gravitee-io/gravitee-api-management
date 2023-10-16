@@ -22,11 +22,9 @@ import ApplicationTypesService from '../../services/applicationTypes.service';
 import EnvironmentService from '../../services/environment.service';
 import GroupService from '../../services/group.service';
 import MetadataService from '../../services/metadata.service';
-import UserService from '../../services/user.service';
 
 export default applicationsConfig;
 
-/* @ngInject */
 function applicationsConfig($stateProvider) {
   $stateProvider
     .state('management.applications', {
@@ -71,11 +69,14 @@ function applicationsConfig($stateProvider) {
       url: '/create',
       component: 'createApplication',
       resolve: {
-        enabledApplicationTypes: (ApplicationTypesService: ApplicationTypesService) =>
-          ApplicationTypesService.getEnabledApplicationTypes().then((response) =>
-            response.data.map((appType) => new ApplicationType(appType)),
-          ),
-        groups: (GroupService: GroupService) => GroupService.list().then((response) => response.data),
+        enabledApplicationTypes: [
+          'ApplicationTypesService',
+          (ApplicationTypesService: ApplicationTypesService) =>
+            ApplicationTypesService.getEnabledApplicationTypes().then((response) =>
+              response.data.map((appType) => new ApplicationType(appType)),
+            ),
+        ],
+        groups: ['GroupService', (GroupService: GroupService) => GroupService.list().then((response) => response.data)],
       },
       data: {
         perms: {
@@ -90,53 +91,75 @@ function applicationsConfig($stateProvider) {
       abstract: true,
       url: '/:applicationId',
       template: require('./details/application.html'),
-      controller: function (application) {
-        this.application = application;
-      },
+      controller: [
+        'application',
+        function (application) {
+          this.application = application;
+        },
+      ],
       controllerAs: '$ctrl',
       resolve: {
-        application: (
-          $stateParams: StateParams,
-          ApplicationService: ApplicationService,
-          $state: StateService,
-          EnvironmentService: EnvironmentService,
-          Constants: any,
-        ) =>
-          ApplicationService.get($stateParams.applicationId)
-            .then((response) => response.data)
-            .catch((err) => {
-              if (err && err.interceptorFuture) {
-                $state.go('management.applications.list', {
-                  environmentId: EnvironmentService.getFirstHridOrElseId(Constants.org.currentEnv.id),
-                });
-              }
-            }),
-        applicationType: ($stateParams: StateParams, ApplicationService: ApplicationService) =>
-          ApplicationService.getApplicationType($stateParams.applicationId)
-            .then((response) => response.data)
-            .catch((err) => {
+        application: [
+          '$stateParams',
+          'ApplicationService',
+          '$state',
+          'EnvironmentService',
+          'Constants',
+          (
+            $stateParams: StateParams,
+            ApplicationService: ApplicationService,
+            $state: StateService,
+            EnvironmentService: EnvironmentService,
+            Constants: any,
+          ) =>
+            ApplicationService.get($stateParams.applicationId)
+              .then((response) => response.data)
+              .catch((err) => {
+                if (err && err.interceptorFuture) {
+                  $state.go('management.applications.list', {
+                    environmentId: EnvironmentService.getFirstHridOrElseId(Constants.org.currentEnv.id),
+                  });
+                }
+              }),
+        ],
+        applicationType: [
+          '$stateParams',
+          'ApplicationService',
+          ($stateParams: StateParams, ApplicationService: ApplicationService) =>
+            ApplicationService.getApplicationType($stateParams.applicationId)
+              .then((response) => response.data)
+              .catch((err) => {
+                if (err && err.interceptorFuture) {
+                  err.interceptorFuture.cancel(); // avoid a duplicated notification with the same error
+                }
+              }),
+        ],
+        resolvedApplicationPermissions: [
+          '$stateParams',
+          'ApplicationService',
+          ($stateParams: StateParams, ApplicationService: ApplicationService) =>
+            ApplicationService.getPermissions($stateParams.applicationId).catch((err) => {
               if (err && err.interceptorFuture) {
                 err.interceptorFuture.cancel(); // avoid a duplicated notification with the same error
               }
             }),
-        resolvedApplicationPermissions: ($stateParams: StateParams, ApplicationService: ApplicationService) =>
-          ApplicationService.getPermissions($stateParams.applicationId).catch((err) => {
-            if (err && err.interceptorFuture) {
-              err.interceptorFuture.cancel(); // avoid a duplicated notification with the same error
-            }
-          }),
-        onEnter: function (UserService, resolvedApplicationPermissions) {
-          UserService.currentUser.userApplicationPermissions = [];
-          if (resolvedApplicationPermissions && resolvedApplicationPermissions.data) {
-            _.forEach(_.keys(resolvedApplicationPermissions.data), (permission) => {
-              _.forEach(resolvedApplicationPermissions.data[permission], (right) => {
-                const permissionName = 'APPLICATION-' + permission + '-' + right;
-                UserService.currentUser.userApplicationPermissions.push(_.toLower(permissionName));
+        ],
+        onEnter: [
+          'UserService',
+          'resolvedApplicationPermissions',
+          function (UserService, resolvedApplicationPermissions) {
+            UserService.currentUser.userApplicationPermissions = [];
+            if (resolvedApplicationPermissions && resolvedApplicationPermissions.data) {
+              _.forEach(_.keys(resolvedApplicationPermissions.data), (permission) => {
+                _.forEach(resolvedApplicationPermissions.data[permission], (right) => {
+                  const permissionName = 'APPLICATION-' + permission + '-' + right;
+                  UserService.currentUser.userApplicationPermissions.push(_.toLower(permissionName));
+                });
               });
-            });
-          }
-          UserService.reloadPermissions();
-        },
+            }
+            UserService.reloadPermissions();
+          },
+        ],
       },
     })
     .state('management.applications.application.general', {
@@ -151,23 +174,30 @@ function applicationsConfig($stateProvider) {
         },
       },
       resolve: {
-        groups: (UserService: UserService, GroupService: GroupService) => {
-          return GroupService.list().then((groups) => {
-            return _.filter(groups.data, 'manageable');
-          });
-        },
+        groups: [
+          'GroupService',
+          (GroupService: GroupService) => {
+            return GroupService.list().then((groups) => {
+              return _.filter(groups.data, 'manageable');
+            });
+          },
+        ],
       },
     })
     .state('management.applications.application.metadata', {
       url: '/metadata',
       component: 'metadata',
       resolve: {
-        metadataFormats: (MetadataService: MetadataService) => MetadataService.listFormats(),
-        metadata: function ($stateParams, ApplicationService) {
-          return ApplicationService.listMetadata($stateParams.applicationId).then((response) => {
-            return response.data;
-          });
-        },
+        metadataFormats: ['MetadataService', (MetadataService: MetadataService) => MetadataService.listFormats()],
+        metadata: [
+          '$stateParams',
+          'ApplicationService',
+          function ($stateParams, ApplicationService) {
+            return ApplicationService.listMetadata($stateParams.applicationId).then((response) => {
+              return response.data;
+            });
+          },
+        ],
       },
       data: {
         perms: {
@@ -187,8 +217,12 @@ function applicationsConfig($stateProvider) {
       url: '?page&size&:shared_page&:shared_size&:api&:status&:api_key',
       component: 'applicationSubscriptions',
       resolve: {
-        subscribers: ($stateParams, ApplicationService: ApplicationService) =>
-          ApplicationService.getSubscribedAPI($stateParams.applicationId).then((response) => response.data),
+        subscribers: [
+          '$stateParams',
+          'ApplicationService',
+          ($stateParams, ApplicationService: ApplicationService) =>
+            ApplicationService.getSubscribedAPI($stateParams.applicationId).then((response) => response.data),
+        ],
       },
       data: {
         perms: {
@@ -237,8 +271,12 @@ function applicationsConfig($stateProvider) {
       url: '/:subscriptionId?page&size&:shared_page&:shared_size&:api&:status&:api_key',
       component: 'applicationSubscription',
       resolve: {
-        subscription: ($stateParams, ApplicationService: ApplicationService) =>
-          ApplicationService.getSubscription($stateParams.applicationId, $stateParams.subscriptionId).then((response) => response.data),
+        subscription: [
+          '$stateParams',
+          'ApplicationService',
+          ($stateParams, ApplicationService: ApplicationService) =>
+            ApplicationService.getSubscription($stateParams.applicationId, $stateParams.subscriptionId).then((response) => response.data),
+        ],
       },
       data: {
         perms: {
@@ -287,9 +325,13 @@ function applicationsConfig($stateProvider) {
       url: '/subscribe',
       component: 'applicationSubscribe',
       resolve: {
-        groups: (GroupService: GroupService) => GroupService.list().then((response) => response.data),
-        subscriptions: ($stateParams, ApplicationService: ApplicationService) =>
-          ApplicationService.listSubscriptions($stateParams.applicationId, '?expand=security').then((response) => response.data),
+        groups: ['GroupService', (GroupService: GroupService) => GroupService.list().then((response) => response.data)],
+        subscriptions: [
+          '$stateParams',
+          'ApplicationService',
+          ($stateParams, ApplicationService: ApplicationService) =>
+            ApplicationService.listSubscriptions($stateParams.applicationId, '?expand=security').then((response) => response.data),
+        ],
       },
       data: {
         perms: {
@@ -301,13 +343,20 @@ function applicationsConfig($stateProvider) {
       url: '/members',
       component: 'applicationMembers',
       resolve: {
-        members: ($stateParams, ApplicationService: ApplicationService) =>
-          ApplicationService.getMembers($stateParams.applicationId).then((response) => response.data),
-        resolvedGroups: (GroupService: GroupService) => {
-          return GroupService.list().then((response) => {
-            return response.data;
-          });
-        },
+        members: [
+          '$stateParams',
+          'ApplicationService',
+          ($stateParams, ApplicationService: ApplicationService) =>
+            ApplicationService.getMembers($stateParams.applicationId).then((response) => response.data),
+        ],
+        resolvedGroups: [
+          'GroupService',
+          (GroupService: GroupService) => {
+            return GroupService.list().then((response) => {
+              return response.data;
+            });
+          },
+        ],
       },
       data: {
         perms: {
@@ -387,18 +436,26 @@ function applicationsConfig($stateProvider) {
         },
       },
       resolve: {
-        apis: ($stateParams: StateParams, ApplicationService: ApplicationService) =>
-          ApplicationService.getSubscribedAPI($stateParams.applicationId),
+        apis: [
+          '$stateParams',
+          'ApplicationService',
+          ($stateParams: StateParams, ApplicationService: ApplicationService) =>
+            ApplicationService.getSubscribedAPI($stateParams.applicationId),
+        ],
       },
     })
     .state('management.applications.application.logs.log', {
       url: '/:logId?timestamp&from&to&q&page&size',
       component: 'applicationLog',
       resolve: {
-        log: ($stateParams, ApplicationService: ApplicationService) =>
-          ApplicationService.getLog($stateParams.applicationId, $stateParams.logId, $stateParams.timestamp).then(
-            (response) => response.data,
-          ),
+        log: [
+          '$stateParams',
+          'ApplicationService',
+          ($stateParams, ApplicationService: ApplicationService) =>
+            ApplicationService.getLog($stateParams.applicationId, $stateParams.logId, $stateParams.timestamp).then(
+              (response) => response.data,
+            ),
+        ],
       },
       data: {
         perms: {
@@ -407,3 +464,4 @@ function applicationsConfig($stateProvider) {
       },
     });
 }
+applicationsConfig.$inject = ['$stateProvider'];

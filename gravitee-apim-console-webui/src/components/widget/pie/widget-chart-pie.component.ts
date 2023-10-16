@@ -23,55 +23,58 @@ const WidgetChartPieComponent: ng.IComponentOptions = {
   require: {
     parent: '^gvWidget',
   },
-  /* @ngInject */
-  controller: function widgetChartPieController($scope, $element) {
-    this.$onInit = () => {
-      $scope.$on('onWidgetResize', this.onResize.bind(this));
-    };
-
-    this.$onChanges = function (changes) {
-      if (changes.data) {
-        this.gvChartPie = $element.children()[0];
-        this.options = {
-          name: this.parent.widget.title,
-          data: Object.keys(changes.data.currentValue.values || {}).map((label, idx) => {
-            // The next lines are weird and would need a complete refactor, it
-            // will happen with the Angular migration of this component
-            if (this.parent.widget.chart.labels && this.parent.widget.chart.labels.includes(label)) {
-              const index = this.parent.widget.chart.labels.indexOf(label);
-              return {
-                name: this.parent.widget.chart.labels[index],
-                color: this.parent.widget.chart.colors[index],
-              };
-            }
-
-            return {
-              // Set the color and name based on the chart config (coming from the parent)
-              name: idx < this.parent.widget.chart.colors.length ? this.parent.widget.chart.labels[idx] : label,
-              color: idx < this.parent.widget.chart.colors.length ? this.parent.widget.chart.colors[idx] : undefined,
-            };
-          }),
-        };
-
-        const series = {
-          values: changes.data.currentValue ? changes.data.currentValue.values : {},
-        };
-
-        // Send data to gv-chart-pie
-        this.gvChartPie.setAttribute('series', JSON.stringify(series));
-        this.gvChartPie.setAttribute('options', JSON.stringify(this.options));
-      }
-    };
-
-    this.onResize = () => {
-      this.options = {
-        ...this.options,
-        height: this.gvChartPie.offsetHeight,
-        width: this.gvChartPie.offsetWidth,
+  controller: [
+    '$scope',
+    '$element',
+    function widgetChartPieController($scope, $element) {
+      this.$onInit = () => {
+        $scope.$on('onWidgetResize', this.onResize.bind(this));
       };
-      this.gvChartPie.setAttribute('options', JSON.stringify(this.options));
-    };
-  },
+
+      this.$onChanges = function (changes) {
+        if (changes.data) {
+          this.gvChartPie = $element.children()[0];
+          this.options = {
+            name: this.parent.widget.title,
+            data: Object.keys(changes.data.currentValue.values || {}).map((label, idx) => {
+              // The next lines are weird and would need a complete refactor, it
+              // will happen with the Angular migration of this component
+              if (this.parent.widget.chart.labels && this.parent.widget.chart.labels.includes(label)) {
+                const index = this.parent.widget.chart.labels.indexOf(label);
+                return {
+                  name: this.parent.widget.chart.labels[index],
+                  color: this.parent.widget.chart.colors[index],
+                };
+              }
+
+              return {
+                // Set the color and name based on the chart config (coming from the parent)
+                name: idx < this.parent.widget.chart.colors.length ? this.parent.widget.chart.labels[idx] : label,
+                color: idx < this.parent.widget.chart.colors.length ? this.parent.widget.chart.colors[idx] : undefined,
+              };
+            }),
+          };
+
+          const series = {
+            values: changes.data.currentValue ? changes.data.currentValue.values : {},
+          };
+
+          // Send data to gv-chart-pie
+          this.gvChartPie.setAttribute('series', JSON.stringify(series));
+          this.gvChartPie.setAttribute('options', JSON.stringify(this.options));
+        }
+      };
+
+      this.onResize = () => {
+        this.options = {
+          ...this.options,
+          height: this.gvChartPie.offsetHeight,
+          width: this.gvChartPie.offsetWidth,
+        };
+        this.gvChartPie.setAttribute('options', JSON.stringify(this.options));
+      };
+    },
+  ],
 };
 
 export default WidgetChartPieComponent;

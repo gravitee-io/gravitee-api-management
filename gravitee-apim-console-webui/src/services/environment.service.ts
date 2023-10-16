@@ -20,8 +20,7 @@ import * as _ from 'lodash';
 import { IdentityProviderActivation } from '../entities/identity-provider';
 
 class EnvironmentService {
-  /* @ngInject */
-  constructor(private $http, private Constants, private $q) {}
+  constructor(private $http, private Constants) {}
 
   /*
    * Analytics
@@ -75,5 +74,6 @@ class EnvironmentService {
     return environments?.find((environment) => environment.id === id || (environment.hrids && environment.hrids.includes(id)));
   }
 }
+EnvironmentService.$inject = ['$http', 'Constants'];
 
 export default EnvironmentService;

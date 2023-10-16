@@ -17,7 +17,6 @@
 import AuditService from '../../../../services/audit.service';
 
 class ApiAuditControllerAjs {
-  /* @ngInject */
   constructor(private AuditService: AuditService, private $scope, private $state) {
     this.$scope.api = this.$state.params.apiId;
     this.$scope.apis = [{ id: this.$state.params.apiId }];
@@ -30,4 +29,6 @@ class ApiAuditControllerAjs {
     });
   }
 }
+ApiAuditControllerAjs.$inject = ['AuditService', '$scope', '$state'];
+
 export default ApiAuditControllerAjs;

@@ -31,7 +31,6 @@ class ApiHealthcheckDashboardControllerAjs {
   private transitionLogs: { total: string; logs: any[]; metadata: any };
   private query: LogsQuery;
 
-  /* @ngInject */
   constructor(
     private ApiService: ApiService,
     private $scope: IScope,
@@ -256,5 +255,6 @@ class ApiHealthcheckDashboardControllerAjs {
     return this.UserService.currentUser.isOrganizationAdmin();
   }
 }
+ApiHealthcheckDashboardControllerAjs.$inject = ['ApiService', '$scope', '$rootScope', '$state', '$q', 'UserService', '$window'];
 
 export default ApiHealthcheckDashboardControllerAjs;

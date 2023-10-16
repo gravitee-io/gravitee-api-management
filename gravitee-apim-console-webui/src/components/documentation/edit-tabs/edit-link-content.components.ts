@@ -24,7 +24,6 @@ class EditLinkContentComponentController implements IController {
   pageList: any[];
   systemFoldersById: any;
 
-  /* @ngInject */
   constructor(private readonly DocumentationService: DocumentationService) {}
 
   checkIfFolder() {
@@ -76,6 +75,7 @@ class EditLinkContentComponentController implements IController {
     }
   }
 }
+EditLinkContentComponentController.$inject = ['DocumentationService'];
 
 export const EditLinkContentComponent: ng.IComponentOptions = {
   bindings: {

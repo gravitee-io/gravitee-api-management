@@ -26,7 +26,6 @@ export class Organization {
 }
 
 class OrganizationService {
-  /* @ngInject */
   constructor(private $http, private Constants) {}
 
   listSocialIdentityProviders() {
@@ -49,5 +48,6 @@ class OrganizationService {
     return this.$http.get(`${this.Constants.org.baseURL}`);
   }
 }
+OrganizationService.$inject = ['$http', 'Constants'];
 
 export default OrganizationService;

@@ -20,7 +20,6 @@ import { Constants } from '../../entities/Constants';
 import UserService from '../../services/user.service';
 
 class LogoutComponentController implements IOnInit {
-  /* @ngInject */
   constructor(
     private readonly UserService: UserService,
     private readonly $state: StateService,
@@ -72,6 +71,7 @@ class LogoutComponentController implements IOnInit {
     }
   }
 }
+LogoutComponentController.$inject = ['UserService', '$state', '$rootScope', '$window', 'Constants'];
 
 export const LogoutComponent: IComponentOptions = {
   controller: LogoutComponentController,

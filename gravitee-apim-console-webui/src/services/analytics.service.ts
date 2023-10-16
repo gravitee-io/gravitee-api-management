@@ -32,7 +32,6 @@ class AnalyticsService {
   private analyticsURL: string;
   private logs: [any];
 
-  /* @ngInject */
   constructor(private $http, private Constants, public $stateParams) {}
 
   /*
@@ -152,5 +151,6 @@ class AnalyticsService {
     return param.replace('%20', ' ').replace(/[()]/g, '').replace(/[\\"]/g, '');
   }
 }
+AnalyticsService.$inject = ['$http', 'Constants', '$stateParams'];
 
 export default AnalyticsService;

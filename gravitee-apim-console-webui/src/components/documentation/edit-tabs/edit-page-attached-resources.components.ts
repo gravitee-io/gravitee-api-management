@@ -24,7 +24,6 @@ class EditPageAttachedResourcesComponentController implements IController {
   page: any;
   onSave: () => void;
 
-  /* @ngInject */
   constructor(
     private readonly $mdDialog: angular.material.IDialogService,
     private readonly DocumentationService: DocumentationService,
@@ -86,6 +85,7 @@ class EditPageAttachedResourcesComponentController implements IController {
       });
   };
 }
+EditPageAttachedResourcesComponentController.$inject = ['$mdDialog', 'DocumentationService', 'NotificationService'];
 
 export const EditPageAttachedResourcesComponent: ng.IComponentOptions = {
   bindings: {

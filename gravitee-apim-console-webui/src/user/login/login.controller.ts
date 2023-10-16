@@ -30,7 +30,6 @@ class LoginController {
   userCreationEnabled: boolean;
   localLoginDisabled: boolean;
 
-  /* @ngInject */
   constructor(
     private AuthenticationService: AuthenticationService,
     private UserService: UserService,
@@ -167,5 +166,19 @@ class LoginController {
     return redirectUri;
   }
 }
+LoginController.$inject = [
+  'AuthenticationService',
+  'UserService',
+  '$state',
+  'Constants',
+  '$rootScope',
+  'RouterService',
+  'identityProviders',
+  '$window',
+  '$stateParams',
+  '$scope',
+  'ReCaptchaService',
+  'ngGioPendoService',
+];
 
 export default LoginController;

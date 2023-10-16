@@ -30,7 +30,6 @@ export interface OwnershipTransferResult {
 class DialogTransferOwnershipController {
   private readonly usersSelected: Partial<Member>[];
 
-  /* @ngInject */
   constructor(
     private $mdDialog: angular.material.IDialogService,
     private primaryOwner: Member,
@@ -67,5 +66,6 @@ class DialogTransferOwnershipController {
     return this.transferType === ApiOwnershipTransferType.PROMOTE_NEW_PRIMARY_OWNER;
   }
 }
+DialogTransferOwnershipController.$inject = ['$mdDialog', 'primaryOwner', 'members', 'group', 'transferType'];
 
 export default DialogTransferOwnershipController;

@@ -21,7 +21,6 @@ class ApiLoggingController {
   private formApiLogging: any;
   private settings: any;
 
-  /* @ngInject */
   constructor(private ConsoleSettingsService: ConsoleSettingsService, private NotificationService: NotificationService) {}
 
   save() {
@@ -35,5 +34,6 @@ class ApiLoggingController {
     return this.ConsoleSettingsService.isReadonly(this.settings, property);
   }
 }
+ApiLoggingController.$inject = ['ConsoleSettingsService', 'NotificationService'];
 
 export default ApiLoggingController;

@@ -22,7 +22,6 @@ class TicketsListController {
   private query: TicketsQuery;
   private tickets: { totalElements: number; content: any[] };
 
-  /* @ngInject */
   constructor(private TicketService: TicketService, private $scope: IScope, private $state: StateService) {}
 
   $onInit() {
@@ -61,5 +60,6 @@ class TicketsListController {
     });
   }
 }
+TicketsListController.$inject = ['TicketService', '$scope', '$state'];
 
 export default TicketsListController;

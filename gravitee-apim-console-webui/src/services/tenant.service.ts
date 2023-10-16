@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 class TenantService {
-  /* @ngInject */
   constructor(private $http, private Constants) {}
 
   list() {
@@ -39,5 +38,6 @@ class TenantService {
     }
   }
 }
+TenantService.$inject = ['$http', 'Constants'];
 
 export default TenantService;

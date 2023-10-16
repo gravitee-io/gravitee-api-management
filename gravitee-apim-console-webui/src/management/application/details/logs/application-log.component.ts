@@ -21,33 +21,37 @@ const ApplicationLogComponent: ng.IComponentOptions = {
   bindings: {
     log: '<',
   },
-  /* @ngInject */
-  controller: function ($state: StateService, NotificationService: NotificationService, Constants: any) {
-    this.Constants = Constants;
-    this.NotificationService = NotificationService;
+  controller: [
+    '$state',
+    'NotificationService',
+    'Constants',
+    function ($state: StateService, NotificationService: NotificationService, Constants: any) {
+      this.Constants = Constants;
+      this.NotificationService = NotificationService;
 
-    this.backStateParams = {
-      from: $state.params.from,
-      to: $state.params.to,
-      q: $state.params.q,
-      page: $state.params.page,
-      size: $state.params.size,
-    };
+      this.backStateParams = {
+        from: $state.params.from,
+        to: $state.params.to,
+        q: $state.params.q,
+        page: $state.params.page,
+        size: $state.params.size,
+      };
 
-    this.getMimeType = function (log) {
-      if (log.headers['Content-Type'] !== undefined) {
-        const contentType = log.headers['Content-Type'][0];
-        return contentType.split(';', 1)[0];
-      }
+      this.getMimeType = function (log) {
+        if (log.headers['Content-Type'] !== undefined) {
+          const contentType = log.headers['Content-Type'][0];
+          return contentType.split(';', 1)[0];
+        }
 
-      return null;
-    };
+        return null;
+      };
 
-    this.onCopyBodySuccess = function (evt) {
-      this.NotificationService.show('Body has been copied to clipboard');
-      evt.clearSelection();
-    };
-  },
+      this.onCopyBodySuccess = function (evt) {
+        this.NotificationService.show('Body has been copied to clipboard');
+        evt.clearSelection();
+      };
+    },
+  ],
   template: require('./application-log.html'),
 };
 

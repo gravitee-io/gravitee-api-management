@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 class AutofocusDirective {
-  /* @ngInject */
   constructor() {
     const directive = {
       restrict: 'A',

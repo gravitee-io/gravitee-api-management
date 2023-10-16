@@ -34,14 +34,13 @@ const DisableTryItOutPlugin = function () {
     },
   };
 };
-
 class PageSwaggerComponentController implements IController {
   pageConfiguration: any;
   pageContent: string;
   edit: boolean;
 
   cfg: Record<string, unknown>;
-  /* @ngInject */
+
   constructor(
     private readonly Constants,
     private readonly UserService: UserService,
@@ -143,6 +142,7 @@ class PageSwaggerComponentController implements IController {
     );
   }
 }
+PageSwaggerComponentController.$inject = ['Constants', 'UserService', '$state', '$window'];
 
 export const PageSwaggerComponent: ng.IComponentOptions = {
   template: require('./page-swagger.html'),

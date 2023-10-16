@@ -18,7 +18,6 @@ import * as angular from 'angular';
 import { ApiKeyMode } from '../../../entities/application/application';
 
 export default class ApiKeyModeChoiceDialogController {
-  /* @ngInject */
   constructor(private $mdDialog: angular.material.IDialogService) {}
 
   get keyModes() {
@@ -33,3 +32,4 @@ export default class ApiKeyModeChoiceDialogController {
     }
   }
 }
+ApiKeyModeChoiceDialogController.$inject = ['$mdDialog'];

@@ -23,7 +23,6 @@ class ContextualDocController implements IOnInit, IOnDestroy {
 
   private openContextualDocumentationListener: () => void;
 
-  /* @ngInject */
   constructor(private $transitions, private $http, public $state, private $window, private $rootScope) {
     if (window.pendo && window.pendo.isReady()) {
       // Do nothing, Pendo provide documentation
@@ -85,5 +84,6 @@ class ContextualDocController implements IOnInit, IOnDestroy {
     this.$rootScope.helpDisplayed = this.isOpen;
   }
 }
+ContextualDocController.$inject = ['$transitions', '$http', '$state', '$window', '$rootScope'];
 
 export default ContextualDocController;

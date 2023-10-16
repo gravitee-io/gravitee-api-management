@@ -15,7 +15,6 @@
  */
 
 class PortalService {
-  /* @ngInject */
   constructor(private $http, private Constants) {}
 
   searchApis(query?: string, opts?: any) {
@@ -23,5 +22,6 @@ class PortalService {
     return this.$http.post(url, {}, opts);
   }
 }
+PortalService.$inject = ['$http', 'Constants'];
 
 export default PortalService;

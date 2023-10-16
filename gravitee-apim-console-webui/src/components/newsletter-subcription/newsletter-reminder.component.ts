@@ -21,72 +21,78 @@ import UserService from '../../services/user.service';
 const NewsletterReminderComponent: ng.IComponentOptions = {
   template: require('./newsletter-reminder.html'),
   bindings: {},
-  /* @ngInject */
-  controller: function ($element, Constants: any, UserService: UserService, $scope: IScope, NotificationService: NotificationService) {
-    this.displayNewsletterSubscription = false;
-    this.user = null;
-    this.error = false;
+  controller: [
+    '$element',
+    'Constants',
+    'UserService',
+    '$scope',
+    'NotificationService',
+    function ($element, Constants: any, UserService: UserService, $scope: IScope, NotificationService: NotificationService) {
+      this.displayNewsletterSubscription = false;
+      this.user = null;
+      this.error = false;
 
-    $scope.$on('graviteeUserRefresh', (event, { user, refresh }) => {
-      if (refresh) {
-        this._loadUser();
-      } else if (user && user.authenticated) {
-        this.setUser(user);
-      } else {
-        this.setUser(null);
-      }
-    });
-
-    this._loadUser = () => {
-      UserService.current()
-        .then((user) => {
+      $scope.$on('graviteeUserRefresh', (event, { user, refresh }) => {
+        if (refresh) {
+          this._loadUser();
+        } else if (user && user.authenticated) {
           this.setUser(user);
-        })
-        .catch(() => this.setUser(null));
-    };
-
-    this.$onInit = () => {
-      this._loadUser();
-    };
-
-    this.setUser = (user) => {
-      if (user != null) {
-        this.displayNewsletterSubscription = user.displayNewsletterSubscription;
-        if (this.displayNewsletterSubscription) {
-          $element.addClass('newsletter-open');
-          this.user = user;
-          this.email = this.user.email;
+        } else {
+          this.setUser(null);
         }
-      } else {
+      });
+
+      this._loadUser = () => {
+        UserService.current()
+          .then((user) => {
+            this.setUser(user);
+          })
+          .catch(() => this.setUser(null));
+      };
+
+      this.$onInit = () => {
+        this._loadUser();
+      };
+
+      this.setUser = (user) => {
+        if (user != null) {
+          this.displayNewsletterSubscription = user.displayNewsletterSubscription;
+          if (this.displayNewsletterSubscription) {
+            $element.addClass('newsletter-open');
+            this.user = user;
+            this.email = this.user.email;
+          }
+        } else {
+          $element.removeClass('newsletter-open');
+          this.user = null;
+          this.email = null;
+        }
+      };
+
+      this.close = () => {
         $element.removeClass('newsletter-open');
-        this.user = null;
-        this.email = null;
-      }
-    };
+      };
 
-    this.close = () => {
-      $element.removeClass('newsletter-open');
-    };
+      this.subscribe = () => {
+        if (this.email != null && this.email.trim() !== '') {
+          UserService.subscribeNewsletter(this.email).then((user) => {
+            this.setUser(user);
+            NotificationService.show('Your newsletter preference has been saved.');
+          });
+        } else {
+          this.error = true;
+        }
+      };
 
-    this.subscribe = () => {
-      if (this.email != null && this.email.trim() !== '') {
-        UserService.subscribeNewsletter(this.email).then((user) => {
+      this.unsubscribe = () => {
+        this.user.newsletter = false;
+        UserService.save(this.user).then((user) => {
           this.setUser(user);
           NotificationService.show('Your newsletter preference has been saved.');
         });
-      } else {
-        this.error = true;
-      }
-    };
-
-    this.unsubscribe = () => {
-      this.user.newsletter = false;
-      UserService.save(this.user).then((user) => {
-        this.setUser(user);
-        NotificationService.show('Your newsletter preference has been saved.');
-      });
-    };
-  },
+      };
+    },
+  ],
 };
 
 export default NewsletterReminderComponent;

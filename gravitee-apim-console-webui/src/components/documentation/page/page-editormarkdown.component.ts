@@ -35,7 +35,6 @@ class ComponentCtrl implements ng.IComponentController {
 
   private tuiEditor: Editor;
 
-  /* @ngInject */
   constructor(
     private readonly $http: ng.IHttpService,
     private readonly Constants,
@@ -141,6 +140,7 @@ class ComponentCtrl implements ng.IComponentController {
     });
   }
 }
+ComponentCtrl.$inject = ['$http', 'Constants', '$state', '$mdDialog', 'NotificationService'];
 
 export const PageEditorMarkdownComponent: ng.IComponentOptions = {
   template: require('./page-editormarkdown.html'),

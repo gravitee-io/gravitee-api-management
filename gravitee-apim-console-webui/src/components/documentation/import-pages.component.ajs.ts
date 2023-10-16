@@ -33,7 +33,6 @@ class ImportPagesComponentController implements IController {
   page: any;
   fetchers: any[];
   importInProgress: boolean;
-  /* @ngInject */
   constructor(
     private readonly NotificationService: NotificationService,
     private readonly DocumentationService: DocumentationService,
@@ -105,6 +104,7 @@ class ImportPagesComponentController implements IController {
     }
   }
 }
+ImportPagesComponentController.$inject = ['NotificationService', 'DocumentationService', '$state', '$scope'];
 
 export const DocumentationImportPagesComponentAjs: ng.IComponentOptions = {
   bindings: {

@@ -17,10 +17,9 @@ import { StateService } from '@uirouter/core';
 import { IScope } from 'angular';
 
 class DictionariesController {
-  /* @ngInject */
   constructor(private $state: StateService, private $rootScope: IScope) {
     this.$rootScope = $rootScope;
   }
 }
-
+DictionariesController.$inject = ['$state', '$rootScope'];
 export default DictionariesController;

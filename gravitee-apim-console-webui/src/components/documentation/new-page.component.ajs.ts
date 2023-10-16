@@ -41,7 +41,7 @@ class NewPageComponentController implements IController {
   pageList: any[];
   templates: any[];
   selectedTemplate: any;
-  /* @ngInject */
+
   constructor(
     private readonly NotificationService: NotificationService,
     private readonly DocumentationService: DocumentationService,
@@ -183,6 +183,7 @@ class NewPageComponentController implements IController {
     }
   }
 }
+NewPageComponentController.$inject = ['NotificationService', 'DocumentationService', 'Constants', '$state', '$scope'];
 
 export const DocumentationNewPageComponentAjs: ng.IComponentOptions = {
   bindings: {

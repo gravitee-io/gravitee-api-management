@@ -18,7 +18,6 @@ import * as _ from 'lodash';
 class RoleService {
   private permissionsByScope: any;
 
-  /* @ngInject */
   constructor(private $http, private Constants, private $q) {}
 
   listRights() {
@@ -107,5 +106,6 @@ class RoleService {
     }
   }
 }
+RoleService.$inject = ['$http', 'Constants', '$q'];
 
 export default RoleService;

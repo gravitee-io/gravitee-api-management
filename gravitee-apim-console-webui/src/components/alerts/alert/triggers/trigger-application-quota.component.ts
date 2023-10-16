@@ -24,7 +24,6 @@ const AlertTriggerApplicationQuotaComponent: ng.IComponentOptions = {
     parent: '^alertComponentAjs',
   },
   template: require('./trigger-application-quota.html'),
-  /* @ngInject */
   controller: function () {
     this.$onInit = () => {
       this.metrics = [ApiMetrics.QUOTA_COUNTER];

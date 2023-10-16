@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 class FetcherService {
-  /* @ngInject */
   constructor(private $http, private Constants) {}
 
   list(onlyImportFromDirectory?: boolean) {
@@ -22,5 +21,6 @@ class FetcherService {
     return this.$http.get(url);
   }
 }
+FetcherService.$inject = ['$http', 'Constants'];
 
 export default FetcherService;

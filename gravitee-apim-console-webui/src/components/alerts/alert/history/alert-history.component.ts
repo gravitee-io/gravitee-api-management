@@ -24,31 +24,33 @@ const AlertHistoryComponent: ng.IComponentOptions = {
     parent: '^alertComponentAjs',
   },
   template: require('./alert-history.html'),
-  /* @ngInject */
-  controller: function (AlertService: AlertService) {
-    this.query = {
-      limit: 10,
-      page: 1,
-    };
+  controller: [
+    'AlertService',
+    function (AlertService: AlertService) {
+      this.query = {
+        limit: 10,
+        page: 1,
+      };
 
-    this.$onInit = () => {
-      AlertService.listAlertEvents(this.alert).then((response) => {
-        this.events = response.data;
-      });
-    };
+      this.$onInit = () => {
+        AlertService.listAlertEvents(this.alert).then((response) => {
+          this.events = response.data;
+        });
+      };
 
-    this.search = () => {
-      AlertService.listAlertEvents(this.alert, {
-        from: this.lastFrom,
-        to: this.lastTo,
-        page: this.query.page - 1,
-        size: this.query.limit,
-      }).then((response) => {
-        this.events = response.data;
-        this.$scope.eventsFetchData = false;
-      });
-    };
-  },
+      this.search = () => {
+        AlertService.listAlertEvents(this.alert, {
+          from: this.lastFrom,
+          to: this.lastTo,
+          page: this.query.page - 1,
+          size: this.query.limit,
+        }).then((response) => {
+          this.events = response.data;
+          this.$scope.eventsFetchData = false;
+        });
+      };
+    },
+  ],
 };
 
 export default AlertHistoryComponent;

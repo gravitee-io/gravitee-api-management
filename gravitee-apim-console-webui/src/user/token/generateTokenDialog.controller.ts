@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* @ngInject */
+
 function DialogGenerateTokenController($scope, $mdDialog, locals, TokenService, NotificationService, Constants, $location) {
   this.title = locals.title;
   this.msg = locals.msg;
@@ -45,5 +45,6 @@ function DialogGenerateTokenController($scope, $mdDialog, locals, TokenService, 
     return `curl -H "Authorization: Bearer ${token}" "${envBaseURL}"`;
   };
 }
+DialogGenerateTokenController.$inject = ['$scope', '$mdDialog', 'locals', 'TokenService', 'NotificationService', 'Constants', '$location'];
 
 export default DialogGenerateTokenController;

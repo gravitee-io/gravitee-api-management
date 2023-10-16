@@ -17,7 +17,6 @@ class CorsService {
   private allowOriginPattern =
     '^(?:(?:[htps\\(\\)?\\|]+):\\/\\/)*(?:[\\w\\(\\)\\[\\]\\{\\}?\\|.*-](?:(?:[?+*]|\\{\\d+(?:,\\d*)?\\}))?)+(?:[a-zA-Z0-9]{2,6})?(?::\\d{1,5})?$';
 
-  /* @ngInject */
   constructor(private $mdDialog) {}
 
   getHttpMethods() {
@@ -101,5 +100,6 @@ class CorsService {
     };
   };
 }
+CorsService.$inject = ['$mdDialog'];
 
 export default CorsService;

@@ -34,7 +34,6 @@ class ApplicationCreationController {
   private apis: any[] = [];
   private groups: any[];
 
-  /* @ngInject */
   constructor(
     private Constants,
     private $state,
@@ -170,5 +169,14 @@ class ApplicationCreationController {
     return this.Constants.env?.settings?.plan?.security?.sharedApiKey?.enabled;
   }
 }
+ApplicationCreationController.$inject = [
+  'Constants',
+  '$state',
+  '$mdDialog',
+  'ApplicationService',
+  'NotificationService',
+  '$q',
+  'ApiService',
+];
 
 export default ApplicationCreationController;

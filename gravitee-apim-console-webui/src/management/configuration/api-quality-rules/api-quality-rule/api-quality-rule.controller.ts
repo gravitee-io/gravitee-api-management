@@ -23,7 +23,6 @@ class ApiQualityRuleController {
   private createMode = false;
   private qualityRule: QualityRule;
 
-  /* @ngInject */
   constructor(
     private QualityRuleService: QualityRuleService,
     private NotificationService: NotificationService,
@@ -52,5 +51,6 @@ class ApiQualityRuleController {
     });
   }
 }
+ApiQualityRuleController.$inject = ['QualityRuleService', 'NotificationService', '$state', '$location'];
 
 export default ApiQualityRuleController;

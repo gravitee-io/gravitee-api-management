@@ -15,9 +15,9 @@
  */
 
 class ThemeElementController {
-  /* @ngInject */
   constructor(private Theme) {}
 }
+ThemeElementController.$inject = ['Theme'];
 
 const ThemeElementDirective: ng.IDirective = {
   restrict: 'A',

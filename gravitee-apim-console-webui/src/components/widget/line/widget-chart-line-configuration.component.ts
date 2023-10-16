@@ -22,50 +22,52 @@ const WidgetChartLineConfigurationComponent: ng.IComponentOptions = {
   bindings: {
     chart: '<',
   },
-  /* @ngInject */
-  controller: function (DashboardService: DashboardService) {
-    this.fields = DashboardService.getAggregateFields();
+  controller: [
+    'DashboardService',
+    function (DashboardService: DashboardService) {
+      this.fields = DashboardService.getAggregateFields();
 
-    this.$onInit = () => {
-      this.data = [];
-      if (this.chart.request) {
-        if (this.chart.request.aggs && !this.chart.request.aggs.startsWith('field:custom')) {
-          this.data = this.chart.request.aggs.split('%3B');
+      this.$onInit = () => {
+        this.data = [];
+        if (this.chart.request) {
+          if (this.chart.request.aggs && !this.chart.request.aggs.startsWith('field:custom')) {
+            this.data = this.chart.request.aggs.split('%3B');
+          }
+        } else {
+          _.merge(this.chart, {
+            request: {
+              type: 'date_histo',
+              aggs: '',
+            },
+            labels: [],
+          });
         }
-      } else {
-        _.merge(this.chart, {
-          request: {
-            type: 'date_histo',
-            aggs: '',
-          },
-          labels: [],
+
+        if (this.chart.request.aggs.startsWith('field:custom')) {
+          this.field = this.chart.request.aggs.substr('field:custom.'.length);
+          this.isCustomField = true;
+        } else {
+          this.field = '';
+          this.isCustomField = false;
+        }
+      };
+
+      this.onFieldChanged = () => {
+        this.chart.request.aggs = 'field:custom.' + this.field;
+        this.chart.labels.push(this.field);
+      };
+
+      this.onDataChanged = () => {
+        this.chart.request.aggs = '';
+        this.chart.labels = [];
+        const last = _.last(this.data);
+        _.forEach(this.data, (data) => {
+          this.chart.request.aggs += data + (last === data ? '' : '%3B');
+          this.chart.labels.push(_.find(this.fields, (f) => f.aggValue === data).label);
         });
-      }
-
-      if (this.chart.request.aggs.startsWith('field:custom')) {
-        this.field = this.chart.request.aggs.substr('field:custom.'.length);
-        this.isCustomField = true;
-      } else {
-        this.field = '';
-        this.isCustomField = false;
-      }
-    };
-
-    this.onFieldChanged = () => {
-      this.chart.request.aggs = 'field:custom.' + this.field;
-      this.chart.labels.push(this.field);
-    };
-
-    this.onDataChanged = () => {
-      this.chart.request.aggs = '';
-      this.chart.labels = [];
-      const last = _.last(this.data);
-      _.forEach(this.data, (data) => {
-        this.chart.request.aggs += data + (last === data ? '' : '%3B');
-        this.chart.labels.push(_.find(this.fields, (f) => f.aggValue === data).label);
-      });
-    };
-  },
+      };
+    },
+  ],
 };
 
 export default WidgetChartLineConfigurationComponent;
