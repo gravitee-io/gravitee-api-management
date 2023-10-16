@@ -46,6 +46,8 @@ import io.gravitee.repository.management.api.search.AlertEventCriteria;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.AlertEvent;
+import io.gravitee.repository.management.model.AlertEventRule;
+import io.gravitee.repository.management.model.AlertEventType;
 import io.gravitee.repository.management.model.AlertTrigger;
 import io.gravitee.rest.api.model.AlertEventQuery;
 import io.gravitee.rest.api.model.EnvironmentEntity;
@@ -63,6 +65,7 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.*;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -409,6 +412,55 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
             (int) alertEventsRepo.getPageElements(),
             alertEventsRepo.getTotalElements()
         );
+    }
+
+    private Set<AlertTriggerEntity> findByEvent(AlertEventType event) {
+        try {
+            LOGGER.debug("findByEvent: {}", event);
+            Set<AlertTriggerEntity> set = alertTriggerRepository
+                .findAll()
+                .stream()
+                .filter(alert ->
+                    alert.isTemplate() &&
+                    alert.getEventRules() != null &&
+                    alert.getEventRules().stream().map(AlertEventRule::getEvent).collect(Collectors.toList()).contains(event)
+                )
+                .map(alertTriggerConverter::toAlertTriggerEntity)
+                .sorted(Comparator.comparing(AlertTriggerEntity::getName))
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+            LOGGER.debug("findByEvent : {} - DONE", set);
+            return set;
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to find alert triggers by event", ex);
+            throw new TechnicalManagementException("An error occurs while trying to find alert triggers by event", ex);
+        }
+    }
+
+    @Override
+    public void createDefaults(ExecutionContext executionContext, AlertReferenceType referenceType, String referenceId) {
+        if (getStatus(executionContext).isEnabled()) {
+            Set<AlertTriggerEntity> defaultAlerts = findByEvent(AlertEventType.API_CREATE);
+
+            for (AlertTriggerEntity alert : defaultAlerts) {
+                AlertTrigger trigger = alertTriggerConverter.toAlertTrigger(alert);
+                AlertTriggerEntity triggerEntity = alertTriggerConverter.toAlertTriggerEntity(trigger);
+                triggerEntity.setId(UUID.toString(UUID.random()));
+                triggerEntity.setReferenceType(AlertReferenceType.API);
+                triggerEntity.setReferenceId(referenceId);
+                triggerEntity.setTemplate(false);
+                triggerEntity.setEnabled(true);
+                triggerEntity.setEventRules(null);
+                triggerEntity.setParentId(alert.getId());
+                triggerEntity.setCreatedAt(new Date());
+                triggerEntity.setUpdatedAt(trigger.getCreatedAt());
+
+                try {
+                    create(executionContext, alertTriggerConverter.toAlertTrigger(triggerEntity));
+                } catch (TechnicalException te) {
+                    LOGGER.error("Unable to create default alert", te);
+                }
+            }
+        }
     }
 
     @Override
