@@ -60,12 +60,7 @@ export class ApiGeneralSubscriptionListComponent implements OnInit, OnDestroy {
   public subscriptionsTableDS: SubscriptionsTableDS[] = [];
   public nbTotalSubscriptions = 0;
 
-  public filtersForm = new FormGroup({
-    planIds: new FormControl(),
-    applicationIds: new FormControl(),
-    statuses: new FormControl(),
-    apiKey: new FormControl(),
-  });
+  public filtersForm: FormGroup;
 
   public plans: Plan[] = [];
   public statuses: { id: SubscriptionStatus; name: string }[] = [
@@ -310,6 +305,13 @@ export class ApiGeneralSubscriptionListComponent implements OnInit, OnDestroy {
     const initialApplicationIds = this.ajsStateParams.application ? this.ajsStateParams.application.split(',') : null;
     const initialStatuses = this.ajsStateParams.status ? this.ajsStateParams.status.split(',') : ['ACCEPTED', 'PAUSED', 'PENDING'];
     const initialApiKey = this.ajsStateParams.apiKey ? this.ajsStateParams.apiKey : undefined;
+
+    this.filtersForm = new FormGroup({
+      planIds: new FormControl(initialPlanIds),
+      applicationIds: new FormControl(initialApplicationIds),
+      statuses: new FormControl(initialStatuses),
+      apiKey: new FormControl(initialApiKey),
+    });
 
     this.filtersStream.next({
       tableWrapper: {
