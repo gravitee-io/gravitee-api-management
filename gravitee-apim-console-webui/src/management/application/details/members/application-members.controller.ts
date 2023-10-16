@@ -38,7 +38,6 @@ class ApplicationMembersController {
   private userFilterFn;
   private defaultUsersList: string[];
 
-  /* @ngInject */
   constructor(
     private ApplicationService: ApplicationService,
     private NotificationService: NotificationService,
@@ -218,5 +217,14 @@ class ApplicationMembersController {
     });
   }
 }
+ApplicationMembersController.$inject = [
+  'ApplicationService',
+  'NotificationService',
+  '$mdDialog',
+  '$state',
+  'RoleService',
+  'GroupService',
+  'UserService',
+];
 
 export default ApplicationMembersController;

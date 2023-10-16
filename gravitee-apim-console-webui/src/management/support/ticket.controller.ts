@@ -30,7 +30,6 @@ class SupportTicketController {
   private stateParams: any;
   private formTicket: any;
 
-  /* @ngInject */
   constructor(
     private TicketService: TicketService,
     private NotificationService: NotificationService,
@@ -68,5 +67,13 @@ class SupportTicketController {
     });
   }
 }
+SupportTicketController.$inject = [
+  'TicketService',
+  'NotificationService',
+  'UserService',
+  'ApiService',
+  'ApplicationService',
+  '$stateParams',
+];
 
 export default SupportTicketController;

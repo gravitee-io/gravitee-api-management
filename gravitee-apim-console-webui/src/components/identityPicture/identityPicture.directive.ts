@@ -17,7 +17,6 @@
 import * as jdenticon from 'jdenticon';
 
 class IdentityPictureDirective {
-  /* @ngInject */
   constructor() {
     const directive = {
       restrict: 'E',
@@ -43,7 +42,6 @@ class IdentityPictureDirective {
 }
 
 class IdentityPictureController {
-  /* @ngInject */
   constructor(private $scope) {
     $scope.imgError = function () {
       document.querySelector('#avatar_' + $scope.imageId).classList.remove('show');
@@ -72,5 +70,6 @@ class IdentityPictureController {
     return this.$scope.imageUrl || this.$scope.imageDefault || '';
   }
 }
+IdentityPictureController.$inject = ['$scope'];
 
 export default IdentityPictureDirective;

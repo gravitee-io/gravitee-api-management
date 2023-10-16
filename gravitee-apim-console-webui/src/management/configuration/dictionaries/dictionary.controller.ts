@@ -44,7 +44,6 @@ class DictionaryController {
   private selectAll: boolean;
   private formDictionary: any;
 
-  /* @ngInject */
   constructor(
     private $scope: IDictionaryScope,
     private $state: StateService,
@@ -312,5 +311,6 @@ class DictionaryController {
     return ['GET', 'DELETE', 'PATCH', 'POST', 'PUT', 'OPTIONS', 'TRACE', 'HEAD'];
   }
 }
+DictionaryController.$inject = ['$scope', '$state', '$mdEditDialog', '$mdDialog', 'NotificationService', 'DictionaryService'];
 
 export default DictionaryController;

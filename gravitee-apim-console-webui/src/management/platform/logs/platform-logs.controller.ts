@@ -31,7 +31,6 @@ class PlatformLogsController {
   private applications;
   private init: boolean;
 
-  /* @ngInject */
   constructor(
     private ApiService: ApiService,
     private AnalyticsService: AnalyticsService,
@@ -115,5 +114,6 @@ class PlatformLogsController {
     });
   }
 }
+PlatformLogsController.$inject = ['ApiService', 'AnalyticsService', 'Constants', '$state', '$scope'];
 
 export default PlatformLogsController;

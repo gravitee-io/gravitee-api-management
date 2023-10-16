@@ -28,7 +28,6 @@ class ApiKeysController {
   private listEvent: Observable<void>;
   private backStateParams: StateParams;
 
-  /* @ngInject */
   constructor(
     private $mdDialog: angular.material.IDialogService,
     private NotificationService: NotificationService,
@@ -122,5 +121,6 @@ class ApiKeysController {
     return this.isSharedApiKey() ? 'Shared API Key' : 'API Keys';
   }
 }
+ApiKeysController.$inject = ['$mdDialog', 'NotificationService', 'ApplicationService', '$state'];
 
 export default ApiKeysController;

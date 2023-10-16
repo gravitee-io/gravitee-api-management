@@ -22,7 +22,6 @@ export class TicketsQuery {
 }
 
 class TicketService {
-  /* @ngInject */
   constructor(private $http, private Constants) {}
 
   create(ticket) {
@@ -50,5 +49,6 @@ class TicketService {
     return url;
   }
 }
+TicketService.$inject = ['$http', 'Constants'];
 
 export default TicketService;

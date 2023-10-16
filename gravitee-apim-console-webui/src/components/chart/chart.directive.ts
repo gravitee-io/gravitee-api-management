@@ -20,7 +20,6 @@ import * as _ from 'lodash';
 import 'highcharts/modules/map';
 
 class ChartDirective {
-  /* @ngInject */
   constructor() {
     return {
       restrict: 'E',
@@ -375,8 +374,8 @@ class ChartDirective {
 }
 
 class ChartController {
-  /* @ngInject */
   constructor(private $window: ng.IWindowService) {}
 }
+ChartController.$inject = ['$window'];
 
 export default ChartDirective;

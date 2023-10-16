@@ -24,7 +24,6 @@ class ApiAnalyticsOverviewControllerAjs {
   private dashboard: any;
   private dashboards: any[];
 
-  /* @ngInject */
   constructor(
     private ApiService,
     private DashboardService: DashboardService,
@@ -90,5 +89,6 @@ class ApiAnalyticsOverviewControllerAjs {
     this.$state.transitionTo(this.$state.current, _.merge(this.$state.params, { dashboard: dashboardId }), { reload: true });
   }
 }
+ApiAnalyticsOverviewControllerAjs.$inject = ['ApiService', 'DashboardService', '$scope', '$state', '$q'];
 
 export default ApiAnalyticsOverviewControllerAjs;

@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 class TokenService {
-  /* @ngInject */
   constructor(private $http, private Constants) {}
 
   list() {
@@ -33,5 +32,6 @@ class TokenService {
     }
   }
 }
+TokenService.$inject = ['$http', 'Constants'];
 
 export default TokenService;

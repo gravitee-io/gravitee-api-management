@@ -19,7 +19,6 @@ import '@gravitee/ui-components/wc/gv-newsletter-subscription';
 class NewsletterSubscriptionController {
   newsletterPage;
 
-  /* @ngInject */
   constructor(
     private $state,
     private $scope,
@@ -60,5 +59,15 @@ class NewsletterSubscriptionController {
     this.$state.go('management');
   }
 }
+NewsletterSubscriptionController.$inject = [
+  '$state',
+  '$scope',
+  'UserService',
+  'NotificationService',
+  'Constants',
+  '$window',
+  '$rootScope',
+  'taglines',
+];
 
 export default NewsletterSubscriptionController;

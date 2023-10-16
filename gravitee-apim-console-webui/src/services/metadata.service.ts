@@ -16,7 +16,6 @@
 class MetadataService {
   private metadataURL: string;
 
-  /* @ngInject */
   constructor(private $http, private Constants) {}
 
   listFormats() {
@@ -39,5 +38,6 @@ class MetadataService {
     return this.$http.delete(`${this.Constants.env.baseURL}/configuration/metadata/` + metadata.key);
   }
 }
+MetadataService.$inject = ['$http', 'Constants'];
 
 export default MetadataService;

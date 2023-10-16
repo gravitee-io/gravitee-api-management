@@ -25,7 +25,6 @@ const AlertTriggerMetricsSimpleConditionComponent: ng.IComponentOptions = {
     parent: '^alertComponentAjs',
   },
   template: require('./trigger-metrics-simple-condition.html'),
-  /* @ngInject */
   controller: function () {
     this.$onInit = () => {
       this.metrics = Metrics.filterByScope(

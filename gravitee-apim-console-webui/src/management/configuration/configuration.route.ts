@@ -38,7 +38,6 @@ import TopApiService from '../../services/top-api.service';
 
 export default configurationRouterConfig;
 
-/* @ngInject */
 function configurationRouterConfig($stateProvider: StateProvider) {
   $stateProvider
     .state('management.settings', {
@@ -55,10 +54,10 @@ function configurationRouterConfig($stateProvider: StateProvider) {
       url: '',
       component: 'analyticsSettings',
       resolve: {
-        dashboardsPlatform: (DashboardService: DashboardService) => DashboardService.list('PLATFORM').then((response) => response.data),
-        dashboardsApi: (DashboardService: DashboardService) => DashboardService.list('API').then((response) => response.data),
-        dashboardsApplication: (DashboardService: DashboardService) =>
-          DashboardService.list('APPLICATION').then((response) => response.data),
+        dashboardsPlatform: ['DashboardService',(DashboardService: DashboardService) => DashboardService.list('PLATFORM').then((response) => response.data)],
+        dashboardsApi: ['DashboardService',(DashboardService: DashboardService) => DashboardService.list('API').then((response) => response.data)],
+        dashboardsApplication: ['DashboardService',(DashboardService: DashboardService) =>
+          DashboardService.list('APPLICATION').then((response) => response.data)],
       },
       data: {
         menu: null,
@@ -88,8 +87,8 @@ function configurationRouterConfig($stateProvider: StateProvider) {
       url: '/dashboard/:type/:dashboardId',
       component: 'dashboard',
       resolve: {
-        dashboard: (DashboardService: DashboardService, $stateParams) =>
-          DashboardService.get($stateParams.dashboardId).then((response) => response.data),
+        dashboard: ['DashboardService','$stateParams',(DashboardService: DashboardService, $stateParams) =>
+          DashboardService.get($stateParams.dashboardId).then((response) => response.data)],
       },
       data: {
         menu: null,
@@ -105,8 +104,8 @@ function configurationRouterConfig($stateProvider: StateProvider) {
       url: '/apiportalheader',
       component: 'configApiPortalHeader',
       resolve: {
-        apiPortalHeaders: (ApiHeaderService: ApiHeaderService) => ApiHeaderService.list().then((response) => response.data),
-        settings: (PortalSettingsService: PortalSettingsService) => PortalSettingsService.get().then((response) => response.data),
+        apiPortalHeaders: ['ApiHeaderService',(ApiHeaderService: ApiHeaderService) => ApiHeaderService.list().then((response) => response.data)],
+        settings: ['PortalSettingsService', (PortalSettingsService: PortalSettingsService) => PortalSettingsService.get().then((response) => response.data)],
       },
       data: {
         menu: null,
@@ -127,7 +126,7 @@ function configurationRouterConfig($stateProvider: StateProvider) {
       url: '',
       component: 'configApiQuality',
       resolve: {
-        qualityRules: (QualityRuleService: QualityRuleService) => QualityRuleService.list().then((response) => response.data),
+        qualityRules: ['QualityRuleService',(QualityRuleService: QualityRuleService) => QualityRuleService.list().then((response) => response.data)],
       },
       data: {
         menu: null,
@@ -157,8 +156,8 @@ function configurationRouterConfig($stateProvider: StateProvider) {
       url: '/:qualityRuleId',
       component: 'qualityRule',
       resolve: {
-        qualityRule: (QualityRuleService: QualityRuleService, $stateParams) =>
-          QualityRuleService.get($stateParams.qualityRuleId).then((response) => response.data),
+        qualityRule: ['QualityRuleService', '$stateParams',(QualityRuleService: QualityRuleService, $stateParams) =>
+          QualityRuleService.get($stateParams.qualityRuleId).then((response) => response.data)],
       },
       data: {
         menu: null,
@@ -179,12 +178,12 @@ function configurationRouterConfig($stateProvider: StateProvider) {
       component: 'identityProviders',
       resolve: {
         target: () => 'ENVIRONMENT',
-        targetId: (Constants) => Constants.org.currentEnv.id,
-        identityProviders: (IdentityProviderService: IdentityProviderService) =>
-          IdentityProviderService.list().then((response) => response),
-        identities: (EnvironmentService: EnvironmentService, Constants) =>
-          EnvironmentService.listEnvironmentIdentities(Constants.org.currentEnv.id).then((response) => response.data),
-        settings: (PortalSettingsService: PortalSettingsService) => PortalSettingsService.get().then((response) => response.data),
+        targetId: ['Constants',(Constants) => Constants.org.currentEnv.id],
+        identityProviders: ['IdentityProviderService',(IdentityProviderService: IdentityProviderService) =>
+          IdentityProviderService.list().then((response) => response)],
+        identities: ['EnvironmentService', 'Constants', (EnvironmentService: EnvironmentService, Constants) =>
+          EnvironmentService.listEnvironmentIdentities(Constants.org.currentEnv.id).then((response) => response.data)],
+        settings: ['PortalSettingsService', (PortalSettingsService: PortalSettingsService) => PortalSettingsService.get().then((response) => response.data)],
       },
       data: {
         menu: null,
@@ -205,7 +204,7 @@ function configurationRouterConfig($stateProvider: StateProvider) {
       url: '',
       component: 'categories',
       resolve: {
-        categories: (CategoryService: CategoryService) => CategoryService.list(['total-apis']).then((response) => response.data),
+        categories: ['CategoryService',(CategoryService: CategoryService) => CategoryService.list(['total-apis']).then((response) => response.data)],
       },
       data: {
         menu: null,
@@ -222,12 +221,12 @@ function configurationRouterConfig($stateProvider: StateProvider) {
       url: '/new',
       component: 'category',
       resolve: {
-        pages: (DocumentationService: DocumentationService) => {
+        pages: ['DocumentationService',(DocumentationService: DocumentationService) => {
           const q = new DocumentationQuery();
           q.type = 'MARKDOWN';
           q.published = true;
           return DocumentationService.search(q).then((response) => response.data);
-        },
+        }],
       },
       data: {
         menu: null,
@@ -243,15 +242,15 @@ function configurationRouterConfig($stateProvider: StateProvider) {
       url: '/:categoryId',
       component: 'category',
       resolve: {
-        category: (CategoryService: CategoryService, $stateParams) =>
-          CategoryService.get($stateParams.categoryId).then((response) => response.data),
-        categoryApis: (ApiService: ApiService, $stateParams) => ApiService.list($stateParams.categoryId).then((response) => response.data),
-        pages: (DocumentationService: DocumentationService) => {
+        category: ['CategoryService', '$stateParams', (CategoryService: CategoryService, $stateParams) =>
+          CategoryService.get($stateParams.categoryId).then((response) => response.data)],
+        categoryApis: ['ApiService', '$stateParams',(ApiService: ApiService, $stateParams) => ApiService.list($stateParams.categoryId).then((response) => response.data)],
+        pages: ['DocumentationService',(DocumentationService: DocumentationService) => {
           const q = new DocumentationQuery();
           q.type = 'MARKDOWN';
           q.published = true;
           return DocumentationService.search(q).then((response) => response.data);
-        },
+        }],
       },
       data: {
         menu: null,
@@ -319,7 +318,7 @@ function configurationRouterConfig($stateProvider: StateProvider) {
       url: '?:parent',
       component: 'documentationManagementAjs',
       resolve: {
-        pages: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
+        pages: ['DocumentationService', '$stateParams',(DocumentationService: DocumentationService, $stateParams: StateParams) => {
           const q = new DocumentationQuery();
           if ($stateParams.parent && '' !== $stateParams.parent) {
             q.parent = $stateParams.parent;
@@ -327,17 +326,17 @@ function configurationRouterConfig($stateProvider: StateProvider) {
             q.root = true;
           }
           return DocumentationService.search(q).then((response) => response.data);
-        },
-        folders: (DocumentationService: DocumentationService) => {
+        }],
+        folders: ['DocumentationService',(DocumentationService: DocumentationService) => {
           const q = new DocumentationQuery();
           q.type = 'FOLDER';
           return DocumentationService.search(q).then((response) => response.data);
-        },
-        systemFolders: (DocumentationService: DocumentationService) => {
+        }],
+        systemFolders: ['DocumentationService',(DocumentationService: DocumentationService) => {
           const q = new DocumentationQuery();
           q.type = 'SYSTEM_FOLDER';
           return DocumentationService.search(q).then((response) => response.data);
-        },
+        }],
       },
       data: {
         menu: null,
@@ -361,12 +360,15 @@ function configurationRouterConfig($stateProvider: StateProvider) {
       url: '/new?type&:parent',
       component: 'documentationNewPageAjs',
       resolve: {
-        resolvedFetchers: (FetcherService: FetcherService) => {
+        resolvedFetchers: ['FetcherService',(FetcherService: FetcherService) => {
           return FetcherService.list().then((response) => {
             return response.data;
           });
-        },
-        pagesToLink: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
+        }],
+        pagesToLink: [
+          'DocumentationService',
+          '$stateParams',
+          (DocumentationService: DocumentationService, $stateParams: StateParams) => {
           if ($stateParams.type === 'MARKDOWN' || $stateParams.type === 'MARKDOWN_TEMPLATE') {
             const q = new DocumentationQuery();
             q.homepage = false;
@@ -381,28 +383,38 @@ function configurationRouterConfig($stateProvider: StateProvider) {
               ),
             );
           }
-        },
-        folders: (DocumentationService: DocumentationService) => {
+        }],
+        folders: [
+          'DocumentationService',
+          (DocumentationService: DocumentationService) => {
           const q = new DocumentationQuery();
           q.type = 'FOLDER';
           return DocumentationService.search(q).then((response) => response.data);
-        },
-        systemFolders: (DocumentationService: DocumentationService) => {
+        }],
+        systemFolders: [
+          'DocumentationService',
+          (DocumentationService: DocumentationService) => {
           const q = new DocumentationQuery();
           q.type = 'SYSTEM_FOLDER';
           return DocumentationService.search(q).then((response) => response.data);
-        },
-        pageResources: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
+        }],
+        pageResources: [
+          'DocumentationService',
+          '$stateParams',
+          (DocumentationService: DocumentationService, $stateParams: StateParams) => {
           if ($stateParams.type === 'LINK') {
             const q = new DocumentationQuery();
             return DocumentationService.search(q).then((response) => response.data);
           }
-        },
-        categoryResources: (CategoryService: CategoryService, $stateParams: StateParams) => {
+        }],
+        categoryResources: [
+          'CategoryService',
+          '$stateParams',
+          (CategoryService: CategoryService, $stateParams: StateParams) => {
           if ($stateParams.type === 'LINK') {
             return CategoryService.list().then((response) => response.data);
           }
-        },
+        }],
       },
       data: {
         menu: null,
@@ -430,16 +442,20 @@ function configurationRouterConfig($stateProvider: StateProvider) {
       url: '/import',
       component: 'documentationImportPagesAjs',
       resolve: {
-        resolvedFetchers: (FetcherService: FetcherService) => {
+        resolvedFetchers: [
+          'FetcherService',
+          , (FetcherService: FetcherService) => {
           return FetcherService.list(true).then((response) => {
             return response.data;
           });
-        },
-        resolvedRootPage: (DocumentationService: DocumentationService) => {
+        }],
+        resolvedRootPage: [
+          'DocumentationService',
+          (DocumentationService: DocumentationService) => {
           const q = new DocumentationQuery();
           q.type = 'ROOT';
           return DocumentationService.search(q).then((response) => (response.data && response.data.length > 0 ? response.data[0] : null));
-        },
+        }],
       },
       data: {
         menu: null,
@@ -455,19 +471,29 @@ function configurationRouterConfig($stateProvider: StateProvider) {
       url: '/:pageId?:tab&type',
       component: 'documentationEditPageAjs',
       resolve: {
-        resolvedPage: (DocumentationService: DocumentationService, $stateParams: StateParams) =>
-          DocumentationService.get(null, $stateParams.pageId).then((response) => response.data),
-        resolvedGroups: (GroupService: GroupService) => {
+        resolvedPage: [
+          'DocumentationService',
+          '$stateParams',
+          (DocumentationService: DocumentationService, $stateParams: StateParams) =>
+          DocumentationService.get(null, $stateParams.pageId).then((response) => response.data)],
+        resolvedGroups: [
+          'GroupService',
+          (GroupService: GroupService) => {
           return GroupService.list().then((response) => {
             return response.data;
           });
-        },
-        resolvedFetchers: (FetcherService: FetcherService) => {
+        }],
+        resolvedFetchers: [
+          'FetcherService',
+          (FetcherService: FetcherService) => {
           return FetcherService.list().then((response) => {
             return response.data;
           });
-        },
-        pagesToLink: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
+        }],
+        pagesToLink: [
+          'DocumentationService',
+          '$stateParams',
+          (DocumentationService: DocumentationService, $stateParams: StateParams) => {
           if ($stateParams.type === 'MARKDOWN' || $stateParams.type === 'MARKDOWN_TEMPLATE') {
             const q = new DocumentationQuery();
             q.homepage = false;
@@ -483,33 +509,46 @@ function configurationRouterConfig($stateProvider: StateProvider) {
               ),
             );
           }
-        },
-        folders: (DocumentationService: DocumentationService) => {
+        }],
+        folders: [
+          'DocumentationService',
+          (DocumentationService: DocumentationService) => {
           const q = new DocumentationQuery();
           q.type = 'FOLDER';
           return DocumentationService.search(q).then((response) => response.data);
-        },
-        systemFolders: (DocumentationService: DocumentationService) => {
+        }],
+        systemFolders: [
+          'DocumentationService',
+          (DocumentationService: DocumentationService) => {
           const q = new DocumentationQuery();
           q.type = 'SYSTEM_FOLDER';
           return DocumentationService.search(q).then((response) => response.data);
-        },
-        pageResources: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
+        }],
+        pageResources: [
+          'DocumentationService',
+          '$stateParams',
+          (DocumentationService: DocumentationService, $stateParams: StateParams) => {
           if ($stateParams.type === 'LINK') {
             const q = new DocumentationQuery();
             return DocumentationService.search(q).then((response) => response.data);
           }
-        },
-        categoryResources: (CategoryService: CategoryService, $stateParams: StateParams) => {
+        }],
+        categoryResources: [
+          'CategoryService',
+          '$stateParams',
+          (CategoryService: CategoryService, $stateParams: StateParams) => {
           if ($stateParams.type === 'LINK') {
             return CategoryService.list().then((response) => response.data);
           }
-        },
-        attachedResources: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
+        }],
+        attachedResources: [
+          'DocumentationService',
+          '$stateParams',
+          (DocumentationService: DocumentationService, $stateParams: StateParams) => {
           if ($stateParams.type === 'MARKDOWN' || $stateParams.type === 'ASCIIDOC' || $stateParams.type === 'ASYNCAPI') {
             return DocumentationService.getMedia($stateParams.pageId, null).then((response) => response.data);
           }
-        },
+        }],
       },
       data: {
         menu: null,
@@ -532,8 +571,8 @@ function configurationRouterConfig($stateProvider: StateProvider) {
       url: '/metadata',
       component: 'metadata',
       resolve: {
-        metadata: (MetadataService: MetadataService) => MetadataService.list().then((response) => response.data),
-        metadataFormats: (MetadataService: MetadataService) => MetadataService.listFormats(),
+        metadata: ['MetadataService', (MetadataService: MetadataService) => MetadataService.list().then((response) => response.data)],
+        metadataFormats: ['MetadataService',(MetadataService: MetadataService) => MetadataService.listFormats()],
       },
       data: {
         menu: null,
@@ -550,8 +589,8 @@ function configurationRouterConfig($stateProvider: StateProvider) {
       url: '/portal',
       component: 'portalSettings',
       resolve: {
-        tags: (TagService: TagService) => TagService.list().then((response) => response.data),
-        settings: (PortalSettingsService: PortalSettingsService) => PortalSettingsService.get().then((response) => response.data),
+        tags: ['TagService',(TagService: TagService) => TagService.list().then((response) => response.data)],
+        settings: ['PortalSettingsService',(PortalSettingsService: PortalSettingsService) => PortalSettingsService.get().then((response) => response.data)],
       },
       data: {
         menu: null,
@@ -583,7 +622,7 @@ function configurationRouterConfig($stateProvider: StateProvider) {
       url: '/top-apis',
       component: 'topApis',
       resolve: {
-        topApis: (TopApiService: TopApiService) => TopApiService.list().then((response) => response.data),
+        topApis: ['TopApiService',(TopApiService: TopApiService) => TopApiService.list().then((response) => response.data)],
       },
       data: {
         menu: null,
@@ -601,7 +640,7 @@ function configurationRouterConfig($stateProvider: StateProvider) {
       url: '/api_logging',
       component: 'apiLogging',
       resolve: {
-        settings: (ConsoleSettingsService: ConsoleSettingsService) => ConsoleSettingsService.get().then((response) => response.data),
+        settings: ['ConsoleSettingsService',(ConsoleSettingsService: ConsoleSettingsService) => ConsoleSettingsService.get().then((response) => response.data)],
       },
       data: {
         menu: null,
@@ -622,7 +661,7 @@ function configurationRouterConfig($stateProvider: StateProvider) {
       url: '/',
       component: 'dictionaries',
       resolve: {
-        dictionaries: (DictionaryService: DictionaryService) => DictionaryService.list().then((response) => response.data),
+        dictionaries: ['DictionaryService',(DictionaryService: DictionaryService) => DictionaryService.list().then((response) => response.data)],
       },
       data: {
         menu: null,
@@ -652,8 +691,8 @@ function configurationRouterConfig($stateProvider: StateProvider) {
       url: '/:dictionaryId',
       component: 'dictionary',
       resolve: {
-        dictionary: (DictionaryService: DictionaryService, $stateParams) =>
-          DictionaryService.get($stateParams.dictionaryId).then((response) => response.data),
+        dictionary: ['DictionaryService',(DictionaryService: DictionaryService, $stateParams) =>
+          DictionaryService.get($stateParams.dictionaryId).then((response) => response.data)],
       },
       data: {
         menu: null,
@@ -670,9 +709,9 @@ function configurationRouterConfig($stateProvider: StateProvider) {
       url: '/custom-user-fields',
       component: 'customUserFields',
       resolve: {
-        fields: (CustomUserFieldsService: CustomUserFieldsService) => CustomUserFieldsService.list().then((response) => response.data),
-        fieldFormats: (CustomUserFieldsService: CustomUserFieldsService) => CustomUserFieldsService.listFormats(),
-        predefinedKeys: (CustomUserFieldsService: CustomUserFieldsService) => CustomUserFieldsService.listPredefinedKeys(),
+        fields: ['CustomUserFieldsService',(CustomUserFieldsService: CustomUserFieldsService) => CustomUserFieldsService.list().then((response) => response.data)],
+        fieldFormats: ['CustomUserFieldsService',(CustomUserFieldsService: CustomUserFieldsService) => CustomUserFieldsService.listFormats()],
+        predefinedKeys: ['CustomUserFieldsService',(CustomUserFieldsService: CustomUserFieldsService) => CustomUserFieldsService.listPredefinedKeys()],
       },
       data: {
         menu: null,
@@ -693,7 +732,7 @@ function configurationRouterConfig($stateProvider: StateProvider) {
       url: '/',
       component: 'groups',
       resolve: {
-        groups: (GroupService: GroupService) => GroupService.list().then((response) => _.filter(response.data, 'manageable')),
+        groups: ['GroupService',(GroupService: GroupService) => GroupService.list().then((response) => _.filter(response.data, 'manageable'))],
       },
       data: {
         menu: null,
@@ -710,7 +749,7 @@ function configurationRouterConfig($stateProvider: StateProvider) {
       url: '/new',
       component: 'group',
       resolve: {
-        tags: (TagService: TagService) => TagService.list().then((response) => response.data),
+        tags:['TagService', (TagService: TagService) => TagService.list().then((response) => response.data)],
       },
       data: {
         menu: null,
@@ -726,14 +765,20 @@ function configurationRouterConfig($stateProvider: StateProvider) {
       url: '/:groupId',
       component: 'group',
       resolve: {
-        group: (GroupService: GroupService, $stateParams) => GroupService.get($stateParams.groupId).then((response) => response.data),
-        apiRoles: (RoleService: RoleService) =>
-          RoleService.list('API').then((roles) => [{ scope: 'API', name: '', system: false }].concat(roles)),
-        applicationRoles: (RoleService: RoleService) =>
-          RoleService.list('APPLICATION').then((roles) => [{ scope: 'APPLICATION', name: '', system: false }].concat(roles)),
-        invitations: (GroupService: GroupService, $stateParams) =>
-          GroupService.getInvitations($stateParams.groupId).then((response) => response.data),
-        tags: (TagService: TagService) => TagService.list().then((response) => response.data),
+        group: [
+          'GroupService',
+          '$stateParams',
+          , (GroupService: GroupService, $stateParams) => GroupService.get($stateParams.groupId).then((response) => response.data)],
+        apiRoles: ['RoleService',(RoleService: RoleService) =>
+          RoleService.list('API').then((roles) => [{ scope: 'API', name: '', system: false }].concat(roles))],
+        applicationRoles: ['RoleService',(RoleService: RoleService) =>
+          RoleService.list('APPLICATION').then((roles) => [{ scope: 'APPLICATION', name: '', system: false }].concat(roles))],
+        invitations: [
+          'GroupService',
+          '$stateParams',
+          , (GroupService: GroupService, $stateParams) =>
+          GroupService.getInvitations($stateParams.groupId).then((response) => response.data)],
+        tags: ['TagService',(TagService: TagService) => TagService.list().then((response) => response.data)],
       },
       data: {
         menu: null,
@@ -746,3 +791,4 @@ function configurationRouterConfig($stateProvider: StateProvider) {
       },
     });
 }
+configurationRouterConfig.$inject = ['$stateProvider'];

@@ -19,28 +19,29 @@ const AlertTriggerApiHealthCheckEndpointStatusChangedComponent: ng.IComponentOpt
     alert: '<',
   },
   template: require('./trigger-api-hc-endpoint-status-changed.html'),
-  /* @ngInject */
-  controller: function () {
-    this.$onInit = () => {
-      // New alert, initialize it with the condition model
-      if (this.alert.id === undefined) {
-        this.alert.conditions = [
-          {
-            type: 'STRING_COMPARE',
-            operator: 'NOT_EQUALS',
-            property: 'status.old',
-            property2: 'status.new',
-          },
-        ];
+  controller: [
+    function () {
+      this.$onInit = () => {
+        // New alert, initialize it with the condition model
+        if (this.alert.id === undefined) {
+          this.alert.conditions = [
+            {
+              type: 'STRING_COMPARE',
+              operator: 'NOT_EQUALS',
+              property: 'status.old',
+              property2: 'status.new',
+            },
+          ];
 
-        this.alert.dampening = {
-          mode: 'STRICT_COUNT',
-          trueEvaluations: 1,
-          totalEvaluations: 1,
-        };
-      }
-    };
-  },
+          this.alert.dampening = {
+            mode: 'STRICT_COUNT',
+            trueEvaluations: 1,
+            totalEvaluations: 1,
+          };
+        }
+      };
+    },
+  ],
 };
 
 export default AlertTriggerApiHealthCheckEndpointStatusChangedComponent;

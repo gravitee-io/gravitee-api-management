@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 class EmptyStateDirective {
-  /* @ngInject */
   constructor() {
     const directive = {
       restrict: 'E',

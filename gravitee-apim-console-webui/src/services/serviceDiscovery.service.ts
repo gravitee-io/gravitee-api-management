@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 class ServiceDiscoveryService {
-  /* @ngInject */
   constructor(private $http, private Constants) {}
 
   list() {
@@ -26,5 +25,6 @@ class ServiceDiscoveryService {
     return this.$http.get(`${this.Constants.env.baseURL}/services-discovery/${pluginId}/schema`);
   }
 }
+ServiceDiscoveryService.$inject = ['$http', 'Constants'];
 
 export default ServiceDiscoveryService;

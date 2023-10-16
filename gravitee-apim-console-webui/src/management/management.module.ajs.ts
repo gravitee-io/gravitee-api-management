@@ -496,17 +496,18 @@ angular.module('gravitee-management', [
 
 const graviteeManagementModule = angular.module('gravitee-management');
 
-graviteeManagementModule.config(
-  /* @ngInject */ (cfpLoadingBarProvider) => {
-    cfpLoadingBarProvider.includeSpinner = false;
-  },
-);
+const includeSpinnerConfig = (cfpLoadingBarProvider) => {
+  cfpLoadingBarProvider.includeSpinner = false;
+};
+includeSpinnerConfig.$inject = ['cfpLoadingBarProvider'];
+graviteeManagementModule.config(includeSpinnerConfig);
 
-graviteeManagementModule.config(
-  /* @ngInject */ (localStorageServiceProvider: angular.local.storage.ILocalStorageServiceProvider) => {
-    localStorageServiceProvider.setPrefix('gravitee');
-  },
-);
+const localStorageConfig = (localStorageServiceProvider) => {
+  localStorageServiceProvider.setPrefix('gravitee');
+};
+localStorageConfig.$inject = ['localStorageServiceProvider'];
+graviteeManagementModule.config(localStorageConfig);
+
 graviteeManagementModule.config(config);
 graviteeManagementModule.config(routerConfig);
 graviteeManagementModule.config(authenticationConfig);
@@ -517,7 +518,9 @@ graviteeManagementModule.config(configurationRouterConfig);
 graviteeManagementModule.config(globalNotificationsRouterConfig);
 graviteeManagementModule.config(interceptorConfig);
 graviteeManagementModule.config(delegatorConfig);
-graviteeManagementModule.config(($mdThemingProvider: angular.material.IThemingProvider) => {
+
+const themeConfig = 
+($mdThemingProvider: angular.material.IThemingProvider) => {
   $mdThemingProvider.definePalette('gravitee', {
     '0': '1b1d3c',
     '50': '1b1d3c',
@@ -560,7 +563,9 @@ graviteeManagementModule.config(($mdThemingProvider: angular.material.IThemingPr
 
   $mdThemingProvider.theme('toast-success');
   $mdThemingProvider.theme('toast-error');
-});
+}
+themeConfig.$inject = ['$mdThemingProvider'];
+graviteeManagementModule.config(themeConfig);
 graviteeManagementModule.run(runBlock);
 
 // New Navigation components

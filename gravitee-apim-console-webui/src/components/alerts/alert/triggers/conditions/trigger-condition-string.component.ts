@@ -25,34 +25,37 @@ const AlertTriggerConditionStringComponent: ng.IComponentOptions = {
     isReadonly: '<',
   },
   template: require('./trigger-condition-string.html'),
-  /* @ngInject */
-  controller: function ($injector, $state) {
-    this.$onInit = () => {
-      // Get the metric field according to the condition property
-      const metric = _.find(this.metrics as Metrics[], (metric) => metric.key === this.condition.property);
+  controller: [
+    '$injector',
+    '$state',
+    function ($injector, $state) {
+      this.$onInit = () => {
+        // Get the metric field according to the condition property
+        const metric = _.find(this.metrics as Metrics[], (metric) => metric.key === this.condition.property);
 
-      if (metric.loader) {
-        let referenceId;
-        let referenceType;
+        if (metric.loader) {
+          let referenceId;
+          let referenceType;
 
-        if ($state.params.apiId) {
-          referenceType = Scope.API;
-          referenceId = $state.params.apiId;
-        } else if ($state.params.applicationId) {
-          referenceType = Scope.APPLICATION;
-          referenceId = $state.params.applicationId;
-        } else {
-          referenceType = Scope.ENVIRONMENT;
+          if ($state.params.apiId) {
+            referenceType = Scope.API;
+            referenceId = $state.params.apiId;
+          } else if ($state.params.applicationId) {
+            referenceType = Scope.APPLICATION;
+            referenceId = $state.params.applicationId;
+          } else {
+            referenceType = Scope.ENVIRONMENT;
+          }
+
+          this.values = metric.loader(referenceType, referenceId, $injector);
         }
+      };
 
-        this.values = metric.loader(referenceType, referenceId, $injector);
-      }
-    };
-
-    this.displaySelect = () => {
-      return this.values !== undefined && (this.condition.operator === 'EQUALS' || this.condition.operator === 'NOT_EQUALS');
-    };
-  },
+      this.displaySelect = () => {
+        return this.values !== undefined && (this.condition.operator === 'EQUALS' || this.condition.operator === 'NOT_EQUALS');
+      };
+    },
+  ],
 };
 
 export default AlertTriggerConditionStringComponent;

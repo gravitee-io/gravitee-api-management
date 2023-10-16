@@ -61,7 +61,6 @@ class EditPageComponentController implements IController {
   canUpdate: boolean;
   newName: any;
 
-  /* @ngInject */
   constructor(
     private readonly NotificationService: NotificationService,
     private readonly DocumentationService: DocumentationService,
@@ -299,6 +298,7 @@ class EditPageComponentController implements IController {
       : 'This page is not published yet and will not be visible to other users';
   }
 }
+EditPageComponentController.$inject = ['NotificationService', 'DocumentationService', 'UserService', '$mdDialog', '$state', '$scope'];
 
 export const DocumentationEditPageComponentAjs: ng.IComponentOptions = {
   bindings: {

@@ -27,7 +27,6 @@ const ApiCreationStep2Component: ng.IComponentOptions = {
     private parent: ApiCreationV2ControllerAjs;
     private advancedMode: boolean;
 
-    /* @ngInject */
     constructor() {
       this.advancedMode = false;
     }

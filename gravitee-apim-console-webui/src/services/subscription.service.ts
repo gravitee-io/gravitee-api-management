@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 class SubscriptionService {
-  /* @ngInject */
   constructor(private $http, private Constants) {}
 
   list(plan, application) {
@@ -28,5 +27,6 @@ class SubscriptionService {
     return this.$http.get(url);
   }
 }
+SubscriptionService.$inject = ['$http', 'Constants'];
 
 export default SubscriptionService;

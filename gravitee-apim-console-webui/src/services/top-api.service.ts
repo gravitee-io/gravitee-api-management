@@ -16,7 +16,6 @@
 import * as _ from 'lodash';
 
 class TopApiService {
-  /* @ngInject */
   constructor(private $http, private Constants) {}
 
   list() {
@@ -46,5 +45,6 @@ class TopApiService {
     }
   }
 }
+TopApiService.$inject = ['$http', 'Constants'];
 
 export default TopApiService;

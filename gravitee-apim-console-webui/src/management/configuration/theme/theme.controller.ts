@@ -31,7 +31,6 @@ class ThemeController {
   private themeOptionalLogoURL: string;
   private themeBackgroundURL: string;
 
-  /* @ngInject */
   constructor(
     private $http,
     private $scope,
@@ -492,5 +491,6 @@ class ThemeController {
     }
   }
 }
+ThemeController.$inject = ['$http', '$scope', '$mdDialog', 'Constants', 'ThemeService', 'NotificationService', '$sce'];
 
 export default ThemeController;

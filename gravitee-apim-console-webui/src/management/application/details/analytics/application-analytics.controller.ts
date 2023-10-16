@@ -24,7 +24,6 @@ class ApplicationAnalyticsController {
   private dashboard: any;
   private dashboards: any;
 
-  /* @ngInject */
   constructor(private ApplicationService: ApplicationService, private DashboardService: DashboardService, private $state: StateService) {}
 
   $onInit() {
@@ -70,5 +69,6 @@ class ApplicationAnalyticsController {
     this.$state.transitionTo('management.applications.application.logs.list', this.$state.params);
   }
 }
+ApplicationAnalyticsController.$inject = ['ApplicationService', 'DashboardService', '$state'];
 
 export default ApplicationAnalyticsController;

@@ -44,7 +44,6 @@ class ApplicationSubscriptionsListController {
 
   private isFirstFilter = true;
 
-  /* @ngInject */
   constructor(private ApplicationService: ApplicationService, private $state: StateService) {
     this.onPaginate = this.onPaginate.bind(this);
   }
@@ -130,5 +129,6 @@ class ApplicationSubscriptionsListController {
     this.$state.transitionTo('management.applications.application.subscriptions.subscription', { subscriptionId, ...this.$state.params });
   }
 }
+ApplicationSubscriptionsListController.$inject = ['ApplicationService', '$state'];
 
 export default ApplicationSubscriptionsListController;

@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 class InstancesService {
-  /* @ngInject */
   constructor(private $http, private Constants) {}
 
   search(includeStopped?: boolean, from?: number, to?: number, page?: number, size?: number) {
@@ -51,5 +50,6 @@ class InstancesService {
     return this.$http.get(`${this.Constants.env.baseURL}/instances/` + id + '/monitoring/' + gatewayId);
   }
 }
+InstancesService.$inject = ['$http', 'Constants'];
 
 export default InstancesService;

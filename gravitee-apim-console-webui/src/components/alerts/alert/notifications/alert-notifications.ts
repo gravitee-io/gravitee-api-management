@@ -22,21 +22,22 @@ const AlertNotificationsComponent: ng.IComponentOptions = {
     parent: '^alertComponentAjs',
   },
   template: require('./alert-notifications.html'),
-  /* @ngInject */
-  controller: function () {
-    this.addNotification = () => {
-      if (this.alert.notifications === undefined) {
-        this.alert.notifications = [];
-      }
+  controller: [
+    function () {
+      this.addNotification = () => {
+        if (this.alert.notifications === undefined) {
+          this.alert.notifications = [];
+        }
 
-      this.alert.notifications.push({});
-    };
+        this.alert.notifications.push({});
+      };
 
-    this.removeNotification = (idx: number) => {
-      this.alert.notifications.splice(idx, 1);
-      this.parent.formAlert.$setDirty();
-    };
-  },
+      this.removeNotification = (idx: number) => {
+        this.alert.notifications.splice(idx, 1);
+        this.parent.formAlert.$setDirty();
+      };
+    },
+  ],
 };
 
 export default AlertNotificationsComponent;

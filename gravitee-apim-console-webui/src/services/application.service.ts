@@ -38,7 +38,6 @@ interface IMembership {
 export type ApplicationExcludeFilter = 'owner' | 'picture';
 
 class ApplicationService {
-  /* @ngInject */
   constructor(private $http: ng.IHttpService, private Constants) {}
 
   getAnalyticsHttpTimeout() {
@@ -339,5 +338,6 @@ class ApplicationService {
     return clonedQuery;
   }
 }
+ApplicationService.$inject = ['$http', 'Constants'];
 
 export default ApplicationService;

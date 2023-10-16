@@ -17,7 +17,6 @@
 import { Theme } from '../entities/theme';
 
 class ThemeService {
-  /* @ngInject */
   constructor(private $http, private Constants) {}
 
   getCurrent() {
@@ -81,5 +80,6 @@ class ThemeService {
     return imageUrl;
   }
 }
+ThemeService.$inject = ['$http', 'Constants'];
 
 export default ThemeService;

@@ -16,7 +16,6 @@
 import ReCaptchaService from '../../../services/reCaptcha.service';
 
 class ConfirmController {
-  /* @ngInject */
   constructor(jwtHelper, $state, $scope, UserService, NotificationService, ReCaptchaService: ReCaptchaService) {
     ReCaptchaService.displayBadge();
 
@@ -56,5 +55,6 @@ class ConfirmController {
     };
   }
 }
+ConfirmController.$inject = ['jwtHelper', '$state', '$scope', 'UserService', 'NotificationService', 'ReCaptchaService'];
 
 export default ConfirmController;

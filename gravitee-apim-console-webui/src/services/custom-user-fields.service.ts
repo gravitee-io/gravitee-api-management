@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 class CustomUserFieldsService {
-  /* @ngInject */
   constructor(private $http, private Constants) {}
 
   valuesAsList = function (field: any) {
@@ -72,5 +71,6 @@ class CustomUserFieldsService {
     return this.$http.delete(`${this.Constants.org.baseURL}/configuration/custom-user-fields` + '/' + field.key);
   }
 }
+CustomUserFieldsService.$inject = ['$http', 'Constants'];
 
 export default CustomUserFieldsService;

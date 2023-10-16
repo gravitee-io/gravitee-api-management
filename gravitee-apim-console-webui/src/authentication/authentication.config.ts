@@ -16,9 +16,8 @@
 
 import { AuthProvider } from 'satellizer';
 
-/* @ngInject */
 function authenticationConfig($authProvider: AuthProvider) {
   $authProvider.withCredentials = true;
 }
-
+authenticationConfig.$inject = ['$authProvider'];
 export default authenticationConfig;

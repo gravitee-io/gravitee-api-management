@@ -25,16 +25,15 @@ import InstancesService from '../services/instances.service';
 import TicketService from '../services/ticket.service';
 import { ApimFeature } from '../shared/components/gio-license/gio-license-data';
 
-/* @ngInject */
 function managementRouterConfig($stateProvider) {
   $stateProvider
     .state('management', {
       redirectTo: 'home',
       template: '<div ui-view layout="column" flex></div>',
       parent: 'withSidenav',
-      controller: function ($rootScope, Constants) {
+      controller: ['$rootScope', 'Constants', function ($rootScope, Constants) {
         $rootScope.consoleTitle = Constants.org.settings.management.title;
-      },
+      }],
       controllerAs: '$ctrl',
     })
     .state('management.instances', {
@@ -46,7 +45,10 @@ function managementRouterConfig($stateProvider) {
       url: '/',
       component: 'instances',
       resolve: {
-        instances: (InstancesService: InstancesService) => InstancesService.search().then((response) => response.data),
+        instances: [
+          'InstancesService',
+          (InstancesService: InstancesService) => InstancesService.search().then((response) => response.data),
+        ],
       },
       data: {
         perms: {
@@ -95,16 +97,20 @@ function managementRouterConfig($stateProvider) {
         },
       },
       resolve: {
-        apis: ($stateParams: StateParams, ApiService: ApiService) => ApiService.list(null, false, 1, null, null, null, 10),
-        applications: ($stateParams: StateParams, ApplicationService: ApplicationService) => ApplicationService.list(['owner', 'picture']),
+        apis: ['ApiService', (ApiService: ApiService) => ApiService.list(null, false, 1, null, null, null, 10)],
+        applications: ['ApplicationService', (ApplicationService: ApplicationService) => ApplicationService.list(['owner', 'picture'])],
       },
     })
     .state('management.log', {
       url: '/logs/:logId?timestamp&from&to&q&page&size',
       component: 'platformLog',
       resolve: {
-        log: ($stateParams, AnalyticsService: AnalyticsService) =>
-          AnalyticsService.getLog($stateParams.logId, $stateParams.timestamp).then((response) => response.data),
+        log: [
+          '$stateParams',
+          'AnalyticsService',
+          ($stateParams, AnalyticsService: AnalyticsService) =>
+            AnalyticsService.getLog($stateParams.logId, $stateParams.timestamp).then((response) => response.data),
+        ],
       },
       data: {
         devMode: true,
@@ -185,8 +191,8 @@ function managementRouterConfig($stateProvider) {
       url: '/support/tickets/:ticketId?page&size&order',
       component: 'ticketDetail',
       resolve: {
-        ticket: ($stateParams: StateParams, TicketService: TicketService) =>
-          TicketService.getTicket($stateParams.ticketId).then((response) => response.data),
+        ticket: ['$stateParams', 'TicketService', ($stateParams: StateParams, TicketService: TicketService) =>
+          TicketService.getTicket($stateParams.ticketId).then((response) => response.data)],
       },
     })
     .state('management.analytics', {
@@ -195,7 +201,7 @@ function managementRouterConfig($stateProvider) {
       controller: 'AnalyticsDashboardController',
       controllerAs: '$ctrl',
       resolve: {
-        dashboards: (DashboardService: DashboardService) => DashboardService.list('PLATFORM').then((response) => response.data),
+        dashboards: ['DashboardService',(DashboardService: DashboardService) => DashboardService.list('PLATFORM').then((response) => response.data)],
       },
       data: {
         perms: {
@@ -225,5 +231,6 @@ function managementRouterConfig($stateProvider) {
       },
     });
 }
+managementRouterConfig.$inject = ['$stateProvider'];
 
 export default managementRouterConfig;

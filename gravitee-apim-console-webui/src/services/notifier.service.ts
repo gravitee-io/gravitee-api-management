@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 class NotifierService {
-  /* @ngInject */
   constructor(private $http, private Constants) {}
 
   list() {
@@ -25,5 +24,6 @@ class NotifierService {
     return this.$http.get(`${this.Constants.env.baseURL}/notifiers/` + notifier + '/schema');
   }
 }
+NotifierService.$inject = ['$http', 'Constants'];
 
 export default NotifierService;

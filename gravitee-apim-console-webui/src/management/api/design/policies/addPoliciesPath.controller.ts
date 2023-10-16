@@ -21,7 +21,6 @@ class AddPoliciesPathController {
   private rootCtrl: any;
   private canCopyFromRootPath: boolean;
 
-  /* @ngInject */
   constructor(private $mdDialog: ng.material.IDialogService, private locals) {
     this.paths = locals.paths;
     this.rootCtrl = locals.rootCtrl;
@@ -49,5 +48,6 @@ class AddPoliciesPathController {
     this.$mdDialog.hide(this.paths);
   }
 }
+AddPoliciesPathController.$inject = ['$mdDialog', 'locals'];
 
 export default AddPoliciesPathController;

@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 class EntrypointService {
-  /* @ngInject */
   constructor(private $http, private Constants) {}
 
   findById(entrypoint) {
@@ -43,5 +42,6 @@ class EntrypointService {
     }
   }
 }
+EntrypointService.$inject = ['$http', 'Constants'];
 
 export default EntrypointService;

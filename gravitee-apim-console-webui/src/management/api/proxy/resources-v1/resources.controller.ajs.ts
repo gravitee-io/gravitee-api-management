@@ -25,7 +25,6 @@ class ApiV1ResourcesControllerAjs {
   private resource: any;
   private resourceJsonSchema: any;
 
-  /* @ngInject */
   constructor(
     private ApiService,
     private $mdSidenav,
@@ -178,5 +177,15 @@ class ApiV1ResourcesControllerAjs {
     return _.find(this.types, { id: resourceTypeId }).name;
   }
 }
+ApiV1ResourcesControllerAjs.$inject = [
+  'ApiService',
+  '$mdSidenav',
+  '$mdDialog',
+  'ResourceService',
+  'NotificationService',
+  '$scope',
+  '$rootScope',
+  '$timeout',
+];
 
 export default ApiV1ResourcesControllerAjs;

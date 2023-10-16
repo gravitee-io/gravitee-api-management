@@ -15,7 +15,6 @@
  */
 
 class ConsoleSettingsService {
-  /* @ngInject */
   constructor(private $http, private Constants) {}
 
   save(config) {
@@ -37,5 +36,6 @@ class ConsoleSettingsService {
     return false;
   }
 }
+ConsoleSettingsService.$inject = ['$http', 'Constants'];
 
 export default ConsoleSettingsService;

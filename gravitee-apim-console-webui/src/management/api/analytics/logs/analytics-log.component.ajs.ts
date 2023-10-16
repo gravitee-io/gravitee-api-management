@@ -63,8 +63,6 @@ class ApiAnalyticsLogControllerAjs {
       (obj.headersAsList as Array<[string, string]>).sort(([key1], [key2]) => key1.localeCompare(key2));
     }
   }
-
-  /* @ngInject */
   constructor(
     public readonly Constants: any,
     private readonly $state: StateService,
@@ -238,6 +236,7 @@ class ApiAnalyticsLogControllerAjs {
     this.NotificationService.show('Body has been copied to clipboard');
   }
 }
+ApiAnalyticsLogControllerAjs.$inject = ['Constants', '$state', 'NotificationService', 'AnalyticsService', 'ApiService'];
 
 export const ApiAnalyticsLogComponentAjs: ng.IComponentOptions = {
   controller: ApiAnalyticsLogControllerAjs,

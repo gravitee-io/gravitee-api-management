@@ -31,7 +31,6 @@ class EditPageFetchersComponentController implements IController {
 
   fetcherJsonSchemaForm: string[];
 
-  /* @ngInject */
   constructor(private $scope: IPageScope) {}
 
   $onInit() {
@@ -52,6 +51,7 @@ class EditPageFetchersComponentController implements IController {
     this.$scope.fetcherJsonSchema = angular.fromJson(fetcher.schema);
   }
 }
+EditPageFetchersComponentController.$inject = ['$scope'];
 
 export const EditPageFetchersComponent: ng.IComponentOptions = {
   bindings: {

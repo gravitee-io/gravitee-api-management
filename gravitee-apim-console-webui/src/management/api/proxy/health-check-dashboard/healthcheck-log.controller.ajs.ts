@@ -22,7 +22,6 @@ import { ApiService } from '../../../../services/api.service';
 class ApiHealthcheckLogControllerAjs {
   private log: any;
 
-  /* @ngInject */
   constructor(private $scope: IScope, private $state: StateService, private $window, private ApiService: ApiService) {}
 
   $onInit() {
@@ -50,5 +49,6 @@ class ApiHealthcheckLogControllerAjs {
     });
   }
 }
+ApiHealthcheckLogControllerAjs.$inject = ['$scope', '$state', '$window', 'ApiService'];
 
 export default ApiHealthcheckLogControllerAjs;

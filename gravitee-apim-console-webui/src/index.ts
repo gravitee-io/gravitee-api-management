@@ -141,7 +141,10 @@ function initComponents() {
 }
 
 function bootstrapApplication(constants: Constants) {
-  angular.module('gravitee-management').config(($urlServiceProvider: UrlService) => $urlServiceProvider.deferIntercept());
+
+  const urlDeferInterceptorConfig = ($urlServiceProvider: UrlService) => $urlServiceProvider.deferIntercept()
+  urlDeferInterceptorConfig.$inject = ['$urlServiceProvider']
+  angular.module('gravitee-management').config(urlDeferInterceptorConfig);
   const resourceURL = `${constants.v2BaseURL}/license`;
   const featureInfoData = FeatureInfoData;
   const licenseConfiguration: LicenseConfiguration = {

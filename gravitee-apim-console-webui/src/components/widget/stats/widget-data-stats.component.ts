@@ -24,41 +24,44 @@ const WidgetDataStatsComponent: ng.IComponentOptions = {
   require: {
     parent: '^gvWidget',
   },
-  /* @ngInject */
-  controller: function ($scope, $element) {
-    this.$onInit = () => {
-      this.chartData = _.cloneDeep(this.parent.widget.chart.data);
-      checkFallback();
-    };
-    const checkFallback = () => {
-      const gvStats = $element.children()[0];
+  controller: [
+    '$scope',
+    '$element',
+    function ($scope, $element) {
+      this.$onInit = () => {
+        this.chartData = _.cloneDeep(this.parent.widget.chart.data);
+        checkFallback();
+      };
+      const checkFallback = () => {
+        const gvStats = $element.children()[0];
 
-      const stats = {};
-      if (Object.values(this.data).some((data) => data !== 0)) {
-        this.chartData.forEach((data) => {
-          stats[data.key] = this.data[data.key];
+        const stats = {};
+        if (Object.values(this.data).some((data) => data !== 0)) {
+          this.chartData.forEach((data) => {
+            stats[data.key] = this.data[data.key];
+          });
+        }
+
+        const options = this.chartData.map((data) => {
+          return {
+            key: data.key,
+            unit: data.unit,
+            color: data.color,
+            label: data.label,
+            fallback:
+              data.fallback &&
+              data.fallback.map((fallback) => {
+                return { key: fallback.key, label: fallback.label };
+              }),
+          };
         });
-      }
 
-      const options = this.chartData.map((data) => {
-        return {
-          key: data.key,
-          unit: data.unit,
-          color: data.color,
-          label: data.label,
-          fallback:
-            data.fallback &&
-            data.fallback.map((fallback) => {
-              return { key: fallback.key, label: fallback.label };
-            }),
-        };
-      });
-
-      // Send data to gv-stats
-      gvStats.setAttribute('stats', JSON.stringify(stats));
-      gvStats.setAttribute('options', JSON.stringify(options));
-    };
-  },
+        // Send data to gv-stats
+        gvStats.setAttribute('stats', JSON.stringify(stats));
+        gvStats.setAttribute('options', JSON.stringify(options));
+      };
+    },
+  ],
 };
 
 export default WidgetDataStatsComponent;

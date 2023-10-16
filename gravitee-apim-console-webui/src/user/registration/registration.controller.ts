@@ -20,7 +20,6 @@ class RegistrationController {
   user: { firstname?: string; lastname?: string; email?: string; customFields?: any } = {};
   fields: any[] = [];
 
-  /* @ngInject */
   constructor(
     private UserService: UserService,
     private $scope,
@@ -55,5 +54,6 @@ class RegistrationController {
       );
   }
 }
+RegistrationController.$inject = ['UserService', '$scope', 'NotificationService', 'ReCaptchaService'];
 
 export default RegistrationController;

@@ -29,7 +29,6 @@ class AnalyticsDashboardController {
   private query: any;
   private dashboard: any;
 
-  /* @ngInject */
   constructor(
     private eventService: EventService,
     private AnalyticsService,
@@ -147,5 +146,15 @@ class AnalyticsDashboardController {
     this.$state.transitionTo('management.logs', this.$state.params);
   }
 }
+AnalyticsDashboardController.$inject = [
+  'eventService',
+  'AnalyticsService',
+  'ApiService',
+  'ApplicationService',
+  '$scope',
+  'Constants',
+  '$state',
+  'dashboards',
+];
 
 export default AnalyticsDashboardController;

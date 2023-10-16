@@ -15,7 +15,6 @@
  */
 
 class MessageService {
-  /* @ngInject */
   constructor(private $http, private Constants) {}
 
   sendFromPortal(
@@ -90,5 +89,6 @@ class MessageService {
     }
   }
 }
+MessageService.$inject = ['$http', 'Constants'];
 
 export default MessageService;
