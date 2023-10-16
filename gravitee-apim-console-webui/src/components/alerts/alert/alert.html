@@ -130,7 +130,7 @@
                       </md-checkbox>
                     </md-input-container>
 
-                    <md-input-container clas="md-block" flex="50">
+                    <md-input-container clas="md-block" flex="50" ng-if="$ctrl.alert.template">
                       <md-checkbox
                         ng-model="$ctrl.apiByDefault"
                         ng-click="$event.stopPropagation()"
