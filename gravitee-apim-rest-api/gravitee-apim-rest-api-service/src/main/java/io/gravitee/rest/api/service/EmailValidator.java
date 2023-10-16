@@ -34,7 +34,7 @@ public class EmailValidator {
 
     @SuppressWarnings("squid:S5998") // A max email size validation is done before the regexp to avoid applying it
     private static final Pattern PATTERN = Pattern.compile(
-        "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$"
+        "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$"
     );
 
     public static boolean isValid(String email) {
