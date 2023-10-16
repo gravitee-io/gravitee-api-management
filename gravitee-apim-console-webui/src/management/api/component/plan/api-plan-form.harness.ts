@@ -19,6 +19,7 @@ import { GioFormTagsInputHarness } from '@gravitee/ui-particles-angular';
 import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
+import { MatFormFieldHarness } from '@angular/material/form-field/testing';
 
 import { Tag } from '../../../../entities/tag/tag';
 import { CONSTANTS_TESTING } from '../../../../shared/testing';
@@ -32,6 +33,7 @@ export class ApiPlanFormHarness extends ComponentHarness {
   public getNameInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="name"]' }));
   public getDescriptionInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="description"]' }));
   public getCharacteristicsInput = this.locatorFor(GioFormTagsInputHarness.with({ selector: '[formControlName="characteristics"]' }));
+  public getCharacteristicsField = this.locatorFor(MatFormFieldHarness.with({ floatingLabelText: 'Characteristics' }));
   public getGeneralConditionsInput = this.locatorForOptional(MatSelectHarness.with({ selector: '[formControlName="generalConditions"]' }));
   public getValidationToggle = this.locatorFor(MatSlideToggleHarness.with({ selector: '[formControlName="autoValidation"]' }));
   public validationTogglePresent(): Promise<boolean> {

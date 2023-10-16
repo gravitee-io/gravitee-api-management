@@ -1011,7 +1011,7 @@ describe('ApiPlanFormComponent', () => {
       expect(await descriptionInput.getValue()).toBe('Old Description');
       expect(await descriptionInput.isDisabled()).toBe(true);
 
-      const characteristicsInput = await planForm.getCharacteristicsInput();
+      const characteristicsInput = await planForm.getCharacteristicsField();
       expect(await characteristicsInput.isDisabled()).toBe(true);
 
       const generalConditionsInput = await planForm.getGeneralConditionsInput();
