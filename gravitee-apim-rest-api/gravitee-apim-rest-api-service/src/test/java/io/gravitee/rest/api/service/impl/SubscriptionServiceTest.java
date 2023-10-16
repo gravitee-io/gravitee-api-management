@@ -908,39 +908,6 @@ public class SubscriptionServiceTest {
         verify(subscriptionRepository, times(1)).update(any());
     }
 
-    @Test(expected = SubscriptionNotFoundException.class)
-    public void shouldNotCloseSubscriptionBecauseDoesNoExist() throws Exception {
-        // Stub
-        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.empty());
-
-        subscriptionService.close(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
-    }
-
-    @Test
-    public void shouldCloseSubscription() throws Exception {
-        Subscription subscription = buildTestSubscription(ACCEPTED);
-        subscription.setEndingAt(new Date());
-
-        final ApiKeyEntity apiKey = new ApiKeyEntity();
-        apiKey.setKey("api-key");
-        apiKey.setRevoked(false);
-
-        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
-        when(subscriptionRepository.update(subscription)).thenReturn(subscription);
-        when(apiKeyService.findBySubscription(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID)).thenReturn(singletonList(apiKey));
-        when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiModelEntity);
-        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
-        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
-        when(application.getPrimaryOwner()).thenReturn(mock(PrimaryOwnerEntity.class));
-
-        subscriptionService.close(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
-
-        verify(apiKeyService).revoke(GraviteeContext.getExecutionContext(), apiKey, false);
-        verify(notifierService).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.SUBSCRIPTION_CLOSED), anyString(), anyMap());
-        verify(notifierService)
-            .trigger(eq(GraviteeContext.getExecutionContext()), eq(ApplicationHook.SUBSCRIPTION_CLOSED), nullable(String.class), anyMap());
-    }
-
     @Test
     public void shouldFailSubscription() throws TechnicalException {
         Subscription subscription = buildTestSubscription(ACCEPTED);
@@ -1735,60 +1702,6 @@ public class SubscriptionServiceTest {
         assertNull(page.getContent().get(0).getSecurity());
         assertEquals("my-api-key", page.getContent().get(0).getKeys().get(0));
         verifyNoInteractions(planSearchService);
-    }
-
-    @Test
-    public void close_should_revoke_apikeys_if_not_shared_mode() throws Exception {
-        Subscription subscription = buildTestSubscription(ACCEPTED);
-        subscription.setEndingAt(new Date());
-
-        when(application.hasApiKeySharedMode()).thenReturn(false);
-
-        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
-        when(subscriptionRepository.update(subscription)).thenReturn(subscription);
-        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
-        when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ID))).thenReturn(application);
-
-        List<ApiKeyEntity> apiKeys = List.of(
-            buildTestApiKey("apikey-1", false, false),
-            buildTestApiKey("apikey-2", true, false),
-            buildTestApiKey("apikey-3", false, false),
-            buildTestApiKey("apikey-4", false, true)
-        );
-        when(apiKeyService.findBySubscription(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID)).thenReturn(apiKeys);
-
-        subscriptionService.close(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
-
-        // assert API Keys 1 and 3 have been revoked, but not 2 and 4 because it's already revoked or expired
-        verify(apiKeyService, times(1)).findBySubscription(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
-        verify(apiKeyService, times(1)).revoke(GraviteeContext.getExecutionContext(), apiKeys.get(0), false);
-        verify(apiKeyService, times(1)).revoke(GraviteeContext.getExecutionContext(), apiKeys.get(2), false);
-        verifyNoMoreInteractions(apiKeyService);
-    }
-
-    @Test
-    public void close_should_not_revoke_apikeys_if_shared_mode() throws Exception {
-        Subscription subscription = buildTestSubscription(ACCEPTED);
-        subscription.setEndingAt(new Date());
-
-        when(application.hasApiKeySharedMode()).thenReturn(true);
-
-        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
-        when(subscriptionRepository.update(subscription)).thenReturn(subscription);
-        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
-        when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ID))).thenReturn(application);
-
-        List<ApiKeyEntity> apiKeys = List.of(
-            buildTestApiKey("apikey-1", false, false),
-            buildTestApiKey("apikey-2", true, false),
-            buildTestApiKey("apikey-3", false, false),
-            buildTestApiKey("apikey-4", false, true)
-        );
-
-        subscriptionService.close(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
-
-        // no key has been revoked nor updated, as their application use shared API Key mode
-        verifyNoMoreInteractions(apiKeyService);
     }
 
     @Test

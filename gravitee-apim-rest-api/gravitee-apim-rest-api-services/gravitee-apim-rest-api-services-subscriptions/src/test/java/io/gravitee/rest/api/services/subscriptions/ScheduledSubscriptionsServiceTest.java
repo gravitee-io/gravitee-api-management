@@ -15,14 +15,11 @@
  */
 package io.gravitee.rest.api.services.subscriptions;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
-import io.gravitee.rest.api.model.SubscriptionEntity;
-import io.gravitee.rest.api.model.SubscriptionStatus;
-import io.gravitee.rest.api.service.SubscriptionService;
-import io.gravitee.rest.api.service.common.GraviteeContext;
-import java.util.Collections;
-import java.util.HashSet;
+import io.gravitee.apim.core.audit.model.AuditActor;
+import io.gravitee.apim.core.subscription.usecase.CloseExpiredSubscriptionsUsecase;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -40,26 +37,13 @@ public class ScheduledSubscriptionsServiceTest {
     ScheduledSubscriptionsService service = new ScheduledSubscriptionsService();
 
     @Mock
-    SubscriptionService subscriptionService;
+    CloseExpiredSubscriptionsUsecase closeExpiredSubscriptionsUsecase;
 
     @Test
     public void shouldCloseOutdatedSubscriptions() {
-        SubscriptionEntity endDateInThePast = mock(SubscriptionEntity.class);
-        when(endDateInThePast.getId()).thenReturn("end_date_in_the_past");
-
-        when(
-            subscriptionService.search(
-                eq(GraviteeContext.getExecutionContext()),
-                argThat(subscriptionQuery ->
-                    subscriptionQuery.getStatuses().equals(Collections.singleton(SubscriptionStatus.ACCEPTED)) &&
-                    subscriptionQuery.getEndingAtBefore() > 0
-                )
-            )
-        )
-            .thenReturn(new HashSet<>(Collections.singletonList(endDateInThePast)));
-
         service.run();
 
-        verify(subscriptionService, times(1)).close(GraviteeContext.getExecutionContext(), "end_date_in_the_past");
+        verify(closeExpiredSubscriptionsUsecase, times(1))
+            .execute(new CloseExpiredSubscriptionsUsecase.Input(AuditActor.builder().userId("system").build()));
     }
 }

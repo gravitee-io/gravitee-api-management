@@ -15,8 +15,14 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.notNull;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
@@ -25,7 +31,12 @@ import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.SubscriptionEntity;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.ApiKeyService;
+import io.gravitee.rest.api.service.ApplicationAlertService;
+import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.GenericNotificationConfigService;
+import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import java.util.Collections;
@@ -58,6 +69,9 @@ public class ApplicationService_ArchiveTest {
 
     @Mock
     private SubscriptionService subscriptionService;
+
+    @Mock
+    private CloseSubscriptionDomainService closeSubscriptionDomainService;
 
     @Mock
     private MembershipService membershipService;
@@ -98,7 +112,7 @@ public class ApplicationService_ArchiveTest {
         verify(apiKeyService, times(1)).delete("key");
         verify(membershipService, times(1))
             .deleteReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.APPLICATION, APPLICATION_ID);
-        verify(subscriptionService, times(1)).close(GraviteeContext.getExecutionContext(), "sub");
+        verify(closeSubscriptionDomainService, times(1)).closeSubscription(eq("sub"), notNull(AuditInfo.class));
         verify(application, times(1)).setStatus(ApplicationStatus.ARCHIVED);
         verify(applicationRepository, times(1)).update(application);
         verify(applicationAlertService, times(1)).deleteAll(APPLICATION_ID);

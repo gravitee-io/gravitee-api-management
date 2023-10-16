@@ -78,7 +78,7 @@ public class PlatformAnalyticsResource_Admin_GetTest extends AbstractResourceTes
 
     @Test
     public void should_return_no_content_when_user_admin_and_api_analytics() {
-        when(apiAuthorizationService.findIdsByEnvironment(GraviteeContext.getExecutionContext())).thenReturn(Set.of());
+        when(apiAuthorizationService.findIdsByEnvironment(GraviteeContext.getCurrentEnvironment())).thenReturn(Set.of());
 
         final Response response = envTarget()
             .queryParam("to", 122222L)
@@ -101,7 +101,7 @@ public class PlatformAnalyticsResource_Admin_GetTest extends AbstractResourceTes
 
     @Test
     public void should_return_analytics_when_user_admin_and_application_analytics() {
-        when(applicationService.findIdsByUser(GraviteeContext.getExecutionContext(), null)).thenReturn(Set.of("app-1"));
+        when(applicationService.searchIds(eq(GraviteeContext.getExecutionContext()), any(), eq(null))).thenReturn(Set.of("app-1"));
 
         HitsAnalytics analytics = new HitsAnalytics();
         analytics.setHits(100L);
@@ -133,7 +133,7 @@ public class PlatformAnalyticsResource_Admin_GetTest extends AbstractResourceTes
 
     @Test
     public void should_return_analytics_when_user_admin_and_api_analytics() {
-        when(apiAuthorizationService.findIdsByEnvironment(GraviteeContext.getExecutionContext())).thenReturn(Set.of("api-1"));
+        when(apiAuthorizationService.findIdsByEnvironment(GraviteeContext.getCurrentEnvironment())).thenReturn(Set.of("api-1"));
 
         HitsAnalytics analytics = new HitsAnalytics();
         analytics.setHits(100L);

@@ -43,6 +43,16 @@ public interface SubscriptionMapper {
     @Mapping(target = "consumerConfiguration", source = "configuration")
     Subscription map(SubscriptionEntity subscriptionEntity);
 
+    @Mapping(target = "api.id", source = "apiId")
+    @Mapping(target = "plan.id", source = "planId")
+    @Mapping(target = "application.id", source = "applicationId")
+    @Mapping(target = "processedBy.id", source = "processedBy")
+    @Mapping(target = "subscribedBy.id", source = "subscribedBy")
+    @Mapping(target = "consumerMessage", source = "requestMessage")
+    @Mapping(target = "publisherMessage", source = "reasonMessage")
+    @Mapping(target = "consumerConfiguration", source = "configuration")
+    Subscription map(io.gravitee.apim.core.subscription.model.SubscriptionEntity subscriptionEntity);
+
     List<Subscription> mapToList(List<SubscriptionEntity> subscriptionEntities);
 
     SubscriptionStatus map(io.gravitee.rest.api.management.v2.rest.model.SubscriptionStatus subscriptionStatus);

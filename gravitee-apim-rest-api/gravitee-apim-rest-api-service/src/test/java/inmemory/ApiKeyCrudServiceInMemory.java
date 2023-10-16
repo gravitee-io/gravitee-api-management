@@ -15,30 +15,31 @@
  */
 package inmemory;
 
-import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.apim.core.api.model.ApiFieldFilter;
-import io.gravitee.apim.core.api.model.ApiSearchCriteria;
-import io.gravitee.apim.core.api.model.Sortable;
-import io.gravitee.apim.core.api.query_service.ApiQueryService;
+import io.gravitee.apim.core.api_key.crud_service.ApiKeyCrudService;
+import io.gravitee.apim.core.api_key.model.ApiKeyEntity;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Stream;
+import java.util.OptionalInt;
 
-public class ApiSearchServiceInMemory implements ApiQueryService, InMemoryAlternative<Api> {
+public class ApiKeyCrudServiceInMemory implements ApiKeyCrudService, InMemoryAlternative<ApiKeyEntity> {
 
-    private final List<Api> storage = new ArrayList<>();
+    final ArrayList<ApiKeyEntity> storage = new ArrayList<>();
 
-    /**
-     * WARNING: this implementation doesn't actually filter the API present in the storage. Instead, it will return all applications from storage.
-     */
     @Override
-    public Stream<Api> search(ApiSearchCriteria apiCriteria, Sortable sortable, ApiFieldFilter apiFieldFilter) {
-        return this.storage().stream();
+    public ApiKeyEntity update(ApiKeyEntity entity) {
+        OptionalInt index = this.findIndex(this.storage, apiKey -> apiKey.getId().equals(entity.getId()));
+        if (index.isPresent()) {
+            storage.set(index.getAsInt(), entity);
+            return entity;
+        }
+
+        throw new IllegalStateException("ApiKey not found");
     }
 
     @Override
-    public void initWith(List<Api> items) {
+    public void initWith(List<ApiKeyEntity> items) {
+        storage.clear();
         storage.addAll(items);
     }
 
@@ -48,7 +49,7 @@ public class ApiSearchServiceInMemory implements ApiQueryService, InMemoryAltern
     }
 
     @Override
-    public List<Api> storage() {
+    public List<ApiKeyEntity> storage() {
         return Collections.unmodifiableList(storage);
     }
 }

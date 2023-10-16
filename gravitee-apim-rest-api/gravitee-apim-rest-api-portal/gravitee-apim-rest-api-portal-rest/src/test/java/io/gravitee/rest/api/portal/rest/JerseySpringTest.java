@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.portal.rest;
 
+import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.portal.rest.mapper.ObjectMapperResolver;
 import io.gravitee.rest.api.portal.rest.resource.GraviteePortalApplication;
 import io.gravitee.rest.api.security.authentication.AuthenticationProviderManager;
@@ -27,6 +28,7 @@ import jakarta.ws.rs.core.Application;
 import jakarta.ws.rs.core.SecurityContext;
 import java.io.IOException;
 import java.security.Principal;
+import java.util.Collections;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
@@ -38,6 +40,8 @@ import org.junit.Before;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -45,7 +49,6 @@ import org.springframework.context.ApplicationContext;
 public abstract class JerseySpringTest {
 
     protected static final String USER_NAME = "UnitTests";
-    protected static final Principal PRINCIPAL = () -> USER_NAME;
 
     private JerseyTest _jerseyTest;
 
@@ -129,7 +132,12 @@ public abstract class JerseySpringTest {
                 new SecurityContext() {
                     @Override
                     public Principal getUserPrincipal() {
-                        return () -> USER_NAME;
+                        UserDetails userDetails = new UserDetails(USER_NAME, "", Collections.emptyList());
+
+                        var principal = new UsernamePasswordAuthenticationToken(userDetails, new Object());
+                        SecurityContextHolder.getContext().setAuthentication(principal);
+
+                        return principal;
                     }
 
                     @Override

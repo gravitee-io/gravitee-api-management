@@ -46,6 +46,7 @@ import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -151,7 +152,10 @@ public abstract class JerseySpringTest {
                         UserDetails userDetails = new UserDetails(USER_NAME, "", Collections.emptyList());
                         userDetails.setOrganizationId(ORGANIZATION);
 
-                        return new UsernamePasswordAuthenticationToken(userDetails, new Object());
+                        var principal = new UsernamePasswordAuthenticationToken(userDetails, new Object());
+                        SecurityContextHolder.getContext().setAuthentication(principal);
+
+                        return principal;
                     }
 
                     @Override

@@ -46,8 +46,4 @@ public class ApplicationEntity extends BaseApplicationEntity {
 
     @JsonProperty("settings")
     private ApplicationSettings settings;
-
-    public boolean hasApiKeySharedMode() {
-        return getApiKeyMode() == ApiKeyMode.SHARED;
-    }
 }

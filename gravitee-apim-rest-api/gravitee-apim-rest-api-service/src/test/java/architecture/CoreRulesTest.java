@@ -37,18 +37,23 @@ public class CoreRulesTest extends AbstractApimArchitectureTest {
             .should()
             .onlyDependOnClassesThat(
                 resideInAnyPackage(
-                    anyPackageThatContains(GRAVITEE_APIM_PACKAGE + "." + CORE_PACKAGE + ".(**)"),
+                    anyPackageThatContains(GRAVITEE_APIM_PACKAGE + "." + CORE_PACKAGE),
                     "java..",
                     "org.slf4j..",
                     "lombok..",
+                    "com.fasterxml..",
+                    // Allow Spring transactional annotations until we find another way
+                    "org.springframework.transaction.annotation..",
                     // Api Definition can't be in core because it is required for the Gateway
                     "io.gravitee.definition..",
                     // TODO: ideally, core should be independent from model.
                     "io.gravitee.rest.api.model..",
+                    "io.gravitee.definition..",
                     // Common and Exceptions are an accepted case of reusability
                     "io.gravitee.definition.model..",
                     "io.gravitee.rest.api.service.common..",
-                    "io.gravitee.rest.api.service.exceptions.."
+                    "io.gravitee.rest.api.service.exceptions..",
+                    "io.gravitee.rest.api.service.notification.."
                 )
             )
             .because("Core should be free from framework")

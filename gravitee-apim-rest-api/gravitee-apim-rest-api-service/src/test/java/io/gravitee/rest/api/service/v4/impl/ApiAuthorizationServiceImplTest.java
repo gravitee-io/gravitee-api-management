@@ -298,7 +298,7 @@ public class ApiAuthorizationServiceImplTest {
         apiCriteriaList.add(new ApiCriteria.Builder().environmentId("DEFAULT").build());
 
         when(apiRepository.searchIds(eq(apiCriteriaList), any(), any())).thenReturn(new Page<>(List.of("api-1"), 0, 1, 1));
-        final Set<String> apis = apiAuthorizationService.findIdsByEnvironment(GraviteeContext.getExecutionContext());
+        final Set<String> apis = apiAuthorizationService.findIdsByEnvironment(GraviteeContext.getCurrentEnvironment());
 
         assertThat(apis).hasSize(1);
     }

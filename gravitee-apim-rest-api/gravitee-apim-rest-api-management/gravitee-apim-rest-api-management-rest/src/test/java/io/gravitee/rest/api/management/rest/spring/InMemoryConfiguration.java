@@ -15,7 +15,20 @@
  */
 package io.gravitee.rest.api.management.rest.spring;
 
-import inmemory.*;
+import inmemory.ApiKeyCrudServiceInMemory;
+import inmemory.ApiKeyQueryServiceInMemory;
+import inmemory.ApiQueryServiceInMemory;
+import inmemory.ApplicationCrudServiceInMemory;
+import inmemory.AuditCrudServiceInMemory;
+import inmemory.ConnectionLogCrudServiceInMemory;
+import inmemory.EnvironmentCrudServiceInMemory;
+import inmemory.MessageLogCrudServiceInMemory;
+import inmemory.PageQueryServiceInMemory;
+import inmemory.PlanCrudServiceInMemory;
+import inmemory.SubscriptionCrudServiceInMemory;
+import inmemory.SubscriptionQueryServiceInMemory;
+import inmemory.TriggerNotificationDomainServiceInMemory;
+import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -49,8 +62,45 @@ public class InMemoryConfiguration {
     }
 
     @Bean
-    public ApiSearchServiceInMemory apiSearchServiceInMemory() {
-        return new ApiSearchServiceInMemory();
+    public ApiQueryServiceInMemory apiQueryServiceInMemory() {
+        return new ApiQueryServiceInMemory();
+    }
+
+    @Bean
+    public AuditCrudServiceInMemory auditCrudServiceInMemory() {
+        return new AuditCrudServiceInMemory();
+    }
+
+    @Bean
+    public UserCrudServiceInMemory userCrudServiceInMemory() {
+        return new UserCrudServiceInMemory();
+    }
+
+    @Bean
+    public SubscriptionCrudServiceInMemory subscriptionCrudServiceInMemory() {
+        return new SubscriptionCrudServiceInMemory();
+    }
+
+    @Bean
+    public SubscriptionQueryServiceInMemory subscriptionQueryServiceInMemory(
+        SubscriptionCrudServiceInMemory subscriptionCrudServiceInMemory
+    ) {
+        return new SubscriptionQueryServiceInMemory(subscriptionCrudServiceInMemory);
+    }
+
+    @Bean
+    public ApiKeyCrudServiceInMemory apiKeyCrudServiceInMemory() {
+        return new ApiKeyCrudServiceInMemory();
+    }
+
+    @Bean
+    public ApiKeyQueryServiceInMemory apiKeyQueryServiceInMemory(ApiKeyCrudServiceInMemory apiKeyCrudServiceInMemory) {
+        return new ApiKeyQueryServiceInMemory(apiKeyCrudServiceInMemory);
+    }
+
+    @Bean
+    public TriggerNotificationDomainServiceInMemory triggerNotificationDomainServiceInMemory() {
+        return new TriggerNotificationDomainServiceInMemory();
     }
 
     @Bean

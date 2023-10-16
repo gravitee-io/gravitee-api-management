@@ -131,7 +131,8 @@ export class ApiEndpointGroupCreateHarness extends ComponentHarness {
   }
 
   async setConfigurationInputValue(inputId: string, text: string): Promise<void> {
-    return this.getConfigurationInput(inputId).then((input) => input.setValue(text));
+    await this.getConfigurationInput(inputId).then((input) => input.setValue(text));
+    await this.waitForTasksOutsideAngular();
   }
 
   async getCreateEndpointGroupButton(): Promise<MatButtonHarness> {

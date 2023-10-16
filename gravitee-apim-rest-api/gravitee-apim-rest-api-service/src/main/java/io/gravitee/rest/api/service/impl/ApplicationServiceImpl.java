@@ -15,8 +15,13 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static io.gravitee.repository.management.model.Application.*;
-import static io.gravitee.repository.management.model.Application.AuditEvent.*;
+import static io.gravitee.repository.management.model.Application.AuditEvent.APPLICATION_ARCHIVED;
+import static io.gravitee.repository.management.model.Application.AuditEvent.APPLICATION_CREATED;
+import static io.gravitee.repository.management.model.Application.AuditEvent.APPLICATION_RESTORED;
+import static io.gravitee.repository.management.model.Application.AuditEvent.APPLICATION_UPDATED;
+import static io.gravitee.repository.management.model.Application.METADATA_CLIENT_ID;
+import static io.gravitee.repository.management.model.Application.METADATA_REGISTRATION_PAYLOAD;
+import static io.gravitee.repository.management.model.Application.METADATA_TYPE;
 import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -24,17 +29,41 @@ import static java.util.stream.Collectors.toSet;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
+import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.Origin;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.search.ApplicationCriteria;
-import io.gravitee.repository.management.model.*;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.repository.management.model.Application;
+import io.gravitee.repository.management.model.ApplicationStatus;
+import io.gravitee.repository.management.model.ApplicationType;
+import io.gravitee.repository.management.model.GroupEvent;
+import io.gravitee.repository.management.model.NotificationReferenceType;
+import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.ApiKeyMode;
+import io.gravitee.rest.api.model.ApplicationEntity;
+import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.GroupEntity;
+import io.gravitee.rest.api.model.InlinePictureEntity;
+import io.gravitee.rest.api.model.MembershipEntity;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
-import io.gravitee.rest.api.model.application.*;
+import io.gravitee.rest.api.model.NewApplicationEntity;
+import io.gravitee.rest.api.model.PrimaryOwnerEntity;
+import io.gravitee.rest.api.model.RoleEntity;
+import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.SubscriptionStatus;
+import io.gravitee.rest.api.model.UpdateApplicationEntity;
+import io.gravitee.rest.api.model.UpdateSubscriptionEntity;
+import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.application.ApplicationExcludeFilter;
+import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.model.application.ApplicationQuery;
+import io.gravitee.rest.api.model.application.ApplicationSettings;
+import io.gravitee.rest.api.model.application.OAuthClientSettings;
+import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.model.configuration.application.ApplicationGrantTypeEntity;
@@ -51,20 +80,57 @@ import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanMode;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.ApiKeyService;
+import io.gravitee.rest.api.service.ApplicationAlertService;
+import io.gravitee.rest.api.service.ApplicationService;
+import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.EnvironmentService;
+import io.gravitee.rest.api.service.GenericNotificationConfigService;
+import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.PortalNotificationConfigService;
+import io.gravitee.rest.api.service.RoleService;
+import io.gravitee.rest.api.service.SubscriptionService;
+import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import io.gravitee.rest.api.service.configuration.application.ClientRegistrationService;
 import io.gravitee.rest.api.service.converter.ApplicationConverter;
-import io.gravitee.rest.api.service.exceptions.*;
+import io.gravitee.rest.api.service.exceptions.ApplicationActiveException;
+import io.gravitee.rest.api.service.exceptions.ApplicationArchivedException;
+import io.gravitee.rest.api.service.exceptions.ApplicationClientIdException;
+import io.gravitee.rest.api.service.exceptions.ApplicationGrantTypesNotAllowedException;
+import io.gravitee.rest.api.service.exceptions.ApplicationGrantTypesNotFoundException;
+import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
+import io.gravitee.rest.api.service.exceptions.ApplicationRedirectUrisNotFound;
+import io.gravitee.rest.api.service.exceptions.ApplicationRenewClientSecretException;
+import io.gravitee.rest.api.service.exceptions.ClientIdAlreadyExistsException;
+import io.gravitee.rest.api.service.exceptions.InvalidApplicationApiKeyModeException;
+import io.gravitee.rest.api.service.exceptions.InvalidApplicationTypeException;
+import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
+import io.gravitee.rest.api.service.exceptions.SubscriptionNotClosableException;
+import io.gravitee.rest.api.service.exceptions.SubscriptionNotPausedException;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.register.ClientRegistrationResponse;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
 import io.gravitee.rest.api.service.notification.HookScope;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import jakarta.xml.bind.DatatypeConverter;
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -102,6 +168,9 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
     @Autowired
     private SubscriptionService subscriptionService;
+
+    @Autowired
+    private CloseSubscriptionDomainService closeSubscriptionDomainService;
 
     @Autowired
     private ApiKeyService apiKeyService;
@@ -856,7 +925,15 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 });
 
                 try {
-                    subscriptionService.close(executionContext, subscription.getId());
+                    closeSubscriptionDomainService.closeSubscription(
+                        subscription.getId(),
+                        AuditInfo
+                            .builder()
+                            .organizationId(executionContext.getOrganizationId())
+                            .environmentId(executionContext.getEnvironmentId())
+                            .actor(getAuthenticatedUserAsAuditActor())
+                            .build()
+                    );
                 } catch (SubscriptionNotClosableException snce) {
                     // Subscription cannot be closed because it is already closed or not yet accepted
                     LOGGER.debug("The subscription cannot be closed: {}", snce.getMessage());

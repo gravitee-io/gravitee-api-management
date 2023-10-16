@@ -23,6 +23,8 @@ import { GioPolicyStudioHarness } from '@gravitee/ui-policy-studio-angular/testi
 import { HarnessLoader } from '@angular/cdk/testing';
 import { of } from 'rxjs';
 import { GioLicenseTestingModule } from '@gravitee/ui-particles-angular';
+import { GioPolicyStudioComponent } from '@gravitee/ui-policy-studio-angular';
+import { By } from '@angular/platform-browser';
 
 import { ApiV4PolicyStudioDesignComponent } from './api-v4-policy-studio-design.component';
 
@@ -67,6 +69,9 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
     fixture = TestBed.createComponent(ApiV4PolicyStudioDesignComponent);
     component = fixture.componentInstance;
     loader = TestbedHarnessEnvironment.loader(fixture);
+
+    (fixture.debugElement.query(By.directive(GioPolicyStudioComponent)).componentInstance as GioPolicyStudioComponent).enableSavingTimer =
+      false;
 
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
@@ -499,7 +504,16 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
     it('should edit step into "PlanA"', async () => {
       // Override Fetcher function
       component.policySchemaFetcher = (_policy) => {
-        return of({});
+        return of({
+          properties: {
+            content: {
+              type: 'string',
+            },
+            status: {
+              type: 'string',
+            },
+          },
+        });
       };
       component.policyDocumentationFetcher = (_policy) => {
         return of('');
