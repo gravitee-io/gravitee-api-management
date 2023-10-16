@@ -16,12 +16,18 @@
 package io.gravitee.repository.management.model;
 
 import java.util.*;
+import lombok.*;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class Page {
 
     public enum AuditEvent implements Audit.ApiAuditEvent {
@@ -59,182 +65,6 @@ public class Page {
     private Map<String, String> metadata;
     private Boolean useAutoFetch; // use Boolean to avoid default value of primitive type
     private List<PageMedia> attachedMedia;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getReferenceId() {
-        return referenceId;
-    }
-
-    public void setReferenceId(String referenceId) {
-        this.referenceId = referenceId;
-    }
-
-    public PageReferenceType getReferenceType() {
-        return referenceType;
-    }
-
-    public void setReferenceType(PageReferenceType referenceType) {
-        this.referenceType = referenceType;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-
-    public String getLastContributor() {
-        return lastContributor;
-    }
-
-    public void setLastContributor(String lastContributor) {
-        this.lastContributor = lastContributor;
-    }
-
-    public int getOrder() {
-        return order;
-    }
-
-    public void setOrder(int order) {
-        this.order = order;
-    }
-
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Date getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Date updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public boolean isPublished() {
-        return published;
-    }
-
-    public void setPublished(boolean published) {
-        this.published = published;
-    }
-
-    public PageSource getSource() {
-        return source;
-    }
-
-    public void setSource(PageSource source) {
-        this.source = source;
-    }
-
-    public Map<String, String> getConfiguration() {
-        return configuration;
-    }
-
-    public void setConfiguration(Map<String, String> configuration) {
-        this.configuration = configuration;
-    }
-
-    public boolean isHomepage() {
-        return homepage;
-    }
-
-    public void setHomepage(boolean homepage) {
-        this.homepage = homepage;
-    }
-
-    public String getParentId() {
-        return parentId;
-    }
-
-    public void setParentId(String parentId) {
-        this.parentId = parentId;
-    }
-
-    public Map<String, String> getMetadata() {
-        return metadata;
-    }
-
-    public void setMetadata(Map<String, String> metadata) {
-        this.metadata = metadata;
-    }
-
-    public Boolean getUseAutoFetch() {
-        return useAutoFetch;
-    }
-
-    public void setUseAutoFetch(Boolean useAutoFetch) {
-        this.useAutoFetch = useAutoFetch;
-    }
-
-    public List<PageMedia> getAttachedMedia() {
-        return attachedMedia;
-    }
-
-    public void setAttachedMedia(List<PageMedia> attachedMedia) {
-        this.attachedMedia = attachedMedia;
-    }
-
-    public String getVisibility() {
-        return visibility;
-    }
-
-    public void setVisibility(String visibility) {
-        this.visibility = visibility;
-    }
-
-    public void setExcludedAccessControls(boolean excludedAccessControls) {
-        this.excludedAccessControls = excludedAccessControls;
-    }
-
-    public boolean isExcludedAccessControls() {
-        return excludedAccessControls;
-    }
-
-    public Set<AccessControl> getAccessControls() {
-        return accessControls;
-    }
-
-    public void setAccessControls(Set<AccessControl> accessControls) {
-        this.accessControls = accessControls;
-    }
-
-    public String getCrossId() {
-        return crossId;
-    }
-
-    public void setCrossId(String crossId) {
-        this.crossId = crossId;
-    }
 
     @Override
     public boolean equals(Object o) {
