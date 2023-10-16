@@ -32,6 +32,7 @@ import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.TagReferenceType;
 import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.alert.AlertReferenceType;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.service.*;
@@ -133,6 +134,9 @@ public class ApiService_CreateWithDefinitionTest {
     @Mock
     private TagService tagService;
 
+    @Mock
+    private AlertService alertService;
+
     @AfterClass
     public static void cleanSecurityContextHolder() {
         // reset authentication to avoid side effect during test executions.
@@ -188,6 +192,7 @@ public class ApiService_CreateWithDefinitionTest {
         apiService.createWithApiDefinition(EXECUTION_CONTEXT, api, USERNAME, definition);
 
         verify(apiRepository, times(1)).create(argThat(arg -> arg.getLifecycleState().equals(LifecycleState.STARTED)));
+        verify(alertService, times(1)).createDefaults(any(ExecutionContext.class), eq(AlertReferenceType.API), any());
     }
 
     @Test(expected = ApiDefinitionVersionNotSupportedException.class)
@@ -229,6 +234,7 @@ public class ApiService_CreateWithDefinitionTest {
         apiService.createWithApiDefinition(EXECUTION_CONTEXT, api, USERNAME, definition);
 
         verify(apiRepository, times(1)).create(argThat(arg -> arg.getLifecycleState().equals(LifecycleState.STOPPED)));
+        verify(alertService, times(1)).createDefaults(any(ExecutionContext.class), eq(AlertReferenceType.API), any());
     }
 
     @Test
@@ -261,6 +267,7 @@ public class ApiService_CreateWithDefinitionTest {
         apiService.createWithApiDefinition(EXECUTION_CONTEXT, api, USERNAME, definition);
 
         verify(apiRepository, times(1)).create(argThat(arg -> arg.getLifecycleState().equals(LifecycleState.STOPPED)));
+        verify(alertService, times(1)).createDefaults(any(ExecutionContext.class), eq(AlertReferenceType.API), any());
     }
 
     @Test
@@ -286,6 +293,7 @@ public class ApiService_CreateWithDefinitionTest {
 
         assertThrows(TagNotFoundException.class, () -> apiService.createWithApiDefinition(EXECUTION_CONTEXT, api, USERNAME, definition));
         verify(apiRepository, never()).create(any());
+        verify(alertService, never()).createDefaults(any(ExecutionContext.class), eq(AlertReferenceType.API), any());
     }
 
     @Test
@@ -325,6 +333,7 @@ public class ApiService_CreateWithDefinitionTest {
             .checkTagsExist(Set.of("unit-tests"), GraviteeContext.getCurrentEnvironment(), TagReferenceType.ORGANIZATION);
 
         verify(apiRepository, times(1)).create(argThat(arg -> arg.getId().equals(definition.get("id").asText())));
+        verify(alertService, times(1)).createDefaults(any(ExecutionContext.class), eq(AlertReferenceType.API), any());
     }
 
     @Test
@@ -349,6 +358,7 @@ public class ApiService_CreateWithDefinitionTest {
 
         assertThrows(TagNotAllowedException.class, () -> apiService.createWithApiDefinition(EXECUTION_CONTEXT, api, USERNAME, definition));
         verify(apiRepository, never()).create(any());
+        verify(alertService, never()).createDefaults(any(ExecutionContext.class), eq(AlertReferenceType.API), any());
     }
 
     private JsonNode readDefinition(String resourcePath) throws Exception {

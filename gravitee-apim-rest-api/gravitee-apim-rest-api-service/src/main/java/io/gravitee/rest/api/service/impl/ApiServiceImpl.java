@@ -583,6 +583,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             ApiEntity apiEntity = convert(executionContext, createdApi, primaryOwner, null);
             GenericApiEntity apiWithMetadata = apiMetadataService.fetchMetadataForApi(executionContext, apiEntity);
 
+            // Create default alerts
+            alertService.createDefaults(executionContext, AlertReferenceType.API, createdApi.getId());
+
             searchEngineService.index(executionContext, apiWithMetadata, false);
             return apiEntity;
         } catch (InvalidPathsException ex) {
