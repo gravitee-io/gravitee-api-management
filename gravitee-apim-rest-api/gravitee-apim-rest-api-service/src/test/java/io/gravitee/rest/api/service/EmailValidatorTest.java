@@ -36,6 +36,7 @@ public class EmailValidatorTest {
         "_______@gravitee.io",
         "firstname-lastname@gravitee.io",
         "firstname-lastname@gravitee.io",
+        "firstname-lastname@gravitee.technology",
     };
 
     private static final String[] INVALID_EMAILS = {
