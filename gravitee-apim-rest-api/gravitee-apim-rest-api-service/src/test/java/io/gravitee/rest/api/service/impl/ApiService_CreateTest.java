@@ -44,6 +44,7 @@ import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.MetadataFormat;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.alert.AlertReferenceType;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.NewApiEntity;
 import io.gravitee.rest.api.model.parameters.Key;
@@ -66,6 +67,7 @@ import io.gravitee.rest.api.service.PolicyService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.VirtualHostService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.ApiConverter;
@@ -241,6 +243,7 @@ public class ApiService_CreateTest {
         assertNotNull(apiEntity);
         assertEquals(API_NAME, apiEntity.getName());
         verify(searchEngineService, times(1)).index(eq(GraviteeContext.getExecutionContext()), any(), eq(false));
+        verify(alertService, times(1)).createDefaults(GraviteeContext.getExecutionContext(), AlertReferenceType.API, API_ID);
     }
 
     @Test(expected = ApiAlreadyExistsException.class)
@@ -297,6 +300,7 @@ public class ApiService_CreateTest {
                 eq(null),
                 any()
             );
+        verify(alertService, times(1)).createDefaults(GraviteeContext.getExecutionContext(), AlertReferenceType.API, API_ID);
     }
 
     @Test
@@ -315,6 +319,7 @@ public class ApiService_CreateTest {
 
         verify(genericNotificationConfigService, times(1))
             .create(argThat(notifConfig -> notifConfig.getNotifier().equals(NotifierServiceImpl.DEFAULT_EMAIL_NOTIFIER_ID)));
+        verify(alertService, times(1)).createDefaults(GraviteeContext.getExecutionContext(), AlertReferenceType.API, API_ID);
     }
 
     @Test
@@ -339,6 +344,7 @@ public class ApiService_CreateTest {
                     newApiMetadataEntity.getName().equals(DefaultMetadataUpgrader.METADATA_EMAIL_SUPPORT_KEY)
                 )
             );
+        verify(alertService, times(1)).createDefaults(GraviteeContext.getExecutionContext(), AlertReferenceType.API, API_ID);
     }
 
     @Test
@@ -356,6 +362,7 @@ public class ApiService_CreateTest {
         apiService.create(GraviteeContext.getExecutionContext(), newApi, USER_NAME);
 
         verify(searchEngineService, times(1)).index(eq(GraviteeContext.getExecutionContext()), any(), eq(false));
+        verify(alertService, times(1)).createDefaults(GraviteeContext.getExecutionContext(), AlertReferenceType.API, API_ID);
     }
 
     @Test
@@ -379,6 +386,7 @@ public class ApiService_CreateTest {
                 new MembershipService.MembershipMember(USER_NAME, null, MembershipMemberType.USER),
                 new MembershipService.MembershipRole(RoleScope.API, SystemRole.PRIMARY_OWNER.name())
             );
+        verify(alertService, times(1)).createDefaults(GraviteeContext.getExecutionContext(), AlertReferenceType.API, API_ID);
     }
 
     @Test
@@ -397,6 +405,7 @@ public class ApiService_CreateTest {
         apiService.create(GraviteeContext.getExecutionContext(), newApi, USER_NAME);
 
         verify(flowService, times(1)).save(FlowReferenceType.API, API_ID, apiFlows);
+        verify(alertService, times(1)).createDefaults(GraviteeContext.getExecutionContext(), AlertReferenceType.API, API_ID);
     }
 
     @Test
@@ -413,5 +422,6 @@ public class ApiService_CreateTest {
         ApiEntity apiEntity = apiService.create(GraviteeContext.getExecutionContext(), apiToCreate, USER_NAME);
 
         assertEquals(ExecutionMode.JUPITER, apiEntity.getExecutionMode());
+        verify(alertService, times(1)).createDefaults(any(ExecutionContext.class), eq(AlertReferenceType.API), any());
     }
 }
