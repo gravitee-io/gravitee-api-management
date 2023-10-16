@@ -47,7 +47,7 @@ export class ApiV4MenuService implements ApiMenuService {
     const logsTabs = [];
     if (this.permissionService.hasAnyMatching(['api-log-r'])) {
       logsTabs.push({
-        displayName: 'Runtime Logs',
+        displayName: 'Connections',
         targetRoute: 'management.apis.runtimeLogs',
         baseRoute: ['management.apis.runtimeLogs', 'management.apis.runtimeLogs-messages'],
       });
