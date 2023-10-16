@@ -677,7 +677,6 @@ public class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
         assertEquals("crossId", page.getCrossId());
         assertEquals(List.of("excludedGroup"), page.getExcludedGroups());
         assertEquals(false, page.getExcludedAccessControls());
-        assertEquals(true, page.getGeneralConditions());
         assertEquals(false, page.getHomepage());
         assertEquals("page-id", page.getId());
         assertEquals("last-contributor-id", page.getLastContributor());

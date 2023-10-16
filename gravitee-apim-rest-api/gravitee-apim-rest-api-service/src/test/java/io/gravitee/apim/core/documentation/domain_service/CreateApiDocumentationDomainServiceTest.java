@@ -73,7 +73,6 @@ public class CreateApiDocumentationDomainServiceTest {
                 .builder()
                 .id(PARENT_ID)
                 .referenceType(Page.ReferenceType.API)
-                .generalConditions(false)
                 .referenceId("api-id")
                 .parentId("")
                 .name("parent")

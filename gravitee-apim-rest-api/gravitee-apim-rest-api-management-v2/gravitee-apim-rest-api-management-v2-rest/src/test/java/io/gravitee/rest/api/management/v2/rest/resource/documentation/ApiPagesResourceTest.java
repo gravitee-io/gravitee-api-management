@@ -127,7 +127,6 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                 .type(Page.Type.MARKDOWN)
                 .id("page-1")
                 .name("page-1")
-                .generalConditions(false)
                 .build();
             Page page2 = Page
                 .builder()
@@ -136,7 +135,6 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                 .type(Page.Type.FOLDER)
                 .id("folder")
                 .name("folder")
-                .generalConditions(false)
                 .build();
             givenApiPagesQuery(List.of(page1, page2));
             final Response response = rootTarget().request().get();
@@ -155,7 +153,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                             .homepage(false)
                             .configuration(Map.of())
                             .metadata(Map.of())
-                            .generalConditions(false)
+                            .excludedAccessControls(false)
                             .build(),
                         io.gravitee.rest.api.management.v2.rest.model.Page
                             .builder()
@@ -167,7 +165,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                             .homepage(false)
                             .configuration(Map.of())
                             .metadata(Map.of())
-                            .generalConditions(false)
+                            .excludedAccessControls(false)
                             .build()
                     )
                 );
@@ -204,7 +202,6 @@ class ApiPagesResourceTest extends AbstractResourceTest {
             var pageToCreate = CreateDocumentationMarkdown
                 .builder()
                 .name("created page")
-                .generalConditions(false)
                 .homepage(true)
                 .content("nice content")
                 .type(CreateDocumentationType.MARKDOWN)
@@ -220,7 +217,6 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                 .isNotNull()
                 .hasFieldOrPropertyWithValue("type", PageType.MARKDOWN)
                 .hasFieldOrPropertyWithValue("name", pageToCreate.getName())
-                .hasFieldOrPropertyWithValue("generalConditions", pageToCreate.getGeneralConditions())
                 .hasFieldOrPropertyWithValue("homepage", pageToCreate.getHomepage())
                 .hasFieldOrPropertyWithValue("content", pageToCreate.getContent())
                 .hasFieldOrPropertyWithValue("order", pageToCreate.getOrder())

@@ -224,7 +224,6 @@ class ApiCreateDocumentationPageUsecaseTest {
                             .homepage(true)
                             .visibility(Page.Visibility.PRIVATE)
                             .parentId("")
-                            .generalConditions(false)
                             .order(1)
                             .referenceType(Page.ReferenceType.API)
                             .referenceId(API_ID)
@@ -254,7 +253,6 @@ class ApiCreateDocumentationPageUsecaseTest {
                             .homepage(false)
                             .visibility(Page.Visibility.PRIVATE)
                             .parentId(PARENT_ID)
-                            .generalConditions(false)
                             .order(1)
                             .referenceType(Page.ReferenceType.API)
                             .referenceId(API_ID)
@@ -282,7 +280,6 @@ class ApiCreateDocumentationPageUsecaseTest {
                                     .homepage(false)
                                     .visibility(Page.Visibility.PRIVATE)
                                     .parentId(PARENT_ID)
-                                    .generalConditions(false)
                                     .order(1)
                                     .referenceType(Page.ReferenceType.API)
                                     .referenceId(API_ID)
@@ -339,7 +336,6 @@ class ApiCreateDocumentationPageUsecaseTest {
                 .hasFieldOrPropertyWithValue("homepage", false)
                 .hasFieldOrPropertyWithValue("visibility", Page.Visibility.PRIVATE)
                 .hasFieldOrPropertyWithValue("parentId", "parent-id")
-                .hasFieldOrPropertyWithValue("generalConditions", false)
                 .hasFieldOrPropertyWithValue("order", 1);
 
             var savedPage = pageCrudService
