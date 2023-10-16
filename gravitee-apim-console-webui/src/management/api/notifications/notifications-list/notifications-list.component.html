@@ -24,6 +24,7 @@
     color="primary"
     aria-label="Add notification"
     (click)="addNotification()"
+    data-testid="api_notifications_add_notification"
   >
     <mat-icon>add</mat-icon>
     Add notification
@@ -68,6 +69,7 @@
               (click)="deleteNotification(element.name, element.id)"
               aria-label="Delete notification"
               id="deleteNotification"
+              data-testid="api_notifications_delete_notification"
               matTooltip="Delete notification"
             >
               <mat-icon svgIcon="gio:trash"></mat-icon>
