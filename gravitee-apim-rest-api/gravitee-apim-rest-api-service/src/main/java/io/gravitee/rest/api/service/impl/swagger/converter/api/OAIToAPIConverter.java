@@ -389,6 +389,8 @@ public class OAIToAPIConverter implements SwaggerToApiConverter<OAIDescriptor>, 
                         evaluatedUrls.add(templateUrl.replace(matcher.group(0), enumValue));
                     }
                 }
+            } else {
+                evaluatedUrls.add(templateUrl);
             }
         }
         return evaluatedUrls;
