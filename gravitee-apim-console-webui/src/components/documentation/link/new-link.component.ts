@@ -25,7 +25,6 @@ class DocumentationNewLinkComponentController implements IController {
   pageList: any;
   onSave: () => void;
 
-  /* @ngInject */
   constructor(private readonly DocumentationService: DocumentationService) {}
 
   checkIfFolder() {
@@ -62,6 +61,7 @@ class DocumentationNewLinkComponentController implements IController {
     }
   }
 }
+DocumentationNewLinkComponentController.$inject = ['DocumentationService'];
 
 export const DocumentationNewLinkComponent: ng.IComponentOptions = {
   bindings: {

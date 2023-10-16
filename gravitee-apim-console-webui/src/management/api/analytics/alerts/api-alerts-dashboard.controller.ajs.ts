@@ -23,7 +23,6 @@ class ApiAlertsDashboardControllerAjs {
   private hasAlertingPlugin: boolean;
   apiId: string;
 
-  /* @ngInject */
   constructor(private readonly $state: StateService, private readonly AlertService: AlertService, private readonly $q: ng.IQService) {
     this.apiId = this.$state.params.apiId;
   }
@@ -40,5 +39,6 @@ class ApiAlertsDashboardControllerAjs {
       });
   }
 }
+ApiAlertsDashboardControllerAjs.$inject = ['$state', 'AlertService', '$q'];
 
 export default ApiAlertsDashboardControllerAjs;

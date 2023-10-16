@@ -16,7 +16,6 @@
 import ReCaptchaService from '../../services/reCaptcha.service';
 
 class ResetPasswordController {
-  /* @ngInject */
   constructor(jwtHelper, $state, $scope, UserService, NotificationService, ReCaptchaService: ReCaptchaService) {
     ReCaptchaService.displayBadge();
 
@@ -53,5 +52,6 @@ class ResetPasswordController {
     };
   }
 }
+ResetPasswordController.$inject = ['jwtHelper', '$state', '$scope', 'UserService', 'NotificationService', 'ReCaptchaService'];
 
 export default ResetPasswordController;

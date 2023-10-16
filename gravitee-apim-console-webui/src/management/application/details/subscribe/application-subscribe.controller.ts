@@ -36,7 +36,6 @@ class ApplicationSubscribeController {
   private plans = [];
   private subscribedPlans = [];
 
-  /* @ngInject */
   constructor(
     private ApiService: ApiService,
     private Constants: Constants,
@@ -202,5 +201,14 @@ class ApplicationSubscribeController {
     );
   }
 }
+ApplicationSubscribeController.$inject = [
+  'ApiService',
+  'Constants',
+  'ApplicationService',
+  'NotificationService',
+  '$mdDialog',
+  '$state',
+  '$transitions',
+];
 
 export default ApplicationSubscribeController;

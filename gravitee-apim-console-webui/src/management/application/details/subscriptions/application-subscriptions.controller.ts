@@ -44,7 +44,6 @@ class ApplicationSubscriptionsController {
     REJECTED: 'Rejected',
   };
 
-  /* @ngInject */
   constructor(private $state: StateService) {}
 
   $onInit(): void {
@@ -101,5 +100,6 @@ class ApplicationSubscriptionsController {
     this.$filterEvent.next(this.filter);
   }
 }
+ApplicationSubscriptionsController.$inject = ['$state'];
 
 export default ApplicationSubscriptionsController;

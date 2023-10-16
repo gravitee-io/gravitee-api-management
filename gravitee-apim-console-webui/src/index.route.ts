@@ -18,13 +18,11 @@ import { StateProvider, UrlService } from '@uirouter/angularjs';
 import OrganizationService from './services/organization.service';
 import UserService from './services/user.service';
 
-/* @ngInject */
 function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlService) {
   $stateProvider
     .state('root', {
       resolve: {
-        /* @ngInject */
-        graviteeUser: (UserService: UserService) => UserService.current(),
+        graviteeUser: ['UserService', (UserService: UserService) => UserService.current()],
       },
     })
     .state('withoutSidenav', {
@@ -58,8 +56,7 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
       component: 'user',
       parent: 'withSidenav',
       resolve: {
-        /* @ngInject */
-        user: (UserService: UserService) => UserService.refreshCurrent(),
+        user: ['UserService', (UserService: UserService) => UserService.refreshCurrent()],
       },
     })
     .state('login', {
@@ -74,9 +71,10 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
         }
       },
       resolve: {
-        /* @ngInject */
-        identityProviders: (OrganizationService: OrganizationService) =>
-          OrganizationService.listSocialIdentityProviders().then((response) => response.data),
+        identityProviders: [
+          'OrganizationService',
+          (OrganizationService: OrganizationService) => OrganizationService.listSocialIdentityProviders().then((response) => response.data),
+        ],
       },
       params: {
         redirectUri: {
@@ -117,12 +115,11 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
       controller: 'NewsletterSubscriptionController',
       controllerAs: '$ctrl',
       resolve: {
-        /* @ngInject */
-        taglines: (UserService: UserService) => UserService.getNewsletterTaglines().then((response) => response.data),
+        taglines: ['UserService', (UserService: UserService) => UserService.getNewsletterTaglines().then((response) => response.data)],
       },
     });
 
   $urlServiceProvider.rules.otherwise('/login');
 }
-
+routerConfig.$inject = ['$stateProvider', '$urlServiceProvider'];
 export default routerConfig;

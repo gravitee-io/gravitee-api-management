@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* @ngInject */
 function DeleteCategoryDialogController($scope, $mdDialog, category) {
   $scope.category = category.name;
 
@@ -25,5 +24,6 @@ function DeleteCategoryDialogController($scope, $mdDialog, category) {
     $mdDialog.hide(true);
   };
 }
+DeleteCategoryDialogController.$inject = ['$scope', '$mdDialog', 'category'];
 
 export default DeleteCategoryDialogController;

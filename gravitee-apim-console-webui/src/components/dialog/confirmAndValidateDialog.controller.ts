@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* @ngInject */
 function DialogConfirmAndValidateController($scope, $mdDialog, locals) {
   $scope.title = locals.title;
   $scope.msg = locals.msg;
@@ -31,5 +30,6 @@ function DialogConfirmAndValidateController($scope, $mdDialog, locals) {
     $mdDialog.hide(true);
   };
 }
+DialogConfirmAndValidateController.$inject = ['$scope', '$mdDialog', 'locals'];
 
 export default DialogConfirmAndValidateController;

@@ -74,7 +74,6 @@ export enum FolderSituation {
 }
 
 export class DocumentationService {
-  /* @ngInject */
   constructor(private readonly $http: ng.IHttpService, private readonly $q: ng.IQService, private readonly Constants: Constants) {}
 
   buildPageList(pagesToFilter: any[], withRootFolder?: boolean, folderSituation?: FolderSituation) {
@@ -278,3 +277,4 @@ export class DocumentationService {
     return this.$http.get(this.url(apiId, pageId) + '/media');
   }
 }
+DocumentationService.$inject = ['$http', '$q', 'Constants'];

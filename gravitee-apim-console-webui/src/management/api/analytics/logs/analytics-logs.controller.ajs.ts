@@ -32,7 +32,6 @@ class ApiAnalyticsLogsControllerAjs {
   };
   private init: boolean;
 
-  /* @ngInject */
   constructor(
     private ApiService: ApiService,
     private $scope: IScope,
@@ -146,5 +145,15 @@ class ApiAnalyticsLogsControllerAjs {
     });
   }
 }
+ApiAnalyticsLogsControllerAjs.$inject = [
+  'ApiService',
+  '$scope',
+  'Constants',
+  '$state',
+  '$timeout',
+  'AnalyticsService',
+  'TenantService',
+  '$q',
+];
 
 export default ApiAnalyticsLogsControllerAjs;

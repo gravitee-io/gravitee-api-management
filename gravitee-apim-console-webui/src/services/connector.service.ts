@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 class ConnectorService {
-  /* @ngInject */
   constructor(private $http, private Constants) {}
 
   list(expandSchema = false, expandIcon = false) {
@@ -40,5 +39,6 @@ class ConnectorService {
     return this.$http.get(`${this.Constants.env.baseURL}/connectors/${connectorId}/documentation`);
   }
 }
+ConnectorService.$inject = ['$http', 'Constants'];
 
 export default ConnectorService;

@@ -21,9 +21,6 @@ class ApplicationCreationStep2Controller {
   private selectedType: ApplicationType;
   private parent: ApplicationCreationController;
 
-  /* @ngInject */
-  constructor(private Constants) {}
-
   $onInit() {
     this.selectedType = this.parent.enabledApplicationTypes[0];
   }

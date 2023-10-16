@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* @ngInject */
 function DeleteAPICategoryDialogController($scope, $mdDialog, api) {
   $scope.api = api.name;
 
@@ -25,5 +24,6 @@ function DeleteAPICategoryDialogController($scope, $mdDialog, api) {
     $mdDialog.hide(true);
   };
 }
+DeleteAPICategoryDialogController.$inject = ['$scope', '$mdDialog', 'api'];
 
 export default DeleteAPICategoryDialogController;

@@ -25,7 +25,6 @@ import UserService from './user.service';
 import { IdentityProvider } from '../entities/identity-provider/identityProvider';
 
 class AuthenticationService {
-  /* @ngInject */
   constructor(
     private $rootScope: IScope,
     private Constants,
@@ -102,5 +101,15 @@ class AuthenticationService {
     return text;
   }
 }
+AuthenticationService.$inject = [
+  '$rootScope',
+  'Constants',
+  '$window',
+  '$state',
+  '$auth',
+  'UserService',
+  'RouterService',
+  'SatellizerConfig',
+];
 
 export default AuthenticationService;

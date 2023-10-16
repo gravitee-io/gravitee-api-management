@@ -23,76 +23,79 @@ const ApplicationCreationStep3Component: ng.IComponentOptions = {
     parent: '^createApplication',
   },
   template: require('./application-creation-step3.html'),
-  /* @ngInject */
-  controller: function (ApiService: ApiService, $scope) {
-    this.onSelectAPI = (api) => {
-      if (api) {
-        const authorizedSecurity = this.getAuthorizedSecurity();
-        ApiService.getApiPlans(api.id, 'PUBLISHED').then((response) => {
-          const filteredPlans = _.filter(response.data, (plan) => {
-            return _.includes(authorizedSecurity, plan.security);
+  controller: [
+    'ApiService',
+    '$scope',
+    function (ApiService: ApiService, $scope) {
+      this.onSelectAPI = (api) => {
+        if (api) {
+          const authorizedSecurity = this.getAuthorizedSecurity();
+          ApiService.getApiPlans(api.id, 'PUBLISHED').then((response) => {
+            const filteredPlans = _.filter(response.data, (plan) => {
+              return _.includes(authorizedSecurity, plan.security);
+            });
+            this.plans = _.map(filteredPlans, (plan) => {
+              const selectedPlan = _.find(this.parent.selectedPlans, { id: plan.id });
+              if (selectedPlan) {
+                return selectedPlan;
+              }
+              return plan;
+            });
+            this.selectedAPI = api;
+            this.refreshPlansExcludedGroupsNames();
           });
-          this.plans = _.map(filteredPlans, (plan) => {
-            const selectedPlan = _.find(this.parent.selectedPlans, { id: plan.id });
-            if (selectedPlan) {
-              return selectedPlan;
-            }
-            return plan;
-          });
-          this.selectedAPI = api;
-          this.refreshPlansExcludedGroupsNames();
-        });
-      } else {
-        delete this.plans;
-        delete this.selectedAPI;
-      }
-    };
-
-    this.getAuthorizedSecurity = (): string[] => {
-      const authorizedSecurity = [PlanSecurityType.API_KEY];
-      if (this.parent.application.settings) {
-        if (
-          this.parent.application.settings.oauth ||
-          (this.parent.application.settings.app && this.parent.application.settings.app.client_id)
-        ) {
-          authorizedSecurity.push(PlanSecurityType.JWT, PlanSecurityType.OAUTH2);
+        } else {
+          delete this.plans;
+          delete this.selectedAPI;
         }
-      }
-      return authorizedSecurity;
-    };
+      };
 
-    this.getSelectedAPIs = (): any[] => {
-      const selectedAPIs = _.uniqBy(this.parent.selectedAPIs, 'id');
-      _.map(selectedAPIs, (api: any) => {
-        const selectedPlans = _.filter(this.parent.selectedPlans, (plan) => {
-          return plan.apis.indexOf(api.id) !== -1;
+      this.getAuthorizedSecurity = (): string[] => {
+        const authorizedSecurity = [PlanSecurityType.API_KEY];
+        if (this.parent.application.settings) {
+          if (
+            this.parent.application.settings.oauth ||
+            (this.parent.application.settings.app && this.parent.application.settings.app.client_id)
+          ) {
+            authorizedSecurity.push(PlanSecurityType.JWT, PlanSecurityType.OAUTH2);
+          }
+        }
+        return authorizedSecurity;
+      };
+
+      this.getSelectedAPIs = (): any[] => {
+        const selectedAPIs = _.uniqBy(this.parent.selectedAPIs, 'id');
+        _.map(selectedAPIs, (api: any) => {
+          const selectedPlans = _.filter(this.parent.selectedPlans, (plan) => {
+            return plan.apis.indexOf(api.id) !== -1;
+          });
+          api.plans = _.join(_.map(selectedPlans, 'name'), ', ');
         });
-        api.plans = _.join(_.map(selectedPlans, 'name'), ', ');
-      });
-      return selectedAPIs;
-    };
+        return selectedAPIs;
+      };
 
-    $scope.$watch(
-      '$ctrl.parent.application.settings',
-      () => {
-        this.parent.selectedAPIs = [];
-        this.parent.selectedPlans = [];
-        delete this.plans;
-        delete this.selectedAPI;
-        delete this.filterAPI;
-      },
-      true,
-    );
-
-    this.refreshPlansExcludedGroupsNames = () => {
-      this.plans.forEach(
-        (plan) =>
-          (plan.excluded_groups_names = plan.excluded_groups?.map(
-            (excludedGroupId) => this.parent.groups.find((apiGroup) => apiGroup.id === excludedGroupId)?.name,
-          )),
+      $scope.$watch(
+        '$ctrl.parent.application.settings',
+        () => {
+          this.parent.selectedAPIs = [];
+          this.parent.selectedPlans = [];
+          delete this.plans;
+          delete this.selectedAPI;
+          delete this.filterAPI;
+        },
+        true,
       );
-    };
-  },
+
+      this.refreshPlansExcludedGroupsNames = () => {
+        this.plans.forEach(
+          (plan) =>
+            (plan.excluded_groups_names = plan.excluded_groups?.map(
+              (excludedGroupId) => this.parent.groups.find((apiGroup) => apiGroup.id === excludedGroupId)?.name,
+            )),
+        );
+      };
+    },
+  ],
 };
 
 export default ApplicationCreationStep3Component;

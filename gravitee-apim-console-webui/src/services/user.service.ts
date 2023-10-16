@@ -35,7 +35,6 @@ class UserService {
   public currentUser: User;
   private isLogout = false;
 
-  /* @ngInject */
   constructor(
     private $http: ng.IHttpService,
     private $q: ng.IQService,
@@ -364,5 +363,21 @@ class UserService {
     );
   }
 }
+UserService.$inject = [
+  '$http',
+  '$q',
+  'Constants',
+  'RoleService',
+  'PermPermissionStore',
+  'ApplicationService',
+  'ApiService',
+  'EnvironmentService',
+  '$location',
+  '$cookies',
+  '$window',
+  'StringService',
+  'Base64Service',
+  '$rootScope',
+];
 
 export default UserService;

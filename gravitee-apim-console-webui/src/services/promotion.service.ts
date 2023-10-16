@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { IHttpService, IPromise, IQService } from 'angular';
+import { IHttpService, IPromise } from 'angular';
 
 import { Constants } from '../entities/Constants';
 import { Promotion, PromotionRequest, PromotionTarget } from '../entities/promotion';
 import { PromotionSearchParams } from '../entities/promotion/promotionSearchParams';
 
 export class PromotionService {
-  /* @ngInject */
-  constructor(private $http: IHttpService, private Constants: Constants, private $q: IQService) {}
+  constructor(private $http: IHttpService, private Constants: Constants) {}
 
   listPromotionTargets(): IPromise<PromotionTarget[]> {
     return this.$http.get<PromotionTarget[]>(`${this.Constants.env.baseURL}/promotion-targets`).then((response) => response.data);
@@ -51,3 +50,4 @@ export class PromotionService {
       .then((response) => response.data);
   }
 }
+PromotionService.$inject = ['$http', 'Constants'];

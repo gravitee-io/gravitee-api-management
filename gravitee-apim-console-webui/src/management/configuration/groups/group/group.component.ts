@@ -48,148 +48,407 @@ const GroupComponent: ng.IComponentOptions = {
     tags: '<',
   },
   template: require('./group.html'),
-  /* @ngInject */
-  controller: function (
-    GroupService: GroupService,
-    NotificationService: NotificationService,
-    ApiPrimaryOwnerModeService: ApiPrimaryOwnerModeService,
-    $mdDialog: angular.material.IDialogService,
-    $state: StateService,
-    $scope: IGroupDetailComponentScope,
-    UserService: UserService,
-    $rootScope,
-  ) {
-    this.$rootScope = $rootScope;
+  controller: [
+    'GroupService',
+    'NotificationService',
+    'ApiPrimaryOwnerModeService',
+    '$mdDialog',
+    '$state',
+    '$scope',
+    'UserService',
+    '$rootScope',
+    function (
+      GroupService: GroupService,
+      NotificationService: NotificationService,
+      ApiPrimaryOwnerModeService: ApiPrimaryOwnerModeService,
+      $mdDialog: angular.material.IDialogService,
+      $state: StateService,
+      $scope: IGroupDetailComponentScope,
+      UserService: UserService,
+      $rootScope,
+    ) {
+      this.$rootScope = $rootScope;
 
-    this.$onInit = () => {
-      this.updateMode = this.group !== undefined && this.group.id !== undefined;
-      this.membersLoaded = false;
-      this.defaultPageSize = 10;
+      this.$onInit = () => {
+        this.updateMode = this.group !== undefined && this.group.id !== undefined;
+        this.membersLoaded = false;
+        this.defaultPageSize = 10;
 
-      this.membersPageQuery = {
-        page: $state.params.page ? parseInt($state.params.page, 10) : 1,
-        size: this.defaultPageSize,
-      };
+        this.membersPageQuery = {
+          page: $state.params.page ? parseInt($state.params.page, 10) : 1,
+          size: this.defaultPageSize,
+        };
 
-      if (!this.updateMode) {
-        this.group = {};
-        this.group.lock_api_role = false;
-        this.group.lock_application_role = false;
-        this.group.disable_membership_notifications = false;
-      } else {
-        GroupService.getMembers(this.group?.id).then((response) => {
-          this.membershipState = new MembershipState(response.data);
-          this.getMembersPage(true);
-        });
-      }
+        if (!this.updateMode) {
+          this.group = {};
+          this.group.lock_api_role = false;
+          this.group.lock_application_role = false;
+          this.group.disable_membership_notifications = false;
+        } else {
+          GroupService.getMembers(this.group?.id).then((response) => {
+            this.membershipState = new MembershipState(response.data);
+            this.getMembersPage(true);
+          });
+        }
 
-      $scope.groupApis = [];
-      $scope.groupApplications = [];
-      $scope.currentTab = 'users';
+        $scope.groupApis = [];
+        $scope.groupApplications = [];
+        $scope.currentTab = 'users';
 
-      if (this.group.roles) {
-        this.selectedApiRole = this.group.roles.API;
-        this.selectedApplicationRole = this.group.roles.APPLICATION;
-      }
+        if (this.group.roles) {
+          this.selectedApiRole = this.group.roles.API;
+          this.selectedApplicationRole = this.group.roles.APPLICATION;
+        }
 
-      this.apiByDefault = this.group.event_rules && this.group.event_rules.findIndex((rule) => rule.event === 'API_CREATE') !== -1;
-      this.applicationByDefault =
-        this.group.event_rules && this.group.event_rules.findIndex((rule) => rule.event === 'APPLICATION_CREATE') !== -1;
+        this.apiByDefault = this.group.event_rules && this.group.event_rules.findIndex((rule) => rule.event === 'API_CREATE') !== -1;
+        this.applicationByDefault =
+          this.group.event_rules && this.group.event_rules.findIndex((rule) => rule.event === 'APPLICATION_CREATE') !== -1;
 
-      this.currentUserId = UserService.currentUser.id;
-      this.isSuperAdmin = UserService.isUserHasPermissions(['environment-group-u']);
-      this.canChangeDefaultApiRole = this.isSuperAdmin || !this.group.lock_api_role;
-      this.canChangeDefaultApplicationRole = this.isSuperAdmin || !this.group.lock_application_role;
+        this.currentUserId = UserService.currentUser.id;
+        this.isSuperAdmin = UserService.isUserHasPermissions(['environment-group-u']);
+        this.canChangeDefaultApiRole = this.isSuperAdmin || !this.group.lock_api_role;
+        this.canChangeDefaultApplicationRole = this.isSuperAdmin || !this.group.lock_application_role;
 
-      /*
+        /*
         It is written in the members list: "Enable email invitation and/or user search to allow the group administrator to add users."
         It means that to add members, the group must be manageable (i.e. the current user is a group admin) and the group must have email invitation or system invitation enabled.
        */
-      this.canAddMembers = this.isSuperAdmin || (this.group.manageable && (this.group.system_invitation || this.group.email_invitation));
+        this.canAddMembers = this.isSuperAdmin || (this.group.manageable && (this.group.system_invitation || this.group.email_invitation));
 
-      this.loadGroupApis();
-    };
+        this.loadGroupApis();
+      };
 
-    this.updateRole = (member: any) => {
-      if (this.membershipState.isPrimaryOwnerDemotion(member)) {
-        this.demotePrimaryOwner(this.membershipState.stateOf(member));
-      } else if (this.membershipState.isPrimaryOwnerPromotion(member)) {
-        this.promoteNewPrimaryOwner(this.membershipState.stateOf(member));
-      } else {
-        GroupService.addOrUpdateMember(this.group.id, [member]).then(() => {
-          NotificationService.show('Member successfully updated');
+      this.updateRole = (member: any) => {
+        if (this.membershipState.isPrimaryOwnerDemotion(member)) {
+          this.demotePrimaryOwner(this.membershipState.stateOf(member));
+        } else if (this.membershipState.isPrimaryOwnerPromotion(member)) {
+          this.promoteNewPrimaryOwner(this.membershipState.stateOf(member));
+        } else {
+          GroupService.addOrUpdateMember(this.group.id, [member]).then(() => {
+            NotificationService.show('Member successfully updated');
+            $state.reload();
+          });
+        }
+      };
+
+      this.associateToApis = () => {
+        GroupService.associate(this.group.id, 'api').then(() => {
+          $state.reload();
+          NotificationService.show("Group '" + this.group.name + "' has been associated to all APIs");
+        });
+      };
+
+      this.associateToApplications = () => {
+        GroupService.associate(this.group.id, 'application').then(() => {
+          $state.reload();
+          NotificationService.show("Group '" + this.group.name + "' has been associated to all applications");
+        });
+      };
+
+      this.update = () => {
+        GroupService.updateEventRules(this.group, this.apiByDefault, this.applicationByDefault);
+
+        if (!this.updateMode) {
+          GroupService.create(this.group).then((response) => {
+            $state.go('management.settings.groups.group', { groupId: response.data.id }, { reload: true });
+            NotificationService.show("Group '" + this.group.name + "' has been created");
+          });
+        } else {
+          const roles: any = {};
+
+          if (this.selectedApiRole) {
+            roles.API = this.selectedApiRole;
+          } else {
+            delete roles.API;
+          }
+
+          if (this.selectedApplicationRole) {
+            roles.APPLICATION = this.selectedApplicationRole;
+          } else {
+            delete roles.APPLICATION;
+          }
+
+          this.group.roles = roles;
+
+          GroupService.update(this.group).then((response) => {
+            this.group = response.data;
+            this.$onInit();
+            $scope.formGroup.$setPristine();
+            NotificationService.show("Group '" + this.group.name + "' has been updated");
+          });
+        }
+      };
+
+      this.onPaginate = (page: number) => {
+        this.getMembersPage(true, { page, size: this.defaultPageSize });
+      };
+
+      this.removeUser = (ev, member: any) => {
+        ev.stopPropagation();
+
+        const memberState = this.membershipState.stateOf(member);
+        if (memberState.wasPrimaryOwner()) {
+          this.showTransferOwnershipModal(member, ApiOwnershipTransferType.DELETE_PRIMARY_OWNER).then(
+            ({ newPrimaryOwnerRef, primaryOwner }) => {
+              this.deleteMember(primaryOwner).then(() => {
+                const newPrimaryOwner = this.membershipState.findByRef(newPrimaryOwnerRef);
+                newPrimaryOwner.roles['API'] = 'PRIMARY_OWNER';
+                this.updateRole(newPrimaryOwner);
+              });
+            },
+          );
+        } else {
+          $mdDialog
+            .show({
+              controller: 'DialogConfirmController',
+              controllerAs: 'ctrl',
+              template: require('../../../../components/dialog/confirmWarning.dialog.html'),
+              clickOutsideToClose: true,
+              locals: {
+                msg: '',
+                title: 'Are you sure you want to remove the user "' + member.displayName + '"?',
+                confirmButton: 'Remove',
+              },
+            })
+            .then((response) => {
+              if (response) {
+                this.deleteMember(member);
+              }
+            });
+        }
+      };
+
+      this.showAddMemberModal = () => {
+        $mdDialog
+          .show({
+            controller: 'DialogAddGroupMemberController',
+            controllerAs: '$ctrl',
+            template: require('./addMember.dialog.html'),
+            clickOutsideToClose: true,
+            locals: {
+              defaultApiRole: this.selectedApiRole,
+              defaultApplicationRole: this.selectedApplicationRole,
+              group: this.group,
+              apiRoles: this.apiRoles,
+              applicationRoles: this.applicationRoles,
+              canChangeDefaultApiRole: this.canChangeDefaultApiRole,
+              canChangeDefaultApplicationRole: this.canChangeDefaultApplicationRole,
+              isApiRoleDisabled: this.isApiRoleDisabled,
+            },
+          })
+          .then(
+            (members = []) => {
+              if (members.length > 0) {
+                if (this.membershipState.isPrimaryOwnerPromotion(members[0])) {
+                  this.promoteNewPrimaryOwner(this.membershipState.stateOf(members[0]));
+                } else {
+                  GroupService.addOrUpdateMember(this.group.id, members)
+                    .then(() => {
+                      NotificationService.show('Member(s) successfully added');
+                      members
+                        .filter((member) => this.membershipState.isPrimaryOwnerDemotion(member))
+                        .forEach((member) => this.demotePrimaryOwner(this.membershipState.stateOf(member)));
+                    })
+                    .finally(() => this.getMembersPage());
+                }
+              }
+            },
+            () => {
+              // you cancelled the dialog
+            },
+          );
+      };
+
+      this.showTransferOwnershipModal = (primaryOwner, transferType): IPromise<OwnershipTransferResult> => {
+        const members = this.membershipState.findAll();
+
+        return $mdDialog.show({
+          controller: 'DialogTransferOwnershipController',
+          controllerAs: '$ctrl',
+          template: require('./transferOwnershipDialog.html'),
+          clickOutsideToClose: true,
+          locals: {
+            transferType,
+            members,
+            primaryOwner,
+            group: this.group,
+          },
+        });
+      };
+
+      this.demotePrimaryOwner = (memberState: MemberState): void => {
+        this.showTransferOwnershipModal(memberState.getLastState(), ApiOwnershipTransferType.DEMOTE_PRIMARY_OWNER).then(
+          ({ newPrimaryOwnerRef }) => {
+            const newPrimaryOwner = this.membershipState.findByRef(newPrimaryOwnerRef);
+            const previousPrimaryOwner = memberState.getCurrentState();
+
+            newPrimaryOwner.roles['API'] = 'PRIMARY_OWNER';
+
+            GroupService.addOrUpdateMember(this.group.id, [previousPrimaryOwner, newPrimaryOwner])
+              .then(() => {
+                NotificationService.show('Member successfully updated');
+              })
+              .finally(() => this.getMembersPage());
+          },
+          () => this.getMembersPage(),
+        );
+      };
+
+      this.promoteNewPrimaryOwner = (memberState: MemberState): void => {
+        this.showTransferOwnershipModal(this.membershipState.getPrimaryOwner(), ApiOwnershipTransferType.PROMOTE_NEW_PRIMARY_OWNER).then(
+          () => {
+            const previousPrimaryOwner = this.membershipState.getPrimaryOwner();
+            const newPrimaryOwner = memberState.getCurrentState();
+
+            previousPrimaryOwner.roles[RoleScope.API] = RoleName.OWNER;
+            newPrimaryOwner.roles[RoleScope.API] = RoleName.PRIMARY_OWNER;
+
+            GroupService.addOrUpdateMember(this.group.id, [previousPrimaryOwner, newPrimaryOwner])
+              .then(() => {
+                NotificationService.show('Member successfully updated');
+              })
+              .finally(() => this.getMembersPage());
+          },
+          () => this.getMembersPage(),
+        );
+      };
+
+      this.deleteMember = (member: Member): IPromise<void> => {
+        return GroupService.deleteMember(this.group.id, member.id).then(() => {
+          NotificationService.show('Member ' + member.displayName + ' has been successfully removed');
+          if (this.members.length === 1 && this.membersPageQuery.page > 0) {
+            --this.membersPageQuery.page;
+          }
+          return this.getMembersPage().then(() => {
+            if (this.group.apiPrimaryOwner === member.id) {
+              delete this.group.apiPrimaryOwner;
+            }
+          });
+        });
+      };
+
+      this.getMembersPage = (useLoader = false, membersPageQuery: Partial<MemberPageQuery> = {}): IPromise<void> => {
+        this.membersLoaded = !useLoader;
+
+        return GroupService.getMembers(this.group.id, Object.assign(this.membersPageQuery, membersPageQuery))
+          .then((response) => {
+            this.membersPage = response.data;
+            this.membersPageQuery.page = this.membersPage.page.current;
+            this.members = this.membersPage.data;
+            this.membershipState.sync(this.members);
+          })
+          .finally(() => {
+            this.membersLoaded = true;
+          });
+      };
+
+      this.loadGroupApis = () => {
+        GroupService.getMemberships(this.group.id, 'api').then((response) => {
+          $scope.groupApis = _.sortBy(response.data, 'name');
+        });
+      };
+
+      this.loadGroupApplications = () => {
+        GroupService.getMemberships(this.group.id, 'application').then((response) => {
+          $scope.groupApplications = _.sortBy(response.data, 'name');
+        });
+      };
+
+      this.reset = () => {
+        $state.reload();
+      };
+
+      this.isMaxInvitationReached = () => {
+        if (!this.group.max_invitation) {
+          return false;
+        }
+        const numberOfMembers = this.membersPage ? this.membersPage.page.total_elements : 0;
+        const numberOfInvitations = this.invitations ? this.invitations.length : 0;
+        const numberOfSlots = numberOfMembers + numberOfInvitations;
+        return numberOfSlots >= this.group.max_invitation;
+      };
+
+      this.canSave = () => {
+        return !this.updateMode || this.group.manageable;
+      };
+
+      this.updateInvitation = (invitation: any) => {
+        GroupService.updateInvitation(this.group.id, invitation).then(() => {
+          NotificationService.show('Invitation successfully updated');
           $state.reload();
         });
-      }
-    };
+      };
 
-    this.associateToApis = () => {
-      GroupService.associate(this.group.id, 'api').then(() => {
-        $state.reload();
-        NotificationService.show("Group '" + this.group.name + "' has been associated to all APIs");
-      });
-    };
+      this.showInviteMemberModal = () => {
+        $mdDialog
+          .show({
+            controller: [
+              '$mdDialog',
+              'group',
+              'apiRoles',
+              'applicationRoles',
+              'defaultApiRole',
+              'defaultApplicationRole',
+              'canChangeDefaultApiRole',
+              'canChangeDefaultApplicationRole',
+              'isApiRoleDisabled',
+              function (
+                $mdDialog,
+                group,
+                apiRoles,
+                applicationRoles,
+                defaultApiRole,
+                defaultApplicationRole,
+                canChangeDefaultApiRole,
+                canChangeDefaultApplicationRole,
+                isApiRoleDisabled,
+              ) {
+                this.group = group;
+                this.group.api_role = group.api_role || defaultApiRole;
+                this.group.application_role = group.application_role || defaultApplicationRole;
+                this.apiRoles = apiRoles;
+                this.applicationRoles = applicationRoles;
+                this.canChangeDefaultApiRole = canChangeDefaultApiRole;
+                this.canChangeDefaultApplicationRole = canChangeDefaultApplicationRole;
+                this.isApiRoleDisabled = isApiRoleDisabled;
+                this.hide = function () {
+                  $mdDialog.hide();
+                };
+                this.save = function () {
+                  $mdDialog.hide(this.email);
+                };
+              },
+            ],
+            controllerAs: '$ctrl',
+            template: require('./inviteMember.dialog.html'),
+            clickOutsideToClose: true,
+            locals: {
+              defaultApiRole: this.selectedApiRole,
+              defaultApplicationRole: this.selectedApplicationRole,
+              group: this.group,
+              apiRoles: this.apiRoles,
+              applicationRoles: this.applicationRoles,
+              canChangeDefaultApiRole: this.canChangeDefaultApiRole,
+              canChangeDefaultApplicationRole: this.canChangeDefaultApplicationRole,
+              isApiRoleDisabled: this.isApiRoleDisabled,
+            },
+          })
+          .then((email) => {
+            if (email) {
+              GroupService.inviteMember(this.group, email).then((response) => {
+                if (response.data.id) {
+                  NotificationService.show('Invitation successfully sent');
+                } else {
+                  NotificationService.show('Member successfully added');
+                }
+                $state.reload();
+              });
+            }
+          });
+      };
 
-    this.associateToApplications = () => {
-      GroupService.associate(this.group.id, 'application').then(() => {
-        $state.reload();
-        NotificationService.show("Group '" + this.group.name + "' has been associated to all applications");
-      });
-    };
-
-    this.update = () => {
-      GroupService.updateEventRules(this.group, this.apiByDefault, this.applicationByDefault);
-
-      if (!this.updateMode) {
-        GroupService.create(this.group).then((response) => {
-          $state.go('management.settings.groups.group', { groupId: response.data.id }, { reload: true });
-          NotificationService.show("Group '" + this.group.name + "' has been created");
-        });
-      } else {
-        const roles: any = {};
-
-        if (this.selectedApiRole) {
-          roles.API = this.selectedApiRole;
-        } else {
-          delete roles.API;
-        }
-
-        if (this.selectedApplicationRole) {
-          roles.APPLICATION = this.selectedApplicationRole;
-        } else {
-          delete roles.APPLICATION;
-        }
-
-        this.group.roles = roles;
-
-        GroupService.update(this.group).then((response) => {
-          this.group = response.data;
-          this.$onInit();
-          $scope.formGroup.$setPristine();
-          NotificationService.show("Group '" + this.group.name + "' has been updated");
-        });
-      }
-    };
-
-    this.onPaginate = (page: number) => {
-      this.getMembersPage(true, { page, size: this.defaultPageSize });
-    };
-
-    this.removeUser = (ev, member: any) => {
-      ev.stopPropagation();
-
-      const memberState = this.membershipState.stateOf(member);
-      if (memberState.wasPrimaryOwner()) {
-        this.showTransferOwnershipModal(member, ApiOwnershipTransferType.DELETE_PRIMARY_OWNER).then(
-          ({ newPrimaryOwnerRef, primaryOwner }) => {
-            this.deleteMember(primaryOwner).then(() => {
-              const newPrimaryOwner = this.membershipState.findByRef(newPrimaryOwnerRef);
-              newPrimaryOwner.roles['API'] = 'PRIMARY_OWNER';
-              this.updateRole(newPrimaryOwner);
-            });
-          },
-        );
-      } else {
+      this.removeInvitation = (ev, invitation: any) => {
+        ev.stopPropagation();
         $mdDialog
           .show({
             controller: 'DialogConfirmController',
@@ -198,278 +457,38 @@ const GroupComponent: ng.IComponentOptions = {
             clickOutsideToClose: true,
             locals: {
               msg: '',
-              title: 'Are you sure you want to remove the user "' + member.displayName + '"?',
+              title: 'Are you sure you want to remove the invitation for "' + invitation.email + '"?',
               confirmButton: 'Remove',
             },
           })
           .then((response) => {
             if (response) {
-              this.deleteMember(member);
+              GroupService.deleteInvitation(this.group.id, invitation.id).then(() => {
+                NotificationService.show('Invitation for ' + invitation.email + ' has been successfully removed');
+                $state.reload();
+              });
             }
           });
-      }
-    };
+      };
 
-    this.showAddMemberModal = () => {
-      $mdDialog
-        .show({
-          controller: 'DialogAddGroupMemberController',
-          controllerAs: '$ctrl',
-          template: require('./addMember.dialog.html'),
-          clickOutsideToClose: true,
-          locals: {
-            defaultApiRole: this.selectedApiRole,
-            defaultApplicationRole: this.selectedApplicationRole,
-            group: this.group,
-            apiRoles: this.apiRoles,
-            applicationRoles: this.applicationRoles,
-            canChangeDefaultApiRole: this.canChangeDefaultApiRole,
-            canChangeDefaultApplicationRole: this.canChangeDefaultApplicationRole,
-            isApiRoleDisabled: this.isApiRoleDisabled,
-          },
-        })
-        .then(
-          (members = []) => {
-            if (members.length > 0) {
-              if (this.membershipState.isPrimaryOwnerPromotion(members[0])) {
-                this.promoteNewPrimaryOwner(this.membershipState.stateOf(members[0]));
-              } else {
-                GroupService.addOrUpdateMember(this.group.id, members)
-                  .then(() => {
-                    NotificationService.show('Member(s) successfully added');
-                    members
-                      .filter((member) => this.membershipState.isPrimaryOwnerDemotion(member))
-                      .forEach((member) => this.demotePrimaryOwner(this.membershipState.stateOf(member)));
-                  })
-                  .finally(() => this.getMembersPage());
-              }
-            }
-          },
-          () => {
-            // you cancelled the dialog
-          },
-        );
-    };
+      this.hasGroupAdmin = () => {
+        let hasGroupAdmin = false;
+        _.forEach(this.members, (member) => {
+          if (member.roles.GROUP && member.roles.GROUP === 'ADMIN') {
+            hasGroupAdmin = true;
+          }
+        });
+        return hasGroupAdmin;
+      };
 
-    this.showTransferOwnershipModal = (primaryOwner, transferType): IPromise<OwnershipTransferResult> => {
-      const members = this.membershipState.findAll();
-
-      return $mdDialog.show({
-        controller: 'DialogTransferOwnershipController',
-        controllerAs: '$ctrl',
-        template: require('./transferOwnershipDialog.html'),
-        clickOutsideToClose: true,
-        locals: {
-          transferType,
-          members,
-          primaryOwner,
-          group: this.group,
-        },
-      });
-    };
-
-    this.demotePrimaryOwner = (memberState: MemberState): void => {
-      this.showTransferOwnershipModal(memberState.getLastState(), ApiOwnershipTransferType.DEMOTE_PRIMARY_OWNER).then(
-        ({ newPrimaryOwnerRef }) => {
-          const newPrimaryOwner = this.membershipState.findByRef(newPrimaryOwnerRef);
-          const previousPrimaryOwner = memberState.getCurrentState();
-
-          newPrimaryOwner.roles['API'] = 'PRIMARY_OWNER';
-
-          GroupService.addOrUpdateMember(this.group.id, [previousPrimaryOwner, newPrimaryOwner])
-            .then(() => {
-              NotificationService.show('Member successfully updated');
-            })
-            .finally(() => this.getMembersPage());
-        },
-        () => this.getMembersPage(),
-      );
-    };
-
-    this.promoteNewPrimaryOwner = (memberState: MemberState): void => {
-      this.showTransferOwnershipModal(this.membershipState.getPrimaryOwner(), ApiOwnershipTransferType.PROMOTE_NEW_PRIMARY_OWNER).then(
-        () => {
-          const previousPrimaryOwner = this.membershipState.getPrimaryOwner();
-          const newPrimaryOwner = memberState.getCurrentState();
-
-          previousPrimaryOwner.roles[RoleScope.API] = RoleName.OWNER;
-          newPrimaryOwner.roles[RoleScope.API] = RoleName.PRIMARY_OWNER;
-
-          GroupService.addOrUpdateMember(this.group.id, [previousPrimaryOwner, newPrimaryOwner])
-            .then(() => {
-              NotificationService.show('Member successfully updated');
-            })
-            .finally(() => this.getMembersPage());
-        },
-        () => this.getMembersPage(),
-      );
-    };
-
-    this.deleteMember = (member: Member): IPromise<void> => {
-      return GroupService.deleteMember(this.group.id, member.id).then(() => {
-        NotificationService.show('Member ' + member.displayName + ' has been successfully removed');
-        if (this.members.length === 1 && this.membersPageQuery.page > 0) {
-          --this.membersPageQuery.page;
+      this.isApiRoleDisabled = (role) => {
+        if (ApiPrimaryOwnerModeService.isUserOnly()) {
+          return role.name === 'PRIMARY_OWNER';
         }
-        return this.getMembersPage().then(() => {
-          if (this.group.apiPrimaryOwner === member.id) {
-            delete this.group.apiPrimaryOwner;
-          }
-        });
-      });
-    };
-
-    this.getMembersPage = (useLoader = false, membersPageQuery: Partial<MemberPageQuery> = {}): IPromise<void> => {
-      this.membersLoaded = !useLoader;
-
-      return GroupService.getMembers(this.group.id, Object.assign(this.membersPageQuery, membersPageQuery))
-        .then((response) => {
-          this.membersPage = response.data;
-          this.membersPageQuery.page = this.membersPage.page.current;
-          this.members = this.membersPage.data;
-          this.membershipState.sync(this.members);
-        })
-        .finally(() => {
-          this.membersLoaded = true;
-        });
-    };
-
-    this.loadGroupApis = () => {
-      GroupService.getMemberships(this.group.id, 'api').then((response) => {
-        $scope.groupApis = _.sortBy(response.data, 'name');
-      });
-    };
-
-    this.loadGroupApplications = () => {
-      GroupService.getMemberships(this.group.id, 'application').then((response) => {
-        $scope.groupApplications = _.sortBy(response.data, 'name');
-      });
-    };
-
-    this.reset = () => {
-      $state.reload();
-    };
-
-    this.isMaxInvitationReached = () => {
-      if (!this.group.max_invitation) {
-        return false;
-      }
-      const numberOfMembers = this.membersPage ? this.membersPage.page.total_elements : 0;
-      const numberOfInvitations = this.invitations ? this.invitations.length : 0;
-      const numberOfSlots = numberOfMembers + numberOfInvitations;
-      return numberOfSlots >= this.group.max_invitation;
-    };
-
-    this.canSave = () => {
-      return !this.updateMode || this.group.manageable;
-    };
-
-    this.updateInvitation = (invitation: any) => {
-      GroupService.updateInvitation(this.group.id, invitation).then(() => {
-        NotificationService.show('Invitation successfully updated');
-        $state.reload();
-      });
-    };
-
-    this.showInviteMemberModal = () => {
-      $mdDialog
-        .show({
-          /* @ngInject */
-          controller: function (
-            $mdDialog,
-            group,
-            apiRoles,
-            applicationRoles,
-            defaultApiRole,
-            defaultApplicationRole,
-            canChangeDefaultApiRole,
-            canChangeDefaultApplicationRole,
-            isApiRoleDisabled,
-          ) {
-            this.group = group;
-            this.group.api_role = group.api_role || defaultApiRole;
-            this.group.application_role = group.application_role || defaultApplicationRole;
-            this.apiRoles = apiRoles;
-            this.applicationRoles = applicationRoles;
-            this.canChangeDefaultApiRole = canChangeDefaultApiRole;
-            this.canChangeDefaultApplicationRole = canChangeDefaultApplicationRole;
-            this.isApiRoleDisabled = isApiRoleDisabled;
-            this.hide = function () {
-              $mdDialog.hide();
-            };
-            this.save = function () {
-              $mdDialog.hide(this.email);
-            };
-          },
-          controllerAs: '$ctrl',
-          template: require('./inviteMember.dialog.html'),
-          clickOutsideToClose: true,
-          locals: {
-            defaultApiRole: this.selectedApiRole,
-            defaultApplicationRole: this.selectedApplicationRole,
-            group: this.group,
-            apiRoles: this.apiRoles,
-            applicationRoles: this.applicationRoles,
-            canChangeDefaultApiRole: this.canChangeDefaultApiRole,
-            canChangeDefaultApplicationRole: this.canChangeDefaultApplicationRole,
-            isApiRoleDisabled: this.isApiRoleDisabled,
-          },
-        })
-        .then((email) => {
-          if (email) {
-            GroupService.inviteMember(this.group, email).then((response) => {
-              if (response.data.id) {
-                NotificationService.show('Invitation successfully sent');
-              } else {
-                NotificationService.show('Member successfully added');
-              }
-              $state.reload();
-            });
-          }
-        });
-    };
-
-    this.removeInvitation = (ev, invitation: any) => {
-      ev.stopPropagation();
-      $mdDialog
-        .show({
-          controller: 'DialogConfirmController',
-          controllerAs: 'ctrl',
-          template: require('../../../../components/dialog/confirmWarning.dialog.html'),
-          clickOutsideToClose: true,
-          locals: {
-            msg: '',
-            title: 'Are you sure you want to remove the invitation for "' + invitation.email + '"?',
-            confirmButton: 'Remove',
-          },
-        })
-        .then((response) => {
-          if (response) {
-            GroupService.deleteInvitation(this.group.id, invitation.id).then(() => {
-              NotificationService.show('Invitation for ' + invitation.email + ' has been successfully removed');
-              $state.reload();
-            });
-          }
-        });
-    };
-
-    this.hasGroupAdmin = () => {
-      let hasGroupAdmin = false;
-      _.forEach(this.members, (member) => {
-        if (member.roles.GROUP && member.roles.GROUP === 'ADMIN') {
-          hasGroupAdmin = true;
-        }
-      });
-      return hasGroupAdmin;
-    };
-
-    this.isApiRoleDisabled = (role) => {
-      if (ApiPrimaryOwnerModeService.isUserOnly()) {
-        return role.name === 'PRIMARY_OWNER';
-      }
-      return role.system && role.name !== 'PRIMARY_OWNER';
-    };
-  },
+        return role.system && role.name !== 'PRIMARY_OWNER';
+      };
+    },
+  ],
 };
 
 export default GroupComponent;

@@ -23,7 +23,6 @@ class EditPageConfigurationComponentController implements IController {
   shouldShowOpenApiDocFormat = false;
   settings: any;
 
-  /* @ngInject */
   constructor(private readonly Constants: any) {}
 
   isSwagger(): boolean {
@@ -68,6 +67,7 @@ class EditPageConfigurationComponentController implements IController {
     return this.page.generalConditions;
   }
 }
+EditPageConfigurationComponentController.$inject = ['Constants'];
 
 export const EditPageConfigurationComponent: ng.IComponentOptions = {
   bindings: {

@@ -16,7 +16,6 @@
 
 import CustomUserFieldsService from '../../../../services/custom-user-fields.service';
 
-/* @ngInject */
 function UpdateFieldDialogController(
   CustomUserFieldsService: CustomUserFieldsService,
   $mdDialog: angular.material.IDialogService,
@@ -38,5 +37,6 @@ function UpdateFieldDialogController(
     });
   };
 }
+UpdateFieldDialogController.$inject = ['CustomUserFieldsService', '$mdDialog', 'field', 'predefinedKeys'];
 
 export default UpdateFieldDialogController;

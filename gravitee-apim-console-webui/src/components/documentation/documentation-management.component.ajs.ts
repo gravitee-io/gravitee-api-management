@@ -41,7 +41,6 @@ class DocumentationManagementComponentController implements IController {
   newFolderName: string;
   currentTranslation: any;
   fetchAllInProgress: boolean;
-  /* @ngInject */
   constructor(
     private readonly NotificationService: NotificationService,
     private readonly DocumentationService: DocumentationService,
@@ -476,6 +475,7 @@ class DocumentationManagementComponentController implements IController {
     };
   }
 }
+DocumentationManagementComponentController.$inject = ['NotificationService', 'DocumentationService', '$state', '$scope', '$mdDialog'];
 
 export const DocumentationManagementComponentAjs: ng.IComponentOptions = {
   bindings: {

@@ -44,7 +44,6 @@ class WidgetDataStatsConfigurationController implements IOnInit {
   selectedStatsKeys: string[] = [];
   availableStats: Stat[];
 
-  /* @ngInject */
   constructor(private readonly DashboardService: DashboardService) {}
 
   $onInit(): void {
@@ -143,6 +142,7 @@ class WidgetDataStatsConfigurationController implements IOnInit {
     }
   }
 }
+WidgetDataStatsConfigurationController.$inject = ['DashboardService'];
 
 const WidgetDataStatsConfigurationComponent: ng.IComponentOptions = {
   template: require('./widget-data-stats-configuration.html'),

@@ -19,7 +19,6 @@ import { IHttpPromise } from 'angular';
 import { ApiPortalHeader } from '../entities/apiPortalHeader';
 
 class ApiHeaderService {
-  /* @ngInject */
   constructor(private $http, private Constants) {}
 
   list(): IHttpPromise<ApiPortalHeader[]> {
@@ -42,5 +41,6 @@ class ApiHeaderService {
     return this.$http.delete(`${this.Constants.env.baseURL}/configuration/apiheaders/` + apiHeader.id);
   }
 }
+ApiHeaderService.$inject = ['$http', 'Constants'];
 
 export default ApiHeaderService;

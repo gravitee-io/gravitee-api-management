@@ -135,7 +135,6 @@ class ApiHistoryControllerAjs {
   private added: number;
   private removed: number;
 
-  /* @ngInject */
   constructor(
     private $mdDialog: ng.material.IDialogService,
     private $scope: any,
@@ -526,5 +525,18 @@ class ApiHistoryControllerAjs {
       .catch(() => (target.documentation = null));
   }
 }
+ApiHistoryControllerAjs.$inject = [
+  '$mdDialog',
+  '$scope',
+  '$rootScope',
+  '$state',
+  'ApiService',
+  'NotificationService',
+  'AuditService',
+  'PolicyService',
+  'ResourceService',
+  'FlowService',
+  'ngApiV2Service',
+];
 
 export default ApiHistoryControllerAjs;

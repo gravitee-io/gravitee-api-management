@@ -15,7 +15,6 @@
  */
 
 class CategoryService {
-  /* @ngInject */
   constructor(private $http, private Constants) {}
 
   list(include?: string[]) {
@@ -45,5 +44,6 @@ class CategoryService {
     return this.$http.delete(`${this.Constants.env.baseURL}/configuration/categories/` + category.id);
   }
 }
+CategoryService.$inject = ['$http', 'Constants'];
 
 export default CategoryService;

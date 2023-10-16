@@ -42,7 +42,6 @@ class AlertsDashboardComponent implements ng.IComponentController {
   private series: IPromise<unknown>;
   private options: any;
 
-  /* @ngInject */
   constructor(
     private $scope: IScope,
     private AlertService: AlertService,
@@ -185,5 +184,5 @@ const AlertDashBoardComponent: ng.IComponentOptions = {
   },
   controller: AlertsDashboardComponent,
 };
-
+AlertsDashboardComponent.$inject = ['$scope', 'AlertService', 'UserService', '$state', 'Constants'];
 export default AlertDashBoardComponent;

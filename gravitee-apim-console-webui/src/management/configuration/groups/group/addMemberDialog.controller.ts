@@ -23,7 +23,6 @@ export class Role {
   system: boolean;
 }
 
-/* @ngInject */
 function DialogAddGroupMemberController(
   $mdDialog: angular.material.IDialogService,
   group: any,
@@ -80,5 +79,16 @@ function DialogAddGroupMemberController(
     return this.defaultApiRole === RoleName.PRIMARY_OWNER && this.usersSelected.length > 0;
   };
 }
+DialogAddGroupMemberController.$inject = [
+  '$mdDialog',
+  'group',
+  'defaultApiRole',
+  'defaultApplicationRole',
+  'apiRoles',
+  'applicationRoles',
+  'canChangeDefaultApiRole',
+  'canChangeDefaultApplicationRole',
+  'isApiRoleDisabled',
+];
 
 export default DialogAddGroupMemberController;

@@ -17,11 +17,10 @@ class AlertsActivityController {
   private hasConfiguredAlerts: boolean;
   private hasAlertingPlugin: boolean;
 
-  /* @ngInject */
   constructor(private configuredAlerts, private alertingStatus) {
     this.hasConfiguredAlerts = configuredAlerts?.length > 0;
     this.hasAlertingPlugin = alertingStatus?.available_plugins > 0;
   }
 }
-
+AlertsActivityController.$inject = ['configuredAlerts', 'alertingStatus'];
 export default AlertsActivityController;

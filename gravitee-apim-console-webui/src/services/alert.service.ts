@@ -31,7 +31,6 @@ export interface IAlertTriggerAnalytics {
 }
 
 class AlertService {
-  /* @ngInject */
   constructor(private $http: ng.IHttpService, private Constants) {}
 
   listMetrics(): IHttpPromise<any> {
@@ -136,5 +135,6 @@ class AlertService {
     }
   }
 }
+AlertService.$inject = ['$http', 'Constants'];
 
 export default AlertService;

@@ -22,85 +22,87 @@ const WidgetDataTableConfigurationComponent: ng.IComponentOptions = {
   bindings: {
     chart: '<',
   },
-  /* @ngInject */
-  controller: function (DashboardService: DashboardService) {
-    this.fields = DashboardService.getIndexedFields();
-    this.projections = _.concat(
-      {
-        label: 'Hits',
-        value: '_count',
-        type: 'count',
-      },
-      DashboardService.getAverageableFields(),
-    );
-    this.projectionOrders = [
-      { label: 'Desc', value: '-' },
-      { label: 'Asc', value: '' },
-    ];
+  controller: [
+    'DashboardService',
+    function (DashboardService: DashboardService) {
+      this.fields = DashboardService.getIndexedFields();
+      this.projections = _.concat(
+        {
+          label: 'Hits',
+          value: '_count',
+          type: 'count',
+        },
+        DashboardService.getAverageableFields(),
+      );
+      this.projectionOrders = [
+        { label: 'Desc', value: '-' },
+        { label: 'Asc', value: '' },
+      ];
 
-    this.$onInit = () => {
-      if (!this.chart.request) {
-        _.merge(this.chart, {
-          request: {
-            type: 'group_by',
-            field: this.fields[0].value,
-          },
-          columns: [],
-          paging: 5,
-        });
-      }
-      if (this.chart.request.field.startsWith('custom')) {
-        this.field = this.chart.request.field.substr('custom.'.length);
-        this.isCustomField = true;
-      } else {
-        this.field = this.chart.request.field;
-        this.isCustomField = false;
-      }
-
-      if (this.chart.request.order) {
-        const splittedOrder = this.chart.request.order.split(':');
-        const aggregate = splittedOrder[0];
-        const projection = splittedOrder[1];
-        if ('-' === aggregate.charAt(0)) {
-          this.order = '-';
-          this.aggregate = aggregate.substring(1);
+      this.$onInit = () => {
+        if (!this.chart.request) {
+          _.merge(this.chart, {
+            request: {
+              type: 'group_by',
+              field: this.fields[0].value,
+            },
+            columns: [],
+            paging: 5,
+          });
+        }
+        if (this.chart.request.field.startsWith('custom')) {
+          this.field = this.chart.request.field.substr('custom.'.length);
+          this.isCustomField = true;
         } else {
-          this.order = '';
-          this.aggregate = aggregate;
+          this.field = this.chart.request.field;
+          this.isCustomField = false;
         }
-        this.projection = projection ? projection : '_count';
-      } else {
-        this.order = '-';
-        this.aggregate = 'avg';
-        this.projection = '_count';
-      }
-      this.onFieldChanged();
-      this.onProjectionChanged();
-    };
 
-    this.onFieldChanged = () => {
-      if (this.isCustomField) {
-        this.chart.request.field = 'custom.' + this.field;
-      } else {
-        this.chart.request.field = this.field;
-      }
-
-      const existingField = _.find(this.fields, (f) => f.value === this.field);
-      this.chart.columns[0] = existingField ? existingField.label : this.field;
-    };
-
-    this.onProjectionChanged = () => {
-      this.chart.columns[1] = _.find(this.projections, (p) => p.value === this.projection).label;
-      if (this.projection) {
-        this.chart.request.order = this.order + this.aggregate + ':' + this.projection;
-        if (this.projection !== '_count') {
-          this.chart.percent = false;
+        if (this.chart.request.order) {
+          const splittedOrder = this.chart.request.order.split(':');
+          const aggregate = splittedOrder[0];
+          const projection = splittedOrder[1];
+          if ('-' === aggregate.charAt(0)) {
+            this.order = '-';
+            this.aggregate = aggregate.substring(1);
+          } else {
+            this.order = '';
+            this.aggregate = aggregate;
+          }
+          this.projection = projection ? projection : '_count';
+        } else {
+          this.order = '-';
+          this.aggregate = 'avg';
+          this.projection = '_count';
         }
-      } else {
-        delete this.chart.request.order;
-      }
-    };
-  },
+        this.onFieldChanged();
+        this.onProjectionChanged();
+      };
+
+      this.onFieldChanged = () => {
+        if (this.isCustomField) {
+          this.chart.request.field = 'custom.' + this.field;
+        } else {
+          this.chart.request.field = this.field;
+        }
+
+        const existingField = _.find(this.fields, (f) => f.value === this.field);
+        this.chart.columns[0] = existingField ? existingField.label : this.field;
+      };
+
+      this.onProjectionChanged = () => {
+        this.chart.columns[1] = _.find(this.projections, (p) => p.value === this.projection).label;
+        if (this.projection) {
+          this.chart.request.order = this.order + this.aggregate + ':' + this.projection;
+          if (this.projection !== '_count') {
+            this.chart.percent = false;
+          }
+        } else {
+          delete this.chart.request.order;
+        }
+      };
+    },
+  ],
 };
 
 export default WidgetDataTableConfigurationComponent;

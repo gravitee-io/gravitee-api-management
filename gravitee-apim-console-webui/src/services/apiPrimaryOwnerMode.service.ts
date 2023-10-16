@@ -26,7 +26,6 @@ export enum ApiPrimaryOwnerType {
 }
 
 class ApiPrimaryOwnerModeService {
-  /* @ngInject */
   constructor(private Constants) {}
 
   isGroupOnly = () => {
@@ -41,5 +40,6 @@ class ApiPrimaryOwnerModeService {
     return this.Constants.env.settings.api.primaryOwnerMode.toUpperCase() === ApiPrimaryOwnerMode.HYBRID;
   };
 }
+ApiPrimaryOwnerModeService.$inject = ['Constants'];
 
 export default ApiPrimaryOwnerModeService;

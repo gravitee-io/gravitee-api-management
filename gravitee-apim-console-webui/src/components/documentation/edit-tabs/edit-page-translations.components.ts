@@ -25,7 +25,6 @@ class EditPageTranslationsComponentController implements IController {
   pagesToLink: any[];
   page: any;
 
-  /* @ngInject */
   constructor(
     private readonly $mdDialog: angular.material.IDialogService,
     private $scope: IScope,
@@ -124,6 +123,7 @@ class EditPageTranslationsComponentController implements IController {
     }
   }
 }
+EditPageTranslationsComponentController.$inject = ['$mdDialog', '$scope', 'DocumentationService', 'NotificationService'];
 
 export const EditPageTranslationsComponent: ng.IComponentOptions = {
   bindings: {

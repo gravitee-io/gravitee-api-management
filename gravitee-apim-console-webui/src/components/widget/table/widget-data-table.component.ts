@@ -26,99 +26,103 @@ const WidgetDataTableComponent: ng.IComponentOptions = {
   require: {
     parent: '^gvWidget',
   },
-  /* @ngInject */
-  controller: function ($scope, $state: StateService, AnalyticsService: AnalyticsService) {
-    this.AnalyticsService = AnalyticsService;
-    this.$scope = $scope;
-    this.$state = $state;
-    this.selected = [];
+  controller: [
+    '$scope',
+    '$state',
+    'AnalyticsService',
+    function ($scope, $state: StateService, AnalyticsService: AnalyticsService) {
+      this.AnalyticsService = AnalyticsService;
+      this.$scope = $scope;
+      this.$state = $state;
+      this.selected = [];
 
-    this.$onInit = function () {
-      this.widget = this.parent.widget;
-    };
+      this.$onInit = function () {
+        this.widget = this.parent.widget;
+      };
 
-    this.$onChanges = (changes) => {
-      if (changes.data) {
-        const data = changes.data.currentValue;
-        this.paging = 1;
-        this.results = _.map(data.values, (value, key) => {
-          let percent;
-          if (_.includes(value, '/')) {
-            const splittedValue = value.split('/');
-            value = parseInt(splittedValue[0], 10);
-            percent = parseFloat(splittedValue[1]);
-          }
-          const result = {
-            key: key,
-            value: value,
-            percent: percent,
-            metadata: data && data.metadata ? { ...data.metadata[key], order: +data.metadata[key].order } : undefined,
-          };
-          const widget = this.widget || this.parent.widget;
-          if (widget) {
-            const queryFilters = this.AnalyticsService.getQueryFilters();
-            if (queryFilters) {
-              const queryFilter = queryFilters[widget.chart.request.field];
-              if (queryFilter && queryFilter.includes(key)) {
-                setTimeout(() => {
-                  this.selected.push(result);
-                });
+      this.$onChanges = (changes) => {
+        if (changes.data) {
+          const data = changes.data.currentValue;
+          this.paging = 1;
+          this.results = _.map(data.values, (value, key) => {
+            let percent;
+            if (_.includes(value, '/')) {
+              const splittedValue = value.split('/');
+              value = parseInt(splittedValue[0], 10);
+              percent = parseFloat(splittedValue[1]);
+            }
+            const result = {
+              key: key,
+              value: value,
+              percent: percent,
+              metadata: data && data.metadata ? { ...data.metadata[key], order: +data.metadata[key].order } : undefined,
+            };
+            const widget = this.widget || this.parent.widget;
+            if (widget) {
+              const queryFilters = this.AnalyticsService.getQueryFilters();
+              if (queryFilters) {
+                const queryFilter = queryFilters[widget.chart.request.field];
+                if (queryFilter && queryFilter.includes(key)) {
+                  setTimeout(() => {
+                    this.selected.push(result);
+                  });
+                }
               }
             }
-          }
-          return result;
-        });
-      }
-    };
-
-    this.selectItem = (item) => {
-      this.updateQuery(item, true);
-    };
-
-    this.deselectItem = (item) => {
-      this.updateQuery(item, false);
-    };
-
-    this.updateQuery = (item, add) => {
-      this.$scope.$emit('filterItemChange', {
-        widget: this.widget.$uid,
-        field: this.widget.chart.request.field,
-        fieldLabel: this.widget.chart.request.fieldLabel,
-        key: item.key,
-        name: item.metadata.name,
-        mode: add ? 'add' : 'remove',
-      });
-    };
-
-    this.isClickable = function (result) {
-      return (
-        ($state.current.name === 'management.analytics' || $state.current.name === 'management.dashboard.home') &&
-        !result.metadata.unknown &&
-        (this.widget.chart.request.field === 'api' || this.widget.chart.request.field === 'application')
-      );
-    };
-
-    this.goto = function (key) {
-      // only on platform analytics
-      if ($state.current.name === 'management.analytics' || $state.current.name === 'management.dashboard.home') {
-        if (this.widget.chart.request.field === 'api') {
-          this.$state.go('management.apis.analytics-overview-v2', {
-            apiId: key,
-            from: this.widget.chart.request.from,
-            to: this.widget.chart.request.to,
-            q: this.widget.chart.request.query,
-          });
-        } else if (this.widget.chart.request.field === 'application') {
-          this.$state.go('management.applications.application.analytics', {
-            applicationId: key,
-            from: this.widget.chart.request.from,
-            to: this.widget.chart.request.to,
-            q: this.widget.chart.request.query,
+            return result;
           });
         }
-      }
-    };
-  },
+      };
+
+      this.selectItem = (item) => {
+        this.updateQuery(item, true);
+      };
+
+      this.deselectItem = (item) => {
+        this.updateQuery(item, false);
+      };
+
+      this.updateQuery = (item, add) => {
+        this.$scope.$emit('filterItemChange', {
+          widget: this.widget.$uid,
+          field: this.widget.chart.request.field,
+          fieldLabel: this.widget.chart.request.fieldLabel,
+          key: item.key,
+          name: item.metadata.name,
+          mode: add ? 'add' : 'remove',
+        });
+      };
+
+      this.isClickable = function (result) {
+        return (
+          ($state.current.name === 'management.analytics' || $state.current.name === 'management.dashboard.home') &&
+          !result.metadata.unknown &&
+          (this.widget.chart.request.field === 'api' || this.widget.chart.request.field === 'application')
+        );
+      };
+
+      this.goto = function (key) {
+        // only on platform analytics
+        if ($state.current.name === 'management.analytics' || $state.current.name === 'management.dashboard.home') {
+          if (this.widget.chart.request.field === 'api') {
+            this.$state.go('management.apis.analytics-overview-v2', {
+              apiId: key,
+              from: this.widget.chart.request.from,
+              to: this.widget.chart.request.to,
+              q: this.widget.chart.request.query,
+            });
+          } else if (this.widget.chart.request.field === 'application') {
+            this.$state.go('management.applications.application.analytics', {
+              applicationId: key,
+              from: this.widget.chart.request.from,
+              to: this.widget.chart.request.to,
+              q: this.widget.chart.request.query,
+            });
+          }
+        }
+      };
+    },
+  ],
 };
 
 export default WidgetDataTableComponent;

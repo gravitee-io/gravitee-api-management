@@ -5,19 +5,16 @@ angular.module('schemaForm').run(($templateCache) => {
   );
 });
 
+const codemirrorConfig = (schemaFormDecoratorsProvider) => {
+  // Add to the bootstrap directive
+  schemaFormDecoratorsProvider.addMapping('bootstrapDecorator', 'codemirror', 'directives/decorators/bootstrap/codemirror/codemirror.html');
+  schemaFormDecoratorsProvider.createDirective('codemirror', 'directives/decorators/bootstrap/codemirror/codemirror.html');
+};
+codemirrorConfig.$inject = ['schemaFormDecoratorsProvider'];
+
 angular
   .module('schemaForm')
-  .config(
-    /* @ngInject */ (schemaFormProvider, schemaFormDecoratorsProvider) => {
-      // Add to the bootstrap directive
-      schemaFormDecoratorsProvider.addMapping(
-        'bootstrapDecorator',
-        'codemirror',
-        'directives/decorators/bootstrap/codemirror/codemirror.html',
-      );
-      schemaFormDecoratorsProvider.createDirective('codemirror', 'directives/decorators/bootstrap/codemirror/codemirror.html');
-    },
-  )
+  .config(codemirrorConfig)
 
   .directive('codemirrorButtons', () => {
     return {

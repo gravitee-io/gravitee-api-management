@@ -40,7 +40,6 @@ class ApiV1PropertiesControllerAjs {
   private selectAll: boolean;
   private _initialDynamicPropertyService: any;
 
-  /* @ngInject */
   constructor(
     private ApiService: ApiService,
     private $mdSidenav: angular.material.ISidenavService,
@@ -297,5 +296,15 @@ class ApiV1PropertiesControllerAjs {
     }
   }
 }
+ApiV1PropertiesControllerAjs.$inject = [
+  'ApiService',
+  '$mdSidenav',
+  '$mdEditDialog',
+  '$mdDialog',
+  'NotificationService',
+  '$scope',
+  '$rootScope',
+  'ngIfMatchEtagInterceptor',
+];
 
 export default ApiV1PropertiesControllerAjs;

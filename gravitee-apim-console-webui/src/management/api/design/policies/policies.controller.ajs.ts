@@ -32,7 +32,6 @@ class ApiV1PoliciesControllerAjs {
   private httpMethodsUpdated: boolean;
   private schemaByPolicyId: any;
 
-  /* @ngInject */
   constructor(
     private ApiService,
     private PolicyService,
@@ -486,5 +485,18 @@ class ApiV1PoliciesControllerAjs {
     this.httpMethodsUpdated = false;
   }
 }
+ApiV1PoliciesControllerAjs.$inject = [
+  'ApiService',
+  'PolicyService',
+  '$mdDialog',
+  'NotificationService',
+  '$scope',
+  'dragularService',
+  '$q',
+  '$rootScope',
+  'StringService',
+  'UserService',
+  '$state',
+];
 
 export default ApiV1PoliciesControllerAjs;

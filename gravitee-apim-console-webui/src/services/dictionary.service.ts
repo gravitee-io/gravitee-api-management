@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 class DictionaryService {
-  /* @ngInject */
   constructor(private $http: ng.IHttpService, private Constants) {}
 
   list(): ng.IPromise<any> {
@@ -60,5 +59,6 @@ class DictionaryService {
     return this.$http.post([`${this.Constants.env.baseURL}/configuration/dictionaries`, dictionary.id].join('/') + '?action=STOP', {});
   }
 }
+DictionaryService.$inject = ['$http', 'Constants'];
 
 export default DictionaryService;

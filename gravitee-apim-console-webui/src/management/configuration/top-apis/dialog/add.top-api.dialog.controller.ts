@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
-/* @ngInject */
 function AddTopApiDialogController($mdDialog: angular.material.IDialogService, ApiService, TopApiService, NotificationService, topApis) {
   ApiService.list().then((response) => {
     this.apis = _.filter(response.data, (api: any) => {
@@ -33,5 +32,6 @@ function AddTopApiDialogController($mdDialog: angular.material.IDialogService, A
     $mdDialog.cancel();
   };
 }
+AddTopApiDialogController.$inject = ['$mdDialog', 'ApiService', 'TopApiService', 'NotificationService', 'topApis'];
 
 export default AddTopApiDialogController;

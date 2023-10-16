@@ -87,7 +87,6 @@ class ApiCreationV2ControllerAjs {
   private tenants: any[];
   private groups: any[];
 
-  /* @ngInject */
   constructor(
     private $scope,
     private $timeout,
@@ -529,5 +528,20 @@ class ApiCreationV2ControllerAjs {
     this.skippedStep = true;
   }
 }
+ApiCreationV2ControllerAjs.$inject = [
+  '$scope',
+  '$timeout',
+  '$mdDialog',
+  '$stateParams',
+  '$window',
+  'ApiService',
+  'ngApiV2Service',
+  'NotificationService',
+  'UserService',
+  '$state',
+  'Constants',
+  '$rootScope',
+  'ngIfMatchEtagInterceptor',
+];
 
 export default ApiCreationV2ControllerAjs;

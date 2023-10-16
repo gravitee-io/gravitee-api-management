@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 class TagService {
-  /* @ngInject */
   constructor(private $http, private Constants) {}
 
   list() {
@@ -43,5 +42,6 @@ class TagService {
     }
   }
 }
+TagService.$inject = ['$http', 'Constants'];
 
 export default TagService;

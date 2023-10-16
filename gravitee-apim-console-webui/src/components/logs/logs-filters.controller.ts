@@ -135,7 +135,6 @@ class LogsFiltersController {
     return '(' + params.join(' OR ') + ')';
   }
 
-  /* @ngInject */
   constructor(
     private $scope: ILogsFiltersScope,
     private $state: StateService,
@@ -379,5 +378,6 @@ class LogsFiltersController {
     return applications;
   }
 }
+LogsFiltersController.$inject = ['$scope', '$state', '$timeout', '$log', 'ApiService', 'ApplicationService'];
 
 export default LogsFiltersController;

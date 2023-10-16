@@ -25,7 +25,6 @@ import UserService from '../services/user.service';
 import ConsoleSettingsService from '../services/consoleSettings.service';
 import NotificationService from '../services/notification.service';
 
-/* @ngInject */
 function runBlock(
   $rootScope,
   $window,
@@ -264,5 +263,24 @@ function runBlock(
     return true;
   });
 }
+runBlock.$inject = [
+  '$rootScope',
+  '$window',
+  '$http',
+  '$mdSidenav',
+  '$transitions',
+  '$state',
+  '$timeout',
+  'UserService',
+  'Constants',
+  'PermissionStrategies',
+  'ReCaptchaService',
+  'ApiService',
+  'EnvironmentService',
+  'PortalConfigService',
+  'ConsoleSettingsService',
+  'NotificationService',
+  'ngGioPendoService',
+];
 
 export default runBlock;

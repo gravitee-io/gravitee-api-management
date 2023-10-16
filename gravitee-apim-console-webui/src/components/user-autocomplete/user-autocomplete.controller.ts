@@ -30,7 +30,6 @@ class UserAutocompleteController {
   private minLength: number;
   private autofocus: boolean;
 
-  /* @ngInject */
   constructor(private UserService: UserService) {}
 
   $onInit() {
@@ -78,5 +77,6 @@ class UserAutocompleteController {
     }
   }
 }
+UserAutocompleteController.$inject = ['UserService'];
 
 export default UserAutocompleteController;

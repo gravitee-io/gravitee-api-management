@@ -17,7 +17,6 @@ import { ApiService } from '../../../services/api.service';
 import ApplicationService from '../../../services/application.service';
 import MetadataService from '../../../services/metadata.service';
 
-/* @ngInject */
 function DeleteMetadataDialogController(
   MetadataService: MetadataService,
   ApiService: ApiService,
@@ -56,5 +55,6 @@ function DeleteMetadataDialogController(
     }
   };
 }
+DeleteMetadataDialogController.$inject = ['MetadataService', 'ApiService', 'ApplicationService', '$mdDialog', 'metadata', '$stateParams'];
 
 export default DeleteMetadataDialogController;

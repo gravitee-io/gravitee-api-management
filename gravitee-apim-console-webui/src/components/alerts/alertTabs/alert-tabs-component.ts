@@ -21,7 +21,6 @@ class AlertTabsController {
   private selectedIndex: number;
   private canViewAlerts: boolean;
 
-  /* @ngInject */
   constructor(private $state: StateService, private UserService: UserService, private Constants) {}
 
   $onInit() {
@@ -31,5 +30,5 @@ class AlertTabsController {
     this.selectedIndex = candidateIndex > -1 ? candidateIndex : 0;
   }
 }
-
+AlertTabsController.$inject = ['$state', 'UserService', 'Constants'];
 export default AlertTabsController;

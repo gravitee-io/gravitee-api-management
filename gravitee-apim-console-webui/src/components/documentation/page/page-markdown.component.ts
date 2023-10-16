@@ -17,7 +17,6 @@
 import { marked } from 'marked';
 
 export class PageMarkdownController implements ng.IComponentController, ng.IOnInit {
-  /* @ngInject */
   constructor(private readonly $sanitize: ng.sanitize.ISanitizeService) {}
 
   page: any;
@@ -27,6 +26,7 @@ export class PageMarkdownController implements ng.IComponentController, ng.IOnIn
     this.htmlContent = this.$sanitize(marked.parse(this.page?.content ?? ''));
   }
 }
+PageMarkdownController.$inject = ['$sanitize'];
 
 export const PageMarkdownComponent: ng.IComponentOptions = {
   template: require('./page-markdown.html'),

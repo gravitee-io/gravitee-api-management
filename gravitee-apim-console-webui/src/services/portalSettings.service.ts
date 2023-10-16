@@ -15,7 +15,6 @@
  */
 
 class PortalSettingsService {
-  /* @ngInject */
   constructor(private $http, private Constants) {}
 
   save(config) {
@@ -33,5 +32,6 @@ class PortalSettingsService {
     return false;
   }
 }
+PortalSettingsService.$inject = ['$http', 'Constants'];
 
 export default PortalSettingsService;

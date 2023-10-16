@@ -27,7 +27,6 @@ module.exports = {
     'angular/controller-name': 'error',
     'angular/module-setter': 'error',
     'angular/log': 'error',
-    'angular/di': 'error',
     'angular/on-watch': 'error',
     'angular/no-service-method': 'off',
     'angular/module-getter': 'off',

@@ -39,7 +39,6 @@ interface IMembership {
 }
 
 export class ApiService {
-  /* @ngInject */
   constructor(
     private readonly $http: IHttpService,
     private readonly $rootScope: IRootScopeService,
@@ -837,6 +836,7 @@ export class ApiService {
     return api && api.gravitee === '2.0.0';
   }
 }
+ApiService.$inject = ['$http', '$rootScope', 'Constants', 'ngIfMatchEtagInterceptor'];
 
 const blobToBase64 = (blob: Blob): Promise<string> => {
   return new Promise<string>((resolve, reject) => {

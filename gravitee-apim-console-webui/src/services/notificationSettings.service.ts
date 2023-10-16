@@ -20,7 +20,6 @@ import { NotificationConfig } from '../entities/notificationConfig';
 import { Scope } from '../entities/scope';
 
 class NotificationSettingsService {
-  /* @ngInject */
   constructor(private $http: ng.IHttpService, private Constants) {}
 
   getHooks(scope: Scope): IHttpPromise<any> {
@@ -102,5 +101,6 @@ class NotificationSettingsService {
     }
   }
 }
+NotificationSettingsService.$inject = ['$http', 'Constants'];
 
 export default NotificationSettingsService;

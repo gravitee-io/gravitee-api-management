@@ -21,57 +21,61 @@ const PlatformLogComponent: ng.IComponentOptions = {
   bindings: {
     log: '<',
   },
-  /* @ngInject */
-  controller: function ($state: StateService, NotificationService: NotificationService, Constants: any) {
-    this.Constants = Constants;
-    this.NotificationService = NotificationService;
+  controller: [
+    '$state',
+    'NotificationService',
+    'Constants',
+    function ($state: StateService, NotificationService: NotificationService, Constants: any) {
+      this.Constants = Constants;
+      this.NotificationService = NotificationService;
 
-    this.$onInit = () => {
-      this.headersAsList(this.log.clientRequest);
-      this.headersAsList(this.log.proxyRequest);
-      this.headersAsList(this.log.clientResponse);
-      this.headersAsList(this.log.proxyResponse);
-    };
+      this.$onInit = () => {
+        this.headersAsList(this.log.clientRequest);
+        this.headersAsList(this.log.proxyRequest);
+        this.headersAsList(this.log.clientResponse);
+        this.headersAsList(this.log.proxyResponse);
+      };
 
-    this.headersAsList = (obj) => {
-      if (obj) {
-        obj.headersAsList = [];
-        for (const k in obj.headers) {
-          // eslint-disable-next-line no-prototype-builtins
-          if (obj.headers.hasOwnProperty(k)) {
-            for (const v in obj.headers[k]) {
-              // eslint-disable-next-line no-prototype-builtins
-              if (obj.headers[k].hasOwnProperty(v)) {
-                obj.headersAsList.push([k, obj.headers[k][v]]);
+      this.headersAsList = (obj) => {
+        if (obj) {
+          obj.headersAsList = [];
+          for (const k in obj.headers) {
+            // eslint-disable-next-line no-prototype-builtins
+            if (obj.headers.hasOwnProperty(k)) {
+              for (const v in obj.headers[k]) {
+                // eslint-disable-next-line no-prototype-builtins
+                if (obj.headers[k].hasOwnProperty(v)) {
+                  obj.headersAsList.push([k, obj.headers[k][v]]);
+                }
               }
             }
           }
         }
-      }
-    };
+      };
 
-    this.backStateParams = {
-      from: $state.params.from,
-      to: $state.params.to,
-      q: $state.params.q,
-      page: $state.params.page,
-      size: $state.params.size,
-    };
+      this.backStateParams = {
+        from: $state.params.from,
+        to: $state.params.to,
+        q: $state.params.q,
+        page: $state.params.page,
+        size: $state.params.size,
+      };
 
-    this.getMimeType = function (log) {
-      if (log.headers['Content-Type'] !== undefined) {
-        const contentType = log.headers['Content-Type'][0];
-        return contentType.split(';', 1)[0];
-      }
+      this.getMimeType = function (log) {
+        if (log.headers['Content-Type'] !== undefined) {
+          const contentType = log.headers['Content-Type'][0];
+          return contentType.split(';', 1)[0];
+        }
 
-      return null;
-    };
+        return null;
+      };
 
-    this.onCopyBodySuccess = function (evt) {
-      this.NotificationService.show('Body has been copied to clipboard');
-      evt.clearSelection();
-    };
-  },
+      this.onCopyBodySuccess = function (evt) {
+        this.NotificationService.show('Body has been copied to clipboard');
+        evt.clearSelection();
+      };
+    },
+  ],
   template: require('./platform-log.html'),
 };
 

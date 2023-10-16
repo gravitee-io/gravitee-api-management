@@ -23,40 +23,43 @@ const WidgetChartMapComponent: ng.IComponentOptions = {
   require: {
     parent: '^gvWidget',
   },
-  /* @ngInject */
-  controller: function widgetChartMapController($scope, $element) {
-    this.options = {
-      name: 'Number of API requests',
-      excludedKeys: ['Unknown'],
-    };
-
-    this.$onInit = () => {
-      $scope.$on('onWidgetResize', this.onResize.bind(this));
-    };
-
-    this.$onChanges = function (changes) {
-      this.gvChartMap = $element.children()[0];
-
-      if (changes.data) {
-        const series = {
-          values: changes.data.currentValue ? changes.data.currentValue.values : [],
-        };
-
-        // Send data to gv-chart-map
-        this.gvChartMap.setAttribute('series', JSON.stringify(series));
-        this.gvChartMap.setAttribute('options', JSON.stringify(this.options));
-      }
-    };
-
-    this.onResize = () => {
+  controller: [
+    '$scope',
+    '$element',
+    function widgetChartMapController($scope, $element) {
       this.options = {
-        ...this.options,
-        height: this.gvChartMap.offsetHeight,
-        width: this.gvChartMap.offsetWidth,
+        name: 'Number of API requests',
+        excludedKeys: ['Unknown'],
       };
-      this.gvChartMap.setAttribute('options', JSON.stringify(this.options));
-    };
-  },
+
+      this.$onInit = () => {
+        $scope.$on('onWidgetResize', this.onResize.bind(this));
+      };
+
+      this.$onChanges = function (changes) {
+        this.gvChartMap = $element.children()[0];
+
+        if (changes.data) {
+          const series = {
+            values: changes.data.currentValue ? changes.data.currentValue.values : [],
+          };
+
+          // Send data to gv-chart-map
+          this.gvChartMap.setAttribute('series', JSON.stringify(series));
+          this.gvChartMap.setAttribute('options', JSON.stringify(this.options));
+        }
+      };
+
+      this.onResize = () => {
+        this.options = {
+          ...this.options,
+          height: this.gvChartMap.offsetHeight,
+          width: this.gvChartMap.offsetWidth,
+        };
+        this.gvChartMap.setAttribute('options', JSON.stringify(this.options));
+      };
+    },
+  ],
 };
 
 export default WidgetChartMapComponent;
