@@ -81,13 +81,6 @@ module.exports = {
   },
   plugins: [
     new CleanWebpackPlugin(),
-    new webpack.ProvidePlugin({
-      $: 'jquery',
-      jQuery: 'jquery',
-      moment: 'moment',
-      tinycolor: 'tinycolor2',
-      Highcharts: 'highcharts',
-    }),
     new HtmlWebpackPlugin({
       template: path.resolve(__dirname, '..', 'src', 'index.html'),
     }),
