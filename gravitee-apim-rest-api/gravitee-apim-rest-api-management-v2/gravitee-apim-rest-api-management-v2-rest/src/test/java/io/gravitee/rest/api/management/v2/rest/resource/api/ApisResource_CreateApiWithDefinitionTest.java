@@ -373,7 +373,6 @@ public class ApisResource_CreateApiWithDefinitionTest extends AbstractResourceTe
         page.setCrossId("crossId");
         page.setExcludedGroups(List.of("excludedGroup"));
         page.setExcludedAccessControls(false);
-        page.setGeneralConditions(true);
         page.setHomepage(false);
         page.setId("page-id");
         page.setLastContributor("last-contributor-id");
@@ -885,7 +884,7 @@ public class ApisResource_CreateApiWithDefinitionTest extends AbstractResourceTe
         assertEquals("crossId", page.getCrossId());
         assertEquals(List.of("excludedGroup"), page.getExcludedGroups());
         assertEquals(false, page.isExcludedAccessControls());
-        assertEquals(true, page.isGeneralConditions());
+        assertEquals(null, page.isGeneralConditions());
         assertEquals(false, page.isHomepage());
         assertEquals("page-id", page.getId());
         assertEquals("last-contributor-id", page.getLastContributor());

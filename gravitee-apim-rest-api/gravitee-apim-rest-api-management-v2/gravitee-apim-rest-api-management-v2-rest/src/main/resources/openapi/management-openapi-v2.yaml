@@ -5518,9 +5518,6 @@ components:
                     description: List of page translations.
                     items:
                         $ref: "#/components/schemas/Page"
-                generalConditions:
-                    type: boolean
-                    description: Is the page used as General Conditions for a plan.
                 contentRevision:
                     $ref: "#/components/schemas/Revision"
         PageMedia:
@@ -5645,9 +5642,6 @@ components:
                         type: boolean
                         description: Page's homepage status.
                         example: true
-                    generalConditions:
-                        type: boolean
-                        description: Is the page used as General Conditions for a plan.
             required:
                 - name
                 - type

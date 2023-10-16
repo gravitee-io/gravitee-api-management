@@ -49,7 +49,6 @@ public class Page {
 
     private String content;
     private boolean homepage;
-    private boolean generalConditions;
 
     // Legacy support
     private PageSource source;
