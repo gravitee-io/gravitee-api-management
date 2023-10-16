@@ -8,7 +8,6 @@ $typography: map.get(gio.$mat-theme, typography);
   &__header {
     display: flex;
     flex-direction: row;
-    margin: 0 -16px;
     background-color: mat.get-color-from-palette(gio.$mat-dove-palette, 'default');
     padding: 16px;
 

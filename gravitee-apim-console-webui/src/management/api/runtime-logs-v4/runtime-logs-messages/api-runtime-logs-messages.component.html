@@ -18,20 +18,24 @@
 <mat-card class="card">
   <div class="card__header">
     <div>
-      <div class="card__header__title">Messages</div>
-      <div class="card__header__subtitle">Analyse the messages for a specific runtime log</div>
+      <div class="card__header__title">Details</div>
+      <div class="card__header__subtitle">Analyse the messages for a specific connection</div>
     </div>
-    <a mat-button mat-raised-button [uiSref]="'management.apis.runtimeLogs'" aria-label="Back to Runtime Logs"> Back to Runtime Logs </a>
+    <a mat-button mat-raised-button [uiSref]="'management.apis.runtimeLogs'" aria-label="Back to Connections">Back to Connections</a>
   </div>
 
-  <ng-container *ngIf="messageLogs$ | async as messageLogs">
-    <ng-container *ngFor="let messageLog of messageLogs">
-      <api-runtime-logs-message
-        [messageLog]="messageLog"
-        [connectorIcon]="connectorIcons[messageLog.connectorId]"
-      ></api-runtime-logs-message>
-    </ng-container>
-  </ng-container>
+  <mat-tab-group>
+    <mat-tab label="Messages">
+      <div *ngIf="messageLogs$ | async as messageLogs" class="messages">
+        <ng-container *ngFor="let messageLog of messageLogs">
+          <api-runtime-logs-message
+            [messageLog]="messageLog"
+            [connectorIcon]="connectorIcons[messageLog.connectorId]"
+          ></api-runtime-logs-message>
+        </ng-container>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
 
   <div class="card__footer" *ngIf="pageIndex <= pageCount">
     <button mat-button mat-raised-button aria-label="Load 5 more" (click)="loadMoreMessages()">Load 5 more</button>

@@ -32,3 +32,7 @@ $typography: map.get(gio.$mat-theme, typography);
     border-top: 1px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker10');
   }
 }
+
+.messages {
+  margin: 8px 16px;
+}
