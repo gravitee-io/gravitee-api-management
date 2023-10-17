@@ -31,6 +31,7 @@ export type LogFiltersForm = { period: SimpleFilter; applications: string[] };
 
 export type LogFiltersInitialValues = {
   applications?: MultiFilter;
+  plans?: MultiFilter;
 };
 
 export const DEFAULT_PERIOD = { label: 'None', value: '0' };

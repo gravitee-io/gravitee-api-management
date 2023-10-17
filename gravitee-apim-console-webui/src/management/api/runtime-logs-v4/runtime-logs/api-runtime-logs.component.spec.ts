@@ -47,8 +47,6 @@ describe('ApiRuntimeLogsComponent', () => {
     apiId: API_ID,
     page: 1,
     perPage: 10,
-    from: null,
-    to: null,
   };
 
   const initComponent = async () => {
@@ -330,12 +328,10 @@ describe('ApiRuntimeLogsComponent', () => {
 
         await componentHarness.searchApplication(appName);
         expectApplicationList(appName, [application]);
-        fixture.detectChanges();
 
         await componentHarness.selectedApplication('a ( owner )');
         expect(await componentHarness.getApplicationsTags()).toHaveLength(1);
-        fixture.detectChanges();
-        await fixture.whenStable();
+
         expectApiWithLogs(total, { perPage, page: 1, applicationIds: application.id });
         expect(fakeUiRouter.go).toHaveBeenNthCalledWith(
           1,
@@ -443,7 +439,7 @@ describe('ApiRuntimeLogsComponent', () => {
       await initComponent();
       expectApiWithLogs(10, { page: 1, perPage: 10, applicationIds: '1' });
       expectApiWithLogEnabled();
-      expectApplicationFindById(application);
+      expectApplicationFindByIds(application.id, [application]);
       expectApplicationList();
     });
 
@@ -528,6 +524,25 @@ describe('ApiRuntimeLogsComponent', () => {
       const req = httpTestingController
         .match({
           url: `${CONSTANTS_TESTING.env.baseURL}/applications/_paged?page=1&size=10&query=${searchTerm}`,
+          method: 'GET',
+        })
+        .filter((req) => !req.cancelled);
+      expect(req.length).toEqual(1);
+      req[0].flush(fakePagedResult(applications));
+    } else {
+      httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.baseURL}/applications/_paged?page=1&size=10`,
+        method: 'GET',
+      });
+    }
+    fixture.detectChanges();
+  }
+
+  function expectApplicationFindByIds(ids?: string, applications?: Application[]) {
+    if (ids) {
+      const req = httpTestingController
+        .match({
+          url: `${CONSTANTS_TESTING.env.baseURL}/applications/_paged?page=1&size=10&ids=${ids}`,
           method: 'GET',
         })
         .filter((req) => !req.cancelled);

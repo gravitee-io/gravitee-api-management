@@ -153,4 +153,42 @@ describe('ApplicationService', () => {
       req.flush(mockApplication);
     });
   });
+
+  describe('findByIds', () => {
+    it('should call the API', (done) => {
+      const app1 = fakeApplication({ id: '1' });
+      const app2 = fakeApplication({ id: '2' });
+      const mockApplications = [app1, app2];
+
+      applicationService.findByIds([app1.id, app2.id]).subscribe((response) => {
+        expect(response).toMatchObject(mockApplications);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        method: 'GET',
+        url: `${CONSTANTS_TESTING.env.baseURL}/applications/_paged?page=1&size=10&ids=1&ids=2`,
+      });
+
+      req.flush(mockApplications);
+    });
+
+    it('should call the API with custome pagination', (done) => {
+      const app1 = fakeApplication({ id: '1' });
+      const app2 = fakeApplication({ id: '2' });
+      const mockApplications = [app1, app2];
+
+      applicationService.findByIds([app1.id, app2.id], 2, 42).subscribe((response) => {
+        expect(response).toMatchObject(mockApplications);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        method: 'GET',
+        url: `${CONSTANTS_TESTING.env.baseURL}/applications/_paged?page=2&size=42&ids=1&ids=2`,
+      });
+
+      req.flush(mockApplications);
+    });
+  });
 });

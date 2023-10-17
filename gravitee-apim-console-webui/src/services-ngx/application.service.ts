@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
@@ -64,6 +64,19 @@ export class ApplicationService {
         ...(applicationIds ? { ids: applicationIds } : {}),
         ...(order ? { order } : {}),
       },
+    });
+  }
+
+  findByIds(ids: string[], page = 1, size = 10): Observable<PagedResult<Application>> {
+    let params = new HttpParams();
+    params = params.append('page', page);
+    params = params.append('size', size);
+
+    if (ids?.length > 0) {
+      params = params.appendAll({ ids });
+    }
+    return this.http.get<PagedResult<Application>>(`${this.constants.env.baseURL}/applications/_paged`, {
+      params,
     });
   }
 
