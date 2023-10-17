@@ -44,6 +44,7 @@ import io.gravitee.rest.api.service.exceptions.TagNotFoundException;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
+import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
 import io.gravitee.rest.api.service.v4.validation.LoggingValidationService;
 import java.io.InputStream;
 import java.util.Collections;
@@ -134,6 +135,9 @@ public class ApiService_CreateWithDefinitionTest {
 
     @Mock
     private AlertService alertService;
+
+    @Mock
+    private CorsValidationService corsValidationService;
 
     @AfterClass
     public static void cleanSecurityContextHolder() {
