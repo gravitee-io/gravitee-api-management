@@ -15,72 +15,80 @@
  */
 package io.gravitee.rest.api.service.v4.impl.validation;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import io.gravitee.definition.model.Cors;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.service.exceptions.AllowOriginNotAllowedException;
 import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
 import java.util.Collections;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.internal.util.collections.Sets;
-import org.mockito.junit.MockitoJUnitRunner;
+import java.util.Set;
+import java.util.stream.Stream;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
-public class CorsValidationServiceImplTest {
+@ExtendWith(MockitoExtension.class)
+class CorsValidationServiceImplTest {
 
     private CorsValidationService corsValidationService;
 
-    @Before
-    public void setUp() throws Exception {
+    @BeforeEach
+    public void setUp() {
         corsValidationService = new CorsValidationServiceImpl();
     }
 
-    @Test(expected = AllowOriginNotAllowedException.class)
-    public void shouldNotValidateAllowOriginWithNotAllowedPattern() throws TechnicalException {
-        Cors cors = new Cors();
-        cors.setAccessControlAllowOrigin(
-            Sets.newSet(
-                "http://example.com",
-                "localhost", // Not allowed
-                "https://10.140.238.25:8080",
-                "(http|https)://[a-z]{6}.domain.[a-zA-Z]{2,6}",
-                ".*.company.com"
-            )
+    private static Stream<Arguments> invalidCorsOrigins() {
+        return Stream.of(
+            Arguments.of(
+                Set.of(
+                    "http://example.com",
+                    "localhost", // Not allowed
+                    "https://10.140.238.25:8080",
+                    "(http|https)://[a-z]{6}.domain.[a-zA-Z]{2,6}",
+                    ".*.company.com"
+                )
+            ),
+            Arguments.of(Set.of("a{")),
+            Arguments.of(Set.of("$some_env_var2"))
         );
-        corsValidationService.validateAndSanitize(cors);
     }
 
-    @Test(expected = AllowOriginNotAllowedException.class)
-    public void shouldNotValidateAllowOriginWithWrongPattern() throws TechnicalException {
+    @ParameterizedTest
+    @MethodSource("invalidCorsOrigins")
+    void shouldThrowWhenValidatingInvalidCorsOrigins(Set<String> origins) {
         Cors cors = new Cors();
-        cors.setAccessControlAllowOrigin(Collections.singleton("a{"));
+        cors.setAccessControlAllowOrigin(origins);
 
-        corsValidationService.validateAndSanitize(cors);
+        assertThrows(AllowOriginNotAllowedException.class, () -> corsValidationService.validateAndSanitize(cors));
     }
 
     @Test
-    public void shouldHaveAllowOriginWildcardAllowed() throws TechnicalException {
+    void shouldHaveAllowOriginWildcardAllowed() {
         Cors cors = new Cors();
         cors.setEnabled(true);
         cors.setAccessControlAllowOrigin(Collections.singleton("*"));
         Cors sanitizedCors = corsValidationService.validateAndSanitize(cors);
 
-        Assert.assertSame(cors, sanitizedCors);
+        assertThat(cors).isSameAs(sanitizedCors);
     }
 
     @Test
-    public void shouldHaveAllowOriginNullAllowed() throws TechnicalException {
+    void shouldHaveAllowOriginNullAllowed() throws TechnicalException {
         Cors cors = new Cors();
         cors.setEnabled(true);
         cors.setAccessControlAllowOrigin(Collections.singleton("null"));
         Cors sanitizedCors = corsValidationService.validateAndSanitize(cors);
 
-        Assert.assertSame(cors, sanitizedCors);
+        assertThat(cors).isSameAs(sanitizedCors);
     }
 }
