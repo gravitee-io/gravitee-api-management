@@ -15,14 +15,14 @@
  */
 package io.gravitee.apim.core.log.crud_service;
 
+import io.gravitee.apim.core.log.model.AggregatedMessageLog;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.v4.log.SearchLogResponse;
-import io.gravitee.rest.api.model.v4.log.message.BaseMessageLog;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface MessageLogCrudService {
-    SearchLogResponse<BaseMessageLog> searchApiMessageLog(String apiId, String requestId, Pageable pageable);
+    SearchLogResponse<AggregatedMessageLog> searchApiMessageLog(String apiId, String requestId, Pageable pageable);
 }

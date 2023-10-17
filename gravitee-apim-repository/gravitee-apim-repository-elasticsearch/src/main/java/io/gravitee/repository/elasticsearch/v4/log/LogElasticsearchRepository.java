@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.elasticsearch.v4.log;
 
+import io.gravitee.elasticsearch.model.SearchHits;
+import io.gravitee.elasticsearch.model.TotalHits;
 import io.gravitee.elasticsearch.utils.Type;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepository;
 import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
@@ -27,8 +29,10 @@ import io.gravitee.repository.log.v4.api.LogRepository;
 import io.gravitee.repository.log.v4.model.LogResponse;
 import io.gravitee.repository.log.v4.model.connection.ConnectionLog;
 import io.gravitee.repository.log.v4.model.connection.ConnectionLogQuery;
+import io.gravitee.repository.log.v4.model.message.AggregatedMessageLog;
 import io.gravitee.repository.log.v4.model.message.MessageLog;
 import io.gravitee.repository.log.v4.model.message.MessageLogQuery;
+import io.reactivex.rxjava3.core.Single;
 
 public class LogElasticsearchRepository extends AbstractElasticsearchRepository implements LogRepository {
 
@@ -49,12 +53,68 @@ public class LogElasticsearchRepository extends AbstractElasticsearchRepository 
     }
 
     @Override
-    public LogResponse<MessageLog> searchMessageLog(MessageLogQuery query) {
+    public LogResponse<AggregatedMessageLog> searchAggregatedMessageLog(MessageLogQuery query) {
         var clusters = ClusterUtils.extractClusterIndexPrefixes(configuration);
         var index = this.indexNameGenerator.getWildcardIndexName(Type.V4_MESSAGE_LOG, clusters);
 
-        return this.client.search(index, null, SearchMessageLogQueryAdapter.adapt(query))
-            .map(SearchMessageLogResponseAdapter::adapt)
+        var entrypointMessages =
+            this.client.search(
+                    index,
+                    null,
+                    SearchMessageLogQueryAdapter.adapt(
+                        query.toBuilder().filter(query.getFilter().toBuilder().connectorType("entrypoint").build()).build()
+                    )
+                )
+                .map(response -> {
+                    var result = response.getSearchHits();
+                    if (result == null) {
+                        SearchHits searchHits = new SearchHits();
+                        searchHits.setTotal(new TotalHits(0));
+                        return searchHits;
+                    }
+                    return result;
+                });
+
+        var endpointMessages =
+            this.client.search(
+                    index,
+                    null,
+                    SearchMessageLogQueryAdapter.adapt(
+                        query.toBuilder().filter(query.getFilter().toBuilder().connectorType("endpoint").build()).build()
+                    )
+                )
+                .map(response -> {
+                    var result = response.getSearchHits();
+                    if (result == null) {
+                        SearchHits searchHits = new SearchHits();
+                        searchHits.setTotal(new TotalHits(0));
+                        return searchHits;
+                    }
+                    return result;
+                });
+
+        return Single
+            .zip(
+                entrypointMessages,
+                endpointMessages,
+                (entrypointResponse, endpointResponse) -> {
+                    var totalEntrypointMessages = entrypointResponse.getTotal().getValue();
+                    var totalEndpointMessages = endpointResponse.getTotal().getValue();
+
+                    if (totalEndpointMessages == 0) {
+                        return new LogResponse<>((int) totalEntrypointMessages, SearchMessageLogResponseAdapter.adapt(entrypointResponse));
+                    }
+
+                    if (totalEntrypointMessages == 0) {
+                        return new LogResponse<>((int) totalEndpointMessages, SearchMessageLogResponseAdapter.adapt(endpointResponse));
+                    }
+
+                    return new LogResponse<>(
+                        (int) totalEntrypointMessages,
+                        SearchMessageLogResponseAdapter.adapt(entrypointResponse, endpointResponse)
+                    );
+                }
+            )
             .blockingGet();
     }
 }

@@ -16,15 +16,14 @@
 package io.gravitee.apim.infra.crud_service.log;
 
 import io.gravitee.apim.core.log.crud_service.MessageLogCrudService;
+import io.gravitee.apim.core.log.model.AggregatedMessageLog;
 import io.gravitee.apim.infra.adapter.MessageLogAdapter;
 import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.log.v4.api.LogRepository;
 import io.gravitee.repository.log.v4.model.LogResponse;
-import io.gravitee.repository.log.v4.model.message.MessageLog;
 import io.gravitee.repository.log.v4.model.message.MessageLogQuery;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.v4.log.SearchLogResponse;
-import io.gravitee.rest.api.model.v4.log.message.BaseMessageLog;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -45,9 +44,9 @@ class MessageLogCrudServiceImpl implements MessageLogCrudService {
     }
 
     @Override
-    public SearchLogResponse<BaseMessageLog> searchApiMessageLog(String apiId, String requestId, Pageable pageable) {
+    public SearchLogResponse<AggregatedMessageLog> searchApiMessageLog(String apiId, String requestId, Pageable pageable) {
         try {
-            var response = logRepository.searchMessageLog(
+            var response = logRepository.searchAggregatedMessageLog(
                 MessageLogQuery
                     .builder()
                     .filter(MessageLogQuery.Filter.builder().apiId(apiId).requestId(requestId).build())
@@ -62,9 +61,11 @@ class MessageLogCrudServiceImpl implements MessageLogCrudService {
         }
     }
 
-    private SearchLogResponse<BaseMessageLog> mapToMessageResponse(LogResponse<MessageLog> logs) {
+    private SearchLogResponse<AggregatedMessageLog> mapToMessageResponse(
+        LogResponse<io.gravitee.repository.log.v4.model.message.AggregatedMessageLog> logs
+    ) {
         var total = logs.total();
-        var data = MessageLogAdapter.INSTANCE.toEntitiesList(logs.data());
+        var data = MessageLogAdapter.INSTANCE.toEntities(logs.data());
 
         return new SearchLogResponse<>(total, data);
     }

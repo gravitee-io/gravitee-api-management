@@ -17,20 +17,17 @@ package io.gravitee.apim.infra.crud_service.log;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.log.crud_service.MessageLogCrudService;
+import io.gravitee.apim.core.log.model.MessageOperation;
 import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.log.v4.api.LogRepository;
 import io.gravitee.repository.log.v4.model.LogResponse;
-import io.gravitee.repository.log.v4.model.message.MessageLog;
+import io.gravitee.repository.log.v4.model.message.AggregatedMessageLog;
 import io.gravitee.repository.log.v4.model.message.MessageLogQuery;
 import io.gravitee.rest.api.model.common.PageableImpl;
-import io.gravitee.rest.api.model.v4.connector.ConnectorType;
-import io.gravitee.rest.api.model.v4.log.message.BaseMessageLog;
-import io.gravitee.rest.api.model.v4.log.message.MessageOperation;
 import java.util.List;
 import java.util.Map;
 import org.assertj.core.api.SoftAssertions;
@@ -60,12 +57,12 @@ class MessageLogCrudServiceImplTest {
 
     @Test
     void should_search_api_message_logs() throws AnalyticsException {
-        when(logRepository.searchMessageLog(any())).thenReturn(new LogResponse<>(0L, List.of()));
+        when(logRepository.searchAggregatedMessageLog(any())).thenReturn(new LogResponse<>(0L, List.of()));
 
         cut.searchApiMessageLog("api-id", "request-id", new PageableImpl(1, 10));
 
         var captor = ArgumentCaptor.forClass(MessageLogQuery.class);
-        verify(logRepository).searchMessageLog(captor.capture());
+        verify(logRepository).searchAggregatedMessageLog(captor.capture());
 
         assertThat(captor.getValue())
             .isEqualTo(
@@ -80,7 +77,7 @@ class MessageLogCrudServiceImplTest {
 
     @Test
     void should_return_api_message_logs() throws AnalyticsException {
-        final MessageLog expectedMessageLog = MessageLog
+        final var expectedMessageLog = AggregatedMessageLog
             .builder()
             .apiId("api-id")
             .clientIdentifier("client-identifier")
@@ -89,12 +86,21 @@ class MessageLogCrudServiceImplTest {
             .clientIdentifier("client-identifier")
             .correlationId("correlation-id")
             .parentCorrelationId("parent-correlation-id")
-            .connectorType(ConnectorType.ENTRYPOINT.getLabel())
-            .connectorId("http-get")
             .operation(MessageOperation.SUBSCRIBE.getLabel())
-            .message(
-                MessageLog.Message
+            .entrypoint(
+                AggregatedMessageLog.Message
                     .builder()
+                    .connectorId("http-get")
+                    .id("message-id")
+                    .payload("message-payload")
+                    .headers(Map.of("X-Header", List.of("header-value")))
+                    .metadata(Map.of("X-Metdata", "metadata-value"))
+                    .build()
+            )
+            .endpoint(
+                AggregatedMessageLog.Message
+                    .builder()
+                    .connectorId("kafka")
                     .id("message-id")
                     .payload("message-payload")
                     .headers(Map.of("X-Header", List.of("header-value")))
@@ -102,7 +108,7 @@ class MessageLogCrudServiceImplTest {
                     .build()
             )
             .build();
-        when(logRepository.searchMessageLog(any())).thenReturn(new LogResponse<>(1L, List.of(expectedMessageLog)));
+        when(logRepository.searchAggregatedMessageLog(any())).thenReturn(new LogResponse<>(1L, List.of(expectedMessageLog)));
 
         var result = cut.searchApiMessageLog("api-id", "request-id", new PageableImpl(1, 10));
 
@@ -111,7 +117,7 @@ class MessageLogCrudServiceImplTest {
             assertThat(result.logs())
                 .isEqualTo(
                     List.of(
-                        BaseMessageLog
+                        io.gravitee.apim.core.log.model.AggregatedMessageLog
                             .builder()
                             .apiId(expectedMessageLog.getApiId())
                             .requestId(expectedMessageLog.getRequestId())
@@ -119,16 +125,25 @@ class MessageLogCrudServiceImplTest {
                             .timestamp(expectedMessageLog.getTimestamp())
                             .correlationId(expectedMessageLog.getCorrelationId())
                             .parentCorrelationId("parent-correlation-id")
-                            .connectorType(ConnectorType.fromLabel(expectedMessageLog.getConnectorType()))
-                            .connectorId("http-get")
                             .operation(MessageOperation.fromLabel(expectedMessageLog.getOperation()))
-                            .message(
-                                BaseMessageLog.Message
+                            .entrypoint(
+                                io.gravitee.apim.core.log.model.AggregatedMessageLog.Message
                                     .builder()
-                                    .id(expectedMessageLog.getMessage().getId())
-                                    .payload(expectedMessageLog.getMessage().getPayload())
-                                    .headers(expectedMessageLog.getMessage().getHeaders())
-                                    .metadata(expectedMessageLog.getMessage().getMetadata())
+                                    .connectorId("http-get")
+                                    .id(expectedMessageLog.getEntrypoint().getId())
+                                    .payload(expectedMessageLog.getEntrypoint().getPayload())
+                                    .headers(expectedMessageLog.getEntrypoint().getHeaders())
+                                    .metadata(expectedMessageLog.getEntrypoint().getMetadata())
+                                    .build()
+                            )
+                            .endpoint(
+                                io.gravitee.apim.core.log.model.AggregatedMessageLog.Message
+                                    .builder()
+                                    .connectorId("kafka")
+                                    .id(expectedMessageLog.getEndpoint().getId())
+                                    .payload(expectedMessageLog.getEndpoint().getPayload())
+                                    .headers(expectedMessageLog.getEndpoint().getHeaders())
+                                    .metadata(expectedMessageLog.getEndpoint().getMetadata())
                                     .build()
                             )
                             .build()

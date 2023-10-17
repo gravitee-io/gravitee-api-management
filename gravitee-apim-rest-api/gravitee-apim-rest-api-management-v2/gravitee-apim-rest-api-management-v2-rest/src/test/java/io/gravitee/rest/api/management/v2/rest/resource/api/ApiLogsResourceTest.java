@@ -16,17 +16,20 @@
 package io.gravitee.rest.api.management.v2.rest.resource.api;
 
 import static assertions.MAPIAssertions.assertThat;
-import static io.gravitee.common.http.HttpStatusCode.*;
+import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
+import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
+import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
+import fixtures.core.log.model.MessageLogFixtures;
 import fixtures.repository.ConnectionLogFixtures;
-import fixtures.repository.MessageLogFixtures;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.ConnectionLogCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.MessageLogCrudServiceInMemory;
 import inmemory.PlanCrudServiceInMemory;
+import io.gravitee.apim.core.log.model.MessageOperation;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLog;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLogsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiMessageLog;
@@ -42,8 +45,6 @@ import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.model.v4.connector.ConnectorType;
-import io.gravitee.rest.api.model.v4.log.message.MessageOperation;
 import io.gravitee.rest.api.model.v4.plan.BasePlanEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
@@ -68,7 +69,6 @@ public class ApiLogsResourceTest extends ApiResourceTest {
     public static final String REQUEST_ID = "request-id";
 
     final ConnectionLogFixtures connectionLogFixtures = new ConnectionLogFixtures(API, APPLICATION.getId(), PLAN_1.getId());
-    final MessageLogFixtures messageLogFixtures = new MessageLogFixtures(API, REQUEST_ID);
 
     @Inject
     ConnectionLogCrudServiceInMemory connectionLogStorageService;
@@ -411,7 +411,7 @@ public class ApiLogsResourceTest extends ApiResourceTest {
 
         @Test
         public void should_return_message_logs() {
-            messageLogStorageService.initWith(List.of(messageLogFixtures.aMessageLog(REQUEST_ID)));
+            messageLogStorageService.initWith(List.of(MessageLogFixtures.aMessageLog(API, REQUEST_ID)));
 
             final Response response = messageLogsTarget.request().get();
 
@@ -430,12 +430,21 @@ public class ApiLogsResourceTest extends ApiResourceTest {
                                     .timestamp(Instant.parse("2020-02-01T20:00:00.00Z").atOffset(ZoneOffset.UTC))
                                     .correlationId("correlation-id")
                                     .parentCorrelationId("parent-correlation-id")
-                                    .connectorType(ConnectorType.ENTRYPOINT.name())
-                                    .connectorId("http-get")
                                     .operation(MessageOperation.SUBSCRIBE.name())
-                                    .message(
+                                    .entrypoint(
                                         ApiMessageLogContent
                                             .builder()
+                                            .connectorId("http-get")
+                                            .id("message-id")
+                                            .payload("message-payload")
+                                            .headers(Map.of("X-Header", List.of("header-value")))
+                                            .metadata(Map.of("X-Metdata", "metadata-value"))
+                                            .build()
+                                    )
+                                    .endpoint(
+                                        ApiMessageLogContent
+                                            .builder()
+                                            .connectorId("kafka")
                                             .id("message-id")
                                             .payload("message-payload")
                                             .headers(Map.of("X-Header", List.of("header-value")))
@@ -456,7 +465,10 @@ public class ApiLogsResourceTest extends ApiResourceTest {
             var total = 20L;
             var pageSize = 5;
             messageLogStorageService.initWith(
-                LongStream.range(0, total).mapToObj(i -> messageLogFixtures.aMessageLogWithMessageId(String.valueOf(i))).toList()
+                LongStream
+                    .range(0, total)
+                    .mapToObj(i -> MessageLogFixtures.aMessageLog(API, REQUEST_ID).toBuilder().correlationId(String.valueOf(i)).build())
+                    .toList()
             );
 
             messageLogsTarget =
@@ -478,7 +490,10 @@ public class ApiLogsResourceTest extends ApiResourceTest {
             var page = 2;
             var pageSize = 5;
             messageLogStorageService.initWith(
-                LongStream.range(0, total).mapToObj(i -> messageLogFixtures.aMessageLogWithMessageId(String.valueOf(i))).toList()
+                LongStream
+                    .range(0, total)
+                    .mapToObj(i -> MessageLogFixtures.aMessageLog(API, REQUEST_ID).toBuilder().correlationId(String.valueOf(i)).build())
+                    .toList()
             );
 
             final Response response = messageLogsTarget

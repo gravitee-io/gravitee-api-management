@@ -20,6 +20,7 @@ import io.gravitee.repository.log.v4.api.LogRepository;
 import io.gravitee.repository.log.v4.model.LogResponse;
 import io.gravitee.repository.log.v4.model.connection.ConnectionLog;
 import io.gravitee.repository.log.v4.model.connection.ConnectionLogQuery;
+import io.gravitee.repository.log.v4.model.message.AggregatedMessageLog;
 import io.gravitee.repository.log.v4.model.message.MessageLog;
 import io.gravitee.repository.log.v4.model.message.MessageLogQuery;
 
@@ -31,7 +32,7 @@ public class NoOpLogRepository implements LogRepository {
     }
 
     @Override
-    public LogResponse<MessageLog> searchMessageLog(MessageLogQuery query) throws AnalyticsException {
+    public LogResponse<AggregatedMessageLog> searchAggregatedMessageLog(MessageLogQuery query) {
         return null;
     }
 }

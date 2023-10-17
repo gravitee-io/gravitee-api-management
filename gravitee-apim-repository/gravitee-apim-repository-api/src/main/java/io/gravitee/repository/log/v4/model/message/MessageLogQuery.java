@@ -18,7 +18,7 @@ package io.gravitee.repository.log.v4.model.message;
 import lombok.Builder;
 import lombok.Data;
 
-@Builder
+@Builder(toBuilder = true)
 @Data
 public class MessageLogQuery {
 
@@ -31,10 +31,11 @@ public class MessageLogQuery {
     private Filter filter;
 
     @Data
-    @Builder
+    @Builder(toBuilder = true)
     public static class Filter {
 
         private final String apiId;
         private final String requestId;
+        private final String connectorType;
     }
 }

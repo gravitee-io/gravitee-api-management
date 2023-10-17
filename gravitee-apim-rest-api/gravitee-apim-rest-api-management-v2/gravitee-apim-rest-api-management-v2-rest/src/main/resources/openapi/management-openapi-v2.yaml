@@ -5271,10 +5271,6 @@ components:
         ApiMessageLog:
             type: object
             properties:
-                id:
-                    type: string
-                    description: The internal UUID of the Log.
-                    example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
                 requestId:
                     type: string
                     description: The id of the request.
@@ -5300,15 +5296,9 @@ components:
                     type: string
                     description: The operation.
                     example: subscribe
-                connectorType:
-                    type: string
-                    description: The type of connector for this log.
-                    example: endpoint
-                connectorId:
-                    type: string
-                    description: The id of connector for this log.
-                    example: kafka
-                message:
+                entrypoint:
+                    $ref: "#/components/schemas/ApiMessageLogContent"
+                endpoint:
                     $ref: "#/components/schemas/ApiMessageLogContent"
         ApiMessageLogContent:
             type: object
@@ -5331,6 +5321,10 @@ components:
                     type: string
                     description: The internal UUID of the Message.
                     example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+                connectorId:
+                    type: string
+                    description: The id of connector for this log.
+                    example: kafka
                 payload:
                     type: string
                     description: The payload of the Message.

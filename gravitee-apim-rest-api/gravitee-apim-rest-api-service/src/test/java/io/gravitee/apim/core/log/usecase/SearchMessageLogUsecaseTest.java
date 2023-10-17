@@ -15,12 +15,12 @@
  */
 package io.gravitee.apim.core.log.usecase;
 
+import static fixtures.core.log.model.MessageLogFixtures.aMessageLog;
 import static org.assertj.core.api.Assertions.tuple;
 
-import fixtures.repository.MessageLogFixtures;
 import inmemory.MessageLogCrudServiceInMemory;
+import io.gravitee.apim.core.log.model.AggregatedMessageLog;
 import io.gravitee.rest.api.model.common.PageableImpl;
-import io.gravitee.rest.api.model.v4.log.message.BaseMessageLog;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.List;
 import java.util.stream.IntStream;
@@ -39,7 +39,6 @@ class SearchMessageLogUsecaseTest {
     private static final String REQUEST_ID = "request-id";
     private SearchMessageLogUsecase usecase;
     private final MessageLogCrudServiceInMemory messageLogStorageService = new MessageLogCrudServiceInMemory();
-    private final MessageLogFixtures messageLogFixtures = new MessageLogFixtures(API_ID);
 
     @BeforeEach
     void setUp() {
@@ -54,13 +53,13 @@ class SearchMessageLogUsecaseTest {
 
     @Test
     void should_return_messages_logs_of_an_api() {
-        final BaseMessageLog expectedMessageLog = messageLogFixtures.aMessageLog(REQUEST_ID).toBuilder().build();
+        var expectedMessageLog = aMessageLog(API_ID, REQUEST_ID);
         messageLogStorageService.initWith(
             List.of(
                 expectedMessageLog,
-                messageLogFixtures.aMessageLog().toBuilder().apiId("other-api").build(),
-                messageLogFixtures.aMessageLog("other-request-id").toBuilder().build(),
-                messageLogFixtures.aMessageLog("another-request-id").toBuilder().apiId("other-api").build()
+                aMessageLog("other-api", "a-request-id"),
+                aMessageLog(API_ID, "other-request-id"),
+                aMessageLog("other-api", "another-request-id")
             )
         );
 
@@ -72,7 +71,7 @@ class SearchMessageLogUsecaseTest {
                 .assertThat(result.data())
                 .isEqualTo(
                     List.of(
-                        BaseMessageLog
+                        AggregatedMessageLog
                             .builder()
                             .apiId(API_ID)
                             .requestId(REQUEST_ID)
@@ -80,11 +79,10 @@ class SearchMessageLogUsecaseTest {
                             .clientIdentifier(expectedMessageLog.getClientIdentifier())
                             .correlationId(expectedMessageLog.getCorrelationId())
                             .parentCorrelationId(expectedMessageLog.getParentCorrelationId())
-                            .operation(expectedMessageLog.getOperation())
-                            .connectorType(expectedMessageLog.getConnectorType())
-                            .connectorId(expectedMessageLog.getConnectorId())
                             .timestamp(expectedMessageLog.getTimestamp())
-                            .message(expectedMessageLog.getMessage())
+                            .operation(expectedMessageLog.getOperation())
+                            .entrypoint(expectedMessageLog.getEntrypoint())
+                            .endpoint(expectedMessageLog.getEndpoint())
                             .build()
                     )
                 );
@@ -95,9 +93,9 @@ class SearchMessageLogUsecaseTest {
     void should_return_api_message_logs_sorted_by_desc_timestamp() {
         messageLogStorageService.initWith(
             List.of(
-                messageLogFixtures.aMessageLogWithMessageId("msg1").toBuilder().timestamp("2020-02-01T20:00:00.00Z").build(),
-                messageLogFixtures.aMessageLogWithMessageId("msg2").toBuilder().timestamp("2020-02-02T20:00:00.00Z").build(),
-                messageLogFixtures.aMessageLogWithMessageId("msg3").toBuilder().timestamp("2020-02-04T20:00:00.00Z").build()
+                aMessageLog(API_ID, REQUEST_ID).toBuilder().correlationId("correlation-1").timestamp("2020-02-01T20:00:00.00Z").build(),
+                aMessageLog(API_ID, REQUEST_ID).toBuilder().correlationId("correlation-2").timestamp("2020-02-02T20:00:00.00Z").build(),
+                aMessageLog(API_ID, REQUEST_ID).toBuilder().correlationId("correlation-3").timestamp("2020-02-04T20:00:00.00Z").build()
             )
         );
 
@@ -107,11 +105,11 @@ class SearchMessageLogUsecaseTest {
             soft.assertThat(result.total()).isEqualTo(3);
             soft
                 .assertThat(result.data())
-                .extracting(messageLog -> messageLog.getMessage().getId(), BaseMessageLog::getTimestamp)
+                .extracting(AggregatedMessageLog::getCorrelationId, AggregatedMessageLog::getTimestamp)
                 .containsExactly(
-                    tuple("msg3", "2020-02-04T20:00:00.00Z"),
-                    tuple("msg2", "2020-02-02T20:00:00.00Z"),
-                    tuple("msg1", "2020-02-01T20:00:00.00Z")
+                    tuple("correlation-3", "2020-02-04T20:00:00.00Z"),
+                    tuple("correlation-2", "2020-02-02T20:00:00.00Z"),
+                    tuple("correlation-1", "2020-02-01T20:00:00.00Z")
                 );
         });
     }
@@ -122,17 +120,17 @@ class SearchMessageLogUsecaseTest {
         var pageNumber = 2;
         var pageSize = 5;
         messageLogStorageService.initWith(
-            IntStream.range(0, expectedTotal).mapToObj(i -> messageLogFixtures.aMessageLogWithMessageId(String.valueOf(i))).toList()
+            IntStream
+                .range(0, expectedTotal)
+                .mapToObj(i -> aMessageLog(API_ID, REQUEST_ID).toBuilder().correlationId(String.valueOf(i)).build())
+                .toList()
         );
 
         var result = usecase.execute(new SearchMessageLogUsecase.Input(API_ID, REQUEST_ID, new PageableImpl(pageNumber, pageSize)));
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.total()).isEqualTo(expectedTotal);
-            soft
-                .assertThat(result.data())
-                .extracting(messageLog -> messageLog.getMessage().getId())
-                .containsExactly("5", "6", "7", "8", "9");
+            soft.assertThat(result.data()).extracting(AggregatedMessageLog::getCorrelationId).containsExactly("5", "6", "7", "8", "9");
         });
     }
 }
