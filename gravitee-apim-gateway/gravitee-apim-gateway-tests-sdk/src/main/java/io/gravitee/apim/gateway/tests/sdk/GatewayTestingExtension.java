@@ -71,6 +71,7 @@ public class GatewayTestingExtension
 
         try {
             startGateway(context);
+            deployOrganizationForClass(context);
             deployApisForClass(context);
         } catch (Exception e) {
             LOGGER.error("Before all error: {}", e.getMessage());
@@ -90,7 +91,7 @@ public class GatewayTestingExtension
      */
     @Override
     public void beforeEach(ExtensionContext context) throws Exception {
-        beforeDeployingOrganization(context);
+        deployOrganizationForMethod(context);
         if (context.getRequiredTestMethod().isAnnotationPresent(DeployApi.class)) {
             LOGGER.debug("Deploying apis for test {}", context.getRequiredTestMethod().getName());
             final DeployApi annotation = context.getRequiredTestMethod().getAnnotation(DeployApi.class);
@@ -112,19 +113,23 @@ public class GatewayTestingExtension
      * @param context
      * @throws IOException
      */
-    private void beforeDeployingOrganization(ExtensionContext context) throws IOException {
+    private void deployOrganizationForMethod(ExtensionContext context) throws Exception {
         if (context.getRequiredTestMethod().isAnnotationPresent(DeployOrganization.class)) {
             LOGGER.debug("Deploying organization for test {}", context.getRequiredTestMethod().getName());
             final DeployOrganization annotation = context.getRequiredTestMethod().getAnnotation(DeployOrganization.class);
             try {
                 gatewayRunner.deployOrganization(annotation.value());
+                gatewayRunner
+                    .deployedApis()
+                    .values()
+                    .forEach(reactableApi -> {
+                        gatewayTest.undeploy(reactableApi.getId());
+                        gatewayTest.deploy(reactableApi);
+                    });
             } catch (Exception e) {
                 exception = e;
                 throw e;
             }
-        } else if (context.getRequiredTestClass().isAnnotationPresent(DeployOrganization.class)) {
-            final DeployOrganization annotation = context.getRequiredTestClass().getAnnotation(DeployOrganization.class);
-            gatewayRunner.deployOrganization(annotation.value());
         }
     }
 
@@ -133,13 +138,16 @@ public class GatewayTestingExtension
      * @param context the current extension context; never {@code null}
      */
     @Override
-    public void afterEach(ExtensionContext context) {
+    public void afterEach(ExtensionContext context) throws IOException {
         if (context.getRequiredTestMethod().isAnnotationPresent(DeployApi.class)) {
             LOGGER.debug("Clear test method's apis");
             gatewayRunner.undeployForTest();
         }
-        LOGGER.debug("Clear organization");
-        gatewayRunner.undeployOrganization();
+        if (context.getRequiredTestMethod().isAnnotationPresent(DeployOrganization.class)) {
+            LOGGER.debug("Clear organization");
+            gatewayRunner.undeployOrganization();
+            deployOrganizationForClass(context);
+        }
     }
 
     /**
@@ -160,6 +168,14 @@ public class GatewayTestingExtension
 
         if (exception != null) {
             LOGGER.error("Exception occurred during testing. {}", exception.getMessage());
+        }
+    }
+
+    private void deployOrganizationForClass(final ExtensionContext context) throws IOException {
+        final Class<?> requiredTestClass = context.getRequiredTestClass();
+        if (requiredTestClass.isAnnotationPresent(DeployOrganization.class)) {
+            final DeployOrganization annotation = context.getRequiredTestClass().getAnnotation(DeployOrganization.class);
+            gatewayRunner.deployOrganization(annotation.value());
         }
     }
 
