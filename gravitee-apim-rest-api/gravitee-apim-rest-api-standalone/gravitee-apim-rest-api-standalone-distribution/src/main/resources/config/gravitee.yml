@@ -253,6 +253,19 @@ analytics:
 #          username: user
 #          password: secret
 
+## Logging settings
+#logging:
+#  messageSampling:
+#    probabilistic:
+#      default: 0.01
+#      limit: 0.5
+#    count:
+#      default: 100
+#      limit: 10
+#    temporal:
+#      default: PT1S
+#      limit: PT1S
+
 # Authentication and identity sources
 # Users can have following roles (authorities):
 #  USER: Can access portal and be a member of an API
