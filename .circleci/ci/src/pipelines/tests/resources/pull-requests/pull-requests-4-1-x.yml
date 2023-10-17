@@ -649,7 +649,6 @@ jobs:
           name: Generate e2e tests SDK
           command: |-
             npm run update:sdk:management
-            npm run update:sdk:management:v2
             npm run update:sdk:portal
           working_directory: gravitee-apim-e2e
       - cmd-notify-on-failure
@@ -657,7 +656,6 @@ jobs:
           root: .
           paths:
             - gravitee-apim-e2e/lib/management-webclient-sdk
-            - gravitee-apim-e2e/lib/management-v2-webclient-sdk
             - gravitee-apim-e2e/lib/portal-webclient-sdk
   job-e2e-lint-build:
     docker:
