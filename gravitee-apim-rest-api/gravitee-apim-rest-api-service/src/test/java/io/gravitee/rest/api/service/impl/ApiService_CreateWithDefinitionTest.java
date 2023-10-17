@@ -47,6 +47,7 @@ import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import io.gravitee.rest.api.service.v4.validation.AnalyticsValidationService;
+import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.Set;
@@ -136,6 +137,9 @@ public class ApiService_CreateWithDefinitionTest {
 
     @Mock
     private AlertService alertService;
+
+    @Mock
+    private CorsValidationService corsValidationService;
 
     @AfterClass
     public static void cleanSecurityContextHolder() {

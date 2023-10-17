@@ -451,6 +451,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             // check HC inheritance
             checkHealthcheckInheritance(api);
 
+            // check CORS Allow-origin format
+            corsValidationService.validateAndSanitize(api.getProxy().getCors());
+
             api.getProxy().setLogging(loggingValidationService.validateAndSanitize(executionContext, api.getProxy().getLogging()));
 
             // check if there is regex errors in plaintext fields
