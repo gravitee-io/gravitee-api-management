@@ -31,7 +31,7 @@ const logs = [
 ];
 
 export default {
-  title: 'API / Logs / Runtime logs list',
+  title: 'API / Logs / Connections / List',
   component: ApiRuntimeLogsListComponent,
   decorators: [
     moduleMetadata({
@@ -48,6 +48,12 @@ export default {
     props: args,
   }),
 } as Meta;
+
+export const Empty: Story = {};
+Empty.args = {
+  pagination: { page: 1, perPage: 10, pageCount: 1, pageItemsCount: 0, totalCount: 0 },
+  logs,
+};
 
 export const FirstPage: Story = {};
 FirstPage.args = {

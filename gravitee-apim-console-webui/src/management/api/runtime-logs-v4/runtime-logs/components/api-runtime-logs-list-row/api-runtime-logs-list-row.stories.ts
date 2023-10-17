@@ -26,7 +26,7 @@ import { fakeConnectionLog } from '../../../../../../entities/management-api-v2/
 const log: ConnectionLog = fakeConnectionLog();
 
 export default {
-  title: 'API / Logs / Runtime logs list row',
+  title: 'API / Logs / Connections / List Row',
   component: ApiRuntimeLogsListRowComponent,
   decorators: [
     moduleMetadata({

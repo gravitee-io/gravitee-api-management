@@ -20,7 +20,7 @@ import { ApiRuntimeLogsProxySettingsModule } from './api-runtime-logs-proxy-sett
 import { ApiRuntimeLogsProxySettingsComponent } from './api-runtime-logs-proxy-settings.component';
 
 export default {
-  title: 'API / Logs / Runtime logs proxy settings',
+  title: 'API / Logs / Settings / Proxy',
   component: ApiRuntimeLogsProxySettingsComponent,
   decorators: [
     moduleMetadata({
