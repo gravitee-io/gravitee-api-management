@@ -13,44 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.model.v4.log.message;
+package io.gravitee.repository.log.v4.model.message;
 
-import io.gravitee.rest.api.model.v4.connector.ConnectorType;
 import java.util.List;
 import java.util.Map;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
 
-/**
- * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
- * @author GraviteeSource Team
- */
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
-@SuperBuilder(toBuilder = true)
-public class BaseMessageLog {
+@Builder(toBuilder = true)
+public class AggregatedMessageLog {
 
-    private String apiId;
     private String requestId;
+    private String apiId;
     private String timestamp;
     private String clientIdentifier;
     private String correlationId;
     private String parentCorrelationId;
-    private MessageOperation operation;
-    private ConnectorType connectorType;
-    private String connectorId;
-    private Message message;
+    private String operation;
+    private Message entrypoint;
+    private Message endpoint;
 
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    @SuperBuilder(toBuilder = true)
+    @Builder(toBuilder = true)
     public static class Message {
 
         private String id;
+        private String timestamp;
+        private String connectorId;
         private String payload;
         private boolean isError;
         private Map<String, List<String>> headers;

@@ -15,8 +15,8 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
+import io.gravitee.apim.core.log.model.AggregatedMessageLog;
 import io.gravitee.rest.api.management.v2.rest.model.ApiMessageLog;
-import io.gravitee.rest.api.model.v4.log.message.BaseMessageLog;
 import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -30,7 +30,7 @@ public interface ApiMessageLogsMapper {
     ApiMessageLogsMapper INSTANCE = Mappers.getMapper(ApiMessageLogsMapper.class);
 
     @Mapping(source = "timestamp", target = "timestamp", qualifiedByName = "mapTimestamp")
-    ApiMessageLog map(BaseMessageLog connectionLog);
+    ApiMessageLog map(AggregatedMessageLog connectionLog);
 
-    List<ApiMessageLog> mapToList(List<BaseMessageLog> logs);
+    List<ApiMessageLog> mapToList(List<AggregatedMessageLog> logs);
 }

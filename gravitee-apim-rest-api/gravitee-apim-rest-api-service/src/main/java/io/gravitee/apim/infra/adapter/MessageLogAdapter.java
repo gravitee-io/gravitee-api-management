@@ -15,10 +15,8 @@
  */
 package io.gravitee.apim.infra.adapter;
 
-import io.gravitee.repository.log.v4.model.message.MessageLog;
-import io.gravitee.rest.api.model.v4.connector.ConnectorType;
-import io.gravitee.rest.api.model.v4.log.message.BaseMessageLog;
-import io.gravitee.rest.api.model.v4.log.message.MessageOperation;
+import io.gravitee.apim.core.log.model.AggregatedMessageLog;
+import io.gravitee.apim.core.log.model.MessageOperation;
 import java.util.List;
 import java.util.Objects;
 import org.mapstruct.Mapper;
@@ -35,24 +33,15 @@ public interface MessageLogAdapter {
     MessageLogAdapter INSTANCE = Mappers.getMapper(MessageLogAdapter.class);
 
     @Mapping(target = "operation", expression = "java(mapOperation(messageLog))")
-    @Mapping(target = "connectorType", expression = "java(mapConnectorType(messageLog))")
-    BaseMessageLog toEntity(MessageLog messageLog);
+    AggregatedMessageLog toEntity(io.gravitee.repository.log.v4.model.message.AggregatedMessageLog messageLog);
 
-    List<BaseMessageLog> toEntitiesList(List<MessageLog> messageLogs);
+    List<AggregatedMessageLog> toEntities(List<io.gravitee.repository.log.v4.model.message.AggregatedMessageLog> messageLogs);
 
     @Named("mapOperation")
-    default MessageOperation mapOperation(MessageLog messageLog) {
+    default MessageOperation mapOperation(io.gravitee.repository.log.v4.model.message.AggregatedMessageLog messageLog) {
         if (Objects.isNull(messageLog)) {
             return null;
         }
         return MessageOperation.fromLabel(messageLog.getOperation());
-    }
-
-    @Named("mapConnectorType")
-    default ConnectorType mapConnectorType(MessageLog messageLog) {
-        if (Objects.isNull(messageLog)) {
-            return null;
-        }
-        return ConnectorType.fromLabel(messageLog.getConnectorType());
     }
 }

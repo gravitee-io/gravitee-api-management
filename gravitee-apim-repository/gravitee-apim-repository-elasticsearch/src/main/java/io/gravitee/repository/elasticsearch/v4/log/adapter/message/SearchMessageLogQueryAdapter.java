@@ -36,7 +36,6 @@ public class SearchMessageLogQueryAdapter {
         }
 
         jsonContent.put("sort", buildSort());
-        jsonContent.put("aggs", buildGroupBy());
 
         return new JsonObject(jsonContent).encode();
     }
@@ -53,6 +52,9 @@ public class SearchMessageLogQueryAdapter {
         if (filter.getRequestId() != null) {
             terms.add(JsonObject.of("term", JsonObject.of("request-id", filter.getRequestId())));
         }
+        if (filter.getConnectorType() != null) {
+            terms.add(JsonObject.of("term", JsonObject.of("connector-type", filter.getConnectorType())));
+        }
 
         if (!terms.isEmpty()) {
             return JsonObject.of("bool", JsonObject.of("must", JsonArray.of(terms.toArray())));
@@ -63,16 +65,5 @@ public class SearchMessageLogQueryAdapter {
 
     private static JsonObject buildSort() {
         return JsonObject.of("@timestamp", JsonObject.of("order", "desc"));
-    }
-
-    private static JsonObject buildGroupBy() {
-        return JsonObject.of(
-            "group_by_correlation_id",
-            JsonObject.of(
-                "terms",
-                // .keyword means it's a non-analyzed version of correlation-id field. It is important for a "terms" aggregation
-                JsonObject.of("field", "correlation-id.keyword")
-            )
-        );
     }
 }
