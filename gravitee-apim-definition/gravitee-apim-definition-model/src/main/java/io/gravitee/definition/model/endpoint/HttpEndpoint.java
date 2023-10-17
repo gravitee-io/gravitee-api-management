@@ -24,12 +24,14 @@ import io.gravitee.definition.model.HttpClientSslOptions;
 import io.gravitee.definition.model.HttpProxy;
 import io.gravitee.definition.model.services.healthcheck.EndpointHealthCheckService;
 import java.util.List;
+import lombok.experimental.SuperBuilder;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Deprecated(since = "3.13", forRemoval = true)
+@SuperBuilder
 public class HttpEndpoint extends Endpoint {
 
     @JsonProperty("proxy")
