@@ -233,7 +233,7 @@ class SyncApiReactorTest {
     void init() {
         lenient().when(apiDefinition.getProxy()).thenReturn(mock(Proxy.class));
         lenient().when(api.getDefinition()).thenReturn(apiDefinition);
-        when(flowChainFactory.createPlatformFlow(api)).thenReturn(platformFlowChain);
+        when(flowChainFactory.createOrganizationFlow(api)).thenReturn(platformFlowChain);
         when(flowChainFactory.createPlanFlow(api)).thenReturn(apiPlanFlowChain);
         when(flowChainFactory.createApiFlow(api)).thenReturn(apiFlowChain);
 

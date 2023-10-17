@@ -18,12 +18,12 @@ package io.gravitee.gateway.reactive.handlers.api.flow.resolver;
 import io.gravitee.definition.model.FlowMode;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.handlers.api.definition.Api;
-import io.gravitee.gateway.platform.manager.OrganizationManager;
+import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
 import io.gravitee.gateway.reactive.flow.BestMatchFlowResolver;
 import io.gravitee.gateway.reactive.flow.FlowResolver;
+import io.gravitee.gateway.reactive.platform.organization.flow.OrganizationFlowResolver;
 import io.gravitee.gateway.reactive.v4.flow.AbstractBestMatchFlowSelector;
-import io.gravitee.gateway.reactor.ReactableApi;
 
 /**
  * Factory allowing to create a {@link FlowResolver} to be used to resolve flows to execute at api plan level, api level or platform level.
@@ -61,8 +61,8 @@ public class FlowResolverFactory {
         return flowResolver;
     }
 
-    public FlowResolver forPlatform(ReactableApi<?> api, OrganizationManager organizationManager) {
-        return new PlatformFlowResolver(api.getOrganizationId(), organizationManager, flowFilter, bestMatchFlowSelector);
+    public FlowResolver forOrganization(final String organizationId, OrganizationManager organizationManager) {
+        return new OrganizationFlowResolver(organizationId, organizationManager, flowFilter, bestMatchFlowSelector);
     }
 
     private static boolean isBestMatchFlowMode(FlowMode flowMode) {

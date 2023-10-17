@@ -36,6 +36,7 @@ import io.gravitee.gateway.services.sync.process.repository.mapper.DebugMapper;
 import io.gravitee.gateway.services.sync.process.repository.mapper.DictionaryMapper;
 import io.gravitee.gateway.services.sync.process.repository.mapper.OrganizationMapper;
 import io.gravitee.gateway.services.sync.process.repository.mapper.SubscriptionMapper;
+import io.gravitee.gateway.services.sync.process.repository.service.EnvironmentService;
 import io.gravitee.gateway.services.sync.process.repository.service.PlanService;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.ApiKeyAppender;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.ApiSynchronizer;
@@ -83,8 +84,8 @@ public class RepositorySyncConfiguration {
     }
 
     @Bean
-    public DebugMapper debugMapper() {
-        return new DebugMapper();
+    public DebugMapper debugMapper(EnvironmentService environmentService) {
+        return new DebugMapper(environmentService);
     }
 
     @Bean

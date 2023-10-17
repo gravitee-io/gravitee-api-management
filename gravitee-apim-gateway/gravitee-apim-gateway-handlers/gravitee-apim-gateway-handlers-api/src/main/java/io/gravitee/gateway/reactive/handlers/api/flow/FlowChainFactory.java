@@ -16,10 +16,11 @@
 package io.gravitee.gateway.reactive.handlers.api.flow;
 
 import io.gravitee.gateway.handlers.api.definition.Api;
-import io.gravitee.gateway.platform.manager.OrganizationManager;
+import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
 import io.gravitee.gateway.reactive.api.hook.ChainHook;
 import io.gravitee.gateway.reactive.core.tracing.TracingHook;
 import io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolverFactory;
+import io.gravitee.gateway.reactive.platform.organization.policy.OrganizationPolicyChainFactoryManager;
 import io.gravitee.gateway.reactive.policy.PolicyChainFactory;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.node.api.configuration.Configuration;
@@ -33,19 +34,19 @@ import java.util.List;
 public class FlowChainFactory {
 
     protected final List<ChainHook> flowHooks = new ArrayList<>();
-    private final PolicyChainFactory platformPolicyChainFactory;
+    private final OrganizationPolicyChainFactoryManager organizationPolicyChainFactoryManager;
     private final PolicyChainFactory policyChainFactory;
     private final OrganizationManager organizationManager;
     private final FlowResolverFactory flowResolverFactory;
 
     public FlowChainFactory(
-        final PolicyChainFactory platformPolicyChainFactory,
+        final OrganizationPolicyChainFactoryManager organizationPolicyChainFactoryManager,
         final PolicyChainFactory policyChainFactory,
         final OrganizationManager organizationManager,
         final Configuration configuration,
         final FlowResolverFactory flowResolverFactory
     ) {
-        this.platformPolicyChainFactory = platformPolicyChainFactory;
+        this.organizationPolicyChainFactoryManager = organizationPolicyChainFactoryManager;
         this.policyChainFactory = policyChainFactory;
         this.organizationManager = organizationManager;
         this.flowResolverFactory = flowResolverFactory;
@@ -55,14 +56,15 @@ public class FlowChainFactory {
         }
     }
 
-    public FlowChain createPlatformFlow(final ReactableApi<?> api) {
-        FlowChain flowPlatformChain = new FlowChain(
-            "platform",
-            flowResolverFactory.forPlatform(api, organizationManager),
-            platformPolicyChainFactory
+    public FlowChain createOrganizationFlow(final ReactableApi<?> api) {
+        String organizationId = api.getOrganizationId();
+        FlowChain flowOrganizationChain = new FlowChain(
+            "organization",
+            flowResolverFactory.forOrganization(organizationId, organizationManager),
+            organizationPolicyChainFactoryManager.get(organizationId)
         );
-        flowPlatformChain.addHooks(flowHooks);
-        return flowPlatformChain;
+        flowOrganizationChain.addHooks(flowHooks);
+        return flowOrganizationChain;
     }
 
     public FlowChain createPlanFlow(final Api api) {

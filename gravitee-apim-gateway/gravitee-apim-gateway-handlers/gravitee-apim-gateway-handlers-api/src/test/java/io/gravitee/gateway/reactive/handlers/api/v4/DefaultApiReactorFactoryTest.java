@@ -32,14 +32,14 @@ import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.component.CompositeComponentProvider;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
-import io.gravitee.gateway.platform.manager.OrganizationManager;
+import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
 import io.gravitee.gateway.policy.impl.PolicyLoader;
 import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointManager;
 import io.gravitee.gateway.reactive.handlers.api.ApiPolicyManager;
 import io.gravitee.gateway.reactive.handlers.api.el.ApiTemplateVariableProvider;
 import io.gravitee.gateway.reactive.handlers.api.v4.flow.resolver.FlowResolverFactory;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.ApiProcessorChainFactory;
-import io.gravitee.gateway.reactive.policy.PolicyChainFactory;
+import io.gravitee.gateway.reactive.platform.organization.policy.OrganizationPolicyChainFactoryManager;
 import io.gravitee.gateway.reactive.policy.PolicyFactory;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
@@ -97,7 +97,7 @@ public class DefaultApiReactorFactoryTest {
     EndpointConnectorPluginManager endpointConnectorPluginManager;
 
     @Mock
-    PolicyChainFactory platformPolicyChainFactory;
+    OrganizationPolicyChainFactoryManager organizationPolicyChainFactoryManager;
 
     @Mock
     OrganizationManager organizationManager;
@@ -137,7 +137,7 @@ public class DefaultApiReactorFactoryTest {
                 entrypointConnectorPluginManager,
                 endpointConnectorPluginManager,
                 apiServicePluginManager,
-                platformPolicyChainFactory,
+                organizationPolicyChainFactoryManager,
                 organizationManager,
                 flowResolverFactory,
                 requestTimeoutConfiguration,

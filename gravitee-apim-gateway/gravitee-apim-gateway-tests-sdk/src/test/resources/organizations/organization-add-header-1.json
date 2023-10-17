@@ -1,8 +1,8 @@
 {
-  "id" : "DEFAULT",
-  "hrids" : [ "default" ],
-  "name" : "Default organization",
-  "description" : "Default organization",
+  "id" : "ORGA-1",
+  "hrids" : [ "orga-1" ],
+  "name" : "organization 1",
+  "description" : "organization 1",
   "flowMode" : "DEFAULT",
   "flows" : [ {
     "name" : "",

@@ -48,8 +48,10 @@ import org.junit.jupiter.params.provider.ValueSource;
  * @author GraviteeSource Team
  */
 @GatewayTest
-@DeployApi({ "/apis/http/api.json", "/apis/http/api-latency.json" })
-@DeployOrganization("/organizations/organization-add-header.json")
+@DeployOrganization(
+    organization = "/organizations/organization-add-header.json",
+    apis = { "/apis/http/api.json", "/apis/http/api-latency.json" }
+)
 class HttpRequestTimeoutV4EmulationIntegrationTest extends AbstractGatewayTest {
 
     protected int REQUEST_TIMEOUT = 500;
@@ -224,7 +226,7 @@ class HttpRequestTimeoutV4EmulationIntegrationTest extends AbstractGatewayTest {
     }
 
     private void addLatencyOnPlatformResponse() {
-        super.updateAndDeployOrganization(organization -> {
+        super.updateOrganization(organization -> {
             final Step responseLatencyStep = new Step();
             responseLatencyStep.setConfiguration("{\"delay\": 1000}");
             responseLatencyStep.setName("latency");

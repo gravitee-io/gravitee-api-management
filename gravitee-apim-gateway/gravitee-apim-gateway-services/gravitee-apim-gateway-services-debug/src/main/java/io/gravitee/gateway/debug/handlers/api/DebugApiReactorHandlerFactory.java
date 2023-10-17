@@ -31,7 +31,7 @@ import io.gravitee.gateway.handlers.api.ApiReactorHandler;
 import io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.processor.RequestProcessorChainFactory;
-import io.gravitee.gateway.platform.manager.OrganizationManager;
+import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
 import io.gravitee.gateway.policy.PolicyChainProviderLoader;
 import io.gravitee.gateway.policy.PolicyFactoryCreator;
 import io.gravitee.gateway.policy.PolicyManager;
@@ -42,6 +42,7 @@ import io.gravitee.gateway.reactive.handlers.api.adapter.invoker.InvokerAdapter;
 import io.gravitee.gateway.reactive.handlers.api.flow.FlowChainFactory;
 import io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolverFactory;
 import io.gravitee.gateway.reactive.handlers.api.processor.ApiProcessorChainFactory;
+import io.gravitee.gateway.reactive.platform.organization.policy.OrganizationPolicyChainFactoryManager;
 import io.gravitee.gateway.reactive.policy.DefaultPolicyChainFactory;
 import io.gravitee.gateway.reactive.policy.PolicyFactory;
 import io.gravitee.gateway.reactor.handler.context.V3ExecutionContextFactory;
@@ -65,7 +66,7 @@ public class DebugApiReactorHandlerFactory extends ApiReactorHandlerFactory {
         Node node,
         PolicyFactoryCreator v3PolicyFactoryCreator,
         PolicyFactory policyFactory,
-        io.gravitee.gateway.reactive.policy.PolicyChainFactory platformPolicyChainFactory,
+        OrganizationPolicyChainFactoryManager organizationPolicyChainFactoryManager,
         OrganizationManager organizationManager,
         PolicyChainProviderLoader policyChainProviderLoader,
         ApiProcessorChainFactory apiProcessorChainFactory,
@@ -78,7 +79,7 @@ public class DebugApiReactorHandlerFactory extends ApiReactorHandlerFactory {
             node,
             v3PolicyFactoryCreator,
             policyFactory,
-            platformPolicyChainFactory,
+            organizationPolicyChainFactoryManager,
             organizationManager,
             policyChainProviderLoader,
             apiProcessorChainFactory,

@@ -15,11 +15,11 @@
  */
 package io.gravitee.gateway.services.sync.process.repository.synchronizer.organization;
 
-import io.gravitee.definition.model.Organization;
 import io.gravitee.definition.model.flow.Consumer;
 import io.gravitee.definition.model.flow.ConsumerType;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.env.GatewayConfiguration;
+import io.gravitee.gateway.platform.organization.ReactableOrganization;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -40,13 +40,13 @@ public class FlowAppender {
     public OrganizationDeployable appends(final OrganizationDeployable organizationDeployable) {
         List<String> shardingTags = gatewayConfiguration.shardingTags().orElse(null);
         if (shardingTags != null && !shardingTags.isEmpty()) {
-            filterFlows(organizationDeployable.organization());
+            filterFlows(organizationDeployable.reactableOrganization());
         }
         return organizationDeployable;
     }
 
-    private void filterFlows(final Organization organization) {
-        List<Flow> filteredFlows = organization
+    private void filterFlows(final ReactableOrganization reactableOrganization) {
+        List<Flow> filteredFlows = reactableOrganization
             .getFlows()
             .stream()
             .filter(flow -> {
@@ -62,6 +62,6 @@ public class FlowAppender {
                 return true;
             })
             .collect(Collectors.toList());
-        organization.setFlows(filteredFlows);
+        reactableOrganization.setFlows(filteredFlows);
     }
 }

@@ -16,25 +16,20 @@
 package io.gravitee.gateway.services.sync.process.common.deployer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.gateway.api.service.ApiKeyService;
-import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.gateway.dictionary.DictionaryManager;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
-import io.gravitee.gateway.platform.manager.OrganizationManager;
+import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
 import io.gravitee.gateway.reactive.reactor.v4.subscription.SubscriptionDispatcher;
 import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncService;
 import io.gravitee.gateway.services.sync.process.repository.service.PlanService;
 import io.gravitee.node.api.Node;
 import io.gravitee.repository.management.api.CommandRepository;
-import io.reactivex.rxjava3.core.Completable;
 import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
-import org.springframework.context.ApplicationContext;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)

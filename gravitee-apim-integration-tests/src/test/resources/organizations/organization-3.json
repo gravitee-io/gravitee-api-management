@@ -1,0 +1,18 @@
+{
+  "id" : "organization-3",
+  "hrids" : [ "organization-3" ],
+  "name" : "organization-3",
+  "description" : "organization-3",
+  "flowMode" : "DEFAULT",
+  "flows" : [ {
+    "name" : "",
+    "path-operator" : {
+      "path" : "/",
+      "operator" : "STARTS_WITH"
+    },
+    "condition" : "",
+    "pre" : [],
+    "post" : [],
+    "enabled" : true
+  } ]
+}

@@ -19,32 +19,28 @@ import io.gravitee.common.event.EventManager;
 import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.flow.FlowPolicyResolverFactory;
-import io.gravitee.gateway.flow.policy.PolicyChainFactory;
-import io.gravitee.gateway.platform.OrganizationFlowResolver;
-import io.gravitee.gateway.platform.manager.OrganizationManager;
-import io.gravitee.gateway.platform.manager.impl.OrganizationManagerImpl;
-import io.gravitee.gateway.platform.providers.OnRequestPlatformPolicyChainProvider;
-import io.gravitee.gateway.platform.providers.OnResponsePlatformPolicyChainProvider;
-import io.gravitee.gateway.policy.PolicyConfigurationFactory;
-import io.gravitee.gateway.policy.impl.CachedPolicyConfigurationFactory;
-import io.gravitee.gateway.reactive.platform.PlatformPolicyManager;
-import io.gravitee.gateway.reactive.policy.DefaultPolicyChainFactory;
+import io.gravitee.gateway.platform.organization.event.OrganizationEventListener;
+import io.gravitee.gateway.platform.organization.flow.OrganizationFlowResolver;
+import io.gravitee.gateway.platform.organization.manager.DefaultOrganizationManager;
+import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
+import io.gravitee.gateway.platform.organization.policy.OrganizationPolicyChainFactoryManager;
+import io.gravitee.gateway.platform.organization.policy.V3OrganizationPolicyChainFactoryManager;
+import io.gravitee.gateway.platform.organization.providers.OnRequestPlatformPolicyChainProvider;
+import io.gravitee.gateway.platform.organization.providers.OnResponsePlatformPolicyChainProvider;
+import io.gravitee.gateway.platform.organization.reactor.V3OrganizationReactorFactory;
+import io.gravitee.gateway.reactive.platform.organization.policy.DefaultPlatformPolicyChainFactoryManager;
+import io.gravitee.gateway.reactive.platform.organization.reactor.DefaultOrganizationReactorFactory;
+import io.gravitee.gateway.reactive.platform.organization.reactor.OrganizationReactorFactory;
+import io.gravitee.gateway.reactive.platform.organization.reactor.OrganizationReactorRegistry;
 import io.gravitee.gateway.reactive.policy.PolicyFactory;
-import io.gravitee.gateway.resource.ResourceConfigurationFactory;
-import io.gravitee.gateway.resource.ResourceLifecycleManager;
-import io.gravitee.gateway.resource.internal.ResourceConfigurationFactoryImpl;
-import io.gravitee.gateway.resource.internal.ResourceManagerImpl;
-import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
-import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.plugin.resource.ResourceClassLoaderFactory;
-import io.gravitee.plugin.resource.ResourcePlugin;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.ResolvableType;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
@@ -60,134 +56,116 @@ public class PlatformConfiguration {
     private boolean classLoaderLegacyMode;
 
     @Bean
-    public OrganizationManager organizationManager(
-        PlatformPolicyManager policyManager,
-        io.gravitee.gateway.platform.PlatformPolicyManager v3policyManager,
-        EventManager eventManager
+    public OrganizationManager organizationManager(EventManager eventManager) {
+        return new DefaultOrganizationManager(eventManager);
+    }
+
+    /*
+     * Platform V3 engine
+     */
+    @Bean
+    public OrganizationReactorFactory v3OrganizationReactorFactory(
+        DefaultClassLoader classLoader,
+        io.gravitee.gateway.policy.PolicyFactoryCreator factoryCreator,
+        PolicyClassLoaderFactory policyClassLoaderFactory,
+        ComponentProvider componentProvider,
+        ResourceClassLoaderFactory resourceClassLoaderFactory
     ) {
-        return new OrganizationManagerImpl(policyManager, v3policyManager, eventManager);
+        return new V3OrganizationReactorFactory(
+            classLoaderLegacyMode,
+            classLoader,
+            applicationContext,
+            factoryCreator,
+            policyClassLoaderFactory,
+            componentProvider,
+            resourceClassLoaderFactory
+        );
     }
 
     @Bean
-    public OrganizationFlowResolver flowResolver(OrganizationManager organizationManager) {
+    public OrganizationReactorRegistry v3OrganizationReactorRegistry(
+        @Qualifier("v3OrganizationReactorFactory") OrganizationReactorFactory organizationReactorFactory
+    ) {
+        return new OrganizationReactorRegistry(organizationReactorFactory);
+    }
+
+    @Bean
+    public OrganizationPolicyChainFactoryManager v3PlatformPolicyChainFactoryManager(
+        @Qualifier("v3OrganizationReactorRegistry") OrganizationReactorRegistry organizationReactorRegistry
+    ) {
+        return new V3OrganizationPolicyChainFactoryManager(organizationReactorRegistry);
+    }
+
+    @Bean
+    public OrganizationFlowResolver organizationFlowResolver(OrganizationManager organizationManager) {
         return new OrganizationFlowResolver(organizationManager);
-    }
-
-    @Bean
-    public PolicyChainFactory policyChainFactory(io.gravitee.gateway.platform.PlatformPolicyManager v3PlatformPolicyManager) {
-        return new PolicyChainFactory(v3PlatformPolicyManager);
     }
 
     @Bean
     public OnRequestPlatformPolicyChainProvider onRequestPlatformPolicyChainProvider(
         OrganizationFlowResolver organizationFlowResolver,
-        PolicyChainFactory policyChainFactory
+        OrganizationPolicyChainFactoryManager v3OrganizationPolicyChainFactoryManager
     ) {
-        return new OnRequestPlatformPolicyChainProvider(organizationFlowResolver, policyChainFactory, new FlowPolicyResolverFactory());
+        return new OnRequestPlatformPolicyChainProvider(
+            organizationFlowResolver,
+            v3OrganizationPolicyChainFactoryManager,
+            new FlowPolicyResolverFactory()
+        );
     }
 
     @Bean
     public OnResponsePlatformPolicyChainProvider onResponsePlatformPolicyChainProvider(
         OrganizationFlowResolver organizationFlowResolver,
-        PolicyChainFactory policyChainFactory
+        OrganizationPolicyChainFactoryManager v3OrganizationPolicyChainFactoryManager
     ) {
-        return new OnResponsePlatformPolicyChainProvider(organizationFlowResolver, policyChainFactory, new FlowPolicyResolverFactory());
-    }
-
-    @Bean
-    public io.gravitee.gateway.platform.PlatformPolicyManager v3PlatformPolicyManager(
-        io.gravitee.gateway.policy.PolicyFactoryCreator factoryCreator,
-        PolicyConfigurationFactory policyConfigurationFactory,
-        PolicyClassLoaderFactory policyClassLoaderFactory,
-        ResourceLifecycleManager resourceLifecycleManager,
-        ComponentProvider componentProvider
-    ) {
-        String[] beanNamesForType = applicationContext.getBeanNamesForType(
-            ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, PolicyPlugin.class)
-        );
-
-        ConfigurablePluginManager<PolicyPlugin<?>> cpm = (ConfigurablePluginManager<PolicyPlugin<?>>) applicationContext.getBean(
-            beanNamesForType[0]
-        );
-
-        return new io.gravitee.gateway.platform.PlatformPolicyManager(
-            classLoaderLegacyMode,
-            applicationContext.getBean(DefaultClassLoader.class),
-            factoryCreator.create(),
-            policyConfigurationFactory,
-            cpm,
-            policyClassLoaderFactory,
-            resourceLifecycleManager,
-            componentProvider
+        return new OnResponsePlatformPolicyChainProvider(
+            organizationFlowResolver,
+            v3OrganizationPolicyChainFactoryManager,
+            new FlowPolicyResolverFactory()
         );
     }
 
+    /*
+     * Platform Reactive engine
+     */
     @Bean
-    public PlatformPolicyManager platformPolicyManager(
+    public OrganizationReactorFactory organizationReactorFactory(
         DefaultClassLoader classLoader,
         PolicyFactory policyFactory,
-        PolicyConfigurationFactory policyConfigurationFactory,
         PolicyClassLoaderFactory policyClassLoaderFactory,
-        ComponentProvider componentProvider
+        ComponentProvider componentProvider,
+        io.gravitee.node.api.configuration.Configuration configuration
     ) {
-        String[] beanNamesForType = applicationContext.getBeanNamesForType(
-            ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, PolicyPlugin.class)
-        );
-
-        ConfigurablePluginManager<PolicyPlugin<?>> cpm = (ConfigurablePluginManager<PolicyPlugin<?>>) applicationContext.getBean(
-            beanNamesForType[0]
-        );
-
-        return new PlatformPolicyManager(
+        return new DefaultOrganizationReactorFactory(
             classLoader,
-            policyFactory,
-            policyConfigurationFactory,
-            cpm,
-            policyClassLoaderFactory,
-            componentProvider
-        );
-    }
-
-    @Bean
-    public io.gravitee.gateway.reactive.policy.PolicyChainFactory platformPolicyChainFactory(
-        io.gravitee.node.api.configuration.Configuration configuration,
-        PlatformPolicyManager platformPolicyManager
-    ) {
-        return new DefaultPolicyChainFactory("platform", platformPolicyManager, configuration);
-    }
-
-    @Bean
-    public PolicyConfigurationFactory policyConfigurationFactory() {
-        return new CachedPolicyConfigurationFactory();
-    }
-
-    @Bean
-    public ResourceLifecycleManager resourceLifecycleManager(
-        ResourceClassLoaderFactory resourceClassLoaderFactory,
-        ResourceConfigurationFactory resourceConfigurationFactory
-    ) {
-        String[] beanNamesForType = applicationContext.getBeanNamesForType(
-            ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, ResourcePlugin.class)
-        );
-
-        ConfigurablePluginManager<ResourcePlugin<?>> cpm = (ConfigurablePluginManager<ResourcePlugin<?>>) applicationContext.getBean(
-            beanNamesForType[0]
-        );
-
-        return new ResourceManagerImpl(
-            classLoaderLegacyMode,
-            applicationContext.getBean(DefaultClassLoader.class),
-            null,
-            cpm,
-            resourceClassLoaderFactory,
-            resourceConfigurationFactory,
             applicationContext,
-            null
+            policyFactory,
+            policyClassLoaderFactory,
+            componentProvider,
+            configuration
         );
     }
 
     @Bean
-    public ResourceConfigurationFactory resourceConfigurationFactory() {
-        return new ResourceConfigurationFactoryImpl();
+    public OrganizationReactorRegistry organizationReactorRegistry(
+        @Qualifier("organizationReactorFactory") OrganizationReactorFactory organizationReactorFactory
+    ) {
+        return new OrganizationReactorRegistry(organizationReactorFactory);
+    }
+
+    @Bean
+    public io.gravitee.gateway.reactive.platform.organization.policy.OrganizationPolicyChainFactoryManager platformPolicyChainFactoryManager(
+        @Qualifier("organizationReactorRegistry") OrganizationReactorRegistry organizationReactorRegistry
+    ) {
+        return new DefaultPlatformPolicyChainFactoryManager(organizationReactorRegistry);
+    }
+
+    @Bean
+    public OrganizationEventListener organizationEventListener(
+        EventManager eventManager,
+        @Qualifier("v3OrganizationReactorRegistry") OrganizationReactorRegistry v3OrganizationReactorRegistry,
+        @Qualifier("organizationReactorRegistry") OrganizationReactorRegistry organizationReactorRegistry
+    ) {
+        return new OrganizationEventListener(eventManager, v3OrganizationReactorRegistry, organizationReactorRegistry);
     }
 }

@@ -1,0 +1,33 @@
+{
+  "id": "my-nothing-api-2",
+  "name": "my-nothing-api-2",
+  "gravitee": "2.0.0",
+  "proxy": {
+    "context_path": "/test2",
+    "endpoints": [
+      {
+        "name": "default",
+        "target": "http://localhost:8080/team",
+        "http": {
+          "connectTimeout": 3000,
+          "readTimeout": 60000
+        }
+      }
+    ]
+  },
+  "flows": [
+    {
+      "name": "New flow",
+      "path-operator": {
+        "operator": "STARTS_WITH",
+        "path": "/"
+      },
+      "methods": [],
+      "pre": [
+      ],
+      "post": [
+      ],
+      "enabled": true
+    }
+  ]
+}

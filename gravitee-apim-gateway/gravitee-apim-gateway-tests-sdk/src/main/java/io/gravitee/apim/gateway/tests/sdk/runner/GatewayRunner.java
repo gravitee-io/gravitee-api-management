@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
+import io.gravitee.apim.gateway.tests.sdk.annotations.DeployOrganization;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder.GatewayConfiguration;
@@ -44,8 +45,8 @@ import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
-import io.gravitee.gateway.platform.Organization;
-import io.gravitee.gateway.platform.manager.OrganizationManager;
+import io.gravitee.gateway.platform.organization.ReactableOrganization;
+import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.standalone.vertx.VertxEmbeddedContainer;
@@ -112,6 +113,7 @@ public class GatewayRunner {
 
     public static final Logger LOGGER = LoggerFactory.getLogger(GatewayRunner.class);
     public static final String ALREADY_DEPLOYED_MESSAGE = "An API has already been deployed with id {%s}";
+    public static final String ORGANIZATION_ALREADY_DEPLOYED_MESSAGE = "An organization has already been deployed with id {%s}";
     public static final String CANNOT_UNDEPPLOY_CLASS_API_MESSAGE = "An API deployed at class level cannot be undeployed (id {%s})";
 
     private final GatewayConfigurationBuilder gatewayConfigurationBuilder;
@@ -122,7 +124,8 @@ public class GatewayRunner {
     private final Map<String, ReactableApi<?>> deployedForTest;
     private final Map<DefinitionVersion, ApiDeploymentPreparer> apiDeploymentPreparers;
     private final Properties configuredSystemProperties;
-    private Organization deployedOrganization = null;
+    private final Map<String, ReactableOrganization> deployedOrganizationsForTestClass;
+    private final Map<String, ReactableOrganization> deployedOrganizationsForTest;
     private GatewayTestContainer gatewayContainer;
     private VertxEmbeddedContainer vertxContainer;
     private Path tempDir;
@@ -136,6 +139,8 @@ public class GatewayRunner {
         this.deployedForTestClass = new HashMap<>();
         this.deployedForTest = new HashMap<>();
         this.configuredSystemProperties = new Properties();
+        this.deployedOrganizationsForTestClass = new HashMap<>();
+        this.deployedOrganizationsForTest = new HashMap<>();
 
         // Allow test instance to access api deployed at class level
         testInstance.setDeployedClassApis(this.deployedForTestClass);
@@ -294,50 +299,101 @@ public class GatewayRunner {
     }
 
     /**
+     * Deploys an Organization with its apis  declared at class level
+     *
+     * @param organizationDefinitionPath is the definition file of the organization to deploy
+     * @param apisDefPath array of api definition path to deploy
+     * @throws Exception
+     */
+    public void deployOrganizationForClass(String organizationDefinitionPath, final String[] apisDefPath) throws IOException {
+        final ReactableOrganization reactableOrganization = loadOrganizationDefinition(organizationDefinitionPath);
+        if (deployedOrganizationsForTestClass.containsKey(reactableOrganization.getId())) {
+            throw new PreconditionViolationException(String.format(ORGANIZATION_ALREADY_DEPLOYED_MESSAGE, reactableOrganization.getId()));
+        }
+        deployOrganization(reactableOrganization, deployedOrganizationsForTestClass);
+        for (String apiDef : apisDefPath) {
+            deployForClass(apiDef, reactableOrganization.getId());
+        }
+    }
+
+    /**
+     * Deploys an Organization, declared at method level, thanks to {@link DeployOrganization}
+     * @param organizationDefinitionPath is the definition of the organization to deploy
+     * @throws Exception
+     */
+    public void deployOrganizationForTest(String organizationDefinitionPath, final String[] apisDefinitionPath) throws IOException {
+        final ReactableOrganization reactableOrganization = loadOrganizationDefinition(organizationDefinitionPath);
+        if (
+            deployedOrganizationsForTestClass.containsKey(reactableOrganization.getId()) ||
+            deployedOrganizationsForTest.containsKey(reactableOrganization.getId())
+        ) {
+            throw new PreconditionViolationException(String.format(ORGANIZATION_ALREADY_DEPLOYED_MESSAGE, reactableOrganization.getId()));
+        }
+        deployOrganization(reactableOrganization, deployedOrganizationsForTest);
+        for (String apiDef : apisDefinitionPath) {
+            deployForTest(apiDef, reactableOrganization.getId());
+        }
+    }
+
+    /**
+     * Deploy an organization and add it to the map belonging to its context (Class or Method).
+     * Before deploying the organization, we can enrich configuration if user has overridden {@link AbstractGatewayTest#configureApi(Api)}
+     * Then, we ensure the api met the minimal requirement before been deployed.
+     * @param reactableOrganization the ReactableOrganization to deploy
+     * @param deployedOrganizations the map containing deployed organizations.
+     */
+    private void deployOrganization(ReactableOrganization reactableOrganization, Map<String, ReactableOrganization> deployedOrganizations) {
+        OrganizationManager organizationManager = gatewayContainer.applicationContext().getBean(OrganizationManager.class);
+
+        testInstance.ensureMinimalRequirementForOrganization(reactableOrganization);
+        reactableOrganization.setDeployedAt(new Date());
+
+        try {
+            organizationManager.register(reactableOrganization);
+        } catch (Exception e) {
+            throw new IllegalStateException("An error occurred deploying the organization %s".formatted(reactableOrganization.getId()), e);
+        }
+        deployedOrganizations.put(reactableOrganization.getId(), reactableOrganization);
+    }
+
+    public void deployForClass(String apiDefinitionPath) throws IOException {
+        deployForClass(apiDefinitionPath, null);
+    }
+
+    /**
      * Deploys an API, declared at class level, thanks to it definition
      * @param apiDefinitionPath is the definition file of the api to deploy
      * @throws Exception
      */
-    public void deployForClass(String apiDefinitionPath) throws IOException {
+    public void deployForClass(String apiDefinitionPath, final String organizationId) throws IOException {
         final ReactableApi<?> reactableApi = toReactableApi(apiDefinitionPath);
         if (deployedForTestClass.containsKey(reactableApi.getId())) {
             throw new PreconditionViolationException(String.format(ALREADY_DEPLOYED_MESSAGE, reactableApi.getId()));
         }
-        deploy(reactableApi, deployedForTestClass);
-    }
-
-    /**
-     * Deploys an Organization, thanks to {@link io.gravitee.apim.gateway.tests.sdk.annotations.DeployOrganization}
-     * @param organizationDefinition is the definition of the organization to deploy
-     * @throws Exception
-     */
-    public void deployOrganization(String organizationDefinition) throws IOException {
-        final Organization organization = loadOrganizationDefinition(organizationDefinition);
-
-        OrganizationManager organizationManager = gatewayContainer.applicationContext().getBean(OrganizationManager.class);
-
-        testInstance.ensureMinimalRequirementForOrganization(organization);
-        organization.setUpdatedAt(new Date());
-
-        try {
-            organizationManager.register(organization);
-            deployedOrganization = organization;
-        } catch (Exception e) {
-            throw new IllegalStateException("An error occurred deploying the organization %s".formatted(organization.getId()), e);
-        }
+        deploy(reactableApi, deployedForTestClass, organizationId);
     }
 
     /**
      * Deploys an API, declared at method level, thanks to it definition
-     * @param apiDefinition is the definition of the api to deploy
+     * @param apiDefinitionPath is the definition of the api to deploy
      * @throws Exception
      */
-    public void deployForTest(String apiDefinition) throws IOException {
-        final ReactableApi<?> reactableApi = toReactableApi(apiDefinition);
+    public void deployForTest(String apiDefinitionPath) throws IOException {
+        deployForTest(apiDefinitionPath, null);
+    }
+
+    /**
+     * Deploys an API, declared at method level, thanks to it definition
+     * @param apiDefinitionPath is the path of the api definition to deploy
+     * @param organizationId the target organization, could be <code>null</code>
+     * @throws Exception
+     */
+    public void deployForTest(String apiDefinitionPath, final String organizationId) throws IOException {
+        final ReactableApi<?> reactableApi = toReactableApi(apiDefinitionPath);
         if (deployedForTestClass.containsKey(reactableApi.getId()) || deployedForTest.containsKey(reactableApi.getId())) {
             throw new PreconditionViolationException(String.format(ALREADY_DEPLOYED_MESSAGE, reactableApi.getId()));
         }
-        deploy(reactableApi, deployedForTest);
+        deploy(reactableApi, deployedForTest, organizationId);
     }
 
     /**
@@ -353,7 +409,7 @@ public class GatewayRunner {
             undeploy(reactableApi);
             deployedForTest.remove(reactableApi.getId());
         }
-        deploy(reactableApi, deployedForTest);
+        deploy(reactableApi, deployedForTest, reactableApi.getOrganizationId());
     }
 
     /**
@@ -404,7 +460,7 @@ public class GatewayRunner {
      * @param reactableApi the ReactableApi to deploy
      * @param deployedApis the map containing deployed apis.
      */
-    private void deploy(ReactableApi<?> reactableApi, Map<String, ReactableApi<?>> deployedApis) {
+    private void deploy(ReactableApi<?> reactableApi, Map<String, ReactableApi<?>> deployedApis, final String organizationId) {
         ApiManager apiManager = gatewayContainer.applicationContext().getBean(ApiManager.class);
 
         if (!DefinitionVersion.V4.equals(reactableApi.getDefinitionVersion())) {
@@ -414,20 +470,38 @@ public class GatewayRunner {
         }
 
         testInstance.configureApi(reactableApi, reactableApi.getDefinition().getClass());
+        reactableApi.setOrganizationId(organizationId);
 
         ensureMinimalRequirementForApi(reactableApi);
 
         try {
             reactableApi.setDeployedAt(new Date());
-            // For each new deployed API, set the organization id if one deployed
-            if (deployedOrganization != null) {
-                reactableApi.setOrganizationId(deployedOrganization.getId());
-            }
             apiManager.register(reactableApi);
         } catch (Exception e) {
             throw new IllegalStateException("An error occurred deploying the api %s".formatted(reactableApi.getId()), e);
         }
         deployedApis.put(reactableApi.getId(), reactableApi);
+    }
+
+    /**
+     * Undeploys organizations declared at class level.
+     */
+    public void undeployOrganizationForClass() {
+        deployedOrganizationsForTestClass.forEach((key, value) -> undeployOrganization(value));
+        deployedForTestClass.clear();
+    }
+
+    /**
+     * Undeploys organizations declared at method level.
+     */
+    public void undeployOrganizationForTest() {
+        deployedOrganizationsForTest.forEach((key, value) -> undeployOrganization(value));
+        deployedOrganizationsForTest.clear();
+    }
+
+    public void undeployOrganization(ReactableOrganization reactableOrganization) {
+        OrganizationManager organizationManager = gatewayContainer.applicationContext().getBean(OrganizationManager.class);
+        organizationManager.unregister(reactableOrganization.getId());
     }
 
     /**
@@ -449,14 +523,6 @@ public class GatewayRunner {
     private void undeploy(ReactableApi<?> api) {
         ApiManager apiManager = gatewayContainer.applicationContext().getBean(ApiManager.class);
         apiManager.unregister(api.getId());
-    }
-
-    public void undeployOrganization() {
-        OrganizationManager organizationManager = gatewayContainer.applicationContext().getBean(OrganizationManager.class);
-        if (organizationManager.getCurrentOrganization() != null) {
-            organizationManager.unregister(organizationManager.getCurrentOrganization().getId());
-        }
-        deployedOrganization = null;
     }
 
     private VertxEmbeddedContainer startServer(GatewayTestContainer container) throws InterruptedException {
@@ -503,6 +569,9 @@ public class GatewayRunner {
 
     private void ensureMinimalRequirementForApi(ReactableApi<?> reactableApi) {
         apiDeploymentPreparers.get(reactableApi.getDefinitionVersion()).ensureMinimalRequirementForApi(reactableApi.getDefinition());
+        if (reactableApi.getOrganizationId() == null) {
+            reactableApi.setOrganizationId("DEFAULT");
+        }
     }
 
     private void registerSecretProvider(GatewayTestContainer container) throws SecretProviderException {
@@ -630,12 +699,12 @@ public class GatewayRunner {
         return loadResource(apiDefinitionPath, toApiClass);
     }
 
-    private Organization loadOrganizationDefinition(String orgDefinitionPath) throws IOException {
+    private ReactableOrganization loadOrganizationDefinition(String orgDefinitionPath) throws IOException {
         final io.gravitee.definition.model.Organization organization = loadResource(
             orgDefinitionPath,
             io.gravitee.definition.model.Organization.class
         );
-        return new Organization(organization);
+        return new ReactableOrganization(organization);
     }
 
     private <T> T loadResource(String resourcePath, Class<T> toClass) throws IOException {

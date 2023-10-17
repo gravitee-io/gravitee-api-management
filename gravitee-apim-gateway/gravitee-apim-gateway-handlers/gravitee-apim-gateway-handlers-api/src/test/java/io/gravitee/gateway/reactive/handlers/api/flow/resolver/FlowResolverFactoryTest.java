@@ -23,11 +23,12 @@ import static org.mockito.Mockito.when;
 import io.gravitee.definition.model.FlowMode;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.handlers.api.definition.Api;
-import io.gravitee.gateway.platform.Organization;
-import io.gravitee.gateway.platform.manager.OrganizationManager;
+import io.gravitee.gateway.platform.organization.ReactableOrganization;
+import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
 import io.gravitee.gateway.reactive.flow.BestMatchFlowResolver;
 import io.gravitee.gateway.reactive.flow.FlowResolver;
+import io.gravitee.gateway.reactive.platform.organization.flow.OrganizationFlowResolver;
 import io.gravitee.gateway.reactive.v4.flow.AbstractBestMatchFlowSelector;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -106,31 +107,27 @@ class FlowResolverFactoryTest {
     }
 
     @Test
-    void shouldCreatePlatformFlowResolver() {
+    void shouldCreateOrganizationFlowResolver() {
         final OrganizationManager organizationManager = mock(OrganizationManager.class);
-        final Organization organization = mock(Organization.class);
-        final Api api = mock(Api.class);
+        final ReactableOrganization reactableOrganization = mock(ReactableOrganization.class);
 
-        when(organizationManager.getCurrentOrganization()).thenReturn(organization);
-        when(organization.getId()).thenReturn(ORGANIZATION_ID);
-        when(api.getOrganizationId()).thenReturn(ORGANIZATION_ID);
+        when(organizationManager.getOrganization(ORGANIZATION_ID)).thenReturn(reactableOrganization);
 
-        final FlowResolver flowResolver = cut.forPlatform(api, organizationManager);
+        final FlowResolver flowResolver = cut.forOrganization(ORGANIZATION_ID, organizationManager);
 
         assertNotNull(flowResolver);
-        assertTrue(flowResolver instanceof PlatformFlowResolver);
+        assertTrue(flowResolver instanceof OrganizationFlowResolver);
     }
 
     @Test
     void shouldCreatePlatformFlowResolverWhenNoOrganization() {
         final OrganizationManager organizationManager = mock(OrganizationManager.class);
-        final Api api = mock(Api.class);
 
-        when(organizationManager.getCurrentOrganization()).thenReturn(null);
+        when(organizationManager.getOrganization(ORGANIZATION_ID)).thenReturn(null);
 
-        final FlowResolver flowResolver = cut.forPlatform(api, organizationManager);
+        final FlowResolver flowResolver = cut.forOrganization(ORGANIZATION_ID, organizationManager);
 
         assertNotNull(flowResolver);
-        assertTrue(flowResolver instanceof PlatformFlowResolver);
+        assertTrue(flowResolver instanceof OrganizationFlowResolver);
     }
 }

@@ -121,7 +121,7 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
     protected final ProcessorChain beforeApiExecutionProcessors;
     protected final ProcessorChain afterApiExecutionProcessors;
     protected final ProcessorChain onErrorProcessors;
-    protected final io.gravitee.gateway.reactive.handlers.api.flow.FlowChain platformFlowChain;
+    protected final io.gravitee.gateway.reactive.handlers.api.flow.FlowChain organizationFlowChain;
     protected final FlowChain apiPlanFlowChain;
     protected final FlowChain apiFlowChain;
     private final Node node;
@@ -178,7 +178,7 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
 
         this.onErrorProcessors = apiProcessorChainFactory.onError(api);
 
-        this.platformFlowChain = flowChainFactory.createPlatformFlow(api);
+        this.organizationFlowChain = flowChainFactory.createOrganizationFlow(api);
         this.apiPlanFlowChain = v4FlowChainFactory.createPlanFlow(api);
         this.apiFlowChain = v4FlowChainFactory.createApiFlow(api);
 
@@ -240,8 +240,8 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
     protected Completable handleRequest(final MutableExecutionContext ctx) {
         // Setup all processors before handling the request (ex: logging).
         return new CompletableReactorChain(executeProcessorChain(ctx, beforeHandleProcessors, REQUEST))
-            // Execute platform flow chain.
-            .chainWith(platformFlowChain.execute(ctx, REQUEST))
+            // Execute organization flow chain.
+            .chainWith(organizationFlowChain.execute(ctx, REQUEST))
             // Before Security Chain.
             .chainWith(executeProcessorChain(ctx, beforeSecurityChainProcessors, REQUEST))
             // Execute security chain.
@@ -263,7 +263,9 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
             .chainWithOnError(error -> processThrowable(ctx, error))
             .chainWith(upstream -> timeout(upstream, ctx))
             // Platform post flows must always be executed (whatever timeout or error).
-            .chainWith(new CompletableReactorChain(platformFlowChain.execute(ctx, RESPONSE)).chainWith(upstream -> timeout(upstream, ctx)))
+            .chainWith(
+                new CompletableReactorChain(organizationFlowChain.execute(ctx, RESPONSE)).chainWith(upstream -> timeout(upstream, ctx))
+            )
             // Before entrypoint response
             // Handle entrypoint response.
             .chainWith(handleEntrypointResponse(ctx))

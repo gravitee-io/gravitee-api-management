@@ -24,7 +24,7 @@ import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.component.CompositeComponentProvider;
 import io.gravitee.gateway.core.component.CustomComponentProvider;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
-import io.gravitee.gateway.platform.manager.OrganizationManager;
+import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
 import io.gravitee.gateway.policy.PolicyConfigurationFactory;
 import io.gravitee.gateway.policy.impl.CachedPolicyConfigurationFactory;
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
@@ -38,6 +38,7 @@ import io.gravitee.gateway.reactive.handlers.api.el.ContentTemplateVariableProvi
 import io.gravitee.gateway.reactive.handlers.api.flow.FlowChainFactory;
 import io.gravitee.gateway.reactive.handlers.api.v4.flow.resolver.FlowResolverFactory;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.ApiProcessorChainFactory;
+import io.gravitee.gateway.reactive.platform.organization.policy.OrganizationPolicyChainFactoryManager;
 import io.gravitee.gateway.reactive.policy.DefaultPolicyChainFactory;
 import io.gravitee.gateway.reactive.policy.PolicyChainFactory;
 import io.gravitee.gateway.reactive.policy.PolicyFactory;
@@ -88,7 +89,7 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
     protected final EntrypointConnectorPluginManager entrypointConnectorPluginManager;
     protected final EndpointConnectorPluginManager endpointConnectorPluginManager;
     protected final ApiServicePluginManager apiServicePluginManager;
-    protected final PolicyChainFactory platformPolicyChainFactory;
+    protected final OrganizationPolicyChainFactoryManager organizationPolicyChainFactoryManager;
     protected final OrganizationManager organizationManager;
     protected final ApiProcessorChainFactory apiProcessorChainFactory;
     protected final io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory;
@@ -105,7 +106,7 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
         final EntrypointConnectorPluginManager entrypointConnectorPluginManager,
         final EndpointConnectorPluginManager endpointConnectorPluginManager,
         final ApiServicePluginManager apiServicePluginManager,
-        final PolicyChainFactory platformPolicyChainFactory,
+        final OrganizationPolicyChainFactoryManager organizationPolicyChainFactoryManager,
         final OrganizationManager organizationManager,
         final io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory,
         final RequestTimeoutConfiguration requestTimeoutConfiguration,
@@ -118,7 +119,7 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
         this.entrypointConnectorPluginManager = entrypointConnectorPluginManager;
         this.endpointConnectorPluginManager = endpointConnectorPluginManager;
         this.apiServicePluginManager = apiServicePluginManager;
-        this.platformPolicyChainFactory = platformPolicyChainFactory;
+        this.organizationPolicyChainFactoryManager = organizationPolicyChainFactoryManager;
         this.organizationManager = organizationManager;
         this.apiProcessorChainFactory = new ApiProcessorChainFactory(configuration, node, reporterService);
         this.flowResolverFactory = flowResolverFactory;
@@ -194,7 +195,7 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
                 );
 
                 final FlowChainFactory flowChainFactory = new FlowChainFactory(
-                    platformPolicyChainFactory,
+                    organizationPolicyChainFactoryManager,
                     policyChainFactory,
                     organizationManager,
                     configuration,

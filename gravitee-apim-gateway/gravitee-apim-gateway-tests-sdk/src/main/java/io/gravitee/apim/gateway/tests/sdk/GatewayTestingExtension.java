@@ -17,10 +17,14 @@ package io.gravitee.apim.gateway.tests.sdk;
 
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployOrganization;
+import io.gravitee.apim.gateway.tests.sdk.annotations.DeployOrganizations;
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
 import io.gravitee.apim.gateway.tests.sdk.parameters.GatewayTestParameterResolver;
 import io.gravitee.apim.gateway.tests.sdk.runner.GatewayRunner;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.AfterEachCallback;
@@ -114,21 +118,25 @@ public class GatewayTestingExtension
      * @throws IOException
      */
     private void deployOrganizationForMethod(ExtensionContext context) throws Exception {
+        List<DeployOrganization> deployOrganizations = new ArrayList<>();
+        if (context.getRequiredTestMethod().isAnnotationPresent(DeployOrganizations.class)) {
+            final DeployOrganizations annotation = context.getRequiredTestMethod().getAnnotation(DeployOrganizations.class);
+            deployOrganizations.addAll(Arrays.asList(annotation.value()));
+        }
+
         if (context.getRequiredTestMethod().isAnnotationPresent(DeployOrganization.class)) {
-            LOGGER.debug("Deploying organization for test {}", context.getRequiredTestMethod().getName());
             final DeployOrganization annotation = context.getRequiredTestMethod().getAnnotation(DeployOrganization.class);
-            try {
-                gatewayRunner.deployOrganization(annotation.value());
-                gatewayRunner
-                    .deployedApis()
-                    .values()
-                    .forEach(reactableApi -> {
-                        gatewayTest.undeploy(reactableApi.getId());
-                        gatewayTest.deploy(reactableApi);
-                    });
-            } catch (Exception e) {
-                exception = e;
-                throw e;
+            deployOrganizations.add(annotation);
+        }
+        if (!deployOrganizations.isEmpty()) {
+            LOGGER.debug("Deploying organizations for test {}", context.getRequiredTestMethod().getName());
+            for (DeployOrganization deployOrganization : deployOrganizations) {
+                try {
+                    gatewayRunner.deployOrganizationForTest(deployOrganization.organization(), deployOrganization.apis());
+                } catch (Exception e) {
+                    exception = e;
+                    throw e;
+                }
             }
         }
     }
@@ -145,8 +153,7 @@ public class GatewayTestingExtension
         }
         if (context.getRequiredTestMethod().isAnnotationPresent(DeployOrganization.class)) {
             LOGGER.debug("Clear organization");
-            gatewayRunner.undeployOrganization();
-            deployOrganizationForClass(context);
+            gatewayRunner.undeployOrganizationForTest();
         }
     }
 
@@ -162,6 +169,9 @@ public class GatewayTestingExtension
         if (requiredTestClass.isAnnotationPresent(DeployApi.class)) {
             gatewayRunner.undeployForClass();
         }
+        if (requiredTestClass.isAnnotationPresent(DeployOrganization.class)) {
+            gatewayRunner.undeployOrganizationForClass();
+        }
         if (gatewayRunner != null && gatewayRunner.isRunning()) {
             gatewayRunner.stop();
         }
@@ -172,10 +182,22 @@ public class GatewayTestingExtension
     }
 
     private void deployOrganizationForClass(final ExtensionContext context) throws IOException {
+        List<DeployOrganization> deployOrganizations = new ArrayList<>();
         final Class<?> requiredTestClass = context.getRequiredTestClass();
+        if (requiredTestClass.isAnnotationPresent(DeployOrganizations.class)) {
+            final DeployOrganizations annotation = requiredTestClass.getAnnotation(DeployOrganizations.class);
+            deployOrganizations.addAll(Arrays.asList(annotation.value()));
+        }
+
         if (requiredTestClass.isAnnotationPresent(DeployOrganization.class)) {
-            final DeployOrganization annotation = context.getRequiredTestClass().getAnnotation(DeployOrganization.class);
-            gatewayRunner.deployOrganization(annotation.value());
+            final DeployOrganization annotation = requiredTestClass.getAnnotation(DeployOrganization.class);
+            deployOrganizations.add(annotation);
+        }
+        if (!deployOrganizations.isEmpty()) {
+            LOGGER.debug("Deploying organizations for class {}", requiredTestClass.getName());
+            for (DeployOrganization deployOrganization : deployOrganizations) {
+                gatewayRunner.deployOrganizationForClass(deployOrganization.organization(), deployOrganization.apis());
+            }
         }
     }
 

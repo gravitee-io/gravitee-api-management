@@ -46,6 +46,7 @@ import io.gravitee.gateway.services.sync.process.repository.fetcher.LatestEventF
 import io.gravitee.gateway.services.sync.process.repository.mapper.ApiKeyMapper;
 import io.gravitee.gateway.services.sync.process.repository.mapper.ApiMapper;
 import io.gravitee.gateway.services.sync.process.repository.mapper.SubscriptionMapper;
+import io.gravitee.gateway.services.sync.process.repository.service.EnvironmentService;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.OrganizationRepository;
@@ -127,7 +128,7 @@ class ApiSynchronizerTest {
             new ApiSynchronizer(
                 eventsFetcher,
                 apiManager,
-                new ApiMapper(objectMapper, environmentRepository, organizationRepository),
+                new ApiMapper(objectMapper, new EnvironmentService(environmentRepository, organizationRepository)),
                 new PlanAppender(objectMapper, planRepository, gatewayConfiguration),
                 new SubscriptionAppender(subscriptionRepository, new SubscriptionMapper(objectMapper)),
                 new ApiKeyAppender(apiKeyRepository, new ApiKeyMapper()),

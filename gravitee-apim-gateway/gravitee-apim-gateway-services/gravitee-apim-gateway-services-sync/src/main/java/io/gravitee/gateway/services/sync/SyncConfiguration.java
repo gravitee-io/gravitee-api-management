@@ -22,7 +22,7 @@ import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.gateway.dictionary.DictionaryManager;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
-import io.gravitee.gateway.platform.manager.OrganizationManager;
+import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
 import io.gravitee.gateway.reactive.reactor.v4.subscription.SubscriptionDispatcher;
 import io.gravitee.gateway.services.sync.healthcheck.SyncProcessProbe;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
@@ -33,6 +33,7 @@ import io.gravitee.gateway.services.sync.process.distributed.spring.DistributedS
 import io.gravitee.gateway.services.sync.process.repository.mapper.ApiKeyMapper;
 import io.gravitee.gateway.services.sync.process.repository.mapper.ApiMapper;
 import io.gravitee.gateway.services.sync.process.repository.mapper.SubscriptionMapper;
+import io.gravitee.gateway.services.sync.process.repository.service.EnvironmentService;
 import io.gravitee.gateway.services.sync.process.repository.service.PlanService;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.ApiKeyAppender;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.PlanAppender;
@@ -117,12 +118,8 @@ public class SyncConfiguration {
     }
 
     @Bean
-    public ApiMapper apiMapper(
-        ObjectMapper objectMapper,
-        EnvironmentRepository environmentRepository,
-        OrganizationRepository organizationRepository
-    ) {
-        return new ApiMapper(objectMapper, environmentRepository, organizationRepository);
+    public ApiMapper apiMapper(ObjectMapper objectMapper, EnvironmentService environmentService) {
+        return new ApiMapper(objectMapper, environmentService);
     }
 
     @Bean
@@ -138,6 +135,14 @@ public class SyncConfiguration {
     @Bean
     public PlanService planService() {
         return new PlanService();
+    }
+
+    @Bean
+    public EnvironmentService environmentEnhanceService(
+        EnvironmentRepository environmentRepository,
+        OrganizationRepository organizationRepository
+    ) {
+        return new EnvironmentService(environmentRepository, organizationRepository);
     }
 
     @Bean

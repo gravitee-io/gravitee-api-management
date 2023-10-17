@@ -33,7 +33,7 @@ import io.gravitee.gateway.handlers.api.manager.endpoint.NodeApisEndpointInitial
 import io.gravitee.gateway.handlers.api.manager.impl.ApiManagerImpl;
 import io.gravitee.gateway.handlers.api.services.ApiKeyCacheService;
 import io.gravitee.gateway.handlers.api.services.SubscriptionCacheService;
-import io.gravitee.gateway.platform.manager.OrganizationManager;
+import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
 import io.gravitee.gateway.policy.PolicyChainProviderLoader;
 import io.gravitee.gateway.policy.PolicyPluginFactory;
 import io.gravitee.gateway.policy.impl.PolicyFactoryCreatorImpl;
@@ -44,8 +44,8 @@ import io.gravitee.gateway.reactive.flow.condition.evaluation.HttpMethodConditio
 import io.gravitee.gateway.reactive.flow.condition.evaluation.PathBasedConditionFilter;
 import io.gravitee.gateway.reactive.handlers.api.processor.ApiProcessorChainFactory;
 import io.gravitee.gateway.reactive.handlers.api.v4.DefaultApiReactorFactory;
+import io.gravitee.gateway.reactive.platform.organization.policy.OrganizationPolicyChainFactoryManager;
 import io.gravitee.gateway.reactive.policy.DefaultPolicyFactory;
-import io.gravitee.gateway.reactive.policy.PolicyChainFactory;
 import io.gravitee.gateway.reactive.policy.PolicyFactory;
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
 import io.gravitee.gateway.reactor.handler.context.ApiTemplateVariableProviderFactory;
@@ -55,7 +55,6 @@ import io.gravitee.plugin.apiservice.ApiServicePluginManager;
 import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -156,7 +155,7 @@ public class ApiHandlerConfiguration {
     public ReactorFactory<Api> apiReactorFactory(
         io.gravitee.gateway.policy.PolicyFactoryCreator v3PolicyFactoryCreator,
         PolicyFactory policyFactory,
-        @Qualifier("platformPolicyChainFactory") PolicyChainFactory platformPolicyChainFactory,
+        OrganizationPolicyChainFactoryManager organizationPolicyChainFactoryManager,
         OrganizationManager organizationManager,
         PolicyChainProviderLoader policyChainProviderLoader,
         ApiProcessorChainFactory apiProcessorChainFactory,
@@ -169,7 +168,7 @@ public class ApiHandlerConfiguration {
             node,
             v3PolicyFactoryCreator,
             policyFactory,
-            platformPolicyChainFactory,
+            organizationPolicyChainFactoryManager,
             organizationManager,
             policyChainProviderLoader,
             apiProcessorChainFactory,
@@ -201,7 +200,7 @@ public class ApiHandlerConfiguration {
         EntrypointConnectorPluginManager entrypointConnectorPluginManager,
         EndpointConnectorPluginManager endpointConnectorPluginManager,
         ApiServicePluginManager apiServicePluginManager,
-        @Qualifier("platformPolicyChainFactory") PolicyChainFactory platformPolicyChainFactory,
+        OrganizationPolicyChainFactoryManager organizationPolicyChainFactoryManager,
         OrganizationManager organizationManager,
         io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory,
         RequestTimeoutConfiguration requestTimeoutConfiguration,
@@ -215,7 +214,7 @@ public class ApiHandlerConfiguration {
             entrypointConnectorPluginManager,
             endpointConnectorPluginManager,
             apiServicePluginManager,
-            platformPolicyChainFactory,
+            organizationPolicyChainFactoryManager,
             organizationManager,
             flowResolverFactory,
             requestTimeoutConfiguration,

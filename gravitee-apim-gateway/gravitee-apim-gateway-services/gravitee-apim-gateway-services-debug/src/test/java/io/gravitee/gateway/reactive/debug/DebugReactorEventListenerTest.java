@@ -21,7 +21,9 @@ import static io.gravitee.gateway.debug.utils.Stubs.getAnEvent;
 import static io.gravitee.repository.management.model.Event.EventProperties.API_DEBUG_STATUS;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -36,10 +38,10 @@ import io.gravitee.definition.model.HttpRequest;
 import io.gravitee.definition.model.Plan;
 import io.gravitee.gateway.debug.definition.DebugApi;
 import io.gravitee.gateway.debug.vertx.VertxDebugHttpClientConfiguration;
-import io.gravitee.gateway.platform.manager.OrganizationManager;
+import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
-import io.gravitee.gateway.reactor.impl.ReactableWrapper;
+import io.gravitee.gateway.reactor.impl.ReactableEvent;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.model.ApiDebugStatus;
@@ -132,7 +134,7 @@ class DebugReactorEventListenerTest {
         when(objectMapper.readValue(anyString(), any(DebugApi.class.getClass()))).thenReturn(debugApiModel);
 
         Event anEvent = getAnEvent(EVENT_ID, PAYLOAD);
-        final ReactableWrapper<Event> reactableWrapper = new ReactableWrapper(anEvent);
+        final ReactableEvent<Event> reactableWrapper = new ReactableEvent(anEvent.getId(), anEvent);
 
         when(reactorHandlerRegistry.contains(any(DebugApi.class))).thenReturn(false);
 
@@ -175,7 +177,7 @@ class DebugReactorEventListenerTest {
         when(objectMapper.readValue(anyString(), any(DebugApi.class.getClass()))).thenReturn(debugApiModel);
 
         Event anEvent = getAnEvent(EVENT_ID, PAYLOAD);
-        final ReactableWrapper<io.gravitee.repository.management.model.Event> reactableWrapper = new ReactableWrapper(anEvent);
+        final ReactableEvent<Event> reactableWrapper = new ReactableEvent(anEvent.getId(), anEvent);
 
         when(reactorHandlerRegistry.contains(any(DebugApi.class))).thenReturn(false);
         final HttpClient mockHttpClient = mock(HttpClient.class);
@@ -217,7 +219,7 @@ class DebugReactorEventListenerTest {
         when(objectMapper.readValue(anyString(), any(DebugApi.class.getClass()))).thenReturn(debugApiModel);
 
         Event anEvent = getAnEvent(EVENT_ID, PAYLOAD);
-        final ReactableWrapper<io.gravitee.repository.management.model.Event> reactableWrapper = new ReactableWrapper(anEvent);
+        final ReactableEvent<Event> reactableWrapper = new ReactableEvent(anEvent.getId(), anEvent);
 
         when(reactorHandlerRegistry.contains(any(DebugApi.class))).thenReturn(false);
         final HttpClient mockHttpClient = mock(HttpClient.class);
@@ -258,7 +260,7 @@ class DebugReactorEventListenerTest {
         when(objectMapper.readValue(anyString(), any(DebugApi.class.getClass()))).thenReturn(debugApiModel);
 
         Event anEvent = getAnEvent(EVENT_ID, PAYLOAD);
-        final ReactableWrapper<io.gravitee.repository.management.model.Event> reactableWrapper = new ReactableWrapper(anEvent);
+        final ReactableEvent<Event> reactableWrapper = new ReactableEvent(anEvent.getId(), anEvent);
 
         when(reactorHandlerRegistry.contains(any(DebugApi.class))).thenReturn(false);
         final HttpClient mockHttpClient = mock(HttpClient.class);
@@ -294,7 +296,7 @@ class DebugReactorEventListenerTest {
         when(objectMapper.readValue(anyString(), any(DebugApi.class.getClass()))).thenReturn(debugApiModel);
 
         Event anEvent = getAnEvent(EVENT_ID, PAYLOAD);
-        final ReactableWrapper<io.gravitee.repository.management.model.Event> reactableWrapper = new ReactableWrapper(anEvent);
+        final ReactableEvent<Event> reactableWrapper = new ReactableEvent(anEvent.getId(), anEvent);
 
         when(reactorHandlerRegistry.contains(any(DebugApi.class))).thenReturn(false);
 
@@ -329,7 +331,7 @@ class DebugReactorEventListenerTest {
         when(objectMapper.readValue(anyString(), any(DebugApi.class.getClass()))).thenReturn(debugApiModel);
 
         Event anEvent = getAnEvent(EVENT_ID, PAYLOAD);
-        final ReactableWrapper<io.gravitee.repository.management.model.Event> reactableWrapper = new ReactableWrapper(anEvent);
+        final ReactableEvent<Event> reactableWrapper = new ReactableEvent(anEvent.getId(), anEvent);
 
         when(reactorHandlerRegistry.contains(any(DebugApi.class))).thenReturn(false);
         when(eventRepository.update(any())).thenThrow(TechnicalException.class);
@@ -358,7 +360,7 @@ class DebugReactorEventListenerTest {
         when(objectMapper.readValue(anyString(), any(DebugApi.class.getClass()))).thenReturn(debugApiModel);
 
         Event anEvent = getAnEvent(EVENT_ID, PAYLOAD);
-        final ReactableWrapper<io.gravitee.repository.management.model.Event> reactableWrapper = new ReactableWrapper(anEvent);
+        final ReactableEvent<Event> reactableWrapper = new ReactableEvent(anEvent.getId(), anEvent);
 
         when(reactorHandlerRegistry.contains(any(DebugApi.class))).thenReturn(true);
 
@@ -414,7 +416,7 @@ class DebugReactorEventListenerTest {
         when(objectMapper.readValue(anyString(), any(DebugApi.class.getClass()))).thenReturn(debugApiModel);
 
         Event anEvent = getAnEvent(EVENT_ID, PAYLOAD);
-        final ReactableWrapper<Event> reactableWrapper = new ReactableWrapper(anEvent);
+        final ReactableEvent<Event> reactableWrapper = new ReactableEvent(anEvent.getId(), anEvent);
 
         when(reactorHandlerRegistry.contains(any(DebugApi.class))).thenReturn(false);
 

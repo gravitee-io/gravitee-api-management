@@ -89,7 +89,7 @@ public class OrganizationSynchronizer implements RepositorySynchronizer {
     private Flowable<OrganizationDeployable> prepareForDeployment(final Flowable<Event> eventsByType) {
         return eventsByType
             .flatMapMaybe(organizationMapper::to)
-            .map(organization -> OrganizationDeployable.builder().organization(organization).build())
+            .map(organization -> OrganizationDeployable.builder().reactableOrganization(organization).build())
             .map(flowAppender::appends);
     }
 

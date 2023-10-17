@@ -29,12 +29,13 @@ import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuil
 import io.gravitee.apim.gateway.tests.sdk.plugin.PluginRegister;
 import io.gravitee.apim.gateway.tests.sdk.runner.ApiConfigurer;
 import io.gravitee.apim.gateway.tests.sdk.runner.ApiDeployer;
+import io.gravitee.apim.gateway.tests.sdk.runner.OrganizationConfigurer;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
-import io.gravitee.gateway.platform.Organization;
-import io.gravitee.gateway.platform.manager.OrganizationManager;
+import io.gravitee.gateway.platform.organization.ReactableOrganization;
+import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import io.netty.util.internal.logging.Slf4JLoggerFactory;
@@ -73,7 +74,8 @@ import org.springframework.util.StringUtils;
 @Slf4j
 @ExtendWith(VertxExtension.class)
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-public abstract class AbstractGatewayTest implements PluginRegister, ApiConfigurer, ApiDeployer, ApplicationContextAware {
+public abstract class AbstractGatewayTest
+    implements PluginRegister, ApiConfigurer, ApiDeployer, OrganizationConfigurer, ApplicationContextAware {
 
     private static final ObjectMapper objectMapper = new GraviteeMapper();
     private int wiremockHttpsPort;
@@ -227,6 +229,9 @@ public abstract class AbstractGatewayTest implements PluginRegister, ApiConfigur
     public void configureApi(Api api) {}
 
     @Override
+    public void configureOrganization(ReactableOrganization reactableOrganization) {}
+
+    @Override
     public void configureApi(ReactableApi<?> api, Class<?> definitionClass) {}
 
     @Override
@@ -263,11 +268,11 @@ public abstract class AbstractGatewayTest implements PluginRegister, ApiConfigur
     /**
      * Ensures the organization has the minimal requirement to be run properly.
      * - add a default id ("organization-id") if not set
-     * @param organization to deploy
+     * @param reactableOrganization to deploy
      */
-    public void ensureMinimalRequirementForOrganization(Organization organization) {
-        if (!StringUtils.hasText(organization.getId())) {
-            organization.setId("organization-id");
+    public void ensureMinimalRequirementForOrganization(ReactableOrganization reactableOrganization) {
+        if (!StringUtils.hasText(reactableOrganization.getId())) {
+            reactableOrganization.getDefinition().setId("DEFAULT");
         }
     }
 
@@ -401,27 +406,40 @@ public abstract class AbstractGatewayTest implements PluginRegister, ApiConfigur
     }
 
     /**
-     * Update the current deployed organization (if it exists) and redeploy it.
+     * Update the latest deployed organization (if it exists) and redeploy it.
      * Useful to add a policy for a specific test and avoid rewriting a json file.
      * @param organizationConsumer a consumer modifying the current deployed organization.
      */
-    protected final void updateAndDeployOrganization(Consumer<Organization> organizationConsumer) {
+    protected final void updateOrganization(Consumer<ReactableOrganization> organizationConsumer) {
+        updateOrganization("DEFAULT", organizationConsumer);
+    }
+
+    /**
+     * Update a deployed organization (if it exists) and redeploy it.
+     * Useful to add a policy for a specific test and avoid rewriting a json file.
+     * @param organizationId the id of the organization to update
+     * @param organizationConsumer a consumer modifying the current deployed organization.
+     */
+    protected final void updateOrganization(String organizationId, Consumer<ReactableOrganization> organizationConsumer) {
         // Get deployed organization and create a new one from it
         final OrganizationManager organizationManager = applicationContext.getBean(OrganizationManager.class);
-        final Organization currentOrganization = organizationManager.getCurrentOrganization();
+        if (organizationId == null) {}
+        final ReactableOrganization reactableOrganization = organizationManager.getOrganization(organizationId);
 
-        if (currentOrganization == null) {
-            throw new PreconditionViolationException("No organization deployed, you cannot use this method");
+        if (reactableOrganization == null) {
+            throw new PreconditionViolationException(
+                String.format("No organization '%s' deployed , you cannot use this method", organizationId)
+            );
         }
 
-        Organization updatingOrganization = new Organization(currentOrganization);
+        ReactableOrganization updatingReactableOrganization = new ReactableOrganization(reactableOrganization.getDefinition());
 
         // Apply developer transformation on this organization
-        organizationConsumer.accept(updatingOrganization);
+        organizationConsumer.accept(updatingReactableOrganization);
 
         // redeploy new organization
-        updatingOrganization.setUpdatedAt(new Date());
-        organizationManager.register(updatingOrganization);
+        updatingReactableOrganization.setDeployedAt(new Date());
+        organizationManager.register(updatingReactableOrganization);
     }
 
     protected int getAvailablePort() {

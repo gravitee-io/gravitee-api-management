@@ -46,8 +46,7 @@ import org.junit.jupiter.api.Test;
  * @author Gravitee Team
  */
 @GatewayTest
-@DeployApi({ "/apis/v4/http/api.json" })
-@DeployOrganization("/organizations/organization-add-header.json")
+@DeployOrganization(organization = "/organizations/organization-add-header.json", apis = { "/apis/v4/http/api.json" })
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class HttpRequestKeylessV4IntegrationTest extends AbstractGatewayTest {
 

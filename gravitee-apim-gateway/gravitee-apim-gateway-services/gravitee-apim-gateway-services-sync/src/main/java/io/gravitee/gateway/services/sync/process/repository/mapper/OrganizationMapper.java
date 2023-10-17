@@ -17,6 +17,7 @@ package io.gravitee.gateway.services.sync.process.repository.mapper;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.Organization;
+import io.gravitee.gateway.platform.organization.ReactableOrganization;
 import io.gravitee.repository.management.model.Event;
 import io.reactivex.rxjava3.core.Maybe;
 import lombok.RequiredArgsConstructor;
@@ -28,15 +29,16 @@ public class OrganizationMapper {
 
     private final ObjectMapper objectMapper;
 
-    public Maybe<io.gravitee.definition.model.Organization> to(final Event event) {
+    public Maybe<ReactableOrganization> to(final Event event) {
         return Maybe.fromCallable(() -> {
             try {
                 // Read organization definition from event
                 final Organization organization = objectMapper.readValue(event.getPayload(), Organization.class);
-                organization.setUpdatedAt(event.getUpdatedAt());
-                return organization;
+                final ReactableOrganization reactableOrganizationPlatform = new ReactableOrganization(organization);
+                reactableOrganizationPlatform.setDeployedAt(event.getCreatedAt());
+                return reactableOrganizationPlatform;
             } catch (Exception e) {
-                log.warn("Error while determining deployed organization into events payload", e);
+                log.warn("Error while determining organization into events payload", e);
                 return null;
             }
         });
