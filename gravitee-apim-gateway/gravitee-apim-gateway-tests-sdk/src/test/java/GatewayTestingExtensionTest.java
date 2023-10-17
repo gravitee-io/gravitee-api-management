@@ -17,7 +17,6 @@ import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -169,13 +168,13 @@ class GatewayTestingExtensionTest {
     }
 
     @Test
-    void should_success_tests_with_valid_organization_at_class_level() {
+    void should_success_tests_with_organization() {
         EngineTestKit
             .engine("junit-jupiter")
             .selectors(selectClass(OrganizationDeploymentTestCase.class))
             .execute()
             .testEvents()
-            .assertStatistics(stats -> stats.started(3).succeeded(3).failed(0));
+            .assertStatistics(stats -> stats.started(4).succeeded(3).failed(1));
     }
 
     @Test

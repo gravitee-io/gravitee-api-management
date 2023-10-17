@@ -304,7 +304,7 @@ class DefaultApiReactorTest {
         lenient().when(apiProcessorChainFactory.afterApiExecution(api)).thenReturn(afterApiExecutionProcessors);
         lenient().when(apiProcessorChainFactory.onError(api)).thenReturn(onErrorProcessors);
 
-        lenient().when(flowChainFactory.createPlatformFlow(api)).thenReturn(platformFlowChain);
+        lenient().when(flowChainFactory.createOrganizationFlow(api)).thenReturn(platformFlowChain);
         lenient().when(platformFlowChain.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyRequestPlatformFlowChain);
         lenient().when(platformFlowChain.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyResponsePlatformFlowChain);
         lenient().when(securityChain.execute(any())).thenReturn(spySecurityChain);

@@ -31,6 +31,7 @@ import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.Organization;
 import io.gravitee.gateway.api.service.ApiKey;
 import io.gravitee.gateway.api.service.Subscription;
+import io.gravitee.gateway.platform.organization.ReactableOrganization;
 import io.gravitee.gateway.services.sync.process.common.model.SyncException;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiKeyMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiMapper;
@@ -197,7 +198,12 @@ class DefaultDistributedSyncServiceTest {
 
         @Test
         void should_distribute_organization() {
-            cut.distributeIfNeeded(OrganizationDeployable.builder().organization(new Organization()).build()).test().assertComplete();
+            cut
+                .distributeIfNeeded(
+                    OrganizationDeployable.builder().reactableOrganization(new ReactableOrganization(new Organization())).build()
+                )
+                .test()
+                .assertComplete();
             verify(distributedEventRepository).createOrUpdate(any());
         }
     }
@@ -258,7 +264,12 @@ class DefaultDistributedSyncServiceTest {
 
         @Test
         void should_not_call_repository_when_distributing_organization() {
-            cut.distributeIfNeeded(OrganizationDeployable.builder().organization(new Organization()).build()).test().assertComplete();
+            cut
+                .distributeIfNeeded(
+                    OrganizationDeployable.builder().reactableOrganization(new ReactableOrganization(new Organization())).build()
+                )
+                .test()
+                .assertComplete();
             verifyNoInteractions(distributedEventRepository);
         }
     }

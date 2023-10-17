@@ -28,6 +28,7 @@ import io.gravitee.gateway.policy.PolicyFactoryCreator;
 import io.gravitee.gateway.reactive.handlers.api.SyncApiReactor;
 import io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolverFactory;
 import io.gravitee.gateway.reactive.handlers.api.processor.ApiProcessorChainFactory;
+import io.gravitee.gateway.reactive.platform.organization.policy.OrganizationPolicyChainFactoryManager;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.handler.context.ApiTemplateVariableProviderFactory;
 import io.gravitee.node.api.configuration.Configuration;
@@ -74,6 +75,9 @@ public class ApiReactorHandlerFactoryTest {
     @Mock
     ApiTemplateVariableProviderFactory apiTemplateVariableProviderFactory;
 
+    @Mock
+    OrganizationPolicyChainFactoryManager organizationPolicyChainFactoryManager;
+
     @Before
     public void setUp() {
         MockitoAnnotations.openMocks(this);
@@ -93,7 +97,7 @@ public class ApiReactorHandlerFactoryTest {
                 null,
                 v3PolicyFactoryCreator,
                 null,
-                null,
+                organizationPolicyChainFactoryManager,
                 null,
                 policyChainProviderLoader,
                 apiProcessorChainFactory,

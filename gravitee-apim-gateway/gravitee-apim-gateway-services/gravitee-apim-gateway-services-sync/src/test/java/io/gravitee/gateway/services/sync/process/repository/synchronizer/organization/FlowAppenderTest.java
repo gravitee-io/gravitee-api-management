@@ -23,6 +23,7 @@ import io.gravitee.definition.model.flow.Consumer;
 import io.gravitee.definition.model.flow.ConsumerType;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.env.GatewayConfiguration;
+import io.gravitee.gateway.platform.organization.ReactableOrganization;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -55,7 +56,10 @@ class FlowAppenderTest {
     @Test
     void should_do_nothing_when_no_flow() {
         when(gatewayConfiguration.shardingTags()).thenReturn(Optional.empty());
-        OrganizationDeployable organizationDeployable = OrganizationDeployable.builder().organization(new Organization()).build();
+        OrganizationDeployable organizationDeployable = OrganizationDeployable
+            .builder()
+            .reactableOrganization(new ReactableOrganization(new Organization()))
+            .build();
         OrganizationDeployable appends = cut.appends(organizationDeployable);
         assertThat(appends).isEqualTo(organizationDeployable);
     }
@@ -65,7 +69,10 @@ class FlowAppenderTest {
         when(gatewayConfiguration.shardingTags()).thenReturn(Optional.empty());
         Organization organization = new Organization();
         organization.setFlows(List.of(new Flow()));
-        OrganizationDeployable organizationDeployable = OrganizationDeployable.builder().organization(organization).build();
+        OrganizationDeployable organizationDeployable = OrganizationDeployable
+            .builder()
+            .reactableOrganization(new ReactableOrganization(organization))
+            .build();
         OrganizationDeployable appends = cut.appends(organizationDeployable);
         assertThat(appends).isEqualTo(organizationDeployable);
     }
@@ -89,9 +96,12 @@ class FlowAppenderTest {
         flow2.setConsumers(List.of(consumer2));
 
         organization.setFlows(List.of(flow1, flow2));
-        OrganizationDeployable organizationDeployable = OrganizationDeployable.builder().organization(organization).build();
+        OrganizationDeployable organizationDeployable = OrganizationDeployable
+            .builder()
+            .reactableOrganization(new ReactableOrganization(organization))
+            .build();
         OrganizationDeployable appends = cut.appends(organizationDeployable);
-        assertThat(appends.organization().getFlows().size()).isEqualTo(1);
-        assertThat(appends.organization().getFlows().get(0)).isEqualTo(flow1);
+        assertThat(appends.reactableOrganization().getFlows().size()).isEqualTo(1);
+        assertThat(appends.reactableOrganization().getFlows().get(0)).isEqualTo(flow1);
     }
 }

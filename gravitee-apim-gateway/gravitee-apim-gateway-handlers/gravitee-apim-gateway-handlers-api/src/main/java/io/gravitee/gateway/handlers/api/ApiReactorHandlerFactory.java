@@ -48,7 +48,7 @@ import io.gravitee.gateway.handlers.api.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.handlers.api.processor.ResponseProcessorChainFactory;
 import io.gravitee.gateway.handlers.api.processor.transaction.TransactionResponseProcessorConfiguration;
 import io.gravitee.gateway.handlers.api.security.PlanBasedAuthenticationHandlerEnhancer;
-import io.gravitee.gateway.platform.manager.OrganizationManager;
+import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
 import io.gravitee.gateway.policy.PolicyChainProviderLoader;
 import io.gravitee.gateway.policy.PolicyConfigurationFactory;
 import io.gravitee.gateway.policy.PolicyFactory;
@@ -63,6 +63,7 @@ import io.gravitee.gateway.reactive.handlers.api.el.ContentTemplateVariableProvi
 import io.gravitee.gateway.reactive.handlers.api.flow.FlowChainFactory;
 import io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolverFactory;
 import io.gravitee.gateway.reactive.handlers.api.processor.ApiProcessorChainFactory;
+import io.gravitee.gateway.reactive.platform.organization.policy.OrganizationPolicyChainFactoryManager;
 import io.gravitee.gateway.reactive.policy.DefaultPolicyChainFactory;
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
 import io.gravitee.gateway.reactor.Reactable;
@@ -116,7 +117,7 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
     private final Configuration configuration;
     private final io.gravitee.gateway.policy.PolicyFactoryCreator v3PolicyFactoryCreator;
     private final io.gravitee.gateway.reactive.policy.PolicyFactory policyFactory;
-    private final io.gravitee.gateway.reactive.policy.PolicyChainFactory platformPolicyChainFactory;
+    private final OrganizationPolicyChainFactoryManager organizationPolicyChainFactoryManager;
     private final PolicyChainProviderLoader policyChainProviderLoader;
     private final ApiProcessorChainFactory apiProcessorChainFactory;
     private final OrganizationManager organizationManager;
@@ -130,7 +131,7 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
         Node node,
         PolicyFactoryCreator v3PolicyFactoryCreator,
         io.gravitee.gateway.reactive.policy.PolicyFactory policyFactory,
-        io.gravitee.gateway.reactive.policy.PolicyChainFactory platformPolicyChainFactory,
+        OrganizationPolicyChainFactoryManager organizationPolicyChainFactoryManager,
         OrganizationManager organizationManager,
         PolicyChainProviderLoader policyChainProviderLoader,
         ApiProcessorChainFactory apiProcessorChainFactory,
@@ -142,7 +143,7 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
         this.node = node;
         this.v3PolicyFactoryCreator = v3PolicyFactoryCreator;
         this.policyFactory = policyFactory;
-        this.platformPolicyChainFactory = platformPolicyChainFactory;
+        this.organizationPolicyChainFactoryManager = organizationPolicyChainFactoryManager;
         this.organizationManager = organizationManager;
         this.policyChainProviderLoader = policyChainProviderLoader;
         this.apiProcessorChainFactory = apiProcessorChainFactory;
@@ -277,7 +278,7 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
                     );
 
                     FlowChainFactory flowChainFactory = createFlowChainFactory(
-                        platformPolicyChainFactory,
+                        organizationPolicyChainFactoryManager,
                         policyChainFactory,
                         organizationManager,
                         configuration,
@@ -348,14 +349,14 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
     }
 
     protected FlowChainFactory createFlowChainFactory(
-        io.gravitee.gateway.reactive.policy.PolicyChainFactory platformPolicyChainFactory,
+        OrganizationPolicyChainFactoryManager organizationPolicyChainFactoryManager,
         io.gravitee.gateway.reactive.policy.PolicyChainFactory apiPolicyChainFactory,
         OrganizationManager organizationManager,
         Configuration configuration,
         FlowResolverFactory flowResolverFactory
     ) {
         return new FlowChainFactory(
-            platformPolicyChainFactory,
+            organizationPolicyChainFactoryManager,
             apiPolicyChainFactory,
             organizationManager,
             configuration,

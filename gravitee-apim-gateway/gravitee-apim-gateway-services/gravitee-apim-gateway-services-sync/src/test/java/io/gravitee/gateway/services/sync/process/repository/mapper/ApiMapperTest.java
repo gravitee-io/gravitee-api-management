@@ -27,6 +27,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
+import io.gravitee.gateway.services.sync.process.repository.service.EnvironmentService;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.OrganizationRepository;
@@ -70,7 +71,7 @@ class ApiMapperTest {
 
     @BeforeEach
     public void beforeEach() throws JsonProcessingException {
-        cut = new ApiMapper(objectMapper, environmentRepository, organizationRepository);
+        cut = new ApiMapper(objectMapper, new EnvironmentService(environmentRepository, organizationRepository));
         apiV2 = new io.gravitee.definition.model.Api();
         apiV2.setId("id");
         apiV2.setDefinitionVersion(DefinitionVersion.V2);

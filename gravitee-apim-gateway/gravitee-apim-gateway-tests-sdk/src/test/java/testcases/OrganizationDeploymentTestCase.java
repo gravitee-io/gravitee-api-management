@@ -33,7 +33,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
-import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployOrganization;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.policy.PolicyBuilder;
@@ -43,7 +42,6 @@ import io.gravitee.plugin.policy.PolicyPlugin;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.rxjava3.core.http.HttpClient;
 import java.util.Map;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -51,15 +49,12 @@ import org.junit.jupiter.api.Test;
  * @author GraviteeSource Team
  */
 @GatewayTest
-@DeployApi({ "/apis/nothing.json" })
-@DeployOrganization("/organizations/organization-add-header-1.json")
+@DeployOrganization(organization = "/organizations/organization-add-header-1.json", apis = { "/apis/nothing.json" })
+@EnableForGatewayTestingExtensionTesting
 public class OrganizationDeploymentTestCase extends AbstractGatewayTest {
 
-    public static final String ON_REQUEST_POLICY = "on-request-policy";
-
     @Test
-    @DisplayName("Should test organization flow")
-    void shouldTestOrganizationFlow(HttpClient httpClient) throws InterruptedException {
+    void should_execute_organization_flow(HttpClient httpClient) throws InterruptedException {
         wiremock.stubFor(get("/team").willReturn(ok()));
 
         httpClient
@@ -78,13 +73,12 @@ public class OrganizationDeploymentTestCase extends AbstractGatewayTest {
     }
 
     @Test
-    @DeployOrganization("/organizations/organization-add-header-2.json")
-    @DisplayName("Should test organization flow at test level using annotation")
-    void shouldTestOrganizationFlowAtTestLevel(HttpClient httpClient) throws InterruptedException {
+    @DeployOrganization(organization = "/organizations/organization-add-header-2.json", apis = "/apis/nothing-bis.json")
+    void should_execute_organization_flow_deployed_at_test_level(HttpClient httpClient) throws InterruptedException {
         wiremock.stubFor(get("/team").willReturn(ok()));
 
         httpClient
-            .rxRequest(HttpMethod.GET, "/test")
+            .rxRequest(HttpMethod.GET, "/test2")
             .flatMap(request -> request.rxSend())
             .test()
             .await()
@@ -99,12 +93,18 @@ public class OrganizationDeploymentTestCase extends AbstractGatewayTest {
     }
 
     @Test
-    @DisplayName("Should test organization flow at test level using updateAndDeployOrganizationMethod")
-    void shouldTestOrganizationFlowAtTestLevelWithMethodCall(HttpClient httpClient) throws InterruptedException {
-        super.updateAndDeployOrganization(organization -> {
-            organization.getFlows().get(0).getPre().get(0).setPolicy("header-policy2");
-            organization.getFlows().get(0).getPost().get(0).setPolicy("header-policy2");
-        });
+    @DeployOrganization(organization = "/organizations/organization-add-header-1.json", apis = "/apis/nothing.json")
+    void should_fail_deploying_a_already_deployed_organization() {}
+
+    @Test
+    void should_execute_organization_flow_deployed_at_test_level_with_update(HttpClient httpClient) throws InterruptedException {
+        super.updateOrganization(
+            "ORGA-1",
+            organization -> {
+                organization.getFlows().get(0).getPre().get(0).setPolicy("header-policy2");
+                organization.getFlows().get(0).getPost().get(0).setPolicy("header-policy2");
+            }
+        );
 
         wiremock.stubFor(get("/team").willReturn(ok()));
 

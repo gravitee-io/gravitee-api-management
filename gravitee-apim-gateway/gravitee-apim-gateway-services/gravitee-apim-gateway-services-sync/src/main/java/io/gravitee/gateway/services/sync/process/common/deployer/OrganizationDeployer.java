@@ -15,8 +15,8 @@
  */
 package io.gravitee.gateway.services.sync.process.common.deployer;
 
-import io.gravitee.definition.model.Organization;
-import io.gravitee.gateway.platform.manager.OrganizationManager;
+import io.gravitee.gateway.platform.organization.ReactableOrganization;
+import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
 import io.gravitee.gateway.services.sync.process.common.model.SyncException;
 import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncService;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.organization.OrganizationDeployable;
@@ -38,21 +38,16 @@ public class OrganizationDeployer implements Deployer<OrganizationDeployable> {
     @Override
     public Completable deploy(final OrganizationDeployable deployable) {
         return Completable.fromRunnable(() -> {
-            Organization organization = deployable.organization();
+            ReactableOrganization reactableOrganization = deployable.reactableOrganization();
             try {
-                // Update definition with required information for deployment phase
-                final io.gravitee.gateway.platform.Organization organizationPlatform = new io.gravitee.gateway.platform.Organization(
-                    organization
-                );
-                organizationPlatform.setUpdatedAt(organization.getUpdatedAt());
-                organizationManager.register(organizationPlatform);
+                organizationManager.register(reactableOrganization);
                 log.debug("Organization [{}] deployed ", deployable.id());
             } catch (Exception e) {
                 throw new SyncException(
                     String.format(
                         "An error occurred when trying to deploy organization %s [%s].",
-                        organization.getName(),
-                        organization.getId()
+                        reactableOrganization.getName(),
+                        reactableOrganization.getId()
                     ),
                     e
                 );

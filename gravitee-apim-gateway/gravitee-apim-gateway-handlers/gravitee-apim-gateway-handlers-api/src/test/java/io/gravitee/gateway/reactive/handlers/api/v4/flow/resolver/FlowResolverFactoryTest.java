@@ -39,8 +39,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class FlowResolverFactoryTest {
 
-    protected static final String ORGANIZATION_ID = "ORGANIZATION_ID";
-
     @Mock
     private ConditionFilter<Flow> conditionFilter;
 

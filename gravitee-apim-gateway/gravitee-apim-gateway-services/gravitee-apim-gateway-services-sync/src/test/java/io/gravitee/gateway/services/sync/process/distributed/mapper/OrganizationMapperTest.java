@@ -16,15 +16,12 @@
 package io.gravitee.gateway.services.sync.process.distributed.mapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.Organization;
-import io.gravitee.gateway.dictionary.model.Dictionary;
-import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
-import io.gravitee.gateway.services.sync.process.repository.synchronizer.dictionary.DictionaryDeployable;
+import io.gravitee.gateway.platform.organization.ReactableOrganization;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.organization.OrganizationDeployable;
 import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
@@ -44,28 +41,30 @@ class OrganizationMapperTest {
 
     private final ObjectMapper objectMapper = new GraviteeMapper();
     private OrganizationMapper cut;
-    private Organization organization;
     private DistributedEvent distributedEvent;
     private OrganizationDeployable organizationDeployable;
+    private ReactableOrganization reactableOrganization;
 
     @BeforeEach
     public void beforeEach() throws JsonProcessingException {
         cut = new OrganizationMapper(objectMapper);
 
-        organization = new io.gravitee.definition.model.Organization();
+        Organization organization = new io.gravitee.definition.model.Organization();
         organization.setId("id");
+
+        reactableOrganization = new ReactableOrganization(organization);
 
         distributedEvent =
             DistributedEvent
                 .builder()
                 .id(organization.getId())
-                .payload(objectMapper.writeValueAsString(organization))
+                .payload(objectMapper.writeValueAsString(reactableOrganization))
                 .updatedAt(new Date())
                 .type(DistributedEventType.ORGANIZATION)
                 .syncAction(DistributedSyncAction.DEPLOY)
                 .build();
 
-        organizationDeployable = OrganizationDeployable.builder().organization(organization).build();
+        organizationDeployable = OrganizationDeployable.builder().reactableOrganization(reactableOrganization).build();
     }
 
     @Test

@@ -24,12 +24,8 @@ import java.lang.annotation.Target;
 /**
  * <pre>
  * {@code @DeployOrganization} is a type and method level annotation that is used to deploy an organization on the gateway thanks to an Organization definition json file.
- *
+ * You can also provide a list of apis definition to deploy them on this organization.
  * The path is relative to the folder {@code src/test/resources}
- *
- * For testing purposes, only one can organization can be deployed at a time.
- *
- * If you use {@code @DeployOrganization} at both class and method level, the method level one will take precedence over the other.
  *
  *</pre>
  *
@@ -42,5 +38,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 public @interface DeployOrganization {
-    String value();
+    String organization();
+
+    String[] apis() default {};
 }

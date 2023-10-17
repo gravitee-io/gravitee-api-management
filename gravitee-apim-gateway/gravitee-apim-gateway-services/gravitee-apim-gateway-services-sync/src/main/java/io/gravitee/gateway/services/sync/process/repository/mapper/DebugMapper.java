@@ -16,15 +16,33 @@
 package io.gravitee.gateway.services.sync.process.repository.mapper;
 
 import io.gravitee.gateway.reactor.Reactable;
-import io.gravitee.gateway.reactor.impl.ReactableWrapper;
+import io.gravitee.gateway.reactor.impl.ReactableEvent;
+import io.gravitee.gateway.services.sync.process.repository.service.EnvironmentService;
 import io.gravitee.repository.management.model.Event;
 import io.reactivex.rxjava3.core.Maybe;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+@RequiredArgsConstructor
 @Slf4j
 public class DebugMapper {
 
+    private final EnvironmentService environmentService;
+
     public Maybe<Reactable> to(Event event) {
-        return Maybe.just(new ReactableWrapper<>(event));
+        return Maybe.fromCallable(() -> {
+            try {
+                ReactableEvent<Event> reactableEvent = new ReactableEvent<>(event.getId(), event);
+                reactableEvent.setDeployedAt(event.getCreatedAt());
+                String environmentId = event.getEnvironments().stream().findFirst().orElse(null);
+                environmentService.fill(environmentId, reactableEvent);
+
+                return reactableEvent;
+            } catch (Exception e) {
+                // Log the error and ignore this event.
+                log.error("Unable to extract debug api definition from event [{}].", event.getId(), e);
+                return null;
+            }
+        });
     }
 }

@@ -20,14 +20,10 @@ import static io.gravitee.repository.management.model.Event.EventProperties.API_
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.gateway.reactor.ReactableApi;
-import io.gravitee.repository.management.api.EnvironmentRepository;
-import io.gravitee.repository.management.api.OrganizationRepository;
-import io.gravitee.repository.management.model.Environment;
+import io.gravitee.gateway.services.sync.process.repository.service.EnvironmentService;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.reactivex.rxjava3.core.Maybe;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -36,11 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ApiMapper {
 
     private final ObjectMapper objectMapper;
-    private final EnvironmentRepository environmentRepository;
-    private final OrganizationRepository organizationRepository;
-
-    private final Map<String, Environment> environmentMap = new ConcurrentHashMap<>();
-    private final Map<String, io.gravitee.repository.management.model.Organization> organizationMap = new ConcurrentHashMap<>();
+    private final EnvironmentService environmentService;
 
     public Maybe<String> toId(Event apiEvent) {
         return Maybe.fromCallable(() -> {
@@ -79,7 +71,7 @@ public class ApiMapper {
                 reactableApi.setEnabled(api.getLifecycleState() == LifecycleState.STARTED);
                 reactableApi.setDeployedAt(apiEvent.getCreatedAt());
 
-                enhanceWithOrgAndEnv(api.getEnvironmentId(), reactableApi);
+                environmentService.fill(api.getEnvironmentId(), reactableApi);
 
                 return reactableApi;
             } catch (Exception e) {
@@ -88,54 +80,5 @@ public class ApiMapper {
                 return null;
             }
         });
-    }
-
-    private void enhanceWithOrgAndEnv(String environmentId, ReactableApi<?> definition) {
-        if (environmentId != null) {
-            Environment apiEnv = loadEnvironment(environmentId);
-            if (apiEnv != null) {
-                definition.setEnvironmentId(apiEnv.getId());
-                definition.setEnvironmentHrid(apiEnv.getHrids() != null ? apiEnv.getHrids().stream().findFirst().orElse(null) : null);
-
-                final io.gravitee.repository.management.model.Organization apiOrg = organizationMap.get(apiEnv.getOrganizationId());
-
-                if (apiOrg != null) {
-                    definition.setOrganizationId(apiOrg.getId());
-                    definition.setOrganizationHrid(apiOrg.getHrids() != null ? apiOrg.getHrids().stream().findFirst().orElse(null) : null);
-                }
-            }
-        }
-    }
-
-    private Environment loadEnvironment(final String environmentId) {
-        return environmentMap.computeIfAbsent(
-            environmentId,
-            envId -> {
-                try {
-                    var environmentOpt = environmentRepository.findById(envId);
-                    if (environmentOpt.isPresent()) {
-                        Environment environment = environmentOpt.get();
-                        loadOrganization(environment);
-                        return environment;
-                    }
-                } catch (Exception e) {
-                    log.warn("An error occurred fetching the environment {} and its organization.", envId, e);
-                }
-                return null;
-            }
-        );
-    }
-
-    private void loadOrganization(final Environment environment) {
-        organizationMap.computeIfAbsent(
-            environment.getOrganizationId(),
-            orgId -> {
-                try {
-                    return organizationRepository.findById(orgId).orElse(null);
-                } catch (Exception e) {
-                    return null;
-                }
-            }
-        );
     }
 }

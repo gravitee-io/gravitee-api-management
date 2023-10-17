@@ -1,0 +1,49 @@
+{
+  "id": "my-api-v4-2",
+  "name": "my-api-v4-2",
+  "apiVersion": "1.0",
+  "definitionVersion": "4.0.0",
+  "type": "message",
+  "description": "API v4 using HTTP-GET entrypoint",
+  "listeners": [
+    {
+      "type": "http",
+      "paths": [
+        {
+          "path": "/test-2"
+        }
+      ],
+      "entrypoints": [
+        {
+          "type": "http-post",
+          "configuration": {
+            "requestHeadersToMessage" : true
+          }
+        }
+      ]
+    }
+  ],
+  "endpointGroups": [
+    {
+      "name": "default",
+      "type": "mock",
+      "endpoints": [
+        {
+          "name": "default-endpoint",
+          "type": "mock",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "messageInterval": 1,
+            "messageContent": "message",
+            "messageCount": 1000
+          }
+        }
+      ]
+    }
+  ],
+  "flows": [],
+  "analytics": {
+    "enabled": true
+  }
+}

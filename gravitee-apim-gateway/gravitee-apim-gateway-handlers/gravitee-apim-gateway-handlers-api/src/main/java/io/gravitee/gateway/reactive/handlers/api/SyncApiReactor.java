@@ -93,7 +93,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     protected final ResourceLifecycleManager resourceLifecycleManager;
     protected final PolicyManager policyManager;
     protected final GroupLifecycleManager groupLifecycleManager;
-    protected final FlowChain platformFlowChain;
+    protected final FlowChain organizationFlowChain;
     protected final FlowChain apiPlanFlowChain;
     protected final FlowChain apiFlowChain;
     private final ProcessorChain beforeHandleProcessors;
@@ -142,7 +142,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         this.afterApiFlowsProcessors = apiProcessorChainFactory.afterApiExecution(api);
         this.onErrorProcessors = apiProcessorChainFactory.onError(api);
 
-        this.platformFlowChain = flowChainFactory.createPlatformFlow(api);
+        this.organizationFlowChain = flowChainFactory.createOrganizationFlow(api);
         this.apiPlanFlowChain = flowChainFactory.createPlanFlow(api);
         this.apiFlowChain = flowChainFactory.createApiFlow(api);
 
@@ -205,8 +205,8 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     private Completable handleRequest(final MutableExecutionContext ctx) {
         // Setup all processors before handling the request (ex: logging).
         return executeProcessorChain(ctx, beforeHandleProcessors, REQUEST)
-            // Execute platform flow chain
-            .andThen(platformFlowChain.execute(ctx, REQUEST))
+            // Execute organization flow chain
+            .andThen(organizationFlowChain.execute(ctx, REQUEST))
             // Before Security Chain.
             .andThen(executeProcessorChain(ctx, beforeSecurityChainProcessors, REQUEST))
             // Execute security chain.
@@ -225,7 +225,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
             .onErrorResumeNext(error -> processThrowable(ctx, error))
             .compose(upstream -> timeout(upstream, ctx))
             // Platform post flows must always be executed
-            .andThen(executeFlowChain(ctx, platformFlowChain, RESPONSE).compose(upstream -> timeout(upstream, ctx)))
+            .andThen(executeFlowChain(ctx, organizationFlowChain, RESPONSE).compose(upstream -> timeout(upstream, ctx)))
             // Catch all possible unexpected errors.
             .onErrorResumeNext(t -> handleUnexpectedError(ctx, t))
             .andThen(executeProcessorChain(ctx, afterHandleProcessors, RESPONSE))

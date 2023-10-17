@@ -19,7 +19,11 @@ import io.gravitee.definition.model.HttpRequest;
 import io.gravitee.definition.model.HttpResponse;
 import io.gravitee.gateway.debug.reactor.handler.context.PathTransformer;
 import io.gravitee.gateway.handlers.api.definition.Api;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 public class DebugApi extends Api {
 
     private HttpRequest request;
@@ -31,26 +35,7 @@ public class DebugApi extends Api {
         this.setResponse(debugApi.getResponse());
         this.setRequest(debugApi.getRequest());
         this.setEventId(eventId);
-    }
-
-    public HttpRequest getRequest() {
-        return request;
-    }
-
-    public void setRequest(HttpRequest request) {
-        this.request = request;
-    }
-
-    public HttpResponse getResponse() {
-        return response;
-    }
-
-    public void setResponse(HttpResponse response) {
-        this.response = response;
-    }
-
-    public String getEventId() {
-        return eventId;
+        this.setEnabled(true);
     }
 
     /**

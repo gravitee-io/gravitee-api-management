@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.gateway.tests.sdk.annotations;
 
+import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;

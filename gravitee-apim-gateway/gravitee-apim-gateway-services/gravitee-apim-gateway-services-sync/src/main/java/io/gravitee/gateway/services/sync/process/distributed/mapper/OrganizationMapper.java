@@ -16,7 +16,7 @@
 package io.gravitee.gateway.services.sync.process.distributed.mapper;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.definition.model.Organization;
+import io.gravitee.gateway.platform.organization.ReactableOrganization;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.organization.OrganizationDeployable;
 import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
@@ -35,8 +35,8 @@ public class OrganizationMapper {
     public Maybe<OrganizationDeployable> to(final DistributedEvent event) {
         return Maybe.fromCallable(() -> {
             try {
-                final Organization organization = objectMapper.readValue(event.getPayload(), Organization.class);
-                return OrganizationDeployable.builder().organization(organization).build();
+                final ReactableOrganization reactableOrganization = objectMapper.readValue(event.getPayload(), ReactableOrganization.class);
+                return OrganizationDeployable.builder().reactableOrganization(reactableOrganization).build();
             } catch (Exception e) {
                 log.warn("Error while determining deployed organization into event payload", e);
                 return null;
@@ -52,7 +52,7 @@ public class OrganizationMapper {
                     .id(organizationDeployable.id())
                     .type(DistributedEventType.ORGANIZATION)
                     .syncAction(DistributedSyncAction.DEPLOY)
-                    .payload(objectMapper.writeValueAsString(organizationDeployable.organization()))
+                    .payload(objectMapper.writeValueAsString(organizationDeployable.reactableOrganization()))
                     .updatedAt(new Date())
                     .build();
             } catch (Exception e) {

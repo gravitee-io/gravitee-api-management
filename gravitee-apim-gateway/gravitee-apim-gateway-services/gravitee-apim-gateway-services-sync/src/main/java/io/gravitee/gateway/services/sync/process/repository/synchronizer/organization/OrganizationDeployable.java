@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.services.sync.process.repository.synchronizer.organization;
 
-import io.gravitee.definition.model.Organization;
+import io.gravitee.gateway.platform.organization.ReactableOrganization;
 import io.gravitee.gateway.services.sync.process.common.model.Deployable;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
 import lombok.Builder;
@@ -39,10 +39,10 @@ import lombok.experimental.Accessors;
 public class OrganizationDeployable implements Deployable {
 
     @NonNull
-    private Organization organization;
+    private ReactableOrganization reactableOrganization;
 
     public String id() {
-        return organization.getId();
+        return reactableOrganization.getId();
     }
 
     @Override

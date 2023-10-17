@@ -23,28 +23,24 @@ import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.debug.definition.DebugApi;
 import io.gravitee.gateway.debug.vertx.VertxDebugHttpClientConfiguration;
-import io.gravitee.gateway.platform.Organization;
-import io.gravitee.gateway.platform.manager.OrganizationManager;
+import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.gateway.reactor.handler.ReactorEventListener;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
-import io.gravitee.gateway.reactor.impl.ReactableWrapper;
+import io.gravitee.gateway.reactor.impl.ReactableEvent;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.model.ApiDebugStatus;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.core.http.impl.headers.HeadersMultiMap;
 import io.vertx.core.net.OpenSSLEngineOptions;
 import io.vertx.rxjava3.core.Vertx;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,10 +82,10 @@ public class DebugReactorEventListener extends ReactorEventListener {
     public void onEvent(final Event<ReactorEvent, Reactable> reactorEvent) {
         if (reactorEvent.type() == ReactorEvent.DEBUG) {
             logger.info("Deploying api for debug");
-            ReactableWrapper<io.gravitee.repository.management.model.Event> reactableWrapper =
-                (ReactableWrapper<io.gravitee.repository.management.model.Event>) reactorEvent.content();
-            io.gravitee.repository.management.model.Event debugEvent = reactableWrapper.getContent();
-            DebugApi debugApi = toDebugApi(debugEvent);
+            ReactableEvent<io.gravitee.repository.management.model.Event> reactableEvent =
+                (ReactableEvent<io.gravitee.repository.management.model.Event>) reactorEvent.content();
+            io.gravitee.repository.management.model.Event debugEvent = reactableEvent.getContent();
+            DebugApi debugApi = toDebugApi(reactableEvent);
             if (debugApi != null) {
                 if (reactorHandlerRegistry.contains(debugApi)) {
                     logger.info("Api for debug already deployed. No need to do it again.");
@@ -144,34 +140,30 @@ public class DebugReactorEventListener extends ReactorEventListener {
         }
     }
 
-    private DebugApi toDebugApi(final io.gravitee.repository.management.model.Event event) {
+    private DebugApi toDebugApi(final ReactableEvent<io.gravitee.repository.management.model.Event> reactableEvent) {
+        io.gravitee.repository.management.model.Event event = reactableEvent.getContent();
         try {
             // Read API definition from event
-            io.gravitee.definition.model.debug.DebugApi eventPayload = objectMapper.readValue(
+            io.gravitee.definition.model.debug.DebugApi eventDebugApi = objectMapper.readValue(
                 event.getPayload(),
                 io.gravitee.definition.model.debug.DebugApi.class
             );
 
-            eventPayload.setPlans(
-                eventPayload
-                    .getPlans()
-                    .stream()
-                    .filter(plan -> !PlanStatus.CLOSED.name().equalsIgnoreCase(plan.getStatus()))
-                    .collect(Collectors.toList())
+            eventDebugApi.setPlans(
+                eventDebugApi.getPlans().stream().filter(plan -> !PlanStatus.CLOSED.name().equalsIgnoreCase(plan.getStatus())).toList()
             );
 
-            DebugApi debugApi = new DebugApi(event.getId(), eventPayload);
-            debugApi.setEnabled(true);
-            debugApi.setDeployedAt(new Date());
-            Organization currentOrganization = organizationManager.getCurrentOrganization();
-            if (currentOrganization != null) {
-                debugApi.setOrganizationId(currentOrganization.getId());
-            }
+            DebugApi debugApi = new DebugApi(reactableEvent.getId(), eventDebugApi);
+            debugApi.setDeployedAt(reactableEvent.getDeployedAt());
+            debugApi.setEnvironmentHrid(reactableEvent.getEnvironmentHrid());
+            debugApi.setEnvironmentId(reactableEvent.getEnvironmentId());
+            debugApi.setOrganizationHrid(reactableEvent.getOrganizationHrid());
+            debugApi.setOrganizationId(reactableEvent.getOrganizationId());
 
             return debugApi;
         } catch (Exception e) {
             // Log the error and ignore this event.
-            logger.error("Unable to extract api definition from event [{}].", event.getId(), e);
+            logger.error("Unable to extract api definition from event [{}].", reactableEvent.getId(), e);
             failEvent(event);
             return null;
         }
