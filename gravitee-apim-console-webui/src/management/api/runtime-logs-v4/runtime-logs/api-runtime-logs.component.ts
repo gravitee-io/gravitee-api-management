@@ -20,7 +20,7 @@ import { map, shareReplay, takeUntil, tap } from 'rxjs/operators';
 import { StateParams } from '@uirouter/core';
 import { StateService } from '@uirouter/angular';
 import * as moment from 'moment';
-import { forkJoin, Observable, ReplaySubject, Subject } from 'rxjs';
+import { ReplaySubject, Subject } from 'rxjs';
 
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
 
@@ -31,7 +31,6 @@ import { ApiLogsResponse, ApiV4 } from '../../../../entities/management-api-v2';
 import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { ApplicationService } from '../../../../services-ngx/application.service';
-import { Application } from '../../../../entities/application/application';
 
 @Component({
   selector: 'api-runtime-logs',
@@ -73,24 +72,7 @@ export class ApiRuntimeLogsComponent implements OnInit, OnDestroy {
       )
       .subscribe();
 
-    if (this.ajsStateParams.applicationIds != null) {
-      const applicationIds = this.ajsStateParams.applicationIds?.split(',');
-      const applicationRequests: Observable<Application>[] = applicationIds?.map((id) => this.applicationService.getById(id));
-      forkJoin(applicationRequests)
-        .pipe(
-          tap((applications) => {
-            this.initialValues = {
-              applications: applications?.map((application) => ({
-                value: application.id,
-                label: `${application.name} ( ${application.owner?.displayName} )`,
-              })),
-            };
-          }),
-        )
-        .subscribe();
-    } else {
-      this.initialValues = { applications: undefined };
-    }
+    this.initFilters();
   }
 
   ngOnDestroy() {
@@ -142,13 +124,7 @@ export class ApiRuntimeLogsComponent implements OnInit, OnDestroy {
       .pipe(
         tap((apiLogsResponse) => {
           this.apiLogsSubject$.next(apiLogsResponse);
-          this.ajsState.go(
-            '.',
-            {
-              ...this.currentFilters,
-            },
-            { notify: false },
-          );
+          this.ajsState.go('.', { ...this.currentFilters }, { notify: false });
         }),
         takeUntil(this.unsubscribe$),
       )
@@ -170,5 +146,27 @@ export class ApiRuntimeLogsComponent implements OnInit, OnDestroy {
       from = now.clone().add(duration, timeUnit);
     }
     return { from: from.valueOf(), to: now.valueOf() };
+  }
+
+  private initFilters() {
+    const applicationIds: string[] = this.ajsStateParams.applicationIds ? this.ajsStateParams.applicationIds.split(',') : null;
+
+    this.applicationService
+      .findByIds(applicationIds, 1, applicationIds?.length ?? 10)
+      .pipe(
+        map((applications) => ({
+          applications:
+            applicationIds?.map((id) => {
+              const application = applications.data.find((app) => app.id === id);
+              return {
+                value: id,
+                label: `${application.name} ( ${application.owner?.displayName} )`,
+              };
+            }) ?? undefined,
+        })),
+      )
+      .subscribe((data) => {
+        this.initialValues = data;
+      });
   }
 }
