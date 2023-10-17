@@ -49,7 +49,7 @@ const api = fakeApiV4({
 });
 
 export default {
-  title: 'API / Logs / Runtime logs messages settings',
+  title: 'API / Logs / Settings / Message',
   component: ApiRuntimeLogsMessageSettingsComponent,
   decorators: [
     moduleMetadata({

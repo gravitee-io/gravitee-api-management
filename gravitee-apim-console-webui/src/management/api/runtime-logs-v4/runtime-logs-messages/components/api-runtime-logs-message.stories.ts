@@ -26,7 +26,7 @@ const messageLog = fakeMessageLog({ connectorId: 'kafka' });
 const connectorIcon = 'gio:kafka';
 
 export default {
-  title: 'API / Logs / Runtime logs messages',
+  title: 'API / Logs / Messages / Item',
   component: ApiRuntimeLogsMessagesComponent,
   decorators: [
     moduleMetadata({
