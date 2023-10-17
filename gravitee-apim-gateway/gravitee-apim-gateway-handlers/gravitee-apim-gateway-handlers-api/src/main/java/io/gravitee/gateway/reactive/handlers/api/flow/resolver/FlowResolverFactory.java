@@ -18,7 +18,6 @@ package io.gravitee.gateway.reactive.handlers.api.flow.resolver;
 import io.gravitee.definition.model.FlowMode;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.handlers.api.definition.Api;
-import io.gravitee.gateway.platform.Organization;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
 import io.gravitee.gateway.reactive.flow.BestMatchFlowResolver;
@@ -63,14 +62,7 @@ public class FlowResolverFactory {
     }
 
     public FlowResolver forPlatform(ReactableApi<?> api, OrganizationManager organizationManager) {
-        final PlatformFlowResolver flowResolver = new PlatformFlowResolver(api, organizationManager, flowFilter);
-        final Organization organization = organizationManager.getCurrentOrganization();
-
-        if (organization != null && isBestMatchFlowMode(organization.getFlowMode())) {
-            return new BestMatchFlowResolver(flowResolver, bestMatchFlowSelector);
-        }
-
-        return flowResolver;
+        return new PlatformFlowResolver(api.getOrganizationId(), organizationManager, flowFilter, bestMatchFlowSelector);
     }
 
     private static boolean isBestMatchFlowMode(FlowMode flowMode) {
