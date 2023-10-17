@@ -72,4 +72,8 @@ public class ServiceFixture {
     public static ServiceV4 aServiceV4() {
         return BASE_API_V4_SERVICE.build();
     }
+
+    public static HealthCheckService aHealthCheckService() {
+        return BASE_HEALTH_CHECK_SERVICE.build();
+    }
 }

@@ -15,11 +15,12 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
-import io.gravitee.rest.api.management.v2.rest.model.EndpointGroupV2;
-import io.gravitee.rest.api.management.v2.rest.model.EndpointGroupV4;
-import io.gravitee.rest.api.management.v2.rest.model.EndpointV2;
-import io.gravitee.rest.api.management.v2.rest.model.EndpointV4;
-import io.gravitee.rest.api.management.v2.rest.model.HttpEndpointV2;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.rest.api.management.v2.rest.model.*;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
@@ -44,22 +45,69 @@ public interface EndpointMapper {
     EndpointGroupV4 mapEndpointGroup(io.gravitee.definition.model.v4.endpointgroup.EndpointGroup endpointGroup);
 
     // V2
-    io.gravitee.definition.model.Endpoint mapHttpEndpoint(HttpEndpointV2 endpoint);
+    io.gravitee.definition.model.Endpoint mapEndpoint(HttpEndpointV2 endpoint);
+
+    // Remove healthCheck. The healthCheck to use is the one defined in configuration
+    @Mapping(target = "healthCheck", expression = "java(null)")
+    io.gravitee.definition.model.Endpoint mapHttpEndpoint(HttpEndpointV2 endpoint, String configuration);
 
     default io.gravitee.definition.model.Endpoint map(EndpointV2 endpoint) {
         if (endpoint == null) {
             return null;
         }
-        return mapHttpEndpoint(endpoint.getHttpEndpointV2());
+
+        if (endpoint.getActualInstance() instanceof HttpEndpointV2) {
+            ObjectMapper mapper = new GraviteeMapper();
+            String configuration;
+            try {
+                // We need to map the httpProxy, httpClientOptions and httpClientSslOptions to the new configuration
+                var configurationNode = mapper.valueToTree(endpoint);
+                var proxy = configurationNode.get("httpProxy");
+                ((ObjectNode) configurationNode).set("proxy", proxy);
+                ((ObjectNode) configurationNode).remove("httpProxy");
+                var httpclient = configurationNode.get("httpClientOptions");
+                ((ObjectNode) configurationNode).set("http", httpclient);
+                ((ObjectNode) configurationNode).remove("httpClientOptions");
+                var ssl = configurationNode.get("httpClientSslOptions");
+                ((ObjectNode) configurationNode).set("ssl", ssl);
+                ((ObjectNode) configurationNode).remove("httpClientSslOptions");
+                var healthcheck = configurationNode.get("healthCheck");
+                ((ObjectNode) configurationNode).set("healthcheck", healthcheck);
+                ((ObjectNode) configurationNode).remove("healthCheck");
+
+                configuration = mapper.writeValueAsString(configurationNode);
+            } catch (JsonProcessingException e) {
+                throw new TechnicalManagementException("An error occurred while trying to serialize endpoint configuration " + e);
+            }
+
+            return mapHttpEndpoint(endpoint.getHttpEndpointV2(), configuration);
+        }
+
+        return mapEndpoint(endpoint.getHttpEndpointV2());
     }
 
-    HttpEndpointV2 mapHttpEndpoint(io.gravitee.definition.model.Endpoint endpoint);
+    HttpEndpointV2 mapEndpoint(io.gravitee.definition.model.Endpoint endpoint);
+
+    HttpEndpointV2 mapHttpEndpoint(io.gravitee.definition.model.endpoint.HttpEndpoint httpEndpoint);
 
     default EndpointV2 map(io.gravitee.definition.model.Endpoint endpoint) {
         if (endpoint == null) {
             return null;
         }
-        return new EndpointV2(mapHttpEndpoint(endpoint));
+
+        // If endpoint is a http endpoint, we need to parse the configuration and use it as the actual instance
+        if (endpoint.getType().equals("http") && endpoint.getConfiguration() != null) {
+            ObjectMapper mapper = new GraviteeMapper();
+            io.gravitee.definition.model.endpoint.HttpEndpoint config;
+            try {
+                config = mapper.readValue(endpoint.getConfiguration(), io.gravitee.definition.model.endpoint.HttpEndpoint.class);
+            } catch (JsonProcessingException e) {
+                throw new TechnicalManagementException("An error occurred while trying to parse endpoint configuration " + e);
+            }
+
+            return new EndpointV2(mapHttpEndpoint(config));
+        }
+        return new EndpointV2(mapEndpoint(endpoint));
     }
 
     EndpointGroupV2 mapEndpointGroup(io.gravitee.definition.model.EndpointGroup endpointGroup);

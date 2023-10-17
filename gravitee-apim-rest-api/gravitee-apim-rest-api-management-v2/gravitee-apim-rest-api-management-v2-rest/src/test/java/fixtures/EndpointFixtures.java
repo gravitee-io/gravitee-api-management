@@ -46,7 +46,7 @@ public class EndpointFixtures {
         .backup(false)
         .status(EndpointStatus.UP)
         .tenants(List.of("tenant1", "tenant2"))
-        .type("HTTP")
+        .type("http")
         .inherit(true)
         .healthCheck(EndpointHealthCheckService.builder().build())
         .headers(Collections.emptyList())
@@ -93,12 +93,17 @@ public class EndpointFixtures {
         .endpoints(List.of(BASE_ENDPOINT_V4.build()))
         .services(BASE_ENDPOINTGROUP_SERVICES_V4.build());
 
-    public static HttpEndpointV2 anHtpEndpointV2() {
+    private static final EndpointHealthCheckService.EndpointHealthCheckServiceBuilder BASE_HEALTH_CHECK_SERVICE = EndpointHealthCheckService
+        .builder()
+        .enabled(true)
+        .schedule("0 */5 * * * *");
+
+    public static HttpEndpointV2 anHttpEndpointV2() {
         return BASE_HTTP_ENDPOINT_V2.build();
     }
 
     public static EndpointV2 anEndpointV2() {
-        return new EndpointV2(anHtpEndpointV2());
+        return new EndpointV2(anHttpEndpointV2());
     }
 
     public static EndpointGroupV2 anEndpointGroupV2() {
@@ -127,5 +132,9 @@ public class EndpointFixtures {
 
     public static EndpointGroup aModelEndpointGroupV4() {
         return EndpointModelFixtures.aModelEndpointGroupV4();
+    }
+
+    public static EndpointHealthCheckService anEndpointHealthCheckService() {
+        return BASE_HEALTH_CHECK_SERVICE.build();
     }
 }
