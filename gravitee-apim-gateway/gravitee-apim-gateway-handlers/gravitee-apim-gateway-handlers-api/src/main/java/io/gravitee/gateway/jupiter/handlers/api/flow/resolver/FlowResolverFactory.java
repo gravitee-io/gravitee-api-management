@@ -19,9 +19,10 @@ import io.gravitee.definition.model.FlowMode;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.jupiter.core.condition.ConditionFilter;
+import io.gravitee.gateway.jupiter.flow.AbstractFlowResolver;
 import io.gravitee.gateway.jupiter.flow.BestMatchFlowResolver;
+import io.gravitee.gateway.jupiter.flow.BestMatchFlowSelector;
 import io.gravitee.gateway.jupiter.flow.FlowResolver;
-import io.gravitee.gateway.platform.Organization;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
 import io.gravitee.gateway.reactor.ReactableApi;
 
@@ -34,9 +35,11 @@ import io.gravitee.gateway.reactor.ReactableApi;
 public class FlowResolverFactory {
 
     private final ConditionFilter<Flow> flowFilter;
+    private final BestMatchFlowSelector bestMatchFlowSelector;
 
-    public FlowResolverFactory(ConditionFilter<Flow> flowFilter) {
+    public FlowResolverFactory(ConditionFilter<Flow> flowFilter, BestMatchFlowSelector bestMatchFlowSelector) {
         this.flowFilter = flowFilter;
+        this.bestMatchFlowSelector = bestMatchFlowSelector;
     }
 
     public FlowResolver forApi(Api api) {
@@ -60,14 +63,7 @@ public class FlowResolverFactory {
     }
 
     public FlowResolver forPlatform(ReactableApi<?> api, OrganizationManager organizationManager) {
-        final PlatformFlowResolver flowResolver = new PlatformFlowResolver(api, organizationManager, flowFilter);
-        final Organization organization = organizationManager.getCurrentOrganization();
-
-        if (organization != null && isBestMatchFlowMode(organization.getFlowMode())) {
-            return new BestMatchFlowResolver(flowResolver);
-        }
-
-        return flowResolver;
+        return new PlatformFlowResolver(api.getOrganizationId(), organizationManager, flowFilter, bestMatchFlowSelector);
     }
 
     private static boolean isBestMatchFlowMode(FlowMode flowMode) {

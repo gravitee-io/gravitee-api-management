@@ -15,14 +15,16 @@
  */
 package io.gravitee.gateway.jupiter.handlers.api.flow.resolver;
 
+import io.gravitee.definition.model.FlowMode;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.jupiter.api.context.GenericExecutionContext;
 import io.gravitee.gateway.jupiter.core.condition.ConditionFilter;
 import io.gravitee.gateway.jupiter.flow.AbstractFlowResolver;
+import io.gravitee.gateway.jupiter.flow.BestMatchFlowSelector;
 import io.gravitee.gateway.platform.Organization;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
-import io.gravitee.gateway.reactor.ReactableApi;
 import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.Maybe;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -36,16 +38,45 @@ import java.util.stream.Collectors;
  */
 class PlatformFlowResolver extends AbstractFlowResolver {
 
-    private final ReactableApi<?> api;
+    private final String organizationId;
     private final OrganizationManager organizationManager;
+    private final BestMatchFlowSelector bestMatchFlowSelector;
     private Flowable<Flow> flows;
     private Organization organization;
 
-    public PlatformFlowResolver(ReactableApi<?> api, OrganizationManager organizationManager, ConditionFilter<Flow> filter) {
+    public PlatformFlowResolver(
+        final String organizationId,
+        final OrganizationManager organizationManager,
+        final ConditionFilter<Flow> filter,
+        final BestMatchFlowSelector bestMatchFlowSelector
+    ) {
         super(filter);
-        this.api = api;
+        this.organizationId = organizationId;
         this.organizationManager = organizationManager;
+        this.bestMatchFlowSelector = bestMatchFlowSelector;
         initFlows();
+    }
+
+    @Override
+    public Flowable<Flow> resolve(final GenericExecutionContext ctx) {
+        return super
+            .resolve(ctx)
+            .compose(upstream -> {
+                if (isBestMatch()) {
+                    return upstream
+                        .toList()
+                        .flatMapMaybe(flowList ->
+                            Maybe.fromCallable(() -> bestMatchFlowSelector.forPath(flowList, ctx.request().pathInfo()))
+                        )
+                        .toFlowable();
+                } else {
+                    return upstream;
+                }
+            });
+    }
+
+    private boolean isBestMatch() {
+        return this.organization != null && this.organization.getFlowMode() == FlowMode.BEST_MATCH;
     }
 
     @Override
@@ -61,7 +92,7 @@ class PlatformFlowResolver extends AbstractFlowResolver {
         if (flows == null || organization != refreshedOrganization) {
             // FIXME: currently the OrganizationManager manages only one organization. It means this organization could be not related to the api (see https://github.com/gravitee-io/issues/issues/5992).
             this.organization =
-                refreshedOrganization != null && Objects.equals(api.getOrganizationId(), refreshedOrganization.getId())
+                refreshedOrganization != null && Objects.equals(organizationId, refreshedOrganization.getId())
                     ? refreshedOrganization
                     : null;
             this.flows = provideFlows();

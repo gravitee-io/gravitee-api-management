@@ -265,9 +265,6 @@ public class GatewayRunner {
         try {
             organizationManager.register(organization);
             deployedOrganization = organization;
-            // When deploying an organization at method level, it's important to set the organization id on every already deployed apis (at class level)
-            final ApiManager apiManager = gatewayContainer.applicationContext().getBean(ApiManager.class);
-            apiManager.apis().forEach(api -> api.setOrganizationId(deployedOrganization.getId()));
         } catch (Exception e) {
             LOGGER.error("An error occurred deploying the organization {}: {}", organization.getId(), e.getMessage());
             throw e;

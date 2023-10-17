@@ -33,6 +33,7 @@ import io.gravitee.gateway.handlers.api.services.SubscriptionService;
 import io.gravitee.gateway.jupiter.core.condition.CompositeConditionFilter;
 import io.gravitee.gateway.jupiter.core.condition.ExpressionLanguageConditionFilter;
 import io.gravitee.gateway.jupiter.core.condition.ExpressionLanguageMessageConditionFilter;
+import io.gravitee.gateway.jupiter.flow.BestMatchFlowSelector;
 import io.gravitee.gateway.jupiter.flow.condition.evaluation.HttpMethodConditionFilter;
 import io.gravitee.gateway.jupiter.flow.condition.evaluation.PathBasedConditionFilter;
 import io.gravitee.gateway.jupiter.handlers.api.processor.ApiProcessorChainFactory;
@@ -153,7 +154,8 @@ public class ApiHandlerConfiguration {
                 new HttpMethodConditionFilter(),
                 new PathBasedConditionFilter(),
                 new ExpressionLanguageConditionFilter<>()
-            )
+            ),
+            new BestMatchFlowSelector()
         );
     }
 
