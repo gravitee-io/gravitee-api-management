@@ -1,0 +1,75 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="documentation-pages-list__container">
+  <table
+    mat-table
+    [dataSource]="dataSource"
+    class="documentation-pages-list__table gio-table-light"
+    [attr.aria-label]="'List of API Pages'"
+  >
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef>Name</th>
+      <td mat-cell *matCellDef="let page">
+        <div class="documentation-pages-list__table__name">
+          <mat-icon *ngIf="page.type === 'FOLDER'" svgIcon="gio:folder"></mat-icon>
+          <mat-icon *ngIf="page.type != 'FOLDER'" svgIcon="gio:file"></mat-icon>
+          <p>{{ page.name }}</p>
+        </div>
+      </td>
+    </ng-container>
+    <ng-container matColumnDef="status">
+      <th mat-header-cell *matHeaderCellDef>Status</th>
+      <td mat-cell *matCellDef="let page">
+        <ng-container *ngIf="page.type != 'FOLDER'">
+          <span *ngIf="page.published" class="gio-badge-success"> Published </span>
+          <span *ngIf="!page.published" class="gio-badge-neutral"> Unpublished </span>
+        </ng-container>
+      </td>
+    </ng-container>
+    <ng-container matColumnDef="visibility">
+      <th mat-header-cell *matHeaderCellDef>Visibility</th>
+      <td mat-cell *matCellDef="let page">
+        <span class="gio-badge-neutral"> {{ page.visibility | titlecase }} </span>
+      </td>
+    </ng-container>
+    <ng-container matColumnDef="lastUpdated">
+      <th mat-header-cell *matHeaderCellDef>Last Updated</th>
+      <td mat-cell *matCellDef="let page">
+        {{ page.updatedAt | date : 'medium' }}
+      </td>
+    </ng-container>
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef>Actions</th>
+      <td mat-cell *matCellDef="let page">
+        <div class="documentation-pages-list__table__actions">
+          <button mat-icon-button (click)="onEditPage.emit(page)" disabled="true">
+            <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
+          </button>
+          <button mat-icon-button (click)="onDeletePage.emit(page)" disabled="true">
+            <mat-icon svgIcon="gio:trash"></mat-icon>
+          </button>
+        </div>
+      </td>
+    </ng-container>
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+  </table>
+  <div class="documentation-pages-list__footer">
+    <button mat-stroked-button (click)="onAddPage.emit()">Add new page</button>
+  </div>
+</div>

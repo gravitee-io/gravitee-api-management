@@ -21,7 +21,11 @@
 </div>
 <mat-card>
   <api-documentation-navigation-header (onAddFolder)="addFolder()"></api-documentation-navigation-header>
-  <div *ngIf="pages && pages?.length > 0; else emptyState">{{ pages | json }}</div>
+  <api-documentation-v4-pages-list
+    *ngIf="pages && pages.length > 0; else emptyState"
+    [pages]="pages"
+    (onAddPage)="addPage()"
+  ></api-documentation-v4-pages-list>
   <ng-template #emptyState>
     <api-documentation-empty-state (onAddPage)="addPage()"></api-documentation-empty-state>
   </ng-template>
