@@ -25,7 +25,6 @@ import io.gravitee.rest.api.service.SwaggerService;
 import io.gravitee.rest.api.service.TagService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.SwaggerDescriptorException;
-import io.gravitee.rest.api.service.impl.swagger.converter.api.OAIToAPIConverter;
 import io.gravitee.rest.api.service.impl.swagger.converter.api.OAIToAPIV2Converter;
 import io.gravitee.rest.api.service.impl.swagger.parser.OAIParser;
 import io.gravitee.rest.api.service.impl.swagger.parser.WsdlParser;
@@ -98,8 +97,7 @@ public class SwaggerServiceImpl implements SwaggerService {
                 return new OAIToAPIV2Converter(swaggerDescriptor, policyOperationVisitorManager, groupService, tagService)
                     .convert(executionContext, (OAIDescriptor) descriptor);
             } else {
-                return new OAIToAPIConverter(swaggerDescriptor, policyOperationVisitorManager, groupService, tagService)
-                    .convert(executionContext, (OAIDescriptor) descriptor);
+                throw new IllegalStateException("Unsupported definition version: " + definitionVersion);
             }
         }
 

@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.service.impl.swagger.converter.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 
 import io.gravitee.definition.model.Endpoint;
@@ -28,7 +27,6 @@ import io.gravitee.rest.api.service.TagService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.impl.swagger.policy.impl.PolicyOperationVisitorManagerImpl;
 import io.gravitee.rest.api.service.swagger.OAIDescriptor;
-import io.gravitee.rest.api.service.swagger.SwaggerDescriptor;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.servers.Server;
@@ -43,14 +41,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-class OAIToAPIConverterTest {
+class OAIToAPIV2ConverterTest {
 
-    private OAIToAPIConverter oaiToAPIConverter;
+    private OAIToAPIV2Converter oaiToAPIConverter;
 
     @BeforeEach
     void setUp() {
         oaiToAPIConverter =
-            new OAIToAPIConverter(
+            new OAIToAPIV2Converter(
                 new ImportSwaggerDescriptorEntity(),
                 new PolicyOperationVisitorManagerImpl(),
                 mock(GroupService.class),
@@ -169,15 +167,14 @@ class OAIToAPIConverterTest {
     }
 
     @Test
-    @DisplayName("Should return an API with Path and paths mappings created from OpenAPI paths")
-    void convertSetPathsAndPathMappings() {
+    @DisplayName("Should return an API with paths mappings created from OpenAPI paths")
+    void convertSetPathMappings() {
         OpenAPI openAPI = new OpenAPI();
         openAPI.setInfo(new Info().title("My API").version("1.0.0"));
         openAPI.setServers(List.of());
 
         var api = oaiToAPIConverter.convert(new ExecutionContext("DEFAULT", "DEFAULT"), new OAIDescriptor(openAPI));
         assertThat(api).isNotNull();
-        assertThat(api.getPaths()).isEqualTo(Map.of("/", List.of()));
         assertThat(api.getPathMappings()).isEqualTo(Set.of("/"));
     }
 }
