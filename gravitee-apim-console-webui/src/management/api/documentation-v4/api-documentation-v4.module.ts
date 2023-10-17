@@ -25,6 +25,7 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { UIRouterModule } from '@uirouter/angular';
 import { MatStepperModule } from '@angular/material/stepper';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatTableModule } from '@angular/material/table';
 
 import { ApiDocumentationV4EmptyStateComponent } from './documentation-empty-state/api-documentation-v4-empty-state.component';
 import { ApiDocumentationV4NavigationHeaderComponent } from './documentation-navigation-header/api-documentation-v4-navigation-header.component';
@@ -32,7 +33,7 @@ import { ApiDocumentationV4Component } from './api-documentation-v4.component';
 import { ApiDocumentationV4AddFolderDialog } from './documentation-add-folder-dialog/api-documentation-v4-add-folder-dialog.component';
 import { ApiDocumentationV4NewPageComponent } from './documentation-new-page/api-documentation-v4-new-page.component';
 import { ApiDocumentationV4VisibilityComponent } from './components/api-documentation-v4-visibility.component';
-
+import { ApiDocumentationV4PagesListComponent } from './documentation-pages-list/api-documentation-v4-pages-list.component';
 @NgModule({
   declarations: [
     ApiDocumentationV4Component,
@@ -41,6 +42,7 @@ import { ApiDocumentationV4VisibilityComponent } from './components/api-document
     ApiDocumentationV4VisibilityComponent,
     ApiDocumentationV4AddFolderDialog,
     ApiDocumentationV4NewPageComponent,
+    ApiDocumentationV4PagesListComponent,
   ],
   exports: [ApiDocumentationV4Component],
   imports: [
@@ -58,6 +60,7 @@ import { ApiDocumentationV4VisibilityComponent } from './components/api-document
     MatButtonToggleModule,
     GioMonacoEditorModule,
     GioRadioButtonModule,
+    MatTableModule,
   ],
 })
 export class ApiDocumentationV4Module {}

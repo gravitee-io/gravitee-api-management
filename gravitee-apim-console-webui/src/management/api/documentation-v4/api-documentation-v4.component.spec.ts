@@ -25,10 +25,12 @@ import { ApiDocumentationV4Module } from './api-documentation-v4.module';
 import { ApiDocumentationV4EmptyStateHarness } from './documentation-empty-state/api-documentation-v4-empty-state.harness';
 import { ApiDocumentationV4NavigationHeaderHarness } from './documentation-navigation-header/api-documentation-v4-navigation-header.harness';
 import { ApiDocumentationV4AddFolderDialogHarness } from './documentation-add-folder-dialog/api-documentation-v4-add-folder-dialog.harness';
+import { ApiDocumentationV4PagesListHarness } from './documentation-pages-list/api-documentation-v4-pages-list.harness';
 
 import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { Page } from '../../../entities/management-api-v2/documentation/page';
+import { fakeFolder } from '../../../entities/management-api-v2/documentation/page.fixture';
 
 describe('ApiDocumentationV4', () => {
   let fixture: ComponentFixture<ApiDocumentationV4Component>;
@@ -55,46 +57,77 @@ describe('ApiDocumentationV4', () => {
     expectGetPages(pages);
   };
 
-  beforeEach(async () => await init([]));
-
   afterEach(() => {
     httpTestingController.verify();
   });
 
-  it('should show empty state when no documentation for API', async () => {
-    const emptyState = await harnessLoader.getHarness(ApiDocumentationV4EmptyStateHarness);
-    expect(emptyState).toBeDefined();
-  });
+  describe('API does not have pages', () => {
+    beforeEach(async () => await init([]));
 
-  it('should show dialog to create folder', async () => {
-    const headerHarness = await harnessLoader.getHarness(ApiDocumentationV4NavigationHeaderHarness);
-    await headerHarness.clickAddNewFolder();
-
-    const dialogHarness = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(ApiDocumentationV4AddFolderDialogHarness);
-    await dialogHarness.setName('folder');
-    await dialogHarness.selectVisibility('PRIVATE');
-    await dialogHarness.clickOnSave();
-
-    const page: Page = { type: 'FOLDER', name: 'folder', visibility: 'PRIVATE' };
-    const req = httpTestingController.expectOne({
-      method: 'POST',
-      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages`,
-    });
-    req.flush(page);
-    expect(req.request.body).toEqual({
-      type: 'FOLDER',
-      name: 'folder',
-      visibility: 'PRIVATE',
+    it('should show empty state when no documentation for API', async () => {
+      const emptyState = await harnessLoader.getHarness(ApiDocumentationV4EmptyStateHarness);
+      expect(emptyState).toBeDefined();
     });
 
-    expectGetPages([page]);
+    it('should navigate to create page', async () => {
+      const headerHarness = await harnessLoader.getHarness(ApiDocumentationV4EmptyStateHarness);
+      await headerHarness.clickAddNewPage();
+
+      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.documentationV4-create');
+    });
   });
 
-  it('should navigate to create page', async () => {
-    const headerHarness = await harnessLoader.getHarness(ApiDocumentationV4EmptyStateHarness);
-    await headerHarness.clickAddNewPage();
+  describe('API has pages', () => {
+    it('should show list of folders', async () => {
+      await init([
+        fakeFolder({ name: 'my first folder', visibility: 'PUBLIC' }),
+        fakeFolder({ name: 'my private folder', visibility: 'PRIVATE' }),
+      ]);
 
-    expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.documentationV4-create');
+      const pageListHarness = await harnessLoader.getHarness(ApiDocumentationV4PagesListHarness);
+      expect(await pageListHarness.getNameByRowIndex(0)).toEqual('my first folder');
+      expect(await pageListHarness.getNameByRowIndex(1)).toEqual('my private folder');
+      expect(await pageListHarness.getVisibilityByRowIndex(0)).toEqual('Public');
+      expect(await pageListHarness.getVisibilityByRowIndex(1)).toEqual('Private');
+    });
+
+    it('should navigate to create page', async () => {
+      await init([fakeFolder({ name: 'my first folder', visibility: 'PUBLIC' })]);
+      const pageListHarness = await harnessLoader.getHarness(ApiDocumentationV4PagesListHarness);
+      await pageListHarness.clickAddNewPage();
+
+      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.documentationV4-create');
+    });
+  });
+
+  describe('Actions', () => {
+    beforeEach(async () => await init([]));
+
+    it('should show dialog to create folder', async () => {
+      const headerHarness = await harnessLoader.getHarness(ApiDocumentationV4NavigationHeaderHarness);
+      await headerHarness.clickAddNewFolder();
+
+      const dialogHarness = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
+        ApiDocumentationV4AddFolderDialogHarness,
+      );
+      await dialogHarness.setName('folder');
+      await dialogHarness.selectVisibility('PRIVATE');
+      await dialogHarness.clickOnSave();
+
+      const page: Page = { type: 'FOLDER', name: 'folder', visibility: 'PRIVATE' };
+      const req = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages`,
+      });
+      req.flush(page);
+      expect(req.request.body).toEqual({
+        type: 'FOLDER',
+        name: 'folder',
+        visibility: 'PRIVATE',
+      });
+
+      expectGetPages([page]);
+    });
   });
 
   const expectGetPages = (result: Page[]) => {

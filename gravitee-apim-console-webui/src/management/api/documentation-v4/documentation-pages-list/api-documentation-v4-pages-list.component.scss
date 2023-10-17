@@ -1,0 +1,29 @@
+.documentation-pages-list {
+  &__container {
+    display: flex;
+    flex-flow: column;
+    gap: 24px;
+    padding: 24px;
+  }
+
+  &__footer {
+    display: flex;
+    flex-flow: row;
+  }
+
+  &__table {
+    &__name {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      p {
+        margin-bottom: 0;
+      }
+    }
+
+    &__actions {
+      display: flex;
+      gap: 8px;
+    }
+  }
+}
