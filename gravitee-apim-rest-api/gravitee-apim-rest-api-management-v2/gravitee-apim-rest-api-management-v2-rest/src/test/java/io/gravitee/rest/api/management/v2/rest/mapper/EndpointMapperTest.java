@@ -18,12 +18,13 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import fixtures.EndpointFixtures;
+import fixtures.EndpointModelFixtures;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
-import io.gravitee.rest.api.management.v2.rest.model.EndpointV2;
-import io.gravitee.rest.api.management.v2.rest.model.EndpointV4;
-import io.gravitee.rest.api.management.v2.rest.model.HttpEndpointV2;
+import io.gravitee.rest.api.management.v2.rest.model.*;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -114,11 +115,92 @@ public class EndpointMapperTest {
     }
 
     @Test
+    void shouldMapToEndpointEntityV2WithConfiguration() throws JsonProcessingException {
+        var httpEndpointV2 = EndpointFixtures.anHttpEndpointV2();
+        httpEndpointV2.setInherit(false);
+
+        httpEndpointV2.setHealthCheck(EndpointFixtures.anEndpointHealthCheckService());
+
+        var httpHeader = new HttpHeader();
+        httpHeader.setName("headerName");
+        httpHeader.setValue("headerValue");
+        httpEndpointV2.setHeaders(List.of(httpHeader));
+
+        var httpProxy = new HttpProxy();
+        httpProxy.setHost("inheritProxy");
+        httpProxy.setPort(8080);
+        httpEndpointV2.setHttpProxy(httpProxy);
+
+        var httpClientOptions = new HttpClientOptions();
+        httpClientOptions.setIdleTimeout(42);
+        httpEndpointV2.setHttpClientOptions(httpClientOptions);
+
+        var httpClientSslOptions = new HttpClientSslOptions();
+        httpClientSslOptions.setTrustAll(true);
+        httpEndpointV2.setHttpClientSslOptions(httpClientSslOptions);
+
+        var endpointV2 = new EndpointV2(httpEndpointV2);
+
+        var endpointEntityV2 = endpointMapper.map(endpointV2);
+
+        assertV2EndpointsAreEquals(endpointEntityV2, endpointV2);
+    }
+
+    @Test
     void shouldMapFromEndpointEntityV2() throws JsonProcessingException {
         var endpointEntityV2 = EndpointFixtures.aModelEndpointV2();
         var endpointV2 = endpointMapper.map(endpointEntityV2);
 
         assertV2EndpointsAreEquals(endpointEntityV2, endpointV2);
+    }
+
+    @Test
+    void shouldMapFromEndpointEntityV2WithConfiguration() throws JsonProcessingException {
+        // Init http endpoint configuration
+        var httpEndpointV2Configuration = EndpointModelFixtures.aModelHttpEndpointV2();
+
+        var httpHeader = new io.gravitee.common.http.HttpHeader();
+        httpHeader.setName("headerName");
+        httpHeader.setValue("headerValue");
+        httpEndpointV2Configuration.setHeaders(List.of(httpHeader));
+
+        var httpProxy = new io.gravitee.definition.model.HttpProxy();
+        httpProxy.setHost("inheritProxy");
+        httpProxy.setPort(8080);
+        httpEndpointV2Configuration.setHttpProxy(httpProxy);
+
+        var httpClientOptions = new io.gravitee.definition.model.HttpClientOptions();
+        httpClientOptions.setIdleTimeout(42);
+        httpEndpointV2Configuration.setHttpClientOptions(httpClientOptions);
+
+        var httpClientSslOptions = new io.gravitee.definition.model.HttpClientSslOptions();
+        httpClientSslOptions.setTrustAll(true);
+        httpEndpointV2Configuration.setHttpClientSslOptions(httpClientSslOptions);
+
+        // Set http endpoint configuration into endpoint.configuration
+        var endpointEntityV2 = EndpointModelFixtures.aModelEndpointV2();
+        endpointEntityV2.setName("Should not be mapped");
+        endpointEntityV2.setConfiguration(new ObjectMapper().writeValueAsString(httpEndpointV2Configuration));
+
+        var endpointV2 = endpointMapper.map(endpointEntityV2);
+
+        // assert nested configuration only are mapped if filled
+        assertV2EndpointsAreEquals(httpEndpointV2Configuration, endpointV2);
+        // Check http configuration
+        var httpEndpointV2 = endpointV2.getHttpEndpointV2();
+        assertThat(httpEndpointV2Configuration.getHealthCheck()).isNotNull(); // Tested in ServiceMapperTest
+        assertThat(httpEndpointV2Configuration.getHttpProxy()).isNotNull();
+        assertThat(httpEndpointV2Configuration.getHttpProxy().getHost()).isEqualTo(httpEndpointV2.getHttpProxy().getHost());
+        assertThat(httpEndpointV2Configuration.getHttpProxy().getPort()).isEqualTo(httpEndpointV2.getHttpProxy().getPort());
+        assertThat(httpEndpointV2Configuration.getHttpClientOptions()).isNotNull();
+        assertThat(httpEndpointV2Configuration.getHttpClientOptions().getIdleTimeout())
+            .isEqualTo(httpEndpointV2.getHttpClientOptions().getIdleTimeout().longValue());
+        assertThat(httpEndpointV2Configuration.getHttpClientSslOptions()).isNotNull();
+        assertThat(httpEndpointV2Configuration.getHttpClientSslOptions().isTrustAll())
+            .isEqualTo(httpEndpointV2.getHttpClientSslOptions().getTrustAll());
+        assertThat(httpEndpointV2Configuration.getHeaders()).isNotNull();
+        assertThat(httpEndpointV2Configuration.getHeaders().get(0).getName()).isEqualTo(httpEndpointV2.getHeaders().get(0).getName());
+        assertThat(httpEndpointV2Configuration.getHeaders().get(0).getValue()).isEqualTo(httpEndpointV2.getHeaders().get(0).getValue());
     }
 
     @Test
@@ -160,13 +242,36 @@ public class EndpointMapperTest {
         assertThat(endpointEntityV2.getTenants()).isEqualTo(httpEndpointV2.getTenants());
         assertThat(endpointEntityV2.getType()).isEqualTo(httpEndpointV2.getType());
         assertThat(endpointEntityV2.getInherit()).isEqualTo(httpEndpointV2.getInherit());
-        assertThat(endpointEntityV2.getHealthCheck()).isNotNull(); // Tested in ServiceMapperTest
-        assertThat(endpointEntityV2.getConfiguration()).isEqualTo(buildConfiguration(httpEndpointV2));
+        // The HealthCheck is in the configuration if it's not null
+        if (endpointEntityV2.getConfiguration() == null) {
+            assertThat(endpointEntityV2.getHealthCheck()).isNotNull(); // Tested in ServiceMapperTest
+        }
+        if (endpointEntityV2.getConfiguration() != null) {
+            assertThat(endpointEntityV2.getConfiguration()).isEqualTo(buildConfiguration(httpEndpointV2));
+        }
     }
 
-    private static String buildConfiguration(HttpEndpointV2 endpointV2) {
-        // TODO: recreate the serialization of the configuration
-        return null;
+    private static String buildConfiguration(HttpEndpointV2 endpointV2) throws JsonProcessingException {
+        var mapper = new GraviteeMapper();
+        var configurationNode = mapper.valueToTree(endpointV2);
+
+        var proxy = configurationNode.get("httpProxy");
+        ((ObjectNode) configurationNode).set("proxy", proxy);
+        ((ObjectNode) configurationNode).remove("httpProxy");
+
+        var httpclient = configurationNode.get("httpClientOptions");
+        ((ObjectNode) configurationNode).set("http", httpclient);
+        ((ObjectNode) configurationNode).remove("httpClientOptions");
+
+        var ssl = configurationNode.get("httpClientSslOptions");
+        ((ObjectNode) configurationNode).set("ssl", ssl);
+        ((ObjectNode) configurationNode).remove("httpClientSslOptions");
+
+        var healthcheck = configurationNode.get("healthCheck");
+        ((ObjectNode) configurationNode).set("healthcheck", healthcheck);
+        ((ObjectNode) configurationNode).remove("healthCheck");
+
+        return mapper.writeValueAsString(configurationNode);
     }
 
     @Test

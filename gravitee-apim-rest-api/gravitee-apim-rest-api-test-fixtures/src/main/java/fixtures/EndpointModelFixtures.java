@@ -15,6 +15,7 @@
  */
 package fixtures;
 
+import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import java.util.Collections;
@@ -34,10 +35,26 @@ public class EndpointModelFixtures {
             .backup(false)
             .status(io.gravitee.definition.model.Endpoint.Status.UP)
             .tenants(List.of("tenant1", "tenant2"))
-            .type("HTTP")
+            .type("http")
             .inherit(true)
             .healthCheck(io.gravitee.definition.model.services.healthcheck.EndpointHealthCheckService.builder().build())
             .configuration(null);
+
+    private static final HttpEndpoint.HttpEndpointBuilder BASE_MODEL_HTTP_ENDPOINT_V2 = HttpEndpoint
+        .builder()
+        .name("Endpoint name")
+        .target("http://gravitee.io")
+        .weight(1)
+        .backup(false)
+        .status(HttpEndpoint.Status.UP)
+        .tenants(List.of("tenant1", "tenant2"))
+        .type("http")
+        .inherit(false)
+        .healthCheck(io.gravitee.definition.model.services.healthcheck.EndpointHealthCheckService.builder().build())
+        .headers(Collections.emptyList())
+        .httpProxy(null)
+        .httpClientOptions(null)
+        .httpClientSslOptions(null);
 
     private static final io.gravitee.definition.model.EndpointGroup.EndpointGroupBuilder BASE_MODEL_ENDPOINTGROUP_V2 =
         io.gravitee.definition.model.EndpointGroup
@@ -79,8 +96,15 @@ public class EndpointModelFixtures {
         .endpoints(List.of(BASE_MODEL_ENDPOINT_V4.build()))
         .services(io.gravitee.definition.model.v4.endpointgroup.service.EndpointGroupServices.builder().healthCheck(null).build());
 
+    private static final io.gravitee.definition.model.services.healthcheck.EndpointHealthCheckService.EndpointHealthCheckServiceBuilder BASE_HEALTH_CHECK_SERVICE =
+        io.gravitee.definition.model.services.healthcheck.EndpointHealthCheckService.builder().enabled(true).schedule("0 */5 * * * *");
+
     public static io.gravitee.definition.model.Endpoint aModelEndpointV2() {
         return BASE_MODEL_ENDPOINT_V2.build();
+    }
+
+    public static HttpEndpoint aModelHttpEndpointV2() {
+        return BASE_MODEL_HTTP_ENDPOINT_V2.build();
     }
 
     public static io.gravitee.definition.model.EndpointGroup aModelEndpointGroupV2() {
@@ -93,5 +117,9 @@ public class EndpointModelFixtures {
 
     public static EndpointGroup aModelEndpointGroupV4() {
         return BASE_MODEL_ENDPOINTGROUP_V4.build();
+    }
+
+    public static io.gravitee.definition.model.services.healthcheck.EndpointHealthCheckService aModelHealthCheckService() {
+        return BASE_HEALTH_CHECK_SERVICE.build();
     }
 }

@@ -4283,7 +4283,6 @@ components:
                       inherit:
                           type: boolean
                           description: Inherit the configuration of the parent endpoint.
-                          default: true
         EndpointStatus:
             type: string
             description: The status of the endpoint.
@@ -4422,7 +4421,6 @@ components:
                   enabled:
                       type: boolean
                       description: Is the service enabled or not.
-                      default: true
         HealthCheckStep:
             type: object
             properties:

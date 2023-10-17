@@ -49,6 +49,9 @@ public interface ServiceMapper {
     @Mapping(target = "discoveryService", source = "discovery")
     Services map(EndpointGroupServicesV2 endpointGroupServicesV2);
 
+    @Mapping(target = "discovery", source = "discoveryService")
+    EndpointGroupServicesV2 mapToEndpointGroupServices(Services endpointGroupServicesV2);
+
     @Mapping(target = "configuration", qualifiedByName = "toDynamicPropertyServiceConfiguration")
     @Mapping(target = "name", constant = io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyService.SERVICE_KEY)
     io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyService map(DynamicPropertyService dynamicPropertyService);
@@ -64,6 +67,7 @@ public interface ServiceMapper {
 
     HealthCheckService map(io.gravitee.definition.model.services.healthcheck.HealthCheckService healthCheckService);
 
+    @Mapping(target = "configuration", qualifiedByName = "deserializeConfiguration")
     EndpointDiscoveryService map(io.gravitee.definition.model.services.discovery.EndpointDiscoveryService endpointDiscoveryService);
 
     @Mapping(target = "specification", qualifiedByName = "serializeConfiguration")
