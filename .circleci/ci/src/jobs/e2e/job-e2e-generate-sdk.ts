@@ -33,18 +33,13 @@ export class E2EGenerateSDKJob {
       new commands.Run({
         name: 'Generate e2e tests SDK',
         command: `npm run update:sdk:management
-npm run update:sdk:management:v2
 npm run update:sdk:portal`,
         working_directory: 'gravitee-apim-e2e',
       }),
       new reusable.ReusedCommand(notifyOnFailureCmd),
       new commands.workspace.Persist({
         root: '.',
-        paths: [
-          'gravitee-apim-e2e/lib/management-webclient-sdk',
-          'gravitee-apim-e2e/lib/management-v2-webclient-sdk',
-          'gravitee-apim-e2e/lib/portal-webclient-sdk',
-        ],
+        paths: ['gravitee-apim-e2e/lib/management-webclient-sdk', 'gravitee-apim-e2e/lib/portal-webclient-sdk'],
       }),
     ];
     return new Job(E2EGenerateSDKJob.jobName, OpenJdkNodeExecutor.create('small'), steps);
