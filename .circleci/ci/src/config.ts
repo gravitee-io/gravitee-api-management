@@ -96,6 +96,7 @@ const secrets = {
   azureRegistryUsername: 'keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/login',
   azureTenant: 'keeper://UryantA7MvZe8fkWwcUt8g/custom_field/tenant',
   chromaticProjectToken: 'keeper://Hp1bFl5s0doxnQgqkMdCdg/field/password',
+  cypressCloudKey: 'keeper://FVzylPCgY-LJsgjkW4q1eQ/field/password',
   circleCiToken: 'keeper://G4hBnFUDBYb9Sw3TxhvjHg/custom_field/token',
   dockerhubBotUserName: 'keeper://cooU9UoXIk8Kj0hsP2rkBw/field/login',
   dockerhubBotUserToken: 'keeper://cooU9UoXIk8Kj0hsP2rkBw/field/password',

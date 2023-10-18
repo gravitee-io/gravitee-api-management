@@ -791,6 +791,9 @@ jobs:
       - attach_workspace:
           at: .
       - cmd-docker-azure-login
+      - keeper/env-export:
+          secret-url: keeper://FVzylPCgY-LJsgjkW4q1eQ/field/password
+          var-name: CYPRESS_CLOUD_KEY
       - run:
           name: Running UI tests
           command: |-
