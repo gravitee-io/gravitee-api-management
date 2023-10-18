@@ -309,7 +309,6 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
             .open<GioApiImportDialogComponent, GioApiImportDialogData>(GioApiImportDialogComponent, {
               data: {
                 apiId: this.ajsStateParams.apiId,
-                definitionVersion: this.api.definitionVersion,
                 policies,
               },
               role: 'alertdialog',

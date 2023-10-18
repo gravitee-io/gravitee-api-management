@@ -296,7 +296,7 @@ describe('ApiService', () => {
 
   describe('importApiDefinition', () => {
     it('should call the API with graviteeJson', (done) => {
-      apiService.importApiDefinition('graviteeJson', '{}', '2.0.0').subscribe(() => {
+      apiService.importApiDefinition('graviteeJson', '{}').subscribe(() => {
         done();
       });
 
@@ -307,7 +307,7 @@ describe('ApiService', () => {
     });
 
     it('should call the API with graviteeUrl', (done) => {
-      apiService.importApiDefinition('graviteeUrl', '{}', '2.0.0').subscribe(() => {
+      apiService.importApiDefinition('graviteeUrl', '{}').subscribe(() => {
         done();
       });
 
@@ -318,7 +318,7 @@ describe('ApiService', () => {
     });
 
     it('should call the API with apiId', (done) => {
-      apiService.importApiDefinition('graviteeUrl', '{}', '2.0.0', 'apiId').subscribe(() => {
+      apiService.importApiDefinition('graviteeUrl', '{}', 'apiId').subscribe(() => {
         done();
       });
 
@@ -341,7 +341,7 @@ describe('ApiService', () => {
         with_policy_paths: true,
       };
 
-      apiService.importSwaggerApi(payload, '2.0.0').subscribe(() => {
+      apiService.importSwaggerApi(payload).subscribe(() => {
         done();
       });
 
@@ -362,7 +362,7 @@ describe('ApiService', () => {
         with_policy_paths: true,
       };
 
-      apiService.importSwaggerApi(payload, '2.0.0', 'apiId').subscribe(() => {
+      apiService.importSwaggerApi(payload, 'apiId').subscribe(() => {
         done();
       });
 
