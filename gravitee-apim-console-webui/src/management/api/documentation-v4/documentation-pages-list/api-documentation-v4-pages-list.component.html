@@ -27,7 +27,7 @@
       <td mat-cell *matCellDef="let page">
         <div class="documentation-pages-list__table__name">
           <mat-icon *ngIf="page.type === 'FOLDER'" svgIcon="gio:folder"></mat-icon>
-          <mat-icon *ngIf="page.type != 'FOLDER'" svgIcon="gio:file"></mat-icon>
+          <mat-icon *ngIf="page.type != 'FOLDER'" svgIcon="gio:page"></mat-icon>
           <p>{{ page.name }}</p>
         </div>
       </td>
@@ -51,6 +51,12 @@
       <th mat-header-cell *matHeaderCellDef>Last Updated</th>
       <td mat-cell *matCellDef="let page">
         {{ page.updatedAt | date : 'medium' }}
+      </td>
+    </ng-container>
+    <ng-container matColumnDef="order">
+      <th mat-header-cell *matHeaderCellDef>Order</th>
+      <td mat-cell *matCellDef="let page">
+        {{ page.order }}
       </td>
     </ng-container>
     <ng-container matColumnDef="actions">
