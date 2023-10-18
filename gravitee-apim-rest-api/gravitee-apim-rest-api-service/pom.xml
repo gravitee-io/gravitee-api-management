@@ -349,6 +349,7 @@
 						<configuration>
 							<includes>
 								<include>inmemory/**</include>
+								<include>fixtures/**</include>
 							</includes>
 						</configuration>
 					</execution>
