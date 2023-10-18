@@ -71,6 +71,11 @@ $typography: map.get(gio.$mat-theme, typography);
           gap: 8px;
         }
       }
+
+      &__editor {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      }
     }
   }
 

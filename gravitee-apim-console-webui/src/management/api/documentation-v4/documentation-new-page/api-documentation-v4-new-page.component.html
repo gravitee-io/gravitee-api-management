@@ -88,10 +88,11 @@
                 <span class="gio-badge-neutral">Unpublished</span>
                 <span class="gio-badge-error">Draft</span>
               </div>
-              <button mat-stroked-button disabled>Toggle preview</button>
+              <button mat-stroked-button (click)="preview = !preview">Toggle preview</button>
             </div>
             <div class="stepper__content__fill__editor">
               <gio-monaco-editor [(ngModel)]="content" [languageConfig]="{ language: 'markdown' }"></gio-monaco-editor>
+              <markdown *ngIf="preview" [data]="content"> </markdown>
             </div>
             <div class="stepper__actions">
               <button mat-flat-button color="primary" [disabled]="content?.length === 0" (click)="save()">Save</button>
