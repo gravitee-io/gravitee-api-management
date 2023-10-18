@@ -41,7 +41,7 @@ export interface Api {
   paths?: Record<string, ApiRule>;
   flows?: Flow[];
   plans?: ApiPlan[];
-  gravitee?: string;
+  gravitee: '1.0.0' | '2.0.0';
   execution_mode?: 'v3' | 'v4-emulation-engine';
 
   deployed_at?: number;
