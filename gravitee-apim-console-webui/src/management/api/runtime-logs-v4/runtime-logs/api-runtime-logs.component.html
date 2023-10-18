@@ -20,6 +20,7 @@
     <api-runtime-logs-quick-filters
       *ngIf="initialValues"
       [initialValues]="initialValues"
+      [plans]="apiPlans$ | async"
       (quickFilterSelection)="applyFilter($event)"
     ></api-runtime-logs-quick-filters>
     <api-runtime-logs-list

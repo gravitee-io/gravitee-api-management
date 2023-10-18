@@ -25,6 +25,7 @@ export interface ApiLogsParam {
   from?: number;
   to?: number;
   applicationIds?: string;
+  planIds?: string;
 }
 
 export interface ApiLogsResponse {

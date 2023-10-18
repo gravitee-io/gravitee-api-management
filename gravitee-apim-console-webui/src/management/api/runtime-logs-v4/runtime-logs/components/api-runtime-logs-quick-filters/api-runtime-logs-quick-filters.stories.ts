@@ -23,7 +23,8 @@ import { ApiRuntimeLogsQuickFiltersModule } from './api-runtime-logs-quick-filte
 
 import { ApplicationService } from '../../../../../../services-ngx/application.service';
 import { fakeApplication } from '../../../../../../entities/application/Application.fixture';
-import { fakePagedResult } from '../../../../../../entities/management-api-v2';
+import { fakePagedResult, fakePlanV4 } from '../../../../../../entities/management-api-v2';
+import { ApiPlanV2Service } from '../../../../../../services-ngx/api-plan-v2.service';
 
 const applications = [
   fakeApplication({ id: '1', name: 'app 1', owner: { displayName: 'owner 1' } }),
@@ -31,8 +32,10 @@ const applications = [
   fakeApplication({ id: '3', name: 'app 3', owner: { displayName: 'owner 3' } }),
 ];
 
+const plans = [fakePlanV4({ id: '1', name: 'plan 1' }), fakePlanV4({ id: '2', name: 'plan 2' }), fakePlanV4({ id: '3', name: 'plan 3' })];
+
 export default {
-  title: 'API / Logs / Runtime logs quick filters',
+  title: 'API / Logs / Connections / Quick filters',
   component: ApiRuntimeLogsQuickFiltersComponent,
   decorators: [
     moduleMetadata({
@@ -42,6 +45,10 @@ export default {
           provide: ApplicationService,
           useValue: { list: () => of(fakePagedResult(applications)), findById: (id: string) => applications.find((app) => app.id === id) },
         },
+        {
+          provide: ApiPlanV2Service,
+          useValue: { list: () => of(fakePagedResult(plans)) },
+        },
       ],
     }),
   ],
@@ -49,7 +56,7 @@ export default {
   render: (args) => ({
     template: `
       <div style="width: 800px">
-        <api-runtime-logs-quick-filters [initialValues]="initialValues"></api-runtime-logs-quick-filters>
+        <api-runtime-logs-quick-filters [plans]="plans" [initialValues]="initialValues"></api-runtime-logs-quick-filters>
       </div>
     `,
     props: args,
@@ -58,5 +65,6 @@ export default {
 
 export const Default: Story = {};
 Default.args = {
-  initialValues: { applications: undefined },
+  initialValues: { applications: undefined, plans: undefined },
+  plans,
 };

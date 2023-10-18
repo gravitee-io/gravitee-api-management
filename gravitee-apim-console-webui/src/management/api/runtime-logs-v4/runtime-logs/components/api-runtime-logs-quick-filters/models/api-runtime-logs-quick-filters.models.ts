@@ -25,9 +25,10 @@ export type FilterVM = {
 export type LogFilters = {
   period?: SimpleFilter;
   applications?: MultiFilter;
+  plans?: MultiFilter;
 };
 
-export type LogFiltersForm = { period: SimpleFilter; applications: string[] };
+export type LogFiltersForm = { period: SimpleFilter; applications: string[]; plans: string[] };
 
 export type LogFiltersInitialValues = {
   applications?: MultiFilter;

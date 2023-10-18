@@ -76,4 +76,20 @@ export class ApiRuntimeLogsHarness extends ComponentHarness {
   async getApplicationsChip() {
     return this.quickFiltersHarness().then((quickFilters) => quickFilters.getApplicationsChip());
   }
+
+  async getSelectedPlans() {
+    return this.quickFiltersHarness()
+      .then((harness) => harness.getPlansSelect())
+      .then((select) => select.getValueText());
+  }
+
+  async selectPlan(text: string) {
+    return this.quickFiltersHarness()
+      .then((harness) => harness.getPlansSelect())
+      .then((select) => select.clickOptions({ text }));
+  }
+
+  async getPlanChip() {
+    return this.quickFiltersHarness().then((harness) => harness.getPlansChip());
+  }
 }

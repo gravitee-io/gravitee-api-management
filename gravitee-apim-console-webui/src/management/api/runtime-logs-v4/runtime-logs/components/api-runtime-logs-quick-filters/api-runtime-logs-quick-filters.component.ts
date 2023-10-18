@@ -21,8 +21,10 @@ import { isEqual } from 'lodash';
 import { Subject } from 'rxjs';
 import { KeyValue } from '@angular/common';
 
-import { DEFAULT_PERIOD, LogFilters, LogFiltersForm, LogFiltersInitialValues, PERIODS } from './models';
+import { DEFAULT_PERIOD, LogFilters, LogFiltersForm, LogFiltersInitialValues, MultiFilter, PERIODS } from './models';
 import { CacheEntry } from './components';
+
+import { Plan } from '../../../../../../entities/management-api-v2';
 
 @Component({
   selector: 'api-runtime-logs-quick-filters',
@@ -33,12 +35,11 @@ export class ApiRuntimeLogsQuickFiltersComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   @Input() initialValues: LogFiltersInitialValues;
+  @Input() plans: Plan[];
   @Output() quickFilterSelection = new EventEmitter<LogFilters>();
-  defaultFilter: LogFilters = {
-    period: DEFAULT_PERIOD,
-    applications: undefined,
-  };
+
   readonly periods = PERIODS;
+  defaultFilter: LogFilters = { period: DEFAULT_PERIOD, applications: undefined, plans: undefined };
   isFiltering = false;
   quickFiltersForm: FormGroup;
   currentFilter: LogFilters;
@@ -48,13 +49,13 @@ export class ApiRuntimeLogsQuickFiltersComponent implements OnInit, OnDestroy {
     this.currentFilter = {
       ...this.defaultFilter,
       applications: this.initialValues.applications ?? this.defaultFilter?.applications,
+      plans: this.initialValues.plans ?? this.defaultFilter?.plans,
     };
 
     this.quickFiltersForm = new FormGroup({
       period: new FormControl(DEFAULT_PERIOD),
-      applications: new FormControl(
-        this.initialValues.applications?.map((application) => application.value) ?? this.defaultFilter?.applications,
-      ),
+      applications: new FormControl(this.initialValues.applications?.map((application) => application.value) ?? null),
+      plans: new FormControl(this.initialValues.plans?.map((plan) => plan.value) ?? this.defaultFilter?.plans),
     });
 
     this.onValuesChanges();
@@ -82,13 +83,24 @@ export class ApiRuntimeLogsQuickFiltersComponent implements OnInit, OnDestroy {
     });
   }
 
-  private mapFormValues({ period, applications }: LogFiltersForm) {
+  private mapFormValues({ period, applications, plans }: LogFiltersForm) {
     return {
       period,
-      applications:
-        applications?.length > 0
-          ? this.applicationsCache?.filter((app) => applications.includes(app.value))
-          : this.defaultFilter.applications,
+      plans: this.plansFromValues(plans),
+      applications: this.applicationsFromValues(applications),
     };
+  }
+
+  private plansFromValues(ids: string[]): MultiFilter {
+    return ids?.length > 0
+      ? ids.map((id) => {
+          const plan = this.plans.find((p) => p.id === id);
+          return { label: plan.name, value: plan.id };
+        })
+      : this.defaultFilter.plans;
+  }
+
+  private applicationsFromValues(ids: string[]): MultiFilter {
+    return ids?.length > 0 ? ids.map((id) => this.applicationsCache.find((app) => app.value === id)) : this.defaultFilter.applications;
   }
 }

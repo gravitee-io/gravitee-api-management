@@ -28,6 +28,8 @@ export class ApiRuntimeLogsQuickFiltersHarness extends ComponentHarness {
   public getPeriodChip = this.locatorFor(MatChipHarness.with({ text: /^period:/ }));
   public getApplicationsTags = this.locatorFor(GioFormTagsInputHarness);
   public getApplicationsChip = this.locatorFor(MatChipHarness.with({ text: /^applications:/ }));
+  public getPlansSelect = this.locatorFor(MatSelectHarness.with({ selector: '[formControlName="plans"]' }));
+  public getPlansChip = this.locatorFor(MatChipHarness.with({ text: /^plans:/ }));
 
   public getApplicationAutocomplete() {
     return this.getApplicationFormField()

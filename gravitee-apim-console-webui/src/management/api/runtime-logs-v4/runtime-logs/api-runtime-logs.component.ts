@@ -20,7 +20,7 @@ import { map, shareReplay, takeUntil, tap } from 'rxjs/operators';
 import { StateParams } from '@uirouter/core';
 import { StateService } from '@uirouter/angular';
 import * as moment from 'moment';
-import { ReplaySubject, Subject } from 'rxjs';
+import { forkJoin, of, ReplaySubject, Subject } from 'rxjs';
 
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
 
@@ -31,6 +31,7 @@ import { ApiLogsResponse, ApiV4 } from '../../../../entities/management-api-v2';
 import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { ApplicationService } from '../../../../services-ngx/application.service';
+import { ApiPlanV2Service } from '../../../../services-ngx/api-plan-v2.service';
 
 @Component({
   selector: 'api-runtime-logs',
@@ -44,6 +45,10 @@ export class ApiRuntimeLogsComponent implements OnInit, OnDestroy {
   apiLogsSubject$ = new ReplaySubject<ApiLogsResponse>(1);
   isMessageApi$ = this.api$.pipe(map((api: ApiV4) => api?.type === 'MESSAGE'));
   apiLogsEnabled$ = this.api$.pipe(map(ApiRuntimeLogsComponent.isLogEnabled));
+  apiPlans$ = this.planService.list(this.ajsStateParams.apiId, undefined, undefined, undefined, 1, 9999).pipe(
+    map((plans) => plans.data),
+    shareReplay(1),
+  );
   initialValues: LogFiltersInitialValues;
 
   constructor(
@@ -52,6 +57,7 @@ export class ApiRuntimeLogsComponent implements OnInit, OnDestroy {
     private readonly apiLogsService: ApiLogsV2Service,
     private readonly apiService: ApiV2Service,
     private readonly applicationService: ApplicationService,
+    private readonly planService: ApiPlanV2Service,
   ) {}
 
   ngOnInit(): void {
@@ -61,6 +67,7 @@ export class ApiRuntimeLogsComponent implements OnInit, OnDestroy {
       from: +this.ajsStateParams.from,
       to: +this.ajsStateParams.to,
       applicationIds: this.ajsStateParams.applicationIds,
+      planIds: this.ajsStateParams.planIds,
     };
     this.apiLogsService
       .searchConnectionLogs(this.ajsStateParams.apiId, { ...this.currentFilters })
@@ -87,6 +94,7 @@ export class ApiRuntimeLogsComponent implements OnInit, OnDestroy {
       ...(!!this.currentFilters.from && { from: +this.currentFilters.from }),
       ...(!!this.currentFilters.to && { to: +this.currentFilters.to }),
       ...(!!this.currentFilters.applicationIds && { applicationIds: this.currentFilters.applicationIds }),
+      ...(!!this.currentFilters.planIds && { planIds: this.currentFilters.planIds }),
     };
 
     this.apiLogsService
@@ -105,10 +113,6 @@ export class ApiRuntimeLogsComponent implements OnInit, OnDestroy {
     return this.ajsState.go('management.apis.runtimeLogs-settings');
   }
 
-  private static isLogEnabled = (api: ApiV4) => {
-    return api.analytics.enabled && (api.analytics.logging?.mode?.endpoint === true || api.analytics.logging?.mode?.entrypoint === true);
-  };
-
   applyFilter(logFilter: LogFilters) {
     const periodFilter = this.preparePeriodFilter(logFilter.period);
     this.currentFilters = {
@@ -117,6 +121,7 @@ export class ApiRuntimeLogsComponent implements OnInit, OnDestroy {
       from: periodFilter?.from ? periodFilter.from : null,
       to: periodFilter?.to ? periodFilter.to : null,
       applicationIds: logFilter.applications?.length > 0 ? logFilter.applications?.map((app) => app.value).join(',') : null,
+      planIds: logFilter.plans?.length > 0 ? logFilter.plans?.map((app) => app.value).join(',') : null,
     };
 
     this.apiLogsService
@@ -130,6 +135,10 @@ export class ApiRuntimeLogsComponent implements OnInit, OnDestroy {
       )
       .subscribe();
   }
+
+  private static isLogEnabled = (api: ApiV4) => {
+    return api.analytics.enabled && (api.analytics.logging?.mode?.endpoint === true || api.analytics.logging?.mode?.entrypoint === true);
+  };
 
   private preparePeriodFilter(period: SimpleFilter): { from: number; to: number } {
     if (period.value === '0') {
@@ -150,18 +159,23 @@ export class ApiRuntimeLogsComponent implements OnInit, OnDestroy {
 
   private initFilters() {
     const applicationIds: string[] = this.ajsStateParams.applicationIds ? this.ajsStateParams.applicationIds.split(',') : null;
+    const planIds: string[] = this.ajsStateParams.planIds ? this.ajsStateParams.planIds.split(',') : null;
 
-    this.applicationService
-      .findByIds(applicationIds, 1, applicationIds?.length ?? 10)
+    forkJoin([
+      applicationIds?.length > 0 ? this.applicationService.findByIds(applicationIds, 1, applicationIds?.length ?? 10) : of(null),
+      this.apiPlans$,
+    ])
       .pipe(
-        map((applications) => ({
+        map(([applications, plans]) => ({
+          plans:
+            planIds?.map((id) => {
+              const plan = plans.find((p) => p.id === id);
+              return { value: id, label: plan.name };
+            }) ?? undefined,
           applications:
             applicationIds?.map((id) => {
               const application = applications.data.find((app) => app.id === id);
-              return {
-                value: id,
-                label: `${application.name} ( ${application.owner?.displayName} )`,
-              };
+              return { value: id, label: `${application.name} ( ${application.owner?.displayName} )` };
             }) ?? undefined,
         })),
       )
