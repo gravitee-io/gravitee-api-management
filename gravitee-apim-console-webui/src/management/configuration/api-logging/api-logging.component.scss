@@ -1,0 +1,78 @@
+/*
+ * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+@use '../../../scss/gio-layout' as gio-layout;
+
+$foreground: map.get(gio.$mat-theme, foreground);
+$typography: map.get(gio.$mat-theme, typography);
+$textColor: map.get(gio.$mat-dove-palette, default);
+
+:host {
+  @include gio-layout.gio-responsive-margin-container;
+  display: flex;
+  flex-direction: column;
+}
+
+.api-logging {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+
+  &__form {
+    &__info {
+      display: flex;
+      align-items: center;
+    }
+
+    &__card {
+      margin-bottom: 16px;
+
+      &__form-error {
+        margin-top: -16px;
+        padding-bottom: 16px;
+      }
+
+      &__form-field {
+        width: 100%;
+
+        &__icon {
+          color: mat.get-color-from-palette($foreground, disabled);
+        }
+
+        &.margin-top {
+          margin-top: 16px;
+        }
+        &.margin-bottom {
+          margin-bottom: 32px;
+        }
+      }
+
+      &__label {
+        @include mat.typography-level($typography, body-2);
+
+        & ~ & {
+          padding-top: 8px;
+        }
+      }
+
+      &__h3 {
+        margin-top: 8px;
+      }
+    }
+  }
+}

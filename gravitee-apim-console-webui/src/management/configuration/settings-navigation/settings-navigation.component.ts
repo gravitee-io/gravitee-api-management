@@ -135,8 +135,8 @@ export class SettingsNavigationComponent implements OnInit {
         items: [
           {
             displayName: 'API Logging',
-            targetRoute: 'management.settings.api_logging',
-            baseRoute: 'management.settings.api_logging',
+            targetRoute: 'management.settings.api-logging',
+            baseRoute: 'management.settings.api-logging',
             permissions: ['organization-settings-r'],
           },
           {

@@ -16,14 +16,21 @@
 package io.gravitee.rest.api.model.settings;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.rest.api.model.annotations.ParameterKey;
 import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.settings.logging.MessageSampling;
+import jakarta.validation.Valid;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Getter
+@Setter
 public class Logging {
 
     @ParameterKey(Key.LOGGING_DEFAULT_MAX_DURATION)
@@ -32,30 +39,11 @@ public class Logging {
     private Audit audit = new Audit();
     private User user = new User();
 
-    public Long getMaxDurationMillis() {
-        return maxDurationMillis;
-    }
+    @Valid
+    private MessageSampling messageSampling = new MessageSampling();
 
-    public void setMaxDurationMillis(Long maxDurationMillis) {
-        this.maxDurationMillis = maxDurationMillis;
-    }
-
-    public Audit getAudit() {
-        return audit;
-    }
-
-    public void setAudit(Audit audit) {
-        this.audit = audit;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
+    @Getter
+    @Setter
     public static class Audit {
 
         @ParameterKey(Key.LOGGING_AUDIT_ENABLED)
@@ -63,48 +51,65 @@ public class Logging {
 
         private AuditTrail trail = new AuditTrail();
 
-        public Boolean getEnabled() {
-            return enabled;
-        }
-
-        public void setEnabled(Boolean enabled) {
-            this.enabled = enabled;
-        }
-
-        public AuditTrail getTrail() {
-            return trail;
-        }
-
-        public void setTrail(AuditTrail trail) {
-            this.trail = trail;
-        }
-
+        @Getter
+        @Setter
         public static class AuditTrail {
 
             @ParameterKey(Key.LOGGING_AUDIT_TRAIL_ENABLED)
             private Boolean enabled;
-
-            public Boolean getEnabled() {
-                return enabled;
-            }
-
-            public void setEnabled(Boolean enabled) {
-                this.enabled = enabled;
-            }
         }
     }
 
+    @Getter
+    @Setter
     public static class User {
 
         @ParameterKey(Key.LOGGING_USER_DISPLAYED)
         private Boolean displayed;
+    }
 
-        public Boolean getDisplayed() {
-            return displayed;
+    @Getter
+    @Setter
+    public static class MessageSamplingYouhou {
+
+        private Count count = new Count();
+        private Probabilistic probabilistic = new Probabilistic();
+        private Temporal temporal = new Temporal();
+
+        @Getter
+        @Setter
+        public static class Count {
+
+            @JsonProperty("default")
+            @ParameterKey(Key.LOGGING_MESSAGE_SAMPLING_COUNT_DEFAULT)
+            private Integer defaultValue;
+
+            @ParameterKey(Key.LOGGING_MESSAGE_SAMPLING_COUNT_LIMIT)
+            private Integer limit;
         }
 
-        public void setDisplayed(Boolean displayed) {
-            this.displayed = displayed;
+        @Getter
+        @Setter
+        public static class Probabilistic {
+
+            @JsonProperty("default")
+            @ParameterKey(Key.LOGGING_MESSAGE_SAMPLING_PROBABILISTIC_DEFAULT)
+            private Double defaultValue;
+
+            @ParameterKey(Key.LOGGING_MESSAGE_SAMPLING_PROBABILISTIC_LIMIT)
+            private Double limit;
+        }
+
+        @Getter
+        @Setter
+        public static class Temporal {
+
+            @JsonProperty("default")
+            @ParameterKey(Key.LOGGING_MESSAGE_SAMPLING_TEMPORAL_DEFAULT)
+            private String defaultValue;
+
+            @ParameterKey(Key.LOGGING_MESSAGE_SAMPLING_TEMPORAL_LIMIT)
+            private String limit;
         }
     }
 }

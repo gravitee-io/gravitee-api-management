@@ -187,6 +187,8 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
                             f.set(o, Boolean.valueOf(getFirstValueOrDefault(values, defaultValue)));
                         } else if (Integer.class.isAssignableFrom(f.getType())) {
                             f.set(o, Integer.valueOf(getFirstValueOrDefault(values, defaultValue)));
+                        } else if (Double.class.isAssignableFrom(f.getType())) {
+                            f.set(o, Double.valueOf(getFirstValueOrDefault(values, defaultValue)));
                         } else if (Long.class.isAssignableFrom(f.getType())) {
                             f.set(o, Long.valueOf(getFirstValueOrDefault(values, defaultValue)));
                         } else if (List.class.isAssignableFrom(f.getType())) {
@@ -341,6 +343,9 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
                         } else if (Integer.class.isAssignableFrom(f.getType())) {
                             final String value = f.get(o) == null ? null : Integer.toString((Integer) f.get(o));
                             parameterService.save(executionContext, parameterKey.value(), value, referenceId, referenceType);
+                        } else if (Double.class.isAssignableFrom(f.getType())) {
+                            final String value = f.get(o) == null ? null : Double.toString((Double) f.get(o));
+                            parameterService.save(executionContext, parameterKey.value(), value, referenceId, referenceType);
                         } else if (Long.class.isAssignableFrom(f.getType())) {
                             final String value = f.get(o) == null ? null : Long.toString((Long) f.get(o));
                             parameterService.save(executionContext, parameterKey.value(), value, referenceId, referenceType);
@@ -428,6 +433,10 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
             consoleConfigEntity.getLogging().getAudit(),
             consoleConfigEntity.getLogging().getAudit().getTrail(),
             consoleConfigEntity.getLogging().getUser(),
+            consoleConfigEntity.getLogging().getMessageSampling(),
+            consoleConfigEntity.getLogging().getMessageSampling().getCount(),
+            consoleConfigEntity.getLogging().getMessageSampling().getProbabilistic(),
+            consoleConfigEntity.getLogging().getMessageSampling().getTemporal(),
             consoleConfigEntity.getMaintenance(),
             consoleConfigEntity.getManagement(),
             consoleConfigEntity.getNewsletter(),

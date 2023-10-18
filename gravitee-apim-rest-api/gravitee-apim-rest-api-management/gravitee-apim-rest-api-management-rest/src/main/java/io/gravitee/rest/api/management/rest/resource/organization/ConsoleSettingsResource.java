@@ -36,6 +36,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.inject.Inject;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
@@ -91,7 +92,9 @@ public class ConsoleSettingsResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ORGANIZATION_SETTINGS, acls = { CREATE, UPDATE, DELETE }) })
-    public Response saveConsoleSettings(@Parameter(name = "config", required = true) @NotNull ConsoleSettingsEntity consoleSettingsEntity) {
+    public Response saveConsoleSettings(
+        @Parameter(name = "config", required = true) @NotNull @Valid ConsoleSettingsEntity consoleSettingsEntity
+    ) {
         // reject settings update if maintenanceMode isn't disabled into the payload
         checkMaintenanceMode(consoleSettingsEntity);
 

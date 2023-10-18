@@ -174,6 +174,24 @@ public enum Key {
     LOGGING_AUDIT_ENABLED("logging.audit.enabled", "false", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
     LOGGING_AUDIT_TRAIL_ENABLED("logging.audit.trail.enabled", "false", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
     LOGGING_USER_DISPLAYED("logging.user.displayed", "false", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
+    LOGGING_MESSAGE_SAMPLING_COUNT_DEFAULT("logging.messageSampling.count.default", "100", Set.of(ENVIRONMENT, ORGANIZATION, SYSTEM)),
+    LOGGING_MESSAGE_SAMPLING_COUNT_LIMIT("logging.messageSampling.count.limit", "10", Set.of(ENVIRONMENT, ORGANIZATION, SYSTEM)),
+    LOGGING_MESSAGE_SAMPLING_PROBABILISTIC_DEFAULT(
+        "logging.messageSampling.probabilistic.default",
+        "0.01",
+        Set.of(ENVIRONMENT, ORGANIZATION, SYSTEM)
+    ),
+    LOGGING_MESSAGE_SAMPLING_PROBABILISTIC_LIMIT(
+        "logging.messageSampling.probabilistic.limit",
+        "0.5",
+        Set.of(ENVIRONMENT, ORGANIZATION, SYSTEM)
+    ),
+    LOGGING_MESSAGE_SAMPLING_TEMPORAL_DEFAULT(
+        "logging.messageSampling.temporal.default",
+        "PT1S",
+        Set.of(ENVIRONMENT, ORGANIZATION, SYSTEM)
+    ),
+    LOGGING_MESSAGE_SAMPLING_TEMPORAL_LIMIT("logging.messageSampling.temporal.limit", "PT1S", Set.of(ENVIRONMENT, ORGANIZATION, SYSTEM)),
 
     ANALYTICS_CLIENT_TIMEOUT("analytics.client.timeout", "30000", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
 

@@ -209,8 +209,6 @@ import SettingsComponent from '../management/configuration/settings.component';
 import ConsoleSettingsService from '../services/consoleSettings.service';
 import PortalSettingsService from '../services/portalSettings.service';
 import PortalConfigService from '../services/portalConfig.service';
-import ApiLoggingComponent from '../management/configuration/api_logging/api_logging.component';
-import ApiLoggingController from '../management/configuration/api_logging/api_logging.controller';
 // Groups
 import GroupsComponent from '../management/configuration/groups/groups.component';
 import GroupComponent from './configuration/groups/group/group.component';
@@ -449,6 +447,7 @@ import AlertsActivityController from '../components/alerts/activity/alerts-activ
 import { ApiV2Service } from '../services-ngx/api-v2.service';
 import { OrgNavigationComponent } from '../organization/configuration/navigation/org-navigation.component';
 import { ClientRegistrationProviderComponent } from './configuration/client-registration-providers/client-registration-provider/client-registration-provider.component';
+import { ApiLoggingComponent } from './configuration/api-logging/api-logging.component';
 import { GioPermissionService } from '../shared/components/gio-permission/gio-permission.service';
 import { ApiAnalyticsOverviewComponentAjs } from './api/analytics/overview/analytics-overview.component.ajs';
 import { ApplicationNotificationSettingsListComponent } from './application/details/notifications/notification-settings/notification-settings-list/application-notification-settings-list.component';
@@ -824,8 +823,6 @@ graviteeManagementModule.directive('orgNavigation', downgradeComponent({ compone
 graviteeManagementModule.service('ConsoleSettingsService', ConsoleSettingsService);
 graviteeManagementModule.service('PortalSettingsService', PortalSettingsService);
 graviteeManagementModule.service('PortalConfigService', PortalConfigService);
-graviteeManagementModule.component('apiLogging', ApiLoggingComponent);
-graviteeManagementModule.controller('ApiLoggingController', ApiLoggingController);
 
 // Router
 graviteeManagementModule.service('RouterService', RouterService);
@@ -864,6 +861,8 @@ graviteeManagementModule.directive(
 );
 graviteeManagementModule.directive('ngClientRegistrationProvider', downgradeComponent({ component: ClientRegistrationProviderComponent }));
 
+// Settings: API Logging
+graviteeManagementModule.directive('ngApiLogging', downgradeComponent({ component: ApiLoggingComponent }));
 // Alerts
 graviteeManagementModule.service('AlertService', AlertService);
 graviteeManagementModule.controller('AlertTabsController', AlertTabsController);
