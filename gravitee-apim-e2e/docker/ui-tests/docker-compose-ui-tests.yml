@@ -20,7 +20,7 @@ services:
   cypress:
     image: cypress/included:12.17.3
     working_dir: /test
-    command: "--e2e --browser=chrome --spec 'ui-test/integration/apim/ui/**/*.ts' --config-file '/test/cypress-ui-config.ts'"
+    command: "--e2e --browser=chrome --spec 'ui-test/integration/apim/ui/**/*.ts' --config-file '/test/cypress-ui-config.ts' --record"
     volumes:
       - ./:/test
       - ./docker/ui-tests/conf/cypress-ui-config.ts:/test/cypress-ui-config.ts
@@ -29,6 +29,7 @@ services:
     environment:
       # Disable colors in Cypress output to avoid ANSI escape sequences in logs
       - NO_COLOR=1
+      - CYPRESS_RECORD_KEY=${CYPRESS_CLOUD_KEY}
     depends_on:
       nginx:
         condition: service_healthy
