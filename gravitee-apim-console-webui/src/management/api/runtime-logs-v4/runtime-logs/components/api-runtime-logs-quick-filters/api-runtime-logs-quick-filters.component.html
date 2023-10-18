@@ -17,7 +17,7 @@
 -->
 <div class="quick-filters">
   <form class="quick-filters__selectors" *ngIf="quickFiltersForm" [formGroup]="quickFiltersForm">
-    <mat-form-field class="quick-filters__selector">
+    <mat-form-field class="quick-filters__period">
       <mat-label>Period</mat-label>
       <mat-select formControlName="period" aria-label="Period selection">
         <mat-option *ngFor="let period of periods" [value]="period">{{ period.label }}</mat-option>
@@ -29,6 +29,13 @@
       (applicationCache)="this.applicationsCache = $event"
     >
     </applications-filter>
+
+    <mat-form-field class="quick-filters__plans">
+      <mat-label>Plan</mat-label>
+      <mat-select formControlName="plans" [multiple]="true">
+        <mat-option *ngFor="let plan of plans" [value]="plan.id">{{ plan.name }}</mat-option>
+      </mat-select>
+    </mat-form-field>
   </form>
 
   <div class="quick-filters__applied">

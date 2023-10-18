@@ -17,8 +17,9 @@ $typography: map.get(gio.$mat-theme, typography);
     flex-direction: row;
   }
 
-  &__selector,
-  &__applications {
+  &__period,
+  &__applications,
+  &__plans {
     margin-right: 16px;
   }
 
