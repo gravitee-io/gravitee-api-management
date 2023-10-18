@@ -916,7 +916,7 @@ workflows:
             parameters:
               execution_mode:
                 - v3
-                - v4-emulation-engine
+                - jupiter
               database:
                 - mongo
                 - jdbc

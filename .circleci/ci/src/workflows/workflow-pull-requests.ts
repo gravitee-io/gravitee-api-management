@@ -326,7 +326,7 @@ export class PullRequestsWorkflow {
         name: 'E2E - << matrix.execution_mode >> - << matrix.database >>',
         requires: ['Lint & Build APIM e2e', 'Build and push rest api and gateway images'],
         matrix: {
-          execution_mode: ['v3', 'v4-emulation-engine'],
+          execution_mode: ['v3', 'jupiter'],
           database: ['mongo', 'jdbc', 'bridge'],
         },
       }),
