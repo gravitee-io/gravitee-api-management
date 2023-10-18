@@ -2,6 +2,7 @@ import { defineConfig } from "cypress";
 import { unlinkSync } from "fs";
 
 export default defineConfig({
+    projectId: "7tvhwd",
     env: {
         failOnStatusCode: false,
         api_publisher_user_login: "api1",
@@ -20,7 +21,6 @@ export default defineConfig({
         wiremockUrl: 'http://wiremock:8080',
     },
     e2e: {
-        projectId: "ui-test",
         specPattern: "./ui-test/integration/**/*.spec.ts",
         viewportWidth: 1920,
         viewportHeight: 1080,

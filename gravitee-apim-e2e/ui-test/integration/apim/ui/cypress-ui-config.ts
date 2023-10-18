@@ -17,6 +17,7 @@ import { defineConfig } from 'cypress';
 import cypressConfig from '../cypress-apim-config';
 
 export default defineConfig({
+  projectId: '7tvhwd',
   env: {
     ...cypressConfig.env,
   },
