@@ -16,11 +16,14 @@
 package io.gravitee.rest.api.management.rest.provider;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.gravitee.common.http.HttpStatusCode;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import java.util.List;
+import lombok.Builder;
+import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -34,15 +37,7 @@ public class ConstraintValidationExceptionMapper extends AbstractExceptionMapper
         return Response.status(error).type(MediaType.APPLICATION_JSON_TYPE).entity(new ConstraintValidationError(cve)).build();
     }
 
-    private String prepareMessage(ConstraintViolationException exception) {
-        StringBuilder message = new StringBuilder();
-
-        for (ConstraintViolation<?> cv : exception.getConstraintViolations()) {
-            message.append(cv.getMessage());
-        }
-        return message.toString();
-    }
-
+    @Getter
     static class ConstraintValidationError {
 
         private final String message;
@@ -52,23 +47,35 @@ public class ConstraintValidationExceptionMapper extends AbstractExceptionMapper
         @JsonProperty("invalid_value")
         private final Object invalidValue;
 
+        private final List<ConstraintViolationDetail> details;
+
         ConstraintValidationError(ConstraintViolationException cve) {
             ConstraintViolation<?> violation = cve.getConstraintViolations().iterator().next();
             this.message = violation.getMessage();
             this.path = violation.getPropertyPath().toString();
             this.invalidValue = violation.getInvalidValue();
+            this.details =
+                cve
+                    .getConstraintViolations()
+                    .stream()
+                    .map(constraintViolation ->
+                        ConstraintViolationDetail
+                            .builder()
+                            .message(constraintViolation.getMessage())
+                            .location(extractLocation(constraintViolation))
+                            .invalidValue(constraintViolation.getInvalidValue())
+                            .build()
+                    )
+                    .toList();
         }
 
-        public String getMessage() {
-            return message;
-        }
-
-        public String getPath() {
-            return path;
-        }
-
-        public Object getInvalidValue() {
-            return invalidValue;
+        private String extractLocation(ConstraintViolation<?> constraintViolation) {
+            final String errorLocation = constraintViolation.getPropertyPath().toString();
+            // getPropertyPath returns a location in the form of "methodName.methodParameter.fieldNameOfTheParameter.[...]". We are not interested by the method name and parameter, so we remove them.
+            return errorLocation.substring(StringUtils.ordinalIndexOf(errorLocation, ".", 2) + 1);
         }
     }
+
+    @Builder
+    record ConstraintViolationDetail(String message, String location, Object invalidValue) {}
 }

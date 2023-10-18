@@ -18,6 +18,7 @@ package io.gravitee.rest.api.model.settings;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.gravitee.rest.api.model.annotations.ParameterKey;
 import io.gravitee.rest.api.model.parameters.Key;
+import jakarta.validation.Valid;
 import java.util.List;
 import lombok.Data;
 
@@ -34,7 +35,10 @@ public class ConsoleSettingsEntity extends AbstractCommonSettingsEntity {
     private ConsoleScheduler scheduler;
 
     private ConsoleAnalyticsPendo analyticsPendo;
+
+    @Valid
     private Logging logging;
+
     private Maintenance maintenance;
     private Management management;
     private Newsletter newsletter;

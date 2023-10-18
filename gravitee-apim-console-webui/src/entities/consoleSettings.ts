@@ -102,6 +102,20 @@ export interface ConsoleSettingsLogging {
   user?: {
     displayed?: boolean;
   };
+  messageSampling?: {
+    probabilistic?: {
+      default: number;
+      limit: number;
+    };
+    count?: {
+      default: number;
+      limit: number;
+    };
+    temporal?: {
+      default: string;
+      limit: string;
+    };
+  };
 }
 
 export interface ConsoleSettingsMaintenance {

@@ -20,7 +20,6 @@ import { StateProvider } from '@uirouter/angularjs';
 import { ApiService } from '../../services/api.service';
 import ApiHeaderService from '../../services/apiHeader.service';
 import CategoryService from '../../services/category.service';
-import ConsoleSettingsService from '../../services/consoleSettings.service';
 import CustomUserFieldsService from '../../services/custom-user-fields.service';
 import DashboardService from '../../services/dashboard.service';
 import DictionaryService from '../../services/dictionary.service';
@@ -719,15 +718,9 @@ function configurationRouterConfig($stateProvider: StateProvider) {
       },
     })
     // Gateway
-    .state('management.settings.api_logging', {
-      url: '/api_logging',
-      component: 'apiLogging',
-      resolve: {
-        settings: [
-          'ConsoleSettingsService',
-          (ConsoleSettingsService: ConsoleSettingsService) => ConsoleSettingsService.get().then((response) => response.data),
-        ],
-      },
+    .state('management.settings.api-logging', {
+      url: '/api-logging',
+      component: 'ngApiLogging',
       data: {
         menu: null,
         docs: {

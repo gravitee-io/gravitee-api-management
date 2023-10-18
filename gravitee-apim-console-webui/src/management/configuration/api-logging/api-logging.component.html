@@ -1,0 +1,312 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="api-logging">
+  <form
+    *ngIf="!isLoading"
+    class="api-logging__form"
+    [formGroup]="apiLoggingForm"
+    (ngSubmit)="onSubmit()"
+    autocomplete="off"
+    gioFormFocusInvalid
+  >
+    <h1>API Logging</h1>
+    <gio-banner-info>
+      Depending on your architecture, this configuration may be overridden by a local configuration file. See documentation for more
+      information.
+    </gio-banner-info>
+
+    <mat-card class="api-logging__form__card" formGroupName="duration">
+      <h2 gioTableOfContents>Duration</h2>
+
+      <mat-card-content>
+        <p>
+          Limit the duration of API full logging (0 means no max duration). This avoids API publishers to log headers and / or body payload
+          durin too much time and avoir to consume too much CPU/memory. By default, the calls are logged with the minimal information.
+        </p>
+        <mat-form-field
+          [matTooltip]="providedConfigurationMessage"
+          [matTooltipDisabled]="!isReadonly('logging.default.max.duration')"
+          class="api-logging__form__card__form-field"
+        >
+          <mat-icon *ngIf="isReadonly('logging.default.max.duration')" class="api-logging__form__card__form-field__icon" matPrefix
+            >lock
+          </mat-icon>
+          <mat-label>Max Duration (in ms)</mat-label>
+          <input matInput type="number" formControlName="maxDurationMillis" />
+        </mat-form-field>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="api-logging__form__card" formGroupName="audit">
+      <h2 gioTableOfContents>Audit</h2>
+      <mat-card-content>
+        <p>Enable to audit the consultation of log details to track who accessed to a specific data from the audit view.</p>
+        <gio-form-slide-toggle
+          [matTooltip]="providedConfigurationMessage"
+          [matTooltipDisabled]="!isReadonly('logging.audit.enabled')"
+          class="api-logging__form__card__form-field"
+        >
+          <mat-icon *ngIf="isReadonly('logging.audit.enabled')" gioFormPrefix>lock</mat-icon>
+          <gio-form-label>Enable audit on API Logging consultation</gio-form-label>
+          <mat-slide-toggle
+            gioFormSlideToggle
+            formControlName="enabled"
+            aria-label="Enable audit on API Logging consultation"
+            name="enabled"
+          ></mat-slide-toggle>
+        </gio-form-slide-toggle>
+
+        <mat-divider></mat-divider>
+
+        <gio-form-slide-toggle
+          [matTooltip]="providedConfigurationMessage"
+          [matTooltipDisabled]="!isReadonly('logging.audit.trail.enabled')"
+          class="api-logging__form__card__form-field"
+          formGroupName="trail"
+        >
+          <mat-icon *ngIf="isReadonly('logging.audit.trail.enabled')" gioFormPrefix>lock</mat-icon>
+          <gio-form-label
+            >Generate API Logging audit events (API_LOGGING_ENABLED, API_LOGGING_DISABLED, API_LOGGING_UPDATED)
+          </gio-form-label>
+          <mat-slide-toggle
+            gioFormSlideToggle
+            formControlName="enabled"
+            aria-label="Generate API Logging audit events (API_LOGGING_ENABLED, API_LOGGING_DISABLED, API_LOGGING_UPDATED)"
+            name="trail.enabled"
+          ></mat-slide-toggle>
+        </gio-form-slide-toggle>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="api-logging__form__card" formGroupName="user">
+      <h2 gioTableOfContents>User</h2>
+      <mat-card-content>
+        <p>Display or not the end user in case of a OAuth2 / JWT plan (extracted fro mthe sub claim).</p>
+        <gio-form-slide-toggle
+          [matTooltip]="providedConfigurationMessage"
+          [matTooltipDisabled]="!isReadonly('logging.user.displayed')"
+          class="api-logging__form__card__form-field"
+        >
+          <mat-icon *ngIf="isReadonly('logging.user.displayed')" gioFormPrefix>lock</mat-icon>
+          <gio-form-label>Display end user on API Logging (in case of OAuth2/JWT plan)</gio-form-label>
+          <mat-slide-toggle
+            gioFormSlideToggle
+            formControlName="displayed"
+            aria-label="Display end user on API Logging (in case of OAuth2/JWT plan)"
+            name="displayed"
+          ></mat-slide-toggle>
+        </gio-form-slide-toggle>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="api-logging__form__card" formGroupName="messageSampling">
+      <h2 gioTableOfContents>Message Sampling</h2>
+      <p>A sampling strategy is applied to prevent issue while logging messages.</p>
+      <mat-card-content>
+        <ng-container formGroupName="probabilistic">
+          <h3>Probabilistic</h3>
+          <p>Samples messages based on a specified probability.</p>
+          <mat-form-field
+            [matTooltip]="providedConfigurationMessage"
+            [matTooltipDisabled]="!isReadonly('logging.messageSampling.probabilistic.default')"
+            class="api-logging__form__card__form-field"
+            data-testid="probabilistic_default"
+          >
+            <mat-icon
+              *ngIf="isReadonly('logging.messageSampling.probabilistic.default')"
+              class="api-logging__form__card__form-field__icon"
+              matPrefix
+              >lock
+            </mat-icon>
+            <mat-label>Default</mat-label>
+            <input matInput formControlName="default" type="number" />
+            <mat-error *ngIf="apiLoggingForm.get('messageSampling.probabilistic.default').hasError('required')"
+              >Default value is required
+            </mat-error>
+            <mat-error *ngIf="apiLoggingForm.get('messageSampling.probabilistic.default').hasError('min')"
+              >Default value should be at least
+              {{ apiLoggingForm.get('messageSampling.probabilistic.default')?.errors?.min.min }}</mat-error
+            >
+            <mat-error *ngIf="apiLoggingForm.get('messageSampling.probabilistic.default').hasError('max')"
+              >Default value should not be greater than
+              {{ apiLoggingForm.get('messageSampling.probabilistic.default')?.errors?.max.max }}</mat-error
+            >
+            <mat-error *ngIf="apiLoggingForm.get('messageSampling.probabilistic.default')?.errors?.defaultGreaterThanLimit">{{
+              apiLoggingForm.get('messageSampling.probabilistic.default')?.errors?.defaultGreaterThanLimit
+            }}</mat-error>
+          </mat-form-field>
+
+          <mat-hint>The limit is the maximum allowed probability</mat-hint>
+          <mat-form-field
+            [matTooltip]="providedConfigurationMessage"
+            [matTooltipDisabled]="!isReadonly('logging.messageSampling.probabilistic.limit')"
+            class="api-logging__form__card__form-field"
+            data-testid="probabilistic_limit"
+          >
+            <mat-icon
+              *ngIf="isReadonly('logging.messageSampling.probabilistic.limit')"
+              class="api-logging__form__card__form-field__icon"
+              matPrefix
+              >lock
+            </mat-icon>
+            <mat-label>Limit</mat-label>
+            <input matInput formControlName="limit" type="number" />
+            <mat-error *ngIf="apiLoggingForm.get('messageSampling.probabilistic.limit').hasError('required')"
+              >Limit value is required
+            </mat-error>
+            <mat-error *ngIf="apiLoggingForm.get('messageSampling.probabilistic.limit').hasError('min')"
+              >Limit value should be at least {{ apiLoggingForm.get('messageSampling.probabilistic.limit')?.errors?.min.min }}</mat-error
+            >
+            <mat-error *ngIf="apiLoggingForm.get('messageSampling.probabilistic.limit').hasError('max')"
+              >Limit value should not be greater than
+              {{ apiLoggingForm.get('messageSampling.probabilistic.limit')?.errors?.max.max }}</mat-error
+            >
+            <mat-error *ngIf="apiLoggingForm.get('messageSampling.probabilistic.limit')?.errors?.defaultGreaterThanLimit">{{
+              apiLoggingForm.get('messageSampling.probabilistic.limit')?.errors?.defaultGreaterThanLimit
+            }}</mat-error>
+          </mat-form-field>
+        </ng-container>
+
+        <ng-container formGroupName="count">
+          <h3>Count</h3>
+          <p>Samples one message for every number of specified messages.</p>
+          <mat-form-field
+            [matTooltip]="providedConfigurationMessage"
+            [matTooltipDisabled]="!isReadonly('logging.messageSampling.count.default')"
+            class="api-logging__form__card__form-field"
+            data-testid="count_default"
+          >
+            <mat-icon
+              *ngIf="isReadonly('logging.messageSampling.count.default')"
+              class="api-logging__form__card__form-field__icon"
+              matPrefix
+              >lock
+            </mat-icon>
+            <mat-label>Default</mat-label>
+            <input matInput formControlName="default" type="number" />
+            <mat-error *ngIf="apiLoggingForm.get('messageSampling.count.default').hasError('required')"
+              >Default value is required
+            </mat-error>
+            <mat-error *ngIf="apiLoggingForm.get('messageSampling.count.default').hasError('min')"
+              >Default value should be at least {{ apiLoggingForm.get('messageSampling.count.default')?.errors?.min.min }}</mat-error
+            >
+            <mat-error *ngIf="apiLoggingForm.get('messageSampling.count.default').hasError('pattern')"
+              >Default value should be an integer
+            </mat-error>
+            <mat-error *ngIf="apiLoggingForm.get('messageSampling.count.default')?.errors?.defaultLowerThanLimit">{{
+              apiLoggingForm.get('messageSampling.count.default')?.errors?.defaultLowerThanLimit
+            }}</mat-error>
+          </mat-form-field>
+
+          <mat-hint>The limit is the minimum messages number to sample</mat-hint>
+          <mat-form-field
+            [matTooltip]="providedConfigurationMessage"
+            [matTooltipDisabled]="!isReadonly('logging.messageSampling.count.limit')"
+            class="api-logging__form__card__form-field"
+            data-testid="count_limit"
+          >
+            <mat-icon *ngIf="isReadonly('logging.messageSampling.count.limit')" class="api-logging__form__card__form-field__icon" matPrefix
+              >lock
+            </mat-icon>
+            <mat-label>Limit</mat-label>
+            <input matInput formControlName="limit" type="number" />
+            <mat-error *ngIf="apiLoggingForm.get('messageSampling.count.limit').hasError('required')">Limit value is required </mat-error>
+            <mat-error *ngIf="apiLoggingForm.get('messageSampling.count.limit').hasError('min')"
+              >Limit value should be at least {{ apiLoggingForm.get('messageSampling.count.limit')?.errors?.min.min }}</mat-error
+            >
+            <mat-error *ngIf="apiLoggingForm.get('messageSampling.count.limit').hasError('pattern')"
+              >Limit value should be an integer
+            </mat-error>
+            <mat-error *ngIf="apiLoggingForm.get('messageSampling.count.limit')?.errors?.defaultLowerThanLimit">{{
+              apiLoggingForm.get('messageSampling.count.limit')?.errors?.defaultLowerThanLimit
+            }}</mat-error>
+          </mat-form-field>
+        </ng-container>
+
+        <ng-container formGroupName="temporal">
+          <h3>Temporal</h3>
+          <p>Samples messages based on time duration.</p>
+          <p>The value should conform to ISO-8601 duration format, e.g. PT1S for a duration of 1 second.</p>
+
+          <mat-form-field
+            [matTooltip]="providedConfigurationMessage"
+            [matTooltipDisabled]="!isReadonly('logging.messageSampling.temporal.default')"
+            class="api-logging__form__card__form-field"
+            data-testid="temporal_default"
+          >
+            <mat-icon
+              *ngIf="isReadonly('logging.messageSampling.temporal.default')"
+              class="api-logging__form__card__form-field__icon"
+              matPrefix
+              >lock
+            </mat-icon>
+            <mat-label>Default</mat-label>
+            <input matInput formControlName="default" />
+            <mat-error *ngIf="apiLoggingForm.get('messageSampling.temporal.default').hasError('required')"
+              >Default value is required
+            </mat-error>
+            <mat-error *ngIf="apiLoggingForm.get('messageSampling.temporal.default').hasError('invalidISO8601Duration')"
+              >Default value should conform to ISO-8601 duration format
+            </mat-error>
+            <mat-error *ngIf="apiLoggingForm.get('messageSampling.temporal.default')?.errors?.defaultLowerThanLimit">{{
+              apiLoggingForm.get('messageSampling.temporal.default')?.errors?.defaultLowerThanLimit
+            }}</mat-error>
+          </mat-form-field>
+
+          <mat-hint>The limit is the minimum allowed period to sample</mat-hint>
+          <mat-form-field
+            [matTooltip]="providedConfigurationMessage"
+            [matTooltipDisabled]="!isReadonly('logging.messageSampling.temporal.limit')"
+            class="api-logging__form__card__form-field"
+            data-testid="temporal_limit"
+          >
+            <mat-icon
+              *ngIf="isReadonly('logging.messageSampling.temporal.limit')"
+              class="api-logging__form__card__form-field__icon"
+              matPrefix
+              >lock
+            </mat-icon>
+            <mat-label>Limit</mat-label>
+            <input matInput formControlName="limit" />
+            <mat-error *ngIf="apiLoggingForm.get('messageSampling.temporal.limit').hasError('required')"
+              >Limit value is required
+            </mat-error>
+            <mat-error *ngIf="apiLoggingForm.get('messageSampling.temporal.limit').hasError('invalidISO8601Duration')">
+              Limit value should conform to ISO-8601 duration format
+            </mat-error>
+            <mat-error *ngIf="apiLoggingForm.get('messageSampling.temporal.limit')?.errors?.defaultLowerThanLimit">{{
+              apiLoggingForm.get('messageSampling.temporal.limit')?.errors?.defaultLowerThanLimit
+            }}</mat-error>
+          </mat-form-field>
+
+          <mat-error *ngIf="apiLoggingForm.get('messageSampling.temporal')?.errors?.defaultLowerThanLimit">{{
+            apiLoggingForm.get('messageSampling.temporal')?.errors?.defaultLowerThanLimit
+          }}</mat-error>
+        </ng-container>
+      </mat-card-content>
+    </mat-card>
+
+    <gio-save-bar [form]="apiLoggingForm" [formInitialValues]="formInitialValues"></gio-save-bar>
+  </form>
+
+  <gio-table-of-contents
+    class="api-logging__toc"
+    [sectionNames]="{ '': 'Settings' }"
+    scrollingContainer=".gio-main-page__content"
+  ></gio-table-of-contents>
+</div>

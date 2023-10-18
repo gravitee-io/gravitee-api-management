@@ -29,6 +29,7 @@ import io.gravitee.rest.api.model.settings.ConsoleConfigEntity;
 import io.gravitee.rest.api.model.settings.ConsoleSettingsEntity;
 import io.gravitee.rest.api.model.settings.Logging;
 import io.gravitee.rest.api.model.settings.PortalSettingsEntity;
+import io.gravitee.rest.api.model.settings.logging.MessageSampling;
 import io.gravitee.rest.api.service.NewsletterService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.ReCaptchaService;
@@ -316,6 +317,20 @@ public class ConfigServiceTest {
         Logging.User user = new Logging.User();
         user.setDisplayed(true);
         logging.setUser(user);
+        final MessageSampling messageSampling = new MessageSampling();
+        final MessageSampling.Count count = new MessageSampling.Count();
+        count.setDefaultValue(100);
+        count.setLimit(10);
+        messageSampling.setCount(count);
+        final MessageSampling.Probabilistic probabilistic = new MessageSampling.Probabilistic();
+        probabilistic.setLimit(0.5);
+        probabilistic.setDefaultValue(0.01);
+        messageSampling.setProbabilistic(probabilistic);
+        final MessageSampling.Temporal temporal = new MessageSampling.Temporal();
+        temporal.setLimit("PT1S");
+        temporal.setDefaultValue("PT1S");
+        messageSampling.setTemporal(temporal);
+        logging.setMessageSampling(messageSampling);
         consoleSettingsEntity.setLogging(logging);
         when(
             mockParameterService.save(
@@ -367,6 +382,66 @@ public class ConfigServiceTest {
             )
         )
             .thenReturn(new Parameter());
+        when(
+            mockParameterService.save(
+                GraviteeContext.getExecutionContext(),
+                LOGGING_MESSAGE_SAMPLING_COUNT_DEFAULT,
+                "100",
+                "DEFAULT",
+                ParameterReferenceType.ORGANIZATION
+            )
+        )
+            .thenReturn(new Parameter());
+        when(
+            mockParameterService.save(
+                GraviteeContext.getExecutionContext(),
+                LOGGING_MESSAGE_SAMPLING_COUNT_LIMIT,
+                "10",
+                "DEFAULT",
+                ParameterReferenceType.ORGANIZATION
+            )
+        )
+            .thenReturn(new Parameter());
+        when(
+            mockParameterService.save(
+                GraviteeContext.getExecutionContext(),
+                LOGGING_MESSAGE_SAMPLING_TEMPORAL_DEFAULT,
+                "PT1S",
+                "DEFAULT",
+                ParameterReferenceType.ORGANIZATION
+            )
+        )
+            .thenReturn(new Parameter());
+        when(
+            mockParameterService.save(
+                GraviteeContext.getExecutionContext(),
+                LOGGING_MESSAGE_SAMPLING_TEMPORAL_LIMIT,
+                "PT1S",
+                "DEFAULT",
+                ParameterReferenceType.ORGANIZATION
+            )
+        )
+            .thenReturn(new Parameter());
+        when(
+            mockParameterService.save(
+                GraviteeContext.getExecutionContext(),
+                LOGGING_MESSAGE_SAMPLING_PROBABILISTIC_DEFAULT,
+                "0.01",
+                "DEFAULT",
+                ParameterReferenceType.ORGANIZATION
+            )
+        )
+            .thenReturn(new Parameter());
+        when(
+            mockParameterService.save(
+                GraviteeContext.getExecutionContext(),
+                LOGGING_MESSAGE_SAMPLING_PROBABILISTIC_LIMIT,
+                "0.5",
+                "DEFAULT",
+                ParameterReferenceType.ORGANIZATION
+            )
+        )
+            .thenReturn(new Parameter());
 
         configService.save(GraviteeContext.getExecutionContext(), consoleSettingsEntity);
 
@@ -384,6 +459,54 @@ public class ConfigServiceTest {
             .save(GraviteeContext.getExecutionContext(), LOGGING_USER_DISPLAYED, "true", "DEFAULT", ParameterReferenceType.ORGANIZATION);
         verify(mockParameterService, times(1))
             .save(GraviteeContext.getExecutionContext(), LOGGING_AUDIT_ENABLED, "true", "DEFAULT", ParameterReferenceType.ORGANIZATION);
+        verify(mockParameterService, times(1))
+            .save(
+                GraviteeContext.getExecutionContext(),
+                LOGGING_MESSAGE_SAMPLING_COUNT_DEFAULT,
+                "100",
+                "DEFAULT",
+                ParameterReferenceType.ORGANIZATION
+            );
+        verify(mockParameterService, times(1))
+            .save(
+                GraviteeContext.getExecutionContext(),
+                LOGGING_MESSAGE_SAMPLING_COUNT_LIMIT,
+                "10",
+                "DEFAULT",
+                ParameterReferenceType.ORGANIZATION
+            );
+        verify(mockParameterService, times(1))
+            .save(
+                GraviteeContext.getExecutionContext(),
+                LOGGING_MESSAGE_SAMPLING_TEMPORAL_DEFAULT,
+                "PT1S",
+                "DEFAULT",
+                ParameterReferenceType.ORGANIZATION
+            );
+        verify(mockParameterService, times(1))
+            .save(
+                GraviteeContext.getExecutionContext(),
+                LOGGING_MESSAGE_SAMPLING_TEMPORAL_LIMIT,
+                "PT1S",
+                "DEFAULT",
+                ParameterReferenceType.ORGANIZATION
+            );
+        verify(mockParameterService, times(1))
+            .save(
+                GraviteeContext.getExecutionContext(),
+                LOGGING_MESSAGE_SAMPLING_PROBABILISTIC_DEFAULT,
+                "0.01",
+                "DEFAULT",
+                ParameterReferenceType.ORGANIZATION
+            );
+        verify(mockParameterService, times(1))
+            .save(
+                GraviteeContext.getExecutionContext(),
+                LOGGING_MESSAGE_SAMPLING_PROBABILISTIC_LIMIT,
+                "0.5",
+                "DEFAULT",
+                ParameterReferenceType.ORGANIZATION
+            );
         verify(mockParameterService, times(1))
             .save(
                 GraviteeContext.getExecutionContext(),
