@@ -143,7 +143,7 @@ describe('ApiProxyHealthCheckComponent', () => {
           {
             name: 'default',
             endpoints: [
-              { name: 'endpoint1-with-healthcheck-deactivated', healthcheck: { enabled: false } },
+              { name: 'endpoint1-with-healthcheck-deactivated', healthcheck: { enabled: false, inherit: false } },
               { name: 'endpoint1-with-healthcheck-activated', healthcheck: { enabled: true, inherit: true } },
               { name: 'endpoint1-without-healthcheck' },
             ],
@@ -151,7 +151,7 @@ describe('ApiProxyHealthCheckComponent', () => {
           {
             name: 'group-2',
             endpoints: [
-              { name: 'endpoint2-with-healthcheck-deactivated', healthcheck: { enabled: false } },
+              { name: 'endpoint2-with-healthcheck-deactivated', healthcheck: { enabled: false, inherit: false } },
               { name: 'endpoint2-with-healthcheck-activated', healthcheck: { enabled: true, inherit: true } },
               { name: 'endpoint2-without-healthcheck' },
             ],
@@ -192,17 +192,17 @@ describe('ApiProxyHealthCheckComponent', () => {
       {
         name: 'default',
         endpoints: [
-          { name: 'endpoint1-with-healthcheck-deactivated', healthcheck: { enabled: false } },
-          { name: 'endpoint1-with-healthcheck-activated', healthcheck: { enabled: true, inherit: true } },
-          { name: 'endpoint1-without-healthcheck', healthcheck: { enabled: true, inherit: true } },
+          { name: 'endpoint1-with-healthcheck-deactivated', healthcheck: { enabled: false, inherit: false } },
+          { name: 'endpoint1-with-healthcheck-activated', healthcheck: { inherit: true } },
+          { name: 'endpoint1-without-healthcheck', healthcheck: { inherit: true } },
         ],
       },
       {
         name: 'group-2',
         endpoints: [
-          { name: 'endpoint2-with-healthcheck-deactivated', healthcheck: { enabled: false } },
-          { name: 'endpoint2-with-healthcheck-activated', healthcheck: { enabled: true, inherit: true } },
-          { name: 'endpoint2-without-healthcheck', healthcheck: { enabled: true, inherit: true } },
+          { name: 'endpoint2-with-healthcheck-deactivated', healthcheck: { enabled: false, inherit: false } },
+          { name: 'endpoint2-with-healthcheck-activated', healthcheck: { inherit: true } },
+          { name: 'endpoint2-without-healthcheck', healthcheck: { inherit: true } },
         ],
       },
     ]);
@@ -280,19 +280,19 @@ describe('ApiProxyHealthCheckComponent', () => {
       {
         name: 'default',
         endpoints: [
-          { name: 'endpoint1-with-healthcheck-deactivated', healthcheck: { enabled: false } },
-          { name: 'endpoint1-with-healthcheck-activated-inherited', healthcheck: { enabled: false, inherit: true } },
+          { name: 'endpoint1-with-healthcheck-deactivated', healthcheck: { inherit: false, enabled: false } },
+          { name: 'endpoint1-with-healthcheck-activated-inherited', healthcheck: { inherit: true } },
           { name: 'endpoint1-with-healthcheck-activated', healthcheck: { enabled: true, inherit: false } },
-          { name: 'endpoint1-without-healthcheck' },
+          { name: 'endpoint1-without-healthcheck', healthcheck: { inherit: true } },
         ],
       },
       {
         name: 'group-2',
         endpoints: [
-          { name: 'endpoint2-with-healthcheck-deactivated', healthcheck: { enabled: false } },
-          { name: 'endpoint2-with-healthcheck-activated-inherited', healthcheck: { enabled: false, inherit: true } },
+          { name: 'endpoint2-with-healthcheck-deactivated', healthcheck: { inherit: true } },
+          { name: 'endpoint2-with-healthcheck-activated-inherited', healthcheck: { inherit: true } },
           { name: 'endpoint2-with-healthcheck-activated', healthcheck: { enabled: true, inherit: false } },
-          { name: 'endpoint2-without-healthcheck' },
+          { name: 'endpoint2-without-healthcheck', healthcheck: { inherit: true } },
         ],
       },
     ]);

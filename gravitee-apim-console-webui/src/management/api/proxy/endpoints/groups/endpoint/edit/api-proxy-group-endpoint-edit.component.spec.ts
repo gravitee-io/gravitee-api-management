@@ -187,7 +187,7 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
                   inherit: true,
                   tenants: [tenants[0].id],
                   healthcheck: {
-                    enabled: false,
+                    inherit: true,
                   },
                 },
                 {
@@ -257,7 +257,7 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
                   proxy: { enabled: false },
                   ssl: {},
                   healthcheck: {
-                    enabled: false,
+                    inherit: true,
                   },
                 },
                 {
@@ -363,7 +363,6 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
                 type: 'http',
                 inherit: true,
                 healthcheck: {
-                  enabled: true,
                   inherit: true,
                 },
               },
@@ -443,7 +442,6 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
                 type: 'http',
                 inherit: true,
                 healthcheck: {
-                  enabled: true,
                   inherit: true,
                 },
               },
@@ -528,7 +526,7 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
                 type: 'http',
                 inherit: true,
                 healthcheck: {
-                  enabled: false,
+                  inherit: true,
                 },
               },
             ],

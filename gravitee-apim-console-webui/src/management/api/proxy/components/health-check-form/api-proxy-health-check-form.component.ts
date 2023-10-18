@@ -31,6 +31,12 @@ export class ApiProxyHealthCheckFormComponent implements OnChanges, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   public static NewHealthCheckFormGroup = (healthCheck?: HealthCheck, isReadOnly = true): FormGroup => {
+    // If the health check is disabled and inherit is not false, we need to set inherit to false
+    if (healthCheck?.enabled !== undefined && healthCheck?.enabled === false && healthCheck?.inherit !== false) {
+      healthCheck.inherit = false;
+      healthCheck.enabled = false;
+    }
+
     const healthCheckStep = healthCheck?.steps?.length > 0 ? healthCheck.steps[0] : undefined;
     return new FormGroup({
       enabled: new FormControl({
@@ -91,16 +97,21 @@ export class ApiProxyHealthCheckFormComponent implements OnChanges, OnDestroy {
   };
 
   public static HealthCheckFromFormGroup(healthCheckForm: FormGroup, hasInheritToggle: boolean): HealthCheck {
-    if (!healthCheckForm.get('enabled').value) {
+    if (hasInheritToggle && healthCheckForm.get('inherit').value) {
       return {
-        enabled: false,
+        inherit: true,
       };
     }
 
-    if (hasInheritToggle && healthCheckForm.get('enabled').value && healthCheckForm.get('inherit').value) {
+    if (hasInheritToggle && !healthCheckForm.get('inherit').value && !healthCheckForm.get('enabled').value) {
       return {
-        enabled: true,
-        inherit: true,
+        enabled: false,
+        inherit: false,
+      };
+    }
+    if (!hasInheritToggle && !healthCheckForm.get('enabled').value) {
+      return {
+        enabled: false,
       };
     }
 
@@ -180,24 +191,18 @@ export class ApiProxyHealthCheckFormComponent implements OnChanges, OnDestroy {
     }
 
     if (changes.inheritHealthCheck && this.inheritHealthCheck) {
-      // Disable the inherit checkbox when enabled is unchecked and emitEvent
-      // On disabled, the value is set inherit to true
-      this.healthCheckForm
-        .get('enabled')
-        .valueChanges.pipe(startWith(this.healthCheckForm.get('enabled').value), takeUntil(this.unsubscribe$))
-        .subscribe((enabledChecked) => {
-          if (enabledChecked) {
-            this.healthCheckForm.get('inherit').enable({ emitEvent: true });
-          } else {
-            this.healthCheckForm.get('inherit').disable({ emitEvent: false });
-            this.healthCheckForm.get('inherit').setValue(true);
-          }
-        });
-
       this.healthCheckForm
         .get('inherit')
         .valueChanges.pipe(startWith(this.healthCheckForm.get('inherit').value), takeUntil(this.unsubscribe$))
         .subscribe((checked) => {
+          // If inherit is checked, "enable" value is set to inherit health check enable value.
+          if (checked) {
+            this.healthCheckForm.get('enabled').disable({ emitEvent: true });
+            this.healthCheckForm.get('enabled').setValue(this.inheritHealthCheck.enabled);
+          } else {
+            this.healthCheckForm.get('enabled').enable({ emitEvent: true });
+          }
+
           // Save or restore previous health check value.
           if (checked) {
             this.healthCheckFormInitialValue = omit(this.healthCheckForm.getRawValue(), ['inherit', 'enabled']);

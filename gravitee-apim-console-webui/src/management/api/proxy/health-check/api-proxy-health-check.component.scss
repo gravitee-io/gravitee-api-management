@@ -19,6 +19,7 @@ $typography: map.get(gio.$mat-theme, typography);
 
   &__header {
     display: flex;
+    align-items: center;
 
     &__description {
       flex: 1;
