@@ -561,7 +561,7 @@ jobs:
           working_directory: ./release
       - run:
           name: Open a PR to create release notes into docs repository
-          command: npm run zx -- --quiet ci-steps/generate-changelog.mjs --version=4.2.0-alpha.1
+          command: npm run zx -- --quiet ci-steps/doc-new-release-notes.mjs --version=4.2.0-alpha.1
           working_directory: ./release
       - run:
           name: Get RELEASE_NOTES_PR_URL
