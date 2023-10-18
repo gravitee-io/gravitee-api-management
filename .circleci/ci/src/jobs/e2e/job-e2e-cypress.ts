@@ -19,6 +19,8 @@ import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/C
 import { computeImagesTag } from '../../utils';
 import { CircleCIEnvironment } from '../../pipelines';
 import { UbuntuExecutor } from '../../executors';
+import { keeper } from '../../orbs/keeper';
+import { config } from '../../config';
 
 export class E2ECypressJob {
   private static jobName = `job-e2e-cypress`;
@@ -36,6 +38,10 @@ export class E2ECypressJob {
       new commands.Checkout(),
       new commands.workspace.Attach({ at: '.' }),
       new reusable.ReusedCommand(dockerAzureLoginCmd),
+      new reusable.ReusedCommand(keeper.commands['env-export'], {
+        'secret-url': config.secrets.cypressCloudKey,
+        'var-name': 'CYPRESS_CLOUD_KEY',
+      }),
       new commands.Run({
         name: `Running UI tests`,
         command: `cd gravitee-apim-e2e
