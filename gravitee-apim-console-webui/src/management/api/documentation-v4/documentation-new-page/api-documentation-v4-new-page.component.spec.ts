@@ -174,12 +174,12 @@ describe('ApiDocumentationV4NewPageComponent', () => {
 
     it('should show markdown preview', async () => {
       const preview = getMarkdownPreview();
-      expect(preview).toBeFalsy();
+      expect(preview).toBeTruthy();
 
       const togglePreviewButton = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Toggle preview' }));
       await togglePreviewButton.click();
 
-      expect(getMarkdownPreview()).toBeDefined();
+      expect(getMarkdownPreview()).toBeFalsy();
     });
 
     it('should save content', async () => {

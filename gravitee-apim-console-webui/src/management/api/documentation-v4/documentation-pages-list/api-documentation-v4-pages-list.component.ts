@@ -37,7 +37,7 @@ export class ApiDocumentationV4PagesListComponent implements OnChanges {
   @Output()
   onDeletePage = new EventEmitter<Page>();
 
-  public displayedColumns = ['name', 'status', 'visibility', 'lastUpdated', 'actions'];
+  public displayedColumns = ['name', 'status', 'visibility', 'lastUpdated', 'order', 'actions'];
   public dataSource: MatTableDataSource<Page>;
 
   ngOnChanges(changes: SimpleChanges): void {
