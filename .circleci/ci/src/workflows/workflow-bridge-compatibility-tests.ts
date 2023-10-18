@@ -59,7 +59,7 @@ export class BridgeCompatibilityTestsWorkflow {
         name: 'E2E - << matrix.execution_mode >> - << matrix.apim_client_tag >>',
         requires: ['Lint & Build APIM e2e'],
         matrix: {
-          execution_mode: ['v3', 'v4-emulation-engine'],
+          execution_mode: ['v3', 'jupiter'],
           database: ['bridge'],
           apim_client_tag: ['4.0.x-latest', '3.20.x-latest', '3.19.x-latest'],
         },
