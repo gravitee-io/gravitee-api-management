@@ -21,9 +21,10 @@ import { MatStepperHarness } from '@angular/material/stepper/testing';
 import { UIRouterModule } from '@uirouter/angular';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { FormsModule } from '@angular/forms';
-import { GioMonacoEditorHarness } from '@gravitee/ui-particles-angular';
+import { GioConfirmDialogHarness, GioMonacoEditorHarness } from '@gravitee/ui-particles-angular';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
+import { InteractivityChecker } from '@angular/cdk/a11y';
 
 import { ApiDocumentationV4NewPageHarness } from './api-documentation-v4-new-page.harness';
 import { ApiDocumentationV4NewPageComponent } from './api-documentation-v4-new-page.component';
@@ -56,7 +57,13 @@ describe('ApiDocumentationV4NewPageComponent', () => {
         { provide: UIRouterState, useValue: fakeUiRouter },
         { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
       ],
-    }).compileComponents();
+    })
+      .overrideProvider(InteractivityChecker, {
+        useValue: {
+          isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
+        },
+      })
+      .compileComponents();
 
     fixture = TestBed.createComponent(ApiDocumentationV4NewPageComponent);
     harnessLoader = await TestbedHarnessEnvironment.loader(fixture);
@@ -76,6 +83,24 @@ describe('ApiDocumentationV4NewPageComponent', () => {
     expect(await steps[0].getLabel()).toEqual('Configure page');
     expect(await steps[1].getLabel()).toEqual('Determine source');
     expect(await steps[2].getLabel()).toEqual('Add content');
+  });
+
+  it('should request confirmation before exit without saving', async () => {
+    const exitBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Exit without saving' }));
+    await exitBtn.click();
+
+    const confirmDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
+    expect(confirmDialog).toBeDefined();
+
+    // should stay on page if cancel
+    await confirmDialog.cancel();
+
+    await exitBtn.click();
+    const newConfirmDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
+    expect(newConfirmDialog).toBeDefined();
+    // should leave page on confirm
+    await newConfirmDialog.confirm();
+    expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.documentationV4');
   });
 
   describe('step 1 - Configure page', () => {

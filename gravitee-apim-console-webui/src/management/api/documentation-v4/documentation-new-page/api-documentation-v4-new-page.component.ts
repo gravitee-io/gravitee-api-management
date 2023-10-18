@@ -13,28 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { StateParams } from '@uirouter/core';
 import { StateService } from '@uirouter/angularjs';
+import { MatDialog } from '@angular/material/dialog';
+import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import { takeUntil } from 'rxjs/operators';
+import { Subject } from 'rxjs';
 
-import { ApiDocumentationV2Service } from '../../../../services-ngx/api-documentation-v2.service';
-import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { CreateDocumentationMarkdown } from '../../../../entities/management-api-v2/documentation/createDocumentation';
+import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+import { ApiDocumentationV2Service } from '../../../../services-ngx/api-documentation-v2.service';
 
 @Component({
   selector: 'api-documentation-new-page',
   template: require('./api-documentation-v4-new-page.component.html'),
   styles: [require('./api-documentation-v4-new-page.component.scss')],
 })
-export class ApiDocumentationV4NewPageComponent implements OnInit {
+export class ApiDocumentationV4NewPageComponent implements OnInit, OnDestroy {
   form: FormGroup;
   pageTitle = 'Add new page';
   source: 'FILL' | 'IMPORT' | 'EXTERNAL' = 'FILL';
   content = '';
+  private unsubscribe$: Subject<void> = new Subject<void>();
 
   constructor(
-    private formBuilder: FormBuilder,
+    private readonly formBuilder: FormBuilder,
+    private readonly matDialog: MatDialog,
     @Inject(UIRouterState) private readonly ajsState: StateService,
     @Inject(UIRouterStateParams) private readonly ajsStateParams: StateParams,
     private readonly apiDocumentationService: ApiDocumentationV2Service,
@@ -49,6 +55,11 @@ export class ApiDocumentationV4NewPageComponent implements OnInit {
     this.form.controls['name'].valueChanges.subscribe((value) => (this.pageTitle = value || 'Add new page'));
   }
 
+  ngOnDestroy() {
+    this.unsubscribe$.next();
+    this.unsubscribe$.unsubscribe();
+  }
+
   save() {
     const createPage: CreateDocumentationMarkdown = {
       type: 'MARKDOWN',
@@ -61,5 +72,25 @@ export class ApiDocumentationV4NewPageComponent implements OnInit {
       // TODO: add state param to handle current folder
       this.ajsState.go('management.apis.documentationV4');
     });
+  }
+
+  exitWithoutSaving() {
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
+        width: GIO_DIALOG_WIDTH.SMALL,
+        data: {
+          title: 'Are you sure?',
+          content: 'If you leave this page, you will lose any info you added.',
+          confirmButton: 'Discard changes',
+          cancelButton: 'Keep creating',
+        },
+        role: 'alertdialog',
+        id: 'exitWithoutSaving',
+      })
+      .afterClosed()
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe((shouldExit) => {
+        if (shouldExit) this.ajsState.go('management.apis.documentationV4');
+      });
   }
 }

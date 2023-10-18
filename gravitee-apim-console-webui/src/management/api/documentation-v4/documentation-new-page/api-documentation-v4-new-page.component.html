@@ -30,7 +30,7 @@
         </div>
       </div>
     </div>
-    <div><button mat-stroked-button uiSref="management.apis.documentationV4">Exit without saving</button></div>
+    <div><button mat-stroked-button (click)="exitWithoutSaving()">Exit without saving</button></div>
   </div>
   <div class="stepper">
     <mat-stepper linear color="accent" disableRipple>
