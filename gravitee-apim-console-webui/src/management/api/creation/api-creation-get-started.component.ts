@@ -85,7 +85,7 @@ export class ApiCreationGetStartedComponent implements OnInit, OnDestroy {
     this.ajsState.go('management.apis.create-v4');
   }
 
-  goToApiImport(definitionVersion = '2.0.0') {
+  goToApiImport() {
     this.policyService
       .listSwaggerPolicies()
       .pipe(
@@ -93,7 +93,6 @@ export class ApiCreationGetStartedComponent implements OnInit, OnDestroy {
           this.matDialog
             .open<GioApiImportDialogComponent, GioApiImportDialogData>(GioApiImportDialogComponent, {
               data: {
-                definitionVersion,
                 policies,
               },
               role: 'alertdialog',

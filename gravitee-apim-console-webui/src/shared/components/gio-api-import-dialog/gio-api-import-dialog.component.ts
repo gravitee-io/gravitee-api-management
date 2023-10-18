@@ -37,8 +37,6 @@ type ImportType = (typeof importType)[number];
 export type GioApiImportDialogData = {
   policies?: PolicyListItem[];
   apiId?: string;
-  // Default to 2.0.0
-  definitionVersion?: string;
 };
 
 @Component({
@@ -76,8 +74,6 @@ export class GioApiImportDialogComponent implements OnDestroy {
 
   private unsubscribe$: Subject<void> = new Subject<void>();
 
-  private definitionVersion: string;
-
   constructor(
     private readonly dialogRef: MatDialogRef<GioApiImportDialogData>,
     @Inject(MAT_DIALOG_DATA) dialogData: GioApiImportDialogData,
@@ -88,7 +84,6 @@ export class GioApiImportDialogComponent implements OnDestroy {
     this.policies = dialogData?.policies ?? [];
     this.isUpdateMode = !!dialogData?.apiId ?? false;
     this.updateModeApiId = dialogData?.apiId ?? undefined;
-    this.definitionVersion = dialogData?.definitionVersion ?? '2.0.0';
 
     this.configsForm = new FormGroup({
       importDocumentation: new FormControl(false),
@@ -237,7 +232,6 @@ export class GioApiImportDialogComponent implements OnDestroy {
             with_policies: this.policies.filter((policy) => configsFormValue.importPolicies[policy.id]).map((policy) => policy.id),
             with_policy_paths: configsFormValue.importPolicyPaths,
           },
-          this.definitionVersion,
           this.updateModeApiId,
         );
         break;
@@ -253,18 +247,12 @@ export class GioApiImportDialogComponent implements OnDestroy {
             with_policies: this.policies.filter((policy) => configsFormValue.importPolicies[policy.id]).map((policy) => policy.id),
             with_policy_paths: configsFormValue.importPolicyPaths,
           },
-          this.definitionVersion,
           this.updateModeApiId,
         );
         break;
 
       case 'GRAVITEE':
-        importRequest$ = this.apiService.importApiDefinition(
-          isFile ? 'graviteeJson' : 'graviteeUrl',
-          payload,
-          this.definitionVersion,
-          this.updateModeApiId,
-        );
+        importRequest$ = this.apiService.importApiDefinition(isFile ? 'graviteeJson' : 'graviteeUrl', payload, this.updateModeApiId);
         break;
 
       case 'MAPI_V2':
