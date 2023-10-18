@@ -75,7 +75,7 @@ export class ApiProxyHealthCheckComponent implements OnInit, OnDestroy {
         onlyApiV2Filter(this.snackBarService),
         switchMap((api) => {
           const apiHealthCheck = ApiProxyHealthCheckFormComponent.HealthCheckFromFormGroup(this.healthCheckForm, false);
-          this.updateEndpointsHealthCheckConfig(api.proxy?.groups, apiHealthCheck.enabled);
+          this.updateEndpointsHealthCheckConfig(api.proxy?.groups);
 
           return this.apiService.update(api.id, {
             ...api,
@@ -100,28 +100,26 @@ export class ApiProxyHealthCheckComponent implements OnInit, OnDestroy {
     this.ajsState.go('management.apis.healthcheck-dashboard-v2');
   }
 
-  updateEndpointsHealthCheckConfig(groups: Proxy['groups'], apiHealthCheckEnabled: boolean) {
-    if (apiHealthCheckEnabled === true) {
-      // If the API healthcheck is enabled, we enable the health-check for all endpoints without `healthcheck` config
-      groups.forEach((group) => {
-        group.endpoints.forEach((endpoint) => {
-          if (!endpoint.healthCheck) {
-            endpoint.healthCheck = {
-              enabled: true,
-              inherit: true,
-            };
-          }
-        });
+  updateEndpointsHealthCheckConfig(groups: Proxy['groups']) {
+    groups.forEach((group) => {
+      group.endpoints.forEach((endpoint) => {
+        // If healthcheck is disabled, set inherit to false
+        if (
+          (endpoint.healthCheck?.inherit === undefined || endpoint.healthCheck?.inherit === true) &&
+          endpoint.healthCheck?.enabled === false
+        ) {
+          endpoint.healthCheck = {
+            inherit: false,
+            enabled: false,
+          };
+        }
+        // Enable healthcheck if inherit is true or not defined
+        else if (endpoint.healthCheck?.inherit === undefined || endpoint.healthCheck?.inherit === true) {
+          endpoint.healthCheck = {
+            inherit: true,
+          };
+        }
       });
-    } else {
-      // If the API healthcheck is disabled, we disable the health-check for all endpoints inheriting the health-check config
-      groups.forEach((group) => {
-        group.endpoints.forEach((endpoint) => {
-          if (endpoint.healthCheck?.enabled === true && endpoint.healthCheck?.inherit === true) {
-            endpoint.healthCheck.enabled = false;
-          }
-        });
-      });
-    }
+    });
   }
 }

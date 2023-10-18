@@ -205,13 +205,13 @@ describe('ApiProxyHealthCheckFormComponent', () => {
     fixture.detectChanges();
 
     // Enable health check
-    const enabledSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' }));
-    expect(await enabledSlideToggle.isChecked()).toEqual(false);
-    await enabledSlideToggle.check();
-
     const inheritSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="inherit"]' }));
-    expect(await inheritSlideToggle.isChecked()).toEqual(true);
+    expect(await inheritSlideToggle.isChecked()).toEqual(false);
     await inheritSlideToggle.check();
+
+    const enabledSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' }));
+    expect(await enabledSlideToggle.isChecked()).toEqual(true);
+    expect(await enabledSlideToggle.isDisabled()).toEqual(true);
 
     // Expect inherit preview :
 
@@ -247,7 +247,170 @@ describe('ApiProxyHealthCheckFormComponent', () => {
     expect(await assertion_0.getValue()).toEqual('inherit');
 
     expect(ApiProxyHealthCheckFormComponent.HealthCheckFromFormGroup(component.healthCheckForm, true)).toEqual({
+      inherit: true,
+    });
+  });
+
+  it('should display with an unconfigured global health check', async () => {
+    initHealthCheckFormComponent({
+      inherit: true,
+    });
+
+    const inheritHealthCheck: HealthCheck = {
+      enabled: false,
+    };
+    component.inheritHealthCheck = inheritHealthCheck;
+    component.ngOnChanges({ inheritHealthCheck: {} } as any);
+    fixture.detectChanges();
+
+    // Enable health check
+    const inheritSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="inherit"]' }));
+    const enabledSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' }));
+
+    expect(await inheritSlideToggle.isChecked()).toEqual(true);
+    expect(await enabledSlideToggle.isChecked()).toEqual(false);
+    expect(await enabledSlideToggle.isDisabled()).toEqual(true);
+
+    expect(ApiProxyHealthCheckFormComponent.HealthCheckFromFormGroup(component.healthCheckForm, true)).toEqual({
+      inherit: true,
+    });
+  });
+
+  it('should override inherited health check', async () => {
+    initHealthCheckFormComponent({
       enabled: true,
+      inherit: true,
+    });
+
+    const inheritHealthCheck: HealthCheck = {
+      enabled: true,
+      schedule: '1 * * * *',
+      steps: [
+        {
+          request: {
+            method: 'PUT',
+            path: '/inherit',
+            body: 'The inherit body',
+            headers: [{ name: 'X-Test', value: 'inherit' }],
+            fromRoot: true,
+          },
+          response: {
+            assertions: ['inherit'],
+          },
+        },
+      ],
+    };
+    component.inheritHealthCheck = inheritHealthCheck;
+    component.ngOnChanges({ inheritHealthCheck: {} } as any);
+    fixture.detectChanges();
+
+    // Enable health check
+    const inheritSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="inherit"]' }));
+    const enabledSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' }));
+
+    expect(await inheritSlideToggle.isChecked()).toEqual(true);
+    expect(await enabledSlideToggle.isChecked()).toEqual(true);
+    ``;
+    await inheritSlideToggle.toggle();
+    expect(await inheritSlideToggle.isChecked()).toEqual(false);
+
+    // Trigger
+    component.healthCheckForm.get('schedule').setValue('* */5 * * * *');
+
+    // Request
+    const allowMethodsInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="method"]' }));
+    expect(await allowMethodsInput.isDisabled()).toEqual(false);
+    await allowMethodsInput.clickOptions({ text: 'GET' });
+
+    const pathInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="path"]' }));
+    expect(await pathInput.isDisabled()).toEqual(false);
+    await pathInput.setValue('/override');
+
+    expect(ApiProxyHealthCheckFormComponent.HealthCheckFromFormGroup(component.healthCheckForm, true)).toEqual({
+      enabled: true,
+      inherit: false,
+      schedule: '* */5 * * * *',
+      steps: [
+        {
+          request: {
+            body: undefined,
+            fromRoot: undefined,
+            headers: [],
+            method: 'GET',
+            path: '/override',
+          },
+          response: {
+            assertions: ['#response.status == 200'],
+          },
+        },
+      ],
+    });
+  });
+
+  it('should preview the inherited health check', async () => {
+    initHealthCheckFormComponent({
+      enabled: true,
+      inherit: true,
+    });
+
+    const inheritHealthCheck: HealthCheck = {
+      enabled: true,
+      schedule: '1 * * * *',
+      steps: [
+        {
+          request: {
+            method: 'PUT',
+            path: '/inherit',
+            body: 'The inherit body',
+            headers: [{ name: 'X-Test', value: 'inherit' }],
+            fromRoot: true,
+          },
+          response: {
+            assertions: ['inherit'],
+          },
+        },
+      ],
+    };
+    component.inheritHealthCheck = inheritHealthCheck;
+    component.ngOnChanges({ inheritHealthCheck: {} } as any);
+    fixture.detectChanges();
+
+    // Enable health check
+    const enabledSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' }));
+    expect(await enabledSlideToggle.isChecked()).toEqual(true);
+
+    const inheritSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="inherit"]' }));
+    expect(await inheritSlideToggle.isChecked()).toEqual(true);
+
+    // Expect inherit preview :
+
+    // Request
+    const allowMethodsInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="method"]' }));
+    expect(await allowMethodsInput.isDisabled()).toEqual(true);
+    expect(await allowMethodsInput.getValueText()).toEqual('PUT');
+
+    const pathInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="path"]' }));
+    expect(await pathInput.isDisabled()).toEqual(true);
+    expect(await pathInput.getValue()).toEqual('/inherit');
+
+    const fromRootSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="fromRoot"]' }));
+    expect(await fromRootSlideToggle.isDisabled()).toEqual(true);
+    expect(await fromRootSlideToggle.isChecked()).toEqual(true);
+
+    const bodyInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="body"]' }));
+    expect(await bodyInput.isDisabled()).toEqual(true);
+    expect(await bodyInput.getValue()).toEqual('The inherit body');
+
+    const headersInput = await loader.getHarness(GioFormHeadersHarness.with({ selector: '[formControlName="headers"]' }));
+    expect(await headersInput.isDisabled()).toEqual(true);
+    expect(await (await headersInput.getHeaderRows())[0].valueInput.getValue()).toEqual('inherit');
+
+    // Assertion
+    const assertion_0 = await loader.getHarness(MatInputHarness.with({ selector: '[ng-reflect-name="0"]' }));
+    expect(await assertion_0.isDisabled()).toEqual(true);
+    expect(await assertion_0.getValue()).toEqual('inherit');
+
+    expect(ApiProxyHealthCheckFormComponent.HealthCheckFromFormGroup(component.healthCheckForm, true)).toEqual({
       inherit: true,
     });
   });
