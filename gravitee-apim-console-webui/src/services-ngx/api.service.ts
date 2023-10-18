@@ -148,13 +148,13 @@ export class ApiService {
     return this.http.delete<void>(`${this.constants.env.baseURL}/apis/` + apiId);
   }
 
-  importApiDefinition(type: 'graviteeJson' | 'graviteeUrl', payload: string, definitionVersion: string, apiId?: string): Observable<Api> {
+  importApiDefinition(type: 'graviteeJson' | 'graviteeUrl', payload: string, apiId?: string): Observable<Api> {
     const isGraviteeUrl = type === 'graviteeUrl';
 
     const headers = { 'Content-Type': isGraviteeUrl ? 'text/plain' : 'application/json' };
     const endpoint = isGraviteeUrl ? 'import-url' : 'import';
 
-    const params = definitionVersion ? `?definitionVersion=${definitionVersion}` : '';
+    const params = `?definitionVersion=2.0.0`;
 
     return apiId
       ? this.http.put<Api>(`${this.constants.env.baseURL}/apis/${apiId}/${endpoint}${params}`, payload, { headers })
@@ -171,10 +171,9 @@ export class ApiService {
       with_policies?: Array<string>;
       with_policy_paths?: boolean;
     },
-    definitionVersion: string,
     apiId?: string,
   ): Observable<Api> {
-    const params = definitionVersion ? `?definitionVersion=${definitionVersion}` : '';
+    const params = `?definitionVersion=2.0.0`;
     return apiId
       ? this.http.put<Api>(`${this.constants.env.baseURL}/apis/${apiId}/import/swagger${params}`, payload)
       : this.http.post<Api>(`${this.constants.env.baseURL}/apis/import/swagger${params}`, payload);
