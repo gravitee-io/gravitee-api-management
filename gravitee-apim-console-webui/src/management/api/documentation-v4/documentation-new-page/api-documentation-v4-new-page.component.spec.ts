@@ -172,6 +172,16 @@ describe('ApiDocumentationV4NewPageComponent', () => {
       expect(fixture.componentInstance.content).toEqual('#TITLE  This is the file content');
     });
 
+    it('should show markdown preview', async () => {
+      const preview = getMarkdownPreview();
+      expect(preview).toBeFalsy();
+
+      const togglePreviewButton = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Toggle preview' }));
+      await togglePreviewButton.click();
+
+      expect(getMarkdownPreview()).toBeDefined();
+    });
+
     it('should save content', async () => {
       const editor = await harnessLoader.getHarness(GioMonacoEditorHarness);
       await editor.setValue('#TITLE \n This is the file content');
@@ -197,5 +207,9 @@ describe('ApiDocumentationV4NewPageComponent', () => {
 
   const getPageTitle = () => {
     return fixture.nativeElement.querySelector('h3').innerHTML;
+  };
+
+  const getMarkdownPreview: () => Element = () => {
+    return fixture.nativeElement.querySelector('markdown');
   };
 });

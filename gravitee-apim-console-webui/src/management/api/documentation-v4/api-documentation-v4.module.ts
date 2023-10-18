@@ -26,6 +26,7 @@ import { UIRouterModule } from '@uirouter/angular';
 import { MatStepperModule } from '@angular/material/stepper';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatTableModule } from '@angular/material/table';
+import { MarkdownModule } from 'ngx-markdown';
 
 import { ApiDocumentationV4EmptyStateComponent } from './documentation-empty-state/api-documentation-v4-empty-state.component';
 import { ApiDocumentationV4NavigationHeaderComponent } from './documentation-navigation-header/api-documentation-v4-navigation-header.component';
@@ -61,6 +62,7 @@ import { ApiDocumentationV4PagesListComponent } from './documentation-pages-list
     GioMonacoEditorModule,
     GioRadioButtonModule,
     MatTableModule,
+    MarkdownModule.forRoot(),
   ],
 })
 export class ApiDocumentationV4Module {}
