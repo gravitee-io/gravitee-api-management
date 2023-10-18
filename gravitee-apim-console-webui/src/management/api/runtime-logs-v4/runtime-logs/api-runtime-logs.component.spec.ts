@@ -34,18 +34,24 @@ import { fakeConnectionLog } from '../../../../entities/management-api-v2/log/co
 import { fakeApplication } from '../../../../entities/application/Application.fixture';
 import { Application } from '../../../../entities/application/application';
 
+type ComponentInitData = {
+  hasLogs: boolean;
+  total?: number | undefined;
+  plans?: PlanV4[] | undefined;
+  areLogsEnabled?: boolean;
+};
+
 describe('ApiRuntimeLogsComponent', () => {
-  const API_ID = 'an-api-id';
-
-  const fakeUiRouter = { go: jest.fn() };
-
   let fixture: ComponentFixture<ApiRuntimeLogsComponent>;
   let httpTestingController: HttpTestingController;
   let componentHarness: ApiRuntimeLogsHarness;
   let logsRowHarness: ApiRuntimeLogsListRowHarness;
+  const API_ID = 'an-api-id';
+  const fakeUiRouter = { go: jest.fn() };
   const stateParams = { apiId: API_ID, page: 1, perPage: 10 };
   const plan1 = fakePlanV4({ id: '1', name: 'plan 1' });
   const plan2 = fakePlanV4({ id: '2', name: 'plan 2' });
+  const application = fakeApplication({ id: '1', owner: { displayName: 'owner' } });
 
   const initComponent = async () => {
     TestBed.configureTestingModule({
@@ -73,6 +79,14 @@ describe('ApiRuntimeLogsComponent', () => {
     fixture.detectChanges();
   };
 
+  const initComponentWithLogs = async ({ hasLogs, total, plans, areLogsEnabled = true }: ComponentInitData) => {
+    await initComponent();
+    hasLogs ? expectApiWithLogs(total) : expectApiWithNoLog();
+    expectPlanList(plans);
+    areLogsEnabled ? expectApiWithLogEnabled() : expectApiWithLogDisabled();
+    expectApplicationList();
+  };
+
   afterEach(() => {
     jest.clearAllMocks();
     httpTestingController.verify();
@@ -80,11 +94,7 @@ describe('ApiRuntimeLogsComponent', () => {
 
   describe('GIVEN there are no logs', () => {
     beforeEach(async () => {
-      await initComponent();
-      expectApiWithNoLog();
-      expectPlanList();
-      expectApiWithLogEnabled();
-      expectApplicationList();
+      await initComponentWithLogs({ hasLogs: false });
     });
 
     it('should display the empty panel', async () => {
@@ -107,22 +117,14 @@ describe('ApiRuntimeLogsComponent', () => {
   });
 
   describe('GIVEN there are logs', () => {
-    beforeEach(async () => {
-      await initComponent();
-    });
-
     describe('when there is one page', () => {
       const total = 1;
-      beforeEach(() => {
-        expectApiWithLogs(total);
-        expectPlanList();
-        expectApiWithLogEnabled();
-        expectApplicationList();
+      beforeEach(async () => {
+        await initComponentWithLogs({ hasLogs: true, total: 1 });
       });
 
       it('should display the 1st page with default pagination', async () => {
         expect(await componentHarness.getRows()).toHaveLength(total);
-
         const paginator = await componentHarness.getPaginator();
         expect(await paginator.getPageSize()).toBe(10);
       });
@@ -131,65 +133,40 @@ describe('ApiRuntimeLogsComponent', () => {
     describe('when there is more than one page', () => {
       const total = 50;
       const perPage = 10;
-      beforeEach(() => {
-        expectApiWithLogs(total);
-        expectPlanList();
-        expectApiWithLogEnabled();
-        expectApplicationList();
+      beforeEach(async () => {
+        await initComponentWithLogs({ hasLogs: true, total });
       });
 
       it('should display the 1st page', async () => {
         expect(await componentHarness.getRows()).toHaveLength(perPage);
-
         const paginator = await componentHarness.getPaginator();
         expect(await paginator.getPageSize()).toBe(perPage);
         expect(await paginator.getRangeLabel()).toBe(`1 – ${perPage} of ${total}`);
       });
 
       it('should navigate to next page', async () => {
-        const paginator = await componentHarness.getPaginator();
-        await paginator.goToNextPage();
-
+        await componentHarness.goToNextPage();
         expectSecondPage(total, perPage);
-        expect(fakeUiRouter.go).toHaveBeenCalledWith(
-          '.',
-          {
-            page: 2,
-            perPage: 10,
-          },
-          { notify: false },
-        );
+        expect(fakeUiRouter.go).toHaveBeenCalledWith('.', { page: 2, perPage: 10 }, { notify: false });
       });
 
       it('should change page size', async () => {
         const paginator = await componentHarness.getPaginator();
         await paginator.setPageSize(25);
-
         expectApiWithLogs(total, { perPage: 25, page: 1 });
-        expect(fakeUiRouter.go).toHaveBeenCalledWith(
-          '.',
-          {
-            page: 1,
-            perPage: 25,
-          },
-          { notify: false },
-        );
+        expect(fakeUiRouter.go).toHaveBeenCalledWith('.', { page: 1, perPage: 25 }, { notify: false });
       });
     });
   });
 
   describe('GIVEN there are logs with filters', () => {
-    beforeEach(async () => {
-      await initComponent();
-    });
+    const total = 50;
+    const perPage = 10;
 
     describe('when we arrive at default state', () => {
       const total = 1;
-      beforeEach(() => {
-        expectApiWithLogs(total);
-        expectPlanList();
-        expectApiWithLogEnabled();
-        expectApplicationList();
+      beforeEach(async () => {
+        await initComponentWithLogs({ hasLogs: true, total });
       });
 
       it('should display quick filters in default state', async () => {
@@ -201,15 +178,10 @@ describe('ApiRuntimeLogsComponent', () => {
     });
 
     describe('when there is more than one page and we apply a period filter', () => {
-      const total = 50;
-      const perPage = 10;
       const fakeNow = moment('2023-10-05T00:00:00.000Z');
 
-      beforeEach(() => {
-        expectApiWithLogs(total);
-        expectPlanList();
-        expectApiWithLogEnabled();
-        expectApplicationList();
+      beforeEach(async () => {
+        await initComponentWithLogs({ hasLogs: true, total });
 
         // moment() is relying on Date.now, so fix it to be able to assert on from and to filters
         jest.spyOn(Date, 'now').mockReturnValue(new Date('2023-10-05T00:00:00.000Z').getTime());
@@ -236,23 +208,9 @@ describe('ApiRuntimeLogsComponent', () => {
         const expectedTo = fakeNow.valueOf();
         const expectedFrom = expectedTo - 5 * 60 * 1000;
         expectApiWithLogs(total, { perPage, page: 1, from: expectedFrom, to: expectedTo });
-        expect(fakeUiRouter.go).toHaveBeenNthCalledWith(
-          1,
-          '.',
-          {
-            page: 1,
-            perPage: 10,
-            from: expectedFrom,
-            to: expectedTo,
-            applicationIds: null,
-            planIds: null,
-          },
-          { notify: false },
-        );
+        expectUiRouterChange(1, { page: 1, perPage: 10, from: expectedFrom, to: expectedTo, applicationIds: null, planIds: null });
 
-        const paginator = await componentHarness.getPaginator();
-        await paginator.goToNextPage();
-
+        await componentHarness.goToNextPage();
         expectApiWithLogs(total, { perPage, page: 2, from: expectedFrom, to: expectedTo });
       });
 
@@ -269,33 +227,13 @@ describe('ApiRuntimeLogsComponent', () => {
         expectApiWithLogs(total, { perPage, page: 1, from: expectedFrom, to: expectedTo });
 
         // First time, add filters to URL
-        expect(fakeUiRouter.go).toHaveBeenNthCalledWith(
-          1,
-          '.',
-          {
-            page: 1,
-            perPage: 10,
-            from: expectedFrom,
-            to: expectedTo,
-            applicationIds: null,
-            planIds: null,
-          },
-          { notify: false },
-        );
+        expectUiRouterChange(1, { page: 1, perPage: 10, from: expectedFrom, to: expectedTo, applicationIds: null, planIds: null });
 
-        const periodChip = await componentHarness.getPeriodChip();
-        const periodChipRemoveButton = await periodChip.getRemoveButton();
-        await periodChipRemoveButton.click();
-
+        await componentHarness.removePeriodChip();
         expectApiWithLogs(total, { perPage, page: 1 });
 
         // Second time, we removed the filter from URL
-        expect(fakeUiRouter.go).toHaveBeenNthCalledWith(
-          2,
-          '.',
-          { page: 1, perPage: 10, from: null, to: null, applicationIds: null, planIds: null },
-          { notify: false },
-        );
+        expectUiRouterChange(2, { page: 1, perPage: 10, from: null, to: null, applicationIds: null, planIds: null });
 
         expect(await periodSelectInput.isDisabled()).toEqual(false);
         expect(await periodSelectInput.getValueText()).toEqual('None');
@@ -305,14 +243,8 @@ describe('ApiRuntimeLogsComponent', () => {
     });
 
     describe('when there is more than one page and we apply a filter on applications', () => {
-      const total = 50;
-      const perPage = 10;
-
-      beforeEach(() => {
-        expectApiWithLogs(total);
-        expectPlanList();
-        expectApiWithLogEnabled();
-        expectApplicationList();
+      beforeEach(async () => {
+        await initComponentWithLogs({ hasLogs: true, total });
       });
 
       it('should filter on application', async () => {
@@ -327,22 +259,11 @@ describe('ApiRuntimeLogsComponent', () => {
         expect(await componentHarness.getApplicationsTags()).toHaveLength(1);
 
         expectApiWithLogs(total, { perPage, page: 1, applicationIds: application.id });
-        expect(fakeUiRouter.go).toHaveBeenNthCalledWith(
-          1,
-          '.',
-          { page: 1, perPage: 10, applicationIds: application.id, from: null, to: null, planIds: null },
-          { notify: false },
-        );
+        expectUiRouterChange(1, { page: 1, perPage: 10, applicationIds: application.id, from: null, to: null, planIds: null });
 
-        const paginator = await componentHarness.getPaginator();
-        await paginator.goToNextPage();
+        await componentHarness.goToNextPage();
         expectApiWithLogs(total, { perPage, page: 2, applicationIds: application.id });
-        expect(fakeUiRouter.go).toHaveBeenNthCalledWith(
-          2,
-          '.',
-          { page: 2, perPage: 10, applicationIds: application.id },
-          { notify: false },
-        );
+        expectUiRouterChange(2, { page: 2, perPage: 10, applicationIds: application.id });
       });
 
       it('should remove application filter', async () => {
@@ -351,44 +272,21 @@ describe('ApiRuntimeLogsComponent', () => {
 
         await componentHarness.searchApplication(appName);
         expectApplicationList(appName, [application]);
-        fixture.detectChanges();
 
         await componentHarness.selectedApplication('a ( owner )');
-        fixture.detectChanges();
-        await fixture.whenStable();
         expectApiWithLogs(total, { perPage, page: 1, applicationIds: application.id });
-        expect(fakeUiRouter.go).toHaveBeenNthCalledWith(
-          1,
-          '.',
-          { page: 1, perPage: 10, applicationIds: application.id, from: null, to: null, planIds: null },
-          { notify: false },
-        );
+        expectUiRouterChange(1, { page: 1, perPage: 10, applicationIds: application.id, from: null, to: null, planIds: null });
 
-        await componentHarness
-          .getApplicationsChip()
-          .then((chip) => chip.getRemoveButton())
-          .then((button) => button.click());
-
+        await componentHarness.removeApplicationsChip();
         expect(await componentHarness.getQuickFiltersChips()).toBeNull();
         expectApiWithLogs(total, { perPage, page: 1 });
-        expect(fakeUiRouter.go).toHaveBeenNthCalledWith(
-          2,
-          '.',
-          { page: 1, perPage: 10, applicationIds: null, from: null, to: null, planIds: null },
-          { notify: false },
-        );
+        expectUiRouterChange(2, { page: 1, perPage: 10, applicationIds: null, from: null, to: null, planIds: null });
       });
     });
 
     describe('when there is more than one page and we apply a filter on plans', () => {
-      const total = 50;
-      const perPage = 10;
-
-      beforeEach(() => {
-        expectApiWithLogs(total);
-        expectPlanList([plan1, plan2]);
-        expectApiWithLogEnabled();
-        expectApplicationList();
+      beforeEach(async () => {
+        await initComponentWithLogs({ hasLogs: true, total, plans: [plan1, plan2] });
       });
 
       it('should filter on plans', async () => {
@@ -397,69 +295,35 @@ describe('ApiRuntimeLogsComponent', () => {
         await componentHarness.selectPlan(plan1.name);
         expect(await componentHarness.getSelectedPlans()).toEqual(plan1.name);
         expectApiWithLogs(total, { perPage, page: 1, planIds: plan1.id });
-        expect(fakeUiRouter.go).toHaveBeenNthCalledWith(
-          1,
-          '.',
-          { page: 1, perPage: 10, planIds: plan1.id, applicationIds: null, from: null, to: null },
-          { notify: false },
-        );
+        expectUiRouterChange(1, { page: 1, perPage: 10, planIds: plan1.id, applicationIds: null, from: null, to: null });
 
         await componentHarness.selectPlan(plan2.name);
         expect(await componentHarness.getSelectedPlans()).toEqual(`${plan1.name}, ${plan2.name}`);
         expectApiWithLogs(total, { perPage, page: 1, planIds: `${plan1.id},${plan2.id}` });
-        expect(fakeUiRouter.go).toHaveBeenNthCalledWith(
-          2,
-          '.',
-          { page: 1, perPage: 10, planIds: `${plan1.id},${plan2.id}`, applicationIds: null, from: null, to: null },
-          { notify: false },
-        );
+        expectUiRouterChange(2, { page: 1, perPage: 10, planIds: `${plan1.id},${plan2.id}`, applicationIds: null, from: null, to: null });
 
-        const paginator = await componentHarness.getPaginator();
-        await paginator.goToNextPage();
+        await componentHarness.goToNextPage();
         expectApiWithLogs(total, { perPage, page: 2, planIds: `${plan1.id},${plan2.id}` });
-        expect(fakeUiRouter.go).toHaveBeenNthCalledWith(
-          3,
-          '.',
-          { page: 2, perPage: 10, planIds: `${plan1.id},${plan2.id}` },
-          { notify: false },
-        );
+        expectUiRouterChange(3, { page: 2, perPage: 10, planIds: `${plan1.id},${plan2.id}` });
       });
 
       it('should remove plan filter', async () => {
         await componentHarness.selectPlan(plan1.name);
         expect(await componentHarness.getSelectedPlans()).toEqual(plan1.name);
         expectApiWithLogs(total, { perPage, page: 1, planIds: plan1.id });
-        expect(fakeUiRouter.go).toHaveBeenNthCalledWith(
-          1,
-          '.',
-          { page: 1, perPage: 10, planIds: plan1.id, applicationIds: null, from: null, to: null },
-          { notify: false },
-        );
+        expectUiRouterChange(1, { page: 1, perPage: 10, planIds: plan1.id, applicationIds: null, from: null, to: null });
 
-        await componentHarness
-          .getPlanChip()
-          .then((chip) => chip.getRemoveButton())
-          .then((button) => button.click());
-
+        await componentHarness.removePlanChip();
         expect(await componentHarness.getQuickFiltersChips()).toBeNull();
         expectApiWithLogs(total, { perPage, page: 1 });
-        expect(fakeUiRouter.go).toHaveBeenNthCalledWith(
-          2,
-          '.',
-          { page: 1, perPage: 10, applicationIds: null, planIds: null, from: null, to: null },
-          { notify: false },
-        );
+        expectUiRouterChange(2, { page: 1, perPage: 10, applicationIds: null, planIds: null, from: null, to: null });
       });
     });
   });
 
   describe('GIVEN there are logs but logs are disabled', () => {
     beforeEach(async () => {
-      await initComponent();
-      expectApiWithLogs(1);
-      expectApiWithLogDisabled();
-      expectPlanList();
-      expectApplicationList();
+      await initComponentWithLogs({ hasLogs: true, total: 1, areLogsEnabled: false });
     });
 
     it('should display a banner', async () => {
@@ -495,8 +359,6 @@ describe('ApiRuntimeLogsComponent', () => {
   });
 
   describe('GIVEN there is filters in the url to initialize the form', () => {
-    const application = fakeApplication({ id: '1', owner: { displayName: 'owner' } });
-
     describe('there are applications and plans in the url', () => {
       beforeEach(async () => {
         await TestBed.overrideProvider(UIRouterStateParams, {
@@ -659,5 +521,9 @@ describe('ApiRuntimeLogsComponent', () => {
 
   function expectSecondPage(total: number, perPage = 10) {
     return expectApiWithLogs(total, { perPage, page: 2 });
+  }
+
+  function expectUiRouterChange(nthCall: number, queryParams: unknown) {
+    expect(fakeUiRouter.go).toHaveBeenNthCalledWith(nthCall, '.', queryParams, { notify: false });
   }
 });

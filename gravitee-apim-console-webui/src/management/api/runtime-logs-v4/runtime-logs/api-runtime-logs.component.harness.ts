@@ -55,6 +55,12 @@ export class ApiRuntimeLogsHarness extends ComponentHarness {
     return this.quickFiltersHarness().then((quickFilters) => quickFilters.getPeriodChip());
   }
 
+  async removePeriodChip() {
+    return this.getPeriodChip()
+      .then((chip) => chip.getRemoveButton())
+      .then((button) => button.click());
+  }
+
   async getApplicationsTags() {
     return this.quickFiltersHarness()
       .then((harness) => harness.getApplicationsTags())
@@ -77,6 +83,12 @@ export class ApiRuntimeLogsHarness extends ComponentHarness {
     return this.quickFiltersHarness().then((quickFilters) => quickFilters.getApplicationsChip());
   }
 
+  async removeApplicationsChip() {
+    return this.getApplicationsChip()
+      .then((chip) => chip.getRemoveButton())
+      .then((button) => button.click());
+  }
+
   async getSelectedPlans() {
     return this.quickFiltersHarness()
       .then((harness) => harness.getPlansSelect())
@@ -91,5 +103,15 @@ export class ApiRuntimeLogsHarness extends ComponentHarness {
 
   async getPlanChip() {
     return this.quickFiltersHarness().then((harness) => harness.getPlansChip());
+  }
+
+  async removePlanChip() {
+    return this.getPlanChip()
+      .then((chip) => chip.getRemoveButton())
+      .then((button) => button.click());
+  }
+
+  async goToNextPage() {
+    return this.getPaginator().then((paginator) => paginator.goToNextPage());
   }
 }
