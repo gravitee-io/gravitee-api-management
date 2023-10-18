@@ -75,7 +75,7 @@ export class ApiProxyHealthCheckComponent implements OnInit, OnDestroy {
         onlyApiV2Filter(this.snackBarService),
         switchMap((api) => {
           const apiHealthCheck = ApiProxyHealthCheckFormComponent.HealthCheckFromFormGroup(this.healthCheckForm, false);
-          this.updateEndpointsHealthCheckConfig(api.proxy?.groups, apiHealthCheck.enabled);
+          this.updateEndpointsHealthCheckConfig(api.proxy?.groups);
 
           return this.apiService.update(api.id, {
             ...api,
@@ -100,6 +100,7 @@ export class ApiProxyHealthCheckComponent implements OnInit, OnDestroy {
     this.ajsState.go('management.apis.healthcheck-dashboard-v2');
   }
 
+<<<<<<< HEAD
   updateEndpointsHealthCheckConfig(groups: Proxy['groups'], apiHealthCheckEnabled: boolean) {
     if (apiHealthCheckEnabled === true) {
       // If the API healthcheck is enabled, we enable the health-check for all endpoints without `healthcheck` config
@@ -123,5 +124,28 @@ export class ApiProxyHealthCheckComponent implements OnInit, OnDestroy {
         });
       });
     }
+=======
+  updateEndpointsHealthCheckConfig(groups: Api['proxy']['groups']) {
+    groups.forEach((group) => {
+      group.endpoints.forEach((endpoint) => {
+        // If healthcheck is disabled, set inherit to false
+        if (
+          (endpoint.healthcheck?.inherit === undefined || endpoint.healthcheck?.inherit === true) &&
+          endpoint.healthcheck?.enabled === false
+        ) {
+          endpoint.healthcheck = {
+            inherit: false,
+            enabled: false,
+          };
+        }
+        // Enable healthcheck if inherit is true or not defined
+        else if (endpoint.healthcheck?.inherit === undefined || endpoint.healthcheck?.inherit === true) {
+          endpoint.healthcheck = {
+            inherit: true,
+          };
+        }
+      });
+    });
+>>>>>>> 59b2ddfae0 (fix(console): improve health check inheritance UX)
   }
 }

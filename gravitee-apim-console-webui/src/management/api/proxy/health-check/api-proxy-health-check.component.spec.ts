@@ -141,17 +141,29 @@ describe('ApiProxyHealthCheckComponent', () => {
           {
             name: 'default',
             endpoints: [
+<<<<<<< HEAD
               { name: 'endpoint1-with-healthcheck-deactivated', healthCheck: { enabled: false }, type: 'http' },
               { name: 'endpoint1-with-healthcheck-activated', healthCheck: { enabled: true, inherit: true }, type: 'http' },
               { name: 'endpoint1-without-healthcheck', type: 'http' },
+=======
+              { name: 'endpoint1-with-healthcheck-deactivated', healthcheck: { enabled: false, inherit: false } },
+              { name: 'endpoint1-with-healthcheck-activated', healthcheck: { enabled: true, inherit: true } },
+              { name: 'endpoint1-without-healthcheck' },
+>>>>>>> 59b2ddfae0 (fix(console): improve health check inheritance UX)
             ],
           },
           {
             name: 'group-2',
             endpoints: [
+<<<<<<< HEAD
               { name: 'endpoint2-with-healthcheck-deactivated', healthCheck: { enabled: false }, type: 'http' },
               { name: 'endpoint2-with-healthcheck-activated', healthCheck: { enabled: true, inherit: true }, type: 'http' },
               { name: 'endpoint2-without-healthcheck', type: 'http' },
+=======
+              { name: 'endpoint2-with-healthcheck-deactivated', healthcheck: { enabled: false, inherit: false } },
+              { name: 'endpoint2-with-healthcheck-activated', healthcheck: { enabled: true, inherit: true } },
+              { name: 'endpoint2-without-healthcheck' },
+>>>>>>> 59b2ddfae0 (fix(console): improve health check inheritance UX)
             ],
           },
         ],
@@ -191,17 +203,29 @@ describe('ApiProxyHealthCheckComponent', () => {
       {
         name: 'default',
         endpoints: [
+<<<<<<< HEAD
           { name: 'endpoint1-with-healthcheck-deactivated', healthCheck: { enabled: false }, type: 'http' },
           { name: 'endpoint1-with-healthcheck-activated', healthCheck: { enabled: true, inherit: true }, type: 'http' },
           { name: 'endpoint1-without-healthcheck', healthCheck: { enabled: true, inherit: true }, type: 'http' },
+=======
+          { name: 'endpoint1-with-healthcheck-deactivated', healthcheck: { enabled: false, inherit: false } },
+          { name: 'endpoint1-with-healthcheck-activated', healthcheck: { inherit: true } },
+          { name: 'endpoint1-without-healthcheck', healthcheck: { inherit: true } },
+>>>>>>> 59b2ddfae0 (fix(console): improve health check inheritance UX)
         ],
       },
       {
         name: 'group-2',
         endpoints: [
+<<<<<<< HEAD
           { name: 'endpoint2-with-healthcheck-deactivated', healthCheck: { enabled: false }, type: 'http' },
           { name: 'endpoint2-with-healthcheck-activated', healthCheck: { enabled: true, inherit: true }, type: 'http' },
           { name: 'endpoint2-without-healthcheck', healthCheck: { enabled: true, inherit: true }, type: 'http' },
+=======
+          { name: 'endpoint2-with-healthcheck-deactivated', healthcheck: { enabled: false, inherit: false } },
+          { name: 'endpoint2-with-healthcheck-activated', healthcheck: { inherit: true } },
+          { name: 'endpoint2-without-healthcheck', healthcheck: { inherit: true } },
+>>>>>>> 59b2ddfae0 (fix(console): improve health check inheritance UX)
         ],
       },
     ]);
@@ -279,19 +303,33 @@ describe('ApiProxyHealthCheckComponent', () => {
       {
         name: 'default',
         endpoints: [
+<<<<<<< HEAD
           { name: 'endpoint1-with-healthcheck-deactivated', healthCheck: { enabled: false }, type: 'http' },
           { name: 'endpoint1-with-healthcheck-activated-inherited', healthCheck: { enabled: false, inherit: true }, type: 'http' },
           { name: 'endpoint1-with-healthcheck-activated', healthCheck: { enabled: true, inherit: false }, type: 'http' },
           { name: 'endpoint1-without-healthcheck', type: 'http' },
+=======
+          { name: 'endpoint1-with-healthcheck-deactivated', healthcheck: { inherit: false, enabled: false } },
+          { name: 'endpoint1-with-healthcheck-activated-inherited', healthcheck: { inherit: true } },
+          { name: 'endpoint1-with-healthcheck-activated', healthcheck: { enabled: true, inherit: false } },
+          { name: 'endpoint1-without-healthcheck', healthcheck: { inherit: true } },
+>>>>>>> 59b2ddfae0 (fix(console): improve health check inheritance UX)
         ],
       },
       {
         name: 'group-2',
         endpoints: [
+<<<<<<< HEAD
           { name: 'endpoint2-with-healthcheck-deactivated', healthCheck: { enabled: false }, type: 'http' },
           { name: 'endpoint2-with-healthcheck-activated-inherited', healthCheck: { enabled: false, inherit: true }, type: 'http' },
           { name: 'endpoint2-with-healthcheck-activated', healthCheck: { enabled: true, inherit: false }, type: 'http' },
           { name: 'endpoint2-without-healthcheck', type: 'http' },
+=======
+          { name: 'endpoint2-with-healthcheck-deactivated', healthcheck: { inherit: true } },
+          { name: 'endpoint2-with-healthcheck-activated-inherited', healthcheck: { inherit: true } },
+          { name: 'endpoint2-with-healthcheck-activated', healthcheck: { enabled: true, inherit: false } },
+          { name: 'endpoint2-without-healthcheck', healthcheck: { inherit: true } },
+>>>>>>> 59b2ddfae0 (fix(console): improve health check inheritance UX)
         ],
       },
     ]);
