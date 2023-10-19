@@ -448,9 +448,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             // check endpoints configuration
             checkEndpointsConfiguration(api);
 
-            // check HC inheritance
-            checkHealthcheckInheritance(api);
-
             // check CORS Allow-origin format
             corsValidationService.validateAndSanitize(api.getProxy().getCors());
 
@@ -675,36 +672,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                         throw new InvalidDataException(e);
                     }
                 }
-            }
-        }
-    }
-
-    private void checkHealthcheckInheritance(UpdateApiEntity api) {
-        boolean inherit = false;
-
-        if (api.getProxy() != null && api.getProxy().getGroups() != null) {
-            for (EndpointGroup group : api.getProxy().getGroups()) {
-                if (group.getEndpoints() != null) {
-                    for (Endpoint endpoint : group.getEndpoints()) {
-                        if (isHttpEndpoint(endpoint) && endpoint.getHealthCheck() != null && endpoint.getHealthCheck().isInherit()) {
-                            inherit = true;
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-
-        if (inherit) {
-            //if endpoints are set to inherit HC configuration, this configuration must exists.
-            boolean hcServiceExists = false;
-            if (api.getServices() != null) {
-                HealthCheckService healthCheckService = api.getServices().get(HealthCheckService.class);
-                hcServiceExists = healthCheckService != null;
-            }
-
-            if (!hcServiceExists) {
-                throw new HealthcheckInheritanceException();
             }
         }
     }
@@ -1023,9 +990,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             // check endpoints configuration
             checkEndpointsConfiguration(updateApiEntity);
-
-            // check HC inheritance
-            checkHealthcheckInheritance(updateApiEntity);
 
             // validate HC cron schedule
             validateHealtcheckSchedule(updateApiEntity);
