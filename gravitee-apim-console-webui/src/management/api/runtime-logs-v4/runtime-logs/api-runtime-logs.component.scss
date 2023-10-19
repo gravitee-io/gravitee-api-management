@@ -6,12 +6,17 @@
 
 $typography: map.get(gio.$mat-theme, typography);
 
+:host {
+  @include gio-layout.gio-responsive-margin-container;
+}
+
 .container {
   @include mat.elevation(3);
 }
 
-:host {
-  @include gio-layout.gio-responsive-margin-container;
+.loader {
+  background-color: mat.get-color-from-palette(gio.$mat-basic-palette, white);
+  padding: 24px;
 }
 
 .runtime-logs {

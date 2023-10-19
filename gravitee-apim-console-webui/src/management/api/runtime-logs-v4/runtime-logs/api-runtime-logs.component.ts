@@ -47,6 +47,7 @@ export class ApiRuntimeLogsComponent implements OnInit, OnDestroy {
     shareReplay(1),
   );
   initialValues: LogFiltersInitialValues;
+  loading = true;
 
   constructor(
     @Inject(UIRouterState) private readonly ajsState: StateService,
@@ -92,12 +93,18 @@ export class ApiRuntimeLogsComponent implements OnInit, OnDestroy {
     return this.ajsState.go('management.apis.runtimeLogs-settings');
   }
 
+  refresh() {
+    this.quickFilterStore.next(this.quickFilterStore.getFilters());
+  }
+
   searchConnectionLogs(queryParam?: ApiLogsParam) {
+    this.loading = true;
     this.apiLogsService
       .searchConnectionLogs(this.ajsStateParams.apiId, queryParam)
       .pipe(
         tap((apiLogsResponse) => {
           this.apiLogsSubject$.next(apiLogsResponse);
+          this.loading = false;
           this.ajsState.go('.', queryParam, { notify: false });
         }),
         takeUntil(this.unsubscribe$),

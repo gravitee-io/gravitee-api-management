@@ -12,6 +12,14 @@ $typography: map.get(gio.$mat-theme, typography);
   padding: 16px 24px;
   border-bottom: 1px solid mat.get-color-from-palette(gio.$mat-dove-palette, darker10);
 
+  &__row {
+    display: flex;
+    flex-direction: row;
+
+    justify-content: space-evenly;
+    align-items: center;
+  }
+
   &__selectors {
     display: flex;
     flex-direction: row;
@@ -20,6 +28,7 @@ $typography: map.get(gio.$mat-theme, typography);
   &__period,
   &__applications,
   &__plans {
+    padding: 0;
     margin-right: 16px;
   }
 

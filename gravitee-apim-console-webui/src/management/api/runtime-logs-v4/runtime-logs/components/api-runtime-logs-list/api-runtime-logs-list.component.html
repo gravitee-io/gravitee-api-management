@@ -15,6 +15,7 @@
     limitations under the License.
 
 -->
+
 <ng-container *ngIf="pagination.totalCount === 0; else showList">
   <api-runtime-logs-empty (navigateToSettings)="navigateToSettings.emit()"></api-runtime-logs-empty>
 </ng-container>
