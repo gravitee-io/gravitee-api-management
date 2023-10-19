@@ -14,26 +14,18 @@
  * limitations under the License.
  */
 import { NgModule } from '@angular/core';
-import { MatCardModule } from '@angular/material/card';
 import { CommonModule } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
+import { GioIconsModule } from '@gravitee/ui-particles-angular';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatButtonModule } from '@angular/material/button';
-import { MatTabsModule } from '@angular/material/tabs';
-import { UIRouterModule } from '@uirouter/angular';
+import { MatCardModule } from '@angular/material/card';
 
-import { ApiRuntimeLogsMessageEmptyModule, ApiRuntimeLogsMessageItemModule } from './components';
-import { ApiRuntimeLogsMessagesComponent } from './api-runtime-logs-messages.component';
+import { ApiRuntimeLogsMessageEmptyComponent } from './api-runtime-logs-message-empty.component';
 
 @NgModule({
-  declarations: [ApiRuntimeLogsMessagesComponent],
-  exports: [],
-  imports: [
-    CommonModule,
-    MatButtonModule,
-    MatCardModule,
-    UIRouterModule,
-    MatTabsModule,
-    ApiRuntimeLogsMessageItemModule,
-    ApiRuntimeLogsMessageEmptyModule,
-  ],
+  declarations: [ApiRuntimeLogsMessageEmptyComponent],
+  exports: [ApiRuntimeLogsMessageEmptyComponent],
+  imports: [CommonModule, BrowserAnimationsModule, MatIconModule, GioIconsModule, MatButtonModule, MatCardModule],
 })
-export class ApiRuntimeLogsMessagesModule {}
+export class ApiRuntimeLogsMessageEmptyModule {}

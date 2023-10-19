@@ -16,17 +16,18 @@
 
 import { Component, Input } from '@angular/core';
 
-import { MessageLog } from '../../../../../entities/management-api-v2';
+import { AggregatedMessageLog } from '../../../../../../entities/management-api-v2';
 
 @Component({
-  selector: 'api-runtime-logs-message',
-  template: require('./api-runtime-logs-message.component.html'),
-  styles: [require('./api-runtime-logs-message.component.scss')],
+  selector: 'api-runtime-logs-message-item',
+  template: require('./api-runtime-logs-message-item.component.html'),
+  styles: [require('./api-runtime-logs-message-item.component.scss')],
 })
-export class ApiRuntimeLogsMessageComponent {
+export class ApiRuntimeLogsMessageItemComponent {
   @Input()
-  messageLog: MessageLog;
-
+  messageLog: AggregatedMessageLog;
   @Input()
-  connectorIcon: string;
+  entrypointConnectorIcon: string;
+  @Input()
+  endpointConnectorIcon: string;
 }

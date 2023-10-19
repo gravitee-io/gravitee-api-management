@@ -26,9 +26,14 @@ import { ApiRuntimeLogsMessagesHarness } from './api-runtime-logs-messages.harne
 
 import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { GioUiRouterTestingModule } from '../../../../shared/testing/gio-uirouter-testing-module';
-import { fakeConnectorPlugin, fakePagedResult, MessageLog } from '../../../../entities/management-api-v2';
+import {
+  AggregatedMessageLog,
+  fakeAggregatedMessageLog,
+  fakeConnectorPlugin,
+  fakeMessage,
+  fakePagedResult,
+} from '../../../../entities/management-api-v2';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
-import { fakeMessageLog } from '../../../../entities/management-api-v2/log/messageLog.fixture';
 import { IconService } from '../../../../services-ngx/icon.service';
 
 describe('ApiRuntimeLogsMessagesComponent', () => {
@@ -77,48 +82,58 @@ describe('ApiRuntimeLogsMessagesComponent', () => {
       iconServiceSpy = jest.spyOn(TestBed.inject(IconService), 'registerSvg').mockReturnValue('gio:mock');
     });
 
-    it('should init the component and fetch the endpoint connector icon', async () => {
-      const messageLog = fakeMessageLog({ connectorId: 'mock', connectorType: 'ENDPOINT' });
-      expectApiWithMessageLogs(Array(5).fill(messageLog));
-      expectEndpointPlugin(messageLog);
-      expect(iconServiceSpy).toHaveBeenCalledTimes(1);
-      fixture.detectChanges();
-      expect(await componentHarness.connectorIcon()).toBeTruthy();
-    });
-
-    it('should init the component and fetch the entrypoint connector icon', async () => {
-      const messageLog = fakeMessageLog({ connectorId: 'mock', connectorType: 'ENTRYPOINT' });
+    it('should init the component and fetch the connectors icon', async () => {
+      const messageLog = fakeAggregatedMessageLog({
+        entrypoint: fakeMessage({ connectorId: 'http-get', payload: undefined }),
+        endpoint: fakeMessage({ connectorId: 'mock', payload: undefined }),
+      });
       expectApiWithMessageLogs(Array(5).fill(messageLog));
       expectEntrypointPlugin(messageLog);
-      expect(iconServiceSpy).toHaveBeenCalledTimes(1);
+      expectEndpointPlugin(messageLog);
+      expect(iconServiceSpy).toHaveBeenCalledTimes(2);
       fixture.detectChanges();
-      expect(await componentHarness.connectorIcon()).toBeTruthy();
+      expect(await componentHarness.entrypointConnectorIcon()).toBeTruthy();
+      expect(await componentHarness.endpointConnectorIcon()).toBeTruthy();
     });
 
     it('should be able to switch between message, headers and metadata tabs', async () => {
-      const messageLog = fakeMessageLog({ connectorId: 'mock', connectorType: 'ENDPOINT' });
+      const messageLog = fakeAggregatedMessageLog({
+        entrypoint: fakeMessage({ connectorId: 'http-get' }),
+        endpoint: fakeMessage({ connectorId: 'kafka' }),
+      });
       expectApiWithMessageLogs([messageLog]);
+      expectEntrypointPlugin(messageLog);
       expectEndpointPlugin(messageLog);
 
-      expect(messageLog.message.payload).toStrictEqual(await componentHarness.getTabBody());
+      expect(await componentHarness.getEntrypointTabBody()).toStrictEqual(messageLog.entrypoint.payload);
+      expect(await componentHarness.getEndpointTabBody()).toStrictEqual(messageLog.endpoint.payload);
 
-      await componentHarness.clickOnTab('Headers');
+      await componentHarness.clickOnEntrypointTab('Headers');
+      await componentHarness.clickOnEndpointTab('Headers');
       fixture.detectChanges();
-      expect(messageLog.message.headers).toStrictEqual(JSON.parse(await componentHarness.getTabBody()));
+      expect(JSON.parse(await componentHarness.getEntrypointTabBody())).toStrictEqual(messageLog.entrypoint.headers);
+      expect(JSON.parse(await componentHarness.getEndpointTabBody())).toStrictEqual(messageLog.endpoint.headers);
 
-      await componentHarness.clickOnTab('Metadata');
+      await componentHarness.clickOnEntrypointTab('Metadata');
+      await componentHarness.clickOnEndpointTab('Metadata');
       fixture.detectChanges();
-      expect(messageLog.message.metadata).toStrictEqual(JSON.parse(await componentHarness.getTabBody()));
+      expect(JSON.parse(await componentHarness.getEntrypointTabBody())).toStrictEqual(messageLog.entrypoint.metadata);
+      expect(JSON.parse(await componentHarness.getEndpointTabBody())).toStrictEqual(messageLog.endpoint.metadata);
 
-      await componentHarness.clickOnTab('Message');
+      await componentHarness.clickOnEntrypointTab('Payload');
+      await componentHarness.clickOnEndpointTab('Payload');
       fixture.detectChanges();
-      expect(messageLog.message.payload).toStrictEqual(await componentHarness.getTabBody());
+      expect(await componentHarness.getEntrypointTabBody()).toStrictEqual(messageLog.entrypoint.payload);
+      expect(await componentHarness.getEndpointTabBody()).toStrictEqual(messageLog.endpoint.payload);
     });
 
     it('should load more messages', async () => {
       expect.assertions(3);
 
-      const messageLog = fakeMessageLog({ connectorId: 'mock', connectorType: 'ENDPOINT' });
+      const messageLog = fakeAggregatedMessageLog({
+        entrypoint: fakeMessage({ connectorId: 'http-get', payload: undefined }),
+        endpoint: fakeMessage({ connectorId: 'kafka', payload: undefined }),
+      });
       expectApiWithMessageLogs(Array(5).fill(messageLog));
       expectEndpointPlugin(messageLog);
       expect(await componentHarness.getMessages()).toHaveLength(5);
@@ -135,7 +150,7 @@ describe('ApiRuntimeLogsMessagesComponent', () => {
     });
   });
 
-  function expectApiWithMessageLogs(data: MessageLog[], totalCount = 10, page = 1) {
+  function expectApiWithMessageLogs(data: AggregatedMessageLog[], totalCount = 10, page = 1) {
     httpTestingController
       .expectOne({
         url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/logs/${REQUEST_ID}/messages?page=${page}&perPage=5`,
@@ -152,15 +167,15 @@ describe('ApiRuntimeLogsMessagesComponent', () => {
       );
   }
 
-  function expectEndpointPlugin(messageLog: MessageLog) {
+  function expectEndpointPlugin(messageLog: AggregatedMessageLog) {
     httpTestingController
-      .expectOne({ url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/endpoints/${messageLog.connectorId}`, method: 'GET' })
-      .flush([fakeConnectorPlugin({ id: messageLog.connectorId, name: messageLog.connectorId })]);
+      .expectOne({ url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/endpoints/${messageLog.endpoint.connectorId}`, method: 'GET' })
+      .flush([fakeConnectorPlugin({ id: messageLog.endpoint.connectorId, name: messageLog.endpoint.connectorId })]);
   }
 
-  function expectEntrypointPlugin(messageLog: MessageLog) {
+  function expectEntrypointPlugin(messageLog: AggregatedMessageLog) {
     httpTestingController
-      .expectOne({ url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/entrypoints/${messageLog.connectorId}`, method: 'GET' })
-      .flush([fakeConnectorPlugin({ id: messageLog.connectorId, name: messageLog.connectorId })]);
+      .expectOne({ url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/entrypoints/${messageLog.entrypoint.connectorId}`, method: 'GET' })
+      .flush([fakeConnectorPlugin({ id: messageLog.entrypoint.connectorId, name: messageLog.entrypoint.connectorId })]);
   }
 });

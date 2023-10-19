@@ -13,21 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export interface MessageLog {
+
+export interface AggregatedMessageLog {
   requestId: string;
   timestamp: string;
   clientIdentifier: string;
   correlationId: string;
   parentCorrelationId: string;
   operation: MessageOperation;
-  connectorType: ConnectorType;
-  connectorId: string;
-  message: Message;
+  entrypoint: Message;
+  endpoint: Message;
 }
 
 export interface Message {
+  connectorId: string;
+  timestamp: string;
   id: string;
   payload: string;
+  isError: boolean;
   headers: Record<string, string[]>;
   metadata: Record<string, string>;
 }

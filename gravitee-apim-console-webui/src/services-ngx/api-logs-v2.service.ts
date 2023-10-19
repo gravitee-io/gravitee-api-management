@@ -18,7 +18,7 @@ import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
-import { ApiLogsParam, ApiLogsResponse, MessageLog, PagedResult } from '../entities/management-api-v2';
+import { AggregatedMessageLog, ApiLogsParam, ApiLogsResponse, PagedResult } from '../entities/management-api-v2';
 
 @Injectable({
   providedIn: 'root',
@@ -52,8 +52,8 @@ export class ApiLogsV2Service {
     });
   }
 
-  searchMessageLogs(apiId: string, requestId: string, page = 1, perPage = 10): Observable<PagedResult<MessageLog>> {
-    return this.http.get<PagedResult<MessageLog>>(`${this.constants.env.v2BaseURL}/apis/${apiId}/logs/${requestId}/messages`, {
+  searchMessageLogs(apiId: string, requestId: string, page = 1, perPage = 10): Observable<PagedResult<AggregatedMessageLog>> {
+    return this.http.get<PagedResult<AggregatedMessageLog>>(`${this.constants.env.v2BaseURL}/apis/${apiId}/logs/${requestId}/messages`, {
       params: {
         page,
         perPage,

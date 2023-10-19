@@ -5,11 +5,18 @@
 $typography: map.get(gio.$mat-theme, typography);
 
 .log {
+  background-color: mat.get-color-from-palette(gio.$mat-basic-palette, white);
+  border-radius: 4px;
+  border: 1px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker20');
+
+  margin: 8px 0 8px 0;
+
   &__header {
     display: flex;
     flex-direction: row;
+    border-radius: 4px 4px 0 0;
     background-color: mat.get-color-from-palette(gio.$mat-dove-palette, 'default');
-    padding: 16px;
+    padding: 16px 24px;
 
     &__title {
       @include mat.typography-level($typography, subheading-1);
@@ -17,8 +24,6 @@ $typography: map.get(gio.$mat-theme, typography);
   }
 
   &__data {
-    margin: 16px;
-
     &__tabs {
       &__body {
         background-color: mat.get-color-from-palette(gio.$mat-dove-palette, 'default');
@@ -29,10 +34,8 @@ $typography: map.get(gio.$mat-theme, typography);
   }
 
   &__row {
-    display: grid;
-    grid-template-columns: minmax(200px, 2fr) minmax(200px, 2fr);
-    grid-gap: 4px;
-    margin-bottom: 12px;
+    margin-top: 8px;
+    margin-bottom: 8px;
 
     &__cell {
       display: flex;

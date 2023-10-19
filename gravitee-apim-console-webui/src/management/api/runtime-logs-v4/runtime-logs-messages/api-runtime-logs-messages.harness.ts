@@ -16,24 +16,34 @@
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatIconHarness } from '@angular/material/icon/testing';
 import { DivHarness } from '@gravitee/ui-particles-angular/testing';
-import { MatTabHarness } from '@angular/material/tabs/testing';
+import { MatTabGroupHarness } from '@angular/material/tabs/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 
 export class ApiRuntimeLogsMessagesHarness extends ComponentHarness {
   static hostSelector = 'runtime-logs-messages';
 
-  private tabBodySelector = this.locatorFor(DivHarness.with({ selector: '.log__data__tabs__body' }));
+  private entrypointTabBodySelector = this.locatorFor(DivHarness.with({ selector: '[data-testId=entrypoint-tabs-body]' }));
+  private endpointTabBodySelector = this.locatorFor(DivHarness.with({ selector: '[data-testId=endpoint-tabs-body]' }));
   private load5MoreSelector = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Load 5 more"]' }));
   private messagesSelector = this.locatorForAll(DivHarness.with({ selector: '.log__header__title' }));
+  private entrypointTabGroupSelector = this.locatorFor(MatTabGroupHarness.with({ selector: '[data-testId=entrypoint-tabs-group]' }));
+  private endpointTabGroupSelector = this.locatorFor(MatTabGroupHarness.with({ selector: '[data-testId=endpoint-tabs-group]' }));
 
-  public connectorIcon = this.locatorFor(MatIconHarness.with({ selector: '[data-testId=connector-icon]' }));
+  public entrypointConnectorIcon = this.locatorFor(MatIconHarness.with({ selector: '[data-testId=entrypoint-connector-icon]' }));
+  public endpointConnectorIcon = this.locatorFor(MatIconHarness.with({ selector: '[data-testId=endpoint-connector-icon]' }));
 
-  public clickOnTab = async (tabLabel: string) => {
-    return await this.locatorFor(MatTabHarness.with({ label: tabLabel }))().then((tab) => tab.select());
+  public clickOnEntrypointTab = async (label: string) => {
+    return this.entrypointTabGroupSelector().then((tabGroup) => tabGroup.selectTab({ label: label }));
+  };
+  public clickOnEndpointTab = async (label: string) => {
+    return this.endpointTabGroupSelector().then((tabGroup) => tabGroup.selectTab({ label: label }));
   };
 
-  public getTabBody = async () => {
-    return await this.tabBodySelector().then((tabBody) => tabBody.getText());
+  public getEntrypointTabBody = async () => {
+    return await this.entrypointTabBodySelector().then((tabBody) => tabBody.getText());
+  };
+  public getEndpointTabBody = async () => {
+    return await this.endpointTabBodySelector().then((tabBody) => tabBody.getText());
   };
 
   public load5More = async () => {

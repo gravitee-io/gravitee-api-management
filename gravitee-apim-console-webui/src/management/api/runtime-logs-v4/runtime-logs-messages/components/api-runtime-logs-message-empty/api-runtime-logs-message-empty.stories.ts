@@ -15,37 +15,28 @@
  */
 import { Meta, moduleMetadata } from '@storybook/angular';
 import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
-import { MatCardModule } from '@angular/material/card';
 
-import { ApiRuntimeLogsMessageModule } from './api-runtime-logs-message.module';
-
-import { ApiRuntimeLogsMessagesComponent } from '../api-runtime-logs-messages.component';
-import { fakeMessageLog } from '../../../../../entities/management-api-v2/log/messageLog.fixture';
-
-const messageLog = fakeMessageLog({ connectorId: 'kafka' });
-const connectorIcon = 'gio:kafka';
+import { ApiRuntimeLogsMessageEmptyModule } from './api-runtime-logs-message-empty.module';
+import { ApiRuntimeLogsMessageEmptyComponent } from './api-runtime-logs-message-empty.component';
 
 export default {
-  title: 'API / Logs / Messages / Item',
-  component: ApiRuntimeLogsMessagesComponent,
+  title: 'API / Logs / Messages / Empty',
+  component: ApiRuntimeLogsMessageEmptyComponent,
   decorators: [
     moduleMetadata({
-      imports: [ApiRuntimeLogsMessageModule, MatCardModule],
+      imports: [ApiRuntimeLogsMessageEmptyModule],
     }),
   ],
   argTypes: {},
   render: (args) => ({
     template: `
-      <mat-card style="width: 800px">
-        <api-runtime-logs-message [messageLog]="messageLog" [connectorIcon]="connectorIcon"></api-runtime-logs-message>
-      </mat-card>
+      <div style="width: 800px">
+        <api-runtime-logs-message-empty></api-runtime-logs-message-empty>
+      </div>
     `,
     props: args,
   }),
 } as Meta;
 
 export const Default: Story = {};
-Default.args = {
-  messageLog,
-  connectorIcon,
-};
+Default.args = {};

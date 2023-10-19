@@ -15,5 +15,8 @@
  */
 
 export * from './apiLogsResponse';
+export * from './apiLogsResponse.fixture';
 export * from './connectionLog';
+export * from './connectionLog.fixture';
 export * from './messageLog';
+export * from './messageLog.fixture';
