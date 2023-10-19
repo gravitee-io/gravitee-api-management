@@ -27,12 +27,19 @@
   <mat-tab-group>
     <mat-tab label="Messages">
       <div *ngIf="messageLogs$ | async as messageLogs" class="messages">
-        <ng-container *ngFor="let messageLog of messageLogs">
-          <api-runtime-logs-message
-            [messageLog]="messageLog"
-            [connectorIcon]="connectorIcons[messageLog.connectorId]"
-          ></api-runtime-logs-message>
+        <ng-container *ngIf="messageLogs.length === 0; else showList">
+          <api-runtime-logs-message-empty (navigateToSettings)="openLogsSettings()"></api-runtime-logs-message-empty>
         </ng-container>
+
+        <ng-template #showList>
+          <ng-container *ngFor="let messageLog of messageLogs">
+            <api-runtime-logs-message-item
+              [messageLog]="messageLog"
+              [entrypointConnectorIcon]="connectorIcons[messageLog.entrypoint?.connectorId]"
+              [endpointConnectorIcon]="connectorIcons[messageLog.endpoint?.connectorId]"
+            ></api-runtime-logs-message-item>
+          </ng-container>
+        </ng-template>
       </div>
     </mat-tab>
   </mat-tab-group>

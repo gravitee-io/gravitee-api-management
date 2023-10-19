@@ -16,19 +16,20 @@
 import { isFunction, sample } from 'lodash';
 import { uuid } from '@gravitee/ui-components/src/lib/utils';
 
-import { Message, MessageLog } from './messageLog';
+import { AggregatedMessageLog, Message } from './messageLog';
 
-export function fakeMessageLog(modifier?: Partial<MessageLog> | ((base: MessageLog) => MessageLog)): MessageLog {
-  const base: MessageLog = {
+export function fakeAggregatedMessageLog(
+  modifier?: Partial<AggregatedMessageLog> | ((base: AggregatedMessageLog) => AggregatedMessageLog),
+): AggregatedMessageLog {
+  const base: AggregatedMessageLog = {
     requestId: uuid(),
     timestamp: Date.now().toString(),
     clientIdentifier: uuid(),
-    connectorId: sample(['mock', 'mqtt5', 'kafka', 'solace', 'rabbitmq']),
-    connectorType: sample(['ENDPOINT', 'ENTRYPOINT']),
     correlationId: uuid(),
     parentCorrelationId: uuid(),
     operation: sample(['SUBSCRIBE', 'PUBLISH']),
-    message: fakeMessage(),
+    entrypoint: fakeMessage(),
+    endpoint: fakeMessage(),
   };
 
   if (isFunction(modifier)) {
@@ -44,6 +45,9 @@ export function fakeMessageLog(modifier?: Partial<MessageLog> | ((base: MessageL
 export function fakeMessage(modifier?: Partial<Message> | ((base: Message) => Message)): Message {
   const base: Message = {
     id: '0',
+    connectorId: sample(['mock', 'mqtt5', 'kafka', 'solace', 'rabbitmq']),
+    timestamp: Date.now().toString(),
+    isError: false,
     headers: {
       'X-Mock': ['value'],
     },

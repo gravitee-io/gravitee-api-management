@@ -1,0 +1,26 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+<mat-tab-group [selectedIndex]="selected.value" (selectedIndexChange)="selected.setValue($event)" [attr.data-testId]="type + '-tabs-group'">
+  <mat-tab *ngFor="let tab of tabs" [label]="tab.label" [disabled]="tab.disabled">
+    <div class="tabs__body" [attr.data-testId]="type + '-tabs-body'">
+      <ng-container *ngIf="tab.isJson">{{ tab.content | json }}</ng-container>
+      <ng-container *ngIf="!tab.isJson">{{ tab.content }}</ng-container>
+    </div>
+  </mat-tab>
+</mat-tab-group>

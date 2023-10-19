@@ -13,5 +13,5 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './api-runtime-logs-message-empty';
-export * from './api-runtime-logs-message-item';
+
+export * from './api-runtime-logs-message-empty.module';

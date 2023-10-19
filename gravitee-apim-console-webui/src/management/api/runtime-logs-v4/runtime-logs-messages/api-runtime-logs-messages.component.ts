@@ -15,14 +15,15 @@
  */
 
 import { Component, Inject, OnInit } from '@angular/core';
+import { StateService } from '@uirouter/angular';
 import { StateParams } from '@uirouter/core';
 import { map, switchMap, tap } from 'rxjs/operators';
 import { BehaviorSubject } from 'rxjs';
 import { uniqBy } from 'lodash';
 
 import { ApiLogsV2Service } from '../../../../services-ngx/api-logs-v2.service';
-import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
-import { ConnectorPlugin, ConnectorType, MessageLog } from '../../../../entities/management-api-v2';
+import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+import { AggregatedMessageLog, ConnectorPlugin, ConnectorType } from '../../../../entities/management-api-v2';
 import { IconService } from '../../../../services-ngx/icon.service';
 import { ConnectorPluginsV2Service } from '../../../../services-ngx/connector-plugins-v2.service';
 
@@ -34,11 +35,12 @@ import { ConnectorPluginsV2Service } from '../../../../services-ngx/connector-pl
 export class ApiRuntimeLogsMessagesComponent implements OnInit {
   private readonly pageSize: number = 5;
   public connectorIcons: { [key: string]: string } = {};
-  public messageLogs$: BehaviorSubject<MessageLog[]> = new BehaviorSubject<MessageLog[]>([]);
+  public messageLogs$: BehaviorSubject<AggregatedMessageLog[]> = new BehaviorSubject<AggregatedMessageLog[]>([]);
   public pageIndex = 1;
   public pageCount: number;
 
   constructor(
+    @Inject(UIRouterState) private readonly ajsState: StateService,
     @Inject(UIRouterStateParams) private readonly ajsStateParams: StateParams,
     private readonly apiLogsService: ApiLogsV2Service,
     private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
@@ -47,6 +49,9 @@ export class ApiRuntimeLogsMessagesComponent implements OnInit {
 
   public ngOnInit(): void {
     this.loadMessages(this.pageIndex);
+  }
+  public openLogsSettings() {
+    return this.ajsState.go('management.apis.runtimeLogs-settings');
   }
 
   private loadMessages(pageIndex: number): void {
@@ -59,12 +64,18 @@ export class ApiRuntimeLogsMessagesComponent implements OnInit {
           this.pageCount = messageLogs.pagination.pageCount;
           return messageLogs.data;
         }),
-        switchMap((messageLogs: MessageLog[]) =>
+        switchMap((messageLogs) =>
           uniqBy(
-            messageLogs.map((messageLog) => ({
-              connectorId: messageLog.connectorId,
-              connectorType: messageLog.connectorType,
-            })),
+            messageLogs.flatMap((messageLog) => [
+              {
+                connectorType: 'ENTRYPOINT',
+                connectorId: messageLog.entrypoint.connectorId,
+              },
+              {
+                connectorType: 'ENDPOINT',
+                connectorId: messageLog.endpoint.connectorId,
+              },
+            ]),
             'connectorId',
           ),
         ),
