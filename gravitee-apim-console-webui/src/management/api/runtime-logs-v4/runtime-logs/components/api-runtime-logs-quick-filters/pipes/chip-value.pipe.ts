@@ -15,7 +15,7 @@
  */
 import { Pipe, PipeTransform } from '@angular/core';
 
-import { MultiFilter, SimpleFilter } from '../models';
+import { MultiFilter, SimpleFilter } from '../../../models';
 
 @Pipe({ name: 'chipValue' })
 export class ChipValuePipe implements PipeTransform {

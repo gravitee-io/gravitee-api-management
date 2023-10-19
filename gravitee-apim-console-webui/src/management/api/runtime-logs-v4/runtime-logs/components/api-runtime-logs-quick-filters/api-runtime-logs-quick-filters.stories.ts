@@ -21,6 +21,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ApiRuntimeLogsQuickFiltersComponent } from './api-runtime-logs-quick-filters.component';
 import { ApiRuntimeLogsQuickFiltersModule } from './api-runtime-logs-quick-filters.module';
 
+import { QuickFiltersStoreService } from '../../services';
 import { ApplicationService } from '../../../../../../services-ngx/application.service';
 import { fakeApplication } from '../../../../../../entities/application/Application.fixture';
 import { fakePagedResult, fakePlanV4 } from '../../../../../../entities/management-api-v2';
@@ -49,6 +50,7 @@ export default {
           provide: ApiPlanV2Service,
           useValue: { list: () => of(fakePagedResult(plans)) },
         },
+        QuickFiltersStoreService,
       ],
     }),
   ],
@@ -56,7 +58,8 @@ export default {
   render: (args) => ({
     template: `
       <div style="width: 800px">
-        <api-runtime-logs-quick-filters [plans]="plans" [initialValues]="initialValues"></api-runtime-logs-quick-filters>
+        <api-runtime-logs-quick-filters [plans]="plans" [initialValues]="initialValues">
+        </api-runtime-logs-quick-filters>
       </div>
     `,
     props: args,

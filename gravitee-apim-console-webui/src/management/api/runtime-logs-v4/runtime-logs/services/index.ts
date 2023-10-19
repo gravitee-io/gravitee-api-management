@@ -13,6 +13,4 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './api-runtime-logs-quick-filters.harness';
-export * from './api-runtime-logs-quick-filters.module';
-export * from './pipes';
+export * from './quick-filters-store.service';
