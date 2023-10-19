@@ -65,7 +65,14 @@ export class ApplicationsFilterComponent implements ControlValueAccessor {
 
   public displayValueWith: DisplayValueWithFn = (value: string) => {
     return this.applicationService.getById(value).pipe(
-      map((application) => `${application.name} ( ${application.owner?.displayName} )`),
+      map((application) => {
+        const label = `${application.name} ( ${application.owner?.displayName} )`;
+        if (!this._applicationsCache.find((cache) => cache.value === application.id)) {
+          this._applicationsCache.push({ value: application.id, label });
+          this.applicationCache.emit(this._applicationsCache);
+        }
+        return label;
+      }),
       catchError(() => {
         return of(value);
       }),
