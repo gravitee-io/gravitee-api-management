@@ -289,7 +289,7 @@ describe('ApiProxyHealthCheckComponent', () => {
       {
         name: 'group-2',
         endpoints: [
-          { name: 'endpoint2-with-healthcheck-deactivated', healthcheck: { inherit: true } },
+          { name: 'endpoint2-with-healthcheck-deactivated', healthcheck: { inherit: false, enabled: false } },
           { name: 'endpoint2-with-healthcheck-activated-inherited', healthcheck: { inherit: true } },
           { name: 'endpoint2-with-healthcheck-activated', healthcheck: { enabled: true, inherit: false } },
           { name: 'endpoint2-without-healthcheck', healthcheck: { inherit: true } },

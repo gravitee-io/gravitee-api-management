@@ -98,8 +98,15 @@
         <td mat-cell *matCellDef="let element">
           <div class="endpoint-list__table__hc">
             <span *ngIf="element.isBackup" matTooltip="Secondary endpoint" class="gio-badge-neutral">Secondary</span>
-            <mat-icon *ngIf="element.healthcheck" matTooltip="Health check is enabled">favorite</mat-icon>
-            <mat-icon *ngIf="element.inherit" matTooltip="HTTP configuration inherited">subdirectory_arrow_right</mat-icon>
+            <span *ngIf="element.healthcheck === 'inherit-enable'" matTooltip="Health-check is enabled (inherit)" class="gio-badge-neutral"
+              ><mat-icon svgIcon="gio:heart"></mat-icon
+            ></span>
+            <span *ngIf="element.healthcheck === 'enable'" matTooltip="Health-check is enabled locally" class="gio-badge-primary"
+              ><mat-icon svgIcon="gio:heart"></mat-icon
+            ></span>
+            <span *ngIf="element.inherit" matTooltip="HTTP configuration inherited" class="gio-badge-neutral"
+              ><mat-icon svgIcon="gio:network-alt"></mat-icon
+            ></span>
           </div>
         </td>
       </ng-container>
