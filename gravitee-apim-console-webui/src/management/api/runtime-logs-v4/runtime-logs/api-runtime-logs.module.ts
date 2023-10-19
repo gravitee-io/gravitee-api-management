@@ -15,13 +15,16 @@
  */
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { GioLoaderModule } from '@gravitee/ui-particles-angular';
 
 import { ApiRuntimeLogsComponent } from './api-runtime-logs.component';
 import { ApiRuntimeLogsListModule, ApiRuntimeLogsQuickFiltersModule } from './components';
 import { QuickFiltersStoreService } from './services';
 
 @NgModule({
-  imports: [CommonModule, ApiRuntimeLogsListModule, ApiRuntimeLogsQuickFiltersModule],
+  imports: [CommonModule, ApiRuntimeLogsListModule, ApiRuntimeLogsQuickFiltersModule, MatButtonModule, MatIconModule, GioLoaderModule],
   declarations: [ApiRuntimeLogsComponent],
   exports: [ApiRuntimeLogsComponent],
   providers: [QuickFiltersStoreService],

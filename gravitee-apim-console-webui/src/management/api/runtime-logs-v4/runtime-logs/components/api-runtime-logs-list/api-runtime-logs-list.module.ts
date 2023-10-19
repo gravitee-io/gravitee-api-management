@@ -15,9 +15,9 @@
  */
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatButtonModule } from '@angular/material/button';
-import { GioBannerModule } from '@gravitee/ui-particles-angular';
+import { MatPaginatorModule } from '@angular/material/paginator';
+import { GioBannerModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
 
 import { ApiRuntimeLogsListComponent } from './api-runtime-logs-list.component';
 
@@ -27,6 +27,14 @@ import { ApiRuntimeLogsEmptyModule } from '../api-runtime-logs-empty';
 @NgModule({
   declarations: [ApiRuntimeLogsListComponent],
   exports: [ApiRuntimeLogsListComponent],
-  imports: [CommonModule, ApiRuntimeLogsListRowModule, MatPaginatorModule, ApiRuntimeLogsEmptyModule, GioBannerModule, MatButtonModule],
+  imports: [
+    CommonModule,
+    ApiRuntimeLogsListRowModule,
+    MatPaginatorModule,
+    ApiRuntimeLogsEmptyModule,
+    GioBannerModule,
+    MatButtonModule,
+    GioLoaderModule,
+  ],
 })
 export class ApiRuntimeLogsListModule {}

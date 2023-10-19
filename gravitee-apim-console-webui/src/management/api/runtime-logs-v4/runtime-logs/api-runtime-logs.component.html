@@ -19,17 +19,28 @@
   <div class="container">
     <api-runtime-logs-quick-filters
       *ngIf="initialValues"
+      [loading]="loading"
       [initialValues]="initialValues"
       [plans]="apiPlans$ | async"
+      (refresh)="refresh()"
     ></api-runtime-logs-quick-filters>
-    <api-runtime-logs-list
-      *ngIf="apiLogsSubject$ | async as response"
-      [pagination]="response.pagination"
-      [logEnabled]="apiLogsEnabled$ | async"
-      [isMessageApi]="isMessageApi$ | async"
-      [logs]="response.data"
-      (navigateToSettings)="openLogsSettings()"
-      (paginationUpdated)="paginationUpdated($event)"
-    ></api-runtime-logs-list>
+
+    <ng-container *ngIf="!loading; else loadingTemplate">
+      <api-runtime-logs-list
+        *ngIf="apiLogsSubject$ | async as response"
+        [pagination]="response.pagination"
+        [logEnabled]="apiLogsEnabled$ | async"
+        [isMessageApi]="isMessageApi$ | async"
+        [logs]="response.data"
+        (navigateToSettings)="openLogsSettings()"
+        (paginationUpdated)="paginationUpdated($event)"
+      ></api-runtime-logs-list>
+    </ng-container>
+
+    <ng-template #loadingTemplate>
+      <div class="loader" data-testid="loader-spinner">
+        <gio-loader></gio-loader>
+      </div>
+    </ng-template>
   </div>
 </ng-container>

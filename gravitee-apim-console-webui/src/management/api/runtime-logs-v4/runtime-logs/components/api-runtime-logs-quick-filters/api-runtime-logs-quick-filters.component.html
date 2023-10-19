@@ -16,27 +16,33 @@
 
 -->
 <div class="quick-filters">
-  <form class="quick-filters__selectors" *ngIf="quickFiltersForm" [formGroup]="quickFiltersForm">
-    <mat-form-field class="quick-filters__period">
-      <mat-label>Period</mat-label>
-      <mat-select formControlName="period" aria-label="Period selection">
-        <mat-option *ngFor="let period of periods" [value]="period">{{ period.label }}</mat-option>
-      </mat-select>
-    </mat-form-field>
-    <applications-filter
-      formControlName="applications"
-      class="quick-filters__applications"
-      (applicationCache)="this.applicationsCache = $event"
-    >
-    </applications-filter>
+  <div class="quick-filters__row">
+    <form class="quick-filters__selectors" *ngIf="quickFiltersForm" [formGroup]="quickFiltersForm">
+      <mat-form-field class="quick-filters__period">
+        <mat-label>Period</mat-label>
+        <mat-select formControlName="period" aria-label="Period selection">
+          <mat-option *ngFor="let period of periods" [value]="period">{{ period.label }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <applications-filter
+        formControlName="applications"
+        class="quick-filters__applications"
+        (applicationCache)="this.applicationsCache = $event"
+      >
+      </applications-filter>
 
-    <mat-form-field class="quick-filters__plans">
-      <mat-label>Plan</mat-label>
-      <mat-select formControlName="plans" [multiple]="true">
-        <mat-option *ngFor="let plan of plans" [value]="plan.id">{{ plan.name }}</mat-option>
-      </mat-select>
-    </mat-form-field>
-  </form>
+      <mat-form-field class="quick-filters__plans">
+        <mat-label>Plan</mat-label>
+        <mat-select formControlName="plans" [multiple]="true">
+          <mat-option *ngFor="let plan of plans" [value]="plan.id">{{ plan.name }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </form>
+
+    <button mat-raised-button [attr.aria-label]="'Refresh'" (click)="refresh.emit()" [disabled]="loading" data-testId="refresh-button">
+      <mat-icon svgIcon="gio:refresh-cw"></mat-icon>Refresh
+    </button>
+  </div>
 
   <div class="quick-filters__applied">
     <ng-container *ngIf="isFiltering">
@@ -49,6 +55,7 @@
             [removable]="true"
             (removed)="removeFilter(filter)"
             [matTooltip]="filter.value | chipValue"
+            [disabled]="loading"
           >
             <span class="quick-filters__chip__key">{{ filter.key }}:</span>
             <span class="quick-filters__chip__value">{{ filter.value | chipValue }}</span>

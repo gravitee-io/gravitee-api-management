@@ -18,6 +18,7 @@ import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatChipHarness, MatChipListHarness } from '@angular/material/chips/testing';
 import { GioFormTagsInputHarness } from '@gravitee/ui-particles-angular';
 import { MatFormFieldHarness } from '@angular/material/form-field/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 
 export class ApiRuntimeLogsQuickFiltersHarness extends ComponentHarness {
   static hostSelector = 'api-runtime-logs-quick-filters';
@@ -30,10 +31,15 @@ export class ApiRuntimeLogsQuickFiltersHarness extends ComponentHarness {
   public getApplicationsChip = this.locatorFor(MatChipHarness.with({ text: /^applications:/ }));
   public getPlansSelect = this.locatorFor(MatSelectHarness.with({ selector: '[formControlName="plans"]' }));
   public getPlansChip = this.locatorFor(MatChipHarness.with({ text: /^plans:/ }));
+  public getRefreshButton = this.locatorFor(MatButtonHarness.with({ selector: '[data-testId=refresh-button]' }));
 
   public getApplicationAutocomplete() {
     return this.getApplicationFormField()
       .then((applicationFormField) => applicationFormField.getControl(GioFormTagsInputHarness))
       .then((tagsInput) => tagsInput.getMatAutocompleteHarness());
+  }
+
+  public clickRefresh() {
+    return this.getRefreshButton().then((button) => button.click());
   }
 }

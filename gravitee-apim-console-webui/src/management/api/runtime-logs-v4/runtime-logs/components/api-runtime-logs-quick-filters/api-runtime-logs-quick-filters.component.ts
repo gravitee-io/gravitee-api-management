@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { isEqual } from 'lodash';
@@ -37,6 +37,8 @@ export class ApiRuntimeLogsQuickFiltersComponent implements OnInit, OnDestroy {
 
   @Input() initialValues: LogFiltersInitialValues;
   @Input() plans: Plan[];
+  @Output() refresh = new EventEmitter<void>();
+
   readonly periods = PERIODS;
   isFiltering = false;
   quickFiltersForm: FormGroup;
@@ -44,14 +46,19 @@ export class ApiRuntimeLogsQuickFiltersComponent implements OnInit, OnDestroy {
   applicationsCache: CacheEntry[];
   readonly defaultFilters = DEFAULT_FILTERS;
 
+  private _loading = true;
+
   constructor(private readonly quickFilterStore: QuickFiltersStoreService) {}
 
   ngOnInit(): void {
     this.applicationsCache = this.initialValues.applications;
     this.quickFiltersForm = new FormGroup({
-      period: new FormControl(DEFAULT_PERIOD),
-      applications: new FormControl(this.initialValues.applications?.map((application) => application.value) ?? null),
-      plans: new FormControl(this.initialValues.plans?.map((plan) => plan.value) ?? DEFAULT_FILTERS.plans),
+      period: new FormControl({ value: DEFAULT_PERIOD, disabled: true }),
+      applications: new FormControl({
+        value: this.initialValues.applications?.map((application) => application.value) ?? null,
+        disabled: true,
+      }),
+      plans: new FormControl({ value: this.initialValues.plans?.map((plan) => plan.value) ?? DEFAULT_FILTERS.plans, disabled: true }),
     });
     this.onValuesChanges();
   }
@@ -66,6 +73,19 @@ export class ApiRuntimeLogsQuickFiltersComponent implements OnInit, OnDestroy {
     this.quickFiltersForm.get(removedFilter.key).patchValue(defaultValue);
     this.currentFilter[removedFilter.key] = defaultValue;
     this.isFiltering = !isEqual(this.currentFilter, DEFAULT_FILTERS);
+  }
+
+  @Input()
+  get loading() {
+    return this._loading;
+  }
+  set loading(value: boolean) {
+    this._loading = value;
+    if (value) {
+      this.quickFiltersForm?.disable();
+    } else {
+      this.quickFiltersForm?.enable();
+    }
   }
 
   private onValuesChanges() {

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
+import { DivHarness } from '@gravitee/ui-particles-angular/testing';
 
 import { ApiRuntimeLogsListHarness, ApiRuntimeLogsQuickFiltersHarness } from './components';
 
@@ -22,6 +23,7 @@ export class ApiRuntimeLogsHarness extends ComponentHarness {
 
   public listHarness = this.locatorFor(ApiRuntimeLogsListHarness);
   public quickFiltersHarness = this.locatorFor(ApiRuntimeLogsQuickFiltersHarness);
+  public loader = this.locatorForOptional(DivHarness.with({ selector: '[data-testId=loader-spinner]' }));
 
   async isEmptyPanelDisplayed(): Promise<boolean> {
     return this.listHarness().then((list) => list.isEmptyPanelDisplayed());
@@ -76,7 +78,14 @@ export class ApiRuntimeLogsHarness extends ComponentHarness {
   async selectedApplication(text: string) {
     return this.quickFiltersHarness()
       .then((harness) => harness.getApplicationAutocomplete())
-      .then((autocomplete) => autocomplete.selectOption({ text }));
+      .then((autocomplete) => autocomplete.getOptions({ text }))
+      .then((options) => (options.length > 0 ? options[0].click() : Promise.reject('No option found')));
+  }
+
+  async getOptoons(text?: string) {
+    return this.quickFiltersHarness()
+      .then((harness) => harness.getApplicationAutocomplete())
+      .then((autocomplete) => autocomplete.getOptions({ text }));
   }
 
   async getApplicationsChip() {

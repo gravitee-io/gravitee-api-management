@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-import { Component, EventEmitter, forwardRef, Output } from '@angular/core';
+import { Component, EventEmitter, forwardRef, Input, Output } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Observable, of } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { AutocompleteOptions, DisplayValueWithFn } from '@gravitee/ui-particles-angular';
+import { coerceBooleanProperty } from '@angular/cdk/coercion';
 
 import { ApplicationService } from '../../../../../../../../services-ngx/application.service';
 
@@ -102,4 +103,20 @@ export class ApplicationsFilterComponent implements ControlValueAccessor {
       this._onChange(value);
     }
   }
+
+  // From ControlValueAccessor interface
+  setDisabledState(isDisabled: boolean): void {
+    this._disabled = coerceBooleanProperty(isDisabled);
+  }
+
+  @Input()
+  public get disabled(): boolean {
+    return this._disabled;
+  }
+
+  public set disabled(dis: boolean) {
+    this._disabled = coerceBooleanProperty(dis);
+  }
+
+  private _disabled = false;
 }

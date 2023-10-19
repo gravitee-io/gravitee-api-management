@@ -29,9 +29,18 @@ import { QuickFiltersStoreService } from './services';
 
 import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
-import { ApiLogsParam, ApiV4, ConnectionLog, fakeApiV4, fakePagedResult, fakePlanV4, PlanV4 } from '../../../../entities/management-api-v2';
-import { fakeApiLogsResponse, fakeEmptyApiLogsResponse } from '../../../../entities/management-api-v2/log/apiLogsResponse.fixture';
-import { fakeConnectionLog } from '../../../../entities/management-api-v2/log/connectionLog.fixture';
+import {
+  ApiLogsParam,
+  ApiV4,
+  ConnectionLog,
+  fakeApiV4,
+  fakePagedResult,
+  fakePlanV4,
+  PlanV4,
+  fakeApiLogsResponse,
+  fakeEmptyApiLogsResponse,
+  fakeConnectionLog,
+} from '../../../../entities/management-api-v2';
 import { fakeApplication } from '../../../../entities/application/Application.fixture';
 import { Application } from '../../../../entities/application/application';
 
@@ -85,7 +94,6 @@ describe('ApiRuntimeLogsComponent', () => {
   const initComponentWithLogs = async ({ hasLogs, total, perPage, plans, areLogsEnabled = true }: ComponentInitData) => {
     await initComponent();
     expectPlanList(plans);
-    expectApplicationList();
     hasLogs ? expectApiWithLogs(total) : expectApiWithNoLog();
     areLogsEnabled ? expectApiWithLogEnabled() : expectApiWithLogDisabled();
     expectUiRouterChange(1, { page: 1, perPage: perPage ?? 10 });
@@ -94,6 +102,33 @@ describe('ApiRuntimeLogsComponent', () => {
   afterEach(() => {
     jest.clearAllMocks();
     httpTestingController.verify();
+  });
+
+  describe('When Loading', () => {
+    it('should display load spinner', async () => {
+      await initComponent();
+      expectPlanList([]);
+
+      expect(await componentHarness.loader()).not.toBeNull();
+
+      expectApiWithNoLog();
+      expectApiWithLogEnabled();
+
+      expect(await componentHarness.loader()).toBeNull();
+    });
+
+    it('should disable', async () => {
+      await initComponentWithLogs({ hasLogs: false });
+
+      const quickFilter = await componentHarness.quickFiltersHarness();
+      await quickFilter.clickRefresh();
+
+      expect(await quickFilter.getPlansSelect().then((select) => select.isDisabled())).toBeTruthy();
+      expect(await quickFilter.getRefreshButton().then((select) => select.isDisabled())).toBeTruthy();
+      expect(await quickFilter.getApplicationsTags().then((select) => select.isDisabled())).toBeTruthy();
+
+      expectApiWithNoLog();
+    });
   });
 
   describe('GIVEN there are no logs', () => {
@@ -262,6 +297,7 @@ describe('ApiRuntimeLogsComponent', () => {
         await componentHarness.selectedApplication('a ( owner )');
         expect(await componentHarness.getApplicationsTags()).toHaveLength(1);
 
+        expectApplicationList(); // call happening after selecting an option
         expectApiWithLogs(total, { perPage, page: 1, applicationIds: application.id });
         expectUiRouterChange(2, { page: 1, perPage: 10, applicationIds: application.id });
 
@@ -278,6 +314,7 @@ describe('ApiRuntimeLogsComponent', () => {
         expectApplicationList(appName, [application]);
 
         await componentHarness.selectedApplication('a ( owner )');
+        expectApplicationList(); // call happening after selecting an option
         expectApiWithLogs(total, { perPage, page: 1, applicationIds: application.id });
         expectUiRouterChange(2, { page: 1, perPage: 10, applicationIds: application.id });
 
@@ -350,7 +387,6 @@ describe('ApiRuntimeLogsComponent', () => {
 
       await initComponent();
       expectPlanList();
-      expectApplicationList();
       expectApiWithNoLog();
       expectApiWithLogEnabled({ type: 'PROXY' });
 
@@ -378,8 +414,6 @@ describe('ApiRuntimeLogsComponent', () => {
       });
 
       it('should init the form with filters preselected', async () => {
-        expectApplicationList(null, [application]);
-
         const expectedApplicationChip = 'applications:Default application ( owner ), another one ( owner )';
         expect(await componentHarness.getApplicationsTags()).toHaveLength(2);
         expect(await componentHarness.getApplicationsChipText()).toStrictEqual(expectedApplicationChip);
@@ -405,7 +439,6 @@ describe('ApiRuntimeLogsComponent', () => {
         }).compileComponents();
         await initComponent();
         expectPlanList();
-        expectApplicationList();
       });
 
       it('should init the form with filters preselected', async () => {
