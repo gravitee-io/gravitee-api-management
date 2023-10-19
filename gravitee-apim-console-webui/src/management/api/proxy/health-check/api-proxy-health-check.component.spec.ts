@@ -320,12 +320,16 @@ describe('ApiProxyHealthCheckComponent', () => {
         name: 'group-2',
         endpoints: [
 <<<<<<< HEAD
+<<<<<<< HEAD
           { name: 'endpoint2-with-healthcheck-deactivated', healthCheck: { enabled: false }, type: 'http' },
           { name: 'endpoint2-with-healthcheck-activated-inherited', healthCheck: { enabled: false, inherit: true }, type: 'http' },
           { name: 'endpoint2-with-healthcheck-activated', healthCheck: { enabled: true, inherit: false }, type: 'http' },
           { name: 'endpoint2-without-healthcheck', type: 'http' },
 =======
           { name: 'endpoint2-with-healthcheck-deactivated', healthcheck: { inherit: true } },
+=======
+          { name: 'endpoint2-with-healthcheck-deactivated', healthcheck: { inherit: false, enabled: false } },
+>>>>>>> 8f94d963c0 (fix(console): improve & fix health check icon into endpoint list)
           { name: 'endpoint2-with-healthcheck-activated-inherited', healthcheck: { inherit: true } },
           { name: 'endpoint2-with-healthcheck-activated', healthcheck: { enabled: true, inherit: false } },
           { name: 'endpoint2-without-healthcheck', healthcheck: { inherit: true } },
