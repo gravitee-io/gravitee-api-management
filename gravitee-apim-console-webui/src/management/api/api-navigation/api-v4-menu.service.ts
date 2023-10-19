@@ -275,7 +275,7 @@ export class ApiV4MenuService implements ApiMenuService {
 
     if (this.permissionService.hasAnyMatching(['api-notification-r'])) {
       notificationsGroup.items.push({
-        displayName: 'Notifications',
+        displayName: 'Notification settings',
         targetRoute: 'DISABLED',
       });
     }

@@ -15,11 +15,10 @@
     limitations under the License.
 
 -->
-
 <div class="title">
-  <h1>Notifications</h1>
+  <h1>Notification settings</h1>
   <button
-    *gioPermission="{ anyOf: ['api-notification-c'] }"
+    *gioPermission="{ anyOf: ['api-notification-c', 'application-notification-c', 'environment-notification-c'] }"
     mat-raised-button
     color="primary"
     aria-label="Add notification"
@@ -30,9 +29,10 @@
   </button>
 </div>
 <gio-table-wrapper
+  [filters]="initialFilters"
   [length]="notificationUnpaginatedLength"
-  (filtersChange)="onPropertiesFiltersChanged($event)"
   [paginationPageSizeOptions]="[5, 10, 25, 50]"
+  (filtersChange)="onPropertiesFiltersChanged($event)"
 >
   <table
     mat-table
@@ -44,7 +44,7 @@
     <ng-container matColumnDef="name">
       <th mat-header-cell *matHeaderCellDef id="name">Name</th>
       <td mat-cell *matCellDef="let element">
-        <a [uiSref]="'management.apis.notification-details'" [uiParams]="{ notificationId: element.id || element.configType }">
+        <a [uiSref]="notificationSettingsDetailsPath" [uiParams]="{ notificationId: element.id || element.configType }">
           {{ element.name }}
         </a>
       </td>
@@ -63,7 +63,7 @@
         <div class="notifications-list__table__actions">
           <ng-container *ngIf="element.id">
             <button
-              *gioPermission="{ anyOf: ['api-notification-d'] }"
+              *gioPermission="{ anyOf: ['api-notification-d', 'application-notification-d', 'environment-notification-d'] }"
               mat-icon-button
               (click)="deleteNotification(element.name, element.id)"
               aria-label="Delete notification"

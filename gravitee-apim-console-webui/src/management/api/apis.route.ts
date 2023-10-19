@@ -63,8 +63,8 @@ import { ApiEndpointGroupCreateComponent } from './endpoints-v4/endpoint-group/c
 import { ApiRuntimeLogsSettingsComponent } from './runtime-logs-v4/runtime-logs-settings/api-runtime-logs-settings.component';
 import { ApiRuntimeLogsComponent } from './runtime-logs-v4/runtime-logs/api-runtime-logs.component';
 import { ApiListComponent } from './list/api-list.component';
-import { NotificationsListComponent } from './notifications/notifications-list/notifications-list.component';
-import { NotificationDetailsComponent } from './notifications/notifications-list/notofication-details/notification-details.component';
+import { ApiNotificationSettingsListComponent } from './notification-settings/notification-settings-list/api-notification-settings-list.component';
+import { ApiNotificationSettingsDetailsComponent } from './notification-settings/notofication-settings-details/api-notification-settings-details.component';
 import { ApiCreationGetStartedComponent } from './creation-get-started/api-creation-get-started.component';
 import { ApiCreationV4Component } from './creation-v4/api-creation-v4.component';
 import { ApiCreationV4ConfirmationComponent } from './creation-v4/api-creation-v4-confirmation.component';
@@ -825,9 +825,9 @@ export const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'management.apis.notifications',
-    component: NotificationsListComponent,
-    url: '/notifications',
+    name: 'management.apis.notification-settings',
+    component: ApiNotificationSettingsListComponent,
+    url: '/notification-settings',
     data: {
       apiPermissions: {
         only: ['api-notification-r'],
@@ -839,9 +839,9 @@ export const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'management.apis.notification-details',
-    component: NotificationDetailsComponent,
-    url: '/notifications/:notificationId',
+    name: 'management.apis.notification-settings-details',
+    component: ApiNotificationSettingsDetailsComponent,
+    url: '/notification-settings/:notificationId',
     data: {
       apiPermissions: {
         only: ['api-notification-r', 'api-notification-c', 'api-notification-u'],

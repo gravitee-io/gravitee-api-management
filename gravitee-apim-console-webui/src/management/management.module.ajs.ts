@@ -176,7 +176,6 @@ import MetadataValidatorDirective from '../components/metadata/metadata.validato
 import RoleService from '../services/role.service';
 
 import applicationRouterConfig from './application/applications.route';
-import applicationsNotificationsRouterConfig from './application/details/notifications/applications.notifications.settings.route';
 import configurationRouterConfig from './configuration/configuration.route';
 import globalNotificationsRouterConfig from './configuration/notifications/global.notifications.settings.route';
 // User
@@ -452,6 +451,10 @@ import { OrgNavigationComponent } from '../organization/configuration/navigation
 import { ClientRegistrationProviderComponent } from './configuration/client-registration-providers/client-registration-provider/client-registration-provider.component';
 import { GioPermissionService } from '../shared/components/gio-permission/gio-permission.service';
 import { ApiAnalyticsOverviewComponentAjs } from './api/analytics/overview/analytics-overview.component.ajs';
+import { ApplicationNotificationSettingsListComponent } from './application/details/notifications/notification-settings/notification-settings-list/application-notification-settings-list.component';
+import { ApplicationNotificationSettingsDetailsComponent } from './application/details/notifications/notification-settings/notification-settings-details/application-notification-settings-details.component';
+import { EnvironmentNotificationSettingsListComponent } from './configuration/notifications/notification-settings/notification-settings-list/environment-notification-settings-list.component';
+import { EnvironmentNotificationSettingsDetailsComponent } from './configuration/notifications/notification-settings/notification-settings-details/environment-notification-settings-details.component';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -512,7 +515,6 @@ graviteeManagementModule.config(routerConfig);
 graviteeManagementModule.config(authenticationConfig);
 graviteeManagementModule.config(managementRouterConfig);
 graviteeManagementModule.config(applicationRouterConfig);
-graviteeManagementModule.config(applicationsNotificationsRouterConfig);
 graviteeManagementModule.config(configurationRouterConfig);
 graviteeManagementModule.config(globalNotificationsRouterConfig);
 graviteeManagementModule.config(interceptorConfig);
@@ -776,6 +778,24 @@ graviteeManagementModule.service('NotificationSettingsService', NotificationSett
 graviteeManagementModule.service('NotificationTemplatesService', NotificationTemplatesService);
 graviteeManagementModule.controller('DialogAddNotificationSettingsController', DialogAddNotificationSettingsController);
 graviteeManagementModule.component('notificationsComponentAjs', NotificationsComponentAjs);
+
+graviteeManagementModule.directive(
+  'environmentNotificationSettingsList',
+  downgradeComponent({ component: EnvironmentNotificationSettingsListComponent }),
+);
+graviteeManagementModule.directive(
+  'environmentNotificationSettingsDetails',
+  downgradeComponent({ component: EnvironmentNotificationSettingsDetailsComponent }),
+);
+
+graviteeManagementModule.directive(
+  'applicationNotificationSettingsList',
+  downgradeComponent({ component: ApplicationNotificationSettingsListComponent }),
+);
+graviteeManagementModule.directive(
+  'applicationNotificationSettingsDetails',
+  downgradeComponent({ component: ApplicationNotificationSettingsDetailsComponent }),
+);
 
 graviteeManagementModule.component('logout', LogoutComponent);
 

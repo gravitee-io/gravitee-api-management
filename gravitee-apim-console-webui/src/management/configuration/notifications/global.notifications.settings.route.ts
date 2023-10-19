@@ -13,9 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Scope } from '../../../entities/scope';
 import AlertService from '../../../services/alert.service';
-import NotificationSettingsService from '../../../services/notificationSettings.service';
 import NotifierService from '../../../services/notifier.service';
 import { Scope as AlertScope } from '../../../entities/alert';
 import { ApimFeature } from '../../../shared/components/gio-license/gio-license-data';
@@ -24,47 +22,6 @@ export default applicationsNotificationsRouterConfig;
 
 function applicationsNotificationsRouterConfig($stateProvider) {
   $stateProvider
-    .state('management.settings.notifications', {
-      url: '/notifications',
-      component: 'notificationsComponentAjs',
-      data: {
-        perms: {
-          only: ['environment-notification-r'],
-          unauthorizedFallbackTo: 'management.home',
-        },
-      },
-      resolve: {
-        resolvedHookScope: () => Scope.PORTAL,
-        resolvedHooks: [
-          'NotificationSettingsService',
-          (NotificationSettingsService: NotificationSettingsService) =>
-            NotificationSettingsService.getHooks(Scope.PORTAL).then((response) => response.data),
-        ],
-        resolvedNotifiers: [
-          'NotificationSettingsService',
-          (NotificationSettingsService: NotificationSettingsService) =>
-            NotificationSettingsService.getNotifiers(Scope.PORTAL, null).then((response) => response.data),
-        ],
-        notificationSettings: [
-          'NotificationSettingsService',
-          (NotificationSettingsService: NotificationSettingsService) =>
-            NotificationSettingsService.getNotificationSettings(Scope.PORTAL, null).then((response) => response.data),
-        ],
-      },
-    })
-    .state('management.settings.notifications.notification', {
-      url: '/:notificationId',
-      component: 'notificationsComponentAjs',
-      data: {
-        menu: null,
-        docs: {
-          page: 'management-configuration-notifications',
-        },
-        perms: {
-          only: ['environment-notification-r'],
-        },
-      },
-    })
     .state('management.alerts', {
       url: '/alerts',
       template: require('../../../components/alerts/alertTabs/alert-tabs.html'),

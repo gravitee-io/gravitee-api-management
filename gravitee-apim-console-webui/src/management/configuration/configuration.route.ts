@@ -825,6 +825,27 @@ function configurationRouterConfig($stateProvider: StateProvider) {
         },
       },
     })
+    .state('management.settings.notification-settings', {
+      url: '/notification-settings',
+      component: 'environmentNotificationSettingsList',
+      data: {
+        docs: {
+          page: 'management-configuration-notifications',
+        },
+        perms: {
+          unauthorizedFallbackTo: 'management.home',
+        },
+      },
+    })
+    .state('management.settings.notification-settings-details', {
+      url: '/notification-settings/:notificationId',
+      component: 'environmentNotificationSettingsDetails',
+      data: {
+        docs: {
+          page: 'management-configuration-notifications',
+        },
+      },
+    })
     .state('management.settings.groups', {
       abstract: true,
       url: '/groups',
@@ -845,7 +866,7 @@ function configurationRouterConfig($stateProvider: StateProvider) {
         },
         perms: {
           only: ['environment-group-r'],
-          unauthorizedFallbackTo: 'management.settings.notifications',
+          unauthorizedFallbackTo: 'management.settings.notification-settings',
         },
       },
     })

@@ -18,13 +18,14 @@ import { StateService } from '@uirouter/core';
 import { GioMenuService } from '@gravitee/ui-particles-angular';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { castArray } from 'lodash';
 
 import { UIRouterState } from '../../../../ajs-upgraded-providers';
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 
 interface MenuItem {
   targetRoute?: string;
-  baseRoute?: string;
+  baseRoute?: string | string[];
   displayName: string;
   permissions?: string[];
 }
@@ -89,9 +90,12 @@ export class ApplicationNavigationComponent implements OnInit, OnDestroy {
         permissions: ['application-log-r'],
       },
       {
-        displayName: 'Notifications',
-        targetRoute: 'management.applications.application.notifications',
-        baseRoute: 'management.applications.application.notifications',
+        displayName: 'Notification settings',
+        targetRoute: 'management.applications.application.notification-settings',
+        baseRoute: [
+          'management.applications.application.notification-settings',
+          'management.applications.application.notification-settings-details',
+        ],
         permissions: ['application-notification-r', 'application-alert-r'],
       },
     ]);
@@ -109,8 +113,8 @@ export class ApplicationNavigationComponent implements OnInit, OnDestroy {
     return [];
   }
 
-  isActive(route: string): boolean {
-    return this.ajsState.includes(route);
+  isActive(baseRoute: MenuItem['baseRoute']): boolean {
+    return castArray(baseRoute).some((baseRoute) => this.ajsState.includes(baseRoute));
   }
 
   public computeBreadcrumbItems(): string[] {

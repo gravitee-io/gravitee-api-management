@@ -23,20 +23,21 @@ import { MatOptionModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
 import { ReactiveFormsModule } from '@angular/forms';
 
-import { NotificationsAddNotificationDialogComponent } from './notifications-add-notification-dialog.component';
+import { NotificationSettingsAddDialogComponent } from './notification-settings-add-dialog.component';
 
 @NgModule({
-  declarations: [NotificationsAddNotificationDialogComponent],
-  exports: [NotificationsAddNotificationDialogComponent],
+  declarations: [NotificationSettingsAddDialogComponent],
+  exports: [NotificationSettingsAddDialogComponent],
   imports: [
     CommonModule,
+    ReactiveFormsModule,
+
     MatDialogModule,
     MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
     MatOptionModule,
     MatSelectModule,
-    ReactiveFormsModule,
   ],
 })
-export class NotificationsAddNotificationDialogModule {}
+export class NotificationSettingsAddDialogModule {}
