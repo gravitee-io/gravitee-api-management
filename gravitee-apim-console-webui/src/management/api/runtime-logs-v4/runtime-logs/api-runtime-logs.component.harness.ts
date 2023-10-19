@@ -83,6 +83,12 @@ export class ApiRuntimeLogsHarness extends ComponentHarness {
     return this.quickFiltersHarness().then((quickFilters) => quickFilters.getApplicationsChip());
   }
 
+  async getApplicationsChipText() {
+    return this.quickFiltersHarness()
+      .then((quickFilters) => quickFilters.getApplicationsChip())
+      .then((chip) => chip.getText());
+  }
+
   async removeApplicationsChip() {
     return this.getApplicationsChip()
       .then((chip) => chip.getRemoveButton())

@@ -359,27 +359,38 @@ describe('ApiRuntimeLogsComponent', () => {
   });
 
   describe('GIVEN there is filters in the url to initialize the form', () => {
+    const anotherApplication = fakeApplication({ id: '2', name: 'another one', owner: { displayName: 'owner' } });
+
     describe('there are applications and plans in the url', () => {
       beforeEach(async () => {
         await TestBed.overrideProvider(UIRouterStateParams, {
-          useValue: { ...stateParams, applicationIds: application.id, planIds: `${plan1.id},${plan2.id}` },
+          useValue: { ...stateParams, applicationIds: `${application.id},${anotherApplication.id}`, planIds: `${plan1.id},${plan2.id}` },
         }).compileComponents();
         await initComponent();
         expectPlanList([plan1, plan2]);
-        expectApiWithLogs(10, { page: 1, perPage: 10, applicationIds: '1', planIds: '1,2' });
+        expectApiWithLogs(10, { page: 1, perPage: 10, applicationIds: '1,2', planIds: '1,2' });
         expectApiWithLogEnabled();
       });
 
       it('should init the form with filters preselected', async () => {
-        expectApplicationFindByIds([application]);
-        expectApplicationList();
+        expectApplicationFindByIds([application, anotherApplication]);
+        expectApplicationList(null, [application]);
 
-        expect(await componentHarness.getApplicationsTags()).toHaveLength(1);
-        expect(await componentHarness.getApplicationsChip()).toBeTruthy();
+        const expectedApplicationChip = 'applications:Default application ( owner ), another one ( owner )';
+        expect(await componentHarness.getApplicationsTags()).toHaveLength(2);
+        expect(await componentHarness.getApplicationsChipText()).toStrictEqual(expectedApplicationChip);
         expectApplicationFindById(application);
+        // Here we simulate that this application is not returned by the default search because it does not belong to the response first page data.
+        // Nevertheless, we should be able to display it in the chips and the tags
+        expectApplicationFindById(anotherApplication);
 
         expect(await componentHarness.getSelectedPlans()).toEqual('plan 1, plan 2');
         expect(await componentHarness.getPlanChip()).toBeTruthy();
+
+        await componentHarness.removePlanChip();
+        // removing a chip should not impact on the application chip computed from the cache
+        expect(await componentHarness.getApplicationsChipText()).toStrictEqual(expectedApplicationChip);
+        expectApiWithLogs(10, { page: 1, perPage: 10, applicationIds: '1,2' });
       });
     });
   });
@@ -480,16 +491,14 @@ describe('ApiRuntimeLogsComponent', () => {
 
   function expectApplicationFindByIds(applications: Application[] = []) {
     if (applications.length > 0) {
-      const req = httpTestingController
-        .match({
-          url: `${CONSTANTS_TESTING.env.baseURL}/applications/_paged?page=1&size=${applications.length}&ids=${applications
-            .map((app) => app.id)
-            .join(',')}`,
+      httpTestingController
+        .expectOne({
+          url: `${CONSTANTS_TESTING.env.baseURL}/applications/_paged?page=1&size=${applications.length}${applications
+            .map((app) => `&ids=${app.id}`)
+            .join('')}`,
           method: 'GET',
         })
-        .filter((req) => !req.cancelled);
-      expect(req.length).toEqual(1);
-      req[0].flush(fakePagedResult(applications));
+        .flush(fakePagedResult(applications));
     } else {
       httpTestingController.expectOne({
         url: `${CONSTANTS_TESTING.env.baseURL}/applications/_paged?page=1&size=10`,
@@ -500,12 +509,14 @@ describe('ApiRuntimeLogsComponent', () => {
   }
 
   function expectApplicationFindById(application: Application) {
-    httpTestingController
-      .expectOne({
+    const req = httpTestingController
+      .match({
         url: `${CONSTANTS_TESTING.env.baseURL}/applications/${application.id}`,
         method: 'GET',
       })
-      .flush(application);
+      .filter((req) => !req.cancelled);
+    expect(req.length > 0).toBeTruthy();
+    req[0].flush(application);
     fixture.detectChanges();
   }
 
