@@ -22,6 +22,7 @@ import io.gravitee.apim.infra.adapter.PageAdapter;
 import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class PageCrudServiceInMemory implements InMemoryAlternative<Page>, PageCrudService {
@@ -45,11 +46,12 @@ public class PageCrudServiceInMemory implements InMemoryAlternative<Page>, PageC
 
     @Override
     public Page get(String id) {
-        var page = pages.stream().filter(p -> p.getId().equals(id)).findFirst();
-        if (page.isPresent()) {
-            return page.get();
-        }
-        throw new PageNotFoundException(id);
+        return this.findById(id).orElseThrow(() -> new PageNotFoundException(id));
+    }
+
+    @Override
+    public Optional<Page> findById(String id) {
+        return pages.stream().filter(p -> p.getId().equals(id)).findFirst();
     }
 
     @Override

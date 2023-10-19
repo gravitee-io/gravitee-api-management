@@ -19,11 +19,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.rest.api.management.v2.rest.model.Media;
-import io.gravitee.rest.api.management.v2.rest.model.Page;
-import io.gravitee.rest.api.management.v2.rest.model.PageMedia;
-import io.gravitee.rest.api.management.v2.rest.model.PageSource;
-import io.gravitee.rest.api.management.v2.rest.model.Revision;
+import io.gravitee.rest.api.management.v2.rest.model.*;
 import io.gravitee.rest.api.model.MediaEntity;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PageMediaEntity;
@@ -87,6 +83,9 @@ public interface PageMapper {
     io.gravitee.apim.core.documentation.model.Page map(
         io.gravitee.rest.api.management.v2.rest.model.CreateDocumentationFolder createDocumentationFolder
     );
+
+    Breadcrumb map(io.gravitee.apim.core.documentation.model.Breadcrumb breadcrumb);
+    List<Breadcrumb> map(List<io.gravitee.apim.core.documentation.model.Breadcrumb> breadcrumbList);
 
     @Named("deserializeJsonConfiguration")
     default JsonNode deserializeJsonConfiguration(Object configuration) throws JsonProcessingException {

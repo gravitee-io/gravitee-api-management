@@ -16,9 +16,11 @@
 package io.gravitee.apim.core.documentation.crud_service;
 
 import io.gravitee.apim.core.documentation.model.Page;
+import java.util.Optional;
 
 public interface PageCrudService {
     Page createDocumentationPage(Page page);
     Page updateDocumentationPage(Page pageToUpdate);
     Page get(String id);
+    Optional<Page> findById(String id);
 }

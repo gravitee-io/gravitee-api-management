@@ -22,6 +22,7 @@ import io.gravitee.apim.infra.adapter.PageAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,15 +59,17 @@ public class PageCrudServiceImpl implements PageCrudService {
 
     @Override
     public Page get(String id) {
+        return this.findById(id).orElseThrow(() -> new PageNotFoundException(id));
+    }
+
+    @Override
+    public Optional<Page> findById(String id) {
         try {
-            var foundPage = pageRepository.findById(id);
-            if (foundPage.isPresent()) {
-                return PageAdapter.INSTANCE.toEntity(foundPage.get());
-            }
+            return pageRepository.findById(id).map(PageAdapter.INSTANCE::toEntity);
         } catch (TechnicalException e) {
             logger.error("An error occurred while finding Page by id {}", id, e);
         }
-        throw new PageNotFoundException(id);
+        return Optional.empty();
     }
 
     private io.gravitee.repository.management.model.Page createDocumentation(io.gravitee.repository.management.model.Page page) {

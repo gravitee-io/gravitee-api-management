@@ -22,6 +22,7 @@ import static org.mockito.Mockito.*;
 
 import assertions.MAPIAssertions;
 import inmemory.*;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.rest.api.management.v2.rest.model.*;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
@@ -40,6 +41,9 @@ import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 class ApiPagesResourceTest extends AbstractResourceTest {
+
+    @Autowired
+    private ApiCrudServiceInMemory apiCrudServiceInMemory;
 
     @Autowired
     private PageQueryServiceInMemory pageQueryServiceInMemory;
@@ -71,13 +75,22 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
+
+        apiCrudServiceInMemory.initWith(List.of(Api.builder().id("api-id").build()));
     }
 
     @AfterEach
     void tearDown() {
         GraviteeContext.cleanContext();
         Stream
-            .of(pageQueryServiceInMemory, pageCrudServiceInMemory, pageRevisionCrudServiceInMemory, auditCrudService, userCrudService)
+            .of(
+                pageQueryServiceInMemory,
+                pageCrudServiceInMemory,
+                pageRevisionCrudServiceInMemory,
+                auditCrudService,
+                userCrudService,
+                apiCrudServiceInMemory
+            )
             .forEach(InMemoryAlternative::reset);
     }
 
@@ -115,11 +128,14 @@ class ApiPagesResourceTest extends AbstractResourceTest {
         void should_get_pages_empty_list() {
             final Response response = rootTarget().request().get();
             assertThat(response.getStatus()).isEqualTo(200);
-            assertThat(response.readEntity(List.class)).isEqualTo(List.of());
+
+            var body = response.readEntity(ApiDocumentationPagesResponse.class);
+            assertThat(body.getPages()).isEqualTo(List.of());
+            assertThat(body.getBreadcrumb()).isNull();
         }
 
         @Test
-        void should_get_pages() {
+        void should_get_all_pages_if_no_parameters_specified() {
             Page page1 = Page
                 .builder()
                 .referenceType(Page.ReferenceType.API)
@@ -139,8 +155,10 @@ class ApiPagesResourceTest extends AbstractResourceTest {
             givenApiPagesQuery(List.of(page1, page2));
             final Response response = rootTarget().request().get();
             assertThat(response.getStatus()).isEqualTo(200);
-            List<io.gravitee.rest.api.management.v2.rest.model.Page> pages = response.readEntity(new GenericType<>() {});
-            assertThat(pages)
+
+            var body = response.readEntity(ApiDocumentationPagesResponse.class);
+            assertThat(body.getBreadcrumb()).isNull();
+            assertThat(body.getPages())
                 .isEqualTo(
                     List.of(
                         io.gravitee.rest.api.management.v2.rest.model.Page
@@ -168,6 +186,184 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                             .excludedAccessControls(false)
                             .build()
                     )
+                );
+        }
+
+        @Test
+        void should_get_all_pages_if_empty_parent_id() {
+            Page page1 = Page
+                .builder()
+                .referenceType(Page.ReferenceType.API)
+                .referenceId("api-id")
+                .type(Page.Type.MARKDOWN)
+                .id("page-1")
+                .name("page-1")
+                .build();
+            Page page2 = Page
+                .builder()
+                .referenceType(Page.ReferenceType.API)
+                .referenceId("api-id")
+                .type(Page.Type.FOLDER)
+                .id("folder")
+                .name("folder")
+                .build();
+            givenApiPagesQuery(List.of(page1, page2));
+            final Response response = rootTarget().queryParam("parentId", "").request().get();
+            assertThat(response.getStatus()).isEqualTo(200);
+
+            var body = response.readEntity(ApiDocumentationPagesResponse.class);
+            assertThat(body.getBreadcrumb()).isNull();
+            assertThat(body.getPages())
+                .isEqualTo(
+                    List.of(
+                        io.gravitee.rest.api.management.v2.rest.model.Page
+                            .builder()
+                            .id("page-1")
+                            .type(PageType.MARKDOWN)
+                            .name("page-1")
+                            .order(0)
+                            .published(false)
+                            .homepage(false)
+                            .configuration(Map.of())
+                            .metadata(Map.of())
+                            .excludedAccessControls(false)
+                            .build(),
+                        io.gravitee.rest.api.management.v2.rest.model.Page
+                            .builder()
+                            .id("folder")
+                            .type(PageType.FOLDER)
+                            .name("folder")
+                            .order(0)
+                            .published(false)
+                            .homepage(false)
+                            .configuration(Map.of())
+                            .metadata(Map.of())
+                            .excludedAccessControls(false)
+                            .build()
+                    )
+                );
+        }
+
+        @Test
+        void should_return_root_pages() {
+            Page page1 = Page
+                .builder()
+                .referenceType(Page.ReferenceType.API)
+                .referenceId("api-id")
+                .type(Page.Type.MARKDOWN)
+                .id("page-1")
+                .name("page-1")
+                .parentId("")
+                .build();
+            Page page2 = Page
+                .builder()
+                .referenceType(Page.ReferenceType.API)
+                .referenceId("api-id")
+                .type(Page.Type.FOLDER)
+                .id("folder-1")
+                .name("folder 1")
+                .build();
+            Page page3 = Page
+                .builder()
+                .referenceType(Page.ReferenceType.API)
+                .referenceId("api-id")
+                .type(Page.Type.FOLDER)
+                .id("folder-2")
+                .name("folder 2")
+                .parentId("not-root")
+                .build();
+            givenApiPagesQuery(List.of(page1, page2, page3));
+            final Response response = rootTarget().queryParam("parentId", "ROOT").request().get();
+            assertThat(response.getStatus()).isEqualTo(200);
+
+            var body = response.readEntity(ApiDocumentationPagesResponse.class);
+            assertThat(body.getBreadcrumb()).isNotNull().hasSize(0);
+            assertThat(body.getPages())
+                .isEqualTo(
+                    List.of(
+                        io.gravitee.rest.api.management.v2.rest.model.Page
+                            .builder()
+                            .id("page-1")
+                            .type(PageType.MARKDOWN)
+                            .name("page-1")
+                            .order(0)
+                            .published(false)
+                            .homepage(false)
+                            .configuration(Map.of())
+                            .metadata(Map.of())
+                            .excludedAccessControls(false)
+                            .parentId("")
+                            .build(),
+                        io.gravitee.rest.api.management.v2.rest.model.Page
+                            .builder()
+                            .id("folder-1")
+                            .type(PageType.FOLDER)
+                            .name("folder 1")
+                            .order(0)
+                            .published(false)
+                            .homepage(false)
+                            .configuration(Map.of())
+                            .metadata(Map.of())
+                            .excludedAccessControls(false)
+                            .build()
+                    )
+                );
+        }
+
+        @Test
+        void should_return_pages_of_parent_id() {
+            Page page1 = Page
+                .builder()
+                .referenceType(Page.ReferenceType.API)
+                .referenceId("api-id")
+                .type(Page.Type.MARKDOWN)
+                .id("page-1")
+                .name("page-1")
+                .parentId("parent-id")
+                .build();
+            Page page2 = Page
+                .builder()
+                .referenceType(Page.ReferenceType.API)
+                .referenceId("api-id")
+                .type(Page.Type.FOLDER)
+                .id("folder-1")
+                .name("folder 1")
+                .build();
+            Page page3 = Page
+                .builder()
+                .referenceType(Page.ReferenceType.API)
+                .referenceId("api-id")
+                .type(Page.Type.FOLDER)
+                .id("parent-id")
+                .name("folder 2")
+                .parentId("")
+                .build();
+            givenApiPagesQuery(List.of(page1, page2, page3));
+            final Response response = rootTarget().queryParam("parentId", "parent-id").request().get();
+            assertThat(response.getStatus()).isEqualTo(200);
+
+            var body = response.readEntity(ApiDocumentationPagesResponse.class);
+            assertThat(body.getBreadcrumb())
+                .isNotNull()
+                .hasSize(1)
+                .usingRecursiveComparison()
+                .isEqualTo(List.of(Breadcrumb.builder().id("parent-id").name("folder 2").position(1).build()));
+            assertThat(body.getPages().get(0))
+                .usingRecursiveComparison()
+                .isEqualTo(
+                    io.gravitee.rest.api.management.v2.rest.model.Page
+                        .builder()
+                        .id("page-1")
+                        .type(PageType.MARKDOWN)
+                        .name("page-1")
+                        .order(0)
+                        .published(false)
+                        .homepage(false)
+                        .configuration(Map.of())
+                        .metadata(Map.of())
+                        .excludedAccessControls(false)
+                        .parentId("parent-id")
+                        .build()
                 );
         }
     }
@@ -256,5 +452,6 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
     private void givenApiPagesQuery(List<Page> pages) {
         pageQueryServiceInMemory.initWith(pages);
+        pageCrudServiceInMemory.initWith(pages);
     }
 }

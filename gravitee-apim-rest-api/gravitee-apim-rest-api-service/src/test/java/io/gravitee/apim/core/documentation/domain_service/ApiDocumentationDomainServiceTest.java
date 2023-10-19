@@ -20,6 +20,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import inmemory.PageQueryServiceInMemory;
 import io.gravitee.apim.core.documentation.model.Page;
 import java.util.List;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 class ApiDocumentationDomainServiceTest {
@@ -27,17 +29,89 @@ class ApiDocumentationDomainServiceTest {
     private final PageQueryServiceInMemory pageQueryService = new PageQueryServiceInMemory();
     private final ApiDocumentationDomainService service = new ApiDocumentationDomainService(pageQueryService);
 
-    @Test
-    void should_return_all_pages() {
-        pageQueryService.initWith(
-            List.of(
-                Page.builder().id("page#1").referenceType(Page.ReferenceType.API).referenceId("api-id").build(),
-                Page.builder().id("page#2").referenceType(Page.ReferenceType.API).referenceId("api-id").build()
-            )
-        );
-        var res = service.getApiPages("api-id");
-        assertThat(res).hasSize(2);
-        assertThat(res.get(0).getId()).isEqualTo("page#1");
-        assertThat(res.get(1).getId()).isEqualTo("page#2");
+    @AfterEach
+    void tearDown() {
+        pageQueryService.reset();
+    }
+
+    @Nested
+    class GetAllPages {
+
+        @Test
+        void should_return_all_pages_with_null_parent_id() {
+            pageQueryService.initWith(
+                List.of(
+                    Page.builder().id("page#1").referenceType(Page.ReferenceType.API).referenceId("api-id").build(),
+                    Page.builder().id("page#2").referenceType(Page.ReferenceType.API).referenceId("api-id").build(),
+                    Page.builder().id("page#3").referenceType(Page.ReferenceType.API).referenceId("api-id").parentId("not-root").build()
+                )
+            );
+            var res = service.getApiPages("api-id", null);
+            assertThat(res).hasSize(3);
+            assertThat(res.get(0).getId()).isEqualTo("page#1");
+            assertThat(res.get(1).getId()).isEqualTo("page#2");
+            assertThat(res.get(2).getId()).isEqualTo("page#3");
+        }
+
+        @Test
+        void should_return_all_pages_with_empty_parent_id() {
+            pageQueryService.initWith(
+                List.of(
+                    Page.builder().id("page#1").referenceType(Page.ReferenceType.API).referenceId("api-id").build(),
+                    Page.builder().id("page#2").referenceType(Page.ReferenceType.API).referenceId("api-id").build(),
+                    Page.builder().id("page#3").referenceType(Page.ReferenceType.API).referenceId("api-id").parentId("not-root").build()
+                )
+            );
+            var res = service.getApiPages("api-id", "");
+            assertThat(res).hasSize(3);
+            assertThat(res.get(0).getId()).isEqualTo("page#1");
+            assertThat(res.get(1).getId()).isEqualTo("page#2");
+            assertThat(res.get(2).getId()).isEqualTo("page#3");
+        }
+    }
+
+    @Nested
+    class GetRootPages {
+
+        @Test
+        void should_return_all_root_pages() {
+            pageQueryService.initWith(
+                List.of(
+                    Page.builder().id("page#1").referenceType(Page.ReferenceType.API).referenceId("api-id").build(),
+                    Page.builder().id("page#2").referenceType(Page.ReferenceType.API).referenceId("api-id").parentId("not-root").build(),
+                    Page.builder().id("page#3").referenceType(Page.ReferenceType.API).referenceId("api-id").parentId("").build()
+                )
+            );
+            var res = service.getApiPages("api-id", "ROOT");
+            assertThat(res).hasSize(2);
+            assertThat(res.get(0).getId()).isEqualTo("page#1");
+            assertThat(res.get(1).getId()).isEqualTo("page#3");
+        }
+    }
+
+    @Nested
+    class GetPageByParentId {
+
+        @Test
+        void should_return_all_pages_with_parent_id() {
+            pageQueryService.initWith(
+                List.of(
+                    Page.builder().id("page#1").referenceType(Page.ReferenceType.API).referenceId("api-id").build(),
+                    Page.builder().id("page#2").referenceType(Page.ReferenceType.API).referenceId("api-id").parentId("not-root").build(),
+                    Page.builder().id("page#3").referenceType(Page.ReferenceType.API).referenceId("api-id").parentId("parent-id").build(),
+                    Page
+                        .builder()
+                        .id("page#4")
+                        .referenceType(Page.ReferenceType.API)
+                        .referenceId("bad-api-id")
+                        .parentId("parent-id")
+                        .build(),
+                    Page.builder().id("page#5").referenceType(Page.ReferenceType.API).referenceId("api-id").parentId("").build()
+                )
+            );
+            var res = service.getApiPages("api-id", "parent-id");
+            assertThat(res).hasSize(1);
+            assertThat(res.get(0).getId()).isEqualTo("page#3");
+        }
     }
 }
