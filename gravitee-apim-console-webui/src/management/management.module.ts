@@ -28,6 +28,7 @@ import { MessagesModule } from './messages/messages.module';
 import { HomeModule } from './home/home.module';
 import { TasksModule } from './tasks/tasks.module';
 import { ClientRegistrationProvidersModule } from './configuration/client-registration-providers/client-registration-providers.module';
+import { EnvironmentNotificationSettingsModule } from './configuration/notifications/notification-settings/environment-notification-settings.module';
 
 import { GioPermissionModule } from '../shared/components/gio-permission/gio-permission.module';
 import { NotificationsModule } from '../components/notifications/notifications.module';
@@ -51,6 +52,7 @@ import { AlertsModule } from '../components/alerts/alerts.module';
     ClientRegistrationProvidersModule,
     NotificationsModule,
     AlertsModule,
+    EnvironmentNotificationSettingsModule,
   ],
   declarations: [],
   entryComponents: [],

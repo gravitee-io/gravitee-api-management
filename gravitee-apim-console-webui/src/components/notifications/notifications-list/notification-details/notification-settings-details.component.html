@@ -16,14 +16,14 @@
 
 -->
 <div>
-  <div class="md-headline notifications-form__title" *ngIf="!isLoadingData">
-    <gio-go-back-button [ajsGo]="{ to: 'management.apis.notifications' }"></gio-go-back-button>
+  <div *ngIf="!isLoadingData" class="md-headline notifications-form__title">
+    <gio-go-back-button [ajsGo]="{ to: notificationSettingsListPath }"></gio-go-back-button>
     Update <b>{{ notificationSettings.name }}</b>
     <span *ngIf="notifier" class="gio-badge-neutral">{{ notifier.name }}</span>
   </div>
-  <form autocomplete="off" gioFormFocusInvalid [formGroup]="notificationForm" (ngSubmit)="onSubmit()" *ngIf="!isLoadingData">
+  <form *ngIf="!isLoadingData" autocomplete="off" gioFormFocusInvalid [formGroup]="notificationForm" (ngSubmit)="onSubmit()">
     <mat-card>
-      <mat-form-field class="notifications-form__email">
+      <mat-form-field class="notifications-form__email" *ngIf="notifier">
         <mat-label>Email list</mat-label>
         <input matInput formControlName="notifier" />
         <mat-hint>Use space, ',' or ';' to separate emails. EL supported.</mat-hint>

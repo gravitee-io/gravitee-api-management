@@ -18,6 +18,7 @@ import { StateService } from '@uirouter/core';
 import { takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { GioMenuService } from '@gravitee/ui-particles-angular';
+import { castArray } from 'lodash';
 
 import { Constants } from '../../../entities/Constants';
 import { UIRouterState } from '../../../ajs-upgraded-providers';
@@ -25,7 +26,7 @@ import { GioPermissionService } from '../../../shared/components/gio-permission/
 
 interface MenuItem {
   targetRoute?: string;
-  baseRoute?: string;
+  baseRoute?: string | string[];
   displayName: string;
   permissions?: string[];
 }
@@ -169,9 +170,9 @@ export class SettingsNavigationComponent implements OnInit {
       title: 'Notifications',
       items: [
         {
-          displayName: 'Notifications',
-          targetRoute: 'management.settings.notifications',
-          baseRoute: 'management.settings.notifications',
+          displayName: 'Notification settings',
+          targetRoute: 'management.settings.notification-settings',
+          baseRoute: ['management.settings.notification-settings', 'management.settings.notification-settings-details'],
           permissions: ['environment-notification-r'],
         },
       ],
@@ -183,8 +184,8 @@ export class SettingsNavigationComponent implements OnInit {
     });
   }
 
-  isActive(route: string): boolean {
-    return this.ajsState.includes(route);
+  isActive(baseRoute: MenuItem['baseRoute']): boolean {
+    return castArray(baseRoute).some((baseRoute) => this.ajsState.includes(baseRoute));
   }
 
   public computeBreadcrumbItems(): string[] {

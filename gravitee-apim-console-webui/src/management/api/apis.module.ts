@@ -34,11 +34,10 @@ import { GioPolicyStudioRoutingModule } from './policy-studio/gio-policy-studio-
 import { ApiAuditModule } from './audit/api-audit.module';
 import { ApiV1PoliciesComponent } from './design/policies/policies.component';
 import { states } from './apis.route';
-import { NotificationsListModule } from './notifications/notifications-list/notifications-list.module';
+import { ApiNotificationSettingsModule } from './notification-settings/api-notification-settings.module';
 import { ApiCreationV2Module } from './creation-v2/api-creation-v2.module';
 import { ApiCreationGetStartedModule } from './creation-get-started/api-creation-get-started.module';
 import { ApiCreationV4Module } from './creation-v4/api-creation-v4.module';
-import { NotificationDetailsModule } from './notifications/notifications-list/notofication-details/notification-details.module';
 import { ApiDocumentationV4Module } from './documentation-v4/api-documentation-v4.module';
 
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
@@ -90,8 +89,7 @@ graviteeManagementModule.run(apiPermissionHook);
     ApiEntrypointsV4Module,
     ApiEndpointsModule,
     ApiAuditModule,
-    NotificationsListModule,
-    NotificationDetailsModule,
+    ApiNotificationSettingsModule,
     GioPolicyStudioRoutingModule.withRouting({ stateNamePrefix: 'management.apis.policy-studio-v2' }),
     SpecificJsonSchemaTypeModule,
     DocumentationModule,

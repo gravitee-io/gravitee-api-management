@@ -16,15 +16,15 @@
 import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
-import { NotificationSettingsService } from './notification-settings.service';
+import { ApplicationNotificationSettingsService } from './application-notification-settings.service';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
 import { fakeNotifier } from '../entities/notification/notifier.fixture';
 import { fakeNotificationSettings } from '../entities/notification/notificationSettings.fixture';
 
-describe('NotificationSettings', () => {
+describe('ApplicationNotificationSettingsService', () => {
   let httpTestingController: HttpTestingController;
-  let notificationSettingsService: NotificationSettingsService;
+  let applicationNotificationSettingsService: ApplicationNotificationSettingsService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -32,17 +32,17 @@ describe('NotificationSettings', () => {
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);
-    notificationSettingsService = TestBed.inject<NotificationSettingsService>(NotificationSettingsService);
+    applicationNotificationSettingsService = TestBed.inject<ApplicationNotificationSettingsService>(ApplicationNotificationSettingsService);
   });
 
   describe('delete', () => {
     it('should call the API', (done) => {
-      notificationSettingsService.delete('123', '456').subscribe(() => done());
+      applicationNotificationSettingsService.delete('123', '456').subscribe(() => done());
 
       httpTestingController
         .expectOne({
           method: 'DELETE',
-          url: `${CONSTANTS_TESTING.org.baseURL}/environments/DEFAULT/apis/123/notificationsettings/456`,
+          url: `${CONSTANTS_TESTING.org.baseURL}/environments/DEFAULT/applications/123/notificationsettings/456`,
         })
         .flush(null);
     });
@@ -52,12 +52,12 @@ describe('NotificationSettings', () => {
     it('should call the API', (done) => {
       const notifier = [fakeNotifier({ id: 'notifier-a', name: 'Notifier A' })];
 
-      notificationSettingsService.getNotifiers('123').subscribe(() => done());
+      applicationNotificationSettingsService.getNotifiers('123').subscribe(() => done());
 
       httpTestingController
         .expectOne({
           method: 'GET',
-          url: `${CONSTANTS_TESTING.org.baseURL}/environments/DEFAULT/apis/123/notifiers`,
+          url: `${CONSTANTS_TESTING.org.baseURL}/environments/DEFAULT/applications/123/notifiers`,
         })
         .flush(notifier);
     });
@@ -67,12 +67,12 @@ describe('NotificationSettings', () => {
     it('should call the API', (done) => {
       const notificationSettings = [fakeNotificationSettings({ name: 'Test name', id: 'test id' })];
 
-      notificationSettingsService.getAll('123').subscribe(() => done());
+      applicationNotificationSettingsService.getAll('123').subscribe(() => done());
 
       httpTestingController
         .expectOne({
           method: 'GET',
-          url: `${CONSTANTS_TESTING.org.baseURL}/environments/DEFAULT/apis/123/notificationsettings`,
+          url: `${CONSTANTS_TESTING.org.baseURL}/environments/DEFAULT/applications/123/notificationsettings`,
         })
         .flush(notificationSettings);
     });
@@ -89,9 +89,11 @@ describe('NotificationSettings', () => {
         referenceId: 'test reference_id',
       };
 
-      notificationSettingsService.create('123', fakeNewNotificationSettings).subscribe(() => done());
+      applicationNotificationSettingsService.create('123', fakeNewNotificationSettings).subscribe(() => done());
 
-      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/environments/DEFAULT/apis/123/notificationsettings`);
+      const req = httpTestingController.expectOne(
+        `${CONSTANTS_TESTING.org.baseURL}/environments/DEFAULT/applications/123/notificationsettings`,
+      );
       expect(req.request.method).toEqual('POST');
       expect(req.request.body).toEqual(fakeNewNotificationSettings);
 

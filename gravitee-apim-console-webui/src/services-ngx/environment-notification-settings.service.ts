@@ -27,41 +27,41 @@ import { Hooks } from '../entities/notification/hooks';
 @Injectable({
   providedIn: 'root',
 })
-export class NotificationSettingsService {
+export class EnvironmentNotificationSettingsService {
   constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
 
-  getAll(apiId: string): Observable<NotificationSettings[]> {
-    return this.http.get<NotificationSettings[]>(`${this.constants.env.baseURL}/apis/${apiId}/notificationsettings`);
+  getAll(): Observable<NotificationSettings[]> {
+    return this.http.get<NotificationSettings[]>(`${this.constants.env.baseURL}/configuration/notificationsettings`);
   }
 
-  getSingleNotificationSetting(apiId: string, selectedId: string): Observable<NotificationSettings> {
-    return this.http.get<NotificationSettings[]>(`${this.constants.env.baseURL}/apis/${apiId}/notificationsettings`).pipe(
+  getSingleNotificationSetting(selectedId: string): Observable<NotificationSettings> {
+    return this.http.get<NotificationSettings[]>(`${this.constants.env.baseURL}/configuration/notificationsettings`).pipe(
       map((notifications: NotificationSettings[]) => {
         return notifications.find((notification) => notification.id === selectedId) || notifications[0];
       }),
     );
   }
 
-  delete(apiId: string, id: string): Observable<NotificationSettings[]> {
-    return this.http.delete<NotificationSettings[]>(`${this.constants.env.baseURL}/apis/${apiId}/notificationsettings/${id}`);
+  delete(id: string): Observable<NotificationSettings[]> {
+    return this.http.delete<NotificationSettings[]>(`${this.constants.env.baseURL}/configuration/notificationsettings/${id}`);
   }
 
-  getNotifiers(apiId: string): Observable<Notifier[]> {
-    return this.http.get<Notifier[]>(`${this.constants.env.baseURL}/apis/${apiId}/notifiers`);
+  getNotifiers(): Observable<Notifier[]> {
+    return this.http.get<Notifier[]>(`${this.constants.env.baseURL}/configuration/notifiers`);
   }
 
-  create(apiId: string, notificationConfig: NewNotificationSettings): Observable<NewNotificationSettings> {
-    return this.http.post<NewNotificationSettings>(`${this.constants.env.baseURL}/apis/${apiId}/notificationsettings`, notificationConfig);
+  create(notificationConfig: NewNotificationSettings): Observable<NewNotificationSettings> {
+    return this.http.post<NewNotificationSettings>(`${this.constants.env.baseURL}/configuration/notificationsettings`, notificationConfig);
   }
 
-  update(apiId: string, notificationId: string, notificationConfig: NotificationSettings): Observable<NotificationSettings> {
+  update(notificationId: string, notificationConfig: NotificationSettings): Observable<NotificationSettings> {
     return this.http.put<NotificationSettings>(
-      `${this.constants.env.baseURL}/apis/${apiId}/notificationsettings/${notificationId}`,
+      `${this.constants.env.baseURL}/configuration/notificationsettings/${notificationId === 'PORTAL' ? '' : notificationId}`,
       notificationConfig,
     );
   }
 
   getHooks(): Observable<Hooks[]> {
-    return this.http.get<Hooks[]>(`${this.constants.env.baseURL}/apis/hooks`);
+    return this.http.get<Hooks[]>(`${this.constants.env.baseURL}/configuration/hooks`);
   }
 }

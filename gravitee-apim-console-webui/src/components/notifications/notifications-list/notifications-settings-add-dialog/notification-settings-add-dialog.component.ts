@@ -20,34 +20,42 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Notifier } from '../../../../entities/notification/notifier';
 import { NewNotificationSettings } from '../../../../entities/notification/newNotificationSettings';
 import { NotificationSettings } from '../../../../entities/notification/notificationSettings';
-import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 
-export interface NotificationsAddNotificationDialogData {
+type Reference = {
+  referenceType: 'API' | 'APPLICATION' | 'PORTAL';
+  referenceId: string;
+};
+
+export interface NotificationSettingsAddDialogData {
   notifier: Notifier[];
+  reference: Reference;
 }
 
-export type NotificationsAddNotificationDialogResult = NewNotificationSettings;
+export type NotificationSettingsAddDialogResult = NewNotificationSettings;
 
 @Component({
-  selector: 'notifications-add-notification-dialog',
-  template: require('./notifications-add-notification-dialog.component.html'),
-  styles: [require('./notifications-add-notification-dialog.component.scss')],
+  selector: 'notification-settings-add-dialog',
+  template: require('./notification-settings-add-dialog.component.html'),
+  styles: [require('./notification-settings-add-dialog.component.scss')],
 })
-export class NotificationsAddNotificationDialogComponent {
+export class NotificationSettingsAddDialogComponent {
   notificationForm: FormGroup;
   notifierList: Notifier[];
   notificationTemplate: NotificationSettings[];
+  reference: Reference;
+  display = false;
 
   constructor(
-    @Inject(MAT_DIALOG_DATA) dialogData: NotificationsAddNotificationDialogData,
-    @Inject(UIRouterStateParams) private readonly ajsStateParams,
-    public dialogRef: MatDialogRef<NotificationsAddNotificationDialogData, NotificationsAddNotificationDialogResult>,
+    @Inject(MAT_DIALOG_DATA) dialogData: NotificationSettingsAddDialogData,
+    public dialogRef: MatDialogRef<NotificationSettingsAddDialogData, NotificationSettingsAddDialogResult>,
   ) {
     this.notifierList = dialogData.notifier;
+    this.reference = dialogData.reference;
     this.notificationForm = new FormGroup({
       name: new FormControl(null, [Validators.required]),
       notifier: new FormControl(this.notifierList[0].id, [Validators.required]),
     });
+    this.display = true;
   }
 
   onSubmit() {
@@ -58,8 +66,7 @@ export class NotificationsAddNotificationDialogComponent {
       notifier,
       config_type: 'GENERIC',
       hooks: [],
-      referenceType: 'API',
-      referenceId: this.ajsStateParams.apiId,
+      ...this.reference,
     });
   }
 }

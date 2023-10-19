@@ -31,6 +31,7 @@ import { UIRouterModule } from '@uirouter/angular';
 
 import { EnvApplicationListComponent } from './list/env-application-list.component';
 import { ApplicationNavigationModule } from './details/application-navigation/application-navigation.module';
+import { ApplicationNotificationSettingsModule } from './details/notifications/notification-settings/application-notification-settings.module';
 
 import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioRoleModule } from '../../shared/components/gio-role/gio-role.module';
@@ -61,6 +62,7 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
 
     ApplicationNavigationModule,
     UIRouterModule,
+    ApplicationNotificationSettingsModule,
   ],
   declarations: [EnvApplicationListComponent],
   exports: [EnvApplicationListComponent],

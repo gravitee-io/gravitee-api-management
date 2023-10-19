@@ -444,6 +444,32 @@ function applicationsConfig($stateProvider) {
         ],
       },
     })
+    .state('management.applications.application.notification-settings', {
+      url: '/notification-settings',
+      component: 'applicationNotificationSettingsList',
+      data: {
+        perms: {
+          only: ['application-notification-r', 'application-alert-r'],
+        },
+        useAngularMaterial: true,
+        docs: {
+          page: 'management-application-notifications',
+        },
+      },
+    })
+    .state('management.applications.application.notification-settings-details', {
+      url: '/notification-settings/:notificationId',
+      component: 'applicationNotificationSettingsDetails',
+      data: {
+        docs: {
+          perms: {
+            only: ['application-notification-r'],
+          },
+          page: 'management-application-notifications',
+        },
+        useAngularMaterial: true,
+      },
+    })
     .state('management.applications.application.logs.log', {
       url: '/:logId?timestamp&from&to&q&page&size',
       component: 'applicationLog',
