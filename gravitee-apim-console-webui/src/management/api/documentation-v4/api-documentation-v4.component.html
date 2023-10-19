@@ -20,11 +20,16 @@
   <div class="header__subtitle">Documentation pages appear in the portal and inform API consumers how to use your API</div>
 </div>
 <mat-card>
-  <api-documentation-navigation-header (onAddFolder)="addFolder()"></api-documentation-navigation-header>
+  <api-documentation-navigation-header
+    [breadcrumbs]="breadcrumbs || []"
+    (onAddFolder)="addFolder()"
+    (onNavigateTo)="navigateTo($event)"
+  ></api-documentation-navigation-header>
   <api-documentation-v4-pages-list
     *ngIf="pages && pages.length > 0; else emptyState"
     [pages]="pages"
     (onAddPage)="addPage()"
+    (onGoToFolder)="navigateTo($event)"
   ></api-documentation-v4-pages-list>
   <ng-template #emptyState>
     <api-documentation-empty-state (onAddPage)="addPage()"></api-documentation-empty-state>

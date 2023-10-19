@@ -29,7 +29,7 @@ import { ApiDocumentationV4PagesListHarness } from './documentation-pages-list/a
 
 import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
-import { Page } from '../../../entities/management-api-v2/documentation/page';
+import { Breadcrumb, Page } from '../../../entities/management-api-v2/documentation/page';
 import { fakeFolder } from '../../../entities/management-api-v2/documentation/page.fixture';
 
 describe('ApiDocumentationV4', () => {
@@ -39,13 +39,13 @@ describe('ApiDocumentationV4', () => {
   const API_ID = 'api-id';
   let httpTestingController: HttpTestingController;
 
-  const init = async (pages: Page[]) => {
+  const init = async (pages: Page[], breadcrumb: Breadcrumb[], parentId = 'ROOT') => {
     await TestBed.configureTestingModule({
       declarations: [ApiDocumentationV4Component],
       imports: [NoopAnimationsModule, ApiDocumentationV4Module, MatIconTestingModule, GioHttpTestingModule],
       providers: [
         { provide: UIRouterState, useValue: fakeUiRouter },
-        { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
+        { provide: UIRouterStateParams, useValue: { apiId: API_ID, parentId } },
       ],
     }).compileComponents();
 
@@ -54,7 +54,7 @@ describe('ApiDocumentationV4', () => {
     httpTestingController = TestBed.inject(HttpTestingController);
 
     fixture.detectChanges();
-    expectGetPages(pages);
+    expectGetPages(pages, breadcrumb, parentId);
   };
 
   afterEach(() => {
@@ -62,7 +62,7 @@ describe('ApiDocumentationV4', () => {
   });
 
   describe('API does not have pages', () => {
-    beforeEach(async () => await init([]));
+    beforeEach(async () => await init([], []));
 
     it('should show empty state when no documentation for API', async () => {
       const emptyState = await harnessLoader.getHarness(ApiDocumentationV4EmptyStateHarness);
@@ -73,16 +73,43 @@ describe('ApiDocumentationV4', () => {
       const headerHarness = await harnessLoader.getHarness(ApiDocumentationV4EmptyStateHarness);
       await headerHarness.clickAddNewPage();
 
-      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.documentationV4-create');
+      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.documentationV4-create', {
+        apiId: API_ID,
+        parentId: 'ROOT',
+      });
+    });
+  });
+
+  describe('Breadcrumb', () => {
+    it('should show breadcrumb items and navigate to folder', async () => {
+      await init(
+        [],
+        [
+          { name: 'level 1', id: 'level-1', position: 1 },
+          { name: 'level 2', id: 'level-2', position: 2 },
+        ],
+      );
+      const headerHarness = await harnessLoader.getHarness(ApiDocumentationV4NavigationHeaderHarness);
+      expect(await headerHarness.getBreadcrumb()).toEqual('Home>level 1>level 2');
+
+      await headerHarness.clickOnBreadcrumbItem('level 1');
+      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.documentationV4', { parentId: 'level-1' }, { reload: true });
+    });
+
+    it('should navigate to root', async () => {
+      await init([], [{ name: 'level 1', id: 'level-1', position: 1 }]);
+      const headerHarness = await harnessLoader.getHarness(ApiDocumentationV4NavigationHeaderHarness);
+      await headerHarness.clickOnBreadcrumbItem('Home');
+      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.documentationV4', { parentId: 'ROOT' }, { reload: true });
     });
   });
 
   describe('API has pages', () => {
     it('should show list of folders', async () => {
-      await init([
-        fakeFolder({ name: 'my first folder', visibility: 'PUBLIC' }),
-        fakeFolder({ name: 'my private folder', visibility: 'PRIVATE' }),
-      ]);
+      await init(
+        [fakeFolder({ name: 'my first folder', visibility: 'PUBLIC' }), fakeFolder({ name: 'my private folder', visibility: 'PRIVATE' })],
+        [],
+      );
 
       const pageListHarness = await harnessLoader.getHarness(ApiDocumentationV4PagesListHarness);
       expect(await pageListHarness.getNameByRowIndex(0)).toEqual('my first folder');
@@ -92,18 +119,29 @@ describe('ApiDocumentationV4', () => {
     });
 
     it('should navigate to create page', async () => {
-      await init([fakeFolder({ name: 'my first folder', visibility: 'PUBLIC' })]);
+      await init([fakeFolder({ name: 'my first folder', visibility: 'PUBLIC' })], []);
       const pageListHarness = await harnessLoader.getHarness(ApiDocumentationV4PagesListHarness);
       await pageListHarness.clickAddNewPage();
 
-      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.documentationV4-create');
+      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.documentationV4-create', {
+        apiId: API_ID,
+        parentId: 'ROOT',
+      });
+    });
+
+    it('should navigate to folder when click in the list', async () => {
+      await init([fakeFolder({ name: 'my first folder', id: 'my-first-folder', visibility: 'PUBLIC' })], []);
+      const pageListHarness = await harnessLoader.getHarness(ApiDocumentationV4PagesListHarness);
+      const nameDiv = await pageListHarness.getNameDivByRowIndex(0);
+      await nameDiv.host().then((host) => host.click());
+
+      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.documentationV4', { parentId: 'my-first-folder' }, { reload: true });
     });
   });
 
   describe('Actions', () => {
-    beforeEach(async () => await init([]));
-
     it('should show dialog to create folder', async () => {
+      await init([], []);
       const headerHarness = await harnessLoader.getHarness(ApiDocumentationV4NavigationHeaderHarness);
       await headerHarness.clickAddNewFolder();
 
@@ -124,18 +162,45 @@ describe('ApiDocumentationV4', () => {
         type: 'FOLDER',
         name: 'folder',
         visibility: 'PRIVATE',
+        parentId: 'ROOT',
       });
 
-      expectGetPages([page]);
+      expectGetPages([page], []);
+    });
+    it('should create new folder under the current folder', async () => {
+      await init([], [], 'parent-folder-id');
+      const headerHarness = await harnessLoader.getHarness(ApiDocumentationV4NavigationHeaderHarness);
+      await headerHarness.clickAddNewFolder();
+
+      const dialogHarness = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
+        ApiDocumentationV4AddFolderDialogHarness,
+      );
+      await dialogHarness.setName('subfolder');
+      await dialogHarness.clickOnSave();
+
+      const page: Page = { type: 'FOLDER', name: 'subfolder', visibility: 'PUBLIC' };
+      const req = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages`,
+      });
+      req.flush(page);
+      expect(req.request.body).toEqual({
+        type: 'FOLDER',
+        name: 'subfolder',
+        visibility: 'PUBLIC',
+        parentId: 'parent-folder-id',
+      });
+
+      expectGetPages([page], [], 'parent-folder-id');
     });
   });
 
-  const expectGetPages = (result: Page[]) => {
+  const expectGetPages = (pages: Page[], breadcrumb: Breadcrumb[], parentId = 'ROOT') => {
     const req = httpTestingController.expectOne({
       method: 'GET',
-      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages`,
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages?parentId=${parentId}`,
     });
 
-    req.flush(result);
+    req.flush({ pages, breadcrumb });
   };
 });

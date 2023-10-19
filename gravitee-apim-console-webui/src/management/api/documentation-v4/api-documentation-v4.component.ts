@@ -27,7 +27,7 @@ import { ApiDocumentationV4AddFolderDialog } from './documentation-add-folder-di
 import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { ApiDocumentationV2Service } from '../../../services-ngx/api-documentation-v2.service';
 import { CreateDocumentationFolder } from '../../../entities/management-api-v2/documentation/createDocumentation';
-import { Page } from '../../../entities/management-api-v2/documentation/page';
+import { Breadcrumb, Page } from '../../../entities/management-api-v2/documentation/page';
 
 @Component({
   selector: 'api-documentation-v4',
@@ -36,7 +36,9 @@ import { Page } from '../../../entities/management-api-v2/documentation/page';
 })
 export class ApiDocumentationV4Component implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();
-  pages: Array<Page>;
+  parentId: string;
+  pages: Page[];
+  breadcrumbs: Breadcrumb[];
 
   constructor(
     private readonly matDialog: MatDialog,
@@ -46,11 +48,13 @@ export class ApiDocumentationV4Component implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
+    this.parentId = this.ajsStateParams.parentId || 'ROOT';
     this.apiDocumentationV2Service
-      .getApiPages(this.ajsStateParams.apiId)
+      .getApiPages(this.ajsStateParams.apiId, this.parentId)
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe((res) => {
-        this.pages = res;
+        this.pages = res.pages;
+        this.breadcrumbs = res.breadcrumb;
       });
   }
 
@@ -70,6 +74,7 @@ export class ApiDocumentationV4Component implements OnInit, OnDestroy {
             type: 'FOLDER',
             name: createFolder.name,
             visibility: createFolder.visibility,
+            parentId: this.parentId,
           }),
         ),
         takeUntil(this.unsubscribe$),
@@ -80,6 +85,10 @@ export class ApiDocumentationV4Component implements OnInit, OnDestroy {
   }
 
   addPage() {
-    this.ajsState.go('management.apis.documentationV4-create');
+    this.ajsState.go('management.apis.documentationV4-create', this.ajsStateParams);
+  }
+
+  navigateTo(folderId: string | null) {
+    this.ajsState.go('management.apis.documentationV4', { parentId: folderId || 'ROOT' }, { reload: true });
   }
 }

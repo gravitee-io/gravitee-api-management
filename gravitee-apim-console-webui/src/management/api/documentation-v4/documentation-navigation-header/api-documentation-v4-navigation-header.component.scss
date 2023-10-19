@@ -18,5 +18,20 @@ $typography: map.get(gio.$mat-theme, typography);
     * {
       margin-right: 8px;
     }
+    .mat-icon {
+      cursor: pointer;
+    }
+
+    &__item {
+      @include mat.typography-level($typography, 'body-2');
+      color: mat.get-color-from-palette(gio.$mat-space-palette, 'default');
+      cursor: pointer;
+    }
+
+    &__item:last-of-type:not(:only-of-type) {
+      @include mat.typography-level($typography, 'body-2');
+      color: mat.get-color-from-palette(gio.$mat-space-palette, 'default');
+      background-color: mat.get-color-from-palette(gio.$mat-dove-palette, 'default');
+    }
   }
 }

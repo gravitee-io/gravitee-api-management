@@ -25,6 +25,7 @@ import { Subject } from 'rxjs';
 import { CreateDocumentationMarkdown } from '../../../../entities/management-api-v2/documentation/createDocumentation';
 import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { ApiDocumentationV2Service } from '../../../../services-ngx/api-documentation-v2.service';
+import { Breadcrumb } from '../../../../entities/management-api-v2/documentation/page';
 
 @Component({
   selector: 'api-documentation-new-page',
@@ -38,6 +39,7 @@ export class ApiDocumentationV4NewPageComponent implements OnInit, OnDestroy {
   content = '';
   preview = true;
   private unsubscribe$: Subject<void> = new Subject<void>();
+  breadcrumbs: Breadcrumb[];
 
   constructor(
     private readonly formBuilder: FormBuilder,
@@ -48,6 +50,12 @@ export class ApiDocumentationV4NewPageComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    this.apiDocumentationService
+      .getApiPages(this.ajsStateParams.apiId, this.ajsStateParams.parentId)
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe((res) => {
+        this.breadcrumbs = res.breadcrumb;
+      });
     this.form = this.formBuilder.group({
       name: this.formBuilder.control('', [Validators.required]),
       visibility: this.formBuilder.control('PUBLIC', [Validators.required]),
@@ -67,11 +75,10 @@ export class ApiDocumentationV4NewPageComponent implements OnInit, OnDestroy {
       name: this.form.getRawValue().name,
       visibility: this.form.getRawValue().visibility,
       content: this.content,
-      // TODO: handle parentId
+      parentId: this.ajsStateParams.parentId || 'ROOT',
     };
     this.apiDocumentationService.createDocumentationPage(this.ajsStateParams.apiId, createPage).subscribe(() => {
-      // TODO: add state param to handle current folder
-      this.ajsState.go('management.apis.documentationV4');
+      this.ajsState.go('management.apis.documentationV4', this.ajsStateParams);
     });
   }
 
@@ -91,7 +98,7 @@ export class ApiDocumentationV4NewPageComponent implements OnInit, OnDestroy {
       .afterClosed()
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe((shouldExit) => {
-        if (shouldExit) this.ajsState.go('management.apis.documentationV4');
+        if (shouldExit) this.ajsState.go('management.apis.documentationV4', this.ajsStateParams);
       });
   }
 }

@@ -27,6 +27,10 @@
         In
         <div class="navigation__location__breadcrumb">
           <mat-icon svgIcon="gio:home"></mat-icon><span class="mat-body-strong">Home</span>
+          <ng-container *ngFor="let breadcrumb of breadcrumbs">
+            <div class="navigation__location__separator">></div>
+            <div class="navigation__location__item">{{ breadcrumb.name }}</div>
+          </ng-container>
         </div>
       </div>
     </div>

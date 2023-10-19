@@ -37,6 +37,9 @@ export class ApiDocumentationV4PagesListComponent implements OnChanges {
   @Output()
   onDeletePage = new EventEmitter<Page>();
 
+  @Output()
+  onGoToFolder = new EventEmitter<string>();
+
   public displayedColumns = ['name', 'status', 'visibility', 'lastUpdated', 'order', 'actions'];
   public dataSource: MatTableDataSource<Page>;
 
