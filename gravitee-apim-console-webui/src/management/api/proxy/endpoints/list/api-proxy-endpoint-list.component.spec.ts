@@ -173,13 +173,11 @@ describe('ApiProxyEndpointListComponent', () => {
       );
 
       expect(await endpointsGroupHarness.getTableRows(0)).toEqual([
-        ['default', 'favorite', 'https://api.le-systeme-solaire.net/rest/', 'HTTP', '1', ''],
-        ['secondary endpoint', 'favorite', 'https://api.gravitee.io/echo', 'HTTP', '1', ''],
+        ['default', 'heart', 'https://api.le-systeme-solaire.net/rest/', 'HTTP', '1', ''],
+        ['secondary endpoint', 'heart', 'https://api.gravitee.io/echo', 'HTTP', '1', ''],
       ]);
 
-      expect(await endpointsGroupHarness.getTableRows(1)).toEqual([
-        ['default', 'favorite', 'https://api.gravitee.io/echo', 'HTTP', '1', ''],
-      ]);
+      expect(await endpointsGroupHarness.getTableRows(1)).toEqual([['default', 'heart', 'https://api.gravitee.io/echo', 'HTTP', '1', '']]);
     });
 
     it("should display health check icon when it's configured at endpoint level", async () => {
@@ -217,7 +215,7 @@ describe('ApiProxyEndpointListComponent', () => {
         }),
       );
 
-      expect(await rootLoader.getHarness(MatIconHarness.with({ selector: '[mattooltip="Health check is enabled"]' }))).toBeTruthy();
+      expect(await rootLoader.getChildLoader('[mattooltip="Health-check is enabled locally"]')).toBeTruthy();
     });
 
     it("should display health check icon when it's configured at API level", async () => {
@@ -232,7 +230,7 @@ describe('ApiProxyEndpointListComponent', () => {
         }),
       );
 
-      expect(await rootLoader.getHarness(MatIconHarness.with({ selector: '[mattooltip="Health check is enabled"]' }))).toBeTruthy();
+      expect(await rootLoader.getChildLoader('[mattooltip="Health-check is enabled (inherit)"]')).toBeTruthy();
     });
 
     it('should not display health check icon', async () => {
@@ -267,7 +265,7 @@ describe('ApiProxyEndpointListComponent', () => {
       await initComponent(api);
 
       expect(await endpointsGroupHarness.getTableRows(0)).toEqual([
-        ['default', 'favoritesubdirectory_arrow_right', 'https://api.le-systeme-solaire.net/rest/', 'HTTP', '1', ''],
+        ['default', 'heart network-alt', 'https://api.le-systeme-solaire.net/rest/', 'HTTP', '1', ''],
       ]);
 
       await endpointsGroupHarness.deleteEndpointGroup(rootLoader);
@@ -310,8 +308,8 @@ describe('ApiProxyEndpointListComponent', () => {
       await initComponent(api);
 
       expect(await endpointsGroupHarness.getTableRows(0)).toEqual([
-        ['default', 'favorite', 'https://api.le-systeme-solaire.net/rest/', 'HTTP', '1', ''],
-        ['secondary endpoint', 'favorite', 'https://api.gravitee.io/echo', 'HTTP', '1', ''],
+        ['default', 'heart', 'https://api.le-systeme-solaire.net/rest/', 'HTTP', '1', ''],
+        ['secondary endpoint', 'heart', 'https://api.gravitee.io/echo', 'HTTP', '1', ''],
       ]);
 
       await endpointsGroupHarness.deleteEndpoint(1, rootLoader);
@@ -337,6 +335,10 @@ describe('ApiProxyEndpointListComponent', () => {
           ],
         },
       });
+
+      expect(await endpointsGroupHarness.getTableRows(0)).toEqual([
+        ['default', 'heart', 'https://api.le-systeme-solaire.net/rest/', 'HTTP', '1', ''],
+      ]);
     });
   });
 
@@ -365,7 +367,7 @@ describe('ApiProxyEndpointListComponent', () => {
         }),
       );
 
-      expect(await rootLoader.getHarness(MatIconHarness.with({ selector: '[mattooltip="HTTP configuration inherited"]' }))).toBeTruthy();
+      expect(await rootLoader.getChildLoader('[mattooltip="HTTP configuration inherited"]')).toBeTruthy();
     });
   });
 

@@ -27,7 +27,7 @@ export type Endpoint = {
   target: string;
   weight: number;
   isBackup: boolean;
-  healthcheck: boolean;
+  healthcheck: 'inherit-enable' | 'inherit-disable' | 'enable' | 'disable' | 'none';
 };
 
 export const toEndpoints = (api: ApiV2): EndpointGroup[] => {
@@ -60,10 +60,14 @@ const toEndpointsFromApiV2 = (api: ApiV2): EndpointGroup[] => {
   });
 };
 
-const hasApiV2HealthCheck = (hasApiHealthCheckService: boolean, endpoint: HttpEndpointV2): boolean => {
+const hasApiV2HealthCheck = (hasApiHealthCheckService: boolean, endpoint: HttpEndpointV2): Endpoint['healthcheck'] => {
   if (endpoint.backup || (endpoint.type.toLowerCase() !== 'http' && endpoint.type.toLowerCase() !== 'grpc')) {
-    return false;
+    return 'none';
   }
 
-  return endpoint.healthCheck != null ? endpoint.healthCheck.enabled : hasApiHealthCheckService;
+  if (!endpoint.healthCheck || (endpoint.healthCheck.inherit !== false && endpoint.healthCheck.enabled !== false)) {
+    return hasApiHealthCheckService ? 'inherit-enable' : 'inherit-disable';
+  }
+
+  return endpoint.healthCheck.enabled || endpoint.healthCheck.enabled === undefined ? 'enable' : 'disable';
 };
