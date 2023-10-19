@@ -18,10 +18,12 @@ import { NgModule } from '@angular/core';
 
 import { ApiRuntimeLogsComponent } from './api-runtime-logs.component';
 import { ApiRuntimeLogsListModule, ApiRuntimeLogsQuickFiltersModule } from './components';
+import { QuickFiltersStoreService } from './services';
 
 @NgModule({
   imports: [CommonModule, ApiRuntimeLogsListModule, ApiRuntimeLogsQuickFiltersModule],
   declarations: [ApiRuntimeLogsComponent],
   exports: [ApiRuntimeLogsComponent],
+  providers: [QuickFiltersStoreService],
 })
 export class ApiRuntimeLogsModule {}

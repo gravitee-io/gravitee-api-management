@@ -45,7 +45,7 @@
         <ng-container *ngFor="let filter of currentFilter | keyvalue">
           <mat-chip
             class="gio-badge-neutral quick-filters__chip"
-            *ngIf="filter.value && defaultFilter[filter.key] !== filter.value"
+            *ngIf="filter.value && defaultFilters[filter.key] !== filter.value"
             [removable]="true"
             (removed)="removeFilter(filter)"
             [matTooltip]="filter.value | chipValue"

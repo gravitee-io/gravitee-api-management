@@ -23,6 +23,8 @@ export type FilterVM = {
 };
 
 export type LogFilters = {
+  from?: number;
+  to?: number;
   period?: SimpleFilter;
   applications?: MultiFilter;
   plans?: MultiFilter;
@@ -49,3 +51,9 @@ export const PERIODS = [
   { label: 'Last 3 Days', value: '-3d' },
   { label: 'Last 7 Days', value: '-7d' },
 ];
+
+export const DEFAULT_FILTERS: LogFilters = {
+  period: DEFAULT_PERIOD,
+  applications: undefined,
+  plans: undefined,
+};

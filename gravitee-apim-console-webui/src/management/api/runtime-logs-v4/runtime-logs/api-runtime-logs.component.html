@@ -21,7 +21,6 @@
       *ngIf="initialValues"
       [initialValues]="initialValues"
       [plans]="apiPlans$ | async"
-      (quickFilterSelection)="applyFilter($event)"
     ></api-runtime-logs-quick-filters>
     <api-runtime-logs-list
       *ngIf="apiLogsSubject$ | async as response"

@@ -16,18 +16,16 @@
 
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { PageEvent } from '@angular/material/paginator';
-import { map, shareReplay, takeUntil, tap } from 'rxjs/operators';
+import { map, shareReplay, skip, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { StateParams } from '@uirouter/core';
 import { StateService } from '@uirouter/angular';
-import * as moment from 'moment';
 import { forkJoin, of, ReplaySubject, Subject } from 'rxjs';
 
-import DurationConstructor = moment.unitOfTime.DurationConstructor;
-
-import { LogFilters, LogFiltersInitialValues, SimpleFilter } from './components';
+import { QuickFiltersStoreService } from './services';
+import { LogFiltersInitialValues } from './models';
 
 import { ApiLogsV2Service } from '../../../../services-ngx/api-logs-v2.service';
-import { ApiLogsResponse, ApiV4 } from '../../../../entities/management-api-v2';
+import { ApiLogsParam, ApiLogsResponse, ApiV4 } from '../../../../entities/management-api-v2';
 import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { ApplicationService } from '../../../../services-ngx/application.service';
@@ -41,7 +39,6 @@ import { ApiPlanV2Service } from '../../../../services-ngx/api-plan-v2.service';
 export class ApiRuntimeLogsComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();
   private api$ = this.apiService.get(this.ajsStateParams.apiId).pipe(shareReplay(1));
-  private currentFilters: Record<string, number | string>;
   apiLogsSubject$ = new ReplaySubject<ApiLogsResponse>(1);
   isMessageApi$ = this.api$.pipe(map((api: ApiV4) => api?.type === 'MESSAGE'));
   apiLogsEnabled$ = this.api$.pipe(map(ApiRuntimeLogsComponent.isLogEnabled));
@@ -58,28 +55,26 @@ export class ApiRuntimeLogsComponent implements OnInit, OnDestroy {
     private readonly apiService: ApiV2Service,
     private readonly applicationService: ApplicationService,
     private readonly planService: ApiPlanV2Service,
+    private readonly quickFilterStore: QuickFiltersStoreService,
   ) {}
 
   ngOnInit(): void {
-    this.currentFilters = {
-      page: +this.ajsStateParams.page,
-      perPage: +this.ajsStateParams.perPage,
-      from: +this.ajsStateParams.from,
-      to: +this.ajsStateParams.to,
-      applicationIds: this.ajsStateParams.applicationIds,
-      planIds: this.ajsStateParams.planIds,
-    };
-    this.apiLogsService
-      .searchConnectionLogs(this.ajsStateParams.apiId, { ...this.currentFilters })
+    this.initData();
+    this.quickFilterStore
+      .filters$()
       .pipe(
-        tap((apiLogsResponse) => {
-          this.apiLogsSubject$.next(apiLogsResponse);
+        skip(1), // skip first value from the store as the filters will be initialized and update it
+        switchMap((values, index) => {
+          // for the first trigger we keep the page in the URL to be sure that the user can load the data in a specific page
+          const page = index === 0 ? +this.ajsStateParams.page : 1;
+          return of({ values, page });
         }),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe();
-
-    this.initFilters();
+      .subscribe(({ values, page }) => {
+        const params = this.quickFilterStore.toLogFilterQueryParam(values, page, +this.ajsStateParams.perPage);
+        this.searchConnectionLogs(params);
+      });
   }
 
   ngOnDestroy() {
@@ -88,48 +83,22 @@ export class ApiRuntimeLogsComponent implements OnInit, OnDestroy {
   }
 
   paginationUpdated(event: PageEvent) {
-    this.currentFilters = {
-      page: event.pageIndex + 1,
-      perPage: event.pageSize,
-      ...(!!this.currentFilters.from && { from: +this.currentFilters.from }),
-      ...(!!this.currentFilters.to && { to: +this.currentFilters.to }),
-      ...(!!this.currentFilters.applicationIds && { applicationIds: this.currentFilters.applicationIds }),
-      ...(!!this.currentFilters.planIds && { planIds: this.currentFilters.planIds }),
-    };
-
-    this.apiLogsService
-      .searchConnectionLogs(this.ajsStateParams.apiId, { ...this.currentFilters })
-      .pipe(
-        tap((apiLogsResponse) => {
-          this.apiLogsSubject$.next(apiLogsResponse);
-          this.ajsState.go('.', { ...this.currentFilters }, { notify: false });
-        }),
-        takeUntil(this.unsubscribe$),
-      )
-      .subscribe();
+    const logFilters = this.quickFilterStore.getFilters();
+    const params = this.quickFilterStore.toLogFilterQueryParam(logFilters, event.pageIndex + 1, event.pageSize);
+    this.searchConnectionLogs(params);
   }
 
   openLogsSettings() {
     return this.ajsState.go('management.apis.runtimeLogs-settings');
   }
 
-  applyFilter(logFilter: LogFilters) {
-    const periodFilter = this.preparePeriodFilter(logFilter.period);
-    this.currentFilters = {
-      page: 1,
-      perPage: +this.ajsStateParams.perPage,
-      from: periodFilter?.from ? periodFilter.from : null,
-      to: periodFilter?.to ? periodFilter.to : null,
-      applicationIds: logFilter.applications?.length > 0 ? logFilter.applications?.map((app) => app.value).join(',') : null,
-      planIds: logFilter.plans?.length > 0 ? logFilter.plans?.map((app) => app.value).join(',') : null,
-    };
-
+  searchConnectionLogs(queryParam?: ApiLogsParam) {
     this.apiLogsService
-      .searchConnectionLogs(this.ajsStateParams.apiId, this.currentFilters)
+      .searchConnectionLogs(this.ajsStateParams.apiId, queryParam)
       .pipe(
         tap((apiLogsResponse) => {
           this.apiLogsSubject$.next(apiLogsResponse);
-          this.ajsState.go('.', { ...this.currentFilters }, { notify: false });
+          this.ajsState.go('.', queryParam, { notify: false });
         }),
         takeUntil(this.unsubscribe$),
       )
@@ -140,24 +109,7 @@ export class ApiRuntimeLogsComponent implements OnInit, OnDestroy {
     return api.analytics.enabled && (api.analytics.logging?.mode?.endpoint === true || api.analytics.logging?.mode?.entrypoint === true);
   };
 
-  private preparePeriodFilter(period: SimpleFilter): { from: number; to: number } {
-    if (period.value === '0') {
-      return null;
-    }
-    const now = moment();
-    const operation = period.value.charAt(0);
-    const timeUnit: DurationConstructor = period.value.charAt(period.value.length - 1) as DurationConstructor;
-    const duration = Number(period.value.substring(1, period.value.length - 1));
-    let from;
-    if (operation === '-') {
-      from = now.clone().subtract(duration, timeUnit);
-    } else {
-      from = now.clone().add(duration, timeUnit);
-    }
-    return { from: from.valueOf(), to: now.valueOf() };
-  }
-
-  private initFilters() {
+  private initData() {
     const applicationIds: string[] = this.ajsStateParams.applicationIds ? this.ajsStateParams.applicationIds.split(',') : null;
     const planIds: string[] = this.ajsStateParams.planIds ? this.ajsStateParams.planIds.split(',') : null;
 

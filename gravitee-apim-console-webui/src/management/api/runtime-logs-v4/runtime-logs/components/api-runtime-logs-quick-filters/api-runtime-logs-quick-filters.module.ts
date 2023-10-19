@@ -29,6 +29,8 @@ import { ApiRuntimeLogsQuickFiltersComponent } from './api-runtime-logs-quick-fi
 import { ChipValuePipe } from './pipes';
 import { ApplicationsFilterModule } from './components';
 
+import { QuickFiltersStoreService } from '../../services';
+
 @NgModule({
   declarations: [ApiRuntimeLogsQuickFiltersComponent, ChipValuePipe],
   exports: [ApiRuntimeLogsQuickFiltersComponent],
@@ -47,5 +49,6 @@ import { ApplicationsFilterModule } from './components';
     ApplicationsFilterModule,
     GioIconsModule,
   ],
+  providers: [QuickFiltersStoreService],
 })
 export class ApiRuntimeLogsQuickFiltersModule {}
