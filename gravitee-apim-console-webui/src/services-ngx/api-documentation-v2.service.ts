@@ -16,11 +16,16 @@
 import { Inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 import { Constants } from '../entities/Constants';
 import { CreateDocumentation } from '../entities/management-api-v2/documentation/createDocumentation';
-import { Page } from '../entities/management-api-v2/documentation/page';
+import { Breadcrumb, Page } from '../entities/management-api-v2/documentation/page';
 
+export interface ApiDocumentationPageResult {
+  pages: Page[];
+  breadcrumb: Breadcrumb[];
+}
 @Injectable({
   providedIn: 'root',
 })
@@ -29,7 +34,15 @@ export class ApiDocumentationV2Service {
   createDocumentationPage(apiId: string, createDocumentation: CreateDocumentation): Observable<Page> {
     return this.http.post<Page>(`${this.constants.env.v2BaseURL}/apis/${apiId}/pages`, createDocumentation);
   }
-  getApiPages(apiId: string): Observable<Page[]> {
-    return this.http.get<Page[]>(`${this.constants.env.v2BaseURL}/apis/${apiId}/pages`);
+  getApiPages(apiId: string, parentId: string): Observable<ApiDocumentationPageResult> {
+    return this.http.get<ApiDocumentationPageResult>(`${this.constants.env.v2BaseURL}/apis/${apiId}/pages?parentId=${parentId}`).pipe(
+      map((result: ApiDocumentationPageResult) => {
+        const sortedResult: ApiDocumentationPageResult = {
+          pages: result.pages,
+          breadcrumb: result.breadcrumb?.sort((b1, b2) => b1.position - b2.position),
+        };
+        return sortedResult;
+      }),
+    );
   }
 }

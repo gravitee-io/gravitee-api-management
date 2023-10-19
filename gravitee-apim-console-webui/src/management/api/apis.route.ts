@@ -1370,19 +1370,33 @@ export const states: Ng2StateDeclaration[] = [
    */
   {
     name: 'management.apis.documentationV4',
-    url: '/documentation-v4',
+    url: '/documentation-v4?parentId',
     data: {
       useAngularMaterial: true,
       docs: null,
+    },
+    params: {
+      parentId: {
+        type: 'string',
+        value: 'ROOT',
+        dynamic: true,
+      },
     },
     component: ApiDocumentationV4Component,
   },
   {
     name: 'management.apis.documentationV4-create',
-    url: '/documentation-v4/create',
+    url: '/documentation-v4/create?parentId',
     data: {
       useAngularMaterial: true,
       docs: null,
+    },
+    params: {
+      parentId: {
+        type: 'string',
+        value: 'ROOT',
+        dynamic: true,
+      },
     },
     component: ApiDocumentationV4NewPageComponent,
   },

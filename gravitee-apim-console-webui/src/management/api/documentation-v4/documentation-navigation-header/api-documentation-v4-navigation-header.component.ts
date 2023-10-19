@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
+
+import { Breadcrumb } from '../../../../entities/management-api-v2/documentation/page';
 
 @Component({
   selector: 'api-documentation-navigation-header',
@@ -22,6 +24,10 @@ import { Component, EventEmitter, Output } from '@angular/core';
   styles: [require('./api-documentation-v4-navigation-header.component.scss')],
 })
 export class ApiDocumentationV4NavigationHeaderComponent {
+  @Input()
+  breadcrumbs: Breadcrumb[];
   @Output()
   onAddFolder = new EventEmitter<void>();
+  @Output()
+  onNavigateTo = new EventEmitter<string>();
 }

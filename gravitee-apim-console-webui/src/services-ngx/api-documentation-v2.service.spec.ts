@@ -42,15 +42,42 @@ describe('ApiDocumentationV2Service', () => {
 
   describe('getApiPages', () => {
     it('should call the API', (done) => {
-      const fakeResponse = [];
+      const fakeResponse = { pages: [], breadcrumb: [] };
 
-      service.getApiPages(API_ID).subscribe((response) => {
+      service.getApiPages(API_ID, 'ROOT').subscribe((response) => {
         expect(response).toEqual(fakeResponse);
         done();
       });
 
       const req = httpTestingController.expectOne({
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages`,
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages?parentId=ROOT`,
+        method: 'GET',
+      });
+
+      req.flush(fakeResponse);
+    });
+
+    it('should sort breadcrumb by position', (done) => {
+      const fakeResponse = {
+        pages: [],
+        breadcrumb: [
+          { name: 'folder 2', position: 2, id: 'folder-2' },
+          { name: 'folder 3', position: 3, id: 'folder-3' },
+          { name: 'folder 1', position: 1, id: 'folder-1' },
+        ],
+      };
+
+      service.getApiPages(API_ID, 'ROOT').subscribe((response) => {
+        expect(response.breadcrumb).toEqual([
+          { name: 'folder 1', position: 1, id: 'folder-1' },
+          { name: 'folder 2', position: 2, id: 'folder-2' },
+          { name: 'folder 3', position: 3, id: 'folder-3' },
+        ]);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages?parentId=ROOT`,
         method: 'GET',
       });
 
@@ -78,6 +105,7 @@ describe('ApiDocumentationV2Service', () => {
 
       req.flush(fakeResponse);
     });
+
     it('should call the API to create page', (done) => {
       const fakeResponse: Page = {};
       const createPage: CreateDocumentation = {

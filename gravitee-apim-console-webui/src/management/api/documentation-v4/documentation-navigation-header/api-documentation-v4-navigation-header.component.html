@@ -16,6 +16,13 @@
 
 -->
 <div class="header">
-  <div class="header__breadcrumb"><mat-icon svgIcon="gio:home"></mat-icon><span class="mat-body-strong">Home</span></div>
+  <div class="header__breadcrumb">
+    <mat-icon svgIcon="gio:home" (click)="onNavigateTo.emit('ROOT')"></mat-icon>
+    <div (click)="onNavigateTo.emit('ROOT')" class="header__breadcrumb__item">Home</div>
+    <ng-container *ngFor="let breadcrumb of breadcrumbs">
+      <div class="header__breadcrumb__separator">></div>
+      <div class="header__breadcrumb__item" (click)="onNavigateTo.emit(breadcrumb.id)">{{ breadcrumb.name }}</div>
+    </ng-container>
+  </div>
   <div class="header__action"><button mat-stroked-button (click)="onAddFolder.emit()">Add new folder</button></div>
 </div>

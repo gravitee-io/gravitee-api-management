@@ -17,6 +17,7 @@
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
+import { DivHarness } from '@gravitee/ui-particles-angular/testing';
 
 export class ApiDocumentationV4PagesListHarness extends ComponentHarness {
   static hostSelector = 'api-documentation-v4-pages-list';
@@ -24,6 +25,12 @@ export class ApiDocumentationV4PagesListHarness extends ComponentHarness {
   protected tableLocator = this.locatorFor(MatTableHarness);
   protected addNewPageButtonLocator = this.locatorFor(MatButtonHarness.with({ text: 'Add new page' }));
 
+  public async getNameDivByRowIndex(idx: number): Promise<DivHarness> {
+    const table = await this.tableLocator();
+    const rows = await table.getRows();
+    const cells = await rows[idx].getCells({ columnName: 'name' });
+    return cells[0].getHarness(DivHarness);
+  }
   public getNameByRowIndex(idx: number): Promise<string> {
     return this.getColumnTextByIndex('name', idx);
   }

@@ -25,6 +25,7 @@ import { GioConfirmDialogHarness, GioMonacoEditorHarness } from '@gravitee/ui-pa
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
+import { DivHarness } from '@gravitee/ui-particles-angular/testing';
 
 import { ApiDocumentationV4NewPageHarness } from './api-documentation-v4-new-page.harness';
 import { ApiDocumentationV4NewPageComponent } from './api-documentation-v4-new-page.component';
@@ -33,6 +34,7 @@ import { GioUiRouterTestingModule } from '../../../../shared/testing/gio-uiroute
 import { ApiDocumentationV4Module } from '../api-documentation-v4.module';
 import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { Breadcrumb, Page } from '../../../../entities/management-api-v2/documentation/page';
 
 describe('ApiDocumentationV4NewPageComponent', () => {
   let fixture: ComponentFixture<ApiDocumentationV4NewPageComponent>;
@@ -41,7 +43,7 @@ describe('ApiDocumentationV4NewPageComponent', () => {
   const API_ID = 'api-id';
   let httpTestingController: HttpTestingController;
 
-  const init = async () => {
+  const init = async (pages: Page[] = [], breadcrumb: Breadcrumb[] = [], parentId = 'ROOT') => {
     await TestBed.configureTestingModule({
       declarations: [ApiDocumentationV4NewPageComponent],
       imports: [
@@ -55,7 +57,7 @@ describe('ApiDocumentationV4NewPageComponent', () => {
       ],
       providers: [
         { provide: UIRouterState, useValue: fakeUiRouter },
-        { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
+        { provide: UIRouterStateParams, useValue: { apiId: API_ID, parentId: parentId } },
       ],
     })
       .overrideProvider(InteractivityChecker, {
@@ -68,123 +70,170 @@ describe('ApiDocumentationV4NewPageComponent', () => {
     fixture = TestBed.createComponent(ApiDocumentationV4NewPageComponent);
     harnessLoader = await TestbedHarnessEnvironment.loader(fixture);
     httpTestingController = TestBed.inject(HttpTestingController);
-  };
 
-  beforeEach(async () => await init());
+    fixture.detectChanges();
+    expectGetPages(pages, breadcrumb, parentId);
+  };
 
   afterEach(() => {
     httpTestingController.verify();
   });
 
-  it('should have 3 steps', async () => {
-    const stepper = await harnessLoader.getHarness(MatStepperHarness);
-    const steps = await Promise.all(await stepper.getSteps());
-    expect(steps.length).toEqual(3);
-    expect(await steps[0].getLabel()).toEqual('Configure page');
-    expect(await steps[1].getLabel()).toEqual('Determine source');
-    expect(await steps[2].getLabel()).toEqual('Add content');
-  });
+  describe('In the root folder of the API', () => {
+    beforeEach(async () => await init());
 
-  it('should request confirmation before exit without saving', async () => {
-    const exitBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Exit without saving' }));
-    await exitBtn.click();
+    it('should have 3 steps', async () => {
+      const stepper = await harnessLoader.getHarness(MatStepperHarness);
+      const steps = await Promise.all(await stepper.getSteps());
+      expect(steps.length).toEqual(3);
+      expect(await steps[0].getLabel()).toEqual('Configure page');
+      expect(await steps[1].getLabel()).toEqual('Determine source');
+      expect(await steps[2].getLabel()).toEqual('Add content');
+    });
 
-    const confirmDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
-    expect(confirmDialog).toBeDefined();
+    it('should request confirmation before exit without saving', async () => {
+      const exitBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Exit without saving' }));
+      await exitBtn.click();
 
-    // should stay on page if cancel
-    await confirmDialog.cancel();
+      const confirmDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
+      expect(confirmDialog).toBeDefined();
 
-    await exitBtn.click();
-    const newConfirmDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
-    expect(newConfirmDialog).toBeDefined();
-    // should leave page on confirm
-    await newConfirmDialog.confirm();
-    expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.documentationV4');
-  });
+      // should stay on page if cancel
+      await confirmDialog.cancel();
 
-  describe('step 1 - Configure page', () => {
-    it('should set name and visibility', async () => {
-      const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4NewPageHarness);
+      await exitBtn.click();
+      const newConfirmDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
+      expect(newConfirmDialog).toBeDefined();
+      // should leave page on confirm
+      await newConfirmDialog.confirm();
+      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.documentationV4', {
+        apiId: API_ID,
+        parentId: 'ROOT',
+      });
+    });
 
-      expect(getPageTitle()).toEqual('Add new page');
+    describe('step 1 - Configure page', () => {
+      it('should set name and visibility', async () => {
+        const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4NewPageHarness);
 
-      const nextBtn = await harness.getNextButton();
-      expect(await nextBtn.isDisabled()).toEqual(true);
+        expect(getPageTitle()).toEqual('Add new page');
 
-      await harness.setName('New page');
-      await harness.checkVisibility('PRIVATE');
+        const nextBtn = await harness.getNextButton();
+        expect(await nextBtn.isDisabled()).toEqual(true);
 
-      expect(await nextBtn.isDisabled()).toEqual(false);
-      expect(await nextBtn.click());
-      expect(fixture.componentInstance.form.getRawValue()).toEqual({ name: 'New page', visibility: 'PRIVATE' });
+        await harness.setName('New page');
+        await harness.checkVisibility('PRIVATE');
 
-      expect(getPageTitle()).toEqual('New page');
+        expect(await nextBtn.isDisabled()).toEqual(false);
+        expect(await nextBtn.click());
+        expect(fixture.componentInstance.form.getRawValue()).toEqual({ name: 'New page', visibility: 'PRIVATE' });
+
+        expect(getPageTitle()).toEqual('New page');
+      });
+    });
+
+    describe('step 2 - Determine source', () => {
+      beforeEach(async () => {
+        const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4NewPageHarness);
+        await harness.setName('New page');
+
+        await harness.getNextButton().then(async (btn) => {
+          expect(await btn.isDisabled()).toEqual(false);
+          return btn.click();
+        });
+        fixture.detectChanges();
+      });
+
+      it('should select source', async () => {
+        const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4NewPageHarness);
+        const options = await harness.getSourceOptions();
+
+        expect(options.length).toEqual(3);
+        const sourceOptions = await Promise.all(options.map(async (opt) => await opt.getLabelText()));
+        expect(sourceOptions).toEqual(['Fill in the content myself', 'Import from file', 'Import from fileComing soon']);
+        expect(await options[2].isDisabled()).toEqual(true);
+
+        await options[0].check();
+      });
+    });
+
+    describe('step 3 - Fill content ', () => {
+      beforeEach(async () => {
+        const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4NewPageHarness);
+        await harness.setName('New page');
+
+        await harness.getNextButton().then(async (btn) => {
+          expect(await btn.isDisabled()).toEqual(false);
+          return btn.click();
+        });
+
+        await harness.getNextButton().then(async (btn) => {
+          expect(await btn.isDisabled()).toEqual(false);
+          return btn.click();
+        });
+      });
+
+      it('should show markdown editor', async () => {
+        const editor = await harnessLoader.getHarness(GioMonacoEditorHarness);
+        expect(editor).toBeDefined();
+
+        await editor.setValue('#TITLE \n This is the file content');
+        expect(fixture.componentInstance.content).toEqual('#TITLE  This is the file content');
+      });
+
+      it('should show markdown preview', async () => {
+        const preview = getMarkdownPreview();
+        expect(preview).toBeTruthy();
+
+        const togglePreviewButton = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Toggle preview' }));
+        await togglePreviewButton.click();
+
+        expect(getMarkdownPreview()).toBeFalsy();
+      });
+
+      it('should save content', async () => {
+        const editor = await harnessLoader.getHarness(GioMonacoEditorHarness);
+        await editor.setValue('#TITLE \n This is the file content');
+
+        const saveBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Save' }));
+        expect(await saveBtn.isDisabled()).toEqual(false);
+        await saveBtn.click();
+
+        const req = httpTestingController.expectOne({
+          method: 'POST',
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages`,
+        });
+
+        req.flush({});
+        expect(req.request.body).toEqual({
+          type: 'MARKDOWN',
+          name: 'New page',
+          visibility: 'PUBLIC',
+          content: '#TITLE  This is the file content', // TODO: check why \n is removed
+          parentId: 'ROOT',
+        });
+      });
     });
   });
-
-  describe('step 2 - Determine source', () => {
+  describe('Under another folder', () => {
     beforeEach(async () => {
+      await init([], [{ name: 'Parent Folder', id: 'parent-folder-id', position: 1 }], 'parent-folder-id');
+    });
+
+    it('should show breadcrumb', async () => {
+      const harness = await harnessLoader.getHarness(DivHarness.with({ selector: '.navigation__location__breadcrumb' }));
+      expect(await harness.getText()).toEqual('Home>Parent Folder');
+    });
+
+    it('should save page in the correct folder', async () => {
       const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4NewPageHarness);
       await harness.setName('New page');
 
-      await harness.getNextButton().then(async (btn) => {
-        expect(await btn.isDisabled()).toEqual(false);
-        return btn.click();
-      });
-      fixture.detectChanges();
-    });
+      await harness.getNextButton().then(async (btn) => btn.click());
+      await harness.getNextButton().then(async (btn) => btn.click());
 
-    it('should select source', async () => {
-      const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4NewPageHarness);
-      const options = await harness.getSourceOptions();
-
-      expect(options.length).toEqual(3);
-      const sourceOptions = await Promise.all(options.map(async (opt) => await opt.getLabelText()));
-      expect(sourceOptions).toEqual(['Fill in the content myself', 'Import from file', 'Import from fileComing soon']);
-      expect(await options[2].isDisabled()).toEqual(true);
-
-      await options[0].check();
-    });
-  });
-
-  describe('step 3 - Fill content ', () => {
-    beforeEach(async () => {
-      const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4NewPageHarness);
-      await harness.setName('New page');
-
-      await harness.getNextButton().then(async (btn) => {
-        expect(await btn.isDisabled()).toEqual(false);
-        return btn.click();
-      });
-
-      await harness.getNextButton().then(async (btn) => {
-        expect(await btn.isDisabled()).toEqual(false);
-        return btn.click();
-      });
-    });
-
-    it('should show markdown editor', async () => {
       const editor = await harnessLoader.getHarness(GioMonacoEditorHarness);
-      expect(editor).toBeDefined();
-
-      await editor.setValue('#TITLE \n This is the file content');
-      expect(fixture.componentInstance.content).toEqual('#TITLE  This is the file content');
-    });
-
-    it('should show markdown preview', async () => {
-      const preview = getMarkdownPreview();
-      expect(preview).toBeTruthy();
-
-      const togglePreviewButton = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Toggle preview' }));
-      await togglePreviewButton.click();
-
-      expect(getMarkdownPreview()).toBeFalsy();
-    });
-
-    it('should save content', async () => {
-      const editor = await harnessLoader.getHarness(GioMonacoEditorHarness);
-      await editor.setValue('#TITLE \n This is the file content');
+      await editor.setValue('File content');
 
       const saveBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Save' }));
       expect(await saveBtn.isDisabled()).toEqual(false);
@@ -200,10 +249,20 @@ describe('ApiDocumentationV4NewPageComponent', () => {
         type: 'MARKDOWN',
         name: 'New page',
         visibility: 'PUBLIC',
-        content: '#TITLE  This is the file content', // TODO: check why \n is removed
+        content: 'File content',
+        parentId: 'parent-folder-id',
       });
     });
   });
+
+  const expectGetPages = (pages: Page[], breadcrumb: Breadcrumb[], parentId = 'ROOT') => {
+    const req = httpTestingController.expectOne({
+      method: 'GET',
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages?parentId=${parentId}`,
+    });
+
+    req.flush({ pages, breadcrumb });
+  };
 
   const getPageTitle = () => {
     return fixture.nativeElement.querySelector('h3').innerHTML;

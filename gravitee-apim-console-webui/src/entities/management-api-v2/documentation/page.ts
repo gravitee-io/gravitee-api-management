@@ -41,3 +41,9 @@ export interface Page {
   parentPath?: string;
   contentRevision?: Revision;
 }
+
+export interface Breadcrumb {
+  id: string;
+  name: string;
+  position: number;
+}
