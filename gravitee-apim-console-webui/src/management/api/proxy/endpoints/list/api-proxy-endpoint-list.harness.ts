@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ComponentHarness, HarnessLoader } from '@angular/cdk/testing';
+import { ComponentHarness, HarnessLoader, parallel } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
+import { MatIconHarness } from '@angular/material/icon/testing';
 
 export class ApiProxyEndpointListHarness extends ComponentHarness {
   static hostSelector = 'api-proxy-endpoint-list';
@@ -28,7 +29,22 @@ export class ApiProxyEndpointListHarness extends ComponentHarness {
 
   public async getTableRows(index: number) {
     const table = this.locatorFor(MatTableHarness.with({ selector: `#endpointGroupsTable-${index}` }));
-    return await table().then((t) => t.getCellTextByIndex());
+    const rows = await table().then((t) => t.getCellTextByIndex());
+
+    const resolveIconCell1 = async (row: number) =>
+      await table()
+        .then((t) => t.getRows())
+        .then((rows) => rows[row].getCells())
+        .then(async (cells) => ({
+          text: await cells[1].getText(),
+          allIconHarnesses: await cells[1].getAllHarnesses(MatIconHarness),
+        }))
+        .then(async ({ text, allIconHarnesses }) => {
+          const allIcon = await parallel(() => allIconHarnesses.map((icon) => icon.getName()));
+          return [text, ...allIcon].join(' ').trim();
+        });
+
+    return parallel(() => rows.map(async ([cell0, _, ...cells], index) => [cell0, await resolveIconCell1(index), ...cells]));
   }
 
   public async addEndpointGroup() {
