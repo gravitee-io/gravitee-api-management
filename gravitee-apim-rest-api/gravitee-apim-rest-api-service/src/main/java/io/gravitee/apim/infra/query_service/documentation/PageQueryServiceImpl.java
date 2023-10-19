@@ -24,6 +24,7 @@ import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.api.search.PageCriteria;
 import io.gravitee.repository.management.model.PageReferenceType;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,13 +43,7 @@ public class PageQueryServiceImpl implements PageQueryService {
 
     @Override
     public List<Page> searchByApiId(String apiId) {
-        PageCriteria criteria = new PageCriteria.Builder().referenceType(PageReferenceType.API.name()).referenceId(apiId).build();
-        try {
-            return PageAdapter.INSTANCE.toEntityList(pageRepository.search(criteria));
-        } catch (TechnicalException e) {
-            logger.error("An error occurred while searching for Page by apiId {}", apiId, e);
-            throw new DomainException("Error during repository search", e);
-        }
+        return this.search(new PageCriteria.Builder().referenceType(PageReferenceType.API.name()).referenceId(apiId), apiId);
     }
 
     @Override
@@ -62,6 +57,38 @@ public class PageQueryServiceImpl implements PageQueryService {
             return pageRepository.search(criteria).stream().findFirst().map(PageAdapter.INSTANCE::toEntity);
         } catch (TechnicalException e) {
             logger.error("An error occurred while finding all homepage pages with apiId {}", apiId, e);
+            throw new DomainException("Error during repository search", e);
+        }
+    }
+
+    /**
+     * Get a list of Pages for a specific Api and a parent.
+     * If parentId is null, then the parent is assumed to be the root.
+     *
+     * @param apiId
+     * @param parentId
+     * @return
+     */
+    @Override
+    public List<Page> searchByApiIdAndParentId(String apiId, String parentId) {
+        PageCriteria.Builder pageCriteriaBuilder = new PageCriteria.Builder()
+            .referenceType(PageReferenceType.API.name())
+            .referenceId(apiId);
+
+        if (Objects.isNull(parentId)) {
+            pageCriteriaBuilder.rootParent(true);
+        } else {
+            pageCriteriaBuilder.parent(parentId);
+        }
+
+        return this.search(pageCriteriaBuilder, apiId);
+    }
+
+    private List<Page> search(PageCriteria.Builder pageCriteriaBuilder, String apiId) {
+        try {
+            return PageAdapter.INSTANCE.toEntityList(pageRepository.search(pageCriteriaBuilder.build()));
+        } catch (TechnicalException e) {
+            logger.error("An error occurred while searching for Page by apiId {}", apiId, e);
             throw new DomainException("Error during repository search", e);
         }
     }

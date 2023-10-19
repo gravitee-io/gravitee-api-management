@@ -22,6 +22,7 @@ import io.gravitee.apim.core.documentation.usecase.ApiCreateDocumentationPageUse
 import io.gravitee.apim.core.documentation.usecase.ApiGetDocumentationPagesUsecase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.PageMapper;
+import io.gravitee.rest.api.management.v2.rest.model.ApiDocumentationPagesResponse;
 import io.gravitee.rest.api.management.v2.rest.model.CreateDocumentation;
 import io.gravitee.rest.api.management.v2.rest.model.CreateDocumentationMarkdown;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
@@ -35,7 +36,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.SecurityContext;
+import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.factory.Mappers;
 
 @Path("/environments/{envId}/apis/{apiId}/pages")
@@ -50,9 +51,14 @@ public class ApiPagesResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.READ }) })
-    public Response getApiPages(@PathParam("apiId") String apiId) {
-        var result = apiGetDocumentationPagesUsecase.execute(new ApiGetDocumentationPagesUsecase.Input(apiId));
-        return Response.ok(Mappers.getMapper(PageMapper.class).mapPageList(result.pages())).build();
+    public Response getApiPages(@PathParam("apiId") String apiId, @QueryParam("parentId") String parentId) {
+        final var mapper = Mappers.getMapper(PageMapper.class);
+        var result = apiGetDocumentationPagesUsecase.execute(new ApiGetDocumentationPagesUsecase.Input(apiId, parentId));
+        var response = ApiDocumentationPagesResponse.builder().pages(mapper.mapPageList(result.pages()));
+        if (!StringUtils.isEmpty(parentId)) {
+            response.breadcrumb(mapper.map(result.breadcrumbList()));
+        }
+        return Response.ok(response.build()).build();
     }
 
     @POST

@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.infra.spring;
 
+import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.api.usecase.VerifyApiPathsUsecase;
@@ -87,8 +88,12 @@ public class UsecaseSpringConfiguration {
     }
 
     @Bean
-    public ApiGetDocumentationPagesUsecase apiGetDocumentationPagesUsecase(ApiDocumentationDomainService apiDocumentationService) {
-        return new ApiGetDocumentationPagesUsecase(apiDocumentationService);
+    public ApiGetDocumentationPagesUsecase apiGetDocumentationPagesUsecase(
+        ApiDocumentationDomainService apiDocumentationService,
+        PageCrudService pageCrudService,
+        ApiCrudService apiCrudService
+    ) {
+        return new ApiGetDocumentationPagesUsecase(apiDocumentationService, pageCrudService, apiCrudService);
     }
 
     @Bean

@@ -1629,11 +1629,17 @@ paths:
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
         get:
+            parameters:
+                - $ref: "#/components/parameters/parentId"
             tags:
                 - API Documentation
             summary: Get API documentation pages
             description: |-
-                Get API documentation pages. The result contains a list of pages and folders of the API.
+                Get API documentation pages.
+                When no parentId is specified, returns all the pages of the API.
+                
+                When parentId is specified (either ID of a folder, or 'ROOT'), only the pages with the given parent are returned, 
+                and the breadcrumb of the specified folder is added to the response. 
                 
                 User must have the API_DOCUMENTATION[READ] permission.
             operationId: getApiPages
@@ -1667,7 +1673,6 @@ paths:
                                 $ref: "#/components/schemas/Page"
                 default:
                     $ref: "#/components/responses/Error"
-
 
     # Plugins - Endpoints
     /plugins/endpoints:
@@ -5652,6 +5657,22 @@ components:
                     description: Revision number.
                     example: 1
 
+        Breadcrumb:
+            type: object
+            properties:
+                position:
+                    type: integer
+                    description: Distance of folder from the root
+                    example: 1
+                id:
+                    type: string
+                    description: Id of the folder
+                    example: folder-id
+                name:
+                    type: string
+                    description: Name of the folder
+                    example: A lovely folder name
+
         # Metadata Page
         Metadata:
             type: object
@@ -5752,6 +5773,13 @@ components:
             in: path
             required: true
             description: Id of an API member.
+            schema:
+                type: string
+        pageIdParam:
+            name: pageId
+            in: path
+            required: true
+            description: Id of a documentation page.
             schema:
                 type: string
         planIdParam:
@@ -5870,6 +5898,20 @@ components:
                 type: array
                 items:
                     type: string
+        parentId:
+            name: parentId
+            in: query
+            required: false
+            description: Id of the parent folder or 'ROOT' for the top folder.
+            examples:
+                root:
+                    value: ROOT
+                    summary: Hard-coded value for top level folder
+                parentId:
+                    value: 919a8df8-6e53-11ee-b962-0242ac120002
+                    summary: ID of the parent folder
+            schema:
+                type: string
         planIds:
             name: planIds
             description: List of plan ids to filter on.
@@ -6094,6 +6136,11 @@ components:
                                 type: array
                                 items:
                                     $ref: "#/components/schemas/Page"
+                            breadcrumb:
+                                type: array
+                                description: Breadcrumb to the root folder. Only returned when parentId is specified.
+                                items:
+                                    $ref: "#/components/schemas/Breadcrumb"
 
     securitySchemes:
         BasicAuth:

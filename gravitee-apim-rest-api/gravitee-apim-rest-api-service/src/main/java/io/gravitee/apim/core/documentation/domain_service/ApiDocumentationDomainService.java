@@ -18,6 +18,7 @@ package io.gravitee.apim.core.documentation.domain_service;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
 import java.util.List;
+import java.util.Objects;
 
 public class ApiDocumentationDomainService {
 
@@ -27,7 +28,12 @@ public class ApiDocumentationDomainService {
         this.pageQueryService = pageQueryService;
     }
 
-    public List<Page> getApiPages(String apiId) {
-        return pageQueryService.searchByApiId(apiId);
+    public List<Page> getApiPages(String apiId, String parentId) {
+        if (Objects.nonNull(parentId) && !parentId.isEmpty()) {
+            var parentIdParam = "ROOT".equals(parentId) ? null : parentId;
+            return pageQueryService.searchByApiIdAndParentId(apiId, parentIdParam);
+        } else {
+            return pageQueryService.searchByApiId(apiId);
+        }
     }
 }

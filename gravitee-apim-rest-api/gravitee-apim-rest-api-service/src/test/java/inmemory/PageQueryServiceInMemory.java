@@ -20,6 +20,7 @@ import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 public class PageQueryServiceInMemory implements InMemoryAlternative<Page>, PageQueryService {
@@ -42,6 +43,28 @@ public class PageQueryServiceInMemory implements InMemoryAlternative<Page>, Page
                 apiId.equals(page.getReferenceId()) && Page.ReferenceType.API.equals(page.getReferenceType()) && page.isHomepage()
             )
             .findFirst();
+    }
+
+    @Override
+    public List<Page> searchByApiIdAndParentId(String apiId, String parentId) {
+        if (Objects.isNull(parentId) || parentId.isEmpty()) {
+            return pages
+                .stream()
+                .filter(page ->
+                    apiId.equals(page.getReferenceId()) &&
+                    Page.ReferenceType.API.equals(page.getReferenceType()) &&
+                    (Objects.isNull(page.getParentId()) || page.getParentId().isEmpty())
+                )
+                .toList();
+        }
+        return pages
+            .stream()
+            .filter(page ->
+                apiId.equals(page.getReferenceId()) &&
+                Page.ReferenceType.API.equals(page.getReferenceType()) &&
+                parentId.equals(page.getParentId())
+            )
+            .toList();
     }
 
     @Override

@@ -28,7 +28,9 @@ import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.management.model.PageReferenceType;
 import java.util.List;
 import lombok.SneakyThrows;
+import org.checkerframework.checker.units.qual.N;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 class PageQueryServiceImplTest {
@@ -42,47 +44,83 @@ class PageQueryServiceImplTest {
         service = new PageQueryServiceImpl(pageRepository);
     }
 
-    @Test
-    void search_should_return_matching_pages() {
-        String API_ID = "api-id";
-        Page page1 = aPage(API_ID, "page#1", "page 1");
-        Page page2 = aPage(API_ID, "page#2", "page 2");
-        List<Page> pages = List.of(page1, page2);
-        givenMatchingPages(API_ID, pages);
+    @Nested
+    class SearchByApiId {
 
-        var res = service.searchByApiId(API_ID);
-        assertThat(res).hasSize(2);
-        assertThat(res.get(0).getId()).isEqualTo("page#1");
-        assertThat(res.get(0).getName()).isEqualTo("page 1");
-        assertThat(res.get(0).getReferenceId()).isEqualTo(API_ID);
-        assertThat(res.get(0).getReferenceType()).isEqualTo(io.gravitee.apim.core.documentation.model.Page.ReferenceType.API);
-        assertThat(res.get(1).getId()).isEqualTo("page#2");
-        assertThat(res.get(1).getName()).isEqualTo("page 2");
-        assertThat(res.get(1).getReferenceId()).isEqualTo(API_ID);
-        assertThat(res.get(1).getReferenceType()).isEqualTo(io.gravitee.apim.core.documentation.model.Page.ReferenceType.API);
+        @Test
+        void search_should_return_matching_pages() {
+            String API_ID = "api-id";
+            Page page1 = aPage(API_ID, "page#1", "page 1");
+            Page page2 = aPage(API_ID, "page#2", "page 2");
+            List<Page> pages = List.of(page1, page2);
+            givenMatchingPages(API_ID, pages);
+
+            var res = service.searchByApiId(API_ID);
+            assertThat(res).hasSize(2);
+            assertThat(res.get(0).getId()).isEqualTo("page#1");
+            assertThat(res.get(0).getName()).isEqualTo("page 1");
+            assertThat(res.get(0).getReferenceId()).isEqualTo(API_ID);
+            assertThat(res.get(0).getReferenceType()).isEqualTo(io.gravitee.apim.core.documentation.model.Page.ReferenceType.API);
+            assertThat(res.get(1).getId()).isEqualTo("page#2");
+            assertThat(res.get(1).getName()).isEqualTo("page 2");
+            assertThat(res.get(1).getReferenceId()).isEqualTo(API_ID);
+            assertThat(res.get(1).getReferenceType()).isEqualTo(io.gravitee.apim.core.documentation.model.Page.ReferenceType.API);
+        }
     }
 
-    @Test
-    void search_should_return_api_homepage() {
-        String API_ID = "api-id";
-        Page page1 = aPage(API_ID, "page#1", "page 1");
-        List<Page> pages = List.of(page1);
-        givenMatchingPages(new PageCriteria.Builder().referenceId(API_ID).referenceType("API").homepage(true), pages);
+    @Nested
+    class SearchByApiIdAndIsHomepage {
 
-        var res = service.findHomepageByApiId(API_ID).get();
+        @Test
+        void search_should_return_api_homepage() {
+            String API_ID = "api-id";
+            Page page1 = aPage(API_ID, "page#1", "page 1");
+            List<Page> pages = List.of(page1);
+            givenMatchingPages(new PageCriteria.Builder().referenceId(API_ID).referenceType("API").homepage(true), pages);
 
-        assertThat(res).isNotNull();
-        assertThat(res.getId()).isEqualTo("page#1");
-        assertThat(res.getName()).isEqualTo("page 1");
+            var res = service.findHomepageByApiId(API_ID).get();
+
+            assertThat(res).isNotNull();
+            assertThat(res.getId()).isEqualTo("page#1");
+            assertThat(res.getName()).isEqualTo("page 1");
+        }
+
+        @Test
+        void search_should_return_no_api_homepage() {
+            String API_ID = "api-id";
+            givenMatchingPages(new PageCriteria.Builder().referenceId(API_ID).referenceType("API").homepage(true), List.of());
+
+            var res = service.findHomepageByApiId(API_ID);
+            assertThat(res.isEmpty()).isTrue();
+        }
     }
 
-    @Test
-    void search_should_return_no_api_homepage() {
-        String API_ID = "api-id";
-        givenMatchingPages(new PageCriteria.Builder().referenceId(API_ID).referenceType("API").homepage(true), List.of());
+    @Nested
+    class SearchByApiIdAndParentId {
 
-        var res = service.findHomepageByApiId(API_ID);
-        assertThat(res.isEmpty()).isTrue();
+        @Test
+        void search_should_return_pages_if_parent_is_root() {
+            String API_ID = "api-id";
+            Page page1 = aPage(API_ID, "page#1", "page 1");
+            List<Page> pages = List.of(page1);
+            givenMatchingPages(new PageCriteria.Builder().referenceId(API_ID).referenceType("API").rootParent(true), pages);
+
+            var res = service.searchByApiIdAndParentId(API_ID, null);
+
+            assertThat(res).isNotNull().hasSize(1);
+        }
+
+        @Test
+        void search_should_return_pages_if_parent_is_not_root() {
+            String API_ID = "api-id";
+            Page page1 = aPage(API_ID, "page#1", "page 1");
+            List<Page> pages = List.of(page1);
+            givenMatchingPages(new PageCriteria.Builder().referenceId(API_ID).referenceType("API").parent("nice-parent"), pages);
+
+            var res = service.searchByApiIdAndParentId(API_ID, "nice-parent");
+
+            assertThat(res).isNotNull().hasSize(1);
+        }
     }
 
     @SneakyThrows
