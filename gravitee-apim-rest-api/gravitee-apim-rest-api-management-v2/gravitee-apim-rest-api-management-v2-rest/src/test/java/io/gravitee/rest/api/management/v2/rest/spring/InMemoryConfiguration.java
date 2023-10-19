@@ -29,6 +29,11 @@ public class InMemoryConfiguration {
     }
 
     @Bean
+    public ApiCrudServiceInMemory apiCrudServiceInMemory() {
+        return new ApiCrudServiceInMemory();
+    }
+
+    @Bean
     public ApplicationCrudServiceInMemory applicationRepository() {
         return new ApplicationCrudServiceInMemory();
     }
