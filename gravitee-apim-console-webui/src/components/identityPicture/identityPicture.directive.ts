@@ -20,7 +20,6 @@ class IdentityPictureDirective {
   constructor() {
     const directive = {
       restrict: 'E',
-      require: 'gvThemeElement',
       scope: {
         image: '<',
         imageDefault: '=',

@@ -128,7 +128,6 @@ import LogsFiltersController from '../components/logs/logs-filters.controller';
 
 import { ApiAnalyticsLogComponentAjs } from './api/analytics/logs/analytics-log.component.ajs';
 // Others
-import ThemeElementDirective from '../components/theme/theme-element.directive';
 import EnvironmentService from '../services/environment.service';
 import OrganizationService from '../services/organization.service';
 import InstallationService from '../services/installation.service';
@@ -685,7 +684,6 @@ graviteeManagementModule.directive('graviteeImage', () => new ImageDirective());
 graviteeManagementModule.directive('graviteeEmptyState', () => new EmptyStateDirective());
 graviteeManagementModule.directive('graviteeChart', () => new ChartDirective());
 graviteeManagementModule.directive('graviteeUserAvatar', () => new UserAvatarDirective());
-graviteeManagementModule.directive('gvThemeElement', () => ThemeElementDirective);
 
 graviteeManagementModule.component('gvWidget', WidgetComponent);
 graviteeManagementModule.component('gvWidgetDataTable', WidgetDataTableComponent);
