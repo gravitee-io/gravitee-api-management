@@ -15,14 +15,26 @@
  */
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
-import { GioIconsModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import { GioBannerModule, GioFormSlideToggleModule, GioIconsModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 
 import { ApiDynamicPropertiesComponent } from './api-dynamic-properties.component';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatButtonModule } from '@angular/material/button';
 
 @NgModule({
-  imports: [CommonModule, ReactiveFormsModule, MatCardModule, GioSaveBarModule, GioIconsModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatCardModule,
+    MatButtonModule,
+    GioSaveBarModule,
+    GioIconsModule,
+    GioFormSlideToggleModule,
+    GioBannerModule,
+    MatSlideToggleModule,
+  ],
   declarations: [ApiDynamicPropertiesComponent],
   exports: [ApiDynamicPropertiesComponent],
 })
