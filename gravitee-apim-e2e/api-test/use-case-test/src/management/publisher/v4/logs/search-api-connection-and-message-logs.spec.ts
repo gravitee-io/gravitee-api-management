@@ -165,7 +165,7 @@ describe('API - V4 - MESSAGE - Search logs', () => {
         expectedResponseValidator: async (response) => {
           const body = response.value;
           // Retry until response contains all the four expected message logs for the page
-          return body.data.length === 2;
+          return body.pagination.totalCount === 4;
         },
       });
       expect(apiMessageLogsResponse.data).toHaveLength(2);
