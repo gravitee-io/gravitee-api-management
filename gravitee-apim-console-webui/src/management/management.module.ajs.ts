@@ -326,9 +326,9 @@ import DialogQueryFilterInformationController from './configuration/analytics/da
 
 import ReCaptchaService from '../services/reCaptcha.service';
 
-import ThemeController from './configuration/theme/theme.controller';
-import ThemeComponent from './configuration/theme/theme.component';
-import ThemeService from '../services/theme.service';
+import PortalThemeController from './configuration/portal-theme/portalTheme.controller';
+import PortalThemeComponent from './configuration/portal-theme/portalTheme.component';
+import PortalThemeService from '../services/portalTheme.service';
 
 import authenticationConfig from '../authentication/authentication.config';
 import NewsletterSubscriptionController from '../user/newsletter/newsletter-subscription.controller';
@@ -619,7 +619,7 @@ graviteeManagementModule.controller('SupportTicketController', SupportTicketCont
 graviteeManagementModule.controller('TicketsListController', TicketsListController);
 graviteeManagementModule.directive('ngEnvAudit', downgradeComponent({ component: EnvAuditComponent }));
 graviteeManagementModule.component('apiAuditComponentAjs', ApiAuditComponentAjs);
-graviteeManagementModule.controller('ThemeController', ThemeController);
+graviteeManagementModule.controller('PortalThemeController', PortalThemeController);
 graviteeManagementModule.controller('CustomUserFieldsController', CustomUserFieldsController);
 graviteeManagementModule.controller('TopApisController', TopApisController);
 graviteeManagementModule.controller('AddTopApiDialogController', AddTopApiDialogController);
@@ -659,7 +659,7 @@ graviteeManagementModule.service('AuditService', AuditService);
 graviteeManagementModule.service('TopApiService', TopApiService);
 graviteeManagementModule.service('MessageService', MessageService);
 graviteeManagementModule.service('PortalService', PortalService);
-graviteeManagementModule.service('ThemeService', ThemeService);
+graviteeManagementModule.service('PortalThemeService', PortalThemeService);
 graviteeManagementModule.service('ReCaptchaService', ReCaptchaService);
 graviteeManagementModule.service('TokenService', TokenService);
 graviteeManagementModule.service('EnvironmentService', EnvironmentService);
@@ -705,7 +705,7 @@ graviteeManagementModule.component('category', CategoryComponent);
 graviteeManagementModule.component('moved', MovedComponent);
 
 graviteeManagementModule.component('metadata', MetadataComponent);
-graviteeManagementModule.component('theme', ThemeComponent);
+graviteeManagementModule.component('theme', PortalThemeComponent);
 graviteeManagementModule.component('topApis', TopApisComponent);
 graviteeManagementModule.factory('ngCockpitService', downgradeInjectable(CockpitService));
 
