@@ -17,12 +17,14 @@ import { ComponentHarness } from '@angular/cdk/testing';
 import { DivHarness } from '@gravitee/ui-particles-angular/testing';
 
 import { ApiRuntimeLogsListHarness, ApiRuntimeLogsQuickFiltersHarness } from './components';
+import { ApiRuntimeLogsMoreFiltersHarness } from './components/api-runtime-logs-quick-filters/components/api-runtime-logs-more-filters/api-runtime-logs-more-filters.harness';
 
 export class ApiRuntimeLogsHarness extends ComponentHarness {
   static hostSelector = 'api-runtime-logs';
 
   public listHarness = this.locatorFor(ApiRuntimeLogsListHarness);
   public quickFiltersHarness = this.locatorFor(ApiRuntimeLogsQuickFiltersHarness);
+  public moreFiltersHarness = this.locatorFor(ApiRuntimeLogsMoreFiltersHarness);
   public loader = this.locatorForOptional(DivHarness.with({ selector: '[data-testId=loader-spinner]' }));
 
   async isEmptyPanelDisplayed(): Promise<boolean> {
@@ -55,6 +57,12 @@ export class ApiRuntimeLogsHarness extends ComponentHarness {
 
   async getPeriodChip() {
     return this.quickFiltersHarness().then((quickFilters) => quickFilters.getPeriodChip());
+  }
+
+  async getPeriodChipText() {
+    return this.quickFiltersHarness()
+      .then((quickFilters) => quickFilters.getPeriodChip())
+      .then((chip) => chip.getText());
   }
 
   async removePeriodChip() {
@@ -128,5 +136,109 @@ export class ApiRuntimeLogsHarness extends ComponentHarness {
 
   async goToNextPage() {
     return this.getPaginator().then((paginator) => paginator.goToNextPage());
+  }
+
+  async moreFiltersButtonClick() {
+    return this.quickFiltersHarness()
+      .then((harness) => harness.getMoreButton())
+      .then((btn) => btn.click());
+  }
+
+  async selectPeriodFromMoreFilters() {
+    return this.moreFiltersHarness().then((quickFilters) => quickFilters.getPeriodSelectInput());
+  }
+
+  async setFromDate(date: string) {
+    return this.moreFiltersHarness()
+      .then((harness) => harness.getFromInput())
+      .then((input) => input.setValue(date));
+  }
+
+  async setToDate(date: string) {
+    return this.moreFiltersHarness()
+      .then((harness) => harness.getToInput())
+      .then((input) => input.setValue(date));
+  }
+
+  async getToDate() {
+    return this.moreFiltersHarness()
+      .then((harness) => harness.getToInput())
+      .then((input) => input.getValue());
+  }
+
+  async getFromDate() {
+    return this.moreFiltersHarness()
+      .then((harness) => harness.getFromInput())
+      .then((input) => input.getValue());
+  }
+
+  async moreFiltersClearAll() {
+    return this.moreFiltersHarness()
+      .then((harness) => harness.getClearAllButton())
+      .then((btn) => btn.click());
+  }
+
+  async moreFiltersApply() {
+    return this.moreFiltersHarness()
+      .then((harness) => harness.getApplyButton())
+      .then((btn) => btn.click());
+  }
+
+  async isMoreFiltersApplyDisabled() {
+    return this.moreFiltersHarness()
+      .then((harness) => harness.getApplyButton())
+      .then((btn) => btn.isDisabled());
+  }
+
+  async closeMoreFilters() {
+    this.moreFiltersHarness()
+      .then((harness) => harness.getCloseButton())
+      .then((btn) => btn.click());
+  }
+
+  async getFromChipText() {
+    return this.quickFiltersHarness()
+      .then((quickFilters) => quickFilters.getFromChip())
+      .then((chip) => chip.getText());
+  }
+
+  async removeFromChip() {
+    return this.quickFiltersHarness()
+      .then((quickFilters) => quickFilters.getFromChip())
+      .then((chip) => chip.getRemoveButton())
+      .then((btn) => btn.click());
+  }
+
+  async getFromInputValue() {
+    return this.moreFiltersHarness()
+      .then((quickFilters) => quickFilters.getFromInput())
+      .then((chip) => chip.getValue());
+  }
+
+  async getToChipText() {
+    return this.quickFiltersHarness()
+      .then((quickFilters) => quickFilters.getToChip())
+      .then((chip) => chip.getText());
+  }
+
+  async removeToChip() {
+    return this.quickFiltersHarness()
+      .then((quickFilters) => quickFilters.getToChip())
+      .then((chip) => chip.getRemoveButton())
+      .then((btn) => btn.click());
+  }
+
+  async getToInputValue() {
+    return this.moreFiltersHarness()
+      .then((quickFilters) => quickFilters.getToInput())
+      .then((chip) => chip.getValue());
+  }
+
+  async selectPeriodInMoreFilters(text: string) {
+    return this.selectPeriodFromMoreFilters().then((select) => select.clickOptions({ text }));
+  }
+
+  async moreFiltersPeriodText() {
+    return this.selectPeriodFromMoreFilters().then((select) => select.getValueText());
   }
 }

@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import { Moment } from 'moment';
+
 export type SimpleFilter = FilterVM;
 export type MultiFilter = FilterVM[];
 
@@ -32,9 +34,13 @@ export type LogFilters = {
 
 export type LogFiltersForm = { period: SimpleFilter; applications: string[]; plans: string[] };
 
+export type MoreFiltersForm = { period: SimpleFilter; from: Moment; to: Moment };
+
 export type LogFiltersInitialValues = {
   applications?: MultiFilter;
   plans?: MultiFilter;
+  from: Moment;
+  to: Moment;
 };
 
 export const DEFAULT_PERIOD = { label: 'None', value: '0' };
@@ -56,4 +62,6 @@ export const DEFAULT_FILTERS: LogFilters = {
   period: DEFAULT_PERIOD,
   applications: undefined,
   plans: undefined,
+  from: undefined,
+  to: undefined,
 };

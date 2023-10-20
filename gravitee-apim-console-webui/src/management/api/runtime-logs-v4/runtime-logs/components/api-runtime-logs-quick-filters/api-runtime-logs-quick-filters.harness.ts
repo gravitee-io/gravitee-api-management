@@ -33,11 +33,18 @@ export class ApiRuntimeLogsQuickFiltersHarness extends ComponentHarness {
   public getPlansChip = this.locatorFor(MatChipHarness.with({ text: /^plans:/ }));
   public getRefreshButton = this.locatorFor(MatButtonHarness.with({ selector: '[data-testId=refresh-button]' }));
   public getResetFiltersButton = this.locatorFor(MatButtonHarness.with({ selector: '[data-testId=reset-filters-button]' }));
+  public getMoreButton = this.locatorFor(MatButtonHarness.with({ text: /More/ }));
+  public getFromChip = this.locatorFor(MatChipHarness.with({ text: /^from:/ }));
+  public getToChip = this.locatorFor(MatChipHarness.with({ text: /^to:/ }));
 
-  public getApplicationAutocomplete() {
-    return this.getApplicationFormField()
-      .then((applicationFormField) => applicationFormField.getControl(GioFormTagsInputHarness))
-      .then((tagsInput) => tagsInput.getMatAutocompleteHarness());
+  public async getApplicationAutocomplete() {
+    const applicationFormField = await this.getApplicationFormField();
+    const tagsInput: GioFormTagsInputHarness | null = await applicationFormField.getControl(GioFormTagsInputHarness);
+    return await tagsInput.getMatAutocompleteHarness();
+  }
+
+  public async moreFiltersButtonClick() {
+    return this.getMoreButton().then((btn) => btn.click());
   }
 
   public clickRefresh() {

@@ -23,7 +23,16 @@ import { KeyValue } from '@angular/common';
 
 import { CacheEntry } from './components';
 
-import { DEFAULT_FILTERS, DEFAULT_PERIOD, LogFilters, LogFiltersForm, LogFiltersInitialValues, MultiFilter, PERIODS } from '../../models';
+import {
+  DEFAULT_FILTERS,
+  DEFAULT_PERIOD,
+  LogFilters,
+  LogFiltersForm,
+  LogFiltersInitialValues,
+  MoreFiltersForm,
+  MultiFilter,
+  PERIODS,
+} from '../../models';
 import { QuickFiltersStoreService } from '../../services';
 import { Plan } from '../../../../../../entities/management-api-v2';
 
@@ -34,6 +43,7 @@ import { Plan } from '../../../../../../entities/management-api-v2';
 })
 export class ApiRuntimeLogsQuickFiltersComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+  private _loading = true;
 
   @Input() initialValues: LogFiltersInitialValues;
   @Input() plans: Plan[];
@@ -41,18 +51,23 @@ export class ApiRuntimeLogsQuickFiltersComponent implements OnInit, OnDestroy {
   @Output() resetFilters = new EventEmitter<void>();
 
   readonly periods = PERIODS;
+  readonly defaultFilters = DEFAULT_FILTERS;
   isFiltering = false;
   quickFiltersForm: FormGroup;
-  currentFilter: LogFilters;
   applicationsCache: CacheEntry[];
-  readonly defaultFilters = DEFAULT_FILTERS;
-
-  private _loading = true;
+  currentFilters: LogFilters;
+  showMoreFilters = false;
+  moreFiltersValues: MoreFiltersForm;
 
   constructor(private readonly quickFilterStore: QuickFiltersStoreService) {}
 
   ngOnInit(): void {
     this.applicationsCache = this.initialValues.applications;
+    this.moreFiltersValues = {
+      period: DEFAULT_PERIOD,
+      from: this.initialValues.from,
+      to: this.initialValues.to,
+    };
     this.quickFiltersForm = new FormGroup({
       period: new FormControl({ value: DEFAULT_PERIOD, disabled: true }),
       applications: new FormControl({
@@ -71,13 +86,27 @@ export class ApiRuntimeLogsQuickFiltersComponent implements OnInit, OnDestroy {
 
   removeFilter(removedFilter: KeyValue<string, LogFilters>) {
     const defaultValue = DEFAULT_FILTERS[removedFilter.key];
-    this.quickFiltersForm.get(removedFilter.key).patchValue(defaultValue);
-    this.currentFilter[removedFilter.key] = defaultValue;
-    this.isFiltering = !isEqual(this.currentFilter, DEFAULT_FILTERS);
+    if (this.moreFiltersValues[removedFilter.key]) {
+      this.applyMoreFilters({ ...this.moreFiltersValues, [removedFilter.key]: defaultValue });
+    } else {
+      this.quickFiltersForm.get(removedFilter.key).patchValue(defaultValue);
+    }
+  }
+
+  applyMoreFilters(values: MoreFiltersForm) {
+    this.moreFiltersValues = values;
+    if (this.currentFilters?.period !== values.period) {
+      this.quickFiltersForm.get('period').setValue(values.period, { emitEvent: false, onlySelf: true });
+    }
+    this.quickFilterStore.next(this.mapFormValues(this.quickFiltersForm.getRawValue(), values));
+    this.currentFilters = this.quickFilterStore.getFilters();
+    this.isFiltering = !isEqual(this.currentFilters, DEFAULT_FILTERS);
+    this.showMoreFilters = false;
   }
 
   resetAllFilters() {
-    this.quickFiltersForm.reset(DEFAULT_FILTERS);
+    this.quickFiltersForm.reset(DEFAULT_FILTERS, { emitEvent: false });
+    this.applyMoreFilters({ period: DEFAULT_FILTERS.period, from: null, to: null });
   }
 
   @Input()
@@ -87,27 +116,47 @@ export class ApiRuntimeLogsQuickFiltersComponent implements OnInit, OnDestroy {
   set loading(value: boolean) {
     this._loading = value;
     if (value) {
-      this.quickFiltersForm?.disable();
+      this.quickFiltersForm?.disable({ emitEvent: false });
     } else {
-      this.quickFiltersForm?.enable();
+      this.quickFiltersForm?.enable({ emitEvent: false });
     }
   }
 
   private onValuesChanges() {
-    this.quickFiltersForm.valueChanges.pipe(distinctUntilChanged(isEqual), takeUntil(this.unsubscribe$)).subscribe((values) => {
-      this.quickFilterStore.next(this.mapFormValues(values));
-      this.currentFilter = this.quickFilterStore.getFilters();
-      this.isFiltering = !isEqual(this.currentFilter, DEFAULT_FILTERS);
-    });
+    this.onQuickFiltersFormChanges();
     this.quickFiltersForm.updateValueAndValidity();
   }
 
-  private mapFormValues({ period, applications, plans }: LogFiltersForm) {
+  private onQuickFiltersFormChanges() {
+    this.quickFiltersForm.valueChanges.pipe(distinctUntilChanged(isEqual), takeUntil(this.unsubscribe$)).subscribe((values) => {
+      if (values.period && values.period === DEFAULT_PERIOD) {
+        this.moreFiltersValues = { ...this.moreFiltersValues, period: values.period };
+      } else {
+        this.moreFiltersValues = { period: values.period, from: null, to: null };
+      }
+      this.quickFilterStore.next(this.mapFormValues(values, this.moreFiltersValues));
+      this.currentFilters = this.quickFilterStore.getFilters();
+      this.isFiltering = !isEqual(this.currentFilters, DEFAULT_FILTERS);
+    });
+  }
+
+  private mapFormValues(quickFilterFormValues: LogFiltersForm, moreFilersFormValues: MoreFiltersForm): LogFilters {
+    return {
+      ...this.mapMoreFiltersFormValues(moreFilersFormValues),
+      ...this.mapQuickFiltersFormValues(quickFilterFormValues),
+    };
+  }
+
+  private mapQuickFiltersFormValues({ period, applications, plans }: LogFiltersForm) {
     return {
       period,
       plans: this.plansFromValues(plans),
       applications: this.applicationsFromValues(applications),
     };
+  }
+
+  private mapMoreFiltersFormValues({ period, from, to }: MoreFiltersForm) {
+    return { period, from: from?.valueOf(), to: to?.valueOf() };
   }
 
   private plansFromValues(ids: string[]): MultiFilter {

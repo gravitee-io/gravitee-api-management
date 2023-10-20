@@ -57,8 +57,9 @@ export default {
   argTypes: {},
   render: (args) => ({
     template: `
-      <div style="width: 800px">
-        <api-runtime-logs-quick-filters [plans]="plans" [initialValues]="initialValues">
+      <div style="width: 1000px">
+        <h4>Toggle loading value in the controls panel to enable or disable the form</h4>
+        <api-runtime-logs-quick-filters [loading]="loading" [plans]="plans" [initialValues]="initialValues">
         </api-runtime-logs-quick-filters>
       </div>
     `,
@@ -70,4 +71,5 @@ export const Default: Story = {};
 Default.args = {
   initialValues: { applications: undefined, plans: undefined },
   plans,
+  loading: true,
 };
