@@ -63,6 +63,10 @@ describe('ApiRuntimeLogsComponent', () => {
   const plan1 = fakePlanV4({ id: '1', name: 'plan 1' });
   const plan2 = fakePlanV4({ id: '2', name: 'plan 2' });
   const application = fakeApplication({ id: '1', owner: { displayName: 'owner' } });
+  const fromDate = '10/9/2023 3:21 PM';
+  const fromDateTime = new Date(fromDate).getTime();
+  const toDate = '10/24/2023 3:21 PM';
+  const toDateTime = new Date(toDate).getTime();
 
   const initComponent = async () => {
     TestBed.configureTestingModule({
@@ -218,6 +222,7 @@ describe('ApiRuntimeLogsComponent', () => {
 
     describe('when there is more than one page and we apply a period filter', () => {
       const fakeNow = moment('2023-10-05T00:00:00.000Z');
+      const last5Min = 'Last 5 Minutes';
 
       beforeEach(async () => {
         await initComponentWithLogs({ hasLogs: true, total });
@@ -257,8 +262,8 @@ describe('ApiRuntimeLogsComponent', () => {
         const periodSelectInput = await componentHarness.selectPeriodQuickFilter();
         expect(await periodSelectInput.isDisabled()).toEqual(false);
         expect(await periodSelectInput.getValueText()).toEqual('None');
-        await periodSelectInput.clickOptions({ text: 'Last 5 Minutes' });
-        expect(await periodSelectInput.getValueText()).toEqual('Last 5 Minutes');
+        await periodSelectInput.clickOptions({ text: last5Min });
+        expect(await periodSelectInput.getValueText()).toEqual(last5Min);
 
         const expectedTo = fakeNow.valueOf();
         const expectedFrom = expectedTo - 5 * 60 * 1000;
@@ -278,6 +283,17 @@ describe('ApiRuntimeLogsComponent', () => {
         expect(await periodSelectInput.getValueText()).toEqual('None');
         // We do not expect any chip since there is no filter
         expect(await componentHarness.getQuickFiltersChips()).toBeNull();
+      });
+
+      it('should sync period filters from quick filters and more filters', async () => {
+        const quickFiltersPeriod = await componentHarness.selectPeriodQuickFilter();
+        await quickFiltersPeriod.clickOptions({ text: last5Min });
+        expect(await quickFiltersPeriod.getValueText()).toEqual(last5Min);
+        expectApiWithLogs(total, { perPage, page: 1, from: fakeNow.valueOf() - 5 * 60 * 1000, to: fakeNow.valueOf() });
+
+        await componentHarness.moreFiltersButtonClick();
+        const moreFiltersPeriod = await componentHarness.selectPeriodFromMoreFilters();
+        expect(await moreFiltersPeriod.getValueText()).toEqual(last5Min);
       });
     });
 
@@ -360,6 +376,139 @@ describe('ApiRuntimeLogsComponent', () => {
         expectUiRouterChange(3, { page: 1, perPage: 10 });
       });
     });
+
+    describe('when we click on more filters button', () => {
+      const fakeNow = moment('2023-10-25T00:00:00.000Z');
+
+      beforeEach(async () => {
+        await initComponentWithLogs({ hasLogs: true });
+        jest.spyOn(Date, 'now').mockReturnValue(new Date('2023-10-25T00:00:00.000Z').getTime());
+      });
+
+      it('should display more filters panel', async () => {
+        expect.assertions(2);
+        try {
+          await componentHarness.moreFiltersHarness();
+        } catch (e) {
+          expect(e.message).toMatch(/Failed to find element/);
+        }
+        await componentHarness.moreFiltersButtonClick();
+        expect(await componentHarness.moreFiltersHarness()).toBeTruthy();
+      });
+
+      it('should clear all existing filters', async () => {
+        await componentHarness.moreFiltersButtonClick();
+        await componentHarness.setFromDate(fromDate);
+        expect(await componentHarness.getFromDate()).toStrictEqual(fromDate);
+        await componentHarness.moreFiltersApply();
+        expectApiWithLogs(total, { perPage, page: 1, from: fromDateTime });
+
+        await componentHarness.moreFiltersClearAll();
+        expectApiWithLogs(total, { perPage, page: 1 });
+
+        await componentHarness.moreFiltersButtonClick();
+        expect(await componentHarness.getFromDate()).toStrictEqual('');
+      });
+
+      it('should apply date filters from more filters', async () => {
+        await componentHarness.moreFiltersButtonClick();
+
+        await componentHarness.setFromDate(toDate);
+        await componentHarness.setToDate(fromDate);
+        expect(await componentHarness.isMoreFiltersApplyDisabled()).toBeTruthy();
+
+        await componentHarness.setFromDate(fromDate);
+        await componentHarness.setToDate(toDate);
+        expect(await componentHarness.isMoreFiltersApplyDisabled()).toBeFalsy();
+        await componentHarness.moreFiltersApply();
+
+        expectApiWithLogs(total, { perPage, page: 1, from: fromDateTime, to: toDateTime });
+        expectUiRouterChange(2, { page: 1, perPage: 10, from: fromDateTime, to: toDateTime });
+        expect(await componentHarness.getFromChipText()).toEqual(`from:${fromDate}`);
+        expect(await componentHarness.getToChipText()).toEqual(`to:${toDate}`);
+
+        await componentHarness.moreFiltersClearAll();
+        expectApiWithLogs(total, { perPage, page: 1 });
+
+        await componentHarness.moreFiltersButtonClick();
+
+        const select = await componentHarness.selectPeriodFromMoreFilters();
+        await select.clickOptions({ text: 'Last 5 Minutes' });
+        await componentHarness.moreFiltersApply();
+        expect(await componentHarness.selectPeriodQuickFilter().then((select) => select.getValueText())).toEqual('Last 5 Minutes');
+        expectApiWithLogs(total, { perPage, page: 1, from: fakeNow.valueOf() - 5 * 60 * 1000, to: fakeNow.valueOf() });
+      });
+
+      it('should close more filters panel without applying filter values', async () => {
+        await componentHarness.moreFiltersButtonClick();
+
+        await componentHarness.selectPeriodInMoreFilters('Last 5 Minutes');
+        expect(await componentHarness.moreFiltersPeriodText()).toEqual('Last 5 Minutes');
+
+        await componentHarness.closeMoreFilters();
+        await componentHarness.moreFiltersButtonClick();
+        expect(await componentHarness.moreFiltersPeriodText()).toEqual('None');
+      });
+
+      it('should reset period when from or two is modified and vice versa', async () => {
+        await componentHarness.moreFiltersButtonClick();
+
+        await componentHarness.setFromDate(fromDate);
+        await componentHarness.setToDate(toDate);
+        expect(await componentHarness.getFromInputValue()).toStrictEqual(fromDate);
+        expect(await componentHarness.getToInputValue()).toStrictEqual(toDate);
+        const select = await componentHarness.selectPeriodFromMoreFilters();
+        expect(await select.getValueText()).toStrictEqual('None');
+
+        await select.clickOptions({ text: 'Last 5 Minutes' });
+        expect(await componentHarness.getFromInputValue()).toStrictEqual('');
+        expect(await componentHarness.getToInputValue()).toStrictEqual('');
+
+        await componentHarness.setFromDate(fromDate);
+        expect(await select.getValueText()).toStrictEqual('None');
+
+        await select.clickOptions({ text: 'Last 5 Minutes' });
+        await componentHarness.setToDate(fromDate);
+        expect(await select.getValueText()).toStrictEqual('None');
+      });
+
+      it('should reset filters when clicking on dedicated chip', async () => {
+        await componentHarness.moreFiltersButtonClick();
+
+        await componentHarness.selectPeriodInMoreFilters('Last 5 Minutes');
+        await componentHarness.moreFiltersApply();
+        expectApiWithLogs(total, { perPage, page: 1, from: fakeNow.valueOf() - 5 * 60 * 1000, to: fakeNow.valueOf() });
+        expect(await componentHarness.getPeriodChipText()).toStrictEqual('period: Last 5 Minutes');
+
+        await componentHarness.removePeriodChip();
+        expectApiWithLogs(total, { perPage, page: 1 });
+
+        await componentHarness.moreFiltersButtonClick();
+        expect(await componentHarness.moreFiltersPeriodText()).toStrictEqual('None');
+
+        await componentHarness.setFromDate(fromDate);
+        await componentHarness.moreFiltersApply();
+        expectApiWithLogs(total, { perPage, page: 1, from: fromDateTime });
+        expect(await componentHarness.getFromChipText()).toEqual(`from:${fromDate}`);
+
+        await componentHarness.removeFromChip();
+        expectApiWithLogs(total, { perPage, page: 1 });
+
+        await componentHarness.moreFiltersButtonClick();
+        expect(await componentHarness.getFromDate()).toStrictEqual('');
+
+        await componentHarness.setToDate(toDate);
+        await componentHarness.moreFiltersApply();
+        expectApiWithLogs(total, { perPage, page: 1, to: toDateTime });
+        expect(await componentHarness.getToChipText()).toEqual(`to:${toDate}`);
+
+        await componentHarness.removeToChip();
+        expectApiWithLogs(total, { perPage, page: 1 });
+
+        await componentHarness.moreFiltersButtonClick();
+        expect(await componentHarness.getToDate()).toStrictEqual('');
+      });
+    });
   });
 
   describe('GIVEN there are logs but logs are disabled', () => {
@@ -414,7 +563,7 @@ describe('ApiRuntimeLogsComponent', () => {
       });
 
       it('should init the form with filters preselected', async () => {
-        const expectedApplicationChip = 'applications:Default application ( owner ), another one ( owner )';
+        const expectedApplicationChip = 'applications: Default application ( owner ), another one ( owner )';
         expect(await componentHarness.getApplicationsTags()).toHaveLength(2);
         expect(await componentHarness.getApplicationsChipText()).toStrictEqual(expectedApplicationChip);
         expectApplicationFindById(application);
@@ -442,6 +591,41 @@ describe('ApiRuntimeLogsComponent', () => {
         expect(await componentHarness.getSelectedPlans()).toEqual('');
         expectApiWithLogs(10, { page: 1, perPage: 10, planIds: '1,2' });
         expectApiWithLogs(10, { page: 1, perPage: 10 });
+
+        await componentHarness.moreFiltersButtonClick();
+
+        await componentHarness.setFromDate(fromDate);
+        await componentHarness.setToDate(toDate);
+        await componentHarness.moreFiltersApply();
+        expectApiWithLogs(10, { page: 1, perPage: 10, from: fromDateTime, to: toDateTime });
+
+        await componentHarness.quickFiltersHarness().then((harness) => harness.clickResetFilters());
+        expectApiWithLogs(10, { page: 1, perPage: 10 });
+
+        await componentHarness.moreFiltersButtonClick();
+        expect(await componentHarness.getFromDate()).toStrictEqual('');
+        expect(await componentHarness.getToDate()).toStrictEqual('');
+      });
+    });
+
+    describe('there are from and to filters in the url', () => {
+      beforeEach(async () => {
+        await TestBed.overrideProvider(UIRouterStateParams, {
+          useValue: { ...stateParams, from: fromDateTime, to: toDateTime },
+        }).compileComponents();
+
+        await initComponent();
+        expectPlanList();
+        expectApiWithLogs(10, { page: 1, perPage: 10, from: fromDateTime, to: toDateTime });
+        expectApiWithLogEnabled();
+      });
+
+      it('should init the form with filters preselected', async () => {
+        await componentHarness.moreFiltersButtonClick();
+        expect(await componentHarness.getFromInputValue()).toEqual(fromDate);
+        expect(await componentHarness.getFromChipText()).toEqual(`from:${fromDate}`);
+        expect(await componentHarness.getToInputValue()).toEqual(toDate);
+        expect(await componentHarness.getToChipText()).toEqual(`to:${toDate}`);
       });
     });
 

@@ -20,6 +20,7 @@ import { map, shareReplay, skip, switchMap, takeUntil, tap } from 'rxjs/operator
 import { StateParams } from '@uirouter/core';
 import { StateService } from '@uirouter/angular';
 import { forkJoin, of, ReplaySubject, Subject } from 'rxjs';
+import * as moment from 'moment';
 
 import { QuickFiltersStoreService } from './services';
 import { LogFiltersInitialValues } from './models';
@@ -125,18 +126,22 @@ export class ApiRuntimeLogsComponent implements OnInit, OnDestroy {
       this.apiPlans$,
     ])
       .pipe(
-        map(([applications, plans]) => ({
-          plans:
-            planIds?.map((id) => {
-              const plan = plans.find((p) => p.id === id);
-              return { value: id, label: plan.name };
-            }) ?? undefined,
-          applications:
-            applicationIds?.map((id) => {
-              const application = applications.data.find((app) => app.id === id);
-              return { value: id, label: `${application.name} ( ${application.owner?.displayName} )` };
-            }) ?? undefined,
-        })),
+        map(([applications, plans]) => {
+          return {
+            plans:
+              planIds?.map((id) => {
+                const plan = plans.find((p) => p.id === id);
+                return { value: id, label: plan.name };
+              }) ?? undefined,
+            applications:
+              applicationIds?.map((id) => {
+                const application = applications.data.find((app) => app.id === id);
+                return { value: id, label: `${application.name} ( ${application.owner?.displayName} )` };
+              }) ?? undefined,
+            from: this.ajsStateParams.from ? moment(this.ajsStateParams.from) : undefined,
+            to: this.ajsStateParams.to ? moment(this.ajsStateParams.to) : undefined,
+          };
+        }),
       )
       .subscribe((data) => {
         this.initialValues = data;

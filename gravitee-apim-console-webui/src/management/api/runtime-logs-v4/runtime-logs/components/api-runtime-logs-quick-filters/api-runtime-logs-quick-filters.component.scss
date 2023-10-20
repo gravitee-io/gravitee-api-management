@@ -15,8 +15,6 @@ $typography: map.get(gio.$mat-theme, typography);
   &__row {
     display: flex;
     flex-direction: row;
-
-    justify-content: space-evenly;
     align-items: center;
   }
 
@@ -30,6 +28,17 @@ $typography: map.get(gio.$mat-theme, typography);
   &__plans {
     padding: 0;
     margin-right: 16px;
+  }
+
+  .action {
+    margin-top: 0.25em;
+    &__button {
+      height: 48px;
+      margin-right: 16px;
+      mat-icon {
+        margin-right: 4px;
+      }
+    }
   }
 
   &__chip {

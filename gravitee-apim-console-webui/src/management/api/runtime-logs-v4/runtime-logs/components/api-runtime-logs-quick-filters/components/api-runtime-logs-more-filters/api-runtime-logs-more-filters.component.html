@@ -1,0 +1,38 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="more-filters" [class.more-filters__hidden]="showMoreFilters === false">
+  <div class="more-filters__header">
+    <span class="more-filters__header__title">Filter your results</span>
+    <button mat-icon-button type="button" aria-label="Close" (click)="close()">
+      <mat-icon class="gio-connector-dialog__title__cancel" svgIcon="gio:cancel"></mat-icon>
+    </button>
+  </div>
+  <div class="more-filters__body">
+    <api-runtime-logs-more-filters-form
+      *ngIf="showMoreFilters"
+      [formValues]="formValues"
+      (valuesChangeEvent)="currentValues = $event"
+      (isInvalidEvent)="isInvalid = $event"
+    ></api-runtime-logs-more-filters-form>
+  </div>
+  <div class="more-filters__footer">
+    <button mat-stroked-button class="large clear__button" (click)="resetMoreFilters()">Clear all</button>
+    <button mat-flat-button class="large apply__button" color="primary" (click)="apply()" [disabled]="isInvalid">Show results</button>
+  </div>
+</div>
+<div *ngIf="showMoreFilters" class="main-page" (click)="close()"></div>

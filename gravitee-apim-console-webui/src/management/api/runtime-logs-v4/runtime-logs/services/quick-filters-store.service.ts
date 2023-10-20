@@ -33,12 +33,8 @@ export class QuickFiltersStoreService {
     return this._filters$.getValue();
   }
 
-  public next(values: Partial<LogFilters>) {
-    const filters = {
-      ...this.getFilters(),
-      ...values,
-    };
-    this._filters$.next(filters);
+  public next(values: LogFilters) {
+    this._filters$.next(values);
   }
 
   public toLogFilterQueryParam(logFilters: LogFilters, page: number, perPage: number) {
