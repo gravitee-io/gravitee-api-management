@@ -81,11 +81,6 @@ public enum Key {
     MANAGEMENT_TITLE("management.title", "Gravitee.io Management", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
     MANAGEMENT_URL("management.url", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
 
-    THEME_NAME("theme.name", "default", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
-    THEME_LOGO("theme.logo", "themes/assets/gravitee-logo.svg", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
-    THEME_LOADER("theme.loader", "assets/gravitee_logo_anim.gif", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
-    THEME_CSS("theme.css", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
-
     PORTAL_AUTHENTICATION_FORCELOGIN_ENABLED(
         "portal.authentication.forceLogin.enabled",
         "false",

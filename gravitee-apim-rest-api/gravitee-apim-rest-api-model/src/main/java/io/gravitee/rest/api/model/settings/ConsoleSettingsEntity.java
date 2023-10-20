@@ -38,7 +38,6 @@ public class ConsoleSettingsEntity extends AbstractCommonSettingsEntity {
     private Maintenance maintenance;
     private Management management;
     private Newsletter newsletter;
-    private Theme theme;
     private V4EmulationEngine v4EmulationEngine;
     private AlertEngine alertEngine;
 
@@ -54,7 +53,6 @@ public class ConsoleSettingsEntity extends AbstractCommonSettingsEntity {
         reCaptcha = new ConsoleReCaptcha();
         scheduler = new ConsoleScheduler();
         analyticsPendo = new ConsoleAnalyticsPendo();
-        theme = new Theme();
         v4EmulationEngine = new V4EmulationEngine();
         alertEngine = new AlertEngine();
     }

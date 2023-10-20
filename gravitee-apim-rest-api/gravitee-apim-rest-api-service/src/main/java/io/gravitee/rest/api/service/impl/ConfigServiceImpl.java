@@ -431,7 +431,6 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
             consoleConfigEntity.getMaintenance(),
             consoleConfigEntity.getManagement(),
             consoleConfigEntity.getNewsletter(),
-            consoleConfigEntity.getTheme(),
             consoleConfigEntity.getV4EmulationEngine(),
             consoleConfigEntity.getAlertEngine(),
         };
