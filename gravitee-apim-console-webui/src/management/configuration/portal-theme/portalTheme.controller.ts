@@ -18,9 +18,9 @@ import angular from 'angular';
 
 import { Theme } from '../../../entities/theme';
 import NotificationService from '../../../services/notification.service';
-import ThemeService from '../../../services/theme.service';
+import PortalThemeService from '../../../services/portalTheme.service';
 
-class ThemeController {
+class PortalThemeController {
   detachedWindow: Window;
   connected = false;
   private connectionRequestInterval: any;
@@ -36,7 +36,7 @@ class ThemeController {
     private $scope,
     private $mdDialog,
     private Constants,
-    private ThemeService: ThemeService,
+    private PortalThemeService: PortalThemeService,
     private NotificationService: NotificationService,
     private $sce,
   ) {
@@ -353,7 +353,7 @@ class ThemeController {
   };
 
   loadTheme = () => {
-    return this.ThemeService.getCurrent().then((response) => {
+    return this.PortalThemeService.getCurrent().then((response) => {
       const theme: Theme = response.data;
       this.setTheme(theme);
     });
@@ -383,7 +383,7 @@ class ThemeController {
       cancel: 'CANCEL',
     });
     this.$mdDialog.show(confirm).then(() => {
-      this.ThemeService.restoreDefaultTheme(this.$scope.theme).then((response) => {
+      this.PortalThemeService.restoreDefaultTheme(this.$scope.theme).then((response) => {
         const theme: Theme = response.data;
         this.setTheme(theme);
         this.onDataChanged();
@@ -397,14 +397,14 @@ class ThemeController {
 
   getLogoUrl() {
     if (this.$scope.theme) {
-      return this.ThemeService.getLogoUrl(this.$scope.theme);
+      return this.PortalThemeService.getLogoUrl(this.$scope.theme);
     }
     return '';
   }
 
   getFaviconUrl() {
     if (this.$scope.theme) {
-      return this.ThemeService.getFaviconUrl(this.$scope.theme);
+      return this.PortalThemeService.getFaviconUrl(this.$scope.theme);
     }
     return '';
   }
@@ -412,7 +412,7 @@ class ThemeController {
   getOptionalLogoUrl() {
     if (this.$scope.theme) {
       if (this.$scope.theme.optionalLogo) {
-        return this.ThemeService.getOptionalLogoUrl(this.$scope.theme);
+        return this.PortalThemeService.getOptionalLogoUrl(this.$scope.theme);
       } else {
         return this.getLogoUrl();
       }
@@ -422,13 +422,13 @@ class ThemeController {
 
   getBackgroundImageUrl() {
     if (this.$scope.theme) {
-      return this.ThemeService.getBackgroundImageUrl(this.$scope.theme);
+      return this.PortalThemeService.getBackgroundImageUrl(this.$scope.theme);
     }
     return '';
   }
 
   update = () => {
-    this.ThemeService.update(this.$scope.theme).then(() => {
+    this.PortalThemeService.update(this.$scope.theme).then(() => {
       this.$scope.themeForm.$setPristine();
       this.NotificationService.show('The theme has been saved.');
     });
@@ -491,6 +491,6 @@ class ThemeController {
     }
   }
 }
-ThemeController.$inject = ['$http', '$scope', '$mdDialog', 'Constants', 'ThemeService', 'NotificationService', '$sce'];
+PortalThemeController.$inject = ['$http', '$scope', '$mdDialog', 'Constants', 'PortalThemeService', 'NotificationService', '$sce'];
 
-export default ThemeController;
+export default PortalThemeController;

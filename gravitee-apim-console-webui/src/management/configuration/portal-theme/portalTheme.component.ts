@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const ThemeComponent: ng.IComponentOptions = {
+const PortalThemeComponent: ng.IComponentOptions = {
   bindings: {
     views: '<',
   },
-  controller: 'ThemeController',
-  template: require('./theme.html'),
+  controller: 'PortalThemeController',
+  template: require('./portalTheme.html'),
 };
 
-export default ThemeComponent;
+export default PortalThemeComponent;
