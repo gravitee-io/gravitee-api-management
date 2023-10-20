@@ -95,6 +95,7 @@ import { MessagesComponent } from '../messages/messages.component';
 import TenantService from '../../services/tenant.service';
 import TagService from '../../services/tag.service';
 import { ApimFeature } from '../../shared/components/gio-license/gio-license-data';
+import { ApiDynamicPropertiesComponent } from './proxy/properties/dynamic-properties/api-dynamic-properties.component';
 
 // New Angular routing
 export const states: Ng2StateDeclaration[] = [
@@ -1348,6 +1349,17 @@ export const states: Ng2StateDeclaration[] = [
       },
       docs: {
         page: 'management-api-policy-studio-properties',
+      },
+    },
+  },
+  {
+    name: 'management.apis.dynamicProperties-new',
+    url: '/dynamic-properties-new',
+    component: ApiDynamicPropertiesComponent,
+    data: {
+      useAngularMaterial: true,
+      apiPermissions: {
+        only: ['api-definition-r'],
       },
     },
   },

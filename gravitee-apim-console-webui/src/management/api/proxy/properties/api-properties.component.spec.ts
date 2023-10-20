@@ -36,6 +36,7 @@ import { User } from '../../../../entities/user';
 import { CurrentUserService, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { GioUiRouterTestingModule } from '../../../../shared/testing/gio-uirouter-testing-module';
 import { Api, fakeApiV4 } from '../../../../entities/management-api-v2/api';
+import { DivHarness } from '@gravitee/ui-particles-angular/testing';
 
 describe('ApiPropertiesComponent', () => {
   const API_ID = 'apiId';
@@ -81,6 +82,7 @@ describe('ApiPropertiesComponent', () => {
   it('should display properties', async () => {
     expect(component).toBeTruthy();
 
+    loader.getHarness(DivHarness.with({}));
     const table = await loader.getHarness(MatTableHarness.with({ selector: '[aria-label="API Properties"]' }));
 
     const loadingRow = await table.getCellTextByIndex();

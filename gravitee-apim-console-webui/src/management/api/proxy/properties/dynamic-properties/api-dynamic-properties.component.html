@@ -16,7 +16,50 @@
 
 -->
 <mat-card class="apiDynamicProperties">
-  Wip
+  <div class="apiDynamicProperties__header">
+    <h2>API dynamic properties</h2>
+    Dynamic properties let you fetch API properties from a remote resource, such as web service. You can set a polling frequency property
+    and apply response transformation thanks to the
+    <a href="https://github.com/bazaarvoice/jolt" target="_blank" rel="noopener">JOLT framework</a> . Like classical properties, dynamic
+    properties will be injected into the expression language context.
+
+    <gio-banner-info class="bannerTransformationJOLTExample">
+      <span class="bannerTransformationJOLTExample__title">Set-up guide</span>
+      <div class="bannerTransformationJOLTExample__collapse">
+        <button
+          type="button"
+          mat-icon-button
+          aria-label="Collapse"
+          (click)="transformationJOLTExampleCollapse = !transformationJOLTExampleCollapse"
+        >
+          <mat-icon
+            [class.collapse-open]="transformationJOLTExampleCollapse"
+            [class.collapse-close]="!transformationJOLTExampleCollapse"
+            svgIcon="gio:nav-arrow-down"
+          ></mat-icon>
+        </button>
+      </div>
+      <span gioBannerBody class="bannerTransformationJOLTExample__body" [hidden]="transformationJOLTExampleCollapse">
+        1. Configure Scheduler with a cron expression to define the polling frequency. <br />
+        2. Set the HTTP endpoint to fetch the properties. <br />
+        3. (optional) If the HTTP service doesn’t return the expected output, you will need to edit the JOLT transformation accordingly.<br />
+        <pre class="highlight" [innerHTML]="transformationJOLTExample"></pre>
+      </span>
+    </gio-banner-info>
+  </div>
+
+  <ng-container [formGroup]="form">
+    <gio-form-slide-toggle class="endpointHttpConfig__formField">
+      <gio-form-label>Enabled</gio-form-label>
+      This service is requiring an API deployment. Do not forget to deploy API to start dynamic-properties service.
+      <mat-slide-toggle
+        gioFormSlideToggle
+        formControlName="enabled"
+        aria-label="Use proxy for client connections"
+        name="enabled"
+      ></mat-slide-toggle>
+    </gio-form-slide-toggle>
+  </ng-container>
 </mat-card>
 
 <gio-save-bar (submitted)="onSave()"> </gio-save-bar>

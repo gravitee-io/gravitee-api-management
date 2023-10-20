@@ -15,10 +15,14 @@
  */
 
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { Subject } from 'rxjs';
+import { combineLatest, Subject } from 'rxjs';
 import { StateParams } from '@uirouter/angularjs';
 
 import { UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
+import { FormControl, FormGroup } from '@angular/forms';
+import { takeUntil, tap } from 'rxjs/operators';
+import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
+import { ApiPropertiesOldService } from '../../properties-ng/api-properties-old.service';
 
 @Component({
   selector: 'api-dynamic-properties',
@@ -28,9 +32,51 @@ import { UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 export class ApiDynamicPropertiesComponent implements OnInit, OnDestroy {
   private unsubscribe$ = new Subject<void>();
 
-  constructor(@Inject(UIRouterStateParams) private readonly ajsStateParams: StateParams) {}
+  public transformationJOLTExample = `[
+  {
+    "key": 1,
+      "value": "https://north-europe.company.com/"
+  },
+  {
+    "key": 2,
+    "value": "https://north-europe.company.com/"
+  },
+  {
+    "key": 3,
+    "value": "https://south-asia.company.com/"
+  }
+]`;
+  public transformationJOLTExampleCollapse = true;
 
-  ngOnInit(): void {}
+  public form: FormGroup;
+
+  constructor(
+    @Inject(UIRouterStateParams) private readonly ajsStateParams: StateParams,
+    private readonly apiService: ApiV2Service,
+    private readonly apiPropertiesService: ApiPropertiesOldService,
+  ) {}
+
+  ngOnInit(): void {
+    combineLatest([this.apiService.get(this.ajsStateParams.apiId), this.apiPropertiesService.getProviders()])
+      .pipe(
+        tap(([api, providers]) => {
+          if (api.definitionVersion === 'V1') {
+            throw new Error('Unexpected API type. This page is compatible only for API > V1');
+          }
+          // this.providers = providers;
+          const isReadonly = api.definitionContext.origin === 'KUBERNETES';
+
+          this.form = new FormGroup({
+            enabled: new FormControl({
+              value: false,
+              disabled: isReadonly,
+            }),
+          });
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe();
+  }
 
   ngOnDestroy() {
     this.unsubscribe$.next();
