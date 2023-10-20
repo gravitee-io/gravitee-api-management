@@ -149,9 +149,8 @@ describe('API - V4 - MESSAGE - Search logs', () => {
     });
 
     /**
-     * Without the message sampling set to COUNT - 10, and the HTTP-GET configured with a messageLimitCount of 40,
+     * Without the message sampling set to COUNT = 10, and the HTTP-GET configured with a messageLimitCount of 40,
      * we can expect 4 message logs.
-     * Since there is a message log for entrypoint and endpoint, then we should expect a total count 8 message logs
      */
     test('should search message logs', async () => {
       let apiMessageLogsResponse = await fetchRestApiSuccess<ApiMessageLogsResponse>({
@@ -160,50 +159,55 @@ describe('API - V4 - MESSAGE - Search logs', () => {
             envId,
             apiId: importedApi.id,
             requestId,
-            perPage: 4,
+            perPage: 2,
           }),
         maxRetries: 10,
         expectedResponseValidator: async (response) => {
           const body = response.value;
           // Retry until response contains all the four expected message logs for the page
-          return body.data.length === 4;
+          return body.data.length === 2;
         },
       });
-      expect(apiMessageLogsResponse.data).toHaveLength(4);
+      expect(apiMessageLogsResponse.data).toHaveLength(2);
 
       expect(DateUtils.isReverseChronological(apiMessageLogsResponse.data.map((data) => data.timestamp))).toBeTruthy();
-      let expectedMessageId = 30;
-      apiMessageLogsResponse.data.forEach((messageLog, index) => {
+      apiMessageLogsResponse.data.forEach((messageLog) => {
         expect(messageLog.requestId).toEqual(requestId);
         expect(messageLog.operation).toEqual('SUBSCRIBE');
-        expect(messageLog.message).toEqual({
-          id: `${expectedMessageId}`,
-          payload: 'Mock message',
-          headers: {
-            'X-Header': ['header-value'],
-          },
-          metadata: {
-            Metadata: 'metadata-value',
-          },
-          isError: undefined,
-        });
-        if (index % 2 === 0) {
-          expect(messageLog.connectorType).toEqual('ENDPOINT');
-          expect(messageLog.connectorId).toEqual('mock');
-        } else {
-          expect(messageLog.connectorType).toEqual('ENTRYPOINT');
-          expect(messageLog.connectorId).toEqual('http-get');
-          // as we have a sampling for every 10 messages, and there is a message log for endpoint and one for entrypoint, we decrease from ten from 30 to 0 index
-          expectedMessageId -= 10;
-        }
+        expect(messageLog.entrypoint).toEqual(
+          expect.objectContaining({
+            connectorId: 'http-get',
+            payload: 'Mock message',
+            headers: {
+              'X-Header': ['header-value'],
+            },
+            metadata: {
+              Metadata: 'metadata-value',
+            },
+            isError: undefined,
+          }),
+        );
+        expect(messageLog.endpoint).toEqual(
+          expect.objectContaining({
+            connectorId: 'mock',
+            payload: 'Mock message',
+            headers: {
+              'X-Header': ['header-value'],
+            },
+            metadata: {
+              Metadata: 'metadata-value',
+            },
+            isError: undefined,
+          }),
+        );
       });
       // First element should be the most recent.
       expect(apiMessageLogsResponse.pagination).toEqual(<Pagination>{
         page: 1,
-        perPage: 4,
+        perPage: 2,
         pageCount: 2,
-        pageItemsCount: 4,
-        totalCount: 8,
+        pageItemsCount: 2,
+        totalCount: 4,
       });
       expect(apiMessageLogsResponse.links.self).toContain(`/apis/${importedApi.id}/logs/${requestId}/messages`);
     });
