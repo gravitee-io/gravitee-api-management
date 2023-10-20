@@ -42,7 +42,6 @@ let ConstantsJSON: any;
 
 fetchData().then((constants: Constants) => {
   return initLoader(constants)
-    .then(() => initTheme(constants))
     .then(() => initComponents())
     .then(() => bootstrapApplication(constants));
 });
@@ -67,13 +66,6 @@ function fetchData() {
 
       angular.module('gravitee-management').constant('Constants', constants);
 
-      if (constants.org.settings.theme.css) {
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.type = 'text/css';
-        link.href = constants.org.settings.theme.css;
-        document.head.appendChild(link);
-      }
       return constants;
     })
     .catch((error) => {
@@ -116,24 +108,12 @@ function prepareConstants(bootstrap: any): any {
 function initLoader(constants: Constants) {
   const img = document.createElement('img');
   img.classList.add('gravitee-splash-screen');
-  img.setAttribute('src', constants.org.settings.theme.loader);
+
+  img.setAttribute('src', 'assets/gravitee_logo_anim.gif');
 
   document.getElementById('loader').appendChild(img);
 
   return $q.resolve(constants);
-}
-
-function initTheme(constants: Constants) {
-  return $http
-    .get(`./themes/${constants.org.settings.theme.name}-theme.json`, configNoCache)
-    .then((response: any) => {
-      angular.module('gravitee-management').constant('Theme', response.data);
-    })
-    .catch(() => {
-      return $http.get('./themes/default-theme.json', configNoCache).then((response: any) => {
-        angular.module('gravitee-management').constant('Theme', response.data);
-      });
-    });
 }
 
 function initComponents() {

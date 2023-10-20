@@ -98,10 +98,6 @@ module.exports = {
             to: '',
           },
           {
-            from: './themes',
-            to: './themes',
-          },
-          {
             from: './docs',
             to: './docs',
           },

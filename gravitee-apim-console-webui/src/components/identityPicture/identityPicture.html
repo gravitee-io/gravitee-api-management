@@ -25,7 +25,6 @@
     ngf-src="identityPictureCtrl.getSource()"
     onerror="angular.element(this).scope() ? angular.element(this).scope().imgError() : ''"
     onload="angular.element(this).scope() ? angular.element(this).scope().imgLoad() : ''"
-    gv-theme-element="{{imageTheme}}"
   />
-  <div id="jdenticon_{{imageId}}" class="jdenticon" ng-class="imageBorderRadius?'rounded':''" gv-theme-element="{{imageTheme}}"></div>
+  <div id="jdenticon_{{imageId}}" class="jdenticon" ng-class="imageBorderRadius?'rounded':''"></div>
 </div>
