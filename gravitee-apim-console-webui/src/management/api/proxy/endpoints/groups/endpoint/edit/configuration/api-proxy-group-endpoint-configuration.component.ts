@@ -14,7 +14,17 @@
  * limitations under the License.
  */
 import { Component, Input } from '@angular/core';
-import { FormGroup } from '@angular/forms';
+import { FormControl, FormGroup } from '@angular/forms';
+import { startWith, takeUntil } from 'rxjs/operators';
+import { Subject } from 'rxjs';
+
+import { EndpointV2 } from '../../../../../../../../entities/management-api-v2';
+import { EndpointHttpConfigComponent } from '../../../../components/endpoint-http-config/endpoint-http-config.component';
+
+export type EndpointConfigurationData = {
+  inherit: boolean;
+  configuration?: Pick<EndpointV2, 'headers' | 'httpClientOptions' | 'httpClientSslOptions' | 'httpProxy'>;
+};
 
 @Component({
   selector: 'api-proxy-group-endpoint-configuration',
@@ -22,13 +32,31 @@ import { FormGroup } from '@angular/forms';
   styles: [require('./api-proxy-group-endpoint-configuration.component.scss')],
 })
 export class ApiProxyGroupEndpointConfigurationComponent {
-  @Input() configurationForm: FormGroup;
-  @Input() configurationSchema: unknown;
+  public static getConfigurationFormGroup(endpoint: EndpointV2, isReadonly: boolean, unsubscribe$: Subject<boolean>): FormGroup {
+    const inherit = new FormControl({ value: endpoint.inherit ?? true, disabled: isReadonly });
+    const configuration = EndpointHttpConfigComponent.getHttpConfigFormGroup(endpoint, isReadonly);
 
-  public onProxyConfigurationError(error: unknown) {
-    // Set error at the end of js task. Otherwise it will be reset on value change
-    setTimeout(() => {
-      this.configurationForm.get('proxyConfiguration').setErrors(error ? { error: true } : null);
-    }, 0);
+    inherit.valueChanges.pipe(startWith(inherit.value), takeUntil(unsubscribe$)).subscribe((inheritValue) => {
+      if (!inheritValue) {
+        configuration.enable({ emitEvent: false });
+        return;
+      }
+      configuration.disable({ emitEvent: false });
+    });
+
+    return new FormGroup({
+      inherit,
+      configuration,
+    });
   }
+
+  public static getConfigurationFormValue(configurationFormGroup: FormGroup): EndpointConfigurationData {
+    return {
+      inherit: configurationFormGroup.get('inherit').value,
+      configuration: EndpointHttpConfigComponent.getHttpConfigValue(configurationFormGroup.get('configuration') as FormGroup),
+    };
+  }
+
+  @Input() configurationFormGroup: FormGroup;
+  protected readonly FormGroup = FormGroup;
 }

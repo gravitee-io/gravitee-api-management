@@ -34,6 +34,7 @@ import { ApiProxyGroupEndpointConfigurationComponent } from './edit/configuratio
 
 import { GioGoBackButtonModule } from '../../../../../../shared/components/gio-go-back-button/gio-go-back-button.module';
 import { ApiProxyHealthCheckFormModule } from '../../../components/health-check-form/api-proxy-health-check-form.module';
+import { EndpointHttpConfigModule } from '../../components/endpoint-http-config/endpoint-http-config.module';
 
 @NgModule({
   declarations: [
@@ -47,6 +48,7 @@ import { ApiProxyHealthCheckFormModule } from '../../../components/health-check-
     ReactiveFormsModule,
 
     ApiProxyHealthCheckFormModule,
+    EndpointHttpConfigModule,
 
     MatCardModule,
     MatTabsModule,

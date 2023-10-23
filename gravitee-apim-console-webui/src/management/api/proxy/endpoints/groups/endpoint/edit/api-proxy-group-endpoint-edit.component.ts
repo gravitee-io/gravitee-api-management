@@ -19,11 +19,10 @@ import { combineLatest, EMPTY, Subject, Subscription } from 'rxjs';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { StateService } from '@uirouter/core';
 
+import { ApiProxyGroupEndpointConfigurationComponent } from './configuration/api-proxy-group-endpoint-configuration.component';
+
 import { UIRouterState, UIRouterStateParams } from '../../../../../../../ajs-upgraded-providers';
 import { ConnectorService } from '../../../../../../../services-ngx/connector.service';
-import { ApiService } from '../../../../../../../services-ngx/api.service';
-import { Api } from '../../../../../../../entities/api';
-import { ProxyConfiguration, ProxyGroupEndpoint } from '../../../../../../../entities/proxy';
 import { TenantService } from '../../../../../../../services-ngx/tenant.service';
 import { Tenant } from '../../../../../../../entities/tenant/tenant';
 import { SnackBarService } from '../../../../../../../services-ngx/snack-bar.service';
@@ -32,9 +31,9 @@ import { isUniq } from '../../edit/api-proxy-group-edit.validator';
 import { ConnectorListItem } from '../../../../../../../entities/connector/connector-list-item';
 import { GioPermissionService } from '../../../../../../../shared/components/gio-permission/gio-permission.service';
 import { ApiProxyHealthCheckFormComponent } from '../../../../components/health-check-form/api-proxy-health-check-form.component';
-import { HealthCheck } from '../../../../../../../entities/health-check';
-import '@gravitee/ui-components/wc/gv-schema-form-group';
 import { ApiV2Service } from '../../../../../../../services-ngx/api-v2.service';
+import { ApiV1, ApiV2, EndpointV2, HealthCheckService } from '../../../../../../../entities/management-api-v2';
+import { onlyApiV1V2Filter, onlyApiV2Filter } from '../../../../../../../util/apiFilter.operator';
 
 @Component({
   selector: 'api-proxy-group-endpoint-edit',
@@ -43,7 +42,7 @@ import { ApiV2Service } from '../../../../../../../services-ngx/api-v2.service';
 })
 export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
-  private api: Api;
+  private api: ApiV1 | ApiV2;
   private connectors: ConnectorListItem[];
   private mode: 'edit' | 'new';
 
@@ -52,20 +51,17 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
   public supportedTypes: string[];
   public endpointForm: FormGroup;
   public generalForm: FormGroup;
-  public configurationForm: FormGroup;
   public healthCheckForm: FormGroup;
-  public inheritHealthCheck: HealthCheck;
-  public endpoint: ProxyGroupEndpoint;
+  public inheritHealthCheck: HealthCheckService;
+  public endpoint: EndpointV2;
   public initialEndpointFormValue: unknown;
   public tenants: Tenant[];
-  public configurationSchema: unknown;
 
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
     @Inject(UIRouterState) private readonly ajsState: StateService,
     private readonly formBuilder: FormBuilder,
-    private readonly apiService: ApiService,
-    private readonly apiV2Service: ApiV2Service,
+    private readonly apiService: ApiV2Service,
     private readonly connectorService: ConnectorService,
     private readonly tenantService: TenantService,
     private readonly snackBarService: SnackBarService,
@@ -76,21 +72,20 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
     this.apiId = this.ajsStateParams.apiId;
     this.mode = !this.ajsStateParams.groupName || !this.ajsStateParams.endpointName ? 'new' : 'edit';
 
-    combineLatest([this.apiService.get(this.apiId), this.connectorService.list(true), this.tenantService.list()])
+    combineLatest([
+      this.apiService.get(this.apiId).pipe(onlyApiV1V2Filter(this.snackBarService)),
+      this.connectorService.list(),
+      this.tenantService.list(),
+    ])
       .pipe(
         map(([api, connectors, tenants]) => {
           this.api = api;
           this.connectors = connectors;
           this.tenants = tenants;
-          this.isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']) || api.definition_context?.origin === 'kubernetes';
-          this.initForms();
+          this.isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']) || api.definitionContext?.origin === 'KUBERNETES';
           this.supportedTypes = this.connectors.map((connector) => connector.supportedTypes).reduce((acc, val) => acc.concat(val), []);
-          this.configurationSchema = JSON.parse(
-            this.connectors.find((connector) => connector.supportedTypes.includes(this.endpoint?.type?.toLowerCase() ?? 'http'))?.schema,
-          );
+          this.initForms();
         }),
-        // TODO : remove when this page only use apiV2Service
-        switchMap(() => this.apiV2Service.get(this.apiId)),
         takeUntil(this.unsubscribe$),
       )
       .subscribe();
@@ -105,6 +100,7 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
     return this.apiService
       .get(this.apiId)
       .pipe(
+        onlyApiV2Filter(this.snackBarService),
         switchMap((api) => {
           const groupIndex = api.proxy.groups.findIndex((group) => group.name === this.ajsStateParams.groupName);
 
@@ -119,13 +115,13 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
             }
             endpointIndex = api.proxy.groups[groupIndex].endpoints.length;
           }
-          // TODO: Remove the "as" when we migrate to mapiV2
-          const healthCheck = ApiProxyHealthCheckFormComponent.HealthCheckFromFormGroup(this.healthCheckForm, true) as HealthCheck;
+
+          const healthCheck = ApiProxyHealthCheckFormComponent.HealthCheckFromFormGroup(this.healthCheckForm, true);
 
           const updatedEndpoint = toProxyGroupEndpoint(
             api.proxy.groups[groupIndex]?.endpoints[endpointIndex],
             this.generalForm.getRawValue(),
-            this.configurationForm.getRawValue(),
+            ApiProxyGroupEndpointConfigurationComponent.getConfigurationFormValue(this.endpointForm.get('configuration') as FormGroup),
             healthCheck,
           );
 
@@ -133,15 +129,13 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
             ? api.proxy.groups[groupIndex].endpoints.splice(endpointIndex, 1, updatedEndpoint)
             : api.proxy.groups[groupIndex].endpoints.push(updatedEndpoint);
 
-          return this.apiService.update(api);
+          return this.apiService.update(api.id, api);
         }),
         tap(() => this.snackBarService.success('Configuration successfully saved!')),
         catchError((error) => {
           this.snackBarService.error(error.error?.message ?? 'Error while saving configuration.');
           return EMPTY;
         }),
-        // TODO : remove when this page only use apiV2Service
-        switchMap(() => this.apiV2Service.get(this.apiId)),
         tap(() =>
           // Redirect to same page with last endpoint name
           this.ajsState.go(
@@ -168,7 +162,7 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
         ...group.endpoints.find((endpoint) => endpoint.name === this.ajsStateParams.endpointName),
       };
     } else {
-      this.endpoint = {};
+      this.endpoint = { type: 'http', inherit: true };
     }
 
     this.generalForm = this.formBuilder.group({
@@ -190,42 +184,22 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
       backup: [{ value: this.endpoint?.backup ?? false, disabled: this.isReadOnly }],
     });
 
-    const proxyConfigurationValue: ProxyConfiguration = {
-      headers: this.endpoint?.headers ?? [],
-      http: this.endpoint?.http ?? {},
-      proxy: this.endpoint?.proxy ?? { enabled: false },
-      ssl: this.endpoint?.ssl ?? {},
-    };
-
-    this.configurationForm = this.formBuilder.group({
-      inherit: [{ value: this.endpoint?.inherit ?? true, disabled: this.isReadOnly }],
-      proxyConfiguration: [
-        {
-          value: proxyConfigurationValue,
-          disabled: this.isReadOnly,
-        },
-      ],
-    });
-
     this.healthCheckForm = ApiProxyHealthCheckFormComponent.NewHealthCheckFormGroup(
-      this.endpoint?.healthcheck ?? { inherit: true },
+      this.endpoint?.healthCheck ?? { inherit: true },
       this.isReadOnly,
     );
-    this.inheritHealthCheck = this.api?.services?.['health-check'] ?? { enabled: false };
+    this.inheritHealthCheck = this.api?.services?.healthCheck ?? { enabled: false };
 
     this.endpointForm = this.formBuilder.group({
       general: this.generalForm,
-      configuration: this.configurationForm,
+      configuration: ApiProxyGroupEndpointConfigurationComponent.getConfigurationFormGroup(
+        this.endpoint,
+        this.isReadOnly,
+        this.unsubscribe$,
+      ),
       healthCheckForm: this.healthCheckForm,
     });
 
     this.initialEndpointFormValue = this.endpointForm.getRawValue();
-
-    this.generalForm
-      .get('type')
-      .valueChanges.pipe(takeUntil(this.unsubscribe$))
-      .subscribe((type) => {
-        this.configurationSchema = JSON.parse(this.connectors.find((connector) => connector.supportedTypes.includes(type))?.schema);
-      });
   }
 }

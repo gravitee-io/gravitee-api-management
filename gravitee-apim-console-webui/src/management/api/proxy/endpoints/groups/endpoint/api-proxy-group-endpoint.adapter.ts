@@ -14,42 +14,41 @@
  * limitations under the License.
  */
 
-import { EndpointGeneralData } from './edit/general/api-proxy-group-endpoint-edit-general.model';
-import { EndpointConfigurationData } from './edit/configuration/api-proxy-group-endpoint-edit-configuration.model';
+import { EndpointGeneralData } from './edit/general/api-proxy-group-endpoint-edit-general.component';
+import { EndpointConfigurationData } from './edit/configuration/api-proxy-group-endpoint-configuration.component';
 
-import { ProxyGroupEndpoint } from '../../../../../../entities/proxy';
-import { HealthCheck } from '../../../../../../entities/health-check';
+import { EndpointHealthCheckService, EndpointV2 } from '../../../../../../entities/management-api-v2';
 
 export const toProxyGroupEndpoint = (
-  endpoint: ProxyGroupEndpoint,
+  endpoint: EndpointV2,
   generalData: EndpointGeneralData,
   configurationData: EndpointConfigurationData,
-  healthCheck: HealthCheck,
-): ProxyGroupEndpoint => {
-  let updatedEndpoint: ProxyGroupEndpoint = {
+  healthCheck: EndpointHealthCheckService,
+): EndpointV2 => {
+  let updatedEndpoint: EndpointV2 = {
     ...endpoint,
     ...generalData,
-    healthcheck: healthCheck,
+    healthCheck: healthCheck,
   };
 
   if (!configurationData.inherit) {
     updatedEndpoint = {
       ...updatedEndpoint,
       inherit: false,
-      http: configurationData.proxyConfiguration.http,
-      ssl: configurationData.proxyConfiguration.ssl,
-      headers: configurationData.proxyConfiguration.headers,
-      proxy: configurationData.proxyConfiguration.proxy,
+      httpProxy: configurationData.configuration.httpProxy,
+      httpClientOptions: configurationData.configuration.httpClientOptions,
+      httpClientSslOptions: configurationData.configuration.httpClientSslOptions,
+      headers: configurationData.configuration.headers,
     };
   } else {
     updatedEndpoint = {
       ...updatedEndpoint,
       inherit: true,
     };
-    delete updatedEndpoint.http;
-    delete updatedEndpoint.ssl;
+    delete updatedEndpoint.httpClientOptions;
+    delete updatedEndpoint.httpClientSslOptions;
     delete updatedEndpoint.headers;
-    delete updatedEndpoint.proxy;
+    delete updatedEndpoint.httpProxy;
   }
 
   return updatedEndpoint;
