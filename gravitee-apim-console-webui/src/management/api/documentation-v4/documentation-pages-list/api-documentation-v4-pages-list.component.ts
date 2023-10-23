@@ -32,10 +32,10 @@ export class ApiDocumentationV4PagesListComponent implements OnChanges {
   onAddPage = new EventEmitter<void>();
 
   @Output()
-  onEditPage = new EventEmitter<Page>();
+  onEditPage = new EventEmitter<string>();
 
   @Output()
-  onDeletePage = new EventEmitter<Page>();
+  onDeletePage = new EventEmitter<string>();
 
   @Output()
   onGoToFolder = new EventEmitter<string>();

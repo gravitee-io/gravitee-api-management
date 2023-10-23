@@ -20,19 +20,16 @@
   <div class="header__subtitle">Documentation pages appear in the portal and inform API consumers how to use your API</div>
 </div>
 <mat-card>
-  <api-documentation-navigation-header
-    [breadcrumbs]="breadcrumbs || []"
-    (onAddFolder)="addFolder()"
-    (onNavigateTo)="navigateTo($event)"
-  ></api-documentation-navigation-header>
-  <api-documentation-v4-pages-list
-    *ngIf="pages && pages.length > 0; else emptyState"
-    [pages]="pages"
-    (onAddPage)="addPage()"
-    (onGoToFolder)="navigateTo($event)"
-    (onEditPage)="editPage($event)"
-  ></api-documentation-v4-pages-list>
-  <ng-template #emptyState>
-    <api-documentation-empty-state (onAddPage)="addPage()"></api-documentation-empty-state>
-  </ng-template>
+  <api-documentation-page-header
+    [pageName]="page?.name"
+    [breadcrumbs]="breadcrumbs"
+    (exitWithoutSaving)="exitWithoutSaving()"
+  ></api-documentation-page-header>
+  <div class="content">
+    <api-documentation-content [(ngModel)]="content"></api-documentation-content>
+  </div>
+  <div class="actions">
+    <button mat-flat-button color="primary" [disabled]="content?.length === 0" (click)="save()">Save</button>
+    <button mat-stroked-button (click)="exitWithoutSaving()">Cancel</button>
+  </div>
 </mat-card>
