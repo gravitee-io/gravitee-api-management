@@ -18,12 +18,11 @@ package io.gravitee.rest.api.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.Origin;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
+import io.gravitee.rest.api.sanitizer.HtmlSanitizer;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.util.Set;
-import org.owasp.html.HtmlPolicyBuilder;
-import org.owasp.html.PolicyFactory;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -31,11 +30,6 @@ import org.owasp.html.PolicyFactory;
  * @author GraviteeSource Team
  */
 public class NewApplicationEntity {
-
-    /**
-     * OWASP HTML sanitizer to prevent XSS attacks.
-     */
-    private static final PolicyFactory HTML_SANITIZER = new HtmlPolicyBuilder().toFactory();
 
     @NotNull(message = "Application's name must not be null")
     @NotEmpty(message = "Application's name must not be empty")
@@ -89,7 +83,7 @@ public class NewApplicationEntity {
     }
 
     public void setDescription(String description) {
-        this.description = HTML_SANITIZER.sanitize(description);
+        this.description = HtmlSanitizer.sanitize(description);
     }
 
     public String getName() {
@@ -97,7 +91,7 @@ public class NewApplicationEntity {
     }
 
     public void setName(String name) {
-        this.name = HTML_SANITIZER.sanitize(name);
+        this.name = HtmlSanitizer.sanitize(name);
     }
 
     public Set<String> getGroups() {
