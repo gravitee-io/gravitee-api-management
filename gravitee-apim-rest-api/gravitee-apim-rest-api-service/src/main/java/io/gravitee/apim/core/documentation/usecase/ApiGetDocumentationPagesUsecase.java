@@ -21,6 +21,7 @@ import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomain
 import io.gravitee.apim.core.documentation.model.Breadcrumb;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.exception.DomainException;
+import io.gravitee.apim.core.exception.InvalidPageParentException;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -50,7 +51,7 @@ public class ApiGetDocumentationPagesUsecase {
             // Check if parentId exists + is a folder
             var parent = pageCrudService.get(input.parentId);
             if (!parent.isFolder()) {
-                throw new DomainException("parentId must be a FOLDER: " + parent.getId());
+                throw new InvalidPageParentException(parent.getId());
             }
 
             // Calculate breadcrumb list
