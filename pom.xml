@@ -269,7 +269,7 @@
         <gravitee-endpoint-rabbitmq.version>1.0.3</gravitee-endpoint-rabbitmq.version>
         <gravitee-endpoint-solace.version>1.0.4</gravitee-endpoint-solace.version>
         <gravitee-resource-schema-registry-confluent.version>2.0.0</gravitee-resource-schema-registry-confluent.version>
-        <gravitee-reactor-message.version>1.1.0-feat-multi-tenancy-gateway-SNAPSHOT</gravitee-reactor-message.version>
+        <gravitee-reactor-message.version>1.1.0-alpha.1</gravitee-reactor-message.version>
         <gravitee-repository-bridge.version>4.0.1</gravitee-repository-bridge.version>
         <gravitee-secretprovider-hc-vault.version>1.0.0-alpha.3</gravitee-secretprovider-hc-vault.version>
 
