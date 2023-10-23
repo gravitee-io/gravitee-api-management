@@ -32,6 +32,7 @@ import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.v4.api.properties.PropertyEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
+import io.gravitee.rest.api.sanitizer.HtmlSanitizer;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -191,10 +192,14 @@ public class UpdateApiEntity {
     private String backgroundUrl;
 
     public void setName(String name) {
+<<<<<<< HEAD
         this.name = HTML_SANITIZER.sanitize(name);
     }
 
     public void setDescription(String description) {
         this.description = HTML_SANITIZER.sanitize(description);
+=======
+        this.name = HtmlSanitizer.sanitize(name);
+>>>>>>> 7f6bffbeec (fix(rest-api): keep same sanitize when update entity)
     }
 }
