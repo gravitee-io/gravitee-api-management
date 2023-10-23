@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
+import io.gravitee.rest.api.sanitizer.HtmlSanitizer;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.HashMap;
 import java.util.List;
@@ -80,4 +81,12 @@ public class UpdatePlanEntity {
     private String selectionRule;
 
     private List<Flow> flows;
+
+    public void setName(String name) {
+        this.name = HtmlSanitizer.sanitize(name);
+    }
+
+    public void setDescription(String description) {
+        this.description = HtmlSanitizer.sanitize(description);
+    }
 }

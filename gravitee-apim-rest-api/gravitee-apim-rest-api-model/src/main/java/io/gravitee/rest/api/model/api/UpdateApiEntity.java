@@ -27,6 +27,7 @@ import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.jackson.PropertiesEntityAsListDeserializer;
+import io.gravitee.rest.api.sanitizer.HtmlSanitizer;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.*;
 import javax.validation.constraints.NotEmpty;
@@ -155,6 +156,10 @@ public class UpdateApiEntity {
 
     @Schema(hidden = true, description = "The API's lifecycle state has been added for the kubernetes operator only.")
     private Lifecycle.State state;
+
+    public void setName(String name) {
+        this.name = HtmlSanitizer.sanitize(name);
+    }
 
     @JsonIgnore
     public void setProperties(PropertiesEntity properties) {
