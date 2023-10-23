@@ -27,6 +27,7 @@ import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.jackson.PropertiesEntityAsListDeserializer;
+import io.gravitee.rest.api.sanitizer.HtmlSanitizer;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -43,11 +44,6 @@ import org.owasp.html.PolicyFactory;
 @Getter
 @Setter
 public class UpdateApiEntity {
-
-    /**
-     * OWASP HTML sanitizer to prevent XSS attacks.
-     */
-    private static final PolicyFactory HTML_SANITIZER = new HtmlPolicyBuilder().toFactory();
 
     @Schema(description = "API's crossId. Identifies API across environments.", example = "00f8c9e7-78fc-4907-b8c9-e778fc790750")
     private String crossId;
@@ -164,6 +160,14 @@ public class UpdateApiEntity {
     @Schema(hidden = true, description = "The API's lifecycle state has been added for the kubernetes operator only.")
     private Lifecycle.State state;
 
+    public void setName(String name) {
+        this.name = HtmlSanitizer.sanitize(name);
+    }
+
+    public void setDescription(String description) {
+        this.description = HtmlSanitizer.sanitize(description);
+    }
+
     @JsonIgnore
     public void setProperties(PropertiesEntity properties) {
         this.properties = properties;
@@ -181,13 +185,5 @@ public class UpdateApiEntity {
             return properties.getProperties();
         }
         return Collections.emptyList();
-    }
-
-    public void setName(String name) {
-        this.name = HTML_SANITIZER.sanitize(name);
-    }
-
-    public void setDescription(String description) {
-        this.description = HTML_SANITIZER.sanitize(description);
     }
 }
