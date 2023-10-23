@@ -22,7 +22,6 @@ import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
-import io.gravitee.definition.model.v4.flow.execution.FlowMode;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.service.ApiServices;
@@ -32,6 +31,7 @@ import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.v4.api.properties.PropertyEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
+import io.gravitee.rest.api.sanitizer.HtmlSanitizer;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -191,10 +191,10 @@ public class UpdateApiEntity {
     private String backgroundUrl;
 
     public void setName(String name) {
-        this.name = HTML_SANITIZER.sanitize(name);
+        this.name = HtmlSanitizer.sanitize(name);
     }
 
     public void setDescription(String description) {
-        this.description = HTML_SANITIZER.sanitize(description);
+        this.description = HtmlSanitizer.sanitize(description);
     }
 }

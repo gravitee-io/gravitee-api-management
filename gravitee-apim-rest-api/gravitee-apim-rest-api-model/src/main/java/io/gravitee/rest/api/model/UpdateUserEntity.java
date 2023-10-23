@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.model;
 
+import io.gravitee.rest.api.sanitizer.HtmlSanitizer;
 import java.util.Map;
 
 /**
@@ -49,10 +50,10 @@ public class UpdateUserEntity {
     public UpdateUserEntity() {}
 
     public UpdateUserEntity(UserEntity userEntity) {
-        this.firstname = userEntity.getFirstname();
-        this.lastname = userEntity.getLastname();
-        this.email = userEntity.getEmail();
-        this.picture = userEntity.getPicture();
+        this.setFirstname(userEntity.getFirstname());
+        this.setLastname(userEntity.getLastname());
+        this.setEmail(userEntity.getEmail());
+        this.setPicture(userEntity.getPicture());
     }
 
     public String getFirstname() {
@@ -60,7 +61,7 @@ public class UpdateUserEntity {
     }
 
     public void setFirstname(String firstname) {
-        this.firstname = firstname;
+        this.firstname = firstname != null ? HtmlSanitizer.sanitize(firstname) : null;
     }
 
     public String getLastname() {
@@ -68,7 +69,7 @@ public class UpdateUserEntity {
     }
 
     public void setLastname(String lastname) {
-        this.lastname = lastname;
+        this.lastname = lastname != null ? HtmlSanitizer.sanitize(lastname) : null;
     }
 
     public String getEmail() {
