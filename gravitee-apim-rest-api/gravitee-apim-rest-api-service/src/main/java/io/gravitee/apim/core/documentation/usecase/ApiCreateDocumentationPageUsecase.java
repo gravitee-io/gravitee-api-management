@@ -19,6 +19,8 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.model.Page;
+import io.gravitee.apim.core.exception.DomainException;
+import io.gravitee.apim.core.exception.InvalidPageParentException;
 import io.gravitee.apim.core.sanitizer.HtmlSanitizer;
 import io.gravitee.apim.core.sanitizer.SanitizeResult;
 import io.gravitee.rest.api.service.common.UuidString;
@@ -69,12 +71,18 @@ public class ApiCreateDocumentationPageUsecase {
 
     private void validateParentId(Page page) {
         var parentId = page.getParentId();
+
         if (Objects.nonNull(parentId) && !parentId.isEmpty()) {
-            try {
-                pageCrudService.get(parentId);
-            } catch (PageNotFoundException ignored) {
-                page.setParentId(null);
+            var foundParent = pageCrudService.findById(parentId);
+
+            if (foundParent.isPresent()) {
+                if (!foundParent.get().isFolder()) {
+                    throw new InvalidPageParentException(parentId);
+                }
+                return;
             }
         }
+
+        page.setParentId(null);
     }
 }

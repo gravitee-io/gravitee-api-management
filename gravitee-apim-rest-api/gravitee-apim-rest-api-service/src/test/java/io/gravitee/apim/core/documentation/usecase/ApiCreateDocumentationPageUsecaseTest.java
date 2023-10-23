@@ -24,6 +24,7 @@ import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.model.Page;
+import io.gravitee.apim.core.exception.DomainException;
 import io.gravitee.apim.core.sanitizer.HtmlSanitizer;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
@@ -91,6 +92,7 @@ class ApiCreateDocumentationPageUsecaseTest {
                 .referenceId("api-id")
                 .parentId("")
                 .name("parent")
+                .type(Page.Type.FOLDER)
                 .build();
             pageCrudService.initWith(List.of(parentPage));
 
@@ -266,6 +268,32 @@ class ApiCreateDocumentationPageUsecaseTest {
         }
 
         @Test
+        void should_ignore_empty_parent_id() {
+            var res = apiCreateDocumentationPageUsecase.execute(
+                ApiCreateDocumentationPageUsecase.Input
+                    .builder()
+                    .page(
+                        Page
+                            .builder()
+                            .type(Page.Type.MARKDOWN)
+                            .name("new page")
+                            .content("nice content")
+                            .homepage(false)
+                            .visibility(Page.Visibility.PRIVATE)
+                            .parentId("")
+                            .order(1)
+                            .referenceType(Page.ReferenceType.API)
+                            .referenceId(API_ID)
+                            .build()
+                    )
+                    .auditInfo(AUDIT_INFO)
+                    .build()
+            );
+
+            assertThat(res.createdPage().getParentId()).isNull();
+        }
+
+        @Test
         void should_throw_error_if_markdown_unsafe() {
             assertThatThrownBy(() ->
                     apiCreateDocumentationPageUsecase.execute(
@@ -291,6 +319,41 @@ class ApiCreateDocumentationPageUsecaseTest {
                 )
                 .isInstanceOf(PageContentUnsafeException.class);
         }
+
+        @Test
+        void should_throw_error_if_parent_is_not_folder() {
+            var parentPage = Page
+                .builder()
+                .id(PARENT_ID)
+                .referenceType(Page.ReferenceType.API)
+                .referenceId("api-id")
+                .parentId("")
+                .name("parent")
+                .build();
+            pageCrudService.initWith(List.of(parentPage));
+
+            assertThatThrownBy(() ->
+                    apiCreateDocumentationPageUsecase.execute(
+                        ApiCreateDocumentationPageUsecase.Input
+                            .builder()
+                            .page(
+                                Page
+                                    .builder()
+                                    .type(Page.Type.MARKDOWN)
+                                    .name("new page")
+                                    .visibility(Page.Visibility.PRIVATE)
+                                    .parentId(PARENT_ID)
+                                    .order(1)
+                                    .referenceType(Page.ReferenceType.API)
+                                    .referenceId(API_ID)
+                                    .build()
+                            )
+                            .auditInfo(AUDIT_INFO)
+                            .build()
+                    )
+                )
+                .isInstanceOf(DomainException.class);
+        }
     }
 
     @Nested
@@ -305,6 +368,7 @@ class ApiCreateDocumentationPageUsecaseTest {
                 .referenceId("api-id")
                 .parentId("")
                 .name("parent")
+                .type(Page.Type.FOLDER)
                 .build();
             pageCrudService.initWith(List.of(parentPage));
 
@@ -373,6 +437,41 @@ class ApiCreateDocumentationPageUsecaseTest {
                 .isNotNull()
                 .hasFieldOrPropertyWithValue("referenceId", "api-id")
                 .hasFieldOrPropertyWithValue("event", "PAGE_CREATED");
+        }
+
+        @Test
+        void should_throw_error_if_parent_is_not_folder() {
+            var parentPage = Page
+                .builder()
+                .id(PARENT_ID)
+                .referenceType(Page.ReferenceType.API)
+                .referenceId("api-id")
+                .parentId("")
+                .name("parent")
+                .build();
+            pageCrudService.initWith(List.of(parentPage));
+
+            assertThatThrownBy(() ->
+                    apiCreateDocumentationPageUsecase.execute(
+                        ApiCreateDocumentationPageUsecase.Input
+                            .builder()
+                            .page(
+                                Page
+                                    .builder()
+                                    .type(Page.Type.FOLDER)
+                                    .name("new page")
+                                    .visibility(Page.Visibility.PRIVATE)
+                                    .parentId(PARENT_ID)
+                                    .order(1)
+                                    .referenceType(Page.ReferenceType.API)
+                                    .referenceId(API_ID)
+                                    .build()
+                            )
+                            .auditInfo(AUDIT_INFO)
+                            .build()
+                    )
+                )
+                .isInstanceOf(DomainException.class);
         }
     }
 
