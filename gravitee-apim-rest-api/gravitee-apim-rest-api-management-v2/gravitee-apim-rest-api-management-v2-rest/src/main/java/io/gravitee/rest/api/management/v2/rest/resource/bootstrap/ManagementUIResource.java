@@ -31,6 +31,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import java.net.URI;
@@ -73,32 +74,37 @@ public class ManagementUIResource {
         content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ManagementUIBootstrapEntity.class))
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    public Response bootstrap(@Context final HttpServletRequest httpServletRequest) {
-        String consoleApiUrl = accessPointService.getConsoleApiUrl(GraviteeContext.getCurrentOrganization());
+    public Response bootstrap(
+        @Context final HttpServletRequest httpServletRequest,
+        @QueryParam("organizationId") final String enforceOrganizationId
+    ) {
+        String organizationId;
+        if (enforceOrganizationId != null) {
+            organizationId = enforceOrganizationId;
+        } else {
+            organizationId =
+                GraviteeContext.getCurrentOrganization() != null
+                    ? GraviteeContext.getCurrentOrganization()
+                    : GraviteeContext.getDefaultOrganization();
+        }
+
+        String consoleApiUrl = accessPointService.getConsoleApiUrl(organizationId);
         if (consoleApiUrl != null) {
             URI fullManagementURL = URI.create(consoleApiUrl).resolve(getManagementProxyPath());
             return Response
-                .ok(
-                    ManagementUIBootstrapEntity
-                        .builder()
-                        .organizationId(GraviteeContext.getCurrentOrganization())
-                        .baseURL(fullManagementURL.toString())
-                        .build()
-                )
+                .ok(ManagementUIBootstrapEntity.builder().organizationId(organizationId).baseURL(fullManagementURL.toString()).build())
                 .build();
         }
 
         ServerHttpRequest request = new ServletServerHttpRequest(httpServletRequest);
-        UriComponents uriComponents = UriComponentsBuilder.fromHttpRequest(request).replacePath(getManagementProxyPath()).build();
+        UriComponents uriComponents = UriComponentsBuilder
+            .fromHttpRequest(request)
+            .replacePath(getManagementProxyPath())
+            .replaceQuery(null)
+            .build();
 
         return Response
-            .ok(
-                ManagementUIBootstrapEntity
-                    .builder()
-                    .organizationId(GraviteeContext.getDefaultOrganization())
-                    .baseURL(uriComponents.toUriString())
-                    .build()
-            )
+            .ok(ManagementUIBootstrapEntity.builder().organizationId(organizationId).baseURL(uriComponents.toUriString()).build())
             .build();
     }
 

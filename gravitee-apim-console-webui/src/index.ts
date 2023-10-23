@@ -54,8 +54,16 @@ function fetchData() {
       // Store build information
       angular.module('gravitee-management').constant('Build', responses[0].data);
       // Store build information
-      const baseURL = sanitizeBaseURLs(responses[1].data);
-      return $http.get(`${baseURL}/v2/ui/bootstrap`);
+      const constants = responses[1].data;
+      const baseURL = sanitizeBaseURLs(constants);
+      const enforcedOrganizationId = getEnforcedOrganizationId(constants);
+      let bootstrapUrl: string;
+      if (enforcedOrganizationId) {
+        bootstrapUrl = `${baseURL}/v2/ui/bootstrap?organizationId=${enforcedOrganizationId}`;
+      } else {
+        bootstrapUrl = `${baseURL}/v2/ui/bootstrap`;
+      }
+      return $http.get(`${bootstrapUrl}`);
     })
     .then((bootstrapResponse: any) => {
       ConstantsJSON = prepareConstants(bootstrapResponse.data);
@@ -94,6 +102,24 @@ function sanitizeBaseURLs(constants: any): any {
     baseURL = baseURL.substr(0, orgIndex);
   }
   return baseURL;
+}
+
+function getEnforcedOrganizationId(constants: any): string | undefined {
+  let organizationId;
+  if (constants.organizationId) {
+    organizationId = constants.organizationId;
+  } else {
+    const baseURL = constants.baseURL;
+    const orgIndex = baseURL.indexOf('/organizations/');
+    if (orgIndex >= 0) {
+      const subPathWithOrga = baseURL.substr(orgIndex, baseURL.length);
+      const splitArr = subPathWithOrga.split('/');
+      if (splitArr.length >= 3) {
+        organizationId = splitArr[2];
+      }
+    }
+  }
+  return organizationId;
 }
 
 function prepareConstants(bootstrap: any): any {
