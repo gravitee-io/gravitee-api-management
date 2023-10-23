@@ -35,6 +35,7 @@ import { ApiDocumentationV4Module } from '../api-documentation-v4.module';
 import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { Breadcrumb, Page } from '../../../../entities/management-api-v2/documentation/page';
+import { ApiDocumentationV4ContentEditorHarness } from '../components/api-documentation-v4-content-editor/api-documentation-v4-content-editor.harness';
 
 describe('ApiDocumentationV4NewPageComponent', () => {
   let fixture: ComponentFixture<ApiDocumentationV4NewPageComponent>;
@@ -174,7 +175,7 @@ describe('ApiDocumentationV4NewPageComponent', () => {
       });
 
       it('should show markdown editor', async () => {
-        const editor = await harnessLoader.getHarness(GioMonacoEditorHarness);
+        const editor = await harnessLoader.getHarness(ApiDocumentationV4ContentEditorHarness).then((harness) => harness.getContentEditor());
         expect(editor).toBeDefined();
 
         await editor.setValue('#TITLE \n This is the file content');
@@ -182,13 +183,19 @@ describe('ApiDocumentationV4NewPageComponent', () => {
       });
 
       it('should show markdown preview', async () => {
-        const preview = getMarkdownPreview();
+        const preview = await harnessLoader
+          .getHarness(ApiDocumentationV4ContentEditorHarness)
+          .then((editor) => editor.getMarkdownPreview());
         expect(preview).toBeTruthy();
 
         const togglePreviewButton = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Toggle preview' }));
         await togglePreviewButton.click();
 
-        expect(getMarkdownPreview()).toBeFalsy();
+        const previewAfter = await harnessLoader
+          .getHarness(ApiDocumentationV4ContentEditorHarness)
+          .then((editor) => editor.getMarkdownPreview());
+
+        expect(previewAfter).toBeFalsy();
       });
 
       it('should save content', async () => {
@@ -266,9 +273,5 @@ describe('ApiDocumentationV4NewPageComponent', () => {
 
   const getPageTitle = () => {
     return fixture.nativeElement.querySelector('h3').innerHTML;
-  };
-
-  const getMarkdownPreview: () => Element = () => {
-    return fixture.nativeElement.querySelector('markdown');
   };
 });

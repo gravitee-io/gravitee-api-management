@@ -37,7 +37,6 @@ export class ApiDocumentationV4NewPageComponent implements OnInit, OnDestroy {
   pageTitle = 'Add new page';
   source: 'FILL' | 'IMPORT' | 'EXTERNAL' = 'FILL';
   content = '';
-  preview = true;
   private unsubscribe$: Subject<void> = new Subject<void>();
   breadcrumbs: Breadcrumb[];
 

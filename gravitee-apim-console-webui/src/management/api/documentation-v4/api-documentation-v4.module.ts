@@ -35,12 +35,14 @@ import { ApiDocumentationV4AddFolderDialog } from './documentation-add-folder-di
 import { ApiDocumentationV4NewPageComponent } from './documentation-new-page/api-documentation-v4-new-page.component';
 import { ApiDocumentationV4VisibilityComponent } from './components/api-documentation-v4-visibility/api-documentation-v4-visibility.component';
 import { ApiDocumentationV4PagesListComponent } from './documentation-pages-list/api-documentation-v4-pages-list.component';
+import { ApiDocumentationV4ContentEditorComponent } from './components/api-documentation-v4-content-editor/api-documentation-v4-content-editor.component';
 @NgModule({
   declarations: [
     ApiDocumentationV4Component,
     ApiDocumentationV4EmptyStateComponent,
     ApiDocumentationV4NavigationHeaderComponent,
     ApiDocumentationV4VisibilityComponent,
+    ApiDocumentationV4ContentEditorComponent,
     ApiDocumentationV4AddFolderDialog,
     ApiDocumentationV4NewPageComponent,
     ApiDocumentationV4PagesListComponent,

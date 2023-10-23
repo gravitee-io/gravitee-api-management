@@ -1,0 +1,19 @@
+.content {
+  &__header {
+    padding: 16px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    &__title {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+  }
+
+  &__editor {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  }
+}
