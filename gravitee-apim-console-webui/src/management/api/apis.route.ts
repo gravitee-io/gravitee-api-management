@@ -73,6 +73,7 @@ import { ApiPropertiesComponent } from './proxy/properties/api-properties.compon
 import { ApiRuntimeLogsMessagesComponent } from './runtime-logs-v4/runtime-logs-messages/api-runtime-logs-messages.component';
 import { ApiDocumentationV4Component } from './documentation-v4/api-documentation-v4.component';
 import { ApiDocumentationV4NewPageComponent } from './documentation-v4/documentation-new-page/api-documentation-v4-new-page.component';
+import { ApiDocumentationV4EditPageComponent } from './documentation-v4/documentation-edit-page/api-documentation-v4-edit-page.component';
 
 import { ApiService } from '../../services/api.service';
 import { GioEmptyComponent } from '../../shared/components/gio-empty/gio-empty.component';
@@ -1399,6 +1400,21 @@ export const states: Ng2StateDeclaration[] = [
       },
     },
     component: ApiDocumentationV4NewPageComponent,
+  },
+  {
+    name: 'management.apis.documentationV4-edit',
+    url: '/documentation-v4/edit?pageId',
+    data: {
+      useAngularMaterial: true,
+      docs: null,
+    },
+    params: {
+      pageId: {
+        type: 'string',
+        dynamic: true,
+      },
+    },
+    component: ApiDocumentationV4EditPageComponent,
   },
   {
     name: 'management.apis.policyStudio',

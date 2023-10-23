@@ -20,22 +20,11 @@
   <div class="header__subtitle">Documentation pages appear in the portal and inform API consumers how to use your API</div>
 </div>
 <mat-card>
-  <div class="navigation">
-    <div>
-      <h3>{{ pageTitle }}</h3>
-      <div class="navigation__location">
-        In
-        <div class="navigation__location__breadcrumb">
-          <mat-icon svgIcon="gio:home"></mat-icon><span class="mat-body-strong">Home</span>
-          <ng-container *ngFor="let breadcrumb of breadcrumbs">
-            <div class="navigation__location__separator">></div>
-            <div class="navigation__location__item">{{ breadcrumb.name }}</div>
-          </ng-container>
-        </div>
-      </div>
-    </div>
-    <div><button mat-stroked-button (click)="exitWithoutSaving()">Exit without saving</button></div>
-  </div>
+  <api-documentation-page-header
+    [pageName]="pageTitle"
+    [breadcrumbs]="breadcrumbs"
+    (exitWithoutSaving)="exitWithoutSaving()"
+  ></api-documentation-page-header>
   <div class="stepper">
     <mat-stepper linear color="accent" disableRipple>
       <mat-step>

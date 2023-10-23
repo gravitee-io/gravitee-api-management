@@ -91,4 +91,8 @@ export class ApiDocumentationV4Component implements OnInit, OnDestroy {
   navigateTo(folderId: string | null) {
     this.ajsState.go('management.apis.documentationV4', { parentId: folderId || 'ROOT' }, { reload: true });
   }
+
+  editPage(pageId: string) {
+    this.ajsState.go('management.apis.documentationV4-edit', { pageId }, { reload: true });
+  }
 }

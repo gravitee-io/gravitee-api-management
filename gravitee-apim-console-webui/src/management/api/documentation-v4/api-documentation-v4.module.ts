@@ -36,6 +36,8 @@ import { ApiDocumentationV4NewPageComponent } from './documentation-new-page/api
 import { ApiDocumentationV4VisibilityComponent } from './components/api-documentation-v4-visibility/api-documentation-v4-visibility.component';
 import { ApiDocumentationV4PagesListComponent } from './documentation-pages-list/api-documentation-v4-pages-list.component';
 import { ApiDocumentationV4ContentEditorComponent } from './components/api-documentation-v4-content-editor/api-documentation-v4-content-editor.component';
+import { ApiDocumentationV4EditPageComponent } from './documentation-edit-page/api-documentation-v4-edit-page.component';
+import { ApiDocumentationV4PageHeaderComponent } from './components/api-documentation-v4-header/api-documentation-v4-page-header.component';
 @NgModule({
   declarations: [
     ApiDocumentationV4Component,
@@ -43,8 +45,10 @@ import { ApiDocumentationV4ContentEditorComponent } from './components/api-docum
     ApiDocumentationV4NavigationHeaderComponent,
     ApiDocumentationV4VisibilityComponent,
     ApiDocumentationV4ContentEditorComponent,
+    ApiDocumentationV4PageHeaderComponent,
     ApiDocumentationV4AddFolderDialog,
     ApiDocumentationV4NewPageComponent,
+    ApiDocumentationV4EditPageComponent,
     ApiDocumentationV4PagesListComponent,
   ],
   exports: [ApiDocumentationV4Component],
