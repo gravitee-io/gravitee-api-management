@@ -33,7 +33,7 @@ import { ApiDocumentationV4NavigationHeaderComponent } from './documentation-nav
 import { ApiDocumentationV4Component } from './api-documentation-v4.component';
 import { ApiDocumentationV4AddFolderDialog } from './documentation-add-folder-dialog/api-documentation-v4-add-folder-dialog.component';
 import { ApiDocumentationV4NewPageComponent } from './documentation-new-page/api-documentation-v4-new-page.component';
-import { ApiDocumentationV4VisibilityComponent } from './components/api-documentation-v4-visibility.component';
+import { ApiDocumentationV4VisibilityComponent } from './components/api-documentation-v4-visibility/api-documentation-v4-visibility.component';
 import { ApiDocumentationV4PagesListComponent } from './documentation-pages-list/api-documentation-v4-pages-list.component';
 @NgModule({
   declarations: [

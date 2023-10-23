@@ -1,6 +1,6 @@
 @use 'sass:map';
-@use '@angular/material' as mat;
-@use '@gravitee/ui-particles-angular' as gio;
+@use 'material/index' as mat;
+@use 'ui-particles-angular/index' as gio;
 $typography: map.get(gio.$mat-theme, typography);
 
 .visibility {
