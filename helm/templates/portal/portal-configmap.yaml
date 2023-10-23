@@ -32,6 +32,9 @@ data:
       {{- else }}
       "baseURL": "{{ .Values.api.ingress.portal.scheme }}://{{ index .Values.api.ingress.portal.hosts 0 }}{{ .Values.api.ingress.portal.path }}",
       {{- end }}
+      {{- if .Values.portal.enforceEnvironmentId }}
+      "environmentId": "{{ .Values.portal.enforceEnvironmentId }}",
+      {{- end }}
       "loaderURL": "assets/images/gravitee-loader.gif",
       "pagination": {
         "size": {

@@ -41,9 +41,15 @@ export class ConfigurationService {
         document.documentElement.style.setProperty('--gv-theme-loader', `url('${configJson.loaderURL}')`);
 
         const baseURL = this._sanitizeBaseURLs(configJson);
-
+        const enforcedEnvironmentId = this._getEnforcedEnvironmentId(configJson);
+        let bootstrapUrl: string;
+        if (enforcedEnvironmentId) {
+          bootstrapUrl = `${baseURL}/ui/bootstrap?environmentId=${enforcedEnvironmentId}`;
+        } else {
+          bootstrapUrl = `${baseURL}/ui/bootstrap`;
+        }
         this.http
-          .get(`${baseURL}/ui/bootstrap`)
+          .get(`${bootstrapUrl}`)
           .toPromise()
           .then((bootstrapResponse: any) => {
             const environmentBaseUrl = `${bootstrapResponse.baseURL}/environments/${bootstrapResponse.environmentId}`;
@@ -79,6 +85,24 @@ export class ConfigurationService {
       baseURL = baseURL.substr(0, envIndex);
     }
     return baseURL;
+  }
+
+  _getEnforcedEnvironmentId(config: any): string | undefined {
+    let environmentId;
+    if (config.environmentId) {
+      environmentId = config.environmentId;
+    } else {
+      const baseURL = config.baseURL;
+      const orgIndex = baseURL.indexOf('/environments/');
+      if (orgIndex >= 0) {
+        const subPathWithOrga = baseURL.substr(orgIndex, baseURL.length);
+        const splitArr = subPathWithOrga.split('/');
+        if (splitArr.length >= 3) {
+          environmentId = splitArr[2];
+        }
+      }
+    }
+    return environmentId;
   }
 
   public hasFeature(feature: FeatureEnum): boolean {
