@@ -86,17 +86,7 @@
         <ng-template matStepLabel>Add content</ng-template>
         <div class="stepper__content">
           <div *ngIf="source === 'FILL'; else importMarkdown">
-            <div class="stepper__content__fill__header">
-              <div class="stepper__content__fill__header__title">
-                <h4>Page content</h4>
-                <span class="gio-badge-neutral">Unpublished</span>
-              </div>
-              <button mat-stroked-button (click)="preview = !preview">Toggle preview</button>
-            </div>
-            <div class="stepper__content__fill__editor">
-              <gio-monaco-editor [(ngModel)]="content" [languageConfig]="{ language: 'markdown' }"></gio-monaco-editor>
-              <markdown *ngIf="preview" [data]="content"> </markdown>
-            </div>
+            <api-documentation-content [(ngModel)]="content"></api-documentation-content>
             <div class="stepper__actions">
               <button mat-flat-button color="primary" [disabled]="content?.length === 0" (click)="save()">Save</button>
               <button mat-stroked-button matStepperPrevious>Previous</button>
