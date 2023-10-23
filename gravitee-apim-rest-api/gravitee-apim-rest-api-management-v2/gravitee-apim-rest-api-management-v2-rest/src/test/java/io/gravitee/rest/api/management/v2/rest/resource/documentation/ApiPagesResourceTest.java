@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.v2.rest.resource.documentation;
 
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
+import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -61,6 +62,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
     private UserCrudServiceInMemory userCrudService;
 
     protected static final String ENVIRONMENT = "my-env";
+    protected static final String API_ID = "api-id";
     protected static final String PAGE_ID = "page-id";
 
     @BeforeEach
@@ -75,8 +77,6 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
-
-        apiCrudServiceInMemory.initWith(List.of(Api.builder().id("api-id").build()));
     }
 
     @AfterEach
@@ -101,6 +101,11 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
     @Nested
     class GetApiPagesTest {
+
+        @BeforeEach
+        void setUp() {
+            apiCrudServiceInMemory.initWith(List.of(Api.builder().id("api-id").build()));
+        }
 
         @Test
         public void should_return_403_if_incorrect_permissions() {
@@ -371,6 +376,11 @@ class ApiPagesResourceTest extends AbstractResourceTest {
     @Nested
     class CreateDocumentationTest {
 
+        @BeforeEach
+        void setUp() {
+            apiCrudServiceInMemory.initWith(List.of(Api.builder().id("api-id").build()));
+        }
+
         @Test
         public void should_return_403_if_incorrect_permissions() {
             when(
@@ -447,6 +457,94 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
             assertThat(createdPage.getId()).isNotNull();
             assertThat(createdPage.getUpdatedAt()).isNotNull();
+        }
+    }
+
+    @Nested
+    class GetApiPageTest {
+
+        @Test
+        public void should_return_403_if_incorrect_permissions() {
+            apiCrudServiceInMemory.initWith(List.of(Api.builder().id(API_ID).build()));
+
+            when(
+                permissionService.hasPermission(
+                    eq(GraviteeContext.getExecutionContext()),
+                    eq(RolePermission.API_DOCUMENTATION),
+                    eq(API_ID),
+                    eq(RolePermissionAction.READ)
+                )
+            )
+                .thenReturn(false);
+
+            final Response response = rootTarget().path(PAGE_ID).request().get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("You do not have sufficient rights to access this resource");
+        }
+
+        @Test
+        public void should_return_404_if_api_does_not_exist() {
+            final Response response = rootTarget().path(PAGE_ID).request().get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(NOT_FOUND_404)
+                .asError()
+                .hasHttpStatus(NOT_FOUND_404)
+                .hasMessage("Api [" + API_ID + "] cannot be found.");
+        }
+
+        @Test
+        public void should_return_404_if_page_does_not_exist() {
+            apiCrudServiceInMemory.initWith(List.of(Api.builder().id(API_ID).build()));
+
+            final Response response = rootTarget().path(PAGE_ID).request().get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(NOT_FOUND_404)
+                .asError()
+                .hasHttpStatus(NOT_FOUND_404)
+                .hasMessage("Page [" + PAGE_ID + "] cannot be found.");
+        }
+
+        @Test
+        void should_get_page() {
+            apiCrudServiceInMemory.initWith(List.of(Api.builder().id(API_ID).build()));
+
+            Page page1 = Page
+                .builder()
+                .referenceType(Page.ReferenceType.API)
+                .referenceId(API_ID)
+                .type(Page.Type.MARKDOWN)
+                .id(PAGE_ID)
+                .name("page-1")
+                .build();
+            givenApiPagesQuery(List.of(page1));
+            final Response response = rootTarget().path(PAGE_ID).request().get();
+            assertThat(response.getStatus()).isEqualTo(200);
+
+            var body = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.Page.class);
+            assertThat(body)
+                .isEqualTo(
+                    io.gravitee.rest.api.management.v2.rest.model.Page
+                        .builder()
+                        .id(PAGE_ID)
+                        .type(PageType.MARKDOWN)
+                        .name("page-1")
+                        .order(0)
+                        .published(false)
+                        .homepage(false)
+                        .configuration(Map.of())
+                        .metadata(Map.of())
+                        .excludedAccessControls(false)
+                        .build()
+                );
         }
     }
 

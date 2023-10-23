@@ -19,6 +19,7 @@ import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.documentation.usecase.ApiCreateDocumentationPageUsecase;
+import io.gravitee.apim.core.documentation.usecase.ApiGetDocumentationPageUsecase;
 import io.gravitee.apim.core.documentation.usecase.ApiGetDocumentationPagesUsecase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.PageMapper;
@@ -47,6 +48,9 @@ public class ApiPagesResource extends AbstractResource {
 
     @Inject
     private ApiCreateDocumentationPageUsecase apiCreateDocumentationPageUsecase;
+
+    @Inject
+    private ApiGetDocumentationPageUsecase apiGetDocumentationPageUsecase;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -87,5 +91,14 @@ public class ApiPagesResource extends AbstractResource {
             .createdPage();
 
         return Response.ok(Mappers.getMapper(PageMapper.class).mapPage(createdPage)).build();
+    }
+
+    @GET
+    @Path("{pageId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.READ }) })
+    public Response getApiPage(@PathParam("apiId") String apiId, @PathParam("pageId") String pageId) {
+        var page = apiGetDocumentationPageUsecase.execute(new ApiGetDocumentationPageUsecase.Input(apiId, pageId)).page();
+        return Response.ok(Mappers.getMapper(PageMapper.class).mapPage(page)).build();
     }
 }

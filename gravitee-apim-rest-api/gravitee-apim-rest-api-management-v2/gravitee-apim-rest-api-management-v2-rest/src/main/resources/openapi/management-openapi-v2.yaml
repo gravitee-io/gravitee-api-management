@@ -1674,6 +1674,30 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
+    /environments/{envId}/apis/{apiId}/pages/{pageId}:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+            - $ref: "#/components/parameters/pageIdParam"
+        get:
+            tags:
+                - API Documentation
+            summary: Get API Documentation Page
+            description: |-
+                Get API Documentation Page by ID.
+
+                User must have the API_DOCUMENTATION[READ] permission.
+            operationId: getApiPage
+            responses:
+                "200":
+                    description: API Documentation Page
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Page"
+                default:
+                    $ref: "#/components/responses/Error"
+
     # Plugins - Endpoints
     /plugins/endpoints:
         get:
