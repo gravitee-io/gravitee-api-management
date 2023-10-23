@@ -32,13 +32,13 @@ import { ApiProxyGroupEndpointEditComponent } from './api-proxy-group-endpoint-e
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../../../shared/testing';
 import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../../../../ajs-upgraded-providers';
 import { ApiProxyGroupEndpointModule } from '../api-proxy-group-endpoint.module';
-import { Api } from '../../../../../../../entities/api';
 import { ConnectorListItem } from '../../../../../../../entities/connector/connector-list-item';
-import { fakeApi } from '../../../../../../../entities/api/Api.fixture';
 import { fakeConnectorListItem } from '../../../../../../../entities/connector/connector-list-item.fixture';
 import { fakeTenant } from '../../../../../../../entities/tenant/tenant.fixture';
 import { SnackBarService } from '../../../../../../../services-ngx/snack-bar.service';
 import { User } from '../../../../../../../entities/user';
+import { ApiV2, fakeApiV2 } from '../../../../../../../entities/management-api-v2';
+import { EndpointHttpConfigHarness } from '../../../components/endpoint-http-config/endpoint-http-config.harness';
 
 describe('ApiProxyGroupEndpointEditComponent', () => {
   const API_ID = 'apiId';
@@ -75,7 +75,7 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
   });
 
   describe('Edit mode', () => {
-    let api: Api;
+    let api: ApiV2;
 
     beforeEach(async () => {
       TestBed.compileComponents();
@@ -83,7 +83,7 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
       loader = TestbedHarnessEnvironment.loader(fixture);
       httpTestingController = TestBed.inject(HttpTestingController);
       fixture.detectChanges();
-      api = fakeApi({
+      api = fakeApiV2({
         id: API_ID,
         proxy: {
           groups: [
@@ -115,9 +115,6 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
       expectApiGetRequest(api);
       expectConnectorRequest();
       expectTenantsRequest();
-
-      // TODO : remove when this page only use apiV2Service
-      httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush({});
     });
 
     it('should go back to endpoints', async () => {
@@ -141,7 +138,7 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
 
       expectApiGetRequest(api);
       httpTestingController
-        .expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'PUT' })
+        .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'PUT' })
         .error(new ErrorEvent('error', { message: 'An error occurred' }));
       expect(snackBarServiceSpy).toHaveBeenCalledWith('An error occurred');
     });
@@ -175,7 +172,7 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
         await gioSaveBar.clickSubmit();
 
         expectApiGetRequest(api);
-        const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'PUT' });
+        const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'PUT' });
         expect(req.request.body.proxy).toStrictEqual({
           groups: [
             {
@@ -189,7 +186,7 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
                   type: 'HTTP',
                   inherit: true,
                   tenants: [tenants[0].id],
-                  healthcheck: {
+                  healthCheck: {
                     inherit: true,
                   },
                 },
@@ -206,18 +203,6 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
           ],
         });
       });
-
-      it('should find connector schema', async () => {
-        expect(fixture.componentInstance.configurationSchema).toBeTruthy();
-        expect(fixture.componentInstance.configurationSchema['name']).toEqual('http-schema');
-
-        await loader
-          .getHarness(MatSelectHarness.with({ selector: '[aria-label="Endpoint type"]' }))
-          .then((select) => select.clickOptions({ text: 'grpc' }));
-
-        expect(fixture.componentInstance.configurationSchema).toBeTruthy();
-        expect(fixture.componentInstance.configurationSchema['name']).toEqual('grpc-schema');
-      });
     });
 
     describe('Edit configuration of existing endpoint', () => {
@@ -227,13 +212,16 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
       });
 
       it('should update existing endpoint configuration', async () => {
-        const inherit = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="inherit"]' }));
-        expect(fixture.debugElement.nativeElement.querySelector('gv-schema-form-group')).toBeFalsy();
+        const inherit = await loader.getHarness(
+          MatSlideToggleHarness.with({ selector: '[ng-reflect-aria-label="Inherit configuration"]' }),
+        );
+
+        expect((await loader.getAllHarnesses(EndpointHttpConfigHarness)).length).toEqual(0);
 
         await inherit.toggle();
 
-        expect(fixture.debugElement.nativeElement.querySelector('gv-schema-form-group')).toBeTruthy();
-        expect(fixture.componentInstance.configurationForm.getRawValue().inherit).toStrictEqual(false);
+        const httpConfig = await loader.getHarness(EndpointHttpConfigHarness);
+        await httpConfig.setHttpProxy({ enabled: true, useSystemProxy: true });
 
         const gioSaveBar = await loader.getHarness(GioSaveBarHarness);
         expect(await gioSaveBar.isSubmitButtonInvalid()).toBeFalsy();
@@ -241,8 +229,8 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
 
         expectApiGetRequest(api);
 
-        const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'PUT' });
-        expect(req.request.body.proxy).toStrictEqual({
+        const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'PUT' });
+        expect(req.request.body.proxy).toEqual({
           groups: [
             {
               name: 'default-group',
@@ -256,10 +244,22 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
                   type: 'HTTP',
                   inherit: false,
                   headers: [],
-                  http: {},
-                  proxy: { enabled: false },
-                  ssl: {},
-                  healthcheck: {
+                  httpClientOptions: {
+                    clearTextUpgrade: undefined,
+                    connectTimeout: 5000,
+                    followRedirects: undefined,
+                    idleTimeout: 60000,
+                    keepAlive: true,
+                    maxConcurrentConnections: 100,
+                    pipelining: undefined,
+                    propagateClientAcceptEncoding: undefined,
+                    readTimeout: 10000,
+                    useCompression: true,
+                    version: 'HTTP_1_1',
+                  },
+                  httpProxy: { enabled: true, type: 'HTTP', useSystemProxy: true },
+                  httpClientSslOptions: {},
+                  healthCheck: {
                     inherit: true,
                   },
                 },
@@ -280,7 +280,7 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
   });
 
   describe('Create mode with existing endpoints', () => {
-    let api: Api;
+    let api: ApiV2;
 
     beforeEach(async () => {
       TestBed.overrideProvider(UIRouterStateParams, { useValue: { apiId: API_ID, groupName: DEFAULT_GROUP_NAME, endpointName: null } });
@@ -290,7 +290,7 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
       httpTestingController = TestBed.inject(HttpTestingController);
       fixture.detectChanges();
 
-      api = fakeApi({
+      api = fakeApiV2({
         id: API_ID,
         proxy: {
           groups: [
@@ -314,9 +314,6 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
       expectApiGetRequest(api);
       expectConnectorRequest();
       expectTenantsRequest();
-
-      // TODO : remove when this page only use apiV2Service
-      httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush({});
     });
 
     it('should create new endpoint', async () => {
@@ -346,8 +343,8 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
       await saveBar.clickSubmit();
 
       expectApiGetRequest(api);
-      const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'PUT' });
-      expect(req.request.body.proxy).toStrictEqual({
+      const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'PUT' });
+      expect(req.request.body.proxy).toEqual({
         groups: [
           {
             name: 'default-group',
@@ -368,7 +365,7 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
                 backup: false,
                 type: 'http',
                 inherit: true,
-                healthcheck: {
+                healthCheck: {
                   inherit: true,
                 },
               },
@@ -380,7 +377,7 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
   });
 
   describe('Create mode without existing endpoints', () => {
-    let api: Api;
+    let api: ApiV2;
 
     beforeEach(async () => {
       TestBed.overrideProvider(UIRouterStateParams, { useValue: { apiId: API_ID, groupName: DEFAULT_GROUP_NAME, endpointName: null } });
@@ -390,7 +387,7 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
       httpTestingController = TestBed.inject(HttpTestingController);
       fixture.detectChanges();
 
-      api = fakeApi({
+      api = fakeApiV2({
         id: API_ID,
         proxy: {
           groups: [
@@ -404,8 +401,6 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
       expectApiGetRequest(api);
       expectConnectorRequest();
       expectTenantsRequest();
-      // TODO : remove when this page only use apiV2Service
-      httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush({});
     });
 
     it('should create new endpoint', async () => {
@@ -435,7 +430,7 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
       await saveBar.clickSubmit();
 
       expectApiGetRequest(api);
-      const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'PUT' });
+      const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'PUT' });
       expect(req.request.body.proxy).toStrictEqual({
         groups: [
           {
@@ -449,7 +444,7 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
                 backup: false,
                 type: 'http',
                 inherit: true,
-                healthcheck: {
+                healthCheck: {
                   inherit: true,
                 },
               },
@@ -461,7 +456,7 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
   });
 
   describe('Create mode with API health check deactivated ', () => {
-    let api: Api;
+    let api: ApiV2;
 
     beforeEach(async () => {
       TestBed.overrideProvider(UIRouterStateParams, { useValue: { apiId: API_ID, groupName: DEFAULT_GROUP_NAME, endpointName: null } });
@@ -471,7 +466,7 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
       httpTestingController = TestBed.inject(HttpTestingController);
       fixture.detectChanges();
 
-      api = fakeApi({
+      api = fakeApiV2({
         id: API_ID,
         proxy: {
           groups: [
@@ -481,7 +476,7 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
           ],
         },
         services: {
-          'health-check': {
+          healthCheck: {
             enabled: false,
           },
         },
@@ -490,8 +485,6 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
       expectApiGetRequest(api);
       expectConnectorRequest();
       expectTenantsRequest();
-      // TODO : remove when this page only use apiV2Service
-      httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush({});
     });
 
     it('should create new endpoint', async () => {
@@ -521,7 +514,7 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
       await saveBar.clickSubmit();
 
       expectApiGetRequest(api);
-      const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'PUT' });
+      const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'PUT' });
       expect(req.request.body.proxy).toStrictEqual({
         groups: [
           {
@@ -535,7 +528,7 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
                 backup: false,
                 type: 'http',
                 inherit: true,
-                healthcheck: {
+                healthCheck: {
                   inherit: true,
                 },
               },
@@ -547,7 +540,7 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
   });
 
   describe('Read only', () => {
-    let api: Api;
+    let api: ApiV2;
 
     beforeEach(() => {
       TestBed.overrideProvider(UIRouterStateParams, {
@@ -559,7 +552,7 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
       httpTestingController = TestBed.inject(HttpTestingController);
       fixture.detectChanges();
 
-      api = fakeApi({
+      api = fakeApiV2({
         id: API_ID,
         proxy: {
           groups: [
@@ -578,15 +571,13 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
             },
           ],
         },
-        definition_context: {
-          origin: 'kubernetes',
+        definitionContext: {
+          origin: 'KUBERNETES',
         },
       });
       expectApiGetRequest(api);
       expectConnectorRequest();
       expectTenantsRequest();
-      // TODO : remove when this page only use apiV2Service
-      httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush({});
     });
 
     it('should not allow user to update the form', async () => {
@@ -631,14 +622,14 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
     });
   });
 
-  function expectApiGetRequest(api: Api) {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
+  function expectApiGetRequest(api: ApiV2) {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
     fixture.detectChanges();
   }
 
   function expectConnectorRequest() {
     httpTestingController
-      .expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/connectors?expand=schema`, method: 'GET' })
+      .expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/connectors`, method: 'GET' })
       .flush([httpConnector, grpcConnector]);
     fixture.detectChanges();
   }

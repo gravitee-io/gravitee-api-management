@@ -16,8 +16,10 @@
 import { Component, Input } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 
-import { ProxyGroupEndpoint } from '../../../../../../../../entities/proxy';
+import { EndpointV2 } from '../../../../../../../../entities/management-api-v2';
 import { Tenant } from '../../../../../../../../entities/tenant/tenant';
+
+export type EndpointGeneralData = Pick<EndpointV2, 'name' | 'type' | 'target' | 'weight' | 'tenants' | 'backup'>;
 
 @Component({
   selector: 'api-proxy-group-endpoint-edit-general',
@@ -26,7 +28,7 @@ import { Tenant } from '../../../../../../../../entities/tenant/tenant';
 })
 export class ApiProxyGroupEndpointEditGeneralComponent {
   @Input() generalForm: FormGroup;
-  @Input() endpoint: ProxyGroupEndpoint;
+  @Input() endpoint: EndpointV2;
   @Input() supportedTypes: string[];
   @Input() tenants: Tenant[];
 }

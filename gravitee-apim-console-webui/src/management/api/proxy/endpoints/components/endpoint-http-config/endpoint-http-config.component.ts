@@ -21,6 +21,7 @@ import { filter, startWith, takeUntil } from 'rxjs/operators';
 
 import {
   EndpointGroupV2,
+  EndpointV2,
   HttpClientOptions,
   HttpClientSslOptions,
   HttpHeader,
@@ -42,30 +43,30 @@ export interface EndpointHttpConfigValue {
   styles: [require('./endpoint-http-config.component.scss')],
 })
 export class EndpointHttpConfigComponent implements OnInit, OnDestroy {
-  public static getHttpConfigFormGroup(endpointGroup: EndpointGroupV2, isReadonly: boolean): FormGroup {
+  public static getHttpConfigFormGroup(endpointGroup: EndpointGroupV2 | EndpointV2, isReadonly: boolean): FormGroup {
     const httpClientOptions = new FormGroup({
       version: new FormControl({
-        value: endpointGroup.httpClientOptions?.version,
+        value: endpointGroup.httpClientOptions?.version ?? 'HTTP_1_1',
         disabled: isReadonly,
       }),
       connectTimeout: new FormControl({
-        value: endpointGroup.httpClientOptions?.connectTimeout,
+        value: endpointGroup.httpClientOptions?.connectTimeout ?? 5000,
         disabled: isReadonly,
       }),
       readTimeout: new FormControl({
-        value: endpointGroup.httpClientOptions?.readTimeout,
+        value: endpointGroup.httpClientOptions?.readTimeout ?? 10000,
         disabled: isReadonly,
       }),
       idleTimeout: new FormControl({
-        value: endpointGroup.httpClientOptions?.idleTimeout,
+        value: endpointGroup.httpClientOptions?.idleTimeout ?? 60000,
         disabled: isReadonly,
       }),
       maxConcurrentConnections: new FormControl({
-        value: endpointGroup.httpClientOptions?.maxConcurrentConnections,
+        value: endpointGroup.httpClientOptions?.maxConcurrentConnections ?? 100,
         disabled: isReadonly,
       }),
       keepAlive: new FormControl({
-        value: endpointGroup.httpClientOptions?.keepAlive,
+        value: endpointGroup.httpClientOptions?.keepAlive ?? true,
         disabled: isReadonly,
       }),
       pipelining: new FormControl({
@@ -73,7 +74,7 @@ export class EndpointHttpConfigComponent implements OnInit, OnDestroy {
         disabled: isReadonly,
       }),
       useCompression: new FormControl({
-        value: endpointGroup.httpClientOptions?.useCompression,
+        value: endpointGroup.httpClientOptions?.useCompression ?? true,
         disabled: isReadonly,
       }),
       followRedirects: new FormControl({
@@ -92,34 +93,22 @@ export class EndpointHttpConfigComponent implements OnInit, OnDestroy {
 
     const httpProxy = new FormGroup({
       enabled: new FormControl({
-        value: endpointGroup.httpProxy?.enabled,
+        value: endpointGroup.httpProxy?.enabled ?? false,
         disabled: isReadonly,
       }),
       useSystemProxy: new FormControl({
         value: endpointGroup.httpProxy?.useSystemProxy,
         disabled: isReadonly,
       }),
-      host: new FormControl(
-        {
-          value: endpointGroup.httpProxy?.host,
-          disabled: isReadonly,
-        },
-        Validators.required,
-      ),
-      port: new FormControl(
-        {
-          value: endpointGroup.httpProxy?.port,
-          disabled: isReadonly,
-        },
-        Validators.required,
-      ),
-      type: new FormControl(
-
-          {value: endpointGroup.httpProxy?.type ?? 'HTTP',
-          disabled: isReadonly,
-        },
-        Validators.required,
-      ),
+      host: new FormControl({
+        value: endpointGroup.httpProxy?.host,
+        disabled: isReadonly,
+      }),
+      port: new FormControl({
+        value: endpointGroup.httpProxy?.port,
+        disabled: isReadonly,
+      }),
+      type: new FormControl({ value: endpointGroup.httpProxy?.type ?? 'HTTP', disabled: isReadonly }, Validators.required),
       username: new FormControl({
         value: endpointGroup.httpProxy?.username,
         disabled: isReadonly,
@@ -213,12 +202,12 @@ export class EndpointHttpConfigComponent implements OnInit, OnDestroy {
       .subscribe((value) => {
         const isHttp2 = value === 'HTTP_2';
         if (isHttp2) {
-          httpClientOptions.get('clearTextUpgrade').enable();
+          httpClientOptions.get('clearTextUpgrade').enable({ emitEvent: false });
         } else {
           if (httpClientOptions.get('clearTextUpgrade').value === true) {
-            httpClientOptions.get('clearTextUpgrade').setValue(false);
+            httpClientOptions.get('clearTextUpgrade').setValue(false, { emitEvent: false });
           }
-          httpClientOptions.get('clearTextUpgrade').disable();
+          httpClientOptions.get('clearTextUpgrade').disable({ emitEvent: false });
         }
       });
 
@@ -234,11 +223,11 @@ export class EndpointHttpConfigComponent implements OnInit, OnDestroy {
         const useCompression = !!value;
         if (useCompression) {
           if (httpClientOptions.get('propagateClientAcceptEncoding').value === true) {
-            httpClientOptions.get('propagateClientAcceptEncoding').setValue(false);
+            httpClientOptions.get('propagateClientAcceptEncoding').setValue(false, { emitEvent: false });
           }
-          httpClientOptions.get('propagateClientAcceptEncoding').disable();
+          httpClientOptions.get('propagateClientAcceptEncoding').disable({ emitEvent: false });
         } else {
-          httpClientOptions.get('propagateClientAcceptEncoding').enable();
+          httpClientOptions.get('propagateClientAcceptEncoding').enable({ emitEvent: false });
         }
       });
 
@@ -254,24 +243,24 @@ export class EndpointHttpConfigComponent implements OnInit, OnDestroy {
       )
       .subscribe((enabled) => {
         if (enabled === true) {
-          httpProxy.get('useSystemProxy').enable();
-          httpProxy.get('host').enable();
+          httpProxy.get('useSystemProxy').enable({ onlySelf: true });
           httpProxy.get('host').addValidators(Validators.required);
-          httpProxy.get('port').enable();
+          httpProxy.get('host').enable({ onlySelf: true });
           httpProxy.get('port').addValidators(Validators.required);
-          httpProxy.get('type').enable();
-          httpProxy.get('username').enable();
-          httpProxy.get('password').enable();
+          httpProxy.get('port').enable({ onlySelf: true });
+          httpProxy.get('type').enable({ emitEvent: false });
+          httpProxy.get('username').enable({ emitEvent: false });
+          httpProxy.get('password').enable({ emitEvent: false });
         } else {
-          httpProxy.get('useSystemProxy').disable();
-          httpProxy.get('useSystemProxy').setValue(false);
-          httpProxy.get('host').disable();
+          httpProxy.get('useSystemProxy').disable({ emitEvent: false });
+          httpProxy.get('useSystemProxy').setValue(false, { onlySelf: true });
           httpProxy.get('host').clearValidators();
-          httpProxy.get('port').disable();
+          httpProxy.get('host').disable({ onlySelf: true });
           httpProxy.get('port').clearValidators();
-          httpProxy.get('type').disable();
-          httpProxy.get('username').disable();
-          httpProxy.get('password').disable();
+          httpProxy.get('port').disable({ onlySelf: true });
+          httpProxy.get('type').disable({ emitEvent: false });
+          httpProxy.get('username').disable({ emitEvent: false });
+          httpProxy.get('password').disable({ emitEvent: false });
         }
 
         // Update validators
@@ -291,21 +280,21 @@ export class EndpointHttpConfigComponent implements OnInit, OnDestroy {
       )
       .subscribe((useSystemProxy) => {
         if (useSystemProxy === true) {
-          httpProxy.get('host').disable();
-          httpProxy.get('host').addValidators(Validators.required);
-          httpProxy.get('port').disable();
-          httpProxy.get('port').addValidators(Validators.required);
-          httpProxy.get('type').disable();
-          httpProxy.get('username').disable();
-          httpProxy.get('password').disable();
-        } else {
-          httpProxy.get('host').enable();
           httpProxy.get('host').clearValidators();
-          httpProxy.get('port').enable();
+          httpProxy.get('host').disable({ onlySelf: true });
           httpProxy.get('port').clearValidators();
-          httpProxy.get('type').enable();
-          httpProxy.get('username').enable();
-          httpProxy.get('password').enable();
+          httpProxy.get('port').disable({ onlySelf: true });
+          httpProxy.get('type').disable({ emitEvent: false });
+          httpProxy.get('username').disable({ emitEvent: false });
+          httpProxy.get('password').disable({ emitEvent: false });
+        } else {
+          httpProxy.get('host').addValidators(Validators.required);
+          httpProxy.get('host').enable({ onlySelf: false });
+          httpProxy.get('port').addValidators(Validators.required);
+          httpProxy.get('port').enable({ onlySelf: true });
+          httpProxy.get('type').enable({ emitEvent: false });
+          httpProxy.get('username').enable({ emitEvent: false });
+          httpProxy.get('password').enable({ emitEvent: false });
         }
 
         // Update validators

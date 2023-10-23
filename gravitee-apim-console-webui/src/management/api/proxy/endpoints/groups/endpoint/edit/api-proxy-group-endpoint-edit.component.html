@@ -20,7 +20,7 @@
   Endpoint
 </h2>
 
-<form *ngIf="endpointForm" gioFormFocusInvalid autocomplete="off" [formGroup]="endpointForm">
+<form *ngIf="endpointForm" gioFormFocusInvalid [formGroup]="endpointForm">
   <mat-tab-group animationDuration="0ms">
     <mat-tab label="General">
       <!-- General tab content -->
@@ -38,9 +38,7 @@
       <!-- Configuration tab content -->
       <div class="tab-body-wrapper">
         <api-proxy-group-endpoint-configuration
-          *ngIf="configurationForm && configurationSchema && endpoint"
-          [configurationForm]="configurationForm"
-          [configurationSchema]="configurationSchema"
+          [configurationFormGroup]="endpointForm.get('configuration')"
         ></api-proxy-group-endpoint-configuration>
       </div>
     </mat-tab>

@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<form *ngIf="!!generalForm" [formGroup]="generalForm" autocomplete="off" gioFormFocusInvalid>
+<ng-container *ngIf="!!generalForm" [formGroup]="generalForm">
   <mat-card>
     <div class="card__group-endpoint__row">
       <!-- Type -->
@@ -88,4 +88,4 @@
       </mat-checkbox>
     </div>
   </mat-card>
-</form>
+</ng-container>
