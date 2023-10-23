@@ -17,7 +17,7 @@
 -->
 <ng-container *ngIf="httpConfigFormGroup" [formGroup]="httpConfigFormGroup">
   <div class="httpClientOptions" formGroupName="httpClientOptions">
-    <h2>HTTP Options</h2>
+    <h3>HTTP Options</h3>
 
     <mat-form-field class="endpointHttpConfig__formField">
       <mat-label>HTTP Protocol version</mat-label>
@@ -120,12 +120,12 @@
   </div>
 
   <div class="headers">
-    <h2>HTTP Headers</h2>
+    <h3>HTTP Headers</h3>
     <gio-form-headers [headerFieldMapper]="{ keyName: 'name', valueName: 'value' }" formControlName="headers"></gio-form-headers>
   </div>
 
   <div class="proxyOptions" formGroupName="httpProxy">
-    <h2>Proxy Options</h2>
+    <h3>Proxy Options</h3>
 
     <gio-form-slide-toggle class="endpointHttpConfig__formField">
       <gio-form-label>Use proxy</gio-form-label>
@@ -156,29 +156,33 @@
       </mat-select>
     </mat-form-field>
 
-    <mat-form-field class="endpointHttpConfig__formField">
-      <mat-label>Proxy host</mat-label>
-      <input matInput formControlName="host" />
-    </mat-form-field>
+    <div class="endpointHttpConfig__line">
+      <mat-form-field class="endpointHttpConfig__line__formField">
+        <mat-label>Proxy host</mat-label>
+        <input matInput formControlName="host" />
+      </mat-form-field>
 
-    <mat-form-field class="endpointHttpConfig__formField">
-      <mat-label>Proxy port</mat-label>
-      <input matInput formControlName="port" type="number" />
-    </mat-form-field>
+      <mat-form-field class="endpointHttpConfig__line__formField">
+        <mat-label>Proxy port</mat-label>
+        <input matInput formControlName="port" type="number" />
+      </mat-form-field>
+    </div>
 
-    <mat-form-field class="endpointHttpConfig__formField">
-      <mat-label>Proxy username</mat-label>
-      <input matInput formControlName="username" />
-    </mat-form-field>
+    <div class="endpointHttpConfig__line">
+      <mat-form-field class="endpointHttpConfig__line__formField">
+        <mat-label>Proxy username</mat-label>
+        <input matInput formControlName="username" />
+      </mat-form-field>
 
-    <mat-form-field class="endpointHttpConfig__formField">
-      <mat-label>Proxy password</mat-label>
-      <input matInput formControlName="password" type="password" />
-    </mat-form-field>
+      <mat-form-field class="endpointHttpConfig__line__formField">
+        <mat-label>Proxy password</mat-label>
+        <input matInput formControlName="password" type="password" />
+      </mat-form-field>
+    </div>
   </div>
 
   <div class="sslOptions" formGroupName="httpClientSslOptions">
-    <h2>SSL Options</h2>
+    <h3>SSL Options</h3>
 
     <gio-form-slide-toggle class="endpointHttpConfig__formField">
       <gio-form-label>Verify Host</gio-form-label>
