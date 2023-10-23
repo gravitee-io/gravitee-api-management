@@ -18,7 +18,7 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatRadioGroupHarness } from '@angular/material/radio/testing';
 
-import { ApiDocumentationV4VisibilityHarness } from '../components/api-documentation-v4-visibility.harness';
+import { ApiDocumentationV4VisibilityHarness } from '../components/api-documentation-v4-visibility/api-documentation-v4-visibility.harness';
 
 export class ApiDocumentationV4NewPageHarness extends ComponentHarness {
   public static hostSelector = 'api-documentation-new-page';
