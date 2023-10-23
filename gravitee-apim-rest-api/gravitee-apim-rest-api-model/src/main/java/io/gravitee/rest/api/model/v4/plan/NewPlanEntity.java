@@ -20,6 +20,7 @@ import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.DeploymentRequired;
+import io.gravitee.rest.api.sanitizer.HtmlSanitizer;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,8 +31,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import org.owasp.html.HtmlPolicyBuilder;
-import org.owasp.html.PolicyFactory;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -44,11 +43,6 @@ import org.owasp.html.PolicyFactory;
 @EqualsAndHashCode
 @Schema(name = "NewPlanEntityV4")
 public class NewPlanEntity {
-
-    /**
-     * OWASP HTML sanitizer to prevent XSS attacks.
-     */
-    private static final PolicyFactory HTML_SANITIZER = new HtmlPolicyBuilder().toFactory();
 
     private String id;
     /**
@@ -96,10 +90,10 @@ public class NewPlanEntity {
     private int order;
 
     public void setName(String name) {
-        this.name = HTML_SANITIZER.sanitize(name);
+        this.name = HtmlSanitizer.sanitize(name);
     }
 
     public void setDescription(String description) {
-        this.description = HTML_SANITIZER.sanitize(description);
+        this.description = HtmlSanitizer.sanitize(description);
     }
 }
