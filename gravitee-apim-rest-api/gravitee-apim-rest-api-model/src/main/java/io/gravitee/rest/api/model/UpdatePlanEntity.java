@@ -18,6 +18,7 @@ package io.gravitee.rest.api.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.rest.api.sanitizer.HtmlSanitizer;
 import jakarta.validation.constraints.NotNull;
 import java.util.HashMap;
 import java.util.List;
@@ -82,7 +83,7 @@ public class UpdatePlanEntity {
     }
 
     public void setName(String name) {
-        this.name = name;
+        this.name = HtmlSanitizer.sanitize(name);
     }
 
     public String getDescription() {
@@ -90,7 +91,7 @@ public class UpdatePlanEntity {
     }
 
     public void setDescription(String description) {
-        this.description = description;
+        this.description = HtmlSanitizer.sanitize(description);
     }
 
     public PlanValidationType getValidation() {
