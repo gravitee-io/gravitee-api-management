@@ -36,12 +36,9 @@ import { User as DeprecatedUser } from '../../../../../entities/user';
 import {
   Api,
   ApiPlansResponse,
-  ApiSubscribersResponse,
   ApiSubscriptionsResponse,
-  BaseApplication,
   fakeApiV1,
   fakeApiV4,
-  fakeBaseApplication,
   fakePlanV4,
   fakeSubscription,
   Plan,
@@ -68,7 +65,6 @@ describe('ApiGeneralSubscriptionListComponent', () => {
   const APPLICATION_ID = 'application_1';
   const anAPI = fakeApiV4({ id: API_ID });
   const aPlan = fakePlanV4({ id: PLAN_ID, apiId: API_ID });
-  const aBaseApplication = fakeBaseApplication();
   const anApplication = fakeApplication({ id: APPLICATION_ID, owner: { displayName: 'Gravitee.io' } });
   const fakeUiRouter = { go: jest.fn() };
   const currentUser = new DeprecatedUser();
@@ -140,7 +136,7 @@ describe('ApiGeneralSubscriptionListComponent', () => {
     }));
 
     it('should init filters from params', fakeAsync(async () => {
-      await initComponent([], anAPI, [aPlan], [aBaseApplication], [anApplication], {
+      await initComponent([], anAPI, [aPlan], [anApplication], {
         plan: PLAN_ID,
         application: APPLICATION_ID,
         status: 'CLOSED,REJECTED',
@@ -166,7 +162,7 @@ describe('ApiGeneralSubscriptionListComponent', () => {
     }));
 
     it('should reset filters from params', fakeAsync(async () => {
-      await initComponent([], anAPI, [aPlan], [aBaseApplication], [], {
+      await initComponent([], anAPI, [aPlan], [], {
         plan: null,
         application: null,
         status: 'CLOSED,REJECTED',
@@ -257,7 +253,7 @@ describe('ApiGeneralSubscriptionListComponent', () => {
 
     it('should display a table with one row and show edit button when user can update', fakeAsync(async () => {
       const subscription = fakeSubscription();
-      await initComponent([subscription], undefined, undefined, undefined, undefined, undefined, [
+      await initComponent([subscription], undefined, undefined, undefined, undefined, [
         'api-subscription-u',
         'api-subscription-r',
         'api-subscription-c',
@@ -297,7 +293,7 @@ describe('ApiGeneralSubscriptionListComponent', () => {
 
     it('should display a table with one row and view details button when read only', fakeAsync(async () => {
       const subscription = fakeSubscription();
-      await initComponent([subscription], undefined, undefined, undefined, undefined, undefined, ['api-subscription-r']);
+      await initComponent([subscription], undefined, undefined, undefined, undefined, ['api-subscription-r']);
 
       const { headerCells, rowCells } = await computeSubscriptionsTableCells();
       expect(headerCells).toEqual([
@@ -624,9 +620,9 @@ describe('ApiGeneralSubscriptionListComponent', () => {
         fakeSubscription(),
         fakeSubscription(),
       ];
-      await initComponent(listedSubscriptions, anAPI, [aPlan], [aBaseApplication], [anApplication], {
+      await initComponent(listedSubscriptions, anAPI, [aPlan], [anApplication], {
         plan: aPlan.id,
-        application: aBaseApplication.id,
+        application: anApplication.id,
         status: 'ACCEPTED,CLOSED,RESUMED',
         apiKey: '12345678',
       });
@@ -637,7 +633,7 @@ describe('ApiGeneralSubscriptionListComponent', () => {
 
       await exportBtn.click();
       tick(400);
-      expectExportGetRequest(listedSubscriptions, ['ACCEPTED', 'CLOSED', 'RESUMED'], [aBaseApplication.id], [aPlan.id], '12345678');
+      expectExportGetRequest(listedSubscriptions, ['ACCEPTED', 'CLOSED', 'RESUMED'], [anApplication.id], [aPlan.id], '12345678');
       flush();
     }));
   });
@@ -646,7 +642,6 @@ describe('ApiGeneralSubscriptionListComponent', () => {
     subscriptions: Subscription[],
     api: Api = anAPI,
     plans: Plan[] = [aPlan],
-    subscribers: BaseApplication[] = [aBaseApplication],
     applications?: Application[],
     params?: { plan?: string; application?: string; status?: string; apiKey?: string },
     permissions: string[] = ['api-subscription-c', 'api-subscription-r'],
@@ -664,7 +659,7 @@ describe('ApiGeneralSubscriptionListComponent', () => {
     tick(800); // wait for debounce
     expectApiGetRequest(api);
     expectApiPlansGetRequest(plans);
-    expectApiSubscribersGetRequest(subscribers);
+
     if (params?.application) {
       params?.application.split(',').forEach((appId) =>
         expectGetApplication(
@@ -734,22 +729,6 @@ describe('ApiGeneralSubscriptionListComponent', () => {
     httpTestingController
       .expectOne({
         url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans?page=1&perPage=9999`,
-        method: 'GET',
-      })
-      .flush(response);
-    fixture.detectChanges();
-  }
-
-  function expectApiSubscribersGetRequest(applications: BaseApplication[]) {
-    const response: ApiSubscribersResponse = {
-      data: applications,
-      pagination: {
-        totalCount: applications.length,
-      },
-    };
-    httpTestingController
-      .expectOne({
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/subscribers?page=1&perPage=20`,
         method: 'GET',
       })
       .flush(response);
