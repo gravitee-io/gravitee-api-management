@@ -22,6 +22,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.cors.CorsConfiguration;
@@ -34,7 +35,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @RequiredArgsConstructor
 public class GraviteeUrlBasedCorsConfigurationSource extends UrlBasedCorsConfigurationSource {
 
-    private final Map<String, GraviteeCorsConfiguration> corsConfigurationByOrganization = new HashMap<>();
+    private final Map<String, GraviteeCorsConfiguration> corsConfigurationByOrganization = new ConcurrentHashMap<>();
 
     private final ParameterService parameterService;
     private final AccessPointQueryService accessPointQueryService;
