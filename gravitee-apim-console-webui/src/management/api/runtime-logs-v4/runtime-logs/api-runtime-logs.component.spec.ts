@@ -430,6 +430,19 @@ describe('ApiRuntimeLogsComponent', () => {
         expect(await componentHarness.getApplicationsChipText()).toStrictEqual(expectedApplicationChip);
         expectApiWithLogs(10, { page: 1, perPage: 10, applicationIds: '1,2' });
       });
+
+      it("should reset all filters when clicking on 'reset filters'", async () => {
+        expect(await componentHarness.getApplicationsChip()).toBeTruthy();
+        expect(await componentHarness.getPlanChip()).toBeTruthy();
+        expectApplicationFindById(application);
+        expectApplicationFindById(anotherApplication);
+
+        await componentHarness.quickFiltersHarness().then((harness) => harness.clickResetFilters());
+        expect(await componentHarness.getApplicationsTags()).toHaveLength(0);
+        expect(await componentHarness.getSelectedPlans()).toEqual('');
+        expectApiWithLogs(10, { page: 1, perPage: 10, planIds: '1,2' });
+        expectApiWithLogs(10, { page: 1, perPage: 10 });
+      });
     });
 
     describe('should load page 2 by default', () => {

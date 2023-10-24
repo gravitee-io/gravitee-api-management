@@ -58,5 +58,14 @@ $typography: map.get(gio.$mat-theme, typography);
   &__applied {
     display: flex;
     flex-direction: row;
+    align-items: center;
+  }
+
+  &__reset {
+    margin-left: 12px;
+
+    &__label {
+      margin-left: 8px;
+    }
   }
 }

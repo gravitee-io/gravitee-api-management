@@ -32,6 +32,7 @@ export class ApiRuntimeLogsQuickFiltersHarness extends ComponentHarness {
   public getPlansSelect = this.locatorFor(MatSelectHarness.with({ selector: '[formControlName="plans"]' }));
   public getPlansChip = this.locatorFor(MatChipHarness.with({ text: /^plans:/ }));
   public getRefreshButton = this.locatorFor(MatButtonHarness.with({ selector: '[data-testId=refresh-button]' }));
+  public getResetFiltersButton = this.locatorFor(MatButtonHarness.with({ selector: '[data-testId=reset-filters-button]' }));
 
   public getApplicationAutocomplete() {
     return this.getApplicationFormField()
@@ -41,5 +42,9 @@ export class ApiRuntimeLogsQuickFiltersHarness extends ComponentHarness {
 
   public clickRefresh() {
     return this.getRefreshButton().then((button) => button.click());
+  }
+
+  public clickResetFilters() {
+    return this.getResetFiltersButton().then((button) => button.click());
   }
 }
