@@ -93,3 +93,35 @@ tests:
     asserts:
       - hasDocuments:
           count: 1
+
+
+  - it: should protect namespace with quote
+    template: common/rolebinding.yaml
+    set:
+      apim:
+        managedServiceAccount: true
+    release:
+      name: my-apim
+      namespace: 1234
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: RoleBinding
+      - isAPIVersion:
+          of: rbac.authorization.k8s.io/v1
+      - equal:
+          path: metadata.name
+          value: my-apim-apim-role-binding
+      - equal:
+          path: roleRef
+          value:
+            kind: Role
+            name: my-apim-apim-role
+            apiGroup: rbac.authorization.k8s.io
+      - equal:
+          path: subjects
+          value:
+            - kind: ServiceAccount
+              name: my-apim-apim
+              namespace: "1234"
