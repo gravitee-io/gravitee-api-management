@@ -38,6 +38,7 @@ export class ApiRuntimeLogsQuickFiltersComponent implements OnInit, OnDestroy {
   @Input() initialValues: LogFiltersInitialValues;
   @Input() plans: Plan[];
   @Output() refresh = new EventEmitter<void>();
+  @Output() resetFilters = new EventEmitter<void>();
 
   readonly periods = PERIODS;
   isFiltering = false;
@@ -73,6 +74,10 @@ export class ApiRuntimeLogsQuickFiltersComponent implements OnInit, OnDestroy {
     this.quickFiltersForm.get(removedFilter.key).patchValue(defaultValue);
     this.currentFilter[removedFilter.key] = defaultValue;
     this.isFiltering = !isEqual(this.currentFilter, DEFAULT_FILTERS);
+  }
+
+  resetAllFilters() {
+    this.quickFiltersForm.reset(DEFAULT_FILTERS);
   }
 
   @Input()

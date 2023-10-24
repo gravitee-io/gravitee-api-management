@@ -63,6 +63,10 @@
           </mat-chip>
         </ng-container>
       </mat-chip-list>
+      <button mat-icon-button class="quick-filters__reset" data-testId="reset-filters-button" (click)="resetAllFilters()">
+        <mat-icon svgIcon="gio:x-circle"></mat-icon>
+        <span class="quick-filters__reset__label">Reset filters</span>
+      </button>
     </ng-container>
     <ng-container *ngIf="!isFiltering"><span>No filter applied</span></ng-container>
   </div>
