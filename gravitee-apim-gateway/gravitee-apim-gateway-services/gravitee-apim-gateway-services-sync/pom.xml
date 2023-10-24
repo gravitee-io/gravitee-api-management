@@ -98,6 +98,11 @@
             <scope>provided</scope>
         </dependency>
 
+        <dependency>
+            <groupId>io.gravitee.kubernetes</groupId>
+            <artifactId>gravitee-kubernetes-client</artifactId>
+        </dependency>
+
         <!-- Vert.x -->
         <dependency>
             <groupId>io.vertx</groupId>
