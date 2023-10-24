@@ -151,7 +151,8 @@ describe('ApiDocumentationV4NewPageComponent', () => {
 
         expect(options.length).toEqual(3);
         const sourceOptions = await Promise.all(options.map(async (opt) => await opt.getLabelText()));
-        expect(sourceOptions).toEqual(['Fill in the content myself', 'Import from file', 'Import from fileComing soon']);
+        expect(sourceOptions).toEqual(['Fill in the content myself', 'Import from fileComing soon', 'Import from fileComing soon']);
+        expect(await options[1].isDisabled()).toEqual(true);
         expect(await options[2].isDisabled()).toEqual(true);
 
         await options[0].check();

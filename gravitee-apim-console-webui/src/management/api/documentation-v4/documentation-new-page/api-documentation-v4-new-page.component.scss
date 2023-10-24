@@ -51,10 +51,6 @@ $typography: map.get(gio.$mat-theme, typography);
 .stepper {
   border: 1px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker10');
 
-  .mat-stepper-horizontal {
-    //background-color: mat.get-color-from-palette(gio.$mat-dove-palette, default);
-  }
-
   &__content {
     padding-bottom: 16px;
     .mat-form-field {

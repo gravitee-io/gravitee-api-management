@@ -64,9 +64,10 @@
                 <gio-radio-button-title>Fill in the content myself</gio-radio-button-title>
               </gio-radio-button-content>
             </mat-radio-button>
-            <mat-radio-button value="IMPORT" class="gio-radio-button">
+            <mat-radio-button value="IMPORT" class="gio-radio-button" disabled="true">
               <gio-radio-button-content icon="gio:down-circle">
                 <gio-radio-button-title>Import from file</gio-radio-button-title>
+                <gio-radio-button-subtitle><div class="gio-badge-primary">Coming soon</div></gio-radio-button-subtitle>
               </gio-radio-button-content>
             </mat-radio-button>
             <mat-radio-button value="EXTERNAL" class="gio-radio-button" disabled="true">
@@ -85,14 +86,13 @@
       <mat-step>
         <ng-template matStepLabel>Add content</ng-template>
         <div class="stepper__content">
-          <div *ngIf="source === 'FILL'; else importMarkdown">
+          <ng-container>
             <api-documentation-content [(ngModel)]="content"></api-documentation-content>
-            <div class="stepper__actions">
-              <button mat-flat-button color="primary" [disabled]="content?.length === 0" (click)="save()">Save</button>
-              <button mat-stroked-button matStepperPrevious>Previous</button>
-            </div>
-          </div>
-          <ng-template #importMarkdown> 🚧 IMPORT MARKDOWN FILE 🚧 </ng-template>
+          </ng-container>
+        </div>
+        <div class="stepper__actions">
+          <button mat-flat-button color="primary" [disabled]="content?.length === 0" (click)="save()">Save</button>
+          <button mat-stroked-button matStepperPrevious>Previous</button>
         </div>
       </mat-step>
     </mat-stepper>
