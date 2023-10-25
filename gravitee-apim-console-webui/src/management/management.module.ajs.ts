@@ -170,7 +170,6 @@ import TenantService from '../services/tenant.service';
 
 import CategoriesComponent from '../management/configuration/categories/categories.component';
 import CategoryComponent from './configuration/categories/category/category.component';
-import MetadataComponent from '../management/configuration/metadata/metadata.component';
 import MetadataValidatorDirective from '../components/metadata/metadata.validator.directive';
 
 import RoleService from '../services/role.service';
@@ -454,6 +453,7 @@ import { ApplicationNotificationSettingsListComponent } from './application/deta
 import { ApplicationNotificationSettingsDetailsComponent } from './application/details/notifications/notification-settings/notification-settings-details/application-notification-settings-details.component';
 import { EnvironmentNotificationSettingsListComponent } from './configuration/notifications/notification-settings/notification-settings-list/environment-notification-settings-list.component';
 import { EnvironmentNotificationSettingsDetailsComponent } from './configuration/notifications/notification-settings/notification-settings-details/environment-notification-settings-details.component';
+import { EnvironmentMetadataComponent } from './configuration/metadata/environment-metadata.component';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -705,7 +705,7 @@ graviteeManagementModule.component('categories', CategoriesComponent);
 graviteeManagementModule.component('category', CategoryComponent);
 graviteeManagementModule.component('moved', MovedComponent);
 
-graviteeManagementModule.component('metadata', MetadataComponent);
+graviteeManagementModule.directive('ngEnvironmentMetadata', downgradeComponent({ component: EnvironmentMetadataComponent }));
 graviteeManagementModule.component('theme', PortalThemeComponent);
 graviteeManagementModule.component('topApis', TopApisComponent);
 graviteeManagementModule.factory('ngCockpitService', downgradeInjectable(CockpitService));

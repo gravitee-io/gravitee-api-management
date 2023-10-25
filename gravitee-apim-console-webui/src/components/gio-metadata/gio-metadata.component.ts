@@ -15,7 +15,7 @@
  */
 import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
-import { filter, map, switchMap, takeUntil } from 'rxjs/operators';
+import { filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { MatSort } from '@angular/material/sort';
@@ -69,11 +69,15 @@ export class GioMetadataComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.referenceType = this.metadataSaveServices.type;
     this.permissionPrefix = this.referenceType === 'Global' ? 'environment' : this.referenceType.toLowerCase();
-    this.displayedColumns = ['global', 'key', 'name', 'format', 'value', 'defaultValue', 'actions'];
-
+    this.displayedColumns = ['global', 'key', 'name', 'format', 'value', 'actions'];
     this.metadataSaveServices
       .list()
       .pipe(
+        tap(() => {
+          if (this.referenceType === 'API') {
+            this.displayedColumns.push('defaultValue');
+          }
+        }),
         map((metadata) =>
           metadata.map((m) => ({
             name: m.name,
