@@ -23,6 +23,7 @@ import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
+import io.gravitee.apim.core.documentation.domain_service.HomepageDomainService;
 import io.gravitee.apim.core.documentation.usecase.ApiCreateDocumentationPageUsecase;
 import io.gravitee.apim.core.documentation.usecase.ApiGetDocumentationPageUsecase;
 import io.gravitee.apim.core.documentation.usecase.ApiGetDocumentationPagesUsecase;
@@ -109,11 +110,13 @@ public class UsecaseSpringConfiguration {
     public ApiCreateDocumentationPageUsecase apiCreateDocumentationPageUsecase(
         CreateApiDocumentationDomainService createApiDocumentationDomainService,
         ApiDocumentationDomainService apiDocumentationDomainService,
+        HomepageDomainService homepageDomainService,
         PageCrudService pageCrudService
     ) {
         return new ApiCreateDocumentationPageUsecase(
             createApiDocumentationDomainService,
             apiDocumentationDomainService,
+            homepageDomainService,
             pageCrudService
         );
     }

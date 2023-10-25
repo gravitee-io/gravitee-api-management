@@ -24,6 +24,7 @@ import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
+import io.gravitee.apim.core.documentation.domain_service.HomepageDomainService;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.exception.DomainException;
 import io.gravitee.apim.core.sanitizer.HtmlSanitizer;
@@ -68,6 +69,7 @@ class ApiCreateDocumentationPageUsecaseTest {
             new ApiCreateDocumentationPageUsecase(
                 createApiDocumentationDomainService,
                 new ApiDocumentationDomainService(pageQueryService, new HtmlSanitizerImpl()),
+                new HomepageDomainService(pageQueryService, pageCrudService),
                 pageCrudService
             );
     }

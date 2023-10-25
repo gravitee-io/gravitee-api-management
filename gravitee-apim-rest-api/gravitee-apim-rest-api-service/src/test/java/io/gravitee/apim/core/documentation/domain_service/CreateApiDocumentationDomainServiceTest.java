@@ -39,7 +39,6 @@ public class CreateApiDocumentationDomainServiceTest {
     private static final String PAGE_ID = "page-id";
     private static final Date DATE = new Date();
 
-    private final PageQueryServiceInMemory pageQueryService = new PageQueryServiceInMemory();
     private final PageCrudServiceInMemory pageCrudService = new PageCrudServiceInMemory();
     private final PageRevisionCrudServiceInMemory pageRevisionCrudService = new PageRevisionCrudServiceInMemory();
     AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
@@ -50,7 +49,6 @@ public class CreateApiDocumentationDomainServiceTest {
     void setUp() {
         createApiDocumentationDomainService =
             new CreateApiDocumentationDomainService(
-                pageQueryService,
                 pageCrudService,
                 pageRevisionCrudService,
                 new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor())
@@ -59,9 +57,7 @@ public class CreateApiDocumentationDomainServiceTest {
 
     @AfterEach
     void tearDown() {
-        Stream
-            .of(pageQueryService, pageCrudService, pageRevisionCrudService, auditCrudService, userCrudService)
-            .forEach(InMemoryAlternative::reset);
+        Stream.of(pageCrudService, pageRevisionCrudService, auditCrudService, userCrudService).forEach(InMemoryAlternative::reset);
     }
 
     @Nested

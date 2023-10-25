@@ -29,18 +29,15 @@ import java.util.Map;
 
 public class CreateApiDocumentationDomainService {
 
-    private final PageQueryService pageQueryService;
     private final PageCrudService pageCrudService;
     private final PageRevisionCrudService pageRevisionCrudService;
     private final AuditDomainService auditDomainService;
 
     public CreateApiDocumentationDomainService(
-        PageQueryService pageQueryService,
         PageCrudService pageCrudService,
         PageRevisionCrudService pageRevisionCrudService,
         AuditDomainService auditDomainService
     ) {
-        this.pageQueryService = pageQueryService;
         this.pageCrudService = pageCrudService;
         this.pageRevisionCrudService = pageRevisionCrudService;
         this.auditDomainService = auditDomainService;
@@ -51,10 +48,6 @@ public class CreateApiDocumentationDomainService {
 
         if (page.isMarkdown()) {
             pageRevisionCrudService.create(createdPage);
-
-            if (createdPage.isHomepage()) {
-                this.setPreviousHomepageToFalse(createdPage.getReferenceId(), createdPage.getId());
-            }
             // TODO: only markdown ==> add to index... is lucene necessary?
         }
 
@@ -74,16 +67,5 @@ public class CreateApiDocumentationDomainService {
         );
 
         return createdPage;
-    }
-
-    private void setPreviousHomepageToFalse(String apiId, String currentHomepageId) {
-        var pages = pageQueryService.findHomepageByApiId(apiId);
-        pages
-            .stream()
-            .filter(p -> !p.getId().equals(currentHomepageId))
-            .forEach(p -> {
-                p.setHomepage(false);
-                pageCrudService.updateDocumentationPage(p);
-            });
     }
 }

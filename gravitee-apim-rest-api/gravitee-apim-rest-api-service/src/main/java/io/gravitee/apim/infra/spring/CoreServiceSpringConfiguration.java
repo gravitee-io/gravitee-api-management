@@ -31,6 +31,7 @@ import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.crud_service.PageRevisionCrudService;
 import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
+import io.gravitee.apim.core.documentation.domain_service.HomepageDomainService;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
 import io.gravitee.apim.core.notification.domain_service.TriggerNotificationDomainService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
@@ -122,11 +123,15 @@ public class CoreServiceSpringConfiguration {
 
     @Bean
     public CreateApiDocumentationDomainService createApiDocumentationDomainService(
-        PageQueryService pageQueryService,
         PageCrudService pageCrudService,
         PageRevisionCrudService pageRevisionCrudService,
         AuditDomainService auditDomainService
     ) {
-        return new CreateApiDocumentationDomainService(pageQueryService, pageCrudService, pageRevisionCrudService, auditDomainService);
+        return new CreateApiDocumentationDomainService(pageCrudService, pageRevisionCrudService, auditDomainService);
+    }
+
+    @Bean
+    public HomepageDomainService homepageDomainService(PageQueryService pageQueryService, PageCrudService pageCrudService) {
+        return new HomepageDomainService(pageQueryService, pageCrudService);
     }
 }

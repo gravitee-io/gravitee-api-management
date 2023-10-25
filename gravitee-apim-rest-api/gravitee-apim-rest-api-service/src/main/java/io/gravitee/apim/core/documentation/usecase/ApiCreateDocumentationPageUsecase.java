@@ -19,14 +19,13 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
+import io.gravitee.apim.core.documentation.domain_service.HomepageDomainService;
 import io.gravitee.apim.core.documentation.model.Page;
-import io.gravitee.apim.core.exception.DomainException;
 import io.gravitee.apim.core.exception.InvalidPageParentException;
 import io.gravitee.apim.core.sanitizer.HtmlSanitizer;
 import io.gravitee.apim.core.sanitizer.SanitizeResult;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.PageContentUnsafeException;
-import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
 import java.util.Date;
 import java.util.Objects;
 import lombok.Builder;
@@ -35,15 +34,18 @@ public class ApiCreateDocumentationPageUsecase {
 
     private final CreateApiDocumentationDomainService createApiDocumentationDomainService;
     private final ApiDocumentationDomainService apiDocumentationDomainService;
+    private final HomepageDomainService homepageDomainService;
     private final PageCrudService pageCrudService;
 
     public ApiCreateDocumentationPageUsecase(
         CreateApiDocumentationDomainService createApiDocumentationDomainService,
         ApiDocumentationDomainService apiDocumentationDomainService,
+        HomepageDomainService homepageDomainService,
         PageCrudService pageCrudService
     ) {
         this.createApiDocumentationDomainService = createApiDocumentationDomainService;
         this.apiDocumentationDomainService = apiDocumentationDomainService;
+        this.homepageDomainService = homepageDomainService;
         this.pageCrudService = pageCrudService;
     }
 
@@ -59,7 +61,13 @@ public class ApiCreateDocumentationPageUsecase {
 
         this.validateParentId(pageToCreate);
 
-        return new Output(createApiDocumentationDomainService.createPage(pageToCreate, input.auditInfo()));
+        var createdPage = createApiDocumentationDomainService.createPage(pageToCreate, input.auditInfo());
+
+        if (createdPage.isHomepage()) {
+            this.homepageDomainService.setPreviousHomepageToFalse(createdPage.getReferenceId(), createdPage.getId());
+        }
+
+        return new Output(createdPage);
     }
 
     @Builder
