@@ -84,6 +84,22 @@ public class PageQueryServiceImpl implements PageQueryService {
         return this.search(pageCriteriaBuilder, apiId);
     }
 
+    @Override
+    public Optional<Page> findByApiIdAndParentIdAndNameAndType(String apiId, String parentId, String name, Page.Type type) {
+        PageCriteria.Builder pageCriteriaBuilder = new PageCriteria.Builder()
+            .referenceType(PageReferenceType.API.name())
+            .referenceId(apiId)
+            .name(name)
+            .type(type.name());
+
+        if (Objects.isNull(parentId)) {
+            pageCriteriaBuilder.rootParent(true);
+        } else {
+            pageCriteriaBuilder.parent(parentId);
+        }
+        return this.search(pageCriteriaBuilder, apiId).stream().findFirst();
+    }
+
     private List<Page> search(PageCriteria.Builder pageCriteriaBuilder, String apiId) {
         try {
             return PageAdapter.INSTANCE.toEntityList(pageRepository.search(pageCriteriaBuilder.build()));

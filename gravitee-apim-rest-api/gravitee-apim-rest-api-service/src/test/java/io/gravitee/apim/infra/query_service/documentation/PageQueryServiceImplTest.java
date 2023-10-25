@@ -123,6 +123,91 @@ class PageQueryServiceImplTest {
         }
     }
 
+    @Nested
+    class FindByApiIdAndParentIdAndNameAndType {
+
+        @Test
+        void should_find_page_with_parent_id() {
+            String API_ID = "api-id";
+            String PARENT_ID = "parent-id";
+            String PAGE_ID = "page-id";
+
+            var page = aPage(API_ID, PAGE_ID, "duplicate name");
+            givenMatchingPages(
+                new PageCriteria.Builder()
+                    .referenceId(API_ID)
+                    .referenceType("API")
+                    .parent(PARENT_ID)
+                    .type("MARKDOWN")
+                    .name("duplicate name"),
+                List.of(page)
+            );
+
+            var res = service.findByApiIdAndParentIdAndNameAndType(
+                API_ID,
+                PARENT_ID,
+                "duplicate name",
+                io.gravitee.apim.core.documentation.model.Page.Type.MARKDOWN
+            );
+
+            assertThat(res.get()).usingRecursiveComparison().isEqualTo(page);
+        }
+
+        @Test
+        void should_find_page_with_null_parent_id() {
+            String API_ID = "api-id";
+            String PARENT_ID = null;
+            String PAGE_ID = "page-id";
+
+            var page = aPage(API_ID, PAGE_ID, "duplicate name");
+            givenMatchingPages(
+                new PageCriteria.Builder()
+                    .referenceId(API_ID)
+                    .referenceType("API")
+                    .rootParent(true)
+                    .type("MARKDOWN")
+                    .name("duplicate name"),
+                List.of(page)
+            );
+
+            var res = service.findByApiIdAndParentIdAndNameAndType(
+                API_ID,
+                PARENT_ID,
+                "duplicate name",
+                io.gravitee.apim.core.documentation.model.Page.Type.MARKDOWN
+            );
+
+            assertThat(res.get()).usingRecursiveComparison().isEqualTo(page);
+        }
+
+        @Test
+        void should_not_find_matching_page() {
+            String API_ID = "api-id";
+            String PARENT_ID = "parent-id";
+            String PAGE_ID = "page-id";
+
+            var page = aPage(API_ID, PAGE_ID, "original name");
+            givenMatchingPages(
+                new PageCriteria.Builder()
+                    .referenceId(API_ID)
+                    .referenceType("API")
+                    .parent(PARENT_ID)
+                    .type("MARKDOWN")
+                    .name("different name"),
+                List.of(page)
+            );
+
+            var res = service.findByApiIdAndParentIdAndNameAndType(
+                API_ID,
+                PARENT_ID,
+                "original name",
+                io.gravitee.apim.core.documentation.model.Page.Type.MARKDOWN
+            );
+
+            assertThat(res.isEmpty()).isTrue();
+        }
+    }
+
     @SneakyThrows
     private void givenMatchingPages(String apiId, List<Page> pages) {
         givenMatchingPages(new PageCriteria.Builder().referenceId(apiId).referenceType(PageReferenceType.API.name()), pages);

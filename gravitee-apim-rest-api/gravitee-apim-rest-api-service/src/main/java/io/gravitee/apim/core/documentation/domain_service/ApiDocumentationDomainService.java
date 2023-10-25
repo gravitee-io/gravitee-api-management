@@ -58,4 +58,11 @@ public class ApiDocumentationDomainService {
             throw new PageContentUnsafeException(sanitizeInfos.getRejectedMessage());
         }
     }
+
+    public void validateNameIsUnique(String apiId, String parentId, String name, Page.Type type) {
+        var foundPage = this.pageQueryService.findByApiIdAndParentIdAndNameAndType(apiId, parentId, name, type);
+        if (foundPage.isPresent()) {
+            throw new DomainException("Name already exists with the same parent and type: " + name);
+        }
+    }
 }
