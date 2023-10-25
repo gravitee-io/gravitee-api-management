@@ -106,6 +106,7 @@ import io.gravitee.rest.api.service.exceptions.ApplicationGrantTypesNotFoundExce
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ApplicationRedirectUrisNotFound;
 import io.gravitee.rest.api.service.exceptions.ApplicationRenewClientSecretException;
+import io.gravitee.rest.api.service.exceptions.ApplicationTypeNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ClientIdAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.InvalidApplicationApiKeyModeException;
 import io.gravitee.rest.api.service.exceptions.InvalidApplicationTypeException;
@@ -427,7 +428,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             if (!isApplicationTypeAllowed(executionContext, appType, executionContext.getEnvironmentId())) {
                 throw new IllegalStateException("Application type '" + appType + "' is not allowed");
             }
-            checkClientSettings(newApplicationEntity.getSettings().getoAuthClient(), newApplicationEntity.getType());
+            checkAndSanitizeOAuthClientSettings(newApplicationEntity.getSettings().getoAuthClient());
 
             // Create an OAuth client
             ClientRegistrationResponse registrationResponse = clientRegistrationService.register(executionContext, newApplicationEntity);
@@ -531,12 +532,16 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         }
     }
 
-    private void checkClientSettings(OAuthClientSettings oAuthClientSettings, String applicationType) {
+    private void checkAndSanitizeOAuthClientSettings(OAuthClientSettings oAuthClientSettings) {
         if (oAuthClientSettings.getGrantTypes() == null || oAuthClientSettings.getGrantTypes().isEmpty()) {
             throw new ApplicationGrantTypesNotFoundException();
         }
 
-        ApplicationTypeEntity applicationTypeEntity = applicationTypeService.getApplicationType(applicationType);
+        if (oAuthClientSettings.getApplicationType() == null || oAuthClientSettings.getApplicationType().isEmpty()) {
+            throw new ApplicationTypeNotFoundException(null);
+        }
+
+        ApplicationTypeEntity applicationTypeEntity = applicationTypeService.getApplicationType(oAuthClientSettings.getApplicationType());
 
         List<String> targetGrantTypes = oAuthClientSettings.getGrantTypes();
         List<String> allowedGrantTypes = applicationTypeEntity
@@ -628,7 +633,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             } else {
                 // Check that client registration is enabled
                 checkClientRegistrationEnabled(executionContext, executionContext.getEnvironmentId());
-                checkClientSettings(updateApplicationEntity.getSettings().getoAuthClient(), applicationToUpdate.getType().name());
+                checkAndSanitizeOAuthClientSettings(updateApplicationEntity.getSettings().getoAuthClient());
 
                 // Update an OAuth client
                 final String registrationPayload = applicationToUpdate.getMetadata().get(METADATA_REGISTRATION_PAYLOAD);
