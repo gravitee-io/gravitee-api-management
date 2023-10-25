@@ -458,7 +458,6 @@ require('../libraries/angular-ui-codemirror/ui-codemirror');
 
 require('ngclipboard');
 require('angular-ui-validate');
-require('read-more/js/directives/readmore.js');
 require('angular-timeline');
 require('angular-utf8-base64');
 require('ng-file-upload');
@@ -558,7 +557,6 @@ angular.module('gravitee-management', [
   'md.data.table',
   'ngCookies',
   'dragularModule',
-  'readMore',
   'ngMessages',
   'vAccordion',
   'schemaForm',
