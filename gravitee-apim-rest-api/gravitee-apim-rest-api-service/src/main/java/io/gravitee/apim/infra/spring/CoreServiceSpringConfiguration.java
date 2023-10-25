@@ -16,6 +16,7 @@
 package io.gravitee.apim.infra.spring;
 
 import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
+import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiDefinitionParserDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiHostValidatorDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
@@ -31,9 +32,9 @@ import io.gravitee.apim.core.documentation.crud_service.PageRevisionCrudService;
 import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
-import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
 import io.gravitee.apim.core.notification.domain_service.TriggerNotificationDomainService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
+import io.gravitee.apim.core.sanitizer.HtmlSanitizer;
 import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.RejectSubscriptionDomainService;
@@ -115,8 +116,8 @@ public class CoreServiceSpringConfiguration {
     }
 
     @Bean
-    public ApiDocumentationDomainService apiDocumentationDomainService(PageQueryService pageQueryService) {
-        return new ApiDocumentationDomainService(pageQueryService);
+    public ApiDocumentationDomainService apiDocumentationDomainService(PageQueryService pageQueryService, HtmlSanitizer htmlSanitizer) {
+        return new ApiDocumentationDomainService(pageQueryService, htmlSanitizer);
     }
 
     @Bean

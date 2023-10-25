@@ -22,6 +22,7 @@ import fixtures.core.model.AuditInfoFixtures;
 import inmemory.*;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.exception.DomainException;
@@ -47,9 +48,9 @@ class ApiCreateDocumentationPageUsecaseTest {
     private final PageQueryServiceInMemory pageQueryService = new PageQueryServiceInMemory();
     private final PageCrudServiceInMemory pageCrudService = new PageCrudServiceInMemory();
     private final PageRevisionCrudServiceInMemory pageRevisionCrudService = new PageRevisionCrudServiceInMemory();
+    private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
-    HtmlSanitizer htmlSanitizer = new HtmlSanitizerImpl();
     CreateApiDocumentationDomainService createApiDocumentationDomainService;
     ApiCreateDocumentationPageUsecase apiCreateDocumentationPageUsecase;
 
@@ -59,13 +60,16 @@ class ApiCreateDocumentationPageUsecaseTest {
 
         createApiDocumentationDomainService =
             new CreateApiDocumentationDomainService(
-                pageQueryService,
                 pageCrudService,
                 pageRevisionCrudService,
                 new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor())
             );
         apiCreateDocumentationPageUsecase =
-            new ApiCreateDocumentationPageUsecase(createApiDocumentationDomainService, pageCrudService, htmlSanitizer);
+            new ApiCreateDocumentationPageUsecase(
+                createApiDocumentationDomainService,
+                new ApiDocumentationDomainService(pageQueryService, new HtmlSanitizerImpl()),
+                pageCrudService
+            );
     }
 
     @AfterEach

@@ -26,6 +26,7 @@ import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomain
 import io.gravitee.apim.core.documentation.model.Breadcrumb;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.exception.DomainException;
+import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
 import java.util.ArrayList;
@@ -41,9 +42,9 @@ class ApiGetDocumentationPagesUsecaseTest {
     private final PageCrudServiceInMemory pageCrudService = new PageCrudServiceInMemory();
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     private final ApiGetDocumentationPagesUsecase useCase = new ApiGetDocumentationPagesUsecase(
-        new ApiDocumentationDomainService(pageQueryService),
-        pageCrudService,
-        apiCrudService
+        new ApiDocumentationDomainService(pageQueryService, new HtmlSanitizerImpl()),
+        apiCrudService,
+        pageCrudService
     );
 
     private static final String API_ID = "api-id";

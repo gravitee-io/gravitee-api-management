@@ -104,7 +104,16 @@ public class UsecaseSpringConfiguration {
 
     @Bean
     public ApiCreateDocumentationPageUsecase apiCreateDocumentationPageUsecase(
-        CreateApiDocumentationDomainService apiDocumentationDomainService,
+        CreateApiDocumentationDomainService createApiDocumentationDomainService,
+        ApiDocumentationDomainService apiDocumentationDomainService,
+        PageCrudService pageCrudService
+    ) {
+        return new ApiCreateDocumentationPageUsecase(
+            createApiDocumentationDomainService,
+            apiDocumentationDomainService,
+            pageCrudService
+        );
+    }
         PageCrudService pageCrudService
     ) {
         return new ApiCreateDocumentationPageUsecase(apiDocumentationDomainService, pageCrudService, new HtmlSanitizerImpl());

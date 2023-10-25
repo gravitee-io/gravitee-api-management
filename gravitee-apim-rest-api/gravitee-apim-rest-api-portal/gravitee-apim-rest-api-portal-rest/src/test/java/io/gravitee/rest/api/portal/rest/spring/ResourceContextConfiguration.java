@@ -26,6 +26,7 @@ import io.gravitee.apim.core.subscription.usecase.CloseSubscriptionUsecase;
 import io.gravitee.apim.infra.domain_service.api.ApiDefinitionParserDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.api.ApiHostValidatorDomainServiceImpl;
 import io.gravitee.apim.infra.json.jackson.JacksonSpringConfiguration;
+import io.gravitee.apim.infra.sanitizer.SanitizerSpringConfiguration;
 import io.gravitee.apim.infra.spring.CoreServiceSpringConfiguration;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.rest.api.portal.rest.mapper.AnalyticsMapper;
@@ -104,7 +105,14 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.PropertySource;
 
 @Configuration
-@Import({ InMemoryConfiguration.class, CoreServiceSpringConfiguration.class, JacksonSpringConfiguration.class })
+@Import(
+    {
+        InMemoryConfiguration.class,
+        CoreServiceSpringConfiguration.class,
+        JacksonSpringConfiguration.class,
+        SanitizerSpringConfiguration.class,
+    }
+)
 @PropertySource("classpath:/io/gravitee/rest/api/portal/rest/resource/jwt.properties")
 public class ResourceContextConfiguration {
 
