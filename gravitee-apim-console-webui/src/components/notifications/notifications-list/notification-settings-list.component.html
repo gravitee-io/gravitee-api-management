@@ -23,6 +23,7 @@
     color="primary"
     aria-label="Add notification"
     (click)="addNotification()"
+    data-testid="api_notifications_add_notification"
   >
     <mat-icon>add</mat-icon>
     Add notification
@@ -44,7 +45,11 @@
     <ng-container matColumnDef="name">
       <th mat-header-cell *matHeaderCellDef id="name">Name</th>
       <td mat-cell *matCellDef="let element">
-        <a [uiSref]="notificationSettingsDetailsPath" [uiParams]="{ notificationId: element.id || element.configType }">
+        <a
+          [uiSref]="notificationSettingsDetailsPath"
+          [uiParams]="{ notificationId: element.id || element.configType }"
+          [attr.data-testid]="'notifications_List_Table'"
+        >
           {{ element.name }}
         </a>
       </td>
@@ -67,6 +72,7 @@
               mat-icon-button
               (click)="deleteNotification(element.name, element.id)"
               aria-label="Delete notification"
+              data-testid="api_notifications_delete_notification"
               id="deleteNotification"
               matTooltip="Delete notification"
             >
