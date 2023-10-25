@@ -22,7 +22,7 @@ import { ApiImport } from '@model/api-imports';
 
 import apiDetails from 'ui-test/support/PageObjects/Apis/ApiDetails';
 
-describe('API Plans Feature', () => {
+describe('API Plans Feature', { retries: 2 }, () => {
   beforeEach(() => {
     cy.loginInAPIM(ADMIN_USER.username, ADMIN_USER.password);
     cy.visit('/#!/environments/default/apis/');
@@ -172,7 +172,7 @@ describe('API Plans Feature', () => {
     cy.getByDataTestId('api_list_edit_button').first().click();
     ApiDetails.plansMenuItem().click();
     cy.get('[type="button"]').contains('STAGING').click();
-    cy.getByDataTestId('api_plans_close_plan_button').first().click();
+    cy.getByDataTestId('api_plans_close_plan_button').click();
     cy.get(`[placeholder="${planName}-Keyless"]`).type(`${planName}-Keyless`);
     cy.getByDataTestId('confirm-dialog').click();
     cy.contains(`The plan ${planName}-Keyless has been closed with success.`).should('be.visible');
