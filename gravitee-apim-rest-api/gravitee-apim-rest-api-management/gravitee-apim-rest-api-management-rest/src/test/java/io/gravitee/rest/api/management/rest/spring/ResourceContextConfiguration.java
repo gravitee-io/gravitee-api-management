@@ -26,6 +26,7 @@ import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomain
 import io.gravitee.apim.infra.domain_service.api.ApiDefinitionParserDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.api.ApiHostValidatorDomainServiceImpl;
 import io.gravitee.apim.infra.json.jackson.JacksonSpringConfiguration;
+import io.gravitee.apim.infra.sanitizer.SanitizerSpringConfiguration;
 import io.gravitee.apim.infra.spring.CoreServiceSpringConfiguration;
 import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
 import io.gravitee.common.event.EventManager;
@@ -109,6 +110,7 @@ import org.springframework.context.annotation.PropertySource;
         CoreServiceSpringConfiguration.class,
         UsecaseSpringConfiguration.class,
         JacksonSpringConfiguration.class,
+        SanitizerSpringConfiguration.class,
     }
 )
 @PropertySource("classpath:/io/gravitee/rest/api/management/rest/resource/jwt.properties")

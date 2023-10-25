@@ -17,6 +17,7 @@ package io.gravitee.apim.core.documentation.usecase;
 
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
+import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.exception.DomainException;
@@ -33,17 +34,17 @@ import lombok.Builder;
 public class ApiCreateDocumentationPageUsecase {
 
     private final CreateApiDocumentationDomainService createApiDocumentationDomainService;
+    private final ApiDocumentationDomainService apiDocumentationDomainService;
     private final PageCrudService pageCrudService;
-    private final HtmlSanitizer htmlSanitizer;
 
     public ApiCreateDocumentationPageUsecase(
         CreateApiDocumentationDomainService createApiDocumentationDomainService,
-        PageCrudService pageCrudService,
-        HtmlSanitizer htmlSanitizer
+        ApiDocumentationDomainService apiDocumentationDomainService,
+        PageCrudService pageCrudService
     ) {
         this.createApiDocumentationDomainService = createApiDocumentationDomainService;
+        this.apiDocumentationDomainService = apiDocumentationDomainService;
         this.pageCrudService = pageCrudService;
-        this.htmlSanitizer = htmlSanitizer;
     }
 
     public Output execute(Input input) {
@@ -53,10 +54,7 @@ public class ApiCreateDocumentationPageUsecase {
         pageToCreate.setUpdatedAt(pageToCreate.getCreatedAt());
 
         if (pageToCreate.isMarkdown()) {
-            final SanitizeResult sanitizeInfos = htmlSanitizer.isSafe(pageToCreate.getContent());
-            if (!sanitizeInfos.isSafe()) {
-                throw new PageContentUnsafeException(sanitizeInfos.getRejectedMessage());
-            }
+            this.apiDocumentationDomainService.validateContentIsSafe(pageToCreate.getContent());
         }
 
         this.validateParentId(pageToCreate);

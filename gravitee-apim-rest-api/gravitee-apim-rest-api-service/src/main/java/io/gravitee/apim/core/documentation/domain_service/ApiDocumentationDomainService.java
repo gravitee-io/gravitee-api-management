@@ -17,15 +17,20 @@ package io.gravitee.apim.core.documentation.domain_service;
 
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
+import io.gravitee.apim.core.sanitizer.HtmlSanitizer;
+import io.gravitee.apim.core.sanitizer.SanitizeResult;
+import io.gravitee.rest.api.service.exceptions.PageContentUnsafeException;
 import java.util.List;
 import java.util.Objects;
 
 public class ApiDocumentationDomainService {
 
     private final PageQueryService pageQueryService;
+    private final HtmlSanitizer htmlSanitizer;
 
-    public ApiDocumentationDomainService(PageQueryService pageQueryService) {
+    public ApiDocumentationDomainService(PageQueryService pageQueryService, HtmlSanitizer htmlSanitizer) {
         this.pageQueryService = pageQueryService;
+        this.htmlSanitizer = htmlSanitizer;
     }
 
     public List<Page> getApiPages(String apiId, String parentId) {
@@ -34,6 +39,13 @@ public class ApiDocumentationDomainService {
             return pageQueryService.searchByApiIdAndParentId(apiId, parentIdParam);
         } else {
             return pageQueryService.searchByApiId(apiId);
+        }
+    }
+
+    public void validateContentIsSafe(String content) {
+        final SanitizeResult sanitizeInfos = htmlSanitizer.isSafe(content);
+        if (!sanitizeInfos.isSafe()) {
+            throw new PageContentUnsafeException(sanitizeInfos.getRejectedMessage());
         }
     }
 }
