@@ -68,6 +68,23 @@ public class PageQueryServiceInMemory implements InMemoryAlternative<Page>, Page
     }
 
     @Override
+    public Optional<Page> findByApiIdAndParentIdAndNameAndType(String apiId, String parentId, String name, Page.Type type) {
+        var noParentId = Objects.isNull(parentId) || parentId.isEmpty();
+        return pages
+            .stream()
+            .filter(page ->
+                noParentId ? Objects.isNull(page.getParentId()) || page.getParentId().isEmpty() : parentId.equals(page.getParentId())
+            )
+            .filter(page ->
+                apiId.equals(page.getReferenceId()) &&
+                Page.ReferenceType.API.equals(page.getReferenceType()) &&
+                type.equals(page.getType()) &&
+                name.equals(page.getName())
+            )
+            .findFirst();
+    }
+
+    @Override
     public void initWith(List<Page> items) {
         pages = List.copyOf(items);
     }
