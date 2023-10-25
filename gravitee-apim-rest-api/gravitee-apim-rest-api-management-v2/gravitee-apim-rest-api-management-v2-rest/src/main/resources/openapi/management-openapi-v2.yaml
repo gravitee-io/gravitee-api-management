@@ -1697,6 +1697,31 @@ paths:
                                 $ref: "#/components/schemas/Page"
                 default:
                     $ref: "#/components/responses/Error"
+        put:
+            tags:
+                - API Documentation
+            summary: Update API documentation page
+            description: |-
+                Update API documentation. The result will be the updated documentation.
+                Only MARKDOWN and FOLDER types are supported.
+
+                User must have the API_DOCUMENTATION[CREATE] permission.
+            operationId: updateDocumentationPage
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/UpdateDocumentation"
+                required: true
+            responses:
+                "200":
+                    description: API Documentation Updated
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Page"
+                default:
+                    $ref: "#/components/responses/Error"
 
     # Plugins - Endpoints
     /plugins/endpoints:
@@ -5666,6 +5691,69 @@ components:
             required:
                 - name
                 - type
+
+        UpdateDocumentation:
+            type: object
+            oneOf:
+                - $ref: "#/components/schemas/UpdateDocumentationFolder"
+                - $ref: "#/components/schemas/UpdateDocumentationMarkdown"
+            required:
+                - type
+            discriminator:
+                propertyName: type
+                mapping:
+                    FOLDER: UpdateDocumentationFolder
+                    MARKDOWN: UpdateDocumentationMarkdown
+
+        BaseUpdateDocumentation:
+            type: object
+            properties:
+                type:
+                    type: string
+                    description: The type of documentation to update.
+                    enum:
+                        - FOLDER
+                        - MARKDOWN
+                name:
+                    type: string
+                    description: Page's name.
+                    example: My Page
+                order:
+                    type: integer
+                    description: Page's order.
+                    example: 1
+                visibility:
+                    $ref: "#/components/schemas/Visibility"
+            required:
+                - type
+            discriminator:
+                propertyName: type
+                mapping:
+                    FOLDER: UpdateDocumentationFolder
+                    MARKDOWN: UpdateDocumentationMarkdown
+
+        UpdateDocumentationFolder:
+            title: "UpdateDocumentationFolder"
+            description: Update documentation folder.
+            type: object
+            allOf:
+                - $ref: "#/components/schemas/BaseUpdateDocumentation"
+
+        UpdateDocumentationMarkdown:
+            title: "UpdateDocumentationMarkdown"
+            description: Update documentation markdown page.
+            type: object
+            allOf:
+                - $ref: "#/components/schemas/BaseUpdateDocumentation"
+                - properties:
+                      content:
+                          type: string
+                          description: Page's content.
+                          example: My Page content
+                      homepage:
+                          type: boolean
+                          description: Page's homepage status.
+                          example: true
 
         Revision:
             type: object

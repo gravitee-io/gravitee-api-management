@@ -548,6 +548,123 @@ class ApiPagesResourceTest extends AbstractResourceTest {
         }
     }
 
+    @Nested
+    class UpdateDocumentationPage {
+
+        private static final String API_ID = "api-id";
+        private static final String PAGE_ID = "page-id";
+
+        @BeforeEach
+        void setUp() {
+            apiCrudServiceInMemory.initWith(List.of(Api.builder().id(API_ID).build()));
+        }
+
+        @Test
+        public void should_return_403_if_incorrect_permissions() {
+            when(
+                permissionService.hasPermission(
+                    eq(GraviteeContext.getExecutionContext()),
+                    eq(RolePermission.API_DOCUMENTATION),
+                    eq(API_ID),
+                    eq(RolePermissionAction.UPDATE)
+                )
+            )
+                .thenReturn(false);
+
+            final Response response = rootTarget().path(PAGE_ID).request().put(Entity.json(UpdateDocumentation.builder().build()));
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("You do not have sufficient rights to access this resource");
+        }
+
+        @Test
+        public void should_update_markdown_page() {
+            var request = UpdateDocumentationMarkdown
+                .builder()
+                .name("created page")
+                .homepage(true)
+                .content("nice content")
+                .type(BaseUpdateDocumentation.TypeEnum.MARKDOWN)
+                .order(1)
+                .visibility(Visibility.PUBLIC)
+                .build();
+            var oldMarkdown = Page
+                .builder()
+                .id(PAGE_ID)
+                .referenceType(Page.ReferenceType.API)
+                .referenceId(API_ID)
+                .name("old name")
+                .content("old content")
+                .visibility(Page.Visibility.PRIVATE)
+                .order(2)
+                .published(false)
+                .type(Page.Type.MARKDOWN)
+                .homepage(false)
+                .build();
+            givenApiPagesQuery(List.of(oldMarkdown));
+
+            final Response response = rootTarget().path(PAGE_ID).request().put(Entity.json(request));
+            var createdPage = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.Page.class);
+
+            assertThat(createdPage)
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("id", PAGE_ID)
+                .hasFieldOrPropertyWithValue("published", false)
+                .hasFieldOrPropertyWithValue("type", PageType.MARKDOWN)
+                .hasFieldOrPropertyWithValue("name", request.getName())
+                .hasFieldOrPropertyWithValue("homepage", request.getHomepage())
+                .hasFieldOrPropertyWithValue("content", request.getContent())
+                .hasFieldOrPropertyWithValue("order", request.getOrder())
+                .hasFieldOrPropertyWithValue("visibility", request.getVisibility());
+
+            assertThat(createdPage.getId()).isNotNull();
+            assertThat(createdPage.getUpdatedAt()).isNotNull();
+        }
+
+        @Test
+        public void should_update_folder() {
+            var folderToCreate = UpdateDocumentationFolder
+                .builder()
+                .name("new name")
+                .type(BaseUpdateDocumentation.TypeEnum.FOLDER)
+                .order(24)
+                .visibility(Visibility.PUBLIC)
+                .build();
+            var oldFolder = Page
+                .builder()
+                .id(PAGE_ID)
+                .referenceType(Page.ReferenceType.API)
+                .referenceId(API_ID)
+                .name("old name")
+                .visibility(Page.Visibility.PRIVATE)
+                .order(2)
+                .published(false)
+                .type(Page.Type.FOLDER)
+                .build();
+            givenApiPagesQuery(List.of(oldFolder));
+
+            final Response response = rootTarget().path(PAGE_ID).request().put(Entity.json(folderToCreate));
+            var updatedPage = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.Page.class);
+
+            assertThat(updatedPage)
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("id", PAGE_ID)
+                .hasFieldOrPropertyWithValue("published", false)
+                .hasFieldOrPropertyWithValue("type", PageType.FOLDER)
+                .hasFieldOrPropertyWithValue("name", folderToCreate.getName())
+                .hasFieldOrPropertyWithValue("order", folderToCreate.getOrder())
+                .hasFieldOrPropertyWithValue("visibility", folderToCreate.getVisibility())
+                .hasFieldOrPropertyWithValue("type", PageType.FOLDER);
+
+            assertThat(updatedPage.getId()).isNotNull();
+            assertThat(updatedPage.getUpdatedAt()).isNotNull();
+        }
+    }
+
     private void givenApiPagesQuery(List<Page> pages) {
         pageQueryServiceInMemory.initWith(pages);
         pageCrudServiceInMemory.initWith(pages);
