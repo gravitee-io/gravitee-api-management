@@ -340,14 +340,13 @@ public class ApplicationService_CreateTest {
         when(parameterService.findAsBoolean(any(), eq(Key.APPLICATION_TYPE_BROWSER_ENABLED), any(), eq(ParameterReferenceType.ENVIRONMENT)))
             .thenReturn(true);
 
-        // oauth app settings contains everything required
+        // oauth app setting contains everything required
         ApplicationSettings settings = new ApplicationSettings();
         OAuthClientSettings oAuthClientSettings = new OAuthClientSettings();
         oAuthClientSettings.setGrantTypes(List.of("application-grant-type"));
         oAuthClientSettings.setApplicationType("BROWSER");
         settings.setoAuthClient(oAuthClientSettings);
         when(newApplication.getSettings()).thenReturn(settings);
-        when(newApplication.getType()).thenReturn(ApplicationType.BROWSER.name());
 
         // mock application type service
         ApplicationTypeEntity applicationTypeEntity = new ApplicationTypeEntity();
