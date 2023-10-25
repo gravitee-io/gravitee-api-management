@@ -27,6 +27,9 @@ class ApiDetails {
   plansMenuItem(): Cypress.Chainable<JQuery<HTMLElement>> {
     return cy.get('.gio-submenu-item__title').contains('Plans');
   }
+  notificationMenuItem(): Cypress.Chainable<JQuery<HTMLElement>> {
+    return cy.get('.gio-submenu-item__title').contains('Notifications');
+  }
 }
 
 export default ApiDetails;
