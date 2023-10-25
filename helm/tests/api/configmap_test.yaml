@@ -144,3 +144,17 @@ tests:
       - matchRegex:
           path: data.[gravitee.yml]
           pattern: "gateway:\n  unknown-expire-after: 60"
+  - it: Set configuration logging message sampling
+    template: api/api-configmap.yaml
+    set:
+      api:
+        configuration:
+          logging:
+            messageSampling:
+              count:
+                default: 500
+                limit: 100
+    asserts:
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: "logging:\n  messageSampling:\n    count:\n      default: 500\n      limit: 100"

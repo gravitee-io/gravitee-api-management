@@ -235,6 +235,9 @@ data:
       {{- else if (eq .Values.api.analytics.type "none") }}
       type: none
       {{- end }}
+    {{- if .Values.api.configuration.logging }}
+    logging: {{- toYaml .Values.api.configuration.logging | nindent 6 }}
+    {{- end }}
     security:
       trustAll: {{ .Values.security.trustAll | default false }}
       providers:

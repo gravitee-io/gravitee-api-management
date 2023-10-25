@@ -478,6 +478,19 @@ api:
       periodSeconds: 10
 
     customStartupProbe: {}
+  # configuration reflects the parameters keys
+  configuration:
+    logging: {}
+#      messageSampling:
+#        count:
+#          default: 500
+#          limit: 100
+#        probabilistic:
+#          default: 0.01
+#          limit: 0.5
+#        temporal:
+#          default: PT1S
+#          limit: PT1S
 
   pdb:
     enabled: false
