@@ -22,7 +22,7 @@ import java.util.Set;
 import lombok.*;
 
 @Data
-@Builder
+@Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
 public class Page {
