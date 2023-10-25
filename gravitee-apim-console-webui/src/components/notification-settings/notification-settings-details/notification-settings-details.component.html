@@ -48,13 +48,18 @@
       <div *ngFor="let category of categoriesHooksVM" class="notifications-hooks-categories">
         <h6>{{ category.name }}</h6>
         <div class="checkbox-container">
-          <mat-checkbox *ngFor="let singleHook of category.hooks" [formControlName]="singleHook.id" class="checkbox-container__checkbox">
+          <mat-checkbox
+            *ngFor="let singleHook of category.hooks"
+            [formControlName]="singleHook.id"
+            class="checkbox-container__checkbox"
+            [attr.data-testid]="'notification_detail_checkbox_' + singleHook.id"
+          >
             <b>{{ singleHook.label }}</b
             ><br />{{ singleHook.description }}
           </mat-checkbox>
         </div>
       </div>
     </mat-card>
-    <gio-save-bar [form]="notificationForm" [formInitialValues]="formInitialValues"></gio-save-bar>
+    <gio-save-bar data-testid="api_notification_savebar" [form]="notificationForm" [formInitialValues]="formInitialValues"></gio-save-bar>
   </form>
 </div>

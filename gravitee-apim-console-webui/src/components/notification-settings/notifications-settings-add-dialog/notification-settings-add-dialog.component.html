@@ -23,7 +23,7 @@
     <div class="form">
       <mat-form-field>
         <mat-label>Name</mat-label>
-        <input matInput formControlName="name" required />
+        <input matInput formControlName="name" data-testid="api_notifications_create_namefield" required />
         <mat-error *ngIf="notificationForm.get('name').hasError('required')">Name is required.</mat-error>
       </mat-form-field>
       <mat-form-field>
@@ -37,6 +37,8 @@
 
   <mat-dialog-actions class="actions">
     <button mat-button [mat-dialog-close]="">Cancel</button>
-    <button mat-button [disabled]="notificationForm.invalid" color="primary" type="submit">Create</button>
+    <button mat-button data-testid="create_notification_button" [disabled]="notificationForm.invalid" color="primary" type="submit">
+      Create
+    </button>
   </mat-dialog-actions>
 </form>

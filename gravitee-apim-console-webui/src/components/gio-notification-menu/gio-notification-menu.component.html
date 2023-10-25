@@ -17,6 +17,7 @@
 -->
 <button
   mat-icon-button
+  data-testid="notification_badge"
   (click)="isOpen = !isOpen"
   type="button"
   cdkOverlayOrigin
@@ -32,7 +33,7 @@
   [cdkConnectedOverlayOpen]="isOpen"
   (overlayOutsideClick)="onOutsideClick()"
 >
-  <mat-card class="gio-notification-menu mat-elevation-z4">
+  <mat-card class="gio-notification-menu mat-elevation-z4" data-testid="notification_menu">
     <div class="gio-notification-menu__header" [class.empty]="!userNotifications.length">
       <div *ngIf="userNotifications.length < 2">{{ userNotifications.length }} notification</div>
       <div *ngIf="userNotifications.length > 1">{{ userNotifications.length }} notifications</div>
