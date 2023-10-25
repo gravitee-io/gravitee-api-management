@@ -37,7 +37,6 @@ import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomain
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
 import io.gravitee.apim.core.subscription.usecase.CloseExpiredSubscriptionsUsecase;
 import io.gravitee.apim.core.subscription.usecase.CloseSubscriptionUsecase;
-import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -91,15 +90,19 @@ public class UsecaseSpringConfiguration {
     @Bean
     public ApiGetDocumentationPagesUsecase apiGetDocumentationPagesUsecase(
         ApiDocumentationDomainService apiDocumentationService,
-        PageCrudService pageCrudService,
-        ApiCrudService apiCrudService
+        ApiCrudService apiCrudService,
+        PageCrudService pageCrudService
     ) {
-        return new ApiGetDocumentationPagesUsecase(apiDocumentationService, pageCrudService, apiCrudService);
+        return new ApiGetDocumentationPagesUsecase(apiDocumentationService, apiCrudService, pageCrudService);
     }
 
     @Bean
-    public ApiGetDocumentationPageUsecase apiGetDocumentationPageUsecase(PageCrudService pageCrudService, ApiCrudService apiCrudService) {
-        return new ApiGetDocumentationPageUsecase(pageCrudService, apiCrudService);
+    public ApiGetDocumentationPageUsecase apiGetDocumentationPageUsecase(
+        ApiDocumentationDomainService apiDocumentationDomainService,
+        ApiCrudService apiCrudService,
+        PageCrudService pageCrudService
+    ) {
+        return new ApiGetDocumentationPageUsecase(apiDocumentationDomainService, apiCrudService, pageCrudService);
     }
 
     @Bean

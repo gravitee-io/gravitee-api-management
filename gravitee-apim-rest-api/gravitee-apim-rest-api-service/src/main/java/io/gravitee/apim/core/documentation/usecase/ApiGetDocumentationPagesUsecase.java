@@ -20,7 +20,6 @@ import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.model.Breadcrumb;
 import io.gravitee.apim.core.documentation.model.Page;
-import io.gravitee.apim.core.exception.DomainException;
 import io.gravitee.apim.core.exception.InvalidPageParentException;
 import java.util.*;
 import java.util.stream.Stream;
@@ -28,37 +27,37 @@ import java.util.stream.Stream;
 public class ApiGetDocumentationPagesUsecase {
 
     private final ApiDocumentationDomainService apiDocumentationDomainService;
-    private final PageCrudService pageCrudService;
     private final ApiCrudService apiCrudService;
+    private final PageCrudService pageCrudService;
 
     public ApiGetDocumentationPagesUsecase(
         ApiDocumentationDomainService apiDocumentationDomainService,
-        PageCrudService pageCrudService,
-        ApiCrudService apiCrudService
+        ApiCrudService apiCrudService,
+        PageCrudService pageCrudService
     ) {
         this.apiDocumentationDomainService = apiDocumentationDomainService;
-        this.pageCrudService = pageCrudService;
         this.apiCrudService = apiCrudService;
+        this.pageCrudService = pageCrudService;
     }
 
     public Output execute(Input input) {
-        // Check that api exists
-        apiCrudService.get(input.apiId);
+        this.apiCrudService.get(input.apiId);
 
         List<Breadcrumb> breadcrumbList = new ArrayList<>();
 
         if (!"ROOT".equals(input.parentId) && this.isNotEmpty(input.parentId)) {
-            // Check if parentId exists + is a folder
-            var parent = pageCrudService.get(input.parentId);
-            if (!parent.isFolder()) {
-                throw new InvalidPageParentException(parent.getId());
+            var page = this.pageCrudService.get(input.parentId);
+            this.apiDocumentationDomainService.validatePageAssociatedToApi(page, input.apiId);
+
+            if (!page.isFolder()) {
+                throw new InvalidPageParentException(page.getId());
             }
 
             // Calculate breadcrumb list
-            var pageBreadcrumbList = this.constructBreadcrumbs(parent).toList();
+            var pageBreadcrumbList = this.constructBreadcrumbs(page).toList();
             for (int i = 0; i < pageBreadcrumbList.size(); i++) {
-                var page = pageBreadcrumbList.get(i);
-                breadcrumbList.add(Breadcrumb.builder().id(page.getId()).name(page.getName()).position(i + 1).build());
+                var pageBreadcrumb = pageBreadcrumbList.get(i);
+                breadcrumbList.add(Breadcrumb.builder().id(pageBreadcrumb.getId()).name(pageBreadcrumb.getName()).position(i + 1).build());
             }
         }
 

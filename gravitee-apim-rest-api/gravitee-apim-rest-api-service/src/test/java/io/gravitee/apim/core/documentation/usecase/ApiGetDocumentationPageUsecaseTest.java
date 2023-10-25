@@ -23,30 +23,38 @@ import inmemory.PageCrudServiceInMemory;
 import inmemory.PageQueryServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
-import io.gravitee.apim.core.documentation.model.Breadcrumb;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.exception.DomainException;
+import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
-import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 class ApiGetDocumentationPageUsecaseTest {
 
     private final PageCrudServiceInMemory pageCrudService = new PageCrudServiceInMemory();
+    private final PageQueryServiceInMemory pageQueryService = new PageQueryServiceInMemory();
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
-    private final ApiGetDocumentationPageUsecase useCase = new ApiGetDocumentationPageUsecase(pageCrudService, apiCrudService);
-
+    private ApiGetDocumentationPageUsecase useCase;
     private static final String API_ID = "api-id";
     private static final String PAGE_ID = "page-id";
+
+    @BeforeEach
+    void setUp() {
+        ApiDocumentationDomainService apiDocumentationDomainService = new ApiDocumentationDomainService(
+            pageQueryService,
+            new HtmlSanitizerImpl()
+        );
+        useCase = new ApiGetDocumentationPageUsecase(apiDocumentationDomainService, apiCrudService, pageCrudService);
+    }
 
     @AfterEach
     void tearDown() {
         pageCrudService.reset();
+        pageQueryService.reset();
         apiCrudService.reset();
     }
 
@@ -113,8 +121,16 @@ class ApiGetDocumentationPageUsecaseTest {
             .isInstanceOf(PageNotFoundException.class);
     }
 
+    @Test
+    void should_throw_error_if_page_id_is_root() {
+        initApiServices(List.of(Api.builder().id(API_ID).build()));
+        assertThatThrownBy(() -> useCase.execute(new ApiGetDocumentationPageUsecase.Input(API_ID, "ROOT")))
+            .isInstanceOf(PageNotFoundException.class);
+    }
+
     private void initPageServices(List<Page> pages) {
         pageCrudService.initWith(pages);
+        pageQueryService.initWith(pages);
     }
 
     private void initApiServices(List<Api> apis) {
