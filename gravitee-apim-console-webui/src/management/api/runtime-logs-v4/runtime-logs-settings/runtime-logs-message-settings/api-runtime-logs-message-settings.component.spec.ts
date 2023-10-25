@@ -27,6 +27,7 @@ import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../..
 import { User } from '../../../../../entities/user';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
 import { ApiV4, fakeApiV4 } from '../../../../../entities/management-api-v2';
+import { ConsoleSettings } from '../../../../../entities/consoleSettings';
 
 describe('ApiRuntimeLogsSettingsComponent', () => {
   const API_ID = 'apiId';
@@ -48,29 +49,54 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
       sampling: { type: 'COUNT', value: '50' },
     },
   };
+  const testSettings: ConsoleSettings = {
+    metadata: {
+      readonly: [],
+    },
+    logging: {
+      messageSampling: {
+        probabilistic: {
+          limit: 0.52,
+          default: 0.33322,
+        },
+        count: {
+          limit: 40,
+          default: 666,
+        },
+        temporal: {
+          limit: 'PT10S',
+          default: 'PT10S',
+        },
+      },
+    },
+  };
   let fixture: ComponentFixture<ApiRuntimeLogsMessageSettingsComponent>;
   let httpTestingController: HttpTestingController;
   let componentHarness: ApiRuntimeLogsMessageSettingsHarness;
 
-  const initComponent = async (api: ApiV4 = testApi) => {
+  const initComponent = async (api: ApiV4 = testApi, settings: ConsoleSettings = testSettings) => {
     const currentUser = new User();
     currentUser.userPermissions = ['api-definition-u'];
 
-    TestBed.configureTestingModule({
+    await TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiRuntimeLogsMessageSettingsModule, MatIconTestingModule],
       providers: [
         { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
         { provide: UIRouterState, useValue: { go: jest.fn() } },
         { provide: CurrentUserService, useValue: { currentUser } },
+        {
+          provide: 'Constants',
+          useValue: CONSTANTS_TESTING,
+        },
       ],
-    });
+    }).compileComponents();
 
     fixture = TestBed.createComponent(ApiRuntimeLogsMessageSettingsComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
     componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiRuntimeLogsMessageSettingsHarness);
 
     fixture.componentInstance.api = api;
-    fixture.componentInstance.ngOnInit();
+    expectConsoleSettingsGetRequest(settings);
     fixture.detectChanges();
   };
 
@@ -296,47 +322,86 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
       it('should validate sampling value with COUNT type', async () => {
         await initComponent();
         expect(await componentHarness.getSamplingType()).toStrictEqual('Count');
-        expect(await componentHarness.getSamplingValue()).toStrictEqual('50');
+        // Component is initialized with an api with sampling count, so form should use its value
+        expect(await componentHarness.getSamplingValue()).toStrictEqual(testApi.analytics.sampling.value);
 
         await componentHarness.addSamplingValue(null);
         expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(true);
+        expect(fixture.componentInstance.form.get('samplingValue').hasError('required')).toBeTruthy();
+        expect(await componentHarness.getSamplingValueErrors()).toEqual(['The sampling value is required.']);
+        expect(await componentHarness.isSaveButtonInvalid()).toBeTruthy();
 
         await componentHarness.addSamplingValue('5');
         expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(true);
+        expect(fixture.componentInstance.form.get('samplingValue').hasError('min')).toBeTruthy();
+        expect(await componentHarness.getSamplingValueErrors()).toEqual(['The sampling value should be greater than 40.']);
+        expect(await componentHarness.isSaveButtonInvalid()).toBeTruthy();
 
         await componentHarness.addSamplingValue('42');
         expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(false);
+        expect(await componentHarness.samplingValueHasErrors()).toEqual(false);
+        expect(await componentHarness.isSaveButtonInvalid()).toBeFalsy();
       });
 
       it('should validate sampling value with PROBABILITY type', async () => {
         await initComponent();
         await componentHarness.choseSamplingType('Probabilistic');
+        expect(await componentHarness.getSamplingType()).toStrictEqual('Probabilistic');
 
         await componentHarness.addSamplingValue(null);
         expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(true);
+        expect(fixture.componentInstance.form.get('samplingValue').hasError('required')).toBeTruthy();
+        expect(await componentHarness.getSamplingValueErrors()).toEqual(['The sampling value is required.']);
+        expect(await componentHarness.isSaveButtonInvalid()).toBeTruthy();
 
         await componentHarness.addSamplingValue('-1');
         expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(true);
+        expect(fixture.componentInstance.form.get('samplingValue').hasError('min')).toBeTruthy();
+        expect(await componentHarness.getSamplingValueErrors()).toEqual(['The sampling value should be greater than 0.01.']);
+        expect(await componentHarness.isSaveButtonInvalid()).toBeTruthy();
 
         await componentHarness.addSamplingValue('42');
         expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(true);
+        expect(fixture.componentInstance.form.get('samplingValue').hasError('max')).toBeTruthy();
+        expect(await componentHarness.getSamplingValueErrors()).toEqual(['The sampling value should be lower than 0.52.']);
+        expect(await componentHarness.isSaveButtonInvalid()).toBeTruthy();
 
         await componentHarness.addSamplingValue('0.3');
         expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(false);
+        expect(await componentHarness.samplingValueHasErrors()).toEqual(false);
+        expect(await componentHarness.isSaveButtonInvalid()).toBeFalsy();
       });
 
       it('should validate sampling value with TEMPORAL type', async () => {
         await initComponent();
         await componentHarness.choseSamplingType('Temporal');
+        expect(await componentHarness.getSamplingType()).toStrictEqual('Temporal');
 
         await componentHarness.addSamplingValue(null);
         expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(true);
-
-        await componentHarness.addSamplingValue('PT0.001S');
-        expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(true);
+        expect(fixture.componentInstance.form.get('samplingValue').hasError('required')).toBeTruthy();
+        expect(await componentHarness.getSamplingValueErrors()).toEqual(['The sampling value is required.']);
+        expect(await componentHarness.isSaveButtonInvalid()).toBeTruthy();
 
         await componentHarness.addSamplingValue('PT1S');
+        expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(true);
+        expect(fixture.componentInstance.form.get('samplingValue').hasError('minTemporal')).toBeTruthy();
+        expect(await componentHarness.getSamplingValueErrors()).toEqual(['The sampling value should be greater than PT10S.']);
+        expect(await componentHarness.isSaveButtonInvalid()).toBeTruthy();
+
+        await componentHarness.addSamplingValue('PT');
+        expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(true);
+        expect(fixture.componentInstance.form.get('samplingValue').hasError('invalidISO8601Duration')).toBeTruthy();
+        expect(await componentHarness.getSamplingValueErrors()).toEqual([
+          'The sampling value should use ISO-8601 duration format, e.g. PT10S.',
+        ]);
+        expect(await componentHarness.isSaveButtonInvalid()).toBeTruthy();
+
+        await componentHarness.addSamplingValue('PT11S');
         expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(false);
+        expect(fixture.componentInstance.form.get('samplingValue').invalid).toBe(false);
+        expect(await componentHarness.samplingValueHasErrors()).toEqual(false);
+        expect(await componentHarness.isSaveButtonInvalid()).toBeFalsy();
       });
     });
 
@@ -370,5 +435,11 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
     const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'PUT' });
     expect(req.request.body).toStrictEqual(api);
     req.flush(api);
+  }
+
+  function expectConsoleSettingsGetRequest(consoleSettingsResponse: ConsoleSettings) {
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/settings`);
+    req.flush(consoleSettingsResponse);
+    expect(req.request.method).toEqual('GET');
   }
 });

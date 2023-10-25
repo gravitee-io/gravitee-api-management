@@ -48,7 +48,6 @@ import { GioPermissionModule } from '../../../../../shared/components/gio-permis
     MatSnackBarModule,
     MatTooltipModule,
     ReactiveFormsModule,
-    ReactiveFormsModule,
 
     GioBannerModule,
     GioFormSlideToggleModule,

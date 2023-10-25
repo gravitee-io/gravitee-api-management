@@ -63,36 +63,47 @@
 
         <ng-container *ngIf="samplingType === 'PROBABILITY'">
           <p>Samples messages based on a specified probability.</p>
-          <p>The value should be between 0.01 and 0.5.</p>
-          <mat-form-field class="settings__form-control__form-field">
+          <p>The value should be between 0.01 and {{ settings?.logging.messageSampling.probabilistic.limit ?? 0.5 }}.</p>
+          <mat-form-field data-testid="sampling_value" class="settings__form-control__form-field">
             <mat-label>Message sampling</mat-label>
             <input matInput type="number" formControlName="samplingValue" />
             <mat-error *ngIf="form.get('samplingValue').hasError('required')"> The sampling value is required. </mat-error>
             <mat-error *ngIf="form.get('samplingValue').hasError('min')"> The sampling value should be greater than 0.01. </mat-error>
-            <mat-error *ngIf="form.get('samplingValue').hasError('max')"> The sampling value should be less than 0.5. </mat-error>
+            <mat-error *ngIf="form.get('samplingValue').hasError('max')">
+              The sampling value should be lower than {{ settings?.logging.messageSampling.probabilistic.limit ?? 0.5 }}.
+            </mat-error>
           </mat-form-field>
         </ng-container>
 
         <ng-container *ngIf="samplingType === 'COUNT'">
           <p>Samples one message for every number of specified messages.</p>
-          <p>The value should be greater than 10.</p>
-          <mat-form-field class="settings__form-control__form-field">
+          <p>The value should be greater than {{ settings?.logging?.messageSampling?.count?.limit ?? 10 }}.</p>
+          <mat-form-field data-testid="sampling_value" class="settings__form-control__form-field">
             <mat-label>Message sampling</mat-label>
             <input matInput type="number" formControlName="samplingValue" />
             <mat-error *ngIf="form.get('samplingValue').hasError('required')"> The sampling value is required. </mat-error>
-            <mat-error *ngIf="form.get('samplingValue').hasError('min')"> The sampling value should be greater than 10. </mat-error>
+            <mat-error *ngIf="form.get('samplingValue').hasError('min')">
+              The sampling value should be greater than {{ settings?.logging?.messageSampling?.count?.limit ?? 10 }}.
+            </mat-error>
           </mat-form-field>
         </ng-container>
 
         <ng-container *ngIf="samplingType === 'TEMPORAL'">
           <p>Samples messages based on time duration.</p>
-          <p>The value should conform to ISO-8601 duration format, e.g. PT1S for a duration of 1 second.</p>
-          <mat-form-field class="settings__form-control__form-field">
+          <p>
+            The value should conform to ISO-8601 duration format, e.g. PT1S for a duration of 1 second and be greater than
+            {{ settings?.logging?.messageSampling?.temporal?.limit ?? 'PT1S' }}.
+          </p>
+          <mat-form-field data-testid="sampling_value" class="settings__form-control__form-field">
             <mat-label>Message sampling</mat-label>
             <input matInput formControlName="samplingValue" />
             <mat-error *ngIf="form.get('samplingValue').hasError('required')"> The sampling value is required. </mat-error>
             <mat-error *ngIf="form.get('samplingValue').hasError('invalidISO8601Duration')">
-              The sampling value should use ISO-8601 duration format, e.g. PT1S, and be greater than 1 second.
+              The sampling value should use ISO-8601 duration format, e.g.
+              {{ settings?.logging?.messageSampling?.temporal?.limit ?? 'PT1S' }}.
+            </mat-error>
+            <mat-error *ngIf="form.get('samplingValue').hasError('minTemporal')">
+              The sampling value should be greater than {{ settings?.logging?.messageSampling?.temporal?.limit ?? 'PT1S' }}.
             </mat-error>
           </mat-form-field>
         </ng-container>

@@ -19,6 +19,7 @@ import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatButtonToggleGroupHarness } from '@angular/material/button-toggle/testing';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
+import { MatFormFieldHarness } from '@angular/material/form-field/testing';
 
 export class ApiRuntimeLogsMessageSettingsHarness extends ComponentHarness {
   static hostSelector = 'api-runtime-logs-settings';
@@ -36,10 +37,15 @@ export class ApiRuntimeLogsMessageSettingsHarness extends ComponentHarness {
   private getMessageConditionInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="messageCondition"]' }));
   private getRequestConditionInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="requestCondition"]' }));
   private getSamplingTypeToggle = this.locatorFor(MatButtonToggleGroupHarness.with({ selector: '[formControlName="samplingType"]' }));
-  private getSamplingValueInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="samplingValue"]' }));
+  public getSamplingValueInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="samplingValue"]' }));
+  private getSamplingValueFormField = this.locatorFor(MatFormFieldHarness.with({ selector: '[data-testid=sampling_value]' }));
 
   public saveSettings = async (): Promise<void> => {
     return this.getSaveButton().then((saveButton) => saveButton.clickSubmit());
+  };
+
+  public isSaveButtonInvalid = async (): Promise<boolean> => {
+    return this.getSaveButton().then((saveButton) => saveButton.isSubmitButtonInvalid());
   };
 
   public resetSettings = async (): Promise<void> => {
@@ -170,10 +176,25 @@ export class ApiRuntimeLogsMessageSettingsHarness extends ComponentHarness {
   };
 
   public addSamplingValue = async (value: string): Promise<void> => {
-    return await this.getSamplingValueInput().then((input) => input.setValue(value));
+    const input = await this.getSamplingValueInput();
+    await input.setValue(value);
+    // Magic hack to mark control as touched. It allows to validate mat-error
+    await input.blur();
   };
 
   public getSamplingValue = async (): Promise<string> => {
     return await this.getSamplingValueInput().then((input) => input.getValue());
+  };
+
+  public getSamplingValueErrors = async (): Promise<string[]> => {
+    return await this.getSamplingValueFormField().then(async (formField) => {
+      return formField.getTextErrors();
+    });
+  };
+
+  public samplingValueHasErrors = async (): Promise<boolean> => {
+    return await this.getSamplingValueFormField().then(async (formField) => {
+      return formField.hasErrors();
+    });
   };
 }

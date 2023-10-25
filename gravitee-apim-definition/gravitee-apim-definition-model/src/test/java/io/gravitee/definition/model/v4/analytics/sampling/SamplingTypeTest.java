@@ -37,14 +37,14 @@ class SamplingTypeTest {
 
         @Test
         void should_validate_value() {
-            assertThat(SamplingType.COUNT.validate("11")).isTrue();
+            assertThat(SamplingType.COUNT.validate("11", new SamplingType.ValidationLimit.CountLimit(10))).isTrue();
         }
 
         @ParameterizedTest(name = "{index} => value={0}")
         @ValueSource(strings = { "bad", "-1", "4" })
         @NullAndEmptySource
         void should_not_validate_value(final String value) {
-            assertThat(SamplingType.COUNT.validate(value)).isFalse();
+            assertThat(SamplingType.COUNT.validate(value, new SamplingType.ValidationLimit.CountLimit(10))).isFalse();
         }
     }
 
@@ -52,16 +52,16 @@ class SamplingTypeTest {
     class TemporalType {
 
         @ParameterizedTest
-        @ValueSource(strings = { "PT1S", "1s" })
+        @ValueSource(strings = { "PT1S", "1s", "PT100S", "PT1H" })
         void should_validate_value(final String value) {
-            assertThat(SamplingType.TEMPORAL.validate(value)).isTrue();
+            assertThat(SamplingType.TEMPORAL.validate(value, new SamplingType.ValidationLimit.TemporalLimit("PT1S"))).isTrue();
         }
 
         @ParameterizedTest(name = "{index} => value={0}")
         @ValueSource(strings = { "bad" })
         @NullAndEmptySource
         void should_not_validate_value(final String value) {
-            assertThat(SamplingType.TEMPORAL.validate(value)).isFalse();
+            assertThat(SamplingType.TEMPORAL.validate(value, new SamplingType.ValidationLimit.TemporalLimit("PT1S"))).isFalse();
         }
     }
 
@@ -70,13 +70,13 @@ class SamplingTypeTest {
 
         @Test
         void should_validate_value() {
-            assertThat(SamplingType.PROBABILITY.validate("0.2")).isTrue();
+            assertThat(SamplingType.PROBABILITY.validate("0.2", new SamplingType.ValidationLimit.ProbabilityLimit(1))).isTrue();
         }
 
         @ParameterizedTest
         @ValueSource(strings = { "bad", "9" })
         void should_not_validate_value(final String value) {
-            assertThat(SamplingType.PROBABILITY.validate(value)).isFalse();
+            assertThat(SamplingType.PROBABILITY.validate(value, new SamplingType.ValidationLimit.ProbabilityLimit(1))).isFalse();
         }
     }
 }

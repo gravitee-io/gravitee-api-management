@@ -40,6 +40,7 @@ import io.gravitee.rest.api.service.v4.validation.AnalyticsValidationService;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.List;
 import java.util.function.Function;
 import org.junit.After;
 import org.junit.Before;
@@ -458,7 +459,23 @@ public class AnalyticsValidationServiceImplTest {
         Analytics expected = new Analytics();
         Sampling messageSampling = new Sampling();
         messageSampling.setType(SamplingType.COUNT);
-        messageSampling.setValue("10");
+        messageSampling.setValue(Key.LOGGING_MESSAGE_SAMPLING_COUNT_DEFAULT.defaultValue());
+        expected.setMessageSampling(messageSampling);
+        assertEquals(expected, sanitizedAnalytics);
+    }
+
+    @Test
+    public void should_set_default_analytics_with_sampling_when_async_api_from_custom_settings() {
+        when(parameterService.findAll(any(), eq(Key.LOGGING_MESSAGE_SAMPLING_COUNT_DEFAULT), any(), any())).thenReturn(List.of("77"));
+        Analytics sanitizedAnalytics = analyticsValidationService.validateAndSanitize(
+            GraviteeContext.getExecutionContext(),
+            ApiType.MESSAGE,
+            null
+        );
+        Analytics expected = new Analytics();
+        Sampling messageSampling = new Sampling();
+        messageSampling.setType(SamplingType.COUNT);
+        messageSampling.setValue("77");
         expected.setMessageSampling(messageSampling);
         assertEquals(expected, sanitizedAnalytics);
     }
@@ -474,7 +491,7 @@ public class AnalyticsValidationServiceImplTest {
         Analytics expected = new Analytics();
         Sampling messageSampling = new Sampling();
         messageSampling.setType(SamplingType.COUNT);
-        messageSampling.setValue("10");
+        messageSampling.setValue(Key.LOGGING_MESSAGE_SAMPLING_COUNT_DEFAULT.defaultValue());
         expected.setMessageSampling(messageSampling);
         assertEquals(expected, sanitizedAnalytics);
     }

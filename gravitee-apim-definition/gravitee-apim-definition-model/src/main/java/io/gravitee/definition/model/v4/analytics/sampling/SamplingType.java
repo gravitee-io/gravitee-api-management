@@ -20,7 +20,8 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import io.gravitee.common.utils.DurationParser;
 import java.time.Duration;
 import java.util.Map;
-import java.util.function.Function;
+import java.util.function.BiFunction;
+import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -31,10 +32,10 @@ import lombok.RequiredArgsConstructor;
 public enum SamplingType {
     PROBABILITY(
         "probability",
-        value -> {
+        (value, validationLimit) -> {
             try {
                 double parseDouble = Double.parseDouble(value);
-                return parseDouble >= 0.01 && parseDouble <= 0.5;
+                return parseDouble >= 0.01 && parseDouble <= ((ValidationLimit.ProbabilityLimit) validationLimit).getLimit();
             } catch (Exception e) {
                 return false;
             }
@@ -42,10 +43,11 @@ public enum SamplingType {
     ),
     TEMPORAL(
         "temporal",
-        value -> {
+        (value, validationLimit) -> {
             try {
                 Duration duration = DurationParser.parse(value);
-                return duration != null;
+                Duration minDuration = Duration.parse(((ValidationLimit.TemporalLimit) validationLimit).getLimit());
+                return duration != null && duration.compareTo(minDuration) >= 0;
             } catch (Exception e) {
                 return false;
             }
@@ -53,10 +55,10 @@ public enum SamplingType {
     ),
     COUNT(
         "count",
-        value -> {
+        (value, validationLimit) -> {
             try {
                 int count = Integer.parseInt(value);
-                return count >= 10;
+                return count >= ((ValidationLimit.CountLimit) validationLimit).getLimit();
             } catch (Exception e) {
                 return false;
             }
@@ -76,14 +78,14 @@ public enum SamplingType {
     private final String label;
 
     @JsonIgnore
-    private final Function<String, Boolean> validationFunction;
+    private final BiFunction<String, ValidationLimit<?>, Boolean> validationFunction;
 
     public String getLabel() {
         return label;
     }
 
-    public boolean validate(final String value) {
-        return validationFunction.apply(value);
+    public boolean validate(final String value, final ValidationLimit validationLimit) {
+        return validationFunction.apply(value, validationLimit);
     }
 
     public static SamplingType fromLabel(final String label) {
@@ -91,5 +93,43 @@ public enum SamplingType {
             return LABELS_MAP.get(label);
         }
         return null;
+    }
+
+    public abstract static class ValidationLimit<T> {
+
+        abstract T getLimit();
+
+        @AllArgsConstructor
+        public static class CountLimit extends ValidationLimit<Integer> {
+
+            private int count;
+
+            @Override
+            Integer getLimit() {
+                return count;
+            }
+        }
+
+        @AllArgsConstructor
+        public static class ProbabilityLimit extends ValidationLimit<Double> {
+
+            private double probability;
+
+            @Override
+            Double getLimit() {
+                return probability;
+            }
+        }
+
+        @AllArgsConstructor
+        public static class TemporalLimit extends ValidationLimit<String> {
+
+            private String temporal;
+
+            @Override
+            String getLimit() {
+                return temporal;
+            }
+        }
     }
 }

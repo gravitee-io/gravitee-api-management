@@ -35,6 +35,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
@@ -66,37 +67,90 @@ public class AnalyticsValidationServiceImpl extends TransactionalService impleme
         if (analytics == null) {
             Analytics defaultAnalytics = new Analytics();
             if (type == ApiType.MESSAGE) {
-                setDefaultMessageSampling(defaultAnalytics);
+                setDefaultMessageSampling(executionContext, defaultAnalytics);
             }
             return defaultAnalytics;
         } else if (analytics.isEnabled()) {
-            validateAndSanitizeSampling(type, analytics);
+            validateAndSanitizeSampling(executionContext, type, analytics);
             validateAndSanitizeLogging(executionContext, type, analytics);
             return analytics;
         }
         return analytics;
     }
 
-    private static void setDefaultMessageSampling(final Analytics analytics) {
+    private void setDefaultMessageSampling(ExecutionContext executionContext, final Analytics analytics) {
         Sampling countSampling = new Sampling();
         countSampling.setType(SamplingType.COUNT);
-        countSampling.setValue("10");
+        countSampling.setValue(
+            parameterService
+                .findAll(
+                    executionContext,
+                    Key.LOGGING_MESSAGE_SAMPLING_COUNT_DEFAULT,
+                    Function.identity(),
+                    ParameterReferenceType.ORGANIZATION
+                )
+                .stream()
+                .findFirst()
+                .orElse(Key.LOGGING_MESSAGE_SAMPLING_COUNT_DEFAULT.defaultValue())
+        );
         analytics.setMessageSampling(countSampling);
     }
 
-    private void validateAndSanitizeSampling(final ApiType type, final Analytics analytics) {
+    private void validateAndSanitizeSampling(ExecutionContext executionContext, final ApiType type, final Analytics analytics) {
         if (ApiType.PROXY.equals(type) && analytics.getMessageSampling() != null) {
             throw new AnalyticsIncompatibleApiTypeConfigurationException(Map.of("analytics.messageSampling", "invalid"));
         }
         if (ApiType.MESSAGE.equals(type)) {
             if (analytics.getMessageSampling() == null) {
-                setDefaultMessageSampling(analytics);
+                setDefaultMessageSampling(executionContext, analytics);
             }
             Sampling messageSampling = analytics.getMessageSampling();
-            if (!messageSampling.getType().validate(messageSampling.getValue())) {
+            var limit = getSamplingValidationLimits(executionContext, messageSampling);
+            if (!messageSampling.getType().validate(messageSampling.getValue(), limit)) {
                 throw new AnalyticsMessageSamplingValueInvalidException(messageSampling);
             }
         }
+    }
+
+    private SamplingType.ValidationLimit getSamplingValidationLimits(ExecutionContext executionContext, Sampling messageSampling) {
+        return switch (messageSampling.getType()) {
+            case COUNT -> new SamplingType.ValidationLimit.CountLimit(
+                parameterService
+                    .findAll(
+                        executionContext,
+                        Key.LOGGING_MESSAGE_SAMPLING_COUNT_LIMIT,
+                        Integer::valueOf,
+                        ParameterReferenceType.ORGANIZATION
+                    )
+                    .stream()
+                    .findFirst()
+                    .orElse(Integer.valueOf(Key.LOGGING_MESSAGE_SAMPLING_COUNT_LIMIT.defaultValue()))
+            );
+            case PROBABILITY -> new SamplingType.ValidationLimit.ProbabilityLimit(
+                parameterService
+                    .findAll(
+                        executionContext,
+                        Key.LOGGING_MESSAGE_SAMPLING_PROBABILISTIC_LIMIT,
+                        Double::valueOf,
+                        ParameterReferenceType.ORGANIZATION
+                    )
+                    .stream()
+                    .findFirst()
+                    .orElse(Double.valueOf(Key.LOGGING_MESSAGE_SAMPLING_PROBABILISTIC_LIMIT.defaultValue()))
+            );
+            case TEMPORAL -> new SamplingType.ValidationLimit.TemporalLimit(
+                parameterService
+                    .findAll(
+                        executionContext,
+                        Key.LOGGING_MESSAGE_SAMPLING_TEMPORAL_LIMIT,
+                        Function.identity(),
+                        ParameterReferenceType.ORGANIZATION
+                    )
+                    .stream()
+                    .findFirst()
+                    .orElse(Key.LOGGING_MESSAGE_SAMPLING_TEMPORAL_LIMIT.defaultValue())
+            );
+        };
     }
 
     private void validateAndSanitizeLogging(final ExecutionContext executionContext, final ApiType type, final Analytics analytics) {
