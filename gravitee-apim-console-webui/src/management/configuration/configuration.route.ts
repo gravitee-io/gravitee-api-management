@@ -28,7 +28,6 @@ import EnvironmentService from '../../services/environment.service';
 import FetcherService from '../../services/fetcher.service';
 import GroupService from '../../services/group.service';
 import IdentityProviderService from '../../services/identityProvider.service';
-import MetadataService from '../../services/metadata.service';
 import PortalSettingsService from '../../services/portalSettings.service';
 import QualityRuleService from '../../services/qualityRule.service';
 import RoleService from '../../services/role.service';
@@ -648,11 +647,7 @@ function configurationRouterConfig($stateProvider: StateProvider) {
     })
     .state('management.settings.metadata', {
       url: '/metadata',
-      component: 'metadata',
-      resolve: {
-        metadata: ['MetadataService', (MetadataService: MetadataService) => MetadataService.list().then((response) => response.data)],
-        metadataFormats: ['MetadataService', (MetadataService: MetadataService) => MetadataService.listFormats()],
-      },
+      component: 'ngEnvironmentMetadata',
       data: {
         menu: null,
         docs: {
@@ -662,6 +657,7 @@ function configurationRouterConfig($stateProvider: StateProvider) {
           only: ['environment-metadata-r'],
           unauthorizedFallbackTo: 'management.settings.portal',
         },
+        useAngularMaterial: true,
       },
     })
     .state('management.settings.portal', {

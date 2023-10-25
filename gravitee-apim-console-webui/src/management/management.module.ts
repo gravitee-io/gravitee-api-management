@@ -30,6 +30,7 @@ import { TasksModule } from './tasks/tasks.module';
 import { ClientRegistrationProvidersModule } from './configuration/client-registration-providers/client-registration-providers.module';
 import { ApiLoggingModule } from './configuration/api-logging/api-logging.module';
 import { EnvironmentNotificationSettingsModule } from './configuration/notifications/notification-settings/environment-notification-settings.module';
+import { EnvironmentMetadataModule } from './configuration/metadata/environment-metadata.module';
 
 import { GioPermissionModule } from '../shared/components/gio-permission/gio-permission.module';
 import { NotificationsModule } from '../components/notifications/notifications.module';
@@ -55,6 +56,7 @@ import { AlertsModule } from '../components/alerts/alerts.module';
     NotificationsModule,
     AlertsModule,
     EnvironmentNotificationSettingsModule,
+    EnvironmentMetadataModule,
   ],
   declarations: [],
   entryComponents: [],

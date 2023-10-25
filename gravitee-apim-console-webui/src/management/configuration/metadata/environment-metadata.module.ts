@@ -13,13 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const MetadataComponent: ng.IComponentOptions = {
-  bindings: {
-    metadata: '<',
-    metadataFormats: '<',
-  },
-  controller: 'MetadataController',
-  template: require('../../../components/metadata/metadata.html'),
-};
+import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
 
-export default MetadataComponent;
+import { EnvironmentMetadataComponent } from './environment-metadata.component';
+
+import { GioMetadataModule } from '../../../components/gio-metadata/gio-metadata.module';
+
+@NgModule({
+  declarations: [EnvironmentMetadataComponent],
+  exports: [EnvironmentMetadataComponent],
+  imports: [CommonModule, GioMetadataModule],
+})
+export class EnvironmentMetadataModule {}
