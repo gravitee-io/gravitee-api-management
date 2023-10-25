@@ -1723,6 +1723,30 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
+    /environments/{envId}/apis/{apiId}/pages/{pageId}/_publish:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+            - $ref: "#/components/parameters/pageIdParam"
+        post:
+            tags:
+                - API Documentation
+            summary: Publish API Documentation Page
+            description: |-
+                Publish API Documentation Page. Returns the published page.
+
+                User must have the API_DOCUMENTATION[UPDATE] permission.
+            operationId: publishDocumentationPage
+            responses:
+                "200":
+                    description: API Documentation Page
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Page"
+                default:
+                    $ref: "#/components/responses/Error"
+
     # Plugins - Endpoints
     /plugins/endpoints:
         get:

@@ -18,10 +18,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.documentation;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.model.Page;
-import io.gravitee.apim.core.documentation.usecase.ApiCreateDocumentationPageUsecase;
-import io.gravitee.apim.core.documentation.usecase.ApiGetDocumentationPageUsecase;
-import io.gravitee.apim.core.documentation.usecase.ApiGetDocumentationPagesUsecase;
-import io.gravitee.apim.core.documentation.usecase.ApiUpdateDocumentationPageUsecase;
+import io.gravitee.apim.core.documentation.usecase.*;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.PageMapper;
 import io.gravitee.rest.api.management.v2.rest.model.*;
@@ -54,6 +51,9 @@ public class ApiPagesResource extends AbstractResource {
 
     @Inject
     private ApiUpdateDocumentationPageUsecase updateDocumentationPageUsecase;
+
+    @Inject
+    private ApiPublishDocumentationPageUsecase apiPublishDocumentationPageUsecase;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -101,7 +101,7 @@ public class ApiPagesResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.UPDATE }) })
-    public Response updateApiPage(
+    public Response updateDocumentationPage(
         @PathParam("apiId") String apiId,
         @PathParam("pageId") String pageId,
         @Valid @NotNull UpdateDocumentation updateDocumentation
@@ -114,6 +114,17 @@ public class ApiPagesResource extends AbstractResource {
 
         var page = updateDocumentationPageUsecase.execute(input).page();
         return Response.ok(mapper.mapPage(page)).build();
+    }
+
+    @POST
+    @Path("{pageId}/_publish")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.UPDATE }) })
+    public Response publishDocumentationPage(@PathParam("apiId") String apiId, @PathParam("pageId") String pageId) {
+        var page = apiPublishDocumentationPageUsecase
+            .execute(new ApiPublishDocumentationPageUsecase.Input(apiId, pageId, getAuditInfo()))
+            .page();
+        return Response.ok(Mappers.getMapper(PageMapper.class).mapPage(page)).build();
     }
 
     private AuditInfo getAuditInfo() {
