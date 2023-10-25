@@ -776,6 +776,83 @@ class ApiPagesResourceTest extends AbstractResourceTest {
         }
     }
 
+    @Nested
+    class PublishDocumentationPage {
+
+        private static final String PATH = PAGE_ID + "/_publish";
+
+        @Test
+        public void should_return_403_if_incorrect_permissions() {
+            apiCrudServiceInMemory.initWith(List.of(Api.builder().id(API_ID).build()));
+
+            when(
+                permissionService.hasPermission(
+                    eq(GraviteeContext.getExecutionContext()),
+                    eq(RolePermission.API_DOCUMENTATION),
+                    eq(API_ID),
+                    eq(RolePermissionAction.UPDATE)
+                )
+            )
+                .thenReturn(false);
+
+            final Response response = rootTarget().path(PATH).request().post(Entity.json(""));
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("You do not have sufficient rights to access this resource");
+        }
+
+        @Test
+        public void should_return_404_if_api_does_not_exist() {
+            final Response response = rootTarget().path(PATH).request().post(Entity.json(""));
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(NOT_FOUND_404)
+                .asError()
+                .hasHttpStatus(NOT_FOUND_404)
+                .hasMessage("Api [" + API_ID + "] cannot be found.");
+        }
+
+        @Test
+        public void should_return_404_if_page_does_not_exist() {
+            apiCrudServiceInMemory.initWith(List.of(Api.builder().id(API_ID).build()));
+
+            final Response response = rootTarget().path(PATH).request().post(Entity.json(""));
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(NOT_FOUND_404)
+                .asError()
+                .hasHttpStatus(NOT_FOUND_404)
+                .hasMessage("Page [" + PAGE_ID + "] cannot be found.");
+        }
+
+        @Test
+        void should_publish_page() {
+            apiCrudServiceInMemory.initWith(List.of(Api.builder().id(API_ID).build()));
+
+            Page page1 = Page
+                .builder()
+                .referenceType(Page.ReferenceType.API)
+                .referenceId(API_ID)
+                .type(Page.Type.MARKDOWN)
+                .id(PAGE_ID)
+                .name("page-1")
+                .published(false)
+                .build();
+            givenApiPagesQuery(List.of(page1));
+            final Response response = rootTarget().path(PATH).request().post(Entity.json(""));
+            assertThat(response.getStatus()).isEqualTo(200);
+
+            var body = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.Page.class);
+            assertThat(body).isNotNull().hasFieldOrPropertyWithValue("published", true);
+        }
+    }
+
     private void givenApiPagesQuery(List<Page> pages) {
         pageQueryServiceInMemory.initWith(pages);
         pageCrudServiceInMemory.initWith(pages);
