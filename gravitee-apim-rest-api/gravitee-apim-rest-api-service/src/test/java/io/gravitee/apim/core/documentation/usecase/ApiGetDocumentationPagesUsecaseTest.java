@@ -156,7 +156,17 @@ class ApiGetDocumentationPagesUsecaseTest {
 
         @Test
         void should_throw_error_if_parent_is_not_a_folder() {
-            initPageServices(List.of(Page.builder().id("parent-id").type(Page.Type.MARKDOWN).build()));
+            initPageServices(
+                List.of(
+                    Page
+                        .builder()
+                        .id("parent-id")
+                        .type(Page.Type.MARKDOWN)
+                        .referenceType(Page.ReferenceType.API)
+                        .referenceId(API_ID)
+                        .build()
+                )
+            );
             assertThatThrownBy(() -> useCase.execute(new ApiGetDocumentationPagesUsecase.Input(API_ID, "parent-id")))
                 .isInstanceOf(DomainException.class);
         }
