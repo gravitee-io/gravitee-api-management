@@ -39,7 +39,11 @@
         "@types/node": "16.10.9",
         "@types/node-fetch": "2.6.1",
         "ansi-regex": "6.0.1",
+<<<<<<< HEAD
         "cypress": "12.16.0",
+=======
+        "cypress": "13.3.3",
+>>>>>>> 80cc122dd0 (test: Update Cypress to 13.3.3)
         "dotenv": "16.0.0",
         "har-validator": "5.1.5",
         "jest": "27.5.1",
