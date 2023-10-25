@@ -34,6 +34,11 @@
                 <span class="title">{{::type.name}}</span>
                 <span class="description">{{::type.description}}</span>
               </div>
+              <div ng-if="!$ctrl.parent.enabledApplicationTypes || $ctrl.parent.enabledApplicationTypes.length === 0">
+                <div flex="100" layout="column" layout-align="center center">
+                  No application type available, please check Client Registration configuration.
+                </div>
+              </div>
             </div>
           </div>
 
