@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 import { Component, Inject, Input, OnDestroy, OnInit } from '@angular/core';
-import { FormControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
+import { AbstractControl, FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { catchError, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { EMPTY, merge, Subject } from 'rxjs';
 import { StateParams } from '@uirouter/angularjs';
+import { duration } from 'moment/moment';
 
 import { isIso8601DateValid } from './iso-8601-date.validator';
 
@@ -25,6 +26,8 @@ import { UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
 import { Analytics, ApiV4, SamplingTypeEnum } from '../../../../../entities/management-api-v2';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
+import { ConsoleSettings } from '../../../../../entities/consoleSettings';
+import { ConsoleSettingsService } from '../../../../../services-ngx/console-settings.service';
 
 @Component({
   selector: 'api-runtime-logs-message-settings',
@@ -38,19 +41,27 @@ export class ApiRuntimeLogsMessageSettingsComponent implements OnInit, OnDestroy
   loggingModeDisabled = false;
   initialFormValue: unknown;
   private unsubscribe$: Subject<void> = new Subject<void>();
+  private settings: ConsoleSettings;
 
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams: StateParams,
     private readonly apiService: ApiV2Service,
     private readonly snackBarService: SnackBarService,
+    private readonly consoleSettingsService: ConsoleSettingsService,
   ) {}
 
   public ngOnInit(): void {
-    this.loggingModeDisabled = !this.api?.analytics?.logging?.mode?.entrypoint && !this.api?.analytics?.logging?.mode?.endpoint;
-    this.samplingType = this.api?.analytics?.sampling?.type;
-    this.initForm();
-    this.handleSamplingTypeChanges();
-    this.handleLoggingModeChanges();
+    this.consoleSettingsService
+      .get()
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe((settings) => {
+        this.settings = settings;
+        this.loggingModeDisabled = !this.api?.analytics?.logging?.mode?.entrypoint && !this.api?.analytics?.logging?.mode?.endpoint;
+        this.samplingType = this.api?.analytics?.sampling?.type;
+        this.initForm();
+        this.handleSamplingTypeChanges();
+        this.handleLoggingModeChanges();
+      });
   }
 
   public ngOnDestroy(): void {
@@ -149,6 +160,7 @@ export class ApiRuntimeLogsMessageSettingsComponent implements OnInit, OnDestroy
         samplingValueControl.setValue(this.getSamplingDefaultValue(value));
         samplingValueControl.setValidators(this.getSamplingValueValidators(value));
         samplingValueControl.updateValueAndValidity();
+        samplingValueControl.parent.updateValueAndValidity();
       });
   }
 
@@ -180,26 +192,55 @@ export class ApiRuntimeLogsMessageSettingsComponent implements OnInit, OnDestroy
   private getSamplingValueValidators(samplingType: SamplingTypeEnum): ValidatorFn[] {
     switch (samplingType) {
       case 'PROBABILITY':
-        return [Validators.required, Validators.min(0.01), Validators.max(0.5)];
+        return [
+          Validators.required,
+          Validators.min(0.01),
+          Validators.max(this.settings?.logging.messageSampling.probabilistic.limit ?? 0.5),
+        ];
       case 'COUNT':
-        return [Validators.required, Validators.min(10)];
+        return [Validators.required, Validators.min(this.settings?.logging.messageSampling.count.limit ?? 10)];
       case 'TEMPORAL':
-        return [Validators.required, isIso8601DateValid()];
+        return [Validators.required, isIso8601DateValid(), this.isGreaterOrEqualThanLimitIso8601()];
       default:
         return [];
     }
   }
 
   private getSamplingDefaultValue(samplingType: SamplingTypeEnum): string | number | null {
+    // If a value is already set for the selected sampling type, then choose the one from api.
+    if (this.api?.analytics?.sampling?.type === samplingType) {
+      return this?.api.analytics?.sampling?.value;
+    }
     switch (samplingType) {
       case 'PROBABILITY':
-        return 0.01;
+        return this.settings?.logging.messageSampling.probabilistic.default ?? 0.01;
       case 'COUNT':
-        return 100;
+        return this.settings?.logging.messageSampling.count.default ?? 100;
       case 'TEMPORAL':
-        return 'PT1S';
+        return this.settings?.logging.messageSampling.temporal.default ?? 'PT1S';
       default:
         return null;
     }
+  }
+
+  isGreaterOrEqualThanLimitIso8601(): ValidatorFn | null {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const value = control.value;
+      const limit = this.settings?.logging?.messageSampling?.temporal?.limit;
+
+      try {
+        const valueDuration = duration(value);
+        const limitDuration = duration(limit);
+
+        if (!!value && valueDuration.asSeconds() > 0 && valueDuration < limitDuration) {
+          control.markAsTouched();
+          return { minTemporal: `Temporal message sampling should be greater than ${limit}` };
+        }
+      } catch (e) {
+        control.markAsTouched();
+        return null;
+      }
+      return null;
+    };
   }
 }
