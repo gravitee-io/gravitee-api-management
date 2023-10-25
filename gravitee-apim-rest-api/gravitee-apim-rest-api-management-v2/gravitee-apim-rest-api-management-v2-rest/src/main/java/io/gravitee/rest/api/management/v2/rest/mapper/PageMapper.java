@@ -18,6 +18,8 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.documentation.usecase.ApiUpdateDocumentationPageUsecase;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.rest.api.management.v2.rest.model.*;
 import io.gravitee.rest.api.model.MediaEntity;
@@ -86,6 +88,27 @@ public interface PageMapper {
 
     Breadcrumb map(io.gravitee.apim.core.documentation.model.Breadcrumb breadcrumb);
     List<Breadcrumb> map(List<io.gravitee.apim.core.documentation.model.Breadcrumb> breadcrumbList);
+
+    // UPDATE
+    @Mapping(target = "apiId", source = "apiId")
+    @Mapping(target = "pageId", source = "pageId")
+    @Mapping(target = "auditInfo", source = "auditInfo")
+    ApiUpdateDocumentationPageUsecase.Input map(
+        UpdateDocumentationMarkdown updateDocumentationMarkdown,
+        String apiId,
+        String pageId,
+        AuditInfo auditInfo
+    );
+
+    @Mapping(target = "apiId", source = "apiId")
+    @Mapping(target = "pageId", source = "pageId")
+    @Mapping(target = "auditInfo", source = "auditInfo")
+    ApiUpdateDocumentationPageUsecase.Input map(
+        UpdateDocumentationFolder updateDocumentationFolder,
+        String apiId,
+        String pageId,
+        AuditInfo auditInfo
+    );
 
     @Named("deserializeJsonConfiguration")
     default JsonNode deserializeJsonConfiguration(Object configuration) throws JsonProcessingException {

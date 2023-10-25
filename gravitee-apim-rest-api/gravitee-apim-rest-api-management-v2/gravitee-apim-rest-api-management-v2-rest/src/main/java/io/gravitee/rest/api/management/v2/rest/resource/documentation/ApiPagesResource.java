@@ -21,11 +21,10 @@ import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.documentation.usecase.ApiCreateDocumentationPageUsecase;
 import io.gravitee.apim.core.documentation.usecase.ApiGetDocumentationPageUsecase;
 import io.gravitee.apim.core.documentation.usecase.ApiGetDocumentationPagesUsecase;
+import io.gravitee.apim.core.documentation.usecase.ApiUpdateDocumentationPageUsecase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.PageMapper;
-import io.gravitee.rest.api.management.v2.rest.model.ApiDocumentationPagesResponse;
-import io.gravitee.rest.api.management.v2.rest.model.CreateDocumentation;
-import io.gravitee.rest.api.management.v2.rest.model.CreateDocumentationMarkdown;
+import io.gravitee.rest.api.management.v2.rest.model.*;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -36,6 +35,7 @@ import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.*;
+import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Response;
 import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.factory.Mappers;
@@ -51,6 +51,9 @@ public class ApiPagesResource extends AbstractResource {
 
     @Inject
     private ApiGetDocumentationPageUsecase apiGetDocumentationPageUsecase;
+
+    @Inject
+    private ApiUpdateDocumentationPageUsecase updateDocumentationPageUsecase;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -70,15 +73,6 @@ public class ApiPagesResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.CREATE }) })
     public Response createDocumentationPage(@PathParam("apiId") String apiId, @Valid @NotNull CreateDocumentation createDocumentation) {
-        var executionContext = GraviteeContext.getExecutionContext();
-        var user = getAuthenticatedUserDetails();
-        var auditInfo = AuditInfo
-            .builder()
-            .organizationId(executionContext.getOrganizationId())
-            .environmentId(executionContext.getEnvironmentId())
-            .actor(AuditActor.builder().userId(user.getUsername()).userSource(user.getSource()).userSourceId(user.getSourceId()).build())
-            .build();
-
         Page pageToCreate = createDocumentation.getActualInstance() instanceof CreateDocumentationMarkdown
             ? Mappers.getMapper(PageMapper.class).map(createDocumentation.getCreateDocumentationMarkdown())
             : Mappers.getMapper(PageMapper.class).map(createDocumentation.getCreateDocumentationFolder());
@@ -87,7 +81,7 @@ public class ApiPagesResource extends AbstractResource {
         pageToCreate.setReferenceType(Page.ReferenceType.API);
 
         var createdPage = apiCreateDocumentationPageUsecase
-            .execute(ApiCreateDocumentationPageUsecase.Input.builder().page(pageToCreate).auditInfo(auditInfo).build())
+            .execute(ApiCreateDocumentationPageUsecase.Input.builder().page(pageToCreate).auditInfo(getAuditInfo()).build())
             .createdPage();
 
         return Response.ok(Mappers.getMapper(PageMapper.class).mapPage(createdPage)).build();
@@ -100,5 +94,36 @@ public class ApiPagesResource extends AbstractResource {
     public Response getApiPage(@PathParam("apiId") String apiId, @PathParam("pageId") String pageId) {
         var page = apiGetDocumentationPageUsecase.execute(new ApiGetDocumentationPageUsecase.Input(apiId, pageId)).page();
         return Response.ok(Mappers.getMapper(PageMapper.class).mapPage(page)).build();
+    }
+
+    @PUT
+    @Path("{pageId}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.UPDATE }) })
+    public Response updateApiPage(
+        @PathParam("apiId") String apiId,
+        @PathParam("pageId") String pageId,
+        @Valid @NotNull UpdateDocumentation updateDocumentation
+    ) {
+        var mapper = Mappers.getMapper(PageMapper.class);
+        var auditInfo = getAuditInfo();
+        var input = updateDocumentation.getActualInstance() instanceof UpdateDocumentationMarkdown
+            ? mapper.map(updateDocumentation.getUpdateDocumentationMarkdown(), apiId, pageId, auditInfo)
+            : mapper.map(updateDocumentation.getUpdateDocumentationFolder(), apiId, pageId, auditInfo);
+
+        var page = updateDocumentationPageUsecase.execute(input).page();
+        return Response.ok(mapper.mapPage(page)).build();
+    }
+
+    private AuditInfo getAuditInfo() {
+        var executionContext = GraviteeContext.getExecutionContext();
+        var user = getAuthenticatedUserDetails();
+        return AuditInfo
+            .builder()
+            .organizationId(executionContext.getOrganizationId())
+            .environmentId(executionContext.getEnvironmentId())
+            .actor(AuditActor.builder().userId(user.getUsername()).userSource(user.getSource()).userSourceId(user.getSourceId()).build())
+            .build();
     }
 }
