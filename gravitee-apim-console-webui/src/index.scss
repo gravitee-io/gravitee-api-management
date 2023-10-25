@@ -25,7 +25,30 @@
 // Not encapsulated because used when encapsulation is .mat
 @import 'components/contextual/contextual-doc.component';
 @import 'management/api/api';
+<<<<<<< HEAD
 @import 'management/application/creation/steps/application-creation';
+=======
+@import 'management/api/creation/newApi';
+@import 'management/application/creation/applications';
+
+@import 'management/configuration/theme/theme';
+@import 'management/configuration/portal/portal';
+@import 'management/configuration/groups/group/group';
+@import 'management/configuration/categories/category/category';
+@import 'management/datatable';
+@import 'management/forms';
+@import 'management/instances/instances';
+@import 'management/stepper';
+@import 'management/submenu';
+@import 'management/tasks/tasks';
+@import 'management/dashboard/analytics-dashboard/analytics-dashboard';
+@import 'management/dashboard/apis-status-dashboard/apis-status-dashboard';
+@import 'management/dashboard/home-dashboard/home-dashboard';
+@import 'management/api-key/api-keys';
+
+@import 'user/user';
+@import 'user/newsletter/newsletter-subscription';
+>>>>>>> bc5ec6ef1b (fix: restore style of Application creation workflow and handle empty state)
 @import 'user/login/login';
 @import 'components/newsletter-subcription/newsletter-reminder';
 @import 'management/submenu';
