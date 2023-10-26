@@ -15,12 +15,15 @@
  */
 package io.gravitee.repository.elasticsearch.v4.log;
 
+import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepositoryTest;
 import io.gravitee.repository.log.v4.model.connection.ConnectionLog;
+import io.gravitee.repository.log.v4.model.connection.ConnectionLogDetail;
+import io.gravitee.repository.log.v4.model.connection.ConnectionLogDetailQuery;
 import io.gravitee.repository.log.v4.model.connection.ConnectionLogQuery;
 import io.gravitee.repository.log.v4.model.connection.ConnectionLogQuery.Filter;
 import io.gravitee.repository.log.v4.model.message.AggregatedMessageLog;
@@ -34,6 +37,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -47,13 +51,13 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
     private LogElasticsearchRepository logV4Repository;
 
     @Nested
-    class SearchConnectionLog {
+    class SearchConnectionLogs {
 
         @Test
         void should_return_the_1st_page_of_connection_logs_of_an_api() {
             var today = DATE_FORMATTER.format(Instant.now());
 
-            var result = logV4Repository.searchConnectionLog(
+            var result = logV4Repository.searchConnectionLogs(
                 ConnectionLogQuery.builder().filter(Filter.builder().apiId("f1608475-dd77-4603-a084-75dd775603e9").build()).size(2).build()
             );
             assertThat(result).isNotNull();
@@ -95,7 +99,7 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
         void should_return_a_page_of_connection_logs_of_an_api() {
             var yesterday = DATE_FORMATTER.format(Instant.now().minus(1, ChronoUnit.DAYS));
 
-            var result = logV4Repository.searchConnectionLog(
+            var result = logV4Repository.searchConnectionLogs(
                 ConnectionLogQuery
                     .builder()
                     .page(3)
@@ -162,7 +166,7 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
                     .toEpochSecond() *
                 1000;
 
-            var result = logV4Repository.searchConnectionLog(
+            var result = logV4Repository.searchConnectionLogs(
                 ConnectionLogQuery.builder().page(1).size(10).filter(Filter.builder().from(from).to(to).build()).build()
             );
             assertThat(result).isNotNull();
@@ -189,7 +193,7 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
                     .toEpochSecond() *
                 1000;
 
-            var result = logV4Repository.searchConnectionLog(
+            var result = logV4Repository.searchConnectionLogs(
                 ConnectionLogQuery.builder().page(1).size(10).filter(Filter.builder().to(to).build()).build()
             );
             assertThat(result).isNotNull();
@@ -209,7 +213,7 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
                 ZonedDateTime.ofInstant(Instant.now(), ZoneOffset.UTC).withHour(0).withMinute(1).withSecond(0).withNano(0).toEpochSecond() *
                 1000;
 
-            var result = logV4Repository.searchConnectionLog(
+            var result = logV4Repository.searchConnectionLogs(
                 ConnectionLogQuery.builder().page(1).size(10).filter(Filter.builder().from(from).build()).build()
             );
             assertThat(result).isNotNull();
@@ -229,7 +233,7 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
             var today = DATE_FORMATTER.format(Instant.now());
             var yesterday = DATE_FORMATTER.format(Instant.now().minus(1, ChronoUnit.DAYS));
 
-            var result = logV4Repository.searchConnectionLog(
+            var result = logV4Repository.searchConnectionLogs(
                 ConnectionLogQuery
                     .builder()
                     .page(1)
@@ -258,7 +262,7 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
         void should_return_the_connection_logs_for_plans() {
             var today = DATE_FORMATTER.format(Instant.now());
 
-            var result = logV4Repository.searchConnectionLog(
+            var result = logV4Repository.searchConnectionLogs(
                 ConnectionLogQuery
                     .builder()
                     .page(1)
@@ -281,6 +285,74 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
                     tuple("26c61cfc-a4cc-4272-861c-fca4cc2272ab", today + "T06:55:39.245Z"),
                     tuple("5fc3b3e5-7aa7-408e-83b3-e57aa7708ed4", today + "T06:54:30.047Z")
                 );
+        }
+    }
+
+    @Nested
+    class SearchConnectionLogDetail {
+
+        @Test
+        void should_return_empty_result() {
+            var result = logV4Repository.searchConnectionLogDetail(
+                ConnectionLogDetailQuery.builder().filter(ConnectionLogDetailQuery.Filter.builder().apiId("notExisting").build()).build()
+            );
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        void should_return_result() {
+            var today = DATE_FORMATTER.format(Instant.now());
+
+            var result = logV4Repository.searchConnectionLogDetail(
+                ConnectionLogDetailQuery
+                    .builder()
+                    .filter(
+                        ConnectionLogDetailQuery.Filter
+                            .builder()
+                            .apiId("f1608475-dd77-4603-a084-75dd775603e9")
+                            .requestId("26c61cfc-a4cc-4272-861c-fca4cc2272ab")
+                            .build()
+                    )
+                    .build()
+            );
+            assertThat(result)
+                .hasValueSatisfying(connectionLogDetail -> {
+                    assertThat(connectionLogDetail)
+                        .hasFieldOrPropertyWithValue("apiId", "f1608475-dd77-4603-a084-75dd775603e9")
+                        .hasFieldOrPropertyWithValue("requestId", "26c61cfc-a4cc-4272-861c-fca4cc2272ab")
+                        .hasFieldOrPropertyWithValue("timestamp", today + "T06:55:39.245Z")
+                        .hasFieldOrPropertyWithValue("clientIdentifier", "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0")
+                        .hasFieldOrPropertyWithValue("requestEnded", true);
+                    assertThat(connectionLogDetail.getEntrypointRequest())
+                        .hasFieldOrPropertyWithValue("method", "POST")
+                        .hasFieldOrPropertyWithValue("uri", "/jgi-message-logs-kafka/")
+                        .extracting(ConnectionLogDetail.Request::getHeaders, as(InstanceOfAssertFactories.map(String.class, List.class)))
+                        .containsEntry("Accept", List.of("application/json, */*;q=0.5"))
+                        .containsEntry("X-Request-ID", List.of("41b21c20b0ffba8f15871e5be2913766"));
+                    assertThat(connectionLogDetail.getEndpointRequest())
+                        .hasFieldOrPropertyWithValue("method", "POST")
+                        .hasFieldOrPropertyWithValue("uri", "")
+                        .extracting(ConnectionLogDetail.Request::getHeaders, as(InstanceOfAssertFactories.map(String.class, List.class)))
+                        .containsEntry("Accept", List.of("application/json, */*;q=0.5"))
+                        .containsEntry("X-Request-ID", List.of("41b21c20b0ffba8f15871e5be2913766"));
+                    assertThat(connectionLogDetail.getEntrypointResponse())
+                        .hasFieldOrPropertyWithValue("status", 200)
+                        .extracting(ConnectionLogDetail.Response::getHeaders, as(InstanceOfAssertFactories.map(String.class, List.class)))
+                        .containsAllEntriesOf(
+                            Map.of(
+                                "X-Gravitee-Client-Identifier",
+                                List.of("12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"),
+                                "X-Gravitee-Transaction-Id",
+                                List.of("26c61cfc-a4cc-4272-861c-fca4cc2272ab"),
+                                "X-Gravitee-Request-Id",
+                                List.of("26c61cfc-a4cc-4272-861c-fca4cc2272ab")
+                            )
+                        );
+                    assertThat(connectionLogDetail.getEndpointResponse())
+                        .hasFieldOrPropertyWithValue("status", 200)
+                        .extracting(ConnectionLogDetail.Response::getHeaders, as(InstanceOfAssertFactories.map(String.class, List.class)))
+                        .isEmpty();
+                });
         }
     }
 

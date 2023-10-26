@@ -13,16 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.log.crud_service;
+package io.gravitee.rest.api.model.v4.log;
 
-import io.gravitee.apim.core.log.model.AggregatedMessageLog;
-import io.gravitee.rest.api.model.common.Pageable;
-import io.gravitee.rest.api.model.v4.log.SearchLogsResponse;
+import java.util.List;
 
-/**
- * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
- * @author GraviteeSource Team
- */
-public interface MessageLogCrudService {
-    SearchLogsResponse<AggregatedMessageLog> searchApiMessageLog(String apiId, String requestId, Pageable pageable);
-}
+public record SearchLogsResponse<T>(long total, List<T> logs) {}

@@ -13,8 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.model.v4.log;
+package io.gravitee.repository.log.v4.model.connection;
 
-import java.util.List;
+import lombok.Builder;
+import lombok.Data;
 
-public record SearchLogResponse<T>(long total, List<T> logs) {}
+@Builder
+@Data
+public class ConnectionLogDetailQuery {
+
+    private Filter filter;
+
+    @Data
+    @Builder
+    public static class Filter {
+
+        private String apiId;
+        private final String requestId;
+    }
+}

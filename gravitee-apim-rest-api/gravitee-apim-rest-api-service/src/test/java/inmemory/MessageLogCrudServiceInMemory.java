@@ -18,7 +18,7 @@ package inmemory;
 import io.gravitee.apim.core.log.crud_service.MessageLogCrudService;
 import io.gravitee.apim.core.log.model.AggregatedMessageLog;
 import io.gravitee.rest.api.model.common.Pageable;
-import io.gravitee.rest.api.model.v4.log.SearchLogResponse;
+import io.gravitee.rest.api.model.v4.log.SearchLogsResponse;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -30,7 +30,7 @@ public class MessageLogCrudServiceInMemory implements MessageLogCrudService, InM
     private final List<AggregatedMessageLog> storage = new ArrayList<>();
 
     @Override
-    public SearchLogResponse<AggregatedMessageLog> searchApiMessageLog(String apiId, String requestId, Pageable pageable) {
+    public SearchLogsResponse<AggregatedMessageLog> searchApiMessageLog(String apiId, String requestId, Pageable pageable) {
         Predicate<AggregatedMessageLog> predicate = baseMessageLog ->
             baseMessageLog.getApiId().equals(apiId) && baseMessageLog.getRequestId().equals(requestId);
         var pageNumber = pageable.getPageNumber();
@@ -44,7 +44,7 @@ public class MessageLogCrudServiceInMemory implements MessageLogCrudService, InM
 
         var page = matches.size() <= pageSize ? matches : matches.subList((pageNumber - 1) * pageSize, pageNumber * pageSize);
 
-        return new SearchLogResponse<>(matches.size(), page);
+        return new SearchLogsResponse<>(matches.size(), page);
     }
 
     @Override
