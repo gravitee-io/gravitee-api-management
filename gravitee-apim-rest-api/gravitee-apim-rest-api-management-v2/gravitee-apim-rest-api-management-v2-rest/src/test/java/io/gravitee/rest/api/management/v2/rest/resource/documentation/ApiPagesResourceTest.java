@@ -370,6 +370,37 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                         .build()
                 );
         }
+
+        @Test
+        void should_throw_error_if_parent_not_folder() {
+            Page page1 = Page
+                .builder()
+                .referenceType(Page.ReferenceType.API)
+                .referenceId("api-id")
+                .type(Page.Type.MARKDOWN)
+                .id("page-1")
+                .name("page-1")
+                .parentId("parent-id")
+                .build();
+            Page parent = Page
+                .builder()
+                .referenceType(Page.ReferenceType.API)
+                .referenceId("api-id")
+                .type(Page.Type.MARKDOWN)
+                .id("parent-id")
+                .name("markdown")
+                .parentId("")
+                .build();
+            givenApiPagesQuery(List.of(page1, parent));
+            final Response response = rootTarget().queryParam("parentId", "parent-id").request().get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(400)
+                .asError()
+                .hasHttpStatus(400)
+                .hasMessage("parentId must be a FOLDER: parent-id");
+        }
     }
 
     @Nested

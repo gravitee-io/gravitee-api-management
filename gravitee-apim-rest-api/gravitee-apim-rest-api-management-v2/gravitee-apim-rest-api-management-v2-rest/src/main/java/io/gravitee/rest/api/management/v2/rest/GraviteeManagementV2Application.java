@@ -16,6 +16,8 @@
 package io.gravitee.rest.api.management.v2.rest;
 
 import io.gravitee.rest.api.management.v2.rest.exceptionMapper.*;
+import io.gravitee.rest.api.management.v2.rest.exceptionMapper.domain.TechnicalDomainExceptionMapper;
+import io.gravitee.rest.api.management.v2.rest.exceptionMapper.domain.ValidationDomainExceptionMapper;
 import io.gravitee.rest.api.management.v2.rest.provider.ByteArrayOutputStreamWriter;
 import io.gravitee.rest.api.management.v2.rest.provider.CommaSeparatedQueryParamConverterProvider;
 import io.gravitee.rest.api.management.v2.rest.provider.ObjectMapperResolver;
@@ -84,6 +86,9 @@ public class GraviteeManagementV2Application extends ResourceConfig {
         register(BadRequestExceptionMapper.class);
         register(PreconditionFailedExceptionMapper.class);
         register(ValidationExceptionMapper.class);
+
+        register(ValidationDomainExceptionMapper.class);
+        register(TechnicalDomainExceptionMapper.class);
 
         register(CommaSeparatedQueryParamConverterProvider.class);
 
