@@ -54,4 +54,8 @@ export class ApiDocumentationV2Service {
   updateDocumentationPage(apiId: string, pageId: string, editPage: EditDocumentationMarkdown): Observable<Page> {
     return this.http.put<Page>(`${this.constants.env.v2BaseURL}/apis/${apiId}/pages/${pageId}`, editPage);
   }
+
+  publishDocumentationPage(apiId: string, pageId: string): Observable<Page> {
+    return this.http.post<Page>(`${this.constants.env.v2BaseURL}/apis/${apiId}/pages/${pageId}/_publish`, {});
+  }
 }
