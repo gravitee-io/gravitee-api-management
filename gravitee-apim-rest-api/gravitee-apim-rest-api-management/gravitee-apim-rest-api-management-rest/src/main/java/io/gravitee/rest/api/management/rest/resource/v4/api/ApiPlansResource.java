@@ -261,7 +261,7 @@ public class ApiPlansResource extends AbstractResource {
         description = "⚠️ This resource is in alpha version. This implies that it is likely to be modified or even removed in future versions. ⚠️. <br><br>User must have the MANAGE_PLANS permission to use this service"
     )
     @ApiResponse(
-        responseCode = "204",
+        responseCode = "200",
         description = "Plan successfully closed",
         content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PlanEntity.class))
     )

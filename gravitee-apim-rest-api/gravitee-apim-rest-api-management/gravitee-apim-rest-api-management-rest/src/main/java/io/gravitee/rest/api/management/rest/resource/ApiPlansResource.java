@@ -234,7 +234,7 @@ public class ApiPlansResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Close  a plan", description = "User must have the MANAGE_PLANS permission to use this service")
     @ApiResponse(
-        responseCode = "204",
+        responseCode = "200",
         description = "Plan successfully closed",
         content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PlanEntity.class))
     )
