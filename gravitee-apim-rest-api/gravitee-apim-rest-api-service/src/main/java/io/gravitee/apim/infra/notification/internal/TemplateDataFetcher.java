@@ -122,6 +122,7 @@ public class TemplateDataFetcher {
                         .findApiMetadata(apiId)
                         .entrySet()
                         .stream()
+                        .filter(entry -> entry.getValue().getValue() != null)
                         .map(entry -> Map.entry(entry.getKey(), entry.getValue().getValue()))
                         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
