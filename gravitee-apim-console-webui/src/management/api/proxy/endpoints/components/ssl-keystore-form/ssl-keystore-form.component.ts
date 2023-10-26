@@ -40,12 +40,10 @@ type InternalFormValue = {
   jksPath?: string;
   jksContent?: string;
   jksPassword?: string;
-  jksKeyPassword?: string;
 
   pkcs12Path?: string;
   pkcs12Content?: string;
   pkcs12Password?: string;
-  pkcs12KeyPassword?: string;
 
   pemKeyPath?: string;
   pemKeyContent?: string;
@@ -111,13 +109,11 @@ export class SslKeyStoreFormComponent implements OnInit, DoCheck, OnDestroy, Con
     jksPath: new FormControl(),
     jksContent: new FormControl(),
     jksPassword: new FormControl(),
-    jksKeyPassword: new FormControl(),
 
     // PKCS12 fields
     pkcs12Password: new FormControl(),
     pkcs12Path: new FormControl(),
     pkcs12Content: new FormControl(),
-    pkcs12KeyPassword: new FormControl(),
 
     // PEM fields
     pemKeyPath: new FormControl(),
@@ -252,7 +248,6 @@ const keyStoreTypeToInternalFormValue: (keyStore?: KeyStore) => InternalFormValu
         jksPath: jksKeyStore.path,
         jksContent: jksKeyStore.content,
         jksPassword: jksKeyStore.password,
-        jksKeyPassword: jksKeyStore.keyPassword,
       };
     }
     case 'PKCS12': {
@@ -262,7 +257,6 @@ const keyStoreTypeToInternalFormValue: (keyStore?: KeyStore) => InternalFormValu
         pkcs12Path: pkcs12KeyStore.path,
         pkcs12Content: pkcs12KeyStore.content,
         pkcs12Password: pkcs12KeyStore.password,
-        pkcs12KeyPassword: pkcs12KeyStore.keyPassword,
       };
     }
     case 'PEM': {
@@ -291,7 +285,6 @@ const internalFormValueToKeyStore: (internalFormValue: InternalFormValue) => Key
         path: internalFormValue.jksPath,
         content: internalFormValue.jksContent,
         password: internalFormValue.jksPassword,
-        keyPassword: internalFormValue.jksKeyPassword,
       };
     case 'PKCS12':
       return {
@@ -299,7 +292,6 @@ const internalFormValueToKeyStore: (internalFormValue: InternalFormValue) => Key
         path: internalFormValue.pkcs12Path,
         content: internalFormValue.pkcs12Content,
         password: internalFormValue.pkcs12Password,
-        keyPassword: internalFormValue.pkcs12KeyPassword,
       };
     case 'PEM':
       return {

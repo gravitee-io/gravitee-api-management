@@ -5027,9 +5027,6 @@ components:
             allOf:
                 - $ref: "#/components/schemas/BaseKeyStore"
                 - properties:
-                      alias:
-                          type: string
-                          description: The alias of the key store
                       path:
                           type: string
                           description: The path of the key store
@@ -5040,9 +5037,6 @@ components:
                       password:
                           type: string
                           description: The password of the key store
-                      keyPassword:
-                          type: string
-                          description: The key password of the key store
 
         PEMKeyStore:
             title: "PEMKeyStore"
@@ -5068,9 +5062,6 @@ components:
             allOf:
                 - $ref: "#/components/schemas/BaseKeyStore"
                 - properties:
-                      alias:
-                          type: string
-                          description: The alias of the key store
                       path:
                           type: string
                           description: The path of the key store
@@ -5081,9 +5072,6 @@ components:
                       password:
                           type: string
                           description: The password of the key store
-                      keyPassword:
-                          type: string
-                          description: The key password of the key store
         NoneKeyStore:
             title: "NoneKeyStore"
             allOf:
@@ -5243,9 +5231,6 @@ components:
             allOf:
                 - $ref: "#/components/schemas/BaseTrustStore"
                 - properties:
-                      alias:
-                          type: string
-                          description: The alias of the trust store
                       path:
                           type: string
                           description: The path of the trust store
@@ -5273,9 +5258,6 @@ components:
             allOf:
                 - $ref: "#/components/schemas/BaseTrustStore"
                 - properties:
-                      alias:
-                          type: string
-                          description: The alias of the trust store
                       path:
                           type: string
                           description: The path of the trust store
