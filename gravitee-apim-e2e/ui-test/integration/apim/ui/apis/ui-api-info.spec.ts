@@ -185,6 +185,7 @@ describe('API Info Page functionality', () => {
     cy.getByDataTestId('confirm-dialog').click();
     cy.contains('can not be started without at least one published plan');
     cy.visit(`/#!/environments/DEFAULT/apis/${v4dangerzoneApi.id}/general`);
+    cy.contains(`${v4dangerzoneApi.name}`).should('be.visible');
     cy.getByDataTestId('api_info_dangerzone_start_api').click();
     cy.getByDataTestId('confirm-dialog').click();
     cy.contains('The API has been started with success.');
@@ -193,7 +194,7 @@ describe('API Info Page functionality', () => {
     cy.contains('The API has been stopped with success.');
   });
 
-  it('Danger Zone - Publish and Unpublish the API)', () => {
+  it('Danger Zone - Publish and Unpublish the API', () => {
     cy.visit(`/#!/environments/DEFAULT/apis/${v4dangerzoneApi.id}/general`);
     cy.getByDataTestId('api_info_dangerzone_publish_api').click();
     cy.getByDataTestId('confirm-dialog').click();
@@ -203,7 +204,7 @@ describe('API Info Page functionality', () => {
     cy.contains('The API has been unpublish with success.');
   });
 
-  it('Danger Zone - Make Public and Make Private the API)', () => {
+  it('Danger Zone - Make Public and Make Private the API', () => {
     cy.visit(`/#!/environments/DEFAULT/apis/${v4dangerzoneApi.id}/general`);
     cy.getByDataTestId('api_info_dangerzone_make_public', { timeout: 60000 }).click();
     cy.getByDataTestId('confirm-dialog').click();
@@ -213,7 +214,7 @@ describe('API Info Page functionality', () => {
     cy.contains('The API has been Make Private with success.');
   });
 
-  it('Danger Zone - Deprecate the API)', () => {
+  it('Danger Zone - Deprecate the API', () => {
     cy.visit(`/#!/environments/DEFAULT/apis/${v4dangerzoneApi.id}/general`);
     cy.getByDataTestId('api_info_dangerzone_deprecate_api').click();
     cy.getByDataTestId('confirm-dialog').click();
@@ -226,7 +227,7 @@ describe('API Info Page functionality', () => {
     cy.getByDataTestId('api_info_dangerzone_deprecate_api').should('not.exist');
   });
 
-  it('Danger Zone - Delete the API)', () => {
+  it('Danger Zone - Delete the API', () => {
     cy.visit(`/#!/environments/DEFAULT/apis/${v4dangerzoneApi.id}/general`);
     cy.getByDataTestId('api_dangerzone_delete_api').click();
     cy.getByDataTestId('confirm-input-dialog').type(`${v4dangerzoneApi.name}`);
