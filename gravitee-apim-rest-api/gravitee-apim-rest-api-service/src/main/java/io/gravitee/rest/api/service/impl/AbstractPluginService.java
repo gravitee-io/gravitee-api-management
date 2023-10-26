@@ -119,10 +119,6 @@ public abstract class AbstractPluginService<T extends ConfigurablePlugin, E exte
         return entity;
     }
 
-    protected String validateConfiguration(PlatformPluginEntity plugin, String configuration) {
-        return plugin != null ? validateConfiguration(plugin.getId(), configuration) : configuration;
-    }
-
     protected String validateConfiguration(String pluginId, String configuration) {
         if (pluginId != null && configuration != null) {
             String schema = getSchema(pluginId);

@@ -24,5 +24,4 @@ import java.util.Optional;
  */
 public interface ConnectorService extends PluginService<ConnectorPluginEntity> {
     Optional<ConnectorPluginEntity> findBySupportedType(String type);
-    String validateConnectorConfiguration(String type, String configuration);
 }

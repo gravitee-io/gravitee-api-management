@@ -74,13 +74,4 @@ public class ConnectorServiceImpl extends AbstractPluginService<ConnectorPlugin,
             .map(this::convert)
             .findAny();
     }
-
-    @Override
-    public String validateConnectorConfiguration(String type, String configuration) {
-        Optional<ConnectorPluginEntity> candidate = this.findBySupportedType(type);
-        if (candidate.isPresent()) {
-            return validateConfiguration(candidate.get(), configuration);
-        }
-        return configuration;
-    }
 }
