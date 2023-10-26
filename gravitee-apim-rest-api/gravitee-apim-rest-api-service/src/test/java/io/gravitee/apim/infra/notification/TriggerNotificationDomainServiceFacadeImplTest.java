@@ -186,7 +186,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                 PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type("USER").build(),
                 List.of(
                     ApiMetadata.builder().key("key1").value("value1").format(MetadataFormat.STRING).build(),
-                    //                    ApiMetadata.builder().key("email-support").value("${api.name}").format(MetadataFormat.STRING).build()
+                    ApiMetadata.builder().key("null_key").value(null).format(MetadataFormat.STRING).build(),
                     ApiMetadata.builder().key("email-support").value("${(api.primaryOwner.email)!''}").format(MetadataFormat.STRING).build()
                 )
             );
@@ -602,7 +602,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                 PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type("USER").build(),
                 List.of(
                     ApiMetadata.builder().key("key1").value("value1").format(MetadataFormat.STRING).build(),
-                    //                    ApiMetadata.builder().key("email-support").value("${api.name}").format(MetadataFormat.STRING).build()
+                    ApiMetadata.builder().key("null_key").value(null).format(MetadataFormat.STRING).build(),
                     ApiMetadata.builder().key("email-support").value("${(api.primaryOwner.email)!''}").format(MetadataFormat.STRING).build()
                 )
             );
