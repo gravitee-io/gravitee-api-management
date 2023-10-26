@@ -59,7 +59,6 @@ import org.apache.commons.lang3.StringUtils;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Path("/environments/{envId}/apis/{apiId}/subscriptions")
 public class ApiSubscriptionsResource extends AbstractResource {
 
     private final SubscriptionMapper subscriptionMapper = SubscriptionMapper.INSTANCE;

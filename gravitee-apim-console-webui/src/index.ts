@@ -127,16 +127,21 @@ function prepareConstants(bootstrap: any): any {
   if (bootstrap.baseURL.endsWith('/')) {
     bootstrap.baseURL = bootstrap.baseURL.slice(0, -1);
   }
-
+  // Setup base url
   constants.baseURL = bootstrap.baseURL;
+  constants.v2BaseURL = `${constants.baseURL}/v2`;
+
+  // Setup organization
   constants.org = {};
   const organizationId = bootstrap.organizationId;
   constants.org.baseURL = `${constants.baseURL}/organizations/${organizationId}`;
+  constants.org.v2BaseURL = `${constants.v2BaseURL}/organizations/${organizationId}`;
+
+  // Setup environment
   constants.env = {};
   // we use a placeholder here ({:envId}) that will be replaced in management.interceptor
   constants.env.baseURL = `${constants.org.baseURL}/environments/{:envId}`;
-  constants.v2BaseURL = `${constants.baseURL}/v2`;
-  constants.env.v2BaseURL = `${constants.v2BaseURL}/environments/{:envId}`;
+  constants.env.v2BaseURL = `${constants.org.v2BaseURL}/environments/{:envId}`;
 
   return constants;
 }

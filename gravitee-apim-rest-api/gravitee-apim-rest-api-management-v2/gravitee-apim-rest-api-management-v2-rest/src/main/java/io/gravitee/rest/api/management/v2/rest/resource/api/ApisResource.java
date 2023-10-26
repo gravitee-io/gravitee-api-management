@@ -73,8 +73,8 @@ import lombok.extern.slf4j.Slf4j;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Path("/environments/{envId}/apis")
 @Slf4j
+@Path("/apis")
 public class ApisResource extends AbstractResource {
 
     private static final String EXPAND_DEPLOYMENT_STATE = "deploymentState";

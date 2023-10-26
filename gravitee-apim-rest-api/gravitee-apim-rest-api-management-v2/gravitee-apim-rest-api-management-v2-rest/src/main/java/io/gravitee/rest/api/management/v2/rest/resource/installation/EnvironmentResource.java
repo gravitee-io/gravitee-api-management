@@ -16,37 +16,42 @@
 package io.gravitee.rest.api.management.v2.rest.resource.installation;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.management.v2.rest.mapper.OrganizationMapper;
-import io.gravitee.rest.api.management.v2.rest.model.Organization;
+import io.gravitee.rest.api.management.v2.rest.mapper.EnvironmentMapper;
+import io.gravitee.rest.api.management.v2.rest.model.Environment;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
-import io.gravitee.rest.api.service.OrganizationService;
+import io.gravitee.rest.api.management.v2.rest.resource.api.ApisResource;
+import io.gravitee.rest.api.service.EnvironmentService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
+import java.util.Collection;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Path("/organizations/{orgId}")
-public class OrganizationResource extends AbstractResource {
+public class EnvironmentResource extends AbstractResource {
 
     @Context
     private ResourceContext resourceContext;
 
     @Inject
-    private OrganizationService organizationService;
+    private EnvironmentService environmentService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Organization get(@PathParam("orgId") String orgId) {
-        return OrganizationMapper.INSTANCE.map(organizationService.findById(orgId));
+    public Environment getEnvironment(@PathParam("envId") String envId) {
+        return EnvironmentMapper.INSTANCE.map(environmentService.findByOrgAndIdOrHrid(GraviteeContext.getCurrentOrganization(), envId));
     }
 
-    @Path("/environments")
-    public EnvironmentsResource getEnvironmentsResource() {
-        return resourceContext.getResource(EnvironmentsResource.class);
+    @Path("/apis")
+    public ApisResource getApisResource() {
+        return resourceContext.getResource(ApisResource.class);
     }
 }
