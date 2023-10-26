@@ -27,6 +27,7 @@ import { MatStepperModule } from '@angular/material/stepper';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatTableModule } from '@angular/material/table';
 import { MarkdownModule } from 'ngx-markdown';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { ApiDocumentationV4EmptyStateComponent } from './components/documentation-empty-state/api-documentation-v4-empty-state.component';
 import { ApiDocumentationV4ListNavigationHeaderComponent } from './components/documentation-list-navigation-header/api-documentation-v4-list-navigation-header.component';
@@ -40,6 +41,7 @@ import { ApiDocumentationV4EditPageComponent } from './documentation-edit-page/a
 import { ApiDocumentationV4PageHeaderComponent } from './components/api-documentation-v4-page-header/api-documentation-v4-page-header.component';
 import { ApiDocumentationV4PageTitleComponent } from './components/api-documentation-v4-page-title/api-documentation-v4-page-title.component';
 import { ApiDocumentationV4BreadcrumbComponent } from './components/api-documentation-v4-breadcrumb/api-documentation-v4-breadcrumb.component';
+
 @NgModule({
   declarations: [
     ApiDocumentationV4Component,
@@ -73,6 +75,7 @@ import { ApiDocumentationV4BreadcrumbComponent } from './components/api-document
     GioMonacoEditorModule,
     GioRadioButtonModule,
     MatTableModule,
+    MatSnackBarModule,
     MarkdownModule.forRoot(),
   ],
 })

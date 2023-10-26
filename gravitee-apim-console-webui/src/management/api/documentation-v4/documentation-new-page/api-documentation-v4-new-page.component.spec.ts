@@ -25,6 +25,7 @@ import { GioConfirmDialogHarness, GioMonacoEditorHarness } from '@gravitee/ui-pa
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
+import { MatSnackBarHarness } from '@angular/material/snack-bar/testing';
 
 import { ApiDocumentationV4NewPageHarness } from './api-documentation-v4-new-page.harness';
 import { ApiDocumentationV4NewPageComponent } from './api-documentation-v4-new-page.component';
@@ -69,7 +70,7 @@ describe('ApiDocumentationV4NewPageComponent', () => {
       .compileComponents();
 
     fixture = TestBed.createComponent(ApiDocumentationV4NewPageComponent);
-    harnessLoader = await TestbedHarnessEnvironment.loader(fixture);
+    harnessLoader = TestbedHarnessEnvironment.loader(fixture);
     httpTestingController = TestBed.inject(HttpTestingController);
 
     fixture.detectChanges();
@@ -220,6 +221,26 @@ describe('ApiDocumentationV4NewPageComponent', () => {
           content: '#TITLE  This is the file content', // TODO: check why \n is removed
           parentId: 'ROOT',
         });
+      });
+
+      it('should show error if raised on save', async () => {
+        const editor = await harnessLoader.getHarness(GioMonacoEditorHarness);
+        await editor.setValue('unsafe content');
+
+        const saveBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Save' }));
+        expect(await saveBtn.isDisabled()).toEqual(false);
+        await saveBtn.click();
+
+        const req = httpTestingController.expectOne({
+          method: 'POST',
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages`,
+        });
+
+        req.flush('Cannot save unsafe content', { status: 400, statusText: 'Cannot save unsafe content' });
+        fixture.detectChanges();
+
+        const snackBar = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(MatSnackBarHarness);
+        expect(await snackBar.getMessage()).toEqual('Cannot save unsafe content');
       });
     });
   });

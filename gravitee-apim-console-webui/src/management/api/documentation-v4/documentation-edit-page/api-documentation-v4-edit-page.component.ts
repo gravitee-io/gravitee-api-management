@@ -25,6 +25,7 @@ import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-pro
 import { ApiDocumentationV2Service } from '../../../../services-ngx/api-documentation-v2.service';
 import { Breadcrumb, Page } from '../../../../entities/management-api-v2/documentation/page';
 import { EditDocumentationMarkdown } from '../../../../entities/management-api-v2/documentation/editDocumentation';
+import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 
 @Component({
   selector: 'api-documentation-edit-page',
@@ -42,6 +43,7 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
     @Inject(UIRouterState) private readonly ajsState: StateService,
     @Inject(UIRouterStateParams) private readonly ajsStateParams: StateParams,
     private readonly apiDocumentationService: ApiDocumentationV2Service,
+    private readonly snackBarService: SnackBarService,
   ) {}
 
   ngOnInit(): void {
@@ -72,8 +74,13 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
       type: 'MARKDOWN',
       content: this.content,
     };
-    this.apiDocumentationService.updateDocumentationPage(this.ajsStateParams.apiId, this.ajsStateParams.pageId, editPage).subscribe(() => {
-      this.ajsState.go('management.apis.documentationV4', { ...this.ajsStateParams, parentId: this.page.parentId });
+    this.apiDocumentationService.updateDocumentationPage(this.ajsStateParams.apiId, this.ajsStateParams.pageId, editPage).subscribe({
+      next: () => {
+        this.ajsState.go('management.apis.documentationV4', { ...this.ajsStateParams, parentId: this.page.parentId });
+      },
+      error: (error) => {
+        this.snackBarService.error(error?.error ?? 'Cannot save page');
+      },
     });
   }
 

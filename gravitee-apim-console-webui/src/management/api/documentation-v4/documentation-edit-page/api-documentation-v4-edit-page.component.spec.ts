@@ -24,6 +24,7 @@ import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
+import { MatSnackBarHarness } from '@angular/material/snack-bar/testing';
 
 import { ApiDocumentationV4EditPageComponent } from './api-documentation-v4-edit-page.component';
 
@@ -116,6 +117,24 @@ describe('ApiDocumentationV4EditPageComponent', () => {
       type: 'MARKDOWN',
       content: '## New content',
     });
+  });
+
+  it('should show error if fail to save', async () => {
+    const editor = await harnessLoader.getHarness(ApiDocumentationV4ContentEditorHarness).then((harness) => harness.getContentEditor());
+    await editor.setValue('Unsafe content');
+
+    const saveBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Save' }));
+    expect(await saveBtn.isDisabled()).toEqual(false);
+    await saveBtn.click();
+
+    const req = httpTestingController.expectOne({
+      method: 'PUT',
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages/${PAGE_ID}`,
+    });
+    req.flush('Cannot save unsafe content', { status: 400, statusText: 'Cannot save unsafe content' });
+
+    const snackBar = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(MatSnackBarHarness);
+    expect(await snackBar.getMessage()).toEqual('Cannot save unsafe content');
   });
 
   it('should request confirmation before exit without saving', async () => {
