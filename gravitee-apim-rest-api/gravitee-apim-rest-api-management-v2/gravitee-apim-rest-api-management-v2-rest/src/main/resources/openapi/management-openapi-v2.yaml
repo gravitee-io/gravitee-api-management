@@ -2749,6 +2749,7 @@ components:
             enum:
                 - PUBLIC
                 - PRIVATE
+
         ApiWorkflowState:
             type: string
             description: The status of the API regarding the review feature.
@@ -5615,39 +5616,24 @@ components:
 
         CreateDocumentation:
             type: object
-            oneOf:
-                - $ref: "#/components/schemas/CreateDocumentationFolder"
-                - $ref: "#/components/schemas/CreateDocumentationMarkdown"
-            required:
-                - name
-                - type
-            discriminator:
-                propertyName: type
-                mapping:
-                    FOLDER: CreateDocumentationFolder
-                    MARKDOWN: CreateDocumentationMarkdown
-
-        CreateDocumentationType:
-            type: string
-            description: The type of the page. Only MARKDOWN and FOLDER types can be created.
-            example: MARKDOWN
-            enum:
-                - MARKDOWN
-                - FOLDER
-
-        BaseCreateDocumentation:
-            type: object
             properties:
                 name:
                     type: string
                     description: Page's name.
                     example: My Page
+                    minLength: 1
                 type:
-                    $ref: "#/components/schemas/CreateDocumentationType"
+                    type: string
+                    description: The type of the page. Only MARKDOWN and FOLDER types can be created.
+                    example: MARKDOWN
+                    enum:
+                        - MARKDOWN
+                        - FOLDER
                 order:
                     type: integer
                     description: Page's order.
                     example: 1
+                    default: 0
                 visibility:
                     $ref: "#/components/schemas/Visibility"
                 parentId:
@@ -5668,7 +5654,7 @@ components:
             description: Create documentation folder.
             type: object
             allOf:
-                - $ref: "#/components/schemas/BaseCreateDocumentation"
+                - $ref: "#/components/schemas/CreateDocumentation"
             required:
                 - name
                 - type
@@ -5678,7 +5664,7 @@ components:
             description: Create documentation markdown page.
             type: object
             allOf:
-                - $ref: "#/components/schemas/BaseCreateDocumentation"
+                - $ref: "#/components/schemas/CreateDocumentation"
                 - properties:
                     content:
                         type: string
@@ -5694,19 +5680,6 @@ components:
 
         UpdateDocumentation:
             type: object
-            oneOf:
-                - $ref: "#/components/schemas/UpdateDocumentationFolder"
-                - $ref: "#/components/schemas/UpdateDocumentationMarkdown"
-            required:
-                - type
-            discriminator:
-                propertyName: type
-                mapping:
-                    FOLDER: UpdateDocumentationFolder
-                    MARKDOWN: UpdateDocumentationMarkdown
-
-        BaseUpdateDocumentation:
-            type: object
             properties:
                 type:
                     type: string
@@ -5718,14 +5691,17 @@ components:
                     type: string
                     description: Page's name.
                     example: My Page
+                    minLength: 1
                 order:
                     type: integer
                     description: Page's order.
                     example: 1
+                    default: 0
                 visibility:
                     $ref: "#/components/schemas/Visibility"
             required:
                 - type
+                - name
             discriminator:
                 propertyName: type
                 mapping:
@@ -5737,14 +5713,14 @@ components:
             description: Update documentation folder.
             type: object
             allOf:
-                - $ref: "#/components/schemas/BaseUpdateDocumentation"
+                - $ref: "#/components/schemas/UpdateDocumentation"
 
         UpdateDocumentationMarkdown:
             title: "UpdateDocumentationMarkdown"
             description: Update documentation markdown page.
             type: object
             allOf:
-                - $ref: "#/components/schemas/BaseUpdateDocumentation"
+                - $ref: "#/components/schemas/UpdateDocumentation"
                 - properties:
                       content:
                           type: string

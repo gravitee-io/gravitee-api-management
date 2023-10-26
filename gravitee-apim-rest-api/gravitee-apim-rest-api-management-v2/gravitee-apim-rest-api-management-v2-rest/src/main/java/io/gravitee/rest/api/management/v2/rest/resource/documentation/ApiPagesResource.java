@@ -73,9 +73,9 @@ public class ApiPagesResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.CREATE }) })
     public Response createDocumentationPage(@PathParam("apiId") String apiId, @Valid @NotNull CreateDocumentation createDocumentation) {
-        Page pageToCreate = createDocumentation.getActualInstance() instanceof CreateDocumentationMarkdown
-            ? Mappers.getMapper(PageMapper.class).map(createDocumentation.getCreateDocumentationMarkdown())
-            : Mappers.getMapper(PageMapper.class).map(createDocumentation.getCreateDocumentationFolder());
+        Page pageToCreate = createDocumentation instanceof CreateDocumentationMarkdown
+            ? Mappers.getMapper(PageMapper.class).map((CreateDocumentationMarkdown) createDocumentation)
+            : Mappers.getMapper(PageMapper.class).map((CreateDocumentationFolder) createDocumentation);
 
         pageToCreate.setReferenceId(apiId);
         pageToCreate.setReferenceType(Page.ReferenceType.API);
@@ -108,9 +108,9 @@ public class ApiPagesResource extends AbstractResource {
     ) {
         var mapper = Mappers.getMapper(PageMapper.class);
         var auditInfo = getAuditInfo();
-        var input = updateDocumentation.getActualInstance() instanceof UpdateDocumentationMarkdown
-            ? mapper.map(updateDocumentation.getUpdateDocumentationMarkdown(), apiId, pageId, auditInfo)
-            : mapper.map(updateDocumentation.getUpdateDocumentationFolder(), apiId, pageId, auditInfo);
+        var input = updateDocumentation instanceof UpdateDocumentationMarkdown
+            ? mapper.map((UpdateDocumentationMarkdown) updateDocumentation, apiId, pageId, auditInfo)
+            : mapper.map((UpdateDocumentationFolder) updateDocumentation, apiId, pageId, auditInfo);
 
         var page = updateDocumentationPageUsecase.execute(input).page();
         return Response.ok(mapper.mapPage(page)).build();
