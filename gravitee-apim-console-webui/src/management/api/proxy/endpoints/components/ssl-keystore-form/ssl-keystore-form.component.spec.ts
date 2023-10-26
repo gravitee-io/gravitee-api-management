@@ -94,7 +94,6 @@ describe('SslKeyStoreFormComponent', () => {
       content: 'content',
       password: 'password',
       path: 'path',
-      keyPassword: '',
     });
   });
 });

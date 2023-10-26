@@ -62,14 +62,11 @@ export class SslKeyStoreFormHarness extends ComponentHarness {
         const jksPath = await jksPathInput.getValue();
         const jksContentInput = await this.getInputHarness('jksContent');
         const jksContent = await jksContentInput.getValue();
-        const jksKeyPasswordInput = await this.getInputHarness('jksKeyPassword');
-        const jksKeyPassword = await jksKeyPasswordInput.getValue();
         return {
           type: KEYSTORE_TYPE_LABELS_TO_KEY['JKS'].value,
           password: jksPassword,
           path: jksPath,
           content: jksContent,
-          keyPassword: jksKeyPassword,
         };
       }
       case KEYSTORE_TYPE_LABELS_TO_KEY['PKCS12'].label: {
@@ -79,14 +76,11 @@ export class SslKeyStoreFormHarness extends ComponentHarness {
         const pkcs12Path = await pkcs12PathInput.getValue();
         const pkcs12ContentInput = await this.getInputHarness('pkcs12Content');
         const pkcs12Content = await pkcs12ContentInput.getValue();
-        const pkcs12KeyPasswordInput = await this.getInputHarness('pkcs12KeyPassword');
-        const pkcs12KeyPassword = await pkcs12KeyPasswordInput.getValue();
         return {
           type: KEYSTORE_TYPE_LABELS_TO_KEY['PKCS12'].value,
           password: pkcs12Password,
           path: pkcs12Path,
           content: pkcs12Content,
-          keyPassword: pkcs12KeyPassword,
         };
       }
       case KEYSTORE_TYPE_LABELS_TO_KEY['PEM'].label: {

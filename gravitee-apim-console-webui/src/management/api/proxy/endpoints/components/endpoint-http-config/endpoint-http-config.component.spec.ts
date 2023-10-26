@@ -262,7 +262,6 @@ describe('ApiPropertiesComponent', () => {
       hostnameVerifier: true,
       keyStore: {
         content: null,
-        keyPassword: null,
         password: 'password',
         path: 'path',
         type: 'JKS',
