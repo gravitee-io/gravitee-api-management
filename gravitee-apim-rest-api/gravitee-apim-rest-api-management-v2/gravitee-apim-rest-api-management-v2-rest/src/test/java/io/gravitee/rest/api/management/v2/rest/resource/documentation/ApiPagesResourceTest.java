@@ -15,8 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.documentation;
 
-import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
-import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
+import static io.gravitee.common.http.HttpStatusCode.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -410,7 +409,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                 .name("created page")
                 .homepage(true)
                 .content("nice content")
-                .type(CreateDocumentationType.MARKDOWN)
+                .type(CreateDocumentation.TypeEnum.MARKDOWN)
                 .order(1)
                 .parentId(null)
                 .visibility(Visibility.PUBLIC)
@@ -438,7 +437,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
             var folderToCreate = CreateDocumentationFolder
                 .builder()
                 .name("created page")
-                .type(CreateDocumentationType.FOLDER)
+                .type(CreateDocumentation.TypeEnum.FOLDER)
                 .order(1)
                 .parentId(null)
                 .visibility(Visibility.PUBLIC)
@@ -457,6 +456,50 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
             assertThat(createdPage.getId()).isNotNull();
             assertThat(createdPage.getUpdatedAt()).isNotNull();
+        }
+
+        @Test
+        public void should_not_allow_null_name() {
+            var request = CreateDocumentationMarkdown
+                .builder()
+                .type(CreateDocumentation.TypeEnum.MARKDOWN)
+                .parentId("parent")
+                .order(1)
+                .visibility(Visibility.PRIVATE)
+                .name(null)
+                .build();
+
+            final Response response = rootTarget().request().post(Entity.json(request));
+            assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(BAD_REQUEST_400)
+                .asError()
+                .hasHttpStatus(BAD_REQUEST_400)
+                .hasMessage("Validation error");
+        }
+
+        @Test
+        public void should_not_allow_empty_name() {
+            var request = CreateDocumentationMarkdown
+                .builder()
+                .type(CreateDocumentation.TypeEnum.MARKDOWN)
+                .parentId("parent")
+                .order(1)
+                .visibility(Visibility.PRIVATE)
+                .name("")
+                .build();
+
+            final Response response = rootTarget().request().post(Entity.json(request));
+            assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(BAD_REQUEST_400)
+                .asError()
+                .hasHttpStatus(BAD_REQUEST_400)
+                .hasMessage("Validation error");
         }
     }
 
@@ -588,7 +631,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                 .name("created page")
                 .homepage(true)
                 .content("nice content")
-                .type(BaseUpdateDocumentation.TypeEnum.MARKDOWN)
+                .type(UpdateDocumentation.TypeEnum.MARKDOWN)
                 .order(1)
                 .visibility(Visibility.PUBLIC)
                 .build();
@@ -630,7 +673,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
             var folderToCreate = UpdateDocumentationFolder
                 .builder()
                 .name("new name")
-                .type(BaseUpdateDocumentation.TypeEnum.FOLDER)
+                .type(UpdateDocumentation.TypeEnum.FOLDER)
                 .order(24)
                 .visibility(Visibility.PUBLIC)
                 .build();
@@ -662,6 +705,48 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
             assertThat(updatedPage.getId()).isNotNull();
             assertThat(updatedPage.getUpdatedAt()).isNotNull();
+        }
+
+        @Test
+        public void should_not_allow_null_name() {
+            var request = UpdateDocumentationMarkdown
+                .builder()
+                .type(UpdateDocumentation.TypeEnum.MARKDOWN)
+                .order(1)
+                .visibility(Visibility.PRIVATE)
+                .name(null)
+                .build();
+
+            final Response response = rootTarget().path(PAGE_ID).request().put(Entity.json(request));
+            assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(BAD_REQUEST_400)
+                .asError()
+                .hasHttpStatus(BAD_REQUEST_400)
+                .hasMessage("Validation error");
+        }
+
+        @Test
+        public void should_not_allow_empty_name() {
+            var request = UpdateDocumentationMarkdown
+                .builder()
+                .type(UpdateDocumentation.TypeEnum.MARKDOWN)
+                .order(1)
+                .visibility(Visibility.PRIVATE)
+                .name("")
+                .build();
+
+            final Response response = rootTarget().path(PAGE_ID).request().put(Entity.json(request));
+            assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(BAD_REQUEST_400)
+                .asError()
+                .hasHttpStatus(BAD_REQUEST_400)
+                .hasMessage("Validation error");
         }
     }
 
