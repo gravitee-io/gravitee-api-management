@@ -21,6 +21,8 @@ import { ApiDocumentationV2Service } from './api-documentation-v2.service';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
 import { CreateDocumentation, CreateDocumentationFolder } from '../entities/management-api-v2/documentation/createDocumentation';
 import { Page } from '../entities/management-api-v2/documentation/page';
+import { EditDocumentationMarkdown } from '../entities/management-api-v2/documentation/editDocumentation';
+import { fakeMarkdown } from '../entities/management-api-v2/documentation/page.fixture';
 
 describe('ApiDocumentationV2Service', () => {
   let httpTestingController: HttpTestingController;
@@ -38,6 +40,25 @@ describe('ApiDocumentationV2Service', () => {
 
   afterEach(() => {
     httpTestingController.verify();
+  });
+
+  describe('getPage', () => {
+    const PAGE_ID = 'page-id';
+    it('should call the API', (done) => {
+      const fakeResponse = fakeMarkdown();
+
+      service.getApiPage(API_ID, PAGE_ID).subscribe((response) => {
+        expect(response).toEqual(fakeResponse);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages/${PAGE_ID}`,
+        method: 'GET',
+      });
+
+      req.flush(fakeResponse);
+    });
   });
 
   describe('getApiPages', () => {
@@ -124,6 +145,46 @@ describe('ApiDocumentationV2Service', () => {
         method: 'POST',
       });
 
+      req.flush(fakeResponse);
+    });
+  });
+
+  describe('updateDocumentation', () => {
+    const PAGE_ID = 'page-id';
+    it('should call the API to update markdown page', (done) => {
+      const fakeResponse: Page = {};
+      const editPage: EditDocumentationMarkdown = {
+        type: 'FOLDER',
+        name: 'folder',
+        visibility: 'PUBLIC',
+        content: 'new content',
+      };
+      service.updateDocumentationPage(API_ID, PAGE_ID, editPage).subscribe((response) => {
+        expect(response).toEqual(fakeResponse);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages/${PAGE_ID}`,
+        method: 'PUT',
+      });
+      req.flush(fakeResponse);
+    });
+  });
+
+  describe('publishPage', () => {
+    const PAGE_ID = 'page-id';
+    it('should call the API to publish page', (done) => {
+      const fakeResponse: Page = fakeMarkdown();
+      service.publishDocumentationPage(API_ID, PAGE_ID).subscribe((response) => {
+        expect(response).toEqual(fakeResponse);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages/${PAGE_ID}/_publish`,
+        method: 'POST',
+      });
       req.flush(fakeResponse);
     });
   });
