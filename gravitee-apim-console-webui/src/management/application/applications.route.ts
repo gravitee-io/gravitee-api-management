@@ -21,7 +21,6 @@ import ApplicationService from '../../services/application.service';
 import ApplicationTypesService from '../../services/applicationTypes.service';
 import EnvironmentService from '../../services/environment.service';
 import GroupService from '../../services/group.service';
-import MetadataService from '../../services/metadata.service';
 
 export default applicationsConfig;
 
@@ -186,19 +185,7 @@ function applicationsConfig($stateProvider) {
     })
     .state('management.applications.application.metadata', {
       url: '/metadata',
-      component: 'metadata',
-      resolve: {
-        metadataFormats: ['MetadataService', (MetadataService: MetadataService) => MetadataService.listFormats()],
-        metadata: [
-          '$stateParams',
-          'ApplicationService',
-          function ($stateParams, ApplicationService) {
-            return ApplicationService.listMetadata($stateParams.applicationId).then((response) => {
-              return response.data;
-            });
-          },
-        ],
-      },
+      component: 'ngApplicationMetadata',
       data: {
         perms: {
           only: ['application-metadata-r'],
@@ -206,6 +193,7 @@ function applicationsConfig($stateProvider) {
         docs: {
           page: 'management-application-metadata',
         },
+        useAngularMaterial: true,
       },
     })
     .state('management.applications.application.subscriptions', {
