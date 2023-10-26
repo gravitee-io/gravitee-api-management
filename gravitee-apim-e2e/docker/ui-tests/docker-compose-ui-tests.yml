@@ -18,7 +18,7 @@ version: '3.8'
 
 services:
   cypress:
-    image: cypress/included:12.17.3
+    image: cypress/included:13.3.3
     working_dir: /test
     command: "--e2e --browser=chrome --spec 'ui-test/integration/apim/ui/**/*.ts' --config-file '/test/cypress-ui-config.ts' --record"
     volumes:
