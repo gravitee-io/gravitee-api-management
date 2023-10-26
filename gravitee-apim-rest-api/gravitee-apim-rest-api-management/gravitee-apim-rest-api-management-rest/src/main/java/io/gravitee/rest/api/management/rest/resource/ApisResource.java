@@ -22,7 +22,6 @@ import static java.util.stream.Collectors.toList;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.apim.core.api.usecase.VerifyApiPathsUsecase;
-import io.gravitee.apim.core.exception.DomainException;
 import io.gravitee.apim.core.exception.InvalidPathsException;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.data.domain.Page;
