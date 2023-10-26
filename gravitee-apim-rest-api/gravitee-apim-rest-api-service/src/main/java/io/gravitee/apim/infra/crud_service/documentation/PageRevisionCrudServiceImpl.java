@@ -18,7 +18,7 @@ package io.gravitee.apim.infra.crud_service.documentation;
 import io.gravitee.apim.core.documentation.crud_service.PageRevisionCrudService;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.documentation.model.PageRevision;
-import io.gravitee.apim.core.exception.DomainException;
+import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.infra.adapter.PageAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRevisionRepository;
@@ -58,7 +58,7 @@ public class PageRevisionCrudServiceImpl implements PageRevisionCrudService {
             return PageAdapter.INSTANCE.toEntity(createdPageRevision);
         } catch (TechnicalException e) {
             logger.error("An error occurred while creating {}", page, e);
-            throw new DomainException("Error during PageRevision creation", e);
+            throw new TechnicalDomainException("Error during PageRevision creation", e);
         }
     }
 
