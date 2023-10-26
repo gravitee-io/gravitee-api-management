@@ -453,6 +453,7 @@ import { ApplicationNotificationSettingsDetailsComponent } from './application/d
 import { EnvironmentNotificationSettingsListComponent } from './configuration/notifications/notification-settings/notification-settings-list/environment-notification-settings-list.component';
 import { EnvironmentNotificationSettingsDetailsComponent } from './configuration/notifications/notification-settings/notification-settings-details/environment-notification-settings-details.component';
 import { EnvironmentMetadataComponent } from './configuration/metadata/environment-metadata.component';
+import { ApplicationMetadataComponent } from './application/details/metadata/application-metadata.component';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -793,6 +794,7 @@ graviteeManagementModule.directive(
   'applicationNotificationSettingsDetails',
   downgradeComponent({ component: ApplicationNotificationSettingsDetailsComponent }),
 );
+graviteeManagementModule.directive('ngApplicationMetadata', downgradeComponent({ component: ApplicationMetadataComponent }));
 
 graviteeManagementModule.component('logout', LogoutComponent);
 

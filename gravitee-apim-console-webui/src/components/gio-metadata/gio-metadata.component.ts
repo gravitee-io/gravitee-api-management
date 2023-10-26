@@ -75,7 +75,7 @@ export class GioMetadataComponent implements OnInit, OnDestroy {
       .pipe(
         tap(() => {
           if (this.referenceType === 'API') {
-            this.displayedColumns.push('defaultValue');
+            this.displayedColumns.splice(-1, 0, 'defaultValue');
           }
         }),
         map((metadata) =>
