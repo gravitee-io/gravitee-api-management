@@ -18,8 +18,8 @@ import { StateParams } from '@uirouter/core';
 import { StateService } from '@uirouter/angularjs';
 import { MatDialog } from '@angular/material/dialog';
 import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
-import { switchMap, takeUntil, tap } from 'rxjs/operators';
-import { Subject } from 'rxjs';
+import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { EMPTY, Subject } from 'rxjs';
 
 import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { ApiDocumentationV2Service } from '../../../../services-ngx/api-documentation-v2.service';
@@ -69,19 +69,40 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
   }
 
   save() {
-    const editPage: EditDocumentationMarkdown = {
-      ...this.page,
-      type: 'MARKDOWN',
-      content: this.content,
-    };
-    this.apiDocumentationService.updateDocumentationPage(this.ajsStateParams.apiId, this.ajsStateParams.pageId, editPage).subscribe({
-      next: () => {
-        this.ajsState.go('management.apis.documentationV4', { ...this.ajsStateParams, parentId: this.page.parentId });
-      },
-      error: (error) => {
-        this.snackBarService.error(error?.error ?? 'Cannot save page');
-      },
+    this.savePage().subscribe(() => {
+      this.ajsState.go('management.apis.documentationV4', { ...this.ajsStateParams, parentId: this.page.parentId });
     });
+  }
+
+  saveAndPublish() {
+    this.savePage()
+      .pipe(switchMap(() => this.apiDocumentationService.publishDocumentationPage(this.ajsStateParams.apiId, this.ajsStateParams.pageId)))
+      .subscribe({
+        next: () => {
+          this.ajsState.go('management.apis.documentationV4', { ...this.ajsStateParams, parentId: this.page.parentId });
+        },
+        error: (error) => {
+          this.snackBarService.error(error?.error?.message ?? 'Cannot save page');
+        },
+      });
+  }
+
+  private savePage() {
+    return this.apiDocumentationService.getApiPage(this.ajsStateParams.apiId, this.ajsStateParams.pageId).pipe(
+      switchMap((page) => {
+        const editPage: EditDocumentationMarkdown = {
+          ...page,
+          type: 'MARKDOWN',
+          content: this.content,
+        };
+
+        return this.apiDocumentationService.updateDocumentationPage(this.ajsStateParams.apiId, this.ajsStateParams.pageId, editPage);
+      }),
+      catchError((err) => {
+        this.snackBarService.error(err?.error?.message ?? 'Cannot save page');
+        return EMPTY;
+      }),
+    );
   }
 
   exitWithoutSaving() {

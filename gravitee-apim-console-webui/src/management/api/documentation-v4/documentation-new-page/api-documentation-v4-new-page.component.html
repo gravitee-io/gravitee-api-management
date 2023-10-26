@@ -77,7 +77,8 @@
           </ng-container>
         </div>
         <div class="stepper__actions">
-          <button mat-flat-button color="primary" [disabled]="content?.length === 0" (click)="save()">Save</button>
+          <button mat-flat-button color="primary" [disabled]="content?.length === 0" (click)="saveAndPublish()">Save and publish</button>
+          <button mat-stroked-button [disabled]="content?.length === 0" (click)="save()">Save</button>
           <button mat-stroked-button matStepperPrevious>Previous</button>
         </div>
       </mat-step>

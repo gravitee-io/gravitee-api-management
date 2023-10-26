@@ -37,6 +37,7 @@ import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/test
 import { Breadcrumb, Page } from '../../../../entities/management-api-v2/documentation/page';
 import { ApiDocumentationV4ContentEditorHarness } from '../components/api-documentation-v4-content-editor/api-documentation-v4-content-editor.harness';
 import { ApiDocumentationV4BreadcrumbHarness } from '../components/api-documentation-v4-breadcrumb/api-documentation-v4-breadcrumb.harness';
+import { fakeMarkdown } from '../../../../entities/management-api-v2/documentation/page.fixture';
 
 describe('ApiDocumentationV4NewPageComponent', () => {
   let fixture: ComponentFixture<ApiDocumentationV4NewPageComponent>;
@@ -223,6 +224,36 @@ describe('ApiDocumentationV4NewPageComponent', () => {
         });
       });
 
+      it('should save and publish content', async () => {
+        const editor = await harnessLoader.getHarness(GioMonacoEditorHarness);
+        await editor.setValue('#TITLE \n This is the file content');
+
+        const saveBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Save and publish' }));
+        expect(await saveBtn.isDisabled()).toEqual(false);
+        await saveBtn.click();
+
+        const req = httpTestingController.expectOne({
+          method: 'POST',
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages`,
+        });
+
+        const page = fakeMarkdown({ id: 'page-id' });
+        req.flush(page);
+        expect(req.request.body).toEqual({
+          type: 'MARKDOWN',
+          name: 'New page',
+          visibility: 'PUBLIC',
+          content: '#TITLE  This is the file content', // TODO: check why \n is removed
+          parentId: 'ROOT',
+        });
+
+        const publishReq = httpTestingController.expectOne({
+          method: 'POST',
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages/${page.id}/_publish`,
+        });
+        publishReq.flush({ ...page, published: true });
+      });
+
       it('should show error if raised on save', async () => {
         const editor = await harnessLoader.getHarness(GioMonacoEditorHarness);
         await editor.setValue('unsafe content');
@@ -236,11 +267,39 @@ describe('ApiDocumentationV4NewPageComponent', () => {
           url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages`,
         });
 
-        req.flush('Cannot save unsafe content', { status: 400, statusText: 'Cannot save unsafe content' });
+        req.flush({ message: 'Cannot save unsafe content' }, { status: 400, statusText: 'Cannot save unsafe content' });
         fixture.detectChanges();
 
         const snackBar = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(MatSnackBarHarness);
         expect(await snackBar.getMessage()).toEqual('Cannot save unsafe content');
+      });
+
+      it('should show error if raised on publish', async () => {
+        const editor = await harnessLoader.getHarness(GioMonacoEditorHarness);
+        await editor.setValue('unsafe content');
+
+        const saveBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Save and publish' }));
+        expect(await saveBtn.isDisabled()).toEqual(false);
+        await saveBtn.click();
+
+        const page = fakeMarkdown({ id: 'page-id' });
+        const req = httpTestingController.expectOne({
+          method: 'POST',
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages`,
+        });
+
+        req.flush(page);
+
+        const publishReq = httpTestingController.expectOne({
+          method: 'POST',
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages/${page.id}/_publish`,
+        });
+        publishReq.flush({ message: 'Error on publish' }, { status: 400, statusText: 'Error on publish' });
+
+        fixture.detectChanges();
+
+        const snackBar = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(MatSnackBarHarness);
+        expect(await snackBar.getMessage()).toEqual('Error on publish');
       });
     });
   });
