@@ -1,0 +1,28 @@
+@use 'sass:map';
+@use '@angular/material/index' as mat;
+@use '@gravitee/ui-particles-angular/index' as gio;
+$typography: map.get(gio.$mat-theme, typography);
+
+.breadcrumb {
+  display: flex;
+  align-items: flex-end;
+
+  * {
+    margin-right: 8px;
+  }
+
+  &__item {
+    @include mat.typography-level($typography, 'body-2');
+    color: mat.get-color-from-palette(gio.$mat-space-palette, 'default');
+  }
+
+  &__item:last-of-type:not(:only-of-type) {
+    @include mat.typography-level($typography, 'body-2');
+    color: mat.get-color-from-palette(gio.$mat-space-palette, 'default');
+    background-color: mat.get-color-from-palette(gio.$mat-dove-palette, 'default');
+  }
+}
+
+.clickable {
+  cursor: pointer;
+}

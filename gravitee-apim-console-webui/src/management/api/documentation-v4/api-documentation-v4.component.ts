@@ -22,7 +22,7 @@ import { filter, switchMap, takeUntil } from 'rxjs/operators';
 import { StateParams } from '@uirouter/core';
 import { GIO_DIALOG_WIDTH } from '@gravitee/ui-particles-angular';
 
-import { ApiDocumentationV4AddFolderDialog } from './documentation-add-folder-dialog/api-documentation-v4-add-folder-dialog.component';
+import { ApiDocumentationV4AddFolderDialog } from './dialog/documentation-add-folder-dialog/api-documentation-v4-add-folder-dialog.component';
 
 import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { ApiDocumentationV2Service } from '../../../services-ngx/api-documentation-v2.service';

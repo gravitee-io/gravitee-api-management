@@ -28,10 +28,10 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatTableModule } from '@angular/material/table';
 import { MarkdownModule } from 'ngx-markdown';
 
-import { ApiDocumentationV4EmptyStateComponent } from './documentation-empty-state/api-documentation-v4-empty-state.component';
-import { ApiDocumentationV4NavigationHeaderComponent } from './documentation-navigation-header/api-documentation-v4-navigation-header.component';
+import { ApiDocumentationV4EmptyStateComponent } from './components/documentation-empty-state/api-documentation-v4-empty-state.component';
+import { ApiDocumentationV4ListNavigationHeaderComponent } from './components/documentation-list-navigation-header/api-documentation-v4-list-navigation-header.component';
 import { ApiDocumentationV4Component } from './api-documentation-v4.component';
-import { ApiDocumentationV4AddFolderDialog } from './documentation-add-folder-dialog/api-documentation-v4-add-folder-dialog.component';
+import { ApiDocumentationV4AddFolderDialog } from './dialog/documentation-add-folder-dialog/api-documentation-v4-add-folder-dialog.component';
 import { ApiDocumentationV4NewPageComponent } from './documentation-new-page/api-documentation-v4-new-page.component';
 import { ApiDocumentationV4VisibilityComponent } from './components/api-documentation-v4-visibility/api-documentation-v4-visibility.component';
 import { ApiDocumentationV4PagesListComponent } from './documentation-pages-list/api-documentation-v4-pages-list.component';
@@ -39,19 +39,22 @@ import { ApiDocumentationV4ContentEditorComponent } from './components/api-docum
 import { ApiDocumentationV4EditPageComponent } from './documentation-edit-page/api-documentation-v4-edit-page.component';
 import { ApiDocumentationV4PageHeaderComponent } from './components/api-documentation-v4-page-header/api-documentation-v4-page-header.component';
 import { ApiDocumentationV4PageTitleComponent } from './components/api-documentation-v4-page-title/api-documentation-v4-page-title.component';
+import { ApiDocumentationV4BreadcrumbComponent } from './components/api-documentation-v4-breadcrumb/api-documentation-v4-breadcrumb.component';
 @NgModule({
   declarations: [
     ApiDocumentationV4Component,
     ApiDocumentationV4EmptyStateComponent,
-    ApiDocumentationV4NavigationHeaderComponent,
+    ApiDocumentationV4ListNavigationHeaderComponent,
     ApiDocumentationV4VisibilityComponent,
     ApiDocumentationV4ContentEditorComponent,
     ApiDocumentationV4PageHeaderComponent,
     ApiDocumentationV4PageTitleComponent,
+    ApiDocumentationV4BreadcrumbComponent,
     ApiDocumentationV4AddFolderDialog,
     ApiDocumentationV4NewPageComponent,
     ApiDocumentationV4EditPageComponent,
     ApiDocumentationV4PagesListComponent,
+    ApiDocumentationV4BreadcrumbComponent,
   ],
   exports: [ApiDocumentationV4Component],
   imports: [

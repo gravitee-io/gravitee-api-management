@@ -25,7 +25,7 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { ApiDocumentationV4AddFolderDialog } from './api-documentation-v4-add-folder-dialog.component';
 import { ApiDocumentationV4AddFolderDialogHarness } from './api-documentation-v4-add-folder-dialog.harness';
 
-import { ApiDocumentationV4Module } from '../api-documentation-v4.module';
+import { ApiDocumentationV4Module } from '../../api-documentation-v4.module';
 
 @Component({
   selector: 'gio-dialog-test',

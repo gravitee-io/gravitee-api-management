@@ -17,8 +17,10 @@ import { ComponentHarness } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { DivHarness } from '@gravitee/ui-particles-angular/testing';
 
-export class ApiDocumentationV4NavigationHeaderHarness extends ComponentHarness {
-  public static hostSelector = 'api-documentation-navigation-header';
+import { ApiDocumentationV4BreadcrumbHarness } from '../api-documentation-v4-breadcrumb/api-documentation-v4-breadcrumb.harness';
+
+export class ApiDocumentationV4ListNavigationHeaderHarness extends ComponentHarness {
+  public static hostSelector = 'api-documentation-list-navigation-header';
 
   private addNewFolderButtonLocator = this.locatorFor(MatButtonHarness.with({ text: 'Add new folder' }));
   public async clickAddNewFolder() {
@@ -32,6 +34,6 @@ export class ApiDocumentationV4NavigationHeaderHarness extends ComponentHarness 
   }
 
   async getBreadcrumb(): Promise<string> {
-    return this.locatorFor(DivHarness.with({ selector: '.header__breadcrumb' }))().then((el) => el.getText());
+    return this.locatorFor(ApiDocumentationV4BreadcrumbHarness)().then((el) => el.getContent());
   }
 }

@@ -24,7 +24,6 @@ import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
-import { DivHarness } from '@gravitee/ui-particles-angular/testing';
 
 import { ApiDocumentationV4EditPageComponent } from './api-documentation-v4-edit-page.component';
 
@@ -35,6 +34,7 @@ import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/test
 import { Breadcrumb, Page } from '../../../../entities/management-api-v2/documentation/page';
 import { ApiDocumentationV4ContentEditorHarness } from '../components/api-documentation-v4-content-editor/api-documentation-v4-content-editor.harness';
 import { fakeMarkdown } from '../../../../entities/management-api-v2/documentation/page.fixture';
+import { ApiDocumentationV4BreadcrumbHarness } from '../components/api-documentation-v4-breadcrumb/api-documentation-v4-breadcrumb.harness';
 
 describe('ApiDocumentationV4EditPageComponent', () => {
   let fixture: ComponentFixture<ApiDocumentationV4EditPageComponent>;
@@ -157,8 +157,8 @@ describe('ApiDocumentationV4EditPageComponent', () => {
   });
 
   it('should show breadcrumb', async () => {
-    const harness = await harnessLoader.getHarness(DivHarness.with({ selector: '.navigation__location__breadcrumb' }));
-    expect(await harness.getText()).toEqual('Home>Parent folder');
+    const harness = await harnessLoader.getHarness(ApiDocumentationV4BreadcrumbHarness);
+    expect(await harness.getContent()).toEqual('Home>Parent folder');
   });
 
   const expectGetPage = (page: Page, pageId: string) => {

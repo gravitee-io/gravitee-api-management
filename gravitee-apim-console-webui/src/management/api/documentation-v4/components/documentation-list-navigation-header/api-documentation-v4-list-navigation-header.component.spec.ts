@@ -18,22 +18,23 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { InteractivityChecker } from '@angular/cdk/a11y';
-import { DivHarness } from '@gravitee/ui-particles-angular/testing';
+import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 
-import { ApiDocumentationV4EmptyStateComponent } from './api-documentation-v4-empty-state.component';
+import { ApiDocumentationV4ListNavigationHeaderComponent } from './api-documentation-v4-list-navigation-header.component';
 
-import { ApiDocumentationV4Module } from '../api-documentation-v4.module';
+import { ApiDocumentationV4Module } from '../../api-documentation-v4.module';
+import { ApiDocumentationV4BreadcrumbHarness } from '../api-documentation-v4-breadcrumb/api-documentation-v4-breadcrumb.harness';
 
-describe('ApiDocumentationV4EmptyStateComponent', () => {
-  let fixture: ComponentFixture<ApiDocumentationV4EmptyStateComponent>;
-  let component: ApiDocumentationV4EmptyStateComponent;
+describe('ApiDocumentationV4NavigationHeaderComponent', () => {
+  let fixture: ComponentFixture<ApiDocumentationV4ListNavigationHeaderComponent>;
+  let component: ApiDocumentationV4ListNavigationHeaderComponent;
   let harnessLoader: HarnessLoader;
 
   const init = async () => {
     await TestBed.configureTestingModule({
-      declarations: [ApiDocumentationV4EmptyStateComponent],
-      imports: [NoopAnimationsModule, ApiDocumentationV4Module],
+      declarations: [ApiDocumentationV4ListNavigationHeaderComponent],
+      imports: [NoopAnimationsModule, ApiDocumentationV4Module, MatIconTestingModule],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {
@@ -42,23 +43,21 @@ describe('ApiDocumentationV4EmptyStateComponent', () => {
       })
       .compileComponents();
 
-    fixture = TestBed.createComponent(ApiDocumentationV4EmptyStateComponent);
+    fixture = TestBed.createComponent(ApiDocumentationV4ListNavigationHeaderComponent);
     component = fixture.componentInstance;
     harnessLoader = await TestbedHarnessEnvironment.loader(fixture);
   };
 
   beforeEach(async () => await init());
 
-  it('should show empty state text', async () => {
-    const title = await harnessLoader.getHarness(DivHarness.with({ selector: '.mat-h2' }));
-    expect(await title.getText()).toEqual('No pages available yet');
-    const subtitle = await harnessLoader.getHarness(DivHarness.with({ selector: '.mat-body-1' }));
-    expect(await subtitle.getText()).toEqual('Start creating pages to fill up your folder.');
+  it('should show breadcrumb', async () => {
+    const breadcrumb = await harnessLoader.getHarness(ApiDocumentationV4BreadcrumbHarness);
+    expect(await breadcrumb.getContent()).toEqual('Home');
   });
 
   it('should emit event when clicking on add button', async () => {
-    const spy = jest.spyOn(component.onAddPage, 'emit');
-    const button = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Add new page' }));
+    const spy = jest.spyOn(component.onAddFolder, 'emit');
+    const button = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Add new folder' }));
     await button.click();
 
     expect(spy).toHaveBeenCalled();

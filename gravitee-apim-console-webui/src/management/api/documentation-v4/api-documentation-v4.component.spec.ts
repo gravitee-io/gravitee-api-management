@@ -22,9 +22,9 @@ import { HttpTestingController } from '@angular/common/http/testing';
 
 import { ApiDocumentationV4Component } from './api-documentation-v4.component';
 import { ApiDocumentationV4Module } from './api-documentation-v4.module';
-import { ApiDocumentationV4EmptyStateHarness } from './documentation-empty-state/api-documentation-v4-empty-state.harness';
-import { ApiDocumentationV4NavigationHeaderHarness } from './documentation-navigation-header/api-documentation-v4-navigation-header.harness';
-import { ApiDocumentationV4AddFolderDialogHarness } from './documentation-add-folder-dialog/api-documentation-v4-add-folder-dialog.harness';
+import { ApiDocumentationV4EmptyStateHarness } from './components/documentation-empty-state/api-documentation-v4-empty-state.harness';
+import { ApiDocumentationV4ListNavigationHeaderHarness } from './components/documentation-list-navigation-header/api-documentation-v4-list-navigation-header.harness';
+import { ApiDocumentationV4AddFolderDialogHarness } from './dialog/documentation-add-folder-dialog/api-documentation-v4-add-folder-dialog.harness';
 import { ApiDocumentationV4PagesListHarness } from './documentation-pages-list/api-documentation-v4-pages-list.harness';
 
 import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
@@ -89,7 +89,7 @@ describe('ApiDocumentationV4', () => {
           { name: 'level 2', id: 'level-2', position: 2 },
         ],
       );
-      const headerHarness = await harnessLoader.getHarness(ApiDocumentationV4NavigationHeaderHarness);
+      const headerHarness = await harnessLoader.getHarness(ApiDocumentationV4ListNavigationHeaderHarness);
       expect(await headerHarness.getBreadcrumb()).toEqual('Home>level 1>level 2');
 
       await headerHarness.clickOnBreadcrumbItem('level 1');
@@ -98,7 +98,7 @@ describe('ApiDocumentationV4', () => {
 
     it('should navigate to root', async () => {
       await init([], [{ name: 'level 1', id: 'level-1', position: 1 }]);
-      const headerHarness = await harnessLoader.getHarness(ApiDocumentationV4NavigationHeaderHarness);
+      const headerHarness = await harnessLoader.getHarness(ApiDocumentationV4ListNavigationHeaderHarness);
       await headerHarness.clickOnBreadcrumbItem('Home');
       expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.documentationV4', { parentId: 'ROOT' }, { reload: true });
     });
@@ -142,7 +142,7 @@ describe('ApiDocumentationV4', () => {
   describe('Actions', () => {
     it('should show dialog to create folder', async () => {
       await init([], []);
-      const headerHarness = await harnessLoader.getHarness(ApiDocumentationV4NavigationHeaderHarness);
+      const headerHarness = await harnessLoader.getHarness(ApiDocumentationV4ListNavigationHeaderHarness);
       await headerHarness.clickAddNewFolder();
 
       const dialogHarness = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
@@ -169,7 +169,7 @@ describe('ApiDocumentationV4', () => {
     });
     it('should create new folder under the current folder', async () => {
       await init([], [], 'parent-folder-id');
-      const headerHarness = await harnessLoader.getHarness(ApiDocumentationV4NavigationHeaderHarness);
+      const headerHarness = await harnessLoader.getHarness(ApiDocumentationV4ListNavigationHeaderHarness);
       await headerHarness.clickAddNewFolder();
 
       const dialogHarness = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
