@@ -35,8 +35,29 @@ public class OpenAPIResource {
     }
 
     @GET
+    @Path("/openapi-plugins.yaml")
+    @Produces("application/yaml")
+    public Response getPluginsOpenApi() {
+        return Response.ok(this.getClass().getClassLoader().getResourceAsStream("openapi/management-plugins-openapi-v2.yaml")).build();
+    }
+
+    @GET
     @Produces("text/html")
     public Response getOpenApiDocumentation() {
         return Response.ok(this.getClass().getClassLoader().getResourceAsStream("openapi/index.html")).build();
+    }
+
+    @GET
+    @Path("/index-management.html")
+    @Produces("text/html")
+    public Response getManagementOpenApiDocumentation() {
+        return Response.ok(this.getClass().getClassLoader().getResourceAsStream("openapi/index-management.html")).build();
+    }
+
+    @GET
+    @Path("/index-plugins.html")
+    @Produces("text/html")
+    public Response getPluginsOpenApiDocumentation() {
+        return Response.ok(this.getClass().getClassLoader().getResourceAsStream("openapi/index-plugins.html")).build();
     }
 }

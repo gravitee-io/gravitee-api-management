@@ -54,7 +54,6 @@ import java.util.stream.Collectors;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Path("/environments/{envId}/apis/{apiId}/plans")
 public class ApiPlansResource extends AbstractResource {
 
     private final PlanMapper planMapper = PlanMapper.INSTANCE;

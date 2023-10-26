@@ -170,6 +170,16 @@ public class ApiResource extends AbstractResource {
     @Context
     protected UriInfo uriInfo;
 
+    @Path("/plans")
+    public ApiPlansResource getApiPlansResource() {
+        return resourceContext.getResource(ApiPlansResource.class);
+    }
+
+    @Path("/subscriptions")
+    public ApiSubscriptionsResource getApiSubscriptionsResource() {
+        return resourceContext.getResource(ApiSubscriptionsResource.class);
+    }
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getApiById(@PathParam("apiId") String apiId) {

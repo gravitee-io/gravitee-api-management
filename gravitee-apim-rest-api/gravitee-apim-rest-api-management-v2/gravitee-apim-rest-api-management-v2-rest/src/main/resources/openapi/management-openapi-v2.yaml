@@ -16,7 +16,13 @@ security:
 
 servers:
     - url: /management/v2
-      description: Gravitee.io APIM - Management API -v2
+      description: Gravitee.io APIM - Management API - v2
+    - url: /management/v2/organizations/{orgId}
+      description: Gravitee.io APIM - Management API - v2
+      variables:
+        orgId:
+            default: DEFAULT
+            description: Allow to target a specific organization
 
 tags:
     - name: APIs
@@ -984,6 +990,9 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
     /license:
+        servers:
+            - url: /management/v2
+              description: Gravitee.io APIM - Management API -v2
         get:
             tags:
                 - Installation
@@ -1004,6 +1013,9 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
     /organizations/{orgId}:
+        servers:
+            - url: /management/v2
+              description: Gravitee.io APIM - Management API - v2
         parameters:
             - $ref: "#/components/parameters/orgIdParam"
         get:
@@ -2873,53 +2885,6 @@ components:
                           type: string
                           description: The condition of the selector
                           example: ${#jsonPath(payload, '$.myField') == 'myValue'}
-        ConnectorFeature:
-            type: string
-            description: A feature used by a connector
-            example: LIMIT
-            enum:
-                - LIMIT
-                - RESUME
-                - DLQ
-        ConnectorMode:
-            type: string
-            description: A mode used by a connector
-            example: SUBSCRIBE
-            enum:
-                - SUBSCRIBE
-                - PUBLISH
-                - REQUEST_RESPONSE
-        ConnectorPlugin:
-            type: object
-            allOf:
-                - $ref: "#/components/schemas/PlatformPlugin"
-                - type: object
-                  properties:
-                      supportedApiType:
-                          $ref: "#/components/schemas/ApiType"
-                      supportedModes:
-                          type: array
-                          items:
-                              $ref: "#/components/schemas/ConnectorMode"
-                          uniqueItems: true
-                      supportedQos:
-                          type: array
-                          items:
-                              $ref: "#/components/schemas/Qos"
-                          uniqueItems: true
-                      supportedListenerType:
-                          $ref: "#/components/schemas/ListenerType"
-                      availableFeatures:
-                          type: array
-                          items:
-                              $ref: "#/components/schemas/ConnectorFeature"
-                          uniqueItems: true
-                      schema:
-                          type: string
-                          description: The schema of the plugin.
-                      subscriptionSchema:
-                          type: string
-                          description: The subscription schema of the plugin.
         Cors:
             type: object
             properties:
@@ -4315,56 +4280,6 @@ components:
                     description: The name of the role
                     minLength: 1
             required: [roleName]
-        PolicyPlugin:
-            type: object
-            allOf:
-                - $ref: "#/components/schemas/PlatformPlugin"
-                - type: object
-                  properties:
-                      proxy:
-                          type: array
-                          uniqueItems: true
-                          items:
-                              $ref: "#/components/schemas/ExecutionPhase"
-                      message:
-                          type: array
-                          uniqueItems: true
-                          items:
-                              $ref: "#/components/schemas/ExecutionPhase"
-        PlatformPlugin:
-            type: object
-            properties:
-                id:
-                    type: string
-                    description: Plugin's uuid.
-                    example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
-                name:
-                    type: string
-                    description: Plugin's name.
-                    example: My Plugin
-                    minLength: 1
-                description:
-                    type: string
-                    description: Plugin's description.
-                    example: I can use many characters to describe this plugin.
-                    minLength: 1
-                icon:
-                    type: string
-                    description: Plugin's icon.
-                    minLength: 1
-                category:
-                    type: string
-                    description: Plugin's category.
-                    example: policy
-                    minLength: 1
-                version:
-                    type: string
-                    description: Plugin's version.
-                    example: 1.0.0
-                    minLength: 1
-                deployed:
-                    type: boolean
-                    description: The deployment status of the plugin.
         PrimaryOwner:
             type: object
             properties:
@@ -4769,15 +4684,6 @@ components:
             enum:
                 - V3
                 - V4_EMULATION_ENGINE
-        ExecutionPhase:
-            type: string
-            description: The execution phase of a policy.
-            example: REQUEST
-            enum:
-                - REQUEST
-                - RESPONSE
-                - MESSAGE_REQUEST
-                - MESSAGE_RESPONSE
         Failover:
             type: object
             properties:

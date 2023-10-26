@@ -24,10 +24,10 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
+
 import java.util.Collection;
 
 /**
@@ -50,10 +50,8 @@ public class EnvironmentsResource extends AbstractResource {
         return EnvironmentMapper.INSTANCE.map(this.environmentService.findByOrganization(organizationId));
     }
 
-    @Path("{envId}")
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    public Environment getEnvironment(@PathParam("envId") String envId) {
-        return EnvironmentMapper.INSTANCE.map(environmentService.findByOrgAndIdOrHrid(GraviteeContext.getCurrentOrganization(), envId));
+    @Path("/{envId}")
+    public EnvironmentResource getEnvironmentResource() {
+        return resourceContext.getResource(EnvironmentResource.class);
     }
 }
