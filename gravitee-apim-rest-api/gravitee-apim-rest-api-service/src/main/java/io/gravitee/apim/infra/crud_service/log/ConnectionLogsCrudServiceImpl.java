@@ -15,36 +15,39 @@
  */
 package io.gravitee.apim.infra.crud_service.log;
 
-import io.gravitee.apim.core.log.crud_service.ConnectionLogCrudService;
+import io.gravitee.apim.core.log.crud_service.ConnectionLogsCrudService;
 import io.gravitee.apim.infra.adapter.ConnectionLogAdapter;
 import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.log.v4.api.LogRepository;
 import io.gravitee.repository.log.v4.model.LogResponse;
 import io.gravitee.repository.log.v4.model.connection.ConnectionLog;
+import io.gravitee.repository.log.v4.model.connection.ConnectionLogDetailQuery;
 import io.gravitee.repository.log.v4.model.connection.ConnectionLogQuery;
 import io.gravitee.rest.api.model.analytics.SearchLogsFilters;
 import io.gravitee.rest.api.model.common.Pageable;
-import io.gravitee.rest.api.model.v4.log.SearchLogResponse;
+import io.gravitee.rest.api.model.v4.log.SearchLogsResponse;
 import io.gravitee.rest.api.model.v4.log.connection.BaseConnectionLog;
+import io.gravitee.rest.api.model.v4.log.connection.ConnectionLogDetail;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
-class ConnectionLogCrudServiceImpl implements ConnectionLogCrudService {
+class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
 
     private final LogRepository logRepository;
 
-    public ConnectionLogCrudServiceImpl(@Lazy LogRepository logRepository) {
+    public ConnectionLogsCrudServiceImpl(@Lazy LogRepository logRepository) {
         this.logRepository = logRepository;
     }
 
     @Override
-    public SearchLogResponse<BaseConnectionLog> searchApiConnectionLog(String apiId, SearchLogsFilters logsFilters, Pageable pageable) {
+    public SearchLogsResponse<BaseConnectionLog> searchApiConnectionLogs(String apiId, SearchLogsFilters logsFilters, Pageable pageable) {
         try {
-            var response = logRepository.searchConnectionLog(
+            var response = logRepository.searchConnectionLogs(
                 ConnectionLogQuery
                     .builder()
                     .filter(
@@ -63,15 +66,37 @@ class ConnectionLogCrudServiceImpl implements ConnectionLogCrudService {
             );
             return mapToConnectionResponse(response);
         } catch (AnalyticsException e) {
-            log.error("An error occurs while trying to search connection of api [apiId={}]", apiId, e);
+            log.error("An error occurs while trying to search connection logs of api [apiId={}]", apiId, e);
             throw new TechnicalManagementException("Error while searching connection logs of api " + apiId, e);
         }
     }
 
-    private SearchLogResponse<BaseConnectionLog> mapToConnectionResponse(LogResponse<ConnectionLog> logs) {
+    @Override
+    public Optional<ConnectionLogDetail> searchApiConnectionLog(String apiId, String requestId) {
+        try {
+            var response = logRepository.searchConnectionLogDetail(
+                ConnectionLogDetailQuery
+                    .builder()
+                    .filter(ConnectionLogDetailQuery.Filter.builder().apiId(apiId).requestId(requestId).build())
+                    .build()
+            );
+            return response.map(this::mapToConnectionLogDetail);
+        } catch (AnalyticsException e) {
+            log.error("An error occurs while trying to search connection log of api [apiId={}, requestId={}]", apiId, requestId, e);
+            throw new TechnicalManagementException("Error while searching connection log of api " + apiId + " requestId " + requestId, e);
+        }
+    }
+
+    private SearchLogsResponse<BaseConnectionLog> mapToConnectionResponse(LogResponse<ConnectionLog> logs) {
         var total = logs.total();
         var data = ConnectionLogAdapter.INSTANCE.toEntitiesList(logs.data());
 
-        return new SearchLogResponse<>(total, data);
+        return new SearchLogsResponse<>(total, data);
+    }
+
+    private ConnectionLogDetail mapToConnectionLogDetail(
+        io.gravitee.repository.log.v4.model.connection.ConnectionLogDetail connectionLogDetail
+    ) {
+        return ConnectionLogAdapter.INSTANCE.toEntity(connectionLogDetail);
     }
 }

@@ -19,7 +19,7 @@ import io.gravitee.apim.core.log.crud_service.MessageLogCrudService;
 import io.gravitee.apim.core.log.model.AggregatedMessageLog;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.PageableImpl;
-import io.gravitee.rest.api.model.v4.log.SearchLogResponse;
+import io.gravitee.rest.api.model.v4.log.SearchLogsResponse;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,11 +27,11 @@ import java.util.Optional;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class SearchMessageLogUsecase {
+public class SearchMessageLogsUsecase {
 
     private final MessageLogCrudService messageLogCrudService;
 
-    public SearchMessageLogUsecase(MessageLogCrudService messageLogCrudService) {
+    public SearchMessageLogsUsecase(MessageLogCrudService messageLogCrudService) {
         this.messageLogCrudService = messageLogCrudService;
     }
 
@@ -42,7 +42,7 @@ public class SearchMessageLogUsecase {
         return mapToResponse(response);
     }
 
-    private Output mapToResponse(SearchLogResponse<AggregatedMessageLog> logs) {
+    private Output mapToResponse(SearchLogsResponse<AggregatedMessageLog> logs) {
         var total = logs.total();
         var data = logs.logs();
 

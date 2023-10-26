@@ -29,8 +29,8 @@ public class InMemoryConfiguration {
     }
 
     @Bean
-    public ConnectionLogCrudServiceInMemory connectionLogRepository() {
-        return new ConnectionLogCrudServiceInMemory();
+    public ConnectionLogsCrudServiceInMemory connectionLogRepository() {
+        return new ConnectionLogsCrudServiceInMemory();
     }
 
     @Bean

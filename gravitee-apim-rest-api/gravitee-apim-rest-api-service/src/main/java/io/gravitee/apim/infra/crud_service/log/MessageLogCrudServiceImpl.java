@@ -23,7 +23,7 @@ import io.gravitee.repository.log.v4.api.LogRepository;
 import io.gravitee.repository.log.v4.model.LogResponse;
 import io.gravitee.repository.log.v4.model.message.MessageLogQuery;
 import io.gravitee.rest.api.model.common.Pageable;
-import io.gravitee.rest.api.model.v4.log.SearchLogResponse;
+import io.gravitee.rest.api.model.v4.log.SearchLogsResponse;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -44,7 +44,7 @@ class MessageLogCrudServiceImpl implements MessageLogCrudService {
     }
 
     @Override
-    public SearchLogResponse<AggregatedMessageLog> searchApiMessageLog(String apiId, String requestId, Pageable pageable) {
+    public SearchLogsResponse<AggregatedMessageLog> searchApiMessageLog(String apiId, String requestId, Pageable pageable) {
         try {
             var response = logRepository.searchAggregatedMessageLog(
                 MessageLogQuery
@@ -61,12 +61,12 @@ class MessageLogCrudServiceImpl implements MessageLogCrudService {
         }
     }
 
-    private SearchLogResponse<AggregatedMessageLog> mapToMessageResponse(
+    private SearchLogsResponse<AggregatedMessageLog> mapToMessageResponse(
         LogResponse<io.gravitee.repository.log.v4.model.message.AggregatedMessageLog> logs
     ) {
         var total = logs.total();
         var data = MessageLogAdapter.INSTANCE.toEntities(logs.data());
 
-        return new SearchLogResponse<>(total, data);
+        return new SearchLogsResponse<>(total, data);
     }
 }

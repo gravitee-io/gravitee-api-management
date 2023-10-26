@@ -18,9 +18,11 @@ package io.gravitee.rest.api.management.v2.rest.resource.api.log;
 import static io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo.computePaginationInfo;
 
 import io.gravitee.apim.core.log.usecase.SearchConnectionLogUsecase;
-import io.gravitee.apim.core.log.usecase.SearchMessageLogUsecase;
+import io.gravitee.apim.core.log.usecase.SearchConnectionLogsUsecase;
+import io.gravitee.apim.core.log.usecase.SearchMessageLogsUsecase;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiLogsMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiMessageLogsMapper;
+import io.gravitee.rest.api.management.v2.rest.model.ApiLogResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLogsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiMessageLogsResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
@@ -36,6 +38,7 @@ import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
@@ -48,22 +51,25 @@ public class ApiLogsResource extends AbstractResource {
     private String apiId;
 
     @Inject
-    private SearchConnectionLogUsecase searchConnectionLogUsecase;
+    private SearchConnectionLogsUsecase searchConnectionLogsUsecase;
 
     @Inject
-    private SearchMessageLogUsecase searchMessageLogUsecase;
+    private SearchMessageLogsUsecase searchMessageLogsUsecase;
+
+    @Inject
+    private SearchConnectionLogUsecase searchConnectionLogUsecase;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_LOG, acls = { RolePermissionAction.READ }) })
     public ApiLogsResponse getApiLogs(@BeanParam @Valid PaginationParam paginationParam, @BeanParam @Valid SearchLogsParam logsParam) {
-        var request = new SearchConnectionLogUsecase.Input(
+        var request = new SearchConnectionLogsUsecase.Input(
             apiId,
             ApiLogsMapper.INSTANCE.toSearchLogsFilters(logsParam),
             new PageableImpl(paginationParam.getPage(), paginationParam.getPerPage())
         );
 
-        var response = searchConnectionLogUsecase.execute(GraviteeContext.getExecutionContext(), request);
+        var response = searchConnectionLogsUsecase.execute(GraviteeContext.getExecutionContext(), request);
 
         return ApiLogsResponse
             .builder()
@@ -81,13 +87,13 @@ public class ApiLogsResource extends AbstractResource {
         @BeanParam @Valid PaginationParam paginationParam,
         @PathParam("requestId") String requestId
     ) {
-        var request = new SearchMessageLogUsecase.Input(
+        var request = new SearchMessageLogsUsecase.Input(
             apiId,
             requestId,
             new PageableImpl(paginationParam.getPage(), paginationParam.getPerPage())
         );
 
-        var response = searchMessageLogUsecase.execute(request);
+        var response = searchMessageLogsUsecase.execute(request);
 
         return ApiMessageLogsResponse
             .builder()
@@ -95,5 +101,19 @@ public class ApiLogsResource extends AbstractResource {
             .pagination(computePaginationInfo(response.total(), response.data().size(), paginationParam))
             .links(computePaginationLinks(response.total(), paginationParam))
             .build();
+    }
+
+    @Path("/{requestId}")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_LOG, acls = { RolePermissionAction.READ }) })
+    public ApiLogResponse getApiLog(@PathParam("requestId") String requestId) {
+        var request = new SearchConnectionLogUsecase.Input(apiId, requestId);
+
+        return searchConnectionLogUsecase
+            .execute(request)
+            .connectionLogDetail()
+            .map(ApiLogsMapper.INSTANCE::map)
+            .orElseThrow(() -> new NotFoundException("No log found for api: " + apiId + " and requestId: " + requestId));
     }
 }

@@ -33,16 +33,16 @@ import org.junit.jupiter.api.Test;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-class SearchMessageLogUsecaseTest {
+class SearchMessageLogsUsecaseTest {
 
     private static final String API_ID = "my-api";
     private static final String REQUEST_ID = "request-id";
-    private SearchMessageLogUsecase usecase;
+    private SearchMessageLogsUsecase usecase;
     private final MessageLogCrudServiceInMemory messageLogStorageService = new MessageLogCrudServiceInMemory();
 
     @BeforeEach
     void setUp() {
-        usecase = new SearchMessageLogUsecase(messageLogStorageService);
+        usecase = new SearchMessageLogsUsecase(messageLogStorageService);
     }
 
     @AfterEach
@@ -63,7 +63,7 @@ class SearchMessageLogUsecaseTest {
             )
         );
 
-        var result = usecase.execute(new SearchMessageLogUsecase.Input(API_ID, REQUEST_ID));
+        var result = usecase.execute(new SearchMessageLogsUsecase.Input(API_ID, REQUEST_ID));
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.total()).isOne();
@@ -99,7 +99,7 @@ class SearchMessageLogUsecaseTest {
             )
         );
 
-        var result = usecase.execute(new SearchMessageLogUsecase.Input(API_ID, REQUEST_ID));
+        var result = usecase.execute(new SearchMessageLogsUsecase.Input(API_ID, REQUEST_ID));
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.total()).isEqualTo(3);
@@ -126,7 +126,7 @@ class SearchMessageLogUsecaseTest {
                 .toList()
         );
 
-        var result = usecase.execute(new SearchMessageLogUsecase.Input(API_ID, REQUEST_ID, new PageableImpl(pageNumber, pageSize)));
+        var result = usecase.execute(new SearchMessageLogsUsecase.Input(API_ID, REQUEST_ID, new PageableImpl(pageNumber, pageSize)));
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.total()).isEqualTo(expectedTotal);

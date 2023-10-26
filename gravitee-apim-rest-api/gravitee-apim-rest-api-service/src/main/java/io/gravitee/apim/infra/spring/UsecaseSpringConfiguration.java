@@ -28,10 +28,11 @@ import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentation
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
 import io.gravitee.apim.core.documentation.usecase.*;
 import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
-import io.gravitee.apim.core.log.crud_service.ConnectionLogCrudService;
+import io.gravitee.apim.core.log.crud_service.ConnectionLogsCrudService;
 import io.gravitee.apim.core.log.crud_service.MessageLogCrudService;
 import io.gravitee.apim.core.log.usecase.SearchConnectionLogUsecase;
-import io.gravitee.apim.core.log.usecase.SearchMessageLogUsecase;
+import io.gravitee.apim.core.log.usecase.SearchConnectionLogsUsecase;
+import io.gravitee.apim.core.log.usecase.SearchMessageLogsUsecase;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
@@ -70,17 +71,22 @@ public class UsecaseSpringConfiguration {
     }
 
     @Bean
-    public SearchConnectionLogUsecase searchConnectionLogUsecase(
-        ConnectionLogCrudService connectionLogCrudService,
+    public SearchConnectionLogsUsecase searchConnectionLogsUsecase(
+        ConnectionLogsCrudService connectionLogsCrudService,
         PlanCrudService planCrudService,
         ApplicationCrudService applicationCrudService
     ) {
-        return new SearchConnectionLogUsecase(connectionLogCrudService, planCrudService, applicationCrudService);
+        return new SearchConnectionLogsUsecase(connectionLogsCrudService, planCrudService, applicationCrudService);
     }
 
     @Bean
-    public SearchMessageLogUsecase searchMessageLogUsecase(MessageLogCrudService messageLogCrudService) {
-        return new SearchMessageLogUsecase(messageLogCrudService);
+    public SearchConnectionLogUsecase searchConnectionLogUsecase(ConnectionLogsCrudService connectionLogsCrudService) {
+        return new SearchConnectionLogUsecase(connectionLogsCrudService);
+    }
+
+    @Bean
+    public SearchMessageLogsUsecase searchMessageLogsUsecase(MessageLogCrudService messageLogCrudService) {
+        return new SearchMessageLogsUsecase(messageLogCrudService);
     }
 
     @Bean

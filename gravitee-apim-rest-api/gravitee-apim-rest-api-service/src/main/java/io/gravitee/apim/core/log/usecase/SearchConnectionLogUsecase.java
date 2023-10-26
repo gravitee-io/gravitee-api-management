@@ -15,97 +15,34 @@
  */
 package io.gravitee.apim.core.log.usecase;
 
-import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
-import io.gravitee.apim.core.log.crud_service.ConnectionLogCrudService;
-import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
-import io.gravitee.rest.api.model.BaseApplicationEntity;
-import io.gravitee.rest.api.model.analytics.SearchLogsFilters;
-import io.gravitee.rest.api.model.common.Pageable;
-import io.gravitee.rest.api.model.common.PageableImpl;
-import io.gravitee.rest.api.model.v4.log.SearchLogResponse;
-import io.gravitee.rest.api.model.v4.log.connection.BaseConnectionLog;
-import io.gravitee.rest.api.model.v4.log.connection.ConnectionLogModel;
-import io.gravitee.rest.api.model.v4.plan.BasePlanEntity;
-import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
-import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
-import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import java.util.List;
+import io.gravitee.apim.core.log.crud_service.ConnectionLogsCrudService;
+import io.gravitee.rest.api.model.v4.log.connection.ConnectionLogDetail;
 import java.util.Optional;
 
+/**
+ * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
+ * @author GraviteeSource Team
+ */
 public class SearchConnectionLogUsecase {
 
-    static final String UNKNOWN = "Unknown";
-    private final ConnectionLogCrudService connectionLogCrudService;
-    private final PlanCrudService planCrudService;
-    private final ApplicationCrudService applicationCrudService;
+    private final ConnectionLogsCrudService connectionLogsCrudService;
 
-    public SearchConnectionLogUsecase(
-        ConnectionLogCrudService connectionLogCrudService,
-        PlanCrudService planCrudService,
-        ApplicationCrudService applicationCrudService
-    ) {
-        this.connectionLogCrudService = connectionLogCrudService;
-        this.planCrudService = planCrudService;
-        this.applicationCrudService = applicationCrudService;
+    public SearchConnectionLogUsecase(ConnectionLogsCrudService connectionLogsCrudService) {
+        this.connectionLogsCrudService = connectionLogsCrudService;
     }
 
-    public Output execute(ExecutionContext executionContext, Input input) {
-        var pageable = input.pageable.orElse(new PageableImpl(1, 20));
-
-        var response = connectionLogCrudService.searchApiConnectionLog(input.apiId(), input.logsFilters(), pageable);
-        return mapToResponse(executionContext, response);
+    public Output execute(Input input) {
+        return connectionLogsCrudService.searchApiConnectionLog(input.apiId(), input.requestId()).map(Output::new).orElse(new Output());
     }
 
-    private Output mapToResponse(ExecutionContext executionContext, SearchLogResponse<BaseConnectionLog> logs) {
-        var total = logs.total();
-        var data = logs.logs().stream().map(log -> mapToModel(executionContext, log)).toList();
+    public record Input(String apiId, String requestId) {}
 
-        return new Output(total, data);
-    }
-
-    private ConnectionLogModel mapToModel(ExecutionContext executionContext, BaseConnectionLog connectionLog) {
-        return ConnectionLogModel
-            .builder()
-            .apiId(connectionLog.getApiId())
-            .requestId(connectionLog.getRequestId())
-            .timestamp(connectionLog.getTimestamp())
-            .application(getApplicationEntity(executionContext, connectionLog.getApplicationId()))
-            .clientIdentifier(connectionLog.getClientIdentifier() != null ? connectionLog.getClientIdentifier() : UNKNOWN)
-            .method(connectionLog.getMethod())
-            .plan(getPlanInfo(connectionLog.getPlanId()))
-            .requestEnded(connectionLog.isRequestEnded())
-            .transactionId(connectionLog.getTransactionId())
-            .status(connectionLog.getStatus())
-            .build();
-    }
-
-    private GenericPlanEntity getPlanInfo(String planId) {
-        final BasePlanEntity unknownPlan = BasePlanEntity.builder().id(planId).name(UNKNOWN).build();
-        try {
-            return planId != null ? planCrudService.findById(planId) : unknownPlan;
-        } catch (PlanNotFoundException | TechnicalManagementException e) {
-            return unknownPlan;
+    public record Output(Optional<ConnectionLogDetail> connectionLogDetail) {
+        Output(ConnectionLogDetail connectionLogDetail) {
+            this(Optional.of(connectionLogDetail));
+        }
+        Output() {
+            this(Optional.empty());
         }
     }
-
-    private BaseApplicationEntity getApplicationEntity(ExecutionContext executionContext, String applicationId) {
-        try {
-            return applicationCrudService.findById(executionContext, applicationId);
-        } catch (ApplicationNotFoundException | TechnicalManagementException e) {
-            return BaseApplicationEntity.builder().id(applicationId).name(UNKNOWN).build();
-        }
-    }
-
-    public record Input(String apiId, SearchLogsFilters logsFilters, Optional<Pageable> pageable) {
-        public Input(String apiId, SearchLogsFilters logsFilters) {
-            this(apiId, logsFilters, Optional.empty());
-        }
-        public Input(String apiId, SearchLogsFilters logsFilters, Pageable pageable) {
-            this(apiId, logsFilters, Optional.of(pageable));
-        }
-    }
-
-    public record Output(long total, List<ConnectionLogModel> data) {}
 }
