@@ -1600,6 +1600,25 @@ paths:
                     $ref: "#/components/responses/ApiLogsResponse"
                 default:
                     $ref: "#/components/responses/Error"
+    /environments/{envId}/apis/{apiId}/logs/{requestId}:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+            - $ref: "#/components/parameters/requestIdParam"
+        get:
+            tags:
+                - Analytics - Logs
+            summary: Get API log for a request
+            description: |-
+                Get API log for a request.
+
+                User must have the API_LOG[READ] permission.
+            operationId: getApiLog
+            responses:
+                "200":
+                    $ref: "#/components/responses/ApiLogResponse"
+                default:
+                    $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}/logs/{requestId}/messages:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -5353,6 +5372,36 @@ components:
                     $ref: "#/components/schemas/ApiMessageLogContent"
                 endpoint:
                     $ref: "#/components/schemas/ApiMessageLogContent"
+        ApiLogRequestContent:
+            type: object
+            description: The log request content.
+            properties:
+                method:
+                    $ref: "#/components/schemas/HttpMethod"
+                uri:
+                    type: string
+                    description: URI of the request.
+                    example: /my-api
+                headers:
+                    type: object
+                    description: The list of headers associated with this message.
+                    example:
+                        - name: X-My-Header
+                          value: [ my-value ]
+        ApiLogResponseContent:
+            type: object
+            description: The log response content.
+            properties:
+                status:
+                    type: integer
+                    description: The response's status.
+                    example: 200
+                headers:
+                    type: object
+                    description: The list of headers associated with this message.
+                    example:
+                        - name: X-My-Header
+                          value: [ my-value ]
         ApiMessageLogContent:
             type: object
             description: The message content.
@@ -6193,6 +6242,47 @@ components:
                                 $ref: "#/components/schemas/Pagination"
                             links:
                                 $ref: "#/components/schemas/Links"
+        ApiLogResponse:
+            description: API log for a particular request
+            content:
+                application/json:
+                    schema:
+                        title: "ApiLogResponse"
+                        description: API log for a request.
+                        properties:
+                          timestamp:
+                            type: string
+                            format: date-time
+                            description: The date (as timestamp) of the log.
+                            example: 2023-05-18T12:40:46.184Z
+                          apiId:
+                            type: string
+                            description: The id of the api.
+                            example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+                          requestId:
+                            type: string
+                            description: The id of the request.
+                            example: 1719d8d1-8d01-48f6-99d8-d18d0178f6d4
+                          clientIdentifier:
+                            type: string
+                            description: The client identifier of the request.
+                            example: 12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0
+                          transactionId:
+                            type: string
+                            description: The id of the transaction.
+                            example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+                          requestEnded:
+                            type: boolean
+                            description: The flag indicating if the request has ended.
+                            example: true
+                          entrypointRequest:
+                            $ref: "#/components/schemas/ApiLogRequestContent"
+                          entrypointResponse:
+                            $ref: "#/components/schemas/ApiLogResponseContent"
+                          endpointRequest:
+                            $ref: "#/components/schemas/ApiLogRequestContent"
+                          endpointResponse:
+                            $ref: "#/components/schemas/ApiLogResponseContent"
         ApiMessageLogsResponse:
             description: Page of API Messages Logs
             content:

@@ -15,330 +15,76 @@
  */
 package io.gravitee.apim.core.log.usecase;
 
-import static io.gravitee.apim.core.log.usecase.SearchConnectionLogUsecase.UNKNOWN;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
 
-import fixtures.repository.ConnectionLogFixtures;
-import inmemory.ApplicationCrudServiceInMemory;
-import inmemory.ConnectionLogCrudServiceInMemory;
+import fixtures.repository.ConnectionLogDetailFixtures;
+import inmemory.ConnectionLogsCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
-import inmemory.PlanCrudServiceInMemory;
-import io.gravitee.apim.core.log.usecase.SearchConnectionLogUsecase.Input;
-import io.gravitee.common.http.HttpMethod;
-import io.gravitee.rest.api.model.BaseApplicationEntity;
-import io.gravitee.rest.api.model.analytics.SearchLogsFilters;
-import io.gravitee.rest.api.model.common.PageableImpl;
-import io.gravitee.rest.api.model.v4.log.connection.ConnectionLogModel;
-import io.gravitee.rest.api.model.v4.plan.BasePlanEntity;
+import io.gravitee.rest.api.model.v4.log.connection.ConnectionLogDetail;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.time.Instant;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.IntStream;
+import java.util.Optional;
 import java.util.stream.Stream;
-import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class SearchConnectionLogUsecaseTest {
+class SearchConnectionLogUsecaseTest {
 
     private static final String API_ID = "f1608475-dd77-4603-a084-75dd775603e9";
-    private static final BasePlanEntity PLAN_1 = BasePlanEntity.builder().id("plan1").name("1st plan").build();
-    private static final BasePlanEntity PLAN_2 = BasePlanEntity.builder().id("plan2").name("2nd plan").build();
-    private static final BaseApplicationEntity APPLICATION_1 = BaseApplicationEntity
-        .builder()
-        .id("app1")
-        .name("an application name")
-        .build();
-    private static final BaseApplicationEntity APPLICATION_2 = BaseApplicationEntity
-        .builder()
-        .id("app2")
-        .name("another application name")
-        .build();
+    private static final String REQUEST_ID = "c5608475-dd77-4603-a084-75dd77560310";
     private static final Long FIRST_FEBRUARY_2020 = Instant.parse("2020-02-01T00:01:00.00Z").toEpochMilli();
     private static final Long SECOND_FEBRUARY_2020 = Instant.parse("2020-02-02T23:59:59.00Z").toEpochMilli();
     private static final Long FOURTH_FEBRUARY_2020 = Instant.parse("2020-02-04T00:01:00.00Z").toEpochMilli();
     private static final Long FIFTH_FEBRUARY_2020 = Instant.parse("2020-02-05T00:01:00.00Z").toEpochMilli();
 
-    ConnectionLogFixtures connectionLogFixtures = new ConnectionLogFixtures(API_ID, APPLICATION_1.getId(), PLAN_1.getId());
-
-    ConnectionLogCrudServiceInMemory logStorageService = new ConnectionLogCrudServiceInMemory();
-    PlanCrudServiceInMemory planStorageService = new PlanCrudServiceInMemory();
-    ApplicationCrudServiceInMemory applicationStorageService = new ApplicationCrudServiceInMemory();
+    ConnectionLogsCrudServiceInMemory logStorageService = new ConnectionLogsCrudServiceInMemory();
 
     SearchConnectionLogUsecase usecase;
 
+    ConnectionLogDetailFixtures connectionLogDetailFixtures = new ConnectionLogDetailFixtures(API_ID, REQUEST_ID);
+
     @BeforeEach
     void setUp() {
-        usecase = new SearchConnectionLogUsecase(logStorageService, planStorageService, applicationStorageService);
-
-        planStorageService.initWith(List.of(PLAN_1, PLAN_2));
-        applicationStorageService.initWith(List.of(APPLICATION_1, APPLICATION_2));
+        usecase = new SearchConnectionLogUsecase(logStorageService);
     }
 
     @AfterEach
     void tearDown() {
-        Stream.of(logStorageService, planStorageService, applicationStorageService).forEach(InMemoryAlternative::reset);
-
+        Stream.of(logStorageService).forEach(InMemoryAlternative::reset);
         GraviteeContext.cleanContext();
     }
 
     @Test
-    void should_return_connection_logs_of_an_api() {
-        logStorageService.initWith(
-            List.of(
-                connectionLogFixtures.aConnectionLog("req1").toBuilder().build(),
-                connectionLogFixtures.aConnectionLog().toBuilder().apiId("other-api").planId("other-plan").build()
-            )
-        );
+    void should_return_connection_log_for_a_request_on_api() {
+        final ConnectionLogDetail connectionLogDetail = connectionLogDetailFixtures.aConnectionLogDetail().toBuilder().build();
+        logStorageService.initWithConnectionLogDetails(List.of(connectionLogDetail));
 
-        var result = usecase.execute(
-            GraviteeContext.getExecutionContext(),
-            new Input(API_ID, SearchLogsFilters.builder().from(FIRST_FEBRUARY_2020).to(SECOND_FEBRUARY_2020).build())
-        );
+        var result = usecase.execute(new SearchConnectionLogUsecase.Input(API_ID, REQUEST_ID));
 
-        SoftAssertions.assertSoftly(soft -> {
-            soft.assertThat(result.total()).isOne();
-            soft
-                .assertThat(result.data())
-                .isEqualTo(
-                    List.of(
-                        ConnectionLogModel
-                            .builder()
-                            .requestId("req1")
-                            .apiId(API_ID)
-                            .application(APPLICATION_1)
-                            .plan(PLAN_1)
-                            .timestamp("2020-02-01T20:00:00.00Z")
-                            .requestEnded(true)
-                            .method(HttpMethod.GET)
-                            .clientIdentifier("client-identifier")
-                            .transactionId("transaction-id")
-                            .status(200)
-                            .build()
-                    )
-                );
-        });
+        assertThat(result).isEqualTo(new SearchConnectionLogUsecase.Output(Optional.of(connectionLogDetail)));
     }
 
     @Test
-    void should_return_api_connection_logs_sorted_by_desc_timestamp() {
-        logStorageService.initWith(
-            List.of(
-                connectionLogFixtures.aConnectionLog("req1").toBuilder().timestamp("2020-02-01T20:00:00.00Z").build(),
-                connectionLogFixtures.aConnectionLog("req2").toBuilder().timestamp("2020-02-02T20:00:00.00Z").build(),
-                connectionLogFixtures.aConnectionLog("req3").toBuilder().timestamp("2020-02-04T20:00:00.00Z").build()
-            )
+    void should_return_empty_connection_log_for_non_existing_request() {
+        logStorageService.initWithConnectionLogDetails(
+            List.of(connectionLogDetailFixtures.aConnectionLogDetail("other-req").toBuilder().build())
         );
 
-        var result = usecase.execute(
-            GraviteeContext.getExecutionContext(),
-            new Input(API_ID, SearchLogsFilters.builder().from(FIRST_FEBRUARY_2020).to(FIFTH_FEBRUARY_2020).build())
-        );
+        var result = usecase.execute(new SearchConnectionLogUsecase.Input(API_ID, REQUEST_ID));
 
-        SoftAssertions.assertSoftly(soft -> {
-            soft.assertThat(result.total()).isEqualTo(3);
-            soft
-                .assertThat(result.data())
-                .extracting(ConnectionLogModel::getRequestId, ConnectionLogModel::getTimestamp)
-                .containsExactly(
-                    tuple("req3", "2020-02-04T20:00:00.00Z"),
-                    tuple("req2", "2020-02-02T20:00:00.00Z"),
-                    tuple("req1", "2020-02-01T20:00:00.00Z")
-                );
-        });
+        assertThat(result).isEqualTo(new SearchConnectionLogUsecase.Output(Optional.empty()));
     }
 
     @Test
-    void should_return_the_page_requested() {
-        var expectedTotal = 15;
-        var pageNumber = 2;
-        var pageSize = 5;
-        logStorageService.initWith(
-            IntStream.range(0, expectedTotal).mapToObj(i -> connectionLogFixtures.aConnectionLog(String.valueOf(i))).toList()
+    void should_return_empty_connection_log_for_non_existing_api() {
+        logStorageService.initWithConnectionLogDetails(
+            List.of(connectionLogDetailFixtures.aConnectionLogDetail().toBuilder().apiId("other-api").build())
         );
 
-        var result = usecase.execute(
-            GraviteeContext.getExecutionContext(),
-            new Input(
-                API_ID,
-                SearchLogsFilters.builder().from(FIRST_FEBRUARY_2020).to(SECOND_FEBRUARY_2020).build(),
-                new PageableImpl(pageNumber, pageSize)
-            )
-        );
+        var result = usecase.execute(new SearchConnectionLogUsecase.Input(API_ID, REQUEST_ID));
 
-        SoftAssertions.assertSoftly(soft -> {
-            soft.assertThat(result.total()).isEqualTo(expectedTotal);
-            soft.assertThat(result.data()).extracting(ConnectionLogModel::getRequestId).containsExactly("5", "6", "7", "8", "9");
-        });
-    }
-
-    @Test
-    void should_return_api_connection_logs_with_only_plan_id_if_plan_cannot_be_found() {
-        var unknownPlan = "unknown";
-
-        logStorageService.initWith(List.of(connectionLogFixtures.aConnectionLog().toBuilder().planId(unknownPlan).build()));
-
-        var result = usecase.execute(
-            GraviteeContext.getExecutionContext(),
-            new Input(API_ID, SearchLogsFilters.builder().from(FIRST_FEBRUARY_2020).to(SECOND_FEBRUARY_2020).build())
-        );
-        assertThat(result.data())
-            .extracting(ConnectionLogModel::getPlan)
-            .isEqualTo(List.of(BasePlanEntity.builder().id(unknownPlan).name(UNKNOWN).build()));
-    }
-
-    @Test
-    void should_return_api_connection_logs_with_only_available_info() {
-        logStorageService.initWith(
-            List.of(connectionLogFixtures.aConnectionLog().toBuilder().planId(null).clientIdentifier(null).applicationId("1").build())
-        );
-
-        var result = usecase.execute(
-            GraviteeContext.getExecutionContext(),
-            new Input(API_ID, SearchLogsFilters.builder().from(FIRST_FEBRUARY_2020).to(SECOND_FEBRUARY_2020).build())
-        );
-        assertThat(result.data())
-            .extracting(ConnectionLogModel::getPlan)
-            .isEqualTo(List.of(BasePlanEntity.builder().id(null).name(UNKNOWN).build()));
-    }
-
-    @Test
-    void should_return_api_connection_logs_with_only_application_id_if_application_cannot_be_found() {
-        var unknownApp = "unknown";
-
-        logStorageService.initWith(List.of(connectionLogFixtures.aConnectionLog().toBuilder().applicationId(unknownApp).build()));
-
-        var result = usecase.execute(
-            GraviteeContext.getExecutionContext(),
-            new Input(API_ID, SearchLogsFilters.builder().from(FIRST_FEBRUARY_2020).to(SECOND_FEBRUARY_2020).build())
-        );
-        assertThat(result.data())
-            .extracting(ConnectionLogModel::getApplication)
-            .isEqualTo(List.of(BaseApplicationEntity.builder().id(unknownApp).name(UNKNOWN).build()));
-    }
-
-    @Test
-    void should_return_api_connection_logs_for_applications() {
-        logStorageService.initWith(
-            List.of(
-                connectionLogFixtures.aConnectionLog().toBuilder().requestId("req1").applicationId("app1").build(),
-                connectionLogFixtures.aConnectionLog().toBuilder().requestId("req2").applicationId("app1").build(),
-                connectionLogFixtures.aConnectionLog().toBuilder().requestId("req3").applicationId("app2").build(),
-                connectionLogFixtures.aConnectionLog().toBuilder().requestId("req4").applicationId("app3").build(),
-                connectionLogFixtures.aConnectionLog().toBuilder().requestId("req5").applicationId("app3").build()
-            )
-        );
-
-        var result = usecase.execute(
-            GraviteeContext.getExecutionContext(),
-            new Input(API_ID, SearchLogsFilters.builder().applicationIds(Set.of("app1", "app2")).build())
-        );
-        assertThat(result.data())
-            .extracting(ConnectionLogModel::getRequestId, ConnectionLogModel::getApplication)
-            .containsExactlyInAnyOrder(
-                tuple("req1", BaseApplicationEntity.builder().id("app1").name("an application name").build()),
-                tuple("req2", BaseApplicationEntity.builder().id("app1").name("an application name").build()),
-                tuple("req3", BaseApplicationEntity.builder().id("app2").name("another application name").build())
-            );
-    }
-
-    @Test
-    void should_return_api_connection_logs_for_plans() {
-        logStorageService.initWith(
-            List.of(
-                connectionLogFixtures.aConnectionLog().toBuilder().requestId("req1").planId("plan1").build(),
-                connectionLogFixtures.aConnectionLog().toBuilder().requestId("req2").planId("plan1").build(),
-                connectionLogFixtures.aConnectionLog().toBuilder().requestId("req3").planId("plan2").build(),
-                connectionLogFixtures.aConnectionLog().toBuilder().requestId("req4").planId("plan3").build(),
-                connectionLogFixtures.aConnectionLog().toBuilder().requestId("req5").planId("plan3").build()
-            )
-        );
-
-        var result = usecase.execute(
-            GraviteeContext.getExecutionContext(),
-            new Input(API_ID, SearchLogsFilters.builder().planIds(Set.of("plan1", "plan2")).build())
-        );
-        assertThat(result.data())
-            .extracting(ConnectionLogModel::getRequestId, ConnectionLogModel::getPlan)
-            .containsExactlyInAnyOrder(
-                tuple("req1", BasePlanEntity.builder().id(PLAN_1.getId()).name(PLAN_1.getName()).build()),
-                tuple("req2", BasePlanEntity.builder().id(PLAN_1.getId()).name(PLAN_1.getName()).build()),
-                tuple("req3", BasePlanEntity.builder().id(PLAN_2.getId()).name(PLAN_2.getName()).build())
-            );
-    }
-
-    @Test
-    void should_return_api_connection_logs_filtered_by_timestamp_date_range() {
-        logStorageService.initWith(
-            List.of(
-                connectionLogFixtures.aConnectionLog("req1").toBuilder().timestamp("2020-02-01T20:00:00.00Z").build(),
-                connectionLogFixtures.aConnectionLog("req2").toBuilder().timestamp("2020-02-02T20:00:00.00Z").build(),
-                connectionLogFixtures.aConnectionLog("req3").toBuilder().timestamp("2020-02-04T20:00:00.00Z").build()
-            )
-        );
-
-        var result = usecase.execute(
-            GraviteeContext.getExecutionContext(),
-            new Input(API_ID, SearchLogsFilters.builder().from(FIRST_FEBRUARY_2020).to(FOURTH_FEBRUARY_2020).build())
-        );
-
-        SoftAssertions.assertSoftly(soft -> {
-            soft.assertThat(result.total()).isEqualTo(2);
-            soft
-                .assertThat(result.data())
-                .extracting(ConnectionLogModel::getRequestId, ConnectionLogModel::getTimestamp)
-                .containsExactly(tuple("req2", "2020-02-02T20:00:00.00Z"), tuple("req1", "2020-02-01T20:00:00.00Z"));
-        });
-    }
-
-    @Test
-    void should_return_api_connection_logs_from_timestamp() {
-        logStorageService.initWith(
-            List.of(
-                connectionLogFixtures.aConnectionLog("req1").toBuilder().timestamp("2020-02-01T20:00:00.00Z").build(),
-                connectionLogFixtures.aConnectionLog("req2").toBuilder().timestamp("2020-02-02T20:00:00.00Z").build(),
-                connectionLogFixtures.aConnectionLog("req3").toBuilder().timestamp("2020-02-04T20:00:00.00Z").build()
-            )
-        );
-
-        var result = usecase.execute(
-            GraviteeContext.getExecutionContext(),
-            new Input(API_ID, SearchLogsFilters.builder().from(FOURTH_FEBRUARY_2020).build())
-        );
-
-        SoftAssertions.assertSoftly(soft -> {
-            soft.assertThat(result.total()).isEqualTo(1);
-            soft
-                .assertThat(result.data())
-                .extracting(ConnectionLogModel::getRequestId, ConnectionLogModel::getTimestamp)
-                .containsExactly(tuple("req3", "2020-02-04T20:00:00.00Z"));
-        });
-    }
-
-    @Test
-    void should_return_api_connection_logs_to_timestamp() {
-        logStorageService.initWith(
-            List.of(
-                connectionLogFixtures.aConnectionLog("req1").toBuilder().timestamp("2020-02-01T20:00:00.00Z").build(),
-                connectionLogFixtures.aConnectionLog("req2").toBuilder().timestamp("2020-02-02T20:00:00.00Z").build(),
-                connectionLogFixtures.aConnectionLog("req3").toBuilder().timestamp("2020-02-04T20:00:00.00Z").build()
-            )
-        );
-
-        var result = usecase.execute(
-            GraviteeContext.getExecutionContext(),
-            new Input(API_ID, SearchLogsFilters.builder().to(FOURTH_FEBRUARY_2020).build())
-        );
-
-        SoftAssertions.assertSoftly(soft -> {
-            soft.assertThat(result.total()).isEqualTo(2);
-            soft
-                .assertThat(result.data())
-                .extracting(ConnectionLogModel::getRequestId, ConnectionLogModel::getTimestamp)
-                .containsExactly(tuple("req2", "2020-02-02T20:00:00.00Z"), tuple("req1", "2020-02-01T20:00:00.00Z"));
-        });
+        assertThat(result).isEqualTo(new SearchConnectionLogUsecase.Output(Optional.empty()));
     }
 }

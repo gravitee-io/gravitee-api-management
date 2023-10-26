@@ -18,19 +18,24 @@ package io.gravitee.rest.api.management.v2.rest.resource.api;
 import static assertions.MAPIAssertions.assertThat;
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
+import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.log.model.MessageLogFixtures;
+import fixtures.repository.ConnectionLogDetailFixtures;
 import fixtures.repository.ConnectionLogFixtures;
 import inmemory.ApplicationCrudServiceInMemory;
-import inmemory.ConnectionLogCrudServiceInMemory;
+import inmemory.ConnectionLogsCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.MessageLogCrudServiceInMemory;
 import inmemory.PlanCrudServiceInMemory;
 import io.gravitee.apim.core.log.model.MessageOperation;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLog;
+import io.gravitee.rest.api.management.v2.rest.model.ApiLogRequestContent;
+import io.gravitee.rest.api.management.v2.rest.model.ApiLogResponse;
+import io.gravitee.rest.api.management.v2.rest.model.ApiLogResponseContent;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLogsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiMessageLog;
 import io.gravitee.rest.api.management.v2.rest.model.ApiMessageLogContent;
@@ -45,6 +50,7 @@ import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.v4.log.connection.ConnectionLogDetail;
 import io.gravitee.rest.api.model.v4.plan.BasePlanEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
@@ -71,7 +77,7 @@ public class ApiLogsResourceTest extends ApiResourceTest {
     final ConnectionLogFixtures connectionLogFixtures = new ConnectionLogFixtures(API, APPLICATION.getId(), PLAN_1.getId());
 
     @Inject
-    ConnectionLogCrudServiceInMemory connectionLogStorageService;
+    ConnectionLogsCrudServiceInMemory connectionLogStorageService;
 
     @Inject
     MessageLogCrudServiceInMemory messageLogStorageService;
@@ -84,11 +90,13 @@ public class ApiLogsResourceTest extends ApiResourceTest {
 
     WebTarget connectionLogsTarget;
     WebTarget messageLogsTarget;
+    WebTarget connectionLogTarget;
 
     @BeforeEach
     public void setup() {
         connectionLogsTarget = rootTarget();
         messageLogsTarget = rootTarget().path(REQUEST_ID).path("messages");
+        connectionLogTarget = rootTarget().path(REQUEST_ID);
 
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
@@ -174,7 +182,9 @@ public class ApiLogsResourceTest extends ApiResourceTest {
         public void should_compute_pagination() {
             var total = 20L;
             var pageSize = 5;
-            connectionLogStorageService.initWith(LongStream.range(0, total).mapToObj(i -> connectionLogFixtures.aConnectionLog()).toList());
+            connectionLogStorageService.initWithConnectionLogs(
+                LongStream.range(0, total).mapToObj(i -> connectionLogFixtures.aConnectionLog()).toList()
+            );
 
             connectionLogsTarget =
                 connectionLogsTarget
@@ -194,7 +204,9 @@ public class ApiLogsResourceTest extends ApiResourceTest {
             var total = 20L;
             var page = 2;
             var pageSize = 5;
-            connectionLogStorageService.initWith(LongStream.range(0, total).mapToObj(i -> connectionLogFixtures.aConnectionLog()).toList());
+            connectionLogStorageService.initWithConnectionLogs(
+                LongStream.range(0, total).mapToObj(i -> connectionLogFixtures.aConnectionLog()).toList()
+            );
 
             final Response response = connectionLogsTarget
                 .queryParam(PaginationParam.PAGE_QUERY_PARAM_NAME, page)
@@ -516,6 +528,96 @@ public class ApiLogsResourceTest extends ApiResourceTest {
                         .next(messageLogsTarget.queryParam("page", 3).queryParam("perPage", pageSize).getUri().toString())
                         .build()
                 );
+        }
+    }
+
+    @Nested
+    class ConnectionLog {
+
+        @Test
+        void should_return_403_if_incorrect_permissions() {
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.API_LOG,
+                    API,
+                    RolePermissionAction.READ
+                )
+            )
+                .thenReturn(false);
+
+            final Response response = connectionLogTarget.request().get();
+
+            assertThat(response)
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("You do not have sufficient rights to access this resource");
+        }
+
+        @Test
+        void should_return_connection_log() {
+            final ConnectionLogDetail connectionLogDetail = new ConnectionLogDetailFixtures(API, REQUEST_ID).aConnectionLogDetail();
+            connectionLogStorageService.initWithConnectionLogDetails(List.of(connectionLogDetail));
+
+            final Response response = connectionLogTarget.request().get();
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(ApiLogResponse.class)
+                .isEqualTo(
+                    ApiLogResponse
+                        .builder()
+                        .requestId(connectionLogDetail.getRequestId())
+                        .apiId(connectionLogDetail.getApiId())
+                        .timestamp(Instant.parse(connectionLogDetail.getTimestamp()).atOffset(ZoneOffset.UTC))
+                        .requestEnded(connectionLogDetail.isRequestEnded())
+                        .clientIdentifier(connectionLogDetail.getClientIdentifier())
+                        .entrypointRequest(
+                            ApiLogRequestContent
+                                .builder()
+                                .uri(connectionLogDetail.getEntrypointRequest().getUri())
+                                .method(HttpMethod.valueOf(connectionLogDetail.getEntrypointRequest().getMethod()))
+                                .headers(connectionLogDetail.getEntrypointRequest().getHeaders())
+                                .build()
+                        )
+                        .endpointRequest(
+                            ApiLogRequestContent
+                                .builder()
+                                .uri(connectionLogDetail.getEndpointRequest().getUri())
+                                .method(HttpMethod.valueOf(connectionLogDetail.getEndpointRequest().getMethod()))
+                                .headers(connectionLogDetail.getEndpointRequest().getHeaders())
+                                .build()
+                        )
+                        .endpointResponse(
+                            ApiLogResponseContent
+                                .builder()
+                                .status(connectionLogDetail.getEndpointResponse().getStatus())
+                                .headers(connectionLogDetail.getEndpointResponse().getHeaders())
+                                .build()
+                        )
+                        .entrypointResponse(
+                            ApiLogResponseContent
+                                .builder()
+                                .status(connectionLogDetail.getEntrypointResponse().getStatus())
+                                .headers(connectionLogDetail.getEntrypointResponse().getHeaders())
+                                .build()
+                        )
+                        .build()
+                );
+        }
+
+        @Test
+        void should_return_404_if_no_connection_log() {
+            final ConnectionLogDetail connectionLogDetail = new ConnectionLogDetailFixtures(API, "other-request-id").aConnectionLogDetail();
+            connectionLogStorageService.initWithConnectionLogDetails(List.of(connectionLogDetail));
+
+            final Response response = connectionLogTarget.request().get();
+
+            assertThat(response)
+                .asError()
+                .hasHttpStatus(NOT_FOUND_404)
+                .hasMessage("No log found for api: " + API + " and requestId: request-id");
         }
     }
 }
