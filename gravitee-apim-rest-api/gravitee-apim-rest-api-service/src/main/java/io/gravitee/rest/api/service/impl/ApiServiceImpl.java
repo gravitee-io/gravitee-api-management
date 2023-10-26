@@ -633,9 +633,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 if (group.getEndpoints() != null) {
                     for (Endpoint endpoint : group.getEndpoints()) {
                         assertEndpointNameNotContainsInvalidCharacters(endpoint.getName());
-                        endpoint.setConfiguration(
-                            connectorService.validateConnectorConfiguration(endpoint.getType(), endpoint.getConfiguration())
-                        );
                     }
                 }
             }
