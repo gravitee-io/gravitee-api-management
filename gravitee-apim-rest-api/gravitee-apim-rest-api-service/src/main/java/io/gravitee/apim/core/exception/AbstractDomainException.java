@@ -15,9 +15,13 @@
  */
 package io.gravitee.apim.core.exception;
 
-public class InvalidPageParentException extends ValidationDomainException {
+public abstract class AbstractDomainException extends RuntimeException {
 
-    public InvalidPageParentException(String parentId) {
-        super("parentId must be a FOLDER: " + parentId);
+    public AbstractDomainException(String message) {
+        super(message);
+    }
+
+    public AbstractDomainException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

@@ -25,7 +25,7 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.model.Breadcrumb;
 import io.gravitee.apim.core.documentation.model.Page;
-import io.gravitee.apim.core.exception.DomainException;
+import io.gravitee.apim.core.exception.InvalidPageParentException;
 import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
@@ -168,7 +168,7 @@ class ApiGetDocumentationPagesUsecaseTest {
                 )
             );
             assertThatThrownBy(() -> useCase.execute(new ApiGetDocumentationPagesUsecase.Input(API_ID, "parent-id")))
-                .isInstanceOf(DomainException.class);
+                .isInstanceOf(InvalidPageParentException.class);
         }
     }
 

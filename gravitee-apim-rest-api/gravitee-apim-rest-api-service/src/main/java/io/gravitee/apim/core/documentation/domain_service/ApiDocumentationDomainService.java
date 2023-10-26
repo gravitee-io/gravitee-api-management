@@ -15,11 +15,9 @@
  */
 package io.gravitee.apim.core.documentation.domain_service;
 
-import io.gravitee.apim.core.api.crud_service.ApiCrudService;
-import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
-import io.gravitee.apim.core.exception.DomainException;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.sanitizer.HtmlSanitizer;
 import io.gravitee.apim.core.sanitizer.SanitizeResult;
 import io.gravitee.rest.api.service.exceptions.PageContentUnsafeException;
@@ -48,7 +46,7 @@ public class ApiDocumentationDomainService {
 
     public void validatePageAssociatedToApi(Page page, String apiId) {
         if (!Objects.equals(page.getReferenceId(), apiId) || !Page.ReferenceType.API.equals(page.getReferenceType())) {
-            throw new DomainException("Page is not associated to Api: " + apiId);
+            throw new ValidationDomainException("Page is not associated to Api: " + apiId);
         }
     }
 
@@ -62,7 +60,7 @@ public class ApiDocumentationDomainService {
     public void validateNameIsUnique(String apiId, String parentId, String name, Page.Type type) {
         var foundPage = this.pageQueryService.findByApiIdAndParentIdAndNameAndType(apiId, parentId, name, type);
         if (foundPage.isPresent()) {
-            throw new DomainException("Name already exists with the same parent and type: " + name);
+            throw new ValidationDomainException("Name already exists with the same parent and type: " + name);
         }
     }
 }
