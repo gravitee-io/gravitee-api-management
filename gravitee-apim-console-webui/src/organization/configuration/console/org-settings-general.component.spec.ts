@@ -174,7 +174,7 @@ describe('ConsoleSettingsComponent', () => {
           notifications: 0,
         },
         metadata: {
-          readonly: ['scheduler.tasks', 'scheduler.notifications'],
+          readonly: ['console.scheduler.tasks', 'console.scheduler.notifications'],
         },
       });
 
