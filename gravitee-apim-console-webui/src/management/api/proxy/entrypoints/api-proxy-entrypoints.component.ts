@@ -59,7 +59,7 @@ export class ApiProxyEntrypointsComponent implements OnInit, OnDestroy {
           // virtual host mode is enabled if there are domain restrictions or if there is more than one virtual host or if the first virtual host has a host
           this.virtualHostModeEnabled =
             !isEmpty(environment.domainRestrictions) ||
-            get(api, 'proxy.virtual_hosts', []) > 1 ||
+            get(api, 'proxy.virtual_hosts', []).length > 1 ||
             !isNil(get(api, 'proxy.virtual_hosts[0].host', null));
 
           this.domainRestrictions = environment.domainRestrictions ?? [];
