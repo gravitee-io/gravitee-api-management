@@ -117,10 +117,10 @@
       <mat-card-content>
         <mat-form-field
           [matTooltip]="providedConfigurationMessage"
-          [matTooltipDisabled]="!isReadonlySetting('scheduler.tasks')"
+          [matTooltipDisabled]="!isReadonlySetting('console.scheduler.tasks')"
           class="settings-general__form__card__form-field"
         >
-          <mat-icon *ngIf="isReadonlySetting('scheduler.tasks')" class="settings-general__form__card__form-field__icon" matPrefix
+          <mat-icon *ngIf="isReadonlySetting('console.scheduler.tasks')" class="settings-general__form__card__form-field__icon" matPrefix
             >lock</mat-icon
           >
           <mat-label>Tasks (in seconds)</mat-label>
@@ -129,10 +129,13 @@
 
         <mat-form-field
           [matTooltip]="providedConfigurationMessage"
-          [matTooltipDisabled]="!isReadonlySetting('scheduler.notifications')"
+          [matTooltipDisabled]="!isReadonlySetting('console.scheduler.notifications')"
           class="settings-general__form__card__form-field"
         >
-          <mat-icon *ngIf="isReadonlySetting('scheduler.notifications')" class="settings-general__form__card__form-field__icon" matPrefix
+          <mat-icon
+            *ngIf="isReadonlySetting('console.scheduler.notifications')"
+            class="settings-general__form__card__form-field__icon"
+            matPrefix
             >lock</mat-icon
           >
           <mat-label>Notifications (in seconds)</mat-label>
