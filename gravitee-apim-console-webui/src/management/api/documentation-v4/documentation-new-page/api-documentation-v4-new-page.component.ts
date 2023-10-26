@@ -19,13 +19,13 @@ import { StateParams } from '@uirouter/core';
 import { StateService } from '@uirouter/angularjs';
 import { MatDialog } from '@angular/material/dialog';
 import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
-import { takeUntil } from 'rxjs/operators';
-import { Subject } from 'rxjs';
+import { catchError, switchMap, takeUntil } from 'rxjs/operators';
+import { EMPTY, Observable, Subject } from 'rxjs';
 
 import { CreateDocumentationMarkdown } from '../../../../entities/management-api-v2/documentation/createDocumentation';
 import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { ApiDocumentationV2Service } from '../../../../services-ngx/api-documentation-v2.service';
-import { Breadcrumb } from '../../../../entities/management-api-v2/documentation/page';
+import { Breadcrumb, Page } from '../../../../entities/management-api-v2/documentation/page';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 
 @Component({
@@ -71,6 +71,25 @@ export class ApiDocumentationV4NewPageComponent implements OnInit, OnDestroy {
   }
 
   save() {
+    this.savePage().subscribe(() => {
+      this.ajsState.go('management.apis.documentationV4', this.ajsStateParams);
+    });
+  }
+
+  saveAndPublish() {
+    this.savePage()
+      .pipe(switchMap((page) => this.apiDocumentationService.publishDocumentationPage(this.ajsStateParams.apiId, page.id)))
+      .subscribe({
+        next: () => {
+          this.ajsState.go('management.apis.documentationV4', this.ajsStateParams);
+        },
+        error: (error) => {
+          this.snackBarService.error(error?.error?.message ?? 'Cannot publish page');
+        },
+      });
+  }
+
+  private savePage(): Observable<Page> {
     const createPage: CreateDocumentationMarkdown = {
       type: 'MARKDOWN',
       name: this.form.getRawValue().name,
@@ -78,14 +97,12 @@ export class ApiDocumentationV4NewPageComponent implements OnInit, OnDestroy {
       content: this.content,
       parentId: this.ajsStateParams.parentId || 'ROOT',
     };
-    this.apiDocumentationService.createDocumentationPage(this.ajsStateParams.apiId, createPage).subscribe({
-      next: () => {
-        this.ajsState.go('management.apis.documentationV4', this.ajsStateParams);
-      },
-      error: (error) => {
-        this.snackBarService.error(error?.error ?? 'Cannot save page');
-      },
-    });
+    return this.apiDocumentationService.createDocumentationPage(this.ajsStateParams.apiId, createPage).pipe(
+      catchError((err) => {
+        this.snackBarService.error(err?.error?.message ?? 'Cannot save page');
+        return EMPTY;
+      }),
+    );
   }
 
   exitWithoutSaving() {

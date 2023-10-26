@@ -86,7 +86,7 @@ export class ApiDocumentationV4Component implements OnInit, OnDestroy {
           this.ngOnInit();
         },
         error: (error) => {
-          this.snackBarService.error(error?.error ?? 'Error while creating folder');
+          this.snackBarService.error(error?.error?.message ?? 'Error while creating folder');
         },
       });
   }

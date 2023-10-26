@@ -43,13 +43,6 @@ describe('ApiDocumentationV4EditPageComponent', () => {
   const fakeUiRouter = { go: jest.fn() };
   const API_ID = 'api-id';
   const PAGE_ID = 'page-id';
-  const page = fakeMarkdown({
-    id: PAGE_ID,
-    parentId: 'parent-id',
-    content: 'Initial content',
-    name: 'Page to edit',
-    visibility: 'PUBLIC',
-  });
   const breadcrumb: Breadcrumb[] = [{ name: 'Parent folder', position: 1, id: 'parent-id' }];
   let httpTestingController: HttpTestingController;
 
@@ -91,93 +84,165 @@ describe('ApiDocumentationV4EditPageComponent', () => {
     httpTestingController.verify();
   });
 
-  beforeEach(async () => await init(page, [page], breadcrumb));
-
-  it('should edit page content', async () => {
-    expect(await getPageTitle()).toEqual('Page to edit');
-
-    const editor = await harnessLoader.getHarness(ApiDocumentationV4ContentEditorHarness).then((harness) => harness.getContentEditor());
-    expect(editor).toBeDefined();
-    expect(await editor.getValue()).toEqual('Initial content');
-
-    await editor.setValue('## New content');
-    expect(fixture.componentInstance.content).toEqual('## New content');
-
-    const saveBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Save' }));
-    expect(await saveBtn.isDisabled()).toEqual(false);
-    await saveBtn.click();
-
-    const req = httpTestingController.expectOne({
-      method: 'PUT',
-      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages/${PAGE_ID}`,
-    });
-    req.flush(page);
-    expect(req.request.body).toEqual({
-      ...page,
-      type: 'MARKDOWN',
-      content: '## New content',
-    });
-  });
-
-  it('should show error if fail to save', async () => {
-    const editor = await harnessLoader.getHarness(ApiDocumentationV4ContentEditorHarness).then((harness) => harness.getContentEditor());
-    await editor.setValue('Unsafe content');
-
-    const saveBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Save' }));
-    expect(await saveBtn.isDisabled()).toEqual(false);
-    await saveBtn.click();
-
-    const req = httpTestingController.expectOne({
-      method: 'PUT',
-      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages/${PAGE_ID}`,
-    });
-    req.flush('Cannot save unsafe content', { status: 400, statusText: 'Cannot save unsafe content' });
-
-    const snackBar = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(MatSnackBarHarness);
-    expect(await snackBar.getMessage()).toEqual('Cannot save unsafe content');
-  });
-
-  it('should request confirmation before exit without saving', async () => {
-    const editor = await harnessLoader.getHarness(ApiDocumentationV4ContentEditorHarness).then((harness) => harness.getContentEditor());
-    expect(editor).toBeDefined();
-    expect(await editor.getValue()).toEqual('Initial content');
-
-    await editor.setValue('## New content');
-
-    const exitBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Exit without saving' }));
-    await exitBtn.click();
-
-    const confirmDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
-    expect(confirmDialog).toBeDefined();
-
-    // should stay on page if cancel
-    await confirmDialog.cancel();
-
-    await exitBtn.click();
-    const newConfirmDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
-    expect(newConfirmDialog).toBeDefined();
-    // should leave page on confirm
-    await newConfirmDialog.confirm();
-    expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.documentationV4', {
-      apiId: API_ID,
-      pageId: 'page-id',
+  describe('Unpublished page', () => {
+    const page = fakeMarkdown({
+      id: PAGE_ID,
       parentId: 'parent-id',
+      content: 'Initial content',
+      name: 'Page to edit',
+      visibility: 'PUBLIC',
+      published: false,
     });
-  });
 
-  it('should exit without confirmation when no changes', async () => {
-    const exitBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Exit without saving' }));
-    await exitBtn.click();
-    expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.documentationV4', {
-      apiId: API_ID,
-      pageId: 'page-id',
-      parentId: 'parent-id',
+    beforeEach(async () => await init(page, [page], breadcrumb));
+
+    it('should edit page content', async () => {
+      expect(await getPageTitle()).toEqual('Page to edit');
+
+      const editor = await harnessLoader.getHarness(ApiDocumentationV4ContentEditorHarness).then((harness) => harness.getContentEditor());
+      expect(editor).toBeDefined();
+      expect(await editor.getValue()).toEqual('Initial content');
+
+      await editor.setValue('## New content');
+      expect(fixture.componentInstance.content).toEqual('## New content');
+
+      const saveBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Save' }));
+      expect(await saveBtn.isDisabled()).toEqual(false);
+      await saveBtn.click();
+
+      expectGetPage(page, PAGE_ID);
+      const req = httpTestingController.expectOne({
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages/${PAGE_ID}`,
+      });
+      req.flush(page);
+      expect(req.request.body).toEqual({
+        ...page,
+        type: 'MARKDOWN',
+        content: '## New content',
+      });
     });
-  });
 
-  it('should show breadcrumb', async () => {
-    const harness = await harnessLoader.getHarness(ApiDocumentationV4BreadcrumbHarness);
-    expect(await harness.getContent()).toEqual('Home>Parent folder');
+    it('should save and publish page', async () => {
+      const editor = await harnessLoader.getHarness(ApiDocumentationV4ContentEditorHarness).then((harness) => harness.getContentEditor());
+      await editor.setValue('## New content');
+      expect(fixture.componentInstance.content).toEqual('## New content');
+
+      const saveBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Save and publish' }));
+      expect(await saveBtn.isDisabled()).toEqual(false);
+      await saveBtn.click();
+
+      expectGetPage(page, PAGE_ID);
+      const req = httpTestingController.expectOne({
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages/${PAGE_ID}`,
+      });
+      req.flush(page);
+      expect(req.request.body).toEqual({
+        ...page,
+        type: 'MARKDOWN',
+        content: '## New content',
+      });
+
+      const publishReq = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages/${PAGE_ID}/_publish`,
+      });
+      publishReq.flush(page);
+    });
+
+    it('should show error if fail to save', async () => {
+      const editor = await harnessLoader.getHarness(ApiDocumentationV4ContentEditorHarness).then((harness) => harness.getContentEditor());
+      await editor.setValue('Unsafe content');
+
+      const saveBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Save' }));
+      expect(await saveBtn.isDisabled()).toEqual(false);
+      await saveBtn.click();
+
+      expectGetPage(page, PAGE_ID);
+      const req = httpTestingController.expectOne({
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages/${PAGE_ID}`,
+      });
+      req.flush({ message: 'Cannot save unsafe content' }, { status: 400, statusText: 'Cannot save unsafe content' });
+
+      const snackBar = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(MatSnackBarHarness);
+      expect(await snackBar.getMessage()).toEqual('Cannot save unsafe content');
+    });
+
+    it('should show error if fail on publish', async () => {
+      const editor = await harnessLoader.getHarness(ApiDocumentationV4ContentEditorHarness).then((harness) => harness.getContentEditor());
+      await editor.setValue('## New content');
+      expect(fixture.componentInstance.content).toEqual('## New content');
+
+      const saveBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Save and publish' }));
+      expect(await saveBtn.isDisabled()).toEqual(false);
+      await saveBtn.click();
+
+      expectGetPage(page, PAGE_ID);
+      const req = httpTestingController.expectOne({
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages/${PAGE_ID}`,
+      });
+      req.flush(page);
+      expect(req.request.body).toEqual({
+        ...page,
+        type: 'MARKDOWN',
+        content: '## New content',
+      });
+
+      const publishReq = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages/${PAGE_ID}/_publish`,
+      });
+      publishReq.flush({ message: 'Cannot publish page' }, { status: 400, statusText: 'Cannot publish page' });
+
+      const snackBar = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(MatSnackBarHarness);
+      expect(await snackBar.getMessage()).toEqual('Cannot publish page');
+    });
+
+    it('should request confirmation before exit without saving', async () => {
+      const editor = await harnessLoader.getHarness(ApiDocumentationV4ContentEditorHarness).then((harness) => harness.getContentEditor());
+      expect(editor).toBeDefined();
+      expect(await editor.getValue()).toEqual('Initial content');
+
+      await editor.setValue('## New content');
+
+      const exitBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Exit without saving' }));
+      await exitBtn.click();
+
+      const confirmDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
+      expect(confirmDialog).toBeDefined();
+
+      // should stay on page if cancel
+      await confirmDialog.cancel();
+
+      await exitBtn.click();
+      const newConfirmDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
+      expect(newConfirmDialog).toBeDefined();
+      // should leave page on confirm
+      await newConfirmDialog.confirm();
+      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.documentationV4', {
+        apiId: API_ID,
+        pageId: 'page-id',
+        parentId: 'parent-id',
+      });
+    });
+
+    it('should exit without confirmation when no changes', async () => {
+      const exitBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Exit without saving' }));
+      await exitBtn.click();
+      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.documentationV4', {
+        apiId: API_ID,
+        pageId: 'page-id',
+        parentId: 'parent-id',
+      });
+    });
+
+    it('should show breadcrumb', async () => {
+      const harness = await harnessLoader.getHarness(ApiDocumentationV4BreadcrumbHarness);
+      expect(await harness.getContent()).toEqual('Home>Parent folder');
+    });
   });
 
   const expectGetPage = (page: Page, pageId: string) => {
