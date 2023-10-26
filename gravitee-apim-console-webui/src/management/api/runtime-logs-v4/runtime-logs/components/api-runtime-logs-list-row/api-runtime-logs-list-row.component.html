@@ -19,7 +19,7 @@
   <div class="log-row__left">
     <div class="log-row__line-1">
       <div>{{ log.timestamp | date : 'yyyy-MM-dd HH:mm:ss.SSS' }}</div>
-      <span class="gio-badge-neutral">Request ended</span>
+      <span *ngIf="log.requestEnded" class="gio-badge-neutral">Request ended</span>
     </div>
 
     <div class="log-row__line-2">
