@@ -134,13 +134,6 @@ const hostValidator = (domainRestrictions: string[] = []): ValidatorFn => {
 
     const fullHost = hostControl?.value + domainControl?.value;
 
-    // When no domain restriction, host is required
-    if (isEmpty(domainRestrictions) && !hostControl?.value) {
-      const errors = { required: 'true' };
-      hostControl.setErrors(errors);
-      return errors;
-    }
-
     if (!isEmpty(domainRestrictions)) {
       const isValid = domainRestrictions.some((domainRestriction) => fullHost.endsWith(domainRestriction));
       const errors = isValid ? null : { host: 'true' };
