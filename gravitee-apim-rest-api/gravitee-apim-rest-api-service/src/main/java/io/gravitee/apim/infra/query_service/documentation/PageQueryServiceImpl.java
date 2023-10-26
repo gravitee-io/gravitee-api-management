@@ -17,7 +17,7 @@ package io.gravitee.apim.infra.query_service.documentation;
 
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
-import io.gravitee.apim.core.exception.DomainException;
+import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.infra.adapter.PageAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
@@ -57,7 +57,7 @@ public class PageQueryServiceImpl implements PageQueryService {
             return pageRepository.search(criteria).stream().findFirst().map(PageAdapter.INSTANCE::toEntity);
         } catch (TechnicalException e) {
             logger.error("An error occurred while finding all homepage pages with apiId {}", apiId, e);
-            throw new DomainException("Error during repository search", e);
+            throw new TechnicalDomainException("Error during repository search", e);
         }
     }
 
@@ -105,7 +105,7 @@ public class PageQueryServiceImpl implements PageQueryService {
             return PageAdapter.INSTANCE.toEntityList(pageRepository.search(pageCriteriaBuilder.build()));
         } catch (TechnicalException e) {
             logger.error("An error occurred while searching for Page by apiId {}", apiId, e);
-            throw new DomainException("Error during repository search", e);
+            throw new TechnicalDomainException("Error during repository search", e);
         }
     }
 }

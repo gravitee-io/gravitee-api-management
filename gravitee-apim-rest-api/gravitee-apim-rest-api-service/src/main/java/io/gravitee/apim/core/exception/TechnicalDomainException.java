@@ -15,13 +15,13 @@
  */
 package io.gravitee.apim.core.exception;
 
-public class DomainException extends RuntimeException {
+public class TechnicalDomainException extends AbstractDomainException {
 
-    public DomainException(String message) {
+    public TechnicalDomainException(String message) {
         super(message);
     }
 
-    public DomainException(String message, Throwable cause) {
+    public TechnicalDomainException(String message, Throwable cause) {
         super(message, cause);
     }
 }

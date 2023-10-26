@@ -17,7 +17,7 @@ package io.gravitee.apim.infra.crud_service.documentation;
 
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.model.*;
-import io.gravitee.apim.core.exception.DomainException;
+import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.infra.adapter.PageAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
@@ -53,7 +53,7 @@ public class PageCrudServiceImpl implements PageCrudService {
             return PageAdapter.INSTANCE.toEntity(updatedPage);
         } catch (TechnicalException e) {
             logger.error("An error occurred while updating homepage attribute from {}", pageToUpdate, e);
-            throw new DomainException("Error when updating Page", e);
+            throw new TechnicalDomainException("Error when updating Page", e);
         }
     }
 
@@ -77,7 +77,7 @@ public class PageCrudServiceImpl implements PageCrudService {
             return pageRepository.create(page);
         } catch (TechnicalException e) {
             logger.error("An error occurred while creating {}", page, e);
-            throw new DomainException("Error when creating Page", e);
+            throw new TechnicalDomainException("Error when creating Page", e);
         }
     }
 }
