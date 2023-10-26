@@ -76,8 +76,8 @@ export class OrgSettingsGeneralComponent implements OnInit, OnDestroy {
             automaticValidation: this.fb.group({ enabled: [toFormState(this.settings, 'management.automaticValidation.enabled')] }),
           }),
           scheduler: this.fb.group({
-            tasks: [toFormState(this.settings, 'scheduler.tasks')],
-            notifications: [toFormState(this.settings, 'scheduler.notifications')],
+            tasks: [toFormState(this.settings, 'scheduler.tasks', undefined, 'console.scheduler.tasks')],
+            notifications: [toFormState(this.settings, 'scheduler.notifications', undefined, 'console.scheduler.notifications')],
           }),
           cors: this.fb.group({
             allowOrigin: [
