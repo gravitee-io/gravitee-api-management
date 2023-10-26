@@ -28,6 +28,7 @@ import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-provid
 import { ApiDocumentationV2Service } from '../../../services-ngx/api-documentation-v2.service';
 import { CreateDocumentationFolder } from '../../../entities/management-api-v2/documentation/createDocumentation';
 import { Breadcrumb, Page } from '../../../entities/management-api-v2/documentation/page';
+import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 
 @Component({
   selector: 'api-documentation-v4',
@@ -45,6 +46,7 @@ export class ApiDocumentationV4Component implements OnInit, OnDestroy {
     @Inject(UIRouterState) private readonly ajsState: StateService,
     @Inject(UIRouterStateParams) private readonly ajsStateParams: StateParams,
     private readonly apiDocumentationV2Service: ApiDocumentationV2Service,
+    private readonly snackBarService: SnackBarService,
   ) {}
 
   ngOnInit() {
@@ -79,8 +81,13 @@ export class ApiDocumentationV4Component implements OnInit, OnDestroy {
         ),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe(() => {
-        this.ngOnInit();
+      .subscribe({
+        next: () => {
+          this.ngOnInit();
+        },
+        error: (error) => {
+          this.snackBarService.error(error?.error ?? 'Error while creating folder');
+        },
       });
   }
 
