@@ -24,7 +24,7 @@ import inmemory.PageQueryServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.model.Page;
-import io.gravitee.apim.core.exception.DomainException;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
@@ -92,7 +92,7 @@ class ApiGetDocumentationPageUsecaseTest {
             )
         );
         assertThatThrownBy(() -> useCase.execute(new ApiGetDocumentationPageUsecase.Input(API_ID, PAGE_ID)))
-            .isInstanceOf(DomainException.class);
+            .isInstanceOf(ValidationDomainException.class);
     }
 
     @Test
@@ -110,7 +110,7 @@ class ApiGetDocumentationPageUsecaseTest {
             )
         );
         assertThatThrownBy(() -> useCase.execute(new ApiGetDocumentationPageUsecase.Input(API_ID, PAGE_ID)))
-            .isInstanceOf(DomainException.class);
+            .isInstanceOf(ValidationDomainException.class);
     }
 
     @Test

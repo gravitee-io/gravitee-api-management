@@ -26,8 +26,7 @@ import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomain
 import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.HomepageDomainService;
 import io.gravitee.apim.core.documentation.model.Page;
-import io.gravitee.apim.core.exception.DomainException;
-import io.gravitee.apim.core.sanitizer.HtmlSanitizer;
+import io.gravitee.apim.core.exception.InvalidPageParentException;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
 import io.gravitee.rest.api.service.common.UuidString;
@@ -358,7 +357,7 @@ class ApiCreateDocumentationPageUsecaseTest {
                             .build()
                     )
                 )
-                .isInstanceOf(DomainException.class);
+                .isInstanceOf(InvalidPageParentException.class);
         }
     }
 
@@ -477,7 +476,7 @@ class ApiCreateDocumentationPageUsecaseTest {
                             .build()
                     )
                 )
-                .isInstanceOf(DomainException.class);
+                .isInstanceOf(InvalidPageParentException.class);
         }
     }
 

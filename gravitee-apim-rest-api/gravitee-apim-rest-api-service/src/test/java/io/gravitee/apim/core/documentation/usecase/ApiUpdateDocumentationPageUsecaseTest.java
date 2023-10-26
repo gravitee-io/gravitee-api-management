@@ -27,7 +27,7 @@ import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomain
 import io.gravitee.apim.core.documentation.domain_service.HomepageDomainService;
 import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.model.Page;
-import io.gravitee.apim.core.exception.DomainException;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
@@ -350,7 +350,7 @@ class ApiUpdateDocumentationPageUsecaseTest {
                             .build()
                     )
                 )
-                .isInstanceOf(DomainException.class);
+                .isInstanceOf(ValidationDomainException.class);
         }
 
         @Test
@@ -385,7 +385,7 @@ class ApiUpdateDocumentationPageUsecaseTest {
                         ApiUpdateDocumentationPageUsecase.Input.builder().apiId(API_ID).pageId(PAGE_ID).auditInfo(AUDIT_INFO).build()
                     )
                 )
-                .isInstanceOf(DomainException.class);
+                .isInstanceOf(ValidationDomainException.class);
         }
     }
 
@@ -486,7 +486,7 @@ class ApiUpdateDocumentationPageUsecaseTest {
                             .build()
                     )
                 )
-                .isInstanceOf(DomainException.class);
+                .isInstanceOf(ValidationDomainException.class);
         }
     }
 

@@ -15,7 +15,7 @@
  */
 package io.gravitee.apim.core.exception;
 
-public class InvalidPathsException extends DomainException {
+public class InvalidPathsException extends ValidationDomainException {
 
     public InvalidPathsException(String message) {
         super(message);
