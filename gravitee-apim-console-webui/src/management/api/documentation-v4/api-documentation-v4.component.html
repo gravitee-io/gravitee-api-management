@@ -17,11 +17,11 @@
 -->
 <api-documentation-page-title></api-documentation-page-title>
 <mat-card>
-  <api-documentation-navigation-header
+  <api-documentation-list-navigation-header
     [breadcrumbs]="breadcrumbs || []"
     (onAddFolder)="addFolder()"
     (onNavigateTo)="navigateTo($event)"
-  ></api-documentation-navigation-header>
+  ></api-documentation-list-navigation-header>
   <api-documentation-v4-pages-list
     *ngIf="pages && pages.length > 0; else emptyState"
     [pages]="pages"

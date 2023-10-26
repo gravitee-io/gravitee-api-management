@@ -13,21 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 
-import { Breadcrumb } from '../../../../entities/management-api-v2/documentation/page';
+import { Breadcrumb } from '../../../../../entities/management-api-v2/documentation/page';
 
 @Component({
-  selector: 'api-documentation-navigation-header',
-  template: require('./api-documentation-v4-navigation-header.component.html'),
-  styles: [require('./api-documentation-v4-navigation-header.component.scss')],
+  selector: 'api-documentation-breadcrumb',
+  template: require('./api-documentation-v4-breadcrumb.component.html'),
+  styles: [require('./api-documentation-v4-breadcrumb.component.scss')],
 })
-export class ApiDocumentationV4NavigationHeaderComponent {
+export class ApiDocumentationV4BreadcrumbComponent {
+  @Input()
+  canNavigate = true;
+
   @Input()
   breadcrumbs: Breadcrumb[];
-  @Output()
-  onAddFolder = new EventEmitter<void>();
+
   @Output()
   onNavigateTo = new EventEmitter<string>();
+
+  doNavigate(id: string) {
+    if (this.canNavigate) {
+      this.onNavigateTo.emit(id);
+    }
+  }
 }

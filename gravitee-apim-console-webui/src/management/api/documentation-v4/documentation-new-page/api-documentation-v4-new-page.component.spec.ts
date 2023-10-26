@@ -25,7 +25,6 @@ import { GioConfirmDialogHarness, GioMonacoEditorHarness } from '@gravitee/ui-pa
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
-import { DivHarness } from '@gravitee/ui-particles-angular/testing';
 
 import { ApiDocumentationV4NewPageHarness } from './api-documentation-v4-new-page.harness';
 import { ApiDocumentationV4NewPageComponent } from './api-documentation-v4-new-page.component';
@@ -36,6 +35,7 @@ import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-pro
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { Breadcrumb, Page } from '../../../../entities/management-api-v2/documentation/page';
 import { ApiDocumentationV4ContentEditorHarness } from '../components/api-documentation-v4-content-editor/api-documentation-v4-content-editor.harness';
+import { ApiDocumentationV4BreadcrumbHarness } from '../components/api-documentation-v4-breadcrumb/api-documentation-v4-breadcrumb.harness';
 
 describe('ApiDocumentationV4NewPageComponent', () => {
   let fixture: ComponentFixture<ApiDocumentationV4NewPageComponent>;
@@ -229,8 +229,8 @@ describe('ApiDocumentationV4NewPageComponent', () => {
     });
 
     it('should show breadcrumb', async () => {
-      const harness = await harnessLoader.getHarness(DivHarness.with({ selector: '.navigation__location__breadcrumb' }));
-      expect(await harness.getText()).toEqual('Home>Parent Folder');
+      const harness = await harnessLoader.getHarness(ApiDocumentationV4BreadcrumbHarness);
+      expect(await harness.getContent()).toEqual('Home>Parent Folder');
     });
 
     it('should save page in the correct folder', async () => {

@@ -16,17 +16,5 @@ $typography: map.get(gio.$mat-theme, typography);
     flex-direction: row;
     align-items: flex-end;
     gap: 2px;
-    &__breadcrumb {
-      display: flex;
-      flex-direction: row;
-      align-items: flex-end;
-      gap: 2px;
-
-      &__item {
-        @include mat.typography-level($typography, 'body-2');
-        color: mat.get-color-from-palette(gio.$mat-space-palette, 'default');
-        cursor: pointer;
-      }
-    }
   }
 }
