@@ -17,13 +17,16 @@
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { combineLatest, Subject } from 'rxjs';
 import { StateParams } from '@uirouter/angularjs';
-import { FormControl, FormGroup } from '@angular/forms';
-import { startWith, takeUntil, tap } from 'rxjs/operators';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
 import { ApiPropertiesOldService } from '../../properties-ng/api-properties-old.service';
 import { CorsUtil } from '../../../../../shared/utils';
+import { ApiV2 } from '../../../../../entities/management-api-v2';
+import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
+import { onlyApiV2Filter } from '../../../../../util/apiFilter.operator';
 
 @Component({
   selector: 'api-dynamic-properties',
@@ -47,9 +50,9 @@ export class ApiDynamicPropertiesComponent implements OnInit, OnDestroy {
     "value": "https://south-asia.company.com/"
   }
 ]`;
-  public transformationJOLTExampleCollapse = true;
 
   public form: FormGroup;
+  public initialFormValue: unknown;
 
   public httpMethods = CorsUtil.httpMethods;
 
@@ -57,6 +60,7 @@ export class ApiDynamicPropertiesComponent implements OnInit, OnDestroy {
     @Inject(UIRouterStateParams) private readonly ajsStateParams: StateParams,
     private readonly apiService: ApiV2Service,
     private readonly apiPropertiesService: ApiPropertiesOldService,
+    private readonly snackBarService: SnackBarService,
   ) {}
 
   ngOnInit(): void {
@@ -74,10 +78,13 @@ export class ApiDynamicPropertiesComponent implements OnInit, OnDestroy {
               value: dynamicProperty?.enabled ?? false,
               disabled: isReadonly,
             }),
-            schedule: new FormControl({
-              value: dynamicProperty?.schedule ?? '0 */5 * * * *',
-              disabled: isReadonly,
-            }),
+            schedule: new FormControl(
+              {
+                value: dynamicProperty?.schedule ?? '0 */5 * * * *',
+                disabled: isReadonly,
+              },
+              [Validators.required],
+            ),
             provider: new FormControl({
               value: dynamicProperty?.provider ?? 'HTTP', // Only http is supported for now.
               disabled: isReadonly,
@@ -86,10 +93,13 @@ export class ApiDynamicPropertiesComponent implements OnInit, OnDestroy {
               value: dynamicProperty?.configuration?.method ?? 'GET',
               disabled: isReadonly,
             }),
-            url: new FormControl({
-              value: dynamicProperty?.configuration?.url ?? '',
-              disabled: isReadonly,
-            }),
+            url: new FormControl(
+              {
+                value: dynamicProperty?.configuration?.url ?? '',
+                disabled: isReadonly,
+              },
+              [Validators.required],
+            ),
             headers: new FormControl({
               value: dynamicProperty?.configuration?.headers ?? undefined,
               disabled: isReadonly,
@@ -107,6 +117,7 @@ export class ApiDynamicPropertiesComponent implements OnInit, OnDestroy {
               disabled: isReadonly,
             }),
           });
+          this.initialFormValue = this.form.value;
 
           this.form
             .get('enabled')
@@ -136,6 +147,42 @@ export class ApiDynamicPropertiesComponent implements OnInit, OnDestroy {
   }
 
   onSave() {
-    // TODO: implement
+    const dynamicPropertyFormValue = this.form.value;
+
+    this.apiService
+      .get(this.ajsStateParams.apiId)
+      .pipe(
+        onlyApiV2Filter(this.snackBarService),
+        switchMap((api: ApiV2) => {
+          return this.apiService.update(this.ajsStateParams.apiId, {
+            ...api,
+            services: {
+              ...api.services,
+              dynamicProperty: {
+                enabled: dynamicPropertyFormValue.enabled,
+                provider: 'HTTP',
+                schedule: dynamicPropertyFormValue.schedule,
+                configuration: {
+                  method: dynamicPropertyFormValue.method,
+                  url: dynamicPropertyFormValue.url,
+                  headers: dynamicPropertyFormValue.headers,
+                  useSystemProxy: dynamicPropertyFormValue.useSystemProxy,
+                  body: dynamicPropertyFormValue.body,
+                  specification: dynamicPropertyFormValue.specification,
+                },
+              },
+            },
+          });
+        }),
+      )
+      .subscribe({
+        error: ({ error }) => {
+          this.snackBarService.error(error?.message ?? 'An error occurred while updating dynamic properties.');
+        },
+        next: () => {
+          this.snackBarService.success('Dynamic properties updated.');
+          this.ngOnInit();
+        },
+      });
   }
 }
