@@ -394,12 +394,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
             givenApiPagesQuery(List.of(page1, parent));
             final Response response = rootTarget().queryParam("parentId", "parent-id").request().get();
 
-            MAPIAssertions
-                .assertThat(response)
-                .hasStatus(400)
-                .asError()
-                .hasHttpStatus(400)
-                .hasMessage("parentId must be a FOLDER: parent-id");
+            MAPIAssertions.assertThat(response).hasStatus(400).asError().hasHttpStatus(400).hasMessage("Page parent must be a FOLDER.");
         }
     }
 
