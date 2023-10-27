@@ -2384,12 +2384,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     break;
             }
 
-            if (!DefinitionContext.isKubernetes(api.getOrigin())) {
-                final ApiEntity deployedApi = deployLastPublishedAPI(executionContext, apiId, username, eventType);
-                if (deployedApi != null) {
-                    return deployedApi;
-                }
+            final ApiEntity deployedApi = deployLastPublishedAPI(executionContext, apiId, username, eventType);
+            if (deployedApi != null) {
+                return deployedApi;
             }
+
             return apiEntity;
         } else {
             throw new ApiNotFoundException(apiId);

@@ -19,6 +19,7 @@ import static io.gravitee.rest.api.management.rest.resource.param.LifecycleActio
 import static io.gravitee.rest.api.management.rest.resource.param.LifecycleAction.STOP;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
@@ -306,10 +307,14 @@ public class ApiResource extends AbstractResource {
         final ApiEntity apiEntity = (ApiEntity) responseApi.getEntity();
         ApiEntity updatedApi = null;
         if (action == START) {
-            checkApiLifeCycle(apiEntity, action);
+            if (!DefinitionContext.isKubernetes(apiEntity.getDefinitionContext())) {
+                checkApiLifeCycle(apiEntity, action);
+            }
             updatedApi = apiStateService.start(GraviteeContext.getExecutionContext(), apiEntity.getId(), getAuthenticatedUser());
         } else if (action == STOP) {
-            checkApiLifeCycle(apiEntity, action);
+            if (!DefinitionContext.isKubernetes(apiEntity.getDefinitionContext())) {
+                checkApiLifeCycle(apiEntity, action);
+            }
             updatedApi = apiStateService.stop(GraviteeContext.getExecutionContext(), apiEntity.getId(), getAuthenticatedUser());
         }
 

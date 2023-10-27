@@ -109,10 +109,6 @@ public class ApiStateServiceImpl implements ApiStateService {
         try {
             Api api = apiSearchService.findRepositoryApiById(executionContext, apiId);
 
-            if (DefinitionContext.isKubernetes(api.getOrigin())) {
-                throw new ApiNotManagedException("The api is managed externally (" + api.getOrigin() + "). Unable to deploy it.");
-            }
-
             // add deployment date
             api.setUpdatedAt(new Date());
             api.setDeployedAt(api.getUpdatedAt());
@@ -231,12 +227,11 @@ public class ApiStateServiceImpl implements ApiStateService {
                     break;
             }
 
-            if (!DefinitionContext.isKubernetes(updateApi.getOrigin())) {
-                final ApiEntity deployedApi = deployLastPublishedAPI(executionContext, apiId, username, eventType);
-                if (deployedApi != null) {
-                    return deployedApi;
-                }
+            final ApiEntity deployedApi = deployLastPublishedAPI(executionContext, apiId, username, eventType);
+            if (deployedApi != null) {
+                return deployedApi;
             }
+
             return apiEntity;
         } else {
             throw new ApiNotFoundException(apiId);
