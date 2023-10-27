@@ -302,6 +302,7 @@ public class ApiStateServiceImplTest {
 
         api.setApiLifecycleState(ApiLifecycleState.CREATED);
         api.setOrigin(Api.ORIGIN_KUBERNETES);
+        when(apiValidationService.canDeploy(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(true);
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         when(apiSearchService.findRepositoryApiById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
 
@@ -318,7 +319,6 @@ public class ApiStateServiceImplTest {
         verify(apiRepository, times(2)).update(argThat(api -> api.getLifecycleState().equals(LifecycleState.STARTED)));
 
         Map<String, String> properties = new HashMap<>();
-        properties.put(Event.EventProperties.API_ID.getValue(), api.getId());
         properties.put(Event.EventProperties.USER.getValue(), USER_NAME);
         properties.put(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), "1");
 
@@ -397,7 +397,6 @@ public class ApiStateServiceImplTest {
         verify(apiRepository, times(1)).update(argThat(api -> api.getLifecycleState().equals(LifecycleState.STOPPED)));
 
         Map<String, String> properties = new HashMap<>();
-        properties.put(Event.EventProperties.API_ID.getValue(), API_ID);
         properties.put(Event.EventProperties.USER.getValue(), USER_NAME);
 
         verify(eventService)
