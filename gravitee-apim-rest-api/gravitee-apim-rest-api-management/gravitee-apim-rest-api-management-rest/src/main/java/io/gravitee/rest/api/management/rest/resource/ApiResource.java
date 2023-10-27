@@ -20,6 +20,7 @@ import static java.util.Collections.singletonList;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
@@ -990,12 +991,12 @@ public class ApiResource extends AbstractResource {
         }
         switch (api.getState()) {
             case STARTED:
-                if (LifecycleAction.START.equals(action)) {
+                if (!DefinitionContext.isKubernetes(api.getDefinitionContext()) && LifecycleAction.START.equals(action)) {
                     throw new BadRequestException("API is already started");
                 }
                 break;
             case STOPPED:
-                if (LifecycleAction.STOP.equals(action)) {
+                if (!DefinitionContext.isKubernetes(api.getDefinitionContext()) && LifecycleAction.STOP.equals(action)) {
                     throw new BadRequestException("API is already stopped");
                 }
 
