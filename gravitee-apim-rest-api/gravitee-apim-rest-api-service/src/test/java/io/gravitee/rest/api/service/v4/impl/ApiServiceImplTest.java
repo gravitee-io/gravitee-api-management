@@ -1197,14 +1197,6 @@ public class ApiServiceImplTest {
         verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
     }
 
-    @Test(expected = ApiNotManagedException.class)
-    public void shouldThrowWhenDeployingIfManagedByKubernetes() throws TechnicalException {
-        api.setOrigin(ORIGIN_KUBERNETES);
-        when(apiValidationService.canDeploy(any(), any())).thenReturn(true);
-        Mockito.when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
-        apiStateService.deploy(GraviteeContext.getExecutionContext(), API_ID, "some-user", new ApiDeploymentEntity());
-    }
-
     @Test
     public void shouldDeployApi() throws TechnicalException {
         final EventEntity previousPublishedEvent = new EventEntity();

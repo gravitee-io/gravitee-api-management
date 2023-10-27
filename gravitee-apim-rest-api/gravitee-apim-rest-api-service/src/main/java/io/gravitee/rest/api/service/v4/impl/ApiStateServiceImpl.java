@@ -139,10 +139,6 @@ public class ApiStateServiceImpl implements ApiStateService {
             throw new ApiNotDeployableException("The api {" + apiId + "} can not be deployed without at least one published plan");
         }
 
-        if (DefinitionContext.isKubernetes(api.getOrigin())) {
-            throw new ApiNotManagedException("The api is managed externally (" + api.getOrigin() + "). Unable to deploy it.");
-        }
-
         this.deployApi(executionContext, authenticatedUser, apiDeploymentEntity, api);
 
         PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext, api.getId());
@@ -273,12 +269,11 @@ public class ApiStateServiceImpl implements ApiStateService {
                     break;
             }
 
-            if (!DefinitionContext.isKubernetes(updateApi.getOrigin())) {
-                final GenericApiEntity deployedApi = deployLastPublishedAPI(executionContext, apiId, username, eventType);
-                if (deployedApi != null) {
-                    return deployedApi;
-                }
+            final GenericApiEntity deployedApi = deployLastPublishedAPI(executionContext, apiId, username, eventType);
+            if (deployedApi != null) {
+                return deployedApi;
             }
+
             return apiEntity;
         } else {
             throw new ApiNotFoundException(apiId);

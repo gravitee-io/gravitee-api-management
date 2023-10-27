@@ -303,19 +303,36 @@ public class ApiStateServiceImplTest {
         api.setApiLifecycleState(ApiLifecycleState.CREATED);
         api.setOrigin(Api.ORIGIN_KUBERNETES);
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
-        updatedApi.setOrigin(Api.ORIGIN_KUBERNETES);
+        when(apiSearchService.findRepositoryApiById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
+
+        final EventQuery query = new EventQuery();
+        query.setApi(API_ID);
+        query.setTypes(singleton(PUBLISH_API));
+        when(eventService.search(GraviteeContext.getExecutionContext(), query)).thenReturn(emptyList());
+
+        updatedApi.setLifecycleState(LifecycleState.STARTED);
         when(apiRepository.update(any())).thenReturn(updatedApi);
 
         apiStateService.start(GraviteeContext.getExecutionContext(), API_ID, USER_NAME);
 
-        verify(apiRepository, times(1)).update(argThat(api -> api.getLifecycleState().equals(LifecycleState.STARTED)));
+        verify(apiRepository, times(2)).update(argThat(api -> api.getLifecycleState().equals(LifecycleState.STARTED)));
 
         Map<String, String> properties = new HashMap<>();
-        properties.put(Event.EventProperties.API_ID.getValue(), API_ID);
+        properties.put(Event.EventProperties.API_ID.getValue(), api.getId());
         properties.put(Event.EventProperties.USER.getValue(), USER_NAME);
+        properties.put(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), "1");
 
-        verifyNoInteractions(eventService);
+        verify(eventService)
+            .createApiEvent(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(singleton(GraviteeContext.getCurrentEnvironment())),
+                eq(EventType.PUBLISH_API),
+                argThat((ArgumentMatcher<Api>) argApi -> argApi.getId().equals(API_ID)),
+                eq(properties)
+            );
 
+        verify(apiNotificationService, times(1))
+            .triggerDeployNotification(eq(GraviteeContext.getExecutionContext()), argThat(argApi -> argApi.getId().equals(API_ID)));
         verify(apiNotificationService, times(1))
             .triggerStartNotification(eq(GraviteeContext.getExecutionContext()), argThat(argApi -> argApi.getId().equals(API_ID)));
     }
@@ -364,8 +381,15 @@ public class ApiStateServiceImplTest {
         api.setOrigin(Api.ORIGIN_KUBERNETES);
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
 
+        final EventEntity event = new EventEntity();
+        event.setType(PUBLISH_API);
+        event.setPayload("{ \"id\": \"" + API_ID + "\"}");
+        final EventQuery query = new EventQuery();
+        query.setApi(API_ID);
+        query.setTypes(singleton(PUBLISH_API));
+        when(eventService.search(GraviteeContext.getExecutionContext(), query)).thenReturn(singleton(event));
+
         updatedApi.setLifecycleState(LifecycleState.STOPPED);
-        updatedApi.setOrigin(Api.ORIGIN_KUBERNETES);
         when(apiRepository.update(any())).thenReturn(updatedApi);
 
         apiStateService.stop(GraviteeContext.getExecutionContext(), API_ID, USER_NAME);
@@ -376,7 +400,14 @@ public class ApiStateServiceImplTest {
         properties.put(Event.EventProperties.API_ID.getValue(), API_ID);
         properties.put(Event.EventProperties.USER.getValue(), USER_NAME);
 
-        verifyNoInteractions(eventService);
+        verify(eventService)
+            .createApiEvent(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(singleton(GraviteeContext.getCurrentEnvironment())),
+                eq(EventType.STOP_API),
+                argThat((ArgumentMatcher<Api>) argApi -> argApi.getId().equals(API_ID)),
+                eq(properties)
+            );
 
         verify(apiNotificationService, times(1))
             .triggerStopNotification(eq(GraviteeContext.getExecutionContext()), argThat(argApi -> argApi.getId().equals(API_ID)));
