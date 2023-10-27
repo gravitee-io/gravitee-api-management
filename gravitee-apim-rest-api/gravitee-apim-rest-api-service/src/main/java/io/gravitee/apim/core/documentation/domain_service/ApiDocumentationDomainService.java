@@ -15,9 +15,9 @@
  */
 package io.gravitee.apim.core.documentation.domain_service;
 
+import io.gravitee.apim.core.documentation.exception.ApiPageNotAssociatedException;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
-import io.gravitee.apim.core.exception.ApiPageNotAssociatedException;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.sanitizer.HtmlSanitizer;
 import io.gravitee.apim.core.sanitizer.SanitizeResult;

@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.exception;
+package io.gravitee.apim.core.api.exception;
 
-import java.util.Map;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 
-public class InvalidPageParentException extends ValidationDomainException {
+public class InvalidApiDefinitionException extends ValidationDomainException {
 
-    public InvalidPageParentException(String parentId) {
-        super("Page parent must be a FOLDER.", Map.of("parentId", parentId));
+    public InvalidApiDefinitionException(String message) {
+        super(message);
     }
 }

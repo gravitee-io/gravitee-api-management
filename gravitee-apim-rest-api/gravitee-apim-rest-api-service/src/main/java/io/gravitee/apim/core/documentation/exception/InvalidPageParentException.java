@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.exception;
+package io.gravitee.apim.core.documentation.exception;
 
-public class InvalidPathsException extends ValidationDomainException {
+import io.gravitee.apim.core.exception.ValidationDomainException;
+import java.util.Map;
 
-    public InvalidPathsException(String message) {
-        super(message);
-    }
+public class InvalidPageParentException extends ValidationDomainException {
 
-    public InvalidPathsException(String message, Throwable cause) {
-        super(message, cause);
+    public InvalidPageParentException(String parentId) {
+        super("Page parent must be a FOLDER.", Map.of("parentId", parentId));
     }
 }

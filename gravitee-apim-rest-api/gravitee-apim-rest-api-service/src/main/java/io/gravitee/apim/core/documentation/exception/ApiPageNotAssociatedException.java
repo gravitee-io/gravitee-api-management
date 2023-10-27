@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.exception;
+package io.gravitee.apim.core.documentation.exception;
 
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import java.util.Map;
 
 public class ApiPageNotAssociatedException extends ValidationDomainException {

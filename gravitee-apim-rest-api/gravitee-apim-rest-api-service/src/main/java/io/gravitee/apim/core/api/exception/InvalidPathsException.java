@@ -13,11 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.exception;
+package io.gravitee.apim.core.api.exception;
 
-public class InvalidApiDefinitionException extends ValidationDomainException {
+import io.gravitee.apim.core.exception.ValidationDomainException;
 
-    public InvalidApiDefinitionException(String message) {
+public class InvalidPathsException extends ValidationDomainException {
+
+    public InvalidPathsException(String message) {
         super(message);
+    }
+
+    public InvalidPathsException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

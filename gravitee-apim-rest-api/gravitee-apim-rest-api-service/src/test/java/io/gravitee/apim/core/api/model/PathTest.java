@@ -17,7 +17,7 @@ package io.gravitee.apim.core.api.model;
 
 import static org.assertj.core.api.Assertions.*;
 
-import io.gravitee.apim.core.exception.InvalidPathsException;
+import io.gravitee.apim.core.api.exception.InvalidPathsException;
 import java.util.stream.Stream;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
