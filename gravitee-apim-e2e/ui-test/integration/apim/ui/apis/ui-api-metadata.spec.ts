@@ -20,8 +20,11 @@ import { PlansFaker } from '@gravitee/fixtures/management/PlansFaker';
 import { ApiEntity, PlanStatus } from '../../../../../lib/management-webclient-sdk/src/lib/models';
 import faker from '@faker-js/faker';
 
-const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
+
+// Component reloads shortly after displaying dialog window
+// wait time makes sure reload has finished and it's safe to resume
+const RELOAD_WAIT_TIME_MS = 700;
 
 describe('API metadata screen', () => {
   let api: ApiEntity;
@@ -80,11 +83,12 @@ describe('API metadata screen', () => {
   describe('Adding API metadata', () => {
     it('should add string metadata', function () {
       cy.getByDataTestId('api_add_metadata_button').click();
-      cy.getByDataTestId('api_metadata_dialog_name').click().type('string metadata key');
+      cy.wait(RELOAD_WAIT_TIME_MS);
+      cy.getByDataTestId('api_metadata_dialog_name').type('string metadata key');
       cy.getByDataTestId('api_metadata_dialog_format').click();
 
       cy.get('mat-option').contains('string').click();
-      cy.getByDataTestId('api_metadata_dialog_default_value').click().type('string metadata value');
+      cy.getByDataTestId('api_metadata_dialog_default_value').type('string metadata value');
 
       cy.getByDataTestId('api_metadata_dialog_save').click();
       cy.get('tbody').contains('string-metadata-key');
@@ -93,11 +97,12 @@ describe('API metadata screen', () => {
 
     it('should add numeric metadata', function () {
       cy.getByDataTestId('api_add_metadata_button').click();
-      cy.getByDataTestId('api_metadata_dialog_name').click().type('numeric metadata key');
+      cy.wait(RELOAD_WAIT_TIME_MS);
+      cy.getByDataTestId('api_metadata_dialog_name').type('numeric metadata key');
       cy.getByDataTestId('api_metadata_dialog_format').click();
 
       cy.get('mat-option').contains('numeric').click();
-      cy.getByDataTestId('api_metadata_dialog_numeric_value').click().type('123.45{enter}');
+      cy.getByDataTestId('api_metadata_dialog_numeric_value').type('123.45{enter}');
 
       cy.get('tbody').contains('numeric-metadata-key');
       cy.get('tbody').contains('123.45');
@@ -105,7 +110,8 @@ describe('API metadata screen', () => {
 
     it('should add boolean metadata', function () {
       cy.getByDataTestId('api_add_metadata_button').click();
-      cy.getByDataTestId('api_metadata_dialog_name').click().type('boolean metadata key');
+      cy.wait(RELOAD_WAIT_TIME_MS);
+      cy.getByDataTestId('api_metadata_dialog_name').type('boolean metadata key');
       cy.getByDataTestId('api_metadata_dialog_format').click();
 
       cy.get('mat-option').contains('boolean').click();
@@ -119,11 +125,12 @@ describe('API metadata screen', () => {
 
     it('should add date metadata', function () {
       cy.getByDataTestId('api_add_metadata_button').click();
-      cy.getByDataTestId('api_metadata_dialog_name').click().type('date metadata key');
+      cy.wait(RELOAD_WAIT_TIME_MS);
+      cy.getByDataTestId('api_metadata_dialog_name').type('date metadata key');
       cy.getByDataTestId('api_metadata_dialog_format').click();
 
       cy.get('mat-option').contains('date').click();
-      cy.getByDataTestId('api_metadata_dialog_date_value').click().type('12/31/2023');
+      cy.getByDataTestId('api_metadata_dialog_date_value').type('12/31/2023');
 
       cy.getByDataTestId('api_metadata_dialog_save').click();
       cy.get('tbody').contains('date-metadata-key');
@@ -134,11 +141,12 @@ describe('API metadata screen', () => {
   describe('Modifying API metadata', () => {
     it('should add url metadata', function () {
       cy.getByDataTestId('api_add_metadata_button').click();
-      cy.getByDataTestId('api_metadata_dialog_name').click().type('url metadata key');
+      cy.wait(RELOAD_WAIT_TIME_MS);
+      cy.getByDataTestId('api_metadata_dialog_name').type('url metadata key');
       cy.getByDataTestId('api_metadata_dialog_format').click();
 
       cy.get('mat-option').contains('url').click();
-      cy.getByDataTestId('api_metadata_dialog_url_value').click().type('http://gravitee.io');
+      cy.getByDataTestId('api_metadata_dialog_url_value').type('http://gravitee.io');
 
       cy.getByDataTestId('api_metadata_dialog_save').click();
       cy.get('tbody').contains('url-metadata-key');
@@ -149,10 +157,11 @@ describe('API metadata screen', () => {
       cy.contains('tr', 'url-metadata-key').within(() => {
         cy.getByDataTestId('api_metadata_edit_button').click();
       });
+      cy.wait(RELOAD_WAIT_TIME_MS);
       cy.getByDataTestId('api_metadata_dialog_key').should('not.be.enabled');
       cy.getByDataTestId('api_metadata_dialog_format').should('not.be.enabled');
-      cy.getByDataTestId('api_metadata_dialog_name').click().type('{moveToStart}updated ');
-      cy.getByDataTestId('api_metadata_dialog_url_value').click().type('/updated');
+      cy.getByDataTestId('api_metadata_dialog_name').type('{moveToStart}updated ');
+      cy.getByDataTestId('api_metadata_dialog_url_value').type('/updated');
 
       cy.getByDataTestId('api_metadata_dialog_save').click();
       cy.get('tbody').contains('url-metadata-key');
@@ -164,11 +173,12 @@ describe('API metadata screen', () => {
   describe('Deleting API metadata', () => {
     it('should add mail metadata', function () {
       cy.getByDataTestId('api_add_metadata_button').click();
-      cy.getByDataTestId('api_metadata_dialog_name').click().type('mail metadata key');
+      cy.wait(RELOAD_WAIT_TIME_MS);
+      cy.getByDataTestId('api_metadata_dialog_name').type('mail metadata key');
       cy.getByDataTestId('api_metadata_dialog_format').click();
 
       cy.get('mat-option').contains('mail').click();
-      cy.getByDataTestId('api_metadata_dialog_mail_value').click().type('john@doe.com');
+      cy.getByDataTestId('api_metadata_dialog_mail_value').type('john@doe.com');
 
       cy.getByDataTestId('api_metadata_dialog_save').click();
       cy.get('tbody').contains('mail-metadata-key');
@@ -247,7 +257,8 @@ describe('API metadata screen', () => {
       cy.contains('tr', globalMetadataName).within(() => {
         cy.getByDataTestId('api_metadata_edit_button').click();
       });
-      cy.getByDataTestId('api_metadata_dialog_default_value').click().type('new value for global metadata');
+      cy.wait(RELOAD_WAIT_TIME_MS);
+      cy.getByDataTestId('api_metadata_dialog_default_value').type('new value for global metadata');
       cy.getByDataTestId('api_metadata_dialog_save').click();
       cy.get('tbody').contains(globalMetadataName);
       cy.get('tbody').contains('new value for global metadata');
