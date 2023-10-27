@@ -48,8 +48,8 @@
     </gio-banner-info>
   </div>
 
-  <ng-container [formGroup]="form">
-    <gio-form-slide-toggle class="endpointHttpConfig__formField">
+  <ng-container *ngIf="form" [formGroup]="form">
+    <gio-form-slide-toggle class="apiDynamicProperties__enableField">
       <gio-form-label>Enabled</gio-form-label>
       This service is requiring an API deployment. Do not forget to deploy API to start dynamic-properties service.
       <mat-slide-toggle
@@ -57,6 +57,51 @@
         formControlName="enabled"
         aria-label="Use proxy for client connections"
         name="enabled"
+      ></mat-slide-toggle>
+    </gio-form-slide-toggle>
+
+    <gio-form-cron class="apiDynamicProperties__scheduleField" formControlName="schedule">
+      <gio-form-cron-label>Schedule *</gio-form-cron-label>
+      <gio-form-cron-hint>Cron expression to schedule the health check</gio-form-cron-hint>
+    </gio-form-cron>
+
+    <div class="apiDynamicProperties__methodUrl">
+      <mat-form-field class="apiDynamicProperties__methodUrl__methodField">
+        <mat-label>Method</mat-label>
+        <mat-select formControlName="method">
+          <mat-option *ngFor="let method of httpMethods" [value]="method">{{ method }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field class="apiDynamicProperties__methodUrl__urlField">
+        <mat-label>URL</mat-label>
+        <input type="text" matInput formControlName="url" />
+      </mat-form-field>
+    </div>
+
+    <div class="apiDynamicProperties__headersField">
+      <div class="apiDynamicProperties__headersField__label">Request headers</div>
+      <gio-form-headers [headerFieldMapper]="{ keyName: 'name', valueName: 'value' }" formControlName="headers"></gio-form-headers>
+    </div>
+
+    <mat-form-field class="apiDynamicProperties__field">
+      <mat-label>Request body</mat-label>
+      <textarea matInput formControlName="body" rows="2"></textarea>
+    </mat-form-field>
+
+    <mat-form-field class="apiDynamicProperties__field">
+      <mat-label>Transformation (JOLT Specification)</mat-label>
+      <textarea matInput formControlName="specification" rows="2"></textarea>
+    </mat-form-field>
+
+    <gio-form-slide-toggle class="apiDynamicProperties__field">
+      <gio-form-label>Use system proxy</gio-form-label>
+      Use the system proxy configured in APIM installation.
+      <mat-slide-toggle
+        gioFormSlideToggle
+        formControlName="useSystemProxy"
+        aria-label="Use proxy for client connections"
+        name="useSystemProxy"
       ></mat-slide-toggle>
     </gio-form-slide-toggle>
   </ng-container>

@@ -25,6 +25,7 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
+import { DivHarness } from '@gravitee/ui-particles-angular/testing';
 
 import { ApiPropertiesComponent } from './api-properties.component';
 import { ApiPropertiesModule } from './api-properties.module';
@@ -36,7 +37,6 @@ import { User } from '../../../../entities/user';
 import { CurrentUserService, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { GioUiRouterTestingModule } from '../../../../shared/testing/gio-uirouter-testing-module';
 import { Api, fakeApiV4 } from '../../../../entities/management-api-v2/api';
-import { DivHarness } from '@gravitee/ui-particles-angular/testing';
 
 describe('ApiPropertiesComponent', () => {
   const API_ID = 'apiId';

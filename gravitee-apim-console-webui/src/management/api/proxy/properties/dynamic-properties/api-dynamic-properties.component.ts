@@ -17,12 +17,13 @@
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { combineLatest, Subject } from 'rxjs';
 import { StateParams } from '@uirouter/angularjs';
+import { FormControl, FormGroup } from '@angular/forms';
+import { startWith, takeUntil, tap } from 'rxjs/operators';
 
 import { UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
-import { FormControl, FormGroup } from '@angular/forms';
-import { takeUntil, tap } from 'rxjs/operators';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
 import { ApiPropertiesOldService } from '../../properties-ng/api-properties-old.service';
+import { CorsUtil } from '../../../../../shared/utils';
 
 @Component({
   selector: 'api-dynamic-properties',
@@ -50,6 +51,8 @@ export class ApiDynamicPropertiesComponent implements OnInit, OnDestroy {
 
   public form: FormGroup;
 
+  public httpMethods = CorsUtil.httpMethods;
+
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams: StateParams,
     private readonly apiService: ApiV2Service,
@@ -57,21 +60,70 @@ export class ApiDynamicPropertiesComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    combineLatest([this.apiService.get(this.ajsStateParams.apiId), this.apiPropertiesService.getProviders()])
+    combineLatest([this.apiService.get(this.ajsStateParams.apiId)])
       .pipe(
-        tap(([api, providers]) => {
-          if (api.definitionVersion === 'V1') {
+        tap(([api]) => {
+          if (api.definitionVersion !== 'V2') {
             throw new Error('Unexpected API type. This page is compatible only for API > V1');
           }
-          // this.providers = providers;
-          const isReadonly = api.definitionContext.origin === 'KUBERNETES';
+          const isReadonly = api.definitionContext?.origin === 'KUBERNETES';
+          const dynamicProperty = api.services?.dynamicProperty;
 
           this.form = new FormGroup({
             enabled: new FormControl({
-              value: false,
+              value: dynamicProperty?.enabled ?? false,
+              disabled: isReadonly,
+            }),
+            schedule: new FormControl({
+              value: dynamicProperty?.schedule ?? '0 */5 * * * *',
+              disabled: isReadonly,
+            }),
+            provider: new FormControl({
+              value: dynamicProperty?.provider ?? 'HTTP', // Only http is supported for now.
+              disabled: isReadonly,
+            }),
+            method: new FormControl({
+              value: dynamicProperty?.configuration?.method ?? 'GET',
+              disabled: isReadonly,
+            }),
+            url: new FormControl({
+              value: dynamicProperty?.configuration?.url ?? '',
+              disabled: isReadonly,
+            }),
+            headers: new FormControl({
+              value: dynamicProperty?.configuration?.headers ?? undefined,
+              disabled: isReadonly,
+            }),
+            useSystemProxy: new FormControl({
+              value: dynamicProperty?.configuration?.useSystemProxy ?? undefined,
+              disabled: isReadonly,
+            }),
+            body: new FormControl({
+              value: dynamicProperty?.configuration?.body ?? '',
+              disabled: isReadonly,
+            }),
+            specification: new FormControl({
+              value: dynamicProperty?.configuration?.specification ?? '[{operation=default, spec={}}]',
               disabled: isReadonly,
             }),
           });
+
+          this.form
+            .get('enabled')
+            .valueChanges.pipe(startWith(this.form.get('enabled').value), takeUntil(this.unsubscribe$))
+            .subscribe((enabled) => {
+              const controlNames = ['schedule', 'provider', 'method', 'url', 'headers', 'useSystemProxy', 'body', 'specification'];
+
+              if (enabled) {
+                controlNames.forEach((controlName) => {
+                  this.form.get(controlName).enable({ emitEvent: false });
+                });
+              } else {
+                controlNames.forEach((controlName) => {
+                  this.form.get(controlName).disable({ emitEvent: false });
+                });
+              }
+            });
         }),
         takeUntil(this.unsubscribe$),
       )
@@ -83,5 +135,7 @@ export class ApiDynamicPropertiesComponent implements OnInit, OnDestroy {
     this.unsubscribe$.unsubscribe();
   }
 
-  onSave() {}
+  onSave() {
+    // TODO: implement
+  }
 }
