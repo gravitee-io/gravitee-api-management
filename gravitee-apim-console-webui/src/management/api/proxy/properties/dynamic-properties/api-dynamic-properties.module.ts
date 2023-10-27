@@ -31,6 +31,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatOptionModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { ApiDynamicPropertiesComponent } from './api-dynamic-properties.component';
 
@@ -46,6 +47,7 @@ import { ApiDynamicPropertiesComponent } from './api-dynamic-properties.componen
     MatOptionModule,
     MatSelectModule,
     MatInputModule,
+    MatSnackBarModule,
 
     GioSaveBarModule,
     GioIconsModule,

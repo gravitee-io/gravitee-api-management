@@ -23,23 +23,9 @@
     <a href="https://github.com/bazaarvoice/jolt" target="_blank" rel="noopener">JOLT framework</a> . Like classical properties, dynamic
     properties will be injected into the expression language context.
 
-    <gio-banner-info class="bannerTransformationJOLTExample">
-      <span class="bannerTransformationJOLTExample__title">Set-up guide</span>
-      <div class="bannerTransformationJOLTExample__collapse">
-        <button
-          type="button"
-          mat-icon-button
-          aria-label="Collapse"
-          (click)="transformationJOLTExampleCollapse = !transformationJOLTExampleCollapse"
-        >
-          <mat-icon
-            [class.collapse-open]="transformationJOLTExampleCollapse"
-            [class.collapse-close]="!transformationJOLTExampleCollapse"
-            svgIcon="gio:nav-arrow-down"
-          ></mat-icon>
-        </button>
-      </div>
-      <span gioBannerBody class="bannerTransformationJOLTExample__body" [hidden]="transformationJOLTExampleCollapse">
+    <gio-banner-info class="bannerTransformationJOLTExample" [collapsible]="true">
+      Set-up guide
+      <span gioBannerBody class="bannerTransformationJOLTExample__body">
         1. Configure Scheduler with a cron expression to define the polling frequency. <br />
         2. Set the HTTP endpoint to fetch the properties. <br />
         3. (optional) If the HTTP service doesn’t return the expected output, you will need to edit the JOLT transformation accordingly.<br />
@@ -62,7 +48,6 @@
 
     <gio-form-cron class="apiDynamicProperties__scheduleField" formControlName="schedule">
       <gio-form-cron-label>Schedule *</gio-form-cron-label>
-      <gio-form-cron-hint>Cron expression to schedule the health check</gio-form-cron-hint>
     </gio-form-cron>
 
     <div class="apiDynamicProperties__methodUrl">
@@ -76,12 +61,14 @@
       <mat-form-field class="apiDynamicProperties__methodUrl__urlField">
         <mat-label>URL</mat-label>
         <input type="text" matInput formControlName="url" />
+        <mat-error *ngIf="form.get('url').hasError('required')">URL is required.</mat-error>
       </mat-form-field>
     </div>
 
     <div class="apiDynamicProperties__headersField">
-      <div class="apiDynamicProperties__headersField__label">Request headers</div>
-      <gio-form-headers [headerFieldMapper]="{ keyName: 'name', valueName: 'value' }" formControlName="headers"></gio-form-headers>
+      <gio-form-headers [headerFieldMapper]="{ keyName: 'name', valueName: 'value' }" formControlName="headers">
+        <gio-form-headers-label>Request headers</gio-form-headers-label>
+      </gio-form-headers>
     </div>
 
     <mat-form-field class="apiDynamicProperties__field">
@@ -107,4 +94,4 @@
   </ng-container>
 </mat-card>
 
-<gio-save-bar (submitted)="onSave()"> </gio-save-bar>
+<gio-save-bar [form]="form" [formInitialValues]="initialFormValue" (submitted)="onSave()"> </gio-save-bar>

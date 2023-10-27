@@ -23,7 +23,7 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
-import { GioFormCronHarness, GioFormHeadersHarness } from '@gravitee/ui-particles-angular';
+import { GioFormCronHarness, GioFormHeadersHarness, GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { MatInputHarness } from '@angular/material/input/testing';
 
 import { ApiDynamicPropertiesComponent } from './api-dynamic-properties.component';
@@ -147,6 +147,63 @@ describe('ApiDynamicPropertiesComponent', () => {
     expect(await headersInput.isDisabled()).toBe(false);
     expect(await bodyInput.isDisabled()).toBe(false);
     expect(await specificationInput.isDisabled()).toBe(false);
+  });
+
+  it('should set dynamic properties', async () => {
+    expectGetApi(
+      fakeApiV2({
+        id: API_ID,
+        services: {
+          dynamicProperty: undefined,
+        },
+      }),
+    );
+
+    const enabledInput = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' }));
+    await enabledInput.toggle();
+
+    const scheduleInput = await loader.getHarness(GioFormCronHarness.with({ selector: '[formControlName="schedule"]' }));
+    await scheduleInput.setCustomValue('0 */42 * * * *');
+
+    const methodInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="method"]' }));
+    await methodInput.clickOptions({ text: 'POST' });
+
+    const urlInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="url"]' }));
+    await urlInput.setValue('http://localhost:8083');
+
+    const bodyInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="body"]' }));
+    await bodyInput.setValue('body');
+
+    const specificationInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="specification"]' }));
+    await specificationInput.setValue('specification');
+
+    const saveBar = await loader.getHarness(GioSaveBarHarness);
+    await saveBar.clickSubmit();
+
+    expectGetApi(
+      fakeApiV2({
+        id: API_ID,
+        services: {
+          dynamicProperty: undefined,
+        },
+      }),
+    );
+    const req = httpTestingController.expectOne({
+      method: 'PUT',
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`,
+    });
+    expect(req.request.body.services.dynamicProperty).toEqual({
+      enabled: true,
+      provider: 'HTTP',
+      schedule: '0 */42 * * * *',
+
+      configuration: {
+        method: 'POST',
+        url: 'http://localhost:8083',
+        body: 'body',
+        specification: 'specification',
+      },
+    });
   });
 
   function expectGetApi(api: Api) {
