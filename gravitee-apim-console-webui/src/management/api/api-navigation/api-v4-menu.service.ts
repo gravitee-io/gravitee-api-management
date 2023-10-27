@@ -136,7 +136,7 @@ export class ApiV4MenuService implements ApiMenuService {
       generalGroup.items.push({
         displayName: 'Documentation',
         targetRoute: 'management.apis.documentationV4',
-        baseRoute: ['management.apis.documentationV4'],
+        baseRoute: ['management.apis.documentationV4', 'management.apis.documentationV4-create', 'management.apis.documentationV4-edit'],
       });
     }
 
