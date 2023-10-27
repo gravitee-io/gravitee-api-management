@@ -18,9 +18,9 @@ package io.gravitee.apim.core.documentation.usecase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
+import io.gravitee.apim.core.documentation.exception.InvalidPageParentException;
 import io.gravitee.apim.core.documentation.model.Breadcrumb;
 import io.gravitee.apim.core.documentation.model.Page;
-import io.gravitee.apim.core.exception.InvalidPageParentException;
 import java.util.*;
 import java.util.stream.Stream;
 

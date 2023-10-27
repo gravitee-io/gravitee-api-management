@@ -17,7 +17,7 @@ package io.gravitee.apim.infra.domain_service.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.api.domain_service.ApiDefinitionParserDomainService;
-import io.gravitee.apim.core.exception.InvalidApiDefinitionException;
+import io.gravitee.apim.core.api.exception.InvalidApiDefinitionException;
 import io.gravitee.definition.model.v4.Api;
 import java.io.IOException;
 import lombok.extern.slf4j.Slf4j;

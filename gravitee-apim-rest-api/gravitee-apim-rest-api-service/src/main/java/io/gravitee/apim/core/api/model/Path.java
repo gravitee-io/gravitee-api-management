@@ -15,7 +15,7 @@
  */
 package io.gravitee.apim.core.api.model;
 
-import io.gravitee.apim.core.exception.InvalidPathsException;
+import io.gravitee.apim.core.api.exception.InvalidPathsException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
