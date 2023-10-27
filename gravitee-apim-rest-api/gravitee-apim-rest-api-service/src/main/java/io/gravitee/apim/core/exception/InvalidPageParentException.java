@@ -15,9 +15,11 @@
  */
 package io.gravitee.apim.core.exception;
 
+import java.util.Map;
+
 public class InvalidPageParentException extends ValidationDomainException {
 
     public InvalidPageParentException(String parentId) {
-        super("parentId must be a FOLDER: " + parentId);
+        super("Page parent must be a FOLDER.", Map.of("parentId", parentId));
     }
 }

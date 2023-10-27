@@ -15,25 +15,11 @@
  */
 package io.gravitee.apim.core.exception;
 
-import java.util.HashMap;
 import java.util.Map;
-import lombok.Getter;
 
-@Getter
-public class ValidationDomainException extends AbstractDomainException {
+public class ApiPageNotAssociatedException extends ValidationDomainException {
 
-    private final Map<String, String> parameters = new HashMap<>();
-
-    public ValidationDomainException(String message) {
-        super(message);
-    }
-
-    public ValidationDomainException(String message, Map<String, String> parameters) {
-        super(message);
-        this.parameters.putAll(parameters);
-    }
-
-    public ValidationDomainException(String message, Throwable cause) {
-        super(message, cause);
+    public ApiPageNotAssociatedException(String apiId, String pageId) {
+        super("Page is not associated to Api.", Map.of("apiId", apiId, "pageId", pageId));
     }
 }
