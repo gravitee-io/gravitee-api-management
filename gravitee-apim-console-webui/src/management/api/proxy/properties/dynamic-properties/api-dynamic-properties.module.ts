@@ -15,25 +15,45 @@
  */
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
-import { GioBannerModule, GioFormSlideToggleModule, GioIconsModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import {
+  GioBannerModule,
+  GioFormCronModule,
+  GioFormHeadersModule,
+  GioFormSlideToggleModule,
+  GioIconsModule,
+  GioSaveBarModule,
+} from '@gravitee/ui-particles-angular';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
-
-import { ApiDynamicPropertiesComponent } from './api-dynamic-properties.component';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatButtonModule } from '@angular/material/button';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatOptionModule } from '@angular/material/core';
+import { MatSelectModule } from '@angular/material/select';
+import { MatInputModule } from '@angular/material/input';
+
+import { ApiDynamicPropertiesComponent } from './api-dynamic-properties.component';
 
 @NgModule({
   imports: [
     CommonModule,
     ReactiveFormsModule,
+
     MatCardModule,
     MatButtonModule,
+    MatSlideToggleModule,
+    MatFormFieldModule,
+    MatOptionModule,
+    MatSelectModule,
+    MatInputModule,
+
     GioSaveBarModule,
     GioIconsModule,
     GioFormSlideToggleModule,
     GioBannerModule,
-    MatSlideToggleModule,
+    GioFormCronModule,
+    GioFormCronModule,
+    GioFormHeadersModule,
   ],
   declarations: [ApiDynamicPropertiesComponent],
   exports: [ApiDynamicPropertiesComponent],

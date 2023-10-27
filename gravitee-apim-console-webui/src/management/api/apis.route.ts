@@ -74,6 +74,7 @@ import { ApiRuntimeLogsMessagesComponent } from './runtime-logs-v4/runtime-logs-
 import { ApiDocumentationV4Component } from './documentation-v4/api-documentation-v4.component';
 import { ApiDocumentationV4NewPageComponent } from './documentation-v4/documentation-new-page/api-documentation-v4-new-page.component';
 import { ApiDocumentationV4EditPageComponent } from './documentation-v4/documentation-edit-page/api-documentation-v4-edit-page.component';
+import { ApiDynamicPropertiesComponent } from './proxy/properties/dynamic-properties/api-dynamic-properties.component';
 
 import { ApiService } from '../../services/api.service';
 import { GioEmptyComponent } from '../../shared/components/gio-empty/gio-empty.component';
@@ -95,7 +96,6 @@ import { MessagesComponent } from '../messages/messages.component';
 import TenantService from '../../services/tenant.service';
 import TagService from '../../services/tag.service';
 import { ApimFeature } from '../../shared/components/gio-license/gio-license-data';
-import { ApiDynamicPropertiesComponent } from './proxy/properties/dynamic-properties/api-dynamic-properties.component';
 
 // New Angular routing
 export const states: Ng2StateDeclaration[] = [
