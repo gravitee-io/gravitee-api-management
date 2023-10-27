@@ -196,12 +196,39 @@ public class ApiStateServiceImpl_DeployTest {
             .then(invocation -> invocation.getArgument(1));
     }
 
-    @Test(expected = ApiNotManagedException.class)
-    public void should_throw_when_deploying_if_managed_by_kubernetes() {
+    @Test
+    public void should_deploy_api_if_managed_by_kubernetes() throws TechnicalException {
         api.setOrigin(ORIGIN_KUBERNETES);
-        when(apiSearchService.findRepositoryApiById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
+        final EventEntity previousPublishedEvent = new EventEntity();
+        previousPublishedEvent.setProperties(new HashMap<>());
+
         when(apiValidationService.canDeploy(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(true);
-        apiStateService.deploy(GraviteeContext.getExecutionContext(), API_ID, "some-user", new ApiDeploymentEntity());
+        when(apiSearchService.findRepositoryApiById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
+        when(apiRepository.update(api)).thenReturn(api);
+        when(eventService.search(any(ExecutionContext.class), any())).thenReturn(singleton(previousPublishedEvent));
+
+        final ApiDeploymentEntity apiDeploymentEntity = new ApiDeploymentEntity();
+        apiDeploymentEntity.setDeploymentLabel("deploy-label");
+        final GenericApiEntity result = apiStateService.deploy(
+            GraviteeContext.getExecutionContext(),
+            API_ID,
+            USER_NAME,
+            apiDeploymentEntity
+        );
+
+        verify(eventService)
+            .createApiEvent(
+                any(ExecutionContext.class),
+                any(Set.class),
+                eq(EventType.PUBLISH_API),
+                eq(api),
+                argThat(properties ->
+                    properties.get(Event.EventProperties.USER.getValue()).equals(USER_NAME) &&
+                    properties.get(Event.EventProperties.DEPLOYMENT_NUMBER.getValue()).equals("1") &&
+                    properties.get(Event.EventProperties.DEPLOYMENT_LABEL.getValue()).equals(apiDeploymentEntity.getDeploymentLabel())
+                )
+            );
+        verify(apiNotificationService).triggerDeployNotification(any(ExecutionContext.class), eq(result));
     }
 
     @Test(expected = ApiNotDeployableException.class)
