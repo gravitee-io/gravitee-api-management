@@ -18,7 +18,8 @@
 <div class="content__header">
   <div class="content__header__title">
     <h4>Page content</h4>
-    <span class="gio-badge-neutral">Unpublished</span>
+    <span class="gio-badge-neutral" *ngIf="!published">Unpublished</span>
+    <span class="gio-badge-success" *ngIf="published">Published</span>
   </div>
   <button mat-stroked-button (click)="preview = !preview">Toggle preview</button>
 </div>

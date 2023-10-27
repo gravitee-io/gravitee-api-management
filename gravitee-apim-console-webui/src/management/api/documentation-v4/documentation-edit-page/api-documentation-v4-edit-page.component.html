@@ -23,7 +23,7 @@
     (exitWithoutSaving)="exitWithoutSaving()"
   ></api-documentation-page-header>
   <div class="content">
-    <api-documentation-content [(ngModel)]="content"></api-documentation-content>
+    <api-documentation-content [(ngModel)]="content" [published]="page?.published"></api-documentation-content>
   </div>
   <div class="actions">
     <ng-container *ngIf="page?.published; else notPublished">
