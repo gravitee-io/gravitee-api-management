@@ -39,7 +39,7 @@ public class AccessPointCrudServiceImpl extends TransactionalService implements 
 
     @Override
     public void updateAccessPoints(
-        final AccessPoint.AccessPointReferenceType referenceType,
+        final AccessPoint.ReferenceType referenceType,
         final String referenceId,
         final List<AccessPoint> accessPoints
     ) {

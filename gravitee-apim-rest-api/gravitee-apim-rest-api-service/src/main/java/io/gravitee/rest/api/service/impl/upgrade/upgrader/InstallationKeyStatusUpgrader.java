@@ -35,6 +35,18 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class InstallationKeyStatusUpgrader implements Upgrader {
 
+    static String PLANS_DATA_UPGRADER_STATUS = "PLANS_DATA_UPGRADER_V2_STATUS";
+    static String APPLICATION_API_KEY_MODE_UPGRADER_STATUS = "API_KEY_MODE_UPGRADER_STATUS";
+    static String API_KEY_SUBSCRIPTIONS_UPGRADER_STATUS = "API_KEY_SUBSCRIPTIONS_UPGRADER_STATUS";
+    static String CLIENT_ID_IN_API_KEY_SUBSCRIPTIONS_UPGRADER_STATUS = "CLIENT_ID_IN_API_KEY_SUBSCRIPTIONS_UPGRADER_STATUS";
+    static String ORPHAN_CATEGORY_UPGRADER_STATUS = "ORPHAN_CATEGORY_UPGRADER_STATUS";
+    static String API_LOGGING_CONDITION_UPGRADER = "API_LOGGING_CONDITION_UPGRADER";
+    static String DEFAULT_ROLES_UPGRADER_STATUS = "DEFAULT_ROLES_UPGRADER_STATUS";
+    static String ALERTS_ENVIRONMENT_UPGRADER = "ALERTS_ENVIRONMENT_UPGRADER";
+    static String COMMAND_ORGANIZATION_UPGRADER = "COMMAND_ORGANIZATION_UPGRADER";
+    static String PLANS_FLOWS_UPGRADER_STATUS = "PLANS_FLOWS_UPGRADER_STATUS";
+    static String EVENTS_LATEST_UPGRADER_STATUS = "EVENTS_LATEST_UPGRADER_STATUS";
+
     @Autowired
     private InstallationService installationService;
 
@@ -45,23 +57,20 @@ public class InstallationKeyStatusUpgrader implements Upgrader {
     protected static final Map<String, String> INSTALLATION_KEY_STATUS = new HashMap<>();
 
     public InstallationKeyStatusUpgrader() {
-        INSTALLATION_KEY_STATUS.put(InstallationService.ORPHAN_CATEGORY_UPGRADER_STATUS, OrphanCategoryUpgrader.class.getName());
-        INSTALLATION_KEY_STATUS.put(InstallationService.DEFAULT_ROLES_UPGRADER_STATUS, DefaultRolesUpgrader.class.getName());
-        INSTALLATION_KEY_STATUS.put(InstallationService.COMMAND_ORGANIZATION_UPGRADER, CommandOrganizationUpgrader.class.getName());
+        INSTALLATION_KEY_STATUS.put(ORPHAN_CATEGORY_UPGRADER_STATUS, OrphanCategoryUpgrader.class.getName());
+        INSTALLATION_KEY_STATUS.put(DEFAULT_ROLES_UPGRADER_STATUS, DefaultRolesUpgrader.class.getName());
+        INSTALLATION_KEY_STATUS.put(COMMAND_ORGANIZATION_UPGRADER, CommandOrganizationUpgrader.class.getName());
+        INSTALLATION_KEY_STATUS.put(APPLICATION_API_KEY_MODE_UPGRADER_STATUS, ApplicationApiKeyModeUpgrader.class.getName());
+        INSTALLATION_KEY_STATUS.put(ALERTS_ENVIRONMENT_UPGRADER, AlertsEnvironmentUpgrader.class.getName());
+        INSTALLATION_KEY_STATUS.put(PLANS_DATA_UPGRADER_STATUS, PlansDataFixUpgrader.class.getName());
+        INSTALLATION_KEY_STATUS.put(API_KEY_SUBSCRIPTIONS_UPGRADER_STATUS, ApiKeySubscriptionsUpgrader.class.getName());
         INSTALLATION_KEY_STATUS.put(
-            InstallationService.APPLICATION_API_KEY_MODE_UPGRADER_STATUS,
-            ApplicationApiKeyModeUpgrader.class.getName()
-        );
-        INSTALLATION_KEY_STATUS.put(InstallationService.ALERTS_ENVIRONMENT_UPGRADER, AlertsEnvironmentUpgrader.class.getName());
-        INSTALLATION_KEY_STATUS.put(InstallationService.PLANS_DATA_UPGRADER_STATUS, PlansDataFixUpgrader.class.getName());
-        INSTALLATION_KEY_STATUS.put(InstallationService.API_KEY_SUBSCRIPTIONS_UPGRADER_STATUS, ApiKeySubscriptionsUpgrader.class.getName());
-        INSTALLATION_KEY_STATUS.put(
-            InstallationService.CLIENT_ID_IN_API_KEY_SUBSCRIPTIONS_UPGRADER_STATUS,
+            CLIENT_ID_IN_API_KEY_SUBSCRIPTIONS_UPGRADER_STATUS,
             ClientIdInApiKeySubscriptionsUpgrader.class.getName()
         );
-        INSTALLATION_KEY_STATUS.put(InstallationService.PLANS_FLOWS_UPGRADER_STATUS, PlansFlowsDefinitionUpgrader.class.getName());
-        INSTALLATION_KEY_STATUS.put(InstallationService.API_LOGGING_CONDITION_UPGRADER, ApiLoggingConditionUpgrader.class.getName());
-        INSTALLATION_KEY_STATUS.put(InstallationService.EVENTS_LATEST_UPGRADER_STATUS, EventsLatestUpgrader.class.getName());
+        INSTALLATION_KEY_STATUS.put(PLANS_FLOWS_UPGRADER_STATUS, PlansFlowsDefinitionUpgrader.class.getName());
+        INSTALLATION_KEY_STATUS.put(API_LOGGING_CONDITION_UPGRADER, ApiLoggingConditionUpgrader.class.getName());
+        INSTALLATION_KEY_STATUS.put(EVENTS_LATEST_UPGRADER_STATUS, EventsLatestUpgrader.class.getName());
     }
 
     @Override

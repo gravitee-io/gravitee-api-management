@@ -15,14 +15,14 @@
  */
 package io.gravitee.apim.core.api.domain_service;
 
-import io.gravitee.apim.core.access_point.model.RestrictedDomainEntity;
-import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
 import io.gravitee.apim.core.api.exception.InvalidPathsException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiFieldFilter;
 import io.gravitee.apim.core.api.model.ApiSearchCriteria;
 import io.gravitee.apim.core.api.model.Path;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
+import io.gravitee.apim.core.installation.model.RestrictedDomain;
+import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import java.util.HashSet;
@@ -36,18 +36,18 @@ import lombok.extern.slf4j.Slf4j;
 public class VerifyApiPathDomainService {
 
     private final ApiQueryService apiSearchService;
-    private final AccessPointQueryService accessPointService;
+    private final InstallationAccessQueryService installationAccessQueryService;
     private final ApiDefinitionParserDomainService apiDefinitionParserDomainService;
     private final ApiHostValidatorDomainService apiHostValidatorDomainService;
 
     public VerifyApiPathDomainService(
         final ApiQueryService apiSearchService,
-        final AccessPointQueryService accessPointService,
+        final InstallationAccessQueryService installationAccessQueryService,
         final ApiDefinitionParserDomainService apiDefinitionParserDomainService,
         final ApiHostValidatorDomainService apiHostValidatorDomainService
     ) {
         this.apiSearchService = apiSearchService;
-        this.accessPointService = accessPointService;
+        this.installationAccessQueryService = installationAccessQueryService;
         this.apiDefinitionParserDomainService = apiDefinitionParserDomainService;
         this.apiHostValidatorDomainService = apiHostValidatorDomainService;
     }
@@ -186,7 +186,7 @@ public class VerifyApiPathDomainService {
     }
 
     private List<Path> validateAndSetDomain(String environmentId, List<Path> sanitizedPaths) throws InvalidPathsException {
-        List<RestrictedDomainEntity> restrictedDomains = accessPointService.getGatewayRestrictedDomains(environmentId);
+        List<RestrictedDomain> restrictedDomains = installationAccessQueryService.getGatewayRestrictedDomains(environmentId);
         if (restrictedDomains != null && !restrictedDomains.isEmpty()) {
             for (Path path : sanitizedPaths) {
                 if (path.hasHost()) {
@@ -203,7 +203,7 @@ public class VerifyApiPathDomainService {
         return sanitizedPaths;
     }
 
-    private void checkDomainIsValid(Path path, List<RestrictedDomainEntity> restrictedDomainEntities) {
+    private void checkDomainIsValid(Path path, List<RestrictedDomain> restrictedDomainEntities) {
         String hostWithoutPort = extractHost(path.getHost());
         List<String> restrictedDomainsWithoutPort = restrictedDomainEntities
             .stream()
@@ -218,12 +218,12 @@ public class VerifyApiPathDomainService {
                 "Host [" +
                 hostWithoutPort +
                 "] must be a subdomain of " +
-                restrictedDomainEntities.stream().map(RestrictedDomainEntity::getDomain).toList()
+                restrictedDomainEntities.stream().map(RestrictedDomain::getDomain).toList()
             );
         }
     }
 
-    private boolean isValidPort(final String port, final List<RestrictedDomainEntity> restrictedDomainEntities) {
+    private boolean isValidPort(final String port, final List<RestrictedDomain> restrictedDomainEntities) {
         if (restrictedDomainEntities.isEmpty()) {
             return true;
         }

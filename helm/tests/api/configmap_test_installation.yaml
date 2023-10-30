@@ -1,0 +1,125 @@
+suite: Test Management API default configmap - Installation
+templates:
+  - "api/api-configmap.yaml"
+tests:
+  - it: Do NOT set installation.multi-tenant with no installation type defined
+    template: api/api-configmap.yaml
+    asserts:
+      - notMatchRegex:
+          path: data.[gravitee.yml]
+          pattern: "installation:[\\S\\s\\n]*multi-tenant:"
+  - it: Set installation.standalone with installation standalone
+    template: api/api-configmap.yaml
+    set:
+      installation:
+        type: standalone
+    asserts:
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: "installation:[\\S\\s\\n]*standalone:"
+  - it: Set installation.standalone with no installation type defined
+    template: api/api-configmap.yaml
+    asserts:
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: "installation:[\\S\\s\\n]*standalone:"
+  - it: Set installation.standalone.api.url with classical ingress path
+    template: api/api-configmap.yaml
+    set:
+      api:
+        ingress:
+          enabled: true
+          path: /management
+          hosts:
+            - apim.example.com
+    asserts:
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: "installation:[\\S\\s\\n]*standalone:[\\S\\s\\n]*api:[\\S\\s\\n]*url: https://apim.example.com"
+  - it: Set installation.standalone.console.url with default ingress path
+    template: api/api-configmap.yaml
+    asserts:
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: "installation:[\\S\\s\\n]*standalone:[\\S\\s\\n]*console:[\\S\\s\\n]*url: https://apim.example.com"
+  - it: Set installation.standalone.console.url with specific ssical ingress path
+    template: api/api-configmap.yaml
+    set:
+      ui:
+        ingress:
+          enabled: true
+          path: /custom_console
+          hosts:
+            - apim.example.com
+    asserts:
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: "installation:[\\S\\s\\n]*standalone:[\\S\\s\\n]*console:[\\S\\s\\n]*url: https://apim.example.com/custom_console"
+  - it: Set installation.standalone.console.url with a path containing authorized special characters
+    template: api/api-configmap.yaml
+    set:
+      ui:
+        ingress:
+          enabled: true
+          path: /mg.mt_-_ui~(/|$)(.*)
+          hosts:
+            - apim.example.com
+    asserts:
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: "installation:[\\S\\s\\n]*standalone:[\\S\\s\\n]*console:[\\S\\s\\n]*url: https://apim.example.com/mg.mt_-_ui~"
+  - it: Set installation.standalone.portal.url with default ingress path
+    template: api/api-configmap.yaml
+    asserts:
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: "installation:[\\S\\s\\n]*standalone:[\\S\\s\\n]*portal:[\\S\\s\\n]*url: https://apim.example.com"
+  - it: Set installation.standalone.portal.url with custom ingress path
+    template: api/api-configmap.yaml
+    set:
+      portal:
+        ingress:
+          enabled: true
+          path: /custom_portal
+          hosts:
+            - apim.example.com
+    asserts:
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: "installation:[\\S\\s\\n]*standalone:[\\S\\s\\n]*portal:[\\S\\s\\n]*url: https://apim.example.com/custom_portal"
+  - it: Set installation.standalone.portal.url with a path containing authorized special characters
+    template: api/api-configmap.yaml
+    set:
+      portal:
+        ingress:
+          enabled: true
+          path: /mg.mt_-_ui~(/|$)(.*)
+          hosts:
+            - apim.example.com
+    asserts:
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: "installation:[\\S\\s\\n]*standalone:[\\S\\s\\n]*portal:[\\S\\s\\n]*url: https://apim.example.com/mg.mt_-_ui~"
+  - it: Do NOT set installation.standalone with installation type multi-tenant
+    template: api/api-configmap.yaml
+    set:
+      installation:
+        type: multi-tenant
+    asserts:
+      - notMatchRegex:
+          path: data.[gravitee.yml]
+          pattern: "installation:[\\S\\s\\n]*standalone:"
+  - it: Set installation.multi-tenant with installation type multi-tenant
+    template: api/api-configmap.yaml
+    set:
+      installation:
+        type: multi-tenant
+        multi-tenant:
+          accessPoints:
+            organization:
+              console:
+                host: '{organization}.{account}.example.com'
+    asserts:
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: "installation:[\\S\\s\\n]*multi-tenant:[\\S\\s\\n]*accessPoints:[\\S\\s\\n]*organization:[\\S\\s\\n]*console"

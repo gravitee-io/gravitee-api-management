@@ -22,6 +22,7 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.node.api.license.NodeLicenseService;
 import io.gravitee.rest.api.management.v2.rest.model.ConsoleCustomization;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.Response;
 import javax.inject.Inject;
@@ -35,8 +36,7 @@ class ManagementUIResourceTest extends AbstractResourceTest {
 
     @BeforeEach
     public void init() {
-        GraviteeContext.setCurrentOrganization(ORGANIZATION);
-        GraviteeContext.setCurrentEnvironment(null);
+        GraviteeContext.fromExecutionContext(new ExecutionContext(ORGANIZATION));
     }
 
     @Override

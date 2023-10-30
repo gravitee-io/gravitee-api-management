@@ -205,33 +205,54 @@
 				<groupId>org.openapitools</groupId>
 				<artifactId>openapi-generator-maven-plugin</artifactId>
 				<version>${openapi-generator.version}</version>
+				<configuration>
+					<inputSpec>${project.basedir}/src/main/resources/openapi/management-openapi-v2.yaml</inputSpec>
+					<generatorName>java</generatorName>
+					<library>jersey3</library>
+					<modelPackage>${openapi.modelPackage}</modelPackage>
+					<generateApis>false</generateApis>
+					<generateModels>true</generateModels>
+					<generateModelTests>false</generateModelTests>
+					<generateModelDocumentation>false</generateModelDocumentation>
+					<generateSupportingFiles>true</generateSupportingFiles>
+					<supportingFilesToGenerate>JSON.java,RFC3339DateFormat.java,AbstractOpenApiSchema.java,ApiException.java</supportingFilesToGenerate>
+					<reservedWordsMappings>configuration=configuration</reservedWordsMappings>
+					<configOptions>
+						<dateLibrary>java8</dateLibrary>
+						<useBeanValidation>true</useBeanValidation>
+						<additionalModelTypeAnnotations>@lombok.experimental.SuperBuilder(toBuilder = true)</additionalModelTypeAnnotations>
+					</configOptions>
+					<typeMappings>
+						<typeMapping>BigDecimal=Number</typeMapping>
+					</typeMappings>
+					<additionalProperties>removeEnumValuePrefix=false</additionalProperties>
+				</configuration>
 				<executions>
 					<execution>
-						<id>model</id>
+						<id>model-management</id>
 						<goals>
 							<goal>generate</goal>
 						</goals>
 						<configuration>
-							<inputSpec>${project.basedir}/src/main/resources/openapi/management-openapi-v2.yaml</inputSpec>
-							<generatorName>java</generatorName>
-							<library>jersey3</library>
-							<modelPackage>${openapi.modelPackage}</modelPackage>
-							<generateApis>false</generateApis>
-							<generateModels>true</generateModels>
-							<generateModelTests>false</generateModelTests>
-							<generateModelDocumentation>false</generateModelDocumentation>
-							<generateSupportingFiles>true</generateSupportingFiles>
-							<supportingFilesToGenerate>JSON.java,RFC3339DateFormat.java,AbstractOpenApiSchema.java,ApiException.java</supportingFilesToGenerate>
-							<reservedWordsMappings>configuration=configuration</reservedWordsMappings>
-							<configOptions>
-								<dateLibrary>java8</dateLibrary>
-								<useBeanValidation>true</useBeanValidation>
-								<additionalModelTypeAnnotations>@lombok.experimental.SuperBuilder(toBuilder = true)</additionalModelTypeAnnotations>
-							</configOptions>
-							<typeMappings>
-								<typeMapping>BigDecimal=Number</typeMapping>
-							</typeMappings>
-							<additionalProperties>removeEnumValuePrefix=false</additionalProperties>
+							<inputSpec>${project.basedir}/src/main/resources/openapi/openapi-apis.yaml</inputSpec>
+						</configuration>
+					</execution>
+					<execution>
+						<id>model-plugins</id>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputSpec>${project.basedir}/src/main/resources/openapi/openapi-plugins.yaml</inputSpec>
+						</configuration>
+					</execution>
+					<execution>
+						<id>model-ui</id>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputSpec>${project.basedir}/src/main/resources/openapi/openapi-ui.yaml</inputSpec>
 						</configuration>
 					</execution>
 				</executions>

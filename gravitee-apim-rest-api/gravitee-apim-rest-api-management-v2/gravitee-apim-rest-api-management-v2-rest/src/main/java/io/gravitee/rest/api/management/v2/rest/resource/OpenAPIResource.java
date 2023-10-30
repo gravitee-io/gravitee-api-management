@@ -28,30 +28,23 @@ import jakarta.ws.rs.core.Response;
 public class OpenAPIResource {
 
     @GET
-    @Path("/openapi.yaml")
-    @Produces("application/yaml")
-    public Response getOpenApi() {
-        return Response.ok(this.getClass().getClassLoader().getResourceAsStream("openapi/management-openapi-v2.yaml")).build();
-    }
-
-    @GET
-    @Path("/openapi-plugins.yaml")
-    @Produces("application/yaml")
-    public Response getPluginsOpenApi() {
-        return Response.ok(this.getClass().getClassLoader().getResourceAsStream("openapi/management-plugins-openapi-v2.yaml")).build();
-    }
-
-    @GET
     @Produces("text/html")
     public Response getOpenApiDocumentation() {
         return Response.ok(this.getClass().getClassLoader().getResourceAsStream("openapi/index.html")).build();
     }
 
     @GET
-    @Path("/index-management.html")
+    @Path("/index-apis.html")
     @Produces("text/html")
-    public Response getManagementOpenApiDocumentation() {
-        return Response.ok(this.getClass().getClassLoader().getResourceAsStream("openapi/index-management.html")).build();
+    public Response getAPIsOpenApiDocumentation() {
+        return Response.ok(this.getClass().getClassLoader().getResourceAsStream("openapi/index-apis.html")).build();
+    }
+
+    @GET
+    @Path("/openapi.yaml")
+    @Produces("application/yaml")
+    public Response getAPIsOpenApi() {
+        return Response.ok(this.getClass().getClassLoader().getResourceAsStream("openapi/openapi-apis.yaml")).build();
     }
 
     @GET
@@ -59,5 +52,26 @@ public class OpenAPIResource {
     @Produces("text/html")
     public Response getPluginsOpenApiDocumentation() {
         return Response.ok(this.getClass().getClassLoader().getResourceAsStream("openapi/index-plugins.html")).build();
+    }
+
+    @GET
+    @Path("/openapi-plugins.yaml")
+    @Produces("application/yaml")
+    public Response getPluginsOpenApi() {
+        return Response.ok(this.getClass().getClassLoader().getResourceAsStream("openapi/openapi-plugins.yaml")).build();
+    }
+
+    @GET
+    @Path("/index-ui.html")
+    @Produces("text/html")
+    public Response getUIOpenApiDocumentation() {
+        return Response.ok(this.getClass().getClassLoader().getResourceAsStream("openapi/index-ui.html")).build();
+    }
+
+    @GET
+    @Path("/openapi-ui.yaml")
+    @Produces("application/yaml")
+    public Response getUIOpenApi() {
+        return Response.ok(this.getClass().getClassLoader().getResourceAsStream("openapi/openapi-ui.yaml")).build();
     }
 }

@@ -11,9 +11,10 @@
 # Please have a look to http://docs.gravitee.io/ for more options and fine-grained granularity
 ############################################################################################################
 
+# Console settings
+#console:
 ## Pendo Analysis Tool
 # To make our SaaS offering easier to use, we now have the ability to track activity in Pendo. This is disabled by
-# default, but if you'd like to help us in this journey, don't hesitate to reach us to get our key ;)
 # default, but if you'd like to help us in this journey, don't hesitate to reach us to get our key ;)
 #  analytics:
 #    pendo:
@@ -61,7 +62,6 @@ http:
 #    management:
 #      enabled: true
 #      entrypoint: ${http.api.entrypoint}management
-#      proxyPath: ${http.api.management.entrypoint}
 #      cors:
 # Allows to configure the header Access-Control-Allow-Origin (default value: *)
 # '*' is a valid value but is considered as a security risk as it will be opened to cross origin requests from anywhere.
@@ -77,7 +77,6 @@ http:
 #    portal:
 #      enabled: true
 #      entrypoint: ${http.api.entrypoint}portal
-#      proxyPath: ${http.api.portal.entrypoint}
 #      cors:
 # Allows to configure the header Access-Control-Allow-Origin (default value: *)
 # '*' is a valid value but is considered as a security risk as it will be opened to cross origin requests from anywhere.
@@ -576,11 +575,63 @@ notifiers:
 
 # Cockpit
 #cockpit:
-# Specify the URL to cockpit instance. Default is the Gravitee SAAS instance
+#  enabled: false
+## Specify the URL to cockpit instance. Default is the Gravitee SAAS instance
 #  url: https://cockpit.gravitee.io
-# Specify the auth path used to authenticate from cockpit. {token} placeholder can be used and will be replaced by cockpit token.
+## Specify the auth path used to authenticate from cockpit. {token} placeholder can be used and will be replaced by cockpit token.
 #  auth:
-#    path: /management/auth/cockpit?token={token}
+#    path: /auth/cockpit?token={token}
+
+#installation:
+#  type: standalone # Could be either standalone, multi-tenant; Default is standalone.
+#  # Specify the URL of Management API of this instance, mandatory if you want to connect it to Cockpit
+#  api:
+#    proxyPath:
+#      management: ${http.api.management.entrypoint}
+#      portal: ${http.api.portal.entrypoint}
+#  standalone:
+#    api:
+#    # Specify the URLs of Management API, mandatory if you want to connect it to Cockpit with a standalone installation
+#      url: http://localhost:8083
+#    # Specify the URL of Console UI of this instance, mandatory if you want to connect it to Cockpit with a standalone installation
+#    console:
+#      url: http://localhost:3000
+#      # If you have multi console instances targeting different organizations, you can configure the section as bellow instead:
+#      urls:
+#         - orgId: DEFAULT
+#           url: http://localhost:3000
+#         - orgId: example
+#           url: http:/localhost:3001
+#    # Specify the URL of Portal UI of this instance
+#    portal:
+#      url: http://localhost:4100
+#      # If you have multi portal instances targeting different environments, you can configure the section as bellow instead:
+#      urls:
+#         - envId: DEFAULT
+#           url: http://localhost:4100
+#         - envId: example
+#           url: http:/localhost:4101
+#  multi-tenant:
+#    # Specify the access points of your installation, mandatory if you want to connect it to Cockpit with a multi-tenant installation
+#    # You can use template variable such as {account}, {organization} or {environment}
+#    accessPoints:
+#      organization:
+#        console:
+#          host: '{organization}.{account}.example.com'
+#          secured: true
+#        console-api:
+#          host: '{organization}.{account}.example.com'
+#          secured: true
+#      environment:
+#        portal:
+#          host: '{environment}.{organization}.{account}.example.com'
+#          secured: true
+#        portal-api:
+#          host: '{environment}.{organization}.{account}.example.com'
+#          secured: true
+#        gateway:
+#          host: '{environment}.{organization}.{account}.example.com'
+#          secured: true
 
 api:
   v2:

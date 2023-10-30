@@ -342,6 +342,19 @@ Usage:
 {{- print "/" -}}
 {{ else}}
 {{- $name := regexFind "\\w+" .Values.portal.ingress.path -}}
-{{- print "/" $name -}}
+{{- print "/" $name "/" -}}
+{{- end }}
+{{- end }}
+
+{{/*
+Returns installation type from the values or use default value
+Usage:
+{{ include "installation.type" . }}
+*/}}
+{{- define "installation.type" -}}
+{{- if hasKey .Values "installation" }}
+{{- print .Values.installation.type | default "standalone" -}}
+{{ else}}
+{{- print "standalone" -}}
 {{- end }}
 {{- end }}

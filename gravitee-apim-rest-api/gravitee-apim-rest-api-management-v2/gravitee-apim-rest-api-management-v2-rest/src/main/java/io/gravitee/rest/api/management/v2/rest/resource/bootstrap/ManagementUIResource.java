@@ -15,8 +15,8 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.bootstrap;
 
-import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
 import io.gravitee.apim.core.console.use_case.GetConsoleCustomizationUseCase;
+import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.ConsoleCustomizationMapper;
 import io.gravitee.rest.api.management.v2.rest.model.ConsoleCustomization;
@@ -34,7 +34,6 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
-import java.net.URI;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -52,11 +51,11 @@ import org.springframework.web.util.UriComponentsBuilder;
 @Slf4j
 public class ManagementUIResource {
 
-    private static final String PROPERTY_HTTP_API_MANAGEMENT_PROXY_PATH = "http.api.management.proxyPath";
+    private static final String PROPERTY_HTTP_API_MANAGEMENT_PROXY_PATH = "installation.api.proxyPath.management";
     private static final String PROPERTY_HTTP_API_MANAGEMENT_ENTRYPOINT = "http.api.management.entrypoint";
 
     @Autowired
-    protected AccessPointQueryService accessPointService;
+    protected InstallationAccessQueryService installationAccessQueryService;
 
     @Autowired
     private Environment environment;
@@ -88,12 +87,9 @@ public class ManagementUIResource {
                     : GraviteeContext.getDefaultOrganization();
         }
 
-        String consoleApiUrl = accessPointService.getConsoleApiUrl(organizationId);
+        String consoleApiUrl = installationAccessQueryService.getConsoleAPIUrl(organizationId);
         if (consoleApiUrl != null) {
-            URI fullManagementURL = URI.create(consoleApiUrl).resolve(getManagementProxyPath());
-            return Response
-                .ok(ManagementUIBootstrapEntity.builder().organizationId(organizationId).baseURL(fullManagementURL.toString()).build())
-                .build();
+            return Response.ok(ManagementUIBootstrapEntity.builder().organizationId(organizationId).baseURL(consoleApiUrl).build()).build();
         }
 
         ServerHttpRequest request = new ServletServerHttpRequest(httpServletRequest);

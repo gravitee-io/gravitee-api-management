@@ -13,24 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.access_point.model;
+package io.gravitee.rest.api.service.impl;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.junit.runner.RunWith;
+import org.mockito.junit.MockitoJUnitRunner;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-@Data
-public class RestrictedDomainEntity {
-
-    private String domain;
-
-    private boolean secured;
-}
+@RunWith(MockitoJUnitRunner.class)
+class InstallationServiceImplConfigurationTest {}

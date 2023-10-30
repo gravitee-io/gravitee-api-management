@@ -15,19 +15,16 @@
  */
 package io.gravitee.apim.infra.query_service.access_point;
 
-import io.gravitee.apim.core.access_point.model.RestrictedDomainEntity;
+import io.gravitee.apim.core.access_point.model.AccessPoint;
 import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
+import io.gravitee.apim.infra.adapter.AccessPointAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.AccessPointRepository;
-import io.gravitee.repository.management.model.AccessPoint;
-import io.gravitee.repository.management.model.AccessPointReferenceType;
-import io.gravitee.repository.management.model.AccessPointTarget;
 import io.gravitee.rest.api.service.common.ReferenceContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -62,9 +59,9 @@ public class AccessPointQueryServiceImpl implements AccessPointQueryService {
     }
 
     @Override
-    public List<String> getConsoleUrls(final String organizationId, final boolean includeDefault) {
+    public List<AccessPoint> getConsoleAccessPoints(final String organizationId) {
         try {
-            return findUrls(AccessPointReferenceType.ORGANIZATION, organizationId, AccessPointTarget.CONSOLE, includeDefault).toList();
+            return findAccessPoints(AccessPoint.ReferenceType.ORGANIZATION, organizationId, AccessPoint.Target.CONSOLE, true).toList();
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
                 String.format("An error occurs while getting console access point for environment '%s'", organizationId),
@@ -74,9 +71,9 @@ public class AccessPointQueryServiceImpl implements AccessPointQueryService {
     }
 
     @Override
-    public String getConsoleUrl(final String organizationId) {
+    public AccessPoint getConsoleAccessPoint(final String organizationId) {
         try {
-            return findUrls(AccessPointReferenceType.ORGANIZATION, organizationId, AccessPointTarget.CONSOLE, false)
+            return findAccessPoints(AccessPoint.ReferenceType.ORGANIZATION, organizationId, AccessPoint.Target.CONSOLE, false)
                 .findFirst()
                 .orElse(null);
         } catch (TechnicalException e) {
@@ -88,9 +85,9 @@ public class AccessPointQueryServiceImpl implements AccessPointQueryService {
     }
 
     @Override
-    public String getConsoleApiUrl(final String organizationId) {
+    public AccessPoint getConsoleApiAccessPoint(final String organizationId) {
         try {
-            return findUrls(AccessPointReferenceType.ORGANIZATION, organizationId, AccessPointTarget.CONSOLE_API, false)
+            return findAccessPoints(AccessPoint.ReferenceType.ORGANIZATION, organizationId, AccessPoint.Target.CONSOLE_API, false)
                 .findFirst()
                 .orElse(null);
         } catch (TechnicalException e) {
@@ -102,9 +99,9 @@ public class AccessPointQueryServiceImpl implements AccessPointQueryService {
     }
 
     @Override
-    public List<String> getPortalUrls(final String environmentId, final boolean includeDefault) {
+    public List<AccessPoint> getPortalAccessPoints(final String environmentId) {
         try {
-            return findUrls(AccessPointReferenceType.ENVIRONMENT, environmentId, AccessPointTarget.PORTAL, includeDefault).toList();
+            return findAccessPoints(AccessPoint.ReferenceType.ENVIRONMENT, environmentId, AccessPoint.Target.PORTAL, true).toList();
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
                 String.format("An error occurs while getting portal access point for environment '%s'", environmentId),
@@ -114,9 +111,11 @@ public class AccessPointQueryServiceImpl implements AccessPointQueryService {
     }
 
     @Override
-    public String getPortalUrl(final String environmentId) {
+    public AccessPoint getPortalAccessPoint(final String environmentId) {
         try {
-            return findUrls(AccessPointReferenceType.ENVIRONMENT, environmentId, AccessPointTarget.PORTAL, false).findFirst().orElse(null);
+            return findAccessPoints(AccessPoint.ReferenceType.ENVIRONMENT, environmentId, AccessPoint.Target.PORTAL, false)
+                .findFirst()
+                .orElse(null);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
                 String.format("An error occurs while getting portal access point for environment '%s'", environmentId),
@@ -126,9 +125,9 @@ public class AccessPointQueryServiceImpl implements AccessPointQueryService {
     }
 
     @Override
-    public String getPortalApiUrl(final String environmentId) {
+    public AccessPoint getPortalApiAccessPoint(final String environmentId) {
         try {
-            return findUrls(AccessPointReferenceType.ENVIRONMENT, environmentId, AccessPointTarget.PORTAL_API, false)
+            return findAccessPoints(AccessPoint.ReferenceType.ENVIRONMENT, environmentId, AccessPoint.Target.PORTAL_API, false)
                 .findFirst()
                 .orElse(null);
         } catch (TechnicalException e) {
@@ -140,21 +139,9 @@ public class AccessPointQueryServiceImpl implements AccessPointQueryService {
     }
 
     @Override
-    public List<RestrictedDomainEntity> getGatewayRestrictedDomains(final String environmentId) {
+    public List<AccessPoint> getGatewayAccessPoints(final String environmentId) {
         try {
-            List<AccessPoint> filteredList = findAccessPoints(
-                AccessPointReferenceType.ENVIRONMENT,
-                environmentId,
-                AccessPointTarget.GATEWAY,
-                false
-            );
-
-            return filteredList
-                .stream()
-                .map(customDomain ->
-                    RestrictedDomainEntity.builder().domain(customDomain.getHost()).secured(customDomain.isSecured()).build()
-                )
-                .toList();
+            return findAccessPoints(AccessPoint.ReferenceType.ENVIRONMENT, environmentId, AccessPoint.Target.GATEWAY, false).toList();
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
                 String.format("An error occurs while getting gateway restricted domain from environment '%s'", environmentId),
@@ -163,44 +150,25 @@ public class AccessPointQueryServiceImpl implements AccessPointQueryService {
         }
     }
 
-    private Stream<String> findUrls(
-        final AccessPointReferenceType referenceType,
+    private Stream<AccessPoint> findAccessPoints(
+        final AccessPoint.ReferenceType referenceType,
         final String referenceId,
-        final AccessPointTarget target,
+        final AccessPoint.Target target,
         final boolean includeAll
     ) throws TechnicalException {
-        return findAccessPoints(referenceType, referenceId, target, includeAll).stream().map(this::buildHttpUrl);
-    }
-
-    private List<AccessPoint> findAccessPoints(
-        final AccessPointReferenceType referenceType,
-        final String referenceId,
-        final AccessPointTarget target,
-        final boolean includeAll
-    ) throws TechnicalException {
-        List<AccessPoint> filteredList = new ArrayList<>();
+        List<io.gravitee.repository.management.model.AccessPoint> filteredList = new ArrayList<>();
 
         // Retrieve domain for env
-        List<AccessPoint> domainsForEnv = accessPointRepository.findByReferenceAndTarget(referenceType, referenceId, target);
-        if (domainsForEnv.size() == 1 || includeAll) {
-            filteredList.addAll(domainsForEnv);
+        List<io.gravitee.repository.management.model.AccessPoint> accessPoints = accessPointRepository.findByReferenceAndTarget(
+            AccessPointAdapter.INSTANCE.fromEntity(referenceType),
+            referenceId,
+            AccessPointAdapter.INSTANCE.fromEntity(target)
+        );
+        if (accessPoints.size() == 1 || includeAll) {
+            filteredList.addAll(accessPoints);
         } else {
-            filteredList.addAll(domainsForEnv.stream().filter(AccessPoint::isOverriding).toList());
+            filteredList.addAll(accessPoints.stream().filter(io.gravitee.repository.management.model.AccessPoint::isOverriding).toList());
         }
-        return filteredList;
-    }
-
-    private String buildHttpUrl(final AccessPoint accessPoint) {
-        if (accessPoint != null) {
-            StringBuilder consoleUrl = new StringBuilder();
-            if (accessPoint.isSecured()) {
-                consoleUrl.append("https");
-            } else {
-                consoleUrl.append("http");
-            }
-            consoleUrl.append("://").append(accessPoint.getHost());
-            return consoleUrl.toString();
-        }
-        return null;
+        return filteredList.stream().map(AccessPointAdapter.INSTANCE::toEntity);
     }
 }

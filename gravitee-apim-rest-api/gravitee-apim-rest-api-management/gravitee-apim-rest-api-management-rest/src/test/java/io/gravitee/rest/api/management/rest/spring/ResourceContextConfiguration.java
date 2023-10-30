@@ -21,7 +21,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
-import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
+import io.gravitee.apim.core.installation.domain_service.InstallationTypeDomainService;
+import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.infra.domain_service.api.ApiDefinitionParserDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.api.ApiHostValidatorDomainServiceImpl;
@@ -482,13 +483,23 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
+    public InstallationTypeDomainService installationTypeService() {
+        return mock(InstallationTypeDomainService.class);
+    }
+
+    @Bean
+    public InstallationAccessQueryService installationAccessService() {
+        return mock(InstallationAccessQueryService.class);
+    }
+
+    @Bean
     public VerifyApiPathDomainService verifyApiPathDomainService(
         ApiQueryService apiQueryService,
-        AccessPointQueryService accessPointQueryService
+        InstallationAccessQueryService installationAccessQueryService
     ) {
         return new VerifyApiPathDomainService(
             apiQueryService,
-            accessPointQueryService,
+            installationAccessQueryService,
             new ApiDefinitionParserDomainServiceImpl(objectMapper()),
             new ApiHostValidatorDomainServiceImpl()
         );

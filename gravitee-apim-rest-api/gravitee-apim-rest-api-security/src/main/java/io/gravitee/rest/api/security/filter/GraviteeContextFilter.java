@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.security.filter;
 
 import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
+import io.gravitee.apim.core.installation.domain_service.InstallationTypeDomainService;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.rest.api.model.EnvironmentEntity;
@@ -51,7 +52,8 @@ public class GraviteeContextFilter extends GenericFilterBean {
     private static final String ERROR_MSG = "Invalid organization or environment";
     private static final String ORGANIZATIONS_PATH = "organizations";
     private static final String ENVIRONMENTS_PATH = "environments";
-    private final AccessPointQueryService accessPointService;
+    private final InstallationTypeDomainService installationTypeDomainService;
+    private final AccessPointQueryService accessPointQueryService;
     private final EnvironmentService environmentService;
 
     @Override
@@ -141,17 +143,19 @@ public class GraviteeContextFilter extends GenericFilterBean {
 
     private ExecutionContext getFromAccessPoints(final HttpServletRequest httpServletRequest) {
         ExecutionContext accessPointContext = null;
-        Optional<ReferenceContext> optionalReferenceContext = getReferenceContextFromServer(httpServletRequest)
-            .or(() -> getReferenceContextFromReferer(httpServletRequest));
-        if (optionalReferenceContext.isPresent()) {
-            ReferenceContext referenceContext = optionalReferenceContext.get();
-            if (referenceContext.getReferenceType() == ReferenceContext.Type.ENVIRONMENT) {
-                EnvironmentEntity environment = environmentService.findById(referenceContext.getReferenceId());
-                accessPointContext = new ExecutionContext(environment);
-            } else if (referenceContext.getReferenceType() == ReferenceContext.Type.ORGANIZATION) {
-                accessPointContext = new ExecutionContext(referenceContext.getReferenceId());
-            } else {
-                throw new IllegalStateException(String.format("Unsupported reference type '%s'", referenceContext.getReferenceType()));
+        if (installationTypeDomainService.isMultiTenant()) {
+            Optional<ReferenceContext> optionalReferenceContext = getReferenceContextFromServer(httpServletRequest)
+                .or(() -> getReferenceContextFromReferer(httpServletRequest));
+            if (optionalReferenceContext.isPresent()) {
+                ReferenceContext referenceContext = optionalReferenceContext.get();
+                if (referenceContext.getReferenceType() == ReferenceContext.Type.ENVIRONMENT) {
+                    EnvironmentEntity environment = environmentService.findById(referenceContext.getReferenceId());
+                    accessPointContext = new ExecutionContext(environment);
+                } else if (referenceContext.getReferenceType() == ReferenceContext.Type.ORGANIZATION) {
+                    accessPointContext = new ExecutionContext(referenceContext.getReferenceId());
+                } else {
+                    throw new IllegalStateException(String.format("Unsupported reference type '%s'", referenceContext.getReferenceType()));
+                }
             }
         }
         return accessPointContext;
@@ -178,7 +182,7 @@ public class GraviteeContextFilter extends GenericFilterBean {
 
     @NonNull
     private Optional<ReferenceContext> getReferenceContext(final String host, final int port) {
-        return accessPointService.getReferenceContext(host).or(() -> accessPointService.getReferenceContext(host + ":" + port));
+        return accessPointQueryService.getReferenceContext(host).or(() -> accessPointQueryService.getReferenceContext(host + ":" + port));
     }
 
     private ExecutionContext getFromRequest(final HttpServletRequest httpServletRequest) {

@@ -46,11 +46,6 @@ data:
     {{- end }}
 
     management:
-      {{- if .Values.management.url }}
-      url: {{ .Values.management.url}}
-      {{- else if .Values.ui.ingress.enabled }}
-      url: https://{{ index .Values.ui.ingress.hosts 0 }}{{ regexFind "/[a-zA-Z-_.~]+" .Values.ui.ingress.path }}/
-      {{- end }}
       type: {{ .Values.management.type | default "mongodb" }}
       {{- if or (eq .Values.management.type "mongodb") (kindIs "invalid" .Values.management.type) }}
       mongodb:
@@ -93,6 +88,25 @@ data:
         pool:
           {{ toYaml .Values.jdbc.pool | nindent 10 | trim -}}
         {{- end }}
+      {{- end }}
+
+    installation:
+      type: {{ include "installation.type" . }}
+      api:
+        proxyPath:
+          management: {{ regexFind "/[a-zA-Z-_.~]+" .Values.api.ingress.management.path }}
+          portal: {{ regexFind "/[a-zA-Z-_.~]+" .Values.api.ingress.portal.path }}
+      {{- if ne (include "installation.type" .) "multi-tenant" }}
+      standalone:
+        api:
+          url: {{ .Values.api.ingress.management.scheme }}://{{ index .Values.api.ingress.management.hosts 0 }}
+        console:
+          url: https://{{ index .Values.ui.ingress.hosts 0 }}{{ regexFind "/[a-zA-Z-_.~]+" .Values.ui.ingress.path }}
+        portal:
+          url: https://{{ index .Values.portal.ingress.hosts 0 }}{{ regexFind "/[a-zA-Z-_.~]+" .Values.portal.ingress.path }}
+      {{ else }}
+      multi-tenant:
+        {{- toYaml (index .Values "installation" "multi-tenant") | nindent 8 }}
       {{- end }}
 
     console:
@@ -190,10 +204,8 @@ data:
         entrypoint: {{ .Values.api.http.api.entrypoint }}
         management:
           entrypoint: ${http.api.entrypoint}management
-          proxyPath: {{ .Values.api.ingress.management.path }}
         portal:
           entrypoint: ${http.api.entrypoint}portal
-          proxyPath: {{ .Values.api.ingress.portal.path }}
     {{- end }}
 
     analytics:

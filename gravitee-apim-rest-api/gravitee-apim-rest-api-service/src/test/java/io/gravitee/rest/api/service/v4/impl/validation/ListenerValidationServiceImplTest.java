@@ -23,12 +23,13 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
 import io.gravitee.apim.core.api.domain_service.ApiDefinitionParserDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiHostValidatorDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.exception.InvalidPathsException;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
+import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
+import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.ConnectorFeature;
 import io.gravitee.definition.model.v4.ConnectorMode;
@@ -74,7 +75,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ListenerValidationServiceImplTest {
 
     @Mock
-    AccessPointQueryService accessPointService;
+    InstallationAccessQueryService installationAccessQueryService;
 
     @Mock
     CorsValidationService corsValidationService;
@@ -98,6 +99,7 @@ class ListenerValidationServiceImplTest {
 
     @BeforeEach
     void setUp() throws Exception {
+        when(installationAccessQueryService.getGatewayRestrictedDomains(any())).thenReturn(List.of());
         lenient()
             .when(entrypointService.validateConnectorConfiguration(any(String.class), any()))
             .thenAnswer(invocation -> invocation.getArgument(1));
@@ -105,7 +107,7 @@ class ListenerValidationServiceImplTest {
             new ListenerValidationServiceImpl(
                 new VerifyApiPathDomainService(
                     apiQueryService,
-                    accessPointService,
+                    installationAccessQueryService,
                     apiDefinitionParserDomainService,
                     apiHostValidatorDomainService
                 ),
