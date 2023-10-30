@@ -113,10 +113,7 @@ public class CommandServiceImpl extends AbstractService implements CommandServic
     @Override
     public void delete(String commandId) {
         try {
-            Optional<Command> commandOptional = commandRepository.findById(commandId);
-            if (commandOptional.isPresent()) {
-                commandRepository.delete(commandId);
-            }
+            commandRepository.delete(commandId);
         } catch (TechnicalException ex) {
             final String error = "An error occurs while trying to delete command " + commandId;
             logger.error(error, ex);

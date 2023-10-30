@@ -123,17 +123,8 @@ public class CommandServiceTest {
     }
 
     @Test
-    public void shouldNotTryToDeleteUnknownCommand() throws TechnicalException {
-        final String commandId = "unknown-command";
-        when(commandRepository.findById(eq(commandId))).thenReturn(Optional.empty());
-        commandService.delete(commandId);
-        verify(commandRepository, never()).delete(any());
-    }
-
-    @Test
     public void shouldDeleteCommand() throws TechnicalException {
         final String commandId = "known-command";
-        when(commandRepository.findById(eq(commandId))).thenReturn(Optional.of(new Command()));
         commandService.delete(commandId);
         verify(commandRepository, times(1)).delete(commandId);
     }
