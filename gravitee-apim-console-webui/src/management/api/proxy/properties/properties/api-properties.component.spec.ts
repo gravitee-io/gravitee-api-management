@@ -32,11 +32,11 @@ import { ApiPropertiesModule } from './api-properties.module';
 import { PropertiesAddDialogHarness } from './properties-add-dialog/properties-add-dialog.harness';
 import { PropertiesImportDialogHarness } from './properties-import-dialog/properties-import-dialog.harness';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
-import { User } from '../../../../entities/user';
-import { CurrentUserService, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
-import { GioUiRouterTestingModule } from '../../../../shared/testing/gio-uirouter-testing-module';
-import { Api, fakeApiV4 } from '../../../../entities/management-api-v2/api';
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
+import { User } from '../../../../../entities/user';
+import { CurrentUserService, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
+import { GioUiRouterTestingModule } from '../../../../../shared/testing/gio-uirouter-testing-module';
+import { Api, fakeApiV4 } from '../../../../../entities/management-api-v2/api';
 
 describe('ApiPropertiesComponent', () => {
   const API_ID = 'apiId';

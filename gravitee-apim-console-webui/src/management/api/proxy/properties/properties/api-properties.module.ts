@@ -32,8 +32,8 @@ import { ApiPropertiesComponent } from './api-properties.component';
 import { PropertiesAddDialogModule } from './properties-add-dialog/properties-add-dialog.module';
 import { PropertiesImportDialogModule } from './properties-import-dialog/properties-import-dialog.module';
 
-import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
-import { GioTableWrapperModule } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
+import { GioPermissionModule } from '../../../../../shared/components/gio-permission/gio-permission.module';
+import { GioTableWrapperModule } from '../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 
 @NgModule({
   imports: [

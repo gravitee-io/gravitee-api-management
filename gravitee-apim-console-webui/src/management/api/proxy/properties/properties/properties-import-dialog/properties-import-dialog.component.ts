@@ -18,8 +18,8 @@ import { FormControl, FormGroup, ValidatorFn } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { isEmpty } from 'lodash';
 
-import { Property } from '../../../../../entities/management-api-v2';
-import { parsePropertiesStringFormat } from '../../../../../shared/utils';
+import { Property } from '../../../../../../entities/management-api-v2';
+import { parsePropertiesStringFormat } from '../../../../../../shared/utils';
 
 export type PropertiesImportDialogData = {
   properties: Property[];

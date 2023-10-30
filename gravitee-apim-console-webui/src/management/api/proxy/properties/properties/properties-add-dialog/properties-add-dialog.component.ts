@@ -17,8 +17,8 @@ import { Component, Inject } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
-import { Property } from '../../../../../entities/management-api-v2';
-import { isUnique } from '../../../../../shared/utils';
+import { Property } from '../../../../../../entities/management-api-v2';
+import { isUnique } from '../../../../../../shared/utils';
 
 export type PropertiesAddDialogData = {
   properties: Property[];

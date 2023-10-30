@@ -28,7 +28,7 @@ import { ApiResourcesModule } from './resources-ng/api-resources.module';
 import { ApiProxyHealthCheckDashboardModule } from './health-check-dashboard/api-proxy-health-check-dashboard.module';
 import { ApiV1PropertiesComponent } from './properties-v1/properties.component';
 import { ApiV1ResourcesComponent } from './resources-v1/resources.component';
-import { ApiPropertiesModule } from './properties/api-properties.module';
+import { ApiPropertiesModule } from './properties/properties/api-properties.module';
 import { ApiDynamicPropertiesModule } from './properties/dynamic-properties/api-dynamic-properties.module';
 
 @NgModule({
