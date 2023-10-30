@@ -18,6 +18,7 @@ package io.gravitee.repository.management;
 import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static org.junit.Assert.*;
 
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.CommandCriteria;
 import io.gravitee.repository.management.model.Command;
 import java.util.*;
@@ -100,7 +101,7 @@ public class CommandRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
-    public void shouldDelete() throws Exception {
+    public void shouldDelete() throws TechnicalException {
         String idToDelete = "msg-to-delete";
         Optional<Command> message = commandRepository.findById(idToDelete);
         assertTrue("msg should exists before being deleted", message.isPresent());
@@ -109,6 +110,9 @@ public class CommandRepositoryTest extends AbstractManagementRepositoryTest {
 
         message = commandRepository.findById(idToDelete);
         assertFalse("msg should not exists after being deleted", message.isPresent());
+
+        // Deletion should be idempotent and not throw exception if message does not exist
+        commandRepository.delete(idToDelete);
     }
 
     @Test
