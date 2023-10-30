@@ -141,9 +141,9 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
     public void delete(String id) throws TechnicalException {
         LOGGER.debug("JdbcCommandRepository.delete({})", id);
         try {
+            jdbcTemplate.update(getOrm().getDeleteSql(), id);
             jdbcTemplate.update("delete from " + COMMAND_ACKNOWLEDGMENTS + " where command_id = ?", id);
             jdbcTemplate.update("delete from " + COMMAND_TAGS + " where command_id = ?", id);
-            jdbcTemplate.update(getOrm().getDeleteSql(), id);
         } catch (final Exception ex) {
             LOGGER.error("Failed to delete command:", ex);
             throw new TechnicalException("Failed to delete command", ex);
