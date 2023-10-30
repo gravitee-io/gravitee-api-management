@@ -68,26 +68,34 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
     }
 
     private static final JdbcHelper.ChildAdder<Command> CHILD_ADDER = (Command parent, ResultSet rs) -> {
-        List<String> acknowledgments = parent.getAcknowledgments();
-        if (acknowledgments == null) {
-            acknowledgments = new ArrayList<>();
-            parent.setAcknowledgments(acknowledgments);
-        }
         String acknowledgment = rs.getString("acknowledgment");
-        if (acknowledgment != null && !acknowledgments.contains(acknowledgment)) {
-            acknowledgments.add(acknowledgment);
-        }
+        fillCommandAcknowledgments(parent, acknowledgment);
 
-        List<String> tags = parent.getTags();
+        String tag = rs.getString("tag");
+        fillCommandTags(parent, tag);
+    };
+
+    private static void fillCommandTags(Command command, String tag) {
+        List<String> tags = command.getTags();
         if (tags == null) {
             tags = new ArrayList<>();
-            parent.setTags(tags);
+            command.setTags(tags);
         }
-        String tag = rs.getString("tag");
         if (tag != null && !tags.contains(tag)) {
             tags.add(tag);
         }
-    };
+    }
+
+    private static void fillCommandAcknowledgments(Command command, String acknowledgment) {
+        List<String> acknowledgments = command.getAcknowledgments();
+        if (acknowledgments == null) {
+            acknowledgments = new ArrayList<>();
+            command.setAcknowledgments(acknowledgments);
+        }
+        if (acknowledgment != null && !acknowledgments.contains(acknowledgment)) {
+            acknowledgments.add(acknowledgment);
+        }
+    }
 
     @Override
     protected String getId(Command item) {
@@ -98,25 +106,27 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
     public Optional<Command> findById(String id) throws TechnicalException {
         LOGGER.debug("JdbcCommandRepository.findById({})", id);
         try {
-            JdbcHelper.CollatingRowMapper<Command> rowMapper = new JdbcHelper.CollatingRowMapper<>(
-                getOrm().getRowMapper(),
-                CHILD_ADDER,
-                "id"
-            );
+            // Find the command itself
+            Optional<Command> command = jdbcTemplate.query(getOrm().getSelectByIdSql(), getRowMapper(), id).stream().findFirst();
+            if (command.isEmpty()) {
+                return command;
+            }
+
+            // Find the command's acknowledgments and update the command
             jdbcTemplate.query(
-                getOrm().getSelectAllSql() +
-                " c " +
-                "left join " +
-                COMMAND_ACKNOWLEDGMENTS +
-                " ca on c.id = ca.command_id " +
-                "left join " +
-                COMMAND_TAGS +
-                " ct on c.id = ct.command_id " +
-                "where c.id = ?",
-                rowMapper,
-                id
+                "select acknowledgment from " + COMMAND_ACKNOWLEDGMENTS + " where command_id = ?",
+                (PreparedStatement ps) -> ps.setString(1, id),
+                (ResultSet rs) -> fillCommandAcknowledgments(command.get(), rs.getString("acknowledgment"))
             );
-            return rowMapper.getRows().stream().findFirst();
+
+            // Find the command's tags and update the command
+            jdbcTemplate.query(
+                "select tag from " + COMMAND_TAGS + " where command_id = ?",
+                (PreparedStatement ps) -> ps.setString(1, id),
+                (ResultSet rs) -> fillCommandTags(command.get(), rs.getString("tag"))
+            );
+
+            return command;
         } catch (final Exception ex) {
             LOGGER.error("Failed to find command by id:", ex);
             throw new TechnicalException("Failed to find command by id", ex);
