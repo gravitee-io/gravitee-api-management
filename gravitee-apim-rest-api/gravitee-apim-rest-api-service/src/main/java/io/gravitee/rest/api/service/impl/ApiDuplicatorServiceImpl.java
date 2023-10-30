@@ -46,6 +46,7 @@ import io.gravitee.rest.api.model.api.DuplicateApiEntity;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.model.permissions.RoleScope;
+import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.ApiDuplicatorService;
 import io.gravitee.rest.api.service.ApiIdsCalculatorService;
 import io.gravitee.rest.api.service.ApiMetadataService;
@@ -75,6 +76,7 @@ import io.vertx.core.buffer.Buffer;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import net.minidev.json.JSONObject;
 import org.jetbrains.annotations.NotNull;
@@ -82,6 +84,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 /**
  * @author Gaëtan MAISSE (gaetan.maisse at graviteesource.com)
@@ -403,6 +406,11 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             MemberToImport futurePo = null;
 
             // upsert members
+            Optional<RoleEntity> apiUserRoleOpt = roleService.findByScopeAndName(
+                RoleScope.API,
+                "USER",
+                executionContext.getOrganizationId()
+            );
             for (final ImportJsonNode memberNode : apiJsonNode.getMembers()) {
                 MemberToImport memberToImport = objectMapper.readValue(memberNode.toString(), MemberToImport.class);
                 boolean presentWithSameRole = isPresentWithSameRole(membersAlreadyPresent, memberToImport);
@@ -421,7 +429,12 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                         }
                         return isValidRole;
                     })
-                    .toList();
+                    .collect(Collectors.toList());
+
+                if (roleIdsToImport.isEmpty() && apiUserRoleOpt.isPresent()) {
+                    roleIdsToImport.add(apiUserRoleOpt.get().getId());
+                }
+
                 addOrUpdateMembers(
                     executionContext,
                     apiEntity.getId(),

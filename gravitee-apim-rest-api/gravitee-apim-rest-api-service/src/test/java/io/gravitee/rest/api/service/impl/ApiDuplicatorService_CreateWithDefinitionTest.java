@@ -83,6 +83,7 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
     private static final String SOURCE = "source";
     private static final String PO_ROLE_ID = "API_PRIMARY_OWNER";
     private static final String OWNER_ROLE_ID = "API_OWNER";
+    private static final String USER_ROLE_ID = "API_USER";
 
     @InjectMocks
     protected ApiDuplicatorServiceImpl apiDuplicatorService;
@@ -735,11 +736,27 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
 
         when(apiIdsCalculatorService.recalculateApiDefinitionIds(any(), any())).then(AdditionalAnswers.returnsSecondArg());
 
+        RoleEntity apiUserRoleEntity = new RoleEntity();
+        apiUserRoleEntity.setId(USER_ROLE_ID);
+        apiUserRoleEntity.setScope(RoleScope.API);
+        when(roleService.findByScopeAndName(eq(RoleScope.API), eq("USER"), eq(GraviteeContext.getExecutionContext().getOrganizationId())))
+            .thenReturn(Optional.of(apiUserRoleEntity));
+
         apiDuplicatorService.createWithImportedDefinition(GraviteeContext.getExecutionContext(), toBeImport);
 
         verify(apiService, times(1)).createWithApiDefinition(eq(GraviteeContext.getExecutionContext()), any(), eq("admin"), any());
         verify(pageService, times(1)).createAsideFolder(eq(GraviteeContext.getExecutionContext()), eq(API_ID));
-        verify(membershipService, never()).addRoleToMemberOnReference(any(), any(), any(), any(), any(), any());
         verify(membershipService, never()).transferApiOwnership(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
+        verify(roleService)
+            .findByScopeAndName(eq(RoleScope.API), eq("USER"), eq(GraviteeContext.getExecutionContext().getOrganizationId()));
+        verify(membershipService, times(2))
+            .addRoleToMemberOnReference(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(MembershipReferenceType.API),
+                eq(API_ID),
+                eq(MembershipMemberType.USER),
+                eq("user"),
+                eq(USER_ROLE_ID)
+            );
     }
 }
