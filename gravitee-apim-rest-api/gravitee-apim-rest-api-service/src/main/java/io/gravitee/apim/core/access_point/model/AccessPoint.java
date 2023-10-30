@@ -31,19 +31,19 @@ import lombok.NoArgsConstructor;
 public class AccessPoint {
 
     private String id;
-    private AccessPointReferenceType referenceType;
+    private ReferenceType referenceType;
     private String referenceId;
-    private AccessPointTarget target;
+    private Target target;
     private String host;
     private boolean secured;
     private boolean overriding;
 
-    public enum AccessPointReferenceType {
+    public enum ReferenceType {
         ENVIRONMENT,
         ORGANIZATION,
     }
 
-    public enum AccessPointTarget {
+    public enum Target {
         CONSOLE,
         CONSOLE_API,
         PORTAL,

@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.v2.rest.spring;
 
 import inmemory.*;
+import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -112,5 +113,10 @@ public class InMemoryConfiguration {
     @Bean
     public AccessPointQueryServiceInMemory accessPointQueryServiceInMemory() {
         return new AccessPointQueryServiceInMemory();
+    }
+
+    @Bean
+    public InstallationAccessQueryService installationAccessServiceInMemory() {
+        return new InstallationAccessQueryServiceInMemory();
     }
 }

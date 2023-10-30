@@ -61,9 +61,9 @@ class AccessPointCrudServiceImplTest {
     class UpdateAccessPoints {
 
         @ParameterizedTest
-        @EnumSource(AccessPoint.AccessPointReferenceType.class)
+        @EnumSource(AccessPoint.ReferenceType.class)
         @SneakyThrows
-        void should_delete_existing_access_points_of_the_reference(AccessPoint.AccessPointReferenceType referenceType) {
+        void should_delete_existing_access_points_of_the_reference(AccessPoint.ReferenceType referenceType) {
             // Given
             var accessPoints = List.<AccessPoint>of();
 
@@ -75,13 +75,13 @@ class AccessPointCrudServiceImplTest {
         }
 
         @ParameterizedTest
-        @EnumSource(AccessPoint.AccessPointReferenceType.class)
+        @EnumSource(AccessPoint.ReferenceType.class)
         @SneakyThrows
-        void should_create_all_access_points_provided(AccessPoint.AccessPointReferenceType referenceType) {
+        void should_create_all_access_points_provided(AccessPoint.ReferenceType referenceType) {
             // Given
 
             var accessPoints = Arrays
-                .stream(AccessPoint.AccessPointTarget.values())
+                .stream(AccessPoint.Target.values())
                 .map(target ->
                     AccessPoint
                         .builder()

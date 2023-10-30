@@ -55,7 +55,7 @@
         <!-- Gravitee dependencies version -->
         <gravitee-bom.version>6.0.15</gravitee-bom.version>
         <gravitee-alert-api.version>1.9.1</gravitee-alert-api.version>
-        <gravitee-cockpit-api.version>2.2.0</gravitee-cockpit-api.version>
+        <gravitee-cockpit-api.version>2.3.0-feat-multi-tenancy-installation-type-SNAPSHOT</gravitee-cockpit-api.version>
         <gravitee-common.version>3.3.3</gravitee-common.version>
         <gravitee-connector-api.version>1.1.4</gravitee-connector-api.version>
         <gravitee-expression-language.version>3.1.0</gravitee-expression-language.version>

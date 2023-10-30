@@ -17,6 +17,8 @@ package io.gravitee.rest.api.portal.security.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
+import io.gravitee.apim.core.installation.domain_service.InstallationTypeDomainService;
+import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.rest.api.idp.api.IdentityProvider;
 import io.gravitee.rest.api.idp.core.plugin.IdentityProviderManager;
@@ -111,6 +113,12 @@ public class BasicSecurityConfigurerAdapter {
     private AccessPointQueryService accessPointQueryService;
 
     @Autowired
+    private InstallationAccessQueryService installationAccessQueryService;
+
+    @Autowired
+    private InstallationTypeDomainService installationTypeDomainService;
+
+    @Autowired
     private EnvironmentService environmentService;
 
     @Bean
@@ -130,7 +138,7 @@ public class BasicSecurityConfigurerAdapter {
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-        return new GraviteeUrlBasedCorsConfigurationSource(parameterService, accessPointQueryService, eventManager);
+        return new GraviteeUrlBasedCorsConfigurationSource(parameterService, installationAccessQueryService, eventManager);
     }
 
     /*
@@ -173,7 +181,10 @@ public class BasicSecurityConfigurerAdapter {
             BasicAuthenticationFilter.class
         );
         http.addFilterBefore(new RecaptchaFilter(reCaptchaService, objectMapper), TokenAuthenticationFilter.class);
-        http.addFilterBefore(new GraviteeContextFilter(accessPointQueryService, environmentService), CorsFilter.class);
+        http.addFilterBefore(
+            new GraviteeContextFilter(installationTypeDomainService, accessPointQueryService, environmentService),
+            CorsFilter.class
+        );
         http.addFilterAfter(new GraviteeContextAuthorizationFilter(), AuthorizationFilter.class);
 
         return http.build();

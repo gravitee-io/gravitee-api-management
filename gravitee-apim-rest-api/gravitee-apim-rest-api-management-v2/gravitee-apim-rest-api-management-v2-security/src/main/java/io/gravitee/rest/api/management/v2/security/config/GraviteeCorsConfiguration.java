@@ -19,7 +19,7 @@ import static io.gravitee.rest.api.security.csrf.CookieCsrfSignedTokenRepository
 import static io.gravitee.rest.api.security.filter.RecaptchaFilter.DEFAULT_RECAPTCHA_HEADER_NAME;
 import static java.util.Arrays.asList;
 
-import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
+import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.common.event.Event;
 import io.gravitee.common.event.EventListener;
 import io.gravitee.common.event.EventManager;
@@ -36,18 +36,18 @@ import org.springframework.web.cors.CorsConfiguration;
 
 public class GraviteeCorsConfiguration extends CorsConfiguration implements EventListener<Key, Parameter> {
 
-    private ParameterService parameterService;
-    private final AccessPointQueryService accessPointQueryService;
-    private String organizationId;
+    private final ParameterService parameterService;
+    private final InstallationAccessQueryService installationAccessQueryService;
+    private final String organizationId;
 
     public GraviteeCorsConfiguration(
         final ParameterService parameterService,
-        final AccessPointQueryService accessPointQueryService,
+        final InstallationAccessQueryService installationAccessQueryService,
         final EventManager eventManager,
         final String organizationId
     ) {
         this.parameterService = parameterService;
-        this.accessPointQueryService = accessPointQueryService;
+        this.installationAccessQueryService = installationAccessQueryService;
         this.organizationId = organizationId;
         eventManager.subscribeForEvents(this, Key.class);
 
@@ -112,7 +112,7 @@ public class GraviteeCorsConfiguration extends CorsConfiguration implements Even
         if (allowedOriginPatterns != null) {
             builtAllowedOrigins.addAll(allowedOriginPatterns);
         }
-        List<String> consoleUrls = accessPointQueryService.getConsoleUrls(GraviteeContext.getCurrentOrganization(), true);
+        List<String> consoleUrls = installationAccessQueryService.getConsoleUrls(GraviteeContext.getCurrentOrganization());
         if (consoleUrls != null) {
             builtAllowedOrigins.addAll(consoleUrls);
         }

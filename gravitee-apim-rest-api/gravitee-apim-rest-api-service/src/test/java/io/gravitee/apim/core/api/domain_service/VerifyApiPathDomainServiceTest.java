@@ -24,14 +24,14 @@ import static org.mockito.Mockito.lenient;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import inmemory.ApiDefinitionParserDomainServiceJacksonImpl;
 import inmemory.ApiHostValidatorDomainServiceGoogleImpl;
-import io.gravitee.apim.core.access_point.model.RestrictedDomainEntity;
-import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
 import io.gravitee.apim.core.api.exception.InvalidPathsException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiFieldFilter;
 import io.gravitee.apim.core.api.model.ApiSearchCriteria;
 import io.gravitee.apim.core.api.model.Path;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
+import io.gravitee.apim.core.installation.model.RestrictedDomain;
+import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
@@ -62,7 +62,7 @@ class VerifyApiPathDomainServiceTest {
     ApiQueryService apiSearchService;
 
     @Mock
-    AccessPointQueryService accessPointService;
+    InstallationAccessQueryService installationAccessQueryService;
 
     VerifyApiPathDomainService service;
     private ObjectMapper objectMapper = GraviteeJacksonMapper.getInstance();
@@ -93,7 +93,7 @@ class VerifyApiPathDomainServiceTest {
         service =
             new VerifyApiPathDomainService(
                 apiSearchService,
-                accessPointService,
+                installationAccessQueryService,
                 new ApiDefinitionParserDomainServiceJacksonImpl(),
                 new ApiHostValidatorDomainServiceGoogleImpl()
             );
@@ -369,12 +369,12 @@ class VerifyApiPathDomainServiceTest {
     }
 
     private void givenExistingRestrictedDomains(String environmentId, List<String> domainRestrictions) {
-        lenient().when(accessPointService.getGatewayRestrictedDomains(any())).thenReturn(List.of());
+        lenient().when(installationAccessQueryService.getGatewayRestrictedDomains(any())).thenReturn(List.of());
         lenient()
-            .when(accessPointService.getGatewayRestrictedDomains(eq(environmentId)))
+            .when(installationAccessQueryService.getGatewayRestrictedDomains(eq(environmentId)))
             .thenReturn(
                 domainRestrictions != null
-                    ? domainRestrictions.stream().map(domain -> RestrictedDomainEntity.builder().domain(domain).build()).toList()
+                    ? domainRestrictions.stream().map(domain -> RestrictedDomain.builder().domain(domain).build()).toList()
                     : List.of()
             );
     }

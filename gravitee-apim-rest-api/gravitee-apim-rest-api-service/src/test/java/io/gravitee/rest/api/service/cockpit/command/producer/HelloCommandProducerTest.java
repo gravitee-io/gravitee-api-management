@@ -23,11 +23,15 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.cockpit.query_service.CockpitAccessService;
+import io.gravitee.apim.core.installation.domain_service.InstallationTypeDomainService;
+import io.gravitee.apim.core.installation.model.InstallationType;
 import io.gravitee.cockpit.api.command.Command;
 import io.gravitee.cockpit.api.command.CommandStatus;
 import io.gravitee.cockpit.api.command.hello.HelloCommand;
 import io.gravitee.cockpit.api.command.hello.HelloPayload;
 import io.gravitee.cockpit.api.command.hello.HelloReply;
+import io.gravitee.cockpit.api.command.installation.AdditionalInfoConstants;
 import io.gravitee.definition.model.FlowMode;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.node.api.Node;
@@ -73,11 +77,26 @@ public class HelloCommandProducerTest {
     @Mock
     private Node node;
 
+    @Mock
+    private InstallationTypeDomainService installationTypeDomainService;
+
+    @Mock
+    private CockpitAccessService cockpitAccessService;
+
     private HelloCommandProducer cut;
 
     @Before
     public void before() {
-        cut = new HelloCommandProducer(node, installationService, environmentService, organizationService);
+        cut =
+            new HelloCommandProducer(
+                node,
+                installationService,
+                environmentService,
+                organizationService,
+                installationTypeDomainService,
+                cockpitAccessService
+            );
+        when(installationTypeDomainService.get()).thenReturn(InstallationType.STANDALONE);
     }
 
     @Test
@@ -103,8 +122,9 @@ public class HelloCommandProducerTest {
         obs.await();
         obs.assertValue(helloCommand -> {
             assertEquals(CUSTOM_VALUE, helloCommand.getPayload().getAdditionalInformation().get(CUSTOM_KEY));
-            assertTrue(helloCommand.getPayload().getAdditionalInformation().containsKey("AUTH_PATH"));
-            assertTrue(helloCommand.getPayload().getAdditionalInformation().containsKey("INSTALLATION_TYPE"));
+            assertTrue(helloCommand.getPayload().getAdditionalInformation().containsKey(AdditionalInfoConstants.AUTH_PATH));
+            assertTrue(helloCommand.getPayload().getAdditionalInformation().containsKey(AdditionalInfoConstants.AUTH_BASE_URL));
+            assertEquals(InstallationType.STANDALONE.getLabel(), helloCommand.getPayload().getInstallationType());
 
             assertEquals(HOSTNAME, helloCommand.getPayload().getNode().getHostname());
             assertEquals(GraviteeContext.getDefaultOrganization(), helloCommand.getPayload().getDefaultOrganizationId());

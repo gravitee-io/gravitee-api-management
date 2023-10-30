@@ -26,10 +26,10 @@ public interface AccessPointAdapter {
     AccessPoint toEntity(io.gravitee.repository.management.model.AccessPoint accessPoint);
     io.gravitee.repository.management.model.AccessPoint fromEntity(AccessPoint accessPoint);
 
-    AccessPoint.AccessPointReferenceType toEntity(
-        io.gravitee.repository.management.model.AccessPointReferenceType accessPointReferenceType
-    );
-    io.gravitee.repository.management.model.AccessPointReferenceType fromEntity(
-        AccessPoint.AccessPointReferenceType accessPointReferenceType
-    );
+    AccessPoint.ReferenceType toEntity(io.gravitee.repository.management.model.AccessPointReferenceType accessPointReferenceType);
+    io.gravitee.repository.management.model.AccessPointReferenceType fromEntity(AccessPoint.ReferenceType referenceType);
+
+    AccessPoint.Target toEntity(io.gravitee.repository.management.model.AccessPointTarget accessPointTarget);
+
+    io.gravitee.repository.management.model.AccessPointTarget fromEntity(AccessPoint.Target target);
 }

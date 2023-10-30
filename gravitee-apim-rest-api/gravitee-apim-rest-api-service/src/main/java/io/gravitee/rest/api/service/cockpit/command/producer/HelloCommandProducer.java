@@ -15,12 +15,16 @@
  */
 package io.gravitee.rest.api.service.cockpit.command.producer;
 
+import io.gravitee.apim.core.cockpit.query_service.CockpitAccessService;
+import io.gravitee.apim.core.installation.domain_service.InstallationTypeDomainService;
+import io.gravitee.apim.core.installation.model.InstallationType;
 import io.gravitee.cockpit.api.command.Command;
 import io.gravitee.cockpit.api.command.CommandProducer;
 import io.gravitee.cockpit.api.command.CommandStatus;
+import io.gravitee.cockpit.api.command.accesspoint.AccessPoint;
 import io.gravitee.cockpit.api.command.hello.HelloCommand;
-import io.gravitee.cockpit.api.command.hello.HelloPayload;
 import io.gravitee.cockpit.api.command.hello.HelloReply;
+import io.gravitee.cockpit.api.command.installation.AdditionalInfoConstants;
 import io.gravitee.node.api.Node;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.InstallationEntity;
@@ -30,10 +34,14 @@ import io.gravitee.rest.api.model.UpdateOrganizationEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.OrganizationService;
-import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.reactivex.rxjava3.core.Single;
+import jakarta.annotation.PostConstruct;
+import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -42,31 +50,47 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component("cockpitHelloCommandProducer")
+@RequiredArgsConstructor
+@Slf4j
 public class HelloCommandProducer implements CommandProducer<HelloCommand, HelloReply> {
 
-    public static final String AUTH_PATH = "AUTH_PATH";
+    private static final String PATH_SUFFIX = "/";
 
-    @Value("${installation.type:" + HelloPayload.ONPREM_INSTALLATION_TYPE + "}")
-    private String installationType;
+    @Value("${installation.api.url:http://localhost:8083}")
+    private String apiURL;
 
-    @Value("${cockpit.auth.path:/management/auth/cockpit?token={token}}")
+    @Value("${installation.api.management.proxyPath:${http.api.management.entrypoint:${http.api.entrypoint:/}management}}")
+    private String managementProxyPath;
+
+    @Value("${cockpit.auth.path:/auth/cockpit?token={token}}")
     private String authPath;
+
+    @Value("${cockpit.trial:false}")
+    private boolean cockpitTrial;
 
     private final Node node;
     private final InstallationService installationService;
     private final EnvironmentService environmentService;
     private final OrganizationService organizationService;
+    private final InstallationTypeDomainService installationTypeDomainService;
+    private final CockpitAccessService cockpitAccessService;
 
-    public HelloCommandProducer(
-        Node node,
-        InstallationService installationService,
-        EnvironmentService environmentService,
-        OrganizationService organizationService
-    ) {
-        this.node = node;
-        this.installationService = installationService;
-        this.environmentService = environmentService;
-        this.organizationService = organizationService;
+    private String buildAuthPath;
+
+    @PostConstruct
+    public void afterPropertiesSet() {
+        StringBuilder authPathBuilder = new StringBuilder(managementProxyPath);
+        if (managementProxyPath.endsWith(PATH_SUFFIX) && authPath.startsWith(PATH_SUFFIX)) {
+            authPathBuilder.append(authPath.substring(1));
+        } else if (
+            (managementProxyPath.endsWith(PATH_SUFFIX) && !authPath.startsWith(PATH_SUFFIX)) ||
+            (!managementProxyPath.endsWith(PATH_SUFFIX) && authPath.startsWith(PATH_SUFFIX))
+        ) {
+            authPathBuilder.append(authPath);
+        } else if (!managementProxyPath.endsWith(PATH_SUFFIX) && !authPath.startsWith(PATH_SUFFIX)) {
+            authPathBuilder.append(managementProxyPath).append(PATH_SUFFIX).append(authPath);
+        }
+        this.buildAuthPath = authPathBuilder.toString();
     }
 
     @Override
@@ -81,8 +105,36 @@ public class HelloCommandProducer implements CommandProducer<HelloCommand, Hello
         command.getPayload().getNode().setInstallationId(installation.getId());
         command.getPayload().getNode().setHostname(node.hostname());
         command.getPayload().getAdditionalInformation().putAll(installation.getAdditionalInformation());
-        command.getPayload().getAdditionalInformation().put(AUTH_PATH, authPath);
-        command.getPayload().getAdditionalInformation().put(HelloPayload.ADDITIONAL_INFO_INSTALLATION_TYPE, installationType);
+
+        InstallationType installationType = installationTypeDomainService.get();
+        command.getPayload().setInstallationType(installationType.getLabel());
+        command.getPayload().setTrial(cockpitTrial);
+        command.getPayload().getAdditionalInformation().put(AdditionalInfoConstants.AUTH_PATH, buildAuthPath);
+        if (installationType == InstallationType.MULTI_TENANT) {
+            Map<AccessPoint.Type, List<AccessPoint>> accessPointTemplates = new EnumMap<>(AccessPoint.Type.class);
+            cockpitAccessService
+                .getAccessPointsTemplate()
+                .forEach((type, accessPoints) ->
+                    accessPointTemplates.put(
+                        AccessPoint.Type.valueOf(type.name()),
+                        accessPoints
+                            .stream()
+                            .map(accessPoint ->
+                                AccessPoint
+                                    .builder()
+                                    .host(accessPoint.getHost())
+                                    .secured(accessPoint.isSecured())
+                                    .target(AccessPoint.Target.valueOf(accessPoint.getTarget().name()))
+                                    .build()
+                            )
+                            .toList()
+                    )
+                );
+            command.getPayload().setAccessPointsTemplate(accessPointTemplates);
+        } else {
+            command.getPayload().getAdditionalInformation().put(AdditionalInfoConstants.AUTH_BASE_URL, apiURL);
+        }
+
         command.getPayload().setDefaultOrganizationId(GraviteeContext.getDefaultOrganization());
         command.getPayload().setDefaultEnvironmentId(GraviteeContext.getDefaultEnvironment());
 

@@ -68,32 +68,6 @@ tests:
       - matchRegex:
           path: data.[gravitee.yml]
           pattern: "apiKey: myPendoKey"
-  - it: Set management.url with classical ingress path
-    template: api/api-configmap.yaml
-    set:
-      ui:
-        ingress:
-          enabled: true
-          path: /console
-          hosts:
-            - apim.example.com
-    asserts:
-      - matchRegex:
-          path: data.[gravitee.yml]
-          pattern: "management:\n  url: https://apim.example.com/console/"
-  - it: Set management.url with a path containing authorized special characters
-    template: api/api-configmap.yaml
-    set:
-      ui:
-        ingress:
-          enabled: true
-          path: /mg.mt_-_ui~(/|$)(.*)
-          hosts:
-            - apim.example.com
-    asserts:
-      - matchRegex:
-          path: data.[gravitee.yml]
-          pattern: "management:\n  url: https://apim.example.com/mg.mt_-_ui~/"
   - it: Set user password policy pattern
     template: api/api-configmap.yaml
     set:

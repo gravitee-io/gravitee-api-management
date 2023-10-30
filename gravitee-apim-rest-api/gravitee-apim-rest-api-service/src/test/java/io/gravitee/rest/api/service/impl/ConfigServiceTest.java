@@ -21,7 +21,7 @@ import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
+import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
@@ -71,7 +71,7 @@ public class ConfigServiceTest {
     private NewsletterService newsletterService;
 
     @Mock
-    private AccessPointQueryService accessPointService;
+    private InstallationAccessQueryService installationAccessQueryService;
 
     @Before
     public void setup() {

@@ -15,12 +15,11 @@
  */
 package io.gravitee.rest.api.management.v2.security.config;
 
-import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
+import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.servlet.http.HttpServletRequest;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.NonNull;
@@ -38,7 +37,7 @@ public class GraviteeUrlBasedCorsConfigurationSource extends UrlBasedCorsConfigu
     private final Map<String, GraviteeCorsConfiguration> corsConfigurationByOrganization = new ConcurrentHashMap<>();
 
     private final ParameterService parameterService;
-    private final AccessPointQueryService accessPointQueryService;
+    private final InstallationAccessQueryService installationAccessQueryService;
     private final EventManager eventManager;
 
     @Override
@@ -47,7 +46,7 @@ public class GraviteeUrlBasedCorsConfigurationSource extends UrlBasedCorsConfigu
         if (organizationId != null) {
             return this.corsConfigurationByOrganization.computeIfAbsent(
                     organizationId,
-                    id -> new GraviteeCorsConfiguration(parameterService, accessPointQueryService, eventManager, organizationId)
+                    id -> new GraviteeCorsConfiguration(parameterService, installationAccessQueryService, eventManager, organizationId)
                 );
         }
         return super.getCorsConfiguration(request);

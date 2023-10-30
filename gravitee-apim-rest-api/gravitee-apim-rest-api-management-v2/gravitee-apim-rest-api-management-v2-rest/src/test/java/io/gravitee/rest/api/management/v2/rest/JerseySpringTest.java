@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.v2.rest;
 
 import io.gravitee.rest.api.management.v2.rest.provider.ObjectMapperResolver;
 import io.gravitee.rest.api.service.EnvironmentService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
@@ -211,8 +212,7 @@ public abstract class JerseySpringTest {
                 environmentId = environmentService.findByOrgAndIdOrHrid(organizationId, idOrHrid).getId();
             }
 
-            GraviteeContext.setCurrentEnvironment(environmentId);
-            GraviteeContext.setCurrentOrganization(organizationId);
+            GraviteeContext.fromExecutionContext(new ExecutionContext(organizationId, environmentId));
         }
     }
 }

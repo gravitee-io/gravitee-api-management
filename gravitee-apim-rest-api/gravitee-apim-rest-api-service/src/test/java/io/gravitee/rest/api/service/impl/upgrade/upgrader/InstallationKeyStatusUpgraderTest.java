@@ -67,10 +67,10 @@ public class InstallationKeyStatusUpgraderTest {
     @Test
     public void should_upgrade() {
         Map<String, String> additionalInformation = new HashMap<>();
-        additionalInformation.put(InstallationService.ORPHAN_CATEGORY_UPGRADER_STATUS, "SUCCESS");
-        additionalInformation.put(InstallationService.APPLICATION_API_KEY_MODE_UPGRADER_STATUS, "SUCCESS");
-        additionalInformation.put(InstallationService.API_KEY_SUBSCRIPTIONS_UPGRADER_STATUS, "SUCCESS");
-        additionalInformation.put(InstallationService.PLANS_DATA_UPGRADER_STATUS, "FAILED");
+        additionalInformation.put(InstallationKeyStatusUpgrader.ORPHAN_CATEGORY_UPGRADER_STATUS, "SUCCESS");
+        additionalInformation.put(InstallationKeyStatusUpgrader.APPLICATION_API_KEY_MODE_UPGRADER_STATUS, "SUCCESS");
+        additionalInformation.put(InstallationKeyStatusUpgrader.API_KEY_SUBSCRIPTIONS_UPGRADER_STATUS, "SUCCESS");
+        additionalInformation.put(InstallationKeyStatusUpgrader.PLANS_DATA_UPGRADER_STATUS, "FAILED");
 
         InstallationEntity installationEntity = new InstallationEntity();
         installationEntity.setAdditionalInformation(additionalInformation);
@@ -88,29 +88,33 @@ public class InstallationKeyStatusUpgraderTest {
     @Test
     public void should_not_create_record_when_already_exist() {
         Map<String, String> additionalInformation = new HashMap<>();
-        additionalInformation.put(InstallationService.ORPHAN_CATEGORY_UPGRADER_STATUS, "SUCCESS");
-        additionalInformation.put(InstallationService.APPLICATION_API_KEY_MODE_UPGRADER_STATUS, "SUCCESS");
-        additionalInformation.put(InstallationService.API_KEY_SUBSCRIPTIONS_UPGRADER_STATUS, "SUCCESS");
-        additionalInformation.put(InstallationService.PLANS_DATA_UPGRADER_STATUS, "FAILED");
+        additionalInformation.put(InstallationKeyStatusUpgrader.ORPHAN_CATEGORY_UPGRADER_STATUS, "SUCCESS");
+        additionalInformation.put(InstallationKeyStatusUpgrader.APPLICATION_API_KEY_MODE_UPGRADER_STATUS, "SUCCESS");
+        additionalInformation.put(InstallationKeyStatusUpgrader.API_KEY_SUBSCRIPTIONS_UPGRADER_STATUS, "SUCCESS");
+        additionalInformation.put(InstallationKeyStatusUpgrader.PLANS_DATA_UPGRADER_STATUS, "FAILED");
 
         InstallationEntity installationEntity = new InstallationEntity();
         installationEntity.setAdditionalInformation(additionalInformation);
         when(installationService.get()).thenReturn(installationEntity);
         when(
             upgraderRepository.findById(
-                InstallationKeyStatusUpgrader.INSTALLATION_KEY_STATUS.get(InstallationService.ORPHAN_CATEGORY_UPGRADER_STATUS)
+                InstallationKeyStatusUpgrader.INSTALLATION_KEY_STATUS.get(InstallationKeyStatusUpgrader.ORPHAN_CATEGORY_UPGRADER_STATUS)
             )
         )
             .thenReturn(Maybe.just(new UpgradeRecord()));
         when(
             upgraderRepository.findById(
-                InstallationKeyStatusUpgrader.INSTALLATION_KEY_STATUS.get(InstallationService.APPLICATION_API_KEY_MODE_UPGRADER_STATUS)
+                InstallationKeyStatusUpgrader.INSTALLATION_KEY_STATUS.get(
+                    InstallationKeyStatusUpgrader.APPLICATION_API_KEY_MODE_UPGRADER_STATUS
+                )
             )
         )
             .thenReturn(Maybe.empty());
         when(
             upgraderRepository.findById(
-                InstallationKeyStatusUpgrader.INSTALLATION_KEY_STATUS.get(InstallationService.API_KEY_SUBSCRIPTIONS_UPGRADER_STATUS)
+                InstallationKeyStatusUpgrader.INSTALLATION_KEY_STATUS.get(
+                    InstallationKeyStatusUpgrader.API_KEY_SUBSCRIPTIONS_UPGRADER_STATUS
+                )
             )
         )
             .thenReturn(Maybe.empty());

@@ -28,14 +28,14 @@ data:
   constants.json: |
     {
       {{- if .Values.ui.baseURL }}
-      "baseURL": "{{ .Values.ui.baseURL }}",
+      "baseURL": "{{ .Values.ui.baseURL }}"
       {{- else }}
-      "baseURL": "{{ .Values.api.ingress.management.scheme }}://{{ index .Values.api.ingress.management.hosts 0 }}{{ .Values.api.ingress.management.path }}",
+      "baseURL": "{{ .Values.api.ingress.management.scheme }}://{{ index .Values.api.ingress.management.hosts 0 }}{{ .Values.api.ingress.management.path }}"
       {{- end }}
-      {{- if .Values.ui.enforceOrganizationId }}
-      "organizationId": "{{ .Values.ui.enforceOrganizationId }}",
+      {{- if .Values.ui.enforceOrganizationId }},
+      "organizationId": "{{ .Values.ui.enforceOrganizationId }}"
       {{- end }}
-      {{- if .Values.ui.managementTitle }}
+      {{- if .Values.ui.managementTitle }},
       "management": {
         "title": "{{ .Values.ui.managementTitle }}"
       }

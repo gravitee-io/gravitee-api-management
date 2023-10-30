@@ -24,7 +24,7 @@ import static java.util.stream.Collectors.toMap;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
+import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.rest.api.model.annotations.ParameterKey;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
@@ -79,7 +79,7 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
     private ReCaptchaService reCaptchaService;
 
     @Autowired
-    private AccessPointQueryService accessPointService;
+    private InstallationAccessQueryService installationAccessQueryService;
 
     private static final String SENSITIVE_VALUE = "********";
 
@@ -282,7 +282,7 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
     }
 
     private void enhanceFromRepository(final ExecutionContext executionContext, final PortalSettingsEntity portalConfigEntity) {
-        String portalCustomUrl = accessPointService.getPortalUrl(executionContext.getEnvironmentId());
+        String portalCustomUrl = installationAccessQueryService.getPortalUrl(executionContext.getEnvironmentId());
         if (portalCustomUrl != null) {
             portalConfigEntity.getPortal().setUrl(portalCustomUrl);
             portalConfigEntity.getMetadata().add(PortalSettingsEntity.METADATA_READONLY, Key.PORTAL_URL.key());
@@ -302,7 +302,7 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
     }
 
     private void enhanceFromRepository(final ExecutionContext executionContext, final ConsoleSettingsEntity consoleConfigEntity) {
-        String consoleCustomUrl = accessPointService.getConsoleUrl(executionContext.getOrganizationId());
+        String consoleCustomUrl = installationAccessQueryService.getConsoleUrl(executionContext.getOrganizationId());
         if (consoleCustomUrl != null) {
             consoleConfigEntity.getManagement().setUrl(consoleCustomUrl);
             consoleConfigEntity.getMetadata().add(PortalSettingsEntity.METADATA_READONLY, Key.MANAGEMENT_URL.key());

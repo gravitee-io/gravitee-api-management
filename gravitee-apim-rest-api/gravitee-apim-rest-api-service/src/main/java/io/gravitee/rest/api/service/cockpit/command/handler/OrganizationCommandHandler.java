@@ -26,8 +26,8 @@ import io.gravitee.cockpit.api.command.organization.OrganizationReply;
 import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.model.UpdateOrganizationEntity;
 import io.gravitee.rest.api.service.OrganizationService;
-import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.reactivex.rxjava3.core.Single;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -62,32 +62,36 @@ public class OrganizationCommandHandler implements CommandHandler<OrganizationCo
             newOrganization.setDescription(organizationPayload.getDescription());
             final OrganizationEntity organization = organizationService.createOrUpdate(organizationPayload.getId(), newOrganization);
 
-            List<AccessPoint> accessPoints = organizationPayload.getAccessPoints();
-            if (accessPoints != null) {
-                List<io.gravitee.apim.core.access_point.model.AccessPoint> accessPointsToCreate = accessPoints
-                    .stream()
-                    .map(cockpitAccessPoint ->
-                        io.gravitee.apim.core.access_point.model.AccessPoint
-                            .builder()
-                            .referenceType(io.gravitee.apim.core.access_point.model.AccessPoint.AccessPointReferenceType.ORGANIZATION)
-                            .referenceId(organization.getId())
-                            .target(
-                                io.gravitee.apim.core.access_point.model.AccessPoint.AccessPointTarget.valueOf(
-                                    cockpitAccessPoint.getTarget().name()
+            List<io.gravitee.apim.core.access_point.model.AccessPoint> accessPointsToCreate;
+            if (organizationPayload.getAccessPoints() != null) {
+                accessPointsToCreate =
+                    organizationPayload
+                        .getAccessPoints()
+                        .stream()
+                        .map(cockpitAccessPoint ->
+                            io.gravitee.apim.core.access_point.model.AccessPoint
+                                .builder()
+                                .referenceType(io.gravitee.apim.core.access_point.model.AccessPoint.ReferenceType.ORGANIZATION)
+                                .referenceId(organization.getId())
+                                .target(
+                                    io.gravitee.apim.core.access_point.model.AccessPoint.Target.valueOf(
+                                        cockpitAccessPoint.getTarget().name()
+                                    )
                                 )
-                            )
-                            .host(cockpitAccessPoint.getHost())
-                            .secured(cockpitAccessPoint.isSecured())
-                            .overriding(cockpitAccessPoint.isOverriding())
-                            .build()
-                    )
-                    .toList();
-                accessPointService.updateAccessPoints(
-                    io.gravitee.apim.core.access_point.model.AccessPoint.AccessPointReferenceType.ORGANIZATION,
-                    organization.getId(),
-                    accessPointsToCreate
-                );
+                                .host(cockpitAccessPoint.getHost())
+                                .secured(cockpitAccessPoint.isSecured())
+                                .overriding(cockpitAccessPoint.isOverriding())
+                                .build()
+                        )
+                        .toList();
+            } else {
+                accessPointsToCreate = new ArrayList<>();
             }
+            accessPointService.updateAccessPoints(
+                io.gravitee.apim.core.access_point.model.AccessPoint.ReferenceType.ORGANIZATION,
+                organization.getId(),
+                accessPointsToCreate
+            );
             log.info("Organization [{}] handled with id [{}].", organization.getName(), organization.getId());
             return Single.just(new OrganizationReply(command.getId(), CommandStatus.SUCCEEDED));
         } catch (Exception e) {

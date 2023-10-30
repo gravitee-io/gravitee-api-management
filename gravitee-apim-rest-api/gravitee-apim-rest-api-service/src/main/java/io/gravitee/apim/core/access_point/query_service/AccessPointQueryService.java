@@ -15,7 +15,7 @@
  */
 package io.gravitee.apim.core.access_point.query_service;
 
-import io.gravitee.apim.core.access_point.model.RestrictedDomainEntity;
+import io.gravitee.apim.core.access_point.model.AccessPoint;
 import io.gravitee.rest.api.service.common.ReferenceContext;
 import java.util.List;
 import java.util.Optional;
@@ -23,16 +23,13 @@ import java.util.Optional;
 public interface AccessPointQueryService {
     Optional<ReferenceContext> getReferenceContext(final String host);
 
-    List<String> getConsoleUrls(final String organizationId, final boolean includeDefault);
+    List<AccessPoint> getConsoleAccessPoints(final String organizationId);
+    AccessPoint getConsoleAccessPoint(final String organizationId);
+    AccessPoint getConsoleApiAccessPoint(String organizationId);
 
-    String getConsoleUrl(final String organizationId);
+    List<AccessPoint> getPortalAccessPoints(final String environmentId);
+    AccessPoint getPortalAccessPoint(final String environmentId);
+    AccessPoint getPortalApiAccessPoint(String environmentId);
 
-    String getConsoleApiUrl(String organizationId);
-
-    List<String> getPortalUrls(final String environmentId, final boolean includeDefault);
-    String getPortalUrl(final String environmentId);
-
-    String getPortalApiUrl(String environmentId);
-
-    List<RestrictedDomainEntity> getGatewayRestrictedDomains(final String environmentId);
+    List<AccessPoint> getGatewayAccessPoints(final String environmentId);
 }

@@ -24,7 +24,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
+import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.event.impl.SimpleEvent;
 import io.gravitee.repository.management.model.Parameter;
@@ -54,7 +54,7 @@ public class GraviteeCorsConfigurationTest {
     private ParameterService parameterService;
 
     @Mock
-    private AccessPointQueryService accessPointQueryService;
+    private InstallationAccessQueryService installationAccessQueryService;
 
     @Mock
     private EventManager eventManager;
@@ -82,7 +82,8 @@ public class GraviteeCorsConfigurationTest {
 
     @Test
     void should_construct_and_initialize_fields() {
-        graviteeCorsConfiguration = new GraviteeCorsConfiguration(parameterService, accessPointQueryService, eventManager, ORGANIZATION_ID);
+        graviteeCorsConfiguration =
+            new GraviteeCorsConfiguration(parameterService, installationAccessQueryService, eventManager, ORGANIZATION_ID);
 
         verify(eventManager, times(1)).subscribeForEvents(graviteeCorsConfiguration, Key.class);
 
@@ -103,7 +104,8 @@ public class GraviteeCorsConfigurationTest {
 
     @Test
     void should_set_fields_on_event() {
-        graviteeCorsConfiguration = new GraviteeCorsConfiguration(parameterService, accessPointQueryService, eventManager, ORGANIZATION_ID);
+        graviteeCorsConfiguration =
+            new GraviteeCorsConfiguration(parameterService, installationAccessQueryService, eventManager, ORGANIZATION_ID);
 
         graviteeCorsConfiguration.onEvent(new SimpleEvent<>(Key.CONSOLE_HTTP_CORS_ALLOW_ORIGIN, buildParameter("origin1;origin2")));
         graviteeCorsConfiguration.onEvent(new SimpleEvent<>(Key.CONSOLE_HTTP_CORS_ALLOW_HEADERS, buildParameter("header1;header2")));
@@ -120,7 +122,8 @@ public class GraviteeCorsConfigurationTest {
 
     @Test
     void should_not_set_fields_on_event_with_wrong_env_id() {
-        graviteeCorsConfiguration = new GraviteeCorsConfiguration(parameterService, accessPointQueryService, eventManager, ORGANIZATION_ID);
+        graviteeCorsConfiguration =
+            new GraviteeCorsConfiguration(parameterService, installationAccessQueryService, eventManager, ORGANIZATION_ID);
 
         graviteeCorsConfiguration.onEvent(new SimpleEvent<>(Key.CONSOLE_HTTP_CORS_MAX_AGE, buildParameter("12", "ANOTHER_ORG")));
 
@@ -129,8 +132,9 @@ public class GraviteeCorsConfigurationTest {
 
     @Test
     void should_set_fields_on_event_with_access_point() {
-        graviteeCorsConfiguration = new GraviteeCorsConfiguration(parameterService, accessPointQueryService, eventManager, ORGANIZATION_ID);
-        when(accessPointQueryService.getConsoleUrls(ORGANIZATION_ID, true)).thenReturn(List.of("custom-console-url"));
+        graviteeCorsConfiguration =
+            new GraviteeCorsConfiguration(parameterService, installationAccessQueryService, eventManager, ORGANIZATION_ID);
+        when(installationAccessQueryService.getConsoleUrls(ORGANIZATION_ID)).thenReturn(List.of("custom-console-url"));
 
         graviteeCorsConfiguration.onEvent(new SimpleEvent<>(Key.CONSOLE_HTTP_CORS_ALLOW_ORIGIN, buildParameter("origin1;origin2")));
         assertEquals(Arrays.asList("origin1", "origin2", "custom-console-url"), graviteeCorsConfiguration.getAllowedOriginPatterns());

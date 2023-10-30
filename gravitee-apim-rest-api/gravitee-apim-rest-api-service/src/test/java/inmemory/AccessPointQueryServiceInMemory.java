@@ -15,7 +15,7 @@
  */
 package inmemory;
 
-import io.gravitee.apim.core.access_point.model.RestrictedDomainEntity;
+import io.gravitee.apim.core.access_point.model.AccessPoint;
 import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
 import io.gravitee.rest.api.service.common.ReferenceContext;
 import java.util.List;
@@ -29,37 +29,37 @@ public class AccessPointQueryServiceInMemory implements AccessPointQueryService 
     }
 
     @Override
-    public List<String> getConsoleUrls(String organizationId, boolean includeDefault) {
+    public List<AccessPoint> getConsoleAccessPoints(final String organizationId) {
+        return List.of();
+    }
+
+    @Override
+    public AccessPoint getConsoleAccessPoint(final String organizationId) {
         return null;
     }
 
     @Override
-    public String getConsoleUrl(String organizationId) {
+    public AccessPoint getConsoleApiAccessPoint(final String organizationId) {
         return null;
     }
 
     @Override
-    public String getConsoleApiUrl(String organizationId) {
+    public List<AccessPoint> getPortalAccessPoints(final String environmentId) {
+        return List.of();
+    }
+
+    @Override
+    public AccessPoint getPortalAccessPoint(final String environmentId) {
         return null;
     }
 
     @Override
-    public List<String> getPortalUrls(String environmentId, boolean includeDefault) {
+    public AccessPoint getPortalApiAccessPoint(final String environmentId) {
         return null;
     }
 
     @Override
-    public String getPortalUrl(String environmentId) {
-        return null;
-    }
-
-    @Override
-    public String getPortalApiUrl(String environmentId) {
-        return null;
-    }
-
-    @Override
-    public List<RestrictedDomainEntity> getGatewayRestrictedDomains(String environmentId) {
-        return null;
+    public List<AccessPoint> getGatewayAccessPoints(final String environmentId) {
+        return List.of();
     }
 }

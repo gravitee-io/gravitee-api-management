@@ -1,0 +1,115 @@
+openapi: 3.0.3
+info:
+    title: Gravitee.io APIM - Management API - UI
+    description: |-
+        This is the OpenAPI specification for our new version of APIM Management API.
+    contact:
+        email: team-apim@graviteesource.com
+    license:
+        name: Apache 2.0
+        url: http://www.apache.org/licenses/LICENSE-2.0.html
+    version: 2.0.0
+
+servers:
+    - url: /management/v2
+      description: Gravitee.io APIM - Management API - v2
+
+tags:
+    - name: Management UI
+      description: Everything about Management UI
+
+paths:
+    /ui/customization:
+        get:
+            tags:
+                - Management UI
+            summary: Get customization of Console
+            description: |
+                Get the customization settings of Console.
+
+                User can only access the customization of their organization.
+                An error is returned if the OEM Customization is missing from the Gravitee License.
+            operationId: getConsoleCustomization
+            responses:
+                "200":
+                    description: The customization settings for the console.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ConsoleCustomization"
+                default:
+                    $ref: "#/components/responses/Error"
+components:
+    schemas:
+        ConsoleCustomization:
+            type: object
+            properties:
+                theme:
+                    $ref: '#/components/schemas/ConsoleTheme'
+                logo:
+                    type: string
+                    description: The logo that should be displayed in the console
+                favicon:
+                    type: string
+                    description: The favicon for the console
+                title:
+                    type: string
+                    description: The title that will be displayed in the browser tab
+
+        ConsoleTheme:
+            type: object
+            description: Information related to the Console theme
+            properties:
+                menuBackground:
+                    type: string
+                    description: The background color of the menu
+                menuActive:
+                    type: string
+                    description: The color of an active menu item
+
+        Error:
+            type: object
+            properties:
+                httpStatus:
+                    type: integer
+                    format: int32
+                    description: The error code
+                    example: 400
+                message:
+                    type: string
+                    description: The error message
+                    example: Bad request
+                technicalCode:
+                    type: string
+                    description: A technical code to identify the error
+                    example: invalid.import.definition
+                parameters:
+                    type: object
+                    description: A map of parameters to be used in the error message
+                    additionalProperties:
+                        type: string
+                details:
+                    type: array
+                    description: A list of details about the error
+                    items:
+                        type: object
+                        properties:
+                            message:
+                                type: string
+                                description: The error message
+                                example: Bad request
+                            location:
+                                type: string
+                                description: The json path of the field in error.
+                                example: updateApi.properties[0].key
+                            invalidValue:
+                                type: object
+                                description: The invalid value.
+
+    responses:
+        Error:
+            description: Generic error response
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/Error"

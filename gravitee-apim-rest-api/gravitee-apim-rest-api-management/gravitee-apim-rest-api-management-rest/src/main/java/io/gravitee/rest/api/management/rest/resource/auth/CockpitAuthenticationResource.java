@@ -25,7 +25,7 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
 import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 import com.nimbusds.jwt.proc.JWTProcessor;
-import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
+import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
@@ -96,7 +96,7 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
     private ApiSearchService apiSearchService;
 
     @Autowired
-    private AccessPointQueryService accessPointService;
+    private InstallationAccessQueryService installationAccessQueryService;
 
     @PostConstruct
     public void afterPropertiesSet() {
@@ -155,10 +155,9 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
                 .ofNullable(apiCrossId)
                 .flatMap(crossId -> this.apiSearchService.findIdByEnvironmentIdAndCrossId(environmentId, crossId))
                 .orElse(null);
-
             String url = String.format(
                 "%s/#!/environments/%s/%s",
-                accessPointService.getConsoleUrl(organizationId),
+                installationAccessQueryService.getConsoleUrl(organizationId),
                 environmentId,
                 apiId == null ? "" : URLEncoder.encode(String.format("apis/%s/portal", apiId), StandardCharsets.UTF_8)
             );

@@ -15,10 +15,9 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import io.gravitee.apim.core.access_point.model.RestrictedDomainEntity;
-import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
+import io.gravitee.apim.core.installation.model.RestrictedDomain;
+import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.management.rest.model.RestrictedDomain;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -40,7 +39,7 @@ import java.util.Collection;
 public class RestrictedDomainsResource {
 
     @Inject
-    private AccessPointQueryService accessPointService;
+    private InstallationAccessQueryService installationAccessQueryService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -48,14 +47,19 @@ public class RestrictedDomainsResource {
     @ApiResponse(
         responseCode = "200",
         description = "Restricted domains for the environment",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = RestrictedDomainEntity.class))
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = RestrictedDomain.class))
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    public Collection<RestrictedDomain> getRestrictedDomains() {
-        return accessPointService
+    public Collection<io.gravitee.rest.api.management.rest.model.RestrictedDomain> getRestrictedDomains() {
+        return installationAccessQueryService
             .getGatewayRestrictedDomains(GraviteeContext.getCurrentEnvironment())
             .stream()
-            .map(restrictedDomainEntity -> new RestrictedDomain(restrictedDomainEntity.getDomain(), restrictedDomainEntity.isSecured()))
+            .map(restrictedDomainEntity ->
+                new io.gravitee.rest.api.management.rest.model.RestrictedDomain(
+                    restrictedDomainEntity.getDomain(),
+                    restrictedDomainEntity.isSecured()
+                )
+            )
             .toList();
     }
 }
