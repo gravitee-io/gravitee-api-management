@@ -26,4 +26,5 @@ import io.swagger.v3.oas.annotations.media.Schema;
 public enum SystemRole {
     ADMIN,
     PRIMARY_OWNER,
+    USER,
 }
