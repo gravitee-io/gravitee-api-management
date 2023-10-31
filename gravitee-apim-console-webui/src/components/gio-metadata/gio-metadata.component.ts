@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { Observable, Subject } from 'rxjs';
-import { filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { EMPTY, Observable, Subject } from 'rxjs';
+import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { MatSort } from '@angular/material/sort';
@@ -70,14 +70,12 @@ export class GioMetadataComponent implements OnInit, OnDestroy {
     this.referenceType = this.metadataSaveServices.type;
     this.permissionPrefix = this.referenceType === 'Global' ? 'environment' : this.referenceType.toLowerCase();
     this.displayedColumns = ['global', 'key', 'name', 'format', 'value', 'actions'];
+    if (this.referenceType === 'API') {
+      this.displayedColumns.splice(-1, 0, 'defaultValue');
+    }
     this.metadataSaveServices
       .list()
       .pipe(
-        tap(() => {
-          if (this.referenceType === 'API') {
-            this.displayedColumns.splice(-1, 0, 'defaultValue');
-          }
-        }),
         map((metadata) =>
           metadata.map((m) => ({
             name: m.name,
@@ -184,15 +182,17 @@ export class GioMetadataComponent implements OnInit, OnDestroy {
             value: metadata.value,
           }),
         ),
-      )
-      .subscribe(
-        (metadata: Metadata) => {
+        tap((metadata) => {
           this.snackBarService.success(`'${metadata.name}' created successfully`);
-        },
-        (response) => {
-          this.snackBarService.error(response?.error?.message ? response.error.message : 'Error during creation');
-        },
-        () => this.ngOnInit(),
-      );
+        }),
+        catchError(({ error }) => {
+          this.snackBarService.error(error?.message ? error.message : 'Error during creation');
+          return EMPTY;
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe(() => {
+        this.ngOnInit();
+      });
   }
 }
