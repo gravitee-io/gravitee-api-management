@@ -14,10 +14,20 @@
  * limitations under the License.
  */
 import { Component } from '@angular/core';
+import { FormControl, FormGroup } from '@angular/forms';
 
 @Component({
   selector: 'api-runtime-logs-proxy-settings',
   template: require('./api-runtime-logs-proxy-settings.component.html'),
   styles: [require('./api-runtime-logs-proxy-settings.component.scss')],
 })
-export class ApiRuntimeLogsProxySettingsComponent {}
+export class ApiRuntimeLogsProxySettingsComponent {
+  form = new FormGroup({
+    entrypoint: new FormControl(false),
+    endpoint: new FormControl(false),
+    request: new FormControl(false),
+    response: new FormControl(false),
+    headers: new FormControl(false),
+    condition: new FormControl(),
+  });
+}
