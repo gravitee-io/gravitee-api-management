@@ -95,7 +95,8 @@ export class ApplicationService {
       domain: application.domain,
       groups: application.groups,
       settings: application.settings,
-      picture_url: application.picture_url,
+      ...(application.picture !== undefined ? { picture: application.picture } : {}),
+      ...(application.background !== undefined ? { background: application.background } : {}),
       disable_membership_notifications: application.disable_membership_notifications,
       api_key_mode: application.api_key_mode,
     });

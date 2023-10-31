@@ -31,6 +31,8 @@ export interface Application {
   status?: string;
   type?: string;
   picture_url?: string;
+  picture?: string;
+  background?: string;
   owner?: any;
   settings?: unknown;
   disable_membership_notifications?: boolean;

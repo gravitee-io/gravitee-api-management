@@ -145,7 +145,6 @@ describe('ApplicationService', () => {
         domain: mockApplication.domain,
         groups: mockApplication.groups,
         settings: mockApplication.settings,
-        picture_url: mockApplication.picture_url,
         disable_membership_notifications: mockApplication.disable_membership_notifications,
         api_key_mode: mockApplication.api_key_mode,
       });
