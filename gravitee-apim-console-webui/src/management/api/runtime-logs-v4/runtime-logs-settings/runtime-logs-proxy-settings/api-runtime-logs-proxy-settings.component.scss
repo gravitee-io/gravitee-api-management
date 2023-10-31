@@ -1,45 +1,60 @@
 @use 'sass:map';
 @use '@angular/material' as mat;
 @use '@gravitee/ui-particles-angular' as gio;
-
 @use '../../../../../scss/gio-layout' as gio-layout;
 
 $typography: map.get(gio.$mat-theme, typography);
 
 :host {
-  @include gio-layout.gio-responsive-content-container;
+  @include gio-layout.gio-responsive-margin-container;
 }
 
-.tab-body-wrapper {
-  margin-top: 8px;
+.settings {
+  padding: 24px;
 
-  .card {
-    text-align: center;
+  &__title {
+    margin-bottom: 0;
+  }
 
-    mat-icon {
-      background: mat.get-color-from-palette(gio.$mat-primary-palette, default);
-      color: mat.get-color-from-palette(gio.$mat-basic-palette, white);
-      height: 60px;
-      width: 60px;
-      border-radius: 30px;
-      padding: inherit;
-      margin-bottom: 10px;
-    }
+  &__form-control {
+    margin-bottom: 24px;
+    display: flex;
+    flex-direction: column;
 
-    &__body {
-      width: 100%;
+    &--enabled {
       display: flex;
       flex-direction: row;
-      justify-content: center;
-
-      &__subtitle {
-        color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
-        @include mat.typography-level($typography, 'body-1');
-        display: flex;
-        justify-content: center;
-        width: 60%;
-        margin-bottom: 10px;
-      }
+      align-items: center;
     }
+
+    &__title {
+      justify-items: center;
+      margin-bottom: 0;
+      color: mat.get-color-from-palette(gio.$mat-space-palette, 'default');
+      @include mat.typography-level($typography, 'body-2');
+    }
+
+    &__subtitle {
+      margin-bottom: 16px;
+      color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+      @include mat.typography-level($typography, 'body-1');
+    }
+
+    mat-slide-toggle[formcontrolname='enabled'],
+    mat-checkbox[formcontrolname='entrypoint'],
+    mat-checkbox[formcontrolname='request'],
+    mat-checkbox[formcontrolname='headers'] {
+      margin-bottom: 16px;
+    }
+  }
+
+  &__save {
+    margin-top: 24px;
+  }
+
+  gio-banner-info {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 24px;
   }
 }

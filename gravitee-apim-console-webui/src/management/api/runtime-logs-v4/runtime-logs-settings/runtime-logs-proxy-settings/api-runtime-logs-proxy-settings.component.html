@@ -15,12 +15,50 @@
     limitations under the License.
 
 -->
-<div class="tab-body-wrapper">
-  <mat-card class="card">
-    <mat-icon svgIcon="gio:settings"></mat-icon>
-    <div class="mat-h3" aria-label="No settings available">No settings available</div>
-    <div class="card__body">
-      <span class="card__body__subtitle">The runtime logs settings are not available yet with V4 Proxy APIs.</span>
-    </div>
-  </mat-card>
-</div>
+<mat-card>
+  <div class="settings">
+    <h3 class="settings__title">Settings</h3>
+    <div class="settings__subtitle">Adjust the settings to match your needs.</div>
+
+    <form *ngIf="form" [formGroup]="form">
+      <gio-banner-info>
+        <div>Logging smartly</div>
+        <span gioBannerBody>Opt for logging checkboxes carefully, this requires extra storage and may affect API performance.</span>
+      </gio-banner-info>
+
+      <div class="settings__form-control">
+        <div class="settings__form-control__title">Logging mode</div>
+        <div class="settings__form-control__subtitle">Customize the mode included.</div>
+        <mat-checkbox formControlName="entrypoint">Entrypoint</mat-checkbox>
+        <mat-checkbox formControlName="endpoint">Endpoint</mat-checkbox>
+      </div>
+
+      <div class="settings__form-control">
+        <div class="settings__form-control__title">Logging phase</div>
+        <div class="settings__form-control__subtitle">Customize the phases included.</div>
+        <mat-checkbox formControlName="request">Request</mat-checkbox>
+        <mat-checkbox formControlName="response">Response</mat-checkbox>
+      </div>
+
+      <div class="settings__form-control">
+        <div class="settings__form-control__title">Content data</div>
+        <div class="settings__form-control__subtitle">Customize the data included.</div>
+        <mat-checkbox formControlName="headers">Headers</mat-checkbox>
+        <mat-checkbox formControlName="payload">Payload</mat-checkbox>
+      </div>
+
+      <div class="settings__form-control">
+        <div class="settings__form-control__title">Display conditions</div>
+        <div class="settings__form-control__subtitle">Filter the data that matter to you.</div>
+
+        <mat-form-field>
+          <mat-label>Request phase condition</mat-label>
+          <input matInput formControlName="condition" />
+          <mat-hint> Support EL (e.g: &#123; #request.headers['Content-Type'][0] === 'application/json' &#125;)</mat-hint>
+        </mat-form-field>
+      </div>
+
+      <gio-save-bar *ngIf="form.dirty" [form]="form"></gio-save-bar>
+    </form>
+  </div>
+</mat-card>

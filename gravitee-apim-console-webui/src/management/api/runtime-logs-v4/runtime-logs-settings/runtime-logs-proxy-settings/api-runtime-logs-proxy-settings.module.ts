@@ -16,15 +16,33 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
-import { GioIconsModule } from '@gravitee/ui-particles-angular';
+import { GioBannerModule, GioIconsModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatCardModule } from '@angular/material/card';
 
 import { ApiRuntimeLogsProxySettingsComponent } from './api-runtime-logs-proxy-settings.component';
 
 @NgModule({
   declarations: [ApiRuntimeLogsProxySettingsComponent],
   exports: [ApiRuntimeLogsProxySettingsComponent],
-  imports: [CommonModule, MatButtonModule, MatCardModule, MatIconModule, GioIconsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatButtonModule,
+    MatCardModule,
+    MatIconModule,
+    MatInputModule,
+    MatCheckboxModule,
+    MatFormFieldModule,
+    ReactiveFormsModule,
+
+    GioBannerModule,
+    GioIconsModule,
+    GioSaveBarModule,
+  ],
 })
 export class ApiRuntimeLogsProxySettingsModule {}
