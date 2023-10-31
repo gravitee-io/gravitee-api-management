@@ -20,6 +20,7 @@ import { MatIconModule } from '@angular/material/icon';
 import {
   GioFormFocusInvalidModule,
   GioFormHeadersModule,
+  GioFormSlideToggleModule,
   GioIconsModule,
   GioLoaderModule,
   GioSaveBarModule,
@@ -35,6 +36,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { ReactiveFormsModule } from '@angular/forms';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 
 import { NotificationSettingsAddDialogModule } from './notifications-settings-add-dialog/notification-settings-add-dialog.module';
 import { NotificationSettingsListComponent } from './notification-settings-list.component';
@@ -59,6 +61,7 @@ import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrap
     GioLoaderModule,
     GioPermissionModule,
     GioSaveBarModule,
+    GioFormSlideToggleModule,
 
     MatButtonModule,
     MatIconModule,
@@ -70,6 +73,7 @@ import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrap
     MatCheckboxModule,
     MatFormFieldModule,
     MatInputModule,
+    MatSlideToggleModule,
 
     UIRouterModule,
     NotificationSettingsAddDialogModule,
