@@ -19,10 +19,14 @@
   margin: 4px;
 }
 
-.notifications-form__email {
+.notifications-form__notifier {
   width: 100%;
+  padding: 0;
 }
 
+.toggle-use-system-proxy {
+  margin: 0 0 4px 0;
+}
 .notifications-form__title {
   margin-bottom: 16px;
 }

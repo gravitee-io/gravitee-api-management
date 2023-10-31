@@ -77,6 +77,7 @@ export class NotificationSettingsDetailsComponent implements OnInit {
 
           this.notificationForm = new FormGroup({
             notifier: new FormControl(notificationSettings.config),
+            useSystemProxy: new FormControl(notificationSettings.useSystemProxy),
           });
 
           const hooksChecked: (Hooks & { checked: boolean })[] = hooks.map((hook) => ({
@@ -116,6 +117,7 @@ export class NotificationSettingsDetailsComponent implements OnInit {
         Object.fromEntries(Object.entries(this.notificationForm.getRawValue()).filter(([key, value]) => value && key !== 'config')),
       ),
       config: this.notificationForm.controls.notifier.value,
+      useSystemProxy: this.notificationForm.controls.useSystemProxy.value,
     };
 
     this.notificationSettingsDetailsServices

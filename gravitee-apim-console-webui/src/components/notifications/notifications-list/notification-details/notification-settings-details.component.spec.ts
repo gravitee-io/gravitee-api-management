@@ -27,6 +27,7 @@ import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { Component } from '@angular/core';
 import { of } from 'rxjs';
+import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 
 import { NotificationSettingsDetailsServices } from './notification-settings-details.component';
 
@@ -165,5 +166,21 @@ describe('NotificationSettingsDetailsComponent', () => {
     await saveBar.clickSubmit();
 
     expect(updateToExpect.config).toEqual('test@email.test');
+  });
+
+  it('should have "use system proxy" checkbox when notifier type is webhook', async () => {
+    fixture.componentInstance.notificationSettingsDetailsServices = {
+      reference: { referenceType: 'API' as const, referenceId: '123' },
+      getHooks: () => of([fakeHooks()]),
+      getSingleNotificationSetting: () => of(fakeNotificationSettings({ name: 'Test name' })),
+      getNotifiers: () => of([fakeNotifier({ id: 'default-email', name: 'Notifier A', type: 'WEBHOOK' })]),
+      update: (updatedNotification) => {
+        return of(updatedNotification);
+      },
+    };
+    fixture.detectChanges();
+
+    const useSystemProxySlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName=useSystemProxy]' }));
+    expect(await useSystemProxySlideToggle.isChecked()).toEqual(false);
   });
 });
