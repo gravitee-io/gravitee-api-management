@@ -73,12 +73,16 @@
 
     <mat-form-field class="apiDynamicProperties__field">
       <mat-label>Request body</mat-label>
-      <textarea matInput formControlName="body" rows="2"></textarea>
+      <gio-monaco-editor gioMonacoEditorFormField formControlName="body"></gio-monaco-editor>
     </mat-form-field>
 
     <mat-form-field class="apiDynamicProperties__field">
       <mat-label>Transformation (JOLT Specification)</mat-label>
-      <textarea matInput formControlName="specification" rows="2"></textarea>
+      <gio-monaco-editor
+        gioMonacoEditorFormField
+        formControlName="specification"
+        [languageConfig]="specificationLanguageConfig"
+      ></gio-monaco-editor>
     </mat-form-field>
 
     <gio-form-slide-toggle class="apiDynamicProperties__field">

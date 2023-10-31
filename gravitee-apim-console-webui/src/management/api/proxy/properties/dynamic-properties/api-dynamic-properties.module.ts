@@ -21,6 +21,7 @@ import {
   GioFormHeadersModule,
   GioFormSlideToggleModule,
   GioIconsModule,
+  GioMonacoEditorModule,
   GioSaveBarModule,
 } from '@gravitee/ui-particles-angular';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -56,6 +57,7 @@ import { ApiDynamicPropertiesComponent } from './api-dynamic-properties.componen
     GioFormCronModule,
     GioFormCronModule,
     GioFormHeadersModule,
+    GioMonacoEditorModule,
   ],
   declarations: [ApiDynamicPropertiesComponent],
   exports: [ApiDynamicPropertiesComponent],

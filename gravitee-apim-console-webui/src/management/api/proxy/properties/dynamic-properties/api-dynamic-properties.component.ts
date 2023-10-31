@@ -19,6 +19,7 @@ import { combineLatest, Subject } from 'rxjs';
 import { StateParams } from '@uirouter/angularjs';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { MonacoEditorLanguageConfig } from '@gravitee/ui-particles-angular';
 
 import { UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
@@ -50,6 +51,8 @@ export class ApiDynamicPropertiesComponent implements OnInit, OnDestroy {
     "value": "https://south-asia.company.com/"
   }
 ]`;
+  private specificationDefaultValue = '[\n    {\n        "operation":"default",\n        "spec":{}\n    }\n]';
+  public specificationLanguageConfig: MonacoEditorLanguageConfig = { language: 'json', schemas: [] };
 
   public form: FormGroup;
   public initialFormValue: unknown;
@@ -113,7 +116,7 @@ export class ApiDynamicPropertiesComponent implements OnInit, OnDestroy {
               disabled: isReadonly,
             }),
             specification: new FormControl({
-              value: dynamicProperty?.configuration?.specification ?? '[{operation=default, spec={}}]',
+              value: dynamicProperty?.configuration?.specification ?? this.specificationDefaultValue,
               disabled: isReadonly,
             }),
           });
@@ -147,7 +150,7 @@ export class ApiDynamicPropertiesComponent implements OnInit, OnDestroy {
   }
 
   onSave() {
-    const dynamicPropertyFormValue = this.form.value;
+    const dynamicPropertyFormValue = this.form.getRawValue();
 
     this.apiService
       .get(this.ajsStateParams.apiId)

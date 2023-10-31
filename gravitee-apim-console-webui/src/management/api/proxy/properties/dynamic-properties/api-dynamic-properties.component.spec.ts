@@ -23,7 +23,7 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
-import { GioFormCronHarness, GioFormHeadersHarness, GioSaveBarHarness } from '@gravitee/ui-particles-angular';
+import { GioFormCronHarness, GioFormHeadersHarness, GioMonacoEditorHarness, GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { MatInputHarness } from '@angular/material/input/testing';
 
 import { ApiDynamicPropertiesComponent } from './api-dynamic-properties.component';
@@ -44,13 +44,11 @@ describe('ApiDynamicPropertiesComponent', () => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiDynamicPropertiesModule, GioUiRouterTestingModule, MatIconTestingModule],
       providers: [{ provide: UIRouterStateParams, useValue: { apiId: API_ID } }],
-    })
-      .overrideProvider(InteractivityChecker, {
-        useValue: {
-          isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
-        },
-      })
-      .compileComponents();
+    }).overrideProvider(InteractivityChecker, {
+      useValue: {
+        isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
+      },
+    });
 
     fixture = TestBed.createComponent(ApiDynamicPropertiesComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
@@ -100,10 +98,10 @@ describe('ApiDynamicPropertiesComponent', () => {
     expect(await (await headersInput.getHeaderRows())[0].keyInput.getValue()).toBe('headerName');
     expect(await (await headersInput.getHeaderRows())[0].valueInput.getValue()).toBe('headerValue');
 
-    const bodyInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="body"]' }));
+    const bodyInput = await loader.getHarness(GioMonacoEditorHarness.with({ selector: '[formControlName="body"]' }));
     expect(await bodyInput.getValue()).toBe('body');
 
-    const specificationInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="specification"]' }));
+    const specificationInput = await loader.getHarness(GioMonacoEditorHarness.with({ selector: '[formControlName="specification"]' }));
     expect(await specificationInput.getValue()).toBe('[{operation=default, spec={}}]');
   });
 
@@ -132,10 +130,10 @@ describe('ApiDynamicPropertiesComponent', () => {
     const headersInput = await loader.getHarness(GioFormHeadersHarness.with({ selector: '[formControlName="headers"]' }));
     expect(await headersInput.isDisabled()).toBe(true);
 
-    const bodyInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="body"]' }));
+    const bodyInput = await loader.getHarness(GioMonacoEditorHarness.with({ selector: '[formControlName="body"]' }));
     expect(await bodyInput.isDisabled()).toBe(true);
 
-    const specificationInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="specification"]' }));
+    const specificationInput = await loader.getHarness(GioMonacoEditorHarness.with({ selector: '[formControlName="specification"]' }));
     expect(await specificationInput.isDisabled()).toBe(true);
 
     await enabledInput.toggle();
@@ -171,10 +169,10 @@ describe('ApiDynamicPropertiesComponent', () => {
     const urlInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="url"]' }));
     await urlInput.setValue('http://localhost:8083');
 
-    const bodyInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="body"]' }));
+    const bodyInput = await loader.getHarness(GioMonacoEditorHarness.with({ selector: '[formControlName="body"]' }));
     await bodyInput.setValue('body');
 
-    const specificationInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="specification"]' }));
+    const specificationInput = await loader.getHarness(GioMonacoEditorHarness.with({ selector: '[formControlName="specification"]' }));
     await specificationInput.setValue('specification');
 
     const saveBar = await loader.getHarness(GioSaveBarHarness);
