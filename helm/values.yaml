@@ -717,7 +717,6 @@ api:
     # - name: extra-volume
     #   mountPath: /mnt/volume
     #   readOnly: true
-    #   existingClaim: volume-claim
   # If you want to use your own gravitee.yml you have to provide your configmap or secret in extraVolume part.
   # the name of the volume MUST be "config".
   # In this case, values configuration related to gravitee.yaml defined in this file will be ignored
@@ -1123,7 +1122,6 @@ gateway:
   #  - name: extra-volume
   #    mountPath: /mnt/volume
   #    readOnly: true
-  #    existingClaim: volume-claim
   #
   # If you want to use your own gravitee.yml you have to provide your configmap or secret in extraVolume part.
   # the name of the volume MUST be "config".
