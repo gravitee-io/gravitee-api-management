@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import 'cypress-axe';
+import { ADMIN_USER } from '@fakers/users/users';
 
 const axeOptions = {};
 function terminalLog(violations) {
@@ -34,6 +35,8 @@ function terminalLog(violations) {
   cy.task('table', violationData);
 }
 
+const routes = [{ name: 'Global metadata', path: '#!/environments/default/settings/metadata' }];
+
 describe('Accessibility test', () => {
   // Here we use a beforeEach and an after each to reset properly all the cookie we want
   // otherwise we are sometimes redirected or face XRCF issues
@@ -46,5 +49,15 @@ describe('Accessibility test', () => {
     cy.injectAxe(axeOptions);
     cy.wait(3000);
     cy.checkA11y(null, null, terminalLog);
+  });
+
+  routes.forEach(({ name, path }) => {
+    it(`Check ${name} page on path "${path}"`, () => {
+      cy.loginInAPIM(ADMIN_USER.username, ADMIN_USER.password);
+      cy.visit(path);
+      cy.injectAxe(axeOptions);
+      cy.wait(3000);
+      cy.checkA11y(null, null, terminalLog);
+    });
   });
 });
