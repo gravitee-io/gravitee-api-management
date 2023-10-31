@@ -24,12 +24,22 @@
   </div>
 </div>
 <nav mat-tab-nav-bar class="api-navigation-tabs">
-  <a
-    mat-tab-link
-    *ngFor="let menuItem of this.tabMenuItems"
-    (click)="navigateTo(menuItem.targetRoute)"
-    [active]="isActive(menuItem.baseRoute)"
-    class="api-navigation-tabs__link"
-    >{{ menuItem.displayName }}</a
-  >
+  <ng-container *ngFor="let menuItem of this.tabMenuItems">
+    <a
+      *ngIf="menuItem.targetRoute !== 'DISABLED'"
+      mat-tab-link
+      (click)="navigateTo(menuItem.targetRoute)"
+      [active]="isActive(menuItem.baseRoute)"
+      class="api-navigation-tabs__link"
+      >{{ menuItem.displayName }}</a
+    >
+    <a
+      *ngIf="menuItem.targetRoute === 'DISABLED'"
+      mat-tab-link
+      matTooltip="Coming soon for V4 APIs"
+      matTooltipPosition="below"
+      class="api-navigation-tabs__link"
+      >{{ menuItem.displayName }} <mat-icon class="api-navigation-tabs__link__icon" svgIcon="gio:info"></mat-icon
+    ></a>
+  </ng-container>
 </nav>

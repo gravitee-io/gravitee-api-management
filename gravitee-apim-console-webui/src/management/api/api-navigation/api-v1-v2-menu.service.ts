@@ -224,7 +224,19 @@ export class ApiV1V2MenuService implements ApiMenuService {
           {
             displayName: 'Properties',
             targetRoute: 'management.apis.properties',
-            baseRoute: 'management.apis.properties',
+            baseRoute: ['management.apis.properties', 'management.apis.dynamicProperties'],
+            tabs: [
+              {
+                displayName: 'Properties',
+                targetRoute: 'management.apis.properties',
+                baseRoute: 'management.apis.properties',
+              },
+              {
+                displayName: 'Dynamic properties',
+                targetRoute: 'management.apis.dynamicProperties',
+                baseRoute: 'management.apis.dynamicProperties',
+              },
+            ],
           },
           {
             displayName: 'Resources',
