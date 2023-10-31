@@ -39,7 +39,7 @@ public class ServiceFixture {
                     .builder()
                     .url("http://localhost")
                     .method(HttpMethod.GET)
-                    .specification(new LinkedHashMap<>(Map.of("nice", "configuration")))
+                    .specification(String.valueOf(new LinkedHashMap<>(Map.of("nice", "configuration"))))
                     .body("body")
                     .build()
             )

@@ -50,14 +50,7 @@ public class ServiceMapperTest {
             );
         assertThat(config.getSpecification())
             .isEqualTo(
-                new GraviteeMapper()
-                    .writeValueAsString(
-                        apiServicesV2
-                            .getDynamicProperty()
-                            .getConfiguration()
-                            .getHttpDynamicPropertyProviderConfiguration()
-                            .getSpecification()
-                    )
+                apiServicesV2.getDynamicProperty().getConfiguration().getHttpDynamicPropertyProviderConfiguration().getSpecification()
             );
         assertThat(config.getBody())
             .isEqualTo(apiServicesV2.getDynamicProperty().getConfiguration().getHttpDynamicPropertyProviderConfiguration().getBody());
