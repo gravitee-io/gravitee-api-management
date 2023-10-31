@@ -73,14 +73,10 @@ public interface ServiceMapper {
     @Mapping(target = "configuration", qualifiedByName = "deserializeConfiguration")
     EndpointDiscoveryService map(io.gravitee.definition.model.services.discovery.EndpointDiscoveryService endpointDiscoveryService);
 
-    @Mapping(target = "specification", qualifiedByName = "serializeConfiguration")
-    @Mapping(target = "body", qualifiedByName = "serializeConfiguration")
     io.gravitee.definition.model.services.dynamicproperty.http.HttpDynamicPropertyProviderConfiguration map(
         HttpDynamicPropertyProviderConfiguration httpDynamicPropertyProviderConfiguration
     );
 
-    @Mapping(target = "specification", qualifiedByName = "deserializeConfiguration")
-    @Mapping(target = "body", qualifiedByName = "deserializeConfiguration")
     HttpDynamicPropertyProviderConfiguration map(
         io.gravitee.definition.model.services.dynamicproperty.http.HttpDynamicPropertyProviderConfiguration httpDynamicPropertyProviderConfiguration
     );
