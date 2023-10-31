@@ -1,0 +1,47 @@
+suite: Test Gateway configmap section alpn
+templates:
+  - "gateway/gateway-configmap.yaml"
+tests:
+  - it: Default ALPN value (true)
+    template: gateway/gateway-configmap.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: ConfigMap
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: |
+            alpn: true
+
+  - it: Enable ALPN
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        http:
+          alpn: "true"
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: ConfigMap
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: |
+            alpn: true
+
+  - it: Disable ALPN
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        http:
+          alpn: "false"
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: ConfigMap
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: |
+            alpn: false
