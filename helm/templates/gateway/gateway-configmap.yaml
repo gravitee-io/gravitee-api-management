@@ -39,7 +39,7 @@ data:
       maxChunkSize: {{ .Values.gateway.http.maxChunkSize }}
       maxInitialLineLength: {{ .Values.gateway.http.maxInitialLineLength }}
       maxFormAttributeSize: {{ .Values.gateway.http.maxFormAttributeSize }}
-      alpn: true
+      alpn: {{ .Values.gateway.http.alpn | default "true" }}
       {{- if .Values.gateway.ssl.enabled }}
       secured: true
       ssl:
@@ -348,7 +348,6 @@ data:
             {{- end }}
           {{- if .Values.gateway.services.bridge.ssl }}
           secured: {{ .Values.gateway.services.bridge.ssl.enabled | default false }}
-          alpn: true
           ssl:
             {{- if .Values.gateway.services.bridge.ssl.keystore}}
             keystore:
