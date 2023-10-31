@@ -201,14 +201,14 @@ describe('ApiDocumentationV4EditPageComponent', () => {
       expect(await snackBar.getMessage()).toEqual('Cannot publish page');
     });
 
-    it('should request confirmation before exit without saving', async () => {
+    it('should request confirmation before exit', async () => {
       const editor = await harnessLoader.getHarness(ApiDocumentationV4ContentEditorHarness).then((harness) => harness.getContentEditor());
       expect(editor).toBeDefined();
       expect(await editor.getValue()).toEqual('Initial content');
 
       await editor.setValue('## New content');
 
-      const exitBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Exit without saving' }));
+      const exitBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Cancel' }));
       await exitBtn.click();
 
       const confirmDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);

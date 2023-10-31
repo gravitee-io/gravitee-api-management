@@ -17,8 +17,6 @@ import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { StateParams } from '@uirouter/core';
 import { StateService } from '@uirouter/angularjs';
-import { MatDialog } from '@angular/material/dialog';
-import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { catchError, switchMap, takeUntil } from 'rxjs/operators';
 import { EMPTY, Observable, Subject } from 'rxjs';
 
@@ -43,7 +41,6 @@ export class ApiDocumentationV4NewPageComponent implements OnInit, OnDestroy {
 
   constructor(
     private readonly formBuilder: FormBuilder,
-    private readonly matDialog: MatDialog,
     @Inject(UIRouterState) private readonly ajsState: StateService,
     @Inject(UIRouterStateParams) private readonly ajsStateParams: StateParams,
     private readonly apiDocumentationService: ApiDocumentationV2Service,
@@ -106,22 +103,6 @@ export class ApiDocumentationV4NewPageComponent implements OnInit, OnDestroy {
   }
 
   exitWithoutSaving() {
-    this.matDialog
-      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
-        width: GIO_DIALOG_WIDTH.SMALL,
-        data: {
-          title: 'Are you sure?',
-          content: 'If you leave this page, you will lose any info you added.',
-          confirmButton: 'Discard changes',
-          cancelButton: 'Keep creating',
-        },
-        role: 'alertdialog',
-        id: 'exitWithoutSaving',
-      })
-      .afterClosed()
-      .pipe(takeUntil(this.unsubscribe$))
-      .subscribe((shouldExit) => {
-        if (shouldExit) this.ajsState.go('management.apis.documentationV4', this.ajsStateParams);
-      });
+    this.ajsState.go('management.apis.documentationV4', this.ajsStateParams);
   }
 }

@@ -104,11 +104,10 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
       }),
     );
   }
-
-  exitWithoutSaving() {
+  exit() {
     // When no changes, exit without confirmation
     if (this.content === this.page.content) {
-      this.ajsState.go('management.apis.documentationV4', { ...this.ajsStateParams, parentId: this.page.parentId });
+      this.exitWithoutSaving();
     } else {
       this.matDialog
         .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
@@ -125,12 +124,12 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
         .afterClosed()
         .pipe(takeUntil(this.unsubscribe$))
         .subscribe((shouldExit) => {
-          if (shouldExit)
-            this.ajsState.go('management.apis.documentationV4', {
-              ...this.ajsStateParams,
-              parentId: this.page.parentId,
-            });
+          if (shouldExit) this.exitWithoutSaving();
         });
     }
+  }
+
+  exitWithoutSaving() {
+    this.ajsState.go('management.apis.documentationV4', { ...this.ajsStateParams, parentId: this.page.parentId });
   }
 }

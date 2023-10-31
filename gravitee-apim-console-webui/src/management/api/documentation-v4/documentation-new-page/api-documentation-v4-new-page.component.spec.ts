@@ -21,7 +21,7 @@ import { MatStepperHarness } from '@angular/material/stepper/testing';
 import { UIRouterModule } from '@uirouter/angular';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { FormsModule } from '@angular/forms';
-import { GioConfirmDialogHarness, GioMonacoEditorHarness } from '@gravitee/ui-particles-angular';
+import { GioMonacoEditorHarness } from '@gravitee/ui-particles-angular';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
@@ -94,21 +94,9 @@ describe('ApiDocumentationV4NewPageComponent', () => {
       expect(await steps[2].getLabel()).toEqual('Add content');
     });
 
-    it('should request confirmation before exit without saving', async () => {
+    it('should exit without saving', async () => {
       const exitBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Exit without saving' }));
       await exitBtn.click();
-
-      const confirmDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
-      expect(confirmDialog).toBeDefined();
-
-      // should stay on page if cancel
-      await confirmDialog.cancel();
-
-      await exitBtn.click();
-      const newConfirmDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
-      expect(newConfirmDialog).toBeDefined();
-      // should leave page on confirm
-      await newConfirmDialog.confirm();
       expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.documentationV4', {
         apiId: API_ID,
         parentId: 'ROOT',
