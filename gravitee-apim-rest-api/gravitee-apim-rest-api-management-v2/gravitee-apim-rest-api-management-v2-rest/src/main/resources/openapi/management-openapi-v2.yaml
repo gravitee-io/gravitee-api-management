@@ -4742,7 +4742,7 @@ components:
                     description: The url of the dynamic property provider
                     example: http://my-provider.com
                 specification:
-                    type: object
+                    type: string
                     description: The specification of the dynamic property provider
                     example: my-specification
                 useSystemProxy:
@@ -4756,7 +4756,7 @@ components:
                     items:
                         $ref: "#/components/schemas/HttpHeader"
                 body:
-                    type: object
+                    type: string
                     description: The body of the request
                     example: my body
         HttpHeader:
