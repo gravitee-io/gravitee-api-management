@@ -75,45 +75,48 @@
         </td>
       </ng-container>
 
-      <ng-container matColumnDef="encrypted">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header>Encrypted</th>
+      <ng-container matColumnDef="characteristic">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Characteristic</th>
         <td mat-cell *matCellDef="let element" [formGroupName]="element._id">
           <span *ngIf="element.encrypted" class="gio-badge-success">Encrypted</span>
           <span *ngIf="!element.encrypted && element.encryptable" class="gio-badge-accent">Encrypted on save</span>
           <span *ngIf="!element.encrypted && !element.encryptable" class="gio-badge-neutral">Unencrypted </span>
+          <span *ngIf="element.dynamic" class="gio-badge-neutral">Dynamic</span>
         </td>
       </ng-container>
 
       <ng-container matColumnDef="actions">
         <th mat-header-cell *matHeaderCellDef mat-sort-header></th>
         <td mat-cell *matCellDef="let element">
-          <button
-            *ngIf="element.encrypted || element.encryptable"
-            type="button"
-            mat-icon-button
-            aria-label="Renew encrypted value"
-            matTooltip="Renew encrypted value"
-            (click)="renewEncryptedPropertyValue(element._id)"
-          >
-            <mat-icon svgIcon="gio:refresh-cw"></mat-icon>
-          </button>
+          <ng-container *ngIf="!element.dynamic">
+            <button
+              *ngIf="element.encrypted || element.encryptable"
+              type="button"
+              mat-icon-button
+              aria-label="Renew encrypted value"
+              matTooltip="Renew encrypted value"
+              (click)="renewEncryptedPropertyValue(element._id)"
+            >
+              <mat-icon svgIcon="gio:refresh-cw"></mat-icon>
+            </button>
 
-          <button
-            *ngIf="!element.encrypted && !element.encryptable"
-            type="button"
-            mat-icon-button
-            aria-label="Encrypt value"
-            matTooltip="Encrypt value"
-            (click)="encryptPropertyValue(element._id)"
-          >
-            <mat-icon svgIcon="gio:lock"></mat-icon>
-          </button>
+            <button
+              *ngIf="!element.encrypted && !element.encryptable"
+              type="button"
+              mat-icon-button
+              aria-label="Encrypt value"
+              matTooltip="Encrypt value"
+              (click)="encryptPropertyValue(element._id)"
+            >
+              <mat-icon svgIcon="gio:lock"></mat-icon>
+            </button>
+          </ng-container>
 
           <button
             type="button"
             mat-icon-button
             aria-label="Remove property"
-            matTooltip="Remove property"
+            [matTooltip]="element.dynamic ? 'Remove property. Can be re-added with next sync.' : 'Remove property'"
             (click)="removeProperty(element._id)"
           >
             <mat-icon svgIcon="gio:cancel"></mat-icon>

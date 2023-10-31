@@ -48,6 +48,7 @@ type TableDataSource = {
   value: string;
   encrypted: boolean;
   encryptable: boolean;
+  dynamic: boolean;
 };
 
 @Component({
@@ -68,9 +69,9 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
       size: 10,
     },
   };
-  public displayedColumns = ['key', 'value', 'encrypted', 'actions'];
+  public displayedColumns = ['key', 'value', 'characteristic', 'actions'];
   public filteredTableData: TableDataSource[] = [];
-  public apiProperties: (Property & { _id: string })[] = [];
+  public apiProperties: (Property & { _id: string; dynamic: boolean })[] = [];
   public propertiesFormGroup: FormGroup = new FormGroup({});
   public isDirty = false;
 
@@ -92,7 +93,8 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
           if (api.definitionVersion === 'V1') {
             throw new Error('Unexpected API type. This page is compatible only for API > V1');
           }
-          this.apiProperties = api.properties?.map((p) => ({ ...p, _id: uniqueId() })) ?? [];
+          this.apiProperties =
+            api.properties?.map((p) => ({ ...p, _id: uniqueId(), dynamic: api.services?.dynamicProperty?.enabled && p.dynamic })) ?? [];
 
           // Initialize the properties form group
           this.initPropertiesFormGroup();
@@ -213,6 +215,7 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
         value: p.value,
         encrypted: p.encrypted,
         encryptable: p.encryptable,
+        dynamic: p.dynamic,
       };
     });
 
@@ -247,18 +250,24 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
 
     this.propertiesFormGroup = new FormGroup(
       this.apiProperties.reduce((previousValue, currentValue) => {
-        const keyControl = new FormControl(currentValue.key, [
-          Validators.required,
-          isUniqueAndDoesNotMatchDefaultValue(
-            this.apiProperties.map((p) => p.key),
-            currentValue.key,
-          ),
-        ]);
+        const keyControl = new FormControl(
+          {
+            value: currentValue.key,
+            disabled: currentValue.dynamic,
+          },
+          [
+            Validators.required,
+            isUniqueAndDoesNotMatchDefaultValue(
+              this.apiProperties.map((p) => p.key),
+              currentValue.key,
+            ),
+          ],
+        );
         keyControl.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe((value) => this.editKeyProperty(currentValue._id, value));
 
         const valueControl = new FormControl({
           value: currentValue.encrypted ? '*************' : currentValue.value,
-          disabled: currentValue.encrypted,
+          disabled: currentValue.encrypted || currentValue.dynamic,
         });
         valueControl.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe((value) => this.editValueProperty(currentValue._id, value));
 

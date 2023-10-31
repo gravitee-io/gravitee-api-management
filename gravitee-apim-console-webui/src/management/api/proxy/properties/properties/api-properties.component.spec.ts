@@ -94,7 +94,13 @@ describe('ApiPropertiesComponent', () => {
         properties: [
           { key: 'key1', value: 'value1', encrypted: false },
           { key: 'key2', value: 'value2', encrypted: true },
+          { key: 'key3', value: 'value3', dynamic: true },
         ],
+        services: {
+          dynamicProperty: {
+            enabled: true,
+          },
+        },
       }),
     );
 
@@ -104,13 +110,19 @@ describe('ApiPropertiesComponent', () => {
         key: 'key1',
         value: 'value1',
         isValueDisabled: false,
-        encrypted: 'Unencrypted',
+        characteristic: 'Unencrypted',
       },
       {
         key: 'key2',
         value: '*************',
         isValueDisabled: true,
-        encrypted: 'Encrypted',
+        characteristic: 'Encrypted',
+      },
+      {
+        key: 'key3',
+        value: 'value3',
+        isValueDisabled: true,
+        characteristic: 'Unencrypted Dynamic',
       },
     ]);
   });
@@ -141,7 +153,7 @@ describe('ApiPropertiesComponent', () => {
         key: 'key2',
         value: 'newEncryptedValue',
         isValueDisabled: false,
-        encrypted: 'Encrypted on save',
+        characteristic: 'Encrypted on save',
       },
     ]);
     const saveBar = await loader.getHarness(GioSaveBarHarness);
@@ -194,7 +206,7 @@ describe('ApiPropertiesComponent', () => {
         key: 'key2',
         value: 'ValueToEncrypt',
         isValueDisabled: false,
-        encrypted: 'Encrypted on save',
+        characteristic: 'Encrypted on save',
       },
     ]);
     const saveBar = await loader.getHarness(GioSaveBarHarness);
@@ -366,7 +378,7 @@ BadProperty
           key: await keyInput.getValue(),
           value: await valueInput.getValue(),
           isValueDisabled: await valueInput.isDisabled(),
-          encrypted: await cells[2].getText(),
+          characteristic: await cells[2].getText(),
         };
       }),
     );
