@@ -28,12 +28,12 @@
   <div class="actions">
     <ng-container *ngIf="page?.published; else notPublished">
       <button mat-flat-button color="primary" [disabled]="content?.length === 0" (click)="save()">Publish changes</button>
-      <button mat-stroked-button (click)="exitWithoutSaving()">Cancel</button>
+      <button mat-stroked-button (click)="exit()">Cancel</button>
     </ng-container>
     <ng-template #notPublished>
       <button mat-flat-button color="primary" [disabled]="content?.length === 0" (click)="saveAndPublish()">Save and publish</button>
       <button mat-stroked-button [disabled]="content?.length === 0" (click)="save()">Save</button>
-      <button mat-stroked-button (click)="exitWithoutSaving()">Cancel</button>
+      <button mat-stroked-button (click)="exit()">Cancel</button>
     </ng-template>
   </div>
 </mat-card>
