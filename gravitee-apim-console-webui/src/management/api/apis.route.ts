@@ -1325,8 +1325,8 @@ export const states: Ng2StateDeclaration[] = [
    * V2 & V4 Api state only
    */
   {
-    name: 'management.apis.properties',
-    url: '/properties',
+    name: 'management.apis.properties-old',
+    url: '/properties-old',
     component: ApiPropertiesOldComponent,
     data: {
       useAngularMaterial: true,
@@ -1339,8 +1339,8 @@ export const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'management.apis.properties-new',
-    url: '/properties-new',
+    name: 'management.apis.properties',
+    url: '/properties',
     component: ApiPropertiesComponent,
     data: {
       useAngularMaterial: true,
@@ -1353,8 +1353,8 @@ export const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'management.apis.dynamicProperties-new',
-    url: '/dynamic-properties-new',
+    name: 'management.apis.dynamicProperties',
+    url: '/dynamic-properties',
     component: ApiDynamicPropertiesComponent,
     data: {
       useAngularMaterial: true,

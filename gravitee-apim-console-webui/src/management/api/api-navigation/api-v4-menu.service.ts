@@ -122,7 +122,18 @@ export class ApiV4MenuService implements ApiMenuService {
         {
           displayName: 'Properties',
           targetRoute: 'management.apis.properties',
-          baseRoute: 'management.apis.properties',
+          baseRoute: ['management.apis.properties', 'management.apis.dynamicProperties'],
+          tabs: [
+            {
+              displayName: 'Properties',
+              targetRoute: 'management.apis.properties',
+              baseRoute: 'management.apis.properties',
+            },
+            {
+              displayName: 'Dynamic properties',
+              targetRoute: 'DISABLED',
+            },
+          ],
         },
         {
           displayName: 'Resources',
