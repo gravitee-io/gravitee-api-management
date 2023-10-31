@@ -28,3 +28,4 @@ annotations:
     - Allow wildcard in ingress host
     - Add unknownExpireAfter in management-api configuration
     - Allow users to define extra manifests
+    - Make optional HTTP2 request processing via `gateway.http.alpn` set at `true` by default.
