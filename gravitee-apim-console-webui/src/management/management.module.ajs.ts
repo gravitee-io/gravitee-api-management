@@ -82,7 +82,7 @@ import ApplicationCreationStep4Component from './application/creation/steps/appl
 
 import ApplicationHeaderComponent from './application/details/header/application-header.component';
 import ApplicationGeneralController from './application/details/general/application-general.controller';
-import ApplicationGeneralComponent from './application/details/general/application-general.component';
+import AjsApplicationGeneralComponent from './application/details/general/application-general.component';
 import ApplicationMembersController from './application/details/members/application-members.controller';
 import ApplicationMembersComponent from './application/details/members/application-members.component';
 import ApplicationSubscriptionsController from './application/details/subscriptions/application-subscriptions.controller';
@@ -454,6 +454,7 @@ import { EnvironmentNotificationSettingsListComponent } from './configuration/no
 import { EnvironmentNotificationSettingsDetailsComponent } from './configuration/notifications/notification-settings/notification-settings-details/environment-notification-settings-details.component';
 import { EnvironmentMetadataComponent } from './configuration/metadata/environment-metadata.component';
 import { ApplicationMetadataComponent } from './application/details/metadata/application-metadata.component';
+import { ApplicationGeneralComponent } from './application/details/general/general-ng/application-general.component';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -751,7 +752,7 @@ graviteeManagementModule.component('applicationCreationStep3', ApplicationCreati
 graviteeManagementModule.component('applicationCreationStep4', ApplicationCreationStep4Component);
 
 graviteeManagementModule.component('applicationHeader', ApplicationHeaderComponent);
-graviteeManagementModule.component('applicationGeneral', ApplicationGeneralComponent);
+graviteeManagementModule.component('applicationGeneral', AjsApplicationGeneralComponent);
 graviteeManagementModule.component('applicationSubscriptions', ApplicationSubscriptionsComponent);
 graviteeManagementModule.component('applicationSubscription', ApplicationSubscriptionComponent);
 graviteeManagementModule.component('applicationSubscriptionsList', ApplicationSubscriptionsListComponent);
@@ -795,6 +796,7 @@ graviteeManagementModule.directive(
   downgradeComponent({ component: ApplicationNotificationSettingsDetailsComponent }),
 );
 graviteeManagementModule.directive('ngApplicationMetadata', downgradeComponent({ component: ApplicationMetadataComponent }));
+graviteeManagementModule.directive('ngApplicationGeneralNg', downgradeComponent({ component: ApplicationGeneralComponent }));
 
 graviteeManagementModule.component('logout', LogoutComponent);
 

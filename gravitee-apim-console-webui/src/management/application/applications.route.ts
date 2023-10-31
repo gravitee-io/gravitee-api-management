@@ -183,6 +183,20 @@ function applicationsConfig($stateProvider) {
         ],
       },
     })
+    .state('management.applications.application.general-ng', {
+      url: '/ng',
+      component: 'ngApplicationGeneralNg',
+      data: {
+        perms: {
+          only: ['application-definition-r'],
+        },
+        docs: {
+          page: 'management-application',
+        },
+        useAngularMaterial: true,
+      },
+    })
+
     .state('management.applications.application.metadata', {
       url: '/metadata',
       component: 'ngApplicationMetadata',
