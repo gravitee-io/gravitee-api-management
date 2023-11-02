@@ -22,7 +22,7 @@
     "_id" : "${status.getId()}",
 </#if>
     "api":"${status.getApi()}",
-    "endpoint":"${status.getEndpoint()}",
+    "endpoint":"${status.getEndpoint()?j_string}",
     "available":${status.isAvailable()?c},
     "response-time":${status.getResponseTime()},
     "success":${status.isSuccess()?c},
@@ -33,7 +33,7 @@
         {"name": "${step.getName()}",
         "success":${step.isSuccess()?c},
         "request": {
-            "uri":"${step.getRequest().getUri()}",
+            "uri":"${step.getRequest().getUri()?j_string}",
             "method":"${step.getRequest().getMethod()}"
             <#if step.getRequest().getBody()??>
             ,"body":"${step.getRequest().getBody()?j_string}"
