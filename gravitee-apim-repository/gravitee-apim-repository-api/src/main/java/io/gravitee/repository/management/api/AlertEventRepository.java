@@ -39,6 +39,14 @@ public interface AlertEventRepository extends CrudRepository<AlertEvent, String>
     Page<AlertEvent> search(AlertEventCriteria criteria, Pageable pageable);
 
     /**
+     * Counts the number of {@link AlertEvent}s that match the given criteria.
+     *
+     * @param criteria The criteria to match the {@link AlertEvent}s against.
+     * @return The number of {@link AlertEvent}s that match the given criteria.
+     */
+    long count(AlertEventCriteria criteria);
+
+    /**
      * delete all events of the provided alert
      * @param alertId
      */
