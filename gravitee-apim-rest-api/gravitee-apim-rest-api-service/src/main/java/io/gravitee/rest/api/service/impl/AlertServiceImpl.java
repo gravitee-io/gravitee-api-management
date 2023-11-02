@@ -332,23 +332,27 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
 
                     final Date from = new Date(System.currentTimeMillis());
 
-                    Map<String, Integer> counters = new HashMap<>();
-                    counters.put(
-                        "5m",
-                        countEvents(entity.getId(), from.toInstant().minus(Duration.ofMinutes(5)).toEpochMilli(), from.getTime())
-                    );
-                    counters.put(
-                        "1h",
-                        countEvents(entity.getId(), from.toInstant().minus(Duration.ofHours(1)).toEpochMilli(), from.getTime())
-                    );
-                    counters.put(
-                        "1d",
-                        countEvents(entity.getId(), from.toInstant().minus(Duration.ofDays(1)).toEpochMilli(), from.getTime())
-                    );
-                    counters.put(
-                        "1M",
-                        countEvents(entity.getId(), from.toInstant().minus(Duration.ofDays(30)).toEpochMilli(), from.getTime())
-                    );
+                    Map<String, Integer> counters = Map
+                        .of(
+                            "5m",
+                            from.toInstant().minus(Duration.ofMinutes(5)),
+                            "1h",
+                            from.toInstant().minus(Duration.ofHours(1)),
+                            "1d",
+                            from.toInstant().minus(Duration.ofDays(1)),
+                            "1M",
+                            from.toInstant().minus(Duration.ofDays(30))
+                        )
+                        .entrySet()
+                        // Get the count of events for each time period in parallel to speed up the process
+                        .parallelStream()
+                        .map(entry ->
+                            new AbstractMap.SimpleEntry<>(
+                                entry.getKey(),
+                                countEvents(entity.getId(), entry.getValue().toEpochMilli(), from.getTime())
+                            )
+                        )
+                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
                     entity.setCounters(counters);
                     return entity;
@@ -794,12 +798,8 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
     }
 
     private int countEvents(final String triggerId, final long from, final long to) {
-        return (int) alertEventRepository
-            .search(
-                new AlertEventCriteria.Builder().alert(triggerId).from(from).to(to).build(),
-                new PageableBuilder().pageNumber(0).pageSize(1).build()
-            )
-            .getTotalElements();
+        AlertEventCriteria criteria = new AlertEventCriteria.Builder().alert(triggerId).from(from).to(to).build();
+        return Math.toIntExact(alertEventRepository.count(criteria));
     }
 
     private Optional<AlertEvent> getLastEvent(final String triggerId) {
