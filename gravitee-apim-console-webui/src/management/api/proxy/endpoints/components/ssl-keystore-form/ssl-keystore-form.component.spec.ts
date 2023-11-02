@@ -17,7 +17,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
-import { InteractivityChecker } from '@angular/cdk/a11y';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { ControlContainer, ReactiveFormsModule } from '@angular/forms';
@@ -43,13 +42,7 @@ describe('SslKeyStoreFormComponent', () => {
           useValue: {},
         },
       ],
-    })
-      .overrideProvider(InteractivityChecker, {
-        useValue: {
-          isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
-        },
-      })
-      .compileComponents();
+    }).compileComponents();
 
     fixture = TestBed.createComponent(SslKeyStoreFormComponent);
     httpTestingController = TestBed.inject(HttpTestingController);

@@ -192,12 +192,25 @@ describe('ApiPropertiesComponent', () => {
     await endpointHttpConfigHarness.setHttpProxy({
       enabled: true,
       useSystemProxy: false,
+      host: '',
+      port: undefined,
+    });
+
+    // host & port are required
+    expect(component.httpConfigFormGroup.get('httpProxy.host').invalid).toEqual(true);
+    expect(component.httpConfigFormGroup.get('httpProxy.port').invalid).toEqual(true);
+    expect(component.httpConfigFormGroup.invalid).toEqual(true);
+
+    await endpointHttpConfigHarness.setHttpProxy({
+      enabled: true,
+      useSystemProxy: false,
       host: 'new host',
       port: 42,
       username: 'foo',
       password: 'bar',
       type: 'HTTP',
     });
+    expect(component.httpConfigFormGroup.invalid).toEqual(false);
 
     const httpProxy = await endpointHttpConfigHarness.getHttpProxyValues();
 
