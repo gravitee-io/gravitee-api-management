@@ -23,6 +23,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatCardModule } from '@angular/material/card';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { ApiRuntimeLogsProxySettingsComponent } from './api-runtime-logs-proxy-settings.component';
 
@@ -38,6 +39,7 @@ import { ApiRuntimeLogsProxySettingsComponent } from './api-runtime-logs-proxy-s
     MatInputModule,
     MatCheckboxModule,
     MatFormFieldModule,
+    MatSnackBarModule,
     ReactiveFormsModule,
 
     GioBannerModule,
