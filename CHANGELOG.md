@@ -1,3 +1,11 @@
+## [1.0.4](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.0.3...1.0.4) (2023-11-02)
+
+
+### Bug Fixes
+
+* es7 - add j_string to escape endpoint URL ([3acf72a](https://github.com/gravitee-io/gravitee-reporter-common/commit/3acf72a28ac2d93502e52deb8e4c48657e4bcb22))
+* es8 - add j_string to escape endpoint URL ([0a8cc65](https://github.com/gravitee-io/gravitee-reporter-common/commit/0a8cc65f238b2bcdd665de6a755088800bb93ad2))
+
 ## [1.0.3](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.0.2...1.0.3) (2023-09-12)
 
 
