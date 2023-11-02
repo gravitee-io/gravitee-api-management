@@ -204,6 +204,89 @@ class HttpGetEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoin
             });
     }
 
+    @Test
+    @DeployApi({ "/apis/v4/messages/http-get/http-get-entrypoint-kafka-endpoint-dynamic-configuration.json" })
+    void should_receive_all_messages_from_topic_selected_by_dynamic_configuration_and_override_auto_offset_reset(
+        HttpClient client,
+        Vertx vertx
+    ) {
+        Single
+            .fromCallable(() -> getKafkaProducer(vertx))
+            .flatMapCompletable(producer ->
+                publishToKafka(producer, "message1").andThen(publishToKafka(producer, "message2")).doFinally(producer::close)
+            )
+            .blockingAwait();
+
+        Single
+            .fromCallable(() -> getKafkaProducer(vertx))
+            .flatMapCompletable(producer ->
+                publishToKafka(producer, "test-topic-dynamic-configuration", "another-message").doFinally(producer::close)
+            )
+            .blockingAwait();
+
+        // First request should receive one message from test-topic-attribute. This topic is selected using the dynamic configuration feature that allows to override any property by using an attribute.
+        // The auto offset reset is set to earliest using the fact that the dynamic configuration allows to use EL for String property
+        client
+            .rxRequest(HttpMethod.GET, "/test/test-dynamic-configuration")
+            .flatMap(request -> {
+                // Override topic from header: topic is set on request phase
+                request.putHeader("X-AutoOffsetReset", "earliest");
+                request.putHeader("X-Topic-Override-Request-Level", "test-topic,test-topic-dynamic-configuration");
+                request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON);
+                return request.send();
+            })
+            .flatMap(response -> {
+                assertThat(response.statusCode()).isEqualTo(200);
+                return response.body();
+            })
+            .test()
+            .awaitDone(30, TimeUnit.SECONDS)
+            .assertValue(body -> {
+                final JsonObject jsonResponse = new JsonObject(body.toString());
+                final JsonArray items = jsonResponse.getJsonArray("items");
+                assertThat(items).hasSize(3);
+                final JsonObject message1 = items.getJsonObject(0);
+                assertThat(message1.getString("id")).isNull();
+                assertThat(message1.getJsonObject("metadata").getString("topic")).isEqualTo(TEST_TOPIC);
+                assertThat(message1.getString("content")).isEqualTo("message1");
+                final JsonObject message2 = items.getJsonObject(1);
+                assertThat(message2.getString("id")).isNull();
+                assertThat(message2.getJsonObject("metadata").getString("topic")).isEqualTo(TEST_TOPIC);
+                assertThat(message2.getString("content")).isEqualTo("message2");
+                final JsonObject messageOtherTopic = items.getJsonObject(2);
+                assertThat(messageOtherTopic.getJsonObject("metadata").getString("topic")).isEqualTo("test-topic-dynamic-configuration");
+                assertThat(messageOtherTopic.getString("id")).isNull();
+                assertThat(messageOtherTopic.getString("content")).isEqualTo("another-message");
+                return true;
+            });
+    }
+
+    @Test
+    @DeployApi({ "/apis/v4/messages/http-get/http-get-entrypoint-kafka-endpoint-dynamic-configuration.json" })
+    void should_interrupt_when_constraint_violated_with_dynamic_configuration(HttpClient client, Vertx vertx) {
+        // The auto offset reset is set to a value not authorized by the validation annotation used in the configuration bean by the dynamic configuration feature
+        client
+            .rxRequest(HttpMethod.GET, "/test/test-dynamic-configuration-validation-failure")
+            .flatMap(request -> {
+                // Override topic from header: topic is set on request phase
+                request.putHeader("X-AutoOffsetReset", "constraint_violation");
+                request.putHeader("X-Topic-Override-Request-Level", "test-topic");
+                request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON);
+                return request.send();
+            })
+            .flatMap(response -> {
+                assertThat(response.statusCode()).isEqualTo(500);
+                return response.body();
+            })
+            .test()
+            .awaitDone(30, TimeUnit.SECONDS)
+            .assertValue(body -> {
+                final JsonObject jsonResponse = new JsonObject(body.toString());
+                assertThat(jsonResponse.getString("message")).isEqualTo("Invalid configuration");
+                return true;
+            });
+    }
+
     @EnumSource(value = Qos.class, names = { "AT_MOST_ONCE", "AT_LEAST_ONCE" })
     @ParameterizedTest(name = "should receive all messages with {0} qos")
     @DeployApi(
