@@ -40,21 +40,10 @@ public class AlertEventMongoRepositoryImpl implements AlertEventMongoRepositoryC
 
     @Override
     public Page<AlertEventMongo> search(AlertEventCriteria criteria, Pageable pageable) {
-        Query query = new Query();
-
-        if (criteria.getAlert() != null) {
-            query.addCriteria(Criteria.where("alert").is(criteria.getAlert()));
-        }
-
-        // set range query
-        if (criteria.getFrom() != 0 && criteria.getTo() != 0) {
-            query.addCriteria(Criteria.where("createdAt").gte(new Date(criteria.getFrom())).lt(new Date(criteria.getTo())));
-        }
-
-        // set sort by updated at
-        query.with(Sort.by(Sort.Direction.DESC, "createdAt"));
-
+        Query query = buildQueryFromCriteria(criteria);
         long total = mongoTemplate.count(query, AlertEventMongo.class);
+
+        query.with(Sort.by(Sort.Direction.DESC, "createdAt"));
 
         // set pageable
         if (pageable != null) {
@@ -70,5 +59,24 @@ public class AlertEventMongoRepositoryImpl implements AlertEventMongoRepositoryC
     public void deleteAll(String alertId) {
         Query query = new Query().addCriteria(Criteria.where("alert").is(alertId));
         mongoTemplate.remove(query, AlertEventMongo.class);
+    }
+
+    @Override
+    public long count(AlertEventCriteria criteria) {
+        Query query = buildQueryFromCriteria(criteria);
+        return mongoTemplate.count(query, AlertEventMongo.class);
+    }
+
+    private static Query buildQueryFromCriteria(AlertEventCriteria criteria) {
+        Query query = new Query();
+
+        if (criteria.getAlert() != null) {
+            query.addCriteria(Criteria.where("alert").is(criteria.getAlert()));
+        }
+
+        if (criteria.getFrom() != 0 && criteria.getTo() != 0) {
+            query.addCriteria(Criteria.where("createdAt").gte(new Date(criteria.getFrom())).lt(new Date(criteria.getTo())));
+        }
+        return query;
     }
 }
