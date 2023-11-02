@@ -145,8 +145,14 @@ db.getCollection(`${prefix}alert_triggers`).reIndex();
 
 // "alert events" collection
 db.getCollection(`${prefix}alert_events`).dropIndexes();
+<<<<<<< HEAD
 db.getCollection(`${prefix}alert_events`).createIndex({ alert: 1 }, { name: "a1" });
 db.getCollection(`${prefix}alert_events`).createIndex({ createdAt: 1 }, { name: "c1" });
+=======
+db.getCollection(`${prefix}alert_events`).createIndex( { "alert": 1 }, { "name": "a1" } );
+db.getCollection(`${prefix}alert_events`).createIndex( { "createdAt": 1 }, { "name": "c1" } );
+db.getCollection(`${prefix}alert_events`).createIndex( { "alert": 1, "createdAt": 1 }, { "name": "a1c1" } );
+>>>>>>> 0583ec4c65 (fix: create a count method in AlertEvent repository and improve the way analytics are fetched in AlertService)
 db.getCollection(`${prefix}alert_events`).reIndex();
 
 // "customUserFields" collection

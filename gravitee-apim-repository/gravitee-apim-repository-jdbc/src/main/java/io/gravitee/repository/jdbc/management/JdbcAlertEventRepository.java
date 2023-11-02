@@ -123,6 +123,37 @@ public class JdbcAlertEventRepository extends JdbcAbstractCrudRepository<AlertEv
     }
 
     @Override
+    public long count(AlertEventCriteria criteria) {
+        final List<Object> args = new ArrayList<>();
+        final StringBuilder builder = new StringBuilder("select count(*) from " + this.tableName + " ev ");
+
+        boolean started = false;
+        if (criteria.getFrom() > 0) {
+            builder.append(WHERE_CLAUSE);
+            builder.append("created_at >= ?");
+            args.add(new Timestamp(criteria.getFrom()));
+            started = true;
+        }
+        if (criteria.getTo() > 0) {
+            builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
+            builder.append("created_at < ?");
+            args.add(new Timestamp(criteria.getTo()));
+            started = true;
+        }
+
+        if (criteria.getAlert() != null && !criteria.getAlert().isEmpty()) {
+            builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
+            builder.append("alert = ?");
+            args.add(criteria.getAlert());
+        }
+
+        String sql = builder.toString();
+        LOGGER.debug("SQL: {}", sql);
+        LOGGER.debug("Args: {}", args);
+        return jdbcTemplate.queryForObject(sql, args.toArray(), Long.class);
+    }
+
+    @Override
     public void deleteAll(String alertId) {
         jdbcTemplate.update("delete from " + this.tableName + " where alert = ?", alertId);
     }
