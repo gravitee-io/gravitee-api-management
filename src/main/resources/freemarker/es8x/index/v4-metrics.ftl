@@ -56,7 +56,7 @@
   ,"host":"${metrics.getHost()}"
   </#if>
   <#if metrics.getUri()??>
-  ,"uri":"${metrics.getUri()}"
+  ,"uri":"${metrics.getUri()?j_string}"
   </#if>
   <#if metrics.getPathInfo()??>
   ,"path-info":"${metrics.getPathInfo()}"
@@ -74,7 +74,7 @@
   </#if>
   ,"request-ended":"${metrics.isRequestEnded()?c}"
   <#if metrics.getEndpoint()??>
-  ,"endpoint":"${metrics.getEndpoint()}"
+  ,"endpoint":"${metrics.getEndpoint()?j_string}"
   </#if>
   <#if endpointResponseTimeMs??>
   ,"endpoint-response-time-ms":${endpointResponseTimeMs}

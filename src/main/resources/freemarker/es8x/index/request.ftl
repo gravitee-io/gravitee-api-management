@@ -12,7 +12,7 @@
   </#if>
   ,"transaction":"${metrics.getTransactionId()}"
   ,"method":${metrics.getHttpMethod().code()?c}
-  ,"uri":"${metrics.getUri()}"
+  ,"uri":"${metrics.getUri()?j_string}"
   ,"status":${metrics.getStatus()}
   ,"response-time":${metrics.getProxyResponseTimeMs()}
   <#if apiResponseTime??>
@@ -39,7 +39,7 @@
   ,"local-address":"${metrics.getLocalAddress()}"
   ,"remote-address":"${metrics.getRemoteAddress()}"
   <#if metrics.getEndpoint()??>
-  ,"endpoint":"${metrics.getEndpoint()}"
+  ,"endpoint":"${metrics.getEndpoint()?j_string}"
   </#if>
   <#if metrics.getTenant()??>
   ,"tenant":"${metrics.getTenant()}"
