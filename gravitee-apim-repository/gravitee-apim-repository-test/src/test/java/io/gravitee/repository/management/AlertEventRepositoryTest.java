@@ -141,4 +141,22 @@ public class AlertEventRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals("2 before", 2, before);
         assertEquals("0 after", 0, after);
     }
+
+    @Test
+    public void shouldCountWithCriteria() {
+        long count = alertEventRepository.count(
+            new AlertEventCriteria.Builder().alert("alert-parent-id").from(1439022010900L).to(1439022010999L).build()
+        );
+        assertEquals(1, count);
+    }
+
+    @Test
+    public void shouldSearchWithCriteria() {
+        Page<AlertEvent> result = alertEventRepository.search(
+            new AlertEventCriteria.Builder().alert("alert-parent-id").from(1439022010900L).to(1439022010999L).build(),
+            null
+        );
+        assertEquals(1, result.getTotalElements());
+        assertEquals("an-alert-to-update", result.getContent().get(0).getId());
+    }
 }

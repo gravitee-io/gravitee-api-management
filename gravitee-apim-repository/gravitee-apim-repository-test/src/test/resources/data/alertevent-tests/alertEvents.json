@@ -9,8 +9,8 @@
       "id": "an-alert-to-update",
       "alert": "alert-parent-id",
       "message": "Message of the alert to update",
-      "createdAt": 1439022010883,
-      "updatedAt": 1439022010883
+      "createdAt": 1439022010920,
+      "updatedAt": 1439022010920
    },
    {
       "id": "latest-alert",
