@@ -21,12 +21,6 @@ $typography: map.get(gio.$mat-theme, typography);
     display: flex;
     flex-direction: column;
 
-    &--enabled {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-    }
-
     &__title {
       justify-items: center;
       margin-bottom: 0;

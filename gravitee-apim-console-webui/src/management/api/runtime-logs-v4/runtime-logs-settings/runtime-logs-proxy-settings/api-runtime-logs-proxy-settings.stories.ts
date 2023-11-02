@@ -15,9 +15,16 @@
  */
 import { Meta, moduleMetadata } from '@storybook/angular';
 import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
+import { of } from 'rxjs';
 
 import { ApiRuntimeLogsProxySettingsModule } from './api-runtime-logs-proxy-settings.module';
 import { ApiRuntimeLogsProxySettingsComponent } from './api-runtime-logs-proxy-settings.component';
+
+import { UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
+import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
+import { ApiV4, fakeProxyApiV4 } from '../../../../../entities/management-api-v2';
+
+const api = fakeProxyApiV4();
 
 export default {
   title: 'API / Logs / Settings / Proxy',
@@ -25,6 +32,20 @@ export default {
   decorators: [
     moduleMetadata({
       imports: [ApiRuntimeLogsProxySettingsModule],
+      providers: [
+        { provide: UIRouterStateParams, useValue: { apiId: api.id } },
+        {
+          provide: ApiV2Service,
+          useValue: {
+            get: (_: string) => {
+              return of(api);
+            },
+            update: (_: ApiV4) => {
+              return of(api);
+            },
+          },
+        },
+      ],
     }),
   ],
   argTypes: {},
