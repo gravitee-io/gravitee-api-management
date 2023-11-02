@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
-import { Subject } from 'rxjs';
+import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { asyncScheduler, merge, Subject } from 'rxjs';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { filter, startWith, takeUntil } from 'rxjs/operators';
+import { filter, startWith, takeUntil, map, observeOn } from 'rxjs/operators';
 
 import {
   EndpointGroupV2,
@@ -100,14 +100,20 @@ export class EndpointHttpConfigComponent implements OnInit, OnDestroy {
         value: endpointGroup.httpProxy?.useSystemProxy,
         disabled: isReadonly,
       }),
-      host: new FormControl({
-        value: endpointGroup.httpProxy?.host,
-        disabled: isReadonly,
-      }),
-      port: new FormControl({
-        value: endpointGroup.httpProxy?.port,
-        disabled: isReadonly,
-      }),
+      host: new FormControl(
+        {
+          value: endpointGroup.httpProxy?.host,
+          disabled: isReadonly,
+        },
+        Validators.required,
+      ),
+      port: new FormControl(
+        {
+          value: endpointGroup.httpProxy?.port,
+          disabled: isReadonly,
+        },
+        Validators.required,
+      ),
       type: new FormControl({ value: endpointGroup.httpProxy?.type ?? 'HTTP', disabled: isReadonly }, Validators.required),
       username: new FormControl({
         value: endpointGroup.httpProxy?.username,
@@ -184,6 +190,8 @@ export class EndpointHttpConfigComponent implements OnInit, OnDestroy {
 
   private unsubscribe$ = new Subject<boolean>();
 
+  constructor(private readonly changeDetectorRef: ChangeDetectorRef) {}
+
   ngOnInit(): void {
     if (!this.httpConfigFormGroup) {
       throw new Error('httpConfigFormGroup input is required');
@@ -233,30 +241,34 @@ export class EndpointHttpConfigComponent implements OnInit, OnDestroy {
 
     const httpProxy = this.httpConfigFormGroup.get('httpProxy') as FormGroup;
 
-    httpProxy
-      .get('enabled')
-      .valueChanges.pipe(
-        startWith(httpProxy.get('enabled').value),
+    merge(httpProxy.get('enabled').valueChanges, httpProxy.get('useSystemProxy').valueChanges)
+      .pipe(
+        startWith({}),
         // Only if enabled is not disabled
         filter(() => !httpProxy.get('enabled').disabled),
+        map(() => [httpProxy.get('enabled').value, httpProxy.get('useSystemProxy').value]),
+        observeOn(asyncScheduler),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe((enabled) => {
-        if (enabled === true) {
-          httpProxy.get('useSystemProxy').enable({ onlySelf: true });
-          httpProxy.get('host').addValidators(Validators.required);
-          httpProxy.get('host').enable({ onlySelf: true });
-          httpProxy.get('port').addValidators(Validators.required);
+      .subscribe(([enabled, useSystemProxy]) => {
+        if (enabled === true && useSystemProxy !== true) {
+          httpProxy.get('useSystemProxy').enable({ emitEvent: false });
+          httpProxy.get('host').enable({ onlySelf: true }); // onlySelf to refresh UI `*`
           httpProxy.get('port').enable({ onlySelf: true });
           httpProxy.get('type').enable({ emitEvent: false });
           httpProxy.get('username').enable({ emitEvent: false });
           httpProxy.get('password').enable({ emitEvent: false });
+        } else if (enabled === true && useSystemProxy === true) {
+          httpProxy.get('useSystemProxy').enable({ emitEvent: false });
+          httpProxy.get('host').disable({ onlySelf: true });
+          httpProxy.get('port').disable({ onlySelf: true });
+          httpProxy.get('type').disable({ emitEvent: false });
+          httpProxy.get('username').disable({ emitEvent: false });
+          httpProxy.get('password').disable({ emitEvent: false });
         } else {
           httpProxy.get('useSystemProxy').disable({ emitEvent: false });
-          httpProxy.get('useSystemProxy').setValue(false, { onlySelf: true });
-          httpProxy.get('host').clearValidators();
+          httpProxy.get('useSystemProxy').setValue(false, { emitEvent: false });
           httpProxy.get('host').disable({ onlySelf: true });
-          httpProxy.get('port').clearValidators();
           httpProxy.get('port').disable({ onlySelf: true });
           httpProxy.get('type').disable({ emitEvent: false });
           httpProxy.get('username').disable({ emitEvent: false });
@@ -268,40 +280,7 @@ export class EndpointHttpConfigComponent implements OnInit, OnDestroy {
           httpProxy.get(controlName)?.updateValueAndValidity({ emitEvent: false });
         });
         httpProxy.updateValueAndValidity();
-      });
-
-    httpProxy
-      .get('useSystemProxy')
-      .valueChanges.pipe(
-        startWith(httpProxy.get('useSystemProxy').value),
-        // Only if useSystemProxy is not disabled
-        filter(() => !httpProxy.get('useSystemProxy').disabled),
-        takeUntil(this.unsubscribe$),
-      )
-      .subscribe((useSystemProxy) => {
-        if (useSystemProxy === true) {
-          httpProxy.get('host').clearValidators();
-          httpProxy.get('host').disable({ onlySelf: true });
-          httpProxy.get('port').clearValidators();
-          httpProxy.get('port').disable({ onlySelf: true });
-          httpProxy.get('type').disable({ emitEvent: false });
-          httpProxy.get('username').disable({ emitEvent: false });
-          httpProxy.get('password').disable({ emitEvent: false });
-        } else {
-          httpProxy.get('host').addValidators(Validators.required);
-          httpProxy.get('host').enable({ onlySelf: false });
-          httpProxy.get('port').addValidators(Validators.required);
-          httpProxy.get('port').enable({ onlySelf: true });
-          httpProxy.get('type').enable({ emitEvent: false });
-          httpProxy.get('username').enable({ emitEvent: false });
-          httpProxy.get('password').enable({ emitEvent: false });
-        }
-
-        // Update validators
-        Object.keys(httpProxy.controls).forEach((controlName) => {
-          httpProxy.get(controlName)?.updateValueAndValidity({ emitEvent: false });
-        });
-        httpProxy.updateValueAndValidity();
+        this.changeDetectorRef.detectChanges();
       });
   }
 

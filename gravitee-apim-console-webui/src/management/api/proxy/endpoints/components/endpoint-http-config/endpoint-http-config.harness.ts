@@ -189,32 +189,32 @@ export class EndpointHttpConfigHarness extends ComponentHarness {
     if (value.enabled) {
       await enable.check();
 
-      if (value.useSystemProxy) {
+      if (Object.prototype.hasOwnProperty.call(value, 'useSystemProxy')) {
         const useSystemProxy = await this.locatorFor(MatSlideToggleHarness.with({ selector: '[formControlName="useSystemProxy"]' }))();
-        await useSystemProxy.check();
+        value.useSystemProxy ? await useSystemProxy.check() : await useSystemProxy.uncheck();
       }
 
-      if (value.host) {
+      if (Object.prototype.hasOwnProperty.call(value, 'host')) {
         const host = await this.locatorFor(MatInputHarness.with({ selector: '[formControlName="host"]' }))();
         await host.setValue(value.host);
       }
 
-      if (value.type) {
+      if (Object.prototype.hasOwnProperty.call(value, 'type')) {
         const type = await this.locatorFor(MatSelectHarness.with({ selector: '[formControlName="type"]' }))();
         await type.clickOptions({ text: new RegExp(value.type, 'i') });
       }
 
-      if (value.port) {
+      if (Object.prototype.hasOwnProperty.call(value, 'port')) {
         const port = await this.locatorFor(MatInputHarness.with({ selector: '[formControlName="port"]' }))();
         await port.setValue(`${value.port}`);
       }
 
-      if (value.username) {
+      if (Object.prototype.hasOwnProperty.call(value, 'username')) {
         const username = await this.locatorFor(MatInputHarness.with({ selector: '[formControlName="username"]' }))();
         await username.setValue(value.username);
       }
 
-      if (value.password) {
+      if (Object.prototype.hasOwnProperty.call(value, 'password')) {
         const password = await this.locatorFor(MatInputHarness.with({ selector: '[formControlName="password"]' }))();
         await password.setValue(value.password);
       }

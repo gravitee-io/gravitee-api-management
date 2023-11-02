@@ -183,7 +183,6 @@ export class SslKeyStoreFormComponent implements OnInit, DoCheck, OnDestroy, Con
       // If parent form control is touched, mark all internal fields as touched
       if (parentFormControl.touched && !this.parentIsTouched) {
         this.internalFormGroup.markAllAsTouched();
-        // this.internalFormGroup.updateValueAndValidity({ emitEvent: false });
       }
     }
   }
