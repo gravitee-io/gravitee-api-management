@@ -28,4 +28,6 @@ public interface AlertEventMongoRepositoryCustom {
     Page<AlertEventMongo> search(AlertEventCriteria criteria, Pageable pageable);
 
     void deleteAll(String alertId);
+
+    long count(AlertEventCriteria criteria);
 }
