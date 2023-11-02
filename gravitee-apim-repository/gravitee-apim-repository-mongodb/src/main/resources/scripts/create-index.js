@@ -147,6 +147,7 @@ db.getCollection(`${prefix}alert_triggers`).reIndex();
 db.getCollection(`${prefix}alert_events`).dropIndexes();
 db.getCollection(`${prefix}alert_events`).createIndex({ alert: 1 }, { name: "a1" });
 db.getCollection(`${prefix}alert_events`).createIndex({ createdAt: 1 }, { name: "c1" });
+db.getCollection(`${prefix}alert_events`).createIndex({"alert": 1, "createdAt": 1}, {"name": "a1c1"});
 db.getCollection(`${prefix}alert_events`).reIndex();
 
 // "customUserFields" collection
