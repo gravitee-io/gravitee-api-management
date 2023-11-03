@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
-import { ApiApi } from '@gravitee/portal-webclient-sdk/src/lib/apis/ApiApi';
+import { APIsApi } from '../../../../lib/management-webclient-sdk/src/lib/apis/APIsApi';
+import { ApiApi } from '../../../../lib/portal-webclient-sdk/src/lib/apis/ApiApi';
 import {
   forManagementAsApiUser,
   forManagementWithWrongPassword,
