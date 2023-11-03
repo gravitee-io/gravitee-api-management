@@ -115,7 +115,8 @@ class ApiUpdateDocumentationPageUsecaseTest {
                 new ApiDocumentationDomainService(pageQueryService, new HtmlSanitizerImpl()),
                 new HomepageDomainService(pageQueryService, pageCrudService),
                 apiCrudService,
-                pageCrudService
+                pageCrudService,
+                pageQueryService
             );
     }
 
@@ -487,6 +488,193 @@ class ApiUpdateDocumentationPageUsecaseTest {
                     )
                 )
                 .isInstanceOf(ValidationDomainException.class);
+        }
+    }
+
+    @Nested
+    class UpdateOrderTests {
+
+        Page page_0 = Page
+            .builder()
+            .id("page_0")
+            .name("0")
+            .type(Page.Type.MARKDOWN)
+            .referenceType(Page.ReferenceType.API)
+            .referenceId(API_ID)
+            .parentId(OLD_FOLDER_PAGE.getId())
+            .updatedAt(DATE)
+            .order(0)
+            .build();
+        Page page_1 = Page
+            .builder()
+            .id("page_1")
+            .name("1")
+            .type(Page.Type.MARKDOWN)
+            .referenceType(Page.ReferenceType.API)
+            .referenceId(API_ID)
+            .parentId(OLD_FOLDER_PAGE.getId())
+            .updatedAt(DATE)
+            .order(1)
+            .build();
+        Page page_2 = Page
+            .builder()
+            .id("page_2")
+            .name("2")
+            .type(Page.Type.FOLDER)
+            .referenceType(Page.ReferenceType.API)
+            .referenceId(API_ID)
+            .parentId(OLD_FOLDER_PAGE.getId())
+            .updatedAt(DATE)
+            .order(2)
+            .build();
+        Page page_3 = Page
+            .builder()
+            .id("page_3")
+            .name("3")
+            .type(Page.Type.MARKDOWN)
+            .referenceType(Page.ReferenceType.API)
+            .referenceId(API_ID)
+            .parentId(OLD_FOLDER_PAGE.getId())
+            .updatedAt(DATE)
+            .order(3)
+            .build();
+        Page page_4 = Page
+            .builder()
+            .id("page_4")
+            .name("4")
+            .type(Page.Type.MARKDOWN)
+            .referenceType(Page.ReferenceType.API)
+            .referenceId(API_ID)
+            .parentId(OLD_FOLDER_PAGE.getId())
+            .updatedAt(DATE)
+            .order(4)
+            .build();
+
+        @BeforeEach
+        void setup() {
+            initApiServices(List.of(Api.builder().id(API_ID).build()));
+            initPageServices(List.of(OLD_FOLDER_PAGE, page_0, page_1, page_2, page_3, page_4));
+        }
+
+        @Test
+        void should_insert_new_page_with_lower_order() {
+            // Change page_3 order to 1
+            var res = apiUpdateDocumentationPageUsecase.execute(
+                ApiUpdateDocumentationPageUsecase.Input
+                    .builder()
+                    .apiId(API_ID)
+                    .pageId(page_3.getId())
+                    .order(1)
+                    .visibility(page_3.getVisibility())
+                    .content(page_3.getContent())
+                    .name(page_3.getName())
+                    .homepage(false)
+                    .auditInfo(AUDIT_INFO)
+                    .build()
+            );
+
+            assertThat(res.page()).isNotNull().hasFieldOrPropertyWithValue("order", 1);
+            assertThat(pageCrudService.get(page_0.getId()).getOrder()).isEqualTo(0);
+            assertThat(pageCrudService.get(page_1.getId()).getOrder()).isEqualTo(2);
+            assertThat(pageCrudService.get(page_2.getId()).getOrder()).isEqualTo(3);
+            assertThat(pageCrudService.get(page_4.getId()).getOrder()).isEqualTo(4);
+        }
+
+        @Test
+        void should_insert_new_page_with_higher_order() {
+            // Change page_1 order to 3
+            var res = apiUpdateDocumentationPageUsecase.execute(
+                ApiUpdateDocumentationPageUsecase.Input
+                    .builder()
+                    .apiId(API_ID)
+                    .pageId(page_1.getId())
+                    .order(3)
+                    .visibility(page_1.getVisibility())
+                    .content(page_1.getContent())
+                    .name(page_1.getName())
+                    .homepage(false)
+                    .auditInfo(AUDIT_INFO)
+                    .build()
+            );
+
+            assertThat(res.page()).isNotNull().hasFieldOrPropertyWithValue("order", 3);
+            assertThat(pageCrudService.get(page_0.getId()).getOrder()).isEqualTo(0);
+            assertThat(pageCrudService.get(page_2.getId()).getOrder()).isEqualTo(1);
+            assertThat(pageCrudService.get(page_3.getId()).getOrder()).isEqualTo(2);
+            assertThat(pageCrudService.get(page_4.getId()).getOrder()).isEqualTo(4);
+        }
+
+        @Test
+        void should_not_change_order_if_the_same() {
+            var res = apiUpdateDocumentationPageUsecase.execute(
+                ApiUpdateDocumentationPageUsecase.Input
+                    .builder()
+                    .apiId(API_ID)
+                    .pageId(page_1.getId())
+                    .order(1)
+                    .visibility(page_1.getVisibility())
+                    .content(page_1.getContent())
+                    .name(page_1.getName())
+                    .homepage(false)
+                    .auditInfo(AUDIT_INFO)
+                    .build()
+            );
+
+            assertThat(res.page()).isNotNull().hasFieldOrPropertyWithValue("order", 1);
+            assertThat(pageCrudService.get(page_0.getId()).getOrder()).isEqualTo(0);
+            assertThat(pageCrudService.get(page_2.getId()).getOrder()).isEqualTo(2);
+            assertThat(pageCrudService.get(page_3.getId()).getOrder()).isEqualTo(3);
+            assertThat(pageCrudService.get(page_4.getId()).getOrder()).isEqualTo(4);
+        }
+
+        @Test
+        void should_update_with_very_high_order() {
+            // Change page_1 order to 9999
+            var res = apiUpdateDocumentationPageUsecase.execute(
+                ApiUpdateDocumentationPageUsecase.Input
+                    .builder()
+                    .apiId(API_ID)
+                    .pageId(page_1.getId())
+                    .order(9999)
+                    .visibility(page_1.getVisibility())
+                    .content(page_1.getContent())
+                    .name(page_1.getName())
+                    .homepage(false)
+                    .auditInfo(AUDIT_INFO)
+                    .build()
+            );
+
+            assertThat(res.page()).isNotNull().hasFieldOrPropertyWithValue("order", 9999);
+            assertThat(pageCrudService.get(page_0.getId()).getOrder()).isEqualTo(0);
+            assertThat(pageCrudService.get(page_2.getId()).getOrder()).isEqualTo(1);
+            assertThat(pageCrudService.get(page_3.getId()).getOrder()).isEqualTo(2);
+            assertThat(pageCrudService.get(page_4.getId()).getOrder()).isEqualTo(3);
+        }
+
+        @Test
+        void should_only_change_order_of_pages_with_same_parent() {
+            var pageWithDifferentParent = page_0.toBuilder().id("other-page").parentId(null).build();
+            initPageServices(List.of(page_0, page_1, page_2, page_3, page_4, pageWithDifferentParent));
+            var res = apiUpdateDocumentationPageUsecase.execute(
+                ApiUpdateDocumentationPageUsecase.Input
+                    .builder()
+                    .apiId(API_ID)
+                    .pageId(pageWithDifferentParent.getId())
+                    .order(1)
+                    .visibility(pageWithDifferentParent.getVisibility())
+                    .content(pageWithDifferentParent.getContent())
+                    .name(pageWithDifferentParent.getName())
+                    .homepage(false)
+                    .auditInfo(AUDIT_INFO)
+                    .build()
+            );
+
+            assertThat(res.page()).isNotNull().hasFieldOrPropertyWithValue("order", 1);
+            assertThat(pageCrudService.get(page_0.getId()).getOrder()).isEqualTo(0);
+            assertThat(pageCrudService.get(page_1.getId()).getOrder()).isEqualTo(1);
+            assertThat(pageCrudService.get(page_2.getId()).getOrder()).isEqualTo(2);
+            assertThat(pageCrudService.get(page_3.getId()).getOrder()).isEqualTo(3);
+            assertThat(pageCrudService.get(page_4.getId()).getOrder()).isEqualTo(4);
         }
     }
 
