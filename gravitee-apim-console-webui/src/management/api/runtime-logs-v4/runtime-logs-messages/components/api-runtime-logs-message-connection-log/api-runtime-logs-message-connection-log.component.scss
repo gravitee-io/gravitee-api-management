@@ -1,0 +1,74 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+$typography: map.get(gio.$mat-theme, typography);
+
+.log {
+  background-color: mat.get-color-from-palette(gio.$mat-basic-palette, white);
+  border-radius: 4px;
+  border: 1px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker20');
+
+  margin: 8px 0 8px 0;
+
+  &__header {
+    display: flex;
+    flex-direction: row;
+    border-radius: 4px 4px 0 0;
+    background-color: mat.get-color-from-palette(gio.$mat-dove-palette, 'default');
+    padding: 16px 24px;
+
+    &__title {
+      @include mat.typography-level($typography, subheading-1);
+    }
+  }
+
+  &__data {
+    &__tabs {
+      &__body {
+        background-color: mat.get-color-from-palette(gio.$mat-dove-palette, 'default');
+        padding: 12px 16px;
+        white-space: pre-wrap;
+      }
+    }
+  }
+
+  &__row {
+    margin-top: 8px;
+    margin-bottom: 8px;
+
+    &__cell {
+      display: flex;
+      flex-direction: row;
+    }
+
+    &__sub-cell {
+      margin: 8px 0 8px 12px;
+      display: flex;
+      flex-direction: row;
+    }
+
+    &__property {
+      margin-right: 4px;
+      white-space: nowrap;
+      color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+      @include mat.typography-level($typography, body-1);
+    }
+
+    &__value {
+      word-break: break-all;
+      color: mat.get-color-from-palette(gio.$mat-space-palette, 'default');
+      @include mat.typography-level($typography, body-1);
+    }
+  }
+
+  .gio-badge-primary,
+  .gio-badge-neutral,
+  .gio-badge-accent {
+    font-weight: 700;
+
+    mat-icon {
+      margin-right: 4px;
+    }
+  }
+}

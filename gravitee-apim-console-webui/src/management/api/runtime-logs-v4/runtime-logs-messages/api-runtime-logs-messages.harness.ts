@@ -16,8 +16,9 @@
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatIconHarness } from '@angular/material/icon/testing';
 import { DivHarness } from '@gravitee/ui-particles-angular/testing';
-import { MatTabGroupHarness } from '@angular/material/tabs/testing';
+import { MatTabGroupHarness, MatTabHarness } from '@angular/material/tabs/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatExpansionPanelHarness } from '@angular/material/expansion/testing';
 
 export class ApiRuntimeLogsMessagesHarness extends ComponentHarness {
   static hostSelector = 'runtime-logs-messages';
@@ -28,9 +29,51 @@ export class ApiRuntimeLogsMessagesHarness extends ComponentHarness {
   private messagesSelector = this.locatorForAll(DivHarness.with({ selector: '.log__header__title' }));
   private entrypointTabGroupSelector = this.locatorFor(MatTabGroupHarness.with({ selector: '[data-testId=entrypoint-tabs-group]' }));
   private endpointTabGroupSelector = this.locatorFor(MatTabGroupHarness.with({ selector: '[data-testId=endpoint-tabs-group]' }));
+  private connectionLogsTabSelector = this.locatorFor(MatTabHarness.with({ label: 'Connection Logs' }));
+  private messagesTabSelector = this.locatorFor(MatTabHarness.with({ label: 'Messages' }));
+  public entrypointRequestPanelSelector = this.locatorFor(MatExpansionPanelHarness.with({ selector: '[data-testId=entrypoint-request]' }));
+  public endpointRequestPanelSelector = this.locatorFor(MatExpansionPanelHarness.with({ selector: '[data-testId=endpoint-request]' }));
+  public entrypointResponsePanelSelector = this.locatorFor(
+    MatExpansionPanelHarness.with({ selector: '[data-testId=entrypoint-response]' }),
+  );
+  public endpointResponsePanelSelector = this.locatorFor(MatExpansionPanelHarness.with({ selector: '[data-testId=endpoint-response]' }));
 
   public entrypointConnectorIcon = this.locatorFor(MatIconHarness.with({ selector: '[data-testId=entrypoint-connector-icon]' }));
   public endpointConnectorIcon = this.locatorFor(MatIconHarness.with({ selector: '[data-testId=endpoint-connector-icon]' }));
+
+  public clickOnConnectionLogsTab = async () => {
+    return this.connectionLogsTabSelector().then((tab) => tab.select());
+  };
+
+  public clickOnMessagesTab = async () => {
+    return this.messagesTabSelector().then((tab) => tab.select());
+  };
+
+  public getConnectionLogRequestUri = async (panel: MatExpansionPanelHarness) => {
+    const method = await panel.getHarness(DivHarness.with({ selector: '[data-testId=uri-value]' })).catch(() => null);
+    return method?.getText();
+  };
+
+  public getConnectionLogRequestMethod = async (panel: MatExpansionPanelHarness) => {
+    const method = await panel.getHarness(DivHarness.with({ selector: '[data-testId=method-value]' }));
+    return method.getText();
+  };
+
+  public getConnectionLogResponseStatus = async (panel: MatExpansionPanelHarness) => {
+    const method = await panel.getHarness(DivHarness.with({ selector: '[data-testId=status-value]' }));
+    return method.getText();
+  };
+
+  public getConnectionLogHeaders = async (panel: MatExpansionPanelHarness): Promise<Record<string, string>> => {
+    const headersHarnesses = await panel.getAllHarnesses(DivHarness.with({ selector: '[data-testId=header-value]' }));
+    let headers: Record<string, string> = {};
+    for (const headersHarness of headersHarnesses) {
+      const headerKey = await headersHarness.getText({ childSelector: '.log__row__property' });
+      const headerValue = await headersHarness.getText({ childSelector: '.log__row__value' });
+      headers = { ...headers, [headerKey.slice(0, -1)]: headerValue };
+    }
+    return headers;
+  };
 
   public clickOnEntrypointTab = async (label: string) => {
     return this.entrypointTabGroupSelector().then((tabGroup) => tabGroup.selectTab({ label: label }));
