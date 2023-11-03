@@ -26,14 +26,14 @@ import {
 } from '@gravitee/utils/configuration';
 
 import { forbidden, succeed } from '@lib/jest-utils';
-import { ApplicationsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ApplicationsApi';
-import { ApplicationEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApplicationEntity';
-import { GroupsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/GroupsApi';
-import { GroupEntity } from '@gravitee/management-webclient-sdk/src/lib/models/GroupEntity';
-import { GroupMembershipsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/GroupMembershipsApi';
-import { MemberRoleEntityFromJSON } from '@gravitee/management-webclient-sdk/src/lib/models/MemberRoleEntity';
-import { SearchableUser } from '@gravitee/management-webclient-sdk/src/lib/models/SearchableUser';
-import { UsersApi } from '@gravitee/management-webclient-sdk/src/lib/apis/UsersApi';
+import { ApplicationsApi } from '../../../../lib/management-webclient-sdk/src/lib/apis/ApplicationsApi';
+import { ApplicationEntity } from '../../../../lib/management-webclient-sdk/src/lib/models/ApplicationEntity';
+import { GroupsApi } from '../../../../lib/management-webclient-sdk/src/lib/apis/GroupsApi';
+import { GroupEntity } from '../../../../lib/management-webclient-sdk/src/lib/models/GroupEntity';
+import { GroupMembershipsApi } from '../../../../lib/management-webclient-sdk/src/lib/apis/GroupMembershipsApi';
+import { MemberRoleEntityFromJSON } from '../../../../lib/management-webclient-sdk/src/lib/models/MemberRoleEntity';
+import { SearchableUser } from '../../../../lib/management-webclient-sdk/src/lib/models/SearchableUser';
+import { UsersApi } from '../../../../lib/management-webclient-sdk/src/lib/apis/UsersApi';
 
 const applicationManagementApiAsAdminUser = new ApplicationsApi(forManagementAsAdminUser());
 const applicationManagementApiAsAppUser = new ApplicationsApi(forManagementAsAppUser());

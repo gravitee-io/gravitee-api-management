@@ -15,7 +15,7 @@
  */
 
 import { afterAll, beforeAll, describe, expect } from '@jest/globals';
-import { ApplicationsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ApplicationsApi';
+import { ApplicationsApi } from '../../../../lib/management-webclient-sdk/src/lib/apis/ApplicationsApi';
 import {
   forManagement,
   forManagementAsAdminUser,
@@ -24,7 +24,7 @@ import {
   forManagementAsSimpleUser,
 } from '@gravitee/utils/configuration';
 import { created, noContent, unauthorized } from '@lib/jest-utils';
-import { ApplicationEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApplicationEntity';
+import { ApplicationEntity } from '../../../../lib/management-webclient-sdk/src/lib/models/ApplicationEntity';
 import { ApplicationsFaker } from '@gravitee/fixtures/management/ApplicationsFaker';
 
 const managementApplicationsApiAsAdminUser = new ApplicationsApi(forManagementAsAdminUser());
