@@ -19,6 +19,7 @@ import static io.gravitee.repository.management.model.Api.AuditEvent.API_CREATED
 import static io.gravitee.repository.management.model.Api.AuditEvent.API_DELETED;
 import static io.gravitee.repository.management.model.Api.AuditEvent.API_ROLLBACKED;
 import static io.gravitee.repository.management.model.Api.AuditEvent.API_UPDATED;
+import static io.gravitee.repository.management.model.Event.EventProperties.API_ID;
 import static io.gravitee.repository.management.model.Visibility.PUBLIC;
 import static io.gravitee.repository.management.model.Workflow.AuditEvent.API_REVIEW_ACCEPTED;
 import static io.gravitee.repository.management.model.Workflow.AuditEvent.API_REVIEW_ASKED;
@@ -66,8 +67,10 @@ import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiQualityRuleRepository;
 import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
+import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.*;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
@@ -262,6 +265,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Autowired
     private EventService eventService;
+
+    @Lazy
+    @Autowired
+    private EventRepository eventRepository;
 
     @Autowired
     private UserService userService;
@@ -1772,18 +1779,18 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         ApiDeploymentEntity apiDeploymentEntity
     ) {
         if (PUBLISH_API.equals(eventType)) {
-            final EventQuery query = new EventQuery();
-            query.setApi(apiId);
-            query.setTypes(singleton(PUBLISH_API));
+            EventCriteria criteria = new EventCriteria.Builder()
+                .types(io.gravitee.repository.management.model.EventType.PUBLISH_API)
+                .property(API_ID.getValue(), apiId)
+                .build();
 
-            final Optional<EventEntity> optEvent = eventService
-                .search(executionContext, query)
+            String lastDeployNumber = eventRepository
+                .searchLatest(criteria, API_ID, 0L, 1L)
                 .stream()
-                .max(comparing(EventEntity::getCreatedAt));
+                .findFirst()
+                .map(eventEntity -> eventEntity.getProperties().getOrDefault(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), "0"))
+                .orElse("0");
 
-            String lastDeployNumber = optEvent.isPresent()
-                ? optEvent.get().getProperties().getOrDefault(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), "0")
-                : "0";
             String newDeployNumber = Long.toString(Long.parseLong(lastDeployNumber) + 1);
             properties.put(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), newDeployNumber);
 
