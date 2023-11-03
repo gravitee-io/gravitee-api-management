@@ -22,7 +22,7 @@ import {
   ApiV4,
   HttpListener,
   MembersResponse,
-} from '@gravitee/management-v2-webclient-sdk/src/lib';
+} from '../../../../../lib/management-v2-webclient-sdk/src/lib';
 import {
   API_USER,
   forManagementAsAdminUser,
