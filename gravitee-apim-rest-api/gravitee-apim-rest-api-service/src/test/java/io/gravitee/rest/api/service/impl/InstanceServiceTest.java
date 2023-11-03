@@ -19,12 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -56,7 +51,6 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)
@@ -78,7 +72,7 @@ public class InstanceServiceTest {
     public void setup() {
         this.executionContext = GraviteeContext.getExecutionContext();
 
-        cut = new InstanceServiceImpl(eventService, objectMapper);
+        cut = new InstanceServiceImpl(eventService, objectMapper, 604800);
     }
 
     @Test
@@ -270,7 +264,6 @@ public class InstanceServiceTest {
 
     @Test
     public void searchShouldIgnoreExpiredEvents() {
-        ReflectionTestUtils.setField(cut, "unknownExpireAfterInSec", 604800);
         InstanceQuery query = new InstanceQuery();
         query.setIncludeStopped(false);
         query.setFrom(0);
@@ -280,8 +273,18 @@ public class InstanceServiceTest {
 
         EventEntity event = new EventEntity();
         event.setType(EventType.GATEWAY_STARTED);
+        event.setProperties(
+            Map.of(
+                "id",
+                "evt-id",
+                Event.EventProperties.ENVIRONMENTS_HRIDS_PROPERTY.getValue(),
+                "evt-env",
+                "last_heartbeat_at",
+                String.valueOf(Instant.now().minus(8, ChronoUnit.DAYS).toEpochMilli())
+            )
+        );
 
-        when(eventService.search(any(ExecutionContext.class), any(), any(), anyLong(), anyLong(), anyInt(), anyInt(), any(), any(), any()))
+        when(eventService.search(any(ExecutionContext.class), anyList(), any(), anyLong(), anyLong(), anyInt(), anyInt(), anyList()))
             .thenReturn(new Page<>(List.of(event), 0, 1, 1));
 
         cut.search(executionContext, query);
@@ -298,8 +301,6 @@ public class InstanceServiceTest {
                 eq(0L),
                 eq(0),
                 eq(100),
-                any(),
-                any(),
                 any()
             );
 
