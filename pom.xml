@@ -258,7 +258,7 @@
         <gravitee-service-geoip.version>3.0.0</gravitee-service-geoip.version>
 
         <!-- Enterprise plugins -->
-        <gravitee-entrypoint-http-get.version>1.0.2</gravitee-entrypoint-http-get.version>
+        <gravitee-entrypoint-http-get.version>1.0.3</gravitee-entrypoint-http-get.version>
         <gravitee-entrypoint-http-post.version>1.0.2</gravitee-entrypoint-http-post.version>
         <gravitee-entrypoint-sse.version>4.0.2</gravitee-entrypoint-sse.version>
         <gravitee-entrypoint-webhook.version>2.0.4</gravitee-entrypoint-webhook.version>
