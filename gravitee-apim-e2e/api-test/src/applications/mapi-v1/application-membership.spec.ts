@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 import { afterAll, beforeAll, describe, expect } from '@jest/globals';
-import { ApplicationsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ApplicationsApi';
+import { ApplicationsApi } from '../../../../lib/management-webclient-sdk/src/lib/apis/ApplicationsApi';
 import { forManagementAsAdminUser, forManagementAsAppUser, forPortalAsApiUser, forPortalAsSimpleUser } from '@gravitee/utils/configuration';
 import { forbidden, succeed } from '@lib/jest-utils';
-import { ConfigurationApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ConfigurationApi';
-import { UsersApi } from '@gravitee/management-webclient-sdk/src/lib/apis/UsersApi';
-import { RoleScope } from '@gravitee/management-webclient-sdk/src/lib/models/RoleScope';
-import { ApplicationApi } from '@gravitee/portal-webclient-sdk/src/lib/apis';
-import { ApplicationEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApplicationEntity';
-import { UpdateApplicationEntityFromJSON } from '@gravitee/management-webclient-sdk/src/lib/models/UpdateApplicationEntity';
-import { GroupEntity } from '@gravitee/management-webclient-sdk/src/lib/models/GroupEntity';
-import { SearchableUser } from '@gravitee/management-webclient-sdk/src/lib/models/SearchableUser';
+import { ConfigurationApi } from '../../../../lib/management-webclient-sdk/src/lib/apis/ConfigurationApi';
+import { UsersApi } from '../../../../lib/management-webclient-sdk/src/lib/apis/UsersApi';
+import { RoleScope } from '../../../../lib/management-webclient-sdk/src/lib/models/RoleScope';
+import { ApplicationApi } from '../../../../lib/portal-webclient-sdk/src/lib/apis';
+import { ApplicationEntity } from '../../../../lib/management-webclient-sdk/src/lib/models/ApplicationEntity';
+import { UpdateApplicationEntityFromJSON } from '../../../../lib/management-webclient-sdk/src/lib/models/UpdateApplicationEntity';
+import { GroupEntity } from '../../../../lib/management-webclient-sdk/src/lib/models/GroupEntity';
+import { SearchableUser } from '../../../../lib/management-webclient-sdk/src/lib/models/SearchableUser';
 import { ApplicationsFaker } from '@gravitee/fixtures/management/ApplicationsFaker';
 import { GroupsFaker } from '@gravitee/fixtures/management/GroupsFaker';
 
