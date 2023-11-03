@@ -33,9 +33,15 @@ Then, the following NPM scripts are available:
        - skipDeploy (boolean): to not deploy created APIs
        - skipSubscriptions (boolean): to not create subscriptions between APIs and applications
        - skipRatings (boolean): to not rate the APIs
+ - `npm run update:sdk:management`: Generate the client for Management REST API
+ - `npm run update:sdk:management:v2`: Generate the client for Management REST API V2
+ - `npm run update:sdk:portal`: Generate the client for Portal REST API
+
 ## Structure
+
 ````
 |api-test
+|bulk
 |ui-test
 |_ assertions
 |_ fakers
@@ -44,28 +50,28 @@ Then, the following NPM scripts are available:
 |_ plugins
 |_ support
 |lib
+|types
 |scripts
 ````
 
-| Folder 	                             | Description 	                                                                      |
-|--------------------------------------|------------------------------------------------------------------------------------|
-| api-test/apis     	                  | Api management API related e2e tests                                               |
-| api-test/applications     	          | Api management applications related e2e tests                                      |
-| api-test/portal     	                | Api portal e2e tests                                                               |
-| api-test/gateway     	               | Gateway e2e tests                                                                  |
-| ui-test/assertions     	             | Utils classes to do common assertions for a particular object     	                |
-| ui-test/fakers     	                 | Utils classes to generate fake data for particular object  	                       |
-| ui-test/fixtures     	               | Files containing static data to be used in tests through `cy.fixture(filePath)`  	 |
-| ui-test/model       	                | Types of our objects            	                                                  |
-| ui-test/plugins       	              | Load and configure plugins for cypress            	                                |
-| ui-test/support       	              | Processed and loaded automatically before your test files.            	            |
-| lib/management-webclient-sdk       	 | Generated client for management API                                                |
-| lib/portal-webclient-sdk       	     | Generated client for portal API                                                    |
+| Folder 	                                | Description 	                                                                      |
+|-----------------------------------------|------------------------------------------------------------------------------------|
+| api-test/*     	                        | Management API related e2e tests                                                   |
+| ui-test/assertions     	                | Utils classes to do common assertions for a particular object     	                |
+| ui-test/fakers     	                    | Utils classes to generate fake data for particular object  	                       |
+| ui-test/fixtures     	                  | Files containing static data to be used in tests through `cy.fixture(filePath)`  	 |
+| ui-test/model       	                   | Types of our objects            	                                                  |
+| ui-test/plugins       	                 | Load and configure plugins for cypress            	                                |
+| ui-test/support       	                 | Processed and loaded automatically before your test files.            	            |
+| lib/management-webclient-sdk       	    | Generated client for management API                                                |
+| lib/management-v2-webclient-sdk       	 | Generated client for management API V2                                             |
+| lib/portal-webclient-sdk       	        | Generated client for portal API                                                    |
 
-## About management API client 
+## About management API clients
 
 This project use project https://github.com/OpenAPITools/openapi-generator[openapi-generator] to generate a client sdk with openapi file.
 If you want to generate the client for management API, start the management rest-api locally and run `npm run update:sdk:management`
+If you want to generate the client for management API V2, start the management rest-api locally and run `npm run update:sdk:management:v2`
 If you want to generate the client for portal API, just run `npm run update:sdk:portal`
 
 ## Environment variables
