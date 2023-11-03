@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 import {
+  ApiLog,
+  ApiLogResponse,
   ApiLogsResponse,
   APIsApi,
   APISubscriptionsApi,
@@ -29,6 +31,7 @@ import { MAPIV2PlansFaker } from '@gravitee/fixtures/management/MAPIV2PlansFaker
 import { fetchGatewaySuccess, fetchRestApiSuccess } from '@gravitee/utils/apim-http';
 import { ApplicationsApi } from '../../../../../../../lib/management-webclient-sdk/src/lib/apis/ApplicationsApi';
 import { ApplicationsFaker } from '@gravitee/fixtures/management/ApplicationsFaker';
+import { ApiApi } from '../../../../../../../lib/portal-webclient-sdk/src/lib';
 
 const envId = 'DEFAULT';
 const orgId = 'DEFAULT';
@@ -73,7 +76,8 @@ describe('API - V4 - Connection Logs', () => {
       ]);
 
       // check connection logs filtering by plan
-      await expectConnectionLogsForPlans(5, [{ id: testContext.apiKeyPlan.id, name: testContext.apiKeyPlan.name }]);
+      const logsForPlans = await expectConnectionLogsForPlans(5, [{ id: testContext.apiKeyPlan.id, name: testContext.apiKeyPlan.name }]);
+      await expectConnectionLogDetails(logsForPlans.data[0]);
     });
 
     const createApiWithPlan = async () => {
@@ -211,6 +215,46 @@ describe('API - V4 - Connection Logs', () => {
         });
     };
 
+    const expectConnectionLogDetails = async (apiLog: ApiLog) => {
+      let apiLogResponse = await fetchRestApiSuccess<ApiLogResponse>({
+        restApiHttpCall: () =>
+          v2ApiLogsResourceAsApiPublisher.getApiLogRaw({
+            envId,
+            apiId: testContext.importedApi.id,
+            requestId: apiLog.requestId,
+          }),
+        maxRetries: 10,
+        expectedResponseValidator: async (response) => {
+          const body = response.value;
+          return body?.apiId === testContext.importedApi.id;
+        },
+      });
+
+      expect(apiLogResponse.apiId).toEqual(testContext.importedApi.id);
+      expect(apiLogResponse.requestId).toEqual(apiLog.requestId);
+      expect(apiLogResponse.timestamp).toEqual(apiLog.timestamp);
+      expect(apiLogResponse.clientIdentifier).toEqual(apiLog.clientIdentifier);
+      expect(apiLogResponse.requestEnded).toEqual(apiLog.requestEnded);
+
+      // Entrypoint request assertions
+      expect(apiLogResponse.entrypointRequest.method).toEqual('GET');
+      expect(apiLogResponse.entrypointRequest.uri).toEqual(testContext.apiPath);
+      expect(apiLogResponse.entrypointRequest.headers).toHaveProperty('X-Gravitee-Request-Id', [apiLogResponse.requestId]);
+
+      // Endpoint request assertions
+      expect(apiLogResponse.endpointRequest.method).toEqual('GET');
+      expect(apiLogResponse.endpointRequest.uri).toEqual('');
+      expect(apiLogResponse.endpointRequest.headers).toHaveProperty('X-Gravitee-Request-Id', [apiLogResponse.requestId]);
+
+      // Endpoint response assertions
+      expect(apiLogResponse.endpointResponse.status).toEqual(200);
+      expect(apiLogResponse.endpointResponse.headers).toEqual({});
+
+      // Entrypoint response assertions
+      expect(apiLogResponse.entrypointResponse.status).toEqual(200);
+      expect(apiLogResponse.entrypointResponse.headers).toHaveProperty('X-Gravitee-Request-Id', [apiLogResponse.requestId]);
+    };
+
     const expectConnectionLogsForApplications = async (expectedLogsCount: number, applications: { id: string; name: string }[]) => {
       let apiLogsResponse = await fetchRestApiSuccess<ApiLogsResponse>({
         restApiHttpCall: () =>
@@ -238,7 +282,10 @@ describe('API - V4 - Connection Logs', () => {
       }
     };
 
-    const expectConnectionLogsForPlans = async (expectedLogsCount: number, plans: { id: string; name: string }[]) => {
+    const expectConnectionLogsForPlans = async (
+      expectedLogsCount: number,
+      plans: { id: string; name: string }[],
+    ): Promise<ApiLogsResponse> => {
       let apiLogsResponse = await fetchRestApiSuccess<ApiLogsResponse>({
         restApiHttpCall: () =>
           v2ApiLogsResourceAsApiPublisher.getApiLogsRaw({
@@ -262,6 +309,8 @@ describe('API - V4 - Connection Logs', () => {
         expect(connectionLog.status).toEqual(connectionLog.requestEnded ? 200 : 0);
         expect(connectionLog.method).toEqual('GET');
       }
+
+      return apiLogsResponse;
     };
 
     afterAll(async () => {
