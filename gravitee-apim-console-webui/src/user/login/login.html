@@ -15,11 +15,11 @@
     limitations under the License.
 
 -->
-<md-content class="gravitee-no-sidenav-container login-container" flex>
+<md-content class="gravitee-no-sidenav-container login-container" flex role="main">
   <div class="login-page">
     <div class="form">
       <div class="gravitee-no-sidenav-header" layout="column">
-        <label class="title">Sign In</label>
+        <h1 class="title">Sign In</h1>
         <label class="subtitle">to continue to the APIM Console</label>
       </div>
 
@@ -49,7 +49,7 @@
           <span>Sign in</span>
         </button>
 
-        <p class="text-center text-muted" ng-if="$ctrl.userCreationEnabled">
+        <p class="text-center" ng-if="$ctrl.userCreationEnabled">
           <small>Don't have an account yet? <a ui-sref="registration">Sign up</a></small>
         </p>
       </form>
