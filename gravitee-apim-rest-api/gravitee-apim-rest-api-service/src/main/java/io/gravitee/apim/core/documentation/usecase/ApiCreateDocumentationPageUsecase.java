@@ -22,7 +22,9 @@ import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentation
 import io.gravitee.apim.core.documentation.domain_service.HomepageDomainService;
 import io.gravitee.apim.core.documentation.exception.InvalidPageParentException;
 import io.gravitee.apim.core.documentation.model.Page;
+import io.gravitee.apim.core.documentation.query_service.PageQueryService;
 import io.gravitee.rest.api.service.common.UuidString;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.Objects;
 import lombok.Builder;
@@ -33,17 +35,20 @@ public class ApiCreateDocumentationPageUsecase {
     private final ApiDocumentationDomainService apiDocumentationDomainService;
     private final HomepageDomainService homepageDomainService;
     private final PageCrudService pageCrudService;
+    private final PageQueryService pageQueryService;
 
     public ApiCreateDocumentationPageUsecase(
         CreateApiDocumentationDomainService createApiDocumentationDomainService,
         ApiDocumentationDomainService apiDocumentationDomainService,
         HomepageDomainService homepageDomainService,
-        PageCrudService pageCrudService
+        PageCrudService pageCrudService,
+        PageQueryService pageQueryService
     ) {
         this.createApiDocumentationDomainService = createApiDocumentationDomainService;
         this.apiDocumentationDomainService = apiDocumentationDomainService;
         this.homepageDomainService = homepageDomainService;
         this.pageCrudService = pageCrudService;
+        this.pageQueryService = pageQueryService;
     }
 
     public Output execute(Input input) {
@@ -57,6 +62,8 @@ public class ApiCreateDocumentationPageUsecase {
         }
 
         this.validateParentId(pageToCreate);
+
+        this.calculateOrder(pageToCreate);
 
         var createdPage = createApiDocumentationDomainService.createPage(pageToCreate, input.auditInfo());
 
@@ -87,5 +94,15 @@ public class ApiCreateDocumentationPageUsecase {
         }
 
         page.setParentId(null);
+    }
+
+    private void calculateOrder(Page page) {
+        var lastPage = pageQueryService
+            .searchByApiIdAndParentId(page.getReferenceId(), page.getParentId())
+            .stream()
+            .max(Comparator.comparingInt(Page::getOrder));
+        var nextOrder = lastPage.map(value -> value.getOrder() + 1).orElse(0);
+
+        page.setOrder(nextOrder);
     }
 }

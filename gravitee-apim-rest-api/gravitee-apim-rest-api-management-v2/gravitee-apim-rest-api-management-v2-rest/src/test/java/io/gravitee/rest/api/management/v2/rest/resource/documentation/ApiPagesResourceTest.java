@@ -436,7 +436,6 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                 .homepage(true)
                 .content("nice content")
                 .type(CreateDocumentation.TypeEnum.MARKDOWN)
-                .order(1)
                 .parentId(null)
                 .visibility(Visibility.PUBLIC)
                 .build();
@@ -450,7 +449,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                 .hasFieldOrPropertyWithValue("name", pageToCreate.getName())
                 .hasFieldOrPropertyWithValue("homepage", pageToCreate.getHomepage())
                 .hasFieldOrPropertyWithValue("content", pageToCreate.getContent())
-                .hasFieldOrPropertyWithValue("order", pageToCreate.getOrder())
+                .hasFieldOrPropertyWithValue("order", 0)
                 .hasFieldOrPropertyWithValue("parentId", pageToCreate.getParentId())
                 .hasFieldOrPropertyWithValue("visibility", pageToCreate.getVisibility());
 
@@ -464,7 +463,6 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                 .builder()
                 .name("created page")
                 .type(CreateDocumentation.TypeEnum.FOLDER)
-                .order(1)
                 .parentId(null)
                 .visibility(Visibility.PUBLIC)
                 .build();
@@ -476,7 +474,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                 .isNotNull()
                 .hasFieldOrPropertyWithValue("type", PageType.FOLDER)
                 .hasFieldOrPropertyWithValue("name", folderToCreate.getName())
-                .hasFieldOrPropertyWithValue("order", folderToCreate.getOrder())
+                .hasFieldOrPropertyWithValue("order", 0)
                 .hasFieldOrPropertyWithValue("parentId", folderToCreate.getParentId())
                 .hasFieldOrPropertyWithValue("visibility", folderToCreate.getVisibility());
 
@@ -490,7 +488,6 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                 .builder()
                 .type(CreateDocumentation.TypeEnum.MARKDOWN)
                 .parentId("parent")
-                .order(1)
                 .visibility(Visibility.PRIVATE)
                 .name(null)
                 .build();
@@ -512,7 +509,6 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                 .builder()
                 .type(CreateDocumentation.TypeEnum.MARKDOWN)
                 .parentId("parent")
-                .order(1)
                 .visibility(Visibility.PRIVATE)
                 .name("")
                 .build();

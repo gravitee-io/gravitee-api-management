@@ -5635,11 +5635,6 @@ components:
                     enum:
                         - MARKDOWN
                         - FOLDER
-                order:
-                    type: integer
-                    description: Page's order.
-                    example: 1
-                    default: 0
                 visibility:
                     $ref: "#/components/schemas/Visibility"
                 parentId:
