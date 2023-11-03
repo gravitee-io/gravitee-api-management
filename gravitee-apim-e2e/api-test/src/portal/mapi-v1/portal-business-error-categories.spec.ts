@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe } from '@jest/globals';
-import { PortalApi } from '@gravitee/portal-webclient-sdk/src/lib/apis/PortalApi';
+import { describe, test } from '@jest/globals';
+import { PortalApi } from '../../../../lib/portal-webclient-sdk/src/lib/apis/PortalApi';
 import { forPortalAsAdminUser } from '@gravitee/utils/configuration';
 import { notFound } from '@lib/jest-utils';
-
 const portalApiAsAdmin = new PortalApi(forPortalAsAdminUser());
 
-describe('Portal: Business Error - configuration', () => {
-  test('should return not found ', async () => {
-    const identityProviderId = 'IDENTITY_PROVIDER';
-    const expectedMessage = { message: `Identity provider [${identityProviderId}] cannot be found.` };
-    await notFound(portalApiAsAdmin.getPortalIdentityProviderRaw({ identityProviderId }), expectedMessage);
+describe('Portal: Business Error - categories', () => {
+  test('should return not found with unknown category', async () => {
+    const categoryId = 'category';
+    const expectedError = { message: `Category [${categoryId}] cannot be found.` };
+    await notFound(portalApiAsAdmin.getCategoryByCategoryIdRaw({ categoryId }), expectedError);
+    await notFound(portalApiAsAdmin.getPictureByCategoryIdRaw({ categoryId }), expectedError);
   });
 });

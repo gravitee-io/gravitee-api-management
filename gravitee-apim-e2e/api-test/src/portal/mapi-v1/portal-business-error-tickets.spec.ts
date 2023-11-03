@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 import { describe, test } from '@jest/globals';
-import { PortalApi } from '@gravitee/portal-webclient-sdk/src/lib/apis/PortalApi';
+import { PortalApi } from '../../../../lib/portal-webclient-sdk/src/lib/apis/PortalApi';
 import { forPortalAsAdminUser } from '@gravitee/utils/configuration';
-import { notFound } from '@lib/jest-utils';
+import { fail } from '@lib/jest-utils';
 const portalApiAsAdmin = new PortalApi(forPortalAsAdminUser());
 
-describe('Portal: Business Error - categories', () => {
-  test('should return not found with unknown category', async () => {
-    const categoryId = 'category';
-    const expectedError = { message: `Category [${categoryId}] cannot be found.` };
-    await notFound(portalApiAsAdmin.getCategoryByCategoryIdRaw({ categoryId }), expectedError);
-    await notFound(portalApiAsAdmin.getPictureByCategoryIdRaw({ categoryId }), expectedError);
+describe('Portal: Business Error - tickets', () => {
+  test('should not create empty ticket', async () => {
+    await fail(portalApiAsAdmin.createTicketRaw({}), 400);
   });
 });
