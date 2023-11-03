@@ -70,25 +70,20 @@ public class InstanceServiceImpl implements InstanceService {
 
     private final ObjectMapper objectMapper;
 
-    public InstanceServiceImpl(EventService eventService, ObjectMapper objectMapper) {
+    private final long unknownExpireAfterInSec;
+
+    private static final List<EventType> instancesAllState = List.of(EventType.GATEWAY_STARTED, EventType.GATEWAY_STOPPED);
+
+    private static final List<EventType> instancesRunningOnly = List.of(EventType.GATEWAY_STARTED);
+
+    public InstanceServiceImpl(
+        EventService eventService,
+        ObjectMapper objectMapper,
+        @Value("${gateway.unknown-expire-after:604800}") long unknownExpireAfterInSec
+    ) {
         this.eventService = eventService;
         this.objectMapper = objectMapper;
-    }
-
-    @Value("${gateway.unknown-expire-after:604800}") // default value : 7 days
-    private long unknownExpireAfterInSec;
-
-    private static final List<EventType> instancesAllState = new ArrayList<>();
-
-    {
-        instancesAllState.add(EventType.GATEWAY_STARTED);
-        instancesAllState.add(EventType.GATEWAY_STOPPED);
-    }
-
-    private static final List<EventType> instancesRunningOnly = new ArrayList<>();
-
-    {
-        instancesRunningOnly.add(EventType.GATEWAY_STARTED);
+        this.unknownExpireAfterInSec = unknownExpireAfterInSec;
     }
 
     @Override
@@ -104,7 +99,7 @@ public class InstanceServiceImpl implements InstanceService {
         ExpiredPredicate filter = new ExpiredPredicate(Duration.ofSeconds(unknownExpireAfterInSec));
         long from = query.getFrom() > 0 ? query.getFrom() : Instant.now().minus(unknownExpireAfterInSec, ChronoUnit.SECONDS).toEpochMilli();
 
-        return eventService.search(
+        Page<EventEntity> eventEntitiesPage = eventService.search(
             executionContext,
             types,
             query.getProperties(),
@@ -112,7 +107,13 @@ public class InstanceServiceImpl implements InstanceService {
             query.getTo(),
             query.getPage(),
             query.getSize(),
-            eventEntity -> {
+            Collections.singletonList(executionContext.getEnvironmentId())
+        );
+
+        List<InstanceListItem> result = eventEntitiesPage
+            .getContent()
+            .stream()
+            .map(eventEntity -> {
                 InstanceEntity instanceEntity = convert(eventEntity);
 
                 InstanceListItem item = new InstanceListItem();
@@ -127,14 +128,17 @@ public class InstanceServiceImpl implements InstanceService {
                 item.setVersion(instanceEntity.getVersion());
                 item.setTags(instanceEntity.getTags());
                 item.setTenant(instanceEntity.getTenant());
-                item.setOperatingSystemName(instanceEntity.getSystemProperties().get("os.name"));
+                item.setOperatingSystemName(
+                    instanceEntity.getSystemProperties() != null ? instanceEntity.getSystemProperties().get("os.name") : ""
+                );
                 item.setState(instanceEntity.getState());
 
                 return item;
-            },
-            filter,
-            Collections.singletonList(executionContext.getEnvironmentId())
-        );
+            })
+            .filter(filter)
+            .collect(Collectors.toList());
+
+        return new Page<>(result, eventEntitiesPage.getPageNumber(), result.size(), eventEntitiesPage.getTotalElements());
     }
 
     @Override

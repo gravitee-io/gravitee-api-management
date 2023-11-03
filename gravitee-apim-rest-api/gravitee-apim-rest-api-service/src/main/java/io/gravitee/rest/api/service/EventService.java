@@ -95,30 +95,5 @@ public interface EventService {
         final List<String> environments
     );
 
-    <T> Page<T> search(
-        ExecutionContext executionContext,
-        List<EventType> eventTypes,
-        Map<String, Object> properties,
-        long from,
-        long to,
-        int page,
-        int size,
-        Function<EventEntity, T> mapper,
-        final List<String> environmentsIds
-    );
-
-    <T> Page<T> search(
-        ExecutionContext executionContext,
-        List<EventType> eventTypes,
-        Map<String, Object> properties,
-        long from,
-        long to,
-        int page,
-        int size,
-        Function<EventEntity, T> mapper,
-        Predicate<T> filter,
-        final List<String> environmentsIds
-    );
-
     Collection<EventEntity> search(ExecutionContext executionContext, EventQuery query);
 }
