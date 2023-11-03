@@ -15,13 +15,13 @@
  */
 import { forManagementAsAdminUser, forManagementAsApiUser } from '@gravitee/utils/configuration';
 import { afterAll, beforeAll, describe, expect } from '@jest/globals';
-import { PortalApi } from '@gravitee/management-webclient-sdk/src/lib/apis/PortalApi';
-import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
-import { ApiEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
+import { PortalApi } from '../../../../lib/management-webclient-sdk/src/lib/apis/PortalApi';
+import { APIsApi } from '../../../../lib/management-webclient-sdk/src/lib/apis/APIsApi';
+import { ApiEntity } from '../../../../lib/management-webclient-sdk/src/lib/models/ApiEntity';
 import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
 import { fail, succeed } from '@lib/jest-utils';
 import faker from '@faker-js/faker';
-import { ApiApi } from '@gravitee/portal-webclient-sdk/src/lib/apis/ApiApi';
+import { ApiApi } from '../../../../lib/portal-webclient-sdk/src/lib/apis/ApiApi';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';

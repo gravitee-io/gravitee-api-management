@@ -15,14 +15,14 @@
  */
 import { afterAll, beforeAll, describe, expect, test } from '@jest/globals';
 import { fail, succeed } from '@lib/jest-utils';
-import { APIPlansApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIPlansApi';
-import { APIDefinitionApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIDefinitionApi';
-import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
-import { JsonPatchOperationEnum } from '@gravitee/management-webclient-sdk/src/lib/models/JsonPatch';
+import { APIPlansApi } from '../../../../lib/management-webclient-sdk/src/lib/apis/APIPlansApi';
+import { APIDefinitionApi } from '../../../../lib/management-webclient-sdk/src/lib/apis/APIDefinitionApi';
+import { APIsApi } from '../../../../lib/management-webclient-sdk/src/lib/apis/APIsApi';
+import { JsonPatchOperationEnum } from '../../../../lib/management-webclient-sdk/src/lib/models/JsonPatch';
 import { ApiMetadataFormat, ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
 import { PlansFaker } from '@gravitee/fixtures/management/PlansFaker';
-import { LifecycleAction } from '@gravitee/management-webclient-sdk/src/lib/models/LifecycleAction';
-import { APIPagesApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIPagesApi';
+import { LifecycleAction } from '../../../../lib/management-webclient-sdk/src/lib/models/LifecycleAction';
+import { APIPagesApi } from '../../../../lib/management-webclient-sdk/src/lib/apis/APIPagesApi';
 import { PagesFaker } from '@gravitee/fixtures/management/PagesFaker';
 import { forManagement } from '@gravitee/utils/configuration';
 import faker from '@faker-js/faker';
