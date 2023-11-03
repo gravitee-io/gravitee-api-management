@@ -28,7 +28,9 @@ import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-pro
 import { GioUiRouterTestingModule } from '../../../../shared/testing/gio-uirouter-testing-module';
 import {
   AggregatedMessageLog,
+  ConnectionLogDetail,
   fakeAggregatedMessageLog,
+  fakeConnectionLogDetail,
   fakeConnectorPlugin,
   fakeMessage,
   fakePagedResult,
@@ -74,12 +76,57 @@ describe('ApiRuntimeLogsMessagesComponent', () => {
     jest.clearAllMocks();
   });
 
+  describe('GIVEN there are connection logs', () => {
+    beforeEach(async () => {
+      await initComponent();
+      await componentHarness.clickOnConnectionLogsTab();
+    });
+
+    it('should init the component and fetch the connection log', async () => {
+      expectApiWithConnectionLog(fakeConnectionLogDetail());
+      fixture.detectChanges();
+
+      // Entrypoint request
+      const entryPointRequestPanel = await componentHarness.entrypointRequestPanelSelector();
+      expect(await componentHarness.getConnectionLogRequestUri(entryPointRequestPanel)).toEqual('/api-uri');
+      expect(await componentHarness.getConnectionLogRequestMethod(entryPointRequestPanel)).toEqual('get');
+      expect(await componentHarness.getConnectionLogHeaders(entryPointRequestPanel)).toMatchObject({
+        'X-Header': 'first-header',
+        'X-Header-Multiple': 'first-header,second-header',
+      });
+
+      // Endpoint request
+      const endpointRequestPanel = await componentHarness.endpointRequestPanelSelector();
+      // URI is unset on endpoint request
+      expect(await componentHarness.getConnectionLogRequestUri(endpointRequestPanel)).toBeUndefined();
+      expect(await componentHarness.getConnectionLogRequestMethod(endpointRequestPanel)).toEqual('get');
+      expect(await componentHarness.getConnectionLogHeaders(endpointRequestPanel)).toMatchObject({
+        'X-Header': 'first-header',
+        'X-Header-Multiple': 'first-header,second-header',
+      });
+
+      // Endpoint response
+      const endpointResponsePanel = await componentHarness.endpointResponsePanelSelector();
+      expect(await componentHarness.getConnectionLogResponseStatus(endpointResponsePanel)).toEqual('200');
+      expect(await componentHarness.getConnectionLogHeaders(endpointResponsePanel)).toMatchObject({});
+
+      // Endpoint request
+      const entrypointResponsePanel = await componentHarness.entrypointResponsePanelSelector();
+      expect(await componentHarness.getConnectionLogResponseStatus(entrypointResponsePanel)).toEqual('200');
+      expect(await componentHarness.getConnectionLogHeaders(entrypointResponsePanel)).toMatchObject({
+        'X-Header': 'first-header',
+        'X-Header-Multiple': 'first-header,second-header',
+      });
+    });
+  });
+
   describe('GIVEN there are message logs', () => {
     let iconServiceSpy: jest.SpyInstance;
 
     beforeEach(async () => {
       await initComponent();
       iconServiceSpy = jest.spyOn(TestBed.inject(IconService), 'registerSvg').mockReturnValue('gio:mock');
+      await componentHarness.clickOnMessagesTab();
     });
 
     it('should init the component and fetch the connectors icon', async () => {
@@ -165,6 +212,15 @@ describe('ApiRuntimeLogsMessagesComponent', () => {
           totalCount,
         }),
       );
+  }
+
+  function expectApiWithConnectionLog(data: ConnectionLogDetail) {
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/logs/${REQUEST_ID}`,
+        method: 'GET',
+      })
+      .flush(data);
   }
 
   function expectEndpointPlugin(messageLog: AggregatedMessageLog) {

@@ -16,7 +16,7 @@
 
 import { isFunction } from 'lodash';
 
-import { ConnectionLog } from './connectionLog';
+import { ConnectionLog, ConnectionLogDetail, ConnectionLogDetailRequest, ConnectionLogDetailResponse } from './connectionLog';
 
 import { fakePlanV4 } from '../plan';
 import { fakeBaseApplication } from '../application';
@@ -33,6 +33,74 @@ export function fakeConnectionLog(modifier?: Partial<ConnectionLog> | ((base: Co
     requestEnded: true,
     plan: fakePlanV4(),
     application: fakeBaseApplication(),
+  };
+
+  if (isFunction(modifier)) {
+    return modifier(base);
+  }
+
+  return {
+    ...base,
+    ...modifier,
+  };
+}
+
+export function fakeConnectionLogDetail(
+  modifier?: Partial<ConnectionLogDetail> | ((base: ConnectionLogDetail) => ConnectionLogDetail),
+): ConnectionLogDetail {
+  const base: ConnectionLogDetail = {
+    requestId: 'aee23b1e-34b1-4551-a23b-1e34b165516a',
+    apiId: '117e79a3-6023-4b72-be79-a36023ab72f9',
+    timestamp: '2020-02-02T20:22:02.000Z',
+    clientIdentifier: '34f97df9-4945-4f2f-bf5a-3b16d9334728',
+    requestEnded: true,
+    entrypointRequest: fakeConnectionLogDetailRequest(),
+    endpointRequest: fakeConnectionLogDetailRequest({ uri: '' }),
+    entrypointResponse: fakeConnectionLogDetailResponse(),
+    endpointResponse: fakeConnectionLogDetailResponse({ headers: {} }),
+  };
+
+  if (isFunction(modifier)) {
+    return modifier(base);
+  }
+
+  return {
+    ...base,
+    ...modifier,
+  };
+}
+
+export function fakeConnectionLogDetailRequest(
+  modifier?: Partial<ConnectionLogDetailRequest> | ((base: ConnectionLogDetailRequest) => ConnectionLogDetailRequest),
+): ConnectionLogDetailRequest {
+  const base: ConnectionLogDetailRequest = {
+    uri: '/api-uri',
+    method: 'GET',
+    headers: {
+      'X-Header': ['first-header'],
+      'X-Header-Multiple': ['first-header', 'second-header'],
+    },
+  };
+
+  if (isFunction(modifier)) {
+    return modifier(base);
+  }
+
+  return {
+    ...base,
+    ...modifier,
+  };
+}
+
+export function fakeConnectionLogDetailResponse(
+  modifier?: Partial<ConnectionLogDetailResponse> | ((base: ConnectionLogDetailResponse) => ConnectionLogDetailResponse),
+): ConnectionLogDetailResponse {
+  const base: ConnectionLogDetailResponse = {
+    status: 200,
+    headers: {
+      'X-Header': ['first-header'],
+      'X-Header-Multiple': ['first-header', 'second-header'],
+    },
   };
 
   if (isFunction(modifier)) {
