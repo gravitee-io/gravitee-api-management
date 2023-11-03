@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
+import { APIsApi } from '../../../../lib/management-webclient-sdk/src/lib/apis/APIsApi';
 import {
   forManagementAsAdminUser,
   forManagementAsApiUser,
@@ -23,27 +23,27 @@ import {
 } from '@gravitee/utils/configuration';
 import { afterAll, beforeAll, describe, expect } from '@jest/globals';
 import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
-import { ApiEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
-import { ApiLifecycleState } from '@gravitee/management-webclient-sdk/src/lib/models/ApiLifecycleState';
-import { APIPlansApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIPlansApi';
-import { ApplicationApi as PortalApplicationApi } from '@gravitee/portal-webclient-sdk/src/lib/apis/ApplicationApi';
-import { ApplicationsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ApplicationsApi';
+import { ApiEntity } from '../../../../lib/management-webclient-sdk/src/lib/models/ApiEntity';
+import { ApiLifecycleState } from '../../../../lib/management-webclient-sdk/src/lib/models/ApiLifecycleState';
+import { APIPlansApi } from '../../../../lib/management-webclient-sdk/src/lib/apis/APIPlansApi';
+import { ApplicationApi as PortalApplicationApi } from '../../../../lib/portal-webclient-sdk/src/lib/apis/ApplicationApi';
+import { ApplicationsApi } from '../../../../lib/management-webclient-sdk/src/lib/apis/ApplicationsApi';
 import { ApplicationsFaker } from '@gravitee/fixtures/management/ApplicationsFaker';
 import fetchApi from 'node-fetch';
 import { PlansFaker } from '@gravitee/fixtures/management/PlansFaker';
-import { PlanValidationType } from '@gravitee/management-webclient-sdk/src/lib/models/PlanValidationType';
-import { PlanEntity } from '@gravitee/management-webclient-sdk/src/lib/models/PlanEntity';
-import { Api } from '@gravitee/portal-webclient-sdk/src/lib/models/Api';
-import { ApplicationEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApplicationEntity';
-import { PlanSecurityType } from '@gravitee/management-webclient-sdk/src/lib/models/PlanSecurityType';
-import { ApiApi } from '@gravitee/portal-webclient-sdk/src/lib/apis/ApiApi';
-import { Visibility } from '@gravitee/management-webclient-sdk/src/lib/models/Visibility';
+import { PlanValidationType } from '../../../../lib/management-webclient-sdk/src/lib/models/PlanValidationType';
+import { PlanEntity } from '../../../../lib/management-webclient-sdk/src/lib/models/PlanEntity';
+import { Api } from '../../../../lib/portal-webclient-sdk/src/lib/models/Api';
+import { ApplicationEntity } from '../../../../lib/management-webclient-sdk/src/lib/models/ApplicationEntity';
+import { PlanSecurityType } from '../../../../lib/management-webclient-sdk/src/lib/models/PlanSecurityType';
+import { ApiApi } from '../../../../lib/portal-webclient-sdk/src/lib/apis/ApiApi';
+import { Visibility } from '../../../../lib/management-webclient-sdk/src/lib/models/Visibility';
 import { succeed } from '@lib/jest-utils';
-import { GetSubscriptionByIdIncludeEnum, SubscriptionApi } from '@gravitee/portal-webclient-sdk/src/lib/apis/SubscriptionApi';
+import { GetSubscriptionByIdIncludeEnum, SubscriptionApi } from '../../../../lib/portal-webclient-sdk/src/lib/apis/SubscriptionApi';
 import faker from '@faker-js/faker';
-import { Subscription } from '@gravitee/portal-webclient-sdk/src/lib/models/Subscription';
-import { APISubscriptionsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APISubscriptionsApi';
-import { UpdateApiEntityFromJSON } from '@gravitee/management-webclient-sdk/src/lib/models/UpdateApiEntity';
+import { Subscription } from '../../../../lib/portal-webclient-sdk/src/lib/models/Subscription';
+import { APISubscriptionsApi } from '../../../../lib/management-webclient-sdk/src/lib/apis/APISubscriptionsApi';
+import { UpdateApiEntityFromJSON } from '../../../../lib/management-webclient-sdk/src/lib/models/UpdateApiEntity';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
