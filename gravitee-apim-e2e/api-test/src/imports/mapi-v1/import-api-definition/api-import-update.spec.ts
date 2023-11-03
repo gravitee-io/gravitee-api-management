@@ -15,10 +15,10 @@
  */
 import { afterAll, describe, expect, test } from '@jest/globals';
 
-import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
+import { APIsApi } from '../../../../../lib/management-webclient-sdk/src/lib/apis/APIsApi';
 import { forManagementAsAdminUser } from '@gravitee/utils/configuration';
 import { fail, succeed } from '@lib/jest-utils';
-import { Visibility } from '@gravitee/management-webclient-sdk/src/lib/models/Visibility';
+import { Visibility } from '../../../../../lib/management-webclient-sdk/src/lib/models/Visibility';
 import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
 
 const apisResource = new APIsApi(forManagementAsAdminUser());
