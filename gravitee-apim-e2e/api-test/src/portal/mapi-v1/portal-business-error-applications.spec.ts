@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 import { afterAll, beforeAll, describe, test, expect } from '@jest/globals';
-import { ApplicationEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApplicationEntity';
+import { ApplicationEntity } from '../../../../lib/management-webclient-sdk/src/lib/models/ApplicationEntity';
 import { ApplicationsFaker } from '@gravitee/fixtures/management/ApplicationsFaker';
-import { NotificationConfigType } from '@gravitee/management-webclient-sdk/src/lib/models/NotificationConfigType';
+import { NotificationConfigType } from '../../../../lib/management-webclient-sdk/src/lib/models/NotificationConfigType';
 import { fail, forbidden, notFound } from '@lib/jest-utils';
-import { ApplicationsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ApplicationsApi';
+import { ApplicationsApi } from '../../../../lib/management-webclient-sdk/src/lib/apis/ApplicationsApi';
 import { forManagementAsAdminUser, forPortalAsAdminUser, forPortalAsSimpleUser } from '@gravitee/utils/configuration';
-import { ConfigurationApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ConfigurationApi';
-import { ApplicationApi, GetApplicationAnalyticsTypeEnum } from '@gravitee/portal-webclient-sdk/src/lib/apis/ApplicationApi';
-import { PortalApi as PortalManagementApi } from '@gravitee/management-webclient-sdk/src/lib/apis/PortalApi';
-import { RoleScope } from '@gravitee/management-webclient-sdk/src/lib/models/RoleScope';
-import { RoleEntity } from '@gravitee/management-webclient-sdk/src/lib/models/RoleEntity';
-import { UpdateRoleEntityFromJSON } from '@gravitee/management-webclient-sdk/src/lib/models/UpdateRoleEntity';
-import { ApiResponse } from '../../../lib/portal-webclient-sdk/src/lib';
+import { ConfigurationApi } from '../../../../lib/management-webclient-sdk/src/lib/apis/ConfigurationApi';
+import { ApplicationApi, GetApplicationAnalyticsTypeEnum } from '../../../../lib/portal-webclient-sdk/src/lib/apis/ApplicationApi';
+import { PortalApi as PortalManagementApi } from '../../../../lib/management-webclient-sdk/src/lib/apis/PortalApi';
+import { RoleScope } from '../../../../lib/management-webclient-sdk/src/lib/models/RoleScope';
+import { RoleEntity } from '../../../../lib/management-webclient-sdk/src/lib/models/RoleEntity';
+import { UpdateRoleEntityFromJSON } from '../../../../lib/management-webclient-sdk/src/lib/models/UpdateRoleEntity';
+import { ApiResponse } from '../../../../lib/portal-webclient-sdk/src/lib';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
