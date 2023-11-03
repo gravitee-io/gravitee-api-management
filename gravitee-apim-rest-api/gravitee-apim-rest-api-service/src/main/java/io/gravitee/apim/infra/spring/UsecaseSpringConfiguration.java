@@ -25,6 +25,7 @@ import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomain
 import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.HomepageDomainService;
 import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentationDomainService;
+import io.gravitee.apim.core.documentation.query_service.PageQueryService;
 import io.gravitee.apim.core.documentation.usecase.*;
 import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
 import io.gravitee.apim.core.log.crud_service.ConnectionLogCrudService;
@@ -110,13 +111,15 @@ public class UsecaseSpringConfiguration {
         CreateApiDocumentationDomainService createApiDocumentationDomainService,
         ApiDocumentationDomainService apiDocumentationDomainService,
         HomepageDomainService homepageDomainService,
-        PageCrudService pageCrudService
+        PageCrudService pageCrudService,
+        PageQueryService pageQueryService
     ) {
         return new ApiCreateDocumentationPageUsecase(
             createApiDocumentationDomainService,
             apiDocumentationDomainService,
             homepageDomainService,
-            pageCrudService
+            pageCrudService,
+            pageQueryService
         );
     }
 

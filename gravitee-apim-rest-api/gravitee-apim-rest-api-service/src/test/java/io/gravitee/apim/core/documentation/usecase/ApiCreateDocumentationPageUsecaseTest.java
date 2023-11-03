@@ -69,7 +69,8 @@ class ApiCreateDocumentationPageUsecaseTest {
                 createApiDocumentationDomainService,
                 new ApiDocumentationDomainService(pageQueryService, new HtmlSanitizerImpl()),
                 new HomepageDomainService(pageQueryService, pageCrudService),
-                pageCrudService
+                pageCrudService,
+                pageQueryService
             );
     }
 
@@ -131,7 +132,7 @@ class ApiCreateDocumentationPageUsecaseTest {
                 .hasFieldOrPropertyWithValue("homepage", false)
                 .hasFieldOrPropertyWithValue("visibility", Page.Visibility.PRIVATE)
                 .hasFieldOrPropertyWithValue("parentId", "parent-id")
-                .hasFieldOrPropertyWithValue("order", 1);
+                .hasFieldOrPropertyWithValue("order", 0);
 
             var savedPage = pageCrudService
                 .storage()
@@ -244,6 +245,55 @@ class ApiCreateDocumentationPageUsecaseTest {
 
             var formerHomepage = pageCrudService.storage().stream().filter(p -> p.getId().equals(EXISTING_PAGE_ID)).toList().get(0);
             assertThat(formerHomepage).isNotNull().hasFieldOrPropertyWithValue("homepage", false);
+        }
+
+        @Test
+        void should_give_new_markdown_highest_count() {
+            final String EXISTING_PAGE_ID = "existing-page-id";
+            final String PARENT_ID = "123";
+            var existingParent = Page
+                .builder()
+                .id(PARENT_ID)
+                .type(Page.Type.FOLDER)
+                .referenceType(Page.ReferenceType.API)
+                .referenceId(API_ID)
+                .name("existing parent")
+                .order(1)
+                .build();
+
+            var existingPage = Page
+                .builder()
+                .id(EXISTING_PAGE_ID)
+                .referenceType(Page.ReferenceType.API)
+                .referenceId(API_ID)
+                .parentId(PARENT_ID)
+                .name("existing page")
+                .homepage(true)
+                .order(99)
+                .build();
+            pageCrudService.initWith(List.of(existingPage, existingParent));
+            pageQueryService.initWith(List.of(existingPage, existingParent));
+
+            var res = apiCreateDocumentationPageUsecase.execute(
+                ApiCreateDocumentationPageUsecase.Input
+                    .builder()
+                    .page(
+                        Page
+                            .builder()
+                            .type(Page.Type.MARKDOWN)
+                            .name("new page")
+                            .content("nice content")
+                            .visibility(Page.Visibility.PRIVATE)
+                            .parentId(PARENT_ID)
+                            .referenceType(Page.ReferenceType.API)
+                            .referenceId(API_ID)
+                            .build()
+                    )
+                    .auditInfo(AUDIT_INFO)
+                    .build()
+            );
+
+            assertThat(res.createdPage()).isNotNull().hasFieldOrPropertyWithValue("order", 100);
         }
 
         @Test
@@ -387,7 +437,6 @@ class ApiCreateDocumentationPageUsecaseTest {
                             .name("new page")
                             .visibility(Page.Visibility.PRIVATE)
                             .parentId(PARENT_ID)
-                            .order(1)
                             .referenceType(Page.ReferenceType.API)
                             .referenceId(API_ID)
                             .build()
@@ -405,7 +454,7 @@ class ApiCreateDocumentationPageUsecaseTest {
                 .hasFieldOrPropertyWithValue("homepage", false)
                 .hasFieldOrPropertyWithValue("visibility", Page.Visibility.PRIVATE)
                 .hasFieldOrPropertyWithValue("parentId", "parent-id")
-                .hasFieldOrPropertyWithValue("order", 1);
+                .hasFieldOrPropertyWithValue("order", 0);
 
             var savedPage = pageCrudService
                 .storage()
