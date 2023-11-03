@@ -31,3 +31,26 @@ export interface ConnectionLog {
   application: BaseApplication;
   plan: BasePlan;
 }
+
+export interface ConnectionLogDetail {
+  apiId: string;
+  requestId: string;
+  timestamp: string;
+  clientIdentifier: string;
+  requestEnded: boolean;
+  entrypointRequest: ConnectionLogDetailRequest;
+  endpointRequest: ConnectionLogDetailRequest;
+  entrypointResponse: ConnectionLogDetailResponse;
+  endpointResponse: ConnectionLogDetailResponse;
+}
+
+export interface ConnectionLogDetailRequest {
+  method: string;
+  uri: string;
+  headers: Record<string, string[]>;
+}
+
+export interface ConnectionLogDetailResponse {
+  status: number;
+  headers: Record<string, string[]>;
+}

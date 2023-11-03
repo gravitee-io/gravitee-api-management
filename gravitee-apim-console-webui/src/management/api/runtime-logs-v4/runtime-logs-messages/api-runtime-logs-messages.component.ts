@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { StateService } from '@uirouter/angular';
 import { StateParams } from '@uirouter/core';
-import { map, switchMap, tap } from 'rxjs/operators';
-import { BehaviorSubject } from 'rxjs';
+import { catchError, map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { BehaviorSubject, Observable, of, Subject } from 'rxjs';
 import { uniqBy } from 'lodash';
 
 import { ApiLogsV2Service } from '../../../../services-ngx/api-logs-v2.service';
 import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
-import { AggregatedMessageLog, ConnectorPlugin, ConnectorType } from '../../../../entities/management-api-v2';
+import { AggregatedMessageLog, ConnectionLogDetail, ConnectorPlugin, ConnectorType } from '../../../../entities/management-api-v2';
 import { IconService } from '../../../../services-ngx/icon.service';
 import { ConnectorPluginsV2Service } from '../../../../services-ngx/connector-plugins-v2.service';
 
@@ -32,9 +32,11 @@ import { ConnectorPluginsV2Service } from '../../../../services-ngx/connector-pl
   template: require('./api-runtime-logs-messages.component.html'),
   styles: [require('./api-runtime-logs-messages.component.scss')],
 })
-export class ApiRuntimeLogsMessagesComponent implements OnInit {
+export class ApiRuntimeLogsMessagesComponent implements OnInit, OnDestroy {
   private readonly pageSize: number = 5;
+  private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   public connectorIcons: { [key: string]: string } = {};
+  public connectionLog$ = this.loadConnectionLog();
   public messageLogs$: BehaviorSubject<AggregatedMessageLog[]> = new BehaviorSubject<AggregatedMessageLog[]>([]);
   public pageIndex = 1;
   public pageCount: number;
@@ -50,8 +52,23 @@ export class ApiRuntimeLogsMessagesComponent implements OnInit {
   public ngOnInit(): void {
     this.loadMessages(this.pageIndex);
   }
+
+  ngOnDestroy(): void {
+    this.unsubscribe$.next(true);
+    this.unsubscribe$.unsubscribe();
+  }
+
   public openLogsSettings() {
     return this.ajsState.go('management.apis.runtimeLogs-settings');
+  }
+
+  private loadConnectionLog(): Observable<ConnectionLogDetail> {
+    return this.apiLogsService.searchConnectionLogDetail(this.ajsStateParams.apiId, this.ajsStateParams.requestId).pipe(
+      catchError(() => {
+        return of(undefined);
+      }),
+      takeUntil(this.unsubscribe$),
+    );
   }
 
   private loadMessages(pageIndex: number): void {
@@ -84,6 +101,7 @@ export class ApiRuntimeLogsMessagesComponent implements OnInit {
             this.loadConnectorIcon(entry.connectorType, entry.connectorId);
           }
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }
