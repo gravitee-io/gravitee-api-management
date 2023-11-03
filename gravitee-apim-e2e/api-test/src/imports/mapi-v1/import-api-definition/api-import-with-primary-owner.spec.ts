@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 import { afterAll, beforeAll, describe, expect, test } from '@jest/globals';
-import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
+import { APIsApi } from '../../../../../lib/management-webclient-sdk/src/lib/apis/APIsApi';
 import { forManagementAsAdminUser, forManagementAsSimpleUser } from '@gravitee/utils/configuration';
 import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
-import { CurrentUserApi } from '@gravitee/management-webclient-sdk/src/lib/apis/CurrentUserApi';
-import { UserDetails } from '@gravitee/management-webclient-sdk/src/lib/models/UserDetails';
+import { CurrentUserApi } from '../../../../../lib/management-webclient-sdk/src/lib/apis/CurrentUserApi';
+import { UserDetails } from '../../../../../lib/management-webclient-sdk/src/lib/models/UserDetails';
 import { created, succeed } from '@lib/jest-utils';
-import { GroupsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/GroupsApi';
+import { GroupsApi } from '../../../../../lib/management-webclient-sdk/src/lib/apis/GroupsApi';
 import { GroupsFaker } from '@gravitee/fixtures/management/GroupsFaker';
-import { GroupEntity } from '@gravitee/management-webclient-sdk/src/lib/models/GroupEntity';
+import { GroupEntity } from '../../../../../lib/management-webclient-sdk/src/lib/models/GroupEntity';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';

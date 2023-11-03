@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 import { test, describe, afterAll, expect } from '@jest/globals';
-import { APIsApi, ApiV4 } from '@gravitee/management-v2-webclient-sdk/src/lib';
+import { APIsApi, ApiV4 } from '../../../../../lib/management-v2-webclient-sdk/src/lib';
 import { forManagementAsAdminUser, forManagementAsApiUser, forManagementV2AsApiUser } from '@gravitee/utils/configuration';
 import { created, noContent, succeed } from '@lib/jest-utils';
-import { APIsApi as v1APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
+import { APIsApi as v1APIsApi } from '../../../../../lib/management-webclient-sdk/src/lib/apis/APIsApi';
 import { MAPIV2ApisFaker } from '@gravitee/fixtures/management/MAPIV2ApisFaker';
 import { MAPIV2MetadataFaker } from '@gravitee/fixtures/management/MAPIV2MetadataFaker';
 import { MetadataApi } from '../../../../../lib/management-webclient-sdk/src/lib/apis/MetadataApi';
