@@ -274,43 +274,6 @@ public class EventServiceImpl extends TransactionalService implements EventServi
     }
 
     @Override
-    public <T> Page<T> search(
-        ExecutionContext executionContext,
-        List<EventType> eventTypes,
-        Map<String, Object> properties,
-        long from,
-        long to,
-        int page,
-        int size,
-        Function<EventEntity, T> mapper,
-        final List<String> environmentsIds
-    ) {
-        return search(executionContext, eventTypes, properties, from, to, page, size, mapper, (T t) -> true, environmentsIds);
-    }
-
-    @Override
-    public <T> Page<T> search(
-        ExecutionContext executionContext,
-        List<EventType> eventTypes,
-        Map<String, Object> properties,
-        long from,
-        long to,
-        int page,
-        int size,
-        Function<EventEntity, T> mapper,
-        Predicate<T> filter,
-        final List<String> environmentsIds
-    ) {
-        Page<EventEntity> result = search(executionContext, eventTypes, properties, from, to, page, size, environmentsIds);
-        return new Page<>(
-            result.getContent().stream().map(mapper).filter(filter).collect(Collectors.toList()),
-            page,
-            size,
-            result.getTotalElements()
-        );
-    }
-
-    @Override
     public Collection<EventEntity> search(ExecutionContext executionContext, final EventQuery query) {
         LOGGER.debug("Search APIs by {}", query);
         return convert(executionContext, eventRepository.search(queryToCriteria(executionContext, query).build()));

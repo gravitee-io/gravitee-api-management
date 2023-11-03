@@ -385,69 +385,6 @@ public class EventServiceTest {
     }
 
     @Test
-    public void shouldFilterEvent() throws TechnicalException {
-        when(eventRepository.search(any(), any()))
-            .thenReturn(
-                new Page<>(
-                    Arrays.asList(
-                        generateInstanceEvent("evt1", false),
-                        generateInstanceEvent("evt2", true),
-                        generateInstanceEvent("evt3", true),
-                        generateInstanceEvent("evt4", false),
-                        generateInstanceEvent("evt5", true)
-                    ),
-                    1,
-                    5,
-                    5
-                )
-            );
-
-        // test without predicate
-        Page<Map<String, String>> page = eventService.search(
-            GraviteeContext.getExecutionContext(),
-            Arrays.asList(io.gravitee.rest.api.model.EventType.GATEWAY_STARTED),
-            Collections.EMPTY_MAP,
-            0,
-            0,
-            1,
-            10,
-            evt -> {
-                Map<String, String> map = new HashMap<>();
-                map.put("id", evt.getId());
-                map.put("state", evt.getType().name());
-                return map;
-            },
-            Collections.singletonList(GraviteeContext.getCurrentEnvironment())
-        );
-        assertNotNull(page);
-        assertNotNull(page.getContent());
-        assertEquals(5, page.getContent().size());
-
-        // test with predicate
-        page =
-            eventService.search(
-                GraviteeContext.getExecutionContext(),
-                Arrays.asList(io.gravitee.rest.api.model.EventType.GATEWAY_STARTED),
-                Collections.EMPTY_MAP,
-                0,
-                0,
-                1,
-                10,
-                evt -> {
-                    Map<String, String> map = new HashMap<>();
-                    map.put("id", evt.getId());
-                    map.put("state", evt.getType().name());
-                    return map;
-                },
-                map -> !map.get("state").equals(io.gravitee.rest.api.model.EventType.GATEWAY_STOPPED.name()),
-                Collections.singletonList(GraviteeContext.getCurrentEnvironment())
-            );
-        assertNotNull(page);
-        assertNotNull(page.getContent());
-        assertEquals(3, page.getContent().size());
-    }
-
-    @Test
     public void createDebugApiEvent_shouldCreateEvent_withoutPayload() throws TechnicalException {
         when(eventRepository.create(any())).thenAnswer(i -> i.getArguments()[0]);
 

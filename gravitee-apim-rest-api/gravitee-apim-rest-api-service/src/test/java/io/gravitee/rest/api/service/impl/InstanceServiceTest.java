@@ -23,8 +23,6 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.repository.management.api.EventRepository;
-import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.service.EventService;
@@ -33,10 +31,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalField;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -48,7 +43,6 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)
@@ -70,7 +64,7 @@ public class InstanceServiceTest {
     public void setup() {
         this.executionContext = GraviteeContext.getExecutionContext();
 
-        cut = new InstanceServiceImpl(eventService, objectMapper);
+        cut = new InstanceServiceImpl(eventService, objectMapper, 604800);
     }
 
     @Test
@@ -258,7 +252,6 @@ public class InstanceServiceTest {
 
     @Test
     public void searchShouldIgnoreExpiredEvents() {
-        ReflectionTestUtils.setField(cut, "unknownExpireAfterInSec", 604800);
         InstanceQuery query = new InstanceQuery();
         query.setIncludeStopped(false);
         query.setFrom(0);
@@ -268,8 +261,18 @@ public class InstanceServiceTest {
 
         EventEntity event = new EventEntity();
         event.setType(EventType.GATEWAY_STARTED);
+        event.setProperties(
+            Map.of(
+                "id",
+                "evt-id",
+                Event.EventProperties.ENVIRONMENTS_HRIDS_PROPERTY.getValue(),
+                "evt-env",
+                "last_heartbeat_at",
+                String.valueOf(Instant.now().minus(8, ChronoUnit.DAYS).toEpochMilli())
+            )
+        );
 
-        when(eventService.search(any(ExecutionContext.class), any(), any(), anyLong(), anyLong(), anyInt(), anyInt(), any(), any(), any()))
+        when(eventService.search(any(ExecutionContext.class), anyList(), any(), anyLong(), anyLong(), anyInt(), anyInt(), anyList()))
             .thenReturn(new Page<>(List.of(event), 0, 1, 1));
 
         cut.search(executionContext, query);
@@ -286,8 +289,6 @@ public class InstanceServiceTest {
                 toCaptor.capture(),
                 eq(0),
                 eq(100),
-                any(),
-                any(),
                 any()
             );
 
