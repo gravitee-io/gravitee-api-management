@@ -22,6 +22,7 @@ import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomain
 import io.gravitee.apim.core.documentation.domain_service.HomepageDomainService;
 import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.model.Page;
+import io.gravitee.apim.core.documentation.query_service.PageQueryService;
 import java.util.Date;
 import java.util.Objects;
 import lombok.Builder;
@@ -33,19 +34,22 @@ public class ApiUpdateDocumentationPageUsecase {
     private final HomepageDomainService homepageDomainService;
     private final ApiCrudService apiCrudService;
     private final PageCrudService pageCrudService;
+    private final PageQueryService pageQueryService;
 
     public ApiUpdateDocumentationPageUsecase(
         UpdateApiDocumentationDomainService updateApiDocumentationDomainService,
         ApiDocumentationDomainService apiDocumentationDomainService,
         HomepageDomainService homepageDomainService,
         ApiCrudService apiCrudService,
-        PageCrudService pageCrudService
+        PageCrudService pageCrudService,
+        PageQueryService pageQueryService
     ) {
         this.updateApiDocumentationDomainService = updateApiDocumentationDomainService;
         this.apiDocumentationDomainService = apiDocumentationDomainService;
         this.homepageDomainService = homepageDomainService;
         this.apiCrudService = apiCrudService;
         this.pageCrudService = pageCrudService;
+        this.pageQueryService = pageQueryService;
     }
 
     public Output execute(Input input) {
@@ -69,13 +73,16 @@ public class ApiUpdateDocumentationPageUsecase {
         newPage.updatedAt(new Date());
         newPage.visibility(input.visibility);
         newPage.homepage(input.homepage);
-        // TODO: Implement order logic -- APIM-3077
         newPage.order(input.order);
 
         var updatedPage = this.updateApiDocumentationDomainService.updatePage(newPage.build(), oldPage, input.auditInfo);
 
         if (updatedPage.isMarkdown() && updatedPage.isHomepage() && !oldPage.isHomepage()) {
             this.homepageDomainService.setPreviousHomepageToFalse(input.apiId, updatedPage.getId());
+        }
+
+        if (updatedPage.getOrder() != oldPage.getOrder()) {
+            this.updatePageOrders(oldPage.getOrder(), updatedPage, input.auditInfo);
         }
 
         return new Output(updatedPage);
@@ -94,4 +101,31 @@ public class ApiUpdateDocumentationPageUsecase {
     ) {}
 
     public record Output(Page page) {}
+
+    private void updatePageOrders(int oldOrder, Page updatedPage, AuditInfo auditInfo) {
+        var newOrder = updatedPage.getOrder();
+        var shouldMoveDown = newOrder < oldOrder;
+        var orderIncrement = shouldMoveDown ? 1 : -1;
+
+        this.pageQueryService.searchByApiIdAndParentId(updatedPage.getReferenceId(), updatedPage.getParentId())
+            .stream()
+            .filter(page -> !Objects.equals(page.getId(), updatedPage.getId()))
+            .filter(page ->
+                shouldMoveDown
+                    ? this.toBeMovedDown(oldOrder, newOrder, page.getOrder())
+                    : this.toBeMovedUp(oldOrder, newOrder, page.getOrder())
+            )
+            .forEach(page -> {
+                var updatedOrder = page.getOrder() + orderIncrement;
+                this.updateApiDocumentationDomainService.updatePage(page.toBuilder().order(updatedOrder).build(), page, auditInfo);
+            });
+    }
+
+    private boolean toBeMovedUp(int oldOrder, int newOrder, int pageOrder) {
+        return oldOrder < pageOrder && pageOrder <= newOrder;
+    }
+
+    private boolean toBeMovedDown(int oldOrder, int newOrder, int pageOrder) {
+        return newOrder <= pageOrder && pageOrder < oldOrder;
+    }
 }
