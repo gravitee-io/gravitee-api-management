@@ -46,9 +46,10 @@ public class CoreRulesTest extends AbstractApimArchitectureTest {
                     "org.springframework.transaction.annotation..",
                     // Api Definition can't be in core because it is required for the Gateway
                     "io.gravitee.definition..",
+                    // Allow Gravitee node API to be used in core
+                    "io.gravitee.node.api..",
                     // TODO: ideally, core should be independent from model.
                     "io.gravitee.rest.api.model..",
-                    "io.gravitee.definition..",
                     // Common and Exceptions are an accepted case of reusability
                     "io.gravitee.definition.model..",
                     "io.gravitee.rest.api.service.common..",

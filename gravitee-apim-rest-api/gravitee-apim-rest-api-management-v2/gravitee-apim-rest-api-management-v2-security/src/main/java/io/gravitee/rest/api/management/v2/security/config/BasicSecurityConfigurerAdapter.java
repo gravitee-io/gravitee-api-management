@@ -260,6 +260,8 @@ public class BasicSecurityConfigurerAdapter {
              */
             .requestMatchers(HttpMethod.GET, "/ui/bootstrap")
             .permitAll()
+            .requestMatchers(HttpMethod.GET, "/ui/customization")
+            .permitAll()
             // Any other request must be authenticated
             .anyRequest()
             .authenticated()
