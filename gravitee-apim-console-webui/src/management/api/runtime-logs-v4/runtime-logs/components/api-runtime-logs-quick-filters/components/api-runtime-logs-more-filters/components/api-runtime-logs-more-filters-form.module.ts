@@ -19,13 +19,15 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatInputModule } from '@angular/material/input';
-import { OwlDateTimeModule } from '@danielmoncada/angular-datetime-picker';
+import { OWL_DATE_TIME_FORMATS, OwlDateTimeModule } from '@danielmoncada/angular-datetime-picker';
 import { OwlMomentDateTimeModule } from '@danielmoncada/angular-datetime-picker-moment-adapter';
 import { MatSelectModule } from '@angular/material/select';
 import { MatIconModule } from '@angular/material/icon';
 import { GioIconsModule } from '@gravitee/ui-particles-angular';
 
 import { ApiRuntimeLogsMoreFiltersFormComponent } from './api-runtime-logs-more-filters-form.component';
+
+import { DATE_TIME_FORMATS } from '../../../../../models';
 
 @NgModule({
   declarations: [ApiRuntimeLogsMoreFiltersFormComponent],
@@ -44,5 +46,6 @@ import { ApiRuntimeLogsMoreFiltersFormComponent } from './api-runtime-logs-more-
     OwlDateTimeModule,
     OwlMomentDateTimeModule,
   ],
+  providers: [{ provide: OWL_DATE_TIME_FORMATS, useValue: DATE_TIME_FORMATS }],
 })
 export class ApiRuntimeLogsMoreFiltersFormModule {}

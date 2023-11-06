@@ -83,7 +83,7 @@
               {{ filter.value | chipValue }}
             </span>
             <ng-template #dateBlock>
-              <span class="quick-filters__chip__value">{{ filter.value | date : 'MM/d/yyyy h:mm a' : 'UTC' }}</span>
+              <span class="quick-filters__chip__value">{{ filter.value | date : 'yyyy-MM-dd HH:mm:ss' }}</span>
             </ng-template>
             <mat-icon matChipRemove>cancel</mat-icon>
           </mat-chip>

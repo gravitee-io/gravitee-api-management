@@ -38,7 +38,7 @@ import {
   GioLoaderModule,
 } from '@gravitee/ui-particles-angular';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
-import { OWL_MOMENT_DATE_TIME_ADAPTER_OPTIONS, OwlMomentDateTimeModule } from '@danielmoncada/angular-datetime-picker-moment-adapter';
+import { OwlMomentDateTimeModule } from '@danielmoncada/angular-datetime-picker-moment-adapter';
 import { OwlDateTimeModule } from '@danielmoncada/angular-datetime-picker';
 
 import { ApiPortalSubscriptionCreationDialogComponent } from './components/dialogs/creation/api-portal-subscription-creation-dialog.component';
@@ -101,15 +101,6 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
     GioPermissionModule,
     GioTableWrapperModule,
   ],
-  providers: [
-    DatePipe,
-    {
-      provide: OWL_MOMENT_DATE_TIME_ADAPTER_OPTIONS,
-      useValue: {
-        useUtc: true,
-        parseStrict: false,
-      },
-    },
-  ],
+  providers: [DatePipe],
 })
 export class ApiGeneralSubscriptionsModule {}
