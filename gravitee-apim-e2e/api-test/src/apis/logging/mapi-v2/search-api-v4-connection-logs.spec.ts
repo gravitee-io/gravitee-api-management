@@ -26,12 +26,11 @@ import { forManagementAsAppUser, forManagementV2AsApiUser } from '@gravitee/util
 import { afterAll, beforeEach, describe, expect, test } from '@jest/globals';
 import { created, noContent, succeed } from '@lib/jest-utils';
 import { MAPIV2ApisFaker } from '@gravitee/fixtures/management/MAPIV2ApisFaker';
-import { AnalyticsLogsApi, APIPlansApi } from '../../../../../lib/management-v2-webclient-sdk/src/lib';
+import { AnalyticsLogsApi, APIPlansApi } from '@gravitee/management-v2-webclient-sdk/src/lib';
 import { MAPIV2PlansFaker } from '@gravitee/fixtures/management/MAPIV2PlansFaker';
 import { fetchGatewaySuccess, fetchRestApiSuccess } from '@gravitee/utils/apim-http';
-import { ApplicationsApi } from '../../../../../lib/management-webclient-sdk/src/lib/apis/ApplicationsApi';
+import { ApplicationsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ApplicationsApi';
 import { ApplicationsFaker } from '@gravitee/fixtures/management/ApplicationsFaker';
-import { ApiApi } from '../../../../../../../lib/portal-webclient-sdk/src/lib';
 
 const envId = 'DEFAULT';
 const orgId = 'DEFAULT';

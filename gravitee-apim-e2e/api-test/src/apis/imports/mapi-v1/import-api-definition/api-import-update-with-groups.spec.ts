@@ -15,11 +15,11 @@
  */
 import { afterAll, describe, expect, test } from '@jest/globals';
 
-import { APIsApi } from '../../../../../../lib/management-webclient-sdk/src/lib/apis/APIsApi';
+import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { forManagementAsAdminUser } from '@gravitee/utils/configuration';
 import { created, succeed } from '@lib/jest-utils';
 import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
-import { GroupsApi } from '../../../../../../lib/management-webclient-sdk/src/lib/apis/GroupsApi';
+import { GroupsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/GroupsApi';
 import { GroupsFaker } from '@gravitee/fixtures/management/GroupsFaker';
 
 const apisResource = new APIsApi(forManagementAsAdminUser());

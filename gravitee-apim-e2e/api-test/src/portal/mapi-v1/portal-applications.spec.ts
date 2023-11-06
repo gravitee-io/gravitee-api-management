@@ -24,8 +24,8 @@ import {
   forPortalAsSimpleUser,
 } from '@gravitee/utils/configuration';
 import { created, noContent, unauthorized } from '@lib/jest-utils';
-import { ApplicationApi } from '../../../../lib/portal-webclient-sdk/src/lib/apis/ApplicationApi';
-import { Application } from '../../../../lib/portal-webclient-sdk/src/lib/models/Application';
+import { ApplicationApi } from '@gravitee/portal-webclient-sdk/src/lib/apis/ApplicationApi';
+import { Application } from '@gravitee/portal-webclient-sdk/src/lib/models/Application';
 import { PortalApplicationFaker } from '@gravitee/fixtures/portal/PortalApplicationFaker';
 
 const portalApplicationApiAsAdminUser = new ApplicationApi(forPortalAsAdminUser());

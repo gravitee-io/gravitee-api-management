@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 import { afterAll, beforeAll, describe, expect } from '@jest/globals';
-import { OrganizationEntityToJSON } from '../../../../../lib/management-webclient-sdk/src/lib/models/OrganizationEntity';
+import { OrganizationEntityToJSON } from '@gravitee/management-webclient-sdk/src/lib/models/OrganizationEntity';
 import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
 import { PlansFaker } from '@gravitee/fixtures/management/PlansFaker';
-import { PlanSecurityType } from '../../../../../lib/management-webclient-sdk/src/lib/models/PlanSecurityType';
-import { PlanStatus } from '../../../../../lib/management-webclient-sdk/src/lib/models/PlanStatus';
-import { APIsApi } from '../../../../../lib/management-webclient-sdk/src/lib/apis/APIsApi';
+import { PlanSecurityType } from '@gravitee/management-webclient-sdk/src/lib/models/PlanSecurityType';
+import { PlanStatus } from '@gravitee/management-webclient-sdk/src/lib/models/PlanStatus';
+import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { forManagementAsAdminUser, forManagementAsApiUser } from '@gravitee/utils/configuration';
-import { OrganizationApi } from '../../../../../lib/management-webclient-sdk/src/lib/apis/OrganizationApi';
-import { ApiEntity, ApiEntityToJSON } from '../../../../../lib/management-webclient-sdk/src/lib/models/ApiEntity';
-import { PathOperatorOperatorEnum } from '../../../../../lib/management-webclient-sdk/src/lib/models/PathOperator';
+import { OrganizationApi } from '@gravitee/management-webclient-sdk/src/lib/apis/OrganizationApi';
+import { ApiEntity, ApiEntityToJSON } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
+import { PathOperatorOperatorEnum } from '@gravitee/management-webclient-sdk/src/lib/models/PathOperator';
 import { teardownApisAndApplications } from '@gravitee/utils/management';
-import { DebugApiEntity, DebugApiEntityFromJSON } from '../../../../../lib/management-webclient-sdk/src/lib/models/DebugApiEntity';
+import { DebugApiEntity, DebugApiEntityFromJSON } from '@gravitee/management-webclient-sdk/src/lib/models/DebugApiEntity';
 import { describeIfV3, succeed } from '@lib/jest-utils';
 import { delayWhen, from, Observable, switchMap, tap, timer, map, retryWhen, Subscription } from 'rxjs';
-import { EventEntity } from '../../../../../lib/management-webclient-sdk/src/lib/models/EventEntity';
+import { EventEntity } from '@gravitee/management-webclient-sdk/src/lib/models/EventEntity';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';

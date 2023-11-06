@@ -17,17 +17,17 @@ import { afterAll, afterEach, beforeAll, describe, expect, test } from '@jest/gl
 import * as swaggerv2 from '@api-test-resources/petstore_swaggerv2.json';
 import * as openapiv3 from '@api-test-resources/petstore_openapiv3.json';
 import { src as wsdlapi } from '@api-test-resources/wsdl.xml';
-import { APIsApi } from '../../../../../../lib/management-webclient-sdk/src/lib/apis/APIsApi';
+import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { forManagementAsAdminUser, forManagementAsApiUser } from '@gravitee/utils/configuration';
-import { ImportSwaggerDescriptorEntity } from '../../../../../../lib/management-webclient-sdk/src/lib/models/ImportSwaggerDescriptorEntity';
-import { Format } from '../../../../../../lib/management-webclient-sdk/src/lib/models/Format';
-import { Type } from '../../../../../../lib/management-webclient-sdk/src/lib/models/Type';
-import { APIPagesApi } from '../../../../../../lib/management-webclient-sdk/src/lib/apis/APIPagesApi';
+import { ImportSwaggerDescriptorEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ImportSwaggerDescriptorEntity';
+import { Format } from '@gravitee/management-webclient-sdk/src/lib/models/Format';
+import { Type } from '@gravitee/management-webclient-sdk/src/lib/models/Type';
+import { APIPagesApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIPagesApi';
 import { fail, succeed } from '@lib/jest-utils';
-import { ApiEntity, ApiEntityStateEnum } from '../../../../../../lib/management-webclient-sdk/src/lib/models/ApiEntity';
-import { Visibility } from '../../../../../../lib/management-webclient-sdk/src/lib/models/Visibility';
+import { ApiEntity, ApiEntityStateEnum } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
+import { Visibility } from '@gravitee/management-webclient-sdk/src/lib/models/Visibility';
 import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
-import { PageEntity } from '../../../../../../lib/management-webclient-sdk/src/lib/models/PageEntity';
+import { PageEntity } from '@gravitee/management-webclient-sdk/src/lib/models/PageEntity';
 import { PagesFaker } from '@gravitee/fixtures/management/PagesFaker';
 
 const orgId = 'DEFAULT';

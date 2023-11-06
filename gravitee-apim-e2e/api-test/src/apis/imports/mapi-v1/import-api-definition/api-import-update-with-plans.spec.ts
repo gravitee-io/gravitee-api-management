@@ -15,15 +15,15 @@
  */
 import { afterAll, describe, expect, test } from '@jest/globals';
 
-import { APIsApi } from '../../../../../../lib/management-webclient-sdk/src/lib/apis/APIsApi';
+import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { forManagementAsAdminUser } from '@gravitee/utils/configuration';
 import { succeed } from '@lib/jest-utils';
 import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
-import { PlanStatus } from '../../../../../../lib/management-webclient-sdk/src/lib/models/PlanStatus';
-import { PlanSecurityType } from '../../../../../../lib/management-webclient-sdk/src/lib/models/PlanSecurityType';
-import { PlanType } from '../../../../../../lib/management-webclient-sdk/src/lib/models/PlanType';
+import { PlanStatus } from '@gravitee/management-webclient-sdk/src/lib/models/PlanStatus';
+import { PlanSecurityType } from '@gravitee/management-webclient-sdk/src/lib/models/PlanSecurityType';
+import { PlanType } from '@gravitee/management-webclient-sdk/src/lib/models/PlanType';
 import { PlansFaker } from '@gravitee/fixtures/management/PlansFaker';
-import { PlanValidationType } from '../../../../../../lib/management-webclient-sdk/src/lib/models/PlanValidationType';
+import { PlanValidationType } from '@gravitee/management-webclient-sdk/src/lib/models/PlanValidationType';
 
 const apisResource = new APIsApi(forManagementAsAdminUser());
 

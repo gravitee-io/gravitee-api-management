@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 import { afterAll, describe, expect, test } from '@jest/globals';
-import { APIsApi } from '../../../../../../lib/management-webclient-sdk/src/lib/apis/APIsApi';
-import { APIsApi as APIsApiV2 } from '../../../../../../lib/management-v2-webclient-sdk/src/lib';
+import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
+import { APIsApi as APIsApiV2 } from '@gravitee/management-v2-webclient-sdk/src/lib';
 import { forManagementAsApiUser, forManagementV2AsAdminUser } from '@gravitee/utils/configuration';
 import { ApiImportEntity, ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
 import { succeed } from '@lib/jest-utils';
-import { ApiEntity, ApiEntityStateEnum } from '../../../../../../lib/management-webclient-sdk/src/lib/models/ApiEntity';
-import { Visibility } from '../../../../../../lib/management-webclient-sdk/src/lib/models/Visibility';
-import { ApiLifecycleState } from '../../../../../../lib/management-webclient-sdk/src/lib/models/ApiLifecycleState';
+import { ApiEntity, ApiEntityStateEnum } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
+import { Visibility } from '@gravitee/management-webclient-sdk/src/lib/models/Visibility';
+import { ApiLifecycleState } from '@gravitee/management-webclient-sdk/src/lib/models/ApiLifecycleState';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';

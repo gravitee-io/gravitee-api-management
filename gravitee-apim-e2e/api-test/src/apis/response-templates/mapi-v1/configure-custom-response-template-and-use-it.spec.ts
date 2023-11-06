@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 import { afterAll, beforeAll, describe, expect } from '@jest/globals';
-import { APIsApi } from '../../../../../lib/management-webclient-sdk/src/lib/apis/APIsApi';
+import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { forManagementAsApiUser } from '@gravitee/utils/configuration';
-import { ApiEntity } from '../../../../../lib/management-webclient-sdk/src/lib/models/ApiEntity';
+import { ApiEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
 import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
 import { PlansFaker } from '@gravitee/fixtures/management/PlansFaker';
-import { PlanSecurityType } from '../../../../../lib/management-webclient-sdk/src/lib/models/PlanSecurityType';
-import { PlanStatus } from '../../../../../lib/management-webclient-sdk/src/lib/models/PlanStatus';
-import { LifecycleAction } from '../../../../../lib/management-webclient-sdk/src/lib/models/LifecycleAction';
+import { PlanSecurityType } from '@gravitee/management-webclient-sdk/src/lib/models/PlanSecurityType';
+import { PlanStatus } from '@gravitee/management-webclient-sdk/src/lib/models/PlanStatus';
+import { LifecycleAction } from '@gravitee/management-webclient-sdk/src/lib/models/LifecycleAction';
 import { teardownApisAndApplications } from '@gravitee/utils/management';
 import { fetchGatewayBadRequest, fetchGatewaySuccess } from '@gravitee/utils/apim-http';
-import { PathOperatorOperatorEnum } from '../../../../../lib/management-webclient-sdk/src/lib/models/PathOperator';
+import { PathOperatorOperatorEnum } from '@gravitee/management-webclient-sdk/src/lib/models/PathOperator';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';

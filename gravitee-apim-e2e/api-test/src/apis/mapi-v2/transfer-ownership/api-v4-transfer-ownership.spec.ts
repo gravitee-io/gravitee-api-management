@@ -22,7 +22,7 @@ import {
   ApiV4,
   HttpListener,
   MembersResponse,
-} from '../../../../../lib/management-v2-webclient-sdk/src/lib';
+} from '@gravitee/management-v2-webclient-sdk/src/lib';
 import {
   API_USER,
   forManagementAsAdminUser,
@@ -33,14 +33,14 @@ import {
 import { MAPIV2ApisFaker } from '@gravitee/fixtures/management/MAPIV2ApisFaker';
 import { created, fail, forbidden, noContent, succeed } from '@lib/jest-utils';
 import { UsersFaker } from '@gravitee/fixtures/management/UsersFaker';
-import { UsersApi } from '../../../../../lib/management-webclient-sdk/src/lib/apis/UsersApi';
-import { RoleScope } from '../../../../../lib/management-webclient-sdk/src/lib/models';
+import { UsersApi } from '@gravitee/management-webclient-sdk/src/lib/apis/UsersApi';
+import { RoleScope } from '@gravitee/management-webclient-sdk/src/lib/models';
 import { RoleFaker } from '@gravitee/fixtures/management/RoleFaker';
-import { ConfigurationApi } from '../../../../../lib/management-webclient-sdk/src/lib/apis/ConfigurationApi';
-import { UserRegistrationApi } from '../../../../../lib/management-webclient-sdk/src/lib/apis/UserRegistrationApi';
+import { ConfigurationApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ConfigurationApi';
+import { UserRegistrationApi } from '@gravitee/management-webclient-sdk/src/lib/apis/UserRegistrationApi';
 import { GroupsFaker } from '@gravitee/fixtures/management/GroupsFaker';
-import { GroupsApi } from '../../../../../lib/management-webclient-sdk/src/lib/apis/GroupsApi';
-import { GroupMembershipsApi } from '../../../../../lib/management-webclient-sdk/src/lib/apis/GroupMembershipsApi';
+import { GroupsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/GroupsApi';
+import { GroupMembershipsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/GroupMembershipsApi';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';

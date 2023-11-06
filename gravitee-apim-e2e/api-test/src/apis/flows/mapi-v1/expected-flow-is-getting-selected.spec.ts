@@ -15,18 +15,18 @@
  */
 
 import { afterAll, beforeAll, describe, expect } from '@jest/globals';
-import { ApiEntity, ApiEntityFlowModeEnum } from '../../../../../lib/management-webclient-sdk/src/lib/models/ApiEntity';
+import { ApiEntity, ApiEntityFlowModeEnum } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
 import { ApiImportEntityToJSON, ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
 import { PlansFaker } from '@gravitee/fixtures/management/PlansFaker';
-import { PlanSecurityType } from '../../../../../lib/management-webclient-sdk/src/lib/models/PlanSecurityType';
-import { PlanStatus } from '../../../../../lib/management-webclient-sdk/src/lib/models/PlanStatus';
-import { LifecycleAction } from '../../../../../lib/management-webclient-sdk/src/lib/models/LifecycleAction';
-import { APIsApi } from '../../../../../lib/management-webclient-sdk/src/lib/apis/APIsApi';
+import { PlanSecurityType } from '@gravitee/management-webclient-sdk/src/lib/models/PlanSecurityType';
+import { PlanStatus } from '@gravitee/management-webclient-sdk/src/lib/models/PlanStatus';
+import { LifecycleAction } from '@gravitee/management-webclient-sdk/src/lib/models/LifecycleAction';
+import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { forManagementAsApiUser } from '@gravitee/utils/configuration';
 import { teardownApisAndApplications } from '@gravitee/utils/management';
-import { PathOperatorOperatorEnum } from '../../../../../lib/management-webclient-sdk/src/lib/models/PathOperator';
+import { PathOperatorOperatorEnum } from '@gravitee/management-webclient-sdk/src/lib/models/PathOperator';
 import { fetchGatewaySuccess } from '@gravitee/utils/apim-http';
-import { Flow } from '../../../../../lib/management-webclient-sdk/src/lib/models/Flow';
+import { Flow } from '@gravitee/management-webclient-sdk/src/lib/models/Flow';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';

@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 import { describe, expect, test } from '@jest/globals';
-import { APIsApi } from '../../../../lib/management-webclient-sdk/src/lib/apis/APIsApi';
+import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { forManagementAsAdminUser, forManagementAsSimpleUser } from '@gravitee/utils/configuration';
 import { created, fail, forbidden, noContent, notFound, succeed } from '@lib/jest-utils';
 import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
-import { ApiEntity, ApiEntityStateEnum } from '../../../../lib/management-webclient-sdk/src/lib/models/ApiEntity';
-import { ApiLifecycleState } from '../../../../lib/management-webclient-sdk/src/lib/models/ApiLifecycleState';
+import { ApiEntity, ApiEntityStateEnum } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
+import { ApiLifecycleState } from '@gravitee/management-webclient-sdk/src/lib/models/ApiLifecycleState';
 import { PlansFaker } from '@gravitee/fixtures/management/PlansFaker';
-import { PlanValidationType } from '../../../../lib/management-webclient-sdk/src/lib/models/PlanValidationType';
-import { APIPlansApi } from '../../../../lib/management-webclient-sdk/src/lib/apis/APIPlansApi';
-import { PlanStatus } from '../../../../lib/management-webclient-sdk/src/lib/models/PlanStatus';
-import { UpdateApiEntityFromJSON } from '../../../../lib/management-webclient-sdk/src/lib/models/UpdateApiEntity';
-import { LifecycleAction } from '../../../../lib/management-webclient-sdk/src/lib/models/LifecycleAction';
-import { PlanSecurityType } from '../../../../lib/management-webclient-sdk/src/lib/models/PlanSecurityType';
-import { PlanEntity } from '../../../../lib/management-webclient-sdk/src/lib/models/PlanEntity';
-import { Visibility } from '../../../../lib/management-webclient-sdk/src/lib/models/Visibility';
+import { PlanValidationType } from '@gravitee/management-webclient-sdk/src/lib/models/PlanValidationType';
+import { APIPlansApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIPlansApi';
+import { PlanStatus } from '@gravitee/management-webclient-sdk/src/lib/models/PlanStatus';
+import { UpdateApiEntityFromJSON } from '@gravitee/management-webclient-sdk/src/lib/models/UpdateApiEntity';
+import { LifecycleAction } from '@gravitee/management-webclient-sdk/src/lib/models/LifecycleAction';
+import { PlanSecurityType } from '@gravitee/management-webclient-sdk/src/lib/models/PlanSecurityType';
+import { PlanEntity } from '@gravitee/management-webclient-sdk/src/lib/models/PlanEntity';
+import { Visibility } from '@gravitee/management-webclient-sdk/src/lib/models/Visibility';
 
 const apisManagementApiAsAdmin = new APIsApi(forManagementAsAdminUser());
 const apiPlansManagementApiAsAdmin = new APIPlansApi(forManagementAsAdminUser());

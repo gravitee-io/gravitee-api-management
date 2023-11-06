@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 import { afterAll, beforeAll, describe } from '@jest/globals';
-import { ApiEntity, ApiEntityToJSON } from '../../../../../lib/management-webclient-sdk/src/lib/models/ApiEntity';
-import { Application } from '../../../../../lib/portal-webclient-sdk/src/lib/models/Application';
-import { Subscription as PortalSubscription } from '../../../../../lib/portal-webclient-sdk/src/lib/models/Subscription';
+import { ApiEntity, ApiEntityToJSON } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
+import { Application } from '@gravitee/portal-webclient-sdk/src/lib/models/Application';
+import { Subscription as PortalSubscription } from '@gravitee/portal-webclient-sdk/src/lib/models/Subscription';
 import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
 import { PlansFaker } from '@gravitee/fixtures/management/PlansFaker';
-import { PlanSecurityType } from '../../../../../lib/management-webclient-sdk/src/lib/models/PlanSecurityType';
-import { PlanStatus } from '../../../../../lib/management-webclient-sdk/src/lib/models/PlanStatus';
-import { ApiLifecycleState } from '../../../../../lib/management-webclient-sdk/src/lib/models/ApiLifecycleState';
-import { LifecycleAction } from '../../../../../lib/management-webclient-sdk/src/lib/models/LifecycleAction';
+import { PlanSecurityType } from '@gravitee/management-webclient-sdk/src/lib/models/PlanSecurityType';
+import { PlanStatus } from '@gravitee/management-webclient-sdk/src/lib/models/PlanStatus';
+import { ApiLifecycleState } from '@gravitee/management-webclient-sdk/src/lib/models/ApiLifecycleState';
+import { LifecycleAction } from '@gravitee/management-webclient-sdk/src/lib/models/LifecycleAction';
 import { PortalApplicationFaker } from '@gravitee/fixtures/portal/PortalApplicationFaker';
-import { GetSubscriptionByIdIncludeEnum, SubscriptionApi } from '../../../../../lib/portal-webclient-sdk/src/lib/apis/SubscriptionApi';
+import { GetSubscriptionByIdIncludeEnum, SubscriptionApi } from '@gravitee/portal-webclient-sdk/src/lib/apis/SubscriptionApi';
 import { fetchGatewaySuccess } from '@gravitee/utils/apim-http';
-import { APIsApi } from '../../../../../lib/management-webclient-sdk/src/lib/apis/APIsApi';
+import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { forManagementAsApiUser, forPortalAsAppUser } from '@gravitee/utils/configuration';
-import { ApplicationApi } from '../../../../../lib/portal-webclient-sdk/src/lib/apis/ApplicationApi';
+import { ApplicationApi } from '@gravitee/portal-webclient-sdk/src/lib/apis/ApplicationApi';
 import * as jwt from 'jsonwebtoken';
-import { UpdateApiEntityFromJSON } from '../../../../../lib/management-webclient-sdk/src/lib/models/UpdateApiEntity';
+import { UpdateApiEntityFromJSON } from '@gravitee/management-webclient-sdk/src/lib/models/UpdateApiEntity';
 import { teardownApisAndApplications } from '@gravitee/utils/management';
 
 const orgId = 'DEFAULT';

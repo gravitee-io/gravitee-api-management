@@ -15,7 +15,7 @@
  */
 
 import { beforeAll, describe, expect, test } from '@jest/globals';
-import { GatewayApi } from '../../../../lib/management-webclient-sdk/src/lib/apis/GatewayApi';
+import { GatewayApi } from '@gravitee/management-webclient-sdk/src/lib/apis/GatewayApi';
 import { forManagementAsAdminUser, forManagementAsApiUser } from '@gravitee/utils/configuration';
 import { fail, succeed } from '@lib/jest-utils';
 

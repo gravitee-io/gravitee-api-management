@@ -13,28 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { APIsApi } from '../../../../../lib/management-webclient-sdk/src/lib/apis/APIsApi';
+import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { forManagementAsApiUser } from '@gravitee/utils/configuration';
 import { afterAll, beforeAll, describe, expect } from '@jest/globals';
 import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
-import { ApiEntity, ApiEntityFlowModeEnum, ApiEntityToJSON } from '../../../../../lib/management-webclient-sdk/src/lib/models/ApiEntity';
+import { ApiEntity, ApiEntityFlowModeEnum, ApiEntityToJSON } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
 import { PlansFaker } from '@gravitee/fixtures/management/PlansFaker';
-import { PlanStatus } from '../../../../../lib/management-webclient-sdk/src/lib/models/PlanStatus';
-import { APIPlansApi } from '../../../../../lib/management-webclient-sdk/src/lib/apis/APIPlansApi';
-import { PlanSecurityType } from '../../../../../lib/management-webclient-sdk/src/lib/models/PlanSecurityType';
-import { ApplicationEntity } from '../../../../../lib/management-webclient-sdk/src/lib/models/ApplicationEntity';
-import { Subscription } from '../../../../../lib/management-webclient-sdk/src/lib/models/Subscription';
-import { ApiKeyEntity } from '../../../../../lib/management-webclient-sdk/src/lib/models/ApiKeyEntity';
+import { PlanStatus } from '@gravitee/management-webclient-sdk/src/lib/models/PlanStatus';
+import { APIPlansApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIPlansApi';
+import { PlanSecurityType } from '@gravitee/management-webclient-sdk/src/lib/models/PlanSecurityType';
+import { ApplicationEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApplicationEntity';
+import { Subscription } from '@gravitee/management-webclient-sdk/src/lib/models/Subscription';
+import { ApiKeyEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApiKeyEntity';
 import { ApplicationsFaker } from '@gravitee/fixtures/management/ApplicationsFaker';
-import { LifecycleAction } from '../../../../../lib/management-webclient-sdk/src/lib/models/LifecycleAction';
-import { ApplicationsApi } from '../../../../../lib/management-webclient-sdk/src/lib/apis/ApplicationsApi';
-import { ApplicationSubscriptionsApi } from '../../../../../lib/management-webclient-sdk/src/lib/apis/ApplicationSubscriptionsApi';
+import { LifecycleAction } from '@gravitee/management-webclient-sdk/src/lib/models/LifecycleAction';
+import { ApplicationsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ApplicationsApi';
+import { ApplicationSubscriptionsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ApplicationSubscriptionsApi';
 import { fetchGatewaySuccess } from '@gravitee/utils/apim-http';
-import { FlowMethodsEnum } from '../../../../../lib/management-webclient-sdk/src/lib/models/Flow';
-import { UpdatePlanEntityFromJSON } from '../../../../../lib/management-webclient-sdk/src/lib/models/UpdatePlanEntity';
-import { PathOperatorOperatorEnum } from '../../../../../lib/management-webclient-sdk/src/lib/models/PathOperator';
-import { PlanEntity, PlanEntityToJSON } from '../../../../../lib/management-webclient-sdk/src/lib/models/PlanEntity';
-import { UpdateApiEntityFromJSON } from '../../../../../lib/management-webclient-sdk/src/lib/models/UpdateApiEntity';
+import { FlowMethodsEnum } from '@gravitee/management-webclient-sdk/src/lib/models/Flow';
+import { UpdatePlanEntityFromJSON } from '@gravitee/management-webclient-sdk/src/lib/models/UpdatePlanEntity';
+import { PathOperatorOperatorEnum } from '@gravitee/management-webclient-sdk/src/lib/models/PathOperator';
+import { PlanEntity, PlanEntityToJSON } from '@gravitee/management-webclient-sdk/src/lib/models/PlanEntity';
+import { UpdateApiEntityFromJSON } from '@gravitee/management-webclient-sdk/src/lib/models/UpdateApiEntity';
 import { succeed } from '@lib/jest-utils';
 import { teardownApisAndApplications } from '@gravitee/utils/management';
 

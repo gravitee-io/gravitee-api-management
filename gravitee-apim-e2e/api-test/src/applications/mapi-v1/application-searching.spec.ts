@@ -15,7 +15,7 @@
  */
 import { afterAll, beforeAll, expect } from '@jest/globals';
 import faker from '@faker-js/faker';
-import { ApplicationsApi } from '../../../../lib/management-webclient-sdk/src/lib/apis/ApplicationsApi';
+import { ApplicationsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ApplicationsApi';
 import {
   ADMIN_USER,
   APP_USER,
@@ -24,7 +24,7 @@ import {
   forManagementAsAppUser,
 } from '@gravitee/utils/configuration';
 import { succeed } from '@lib/jest-utils';
-import { ApplicationEntity } from '../../../../lib/management-webclient-sdk/src/lib/models/ApplicationEntity';
+import { ApplicationEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApplicationEntity';
 
 const applicationManagementApiAsAdminUser = new ApplicationsApi(forManagementAsAdminUser());
 const applicationManagementApiAsAppUser = new ApplicationsApi(forManagementAsAppUser());
