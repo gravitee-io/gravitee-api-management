@@ -36,7 +36,7 @@
       <mat-card-content>
         <p>
           Limit the duration of API full logging (0 means no max duration). This avoids API publishers to log headers and / or body payload
-          durin too much time and avoir to consume too much CPU/memory. By default, the calls are logged with the minimal information.
+          during too much time and avoid to consume too much CPU/memory. By default, the calls are logged with the minimal information.
         </p>
         <mat-form-field
           [matTooltip]="providedConfigurationMessage"
@@ -96,7 +96,7 @@
     <mat-card class="api-logging__form__card" formGroupName="user">
       <h2 gioTableOfContents>User</h2>
       <mat-card-content>
-        <p>Display or not the end user in case of a OAuth2 / JWT plan (extracted fro mthe sub claim).</p>
+        <p>Display or not the end user in case of a OAuth2 / JWT plan (extracted from the sub claim).</p>
         <gio-form-slide-toggle
           [matTooltip]="providedConfigurationMessage"
           [matTooltipDisabled]="!isReadonly('logging.user.displayed')"
@@ -116,7 +116,7 @@
 
     <mat-card class="api-logging__form__card" formGroupName="messageSampling">
       <h2 gioTableOfContents>Message Sampling</h2>
-      <p>A sampling strategy is applied to prevent issue while logging messages.</p>
+      <p>A sampling strategy is applied to prevent issues while logging messages.</p>
       <mat-card-content>
         <ng-container formGroupName="probabilistic">
           <h3>Probabilistic</h3>
