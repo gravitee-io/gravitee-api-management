@@ -1,3 +1,10 @@
+## [3.0.1](https://github.com/gravitee-io/gravitee-reporter-file/compare/3.0.0...3.0.1) (2023-11-06)
+
+
+### Bug Fixes
+
+* bump gravitee-reporter-common to fix espace issue ([f549481](https://github.com/gravitee-io/gravitee-reporter-file/commit/f5494812a5e1fa43f5307670cdf4d00c22133ade))
+
 # [3.0.0](https://github.com/gravitee-io/gravitee-reporter-file/compare/2.5.5...3.0.0) (2023-09-01)
 
 
