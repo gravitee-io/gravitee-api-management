@@ -37,6 +37,15 @@ $typography: map.get(gio.$mat-theme, typography);
     margin-top: 8px;
     margin-bottom: 8px;
 
+    &:has(.gio-badge-primary) {
+      margin-top: 24px;
+      margin-bottom: 0;
+    }
+
+    &:has(api-runtime-logs-message-item-content) {
+      margin-top: 0;
+    }
+
     &__cell {
       display: flex;
       flex-direction: row;
@@ -54,11 +63,17 @@ $typography: map.get(gio.$mat-theme, typography);
       color: mat.get-color-from-palette(gio.$mat-space-palette, 'default');
       @include mat.typography-level($typography, body-1);
     }
+
+    &__value.gio-badge-warning,
+    &__value.gio-badge-accent {
+      @include mat.typography-level($typography, caption);
+    }
   }
 
   .gio-badge-primary,
   .gio-badge-neutral,
-  .gio-badge-accent {
+  .gio-badge-accent,
+  .gio-badge-warning {
     font-weight: 700;
 
     mat-icon {

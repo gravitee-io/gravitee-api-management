@@ -50,7 +50,9 @@
     <div class="log__row">
       <div class="log__row__cell">
         <div class="log__row__property">Operation:</div>
-        <div class="log__row__value">{{ messageLog.operation | lowercase }}</div>
+        <div class="log__row__value" [ngClass]="messageLog.operation === 'SUBSCRIBE' ? 'gio-badge-accent' : 'gio-badge-warning'">
+          {{ messageLog.operation | lowercase }}
+        </div>
       </div>
     </div>
 
