@@ -13,19 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { APIsApi } from '../../../../lib/management-webclient-sdk/src/lib/apis/APIsApi';
+import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { forManagementAsApiUser, forPortalAsApiUser } from '@gravitee/utils/configuration';
 import { afterAll, beforeAll, describe, expect } from '@jest/globals';
 import { fail, succeed } from '@lib/jest-utils';
 import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
-import { ApiEntity } from '../../../../lib/management-webclient-sdk/src/lib/models/ApiEntity';
+import { ApiEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
 import { PlansFaker } from '@gravitee/fixtures/management/PlansFaker';
-import { LifecycleAction } from '../../../../lib/management-webclient-sdk/src/lib/models/LifecycleAction';
-import { PlanStatus } from '../../../../lib/management-webclient-sdk/src/lib/models/PlanStatus';
+import { LifecycleAction } from '@gravitee/management-webclient-sdk/src/lib/models/LifecycleAction';
+import { PlanStatus } from '@gravitee/management-webclient-sdk/src/lib/models/PlanStatus';
 import { fetchGatewaySuccess } from '@gravitee/utils/apim-http';
 import { teardownApisAndApplications } from '@gravitee/utils/management';
-import { ApiLifecycleState, UpdateApiEntityFromJSON, Visibility } from '../../../../lib/management-webclient-sdk/src/lib/models';
-import { ApiApi } from '../../../../lib/portal-webclient-sdk/src/lib';
+import { ApiLifecycleState, UpdateApiEntityFromJSON, Visibility } from '@gravitee/management-webclient-sdk/src/lib/models';
+import { ApiApi } from '@gravitee/portal-webclient-sdk/src/lib';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';

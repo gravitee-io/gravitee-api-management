@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 import { afterAll, beforeAll, describe, expect, test } from '@jest/globals';
-import { APIsApi } from '../../../../../../lib/management-webclient-sdk/src/lib/apis/APIsApi';
+import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { forManagementAsAdminUser } from '@gravitee/utils/configuration';
 import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
-import { ConfigurationApi } from '../../../../../../lib/management-webclient-sdk/src/lib/apis/ConfigurationApi';
+import { ConfigurationApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ConfigurationApi';
 import { succeed } from '@lib/jest-utils';
-import { UsersApi } from '../../../../../../lib/management-webclient-sdk/src/lib/apis/UsersApi';
-import { UserEntity } from '../../../../../../lib/management-webclient-sdk/src/lib/models/UserEntity';
-import { RoleScope } from '../../../../../../lib/management-webclient-sdk/src/lib/models/RoleScope';
+import { UsersApi } from '@gravitee/management-webclient-sdk/src/lib/apis/UsersApi';
+import { UserEntity } from '@gravitee/management-webclient-sdk/src/lib/models/UserEntity';
+import { RoleScope } from '@gravitee/management-webclient-sdk/src/lib/models/RoleScope';
 import { RoleFaker } from '@gravitee/fixtures/management/RoleFaker';
 import { UsersFaker } from '@gravitee/fixtures/management/UsersFaker';
-import { RoleEntity } from '../../../../../../lib/management-webclient-sdk/src/lib/models/RoleEntity';
+import { RoleEntity } from '@gravitee/management-webclient-sdk/src/lib/models/RoleEntity';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';

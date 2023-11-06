@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ApiLogsResponse, ApiMessageLogsResponse, APIsApi, HttpListener } from '../../../../../lib/management-v2-webclient-sdk/src/lib';
+import { ApiLogsResponse, ApiMessageLogsResponse, APIsApi, HttpListener } from '@gravitee/management-v2-webclient-sdk/src/lib';
 import { forManagementV2AsApiUser } from '@gravitee/utils/configuration';
 import { afterAll, describe, expect, test } from '@jest/globals';
 import { created, noContent } from '@lib/jest-utils';
 import { MAPIV2ApisFaker } from '@gravitee/fixtures/management/MAPIV2ApisFaker';
-import { AnalyticsLogsApi, APIPlansApi, ApiV4, Pagination } from '../../../../../lib/management-v2-webclient-sdk/src/lib';
+import { AnalyticsLogsApi, APIPlansApi, ApiV4, Pagination } from '@gravitee/management-v2-webclient-sdk/src/lib';
 import { MAPIV2PlansFaker } from '@gravitee/fixtures/management/MAPIV2PlansFaker';
 import { fetchGatewaySuccess, fetchRestApiSuccess } from '@gravitee/utils/apim-http';
 import { DateUtils } from '@gravitee/utils/dates';

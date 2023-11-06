@@ -15,10 +15,10 @@
  */
 import { afterAll, beforeAll, describe, expect, test } from '@jest/globals';
 import { succeed } from '@lib/jest-utils';
-import { APIsApi } from '../../../../../lib/management-webclient-sdk/src/lib/apis/APIsApi';
+import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
 import { PlansFaker } from '@gravitee/fixtures/management/PlansFaker';
-import { LifecycleAction } from '../../../../../lib/management-webclient-sdk/src/lib/models/LifecycleAction';
+import { LifecycleAction } from '@gravitee/management-webclient-sdk/src/lib/models/LifecycleAction';
 import { forManagementAsApiUser } from '@gravitee/utils/configuration';
 import {
   ApiEntity,
@@ -26,7 +26,7 @@ import {
   PlanSecurityType,
   PlanStatus,
   UpdateApiEntityFromJSON,
-} from '../../../../../lib/management-webclient-sdk/src/lib/models';
+} from '@gravitee/management-webclient-sdk/src/lib/models';
 import { teardownApisAndApplications } from '@gravitee/utils/management';
 import { PropertyEntity } from '@model/apis';
 import { fetchGatewaySuccess } from '@gravitee/utils/apim-http';

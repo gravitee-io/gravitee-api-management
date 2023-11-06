@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 import { test, describe, expect, afterAll } from '@jest/globals';
-import { APIsApi, ApiV4 } from '../../../../../../lib/management-v2-webclient-sdk/src/lib';
+import { APIsApi, ApiV4 } from '@gravitee/management-v2-webclient-sdk/src/lib';
 import { forManagementAsApiUser, forManagementV2AsApiUser } from '@gravitee/utils/configuration';
 import { MAPIV2ApisFaker } from '@gravitee/fixtures/management/MAPIV2ApisFaker';
 import { created, noContent, succeed } from '@lib/jest-utils';
 import { MAPIV2PagesFaker } from '@gravitee/fixtures/management/MAPIV2PagesFaker';
-import { APIPagesApi } from '../../../../../../lib/management-webclient-sdk/src/lib/apis/APIPagesApi';
-import { PageEntity } from '../../../../../../lib/management-webclient-sdk/src/lib/models';
+import { APIPagesApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIPagesApi';
+import { PageEntity } from '@gravitee/management-webclient-sdk/src/lib/models';
 import faker from '@faker-js/faker';
 import { MAPIV2MediaFaker } from '@gravitee/fixtures/management/MAPIV2MediaFaker';
 import { ImagesUtils } from '@gravitee/utils/images';

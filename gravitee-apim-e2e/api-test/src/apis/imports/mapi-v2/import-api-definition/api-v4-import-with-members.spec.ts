@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { test, describe, afterAll, expect } from '@jest/globals';
-import { APIsApi, ApiV4 } from '../../../../../../lib/management-v2-webclient-sdk/src/lib';
+import { APIsApi, ApiV4 } from '@gravitee/management-v2-webclient-sdk/src/lib';
 import {
   forManagementAsAdminUser,
   forManagementAsApiUser,
@@ -22,11 +22,11 @@ import {
   forManagementV2AsApiUser,
 } from '@gravitee/utils/configuration';
 import { created, forbidden, noContent, succeed } from '@lib/jest-utils';
-import { RoleEntity, RoleScope, UserEntity } from '../../../../../../lib/management-webclient-sdk/src/lib/models';
-import { APIsApi as v1APIsApi } from '../../../../../../lib/management-webclient-sdk/src/lib/apis/APIsApi';
-import { UsersApi } from '../../../../../../lib/management-webclient-sdk/src/lib/apis/UsersApi';
+import { RoleEntity, RoleScope, UserEntity } from '@gravitee/management-webclient-sdk/src/lib/models';
+import { APIsApi as v1APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
+import { UsersApi } from '@gravitee/management-webclient-sdk/src/lib/apis/UsersApi';
 import { UsersFaker } from '@gravitee/fixtures/management/UsersFaker';
-import { ConfigurationApi } from '../../../../../../lib/management-webclient-sdk/src/lib/apis/ConfigurationApi';
+import { ConfigurationApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ConfigurationApi';
 import { RoleFaker } from '@gravitee/fixtures/management/RoleFaker';
 import { MAPIV2ApisFaker } from '@gravitee/fixtures/management/MAPIV2ApisFaker';
 import { MAPIV2MembersFaker } from '@gravitee/fixtures/management/MAPIV2MembersFaker';

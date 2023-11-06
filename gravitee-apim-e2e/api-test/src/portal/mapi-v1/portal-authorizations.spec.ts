@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ApiApi, GetPageByApiIdAndPageIdIncludeEnum } from '../../../../lib/portal-webclient-sdk/src/lib/apis/ApiApi';
+import { ApiApi, GetPageByApiIdAndPageIdIncludeEnum } from '@gravitee/portal-webclient-sdk/src/lib/apis/ApiApi';
 import { ANONYMOUS, forPortal, SIMPLE_USER } from '@gravitee/utils/configuration';
 import { authorized, unauthorized } from '@lib/jest-utils';
 import { describe, test } from '@jest/globals';
-import { ApplicationApi } from '../../../../lib/portal-webclient-sdk/src/lib/apis/ApplicationApi';
-import { AuthenticationApi } from '../../../../lib/portal-webclient-sdk/src/lib/apis/AuthenticationApi';
-import { PortalApi } from '../../../../lib/portal-webclient-sdk/src/lib/apis/PortalApi';
-import { GroupApi } from '../../../../lib/portal-webclient-sdk/src/lib/apis/GroupApi';
-import { SubscriptionApi } from '../../../../lib/portal-webclient-sdk/src/lib/apis/SubscriptionApi';
-import { UsersApi } from '../../../../lib/portal-webclient-sdk/src/lib/apis/UsersApi';
-import { UserApi } from '../../../../lib/portal-webclient-sdk/src/lib/apis/UserApi';
+import { ApplicationApi } from '@gravitee/portal-webclient-sdk/src/lib/apis/ApplicationApi';
+import { AuthenticationApi } from '@gravitee/portal-webclient-sdk/src/lib/apis/AuthenticationApi';
+import { PortalApi } from '@gravitee/portal-webclient-sdk/src/lib/apis/PortalApi';
+import { GroupApi } from '@gravitee/portal-webclient-sdk/src/lib/apis/GroupApi';
+import { SubscriptionApi } from '@gravitee/portal-webclient-sdk/src/lib/apis/SubscriptionApi';
+import { UsersApi } from '@gravitee/portal-webclient-sdk/src/lib/apis/UsersApi';
+import { UserApi } from '@gravitee/portal-webclient-sdk/src/lib/apis/UserApi';
 const apiId = 'API';
 const pageId = 'PAGE';
 const applicationId = 'APP';

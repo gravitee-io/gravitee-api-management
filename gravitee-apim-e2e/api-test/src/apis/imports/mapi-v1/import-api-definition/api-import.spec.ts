@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 import { afterAll, beforeAll, describe, expect, test } from '@jest/globals';
-import { APIsApi } from '../../../../../../lib/management-webclient-sdk/src/lib/apis/APIsApi';
+import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { forManagementAsApiUser } from '@gravitee/utils/configuration';
 import { ApiImportEntity, ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
 import { fail, succeed } from '@lib/jest-utils';
-import { ApiEntity, ApiEntityStateEnum } from '../../../../../../lib/management-webclient-sdk/src/lib/models/ApiEntity';
-import { Visibility } from '../../../../../../lib/management-webclient-sdk/src/lib/models/Visibility';
-import { ApiLifecycleState } from '../../../../../../lib/management-webclient-sdk/src/lib/models/ApiLifecycleState';
+import { ApiEntity, ApiEntityStateEnum } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
+import { Visibility } from '@gravitee/management-webclient-sdk/src/lib/models/Visibility';
+import { ApiLifecycleState } from '@gravitee/management-webclient-sdk/src/lib/models/ApiLifecycleState';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';

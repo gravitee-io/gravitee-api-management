@@ -14,22 +14,22 @@
  * limitations under the License.
  */
 import { afterAll, beforeAll, describe, expect } from '@jest/globals';
-import { Application } from '../../../../../lib/portal-webclient-sdk/src/lib/models/Application';
+import { Application } from '@gravitee/portal-webclient-sdk/src/lib/models/Application';
 import { PortalApplicationFaker } from '@gravitee/fixtures/portal/PortalApplicationFaker';
-import { SubscriptionApi } from '../../../../../lib/portal-webclient-sdk/src/lib/apis/SubscriptionApi';
+import { SubscriptionApi } from '@gravitee/portal-webclient-sdk/src/lib/apis/SubscriptionApi';
 import { forManagementV2AsApiUser, forPortalAsAppUser } from '@gravitee/utils/configuration';
-import { ApplicationApi } from '../../../../../lib/portal-webclient-sdk/src/lib/apis/ApplicationApi';
-import { PlanValidationType } from '../../../../../lib/management-webclient-sdk/src/lib/models';
+import { ApplicationApi } from '@gravitee/portal-webclient-sdk/src/lib/apis/ApplicationApi';
+import { PlanValidationType } from '@gravitee/management-webclient-sdk/src/lib/models';
 import { MAPIV2PlansFaker } from '@gravitee/fixtures/management/MAPIV2PlansFaker';
 import { MAPIV2ApisFaker } from '@gravitee/fixtures/management/MAPIV2ApisFaker';
-import { Subscription, SubscriptionStatusEnum } from '../../../../../lib/portal-webclient-sdk/src/lib';
-import { APISubscriptionsApi } from '../../../../../lib/management-v2-webclient-sdk/src/lib/apis/APISubscriptionsApi';
+import { Subscription, SubscriptionStatusEnum } from '@gravitee/portal-webclient-sdk/src/lib';
+import { APISubscriptionsApi } from '@gravitee/management-v2-webclient-sdk/src/lib/apis/APISubscriptionsApi';
 import { teardownV4ApisAndApplications } from '@gravitee/utils/management';
 import { verifyWiremockRequest } from '@gravitee/utils/wiremock';
 import faker from '@faker-js/faker';
 import { sleep } from '@gravitee/utils/apim-http';
 import { describeIfV4EmulationEngine } from '@lib/jest-utils';
-import { Api, APIPlansApi, APIsApi, Plan, PlanMode, PlanValidation } from '../../../../../lib/management-v2-webclient-sdk/src/lib';
+import { Api, APIPlansApi, APIsApi, Plan, PlanMode, PlanValidation } from '@gravitee/management-v2-webclient-sdk/src/lib';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';

@@ -14,25 +14,25 @@
  * limitations under the License.
  */
 import { afterAll, beforeAll, describe, expect, test } from '@jest/globals';
-import { APIsApi } from '../../../../../lib/management-webclient-sdk/src/lib/apis/APIsApi';
+import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { forManagementAsApiUser } from '@gravitee/utils/configuration';
-import { ApplicationsApi } from '../../../../../lib/management-webclient-sdk/src/lib/apis/ApplicationsApi';
-import { ApplicationSubscriptionsApi } from '../../../../../lib/management-webclient-sdk/src/lib/apis/ApplicationSubscriptionsApi';
-import { ApiEntity } from '../../../../../lib/management-webclient-sdk/src/lib/models/ApiEntity';
-import { ApplicationEntity, ApplicationEntityToJSON } from '../../../../../lib/management-webclient-sdk/src/lib/models/ApplicationEntity';
-import { PlanEntity } from '../../../../../lib/management-webclient-sdk/src/lib/models/PlanEntity';
-import { Subscription } from '../../../../../lib/management-webclient-sdk/src/lib/models/Subscription';
+import { ApplicationsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ApplicationsApi';
+import { ApplicationSubscriptionsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ApplicationSubscriptionsApi';
+import { ApiEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
+import { ApplicationEntity, ApplicationEntityToJSON } from '@gravitee/management-webclient-sdk/src/lib/models/ApplicationEntity';
+import { PlanEntity } from '@gravitee/management-webclient-sdk/src/lib/models/PlanEntity';
+import { Subscription } from '@gravitee/management-webclient-sdk/src/lib/models/Subscription';
 import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
 import { PlansFaker } from '@gravitee/fixtures/management/PlansFaker';
-import { PlanSecurityType } from '../../../../../lib/management-webclient-sdk/src/lib/models/PlanSecurityType';
-import { PlanStatus } from '../../../../../lib/management-webclient-sdk/src/lib/models/PlanStatus';
-import { UpdatePlanEntityFromJSON } from '../../../../../lib/management-webclient-sdk/src/lib/models/UpdatePlanEntity';
+import { PlanSecurityType } from '@gravitee/management-webclient-sdk/src/lib/models/PlanSecurityType';
+import { PlanStatus } from '@gravitee/management-webclient-sdk/src/lib/models/PlanStatus';
+import { UpdatePlanEntityFromJSON } from '@gravitee/management-webclient-sdk/src/lib/models/UpdatePlanEntity';
 import { ApplicationsFaker } from '@gravitee/fixtures/management/ApplicationsFaker';
-import { LifecycleAction } from '../../../../../lib/management-webclient-sdk/src/lib/models/LifecycleAction';
+import { LifecycleAction } from '@gravitee/management-webclient-sdk/src/lib/models/LifecycleAction';
 import { fetchGatewaySuccess, fetchGatewayUnauthorized } from '@gravitee/utils/apim-http';
 import * as jwt from 'jsonwebtoken';
 import { teardownApisAndApplications } from '@gravitee/utils/management';
-import { PathOperatorOperatorEnum } from '../../../../../lib/management-webclient-sdk/src/lib/models/PathOperator';
+import { PathOperatorOperatorEnum } from '@gravitee/management-webclient-sdk/src/lib/models/PathOperator';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';

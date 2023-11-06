@@ -13,18 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { test, describe, expect, afterAll } from '@jest/globals';
-import { APIsApi, APIPlansApi, ApiV4, PlanSecurityType, PlanV4 } from '../../../../../../lib/management-v2-webclient-sdk/src/lib';
+import { test, describe, expect } from '@jest/globals';
+import { APIsApi, APIPlansApi, ApiV4, PlanSecurityType, PlanV4 } from '@gravitee/management-v2-webclient-sdk/src/lib';
 import { forManagementAsAdminUser, forManagementAsApiUser, forManagementV2AsApiUser } from '@gravitee/utils/configuration';
 import { MAPIV2ApisFaker } from '@gravitee/fixtures/management/MAPIV2ApisFaker';
 import { created, noContent, succeed } from '@lib/jest-utils';
 import { MAPIV2PlansFaker } from '@gravitee/fixtures/management/MAPIV2PlansFaker';
-import { APIsApi as v1APIsApi } from '../../../../../../lib/management-webclient-sdk/src/lib/apis/APIsApi';
-import { UsersApi } from '../../../../../../lib/management-webclient-sdk/src/lib/apis/UsersApi';
-import { ConfigurationApi } from '../../../../../../lib/management-webclient-sdk/src/lib/apis/ConfigurationApi';
-import { PageEntity, RoleEntity, RoleScope, UserEntity } from '../../../../../../lib/management-webclient-sdk/src/lib/models';
+import { APIsApi as v1APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
+import { UsersApi } from '@gravitee/management-webclient-sdk/src/lib/apis/UsersApi';
+import { ConfigurationApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ConfigurationApi';
+import { PageEntity, RoleEntity, RoleScope, UserEntity } from '@gravitee/management-webclient-sdk/src/lib/models';
 import { MAPIV2MetadataFaker } from '@gravitee/fixtures/management/MAPIV2MetadataFaker';
-import { APIPagesApi } from '../../../../../../lib/management-webclient-sdk/src/lib/apis/APIPagesApi';
+import { APIPagesApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIPagesApi';
 import { MAPIV2PagesFaker } from '@gravitee/fixtures/management/MAPIV2PagesFaker';
 import { UsersFaker } from '@gravitee/fixtures/management/UsersFaker';
 import { RoleFaker } from '@gravitee/fixtures/management/RoleFaker';

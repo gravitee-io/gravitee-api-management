@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { test, describe, expect, afterAll } from '@jest/globals';
-import { APIsApi, APIPlansApi, ApiV4, PlanSecurityType, PlanV4 } from '../../../../../../lib/management-v2-webclient-sdk/src/lib';
+import { APIsApi, APIPlansApi, ApiV4, PlanSecurityType, PlanV4 } from '@gravitee/management-v2-webclient-sdk/src/lib';
 import { forManagementV2AsApiUser } from '@gravitee/utils/configuration';
 import { MAPIV2ApisFaker } from '@gravitee/fixtures/management/MAPIV2ApisFaker';
 import { created, noContent, succeed } from '@lib/jest-utils';

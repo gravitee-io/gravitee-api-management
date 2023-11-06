@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { APIsApi } from '../../../../lib/management-webclient-sdk/src/lib/apis/APIsApi';
+import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import {
   forManagementAsApiUser,
   forPortalAsAdminUser,
@@ -24,12 +24,12 @@ import {
 } from '@gravitee/utils/configuration';
 import { afterAll, beforeAll, describe, expect } from '@jest/globals';
 import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
-import { ApiApi } from '../../../../lib/portal-webclient-sdk/src/lib/apis/ApiApi';
-import { ApiEntity } from '../../../../lib/management-webclient-sdk/src/lib/models/ApiEntity';
+import { ApiApi } from '@gravitee/portal-webclient-sdk/src/lib/apis/ApiApi';
+import { ApiEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
 import { fail, succeed } from '@lib/jest-utils';
-import { ApiLifecycleState } from '../../../../lib/management-webclient-sdk/src/lib/models/ApiLifecycleState';
-import { UpdateApiEntityFromJSON } from '../../../../lib/management-webclient-sdk/src/lib/models/UpdateApiEntity';
-import { ApiResponse } from '../../../../lib/management-webclient-sdk/src/lib/runtime';
+import { ApiLifecycleState } from '@gravitee/management-webclient-sdk/src/lib/models/ApiLifecycleState';
+import { UpdateApiEntityFromJSON } from '@gravitee/management-webclient-sdk/src/lib/models/UpdateApiEntity';
+import { ApiResponse } from '@gravitee/management-webclient-sdk/src/lib/runtime';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';

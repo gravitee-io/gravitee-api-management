@@ -16,19 +16,19 @@
 import { afterAll, beforeAll, describe, expect, test } from '@jest/globals';
 
 import { APP_USER, forManagementAsAdminUser, forPortalAsAnonymous, forPortalAsAppUser } from '@gravitee/utils/configuration';
-import { APIsApi } from '../../../../lib/management-webclient-sdk/src/lib/apis/APIsApi';
+import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
 import { fail } from '@lib/jest-utils';
-import { ApiEntity } from '../../../../lib/management-webclient-sdk/src/lib/models/ApiEntity';
+import { ApiEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
 import { PagesFaker } from '@gravitee/fixtures/management/PagesFaker';
-import { PortalApi } from '../../../../lib/portal-webclient-sdk/src/lib/apis/PortalApi';
-import { PortalApi as ManagementPortalApi } from '../../../../lib/management-webclient-sdk/src/lib/apis/PortalApi';
-import { PageEntity } from '../../../../lib/management-webclient-sdk/src/lib/models/PageEntity';
-import { ConfigurationApi } from '../../../../lib/management-webclient-sdk/src/lib/apis/ConfigurationApi';
-import { GroupEntity } from '../../../../lib/management-webclient-sdk/src/lib/models/GroupEntity';
-import { UsersApi } from '../../../../lib/management-webclient-sdk/src/lib/apis/UsersApi';
-import { SearchableUser } from '../../../../lib/management-webclient-sdk/src/lib/models/SearchableUser';
-import { RoleScope } from '../../../../lib/management-webclient-sdk/src/lib/models/RoleScope';
+import { PortalApi } from '@gravitee/portal-webclient-sdk/src/lib/apis/PortalApi';
+import { PortalApi as ManagementPortalApi } from '@gravitee/management-webclient-sdk/src/lib/apis/PortalApi';
+import { PageEntity } from '@gravitee/management-webclient-sdk/src/lib/models/PageEntity';
+import { ConfigurationApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ConfigurationApi';
+import { GroupEntity } from '@gravitee/management-webclient-sdk/src/lib/models/GroupEntity';
+import { UsersApi } from '@gravitee/management-webclient-sdk/src/lib/apis/UsersApi';
+import { SearchableUser } from '@gravitee/management-webclient-sdk/src/lib/models/SearchableUser';
+import { RoleScope } from '@gravitee/management-webclient-sdk/src/lib/models/RoleScope';
 import faker from '@faker-js/faker';
 
 const orgId = 'DEFAULT';
