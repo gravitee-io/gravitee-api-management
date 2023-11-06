@@ -40,7 +40,7 @@ export class ApiDocumentationV4PagesListComponent implements OnChanges {
   @Output()
   onGoToFolder = new EventEmitter<string>();
 
-  public displayedColumns = ['name', 'status', 'visibility', 'lastUpdated', 'order', 'actions'];
+  public displayedColumns = ['name', 'status', 'visibility', 'lastUpdated', 'actions'];
   public dataSource: MatTableDataSource<Page>;
 
   ngOnChanges(changes: SimpleChanges): void {
