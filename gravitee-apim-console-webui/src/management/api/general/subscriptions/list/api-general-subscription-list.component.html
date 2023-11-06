@@ -117,7 +117,7 @@
     <ng-container matColumnDef="createdAt">
       <th mat-header-cell *matHeaderCellDef id="createdAt">Created at</th>
       <td mat-cell *matCellDef="let element">
-        {{ element.createdAt | date : 'medium' }}
+        {{ element.createdAt | date : 'yyyy-MM-dd HH:mm:ss' }}
       </td>
     </ng-container>
 
@@ -125,7 +125,7 @@
     <ng-container matColumnDef="processedAt">
       <th mat-header-cell *matHeaderCellDef id="processedAt">Processed at</th>
       <td mat-cell *matCellDef="let element">
-        {{ element.processedAt | date : 'medium' }}
+        {{ element.processedAt | date : 'yyyy-MM-dd HH:mm:ss' }}
       </td>
     </ng-container>
 
@@ -133,7 +133,7 @@
     <ng-container matColumnDef="startingAt">
       <th mat-header-cell *matHeaderCellDef id="startingAt">Start at</th>
       <td mat-cell *matCellDef="let element">
-        {{ element.startingAt | date : 'medium' }}
+        {{ element.startingAt | date : 'yyyy-MM-dd HH:mm:ss' }}
       </td>
     </ng-container>
 
@@ -141,7 +141,7 @@
     <ng-container matColumnDef="endAt">
       <th mat-header-cell *matHeaderCellDef id="endAt">End at</th>
       <td mat-cell *matCellDef="let element">
-        {{ element.endAt | date : 'medium' }}
+        {{ element.endAt | date : 'yyyy-MM-dd HH:mm:ss' }}
       </td>
     </ng-container>
 
