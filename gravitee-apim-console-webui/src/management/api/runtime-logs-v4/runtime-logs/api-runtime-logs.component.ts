@@ -43,7 +43,7 @@ export class ApiRuntimeLogsComponent implements OnInit, OnDestroy {
   apiLogsSubject$ = new ReplaySubject<ApiLogsResponse>(1);
   isMessageApi$ = this.api$.pipe(map((api: ApiV4) => api?.type === 'MESSAGE'));
   apiLogsEnabled$ = this.api$.pipe(map(ApiRuntimeLogsComponent.isLogEnabled));
-  apiPlans$ = this.planService.list(this.ajsStateParams.apiId, undefined, undefined, undefined, 1, 9999).pipe(
+  apiPlans$ = this.planService.list(this.ajsStateParams.apiId, undefined, ['PUBLISHED', 'DEPRECATED', 'CLOSED'], undefined, 1, 9999).pipe(
     map((plans) => plans.data),
     shareReplay(1),
   );
