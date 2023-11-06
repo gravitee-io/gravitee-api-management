@@ -57,7 +57,6 @@ $typography: map.get(gio.$mat-theme, typography);
 
     &__value {
       word-break: break-all;
-      color: mat.get-color-from-palette(gio.$mat-space-palette, 'default');
       @include mat.typography-level($typography, body-1);
     }
   }
