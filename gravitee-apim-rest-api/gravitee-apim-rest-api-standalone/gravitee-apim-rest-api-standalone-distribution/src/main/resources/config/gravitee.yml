@@ -437,18 +437,18 @@ user:
   # Passwords should require a minimum level of complexity that makes sense for the application and its user population.
   password:
     policy:
-      # Regex pattern for password validation (default to OWASP recommendations).
-      # 8 to 32 characters, no more than 2 consecutive equal characters, min 1 special characters (@ & # ...), min 1 upper case character.
-      pattern: ^(?:(?=.*\d)(?=.*[A-Z])(?=.*[a-z])|(?=.*\d)(?=.*[^A-Za-z0-9])(?=.*[a-z])|(?=.*[^A-Za-z0-9])(?=.*[A-Z])(?=.*[a-z])|(?=.*\d)(?=.*[A-Z])(?=.*[^A-Za-z0-9]))(?!.*(.)\1{2,})[A-Za-z0-9!~<>,;:_\-=?*+#."'&§`£€%°()\\\|\[\]\-\$\^\@\/]{8,32}$
-              # Example : ^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\S+$).{8,}$
-              # ^                # start-of-string
-              #(?=.*[0-9])       # a digit must occur at least once
-              #(?=.*[a-z])       # a lower case letter must occur at least once
-              #(?=.*[A-Z])       # an upper case letter must occur at least once
-              #(?=.*[@#$%^&+=])  # a special character must occur at least once
-              #(?=\S+$)          # no whitespace allowed in the entire string
-              #.{8,}             # anything, at least eight places though
-              #$                 # end-of-string
+      # description field is used to display a message to the user enter a password that does not match the policy. Leave it blank to disable the message.
+      description: Password must be at least 12 characters long, contain at least one digit, one upper case letter, one lower case letter, one special character, and no more than 2 consecutive equal characters.
+      pattern: ^(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z])(?=.*[!~<>.,;:_=?/*+\-#\"'&§`£€%°()|\[\]$^@])(?!.*(.)\1{2,}).{12,128}$
+              # Example : ^(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z])(?=.*[!~<>.,;:_=?/*+\-#\"'&§`£€%°()|\[\]$^@])(?!.*(.)\1{2,}).{12,128}$
+              # ^                                            # start-of-string
+              #(?=.*[0-9])                                   # a digit must occur at least once
+              #(?=.*[A-Z])                                   # an upper case letter must occur at least once
+              #(?=.*[a-z])                                   # a lower case letter must occur at least once
+              #(?=.*[!~<>.,;:_=?/*+\-#\"'&§`£€%°()|\[\]$^@]) # a special character must occur at least once
+              #((?!.*(.)\1{2,})                              # no more than 2 consecutive equal characters
+              #.{12,128}                                     # anything, between 12 and 128 characters
+              #$                                             # end-of-string
   creation:
     token:
       #expire-after: 86400
