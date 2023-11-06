@@ -20,6 +20,7 @@ import { StateParams } from '@uirouter/core';
 import { catchError, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { BehaviorSubject, Observable, of, Subject } from 'rxjs';
 import { uniqBy } from 'lodash';
+import { MatTabChangeEvent } from '@angular/material/tabs';
 
 import { ApiLogsV2Service } from '../../../../services-ngx/api-logs-v2.service';
 import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
@@ -40,6 +41,7 @@ export class ApiRuntimeLogsMessagesComponent implements OnInit, OnDestroy {
   public messageLogs$: BehaviorSubject<AggregatedMessageLog[]> = new BehaviorSubject<AggregatedMessageLog[]>([]);
   public pageIndex = 1;
   public pageCount: number;
+  public selectedTab: string;
 
   constructor(
     @Inject(UIRouterState) private readonly ajsState: StateService,
@@ -122,5 +124,9 @@ export class ApiRuntimeLogsMessagesComponent implements OnInit, OnDestroy {
         this.connectorIcons[connectorId] = this.iconService.registerSvg(connectorId, connectorPlugin.icon);
       });
     }
+  }
+
+  onTabChange($event: MatTabChangeEvent) {
+    this.selectedTab = $event.tab.textLabel;
   }
 }

@@ -24,7 +24,7 @@
     <a mat-button mat-raised-button [uiSref]="'management.apis.runtimeLogs'" aria-label="Back to Connections">Back to Connections</a>
   </div>
 
-  <mat-tab-group>
+  <mat-tab-group (selectedTabChange)="onTabChange($event)">
     <mat-tab label="Connection Logs">
       <div *ngIf="connectionLog$ | async as connectionLogDetail; else showEmptyState" class="connection-log">
         <api-runtime-logs-message-connection-log [connectionLogDetail]="connectionLogDetail"></api-runtime-logs-message-connection-log>
@@ -52,7 +52,7 @@
     </mat-tab>
   </mat-tab-group>
 
-  <div class="card__footer" *ngIf="pageIndex <= pageCount">
+  <div class="card__footer" *ngIf="pageIndex <= pageCount && selectedTab === 'Messages'">
     <button mat-button mat-raised-button aria-label="Load 5 more" (click)="loadMoreMessages()">Load 5 more</button>
   </div>
 </mat-card>
