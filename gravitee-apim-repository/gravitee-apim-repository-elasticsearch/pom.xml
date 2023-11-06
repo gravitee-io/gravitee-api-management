@@ -32,7 +32,7 @@
 
     <properties>
         <elasticsearch.version>5.6.16</elasticsearch.version>
-        <gravitee-common-elasticsearch.version>4.2.0</gravitee-common-elasticsearch.version>
+        <gravitee-common-elasticsearch.version>4.2.1</gravitee-common-elasticsearch.version>
         <lucene.version>6.6.1</lucene.version>
     </properties>
 
