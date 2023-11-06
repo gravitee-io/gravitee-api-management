@@ -54,6 +54,7 @@ public class PortalSettingsEntity extends AbstractCommonSettingsEntity {
     private PortalReCaptcha reCaptcha;
     private PortalScheduler scheduler;
     private Dashboards dashboards;
+    private User user;
 
     public PortalSettingsEntity() {
         super();
@@ -75,6 +76,7 @@ public class PortalSettingsEntity extends AbstractCommonSettingsEntity {
         scheduler = new PortalScheduler();
         dashboards = new Dashboards();
         logging = new Logging();
+        user = new User();
     }
 
     // Classes

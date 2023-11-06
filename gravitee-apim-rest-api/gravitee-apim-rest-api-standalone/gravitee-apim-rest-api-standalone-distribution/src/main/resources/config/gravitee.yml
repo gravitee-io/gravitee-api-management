@@ -490,14 +490,21 @@ user:
   password:
     policy:
       # description field is used to display a message to the user enter a password that does not match the policy. Leave it blank to disable the message.
-      description: Password must be at least 12 characters long, contain at least one digit, one upper case letter, one lower case letter, one special character, and no more than 2 consecutive equal characters.
-      pattern: ^(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z])(?=.*[!~<>.,;:_=?/*+\-#\"'&§`£€%°()|\[\]$^@])(?!.*(.)\1{2,}).{12,128}$
-              # Example : ^(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z])(?=.*[!~<>.,;:_=?/*+\-#\"'&§`£€%°()|\[\]$^@])(?!.*(.)\1{2,}).{12,128}$
+      description: |
+        Password must:
+          - be at least 12 characters long
+          - contain at least one digit
+          - contain one upper case letter
+          - contain one lower case letter
+          - contain one special character
+          - contain no more than 2 consecutive equal characters
+      pattern: ^(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z])(?=.*[!~<>.,:_=?\/*+\-#\"'&§`£€%°()|\[\]$^@])(?!.*(.)\1{2,}).{12,128}$
+        # Example : ^(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z])(?=.*[!~<>.,:_=?\/*+\-#\"'&§`£€%°()|\[\]$^@])(?!.*(.)\1{2,}).{12,128}$
               # ^                                            # start-of-string
               #(?=.*[0-9])                                   # a digit must occur at least once
               #(?=.*[A-Z])                                   # an upper case letter must occur at least once
               #(?=.*[a-z])                                   # a lower case letter must occur at least once
-              #(?=.*[!~<>.,;:_=?/*+\-#\"'&§`£€%°()|\[\]$^@]) # a special character must occur at least once
+              #(?=.*[!~<>.,:_=?\/*+\-#\"'&§`£€%°()|\[\]$^@]) # a special character must occur at least once
               #((?!.*(.)\1{2,})                              # no more than 2 consecutive equal characters
               #.{12,128}                                     # anything, between 12 and 128 characters
               #$                                             # end-of-string

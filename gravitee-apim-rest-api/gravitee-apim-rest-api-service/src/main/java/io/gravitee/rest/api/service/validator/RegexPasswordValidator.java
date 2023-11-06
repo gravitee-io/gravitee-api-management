@@ -31,7 +31,7 @@ public class RegexPasswordValidator implements PasswordValidator, InitializingBe
     private Matcher matcher;
 
     @Value(
-        "${user.password.policy.pattern:^(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z])(?=.*[!~<>.,;:_=?/*+\\-#\\\"'&§`£€%°()|\\[\\]$^@])(?!.*(.)\\1{2,}).{12,128}$}"
+        "${user.password.policy.pattern:^(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z])(?=.*[!~<>.,:_=?\\/*+\\-#\\\"'&§`£€%°()|\\[\\]$^@])(?!.*(.)\\1{2,}).{12,128}$}"
     )
     private String passwordPattern;
 

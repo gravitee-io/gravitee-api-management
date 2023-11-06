@@ -437,6 +437,8 @@ public enum Key {
     PORTAL_USERCREATION_ENABLED("portal.userCreation.enabled", "true", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
     TRIAL_INSTANCE("trialInstance.enabled", Boolean.FALSE.toString(), Set.of(SYSTEM)),
     USER_GROUP_REQUIRED_ENABLED("userGroup.required.enabled", Boolean.FALSE.toString(), Set.of(ORGANIZATION, ENVIRONMENT)),
+    USER_PASSWORD_POLICY_DESCRIPTION("user.password.policy.description", "Password must be at least 12 characters long, contain at least one digit, one upper case letter, one lower case letter, one special character, and no more than 2 consecutive equal characters.", Set.of(SYSTEM)),
+    USER_PASSWORD_POLICY_PATTERN("user.password.policy.pattern", "^(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z])(?=.*[!~<>.,:_=?\\/*+\\-#\\\"'&§`£€%°()|\\[\\]$^@])(?!.*(.)\\1{2,}).{12,128}$", Set.of(SYSTEM)),
     V4_EMULATION_ENGINE_DEFAULT("api.v2.emulateV4Engine.default", "yes", Set.of(SYSTEM));
 
     final String key;

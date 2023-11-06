@@ -52,6 +52,7 @@ public class ConsoleSettingsEntity extends AbstractCommonSettingsEntity {
     private UserGroup userGroup;
     private NewtAIELGen elGen;
     private KafkaConsole kafkaConsole;
+    private User user;
 
     public ConsoleSettingsEntity() {
         super();
@@ -74,6 +75,7 @@ public class ConsoleSettingsEntity extends AbstractCommonSettingsEntity {
         userGroup = new UserGroup();
         elGen = new NewtAIELGen();
         kafkaConsole = new KafkaConsole();
+        user = new User();
     }
 
     //Classes

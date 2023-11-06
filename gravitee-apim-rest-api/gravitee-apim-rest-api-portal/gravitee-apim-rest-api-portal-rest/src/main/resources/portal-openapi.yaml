@@ -5238,6 +5238,8 @@ components:
                     $ref: "#/components/schemas/ConfigurationReCaptcha"
                 alert:
                     $ref: "#/components/schemas/Enabled"
+                user:
+                  $ref: "#/components/schemas/ConfigurationUser"
         ConfigurationPortal:
             properties:
                 title:
@@ -5441,6 +5443,14 @@ components:
                 siteKey:
                     description: reCaptcha site key
                     type: string
+        ConfigurationUser:
+          properties:
+            passwordPolicyDescription:
+              description: Description of the password policy
+              type: string
+            passwordPolicyPattern:
+              description: The pattern to validate the password
+              type: string
 
         CategorizedLinks:
             properties:

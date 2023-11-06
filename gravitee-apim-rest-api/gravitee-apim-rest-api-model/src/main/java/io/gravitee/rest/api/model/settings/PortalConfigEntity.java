@@ -44,6 +44,7 @@ public class PortalConfigEntity {
     private Dashboards dashboards;
     private AccessPoints accessPoints;
     private Logging logging;
+    private User user;
 
     public PortalConfigEntity() {
         super();
@@ -65,5 +66,6 @@ public class PortalConfigEntity {
         dashboards = new Dashboards();
         accessPoints = new AccessPoints();
         logging = new Logging();
+        user = new User();
     }
 }

@@ -41,6 +41,7 @@ public class ConsoleConfigEntity {
     private UserGroup userGroup;
     private NewtAIELGen elGen;
     private KafkaConsole kafkaConsole;
+    private User user;
 
     public ConsoleConfigEntity() {
         super();
@@ -62,5 +63,6 @@ public class ConsoleConfigEntity {
         userGroup = new UserGroup();
         elGen = new NewtAIELGen();
         kafkaConsole = new KafkaConsole();
+        user = new User();
     }
 }

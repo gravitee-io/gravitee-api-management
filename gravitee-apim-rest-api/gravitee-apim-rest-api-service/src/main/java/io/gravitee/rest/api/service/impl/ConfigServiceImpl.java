@@ -482,6 +482,8 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
             portalConfigEntity.getLogging().getMessageSampling().getProbabilistic(),
             portalConfigEntity.getLogging().getMessageSampling().getTemporal(),
             portalConfigEntity.getLogging().getMessageSampling().getWindowedCount(),
+            portalConfigEntity.getUser(),
+            portalConfigEntity.getUser().getPasswordPolicy()
         };
     }
 
@@ -522,6 +524,8 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
             consoleConfigEntity.getUserGroup(),
             consoleConfigEntity.getElGen(),
             consoleConfigEntity.getKafkaConsole(),
+            consoleConfigEntity.getUser(),
+            consoleConfigEntity.getUser().getPasswordPolicy()
         };
     }
 }
