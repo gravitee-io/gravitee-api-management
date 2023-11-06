@@ -16,7 +16,10 @@
 package io.gravitee.rest.api.management.v2.rest.resource.bootstrap;
 
 import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
+import io.gravitee.apim.core.console.use_case.GetConsoleCustomizationUseCase;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.v2.rest.mapper.ConsoleCustomizationMapper;
+import io.gravitee.rest.api.management.v2.rest.model.ConsoleCustomization;
 import io.gravitee.rest.api.model.bootstrap.ManagementUIBootstrapEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Operation;
@@ -43,10 +46,10 @@ import org.springframework.web.util.UriComponentsBuilder;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Tag(name = "Bootstrap Management UI")
-@Path("/ui/bootstrap")
+@Tag(name = "Management UI Resource")
+@Path("/ui")
 @Slf4j
-public class ManagementUIBootstrapResource {
+public class ManagementUIResource {
 
     private static final String PROPERTY_HTTP_API_MANAGEMENT_PROXY_PATH = "http.api.management.proxyPath";
     private static final String PROPERTY_HTTP_API_MANAGEMENT_ENTRYPOINT = "http.api.management.entrypoint";
@@ -57,6 +60,10 @@ public class ManagementUIBootstrapResource {
     @Autowired
     private Environment environment;
 
+    @Autowired
+    private GetConsoleCustomizationUseCase getConsoleCustomizationUseCase;
+
+    @Path("/bootstrap")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Get the console bootstrap", description = "Every users can use this service")
@@ -93,6 +100,13 @@ public class ManagementUIBootstrapResource {
                     .build()
             )
             .build();
+    }
+
+    @Path("/customization")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public ConsoleCustomization getConsoleCustomization() {
+        return ConsoleCustomizationMapper.INSTANCE.map(getConsoleCustomizationUseCase.execute().consoleCustomization());
     }
 
     private String getManagementProxyPath() {

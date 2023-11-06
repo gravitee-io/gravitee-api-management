@@ -33,6 +33,8 @@ tags:
       description: Everything about groups
     - name: Installation
       description: Base resources about the installation
+    - name: Management UI
+      description: Everything about Management UI
     - name: Plugins - Endpoints
       description: Everything about endpoint plugins
     - name: Plugins - Entrypoints
@@ -2107,6 +2109,27 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/SchemaFormResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+    /ui/customization:
+        get:
+            security: []
+            tags:
+                - Management UI
+            summary: Get customization of Console
+            description: |
+                Get the customization settings of Console.
+
+                User can only access the customization of their organization.
+                An error is returned if the OEM Customization is missing from the Gravitee License.
+            operationId: getConsoleCustomization
+            responses:
+                "200":
+                    description: The customization settings for the console.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ConsoleCustomization"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -5864,6 +5887,51 @@ components:
                     description: The configuration of the rule
             additionalProperties:
                 type: object
+        ConsoleCustomization:
+            type: object
+            properties:
+                theme:
+                    $ref: '#/components/schemas/ConsoleTheme'
+                logo:
+                    type: string
+                    description: The logo that should be displayed in the console
+                favicon:
+                    type: string
+                    description: The favicon for the console
+                title:
+                    type: string
+                    description: The title that will be displayed in the browser tab
+
+        ConsoleTheme:
+            type: object
+            description: Information related to the Console theme
+            properties:
+                menuBackground:
+                    type: string
+                    description: The background color of the menu
+                menuActive:
+                    type: string
+                    description: The color of an active menu item
+
+        CallToActionPopUp:
+            type: object
+            description: Settings to be used in the CTA Pop-up
+            properties:
+                image:
+                    type: string
+                    description: Image to be used in the CTA pop-up
+                description:
+                    type: string
+                    description: Description to be used
+                title:
+                    type: string
+                trialButtonLabel:
+                    type: string
+                hideDays:
+                    type: boolean
+                trialURL:
+                    type: string
+
     parameters:
         #############
         # PathParam #

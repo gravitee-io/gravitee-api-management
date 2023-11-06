@@ -108,4 +108,9 @@ public class InMemoryConfiguration {
     public PageRevisionCrudServiceInMemory pageRevisionCrudServiceInMemory() {
         return new PageRevisionCrudServiceInMemory();
     }
+
+    @Bean
+    public AccessPointQueryServiceInMemory accessPointQueryServiceInMemory() {
+        return new AccessPointQueryServiceInMemory();
+    }
 }

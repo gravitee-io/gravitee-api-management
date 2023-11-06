@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.v2.rest;
 
 import io.gravitee.rest.api.management.v2.rest.exceptionMapper.*;
+import io.gravitee.rest.api.management.v2.rest.exceptionMapper.domain.NotAllowedDomainExceptionMapper;
 import io.gravitee.rest.api.management.v2.rest.exceptionMapper.domain.TechnicalDomainExceptionMapper;
 import io.gravitee.rest.api.management.v2.rest.exceptionMapper.domain.ValidationDomainExceptionMapper;
 import io.gravitee.rest.api.management.v2.rest.provider.ByteArrayOutputStreamWriter;
@@ -28,7 +29,7 @@ import io.gravitee.rest.api.management.v2.rest.resource.api.ApiResource;
 import io.gravitee.rest.api.management.v2.rest.resource.api.ApiSubscriptionsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.api.ApisResource;
 import io.gravitee.rest.api.management.v2.rest.resource.api.log.ApiLogsResource;
-import io.gravitee.rest.api.management.v2.rest.resource.bootstrap.ManagementUIBootstrapResource;
+import io.gravitee.rest.api.management.v2.rest.resource.bootstrap.ManagementUIResource;
 import io.gravitee.rest.api.management.v2.rest.resource.documentation.ApiPagesResource;
 import io.gravitee.rest.api.management.v2.rest.resource.group.GroupsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.installation.EnvironmentsResource;
@@ -57,7 +58,7 @@ public class GraviteeManagementV2Application extends ResourceConfig {
     @Inject
     public GraviteeManagementV2Application() {
         //Main resource
-        register(ManagementUIBootstrapResource.class);
+        register(ManagementUIResource.class);
         register(GraviteeLicenseResource.class);
         register(OrganizationResource.class);
         register(EnvironmentsResource.class);
@@ -82,13 +83,14 @@ public class GraviteeManagementV2Application extends ResourceConfig {
         register(UnrecognizedPropertyExceptionMapper.class);
         register(ThrowableMapper.class);
         register(NotFoundExceptionMapper.class);
-        register(NotAllowedExceptionMapper.class);
+        register(io.gravitee.rest.api.management.v2.rest.exceptionMapper.NotAllowedExceptionMapper.class);
         register(BadRequestExceptionMapper.class);
         register(PreconditionFailedExceptionMapper.class);
         register(ValidationExceptionMapper.class);
 
         register(ValidationDomainExceptionMapper.class);
         register(TechnicalDomainExceptionMapper.class);
+        register(NotAllowedDomainExceptionMapper.class);
 
         register(CommaSeparatedQueryParamConverterProvider.class);
 

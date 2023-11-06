@@ -16,7 +16,6 @@
 package io.gravitee.apim.infra.spring;
 
 import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
-import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiDefinitionParserDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiHostValidatorDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
@@ -34,6 +33,7 @@ import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentation
 import io.gravitee.apim.core.documentation.domain_service.HomepageDomainService;
 import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
+import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService;
 import io.gravitee.apim.core.notification.domain_service.TriggerNotificationDomainService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.sanitizer.HtmlSanitizer;
@@ -42,6 +42,7 @@ import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomain
 import io.gravitee.apim.core.subscription.domain_service.RejectSubscriptionDomainService;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
+import io.gravitee.node.api.license.NodeLicenseService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -143,5 +144,10 @@ public class CoreServiceSpringConfiguration {
     @Bean
     public HomepageDomainService homepageDomainService(PageQueryService pageQueryService, PageCrudService pageCrudService) {
         return new HomepageDomainService(pageQueryService, pageCrudService);
+    }
+
+    @Bean
+    public GraviteeLicenseDomainService graviteeLicenseDomainService(NodeLicenseService nodeLicenseService) {
+        return new GraviteeLicenseDomainService(nodeLicenseService);
     }
 }
