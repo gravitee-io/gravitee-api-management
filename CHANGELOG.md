@@ -1,3 +1,10 @@
+## [5.0.3](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/5.0.2...5.0.3) (2023-11-06)
+
+
+### Bug Fixes
+
+* bump gravitee-reporter-common to fix espace issue ([75a7f0a](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/75a7f0a2e996bb1c2c2971280113488c2c378316))
+
 ## [5.0.2](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/5.0.1...5.0.2) (2023-09-12)
 
 
