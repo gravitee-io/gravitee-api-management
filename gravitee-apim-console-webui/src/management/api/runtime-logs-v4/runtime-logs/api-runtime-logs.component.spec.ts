@@ -20,6 +20,8 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { UIRouterModule } from '@uirouter/angular';
 import * as moment from 'moment';
+import { OwlDateTimeModule } from '@danielmoncada/angular-datetime-picker';
+import { OwlMomentDateTimeModule } from '@danielmoncada/angular-datetime-picker-moment-adapter';
 
 import { ApiRuntimeLogsModule } from './api-runtime-logs.module';
 import { ApiRuntimeLogsComponent } from './api-runtime-logs.component';
@@ -33,13 +35,13 @@ import {
   ApiLogsParam,
   ApiV4,
   ConnectionLog,
+  fakeApiLogsResponse,
   fakeApiV4,
+  fakeConnectionLog,
+  fakeEmptyApiLogsResponse,
   fakePagedResult,
   fakePlanV4,
   PlanV4,
-  fakeApiLogsResponse,
-  fakeEmptyApiLogsResponse,
-  fakeConnectionLog,
 } from '../../../../entities/management-api-v2';
 import { fakeApplication } from '../../../../entities/application/Application.fixture';
 import { Application } from '../../../../entities/application/application';
@@ -63,9 +65,9 @@ describe('ApiRuntimeLogsComponent', () => {
   const plan1 = fakePlanV4({ id: '1', name: 'plan 1' });
   const plan2 = fakePlanV4({ id: '2', name: 'plan 2' });
   const application = fakeApplication({ id: '1', owner: { displayName: 'owner' } });
-  const fromDate = '10/9/2023 3:21 PM';
+  const fromDate = '2023-10-09 15:21:00';
   const fromDateTime = new Date(fromDate).getTime();
-  const toDate = '10/24/2023 3:21 PM';
+  const toDate = '2023-10-24 15:21:00';
   const toDateTime = new Date(toDate).getTime();
 
   const initComponent = async () => {
@@ -79,6 +81,8 @@ describe('ApiRuntimeLogsComponent', () => {
         UIRouterModule.forRoot({
           useHash: true,
         }),
+        OwlDateTimeModule,
+        OwlMomentDateTimeModule,
       ],
       providers: [
         { provide: UIRouterState, useValue: fakeUiRouter },

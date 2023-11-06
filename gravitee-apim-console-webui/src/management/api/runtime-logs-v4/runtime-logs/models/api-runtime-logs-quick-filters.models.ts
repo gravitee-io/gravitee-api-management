@@ -65,3 +65,13 @@ export const DEFAULT_FILTERS: LogFilters = {
   from: undefined,
   to: undefined,
 };
+
+export const DATE_TIME_FORMATS = {
+  parseInput: 'Y-M-DD HH:mm:ss',
+  fullPickerInput: 'Y-M-DD HH:mm:ss',
+  datePickerInput: 'Y-M-D',
+  timePickerInput: 'HH:mm:ss',
+  monthYearLabel: 'MMM y',
+  dateA11yLabel: 'Y-M-D',
+  monthYearA11yLabel: 'Y MMMM',
+};
