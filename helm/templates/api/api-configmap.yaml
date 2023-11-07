@@ -151,8 +151,8 @@ data:
           {{- end }}
       {{- end }}
 
-      {{- if .Values.api.services.metrics.enabled }}
-      metrics: {{- toYaml .Values.api.services.metrics | nindent 10 }}
+      {{- if .Values.api.services.metrics }}
+      metrics: {{- toYaml .Values.api.services.metrics | nindent 8 }}
       {{- end }}
       {{- if .Values.api.services.subscription.enabled }}
       subscription:
