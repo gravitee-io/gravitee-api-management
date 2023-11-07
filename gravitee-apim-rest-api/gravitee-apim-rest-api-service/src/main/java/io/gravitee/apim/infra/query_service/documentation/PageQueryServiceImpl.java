@@ -100,6 +100,16 @@ public class PageQueryServiceImpl implements PageQueryService {
         return this.search(pageCriteriaBuilder, apiId).stream().findFirst();
     }
 
+    @Override
+    public long countByParentIdAndIsPublished(String parentId) {
+        try {
+            return this.pageRepository.countByParentIdAndIsPublished(parentId);
+        } catch (TechnicalException e) {
+            logger.error("An error occurred while counting Pages by parentId {}", parentId, e);
+            throw new TechnicalDomainException("Error during repository search", e);
+        }
+    }
+
     private List<Page> search(PageCriteria.Builder pageCriteriaBuilder, String apiId) {
         try {
             return PageAdapter.INSTANCE.toEntityList(pageRepository.search(pageCriteriaBuilder.build()));

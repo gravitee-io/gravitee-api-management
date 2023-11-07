@@ -132,7 +132,15 @@ class PageQueryServiceImplTest {
             String PARENT_ID = "parent-id";
             String PAGE_ID = "page-id";
 
-            var page = aPage(API_ID, PAGE_ID, "duplicate name");
+            var repositoryPage = aPage(API_ID, PAGE_ID, "duplicate name");
+            var expectedPage = io.gravitee.apim.core.documentation.model.Page
+                .builder()
+                .id(PAGE_ID)
+                .referenceId(API_ID)
+                .referenceType(io.gravitee.apim.core.documentation.model.Page.ReferenceType.API)
+                .name(repositoryPage.getName())
+                .build();
+
             givenMatchingPages(
                 new PageCriteria.Builder()
                     .referenceId(API_ID)
@@ -140,7 +148,7 @@ class PageQueryServiceImplTest {
                     .parent(PARENT_ID)
                     .type("MARKDOWN")
                     .name("duplicate name"),
-                List.of(page)
+                List.of(repositoryPage)
             );
 
             var res = service.findByApiIdAndParentIdAndNameAndType(
@@ -150,7 +158,7 @@ class PageQueryServiceImplTest {
                 io.gravitee.apim.core.documentation.model.Page.Type.MARKDOWN
             );
 
-            assertThat(res.get()).usingRecursiveComparison().isEqualTo(page);
+            assertThat(res.get()).usingRecursiveComparison().isEqualTo(expectedPage);
         }
 
         @Test
@@ -159,7 +167,15 @@ class PageQueryServiceImplTest {
             String PARENT_ID = null;
             String PAGE_ID = "page-id";
 
-            var page = aPage(API_ID, PAGE_ID, "duplicate name");
+            var repositoryPage = aPage(API_ID, PAGE_ID, "duplicate name");
+            var expectedPage = io.gravitee.apim.core.documentation.model.Page
+                .builder()
+                .id(PAGE_ID)
+                .referenceId(API_ID)
+                .referenceType(io.gravitee.apim.core.documentation.model.Page.ReferenceType.API)
+                .name(repositoryPage.getName())
+                .build();
+
             givenMatchingPages(
                 new PageCriteria.Builder()
                     .referenceId(API_ID)
@@ -167,7 +183,7 @@ class PageQueryServiceImplTest {
                     .rootParent(true)
                     .type("MARKDOWN")
                     .name("duplicate name"),
-                List.of(page)
+                List.of(repositoryPage)
             );
 
             var res = service.findByApiIdAndParentIdAndNameAndType(
@@ -177,7 +193,7 @@ class PageQueryServiceImplTest {
                 io.gravitee.apim.core.documentation.model.Page.Type.MARKDOWN
             );
 
-            assertThat(res.get()).usingRecursiveComparison().isEqualTo(page);
+            assertThat(res.get()).usingRecursiveComparison().isEqualTo(expectedPage);
         }
 
         @Test
