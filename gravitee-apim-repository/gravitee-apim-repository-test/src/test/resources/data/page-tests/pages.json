@@ -82,6 +82,8 @@
       "content": "Content of the page 3",
       "order": 1,
       "type": "MARKDOWN",
+      "parentId": "2",
+      "published": true,
       "createdAt": 1439022010883,
       "updatedAt": 1439022010883
    },

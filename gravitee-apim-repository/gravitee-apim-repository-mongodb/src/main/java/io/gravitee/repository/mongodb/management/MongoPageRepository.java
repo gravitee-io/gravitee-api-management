@@ -183,6 +183,16 @@ public class MongoPageRepository implements PageRepository {
         }
     }
 
+    @Override
+    public long countByParentIdAndIsPublished(String parentId) throws TechnicalException {
+        try {
+            return internalPageRepo.countByParentIdAndIsPublished(parentId);
+        } catch (Exception e) {
+            logger.error("An error occurred when counting page by parent_id {}", parentId, e);
+            throw new TechnicalException("An error occurred when counting page by parentId");
+        }
+    }
+
     private PageSourceMongo convert(PageSource pageSource) {
         PageSourceMongo pageSourceMongo = new PageSourceMongo();
         pageSourceMongo.setType(pageSource.getType());

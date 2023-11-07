@@ -17,6 +17,8 @@ package io.gravitee.repository.jdbc.management;
 
 import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.createPagingClause;
 import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
+import static io.gravitee.repository.jdbc.management.JdbcHelper.AND_CLAUSE;
+import static io.gravitee.repository.jdbc.management.JdbcHelper.WHERE_CLAUSE;
 import static io.gravitee.repository.jdbc.orm.JdbcColumn.getDBName;
 import static java.lang.String.format;
 
@@ -432,6 +434,25 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
         } catch (final Exception ex) {
             LOGGER.error("Failed to find page by id:", ex);
             throw new TechnicalException("Failed to find page by id", ex);
+        }
+    }
+
+    @Override
+    public long countByParentIdAndIsPublished(String parentId) throws TechnicalException {
+        try {
+            final List<Object> args = new ArrayList<>();
+
+            String builder =
+                "select count(*) from " + this.tableName + " p " + WHERE_CLAUSE + "parent_id = ?" + AND_CLAUSE + "published = ?";
+            args.add(parentId);
+            args.add(true);
+
+            LOGGER.debug("SQL: {}", builder);
+            LOGGER.debug("Args: {}", args);
+            return jdbcTemplate.queryForObject(builder, args.toArray(), Long.class);
+        } catch (final Exception e) {
+            LOGGER.error("Failed to count page by parent_id:", e);
+            throw new TechnicalException("Failed to count page by parentId", e);
         }
     }
 
