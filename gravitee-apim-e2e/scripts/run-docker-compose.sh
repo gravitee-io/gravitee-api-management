@@ -14,6 +14,16 @@
 # limitations under the License.
 
 
+computeCypressEnvVariables() {
+  export COMMIT_INFO_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+  export COMMIT_INFO_MESSAGE=$(git show -s --pretty=%B)
+  export COMMIT_INFO_EMAIL=$(git show -s --pretty=%ae)
+  export COMMIT_INFO_AUTHOR=$(git show -s --pretty=%an)
+  export COMMIT_INFO_SHA=$(git show -s --pretty=%H)
+  export COMMIT_INFO_TIMESTAMP=$(git show -s --pretty=%ct)
+  export COMMIT_INFO_REMOTE=$(git config --get remote.origin.url)
+}
+
 clean() {
 #  For each docker-compose service stop & remove containers & volumes
   docker-compose -f ./docker/common/docker-compose-base.yml -f ./docker/common/docker-compose-mongo.yml -f ./docker/common/docker-compose-jdbc.yml -f ./docker/common/docker-compose-apis.yml -f ./docker/common/docker-compose-wiremock.yml -f ./docker/common/docker-compose-uis.yml -f ./docker/ui-tests/docker-compose-ui-tests.yml -f ./docker/api-tests/docker-compose-api-tests.yml --project-directory $PWD rm --force --stop -v 2>/dev/null
@@ -52,6 +62,7 @@ if [ -n "$1" ] && [ -n "$2" ]; then
       DB_PROVIDER=$databaseType docker-compose -f ./docker/common/docker-compose-base.yml -f ./docker/common/docker-compose-$databaseType.yml -f ./docker/common/docker-compose-apis.yml -f ./docker/common/docker-compose-wiremock.yml -f ./docker/api-tests/docker-compose-api-tests.yml --project-directory $PWD up --abort-on-container-exit --exit-code-from jest-e2e
     fi
   elif [ "$mode" = "ui-test" ]; then
+    computeCypressEnvVariables
     DB_PROVIDER=$databaseType docker-compose -f ./docker/common/docker-compose-base.yml -f ./docker/common/docker-compose-$databaseType.yml -f ./docker/common/docker-compose-apis.yml -f ./docker/common/docker-compose-wiremock.yml -f ./docker/common/docker-compose-uis.yml -f ./docker/ui-tests/docker-compose-ui-tests.yml --project-directory $PWD up --no-build --abort-on-container-exit --exit-code-from cypress
   fi
   # Save exit code of docker-compose
