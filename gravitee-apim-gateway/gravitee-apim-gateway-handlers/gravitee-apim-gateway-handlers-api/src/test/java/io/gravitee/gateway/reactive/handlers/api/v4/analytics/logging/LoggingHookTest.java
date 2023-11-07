@@ -117,12 +117,12 @@ class LoggingHookTest {
     }
 
     @Test
-    void shouldSetEndpointRequestHeaderWhenEndpointRequest() {
+    void shouldSetEndpointRequestHeaderWhenEndpointRequestHeaders() {
         Log log = Log.builder().timestamp(System.currentTimeMillis()).build();
         log.setEndpointRequest(new Request());
 
         when(metrics.getLog()).thenReturn(log);
-        when(loggingContext.endpointRequest()).thenReturn(true);
+        when(loggingContext.endpointRequestHeaders()).thenReturn(true);
         when(request.headers()).thenReturn(HttpHeaders.create());
 
         final TestObserver<Void> obs = cut.post("test", ctx, ExecutionPhase.REQUEST).test();
@@ -132,12 +132,26 @@ class LoggingHookTest {
     }
 
     @Test
+    void shouldNotSetEndpointRequestHeaderWhenEndpointRequestAndNotEndpointRequestHeaders() {
+        Log log = Log.builder().timestamp(System.currentTimeMillis()).build();
+        log.setEndpointRequest(new Request());
+
+        when(metrics.getLog()).thenReturn(log);
+        when(loggingContext.endpointRequestHeaders()).thenReturn(false);
+
+        final TestObserver<Void> obs = cut.post("test", ctx, ExecutionPhase.REQUEST).test();
+        obs.assertComplete();
+
+        assertNull(log.getEndpointRequest().getHeaders());
+    }
+
+    @Test
     void shouldSetEndpointRequestHeaderWhenEndpointRequestAndInterrupt() {
         Log log = Log.builder().timestamp(System.currentTimeMillis()).build();
         log.setEndpointRequest(new Request());
 
         when(metrics.getLog()).thenReturn(log);
-        when(loggingContext.endpointRequest()).thenReturn(true);
+        when(loggingContext.endpointRequestHeaders()).thenReturn(true);
         when(request.headers()).thenReturn(HttpHeaders.create());
 
         final TestObserver<Void> obs = cut.interruptWith("test", ctx, ExecutionPhase.REQUEST, new ExecutionFailure(500)).test();
