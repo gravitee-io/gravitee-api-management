@@ -42,4 +42,6 @@ public interface PageRepository extends FindAllRepository<Page> {
     Integer findMaxPageReferenceIdAndReferenceTypeOrder(String referenceId, PageReferenceType referenceType) throws TechnicalException;
 
     io.gravitee.common.data.domain.Page<Page> findAll(Pageable pageable) throws TechnicalException;
+
+    long countByParentIdAndIsPublished(String parentId) throws TechnicalException;
 }

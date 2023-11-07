@@ -387,6 +387,18 @@ public class PageRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
+    public void shouldCountExistingParentIdAndIsPublished() throws TechnicalException {
+        var count = pageRepository.countByParentIdAndIsPublished("2");
+        assertEquals(1, count);
+    }
+
+    @Test
+    public void shouldCountNonExistingParentId() throws TechnicalException {
+        var count = pageRepository.countByParentIdAndIsPublished("does-not-exist");
+        assertEquals(0, count);
+    }
+
+    @Test
     public void shouldUpdateFolderPage() throws Exception {
         Optional<Page> optionalBefore = pageRepository.findById("updatePageFolder");
         assertTrue("Page to update not found", optionalBefore.isPresent());

@@ -110,4 +110,12 @@ public class PageMongoRepositoryImpl implements PageMongoRepositoryCustom {
 
         return new Page<>(pages, pageable.pageNumber(), pages.size(), total);
     }
+
+    @Override
+    public long countByParentIdAndIsPublished(String parentId) {
+        Query query = new Query();
+        query.addCriteria(where("parentId").is(parentId));
+        query.addCriteria(where("published").is(true));
+        return mongoTemplate.count(query, PageMongo.class);
+    }
 }
