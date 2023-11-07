@@ -34,10 +34,7 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -83,6 +80,9 @@ public class ApiPagesResource extends AbstractResource {
                 )
                 .stream()
                 .filter(page -> accessControlService.canAccessPageFromPortal(executionContext, apiId, page))
+                .filter(pageEntity ->
+                    !Objects.equals(pageEntity.getType(), "FOLDER") || pageService.folderHasPublishedChildren(pageEntity.getId())
+                )
                 .map(pageMapper::convert)
                 .map(page -> this.addPageLink(apiId, page));
 
