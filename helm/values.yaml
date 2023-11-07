@@ -192,7 +192,7 @@ notifiers:
     #   keyStorePassword:
 
 mongo:
-  # uri: mongodb://mongo-mongodb-replicaset:27017/gravitee?connectTimeoutMS=30000
+  # uri: mongodb://graviteeio-apim-mongodb-replicaset-headless:27017/gravitee?replicaset=rs0&connectTimeoutMS=30000
   # servers: |
   #   - host: mongo1
   #     port: 27017
@@ -303,7 +303,7 @@ es:
     #     - /path/to/key
     #     - /path/to/key2
   endpoints:
-    - http://graviteeio-apim-elasticsearch-data.default.svc.cluster.local:9200
+    - http://graviteeio-apim-elasticsearch-ingest-hl:9200
   pipeline:
     plugins:
       ingest: geoip, user_agent # geoip and user_agent plugins are enabled by default
