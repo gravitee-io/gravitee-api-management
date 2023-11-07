@@ -117,4 +117,6 @@ public interface PageService {
     boolean shouldHaveRevision(String pageType);
 
     Optional<PageEntity> attachMedia(String pageId, String mediaId, String mediaName);
+
+    boolean folderHasPublishedChildren(String folderId);
 }

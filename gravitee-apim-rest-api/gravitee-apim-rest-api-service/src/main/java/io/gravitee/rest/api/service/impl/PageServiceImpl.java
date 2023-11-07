@@ -2676,6 +2676,17 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     }
 
     @Override
+    public boolean folderHasPublishedChildren(String folderId) {
+        try {
+            var count = pageRepository.countByParentIdAndIsPublished(folderId);
+            return count > 0;
+        } catch (TechnicalException e) {
+            logger.error("An error occurs while trying to count Pages with parentId {}", folderId, e);
+            throw new TechnicalManagementException("An error occurred while evaluating if folder has children");
+        }
+    }
+
+    @Override
     public PageEntity createWithDefinition(final ExecutionContext executionContext, String apiId, String pageDefinition) {
         try {
             final NewPageEntity newPage = convertToEntity(pageDefinition);
