@@ -17,19 +17,12 @@ package io.gravitee.repository.elasticsearch.v4.log.adapter.connection;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.elasticsearch.model.SearchHit;
-import io.gravitee.elasticsearch.model.SearchHits;
 import io.gravitee.elasticsearch.model.SearchResponse;
+import io.gravitee.repository.elasticsearch.AbstractAdapterTest;
 import io.gravitee.repository.log.v4.model.connection.ConnectionLogDetail;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
-import lombok.SneakyThrows;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -38,9 +31,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class SearchConnectionLogDetailResponseAdapterTest {
-
-    private final ObjectMapper objectMapper = new ObjectMapper();
+class SearchConnectionLogDetailResponseAdapterTest extends AbstractAdapterTest {
 
     @Test
     void should_return_empty_when_no_hit() {
@@ -182,27 +173,5 @@ class SearchConnectionLogDetailResponseAdapterTest {
                     .build()
             )
         );
-    }
-
-    @SneakyThrows
-    @NotNull
-    private SearchResponse buildSearchHit(String fileName) {
-        final SearchResponse searchResponse = new SearchResponse();
-        final SearchHits searchHits = new SearchHits();
-        final SearchHit searchHit = new SearchHit();
-
-        final ObjectMapper objectMapper = new ObjectMapper();
-        final JsonNode jsonNode = objectMapper.readTree(loadFile("/hits/" + fileName));
-
-        searchHit.setSource(jsonNode);
-        searchHits.setHits(List.of(searchHit));
-        searchResponse.setSearchHits(searchHits);
-        return searchResponse;
-    }
-
-    private String loadFile(String resource) throws IOException {
-        InputStream stream = this.getClass().getResourceAsStream(resource);
-        JsonNode json = objectMapper.readValue(stream, JsonNode.class);
-        return objectMapper.writeValueAsString(json);
     }
 }
