@@ -85,6 +85,11 @@ public class PageQueryServiceInMemory implements InMemoryAlternative<Page>, Page
     }
 
     @Override
+    public long countByParentIdAndIsPublished(String parentId) {
+        return pages.stream().filter(page -> Objects.equals(page.getParentId(), parentId) && page.isPublished()).count();
+    }
+
+    @Override
     public void initWith(List<Page> items) {
         pages = List.copyOf(items);
     }
