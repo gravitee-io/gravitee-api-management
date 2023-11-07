@@ -5747,6 +5747,7 @@ components:
                     description: Page's order.
                     example: 1
                     default: 0
+                    minimum: 0
                 visibility:
                     $ref: "#/components/schemas/Visibility"
             required:
