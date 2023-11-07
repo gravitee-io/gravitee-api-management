@@ -100,7 +100,7 @@ public class MockEndpointConnector extends EndpointAsyncConnector {
             ctx
                 .request()
                 .onMessage(message -> {
-                    log.info("Received message: {}", message.content().toString());
+                    log.info("Received message: {}", message.content() != null ? message.content().toString() : null);
                     return Maybe.empty();
                 })
         );
