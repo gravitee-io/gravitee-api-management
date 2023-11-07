@@ -59,20 +59,24 @@ public class SearchConnectionLogDetailResponseAdapter {
     }
 
     private static ConnectionLogDetail.Request buildRequest(JsonNode json) {
-        return ConnectionLogDetail.Request
-            .builder()
-            .uri(asTextOrNull(json.get("uri")))
-            .method(asTextOrNull(json.get("method")))
-            .headers(buildHeaders(json.get("headers")))
-            .build();
+        return null != json
+            ? ConnectionLogDetail.Request
+                .builder()
+                .uri(asTextOrNull(json.get("uri")))
+                .method(asTextOrNull(json.get("method")))
+                .headers(buildHeaders(json.get("headers")))
+                .build()
+            : null;
     }
 
     private static ConnectionLogDetail.Response buildResponse(JsonNode json) {
-        return ConnectionLogDetail.Response
-            .builder()
-            .status(asIntOr(json.get("status"), 0))
-            .headers(buildHeaders(json.get("headers")))
-            .build();
+        return null != json
+            ? ConnectionLogDetail.Response
+                .builder()
+                .status(asIntOr(json.get("status"), 0))
+                .headers(buildHeaders(json.get("headers")))
+                .build()
+            : null;
     }
 
     private static Map<String, List<String>> buildHeaders(JsonNode headers) {

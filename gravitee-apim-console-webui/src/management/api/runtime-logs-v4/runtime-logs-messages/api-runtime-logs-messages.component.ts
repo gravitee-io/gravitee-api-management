@@ -88,11 +88,11 @@ export class ApiRuntimeLogsMessagesComponent implements OnInit, OnDestroy {
             messageLogs.flatMap((messageLog) => [
               {
                 connectorType: 'ENTRYPOINT',
-                connectorId: messageLog.entrypoint.connectorId,
+                connectorId: messageLog.entrypoint?.connectorId,
               },
               {
                 connectorType: 'ENDPOINT',
-                connectorId: messageLog.endpoint.connectorId,
+                connectorId: messageLog.endpoint?.connectorId,
               },
             ]),
             'connectorId',
@@ -113,13 +113,13 @@ export class ApiRuntimeLogsMessagesComponent implements OnInit, OnDestroy {
   }
 
   private loadConnectorIcon(connectorType: ConnectorType, connectorId: string) {
-    if (connectorType === 'ENDPOINT') {
+    if (connectorType === 'ENDPOINT' && null != connectorId) {
       this.connectorPluginsV2Service.getEndpointPlugin(connectorId).subscribe((connectorPlugin: ConnectorPlugin) => {
         this.connectorIcons[connectorId] = this.iconService.registerSvg(connectorId, connectorPlugin.icon);
       });
     }
 
-    if (connectorType === 'ENTRYPOINT') {
+    if (connectorType === 'ENTRYPOINT' && null != connectorId) {
       this.connectorPluginsV2Service.getEntrypointPlugin(connectorId).subscribe((connectorPlugin: ConnectorPlugin) => {
         this.connectorIcons[connectorId] = this.iconService.registerSvg(connectorId, connectorPlugin.icon);
       });

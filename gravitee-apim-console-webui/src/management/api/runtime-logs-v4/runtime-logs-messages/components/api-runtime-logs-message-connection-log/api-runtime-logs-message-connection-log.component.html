@@ -65,14 +65,14 @@
         <div data-testId="uri-value" class="log__row__value">{{ connectionLogDetail?.endpointRequest?.uri | lowercase }}</div>
       </div>
     </div>
-    <div *ngIf="connectionLogDetail.endpointRequest.method" class="log__row">
+    <div *ngIf="connectionLogDetail?.endpointRequest?.method" class="log__row">
       <div class="log__row__cell">
         <div class="log__row__property">Method:</div>
         <div
           data-testId="method-value"
           class="{{ 'log__row__value gio-method-badge-' + connectionLogDetail.endpointRequest.method.toLowerCase() }}"
         >
-          {{ connectionLogDetail.entrypointRequest.method | lowercase }}
+          {{ connectionLogDetail.endpointRequest.method | lowercase }}
         </div>
       </div>
     </div>

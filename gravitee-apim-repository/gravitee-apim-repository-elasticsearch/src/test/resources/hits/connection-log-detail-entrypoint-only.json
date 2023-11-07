@@ -1,0 +1,26 @@
+{
+    "@timestamp": "2023-10-27T07:41:39.317+02:00",
+    "api-id": "4c3e775d-eeb5-4d6c-be77-5deeb5ed6c41",
+    "request-id": "e220afa7-4c77-4280-a0af-a74c7782801c",
+    "client-identifier": "8eec8b53-edae-4954-ac8b-53edae1954e4",
+    "request-ended": "true",
+    "entrypoint-request": {
+        "method": "GET",
+        "uri": "/test?param=paramValue",
+        "headers": {
+            "Accept-Encoding": ["gzip, deflate, br"],
+            "Host": ["localhost:8082"],
+            "X-Gravitee-Request-Id": ["e220afa7-4c77-4280-a0af-a74c7782801c"],
+            "X-Gravitee-Transaction-Id": ["e220afa7-4c77-4280-a0af-a74c7782801c"]
+        }
+    },
+    "entrypoint-response": {
+        "status": 200,
+        "headers": {
+            "Content-Type": ["text/plain"],
+            "X-Gravitee-Client-Identifier": ["8eec8b53-edae-4954-ac8b-53edae1954e4"],
+            "X-Gravitee-Request-Id": ["e220afa7-4c77-4280-a0af-a74c7782801c"],
+            "X-Gravitee-Transaction-Id": ["e220afa7-4c77-4280-a0af-a74c7782801c"]
+        }
+    }
+}
