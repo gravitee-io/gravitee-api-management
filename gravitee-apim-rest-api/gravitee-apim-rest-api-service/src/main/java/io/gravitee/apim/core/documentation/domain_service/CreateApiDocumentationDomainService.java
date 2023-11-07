@@ -23,7 +23,6 @@ import io.gravitee.apim.core.audit.model.event.PageAuditEvent;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.crud_service.PageRevisionCrudService;
 import io.gravitee.apim.core.documentation.model.Page;
-import io.gravitee.apim.core.documentation.query_service.PageQueryService;
 import java.time.ZoneId;
 import java.util.Map;
 
@@ -65,7 +64,6 @@ public class CreateApiDocumentationDomainService {
                 .newValue(page)
                 .build()
         );
-
         return createdPage;
     }
 }

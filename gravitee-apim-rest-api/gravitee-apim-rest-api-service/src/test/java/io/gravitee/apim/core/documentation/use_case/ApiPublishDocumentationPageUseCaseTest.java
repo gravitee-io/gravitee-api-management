@@ -115,7 +115,36 @@ class ApiPublishDocumentationPageUseCaseTest {
             )
         );
         var res = useCase.execute(new ApiPublishDocumentationPageUseCase.Input(API_ID, PAGE_ID, AUDIT_INFO)).page();
-        assertThat(res).isNotNull().hasFieldOrPropertyWithValue("id", PAGE_ID).hasFieldOrPropertyWithValue("published", true);
+        assertThat(res)
+            .isNotNull()
+            .hasFieldOrPropertyWithValue("id", PAGE_ID)
+            .hasFieldOrPropertyWithValue("published", true)
+            .hasFieldOrPropertyWithValue("hidden", true);
+    }
+
+    @Test
+    void should_publish_folder_and_has_published_children() {
+        initApiServices(List.of(Api.builder().id(API_ID).build()));
+        initPageServices(
+            List.of(
+                Page
+                    .builder()
+                    .id(PAGE_ID)
+                    .referenceType(Page.ReferenceType.API)
+                    .referenceId(API_ID)
+                    .type(Page.Type.FOLDER)
+                    .published(false)
+                    .createdAt(DATE)
+                    .build(),
+                Page.builder().id("child").parentId(PAGE_ID).published(true).build()
+            )
+        );
+        var res = useCase.execute(new ApiPublishDocumentationPageUseCase.Input(API_ID, PAGE_ID, AUDIT_INFO)).page();
+        assertThat(res)
+            .isNotNull()
+            .hasFieldOrPropertyWithValue("id", PAGE_ID)
+            .hasFieldOrPropertyWithValue("published", true)
+            .hasFieldOrPropertyWithValue("hidden", false);
     }
 
     @Test

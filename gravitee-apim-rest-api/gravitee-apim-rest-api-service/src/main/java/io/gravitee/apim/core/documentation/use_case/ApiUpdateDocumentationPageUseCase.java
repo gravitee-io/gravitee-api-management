@@ -85,6 +85,8 @@ public class ApiUpdateDocumentationPageUseCase {
             this.updatePageOrders(oldPage.getOrder(), updatedPage, input.auditInfo);
         }
 
+        updatedPage = updatedPage.withHidden(this.apiDocumentationDomainService.pageIsHidden(updatedPage));
+
         return new Output(updatedPage);
     }
 

@@ -454,7 +454,8 @@ class ApiCreateDocumentationPageUseCaseTest {
                 .hasFieldOrPropertyWithValue("homepage", false)
                 .hasFieldOrPropertyWithValue("visibility", Page.Visibility.PRIVATE)
                 .hasFieldOrPropertyWithValue("parentId", "parent-id")
-                .hasFieldOrPropertyWithValue("order", 0);
+                .hasFieldOrPropertyWithValue("order", 0)
+                .hasFieldOrPropertyWithValue("hidden", true);
 
             var savedPage = pageCrudService
                 .storage()

@@ -61,7 +61,11 @@ public class ApiGetDocumentationPagesUseCase {
             }
         }
 
-        var pages = apiDocumentationDomainService.getApiPages(input.apiId, input.parentId);
+        var pages = apiDocumentationDomainService
+            .getApiPages(input.apiId, input.parentId)
+            .stream()
+            .map(page -> page.withHidden(this.apiDocumentationDomainService.pageIsHidden(page)))
+            .toList();
 
         return new Output(pages, breadcrumbList);
     }

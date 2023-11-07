@@ -47,6 +47,9 @@ public class Page {
     private Date updatedAt;
     private String parentId;
 
+    @With
+    private Boolean hidden;
+
     private String content;
     private boolean homepage;
 

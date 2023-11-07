@@ -75,6 +75,45 @@ class ApiGetDocumentationPagesUseCaseTest {
         }
 
         @Test
+        void should_calculate_if_folders_are_hidden() {
+            initApiServices(List.of(Api.builder().id(API_ID).build()));
+            initPageServices(
+                List.of(
+                    Page
+                        .builder()
+                        .id("page#1")
+                        .referenceType(Page.ReferenceType.API)
+                        .referenceId(API_ID)
+                        .type(Page.Type.MARKDOWN)
+                        .parentId("folder#1")
+                        .published(true)
+                        .build(),
+                    Page.builder().id("page#2").referenceType(Page.ReferenceType.API).referenceId(API_ID).type(Page.Type.MARKDOWN).build(),
+                    Page
+                        .builder()
+                        .id("page#3")
+                        .referenceType(Page.ReferenceType.API)
+                        .referenceId(API_ID)
+                        .type(Page.Type.MARKDOWN)
+                        .parentId("folder#2")
+                        .published(false)
+                        .build(),
+                    Page.builder().id("folder#1").referenceType(Page.ReferenceType.API).referenceId(API_ID).type(Page.Type.FOLDER).build(),
+                    Page.builder().id("folder#2").referenceType(Page.ReferenceType.API).referenceId(API_ID).type(Page.Type.FOLDER).build(),
+                    Page.builder().id("folder#3").referenceType(Page.ReferenceType.API).referenceId(API_ID).type(Page.Type.FOLDER).build()
+                )
+            );
+            var res = useCase.execute(new ApiGetDocumentationPagesUseCase.Input(API_ID, null)).pages();
+            assertThat(res).hasSize(6);
+            assertThat(res.get(0)).hasFieldOrPropertyWithValue("id", "page#1").hasFieldOrPropertyWithValue("hidden", null);
+            assertThat(res.get(1)).hasFieldOrPropertyWithValue("id", "page#2").hasFieldOrPropertyWithValue("hidden", null);
+            assertThat(res.get(2)).hasFieldOrPropertyWithValue("id", "page#3").hasFieldOrPropertyWithValue("hidden", null);
+            assertThat(res.get(3)).hasFieldOrPropertyWithValue("id", "folder#1").hasFieldOrPropertyWithValue("hidden", false);
+            assertThat(res.get(4)).hasFieldOrPropertyWithValue("id", "folder#2").hasFieldOrPropertyWithValue("hidden", true);
+            assertThat(res.get(5)).hasFieldOrPropertyWithValue("id", "folder#3").hasFieldOrPropertyWithValue("hidden", true);
+        }
+
+        @Test
         void should_throw_error_if_api_not_found() {
             initApiServices(List.of(Api.builder().id("not-my-api").build()));
             assertThatThrownBy(() -> useCase.execute(new ApiGetDocumentationPagesUseCase.Input(API_ID, null)))
