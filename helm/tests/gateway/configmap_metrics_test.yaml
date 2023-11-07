@@ -5,9 +5,12 @@ tests:
   - it: Disable metrics service by default
     template: gateway/gateway-configmap.yaml
     asserts:
-      - notMatchRegex:
+      - matchRegex:
           path: data.[gravitee.yml]
-          pattern: "metrics:\n"
+          pattern: " *metrics:\n
+                     *  enabled: false\n
+                     *  prometheus:\n
+                     *    enabled: true"
   - it: Enable metrics service and set `labels`
     template: gateway/gateway-configmap.yaml
     set:
