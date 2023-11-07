@@ -1,0 +1,17 @@
+{
+    "@timestamp": "2023-11-07T15:18:56.868+01:00",
+    "api-id": "api-id",
+    "request-id": "request-id",
+    "client-identifier": "client-identifier",
+    "correlation-id": "correlation-id",
+    "operation": "subscribe",
+    "connector-type": "endpoint",
+    "connector-id": "connector-id",
+    "message": {
+        "id": "message-id",
+        "payload": "mock message",
+        "headers": {
+            "foo": ["bar"]
+        }
+    }
+}

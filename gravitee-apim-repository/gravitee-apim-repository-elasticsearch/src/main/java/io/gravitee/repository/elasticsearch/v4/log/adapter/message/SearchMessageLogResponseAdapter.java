@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.elasticsearch.model.SearchHits;
 import io.gravitee.repository.elasticsearch.utils.JsonNodeUtils;
 import io.gravitee.repository.log.v4.model.message.AggregatedMessageLog;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -33,6 +34,10 @@ public class SearchMessageLogResponseAdapter {
     private SearchMessageLogResponseAdapter() {}
 
     public static List<AggregatedMessageLog> adapt(SearchHits hits) {
+        if (hits == null || hits.getHits() == null) {
+            return Collections.emptyList();
+        }
+
         return hits
             .getHits()
             .stream()
@@ -121,21 +126,23 @@ public class SearchMessageLogResponseAdapter {
     private static AggregatedMessageLog.Message adaptMessage(JsonNode json) {
         var messageJson = json.get("message");
         var isError = messageJson.get("isError") != null && messageJson.get("isError").asBoolean();
-        var messageHeaders = messageJson
-            .get("headers")
-            .properties()
-            .stream()
-            .collect(
-                Collectors.toMap(
-                    Map.Entry::getKey,
-                    entry -> StreamSupport.stream(entry.getValue().spliterator(), false).map(JsonNodeUtils::asTextOrNull).toList()
+        var headersJson = messageJson.get("headers");
+        var messageHeaders = null != headersJson
+            ? headersJson
+                .properties()
+                .stream()
+                .collect(
+                    Collectors.toMap(
+                        Map.Entry::getKey,
+                        entry -> StreamSupport.stream(entry.getValue().spliterator(), false).map(JsonNodeUtils::asTextOrNull).toList()
+                    )
                 )
-            );
-        var messageMetadata = messageJson
-            .get("metadata")
-            .properties()
-            .stream()
-            .collect(Collectors.toMap(Map.Entry::getKey, value -> asTextOrNull(value.getValue())));
+            : null;
+
+        var metadataJson = messageJson.get("metadata");
+        var messageMetadata = null != metadataJson
+            ? metadataJson.properties().stream().collect(Collectors.toMap(Map.Entry::getKey, value -> asTextOrNull(value.getValue())))
+            : null;
 
         return AggregatedMessageLog.Message
             .builder()
