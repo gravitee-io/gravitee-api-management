@@ -189,7 +189,7 @@ export const states: Ng2StateDeclaration[] = [
       },
       {
         token: 'tags',
-        deps: ['TenantService'],
+        deps: ['TagService'],
         resolveFn: (tagService: TagService) => tagService.list().then((response) => response.data),
       },
     ],
