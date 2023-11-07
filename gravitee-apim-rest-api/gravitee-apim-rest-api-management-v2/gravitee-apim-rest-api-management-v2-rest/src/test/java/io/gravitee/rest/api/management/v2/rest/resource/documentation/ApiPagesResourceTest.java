@@ -730,6 +730,38 @@ class ApiPagesResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        public void should_change_order_to_0() {
+            var request = UpdateDocumentationMarkdown
+                .builder()
+                .name("created page")
+                .homepage(true)
+                .content("nice content")
+                .type(UpdateDocumentation.TypeEnum.MARKDOWN)
+                .order(0)
+                .visibility(Visibility.PUBLIC)
+                .build();
+            var oldMarkdown = Page
+                .builder()
+                .id(PAGE_ID)
+                .referenceType(Page.ReferenceType.API)
+                .referenceId(API_ID)
+                .name("old name")
+                .content("old content")
+                .visibility(Page.Visibility.PRIVATE)
+                .order(2)
+                .published(false)
+                .type(Page.Type.MARKDOWN)
+                .homepage(false)
+                .build();
+            givenApiPagesQuery(List.of(oldMarkdown));
+
+            final Response response = rootTarget().path(PAGE_ID).request().put(Entity.json(request));
+            var updatedPage = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.Page.class);
+
+            assertThat(updatedPage).isNotNull().hasFieldOrPropertyWithValue("order", request.getOrder());
+        }
+
+        @Test
         public void should_not_allow_null_name() {
             var request = UpdateDocumentationMarkdown
                 .builder()
@@ -758,6 +790,27 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                 .order(1)
                 .visibility(Visibility.PRIVATE)
                 .name("")
+                .build();
+
+            final Response response = rootTarget().path(PAGE_ID).request().put(Entity.json(request));
+            assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(BAD_REQUEST_400)
+                .asError()
+                .hasHttpStatus(BAD_REQUEST_400)
+                .hasMessage("Validation error");
+        }
+
+        @Test
+        public void should_not_allow_negative_order() {
+            var request = UpdateDocumentationMarkdown
+                .builder()
+                .type(UpdateDocumentation.TypeEnum.MARKDOWN)
+                .visibility(Visibility.PRIVATE)
+                .name("name")
+                .order(-1)
                 .build();
 
             final Response response = rootTarget().path(PAGE_ID).request().put(Entity.json(request));
