@@ -369,8 +369,8 @@ data:
           {{- end }}
       {{- end }}
 
-      {{- if .Values.gateway.services.metrics.enabled }}
-      metrics: {{- toYaml .Values.gateway.services.metrics | nindent 10 }}
+      {{- if .Values.gateway.services.metrics }}
+      metrics: {{- toYaml .Values.gateway.services.metrics | nindent 8 }}
       {{- end }}
 
       {{- if .Values.gateway.services.tracing.enabled }}
