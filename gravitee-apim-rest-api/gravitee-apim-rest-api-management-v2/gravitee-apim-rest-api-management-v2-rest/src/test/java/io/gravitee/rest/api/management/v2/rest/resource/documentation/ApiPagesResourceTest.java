@@ -188,6 +188,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                             .configuration(Map.of())
                             .metadata(Map.of())
                             .excludedAccessControls(false)
+                            .hidden(true)
                             .build()
                     )
                 );
@@ -243,6 +244,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                             .configuration(Map.of())
                             .metadata(Map.of())
                             .excludedAccessControls(false)
+                            .hidden(true)
                             .build()
                     )
                 );
@@ -309,6 +311,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                             .configuration(Map.of())
                             .metadata(Map.of())
                             .excludedAccessControls(false)
+                            .hidden(true)
                             .build()
                     )
                 );
@@ -368,6 +371,68 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                         .excludedAccessControls(false)
                         .parentId("parent-id")
                         .build()
+                );
+        }
+
+        @Test
+        void should_return_folder_with_published_children() {
+            Page child = Page
+                .builder()
+                .referenceType(Page.ReferenceType.API)
+                .referenceId("api-id")
+                .type(Page.Type.MARKDOWN)
+                .id("page-1")
+                .name("page-1")
+                .parentId("parent-id")
+                .published(true)
+                .build();
+            Page page = Page
+                .builder()
+                .referenceType(Page.ReferenceType.API)
+                .referenceId("api-id")
+                .type(Page.Type.FOLDER)
+                .id("parent-id")
+                .name("folder 2")
+                .parentId("")
+                .build();
+            givenApiPagesQuery(List.of(child, page));
+            final Response response = rootTarget().request().get();
+            assertThat(response.getStatus()).isEqualTo(200);
+
+            var body = response.readEntity(ApiDocumentationPagesResponse.class);
+            assertThat(body.getPages())
+                .usingRecursiveComparison()
+                .isEqualTo(
+                    List.of(
+                        io.gravitee.rest.api.management.v2.rest.model.Page
+                            .builder()
+                            .id("page-1")
+                            .type(PageType.MARKDOWN)
+                            .name("page-1")
+                            .order(0)
+                            .published(false)
+                            .homepage(false)
+                            .configuration(Map.of())
+                            .metadata(Map.of())
+                            .excludedAccessControls(false)
+                            .parentId("parent-id")
+                            .published(true)
+                            .build(),
+                        io.gravitee.rest.api.management.v2.rest.model.Page
+                            .builder()
+                            .id(page.getId())
+                            .type(PageType.FOLDER)
+                            .name(page.getName())
+                            .order(page.getOrder())
+                            .published(page.isPublished())
+                            .homepage(page.isHomepage())
+                            .configuration(Map.of())
+                            .metadata(Map.of())
+                            .excludedAccessControls(false)
+                            .parentId(page.getParentId())
+                            .hidden(false)
+                            .build()
+                    )
                 );
         }
 

@@ -5622,6 +5622,9 @@ components:
                         $ref: "#/components/schemas/Page"
                 contentRevision:
                     $ref: "#/components/schemas/Revision"
+                hidden:
+                    type: boolean
+                    description: If folder is published but not shown in Portal.
         PageMedia:
             type: object
             properties:
