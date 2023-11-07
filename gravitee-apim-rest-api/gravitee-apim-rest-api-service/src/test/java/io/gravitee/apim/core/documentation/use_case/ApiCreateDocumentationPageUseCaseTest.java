@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.documentation.usecase;
+package io.gravitee.apim.core.documentation.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -35,7 +35,7 @@ import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.*;
 
-class ApiCreateDocumentationPageUsecaseTest {
+class ApiCreateDocumentationPageUseCaseTest {
 
     private static final String ORGANIZATION_ID = "organization-id";
     private static final String ENVIRONMENT_ID = "environment-id";
@@ -52,7 +52,7 @@ class ApiCreateDocumentationPageUsecaseTest {
     AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
     CreateApiDocumentationDomainService createApiDocumentationDomainService;
-    ApiCreateDocumentationPageUsecase apiCreateDocumentationPageUsecase;
+    ApiCreateDocumentationPageUseCase apiCreateDocumentationPageUsecase;
 
     @BeforeEach
     void setUp() {
@@ -65,7 +65,7 @@ class ApiCreateDocumentationPageUsecaseTest {
                 new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor())
             );
         apiCreateDocumentationPageUsecase =
-            new ApiCreateDocumentationPageUsecase(
+            new ApiCreateDocumentationPageUseCase(
                 createApiDocumentationDomainService,
                 new ApiDocumentationDomainService(pageQueryService, new HtmlSanitizerImpl()),
                 new HomepageDomainService(pageQueryService, pageCrudService),
@@ -103,7 +103,7 @@ class ApiCreateDocumentationPageUsecaseTest {
             pageCrudService.initWith(List.of(parentPage));
 
             var res = apiCreateDocumentationPageUsecase.execute(
-                ApiCreateDocumentationPageUsecase.Input
+                ApiCreateDocumentationPageUseCase.Input
                     .builder()
                     .page(
                         Page
@@ -146,7 +146,7 @@ class ApiCreateDocumentationPageUsecaseTest {
         @Test
         void should_create_audit() {
             apiCreateDocumentationPageUsecase.execute(
-                ApiCreateDocumentationPageUsecase.Input
+                ApiCreateDocumentationPageUseCase.Input
                     .builder()
                     .page(
                         Page
@@ -176,7 +176,7 @@ class ApiCreateDocumentationPageUsecaseTest {
         @Test
         void should_create_a_page_revision() {
             apiCreateDocumentationPageUsecase.execute(
-                ApiCreateDocumentationPageUsecase.Input
+                ApiCreateDocumentationPageUseCase.Input
                     .builder()
                     .page(
                         Page
@@ -221,7 +221,7 @@ class ApiCreateDocumentationPageUsecaseTest {
             pageQueryService.initWith(List.of(existingHomepage));
 
             var res = apiCreateDocumentationPageUsecase.execute(
-                ApiCreateDocumentationPageUsecase.Input
+                ApiCreateDocumentationPageUseCase.Input
                     .builder()
                     .page(
                         Page
@@ -275,7 +275,7 @@ class ApiCreateDocumentationPageUsecaseTest {
             pageQueryService.initWith(List.of(existingPage, existingParent));
 
             var res = apiCreateDocumentationPageUsecase.execute(
-                ApiCreateDocumentationPageUsecase.Input
+                ApiCreateDocumentationPageUseCase.Input
                     .builder()
                     .page(
                         Page
@@ -299,7 +299,7 @@ class ApiCreateDocumentationPageUsecaseTest {
         @Test
         void should_not_add_missing_parent() {
             var res = apiCreateDocumentationPageUsecase.execute(
-                ApiCreateDocumentationPageUsecase.Input
+                ApiCreateDocumentationPageUseCase.Input
                     .builder()
                     .page(
                         Page
@@ -325,7 +325,7 @@ class ApiCreateDocumentationPageUsecaseTest {
         @Test
         void should_ignore_empty_parent_id() {
             var res = apiCreateDocumentationPageUsecase.execute(
-                ApiCreateDocumentationPageUsecase.Input
+                ApiCreateDocumentationPageUseCase.Input
                     .builder()
                     .page(
                         Page
@@ -352,7 +352,7 @@ class ApiCreateDocumentationPageUsecaseTest {
         void should_throw_error_if_markdown_unsafe() {
             assertThatThrownBy(() ->
                     apiCreateDocumentationPageUsecase.execute(
-                        ApiCreateDocumentationPageUsecase.Input
+                        ApiCreateDocumentationPageUseCase.Input
                             .builder()
                             .page(
                                 Page
@@ -389,7 +389,7 @@ class ApiCreateDocumentationPageUsecaseTest {
 
             assertThatThrownBy(() ->
                     apiCreateDocumentationPageUsecase.execute(
-                        ApiCreateDocumentationPageUsecase.Input
+                        ApiCreateDocumentationPageUseCase.Input
                             .builder()
                             .page(
                                 Page
@@ -428,7 +428,7 @@ class ApiCreateDocumentationPageUsecaseTest {
             pageCrudService.initWith(List.of(parentPage));
 
             var res = apiCreateDocumentationPageUsecase.execute(
-                ApiCreateDocumentationPageUsecase.Input
+                ApiCreateDocumentationPageUseCase.Input
                     .builder()
                     .page(
                         Page
@@ -468,7 +468,7 @@ class ApiCreateDocumentationPageUsecaseTest {
         @Test
         void should_create_audit() {
             apiCreateDocumentationPageUsecase.execute(
-                ApiCreateDocumentationPageUsecase.Input
+                ApiCreateDocumentationPageUseCase.Input
                     .builder()
                     .page(
                         Page
@@ -507,7 +507,7 @@ class ApiCreateDocumentationPageUsecaseTest {
 
             assertThatThrownBy(() ->
                     apiCreateDocumentationPageUsecase.execute(
-                        ApiCreateDocumentationPageUsecase.Input
+                        ApiCreateDocumentationPageUseCase.Input
                             .builder()
                             .page(
                                 Page

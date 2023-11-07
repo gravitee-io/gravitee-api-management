@@ -13,20 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.documentation.usecase;
+package io.gravitee.apim.core.documentation.use_case;
 
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.model.Page;
 
-public class ApiGetDocumentationPageUsecase {
+public class ApiGetDocumentationPageUseCase {
 
     private final ApiDocumentationDomainService apiDocumentationDomainService;
     private final ApiCrudService apiCrudService;
     private final PageCrudService pageCrudService;
 
-    public ApiGetDocumentationPageUsecase(
+    public ApiGetDocumentationPageUseCase(
         ApiDocumentationDomainService apiDocumentationDomainService,
         ApiCrudService apiCrudService,
         PageCrudService pageCrudService

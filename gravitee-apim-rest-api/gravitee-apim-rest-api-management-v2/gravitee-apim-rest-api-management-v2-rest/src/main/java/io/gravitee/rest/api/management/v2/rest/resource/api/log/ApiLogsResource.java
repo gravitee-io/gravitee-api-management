@@ -17,9 +17,9 @@ package io.gravitee.rest.api.management.v2.rest.resource.api.log;
 
 import static io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo.computePaginationInfo;
 
-import io.gravitee.apim.core.log.usecase.SearchConnectionLogUsecase;
-import io.gravitee.apim.core.log.usecase.SearchConnectionLogsUsecase;
-import io.gravitee.apim.core.log.usecase.SearchMessageLogsUsecase;
+import io.gravitee.apim.core.log.use_case.SearchConnectionLogUseCase;
+import io.gravitee.apim.core.log.use_case.SearchConnectionLogsUseCase;
+import io.gravitee.apim.core.log.use_case.SearchMessageLogsUseCase;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiLogsMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiMessageLogsMapper;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLogResponse;
@@ -51,19 +51,19 @@ public class ApiLogsResource extends AbstractResource {
     private String apiId;
 
     @Inject
-    private SearchConnectionLogsUsecase searchConnectionLogsUsecase;
+    private SearchConnectionLogsUseCase searchConnectionLogsUsecase;
 
     @Inject
-    private SearchMessageLogsUsecase searchMessageLogsUsecase;
+    private SearchMessageLogsUseCase searchMessageLogsUsecase;
 
     @Inject
-    private SearchConnectionLogUsecase searchConnectionLogUsecase;
+    private SearchConnectionLogUseCase searchConnectionLogUsecase;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_LOG, acls = { RolePermissionAction.READ }) })
     public ApiLogsResponse getApiLogs(@BeanParam @Valid PaginationParam paginationParam, @BeanParam @Valid SearchLogsParam logsParam) {
-        var request = new SearchConnectionLogsUsecase.Input(
+        var request = new SearchConnectionLogsUseCase.Input(
             apiId,
             ApiLogsMapper.INSTANCE.toSearchLogsFilters(logsParam),
             new PageableImpl(paginationParam.getPage(), paginationParam.getPerPage())
@@ -87,7 +87,7 @@ public class ApiLogsResource extends AbstractResource {
         @BeanParam @Valid PaginationParam paginationParam,
         @PathParam("requestId") String requestId
     ) {
-        var request = new SearchMessageLogsUsecase.Input(
+        var request = new SearchMessageLogsUseCase.Input(
             apiId,
             requestId,
             new PageableImpl(paginationParam.getPage(), paginationParam.getPerPage())
@@ -108,7 +108,7 @@ public class ApiLogsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_LOG, acls = { RolePermissionAction.READ }) })
     public ApiLogResponse getApiLog(@PathParam("requestId") String requestId) {
-        var request = new SearchConnectionLogUsecase.Input(apiId, requestId);
+        var request = new SearchConnectionLogUseCase.Input(apiId, requestId);
 
         return searchConnectionLogUsecase
             .execute(request)

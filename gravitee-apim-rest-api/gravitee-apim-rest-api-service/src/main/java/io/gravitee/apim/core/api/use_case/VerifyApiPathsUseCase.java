@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.api.usecase;
+package io.gravitee.apim.core.api.use_case;
 
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.exception.InvalidPathsException;
@@ -21,11 +21,11 @@ import io.gravitee.apim.core.api.model.Path;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.List;
 
-public class VerifyApiPathsUsecase {
+public class VerifyApiPathsUseCase {
 
     private final VerifyApiPathDomainService verifyApiPathDomainService;
 
-    public VerifyApiPathsUsecase(VerifyApiPathDomainService verifyApiPathDomainService) {
+    public VerifyApiPathsUseCase(VerifyApiPathDomainService verifyApiPathDomainService) {
         this.verifyApiPathDomainService = verifyApiPathDomainService;
     }
 

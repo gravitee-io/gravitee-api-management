@@ -19,7 +19,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import io.gravitee.apim.core.audit.model.AuditActor;
-import io.gravitee.apim.core.subscription.usecase.CloseExpiredSubscriptionsUsecase;
+import io.gravitee.apim.core.subscription.use_case.CloseExpiredSubscriptionsUseCase;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -37,13 +37,13 @@ public class ScheduledSubscriptionsServiceTest {
     ScheduledSubscriptionsService service = new ScheduledSubscriptionsService();
 
     @Mock
-    CloseExpiredSubscriptionsUsecase closeExpiredSubscriptionsUsecase;
+    CloseExpiredSubscriptionsUseCase closeExpiredSubscriptionsUsecase;
 
     @Test
     public void shouldCloseOutdatedSubscriptions() {
         service.run();
 
         verify(closeExpiredSubscriptionsUsecase, times(1))
-            .execute(new CloseExpiredSubscriptionsUsecase.Input(AuditActor.builder().userId("system").build()));
+            .execute(new CloseExpiredSubscriptionsUseCase.Input(AuditActor.builder().userId("system").build()));
     }
 }

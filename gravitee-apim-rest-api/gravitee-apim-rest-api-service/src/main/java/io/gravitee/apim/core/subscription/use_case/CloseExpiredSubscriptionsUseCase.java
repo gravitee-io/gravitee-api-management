@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.subscription.usecase;
+package io.gravitee.apim.core.subscription.use_case;
 
-import io.gravitee.apim.core.TransactionalUsecase;
+import io.gravitee.apim.core.TransactionalUseCase;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiFieldFilter;
 import io.gravitee.apim.core.api.model.ApiSearchCriteria;
@@ -29,15 +29,15 @@ import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService
 import java.util.List;
 import java.util.stream.Collectors;
 
-@TransactionalUsecase
-public class CloseExpiredSubscriptionsUsecase {
+@TransactionalUseCase
+public class CloseExpiredSubscriptionsUseCase {
 
     private final SubscriptionQueryService subscriptionQueryService;
     private final ApiQueryService apiQueryService;
     private final EnvironmentCrudService environmentCrudService;
     private final CloseSubscriptionDomainService closeSubscriptionDomainService;
 
-    public CloseExpiredSubscriptionsUsecase(
+    public CloseExpiredSubscriptionsUseCase(
         SubscriptionQueryService subscriptionQueryService,
         ApiQueryService apiQueryService,
         EnvironmentCrudService environmentCrudService,

@@ -22,7 +22,7 @@ import static java.util.stream.Collectors.toList;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.apim.core.api.exception.InvalidPathsException;
-import io.gravitee.apim.core.api.usecase.VerifyApiPathsUsecase;
+import io.gravitee.apim.core.api.use_case.VerifyApiPathsUseCase;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
@@ -125,7 +125,7 @@ public class ApisResource extends AbstractResource {
     private FlowService flowService;
 
     @Inject
-    private VerifyApiPathsUsecase verifyApiPathsUsecase;
+    private VerifyApiPathsUseCase verifyApiPathsUsecase;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -407,7 +407,7 @@ public class ApisResource extends AbstractResource {
     public Response verifyApi(@Valid VerifyApiParam verifyApiParam) {
         try {
             verifyApiPathsUsecase.execute(
-                new VerifyApiPathsUsecase.Request(
+                new VerifyApiPathsUseCase.Request(
                     verifyApiParam.getApiId(),
                     List.of(io.gravitee.apim.core.api.model.Path.builder().path(verifyApiParam.getContextPath()).build())
                 )

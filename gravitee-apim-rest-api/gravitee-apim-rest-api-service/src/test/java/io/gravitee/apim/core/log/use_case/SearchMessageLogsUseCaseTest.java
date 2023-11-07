@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.log.usecase;
+package io.gravitee.apim.core.log.use_case;
 
 import static fixtures.core.log.model.MessageLogFixtures.aMessageLog;
 import static org.assertj.core.api.Assertions.tuple;
@@ -33,16 +33,16 @@ import org.junit.jupiter.api.Test;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-class SearchMessageLogsUsecaseTest {
+class SearchMessageLogsUseCaseTest {
 
     private static final String API_ID = "my-api";
     private static final String REQUEST_ID = "request-id";
-    private SearchMessageLogsUsecase usecase;
+    private SearchMessageLogsUseCase usecase;
     private final MessageLogCrudServiceInMemory messageLogStorageService = new MessageLogCrudServiceInMemory();
 
     @BeforeEach
     void setUp() {
-        usecase = new SearchMessageLogsUsecase(messageLogStorageService);
+        usecase = new SearchMessageLogsUseCase(messageLogStorageService);
     }
 
     @AfterEach
@@ -63,7 +63,7 @@ class SearchMessageLogsUsecaseTest {
             )
         );
 
-        var result = usecase.execute(new SearchMessageLogsUsecase.Input(API_ID, REQUEST_ID));
+        var result = usecase.execute(new SearchMessageLogsUseCase.Input(API_ID, REQUEST_ID));
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.total()).isOne();
@@ -99,7 +99,7 @@ class SearchMessageLogsUsecaseTest {
             )
         );
 
-        var result = usecase.execute(new SearchMessageLogsUsecase.Input(API_ID, REQUEST_ID));
+        var result = usecase.execute(new SearchMessageLogsUseCase.Input(API_ID, REQUEST_ID));
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.total()).isEqualTo(3);
@@ -126,7 +126,7 @@ class SearchMessageLogsUsecaseTest {
                 .toList()
         );
 
-        var result = usecase.execute(new SearchMessageLogsUsecase.Input(API_ID, REQUEST_ID, new PageableImpl(pageNumber, pageSize)));
+        var result = usecase.execute(new SearchMessageLogsUseCase.Input(API_ID, REQUEST_ID, new PageableImpl(pageNumber, pageSize)));
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.total()).isEqualTo(expectedTotal);

@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.subscription.usecase;
+package io.gravitee.apim.core.subscription.use_case;
 
-import io.gravitee.apim.core.TransactionalUsecase;
+import io.gravitee.apim.core.TransactionalUseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
@@ -23,13 +23,13 @@ import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
 import lombok.Builder;
 
-@TransactionalUsecase
-public class CloseSubscriptionUsecase {
+@TransactionalUseCase
+public class CloseSubscriptionUseCase {
 
     private final SubscriptionCrudService subscriptionCrudService;
     private final CloseSubscriptionDomainService closeSubscriptionDomainService;
 
-    public CloseSubscriptionUsecase(
+    public CloseSubscriptionUseCase(
         SubscriptionCrudService subscriptionCrudService,
         CloseSubscriptionDomainService closeSubscriptionDomainService
     ) {

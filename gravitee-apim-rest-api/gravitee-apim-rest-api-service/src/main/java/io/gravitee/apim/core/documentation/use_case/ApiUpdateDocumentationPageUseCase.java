@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.documentation.usecase;
+package io.gravitee.apim.core.documentation.use_case;
 
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -27,7 +27,7 @@ import java.util.Date;
 import java.util.Objects;
 import lombok.Builder;
 
-public class ApiUpdateDocumentationPageUsecase {
+public class ApiUpdateDocumentationPageUseCase {
 
     private final UpdateApiDocumentationDomainService updateApiDocumentationDomainService;
     private final ApiDocumentationDomainService apiDocumentationDomainService;
@@ -36,7 +36,7 @@ public class ApiUpdateDocumentationPageUsecase {
     private final PageCrudService pageCrudService;
     private final PageQueryService pageQueryService;
 
-    public ApiUpdateDocumentationPageUsecase(
+    public ApiUpdateDocumentationPageUseCase(
         UpdateApiDocumentationDomainService updateApiDocumentationDomainService,
         ApiDocumentationDomainService apiDocumentationDomainService,
         HomepageDomainService homepageDomainService,

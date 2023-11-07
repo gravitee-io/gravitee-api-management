@@ -19,7 +19,7 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE
 
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.core.subscription.usecase.CloseSubscriptionUsecase;
+import io.gravitee.apim.core.subscription.use_case.CloseSubscriptionUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.model.Subscription;
 import io.gravitee.rest.api.model.SubscriptionConsumerStatus;
@@ -71,7 +71,7 @@ public class ApplicationSubscriptionResource extends AbstractResource {
     private ResourceContext resourceContext;
 
     @Inject
-    private CloseSubscriptionUsecase closeSubscriptionUsecase;
+    private CloseSubscriptionUseCase closeSubscriptionUsecase;
 
     @Inject
     private SubscriptionService subscriptionService;
@@ -125,7 +125,7 @@ public class ApplicationSubscriptionResource extends AbstractResource {
             final var user = getAuthenticatedUserDetails();
 
             var result = closeSubscriptionUsecase.execute(
-                CloseSubscriptionUsecase.Input
+                CloseSubscriptionUseCase.Input
                     .builder()
                     .subscriptionId(subscription)
                     .applicationId(application)

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.documentation.usecase;
+package io.gravitee.apim.core.documentation.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -36,12 +36,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-class ApiGetDocumentationPagesUsecaseTest {
+class ApiGetDocumentationPagesUseCaseTest {
 
     private final PageQueryServiceInMemory pageQueryService = new PageQueryServiceInMemory();
     private final PageCrudServiceInMemory pageCrudService = new PageCrudServiceInMemory();
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
-    private final ApiGetDocumentationPagesUsecase useCase = new ApiGetDocumentationPagesUsecase(
+    private final ApiGetDocumentationPagesUseCase useCase = new ApiGetDocumentationPagesUseCase(
         new ApiDocumentationDomainService(pageQueryService, new HtmlSanitizerImpl()),
         apiCrudService,
         pageCrudService
@@ -68,7 +68,7 @@ class ApiGetDocumentationPagesUsecaseTest {
                     Page.builder().id("page#2").referenceType(Page.ReferenceType.API).referenceId(API_ID).build()
                 )
             );
-            var res = useCase.execute(new ApiGetDocumentationPagesUsecase.Input(API_ID, null)).pages();
+            var res = useCase.execute(new ApiGetDocumentationPagesUseCase.Input(API_ID, null)).pages();
             assertThat(res).hasSize(2);
             assertThat(res.get(0).getId()).isEqualTo("page#1");
             assertThat(res.get(1).getId()).isEqualTo("page#2");
@@ -77,7 +77,7 @@ class ApiGetDocumentationPagesUsecaseTest {
         @Test
         void should_throw_error_if_api_not_found() {
             initApiServices(List.of(Api.builder().id("not-my-api").build()));
-            assertThatThrownBy(() -> useCase.execute(new ApiGetDocumentationPagesUsecase.Input(API_ID, null)))
+            assertThatThrownBy(() -> useCase.execute(new ApiGetDocumentationPagesUseCase.Input(API_ID, null)))
                 .isInstanceOf(ApiNotFoundException.class);
         }
     }
@@ -95,7 +95,7 @@ class ApiGetDocumentationPagesUsecaseTest {
                     basicPageWithParent("page#2", "")
                 )
             );
-            var res = useCase.execute(new ApiGetDocumentationPagesUsecase.Input(API_ID, "ROOT"));
+            var res = useCase.execute(new ApiGetDocumentationPagesUseCase.Input(API_ID, "ROOT"));
             var pages = res.pages();
             assertThat(pages).hasSize(2);
             assertThat(pages.get(0).getId()).isEqualTo("page#1");
@@ -128,7 +128,7 @@ class ApiGetDocumentationPagesUsecaseTest {
 
             initPageServices(databasePages);
 
-            var res = useCase.execute(new ApiGetDocumentationPagesUsecase.Input(API_ID, parentIdPos3));
+            var res = useCase.execute(new ApiGetDocumentationPagesUseCase.Input(API_ID, parentIdPos3));
             var pages = res.pages();
             assertThat(pages).hasSize(2);
             assertThat(pages.get(0).getId()).isEqualTo("result-1");
@@ -150,7 +150,7 @@ class ApiGetDocumentationPagesUsecaseTest {
 
         @Test
         void should_throw_error_if_parent_not_found() {
-            assertThatThrownBy(() -> useCase.execute(new ApiGetDocumentationPagesUsecase.Input(API_ID, "parent-id")))
+            assertThatThrownBy(() -> useCase.execute(new ApiGetDocumentationPagesUseCase.Input(API_ID, "parent-id")))
                 .isInstanceOf(PageNotFoundException.class);
         }
 
@@ -167,7 +167,7 @@ class ApiGetDocumentationPagesUsecaseTest {
                         .build()
                 )
             );
-            assertThatThrownBy(() -> useCase.execute(new ApiGetDocumentationPagesUsecase.Input(API_ID, "parent-id")))
+            assertThatThrownBy(() -> useCase.execute(new ApiGetDocumentationPagesUseCase.Input(API_ID, "parent-id")))
                 .isInstanceOf(InvalidPageParentException.class);
         }
     }

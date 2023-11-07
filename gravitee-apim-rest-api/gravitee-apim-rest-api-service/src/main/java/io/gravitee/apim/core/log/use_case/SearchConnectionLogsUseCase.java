@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.log.usecase;
+package io.gravitee.apim.core.log.use_case;
 
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
 import io.gravitee.apim.core.log.crud_service.ConnectionLogsCrudService;
@@ -34,14 +34,14 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.List;
 import java.util.Optional;
 
-public class SearchConnectionLogsUsecase {
+public class SearchConnectionLogsUseCase {
 
     static final String UNKNOWN = "Unknown";
     private final ConnectionLogsCrudService connectionLogsCrudService;
     private final PlanCrudService planCrudService;
     private final ApplicationCrudService applicationCrudService;
 
-    public SearchConnectionLogsUsecase(
+    public SearchConnectionLogsUseCase(
         ConnectionLogsCrudService connectionLogsCrudService,
         PlanCrudService planCrudService,
         ApplicationCrudService applicationCrudService

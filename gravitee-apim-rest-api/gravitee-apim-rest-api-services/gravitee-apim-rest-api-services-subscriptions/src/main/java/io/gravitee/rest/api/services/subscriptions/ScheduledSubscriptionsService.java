@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.services.subscriptions;
 
 import io.gravitee.apim.core.audit.model.AuditActor;
-import io.gravitee.apim.core.subscription.usecase.CloseExpiredSubscriptionsUsecase;
+import io.gravitee.apim.core.subscription.use_case.CloseExpiredSubscriptionsUseCase;
 import io.gravitee.common.service.AbstractService;
 import java.time.Instant;
 import java.util.concurrent.atomic.AtomicLong;
@@ -52,7 +52,7 @@ public class ScheduledSubscriptionsService extends AbstractService implements Ru
     private final AtomicLong counter = new AtomicLong(0);
 
     @Autowired
-    private CloseExpiredSubscriptionsUsecase closeExpiredSubscriptionsUsecase;
+    private CloseExpiredSubscriptionsUseCase closeExpiredSubscriptionsUsecase;
 
     @Override
     protected String name() {
@@ -74,7 +74,7 @@ public class ScheduledSubscriptionsService extends AbstractService implements Ru
     public void run() {
         logger.debug("Refresh subscriptions #{} started at {}", counter.incrementAndGet(), Instant.now().toString());
 
-        closeExpiredSubscriptionsUsecase.execute(new CloseExpiredSubscriptionsUsecase.Input(AuditActor.builder().userId("system").build()));
+        closeExpiredSubscriptionsUsecase.execute(new CloseExpiredSubscriptionsUseCase.Input(AuditActor.builder().userId("system").build()));
 
         logger.debug("Refresh subscriptions #{} ended at {}", counter.get(), Instant.now().toString());
     }

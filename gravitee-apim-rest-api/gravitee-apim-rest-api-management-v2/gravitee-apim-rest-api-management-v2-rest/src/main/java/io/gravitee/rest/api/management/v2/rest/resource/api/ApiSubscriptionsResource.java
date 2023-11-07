@@ -19,7 +19,7 @@ import static java.lang.String.format;
 
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.core.subscription.usecase.CloseSubscriptionUsecase;
+import io.gravitee.apim.core.subscription.use_case.CloseSubscriptionUseCase;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.*;
@@ -72,7 +72,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
     private static final String EXPAND_SUBSCRIBED_BY = "subscribedBy";
 
     @Inject
-    private CloseSubscriptionUsecase closeSubscriptionUsecase;
+    private CloseSubscriptionUseCase closeSubscriptionUsecase;
 
     @Inject
     private SubscriptionService subscriptionService;
@@ -357,7 +357,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
         final var user = getAuthenticatedUserDetails();
 
         var result = closeSubscriptionUsecase.execute(
-            CloseSubscriptionUsecase.Input
+            CloseSubscriptionUseCase.Input
                 .builder()
                 .subscriptionId(subscriptionId)
                 .apiId(apiId)
