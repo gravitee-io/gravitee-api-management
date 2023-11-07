@@ -71,6 +71,10 @@ public class ApiCreateDocumentationPageUseCase {
             this.homepageDomainService.setPreviousHomepageToFalse(createdPage.getReferenceId(), createdPage.getId());
         }
 
+        if (createdPage.isFolder()) {
+            createdPage.setHidden(true);
+        }
+
         return new Output(createdPage);
     }
 

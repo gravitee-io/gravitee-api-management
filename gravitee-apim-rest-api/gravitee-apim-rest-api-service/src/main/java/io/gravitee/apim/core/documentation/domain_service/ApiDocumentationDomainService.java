@@ -64,4 +64,12 @@ public class ApiDocumentationDomainService {
             throw new ValidationDomainException("Name already exists with the same parent and type: " + name);
         }
     }
+
+    public Boolean pageIsHidden(Page page) {
+        if (page.isFolder()) {
+            var publishedChildren = this.pageQueryService.countByParentIdAndIsPublished(page.getId());
+            return publishedChildren <= 0;
+        }
+        return null;
+    }
 }

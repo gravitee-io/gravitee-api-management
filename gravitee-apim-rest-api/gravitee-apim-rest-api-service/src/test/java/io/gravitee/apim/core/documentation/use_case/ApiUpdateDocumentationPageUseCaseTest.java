@@ -396,7 +396,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
         @Test
         void should_update_folder() {
             initApiServices(List.of(Api.builder().id(API_ID).build()));
-            initPageServices(List.of(PARENT_FOLDER, OLD_FOLDER_PAGE));
+            initPageServices(List.of(PARENT_FOLDER, OLD_FOLDER_PAGE, Page.builder().id("child").parentId(PAGE_ID).published(true).build()));
 
             var res = apiUpdateDocumentationPageUsecase.execute(
                 ApiUpdateDocumentationPageUseCase.Input
@@ -419,9 +419,16 @@ class ApiUpdateDocumentationPageUseCaseTest {
                 .hasFieldOrPropertyWithValue("homepage", false)
                 .hasFieldOrPropertyWithValue("visibility", Page.Visibility.PRIVATE)
                 .hasFieldOrPropertyWithValue("parentId", PARENT_ID)
-                .hasFieldOrPropertyWithValue("order", 24);
+                .hasFieldOrPropertyWithValue("order", 24)
+                .hasFieldOrPropertyWithValue("hidden", false);
 
-            var savedPage = pageCrudService.storage().stream().filter(page -> page.getId().equals(res.page().getId())).toList().get(0);
+            var savedPage = pageCrudService
+                .storage()
+                .stream()
+                .filter(page -> page.getId().equals(res.page().getId()))
+                .toList()
+                .get(0)
+                .withHidden(false);
             assertThat(savedPage).isEqualTo(res.page());
         }
 

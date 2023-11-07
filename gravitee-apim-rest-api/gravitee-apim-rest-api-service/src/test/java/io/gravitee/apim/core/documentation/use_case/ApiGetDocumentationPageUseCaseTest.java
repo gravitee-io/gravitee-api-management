@@ -65,7 +65,43 @@ class ApiGetDocumentationPageUseCaseTest {
             List.of(Page.builder().id(PAGE_ID).referenceType(Page.ReferenceType.API).referenceId(API_ID).type(Page.Type.MARKDOWN).build())
         );
         var res = useCase.execute(new ApiGetDocumentationPageUseCase.Input(API_ID, PAGE_ID)).page();
-        assertThat(res).isNotNull().hasFieldOrPropertyWithValue("id", PAGE_ID);
+        assertThat(res).isNotNull().hasFieldOrPropertyWithValue("id", PAGE_ID).hasFieldOrPropertyWithValue("hidden", null);
+    }
+
+    @Test
+    void should_return_folder_without_children() {
+        initApiServices(List.of(Api.builder().id(API_ID).build()));
+        initPageServices(
+            List.of(Page.builder().id(PAGE_ID).referenceType(Page.ReferenceType.API).referenceId(API_ID).type(Page.Type.FOLDER).build())
+        );
+        var res = useCase.execute(new ApiGetDocumentationPageUseCase.Input(API_ID, PAGE_ID)).page();
+        assertThat(res).isNotNull().hasFieldOrPropertyWithValue("id", PAGE_ID).hasFieldOrPropertyWithValue("hidden", true);
+    }
+
+    @Test
+    void should_return_folder_with_published_children() {
+        initApiServices(List.of(Api.builder().id(API_ID).build()));
+        initPageServices(
+            List.of(
+                Page.builder().id(PAGE_ID).referenceType(Page.ReferenceType.API).referenceId(API_ID).type(Page.Type.FOLDER).build(),
+                Page.builder().id("one-child").parentId(PAGE_ID).published(true).build()
+            )
+        );
+        var res = useCase.execute(new ApiGetDocumentationPageUseCase.Input(API_ID, PAGE_ID)).page();
+        assertThat(res).isNotNull().hasFieldOrPropertyWithValue("id", PAGE_ID).hasFieldOrPropertyWithValue("hidden", false);
+    }
+
+    @Test
+    void should_return_folder_with_unpublished_children() {
+        initApiServices(List.of(Api.builder().id(API_ID).build()));
+        initPageServices(
+            List.of(
+                Page.builder().id(PAGE_ID).referenceType(Page.ReferenceType.API).referenceId(API_ID).type(Page.Type.FOLDER).build(),
+                Page.builder().id("one-child").parentId(PAGE_ID).published(false).build()
+            )
+        );
+        var res = useCase.execute(new ApiGetDocumentationPageUseCase.Input(API_ID, PAGE_ID)).page();
+        assertThat(res).isNotNull().hasFieldOrPropertyWithValue("id", PAGE_ID).hasFieldOrPropertyWithValue("hidden", true);
     }
 
     @Test

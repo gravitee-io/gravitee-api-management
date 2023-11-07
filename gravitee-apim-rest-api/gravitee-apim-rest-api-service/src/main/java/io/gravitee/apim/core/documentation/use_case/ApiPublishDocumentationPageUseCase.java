@@ -55,8 +55,11 @@ public class ApiPublishDocumentationPageUseCase {
         }
 
         var newPage = page.toBuilder().published(true).updatedAt(new Date()).build();
+        var updatedPage = this.updateApiDocumentationDomainService.updatePage(newPage, page, input.auditInfo);
 
-        return new Output(this.updateApiDocumentationDomainService.updatePage(newPage, page, input.auditInfo));
+        updatedPage = updatedPage.withHidden(this.apiDocumentationDomainService.pageIsHidden(updatedPage));
+
+        return new Output(updatedPage);
     }
 
     public record Input(String apiId, String pageId, AuditInfo auditInfo) {}
