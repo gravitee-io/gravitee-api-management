@@ -45,7 +45,7 @@ tests:
               elasticsearch:
                 enabled: true
                 endpoints:
-                  - http://graviteeio-apim-elasticsearch.default.svc.cluster.local:9200
+                  - http://graviteeio-apim-elasticsearch-ingest-hl:9200
                 index_mode: daily
                 pipeline:
                   plugins:
@@ -78,7 +78,7 @@ tests:
               elasticsearch:
                 enabled: true
                 endpoints:
-                  - http://graviteeio-apim-elasticsearch.default.svc.cluster.local:9200
+                  - http://graviteeio-apim-elasticsearch-ingest-hl:9200
                 index_mode: daily
                 pipeline:
                   plugins:
