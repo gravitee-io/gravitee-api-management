@@ -125,4 +125,51 @@ public class ApiPagesResourceTest extends AbstractResourceTest {
         assertNotNull(pages);
         assertEquals(0, pages.size());
     }
+
+    @Test
+    public void shouldNotReturnEmptyFolder() {
+        PageEntity emptyFolder = new PageEntity();
+        emptyFolder.setType("FOLDER");
+        emptyFolder.setId("not-a-parent");
+
+        PageEntity folderWithChild = new PageEntity();
+        folderWithChild.setId("parent");
+        emptyFolder.setType("FOLDER");
+
+        PageEntity child = new PageEntity();
+        child.setId("child");
+        child.setType("MARKDOWN");
+        child.setParentId("parent");
+
+        doReturn(Arrays.asList(emptyFolder, folderWithChild, child))
+            .when(pageService)
+            .search(eq(GraviteeContext.getCurrentEnvironment()), any(), isNull());
+
+        when(accessControlService.canAccessPageFromPortal(eq(GraviteeContext.getExecutionContext()), eq(API), any(PageEntity.class)))
+            .thenAnswer(invocationOnMock -> true);
+
+        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API)).thenReturn(true);
+
+        when(pageService.folderHasPublishedChildren(eq(emptyFolder.getId()))).thenReturn(false);
+        when(pageService.folderHasPublishedChildren(eq(folderWithChild.getId()))).thenReturn(true);
+
+        var folderWithChildMapped = new Page();
+        folderWithChildMapped.setId(folderWithChild.getId());
+        when(pageMapper.convert(eq(folderWithChild))).thenReturn(folderWithChildMapped);
+
+        var childMapped = new Page();
+        childMapped.setId(child.getId());
+        when(pageMapper.convert(eq(child))).thenReturn(childMapped);
+
+        final Response response = target(API).path("pages").request().get();
+        assertEquals(OK_200, response.getStatus());
+
+        PagesResponse pagesResponse = response.readEntity(PagesResponse.class);
+
+        List<Page> pages = pagesResponse.getData();
+        assertNotNull(pages);
+        assertEquals(2, pages.size());
+        assertEquals(pages.get(0).getId(), "parent");
+        assertEquals(pages.get(1).getId(), "child");
+    }
 }
