@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.subscription.usecase;
+package io.gravitee.apim.core.subscription.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -53,7 +53,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class CloseExpiredSubscriptionsUsecaseTest {
+class CloseExpiredSubscriptionsUseCaseTest {
 
     private static final String USER_ID = "user-id";
     private static final AuditActor AUDIT_ACTOR = AuditActor.builder().userId(USER_ID).build();
@@ -66,7 +66,7 @@ class CloseExpiredSubscriptionsUsecaseTest {
     private final ApplicationCrudServiceInMemory applicationCrudService = new ApplicationCrudServiceInMemory();
     private final PlanCrudServiceInMemory planCrudService = new PlanCrudServiceInMemory();
 
-    private CloseExpiredSubscriptionsUsecase usecase;
+    private CloseExpiredSubscriptionsUseCase usecase;
 
     @BeforeEach
     void setUp() {
@@ -92,7 +92,7 @@ class CloseExpiredSubscriptionsUsecaseTest {
         );
 
         usecase =
-            new CloseExpiredSubscriptionsUsecase(
+            new CloseExpiredSubscriptionsUseCase(
                 subscriptionQueryService,
                 apiQueryService,
                 environmentCrudService,
@@ -167,7 +167,7 @@ class CloseExpiredSubscriptionsUsecaseTest {
         );
 
         // When
-        var result = usecase.execute(new CloseExpiredSubscriptionsUsecase.Input(AUDIT_ACTOR));
+        var result = usecase.execute(new CloseExpiredSubscriptionsUseCase.Input(AUDIT_ACTOR));
 
         // Then
         assertThat(result.closedSubscriptions())
@@ -204,7 +204,7 @@ class CloseExpiredSubscriptionsUsecaseTest {
         );
 
         // When
-        usecase.execute(new CloseExpiredSubscriptionsUsecase.Input(AUDIT_ACTOR));
+        usecase.execute(new CloseExpiredSubscriptionsUseCase.Input(AUDIT_ACTOR));
 
         // Then
         assertThat(auditCrudServiceInMemory.storage())
@@ -253,7 +253,7 @@ class CloseExpiredSubscriptionsUsecaseTest {
         );
 
         // When
-        var result = usecase.execute(new CloseExpiredSubscriptionsUsecase.Input(AUDIT_ACTOR));
+        var result = usecase.execute(new CloseExpiredSubscriptionsUseCase.Input(AUDIT_ACTOR));
 
         // Then
         assertThat(result.closedSubscriptions()).isEmpty();

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.documentation.usecase;
+package io.gravitee.apim.core.documentation.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -33,12 +33,12 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class ApiGetDocumentationPageUsecaseTest {
+class ApiGetDocumentationPageUseCaseTest {
 
     private final PageCrudServiceInMemory pageCrudService = new PageCrudServiceInMemory();
     private final PageQueryServiceInMemory pageQueryService = new PageQueryServiceInMemory();
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
-    private ApiGetDocumentationPageUsecase useCase;
+    private ApiGetDocumentationPageUseCase useCase;
     private static final String API_ID = "api-id";
     private static final String PAGE_ID = "page-id";
 
@@ -48,7 +48,7 @@ class ApiGetDocumentationPageUsecaseTest {
             pageQueryService,
             new HtmlSanitizerImpl()
         );
-        useCase = new ApiGetDocumentationPageUsecase(apiDocumentationDomainService, apiCrudService, pageCrudService);
+        useCase = new ApiGetDocumentationPageUseCase(apiDocumentationDomainService, apiCrudService, pageCrudService);
     }
 
     @AfterEach
@@ -64,7 +64,7 @@ class ApiGetDocumentationPageUsecaseTest {
         initPageServices(
             List.of(Page.builder().id(PAGE_ID).referenceType(Page.ReferenceType.API).referenceId(API_ID).type(Page.Type.MARKDOWN).build())
         );
-        var res = useCase.execute(new ApiGetDocumentationPageUsecase.Input(API_ID, PAGE_ID)).page();
+        var res = useCase.execute(new ApiGetDocumentationPageUseCase.Input(API_ID, PAGE_ID)).page();
         assertThat(res).isNotNull().hasFieldOrPropertyWithValue("id", PAGE_ID);
     }
 
@@ -73,7 +73,7 @@ class ApiGetDocumentationPageUsecaseTest {
         initPageServices(
             List.of(Page.builder().id("page#1").referenceType(Page.ReferenceType.API).referenceId(API_ID).type(Page.Type.MARKDOWN).build())
         );
-        assertThatThrownBy(() -> useCase.execute(new ApiGetDocumentationPageUsecase.Input(API_ID, PAGE_ID)))
+        assertThatThrownBy(() -> useCase.execute(new ApiGetDocumentationPageUseCase.Input(API_ID, PAGE_ID)))
             .isInstanceOf(ApiNotFoundException.class);
     }
 
@@ -91,7 +91,7 @@ class ApiGetDocumentationPageUsecaseTest {
                     .build()
             )
         );
-        assertThatThrownBy(() -> useCase.execute(new ApiGetDocumentationPageUsecase.Input(API_ID, PAGE_ID)))
+        assertThatThrownBy(() -> useCase.execute(new ApiGetDocumentationPageUseCase.Input(API_ID, PAGE_ID)))
             .isInstanceOf(ValidationDomainException.class);
     }
 
@@ -109,7 +109,7 @@ class ApiGetDocumentationPageUsecaseTest {
                     .build()
             )
         );
-        assertThatThrownBy(() -> useCase.execute(new ApiGetDocumentationPageUsecase.Input(API_ID, PAGE_ID)))
+        assertThatThrownBy(() -> useCase.execute(new ApiGetDocumentationPageUseCase.Input(API_ID, PAGE_ID)))
             .isInstanceOf(ValidationDomainException.class);
     }
 
@@ -117,14 +117,14 @@ class ApiGetDocumentationPageUsecaseTest {
     void should_throw_error_if_page_does_not_exist() {
         initApiServices(List.of(Api.builder().id(API_ID).build()));
         initPageServices(List.of());
-        assertThatThrownBy(() -> useCase.execute(new ApiGetDocumentationPageUsecase.Input(API_ID, PAGE_ID)))
+        assertThatThrownBy(() -> useCase.execute(new ApiGetDocumentationPageUseCase.Input(API_ID, PAGE_ID)))
             .isInstanceOf(PageNotFoundException.class);
     }
 
     @Test
     void should_throw_error_if_page_id_is_root() {
         initApiServices(List.of(Api.builder().id(API_ID).build()));
-        assertThatThrownBy(() -> useCase.execute(new ApiGetDocumentationPageUsecase.Input(API_ID, "ROOT")))
+        assertThatThrownBy(() -> useCase.execute(new ApiGetDocumentationPageUseCase.Input(API_ID, "ROOT")))
             .isInstanceOf(PageNotFoundException.class);
     }
 

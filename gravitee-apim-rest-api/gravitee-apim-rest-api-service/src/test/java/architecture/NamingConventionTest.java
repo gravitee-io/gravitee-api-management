@@ -44,7 +44,7 @@ public class NamingConventionTest extends AbstractApimArchitectureTest {
                 .and()
                 .areTopLevelClasses()
                 .should()
-                .haveSimpleNameEndingWith("Usecase")
+                .haveSimpleNameEndingWith("UseCase")
                 .check(apimClassesWithoutTests());
         }
     }

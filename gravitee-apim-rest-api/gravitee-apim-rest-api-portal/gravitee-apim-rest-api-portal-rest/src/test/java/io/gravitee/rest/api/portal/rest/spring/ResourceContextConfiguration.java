@@ -22,7 +22,7 @@ import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
-import io.gravitee.apim.core.subscription.usecase.CloseSubscriptionUsecase;
+import io.gravitee.apim.core.subscription.use_case.CloseSubscriptionUseCase;
 import io.gravitee.apim.infra.domain_service.api.ApiDefinitionParserDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.api.ApiHostValidatorDomainServiceImpl;
 import io.gravitee.apim.infra.json.jackson.JacksonSpringConfiguration;
@@ -495,7 +495,7 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    CloseSubscriptionUsecase closeSubscriptionUsecase() {
-        return mock(CloseSubscriptionUsecase.class);
+    CloseSubscriptionUseCase closeSubscriptionUsecase() {
+        return mock(CloseSubscriptionUseCase.class);
     }
 }

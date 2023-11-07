@@ -26,7 +26,7 @@ import static org.mockito.Mockito.when;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.SubscriptionCrudServiceInMemory;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
-import io.gravitee.apim.core.subscription.usecase.CloseSubscriptionUsecase;
+import io.gravitee.apim.core.subscription.use_case.CloseSubscriptionUseCase;
 import io.gravitee.rest.api.management.v2.rest.model.Subscription;
 import io.gravitee.rest.api.management.v2.rest.model.SubscriptionStatus;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
@@ -52,7 +52,7 @@ public class ApiSubscriptionsResource_CloseTest extends AbstractResourceTest {
     protected static final String ENVIRONMENT = "my-env";
 
     @Autowired
-    protected CloseSubscriptionUsecase closeSubscriptionUsecase;
+    protected CloseSubscriptionUseCase closeSubscriptionUsecase;
 
     @Autowired
     private SubscriptionCrudServiceInMemory subscriptionCrudServiceInMemory;

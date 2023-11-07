@@ -20,10 +20,9 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE
 
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.core.subscription.usecase.CloseSubscriptionUsecase;
+import io.gravitee.apim.core.subscription.use_case.CloseSubscriptionUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.SubscriptionConfigurationEntity;
 import io.gravitee.rest.api.model.SubscriptionConsumerStatus;
 import io.gravitee.rest.api.model.SubscriptionEntity;
@@ -36,7 +35,6 @@ import io.gravitee.rest.api.portal.rest.model.Key;
 import io.gravitee.rest.api.portal.rest.model.Subscription;
 import io.gravitee.rest.api.portal.rest.model.SubscriptionConfigurationInput;
 import io.gravitee.rest.api.portal.rest.model.UpdateSubscriptionInput;
-import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
 import io.gravitee.rest.api.service.ApiKeyService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -59,7 +57,6 @@ import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -72,7 +69,7 @@ public class SubscriptionResource extends AbstractResource {
     private ResourceContext resourceContext;
 
     @Inject
-    private CloseSubscriptionUsecase closeSubscriptionUsecase;
+    private CloseSubscriptionUseCase closeSubscriptionUsecase;
 
     @Inject
     private SubscriptionService subscriptionService;
@@ -128,7 +125,7 @@ public class SubscriptionResource extends AbstractResource {
             final var user = getAuthenticatedUserDetails();
 
             closeSubscriptionUsecase.execute(
-                new CloseSubscriptionUsecase.Input(
+                new CloseSubscriptionUseCase.Input(
                     subscriptionId,
                     AuditInfo
                         .builder()

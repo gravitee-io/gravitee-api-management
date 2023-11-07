@@ -18,7 +18,7 @@ package io.gravitee.apim.infra.spring;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
-import io.gravitee.apim.core.api.usecase.VerifyApiPathsUsecase;
+import io.gravitee.apim.core.api.use_case.VerifyApiPathsUseCase;
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
@@ -26,19 +26,19 @@ import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentation
 import io.gravitee.apim.core.documentation.domain_service.HomepageDomainService;
 import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
-import io.gravitee.apim.core.documentation.usecase.*;
+import io.gravitee.apim.core.documentation.use_case.*;
 import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
 import io.gravitee.apim.core.log.crud_service.ConnectionLogsCrudService;
 import io.gravitee.apim.core.log.crud_service.MessageLogCrudService;
-import io.gravitee.apim.core.log.usecase.SearchConnectionLogUsecase;
-import io.gravitee.apim.core.log.usecase.SearchConnectionLogsUsecase;
-import io.gravitee.apim.core.log.usecase.SearchMessageLogsUsecase;
+import io.gravitee.apim.core.log.use_case.SearchConnectionLogUseCase;
+import io.gravitee.apim.core.log.use_case.SearchConnectionLogsUseCase;
+import io.gravitee.apim.core.log.use_case.SearchMessageLogsUseCase;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
-import io.gravitee.apim.core.subscription.usecase.CloseExpiredSubscriptionsUsecase;
-import io.gravitee.apim.core.subscription.usecase.CloseSubscriptionUsecase;
+import io.gravitee.apim.core.subscription.use_case.CloseExpiredSubscriptionsUseCase;
+import io.gravitee.apim.core.subscription.use_case.CloseSubscriptionUseCase;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -48,21 +48,21 @@ import org.springframework.context.annotation.Import;
 public class UsecaseSpringConfiguration {
 
     @Bean
-    public CloseSubscriptionUsecase closeSubscriptionUsecase(
+    public CloseSubscriptionUseCase closeSubscriptionUsecase(
         SubscriptionCrudService subscriptionCrudService,
         CloseSubscriptionDomainService closeSubscriptionDomainService
     ) {
-        return new CloseSubscriptionUsecase(subscriptionCrudService, closeSubscriptionDomainService);
+        return new CloseSubscriptionUseCase(subscriptionCrudService, closeSubscriptionDomainService);
     }
 
     @Bean
-    public CloseExpiredSubscriptionsUsecase closeExpiredSubscriptionsUsecase(
+    public CloseExpiredSubscriptionsUseCase closeExpiredSubscriptionsUsecase(
         SubscriptionQueryService subscriptionQueryService,
         ApiQueryService apiQueryService,
         EnvironmentCrudService environmentCrudService,
         CloseSubscriptionDomainService closeSubscriptionDomainService
     ) {
-        return new CloseExpiredSubscriptionsUsecase(
+        return new CloseExpiredSubscriptionsUseCase(
             subscriptionQueryService,
             apiQueryService,
             environmentCrudService,
@@ -71,56 +71,56 @@ public class UsecaseSpringConfiguration {
     }
 
     @Bean
-    public SearchConnectionLogsUsecase searchConnectionLogsUsecase(
+    public SearchConnectionLogsUseCase searchConnectionLogsUsecase(
         ConnectionLogsCrudService connectionLogsCrudService,
         PlanCrudService planCrudService,
         ApplicationCrudService applicationCrudService
     ) {
-        return new SearchConnectionLogsUsecase(connectionLogsCrudService, planCrudService, applicationCrudService);
+        return new SearchConnectionLogsUseCase(connectionLogsCrudService, planCrudService, applicationCrudService);
     }
 
     @Bean
-    public SearchConnectionLogUsecase searchConnectionLogUsecase(ConnectionLogsCrudService connectionLogsCrudService) {
-        return new SearchConnectionLogUsecase(connectionLogsCrudService);
+    public SearchConnectionLogUseCase searchConnectionLogUsecase(ConnectionLogsCrudService connectionLogsCrudService) {
+        return new SearchConnectionLogUseCase(connectionLogsCrudService);
     }
 
     @Bean
-    public SearchMessageLogsUsecase searchMessageLogsUsecase(MessageLogCrudService messageLogCrudService) {
-        return new SearchMessageLogsUsecase(messageLogCrudService);
+    public SearchMessageLogsUseCase searchMessageLogsUsecase(MessageLogCrudService messageLogCrudService) {
+        return new SearchMessageLogsUseCase(messageLogCrudService);
     }
 
     @Bean
-    public VerifyApiPathsUsecase verifyApiPathDomainUsecase(VerifyApiPathDomainService verifyApiPathDomainService) {
-        return new VerifyApiPathsUsecase(verifyApiPathDomainService);
+    public VerifyApiPathsUseCase verifyApiPathDomainUsecase(VerifyApiPathDomainService verifyApiPathDomainService) {
+        return new VerifyApiPathsUseCase(verifyApiPathDomainService);
     }
 
     @Bean
-    public ApiGetDocumentationPagesUsecase apiGetDocumentationPagesUsecase(
+    public ApiGetDocumentationPagesUseCase apiGetDocumentationPagesUsecase(
         ApiDocumentationDomainService apiDocumentationService,
         ApiCrudService apiCrudService,
         PageCrudService pageCrudService
     ) {
-        return new ApiGetDocumentationPagesUsecase(apiDocumentationService, apiCrudService, pageCrudService);
+        return new ApiGetDocumentationPagesUseCase(apiDocumentationService, apiCrudService, pageCrudService);
     }
 
     @Bean
-    public ApiGetDocumentationPageUsecase apiGetDocumentationPageUsecase(
+    public ApiGetDocumentationPageUseCase apiGetDocumentationPageUsecase(
         ApiDocumentationDomainService apiDocumentationDomainService,
         ApiCrudService apiCrudService,
         PageCrudService pageCrudService
     ) {
-        return new ApiGetDocumentationPageUsecase(apiDocumentationDomainService, apiCrudService, pageCrudService);
+        return new ApiGetDocumentationPageUseCase(apiDocumentationDomainService, apiCrudService, pageCrudService);
     }
 
     @Bean
-    public ApiCreateDocumentationPageUsecase apiCreateDocumentationPageUsecase(
+    public ApiCreateDocumentationPageUseCase apiCreateDocumentationPageUsecase(
         CreateApiDocumentationDomainService createApiDocumentationDomainService,
         ApiDocumentationDomainService apiDocumentationDomainService,
         HomepageDomainService homepageDomainService,
         PageCrudService pageCrudService,
         PageQueryService pageQueryService
     ) {
-        return new ApiCreateDocumentationPageUsecase(
+        return new ApiCreateDocumentationPageUseCase(
             createApiDocumentationDomainService,
             apiDocumentationDomainService,
             homepageDomainService,
@@ -130,7 +130,7 @@ public class UsecaseSpringConfiguration {
     }
 
     @Bean
-    public ApiUpdateDocumentationPageUsecase apiUpdateDocumentationPageUsecase(
+    public ApiUpdateDocumentationPageUseCase apiUpdateDocumentationPageUsecase(
         UpdateApiDocumentationDomainService updateApiDocumentationDomainService,
         ApiDocumentationDomainService apiDocumentationDomainService,
         HomepageDomainService homepageDomainService,
@@ -138,7 +138,7 @@ public class UsecaseSpringConfiguration {
         PageCrudService pageCrudService,
         PageQueryService pageQueryService
     ) {
-        return new ApiUpdateDocumentationPageUsecase(
+        return new ApiUpdateDocumentationPageUseCase(
             updateApiDocumentationDomainService,
             apiDocumentationDomainService,
             homepageDomainService,
@@ -149,13 +149,13 @@ public class UsecaseSpringConfiguration {
     }
 
     @Bean
-    public ApiPublishDocumentationPageUsecase apiPublishDocumentationPageUsecase(
+    public ApiPublishDocumentationPageUseCase apiPublishDocumentationPageUsecase(
         ApiDocumentationDomainService apiDocumentationDomainService,
         UpdateApiDocumentationDomainService updateApiDocumentationDomainService,
         ApiCrudService apiCrudService,
         PageCrudService pageCrudService
     ) {
-        return new ApiPublishDocumentationPageUsecase(
+        return new ApiPublishDocumentationPageUseCase(
             apiDocumentationDomainService,
             updateApiDocumentationDomainService,
             apiCrudService,

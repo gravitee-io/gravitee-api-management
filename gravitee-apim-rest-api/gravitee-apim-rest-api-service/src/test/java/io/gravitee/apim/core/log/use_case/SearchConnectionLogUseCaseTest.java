@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.log.usecase;
+package io.gravitee.apim.core.log.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -30,7 +30,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class SearchConnectionLogUsecaseTest {
+class SearchConnectionLogUseCaseTest {
 
     private static final String API_ID = "f1608475-dd77-4603-a084-75dd775603e9";
     private static final String REQUEST_ID = "c5608475-dd77-4603-a084-75dd77560310";
@@ -41,13 +41,13 @@ class SearchConnectionLogUsecaseTest {
 
     ConnectionLogsCrudServiceInMemory logStorageService = new ConnectionLogsCrudServiceInMemory();
 
-    SearchConnectionLogUsecase usecase;
+    SearchConnectionLogUseCase usecase;
 
     ConnectionLogDetailFixtures connectionLogDetailFixtures = new ConnectionLogDetailFixtures(API_ID, REQUEST_ID);
 
     @BeforeEach
     void setUp() {
-        usecase = new SearchConnectionLogUsecase(logStorageService);
+        usecase = new SearchConnectionLogUseCase(logStorageService);
     }
 
     @AfterEach
@@ -61,9 +61,9 @@ class SearchConnectionLogUsecaseTest {
         final ConnectionLogDetail connectionLogDetail = connectionLogDetailFixtures.aConnectionLogDetail().toBuilder().build();
         logStorageService.initWithConnectionLogDetails(List.of(connectionLogDetail));
 
-        var result = usecase.execute(new SearchConnectionLogUsecase.Input(API_ID, REQUEST_ID));
+        var result = usecase.execute(new SearchConnectionLogUseCase.Input(API_ID, REQUEST_ID));
 
-        assertThat(result).isEqualTo(new SearchConnectionLogUsecase.Output(Optional.of(connectionLogDetail)));
+        assertThat(result).isEqualTo(new SearchConnectionLogUseCase.Output(Optional.of(connectionLogDetail)));
     }
 
     @Test
@@ -72,9 +72,9 @@ class SearchConnectionLogUsecaseTest {
             List.of(connectionLogDetailFixtures.aConnectionLogDetail("other-req").toBuilder().build())
         );
 
-        var result = usecase.execute(new SearchConnectionLogUsecase.Input(API_ID, REQUEST_ID));
+        var result = usecase.execute(new SearchConnectionLogUseCase.Input(API_ID, REQUEST_ID));
 
-        assertThat(result).isEqualTo(new SearchConnectionLogUsecase.Output(Optional.empty()));
+        assertThat(result).isEqualTo(new SearchConnectionLogUseCase.Output(Optional.empty()));
     }
 
     @Test
@@ -83,8 +83,8 @@ class SearchConnectionLogUsecaseTest {
             List.of(connectionLogDetailFixtures.aConnectionLogDetail().toBuilder().apiId("other-api").build())
         );
 
-        var result = usecase.execute(new SearchConnectionLogUsecase.Input(API_ID, REQUEST_ID));
+        var result = usecase.execute(new SearchConnectionLogUseCase.Input(API_ID, REQUEST_ID));
 
-        assertThat(result).isEqualTo(new SearchConnectionLogUsecase.Output(Optional.empty()));
+        assertThat(result).isEqualTo(new SearchConnectionLogUseCase.Output(Optional.empty()));
     }
 }

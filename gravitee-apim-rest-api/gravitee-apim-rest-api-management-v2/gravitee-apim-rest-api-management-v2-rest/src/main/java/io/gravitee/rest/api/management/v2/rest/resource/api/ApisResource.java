@@ -20,7 +20,7 @@ import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDoc
 
 import com.google.common.base.Strings;
 import io.gravitee.apim.core.api.exception.InvalidPathsException;
-import io.gravitee.apim.core.api.usecase.VerifyApiPathsUsecase;
+import io.gravitee.apim.core.api.use_case.VerifyApiPathsUseCase;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.exception.InvalidImageException;
@@ -92,7 +92,7 @@ public class ApisResource extends AbstractResource {
     private ApiStateService apiStateService;
 
     @Inject
-    private VerifyApiPathsUsecase verifyApiPathsUsecase;
+    private VerifyApiPathsUseCase verifyApiPathsUsecase;
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
@@ -244,7 +244,7 @@ public class ApisResource extends AbstractResource {
     public Response verifyPaths(VerifyApiPaths verifyPayload) {
         try {
             verifyApiPathsUsecase.execute(
-                new VerifyApiPathsUsecase.Request(
+                new VerifyApiPathsUseCase.Request(
                     verifyPayload.getApiId(),
                     verifyPayload
                         .getPaths()

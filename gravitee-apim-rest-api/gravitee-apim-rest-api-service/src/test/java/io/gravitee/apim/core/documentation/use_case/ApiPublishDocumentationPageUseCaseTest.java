@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.documentation.usecase;
+package io.gravitee.apim.core.documentation.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -37,7 +37,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class ApiPublishDocumentationPageUsecaseTest {
+class ApiPublishDocumentationPageUseCaseTest {
 
     private final PageCrudServiceInMemory pageCrudService = new PageCrudServiceInMemory();
     private final PageQueryServiceInMemory pageQueryService = new PageQueryServiceInMemory();
@@ -45,7 +45,7 @@ class ApiPublishDocumentationPageUsecaseTest {
     private final PageRevisionCrudServiceInMemory pageRevisionCrudService = new PageRevisionCrudServiceInMemory();
     private final AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     private final UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
-    private ApiPublishDocumentationPageUsecase useCase;
+    private ApiPublishDocumentationPageUseCase useCase;
     private static final String ORGANIZATION_ID = "organization-id";
     private static final String ENVIRONMENT_ID = "environment-id";
     private static final String USER_ID = "user-id";
@@ -63,7 +63,7 @@ class ApiPublishDocumentationPageUsecaseTest {
             new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor())
         );
         useCase =
-            new ApiPublishDocumentationPageUsecase(
+            new ApiPublishDocumentationPageUseCase(
                 apiDocumentationDomainService,
                 updateDocumentationDomainService,
                 apiCrudService,
@@ -94,7 +94,7 @@ class ApiPublishDocumentationPageUsecaseTest {
                     .build()
             )
         );
-        var res = useCase.execute(new ApiPublishDocumentationPageUsecase.Input(API_ID, PAGE_ID, AUDIT_INFO)).page();
+        var res = useCase.execute(new ApiPublishDocumentationPageUseCase.Input(API_ID, PAGE_ID, AUDIT_INFO)).page();
         assertThat(res).isNotNull().hasFieldOrPropertyWithValue("id", PAGE_ID).hasFieldOrPropertyWithValue("published", true);
     }
 
@@ -114,7 +114,7 @@ class ApiPublishDocumentationPageUsecaseTest {
                     .build()
             )
         );
-        var res = useCase.execute(new ApiPublishDocumentationPageUsecase.Input(API_ID, PAGE_ID, AUDIT_INFO)).page();
+        var res = useCase.execute(new ApiPublishDocumentationPageUseCase.Input(API_ID, PAGE_ID, AUDIT_INFO)).page();
         assertThat(res).isNotNull().hasFieldOrPropertyWithValue("id", PAGE_ID).hasFieldOrPropertyWithValue("published", true);
     }
 
@@ -134,7 +134,7 @@ class ApiPublishDocumentationPageUsecaseTest {
                     .build()
             )
         );
-        useCase.execute(new ApiPublishDocumentationPageUsecase.Input(API_ID, PAGE_ID, AUDIT_INFO)).page();
+        useCase.execute(new ApiPublishDocumentationPageUseCase.Input(API_ID, PAGE_ID, AUDIT_INFO)).page();
         assertThat(auditCrudService.storage().get(0)).isNotNull().hasFieldOrPropertyWithValue("event", "PAGE_UPDATED");
     }
 
@@ -154,7 +154,7 @@ class ApiPublishDocumentationPageUsecaseTest {
                     .build()
             )
         );
-        assertThatThrownBy(() -> useCase.execute(new ApiPublishDocumentationPageUsecase.Input(API_ID, PAGE_ID, AUDIT_INFO)))
+        assertThatThrownBy(() -> useCase.execute(new ApiPublishDocumentationPageUseCase.Input(API_ID, PAGE_ID, AUDIT_INFO)))
             .isInstanceOf(ValidationDomainException.class);
     }
 
@@ -172,7 +172,7 @@ class ApiPublishDocumentationPageUsecaseTest {
                     .build()
             )
         );
-        assertThatThrownBy(() -> useCase.execute(new ApiPublishDocumentationPageUsecase.Input(API_ID, PAGE_ID, AUDIT_INFO)))
+        assertThatThrownBy(() -> useCase.execute(new ApiPublishDocumentationPageUseCase.Input(API_ID, PAGE_ID, AUDIT_INFO)))
             .isInstanceOf(ApiNotFoundException.class);
     }
 
@@ -192,7 +192,7 @@ class ApiPublishDocumentationPageUsecaseTest {
                     .build()
             )
         );
-        assertThatThrownBy(() -> useCase.execute(new ApiPublishDocumentationPageUsecase.Input(API_ID, PAGE_ID, AUDIT_INFO)))
+        assertThatThrownBy(() -> useCase.execute(new ApiPublishDocumentationPageUseCase.Input(API_ID, PAGE_ID, AUDIT_INFO)))
             .isInstanceOf(ValidationDomainException.class);
     }
 
@@ -210,7 +210,7 @@ class ApiPublishDocumentationPageUsecaseTest {
                     .build()
             )
         );
-        assertThatThrownBy(() -> useCase.execute(new ApiPublishDocumentationPageUsecase.Input(API_ID, PAGE_ID, AUDIT_INFO)))
+        assertThatThrownBy(() -> useCase.execute(new ApiPublishDocumentationPageUseCase.Input(API_ID, PAGE_ID, AUDIT_INFO)))
             .isInstanceOf(ValidationDomainException.class);
     }
 
@@ -218,14 +218,14 @@ class ApiPublishDocumentationPageUsecaseTest {
     void should_throw_error_if_page_does_not_exist() {
         initApiServices(List.of(Api.builder().id(API_ID).build()));
         initPageServices(List.of());
-        assertThatThrownBy(() -> useCase.execute(new ApiPublishDocumentationPageUsecase.Input(API_ID, PAGE_ID, AUDIT_INFO)))
+        assertThatThrownBy(() -> useCase.execute(new ApiPublishDocumentationPageUseCase.Input(API_ID, PAGE_ID, AUDIT_INFO)))
             .isInstanceOf(PageNotFoundException.class);
     }
 
     @Test
     void should_throw_error_if_page_id_is_root() {
         initApiServices(List.of(Api.builder().id(API_ID).build()));
-        assertThatThrownBy(() -> useCase.execute(new ApiPublishDocumentationPageUsecase.Input(API_ID, "ROOT", AUDIT_INFO)))
+        assertThatThrownBy(() -> useCase.execute(new ApiPublishDocumentationPageUseCase.Input(API_ID, "ROOT", AUDIT_INFO)))
             .isInstanceOf(PageNotFoundException.class);
     }
 

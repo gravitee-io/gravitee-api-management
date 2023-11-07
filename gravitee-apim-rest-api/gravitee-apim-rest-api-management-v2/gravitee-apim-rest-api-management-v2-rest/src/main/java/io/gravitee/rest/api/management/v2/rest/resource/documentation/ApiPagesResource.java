@@ -18,7 +18,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.documentation;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.model.Page;
-import io.gravitee.apim.core.documentation.usecase.*;
+import io.gravitee.apim.core.documentation.use_case.*;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.PageMapper;
 import io.gravitee.rest.api.management.v2.rest.model.*;
@@ -41,26 +41,26 @@ import org.mapstruct.factory.Mappers;
 public class ApiPagesResource extends AbstractResource {
 
     @Inject
-    private ApiGetDocumentationPagesUsecase apiGetDocumentationPagesUsecase;
+    private ApiGetDocumentationPagesUseCase apiGetDocumentationPagesUsecase;
 
     @Inject
-    private ApiCreateDocumentationPageUsecase apiCreateDocumentationPageUsecase;
+    private ApiCreateDocumentationPageUseCase apiCreateDocumentationPageUsecase;
 
     @Inject
-    private ApiGetDocumentationPageUsecase apiGetDocumentationPageUsecase;
+    private ApiGetDocumentationPageUseCase apiGetDocumentationPageUsecase;
 
     @Inject
-    private ApiUpdateDocumentationPageUsecase updateDocumentationPageUsecase;
+    private ApiUpdateDocumentationPageUseCase updateDocumentationPageUsecase;
 
     @Inject
-    private ApiPublishDocumentationPageUsecase apiPublishDocumentationPageUsecase;
+    private ApiPublishDocumentationPageUseCase apiPublishDocumentationPageUsecase;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.READ }) })
     public Response getApiPages(@PathParam("apiId") String apiId, @QueryParam("parentId") String parentId) {
         final var mapper = Mappers.getMapper(PageMapper.class);
-        var result = apiGetDocumentationPagesUsecase.execute(new ApiGetDocumentationPagesUsecase.Input(apiId, parentId));
+        var result = apiGetDocumentationPagesUsecase.execute(new ApiGetDocumentationPagesUseCase.Input(apiId, parentId));
         var response = ApiDocumentationPagesResponse.builder().pages(mapper.mapPageList(result.pages()));
         if (!StringUtils.isEmpty(parentId)) {
             response.breadcrumb(mapper.map(result.breadcrumbList()));
@@ -81,7 +81,7 @@ public class ApiPagesResource extends AbstractResource {
         pageToCreate.setReferenceType(Page.ReferenceType.API);
 
         var createdPage = apiCreateDocumentationPageUsecase
-            .execute(ApiCreateDocumentationPageUsecase.Input.builder().page(pageToCreate).auditInfo(getAuditInfo()).build())
+            .execute(ApiCreateDocumentationPageUseCase.Input.builder().page(pageToCreate).auditInfo(getAuditInfo()).build())
             .createdPage();
 
         return Response.ok(Mappers.getMapper(PageMapper.class).mapPage(createdPage)).build();
@@ -92,7 +92,7 @@ public class ApiPagesResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.READ }) })
     public Response getApiPage(@PathParam("apiId") String apiId, @PathParam("pageId") String pageId) {
-        var page = apiGetDocumentationPageUsecase.execute(new ApiGetDocumentationPageUsecase.Input(apiId, pageId)).page();
+        var page = apiGetDocumentationPageUsecase.execute(new ApiGetDocumentationPageUseCase.Input(apiId, pageId)).page();
         return Response.ok(Mappers.getMapper(PageMapper.class).mapPage(page)).build();
     }
 
@@ -122,7 +122,7 @@ public class ApiPagesResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.UPDATE }) })
     public Response publishDocumentationPage(@PathParam("apiId") String apiId, @PathParam("pageId") String pageId) {
         var page = apiPublishDocumentationPageUsecase
-            .execute(new ApiPublishDocumentationPageUsecase.Input(apiId, pageId, getAuditInfo()))
+            .execute(new ApiPublishDocumentationPageUseCase.Input(apiId, pageId, getAuditInfo()))
             .page();
         return Response.ok(Mappers.getMapper(PageMapper.class).mapPage(page)).build();
     }

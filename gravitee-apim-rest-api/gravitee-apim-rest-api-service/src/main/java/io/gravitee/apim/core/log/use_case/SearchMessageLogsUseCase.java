@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.log.usecase;
+package io.gravitee.apim.core.log.use_case;
 
 import io.gravitee.apim.core.log.crud_service.MessageLogCrudService;
 import io.gravitee.apim.core.log.model.AggregatedMessageLog;
@@ -27,11 +27,11 @@ import java.util.Optional;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class SearchMessageLogsUsecase {
+public class SearchMessageLogsUseCase {
 
     private final MessageLogCrudService messageLogCrudService;
 
-    public SearchMessageLogsUsecase(MessageLogCrudService messageLogCrudService) {
+    public SearchMessageLogsUseCase(MessageLogCrudService messageLogCrudService) {
         this.messageLogCrudService = messageLogCrudService;
     }
 

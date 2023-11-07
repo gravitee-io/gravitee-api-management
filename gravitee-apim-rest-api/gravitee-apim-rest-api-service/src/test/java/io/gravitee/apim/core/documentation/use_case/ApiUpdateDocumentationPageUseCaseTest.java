@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.documentation.usecase;
+package io.gravitee.apim.core.documentation.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -38,7 +38,7 @@ import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.*;
 
-class ApiUpdateDocumentationPageUsecaseTest {
+class ApiUpdateDocumentationPageUseCaseTest {
 
     private static final String ORGANIZATION_ID = "organization-id";
     private static final String ENVIRONMENT_ID = "environment-id";
@@ -99,7 +99,7 @@ class ApiUpdateDocumentationPageUsecaseTest {
     AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
     UpdateApiDocumentationDomainService updateApiDocumentationDomainService;
-    ApiUpdateDocumentationPageUsecase apiUpdateDocumentationPageUsecase;
+    ApiUpdateDocumentationPageUseCase apiUpdateDocumentationPageUsecase;
 
     @BeforeEach
     void setUp() {
@@ -110,7 +110,7 @@ class ApiUpdateDocumentationPageUsecaseTest {
                 new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor())
             );
         apiUpdateDocumentationPageUsecase =
-            new ApiUpdateDocumentationPageUsecase(
+            new ApiUpdateDocumentationPageUseCase(
                 updateApiDocumentationDomainService,
                 new ApiDocumentationDomainService(pageQueryService, new HtmlSanitizerImpl()),
                 new HomepageDomainService(pageQueryService, pageCrudService),
@@ -136,7 +136,7 @@ class ApiUpdateDocumentationPageUsecaseTest {
             initPageServices(List.of(PARENT_FOLDER, OLD_MARKDOWN_PAGE));
 
             var res = apiUpdateDocumentationPageUsecase.execute(
-                ApiUpdateDocumentationPageUsecase.Input
+                ApiUpdateDocumentationPageUseCase.Input
                     .builder()
                     .apiId(API_ID)
                     .pageId(PAGE_ID)
@@ -172,7 +172,7 @@ class ApiUpdateDocumentationPageUsecaseTest {
             initPageServices(List.of(PARENT_FOLDER, OLD_MARKDOWN_PAGE));
 
             apiUpdateDocumentationPageUsecase.execute(
-                ApiUpdateDocumentationPageUsecase.Input
+                ApiUpdateDocumentationPageUseCase.Input
                     .builder()
                     .apiId(API_ID)
                     .pageId(PAGE_ID)
@@ -197,7 +197,7 @@ class ApiUpdateDocumentationPageUsecaseTest {
             initPageServices(List.of(PARENT_FOLDER, OLD_MARKDOWN_PAGE));
 
             apiUpdateDocumentationPageUsecase.execute(
-                ApiUpdateDocumentationPageUsecase.Input
+                ApiUpdateDocumentationPageUseCase.Input
                     .builder()
                     .apiId(API_ID)
                     .pageId(PAGE_ID)
@@ -224,7 +224,7 @@ class ApiUpdateDocumentationPageUsecaseTest {
             initPageServices(List.of(PARENT_FOLDER, OLD_MARKDOWN_PAGE));
 
             apiUpdateDocumentationPageUsecase.execute(
-                ApiUpdateDocumentationPageUsecase.Input
+                ApiUpdateDocumentationPageUseCase.Input
                     .builder()
                     .apiId(API_ID)
                     .pageId(PAGE_ID)
@@ -251,7 +251,7 @@ class ApiUpdateDocumentationPageUsecaseTest {
             initPageServices(List.of(PARENT_FOLDER, OLD_MARKDOWN_PAGE));
 
             apiUpdateDocumentationPageUsecase.execute(
-                ApiUpdateDocumentationPageUsecase.Input
+                ApiUpdateDocumentationPageUseCase.Input
                     .builder()
                     .apiId(API_ID)
                     .pageId(PAGE_ID)
@@ -283,7 +283,7 @@ class ApiUpdateDocumentationPageUsecaseTest {
             initPageServices(List.of(OLD_MARKDOWN_PAGE.toBuilder().homepage(false).build(), existingHomepage));
 
             var res = apiUpdateDocumentationPageUsecase.execute(
-                ApiUpdateDocumentationPageUsecase.Input
+                ApiUpdateDocumentationPageUseCase.Input
                     .builder()
                     .apiId(API_ID)
                     .pageId(PAGE_ID)
@@ -308,7 +308,7 @@ class ApiUpdateDocumentationPageUsecaseTest {
             initPageServices(List.of(PARENT_FOLDER, OLD_MARKDOWN_PAGE));
             assertThatThrownBy(() ->
                     apiUpdateDocumentationPageUsecase.execute(
-                        ApiUpdateDocumentationPageUsecase.Input
+                        ApiUpdateDocumentationPageUseCase.Input
                             .builder()
                             .apiId(API_ID)
                             .pageId(PAGE_ID)
@@ -338,7 +338,7 @@ class ApiUpdateDocumentationPageUsecaseTest {
             initPageServices(List.of(OLD_MARKDOWN_PAGE.toBuilder().parentId(null).build(), duplicateName));
             assertThatThrownBy(() ->
                     apiUpdateDocumentationPageUsecase.execute(
-                        ApiUpdateDocumentationPageUsecase.Input
+                        ApiUpdateDocumentationPageUseCase.Input
                             .builder()
                             .apiId(API_ID)
                             .pageId(PAGE_ID)
@@ -358,7 +358,7 @@ class ApiUpdateDocumentationPageUsecaseTest {
         void should_throw_error_if_api_not_found() {
             assertThatThrownBy(() ->
                     apiUpdateDocumentationPageUsecase.execute(
-                        ApiUpdateDocumentationPageUsecase.Input.builder().apiId(API_ID).pageId(PAGE_ID).auditInfo(AUDIT_INFO).build()
+                        ApiUpdateDocumentationPageUseCase.Input.builder().apiId(API_ID).pageId(PAGE_ID).auditInfo(AUDIT_INFO).build()
                     )
                 )
                 .isInstanceOf(ApiNotFoundException.class);
@@ -370,7 +370,7 @@ class ApiUpdateDocumentationPageUsecaseTest {
 
             assertThatThrownBy(() ->
                     apiUpdateDocumentationPageUsecase.execute(
-                        ApiUpdateDocumentationPageUsecase.Input.builder().apiId(API_ID).pageId(PAGE_ID).auditInfo(AUDIT_INFO).build()
+                        ApiUpdateDocumentationPageUseCase.Input.builder().apiId(API_ID).pageId(PAGE_ID).auditInfo(AUDIT_INFO).build()
                     )
                 )
                 .isInstanceOf(PageNotFoundException.class);
@@ -383,7 +383,7 @@ class ApiUpdateDocumentationPageUsecaseTest {
 
             assertThatThrownBy(() ->
                     apiUpdateDocumentationPageUsecase.execute(
-                        ApiUpdateDocumentationPageUsecase.Input.builder().apiId(API_ID).pageId(PAGE_ID).auditInfo(AUDIT_INFO).build()
+                        ApiUpdateDocumentationPageUseCase.Input.builder().apiId(API_ID).pageId(PAGE_ID).auditInfo(AUDIT_INFO).build()
                     )
                 )
                 .isInstanceOf(ValidationDomainException.class);
@@ -399,7 +399,7 @@ class ApiUpdateDocumentationPageUsecaseTest {
             initPageServices(List.of(PARENT_FOLDER, OLD_FOLDER_PAGE));
 
             var res = apiUpdateDocumentationPageUsecase.execute(
-                ApiUpdateDocumentationPageUsecase.Input
+                ApiUpdateDocumentationPageUseCase.Input
                     .builder()
                     .apiId(API_ID)
                     .pageId(PAGE_ID)
@@ -431,7 +431,7 @@ class ApiUpdateDocumentationPageUsecaseTest {
             initPageServices(List.of(PARENT_FOLDER, OLD_FOLDER_PAGE));
 
             apiUpdateDocumentationPageUsecase.execute(
-                ApiUpdateDocumentationPageUsecase.Input
+                ApiUpdateDocumentationPageUseCase.Input
                     .builder()
                     .apiId(API_ID)
                     .pageId(PAGE_ID)
@@ -455,7 +455,7 @@ class ApiUpdateDocumentationPageUsecaseTest {
             initPageServices(List.of(PARENT_FOLDER, OLD_FOLDER_PAGE));
 
             apiUpdateDocumentationPageUsecase.execute(
-                ApiUpdateDocumentationPageUsecase.Input
+                ApiUpdateDocumentationPageUseCase.Input
                     .builder()
                     .apiId(API_ID)
                     .pageId(PAGE_ID)
@@ -476,7 +476,7 @@ class ApiUpdateDocumentationPageUsecaseTest {
 
             assertThatThrownBy(() ->
                     apiUpdateDocumentationPageUsecase.execute(
-                        ApiUpdateDocumentationPageUsecase.Input
+                        ApiUpdateDocumentationPageUseCase.Input
                             .builder()
                             .apiId(API_ID)
                             .pageId(PAGE_ID)
@@ -560,7 +560,7 @@ class ApiUpdateDocumentationPageUsecaseTest {
         void should_insert_new_page_with_lower_order() {
             // Change page_3 order to 1
             var res = apiUpdateDocumentationPageUsecase.execute(
-                ApiUpdateDocumentationPageUsecase.Input
+                ApiUpdateDocumentationPageUseCase.Input
                     .builder()
                     .apiId(API_ID)
                     .pageId(page_3.getId())
@@ -584,7 +584,7 @@ class ApiUpdateDocumentationPageUsecaseTest {
         void should_insert_new_page_with_higher_order() {
             // Change page_1 order to 3
             var res = apiUpdateDocumentationPageUsecase.execute(
-                ApiUpdateDocumentationPageUsecase.Input
+                ApiUpdateDocumentationPageUseCase.Input
                     .builder()
                     .apiId(API_ID)
                     .pageId(page_1.getId())
@@ -607,7 +607,7 @@ class ApiUpdateDocumentationPageUsecaseTest {
         @Test
         void should_not_change_order_if_the_same() {
             var res = apiUpdateDocumentationPageUsecase.execute(
-                ApiUpdateDocumentationPageUsecase.Input
+                ApiUpdateDocumentationPageUseCase.Input
                     .builder()
                     .apiId(API_ID)
                     .pageId(page_1.getId())
@@ -631,7 +631,7 @@ class ApiUpdateDocumentationPageUsecaseTest {
         void should_update_with_very_high_order() {
             // Change page_1 order to 9999
             var res = apiUpdateDocumentationPageUsecase.execute(
-                ApiUpdateDocumentationPageUsecase.Input
+                ApiUpdateDocumentationPageUseCase.Input
                     .builder()
                     .apiId(API_ID)
                     .pageId(page_1.getId())
@@ -656,7 +656,7 @@ class ApiUpdateDocumentationPageUsecaseTest {
             var pageWithDifferentParent = page_0.toBuilder().id("other-page").parentId(null).build();
             initPageServices(List.of(page_0, page_1, page_2, page_3, page_4, pageWithDifferentParent));
             var res = apiUpdateDocumentationPageUsecase.execute(
-                ApiUpdateDocumentationPageUsecase.Input
+                ApiUpdateDocumentationPageUseCase.Input
                     .builder()
                     .apiId(API_ID)
                     .pageId(pageWithDifferentParent.getId())

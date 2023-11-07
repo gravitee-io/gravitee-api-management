@@ -25,21 +25,21 @@ import org.springframework.context.annotation.Configuration;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class UsecaseRulesTest extends AbstractApimArchitectureTest {
+public class UseCaseRulesTest extends AbstractApimArchitectureTest {
 
     /**
      * Usecases should only be in {@link AbstractApimArchitectureTest#USECASE_PACKAGE}
      */
     @Test
-    public void usecase_should_reside_in_a_usecase_package() {
+    public void useCase_should_reside_in_a_usecase_package() {
         classes()
             .that()
-            .haveNameMatching(".*Usecase")
+            .haveNameMatching(".*UseCase")
             .and()
             .areNotAnnotations()
             .should()
             .resideInAPackage(anyPackageThatContains(USECASE_PACKAGE))
-            .as("Usecases should reside in a package '" + anyPackageThatContains(USECASE_PACKAGE) + "'")
+            .as("UseCases should reside in a package '" + anyPackageThatContains(USECASE_PACKAGE) + "'")
             .check(apimClassesWithoutTests());
     }
 
@@ -69,8 +69,8 @@ public class UsecaseRulesTest extends AbstractApimArchitectureTest {
     public void usecases_should_be_independent() {
         slices()
             .matching(anyPackageThatContains(CORE_PACKAGE + ".(*)." + USECASE_PACKAGE))
-            .namingSlices("Usecase $1")
-            .as("Usecase")
+            .namingSlices("UseCase $1")
+            .as("UseCase")
             .should()
             .notDependOnEachOther()
             .check(apimClasses());

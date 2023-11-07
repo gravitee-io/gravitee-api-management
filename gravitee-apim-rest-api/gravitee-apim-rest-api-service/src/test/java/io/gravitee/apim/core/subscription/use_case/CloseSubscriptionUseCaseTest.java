@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.subscription.usecase;
+package io.gravitee.apim.core.subscription.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.ThrowableAssert.catchThrowable;
@@ -42,7 +42,7 @@ import io.gravitee.apim.core.notification.model.hook.SubscriptionClosedApplicati
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.RejectSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
-import io.gravitee.apim.core.subscription.usecase.CloseSubscriptionUsecase.Input;
+import io.gravitee.apim.core.subscription.use_case.CloseSubscriptionUseCase.Input;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.ApiKeyMode;
@@ -64,7 +64,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
-class CloseSubscriptionUsecaseTest {
+class CloseSubscriptionUseCaseTest {
 
     private static final String ORGANIZATION_ID = "organization-id";
     private static final String ENVIRONMENT_ID = "environment-id";
@@ -79,7 +79,7 @@ class CloseSubscriptionUsecaseTest {
     private final ApplicationCrudServiceInMemory applicationCrudService = new ApplicationCrudServiceInMemory();
     private final ApiKeyCrudServiceInMemory apiKeyCrudService = new ApiKeyCrudServiceInMemory();
     private final PlanCrudServiceInMemory planCrudService = new PlanCrudServiceInMemory();
-    private CloseSubscriptionUsecase usecase;
+    private CloseSubscriptionUseCase usecase;
 
     @BeforeEach
     void setUp() {
@@ -102,7 +102,7 @@ class CloseSubscriptionUsecaseTest {
         );
 
         usecase =
-            new CloseSubscriptionUsecase(
+            new CloseSubscriptionUseCase(
                 subscriptionCrudService,
                 new CloseSubscriptionDomainService(
                     subscriptionCrudService,

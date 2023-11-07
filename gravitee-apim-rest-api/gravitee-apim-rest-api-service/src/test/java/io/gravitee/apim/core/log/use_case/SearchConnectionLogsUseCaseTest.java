@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.log.usecase;
+package io.gravitee.apim.core.log.use_case;
 
-import static io.gravitee.apim.core.log.usecase.SearchConnectionLogsUsecase.UNKNOWN;
+import static io.gravitee.apim.core.log.use_case.SearchConnectionLogsUseCase.UNKNOWN;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
@@ -24,7 +24,7 @@ import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.ConnectionLogsCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.PlanCrudServiceInMemory;
-import io.gravitee.apim.core.log.usecase.SearchConnectionLogsUsecase.Input;
+import io.gravitee.apim.core.log.use_case.SearchConnectionLogsUseCase.Input;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.model.analytics.SearchLogsFilters;
@@ -42,7 +42,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class SearchConnectionLogsUsecaseTest {
+public class SearchConnectionLogsUseCaseTest {
 
     private static final String API_ID = "f1608475-dd77-4603-a084-75dd775603e9";
     private static final BasePlanEntity PLAN_1 = BasePlanEntity.builder().id("plan1").name("1st plan").build();
@@ -68,11 +68,11 @@ public class SearchConnectionLogsUsecaseTest {
     PlanCrudServiceInMemory planStorageService = new PlanCrudServiceInMemory();
     ApplicationCrudServiceInMemory applicationStorageService = new ApplicationCrudServiceInMemory();
 
-    SearchConnectionLogsUsecase usecase;
+    SearchConnectionLogsUseCase usecase;
 
     @BeforeEach
     void setUp() {
-        usecase = new SearchConnectionLogsUsecase(logStorageService, planStorageService, applicationStorageService);
+        usecase = new SearchConnectionLogsUseCase(logStorageService, planStorageService, applicationStorageService);
 
         planStorageService.initWith(List.of(PLAN_1, PLAN_2));
         applicationStorageService.initWith(List.of(APPLICATION_1, APPLICATION_2));
