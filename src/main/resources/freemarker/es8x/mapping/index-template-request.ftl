@@ -1,15 +1,16 @@
 <#ftl output_format="JSON">
 {
     "index_patterns": ["${indexName}*"],
-    "settings": {
-        <#if indexLifecyclePolicyRequest??>"${indexLifecyclePolicyPropertyName}": "${indexLifecyclePolicyRequest}",</#if>
-        <#if indexLifecyclePolicyRequest??>"index.lifecycle.rollover_alias": "${indexName}",</#if>
-        "index.number_of_shards":${numberOfShards},
-        "index.number_of_replicas":${numberOfReplicas},
-        "index.refresh_interval": "${refreshInterval}"
-        <#if extendedSettingsTemplate??>,<#include "/${extendedSettingsTemplate}"></#if>
-    },
-    "mappings": {
+    "template": {
+        "settings": {
+            <#if indexLifecyclePolicyRequest??>"${indexLifecyclePolicyPropertyName}": "${indexLifecyclePolicyRequest}",</#if>
+            <#if indexLifecyclePolicyRequest??>"index.lifecycle.rollover_alias": "${indexName}",</#if>
+            "index.number_of_shards":${numberOfShards},
+            "index.number_of_replicas":${numberOfReplicas},
+            "index.refresh_interval": "${refreshInterval}"
+            <#if extendedSettingsTemplate??>,<#include "/${extendedSettingsTemplate}"></#if>
+        },
+        "mappings": {
             "properties": {
                 "@timestamp": {
                     "type": "date"
@@ -180,5 +181,6 @@
                     }
                 }
             ]
+        }
     }
 }

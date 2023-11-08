@@ -1,15 +1,16 @@
 <#ftl output_format="JSON">
 {
     "index_patterns": ["${indexName}*"],
-    "settings": {
-        <#if indexLifecyclePolicyMonitor??>"${indexLifecyclePolicyPropertyName}": "${indexLifecyclePolicyMonitor}",</#if>
-        <#if indexLifecyclePolicyMonitor??>"index.lifecycle.rollover_alias": "${indexName}",</#if>
-        "index.number_of_shards":${numberOfShards},
-        "index.number_of_replicas":${numberOfReplicas},
-        "index.refresh_interval": "${refreshInterval}"
-        <#if extendedSettingsTemplate??>,<#include "/${extendedSettingsTemplate}"></#if>
-    },
-    "mappings": {
+    "template": {
+        "settings": {
+            <#if indexLifecyclePolicyMonitor??>"${indexLifecyclePolicyPropertyName}": "${indexLifecyclePolicyMonitor}",</#if>
+            <#if indexLifecyclePolicyMonitor??>"index.lifecycle.rollover_alias": "${indexName}",</#if>
+            "index.number_of_shards":${numberOfShards},
+            "index.number_of_replicas":${numberOfReplicas},
+            "index.refresh_interval": "${refreshInterval}"
+            <#if extendedSettingsTemplate??>,<#include "/${extendedSettingsTemplate}"></#if>
+        },
+        "mappings": {
             "properties": {
                 "os": {
                     "properties": {
@@ -39,5 +40,6 @@
                     "type": "keyword"
                 }
             }
+        }
     }
 }

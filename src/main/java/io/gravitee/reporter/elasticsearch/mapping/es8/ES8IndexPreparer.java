@@ -15,7 +15,6 @@
  */
 package io.gravitee.reporter.elasticsearch.mapping.es8;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.elasticsearch.utils.Type;
 import io.gravitee.reporter.elasticsearch.config.PipelineConfiguration;
 import io.gravitee.reporter.elasticsearch.mapping.PerTypeIndexPreparer;
@@ -56,7 +55,7 @@ public class ES8IndexPreparer extends PerTypeIndexPreparer {
 
             final String template = freeMarkerComponent.generateFromTemplate("/es8x/mapping/index-template-" + typeName + ".ftl", data);
 
-            final Completable templateCreationCompletable = client.putTemplate(templateName, template);
+            final Completable templateCreationCompletable = client.putIndexTemplate(templateName, template);
             if (configuration.isIlmManagedIndex()) {
                 return templateCreationCompletable.andThen(ensureAlias(aliasName));
             }
