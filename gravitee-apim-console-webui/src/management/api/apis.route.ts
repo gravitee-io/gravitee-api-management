@@ -75,6 +75,7 @@ import { ApiDocumentationV4Component } from './documentation-v4/api-documentatio
 import { ApiDocumentationV4NewPageComponent } from './documentation-v4/documentation-new-page/api-documentation-v4-new-page.component';
 import { ApiDocumentationV4EditPageComponent } from './documentation-v4/documentation-edit-page/api-documentation-v4-edit-page.component';
 import { ApiDynamicPropertiesComponent } from './proxy/properties/dynamic-properties/api-dynamic-properties.component';
+import { ApiRuntimeLogsProxyComponent } from './runtime-logs-v4/runtime-logs-details/runtime-logs-proxy';
 
 import { ApiService } from '../../services/api.service';
 import { GioEmptyComponent } from '../../shared/components/gio-empty/gio-empty.component';
@@ -1481,7 +1482,7 @@ export const states: Ng2StateDeclaration[] = [
   },
   {
     name: 'management.apis.runtimeLogs-messages',
-    url: '/runtime-logs/:requestId',
+    url: '/runtime-logs/message/:requestId',
     data: {
       apiPermissions: {
         only: ['api-log-r'],
@@ -1492,6 +1493,20 @@ export const states: Ng2StateDeclaration[] = [
       useAngularMaterial: true,
     },
     component: ApiRuntimeLogsMessagesComponent,
+  },
+  {
+    name: 'management.apis.runtimeLogs-proxy',
+    url: '/runtime-logs/proxy/:requestId',
+    data: {
+      apiPermissions: {
+        only: ['api-log-r'],
+      },
+      docs: {
+        page: 'management-api-logs',
+      },
+      useAngularMaterial: true,
+    },
+    component: ApiRuntimeLogsProxyComponent,
   },
   {
     name: 'management.apis.runtimeLogs-settings',
