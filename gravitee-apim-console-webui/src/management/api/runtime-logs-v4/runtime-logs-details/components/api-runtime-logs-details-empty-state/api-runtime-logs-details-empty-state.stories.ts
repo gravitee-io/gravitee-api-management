@@ -16,22 +16,22 @@
 import { Meta, moduleMetadata } from '@storybook/angular';
 import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
 
-import { ApiRuntimeLogsMessageEmptyModule } from './api-runtime-logs-message-empty.module';
-import { ApiRuntimeLogsMessageEmptyComponent } from './api-runtime-logs-message-empty.component';
+import { ApiRuntimeLogsDetailsEmptyStateModule } from './api-runtime-logs-details-empty-state.module';
+import { ApiRuntimeLogsDetailsEmptyStateComponent } from './api-runtime-logs-details-empty-state.component';
 
 export default {
-  title: 'API / Logs / Messages / Empty',
-  component: ApiRuntimeLogsMessageEmptyComponent,
+  title: 'API / Logs / Details / Empty',
+  component: ApiRuntimeLogsDetailsEmptyStateComponent,
   decorators: [
     moduleMetadata({
-      imports: [ApiRuntimeLogsMessageEmptyModule],
+      imports: [ApiRuntimeLogsDetailsEmptyStateModule],
     }),
   ],
   argTypes: {},
   render: (args) => ({
     template: `
       <div style="width: 800px">
-        <api-runtime-logs-message-empty></api-runtime-logs-message-empty>
+        <api-runtime-logs-details-empty-state></api-runtime-logs-details-empty-state>
       </div>
     `,
     props: args,

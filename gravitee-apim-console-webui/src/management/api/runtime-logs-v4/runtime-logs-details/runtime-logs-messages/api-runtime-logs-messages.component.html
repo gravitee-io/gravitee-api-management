@@ -30,13 +30,13 @@
         <api-runtime-logs-message-connection-log [connectionLogDetail]="connectionLogDetail"></api-runtime-logs-message-connection-log>
       </div>
       <ng-template #showEmptyState>
-        <api-runtime-logs-message-empty (navigateToSettings)="openLogsSettings()"></api-runtime-logs-message-empty>
+        <api-runtime-logs-details-empty-state (navigateToSettings)="openLogsSettings()"></api-runtime-logs-details-empty-state>
       </ng-template>
     </mat-tab>
     <mat-tab label="Messages">
       <div *ngIf="messageLogs$ | async as messageLogs" class="messages">
         <ng-container *ngIf="messageLogs.length === 0; else showList">
-          <api-runtime-logs-message-empty (navigateToSettings)="openLogsSettings()"></api-runtime-logs-message-empty>
+          <api-runtime-logs-details-empty-state (navigateToSettings)="openLogsSettings()"></api-runtime-logs-details-empty-state>
         </ng-container>
 
         <ng-template #showList>

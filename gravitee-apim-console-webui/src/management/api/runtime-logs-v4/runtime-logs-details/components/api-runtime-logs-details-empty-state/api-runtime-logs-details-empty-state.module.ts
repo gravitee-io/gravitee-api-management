@@ -21,11 +21,11 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 
-import { ApiRuntimeLogsMessageEmptyComponent } from './api-runtime-logs-message-empty.component';
+import { ApiRuntimeLogsDetailsEmptyStateComponent } from './api-runtime-logs-details-empty-state.component';
 
 @NgModule({
-  declarations: [ApiRuntimeLogsMessageEmptyComponent],
-  exports: [ApiRuntimeLogsMessageEmptyComponent],
+  declarations: [ApiRuntimeLogsDetailsEmptyStateComponent],
+  exports: [ApiRuntimeLogsDetailsEmptyStateComponent],
   imports: [CommonModule, BrowserAnimationsModule, MatIconModule, GioIconsModule, MatButtonModule, MatCardModule],
 })
-export class ApiRuntimeLogsMessageEmptyModule {}
+export class ApiRuntimeLogsDetailsEmptyStateModule {}
