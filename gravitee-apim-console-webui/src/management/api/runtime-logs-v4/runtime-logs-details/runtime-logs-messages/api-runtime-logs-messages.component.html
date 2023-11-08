@@ -27,7 +27,7 @@
   <mat-tab-group (selectedTabChange)="onTabChange($event)">
     <mat-tab label="Connection Logs">
       <div *ngIf="connectionLog$ | async as connectionLogDetail; else showEmptyState" class="connection-log">
-        <api-runtime-logs-message-connection-log [connectionLogDetail]="connectionLogDetail"></api-runtime-logs-message-connection-log>
+        <api-runtime-logs-connection-log-details [connectionLogDetail]="connectionLogDetail"></api-runtime-logs-connection-log-details>
       </div>
       <ng-template #showEmptyState>
         <api-runtime-logs-details-empty-state (navigateToSettings)="openLogsSettings()"></api-runtime-logs-details-empty-state>

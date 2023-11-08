@@ -17,14 +17,14 @@
 import { Component, Input } from '@angular/core';
 import { Object } from 'core-js';
 
-import { ConnectionLogDetail } from '../../../../../../../entities/management-api-v2';
+import { ConnectionLogDetail } from '../../../../../../entities/management-api-v2';
 
 @Component({
-  selector: 'api-runtime-logs-message-connection-log',
-  template: require('./api-runtime-logs-message-connection-log.component.html'),
-  styles: [require('./api-runtime-logs-message-connection-log.component.scss')],
+  selector: 'api-runtime-logs-connection-log-details',
+  template: require('./api-runtime-logs-connection-log-details.component.html'),
+  styles: [require('./api-runtime-logs-connection-log-details.component.scss')],
 })
-export class ApiRuntimeLogsMessageConnectionLogComponent {
+export class ApiRuntimeLogsConnectionLogDetailsComponent {
   @Input()
   isEntrypoint: boolean;
   @Input()

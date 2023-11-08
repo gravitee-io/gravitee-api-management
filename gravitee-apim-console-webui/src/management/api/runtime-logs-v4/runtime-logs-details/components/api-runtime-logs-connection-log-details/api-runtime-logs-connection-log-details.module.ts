@@ -21,11 +21,11 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatTabsModule } from '@angular/material/tabs';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
-import { ApiRuntimeLogsMessageConnectionLogComponent } from './api-runtime-logs-message-connection-log.component';
+import { ApiRuntimeLogsConnectionLogDetailsComponent } from './api-runtime-logs-connection-log-details.component';
 
 @NgModule({
-  declarations: [ApiRuntimeLogsMessageConnectionLogComponent],
-  exports: [ApiRuntimeLogsMessageConnectionLogComponent],
+  declarations: [ApiRuntimeLogsConnectionLogDetailsComponent],
+  exports: [ApiRuntimeLogsConnectionLogDetailsComponent],
   imports: [CommonModule, BrowserAnimationsModule, MatIconModule, GioIconsModule, MatTabsModule, MatExpansionModule],
 })
-export class ApiRuntimeLogsMessageConnectionLogModule {}
+export class ApiRuntimeLogsConnectionLogDetailsModule {}
