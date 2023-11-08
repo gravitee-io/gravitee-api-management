@@ -42,6 +42,16 @@
           <span *ngIf="page.published" class="gio-badge-success"> Published </span>
           <span *ngIf="!page.published" class="gio-badge-neutral"> Unpublished </span>
         </ng-container>
+        <ng-container *ngIf="page.type === 'FOLDER'">
+          <span
+            *ngIf="page.hidden"
+            class="gio-badge-neutral"
+            matTooltip="Must contain published pages to be shown"
+            matTooltipPosition="after"
+          >
+            Hidden
+          </span>
+        </ng-container>
       </td>
     </ng-container>
     <ng-container matColumnDef="visibility">

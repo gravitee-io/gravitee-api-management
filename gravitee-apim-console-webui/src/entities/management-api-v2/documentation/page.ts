@@ -40,6 +40,7 @@ export interface Page {
   parentId?: string;
   parentPath?: string;
   contentRevision?: Revision;
+  hidden?: boolean;
 }
 
 export interface Breadcrumb {

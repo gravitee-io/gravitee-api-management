@@ -107,7 +107,10 @@ describe('ApiDocumentationV4', () => {
   describe('API has pages', () => {
     it('should show list of folders', async () => {
       await init(
-        [fakeFolder({ name: 'my first folder', visibility: 'PUBLIC' }), fakeFolder({ name: 'my private folder', visibility: 'PRIVATE' })],
+        [
+          fakeFolder({ name: 'my first folder', visibility: 'PUBLIC', hidden: false }),
+          fakeFolder({ name: 'my private folder', visibility: 'PRIVATE', hidden: true }),
+        ],
         [],
       );
 
@@ -116,6 +119,8 @@ describe('ApiDocumentationV4', () => {
       expect(await pageListHarness.getNameByRowIndex(1)).toEqual('my private folder');
       expect(await pageListHarness.getVisibilityByRowIndex(0)).toEqual('Public');
       expect(await pageListHarness.getVisibilityByRowIndex(1)).toEqual('Private');
+      expect(await pageListHarness.getStatusByRowIndex(0)).toEqual('');
+      expect(await pageListHarness.getStatusByRowIndex(1)).toEqual('Hidden');
     });
 
     it('should navigate to create page', async () => {

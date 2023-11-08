@@ -39,6 +39,10 @@ export class ApiDocumentationV4PagesListHarness extends ComponentHarness {
     return this.getColumnTextByIndex('visibility', idx);
   }
 
+  public getStatusByRowIndex(idx: number): Promise<string> {
+    return this.getColumnTextByIndex('status', idx);
+  }
+
   public async clickAddNewPage() {
     return this.addNewPageButtonLocator().then((btn) => btn.click());
   }
