@@ -22,9 +22,8 @@ import { UIRouterModule } from '@uirouter/angular';
 
 import { ApiRuntimeLogsMessageItemModule } from './components';
 import { ApiRuntimeLogsMessagesComponent } from './api-runtime-logs-messages.component';
-import { ApiRuntimeLogsMessageConnectionLogModule } from './components/api-runtime-logs-message-connection-log';
 
-import { ApiRuntimeLogsDetailsEmptyStateModule } from '../components/api-runtime-logs-details-empty-state';
+import { ApiRuntimeLogsDetailsEmptyStateModule, ApiRuntimeLogsConnectionLogDetailsModule } from '../components';
 
 @NgModule({
   declarations: [ApiRuntimeLogsMessagesComponent],
@@ -37,7 +36,7 @@ import { ApiRuntimeLogsDetailsEmptyStateModule } from '../components/api-runtime
     MatTabsModule,
     ApiRuntimeLogsMessageItemModule,
     ApiRuntimeLogsDetailsEmptyStateModule,
-    ApiRuntimeLogsMessageConnectionLogModule,
+    ApiRuntimeLogsConnectionLogDetailsModule,
   ],
 })
 export class ApiRuntimeLogsMessagesModule {}

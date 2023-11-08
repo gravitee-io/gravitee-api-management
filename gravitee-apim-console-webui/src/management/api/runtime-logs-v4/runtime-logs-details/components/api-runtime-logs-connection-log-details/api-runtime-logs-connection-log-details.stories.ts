@@ -16,26 +16,26 @@
 import { Meta, moduleMetadata } from '@storybook/angular';
 import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
 
-import { ApiRuntimeLogsMessageConnectionLogModule } from './api-runtime-logs-message-connection-log.module';
-import { ApiRuntimeLogsMessageConnectionLogComponent } from './api-runtime-logs-message-connection-log.component';
+import { ApiRuntimeLogsConnectionLogDetailsModule } from './api-runtime-logs-connection-log-details.module';
+import { ApiRuntimeLogsConnectionLogDetailsComponent } from './api-runtime-logs-connection-log-details.component';
 
-import { fakeConnectionLogDetail } from '../../../../../../../entities/management-api-v2';
+import { fakeConnectionLogDetail } from '../../../../../../entities/management-api-v2';
 
 export default {
-  title: 'API / Logs / Messages / Connection Log',
-  component: ApiRuntimeLogsMessageConnectionLogComponent,
+  title: 'API / Logs / Details / Connection Log',
+  component: ApiRuntimeLogsConnectionLogDetailsComponent,
   decorators: [
     moduleMetadata({
-      imports: [ApiRuntimeLogsMessageConnectionLogModule],
+      imports: [ApiRuntimeLogsConnectionLogDetailsModule],
     }),
   ],
   argTypes: {},
   render: (args) => ({
     template: `
       <div style="width: 800px">
-      <api-runtime-logs-message-connection-log
+      <api-runtime-logs-connection-log-details
           [connectionLogDetail]="connectionLogDetail"
-        ></api-runtime-logs-message-connection-log>
+        ></api-runtime-logs-connection-log-details>
       </div>
     `,
     props: args,
