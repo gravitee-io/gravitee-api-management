@@ -13,8 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ComponentHarness } from '@angular/cdk/testing';
 
-export class ApiRuntimeLogsListRowHarness extends ComponentHarness {
-  static hostSelector = 'api-runtime-logs-list-row';
+import { ComponentHarness } from '@angular/cdk/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
+
+export class ApiRuntimeLogsDetailsEmptyStateHarness extends ComponentHarness {
+  static hostSelector = 'api-runtime-logs-details-empty-state';
+
+  private openSettingsButton = this.locatorFor(MatButtonHarness.with({ selector: '[data-testId=open-settings-button]' }));
+  public clickOpenSettingsButton = async () => await this.openSettingsButton().then((btn) => btn.click());
 }

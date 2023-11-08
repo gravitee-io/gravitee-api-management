@@ -87,33 +87,34 @@ describe('ApiRuntimeLogsMessagesComponent', () => {
       fixture.detectChanges();
 
       // Entrypoint request
-      const entryPointRequestPanel = await componentHarness.entrypointRequestPanelSelector();
-      expect(await componentHarness.getConnectionLogRequestUri(entryPointRequestPanel)).toEqual('/api-uri');
-      expect(await componentHarness.getConnectionLogRequestMethod(entryPointRequestPanel)).toEqual('get');
-      expect(await componentHarness.getConnectionLogHeaders(entryPointRequestPanel)).toMatchObject({
+      const logsDetailHarness = await componentHarness.logsDetailHarness();
+      const entryPointRequestPanel = await logsDetailHarness.entrypointRequestPanelSelector();
+      expect(await logsDetailHarness.getConnectionLogRequestUri(entryPointRequestPanel)).toEqual('/api-uri');
+      expect(await logsDetailHarness.getConnectionLogRequestMethod(entryPointRequestPanel)).toEqual('get');
+      expect(await logsDetailHarness.getConnectionLogHeaders(entryPointRequestPanel)).toMatchObject({
         'X-Header': 'first-header',
         'X-Header-Multiple': 'first-header,second-header',
       });
 
       // Endpoint request
-      const endpointRequestPanel = await componentHarness.endpointRequestPanelSelector();
+      const endpointRequestPanel = await logsDetailHarness.endpointRequestPanelSelector();
       // URI is unset on endpoint request
-      expect(await componentHarness.getConnectionLogRequestUri(endpointRequestPanel)).toBeUndefined();
-      expect(await componentHarness.getConnectionLogRequestMethod(endpointRequestPanel)).toEqual('get');
-      expect(await componentHarness.getConnectionLogHeaders(endpointRequestPanel)).toMatchObject({
+      expect(await logsDetailHarness.getConnectionLogRequestUri(endpointRequestPanel)).toBeUndefined();
+      expect(await logsDetailHarness.getConnectionLogRequestMethod(endpointRequestPanel)).toEqual('get');
+      expect(await logsDetailHarness.getConnectionLogHeaders(endpointRequestPanel)).toMatchObject({
         'X-Header': 'first-header',
         'X-Header-Multiple': 'first-header,second-header',
       });
 
       // Endpoint response
-      const endpointResponsePanel = await componentHarness.endpointResponsePanelSelector();
-      expect(await componentHarness.getConnectionLogResponseStatus(endpointResponsePanel)).toEqual('200');
-      expect(await componentHarness.getConnectionLogHeaders(endpointResponsePanel)).toMatchObject({});
+      const endpointResponsePanel = await logsDetailHarness.endpointResponsePanelSelector();
+      expect(await logsDetailHarness.getConnectionLogResponseStatus(endpointResponsePanel)).toEqual('200');
+      expect(await logsDetailHarness.getConnectionLogHeaders(endpointResponsePanel)).toMatchObject({});
 
       // Endpoint request
-      const entrypointResponsePanel = await componentHarness.entrypointResponsePanelSelector();
-      expect(await componentHarness.getConnectionLogResponseStatus(entrypointResponsePanel)).toEqual('200');
-      expect(await componentHarness.getConnectionLogHeaders(entrypointResponsePanel)).toMatchObject({
+      const entrypointResponsePanel = await logsDetailHarness.entrypointResponsePanelSelector();
+      expect(await logsDetailHarness.getConnectionLogResponseStatus(entrypointResponsePanel)).toEqual('200');
+      expect(await logsDetailHarness.getConnectionLogHeaders(entrypointResponsePanel)).toMatchObject({
         'X-Header': 'first-header',
         'X-Header-Multiple': 'first-header,second-header',
       });

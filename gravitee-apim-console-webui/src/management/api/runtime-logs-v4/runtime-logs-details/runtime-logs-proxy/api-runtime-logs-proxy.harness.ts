@@ -15,6 +15,11 @@
  */
 import { ComponentHarness } from '@angular/cdk/testing';
 
-export class ApiRuntimeLogsListRowHarness extends ComponentHarness {
-  static hostSelector = 'api-runtime-logs-list-row';
+import { ApiRuntimeLogsConnectionLogDetailsHarness } from '../components/api-runtime-logs-connection-log-details/api-runtime-logs-connection-log-details.harness';
+import { ApiRuntimeLogsDetailsEmptyStateHarness } from '../components/api-runtime-logs-details-empty-state/api-runtime-logs-details-empty-state.harness';
+
+export class ApiRuntimeLogsProxyHarness extends ComponentHarness {
+  static hostSelector = 'api-runtime-logs-proxy';
+  public logsDetailHarness = this.locatorFor(ApiRuntimeLogsConnectionLogDetailsHarness);
+  public emptyStateHarness = this.locatorFor(ApiRuntimeLogsDetailsEmptyStateHarness);
 }

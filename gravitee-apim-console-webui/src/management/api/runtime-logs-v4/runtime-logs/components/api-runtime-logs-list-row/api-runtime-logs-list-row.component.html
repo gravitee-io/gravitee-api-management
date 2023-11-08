@@ -62,12 +62,12 @@
       </div>
     </div>
   </div>
-  <div class="log-row__actions" *ngIf="isMessageApi">
+  <div class="log-row__actions">
     <a
       mat-button
       mat-raised-button
-      data-testId="view-messages"
-      [uiSref]="'management.apis.runtimeLogs-messages'"
+      data-testId="view-details"
+      [uiSref]="isMessageApi ? 'management.apis.runtimeLogs-messages' : 'management.apis.runtimeLogs-proxy'"
       [uiParams]="{ requestId: log.requestId }"
       >View details</a
     >

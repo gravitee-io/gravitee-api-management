@@ -26,7 +26,6 @@ import { OwlMomentDateTimeModule } from '@danielmoncada/angular-datetime-picker-
 import { ApiRuntimeLogsModule } from './api-runtime-logs.module';
 import { ApiRuntimeLogsComponent } from './api-runtime-logs.component';
 import { ApiRuntimeLogsHarness } from './api-runtime-logs.component.harness';
-import { ApiRuntimeLogsListRowHarness } from './components';
 import { QuickFiltersStoreService } from './services';
 
 import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
@@ -58,7 +57,6 @@ describe('ApiRuntimeLogsComponent', () => {
   let fixture: ComponentFixture<ApiRuntimeLogsComponent>;
   let httpTestingController: HttpTestingController;
   let componentHarness: ApiRuntimeLogsHarness;
-  let logsRowHarness: ApiRuntimeLogsListRowHarness;
   const API_ID = 'an-api-id';
   const fakeUiRouter = { go: jest.fn() };
   const stateParams = { apiId: API_ID, page: 1, perPage: 10 };
@@ -95,7 +93,6 @@ describe('ApiRuntimeLogsComponent', () => {
     fixture = TestBed.createComponent(ApiRuntimeLogsComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
     componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiRuntimeLogsHarness);
-    logsRowHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiRuntimeLogsListRowHarness);
     fixture.detectChanges();
   };
 
@@ -531,23 +528,6 @@ describe('ApiRuntimeLogsComponent', () => {
     it('should navigate to logs settings', async () => {
       await componentHarness.clickOpenSettings();
       expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.runtimeLogs-settings');
-    });
-  });
-
-  describe('GIVEN the API is a proxy API', () => {
-    it('should not display view message button', async () => {
-      expect.assertions(1);
-
-      await initComponent();
-      expectPlanList();
-      expectApiWithNoLog();
-      expectApiWithLogEnabled({ type: 'PROXY' });
-
-      try {
-        await logsRowHarness.getViewMessageButton();
-      } catch (e) {
-        expect(e.message).toMatch(/Failed to find element/);
-      }
     });
   });
 
