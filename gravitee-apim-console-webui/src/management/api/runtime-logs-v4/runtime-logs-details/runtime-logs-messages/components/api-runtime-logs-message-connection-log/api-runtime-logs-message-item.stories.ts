@@ -19,7 +19,7 @@ import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
 import { ApiRuntimeLogsMessageConnectionLogModule } from './api-runtime-logs-message-connection-log.module';
 import { ApiRuntimeLogsMessageConnectionLogComponent } from './api-runtime-logs-message-connection-log.component';
 
-import { fakeConnectionLogDetail } from '../../../../../../entities/management-api-v2';
+import { fakeConnectionLogDetail } from '../../../../../../../entities/management-api-v2';
 
 export default {
   title: 'API / Logs / Messages / Connection Log',

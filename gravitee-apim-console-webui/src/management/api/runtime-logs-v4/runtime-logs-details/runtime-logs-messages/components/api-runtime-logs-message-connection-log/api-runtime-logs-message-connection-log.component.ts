@@ -17,7 +17,7 @@
 import { Component, Input } from '@angular/core';
 import { Object } from 'core-js';
 
-import { ConnectionLogDetail } from '../../../../../../entities/management-api-v2';
+import { ConnectionLogDetail } from '../../../../../../../entities/management-api-v2';
 
 @Component({
   selector: 'api-runtime-logs-message-connection-log',
