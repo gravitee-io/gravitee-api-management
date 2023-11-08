@@ -28,6 +28,7 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatTableModule } from '@angular/material/table';
 import { MarkdownModule } from 'ngx-markdown';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { ApiDocumentationV4EmptyStateComponent } from './components/documentation-empty-state/api-documentation-v4-empty-state.component';
 import { ApiDocumentationV4ListNavigationHeaderComponent } from './components/documentation-list-navigation-header/api-documentation-v4-list-navigation-header.component';
@@ -77,6 +78,7 @@ import { ApiDocumentationV4BreadcrumbComponent } from './components/api-document
     MatTableModule,
     MatSnackBarModule,
     MarkdownModule.forRoot(),
+    MatTooltipModule,
   ],
 })
 export class ApiDocumentationV4Module {}
