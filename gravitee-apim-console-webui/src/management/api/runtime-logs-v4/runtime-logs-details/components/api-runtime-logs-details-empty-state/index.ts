@@ -14,14 +14,4 @@
  * limitations under the License.
  */
 
-import { Component, EventEmitter, Output } from '@angular/core';
-
-@Component({
-  selector: 'api-runtime-logs-message-empty',
-  template: require('./api-runtime-logs-message-empty.component.html'),
-  styles: [require('./api-runtime-logs-message-empty.component.scss')],
-})
-export class ApiRuntimeLogsMessageEmptyComponent {
-  @Output()
-  navigateToSettings = new EventEmitter<void>();
-}
+export * from './api-runtime-logs-details-empty-state.module';

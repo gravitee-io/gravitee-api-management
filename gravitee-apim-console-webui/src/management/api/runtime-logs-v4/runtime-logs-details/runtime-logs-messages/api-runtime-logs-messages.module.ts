@@ -20,9 +20,11 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatTabsModule } from '@angular/material/tabs';
 import { UIRouterModule } from '@uirouter/angular';
 
-import { ApiRuntimeLogsMessageEmptyModule, ApiRuntimeLogsMessageItemModule } from './components';
+import { ApiRuntimeLogsMessageItemModule } from './components';
 import { ApiRuntimeLogsMessagesComponent } from './api-runtime-logs-messages.component';
 import { ApiRuntimeLogsMessageConnectionLogModule } from './components/api-runtime-logs-message-connection-log';
+
+import { ApiRuntimeLogsDetailsEmptyStateModule } from '../components/api-runtime-logs-details-empty-state';
 
 @NgModule({
   declarations: [ApiRuntimeLogsMessagesComponent],
@@ -34,7 +36,7 @@ import { ApiRuntimeLogsMessageConnectionLogModule } from './components/api-runti
     UIRouterModule,
     MatTabsModule,
     ApiRuntimeLogsMessageItemModule,
-    ApiRuntimeLogsMessageEmptyModule,
+    ApiRuntimeLogsDetailsEmptyStateModule,
     ApiRuntimeLogsMessageConnectionLogModule,
   ],
 })
