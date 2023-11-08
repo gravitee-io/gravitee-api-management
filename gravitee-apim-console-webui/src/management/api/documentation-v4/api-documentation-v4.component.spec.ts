@@ -152,7 +152,7 @@ describe('ApiDocumentationV4', () => {
       await dialogHarness.selectVisibility('PRIVATE');
       await dialogHarness.clickOnSave();
 
-      const page: Page = { type: 'FOLDER', name: 'folder', visibility: 'PRIVATE' };
+      const page: Page = { type: 'FOLDER', name: 'folder', visibility: 'PRIVATE', published: false };
       const req = httpTestingController.expectOne({
         method: 'POST',
         url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages`,
@@ -164,6 +164,15 @@ describe('ApiDocumentationV4', () => {
         visibility: 'PRIVATE',
         parentId: 'ROOT',
       });
+
+      page.published = true;
+
+      httpTestingController
+        .expectOne({
+          method: 'POST',
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages/${page.id}/_publish`,
+        })
+        .flush(page);
 
       expectGetPages([page], []);
     });
@@ -178,7 +187,7 @@ describe('ApiDocumentationV4', () => {
       await dialogHarness.setName('subfolder');
       await dialogHarness.clickOnSave();
 
-      const page: Page = { type: 'FOLDER', name: 'subfolder', visibility: 'PUBLIC' };
+      const page: Page = { type: 'FOLDER', name: 'subfolder', visibility: 'PUBLIC', parentId: 'parent-folder-id', published: false };
       const req = httpTestingController.expectOne({
         method: 'POST',
         url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages`,
@@ -190,6 +199,15 @@ describe('ApiDocumentationV4', () => {
         visibility: 'PUBLIC',
         parentId: 'parent-folder-id',
       });
+
+      page.published = true;
+
+      httpTestingController
+        .expectOne({
+          method: 'POST',
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages/${page.id}/_publish`,
+        })
+        .flush(page);
 
       expectGetPages([page], [], 'parent-folder-id');
     });

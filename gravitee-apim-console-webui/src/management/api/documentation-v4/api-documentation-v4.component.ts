@@ -79,6 +79,7 @@ export class ApiDocumentationV4Component implements OnInit, OnDestroy {
             parentId: this.parentId,
           }),
         ),
+        switchMap((createdFolder) => this.apiDocumentationV2Service.publishDocumentationPage(this.ajsStateParams.apiId, createdFolder.id)),
         takeUntil(this.unsubscribe$),
       )
       .subscribe({
