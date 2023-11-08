@@ -24,8 +24,8 @@ import { ApiRuntimeLogsMessagesComponent } from './api-runtime-logs-messages.com
 import { ApiRuntimeLogsMessagesModule } from './api-runtime-logs-messages.module';
 import { ApiRuntimeLogsMessagesHarness } from './api-runtime-logs-messages.harness';
 
-import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
-import { GioUiRouterTestingModule } from '../../../../shared/testing/gio-uirouter-testing-module';
+import { UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
+import { GioUiRouterTestingModule } from '../../../../../shared/testing/gio-uirouter-testing-module';
 import {
   AggregatedMessageLog,
   ConnectionLogDetail,
@@ -34,9 +34,9 @@ import {
   fakeConnectorPlugin,
   fakeMessage,
   fakePagedResult,
-} from '../../../../entities/management-api-v2';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
-import { IconService } from '../../../../services-ngx/icon.service';
+} from '../../../../../entities/management-api-v2';
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
+import { IconService } from '../../../../../services-ngx/icon.service';
 
 describe('ApiRuntimeLogsMessagesComponent', () => {
   const API_ID = 'an-api-id';

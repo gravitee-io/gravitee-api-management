@@ -22,11 +22,11 @@ import { BehaviorSubject, Observable, of, Subject } from 'rxjs';
 import { uniqBy } from 'lodash';
 import { MatTabChangeEvent } from '@angular/material/tabs';
 
-import { ApiLogsV2Service } from '../../../../services-ngx/api-logs-v2.service';
-import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
-import { AggregatedMessageLog, ConnectionLogDetail, ConnectorPlugin, ConnectorType } from '../../../../entities/management-api-v2';
-import { IconService } from '../../../../services-ngx/icon.service';
-import { ConnectorPluginsV2Service } from '../../../../services-ngx/connector-plugins-v2.service';
+import { ApiLogsV2Service } from '../../../../../services-ngx/api-logs-v2.service';
+import { UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
+import { AggregatedMessageLog, ConnectionLogDetail, ConnectorPlugin, ConnectorType } from '../../../../../entities/management-api-v2';
+import { IconService } from '../../../../../services-ngx/icon.service';
+import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
 
 @Component({
   selector: 'api-runtime-logs-messages',

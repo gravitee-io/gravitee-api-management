@@ -16,7 +16,7 @@
 
 import { Component, Input } from '@angular/core';
 
-import { AggregatedMessageLog } from '../../../../../../entities/management-api-v2';
+import { AggregatedMessageLog } from '../../../../../../../entities/management-api-v2';
 
 @Component({
   selector: 'api-runtime-logs-message-item',

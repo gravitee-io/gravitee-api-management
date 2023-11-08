@@ -70,7 +70,7 @@ import { ApiCreationV4Component } from './creation-v4/api-creation-v4.component'
 import { ApiCreationV4ConfirmationComponent } from './creation-v4/api-creation-v4-confirmation.component';
 import { ApiCreationV2Component } from './creation-v2/steps/api-creation-v2.component';
 import { ApiPropertiesComponent } from './proxy/properties/properties/api-properties.component';
-import { ApiRuntimeLogsMessagesComponent } from './runtime-logs-v4/runtime-logs-messages/api-runtime-logs-messages.component';
+import { ApiRuntimeLogsMessagesComponent } from './runtime-logs-v4/runtime-logs-details/runtime-logs-messages/api-runtime-logs-messages.component';
 import { ApiDocumentationV4Component } from './documentation-v4/api-documentation-v4.component';
 import { ApiDocumentationV4NewPageComponent } from './documentation-v4/documentation-new-page/api-documentation-v4-new-page.component';
 import { ApiDocumentationV4EditPageComponent } from './documentation-v4/documentation-edit-page/api-documentation-v4-edit-page.component';
