@@ -18,7 +18,7 @@ import { DivHarness } from '@gravitee/ui-particles-angular/testing';
 import { MatExpansionPanelHarness } from '@angular/material/expansion/testing';
 
 export class ApiRuntimeLogsConnectionLogDetailsHarness extends ComponentHarness {
-  static hostSelector = 'api-runtime-logs-details-connection-log';
+  static hostSelector = 'api-runtime-logs-connection-log-details';
 
   public entrypointRequestPanelSelector = this.locatorFor(MatExpansionPanelHarness.with({ selector: '[data-testId=entrypoint-request]' }));
   public endpointRequestPanelSelector = this.locatorFor(MatExpansionPanelHarness.with({ selector: '[data-testId=endpoint-request]' }));
@@ -47,5 +47,9 @@ export class ApiRuntimeLogsConnectionLogDetailsHarness extends ComponentHarness 
       headers = { ...headers, [headerKey.slice(0, -1)]: headerValue };
     }
     return headers;
+  };
+
+  public getConnectionLogBody = async (panel: MatExpansionPanelHarness): Promise<string> => {
+    return panel.getHarness(DivHarness.with({ selector: '.accordion__body' })).then((body) => body.getText());
   };
 }

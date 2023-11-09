@@ -14,19 +14,16 @@
  * limitations under the License.
  */
 import { NgModule } from '@angular/core';
+import { CdkAccordionModule } from '@angular/cdk/accordion';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { GioIconsModule } from '@gravitee/ui-particles-angular';
-import { MatExpansionModule } from '@angular/material/expansion';
-import { MatTabsModule } from '@angular/material/tabs';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
-import { ApiRuntimeLogsConnectionLogDetailsComponent } from './api-runtime-logs-connection-log-details.component';
-import { BodyAccordionModule } from './components/response-body-accordion';
+import { BodyAccordionComponent } from './body-accordion.component';
 
 @NgModule({
-  declarations: [ApiRuntimeLogsConnectionLogDetailsComponent],
-  exports: [ApiRuntimeLogsConnectionLogDetailsComponent],
-  imports: [CommonModule, BrowserAnimationsModule, MatExpansionModule, MatIconModule, GioIconsModule, MatTabsModule, BodyAccordionModule],
+  declarations: [BodyAccordionComponent],
+  exports: [BodyAccordionComponent],
+  imports: [CdkAccordionModule, CommonModule, MatIconModule, GioIconsModule],
 })
-export class ApiRuntimeLogsConnectionLogDetailsModule {}
+export class BodyAccordionModule {}

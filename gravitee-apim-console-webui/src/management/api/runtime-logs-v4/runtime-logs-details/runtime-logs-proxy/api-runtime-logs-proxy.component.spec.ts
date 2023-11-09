@@ -24,7 +24,12 @@ import { ApiRuntimeLogsProxyModule } from './api-runtime-logs-proxy.module';
 
 import { GioUiRouterTestingModule } from '../../../../../shared/testing/gio-uirouter-testing-module';
 import { UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
-import { ConnectionLogDetail, fakeConnectionLogDetail } from '../../../../../entities/management-api-v2';
+import {
+  ConnectionLogDetail,
+  fakeConnectionLogDetail,
+  fakeConnectionLogDetailRequest,
+  fakeConnectionLogDetailResponse,
+} from '../../../../../entities/management-api-v2';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
 
 describe('ApiRuntimeLogsProxyComponent', () => {
@@ -70,17 +75,24 @@ describe('ApiRuntimeLogsProxyComponent', () => {
       fakeConnectionLogDetail({
         apiId: API_ID,
         requestId: REQUEST_ID,
+        entrypointRequest: fakeConnectionLogDetailRequest({ body: '{ "message": "entrypoint request body" }' }),
+        endpointRequest: fakeConnectionLogDetailRequest({ uri: '', body: '{ "message": "endpoint request body" }' }),
+        endpointResponse: fakeConnectionLogDetailResponse({ body: '{ "message": "endpoint response body" }' }),
+        entrypointResponse: fakeConnectionLogDetailResponse({ body: '{ "message": "entrypoint response body" }' }),
       }),
     );
 
     // Entrypoint request
     const logsDetailHarness = await componentHarness.logsDetailHarness();
-    const entryPointRequestPanel = await logsDetailHarness.entrypointRequestPanelSelector();
-    expect(await logsDetailHarness.getConnectionLogRequestUri(entryPointRequestPanel)).toEqual('/api-uri');
-    expect(await logsDetailHarness.getConnectionLogRequestMethod(entryPointRequestPanel)).toEqual('get');
-    expect(await logsDetailHarness.getConnectionLogHeaders(entryPointRequestPanel)).toMatchObject({
+    const entrypointRequestPanel = await logsDetailHarness.entrypointRequestPanelSelector();
+    expect(await logsDetailHarness.getConnectionLogRequestUri(entrypointRequestPanel)).toEqual('/api-uri');
+    expect(await logsDetailHarness.getConnectionLogRequestMethod(entrypointRequestPanel)).toEqual('get');
+    expect(await logsDetailHarness.getConnectionLogHeaders(entrypointRequestPanel)).toMatchObject({
       'X-Header': 'first-header',
       'X-Header-Multiple': 'first-header,second-header',
+    });
+    expect(JSON.parse(await logsDetailHarness.getConnectionLogBody(entrypointRequestPanel))).toStrictEqual({
+      message: 'entrypoint request body',
     });
 
     // Endpoint request
@@ -91,11 +103,15 @@ describe('ApiRuntimeLogsProxyComponent', () => {
       'X-Header': 'first-header',
       'X-Header-Multiple': 'first-header,second-header',
     });
+    expect(JSON.parse(await logsDetailHarness.getConnectionLogBody(endpointRequestPanel))).toStrictEqual({
+      message: 'endpoint request body',
+    });
 
     // Endpoint response
     const endpointResponsePanel = await logsDetailHarness.endpointResponsePanelSelector();
     expect(await logsDetailHarness.getConnectionLogResponseStatus(endpointResponsePanel)).toEqual('200');
     expect(await logsDetailHarness.getConnectionLogHeaders(endpointResponsePanel)).toMatchObject({});
+    expect(JSON.parse(await logsDetailHarness.getConnectionLogBody(endpointResponsePanel))).toEqual({ message: 'endpoint response body' });
 
     // Endpoint request
     const entrypointResponsePanel = await logsDetailHarness.entrypointResponsePanelSelector();
@@ -103,6 +119,9 @@ describe('ApiRuntimeLogsProxyComponent', () => {
     expect(await logsDetailHarness.getConnectionLogHeaders(entrypointResponsePanel)).toMatchObject({
       'X-Header': 'first-header',
       'X-Header-Multiple': 'first-header,second-header',
+    });
+    expect(JSON.parse(await logsDetailHarness.getConnectionLogBody(entrypointResponsePanel))).toEqual({
+      message: 'entrypoint response body',
     });
   });
 

@@ -5417,6 +5417,11 @@ components:
                     example:
                         - name: X-My-Header
                           value: [ my-value ]
+                body:
+                    type: string
+                    description: The request's body.
+                    example: my body
+
         ApiLogResponseContent:
             type: object
             description: The log response content.
@@ -5431,6 +5436,11 @@ components:
                     example:
                         - name: X-My-Header
                           value: [ my-value ]
+                body:
+                    type: string
+                    description: The response's body.
+                    example: my body
+
         ApiMessageLogContent:
             type: object
             description: The message content.

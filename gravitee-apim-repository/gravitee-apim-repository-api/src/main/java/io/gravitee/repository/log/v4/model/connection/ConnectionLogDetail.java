@@ -41,6 +41,7 @@ public class ConnectionLogDetail {
         private String method;
         private String uri;
         private Map<String, List<String>> headers;
+        private String body;
     }
 
     @Data
@@ -49,5 +50,6 @@ public class ConnectionLogDetail {
 
         private int status;
         private Map<String, List<String>> headers;
+        private String body;
     }
 }

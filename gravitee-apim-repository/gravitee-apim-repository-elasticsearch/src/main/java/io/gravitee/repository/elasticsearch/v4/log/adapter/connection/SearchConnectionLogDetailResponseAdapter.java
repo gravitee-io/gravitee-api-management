@@ -65,6 +65,7 @@ public class SearchConnectionLogDetailResponseAdapter {
                 .uri(asTextOrNull(json.get("uri")))
                 .method(asTextOrNull(json.get("method")))
                 .headers(buildHeaders(json.get("headers")))
+                .body(asTextOrNull(json.get("body")))
                 .build()
             : null;
     }
@@ -75,6 +76,7 @@ public class SearchConnectionLogDetailResponseAdapter {
                 .builder()
                 .status(asIntOr(json.get("status"), 0))
                 .headers(buildHeaders(json.get("headers")))
+                .body(asTextOrNull(json.get("body")))
                 .build()
             : null;
     }
