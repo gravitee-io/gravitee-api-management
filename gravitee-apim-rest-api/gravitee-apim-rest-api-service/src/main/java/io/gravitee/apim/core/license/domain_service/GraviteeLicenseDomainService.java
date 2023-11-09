@@ -15,23 +15,18 @@
  */
 package io.gravitee.apim.core.license.domain_service;
 
-import io.gravitee.node.api.license.NodeLicenseService;
-import org.springframework.stereotype.Service;
+import io.gravitee.node.api.license.LicenseManager;
 
 public class GraviteeLicenseDomainService {
 
     public static final String OEM_CUSTOMIZATION_FEATURE = "oem-customization";
-    private final NodeLicenseService nodeLicenseService;
+    private final LicenseManager licenseManager;
 
-    public GraviteeLicenseDomainService(NodeLicenseService nodeLicenseService) {
-        this.nodeLicenseService = nodeLicenseService;
+    public GraviteeLicenseDomainService(LicenseManager licenseManager) {
+        this.licenseManager = licenseManager;
     }
 
     public boolean isFeatureEnabled(String feature) {
-        return this.nodeLicenseService.isFeatureEnabled(feature);
-    }
-
-    public void refresh() {
-        this.nodeLicenseService.refresh();
+        return this.licenseManager.getPlatformLicense().isFeatureEnabled(feature);
     }
 }

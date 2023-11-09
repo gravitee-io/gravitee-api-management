@@ -15,8 +15,10 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.openMocks;
 
 import io.gravitee.definition.model.DefinitionVersion;
@@ -24,7 +26,8 @@ import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
-import io.gravitee.node.api.license.NodeLicenseService;
+import io.gravitee.node.api.license.License;
+import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
@@ -48,7 +51,7 @@ public class ApiLicenseServiceImplTest {
     private static final ExecutionContext executionContext = new ExecutionContext("test", "test");
 
     @Mock
-    private NodeLicenseService nodeLicenseService;
+    private LicenseManager licenseManager;
 
     @Mock
     private ApiSearchService apiSearchService;
@@ -56,122 +59,127 @@ public class ApiLicenseServiceImplTest {
     @Mock
     private ApiEntity apiEntity;
 
+    @Mock
+    private License license;
+
     private ApiLicenseService apiLicenseService;
 
     @Before
-    public void setUp() throws Exception {
+    public void init() throws Exception {
         openMocks(this);
         when(apiSearchService.findGenericById(executionContext, API)).thenReturn(apiEntity);
         when(apiEntity.getDefinitionVersion()).thenReturn(DefinitionVersion.V4);
-        apiLicenseService = new ApiLicenseServiceImpl(nodeLicenseService, apiSearchService);
+        lenient().when(licenseManager.getPlatformLicense()).thenReturn(license);
+        apiLicenseService = new ApiLicenseServiceImpl(licenseManager, apiSearchService);
     }
 
     @Test
-    public void shouldNotThrowErrorWithDefinitionVersionV2() {
+    public void should_not_throw_error_with_definition_version_v2() {
         when(apiEntity.getDefinitionVersion()).thenReturn(DefinitionVersion.V2);
         assertDoesNotThrow(() -> apiLicenseService.checkLicense(executionContext, API));
     }
 
     @Test
-    public void shouldNotThrowErrorWithDummyHttpEntrypoint() {
+    public void should_not_throw_error_with_dummy_http_entrypoint() {
         when(apiEntity.getListeners()).thenReturn(listeners(List.of()));
         assertDoesNotThrow(() -> apiLicenseService.checkLicense(executionContext, API));
     }
 
     @Test
-    public void shouldNotThrowErrorWithWebhookEntrypoint() {
-        when(nodeLicenseService.isFeatureMissing("apim-en-entrypoint-webhook")).thenReturn(false);
+    public void should_not_throw_error_with_webhook_entrypoint() {
+        when(license.isFeatureEnabled("apim-en-entrypoint-webhook")).thenReturn(true);
         when(apiEntity.getListeners()).thenReturn(listeners(entrypoints("webhook")));
         assertDoesNotThrow(() -> apiLicenseService.checkLicense(executionContext, API));
     }
 
     @Test
-    public void shouldThrowErrorWithWebhookEntrypoint() {
-        when(nodeLicenseService.isFeatureMissing("apim-en-entrypoint-webhook")).thenReturn(true);
+    public void should_throw_error_with_webhook_entrypoint() {
+        when(license.isFeatureEnabled("apim-en-entrypoint-webhook")).thenReturn(false);
         when(apiEntity.getListeners()).thenReturn(listeners(entrypoints("webhook")));
+
         assertThrows(ForbiddenFeatureException.class, () -> apiLicenseService.checkLicense(executionContext, API));
     }
 
     @Test
-    public void shouldNotThrowErrorWithWebsocketEntrypoint() {
-        when(nodeLicenseService.isFeatureMissing("apim-en-entrypoint-websocket")).thenReturn(false);
+    public void should_not_throw_error_with_websocket_entrypoint() {
+        when(license.isFeatureEnabled("apim-en-entrypoint-websocket")).thenReturn(true);
         when(apiEntity.getListeners()).thenReturn(listeners(entrypoints("websocket")));
         assertDoesNotThrow(() -> apiLicenseService.checkLicense(executionContext, API));
     }
 
     @Test
-    public void shouldThrowErrorWithWebsocketEntrypoint() {
-        when(nodeLicenseService.isFeatureMissing("apim-en-entrypoint-websocket")).thenReturn(true);
+    public void should_throw_error_with_websocket_entrypoint() {
+        when(license.isFeatureEnabled("apim-en-entrypoint-websocket")).thenReturn(false);
         when(apiEntity.getListeners()).thenReturn(listeners(entrypoints("websocket")));
         assertThrows(ForbiddenFeatureException.class, () -> apiLicenseService.checkLicense(executionContext, API));
     }
 
     @Test
-    public void shouldNotThrowErrorWithSseEntrypoint() {
-        when(nodeLicenseService.isFeatureMissing("apim-en-entrypoint-sse")).thenReturn(false);
+    public void should_not_throw_error_with_sse_entrypoint() {
+        when(license.isFeatureEnabled("apim-en-entrypoint-sse")).thenReturn(true);
         when(apiEntity.getListeners()).thenReturn(listeners(entrypoints("sse")));
         assertDoesNotThrow(() -> apiLicenseService.checkLicense(executionContext, API));
     }
 
     @Test
-    public void shouldThrowErrorWithSseEntrypoint() {
-        when(nodeLicenseService.isFeatureMissing("apim-en-entrypoint-sse")).thenReturn(true);
+    public void should_throw_error_with_sse_ntrypoint() {
+        when(license.isFeatureEnabled("apim-en-entrypoint-sse")).thenReturn(false);
         when(apiEntity.getListeners()).thenReturn(listeners(entrypoints("sse")));
         assertThrows(ForbiddenFeatureException.class, () -> apiLicenseService.checkLicense(executionContext, API));
     }
 
     @Test
-    public void shouldNotThrowErrorWithHttpGetEntrypoint() {
-        when(nodeLicenseService.isFeatureMissing("apim-en-entrypoint-http-get")).thenReturn(false);
+    public void should_not_throw_error_with_http_get_entrypoint() {
+        when(license.isFeatureEnabled("apim-en-entrypoint-http-get")).thenReturn(true);
         when(apiEntity.getListeners()).thenReturn(listeners(entrypoints("http-get")));
         assertDoesNotThrow(() -> apiLicenseService.checkLicense(executionContext, API));
     }
 
     @Test
-    public void shouldThrowErrorWithHttpGetEntrypoint() {
-        when(nodeLicenseService.isFeatureMissing("apim-en-entrypoint-http-get")).thenReturn(true);
+    public void should_throw_error_with_http_get_entrypoint() {
+        when(license.isFeatureEnabled("apim-en-entrypoint-http-get")).thenReturn(false);
         when(apiEntity.getListeners()).thenReturn(listeners(entrypoints("http-get")));
         assertThrows(ForbiddenFeatureException.class, () -> apiLicenseService.checkLicense(executionContext, API));
     }
 
     @Test
-    public void shouldNotThrowErrorWithHttpPostEntrypoint() {
-        when(nodeLicenseService.isFeatureMissing("apim-en-entrypoint-http-post")).thenReturn(false);
+    public void should_not_throw_error_with_http_post_entrypoint() {
+        when(license.isFeatureEnabled("apim-en-entrypoint-http-post")).thenReturn(true);
         when(apiEntity.getListeners()).thenReturn(listeners(entrypoints("http-post")));
         assertDoesNotThrow(() -> apiLicenseService.checkLicense(executionContext, API));
     }
 
     @Test
-    public void shouldThrowErrorWithHttpPostEntrypoint() {
-        when(nodeLicenseService.isFeatureMissing("apim-en-entrypoint-http-post")).thenReturn(true);
+    public void should_throw_error_with_http_post_entrypoint() {
+        when(license.isFeatureEnabled("apim-en-entrypoint-http-post")).thenReturn(false);
         when(apiEntity.getListeners()).thenReturn(listeners(entrypoints("http-post")));
         assertThrows(ForbiddenFeatureException.class, () -> apiLicenseService.checkLicense(executionContext, API));
     }
 
     @Test
-    public void shouldNotThrowErrorWithKafkaEndpoint() {
-        when(nodeLicenseService.isFeatureMissing("apim-en-endpoint-kafka")).thenReturn(false);
+    public void should_not_throw_error_with_kafka_endpoint() {
+        when(license.isFeatureEnabled("apim-en-endpoint-kafka")).thenReturn(true);
         when(apiEntity.getEndpointGroups()).thenReturn(endpointGroups("kafka"));
         assertDoesNotThrow(() -> apiLicenseService.checkLicense(executionContext, API));
     }
 
     @Test
-    public void shouldThrowErrorWithHKafkaEndpoint() {
-        when(nodeLicenseService.isFeatureMissing("apim-en-endpoint-kafka")).thenReturn(true);
+    public void should_throw_error_with_kafka_endpoint() {
+        when(license.isFeatureEnabled("apim-en-endpoint-kafka")).thenReturn(false);
         when(apiEntity.getEndpointGroups()).thenReturn(endpointGroups("kafka"));
         assertThrows(ForbiddenFeatureException.class, () -> apiLicenseService.checkLicense(executionContext, API));
     }
 
     @Test
-    public void shouldNotThrowErrorWithMqttEndpoint() {
-        when(nodeLicenseService.isFeatureMissing("apim-en-endpoint-mqtt5")).thenReturn(false);
+    public void should_not_throw_error_with_mqtt5_endpoint() {
+        when(license.isFeatureEnabled("apim-en-endpoint-mqtt5")).thenReturn(true);
         when(apiEntity.getEndpointGroups()).thenReturn(endpointGroups("mqtt5"));
         assertDoesNotThrow(() -> apiLicenseService.checkLicense(executionContext, API));
     }
 
     @Test
-    public void shouldThrowErrorWithHMqttEndpoint() {
-        when(nodeLicenseService.isFeatureMissing("apim-en-endpoint-mqtt5")).thenReturn(true);
+    public void should_throw_error_with_mqtt5_endpoint() {
+        when(license.isFeatureEnabled("apim-en-endpoint-mqtt5")).thenReturn(false);
         when(apiEntity.getEndpointGroups()).thenReturn(endpointGroups("mqtt5"));
         assertThrows(ForbiddenFeatureException.class, () -> apiLicenseService.checkLicense(executionContext, API));
     }

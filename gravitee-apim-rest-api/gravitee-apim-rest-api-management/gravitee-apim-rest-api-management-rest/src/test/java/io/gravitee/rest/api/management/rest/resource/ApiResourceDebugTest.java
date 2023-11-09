@@ -18,10 +18,11 @@ package io.gravitee.rest.api.management.rest.resource;
 import static io.gravitee.apim.core.gateway.model.Instance.DEBUG_PLUGIN_ID;
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
-import static jakarta.ws.rs.client.Entity.*;
+import static jakarta.ws.rs.client.Entity.json;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.ApiFixtures;
@@ -32,7 +33,8 @@ import io.gravitee.apim.core.gateway.model.Instance;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
-import io.gravitee.node.api.license.NodeLicenseService;
+import io.gravitee.node.api.license.License;
+import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.rest.api.model.DebugApiEntity;
 import io.gravitee.rest.api.model.EventEntity;
 import io.gravitee.rest.api.model.EventType;
@@ -62,7 +64,9 @@ public class ApiResourceDebugTest extends AbstractResourceTest {
     private static final String API = "my-api";
 
     @Inject
-    private NodeLicenseService nodeLicenseService;
+    private LicenseManager licenseManager;
+
+    private License license;
 
     @Inject
     private ApiCrudServiceInMemory apiCrudServiceInMemory;
@@ -78,6 +82,8 @@ public class ApiResourceDebugTest extends AbstractResourceTest {
     @Before
     public void init() throws Exception {
         GraviteeContext.setCurrentEnvironment("DEFAULT");
+        license = mock(License.class);
+        when(licenseManager.getPlatformLicense()).thenReturn(license);
     }
 
     @After
@@ -87,7 +93,7 @@ public class ApiResourceDebugTest extends AbstractResourceTest {
 
     @Test
     public void shouldReturnUnauthorizedWithoutLicense() {
-        when(nodeLicenseService.isFeatureMissing("apim-debug-mode")).thenReturn(true);
+        when(license.isFeatureEnabled("apim-debug-mode")).thenReturn(false);
         when(permissionService.hasPermission(any(), any(), any())).thenReturn(true);
         final Response response = envTarget(API).path("_debug").request().post(json(null));
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
@@ -95,7 +101,7 @@ public class ApiResourceDebugTest extends AbstractResourceTest {
 
     @Test
     public void shouldNotDebugApiNotFound() {
-        when(nodeLicenseService.isFeatureMissing("apim-debug-mode")).thenReturn(false);
+        when(license.isFeatureEnabled("apim-debug-mode")).thenReturn(true);
         final Response response = envTarget(API + "/_debug")
             .request()
             .post(
@@ -113,7 +119,7 @@ public class ApiResourceDebugTest extends AbstractResourceTest {
 
     @Test
     public void shouldDebugApi() {
-        when(nodeLicenseService.isFeatureMissing("apim-debug-mode")).thenReturn(false);
+        when(license.isFeatureEnabled("apim-debug-mode")).thenReturn(true);
         apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aProxyApiV2().toBuilder().id(API).build()));
         instanceQueryServiceInMemory.initWith(
             List.of(

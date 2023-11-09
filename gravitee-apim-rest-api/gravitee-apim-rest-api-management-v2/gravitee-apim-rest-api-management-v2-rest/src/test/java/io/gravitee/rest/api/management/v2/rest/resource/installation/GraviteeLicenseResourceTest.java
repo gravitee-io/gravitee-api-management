@@ -15,11 +15,13 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.installation;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.node.api.license.NodeLicenseService;
+import io.gravitee.node.api.license.License;
+import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.rest.api.management.v2.rest.model.GraviteeLicense;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import java.util.Set;
@@ -33,7 +35,7 @@ import org.junit.jupiter.api.Test;
 public class GraviteeLicenseResourceTest extends AbstractResourceTest {
 
     @Inject
-    NodeLicenseService nodeLicenseService;
+    private LicenseManager licenseManager;
 
     @Override
     protected String contextPath() {
@@ -42,14 +44,19 @@ public class GraviteeLicenseResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldReturnLicenseWithFeatures() {
-        when(nodeLicenseService.getTier()).thenReturn("universe");
-        when(nodeLicenseService.getPacks()).thenReturn(Set.of("observability"));
-        when(nodeLicenseService.getFeatures()).thenReturn(Set.of("apim-reporter-datadog"));
+        final License license = mock(License.class);
+        when(licenseManager.getPlatformLicense()).thenReturn(license);
+        when(license.getTier()).thenReturn("universe");
+        when(license.getPacks()).thenReturn(Set.of("observability"));
+        when(license.getFeatures()).thenReturn(Set.of("apim-reporter-datadog"));
 
         var response = rootTarget().request().get();
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
 
-        var license = response.readEntity(GraviteeLicense.class);
-        assertThat(license).isNotNull();
+        var graviteeLicense = response.readEntity(GraviteeLicense.class);
+        assertThat(graviteeLicense).isNotNull();
+        assertThat(graviteeLicense.getTier()).isEqualTo("universe");
+        assertThat(graviteeLicense.getPacks()).containsExactly("observability");
+        assertThat(graviteeLicense.getFeatures()).containsExactly("apim-reporter-datadog");
     }
 }

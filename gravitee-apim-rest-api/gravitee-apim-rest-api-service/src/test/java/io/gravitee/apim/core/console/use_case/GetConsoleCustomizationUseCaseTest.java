@@ -23,7 +23,8 @@ import io.gravitee.apim.core.console.model.ConsoleCustomization;
 import io.gravitee.apim.core.console.model.ConsoleTheme;
 import io.gravitee.apim.core.console.model.CtaConfiguration;
 import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService;
-import io.gravitee.node.api.license.NodeLicenseService;
+import io.gravitee.node.api.license.License;
+import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.rest.api.model.parameters.Key;
 import java.util.List;
@@ -37,7 +38,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class GetConsoleCustomizationUseCaseTest {
 
     @Mock
-    private NodeLicenseService nodeLicenseService;
+    private LicenseManager licenseManager;
+
+    @Mock
+    private License license;
 
     private final ParametersDomainServiceInMemory parametersDomainServiceInMemory = new ParametersDomainServiceInMemory();
 
@@ -45,7 +49,8 @@ class GetConsoleCustomizationUseCaseTest {
 
     @BeforeEach
     void setup() {
-        useCase = new GetConsoleCustomizationUseCase(new GraviteeLicenseDomainService(nodeLicenseService), parametersDomainServiceInMemory);
+        when(licenseManager.getPlatformLicense()).thenReturn(license);
+        useCase = new GetConsoleCustomizationUseCase(new GraviteeLicenseDomainService(licenseManager), parametersDomainServiceInMemory);
     }
 
     @Test
@@ -73,8 +78,7 @@ class GetConsoleCustomizationUseCaseTest {
             )
         );
 
-        when(nodeLicenseService.isFeatureEnabled(GraviteeLicenseDomainService.OEM_CUSTOMIZATION_FEATURE)).thenReturn(true);
-
+        when(license.isFeatureEnabled(GraviteeLicenseDomainService.OEM_CUSTOMIZATION_FEATURE)).thenReturn(true);
         var res = useCase.execute();
 
         assertThat(res.consoleCustomization()).isNotNull();
@@ -99,7 +103,7 @@ class GetConsoleCustomizationUseCaseTest {
     void should_return_console_customization_default_values() {
         parametersDomainServiceInMemory.reset();
 
-        when(nodeLicenseService.isFeatureEnabled(GraviteeLicenseDomainService.OEM_CUSTOMIZATION_FEATURE)).thenReturn(true);
+        when(license.isFeatureEnabled(GraviteeLicenseDomainService.OEM_CUSTOMIZATION_FEATURE)).thenReturn(true);
 
         var res = useCase.execute();
 
@@ -123,8 +127,7 @@ class GetConsoleCustomizationUseCaseTest {
 
     @Test
     void should_return_null_if_license_doesnt_allow_customization() {
-        when(nodeLicenseService.isFeatureEnabled(GraviteeLicenseDomainService.OEM_CUSTOMIZATION_FEATURE)).thenReturn(false);
-
+        when(license.isFeatureEnabled(GraviteeLicenseDomainService.OEM_CUSTOMIZATION_FEATURE)).thenReturn(false);
         var res = useCase.execute();
 
         assertThat(res.consoleCustomization()).isNull();

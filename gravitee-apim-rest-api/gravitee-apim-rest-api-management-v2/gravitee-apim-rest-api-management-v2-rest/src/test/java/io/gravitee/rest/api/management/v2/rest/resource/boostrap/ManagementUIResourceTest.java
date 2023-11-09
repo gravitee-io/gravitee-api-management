@@ -16,11 +16,13 @@
 package io.gravitee.rest.api.management.v2.rest.resource.boostrap;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import inmemory.ParametersDomainServiceInMemory;
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.node.api.license.NodeLicenseService;
+import io.gravitee.node.api.license.License;
+import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.rest.api.management.v2.rest.model.ConsoleCustomization;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
@@ -36,13 +38,17 @@ import org.junit.jupiter.api.Test;
 class ManagementUIResourceTest extends AbstractResourceTest {
 
     @Inject
-    NodeLicenseService nodeLicenseService;
+    LicenseManager licenseManager;
+
+    License license;
 
     @Inject
     ParametersDomainServiceInMemory parametersDomainServiceInMemory;
 
     @BeforeEach
     public void init() {
+        license = mock(License.class);
+        when(licenseManager.getPlatformLicense()).thenReturn(license);
         GraviteeContext.fromExecutionContext(new ExecutionContext(ORGANIZATION));
 
         parametersDomainServiceInMemory.initWith(
@@ -57,7 +63,7 @@ class ManagementUIResourceTest extends AbstractResourceTest {
 
     @Test
     public void should_get_console_customization() {
-        when(nodeLicenseService.isFeatureEnabled("oem-customization")).thenReturn(true);
+        when(license.isFeatureEnabled("oem-customization")).thenReturn(true);
         final Response response = rootTarget().request().get();
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
 
@@ -67,7 +73,7 @@ class ManagementUIResourceTest extends AbstractResourceTest {
 
     @Test
     public void should_return_no_content_if_license_is_not_oem() {
-        when(nodeLicenseService.isFeatureEnabled("oem-customization")).thenReturn(false);
+        when(license.isFeatureEnabled("oem-customization")).thenReturn(false);
         final Response response = rootTarget().request().get();
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NO_CONTENT_204);
     }

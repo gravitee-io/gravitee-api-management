@@ -20,11 +20,12 @@ import static org.mockito.Mockito.*;
 
 import io.gravitee.common.data.domain.MetadataPage;
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.node.api.license.NodeLicenseService;
+import io.gravitee.node.api.license.License;
+import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.rest.api.model.audit.AuditEntity;
-import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
 import java.util.*;
+import javax.inject.Inject;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -34,7 +35,9 @@ import org.junit.Test;
 public class AuditResourceTest extends AbstractResourceTest {
 
     @Inject
-    private NodeLicenseService nodeLicenseService;
+    private LicenseManager licenseManager;
+
+    private License license;
 
     @Override
     protected String contextPath() {
@@ -43,6 +46,8 @@ public class AuditResourceTest extends AbstractResourceTest {
 
     @Before
     public void init() {
+        license = mock(License.class);
+        when(licenseManager.getPlatformLicense()).thenReturn(license);
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
         reset(auditService);
     }
@@ -57,14 +62,14 @@ public class AuditResourceTest extends AbstractResourceTest {
 
     @Test
     public void should_not_list_env_audit_without_license() {
-        when(nodeLicenseService.isFeatureMissing("apim-audit-trail")).thenReturn(true);
+        when(license.isFeatureEnabled("apim-audit-trail")).thenReturn(false);
         final Response response = envTarget().request().get();
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
     }
 
     @Test
     public void should_list_env_audit() {
-        when(nodeLicenseService.isFeatureMissing("apim-audit-trail")).thenReturn(false);
+        when(license.isFeatureEnabled("apim-audit-trail")).thenReturn(true);
         List<AuditEntity> audits = List.of(new TestAudit("audit-1"));
         Map<String, String> metadata = new HashMap<>();
         when(auditService.search(any(), argThat(Objects::nonNull))).thenReturn(new MetadataPage<>(audits, 1, 1, 1, metadata));
@@ -76,7 +81,7 @@ public class AuditResourceTest extends AbstractResourceTest {
 
     @Test
     public void should_list_env_audit_with_event() {
-        when(nodeLicenseService.isFeatureMissing("apim-audit-trail")).thenReturn(false);
+        when(license.isFeatureEnabled("apim-audit-trail")).thenReturn(true);
         List<AuditEntity> audits = List.of(new TestAudit("audit-1"));
         Map<String, String> metadata = new HashMap<>();
         when(auditService.search(any(), argThat(o -> o != null && o.getEvents().equals(Collections.singletonList("eventId")))))
@@ -89,14 +94,14 @@ public class AuditResourceTest extends AbstractResourceTest {
 
     @Test
     public void should_not_list_org_audit_without_license() {
-        when(nodeLicenseService.isFeatureMissing("apim-audit-trail")).thenReturn(true);
+        when(license.isFeatureEnabled("apim-audit-trail")).thenReturn(false);
         final Response response = orgTarget().request().get();
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
     }
 
     @Test
     public void should_list_org_audit() {
-        when(nodeLicenseService.isFeatureMissing("apim-audit-trail")).thenReturn(false);
+        when(license.isFeatureEnabled("apim-audit-trail")).thenReturn(true);
         List<AuditEntity> audits = List.of(new TestAudit("audit-1"));
         Map<String, String> metadata = new HashMap<>();
 

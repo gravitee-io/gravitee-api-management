@@ -18,8 +18,6 @@ package io.gravitee.apim.gateway.tests.sdk.container;
 import io.gravitee.common.component.LifecycleComponent;
 import io.gravitee.gateway.report.impl.NodeMonitoringReporterService;
 import io.gravitee.gateway.standalone.node.GatewayNode;
-import io.gravitee.node.api.license.Feature;
-import io.gravitee.node.api.license.License;
 import io.gravitee.node.management.http.ManagementService;
 import io.gravitee.node.monitoring.healthcheck.NodeHealthCheckService;
 import io.gravitee.node.monitoring.infos.NodeInfosService;
@@ -27,8 +25,6 @@ import io.gravitee.node.monitoring.monitor.NodeMonitorService;
 import io.gravitee.node.plugins.service.ServiceManager;
 import io.gravitee.plugin.alert.AlertEventProducerManager;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 /**
  * This class allows is used for test purpose only and allows to disable useless gravitee services during unit tests.
@@ -51,25 +47,5 @@ public class GatewayTestNode extends GatewayNode {
         components.remove(NodeMonitorService.class);
 
         return components;
-    }
-
-    @Override
-    public License license() {
-        return new License() {
-            @Override
-            public Optional<Feature> feature(String s) {
-                return Optional.empty();
-            }
-
-            @Override
-            public Map<String, Object> features() {
-                return Map.of();
-            }
-
-            @Override
-            public boolean isFeatureIncluded(String s) {
-                return true;
-            }
-        };
     }
 }

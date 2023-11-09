@@ -21,14 +21,15 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.node.api.license.NodeLicenseService;
+import io.gravitee.node.api.license.License;
+import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.rest.api.model.configuration.identity.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import java.util.Collections;
+import javax.inject.Inject;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,16 +43,21 @@ public class IdentityProvidersResourceTest extends AbstractResourceTest {
     private static final String ID = "my-idp-id";
 
     @Inject
-    private NodeLicenseService nodeLicenseService;
+    private LicenseManager licenseManager;
 
     @Override
     protected String contextPath() {
         return "configuration/identities/";
     }
 
+    private License license;
+
     @Before
     public void init() {
         reset(identityProviderService);
+
+        license = mock(License.class);
+        when(licenseManager.getPlatformLicense()).thenReturn(license);
 
         IdentityProviderEntity createdIdentityProvider = new IdentityProviderEntity();
         createdIdentityProvider.setId(ID);
@@ -63,7 +69,7 @@ public class IdentityProvidersResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldCreate() {
+    public void should_allow_create_idp_github_without_checking_feature() {
         NewIdentityProviderEntity newIdentityProviderEntity = new NewIdentityProviderEntity();
         newIdentityProviderEntity.setName("my-idp-name");
         newIdentityProviderEntity.setType(IdentityProviderType.GITHUB);
@@ -72,10 +78,14 @@ public class IdentityProvidersResourceTest extends AbstractResourceTest {
         final Response response = envTarget().request().post(Entity.json(newIdentityProviderEntity));
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
         assertEquals(envTarget().path(ID).getUri().toString(), response.getHeaders().getFirst(HttpHeaders.LOCATION));
+
+        verify(license, never()).isFeatureEnabled("apim-openid-connect-sso");
     }
 
-    public void createOpenIdConnectShouldReturnOKWithLicense() {
-        when(nodeLicenseService.isFeatureEnabled("apim-openid-connect-sso")).thenReturn(true);
+    @Test
+    public void should_allow_create_idp_oidc_with_openid_connect_feature() {
+        when(license.isFeatureEnabled("apim-openid-connect-sso")).thenReturn(true);
+
         NewIdentityProviderEntity newIdentityProviderEntity = new NewIdentityProviderEntity();
         newIdentityProviderEntity.setName("my-idp-name");
         newIdentityProviderEntity.setType(IdentityProviderType.OIDC);
@@ -87,8 +97,9 @@ public class IdentityProvidersResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void createOpenIdConnectShouldReturnUnauthorizedWithoutLicense() {
-        when(nodeLicenseService.isFeatureEnabled("apim-openid-connect-sso")).thenReturn(false);
+    public void should_forbid_create_idp_oidc_without_openid_connect_feature() {
+        when(license.isFeatureEnabled("apim-openid-connect-sso")).thenReturn(false);
+
         NewIdentityProviderEntity newIdentityProviderEntity = new NewIdentityProviderEntity();
         newIdentityProviderEntity.setName("my-idp-name");
         newIdentityProviderEntity.setType(IdentityProviderType.OIDC);
@@ -99,7 +110,7 @@ public class IdentityProvidersResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldUpdate() {
+    public void should_update_idp() {
         UpdateIdentityProviderEntity updateIdentityProviderEntity = buildIdpForUpdate();
 
         final Response response = envTarget(ID).request().put(Entity.json(updateIdentityProviderEntity));
@@ -107,7 +118,7 @@ public class IdentityProvidersResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldNotUpdateBecauseOfGroupMappingEmpty() {
+    public void should_not_update_idp_because_when_group_mapping_is_empty() {
         UpdateIdentityProviderEntity updateIdentityProviderEntity = buildIdpForUpdate();
         final GroupMappingEntity groupMappingEntity = new GroupMappingEntity();
         groupMappingEntity.setCondition("true");
@@ -118,7 +129,7 @@ public class IdentityProvidersResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldNotUpdateBecauseOfRoleMappingEmpty() {
+    public void should_not_update_idp_because_when_role_mapping_is_empty() {
         UpdateIdentityProviderEntity updateIdentityProviderEntity = buildIdpForUpdate();
         final RoleMappingEntity roleMappingEntity = new RoleMappingEntity();
         roleMappingEntity.setCondition("true");

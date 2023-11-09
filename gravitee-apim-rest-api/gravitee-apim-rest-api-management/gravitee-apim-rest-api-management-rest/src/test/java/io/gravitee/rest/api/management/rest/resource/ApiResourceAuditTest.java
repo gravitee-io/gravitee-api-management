@@ -20,9 +20,11 @@ import static org.mockito.Mockito.*;
 
 import io.gravitee.common.data.domain.MetadataPage;
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.node.api.license.NodeLicenseService;
-import jakarta.inject.Inject;
+import io.gravitee.node.api.license.License;
+import io.gravitee.node.api.license.LicenseManager;
 import jakarta.ws.rs.core.Response;
+import javax.inject.Inject;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -34,7 +36,15 @@ public class ApiResourceAuditTest extends AbstractResourceTest {
     private static final String API = "my-api";
 
     @Inject
-    private NodeLicenseService nodeLicenseService;
+    private LicenseManager licenseManager;
+
+    private License license;
+
+    @Before
+    public void init() {
+        license = mock(License.class);
+        when(licenseManager.getPlatformLicense()).thenReturn(license);
+    }
 
     @Override
     protected String contextPath() {
@@ -43,7 +53,7 @@ public class ApiResourceAuditTest extends AbstractResourceTest {
 
     @Test
     public void getAuditShouldReturnUnauthorizedWithoutLicense() {
-        when(nodeLicenseService.isFeatureMissing("apim-audit-trail")).thenReturn(true);
+        when(license.isFeatureEnabled("apim-audit-trail")).thenReturn(false);
         when(permissionService.hasPermission(any(), any(), any())).thenReturn(true);
         final Response response = envTarget(API).path("audit").request().get();
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
@@ -51,7 +61,7 @@ public class ApiResourceAuditTest extends AbstractResourceTest {
 
     @Test
     public void getAuditShouldReturnOKdWithLicense() {
-        when(nodeLicenseService.isFeatureMissing("apim-audit-trail")).thenReturn(false);
+        when(license.isFeatureEnabled("apim-audit-trail")).thenReturn(true);
         when(permissionService.hasPermission(any(), any(), any())).thenReturn(true);
         when(auditService.search(any(), any())).thenReturn(mock(MetadataPage.class));
         final Response response = envTarget(API).path("audit").request().get();

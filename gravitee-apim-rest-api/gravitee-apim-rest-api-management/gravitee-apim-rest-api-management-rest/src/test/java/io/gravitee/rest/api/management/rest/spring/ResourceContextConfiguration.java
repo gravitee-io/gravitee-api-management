@@ -40,7 +40,7 @@ import io.gravitee.apim.infra.spring.CoreServiceSpringConfiguration;
 import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.node.api.license.NodeLicenseService;
+import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.rest.api.security.authentication.AuthenticationProvider;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
@@ -470,11 +470,6 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public NodeLicenseService nodeLicenseService() {
-        return mock(NodeLicenseService.class);
-    }
-
-    @Bean
     public ResourceService resourceService() {
         return mock(ResourceService.class);
     }
@@ -550,5 +545,10 @@ public class ResourceContextConfiguration {
     @Bean
     public UpdateApiDomainService updateApiDomainService() {
         return mock(UpdateApiDomainService.class);
+    }
+
+    @Bean
+    public LicenseManager licenseManager() {
+        return mock(LicenseManager.class);
     }
 }

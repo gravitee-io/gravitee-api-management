@@ -57,7 +57,7 @@ import io.gravitee.apim.core.subscription.domain_service.RejectSubscriptionDomai
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
-import io.gravitee.node.api.license.NodeLicenseService;
+import io.gravitee.node.api.license.LicenseManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -184,8 +184,8 @@ public class CoreServiceSpringConfiguration {
     }
 
     @Bean
-    public GraviteeLicenseDomainService graviteeLicenseDomainService(NodeLicenseService nodeLicenseService) {
-        return new GraviteeLicenseDomainService(nodeLicenseService);
+    public GraviteeLicenseDomainService graviteeLicenseDomainService(LicenseManager licenseManager) {
+        return new GraviteeLicenseDomainService(licenseManager);
     }
 
     @Bean

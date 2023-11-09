@@ -19,12 +19,14 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.node.api.license.NodeLicenseService;
+import io.gravitee.node.api.license.License;
+import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.rest.api.model.NewRoleEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
-import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
+import javax.inject.Inject;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -36,7 +38,15 @@ public class RoleScopeResourceTest extends AbstractResourceTest {
     private static final String SCOPE = "API";
 
     @Inject
-    NodeLicenseService nodeLicenseService;
+    private LicenseManager licenseManager;
+
+    private License license;
+
+    @Before
+    public void init() {
+        license = mock(License.class);
+        when(licenseManager.getPlatformLicense()).thenReturn(license);
+    }
 
     @Override
     protected String contextPath() {
@@ -44,12 +54,12 @@ public class RoleScopeResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void createRoleShouldReturnUnauthorizedWithLicense() {
-        when(nodeLicenseService.isFeatureMissing("apim-custom-roles")).thenReturn(true);
-
+    public void should_forbid_create_role_without_custom_role_feature() {
         NewRoleEntity role = new NewRoleEntity();
         role.setName("sre");
         role.setScope(RoleScope.API);
+
+        when(license.isFeatureEnabled("apim-custom-roles")).thenReturn(false);
 
         final Response response = envTarget(SCOPE).path("roles").request().post(Entity.json(role));
 
@@ -57,9 +67,8 @@ public class RoleScopeResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void createRoleShouldReturnOKWithLicense() {
-        when(nodeLicenseService.isFeatureMissing("apim-custom-roles")).thenReturn(false);
-
+    public void should_allow_create_role_with_custom_role_feature() {
+        when(license.isFeatureEnabled("apim-custom-roles")).thenReturn(true);
         when(roleService.create(any(), any())).thenReturn(new io.gravitee.rest.api.model.RoleEntity());
 
         NewRoleEntity role = new NewRoleEntity();
