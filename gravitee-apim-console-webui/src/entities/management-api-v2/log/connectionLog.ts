@@ -48,9 +48,11 @@ export interface ConnectionLogDetailRequest {
   method: string;
   uri: string;
   headers: Record<string, string[]>;
+  body: string;
 }
 
 export interface ConnectionLogDetailResponse {
   status: number;
   headers: Record<string, string[]>;
+  body: string;
 }

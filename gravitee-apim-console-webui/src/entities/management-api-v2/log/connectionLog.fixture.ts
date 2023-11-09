@@ -80,6 +80,7 @@ export function fakeConnectionLogDetailRequest(
       'X-Header': ['first-header'],
       'X-Header-Multiple': ['first-header', 'second-header'],
     },
+    body: null,
   };
 
   if (isFunction(modifier)) {
@@ -101,6 +102,7 @@ export function fakeConnectionLogDetailResponse(
       'X-Header': ['first-header'],
       'X-Header-Multiple': ['first-header', 'second-header'],
     },
+    body: null,
   };
 
   if (isFunction(modifier)) {

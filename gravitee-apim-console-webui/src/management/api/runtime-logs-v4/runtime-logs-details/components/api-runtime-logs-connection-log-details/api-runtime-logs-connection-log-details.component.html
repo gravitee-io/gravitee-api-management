@@ -52,6 +52,10 @@
       </div>
     </div>
   </div>
+  <body-accordion
+    *ngIf="connectionLogDetail?.entrypointRequest?.body"
+    [body]="connectionLogDetail?.entrypointRequest?.body"
+  ></body-accordion>
 </mat-expansion-panel>
 <mat-expansion-panel data-testId="endpoint-request" class="log" expanded="true" *ngIf="!!connectionLogDetail.endpointRequest">
   <mat-expansion-panel-header class="log__header">
@@ -90,6 +94,7 @@
       </div>
     </div>
   </div>
+  <body-accordion *ngIf="connectionLogDetail?.endpointRequest?.body" [body]="connectionLogDetail?.endpointRequest?.body"></body-accordion>
 </mat-expansion-panel>
 <mat-expansion-panel data-testId="endpoint-response" class="log" expanded="true" *ngIf="!!connectionLogDetail.endpointResponse">
   <mat-expansion-panel-header class="log__header">
@@ -124,6 +129,7 @@
       </div>
     </div>
   </div>
+  <body-accordion *ngIf="connectionLogDetail?.endpointResponse?.body" [body]="connectionLogDetail?.endpointResponse?.body"></body-accordion>
 </mat-expansion-panel>
 <mat-expansion-panel data-testId="entrypoint-response" class="log" expanded="true" *ngIf="!!connectionLogDetail.entrypointResponse">
   <mat-expansion-panel-header class="log__header">
@@ -158,4 +164,9 @@
       </div>
     </div>
   </div>
+  <body-accordion
+    class="log__row__accordion"
+    *ngIf="connectionLogDetail?.entrypointResponse?.body"
+    [body]="connectionLogDetail?.entrypointResponse?.body"
+  ></body-accordion>
 </mat-expansion-panel>

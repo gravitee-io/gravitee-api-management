@@ -49,7 +49,7 @@ class SearchConnectionLogDetailResponseAdapterTest extends AbstractAdapterTest {
     }
 
     private static Stream<Arguments> generate() {
-        ConnectionLogDetail.Response entrypointResponse = ConnectionLogDetail.Response
+        ConnectionLogDetail.Response.ResponseBuilder entrypointResponse = ConnectionLogDetail.Response
             .builder()
             .status(200)
             .headers(
@@ -63,10 +63,9 @@ class SearchConnectionLogDetailResponseAdapterTest extends AbstractAdapterTest {
                     "X-Gravitee-Transaction-Id",
                     List.of("e220afa7-4c77-4280-a0af-a74c7782801c")
                 )
-            )
-            .build();
+            );
 
-        ConnectionLogDetail.Request endpointRequest = ConnectionLogDetail.Request
+        ConnectionLogDetail.Request.RequestBuilder endpointRequest = ConnectionLogDetail.Request
             .builder()
             .method("GET")
             .uri("")
@@ -81,10 +80,9 @@ class SearchConnectionLogDetailResponseAdapterTest extends AbstractAdapterTest {
                     "X-Gravitee-Transaction-Id",
                     List.of("e220afa7-4c77-4280-a0af-a74c7782801c")
                 )
-            )
-            .build();
+            );
 
-        ConnectionLogDetail.Request entrypointRequest = ConnectionLogDetail.Request
+        ConnectionLogDetail.Request.RequestBuilder entrypointRequest = ConnectionLogDetail.Request
             .builder()
             .method("GET")
             .uri("/test?param=paramValue")
@@ -99,10 +97,12 @@ class SearchConnectionLogDetailResponseAdapterTest extends AbstractAdapterTest {
                     "X-Gravitee-Request-Id",
                     List.of("e220afa7-4c77-4280-a0af-a74c7782801c")
                 )
-            )
-            .build();
+            );
 
-        ConnectionLogDetail.Response endpointResponse = ConnectionLogDetail.Response.builder().status(200).headers(Map.of()).build();
+        ConnectionLogDetail.Response.ResponseBuilder endpointResponse = ConnectionLogDetail.Response
+            .builder()
+            .status(200)
+            .headers(Map.of());
 
         return Stream.of(
             Arguments.of(
@@ -114,10 +114,10 @@ class SearchConnectionLogDetailResponseAdapterTest extends AbstractAdapterTest {
                     .requestId("e220afa7-4c77-4280-a0af-a74c7782801c")
                     .clientIdentifier("8eec8b53-edae-4954-ac8b-53edae1954e4")
                     .requestEnded(true)
-                    .entrypointRequest(entrypointRequest)
-                    .entrypointResponse(entrypointResponse)
-                    .endpointRequest(endpointRequest)
-                    .endpointResponse(endpointResponse)
+                    .entrypointRequest(entrypointRequest.build())
+                    .entrypointResponse(entrypointResponse.build())
+                    .endpointRequest(endpointRequest.build())
+                    .endpointResponse(endpointResponse.build())
                     .build()
             ),
             Arguments.of(
@@ -129,8 +129,8 @@ class SearchConnectionLogDetailResponseAdapterTest extends AbstractAdapterTest {
                     .requestId("e220afa7-4c77-4280-a0af-a74c7782801c")
                     .clientIdentifier("8eec8b53-edae-4954-ac8b-53edae1954e4")
                     .requestEnded(true)
-                    .endpointRequest(endpointRequest)
-                    .endpointResponse(endpointResponse)
+                    .endpointRequest(endpointRequest.build())
+                    .endpointResponse(endpointResponse.build())
                     .build()
             ),
             Arguments.of(
@@ -142,8 +142,8 @@ class SearchConnectionLogDetailResponseAdapterTest extends AbstractAdapterTest {
                     .requestId("e220afa7-4c77-4280-a0af-a74c7782801c")
                     .clientIdentifier("8eec8b53-edae-4954-ac8b-53edae1954e4")
                     .requestEnded(true)
-                    .entrypointRequest(entrypointRequest)
-                    .entrypointResponse(entrypointResponse)
+                    .entrypointRequest(entrypointRequest.build())
+                    .entrypointResponse(entrypointResponse.build())
                     .build()
             ),
             Arguments.of(
@@ -155,8 +155,8 @@ class SearchConnectionLogDetailResponseAdapterTest extends AbstractAdapterTest {
                     .requestId("e220afa7-4c77-4280-a0af-a74c7782801c")
                     .clientIdentifier("8eec8b53-edae-4954-ac8b-53edae1954e4")
                     .requestEnded(true)
-                    .entrypointResponse(entrypointResponse)
-                    .endpointResponse(endpointResponse)
+                    .entrypointResponse(entrypointResponse.build())
+                    .endpointResponse(endpointResponse.build())
                     .build()
             ),
             Arguments.of(
@@ -168,8 +168,23 @@ class SearchConnectionLogDetailResponseAdapterTest extends AbstractAdapterTest {
                     .requestId("e220afa7-4c77-4280-a0af-a74c7782801c")
                     .clientIdentifier("8eec8b53-edae-4954-ac8b-53edae1954e4")
                     .requestEnded(true)
-                    .entrypointRequest(entrypointRequest)
-                    .endpointRequest(endpointRequest)
+                    .entrypointRequest(entrypointRequest.build())
+                    .endpointRequest(endpointRequest.build())
+                    .build()
+            ),
+            Arguments.of(
+                "connection-log-detail-with-body.json",
+                ConnectionLogDetail
+                    .builder()
+                    .timestamp("2023-10-27T07:41:39.317+02:00")
+                    .apiId("4c3e775d-eeb5-4d6c-be77-5deeb5ed6c41")
+                    .requestId("e220afa7-4c77-4280-a0af-a74c7782801c")
+                    .clientIdentifier("8eec8b53-edae-4954-ac8b-53edae1954e4")
+                    .requestEnded(true)
+                    .entrypointRequest(entrypointRequest.body("{ \"message\": \"entrypoint request body\" }").build())
+                    .entrypointResponse(entrypointResponse.body("{ \"message\": \"entrypoint response body\" }").build())
+                    .endpointRequest(endpointRequest.body("{ \"message\": \"endpoint request body\" }").build())
+                    .endpointResponse(endpointResponse.body("{ \"message\": \"endpoint response body\" }").build())
                     .build()
             )
         );
