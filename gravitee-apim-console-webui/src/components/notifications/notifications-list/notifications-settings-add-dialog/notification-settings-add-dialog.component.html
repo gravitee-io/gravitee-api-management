@@ -23,7 +23,7 @@
     <div class="form">
       <mat-form-field>
         <mat-label>Name</mat-label>
-        <input matInput formControlName="name" data-testid="api_notifications_create_namefield" required />
+        <input matInput formControlName="name" required />
         <mat-error *ngIf="notificationForm.get('name').hasError('required')">Name is required.</mat-error>
       </mat-form-field>
       <mat-form-field>
