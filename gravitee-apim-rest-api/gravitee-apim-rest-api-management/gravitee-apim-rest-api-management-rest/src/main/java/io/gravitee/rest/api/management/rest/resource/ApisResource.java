@@ -403,7 +403,9 @@ public class ApisResource extends AbstractResource {
         content = @Content(mediaType = "text/plain", schema = @Schema(type = "string"))
     )
     @ApiResponse(responseCode = "400", description = "API already exist with the following criteria")
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE) })
+    @Permissions(
+        { @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.CREATE, RolePermissionAction.UPDATE }) }
+    )
     public Response verifyApi(@Valid VerifyApiParam verifyApiParam) {
         // TODO : create verify service to query repository with criteria
         virtualHostService.sanitizeAndValidate(
