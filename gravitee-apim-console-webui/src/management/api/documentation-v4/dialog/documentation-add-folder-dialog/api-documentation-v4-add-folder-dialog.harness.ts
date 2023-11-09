@@ -23,7 +23,7 @@ export class ApiDocumentationV4AddFolderDialogHarness extends ComponentHarness {
 
   private nameInputLocator = this.locatorFor(MatInputHarness.with({ placeholder: 'Name' }));
   private radioButtonsLocator = this.locatorForAll(MatRadioButtonHarness);
-  private saveButtonLocator = this.locatorFor(MatButtonHarness.with({ text: 'Add folder' }));
+  private saveButtonLocator = this.locatorFor(MatButtonHarness.with({ selector: '[type=submit]' }));
   private cancelButtonLocator = this.locatorFor(MatButtonHarness.with({ text: 'Cancel' }));
 
   public async getNameInput() {
