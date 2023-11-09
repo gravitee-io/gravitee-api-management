@@ -26,7 +26,7 @@
     <mat-label>Name</mat-label>
     <input matInput formControlName="name" placeholder="Name" />
   </mat-form-field>
-  <api-documentation-visibility [label]="visibilityLabel" formControlName="visibility"></api-documentation-visibility>
+  <api-documentation-visibility [showSubtitle]="data.mode === 'create'" formControlName="visibility"></api-documentation-visibility>
   <div class="new-folder-form__actions">
     <button mat-stroked-button type="button" (click)="cancel()">Cancel</button>
     <button type="submit" mat-flat-button color="primary" [disabled]="formGroup.invalid || formGroup.pristine || !formValueChanged">

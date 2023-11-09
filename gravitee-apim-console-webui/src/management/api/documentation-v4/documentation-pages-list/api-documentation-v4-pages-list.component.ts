@@ -40,6 +40,9 @@ export class ApiDocumentationV4PagesListComponent implements OnChanges {
   @Output()
   onGoToFolder = new EventEmitter<string>();
 
+  @Output()
+  onEditFolder = new EventEmitter<Page>();
+
   public displayedColumns = ['name', 'status', 'visibility', 'lastUpdated', 'actions'];
   public dataSource: MatTableDataSource<Page>;
 

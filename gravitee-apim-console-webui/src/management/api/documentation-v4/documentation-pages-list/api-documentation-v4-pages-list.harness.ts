@@ -24,6 +24,7 @@ export class ApiDocumentationV4PagesListHarness extends ComponentHarness {
 
   protected tableLocator = this.locatorFor(MatTableHarness);
   protected addNewPageButtonLocator = this.locatorFor(MatButtonHarness.with({ text: 'Add new page' }));
+  protected allEditFolderButtons = this.locatorForAll(MatButtonHarness.with({ selector: '[aria-label="Edit folder"]' }));
 
   public async getNameDivByRowIndex(idx: number): Promise<DivHarness> {
     const table = await this.tableLocator();
@@ -41,6 +42,10 @@ export class ApiDocumentationV4PagesListHarness extends ComponentHarness {
 
   public getStatusByRowIndex(idx: number): Promise<string> {
     return this.getColumnTextByIndex('status', idx);
+  }
+
+  public getEditFolderButtonByRowIndex(idx: number): Promise<MatButtonHarness> {
+    return this.allEditFolderButtons().then((buttonList) => buttonList[idx]);
   }
 
   public async clickAddNewPage() {
