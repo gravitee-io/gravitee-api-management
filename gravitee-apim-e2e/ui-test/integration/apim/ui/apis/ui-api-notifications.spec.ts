@@ -54,7 +54,7 @@ describe('Notifications page', () => {
     cy.getByDataTestId('api_notifications_add_notification').click();
     cy.contains('New notification').should('be.visible');
     cy.getByDataTestId('api_notifications_create_namefield').type('Test notification');
-    cy.getByDataTestId('create_notification_button').contains('Create').click();
+    cy.get('[type="submit"]').contains('Create').click();
     cy.contains('Notification created successfully').should('be.visible');
     cy.contains('Test notification').should('be.visible');
   });
