@@ -16,7 +16,7 @@
 package io.gravitee.apim.gateway.tests.sdk.container;
 
 import io.gravitee.apim.gateway.tests.sdk.connector.fakes.MessageStorage;
-import io.gravitee.apim.gateway.tests.sdk.license.PermissiveNodeLicenceService;
+import io.gravitee.apim.gateway.tests.sdk.license.PermissiveLicenseManager;
 import io.gravitee.apim.gateway.tests.sdk.reporter.FakeReporter;
 import io.gravitee.apim.gateway.tests.sdk.tracer.NoOpTracer;
 import io.gravitee.gateway.api.service.ApiKeyService;
@@ -24,17 +24,12 @@ import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.gateway.standalone.GatewayContainer;
 import io.gravitee.node.api.cache.CacheManager;
 import io.gravitee.node.api.cluster.ClusterManager;
-import io.gravitee.node.api.license.NodeLicenseService;
+import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.node.container.NodeFactory;
 import io.gravitee.node.plugin.cache.standalone.StandaloneCacheManager;
 import io.gravitee.node.plugin.cluster.standalone.StandaloneClusterManager;
 import io.gravitee.reporter.api.Reporter;
-import io.gravitee.repository.management.api.ApiKeyRepository;
-import io.gravitee.repository.management.api.EnvironmentRepository;
-import io.gravitee.repository.management.api.EventRepository;
-import io.gravitee.repository.management.api.InstallationRepository;
-import io.gravitee.repository.management.api.OrganizationRepository;
-import io.gravitee.repository.management.api.SubscriptionRepository;
+import io.gravitee.repository.management.api.*;
 import io.gravitee.tracing.api.Tracer;
 import io.vertx.core.Vertx;
 import java.util.List;
@@ -132,8 +127,8 @@ public class GatewayTestContainer extends GatewayContainer {
         }
 
         @Bean
-        public NodeLicenseService nodeLicenseService() {
-            return new PermissiveNodeLicenceService();
+        public LicenseManager licenseManager() {
+            return new PermissiveLicenseManager();
         }
     }
 }

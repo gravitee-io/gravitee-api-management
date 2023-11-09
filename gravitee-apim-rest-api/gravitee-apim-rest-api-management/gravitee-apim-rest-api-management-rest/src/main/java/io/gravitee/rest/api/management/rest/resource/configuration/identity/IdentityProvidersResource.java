@@ -130,12 +130,9 @@ public class IdentityProvidersResource extends AbstractResource {
     }
 
     private void checkOpenIdConnectProviderLicense(NewIdentityProviderEntity newIdentityProviderEntity) {
-        String featureName = "apim-openid-connect-sso";
-        if (isFeatureEnabled(featureName)) {
-            return;
-        }
+        final String featureName = "apim-openid-connect-sso";
 
-        if (IdentityProviderType.OIDC.equals(newIdentityProviderEntity.getType())) {
+        if (IdentityProviderType.OIDC.equals(newIdentityProviderEntity.getType()) && !isFeatureEnabled(featureName)) {
             throw new ForbiddenFeatureException(featureName);
         }
     }

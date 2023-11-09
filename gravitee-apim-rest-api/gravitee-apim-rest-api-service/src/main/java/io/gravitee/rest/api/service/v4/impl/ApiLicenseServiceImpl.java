@@ -19,7 +19,8 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
-import io.gravitee.node.api.license.NodeLicenseService;
+import io.gravitee.node.api.license.License;
+import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -38,7 +39,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ApiLicenseServiceImpl implements ApiLicenseService {
 
-    private final NodeLicenseService nodeLicenseService;
+    private final LicenseManager licenseManager;
     private final ApiSearchService apiSearchService;
 
     private static final Map<String, String> ENDPOINT_FEATURES = Map.of(
@@ -63,8 +64,8 @@ public class ApiLicenseServiceImpl implements ApiLicenseService {
         "apim-en-entrypoint-sse"
     );
 
-    public ApiLicenseServiceImpl(NodeLicenseService nodeLicenseService, ApiSearchService apiSearchService) {
-        this.nodeLicenseService = nodeLicenseService;
+    public ApiLicenseServiceImpl(LicenseManager licenseManager, ApiSearchService apiSearchService) {
+        this.licenseManager = licenseManager;
         this.apiSearchService = apiSearchService;
     }
 
@@ -79,48 +80,49 @@ public class ApiLicenseServiceImpl implements ApiLicenseService {
             return;
         }
 
+        var license = licenseManager.getPlatformLicense();
         var apiEntity = (ApiEntity) genericApiEntity;
-        checkEndpointGroups(apiEntity.getEndpointGroups());
-        checkListeners(apiEntity.getListeners());
+        checkEndpointGroups(license, apiEntity.getEndpointGroups());
+        checkListeners(license, apiEntity.getListeners());
     }
 
-    private void checkEndpointGroups(List<EndpointGroup> endpointGroups) {
+    private void checkEndpointGroups(License license, List<EndpointGroup> endpointGroups) {
         if (endpointGroups == null) {
             return;
         }
 
-        endpointGroups.forEach(this::checkEndpointGroup);
+        endpointGroups.forEach(endpointGroup -> checkEndpointGroup(license, endpointGroup));
     }
 
-    private void checkEndpointGroup(EndpointGroup endpointGroup) {
+    private void checkEndpointGroup(License license, EndpointGroup endpointGroup) {
         Optional
             .ofNullable(ENDPOINT_FEATURES.get(endpointGroup.getType()))
-            .filter(nodeLicenseService::isFeatureMissing)
+            .filter(feature -> !license.isFeatureEnabled(feature))
             .ifPresent(feature -> {
                 throw new ForbiddenFeatureException(feature);
             });
     }
 
-    private void checkListeners(List<Listener> listeners) {
+    private void checkListeners(License license, List<Listener> listeners) {
         if (listeners == null) {
             return;
         }
 
-        listeners.forEach(this::checkListener);
+        listeners.forEach(listener -> checkListener(license, listener));
     }
 
-    private void checkListener(Listener listener) {
+    private void checkListener(License license, Listener listener) {
         if (listener.getEntrypoints() == null) {
             return;
         }
 
-        listener.getEntrypoints().forEach(this::checkEntrypoint);
+        listener.getEntrypoints().forEach(entrypoint -> checkEntrypoint(license, entrypoint));
     }
 
-    private void checkEntrypoint(Entrypoint entrypoint) {
+    private void checkEntrypoint(License license, Entrypoint entrypoint) {
         Optional
             .ofNullable(ENTRYPOINT_FEATURES.get(entrypoint.getType()))
-            .filter(nodeLicenseService::isFeatureMissing)
+            .filter(feature -> !license.isFeatureEnabled(feature))
             .ifPresent(feature -> {
                 throw new ForbiddenFeatureException(feature);
             });

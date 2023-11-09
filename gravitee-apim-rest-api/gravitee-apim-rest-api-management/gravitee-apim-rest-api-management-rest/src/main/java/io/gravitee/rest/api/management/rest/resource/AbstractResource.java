@@ -21,7 +21,8 @@ import static io.gravitee.rest.api.model.MembershipReferenceType.GROUP;
 
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.node.api.license.NodeLicenseService;
+import io.gravitee.node.api.license.License;
+import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.MembershipEntity;
 import io.gravitee.rest.api.model.RoleEntity;
@@ -32,20 +33,17 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.ApiService;
+import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.service.PermissionService;
+import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.core.Context;
-import jakarta.ws.rs.core.EntityTag;
-import jakarta.ws.rs.core.HttpHeaders;
-import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.SecurityContext;
-import jakarta.ws.rs.core.UriBuilder;
-import jakarta.ws.rs.core.UriInfo;
+import jakarta.ws.rs.core.*;
 import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -93,7 +91,7 @@ public abstract class AbstractResource {
     protected PermissionService permissionService;
 
     @Inject
-    protected NodeLicenseService nodeLicenseService;
+    protected LicenseManager licenseManager;
 
     protected UserDetails getAuthenticatedUserDetails() {
         return (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -193,7 +191,8 @@ public abstract class AbstractResource {
     }
 
     protected boolean isFeatureEnabled(String featureName) {
-        return nodeLicenseService.isFeatureEnabled(featureName);
+        final License license = licenseManager.getPlatformLicense();
+        return license.isFeatureEnabled(featureName);
     }
 
     protected void canReadApi(final ExecutionContext executionContext, final String apiId) {

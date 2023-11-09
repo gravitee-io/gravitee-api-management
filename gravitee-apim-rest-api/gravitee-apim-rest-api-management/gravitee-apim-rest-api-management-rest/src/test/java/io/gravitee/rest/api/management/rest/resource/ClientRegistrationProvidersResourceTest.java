@@ -20,18 +20,19 @@ import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
-import io.gravitee.node.api.license.NodeLicenseService;
+import io.gravitee.node.api.license.License;
+import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.rest.api.model.configuration.application.registration.ClientRegistrationProviderEntity;
 import io.gravitee.rest.api.model.configuration.application.registration.InitialAccessTokenType;
 import io.gravitee.rest.api.model.configuration.application.registration.NewClientRegistrationProviderEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
+import javax.inject.Inject;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -41,16 +42,25 @@ import org.junit.Test;
 public class ClientRegistrationProvidersResourceTest extends AbstractResourceTest {
 
     @Inject
-    private NodeLicenseService nodeLicenseService;
+    private LicenseManager licenseManager;
+
+    private License license;
 
     @Override
     protected String contextPath() {
         return "configuration/applications/registration/providers";
     }
 
+    @Before
+    public void init() {
+        license = mock(License.class);
+        when(licenseManager.getPlatformLicense()).thenReturn(license);
+    }
+
     @Test
-    public void shouldCreateSubscription() {
-        when(nodeLicenseService.isFeatureMissing("apim-dcr-registration")).thenReturn(false);
+    public void should_allow_create_with_dcr_registration_feature() {
+        when(license.isFeatureEnabled("apim-dcr-registration")).thenReturn(true);
+
         reset(clientRegistrationService);
         NewClientRegistrationProviderEntity newClientRegistrationProviderEntity = new NewClientRegistrationProviderEntity();
         newClientRegistrationProviderEntity.setName("my-client-registration-provider-name");
@@ -72,8 +82,9 @@ public class ClientRegistrationProvidersResourceTest extends AbstractResourceTes
     }
 
     @Test
-    public void createShouldReturnForbiddenWithoutLicense() {
-        when(nodeLicenseService.isFeatureMissing("apim-dcr-registration")).thenReturn(true);
+    public void should_forbid_create_without_dcr_registration_feature() {
+        when(license.isFeatureEnabled("apim-dcr-registration")).thenReturn(false);
+
         NewClientRegistrationProviderEntity newClientRegistrationProviderEntity = new NewClientRegistrationProviderEntity();
         newClientRegistrationProviderEntity.setName("my-client-registration-provider-name");
         newClientRegistrationProviderEntity.setDiscoveryEndpoint("my-client-registration-provider-discovery-endpoint");
