@@ -30,4 +30,4 @@ export interface EditDocumentationMarkdown extends BaseEditDocumentation {
   homepage?: boolean;
 }
 
-export type EditDocumentation = ({ type: 'FOLDER' } & EditDocumentationFolder) | ({ type: 'MARKDOWN' } & EditDocumentationMarkdown);
+export type EditDocumentation = EditDocumentationFolder | EditDocumentationMarkdown;
