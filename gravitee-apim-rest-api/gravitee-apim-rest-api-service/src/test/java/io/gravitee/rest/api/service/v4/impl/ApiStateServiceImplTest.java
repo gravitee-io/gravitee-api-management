@@ -20,7 +20,6 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 
@@ -29,6 +28,7 @@ import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.Event;
@@ -47,7 +47,6 @@ import io.gravitee.rest.api.service.processor.SynchronizationService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.v4.ApiNotificationService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
-import io.gravitee.rest.api.service.v4.ApiService;
 import io.gravitee.rest.api.service.v4.ApiStateService;
 import io.gravitee.rest.api.service.v4.FlowService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
@@ -60,8 +59,6 @@ import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import org.apiguardian.api.API;
-import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
@@ -107,6 +104,9 @@ public class ApiStateServiceImplTest {
 
     @Mock
     private EventService eventService;
+
+    @Mock
+    private EventLatestRepository eventLatestRepository;
 
     @Mock
     private FlowService flowService;
@@ -179,6 +179,7 @@ public class ApiStateServiceImplTest {
                 primaryOwnerService,
                 auditService,
                 eventService,
+                eventLatestRepository,
                 objectMapper,
                 apiMetadataService,
                 apiValidationService,

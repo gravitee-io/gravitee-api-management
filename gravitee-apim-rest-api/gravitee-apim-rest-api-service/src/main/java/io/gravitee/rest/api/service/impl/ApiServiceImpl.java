@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.repository.management.model.Api.AuditEvent.*;
+import static io.gravitee.repository.management.model.Event.EventProperties.API_ID;
 import static io.gravitee.repository.management.model.Workflow.AuditEvent.*;
 import static io.gravitee.rest.api.model.EventType.PUBLISH_API;
 import static io.gravitee.rest.api.model.PageType.SWAGGER;
@@ -44,8 +45,10 @@ import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiQualityRuleRepository;
 import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
+import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.*;
 import io.gravitee.repository.management.model.Api;
@@ -155,6 +158,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Autowired
     private EventService eventService;
+
+    @Lazy
+    @Autowired
+    private EventLatestRepository eventLatestRepository;
 
     @Autowired
     private UserService userService;
@@ -1653,18 +1660,19 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         ApiDeploymentEntity apiDeploymentEntity
     ) {
         if (PUBLISH_API.equals(eventType)) {
-            final EventQuery query = new EventQuery();
-            query.setApi(apiId);
-            query.setTypes(singleton(PUBLISH_API));
+            EventCriteria criteria = EventCriteria
+                .builder()
+                .types(Set.of(io.gravitee.repository.management.model.EventType.PUBLISH_API))
+                .property(Event.EventProperties.API_ID.getValue(), apiId)
+                .build();
 
-            final Optional<EventEntity> optEvent = eventService
-                .search(executionContext, query)
+            String lastDeployNumber = eventLatestRepository
+                .search(criteria, Event.EventProperties.API_ID, 0L, 1L)
                 .stream()
-                .max(comparing(EventEntity::getCreatedAt));
+                .findFirst()
+                .map(eventEntity -> eventEntity.getProperties().getOrDefault(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), "0"))
+                .orElse("0");
 
-            String lastDeployNumber = optEvent.isPresent()
-                ? optEvent.get().getProperties().getOrDefault(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), "0")
-                : "0";
             String newDeployNumber = Long.toString(Long.parseLong(lastDeployNumber) + 1);
             properties.put(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), newDeployNumber);
 
