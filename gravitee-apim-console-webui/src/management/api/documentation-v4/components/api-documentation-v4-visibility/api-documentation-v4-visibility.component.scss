@@ -6,11 +6,11 @@ $typography: map.get(gio.$mat-theme, typography);
 
 .visibility {
   @include mat.typography-level($typography, body-2);
+  padding-bottom: 8px;
 
   &__subtitle {
     @include mat.typography-level($typography, body-1);
     color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
-    padding-top: 8px;
     padding-bottom: 16px;
   }
 }

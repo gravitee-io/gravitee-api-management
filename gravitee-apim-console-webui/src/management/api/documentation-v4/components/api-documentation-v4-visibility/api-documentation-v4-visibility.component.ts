@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, forwardRef } from '@angular/core';
+import { Component, forwardRef, Input } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 @Component({
@@ -29,6 +29,9 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
   ],
 })
 export class ApiDocumentationV4VisibilityComponent implements ControlValueAccessor {
+  @Input()
+  public showSubtitle: boolean;
+
   _value: string;
   protected _onChange: (_selection: 'PUBLIC' | 'PRIVATE') => void = () => ({});
 
