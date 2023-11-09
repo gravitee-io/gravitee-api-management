@@ -21,7 +21,7 @@ import { map } from 'rxjs/operators';
 import { Constants } from '../entities/Constants';
 import { CreateDocumentation } from '../entities/management-api-v2/documentation/createDocumentation';
 import { Breadcrumb, Page } from '../entities/management-api-v2/documentation/page';
-import { EditDocumentationMarkdown } from '../entities/management-api-v2/documentation/editDocumentation';
+import { EditDocumentation } from '../entities/management-api-v2/documentation/editDocumentation';
 
 export interface ApiDocumentationPageResult {
   pages: Page[];
@@ -51,7 +51,7 @@ export class ApiDocumentationV2Service {
     return this.http.get<Page>(`${this.constants.env.v2BaseURL}/apis/${apiId}/pages/${pageId}`);
   }
 
-  updateDocumentationPage(apiId: string, pageId: string, editPage: EditDocumentationMarkdown): Observable<Page> {
+  updateDocumentationPage(apiId: string, pageId: string, editPage: EditDocumentation): Observable<Page> {
     return this.http.put<Page>(`${this.constants.env.v2BaseURL}/apis/${apiId}/pages/${pageId}`, editPage);
   }
 
