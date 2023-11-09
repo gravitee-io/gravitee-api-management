@@ -31,9 +31,8 @@ import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
-import io.gravitee.repository.management.api.ApiQualityRuleRepository;
 import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.rest.api.model.EventEntity;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
@@ -42,17 +41,14 @@ import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
-import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.processor.SynchronizationService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.v4.*;
-import io.gravitee.rest.api.service.v4.ApiService;
 import io.gravitee.rest.api.service.v4.PlanService;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
 import io.gravitee.rest.api.service.v4.mapper.CategoryMapper;
 import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
 import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
-import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -97,6 +93,9 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
 
     @Mock
     private EventService eventService;
+
+    @Mock
+    private EventLatestRepository eventLatestRepository;
 
     @Mock
     private FlowService flowService;
@@ -172,6 +171,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
                 primaryOwnerService,
                 auditService,
                 eventService,
+                eventLatestRepository,
                 objectMapper,
                 apiMetadataService,
                 apiValidationService,

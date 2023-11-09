@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.v4.impl;
 
 import static io.gravitee.repository.management.model.Api.AuditEvent.API_UPDATED;
+import static io.gravitee.repository.management.model.Event.EventProperties.API_ID;
 import static io.gravitee.rest.api.model.EventType.PUBLISH_API;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
@@ -28,6 +29,8 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.EventLatestRepository;
+import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.LifecycleState;
@@ -47,7 +50,6 @@ import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.exceptions.AbstractManagementException;
 import io.gravitee.rest.api.service.exceptions.ApiNotDeployableException;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
-import io.gravitee.rest.api.service.exceptions.ApiNotManagedException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.processor.SynchronizationService;
 import io.gravitee.rest.api.service.v4.ApiNotificationService;
@@ -86,6 +88,7 @@ public class ApiStateServiceImpl implements ApiStateService {
     private final PrimaryOwnerService primaryOwnerService;
     private final AuditService auditService;
     private final EventService eventService;
+    private final EventLatestRepository eventLatestRepository;
     private final ObjectMapper objectMapper;
     private final ApiMetadataService apiMetadataService;
     private final ApiValidationService apiValidationService;
@@ -102,6 +105,7 @@ public class ApiStateServiceImpl implements ApiStateService {
         @Lazy final PrimaryOwnerService primaryOwnerService,
         final AuditService auditService,
         @Lazy final EventService eventService,
+        @Lazy final EventLatestRepository eventLatestRepository,
         final ObjectMapper objectMapper,
         @Lazy final ApiMetadataService apiMetadataService,
         @Lazy final ApiValidationService apiValidationService,
@@ -117,6 +121,7 @@ public class ApiStateServiceImpl implements ApiStateService {
         this.primaryOwnerService = primaryOwnerService;
         this.auditService = auditService;
         this.eventService = eventService;
+        this.eventLatestRepository = eventLatestRepository;
         this.objectMapper = objectMapper;
         this.apiMetadataService = apiMetadataService;
         this.apiValidationService = apiValidationService;
@@ -179,18 +184,19 @@ public class ApiStateServiceImpl implements ApiStateService {
         Map<String, String> properties,
         ApiDeploymentEntity apiDeploymentEntity
     ) {
-        final EventQuery query = new EventQuery();
-        query.setApi(apiId);
-        query.setTypes(singleton(PUBLISH_API));
+        EventCriteria criteria = EventCriteria
+            .builder()
+            .types(Set.of(io.gravitee.repository.management.model.EventType.PUBLISH_API))
+            .property(Event.EventProperties.API_ID.getValue(), apiId)
+            .build();
 
-        final Optional<EventEntity> optEvent = eventService
-            .search(executionContext, query)
+        String lastDeployNumber = eventLatestRepository
+            .search(criteria, Event.EventProperties.API_ID, 0L, 1L)
             .stream()
-            .max(comparing(EventEntity::getCreatedAt));
+            .findFirst()
+            .map(eventEntity -> eventEntity.getProperties().getOrDefault(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), "0"))
+            .orElse("0");
 
-        String lastDeployNumber = optEvent.isPresent()
-            ? optEvent.get().getProperties().getOrDefault(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), "0")
-            : "0";
         String newDeployNumber = Long.toString(Long.parseLong(lastDeployNumber) + 1);
         properties.put(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), newDeployNumber);
 
