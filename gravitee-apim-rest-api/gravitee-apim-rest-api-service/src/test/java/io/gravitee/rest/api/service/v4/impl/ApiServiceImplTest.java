@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
-import static io.gravitee.definition.model.DefinitionContext.ORIGIN_KUBERNETES;
 import static io.gravitee.definition.model.DefinitionContext.ORIGIN_MANAGEMENT;
 import static io.gravitee.rest.api.model.api.ApiLifecycleState.CREATED;
 import static io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED;
@@ -37,7 +36,6 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.clearInvocations;
-import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
@@ -49,7 +47,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
@@ -82,6 +79,8 @@ import io.gravitee.definition.model.v4.service.ApiServices;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiQualityRuleRepository;
 import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.EventLatestRepository;
+import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.Event;
@@ -135,7 +134,6 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.exceptions.ApiNotDeletableException;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
-import io.gravitee.rest.api.service.exceptions.ApiNotManagedException;
 import io.gravitee.rest.api.service.exceptions.ApiRunningStateException;
 import io.gravitee.rest.api.service.exceptions.EndpointNameInvalidException;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
@@ -159,7 +157,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import org.checkerframework.checker.units.qual.A;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
@@ -249,6 +246,9 @@ public class ApiServiceImplTest {
 
     @Mock
     private EventService eventService;
+
+    @Mock
+    private EventLatestRepository eventLatestRepository;
 
     @Mock
     private TopApiService topApiService;
@@ -379,6 +379,7 @@ public class ApiServiceImplTest {
                 primaryOwnerService,
                 auditService,
                 eventService,
+                eventLatestRepository,
                 objectMapper,
                 apiMetadataService,
                 apiValidationService,
@@ -1199,13 +1200,21 @@ public class ApiServiceImplTest {
 
     @Test
     public void shouldDeployApi() throws TechnicalException {
-        final EventEntity previousPublishedEvent = new EventEntity();
-        previousPublishedEvent.setProperties(new HashMap<>());
+        final Event previousPublishedEvent = new Event();
+        previousPublishedEvent.setProperties(Map.of(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), "3"));
 
         when(apiValidationService.canDeploy(any(), any())).thenReturn(true);
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         when(apiRepository.update(api)).thenReturn(api);
-        when(eventService.search(any(ExecutionContext.class), any())).thenReturn(singleton(previousPublishedEvent));
+        when(
+            eventLatestRepository.search(
+                any(EventCriteria.class),
+                eq(io.gravitee.repository.management.model.Event.EventProperties.API_ID),
+                eq(0L),
+                eq(1L)
+            )
+        )
+            .thenReturn(List.of(previousPublishedEvent));
 
         final ApiDeploymentEntity apiDeploymentEntity = new ApiDeploymentEntity();
         apiDeploymentEntity.setDeploymentLabel("deploy-label");
@@ -1224,7 +1233,7 @@ public class ApiServiceImplTest {
                 eq(api),
                 argThat(properties ->
                     properties.get(Event.EventProperties.USER.getValue()).equals(USER_NAME) &&
-                    properties.get(Event.EventProperties.DEPLOYMENT_NUMBER.getValue()).equals("1") &&
+                    properties.get(Event.EventProperties.DEPLOYMENT_NUMBER.getValue()).equals("4") &&
                     properties.get(Event.EventProperties.DEPLOYMENT_LABEL.getValue()).equals(apiDeploymentEntity.getDeploymentLabel())
                 )
             );
