@@ -89,12 +89,14 @@ describe('Deleting a flow', () => {
 
   describe('Verify that both flows are working on the Gateway', () => {
     it('should have additional header added by API flows', () => {
-      cy.callGateway(apiPath)
-        .its('headers')
-        .should((headers) => {
-          expect(headers).to.have.property(addedCommonFlowHeader.name, addedCommonFlowHeader.value);
-          expect(headers).to.have.property(addedPlanFlowHeader.name, addedPlanFlowHeader.value);
-        });
+      const headerCheckFunction = (response: Cypress.Response<any>) => {
+        return response.headers[addedCommonFlowHeader.name] === addedCommonFlowHeader.value;
+      };
+
+      cy.callGateway(apiPath, headerCheckFunction).then((response) => {
+        expect(response.headers).to.have.property(addedCommonFlowHeader.name, addedCommonFlowHeader.value);
+        expect(response.headers).to.have.property(addedPlanFlowHeader.name, addedPlanFlowHeader.value);
+      });
     });
   });
 
@@ -131,20 +133,16 @@ describe('Deleting a flow', () => {
   });
 
   describe('Verify that flow is no longer working on the Gateway', () => {
-    it(
-      'should no longer have additional header from API flows after flows deleted',
-      {
-        retries: 5, // deployment can take some time
-      },
-      () => {
-        cy.callGateway(apiPath)
-          .its('headers')
-          .should((responseHeader) => {
-            expect(responseHeader).to.not.have.property(addedCommonFlowHeader.name);
-            expect(responseHeader).to.not.have.property(addedPlanFlowHeader.name);
-          });
-      },
-    );
+    it('should no longer have additional header from API flows after flows deleted', () => {
+      const headerCheckFunction = (response: Cypress.Response<any>) => {
+        return !response.headers[addedCommonFlowHeader.name];
+      };
+
+      cy.callGateway(apiPath, headerCheckFunction).then((response) => {
+        expect(response.headers).to.not.have.property(addedCommonFlowHeader.name);
+        expect(response.headers).to.not.have.property(addedPlanFlowHeader.name);
+      });
+    });
   });
 
   after(() => {

@@ -27,7 +27,7 @@ import {
 import { closePlan, createPlan, publishPlan } from '@commands/management/api-plan-management-commands';
 import { ApiImportFakers } from '@fakers/api-imports';
 import { ADMIN_USER, API_PUBLISHER_USER } from '@fakers/users/users';
-import { ApiImport, ImportSwaggerDescriptorEntity, ImportSwaggerDescriptorEntityType } from '@model/api-imports';
+import { ApiImport, ImportSwaggerDescriptorEntity } from '@model/api-imports';
 import faker from '@faker-js/faker';
 import { Api } from '@model/apis';
 
@@ -37,35 +37,38 @@ declare global {
       teardownApi(api: ApiImport | Api): void;
       teardownV4Api(apiId: string): void;
       createAndStartApiFromSwagger(swaggerImport: string, attributes?: Partial<ImportSwaggerDescriptorEntity>): any;
-      callGateway(contextPath: string, maxRetries?: number, retryDelay?: number): Cypress.Chainable<Cypress.Response<any>>;
+      callGateway(
+        contextPath: string,
+        checkConditionFn?: (response: Cypress.Response<any>) => boolean,
+        maxRetries?: number,
+        retryDelay?: number,
+      ): Cypress.Chainable<Cypress.Response<any>>;
     }
   }
 }
 export {};
 
-Cypress.Commands.add('callGateway', (contextPath, maxRetries = 5, retryDelay = 1500) => {
-  let retries = 0;
-
-  const sendRequest = () => {
-    retries++;
-    const url = `${Cypress.env('gatewayServer')}${contextPath}`;
-    cy.log(`Calling gateway: ${url} - Attempt ${retries} of ${maxRetries}`);
-
-    return cy.request({ url, failOnStatusCode: false }).then((response) => {
-      if (response.status === 200) {
+Cypress.Commands.add('callGateway', (contextPath, checkConditionFn?, maxRetries = 5, retryDelay = 1500) => {
+  const defaultCheckFunction = (response: Cypress.Response<any>) => response.status === 200;
+  const isResponseValid = checkConditionFn || defaultCheckFunction;
+  const url = `${Cypress.env('gatewayServer')}${contextPath}`;
+  const sendRequest = (retriesLeft: number) => {
+    cy.log(`Calling gateway: ${url} - Retry ${maxRetries - retriesLeft} of ${maxRetries}`);
+    cy.request({ url, failOnStatusCode: false }).then((response) => {
+      if (isResponseValid(response)) {
         return response;
-      } else if (retries >= maxRetries) {
-        throw new Error('Maximum retries reached, request failed');
+      }
+      if (retriesLeft > 0) {
+        cy.wait(retryDelay);
+        sendRequest(retriesLeft - 1);
       } else {
-        // Retry after delay
-        return new Cypress.Promise((resolve) => {
-          setTimeout(resolve, retryDelay);
-        }).then(sendRequest);
+        throw new Error(
+          `API did not return the expected result within the allowed retries. \nFunction used to check the response:\n ${checkConditionFn.toString()}`,
+        );
       }
     });
   };
-
-  return sendRequest();
+  return sendRequest(maxRetries);
 });
 
 Cypress.Commands.add('teardownApi', (api) => {

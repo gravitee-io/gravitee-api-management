@@ -112,13 +112,12 @@ describe('Create and modify a flow in Policy Studio', () => {
         .deployApiUsingUi();
     });
 
-    it('should show newly added header when calling Gateway', { retries: 20 }, () => {
-      cy.wait(500); // wait for the API to be deployed
-      cy.callGateway(apiPath)
-        .its('headers')
-        .should((responseHeader) => {
-          expect(responseHeader).to.have.property(headerKey, headerValue);
-        });
+    it('should show newly added header when calling Gateway', () => {
+      const headerCheckFunction = (response: Cypress.Response<any>) => {
+        return response.headers[headerKey] === headerValue;
+      };
+
+      cy.callGateway(apiPath, headerCheckFunction);
     });
 
     it('should edit flow details of a common flow using pen icon', () => {
@@ -130,21 +129,20 @@ describe('Create and modify a flow in Policy Studio', () => {
         .deployApiUsingUi();
     });
 
-    it('should not have added header anymore when calling Gateway as before', { retries: 20 }, () => {
-      cy.wait(500); // wait for the API to be deployed
-      cy.callGateway(apiPath)
-        .its('headers')
-        .should((responseHeader) => {
-          expect(responseHeader).to.not.have.property(headerKey);
-        });
+    it('should not have added header anymore when calling Gateway as before', () => {
+      const headerCheckFunction = (response: Cypress.Response<any>) => {
+        return !response.headers[headerKey];
+      };
+
+      cy.callGateway(apiPath, headerCheckFunction);
     });
 
     it('should have header when calling Gateway with updated path', () => {
-      cy.callGateway(`${apiPath}/${flowPath}`)
-        .its('headers')
-        .should((responseHeader) => {
-          expect(responseHeader).to.have.property(headerKey, headerValue);
-        });
+      const headerCheckFunction = (response: Cypress.Response<any>) => {
+        return response.headers[headerKey] === headerValue;
+      };
+
+      cy.callGateway(`${apiPath}/${flowPath}`, headerCheckFunction);
     });
   });
 });
