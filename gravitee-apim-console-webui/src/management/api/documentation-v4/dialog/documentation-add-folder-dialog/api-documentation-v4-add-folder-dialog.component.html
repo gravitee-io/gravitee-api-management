@@ -16,7 +16,7 @@
 
 -->
 <div class="header">
-  <h2>Add new folder</h2>
+  <h2>{{ title }}</h2>
   <button mat-icon-button aria-label="close dialog" mat-dialog-close>
     <mat-icon svgIcon="gio:cancel"></mat-icon>
   </button>
@@ -26,9 +26,11 @@
     <mat-label>Name</mat-label>
     <input matInput formControlName="name" placeholder="Name" />
   </mat-form-field>
-  <api-documentation-visibility formControlName="visibility"></api-documentation-visibility>
+  <api-documentation-visibility [label]="visibilityLabel" formControlName="visibility"></api-documentation-visibility>
   <div class="new-folder-form__actions">
     <button mat-stroked-button type="button" (click)="cancel()">Cancel</button>
-    <button mat-flat-button color="primary" [disabled]="formGroup.invalid">Add folder</button>
+    <button type="submit" mat-flat-button color="primary" [disabled]="formGroup.invalid || formGroup.pristine || !formValueChanged">
+      {{ submitButtonText }}
+    </button>
   </div>
 </form>
