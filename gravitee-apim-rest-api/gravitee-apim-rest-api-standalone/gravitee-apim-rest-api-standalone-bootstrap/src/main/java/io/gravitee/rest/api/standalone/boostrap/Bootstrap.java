@@ -161,14 +161,16 @@ public class Bootstrap {
 
         try {
             for (String arg : args) {
-                String[] argument = arg.split("=");
-                if (argument.length != 2) {
-                    throw new RuntimeException(String.format("Wrong argument was passed %s", arg));
-                } else {
-                    if (argument[0].startsWith("--")) {
-                        argument[0] = argument[0].substring(2);
+                if (arg != null && !arg.isEmpty()) {
+                    String[] argument = arg.split("=");
+                    if (argument.length != 2) {
+                        throw new RuntimeException(String.format("Wrong argument was passed %s", arg));
+                    } else {
+                        if (argument[0].startsWith("--")) {
+                            argument[0] = argument[0].substring(2);
+                        }
+                        System.getProperties().put(argument[0], argument[1]);
                     }
-                    System.getProperties().put(argument[0], argument[1]);
                 }
             }
 
