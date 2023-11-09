@@ -22,13 +22,17 @@ import { filter, switchMap, takeUntil } from 'rxjs/operators';
 import { StateParams } from '@uirouter/core';
 import { GIO_DIALOG_WIDTH } from '@gravitee/ui-particles-angular';
 
-import { ApiDocumentationV4AddFolderDialog } from './dialog/documentation-add-folder-dialog/api-documentation-v4-add-folder-dialog.component';
+import {
+  ApiDocumentationV4AddFolderDialog,
+  ApiDocumentationV4AddFolderDialogData,
+} from './dialog/documentation-add-folder-dialog/api-documentation-v4-add-folder-dialog.component';
 
 import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { ApiDocumentationV2Service } from '../../../services-ngx/api-documentation-v2.service';
 import { CreateDocumentationFolder } from '../../../entities/management-api-v2/documentation/createDocumentation';
 import { Breadcrumb, Page } from '../../../entities/management-api-v2/documentation/page';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+import { EditDocumentationFolder } from '../../../entities/management-api-v2/documentation/editDocumentation';
 
 @Component({
   selector: 'api-documentation-v4',
@@ -67,7 +71,12 @@ export class ApiDocumentationV4Component implements OnInit, OnDestroy {
 
   addFolder() {
     this.matDialog
-      .open(ApiDocumentationV4AddFolderDialog, { width: GIO_DIALOG_WIDTH.MEDIUM })
+      .open<ApiDocumentationV4AddFolderDialog, ApiDocumentationV4AddFolderDialogData>(ApiDocumentationV4AddFolderDialog, {
+        width: GIO_DIALOG_WIDTH.MEDIUM,
+        data: {
+          mode: 'create',
+        },
+      })
       .afterClosed()
       .pipe(
         filter((createFolder) => !!createFolder),
@@ -84,6 +93,7 @@ export class ApiDocumentationV4Component implements OnInit, OnDestroy {
       )
       .subscribe({
         next: () => {
+          this.snackBarService.success('Folder created successfully');
           this.ngOnInit();
         },
         error: (error) => {
@@ -102,5 +112,38 @@ export class ApiDocumentationV4Component implements OnInit, OnDestroy {
 
   editPage(pageId: string) {
     this.ajsState.go('management.apis.documentationV4-edit', { pageId }, { reload: true });
+  }
+
+  editFolder(folder: Page) {
+    this.matDialog
+      .open<ApiDocumentationV4AddFolderDialog, ApiDocumentationV4AddFolderDialogData>(ApiDocumentationV4AddFolderDialog, {
+        width: GIO_DIALOG_WIDTH.MEDIUM,
+        data: {
+          mode: 'edit',
+          name: folder.name,
+          visibility: folder.visibility,
+        },
+      })
+      .afterClosed()
+      .pipe(
+        filter((updateFolder) => !!updateFolder),
+        switchMap((updateFolder: EditDocumentationFolder) =>
+          this.apiDocumentationV2Service.updateDocumentationPage(this.ajsStateParams.apiId, folder.id, {
+            type: 'FOLDER',
+            name: updateFolder.name,
+            visibility: updateFolder.visibility,
+          }),
+        ),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe({
+        next: () => {
+          this.snackBarService.success('Folder updated successfully');
+          this.ngOnInit();
+        },
+        error: (error) => {
+          this.snackBarService.error(error?.error?.message ?? 'Error while updating folder');
+        },
+      });
   }
 }

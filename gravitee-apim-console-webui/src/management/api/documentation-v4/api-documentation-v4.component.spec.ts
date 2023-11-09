@@ -216,6 +216,36 @@ describe('ApiDocumentationV4', () => {
 
       expectGetPages([page], [], 'parent-folder-id');
     });
+
+    it('should update folder', async () => {
+      const ID = 'page-id';
+      await init([fakeFolder({ id: ID, name: 'my first folder', visibility: 'PUBLIC' })], []);
+
+      const pageListHarness = await harnessLoader.getHarness(ApiDocumentationV4PagesListHarness);
+      const editFolderButton = await pageListHarness.getEditFolderButtonByRowIndex(0);
+      await editFolderButton.click();
+
+      const dialogHarness = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
+        ApiDocumentationV4AddFolderDialogHarness,
+      );
+      await dialogHarness.setName('folder');
+      await dialogHarness.selectVisibility('PRIVATE');
+      await dialogHarness.clickOnSave();
+
+      const page: Page = { type: 'FOLDER', name: 'folder', visibility: 'PRIVATE' };
+      const req = httpTestingController.expectOne({
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages/${ID}`,
+      });
+      req.flush(page);
+      expect(req.request.body).toEqual({
+        type: 'FOLDER',
+        name: 'folder',
+        visibility: 'PRIVATE',
+      });
+
+      expectGetPages([page], []);
+    });
   });
 
   const expectGetPages = (pages: Page[], breadcrumb: Breadcrumb[], parentId = 'ROOT') => {
