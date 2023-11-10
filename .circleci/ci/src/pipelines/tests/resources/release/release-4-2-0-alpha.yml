@@ -294,7 +294,7 @@ jobs:
       ARTIFACTORY_URL: https://odbxikk7vo-artifactory.services.clever-cloud.com
   job-backend-build-and-publish-artifactory:
     docker:
-      - image: cimg/openjdk:17.0
+      - image: cimg/openjdk:17.0.8
     resource_class: large
     steps:
       - checkout
