@@ -25,7 +25,7 @@ import { loadDefaultTranslations } from '@gravitee/ui-components/src/lib/i18n';
 import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 import { UIRouter, UrlService } from '@uirouter/core';
 import { NgZone } from '@angular/core';
-import { LicenseConfiguration } from '@gravitee/ui-particles-angular';
+import { computeStyles, LicenseConfiguration } from '@gravitee/ui-particles-angular';
 
 import { AppModule } from './app.module';
 import { Constants } from './entities/Constants';
@@ -58,6 +58,9 @@ function fetchData() {
     })
     .then((bootstrapResponse: any) => {
       ConstantsJSON = prepareConstants(bootstrapResponse.data);
+      return getConsoleCustomizationForOem();
+    })
+    .then(() => {
       return $http.get(`${ConstantsJSON.org.baseURL}/console`);
     })
     .then((consoleResponse: any) => {
@@ -117,7 +120,20 @@ function initLoader(constants: Constants) {
 }
 
 function initComponents() {
-  loadDefaultTranslations();
+  return loadDefaultTranslations();
+}
+
+async function getConsoleCustomizationForOem() {
+  const uiCustomization: any = await $http.get(`${ConstantsJSON.v2BaseURL}/ui/customization`);
+  if (uiCustomization !== null) {
+    const styles = computeStyles({
+      menuBackground: uiCustomization.data.theme.menuBackground,
+      menuActive: uiCustomization.data.theme.menuActive,
+    });
+    styles.forEach((style) => {
+      document.documentElement.style.setProperty(style.key, style.value);
+    });
+  }
 }
 
 function bootstrapApplication(constants: Constants) {

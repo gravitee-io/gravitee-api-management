@@ -46,14 +46,14 @@ class GetConsoleCustomizationUseCaseTest {
         when(nodeLicenseService.isFeatureEnabled(GraviteeLicenseDomainService.OEM_CUSTOMIZATION_FEATURE)).thenReturn(true);
         var res = useCase.execute();
 
-        assertThat(res.consoleCustomization().title()).isEqualTo("OEM title");
+        assertThat(res.consoleCustomization().title()).isEqualTo("Celigo");
     }
 
     @Test
-    void should_throw_exception_if_license_doesnt_allow_customization() {
+    void should_return_null_if_license_doesnt_allow_customization() {
         when(nodeLicenseService.isFeatureEnabled(GraviteeLicenseDomainService.OEM_CUSTOMIZATION_FEATURE)).thenReturn(false);
-        var exception = catchThrowable(() -> useCase.execute());
+        var res = useCase.execute();
 
-        assertThat(exception).isInstanceOf(CustomizationNotAllowedException.class);
+        assertThat(res.consoleCustomization()).isNull();
     }
 }
