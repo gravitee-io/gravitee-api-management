@@ -1,3 +1,10 @@
+# [5.1.0](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/5.0.3...5.1.0) (2023-11-10)
+
+
+### Features
+
+* use index template instead of legacy template in ES8 ([85bf25a](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/85bf25a49305873433dc0844102fb51ce9ea4cda))
+
 ## [5.0.3](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/5.0.2...5.0.3) (2023-11-06)
 
 
