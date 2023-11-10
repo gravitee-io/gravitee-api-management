@@ -20,28 +20,28 @@ import { tap } from 'rxjs/operators';
 
 import { Visibility } from '../../../../../entities/management-api-v2/documentation/visibility';
 
-export interface ApiDocumentationV4AddFolderDialogData {
+export interface ApiDocumentationV4EditFolderDialogData {
   mode: 'create' | 'edit';
   name?: string;
   visibility?: Visibility;
 }
 
 @Component({
-  selector: 'api-documentation-v4-add-folder-dialog',
-  template: require('./api-documentation-v4-add-folder-dialog.component.html'),
-  styles: [require('./api-documentation-v4-add-folder-dialog.component.scss')],
+  selector: 'api-documentation-v4-edit-folder-dialog',
+  template: require('./api-documentation-v4-edit-folder-dialog.component.html'),
+  styles: [require('./api-documentation-v4-edit-folder-dialog.component.scss')],
 })
-export class ApiDocumentationV4AddFolderDialog implements OnInit {
+export class ApiDocumentationV4EditFolderDialog implements OnInit {
   public formGroup: FormGroup;
   public formValueChanged = false;
-  public data: ApiDocumentationV4AddFolderDialogData;
+  public data: ApiDocumentationV4EditFolderDialogData;
 
   public title: string;
   public submitButtonText: string;
 
   constructor(
-    public dialogRef: MatDialogRef<ApiDocumentationV4AddFolderDialog, ApiDocumentationV4AddFolderDialogData>,
-    @Inject(MAT_DIALOG_DATA) dialogData: ApiDocumentationV4AddFolderDialogData,
+    public dialogRef: MatDialogRef<ApiDocumentationV4EditFolderDialog, ApiDocumentationV4EditFolderDialogData>,
+    @Inject(MAT_DIALOG_DATA) dialogData: ApiDocumentationV4EditFolderDialogData,
     private formBuilder: FormBuilder,
   ) {
     this.data = dialogData;

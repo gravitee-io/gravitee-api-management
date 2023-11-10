@@ -23,10 +23,10 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatButtonHarness } from '@angular/material/button/testing';
 
 import {
-  ApiDocumentationV4AddFolderDialog,
-  ApiDocumentationV4AddFolderDialogData,
-} from './api-documentation-v4-add-folder-dialog.component';
-import { ApiDocumentationV4AddFolderDialogHarness } from './api-documentation-v4-add-folder-dialog.harness';
+  ApiDocumentationV4EditFolderDialog,
+  ApiDocumentationV4EditFolderDialogData,
+} from './api-documentation-v4-edit-folder-dialog.component';
+import { ApiDocumentationV4EditFolderDialogHarness } from './api-documentation-v4-edit-folder-dialog.harness';
 
 import { ApiDocumentationV4Module } from '../../api-documentation-v4.module';
 
@@ -36,12 +36,12 @@ import { ApiDocumentationV4Module } from '../../api-documentation-v4.module';
 })
 class TestComponent {
   public result?: any;
-  public data: ApiDocumentationV4AddFolderDialogData;
+  public data: ApiDocumentationV4EditFolderDialogData;
   constructor(private readonly matDialog: MatDialog) {}
 
   public openDialog() {
     this.matDialog
-      .open<ApiDocumentationV4AddFolderDialog, ApiDocumentationV4AddFolderDialogData>(ApiDocumentationV4AddFolderDialog, {
+      .open<ApiDocumentationV4EditFolderDialog, ApiDocumentationV4EditFolderDialogData>(ApiDocumentationV4EditFolderDialog, {
         data: this.data,
       })
       .afterClosed()
@@ -49,11 +49,11 @@ class TestComponent {
   }
 }
 
-describe('ApiDocumentationV4AddFolderDialog', () => {
+describe('ApiDocumentationV4EditFolderDialog', () => {
   let fixture: ComponentFixture<TestComponent>;
   let harnessLoader: HarnessLoader;
 
-  const init = async (data: ApiDocumentationV4AddFolderDialogData) => {
+  const init = async (data: ApiDocumentationV4EditFolderDialogData) => {
     TestBed.configureTestingModule({
       declarations: [TestComponent],
       imports: [NoopAnimationsModule, ApiDocumentationV4Module, MatIconTestingModule],
@@ -71,7 +71,7 @@ describe('ApiDocumentationV4AddFolderDialog', () => {
     beforeEach(async () => await init({ mode: 'create' }));
 
     it('should show name input and public / private radio buttons', async () => {
-      const addFolderDialogHarness = await harnessLoader.getHarness(ApiDocumentationV4AddFolderDialogHarness);
+      const addFolderDialogHarness = await harnessLoader.getHarness(ApiDocumentationV4EditFolderDialogHarness);
       expect(addFolderDialogHarness).toBeDefined();
       const input = await addFolderDialogHarness.getNameInput();
       expect(input).toBeDefined();
@@ -92,13 +92,13 @@ describe('ApiDocumentationV4AddFolderDialog', () => {
     beforeEach(async () => await init({ mode: 'edit', visibility: 'PUBLIC', name: 'folder-name' }));
 
     it('should not be able to submit after opening dialog', async () => {
-      const addFolderDialogHarness = await harnessLoader.getHarness(ApiDocumentationV4AddFolderDialogHarness);
+      const addFolderDialogHarness = await harnessLoader.getHarness(ApiDocumentationV4EditFolderDialogHarness);
       expect(addFolderDialogHarness).toBeDefined();
       expect(await addFolderDialogHarness.getSaveButton().then((btn) => btn.isDisabled())).toEqual(true);
     });
 
     it('should not be able to submit if data the same after changes', async () => {
-      const addFolderDialogHarness = await harnessLoader.getHarness(ApiDocumentationV4AddFolderDialogHarness);
+      const addFolderDialogHarness = await harnessLoader.getHarness(ApiDocumentationV4EditFolderDialogHarness);
       expect(addFolderDialogHarness).toBeDefined();
 
       const input = await addFolderDialogHarness.getNameInput();
@@ -112,7 +112,7 @@ describe('ApiDocumentationV4AddFolderDialog', () => {
     });
 
     it('should not be able to submit empty name', async () => {
-      const addFolderDialogHarness = await harnessLoader.getHarness(ApiDocumentationV4AddFolderDialogHarness);
+      const addFolderDialogHarness = await harnessLoader.getHarness(ApiDocumentationV4EditFolderDialogHarness);
       expect(addFolderDialogHarness).toBeDefined();
 
       const input = await addFolderDialogHarness.getNameInput();
@@ -122,7 +122,7 @@ describe('ApiDocumentationV4AddFolderDialog', () => {
     });
 
     it('should update with name change', async () => {
-      const addFolderDialogHarness = await harnessLoader.getHarness(ApiDocumentationV4AddFolderDialogHarness);
+      const addFolderDialogHarness = await harnessLoader.getHarness(ApiDocumentationV4EditFolderDialogHarness);
       expect(addFolderDialogHarness).toBeDefined();
 
       const input = await addFolderDialogHarness.getNameInput();
@@ -135,7 +135,7 @@ describe('ApiDocumentationV4AddFolderDialog', () => {
     });
 
     it('should update with visibility change', async () => {
-      const addFolderDialogHarness = await harnessLoader.getHarness(ApiDocumentationV4AddFolderDialogHarness);
+      const addFolderDialogHarness = await harnessLoader.getHarness(ApiDocumentationV4EditFolderDialogHarness);
       expect(addFolderDialogHarness).toBeDefined();
 
       await addFolderDialogHarness.selectVisibility('PRIVATE');

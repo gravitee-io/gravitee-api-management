@@ -18,8 +18,8 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatRadioButtonHarness } from '@angular/material/radio/testing';
 
-export class ApiDocumentationV4AddFolderDialogHarness extends ComponentHarness {
-  public static hostSelector = 'api-documentation-v4-add-folder-dialog';
+export class ApiDocumentationV4EditFolderDialogHarness extends ComponentHarness {
+  public static hostSelector = 'api-documentation-v4-edit-folder-dialog';
 
   private nameInputLocator = this.locatorFor(MatInputHarness.with({ placeholder: 'Name' }));
   private radioButtonsLocator = this.locatorForAll(MatRadioButtonHarness);

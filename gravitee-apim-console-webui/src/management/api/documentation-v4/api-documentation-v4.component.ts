@@ -23,9 +23,9 @@ import { StateParams } from '@uirouter/core';
 import { GIO_DIALOG_WIDTH } from '@gravitee/ui-particles-angular';
 
 import {
-  ApiDocumentationV4AddFolderDialog,
-  ApiDocumentationV4AddFolderDialogData,
-} from './dialog/documentation-add-folder-dialog/api-documentation-v4-add-folder-dialog.component';
+  ApiDocumentationV4EditFolderDialog,
+  ApiDocumentationV4EditFolderDialogData,
+} from './dialog/documentation-edit-folder-dialog/api-documentation-v4-edit-folder-dialog.component';
 
 import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { ApiDocumentationV2Service } from '../../../services-ngx/api-documentation-v2.service';
@@ -71,7 +71,7 @@ export class ApiDocumentationV4Component implements OnInit, OnDestroy {
 
   addFolder() {
     this.matDialog
-      .open<ApiDocumentationV4AddFolderDialog, ApiDocumentationV4AddFolderDialogData>(ApiDocumentationV4AddFolderDialog, {
+      .open<ApiDocumentationV4EditFolderDialog, ApiDocumentationV4EditFolderDialogData>(ApiDocumentationV4EditFolderDialog, {
         width: GIO_DIALOG_WIDTH.MEDIUM,
         data: {
           mode: 'create',
@@ -116,7 +116,7 @@ export class ApiDocumentationV4Component implements OnInit, OnDestroy {
 
   editFolder(folder: Page) {
     this.matDialog
-      .open<ApiDocumentationV4AddFolderDialog, ApiDocumentationV4AddFolderDialogData>(ApiDocumentationV4AddFolderDialog, {
+      .open<ApiDocumentationV4EditFolderDialog, ApiDocumentationV4EditFolderDialogData>(ApiDocumentationV4EditFolderDialog, {
         width: GIO_DIALOG_WIDTH.MEDIUM,
         data: {
           mode: 'edit',

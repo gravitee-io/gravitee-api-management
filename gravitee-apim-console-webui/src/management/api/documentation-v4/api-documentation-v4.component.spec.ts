@@ -24,7 +24,7 @@ import { ApiDocumentationV4Component } from './api-documentation-v4.component';
 import { ApiDocumentationV4Module } from './api-documentation-v4.module';
 import { ApiDocumentationV4EmptyStateHarness } from './components/documentation-empty-state/api-documentation-v4-empty-state.harness';
 import { ApiDocumentationV4ListNavigationHeaderHarness } from './components/documentation-list-navigation-header/api-documentation-v4-list-navigation-header.harness';
-import { ApiDocumentationV4AddFolderDialogHarness } from './dialog/documentation-add-folder-dialog/api-documentation-v4-add-folder-dialog.harness';
+import { ApiDocumentationV4EditFolderDialogHarness } from './dialog/documentation-edit-folder-dialog/api-documentation-v4-edit-folder-dialog.harness';
 import { ApiDocumentationV4PagesListHarness } from './documentation-pages-list/api-documentation-v4-pages-list.harness';
 
 import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
@@ -151,7 +151,7 @@ describe('ApiDocumentationV4', () => {
       await headerHarness.clickAddNewFolder();
 
       const dialogHarness = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
-        ApiDocumentationV4AddFolderDialogHarness,
+        ApiDocumentationV4EditFolderDialogHarness,
       );
       await dialogHarness.setName('folder');
       await dialogHarness.selectVisibility('PRIVATE');
@@ -187,7 +187,7 @@ describe('ApiDocumentationV4', () => {
       await headerHarness.clickAddNewFolder();
 
       const dialogHarness = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
-        ApiDocumentationV4AddFolderDialogHarness,
+        ApiDocumentationV4EditFolderDialogHarness,
       );
       await dialogHarness.setName('subfolder');
       await dialogHarness.clickOnSave();
@@ -226,7 +226,7 @@ describe('ApiDocumentationV4', () => {
       await editFolderButton.click();
 
       const dialogHarness = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
-        ApiDocumentationV4AddFolderDialogHarness,
+        ApiDocumentationV4EditFolderDialogHarness,
       );
       await dialogHarness.setName('folder');
       await dialogHarness.selectVisibility('PRIVATE');
