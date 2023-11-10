@@ -122,7 +122,7 @@ jobs:
             - .gravitee.settings.xml
   job-validate:
     docker:
-      - image: cimg/openjdk:17.0
+      - image: cimg/openjdk:17.0.8
     resource_class: small
     steps:
       - checkout
@@ -138,7 +138,7 @@ jobs:
           jobName: job-validate
   job-build:
     docker:
-      - image: cimg/openjdk:17.0
+      - image: cimg/openjdk:17.0.8
     resource_class: large
     steps:
       - checkout
@@ -172,7 +172,7 @@ jobs:
             - ./gateway-docker-context
   job-e2e-generate-sdk:
     docker:
-      - image: cimg/openjdk:17.0-node
+      - image: cimg/openjdk:17.0.8-node
     resource_class: small
     steps:
       - checkout

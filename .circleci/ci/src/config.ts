@@ -52,7 +52,7 @@ const executor = {
   },
   openjdk: {
     image: 'cimg/openjdk',
-    version: '17.0',
+    version: '17.0.8', // starting with 17.0.9, node version becomes 20.9.0, which breaks the build.
   },
   node: {
     image: 'cimg/node',
