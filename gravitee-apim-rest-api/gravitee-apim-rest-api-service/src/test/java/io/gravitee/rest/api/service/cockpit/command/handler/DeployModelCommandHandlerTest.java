@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.cockpit.command.handler;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.withSettings;
@@ -27,14 +28,17 @@ import io.gravitee.cockpit.api.command.CommandStatus;
 import io.gravitee.cockpit.api.command.designer.DeployModelCommand;
 import io.gravitee.cockpit.api.command.designer.DeployModelPayload;
 import io.gravitee.cockpit.api.command.designer.DeployModelReply;
+import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiEntityResult;
+import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.cockpit.model.DeploymentMode;
 import io.gravitee.rest.api.service.cockpit.services.ApiServiceCockpit;
 import io.gravitee.rest.api.service.cockpit.services.CockpitApiPermissionChecker;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.reactivex.rxjava3.observers.TestObserver;
 import java.util.List;
@@ -55,6 +59,8 @@ public class DeployModelCommandHandlerTest {
 
     public static final String ENVIRONMENT_ID = "environment#id";
     public static final String ORGANIZATION_ID = "organization#id";
+    public static final String COCKPIT_ORGANIZATION_ID = "cockpit#organization#id";
+    public static final String COCKPIT_ENVIRONMENT_ID = "cockpit#environment#id";
     public static final ExecutionContext EXECUTION_CONTEXT = new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID);
 
     @Mock
@@ -68,12 +74,20 @@ public class DeployModelCommandHandlerTest {
     @Mock
     private CockpitApiPermissionChecker permissionChecker;
 
+    @Mock
+    private EnvironmentService environmentService;
+
     private DeployModelCommandHandler cut;
 
     @Before
     public void setUp() throws Exception {
         cockpitApiService = mock(ApiServiceCockpit.class, withSettings().verboseLogging());
-        cut = new DeployModelCommandHandler(apiSearchService, cockpitApiService, permissionChecker, userService);
+        lenient()
+            .when(environmentService.findByCockpitId(COCKPIT_ENVIRONMENT_ID))
+            .thenReturn(
+                EnvironmentEntity.builder().id(ENVIRONMENT_ID).organizationId(ORGANIZATION_ID).cockpitId(COCKPIT_ENVIRONMENT_ID).build()
+            );
+        cut = new DeployModelCommandHandler(apiSearchService, cockpitApiService, permissionChecker, userService, environmentService);
     }
 
     @Test
@@ -89,8 +103,8 @@ public class DeployModelCommandHandlerTest {
         payload.setUserId("cockpit_user#id");
         payload.setMode(DeployModelPayload.DeploymentMode.API_DOCUMENTED);
         payload.setLabels(List.of("label1", "label2"));
-        payload.setEnvironmentId(ENVIRONMENT_ID);
-        payload.setOrganizationId(ORGANIZATION_ID);
+        payload.setEnvironmentId(COCKPIT_ENVIRONMENT_ID);
+        payload.setOrganizationId(COCKPIT_ORGANIZATION_ID);
 
         DeployModelCommand command = new DeployModelCommand(payload);
 
@@ -106,7 +120,7 @@ public class DeployModelCommandHandlerTest {
                 payload.getModelId(),
                 user.getId(),
                 payload.getSwaggerDefinition(),
-                payload.getEnvironmentId(),
+                ENVIRONMENT_ID,
                 DeploymentMode.API_DOCUMENTED,
                 payload.getLabels()
             )
@@ -141,7 +155,7 @@ public class DeployModelCommandHandlerTest {
                 payload.getModelId(),
                 user.getId(),
                 payload.getSwaggerDefinition(),
-                payload.getEnvironmentId(),
+                ENVIRONMENT_ID,
                 DeploymentMode.API_MOCKED,
                 payload.getLabels()
             )
@@ -176,7 +190,7 @@ public class DeployModelCommandHandlerTest {
                 payload.getModelId(),
                 user.getId(),
                 payload.getSwaggerDefinition(),
-                payload.getEnvironmentId(),
+                ENVIRONMENT_ID,
                 DeploymentMode.API_PUBLISHED,
                 payload.getLabels()
             )
@@ -214,7 +228,7 @@ public class DeployModelCommandHandlerTest {
                 apiId,
                 user.getId(),
                 payload.getSwaggerDefinition(),
-                payload.getEnvironmentId(),
+                ENVIRONMENT_ID,
                 DeploymentMode.API_DOCUMENTED,
                 payload.getLabels()
             )
@@ -252,7 +266,7 @@ public class DeployModelCommandHandlerTest {
                 apiId,
                 user.getId(),
                 payload.getSwaggerDefinition(),
-                payload.getEnvironmentId(),
+                ENVIRONMENT_ID,
                 DeploymentMode.API_MOCKED,
                 payload.getLabels()
             )
@@ -290,7 +304,7 @@ public class DeployModelCommandHandlerTest {
                 apiId,
                 user.getId(),
                 payload.getSwaggerDefinition(),
-                payload.getEnvironmentId(),
+                ENVIRONMENT_ID,
                 DeploymentMode.API_PUBLISHED,
                 payload.getLabels()
             )
@@ -325,7 +339,7 @@ public class DeployModelCommandHandlerTest {
                 payload.getModelId(),
                 user.getId(),
                 payload.getSwaggerDefinition(),
-                payload.getEnvironmentId(),
+                ENVIRONMENT_ID,
                 DeploymentMode.API_DOCUMENTED,
                 payload.getLabels()
             )
@@ -360,7 +374,7 @@ public class DeployModelCommandHandlerTest {
                 payload.getModelId(),
                 user.getId(),
                 payload.getSwaggerDefinition(),
-                payload.getEnvironmentId(),
+                ENVIRONMENT_ID,
                 DeploymentMode.API_DOCUMENTED,
                 payload.getLabels()
             )
@@ -517,6 +531,48 @@ public class DeployModelCommandHandlerTest {
         });
     }
 
+    @Test
+    public void creates_an_API_PUBLISHED_mode_with_apim_ids() throws InterruptedException {
+        DeployModelPayload payload = createDeployPayload(DeployModelPayload.DeploymentMode.API_PUBLISHED);
+        payload.setOrganizationId(ORGANIZATION_ID);
+        payload.setEnvironmentId(ENVIRONMENT_ID);
+        when(environmentService.findByCockpitId(ENVIRONMENT_ID)).thenThrow(new EnvironmentNotFoundException(ENVIRONMENT_ID));
+        when(environmentService.findById(ENVIRONMENT_ID))
+            .thenReturn(
+                EnvironmentEntity.builder().id(ENVIRONMENT_ID).organizationId(ORGANIZATION_ID).cockpitId(COCKPIT_ENVIRONMENT_ID).build()
+            );
+
+        DeployModelCommand command = new DeployModelCommand(payload);
+
+        UserEntity user = createUserEntity(payload);
+        when(userService.findBySource(ORGANIZATION_ID, "cockpit", payload.getUserId(), true)).thenReturn(user);
+
+        when(permissionChecker.checkCreatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, DeploymentMode.API_PUBLISHED))
+            .thenReturn(Optional.empty());
+
+        when(
+            cockpitApiService.createApi(
+                EXECUTION_CONTEXT,
+                payload.getModelId(),
+                user.getId(),
+                payload.getSwaggerDefinition(),
+                ENVIRONMENT_ID,
+                DeploymentMode.API_PUBLISHED,
+                payload.getLabels()
+            )
+        )
+            .thenAnswer(i -> {
+                ApiEntity apiEntity = new ApiEntity();
+                apiEntity.setId(i.getArgument(1));
+                return ApiEntityResult.success(apiEntity);
+            });
+
+        TestObserver<DeployModelReply> obs = cut.handle(command).test();
+
+        obs.await();
+        obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
+    }
+
     private static DeployModelPayload createDeployPayload(final DeployModelPayload.DeploymentMode deploymentMode) {
         DeployModelPayload payload = new DeployModelPayload();
         payload.setModelId("model#1");
@@ -524,8 +580,8 @@ public class DeployModelCommandHandlerTest {
         payload.setUserId("cockpit_user#id");
         payload.setMode(deploymentMode);
         payload.setLabels(List.of("label1", "label2"));
-        payload.setEnvironmentId(ENVIRONMENT_ID);
-        payload.setOrganizationId(ORGANIZATION_ID);
+        payload.setEnvironmentId(COCKPIT_ENVIRONMENT_ID);
+        payload.setOrganizationId(COCKPIT_ORGANIZATION_ID);
         return payload;
     }
 

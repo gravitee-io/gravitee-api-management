@@ -23,13 +23,16 @@ import io.gravitee.cockpit.api.command.CommandStatus;
 import io.gravitee.cockpit.api.command.designer.DeployModelCommand;
 import io.gravitee.cockpit.api.command.designer.DeployModelPayload;
 import io.gravitee.cockpit.api.command.designer.DeployModelReply;
+import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntityResult;
+import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.cockpit.model.DeploymentMode;
 import io.gravitee.rest.api.service.cockpit.services.ApiServiceCockpit;
 import io.gravitee.rest.api.service.cockpit.services.CockpitApiPermissionChecker;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.reactivex.rxjava3.core.Single;
 import java.util.List;
@@ -53,6 +56,7 @@ public class DeployModelCommandHandler implements CommandHandler<DeployModelComm
     private final ApiServiceCockpit cockpitApiService;
     private final CockpitApiPermissionChecker permissionChecker;
     private final UserService userService;
+    private final EnvironmentService environmentService;
 
     @Override
     public Command.Type handleType() {
@@ -66,24 +70,29 @@ public class DeployModelCommandHandler implements CommandHandler<DeployModelComm
         String apiCrossId = payload.getModelId();
         String userId = payload.getUserId();
         String swaggerDefinition = payload.getSwaggerDefinition();
+        String environmentId = payload.getEnvironmentId();
         DeploymentMode mode = DeploymentMode.fromDeployModelPayload(payload);
         List<String> labels = payload.getLabels();
 
         try {
-            ExecutionContext executionContext = new ExecutionContext(payload.getOrganizationId(), payload.getEnvironmentId());
-            final UserEntity user = userService.findBySource(payload.getOrganizationId(), "cockpit", userId, true);
+            final EnvironmentEntity environment = getEnvironment(environmentId);
+            ExecutionContext executionContext = new ExecutionContext(environment);
+            final UserEntity user = userService.findBySource(executionContext.getOrganizationId(), "cockpit", userId, true);
 
             authenticateAs(user);
 
             ApiEntityResult result;
 
-            final Optional<String> optApiId = apiSearchService.findIdByEnvironmentIdAndCrossId(payload.getEnvironmentId(), apiCrossId);
+            final Optional<String> optApiId = apiSearchService.findIdByEnvironmentIdAndCrossId(
+                executionContext.getEnvironmentId(),
+                apiCrossId
+            );
             if (optApiId.isPresent()) {
                 final String apiId = optApiId.get();
                 var message = permissionChecker.checkUpdatePermission(
                     executionContext,
                     user.getId(),
-                    payload.getEnvironmentId(),
+                    executionContext.getEnvironmentId(),
                     apiId,
                     mode
                 );
@@ -100,12 +109,17 @@ public class DeployModelCommandHandler implements CommandHandler<DeployModelComm
                         apiId,
                         user.getId(),
                         swaggerDefinition,
-                        payload.getEnvironmentId(),
+                        executionContext.getEnvironmentId(),
                         mode,
                         labels
                     );
             } else {
-                var message = permissionChecker.checkCreatePermission(executionContext, user.getId(), payload.getEnvironmentId(), mode);
+                var message = permissionChecker.checkCreatePermission(
+                    executionContext,
+                    user.getId(),
+                    executionContext.getEnvironmentId(),
+                    mode
+                );
 
                 if (message.isPresent()) {
                     var reply = new DeployModelReply(command.getId(), CommandStatus.FAILED);
@@ -119,7 +133,7 @@ public class DeployModelCommandHandler implements CommandHandler<DeployModelComm
                         apiCrossId,
                         user.getId(),
                         swaggerDefinition,
-                        payload.getEnvironmentId(),
+                        executionContext.getEnvironmentId(),
                         mode,
                         labels
                     );
@@ -137,6 +151,20 @@ public class DeployModelCommandHandler implements CommandHandler<DeployModelComm
         } catch (Exception e) {
             logger.error("Error occurred when importing api [{}].", payload.getModelId(), e);
             return Single.just(new DeployModelReply(command.getId(), CommandStatus.ERROR));
+        }
+    }
+
+    /**
+     * In order to prepare future refactoring on cockpit which will always send apim reference, we first search by cockpit id then by apim id.
+     *
+     * @param environmentId the env id which could be a cockpit id or apim environment id
+     * @return {@link EnvironmentEntity} found
+     */
+    private EnvironmentEntity getEnvironment(final String environmentId) {
+        try {
+            return environmentService.findByCockpitId(environmentId);
+        } catch (EnvironmentNotFoundException e) {
+            return environmentService.findById(environmentId);
         }
     }
 }
