@@ -28,7 +28,7 @@ parameters:
 jobs:
   job-package-bundle:
     docker:
-      - image: cimg/openjdk:17.0-node
+      - image: cimg/openjdk:17.0.8-node
     resource_class: medium
     steps:
       - keeper/env-export:

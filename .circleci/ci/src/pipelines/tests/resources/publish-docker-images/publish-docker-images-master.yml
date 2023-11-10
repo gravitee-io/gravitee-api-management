@@ -183,7 +183,7 @@ jobs:
             - .gravitee.settings.xml
   job-build:
     docker:
-      - image: cimg/openjdk:17.0
+      - image: cimg/openjdk:17.0.8
     resource_class: large
     steps:
       - checkout
@@ -217,7 +217,7 @@ jobs:
             - ./gateway-docker-context
   job-build-images:
     docker:
-      - image: cimg/openjdk:17.0
+      - image: cimg/openjdk:17.0.8
     resource_class: medium
     steps:
       - checkout
