@@ -147,13 +147,13 @@ describe('Portal: Business Error - subscriptions', () => {
         });
       });
 
-      test('should not have Etag header when we revoke the subscription', async () => {
+      test('should not find the key when we revoke the subscription', async () => {
         await fail(
           portalSubscriptionApiAsAdmin.revokeKeySubscriptionRaw({
             subscriptionId: subscription2.id,
             apiKey: subscription1Keys[0].key,
           }),
-          400,
+          404,
         );
       });
     });

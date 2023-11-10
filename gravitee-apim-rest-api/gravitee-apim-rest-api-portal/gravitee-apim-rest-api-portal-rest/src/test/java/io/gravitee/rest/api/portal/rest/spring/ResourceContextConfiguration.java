@@ -24,13 +24,14 @@ import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.installation.domain_service.InstallationTypeDomainService;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService;
+import io.gravitee.apim.core.parameters.domain_service.ParametersDomainService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.use_case.CloseSubscriptionUseCase;
 import io.gravitee.apim.infra.domain_service.api.ApiDefinitionParserDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.api.ApiHostValidatorDomainServiceImpl;
 import io.gravitee.apim.infra.json.jackson.JacksonSpringConfiguration;
 import io.gravitee.apim.infra.sanitizer.SanitizerSpringConfiguration;
-import io.gravitee.apim.infra.spring.CoreServiceSpringConfiguration;
+import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.node.api.license.NodeLicenseService;
 import io.gravitee.rest.api.portal.rest.mapper.AnalyticsMapper;
@@ -110,12 +111,7 @@ import org.springframework.context.annotation.PropertySource;
 
 @Configuration
 @Import(
-    {
-        InMemoryConfiguration.class,
-        CoreServiceSpringConfiguration.class,
-        JacksonSpringConfiguration.class,
-        SanitizerSpringConfiguration.class,
-    }
+    { InMemoryConfiguration.class, UsecaseSpringConfiguration.class, JacksonSpringConfiguration.class, SanitizerSpringConfiguration.class }
 )
 @PropertySource("classpath:/io/gravitee/rest/api/portal/rest/resource/jwt.properties")
 public class ResourceContextConfiguration {
@@ -516,5 +512,10 @@ public class ResourceContextConfiguration {
     @Bean
     public GraviteeLicenseDomainService graviteeLicenseDomainService() {
         return new GraviteeLicenseDomainService(mock(NodeLicenseService.class));
+    }
+
+    @Bean
+    public ParametersDomainService parametersDomainService() {
+        return mock(ParametersDomainService.class);
     }
 }

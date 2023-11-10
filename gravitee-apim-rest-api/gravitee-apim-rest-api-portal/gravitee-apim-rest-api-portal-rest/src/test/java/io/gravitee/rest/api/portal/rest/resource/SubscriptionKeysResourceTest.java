@@ -15,13 +15,20 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
+import fixtures.core.model.ApiKeyFixtures;
+import inmemory.ApiKeyCrudServiceInMemory;
+import inmemory.ApplicationCrudServiceInMemory;
+import inmemory.SubscriptionCrudServiceInMemory;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.ApiKeyEntity;
+import io.gravitee.rest.api.model.ApiKeyMode;
+import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -30,10 +37,13 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
+import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -47,6 +57,15 @@ public class SubscriptionKeysResourceTest extends AbstractResourceTest {
     private static final String API = "my-api";
     private static final String APPLICATION = "my-application";
     private ApiKeyEntity apiKeyEntity;
+
+    @Autowired
+    private ApiKeyCrudServiceInMemory apiKeyCrudServiceInMemory;
+
+    @Autowired
+    private ApplicationCrudServiceInMemory applicationCrudServiceInMemory;
+
+    @Autowired
+    private SubscriptionCrudServiceInMemory subscriptionCrudServiceInMemory;
 
     @Override
     protected String contextPath() {
@@ -171,54 +190,56 @@ public class SubscriptionKeysResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldRevokeKey() {
+    public void should_revoke_key() {
+        subscriptionCrudServiceInMemory.initWith(
+            List.of(
+                fixtures.core.model.SubscriptionFixtures
+                    .aSubscription()
+                    .toBuilder()
+                    .id(SUBSCRIPTION)
+                    .apiId(API)
+                    .applicationId(APPLICATION)
+                    .build()
+            )
+        );
+        applicationCrudServiceInMemory.initWith(
+            List.of(BaseApplicationEntity.builder().id(APPLICATION).apiKeyMode(ApiKeyMode.EXCLUSIVE).build())
+        );
+        apiKeyCrudServiceInMemory.initWith(
+            List.of(ApiKeyFixtures.anApiKey().toBuilder().key(KEY).applicationId(APPLICATION).subscriptions(List.of(SUBSCRIPTION)).build())
+        );
+
         final Response response = target(SUBSCRIPTION).path("keys/" + KEY + "/_revoke").request().post(null);
-        assertEquals(HttpStatusCode.NO_CONTENT_204, response.getStatus());
 
-        Mockito.verify(apiKeyService).revoke(GraviteeContext.getExecutionContext(), apiKeyEntity, true);
-
-        assertFalse(response.hasEntity());
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NO_CONTENT_204);
     }
 
     @Test
-    public void shouldRevokeKeyNoSubscription() {
-        SubscriptionEntity subscription = new SubscriptionEntity();
-        subscription.setApi(API);
-        subscription.setId(SUBSCRIPTION);
-        apiKeyEntity = new ApiKeyEntity();
-        apiKeyEntity.setKey(KEY);
-        apiKeyEntity.setSubscriptions(Set.of(subscription));
+    public void should_return_forbidden_error_when_not_enough_permissions() {
+        reset(permissionService);
 
-        doReturn(subscription).when(subscriptionService).findById(SUBSCRIPTION);
-        doReturn(apiKeyEntity).when(apiKeyService).findByKeyAndApi(GraviteeContext.getExecutionContext(), KEY, API);
-
-        final Response response = target(SUBSCRIPTION).path("keys/" + KEY + "/_revoke").request().post(null);
-        assertEquals(HttpStatusCode.NO_CONTENT_204, response.getStatus());
-
-        Mockito.verify(apiKeyService).revoke(GraviteeContext.getExecutionContext(), apiKeyEntity, true);
-
-        assertFalse(response.hasEntity());
+        doReturn(false)
+            .when(permissionService)
+            .hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(RolePermission.API_SUBSCRIPTION),
+                eq(API),
+                eq(RolePermissionAction.UPDATE)
+            );
+        doReturn(false)
+            .when(permissionService)
+            .hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(RolePermission.APPLICATION_SUBSCRIPTION),
+                eq(APPLICATION),
+                eq(RolePermissionAction.UPDATE)
+            );
+        assertThat(target(SUBSCRIPTION).path("keys/" + KEY + "/_revoke").request().post(null).getStatus())
+            .isEqualTo(HttpStatusCode.FORBIDDEN_403);
     }
 
     @Test
-    public void shouldNotRevokeKey() {
-        SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
-        subscriptionEntity.setId(ANOTHER_SUBSCRIPTION);
-
-        apiKeyEntity = new ApiKeyEntity();
-        apiKeyEntity.setKey(KEY);
-        apiKeyEntity.setSubscriptions(Set.of(subscriptionEntity));
-
-        doReturn(apiKeyEntity).when(apiKeyService).findByKeyAndApi(GraviteeContext.getExecutionContext(), KEY, API);
-
-        final Response response = target(SUBSCRIPTION).path("keys/" + KEY + "/_revoke").request().post(null);
-        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
-
-        assertEquals("'keyId' parameter does not correspond to the subscription", response.readEntity(String.class));
-    }
-
-    @Test
-    public void testPermissionsForRevokingKeys() {
+    public void should_revoke_api_key_when_only_allowed_to_update_api_subscription() {
         reset(permissionService);
 
         doReturn(true)
@@ -229,24 +250,6 @@ public class SubscriptionKeysResourceTest extends AbstractResourceTest {
                 eq(API),
                 eq(RolePermissionAction.UPDATE)
             );
-        doReturn(true)
-            .when(permissionService)
-            .hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.APPLICATION_SUBSCRIPTION),
-                eq(APPLICATION),
-                eq(RolePermissionAction.UPDATE)
-            );
-        assertEquals(HttpStatusCode.NO_CONTENT_204, target(SUBSCRIPTION).path("keys/" + KEY + "/_revoke").request().post(null).getStatus());
-
-        doReturn(true)
-            .when(permissionService)
-            .hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_SUBSCRIPTION),
-                eq(API),
-                eq(RolePermissionAction.UPDATE)
-            );
         doReturn(false)
             .when(permissionService)
             .hasPermission(
@@ -255,25 +258,32 @@ public class SubscriptionKeysResourceTest extends AbstractResourceTest {
                 eq(APPLICATION),
                 eq(RolePermissionAction.UPDATE)
             );
-        assertEquals(HttpStatusCode.NO_CONTENT_204, target(SUBSCRIPTION).path("keys/" + KEY + "/_revoke").request().post(null).getStatus());
 
-        doReturn(false)
-            .when(permissionService)
-            .hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_SUBSCRIPTION),
-                eq(API),
-                eq(RolePermissionAction.UPDATE)
-            );
-        doReturn(true)
-            .when(permissionService)
-            .hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.APPLICATION_SUBSCRIPTION),
-                eq(APPLICATION),
-                eq(RolePermissionAction.UPDATE)
-            );
-        assertEquals(HttpStatusCode.NO_CONTENT_204, target(SUBSCRIPTION).path("keys/" + KEY + "/_revoke").request().post(null).getStatus());
+        subscriptionCrudServiceInMemory.initWith(
+            List.of(
+                fixtures.core.model.SubscriptionFixtures
+                    .aSubscription()
+                    .toBuilder()
+                    .id(SUBSCRIPTION)
+                    .apiId(API)
+                    .applicationId(APPLICATION)
+                    .build()
+            )
+        );
+        applicationCrudServiceInMemory.initWith(
+            List.of(BaseApplicationEntity.builder().id(APPLICATION).apiKeyMode(ApiKeyMode.EXCLUSIVE).build())
+        );
+        apiKeyCrudServiceInMemory.initWith(
+            List.of(ApiKeyFixtures.anApiKey().toBuilder().key(KEY).applicationId(APPLICATION).subscriptions(List.of(SUBSCRIPTION)).build())
+        );
+
+        assertThat(target(SUBSCRIPTION).path("keys/" + KEY + "/_revoke").request().post(null).getStatus())
+            .isEqualTo(HttpStatusCode.NO_CONTENT_204);
+    }
+
+    @Test
+    public void should_revoke_api_key_when_only_allowed_to_update_application_subscription() {
+        reset(permissionService);
 
         doReturn(false)
             .when(permissionService)
@@ -283,7 +293,7 @@ public class SubscriptionKeysResourceTest extends AbstractResourceTest {
                 eq(API),
                 eq(RolePermissionAction.UPDATE)
             );
-        doReturn(false)
+        doReturn(true)
             .when(permissionService)
             .hasPermission(
                 eq(GraviteeContext.getExecutionContext()),
@@ -291,6 +301,26 @@ public class SubscriptionKeysResourceTest extends AbstractResourceTest {
                 eq(APPLICATION),
                 eq(RolePermissionAction.UPDATE)
             );
-        assertEquals(HttpStatusCode.FORBIDDEN_403, target(SUBSCRIPTION).path("keys/" + KEY + "/_revoke").request().post(null).getStatus());
+
+        subscriptionCrudServiceInMemory.initWith(
+            List.of(
+                fixtures.core.model.SubscriptionFixtures
+                    .aSubscription()
+                    .toBuilder()
+                    .id(SUBSCRIPTION)
+                    .apiId(API)
+                    .applicationId(APPLICATION)
+                    .build()
+            )
+        );
+        applicationCrudServiceInMemory.initWith(
+            List.of(BaseApplicationEntity.builder().id(APPLICATION).apiKeyMode(ApiKeyMode.EXCLUSIVE).build())
+        );
+        apiKeyCrudServiceInMemory.initWith(
+            List.of(ApiKeyFixtures.anApiKey().toBuilder().key(KEY).applicationId(APPLICATION).subscriptions(List.of(SUBSCRIPTION)).build())
+        );
+
+        assertThat(target(SUBSCRIPTION).path("keys/" + KEY + "/_revoke").request().post(null).getStatus())
+            .isEqualTo(HttpStatusCode.NO_CONTENT_204);
     }
 }
