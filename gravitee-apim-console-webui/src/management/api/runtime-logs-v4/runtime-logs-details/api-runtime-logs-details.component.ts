@@ -13,21 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Component, Inject } from '@angular/core';
+import { StateParams } from '@uirouter/core';
 
-import { Component, Input } from '@angular/core';
-import { Object } from 'core-js';
-
-import { ConnectionLogDetail } from '../../../../../../entities/management-api-v2';
+import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 
 @Component({
-  selector: 'api-runtime-logs-connection-log-details',
-  template: require('./api-runtime-logs-connection-log-details.component.html'),
-  styles: [require('./api-runtime-logs-connection-log-details.component.scss')],
+  selector: 'api-runtime-logs-details',
+  template: require('./api-runtime-logs-details.component.html'),
 })
-export class ApiRuntimeLogsConnectionLogDetailsComponent {
-  @Input()
-  isEntrypoint: boolean;
-  @Input()
-  connectionLogDetail: ConnectionLogDetail;
-  protected readonly Object = Object;
+export class ApiRuntimeLogsDetailsComponent {
+  api$ = this.apiService.get(this.ajsStateParams.apiId);
+
+  constructor(@Inject(UIRouterStateParams) private readonly ajsStateParams: StateParams, private readonly apiService: ApiV2Service) {}
 }

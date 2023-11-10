@@ -13,21 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import { Component, Input } from '@angular/core';
 
-import { AggregatedMessageLog } from '../../../../../../../entities/management-api-v2';
-
 @Component({
-  selector: 'api-runtime-logs-message-item',
-  template: require('./api-runtime-logs-message-item.component.html'),
-  styles: [require('./api-runtime-logs-message-item.component.scss')],
+  selector: 'body-accordion',
+  template: require('./body-accordion.component.html'),
+  styles: [require('./body-accordion.component.scss')],
 })
-export class ApiRuntimeLogsMessageItemComponent {
-  @Input()
-  messageLog: AggregatedMessageLog;
-  @Input()
-  entrypointConnectorIcon: string;
-  @Input()
-  endpointConnectorIcon: string;
+export class BodyAccordionComponent {
+  @Input() body: string;
 }

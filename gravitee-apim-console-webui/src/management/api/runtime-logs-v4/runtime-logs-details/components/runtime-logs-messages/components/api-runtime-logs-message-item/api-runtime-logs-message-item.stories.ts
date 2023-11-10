@@ -19,7 +19,7 @@ import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
 import { ApiRuntimeLogsMessageItemModule } from './api-runtime-logs-message-item.module';
 import { ApiRuntimeLogsMessageItemComponent } from './api-runtime-logs-message-item.component';
 
-import { fakeAggregatedMessageLog, fakeMessage } from '../../../../../../../entities/management-api-v2';
+import { fakeAggregatedMessageLog, fakeMessage } from '../../../../../../../../entities/management-api-v2';
 
 export default {
   title: 'API / Logs / Details/ Messages item',
