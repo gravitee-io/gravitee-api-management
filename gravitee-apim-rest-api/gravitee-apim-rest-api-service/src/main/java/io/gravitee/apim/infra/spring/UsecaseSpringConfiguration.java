@@ -24,6 +24,7 @@ import io.gravitee.apim.core.api_key.query_service.ApiKeyQueryService;
 import io.gravitee.apim.core.api_key.use_case.RevokeApiSubscriptionApiKeyUseCase;
 import io.gravitee.apim.core.api_key.use_case.RevokeApplicationApiKeyUseCase;
 import io.gravitee.apim.core.api_key.use_case.RevokeApplicationSubscriptionApiKeyUseCase;
+import io.gravitee.apim.core.api_key.use_case.RevokeSubscriptionApiKeyUseCase;
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
 import io.gravitee.apim.core.console.use_case.GetConsoleCustomizationUseCase;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
@@ -117,6 +118,21 @@ public class UsecaseSpringConfiguration {
         RevokeApiKeyDomainService revokeApiKeyDomainService
     ) {
         return new RevokeApplicationSubscriptionApiKeyUseCase(
+            subscriptionCrudService,
+            applicationCrudService,
+            apiKeyQueryService,
+            revokeApiKeyDomainService
+        );
+    }
+
+    @Bean
+    public RevokeSubscriptionApiKeyUseCase revokeSubscriptionApiKeyUsecase(
+        SubscriptionCrudService subscriptionCrudService,
+        ApplicationCrudService applicationCrudService,
+        ApiKeyQueryService apiKeyQueryService,
+        RevokeApiKeyDomainService revokeApiKeyDomainService
+    ) {
+        return new RevokeSubscriptionApiKeyUseCase(
             subscriptionCrudService,
             applicationCrudService,
             apiKeyQueryService,
