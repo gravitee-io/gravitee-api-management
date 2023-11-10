@@ -83,7 +83,7 @@ jobs:
             - .gravitee.settings.xml
   job-validate:
     docker:
-      - image: cimg/openjdk:17.0
+      - image: cimg/openjdk:17.0.8
     resource_class: small
     steps:
       - checkout
@@ -111,7 +111,7 @@ jobs:
           command: cd .circleci/danger && yarn run danger
   job-build:
     docker:
-      - image: cimg/openjdk:17.0
+      - image: cimg/openjdk:17.0.8
     resource_class: large
     steps:
       - checkout
@@ -145,7 +145,7 @@ jobs:
             - ./gateway-docker-context
   job-test-definition:
     docker:
-      - image: cimg/openjdk:17.0
+      - image: cimg/openjdk:17.0.8
     resource_class: small
     steps:
       - checkout
@@ -176,7 +176,7 @@ jobs:
             - gravitee-apim-definition/gravitee-apim-definition-coverage/target/site/jacoco-aggregate/
   job-test-gateway:
     docker:
-      - image: cimg/openjdk:17.0
+      - image: cimg/openjdk:17.0.8
     resource_class: medium
     steps:
       - checkout
@@ -227,7 +227,7 @@ jobs:
     parallelism: 4
   job-test-rest-api:
     docker:
-      - image: cimg/openjdk:17.0
+      - image: cimg/openjdk:17.0.8
     resource_class: small
     steps:
       - checkout
