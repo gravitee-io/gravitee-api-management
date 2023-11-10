@@ -110,6 +110,71 @@ public class ApiKeyQueryServiceImplTest {
     }
 
     @Nested
+    class FindByKeyAndApiId {
+
+        @Test
+        void should_return_api_key_and_adapt_it() throws TechnicalException {
+            // Given
+            var key = "my-key";
+            var apiId = "my-api";
+            when(apiKeyRepository.findByKeyAndApi(key, apiId))
+                .thenAnswer(invocation -> Optional.of(anApiKey().key(invocation.getArgument(0)).build()));
+
+            // When
+            var result = service.findByKeyAndApiId(key, apiId);
+
+            // Then
+            assertThat(result)
+                .contains(
+                    ApiKeyEntity
+                        .builder()
+                        .id("api-key-id")
+                        .subscriptions(List.of("subscription-id"))
+                        .key(key)
+                        .applicationId("application-id")
+                        .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                        .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                        .expireAt(Instant.parse("2021-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                        .revokedAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                        .revoked(true)
+                        .paused(true)
+                        .daysToExpirationOnLastNotification(310)
+                        .build()
+                );
+        }
+
+        @Test
+        void should_return_empty_when_no_api_key_found() throws TechnicalException {
+            // Given
+            var key = "my-key";
+            var apiId = "my-api";
+            when(apiKeyRepository.findByKeyAndApi(key, apiId)).thenReturn(Optional.empty());
+
+            // When
+            var result = service.findByKeyAndApiId(key, apiId);
+
+            // Then
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        void should_throw_when_technical_exception_occurs() throws TechnicalException {
+            // Given
+            var key = "my-key";
+            var apiId = "my-api";
+            when(apiKeyRepository.findByKeyAndApi(key, apiId)).thenThrow(TechnicalException.class);
+
+            // When
+            Throwable throwable = catchThrowable(() -> service.findByKeyAndApiId(key, apiId));
+
+            // Then
+            assertThat(throwable)
+                .isInstanceOf(TechnicalManagementException.class)
+                .hasMessage("An error occurs while trying to find API key by [key=my-key] and [apiId=my-api]");
+        }
+    }
+
+    @Nested
     class FindBySubscriptionId {
 
         @Test

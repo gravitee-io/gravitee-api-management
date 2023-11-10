@@ -45,6 +45,18 @@ public class ApiKeyQueryServiceImpl implements ApiKeyQueryService {
     }
 
     @Override
+    public Optional<ApiKeyEntity> findByKeyAndApiId(String key, String apiId) {
+        try {
+            return apiKeyRepository.findByKeyAndApi(key, apiId).map(ApiKeyAdapter.INSTANCE::toEntity);
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException(
+                String.format("An error occurs while trying to find API key by [key=%s] and [apiId=%s]", key, apiId),
+                e
+            );
+        }
+    }
+
+    @Override
     public Stream<ApiKeyEntity> findBySubscription(String subscriptionId) {
         try {
             return apiKeyRepository.findBySubscription(subscriptionId).stream().map(ApiKeyAdapter.INSTANCE::toEntity);
