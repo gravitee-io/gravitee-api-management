@@ -51,13 +51,13 @@ class ManagementUIResourceTest extends AbstractResourceTest {
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
 
         var body = response.readEntity(ConsoleCustomization.class);
-        assertThat(body.getTitle()).isEqualTo("OEM title");
+        assertThat(body.getTitle()).isEqualTo("Celigo");
     }
 
     @Test
-    public void should_throw_error_if_license_is_not_oem() {
+    public void should_return_no_content_if_license_is_not_oem() {
         when(nodeLicenseService.isFeatureEnabled("oem-customization")).thenReturn(false);
         final Response response = rootTarget().request().get();
-        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.FORBIDDEN_403);
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NO_CONTENT_204);
     }
 }

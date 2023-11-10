@@ -33,13 +33,13 @@ public class GetConsoleCustomizationUseCase {
             return new Output(
                 ConsoleCustomization
                     .builder()
-                    .title("OEM title")
+                    .title("Celigo")
                     .favicon("favicon.ico")
-                    .theme(ConsoleTheme.builder().menuActive("#fff").menuBackground("#fff").build())
+                    .theme(ConsoleTheme.builder().menuActive("#1d76c7").menuBackground("#333d47").build())
                     .build()
             );
         }
-        throw new CustomizationNotAllowedException("Your license does not include OEM customization feature");
+        return new Output(null);
     }
 
     public record Output(ConsoleCustomization consoleCustomization) {}
