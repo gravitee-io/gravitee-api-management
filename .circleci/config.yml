@@ -1554,6 +1554,7 @@ jobs:
     job-package-bundle:
         executor:
             name: openjdk
+            version: 17.0.8
             with_node: true
         environment:
             RELEASE_VERSION: << pipeline.parameters.graviteeio_version >>
