@@ -68,7 +68,7 @@ secrets:
 
 # Gateway HTTP server
 #http:
-#  port: 8092
+#  port: 8082
 #  host: 0.0.0.0
 #  idleTimeout: 0
 #  tcpKeepAlive: true
@@ -120,7 +120,7 @@ secrets:
 # Gateway TCP server
 #tcp:
 #  enabled: false
-#  port: 4092
+#  port: 4082
 #  host: 0.0.0.0
 #  idleTimeout: 0
 #  tcpKeepAlive: true
