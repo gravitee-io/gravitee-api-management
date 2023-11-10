@@ -14,29 +14,26 @@
  * limitations under the License.
  */
 import { NgModule } from '@angular/core';
-import { MatCardModule } from '@angular/material/card';
 import { CommonModule } from '@angular/common';
+import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
-import { MatTabsModule } from '@angular/material/tabs';
 import { UIRouterModule } from '@uirouter/angular';
 
-import { ApiRuntimeLogsMessageItemModule } from './components';
-import { ApiRuntimeLogsMessagesComponent } from './api-runtime-logs-messages.component';
+import { ApiRuntimeLogsProxyComponent } from './api-runtime-logs-proxy.component';
 
-import { ApiRuntimeLogsDetailsEmptyStateModule, ApiRuntimeLogsConnectionLogDetailsModule } from '../components';
+import { ApiRuntimeLogsConnectionLogDetailsModule, ApiRuntimeLogsDetailsEmptyStateModule } from '../components';
 
 @NgModule({
-  declarations: [ApiRuntimeLogsMessagesComponent],
-  exports: [],
+  declarations: [ApiRuntimeLogsProxyComponent],
   imports: [
     CommonModule,
     MatButtonModule,
     MatCardModule,
     UIRouterModule,
-    MatTabsModule,
-    ApiRuntimeLogsMessageItemModule,
-    ApiRuntimeLogsDetailsEmptyStateModule,
+
     ApiRuntimeLogsConnectionLogDetailsModule,
+    ApiRuntimeLogsDetailsEmptyStateModule,
   ],
+  exports: [ApiRuntimeLogsProxyComponent],
 })
-export class ApiRuntimeLogsMessagesModule {}
+export class ApiRuntimeLogsProxyModule {}

@@ -70,12 +70,11 @@ import { ApiCreationV4Component } from './creation-v4/api-creation-v4.component'
 import { ApiCreationV4ConfirmationComponent } from './creation-v4/api-creation-v4-confirmation.component';
 import { ApiCreationV2Component } from './creation-v2/steps/api-creation-v2.component';
 import { ApiPropertiesComponent } from './proxy/properties/properties/api-properties.component';
-import { ApiRuntimeLogsMessagesComponent } from './runtime-logs-v4/runtime-logs-details/runtime-logs-messages/api-runtime-logs-messages.component';
 import { ApiDocumentationV4Component } from './documentation-v4/api-documentation-v4.component';
 import { ApiDocumentationV4NewPageComponent } from './documentation-v4/documentation-new-page/api-documentation-v4-new-page.component';
 import { ApiDocumentationV4EditPageComponent } from './documentation-v4/documentation-edit-page/api-documentation-v4-edit-page.component';
 import { ApiDynamicPropertiesComponent } from './proxy/properties/dynamic-properties/api-dynamic-properties.component';
-import { ApiRuntimeLogsProxyComponent } from './runtime-logs-v4/runtime-logs-details/runtime-logs-proxy';
+import { ApiRuntimeLogsDetailsComponent } from './runtime-logs-v4/runtime-logs-details/api-runtime-logs-details.component';
 
 import { ApiService } from '../../services/api.service';
 import { GioEmptyComponent } from '../../shared/components/gio-empty/gio-empty.component';
@@ -1481,8 +1480,8 @@ export const states: Ng2StateDeclaration[] = [
     component: ApiRuntimeLogsComponent,
   },
   {
-    name: 'management.apis.runtimeLogs-messages',
-    url: '/runtime-logs/message/:requestId',
+    name: 'management.apis.runtimeLogs-details',
+    url: '/runtime-logs/:requestId',
     data: {
       apiPermissions: {
         only: ['api-log-r'],
@@ -1492,21 +1491,7 @@ export const states: Ng2StateDeclaration[] = [
       },
       useAngularMaterial: true,
     },
-    component: ApiRuntimeLogsMessagesComponent,
-  },
-  {
-    name: 'management.apis.runtimeLogs-proxy',
-    url: '/runtime-logs/proxy/:requestId',
-    data: {
-      apiPermissions: {
-        only: ['api-log-r'],
-      },
-      docs: {
-        page: 'management-api-logs',
-      },
-      useAngularMaterial: true,
-    },
-    component: ApiRuntimeLogsProxyComponent,
+    component: ApiRuntimeLogsDetailsComponent,
   },
   {
     name: 'management.apis.runtimeLogs-settings',

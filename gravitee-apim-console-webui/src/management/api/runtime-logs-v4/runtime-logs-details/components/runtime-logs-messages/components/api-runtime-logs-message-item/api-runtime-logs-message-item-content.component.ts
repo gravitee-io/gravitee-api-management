@@ -17,7 +17,7 @@
 import { Component, Input } from '@angular/core';
 import { FormControl } from '@angular/forms';
 
-import { Message } from '../../../../../../../entities/management-api-v2';
+import { Message } from '../../../../../../../../entities/management-api-v2';
 
 type ContentTab = {
   label: string;

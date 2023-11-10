@@ -22,15 +22,15 @@ import { ApiRuntimeLogsProxyComponent } from './api-runtime-logs-proxy.component
 import { ApiRuntimeLogsProxyHarness } from './api-runtime-logs-proxy.harness';
 import { ApiRuntimeLogsProxyModule } from './api-runtime-logs-proxy.module';
 
-import { GioUiRouterTestingModule } from '../../../../../shared/testing/gio-uirouter-testing-module';
-import { UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
+import { GioUiRouterTestingModule } from '../../../../../../shared/testing/gio-uirouter-testing-module';
+import { UIRouterState, UIRouterStateParams } from '../../../../../../ajs-upgraded-providers';
 import {
   ConnectionLogDetail,
   fakeConnectionLogDetail,
   fakeConnectionLogDetailRequest,
   fakeConnectionLogDetailResponse,
-} from '../../../../../entities/management-api-v2';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
+} from '../../../../../../entities/management-api-v2';
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../../shared/testing';
 
 describe('ApiRuntimeLogsProxyComponent', () => {
   const API_ID = 'an-api-id';

@@ -13,14 +13,5 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CommonModule } from '@angular/common';
-import { NgModule } from '@angular/core';
-
-import { ApiRuntimeLogsSettingsModule } from './runtime-logs-settings/api-runtime-logs-settings.module';
-import { ApiRuntimeLogsModule } from './runtime-logs/api-runtime-logs.module';
-import { ApiRuntimeLogsDetailsModule } from './runtime-logs-details/api-runtime-logs-details.module';
-
-@NgModule({
-  imports: [CommonModule, ApiRuntimeLogsModule, ApiRuntimeLogsSettingsModule, ApiRuntimeLogsDetailsModule],
-})
-export class ApiRuntimeLogsV4Module {}
+export * from './api-runtime-logs-details-empty-state';
+export * from './api-runtime-logs-connection-log-details';

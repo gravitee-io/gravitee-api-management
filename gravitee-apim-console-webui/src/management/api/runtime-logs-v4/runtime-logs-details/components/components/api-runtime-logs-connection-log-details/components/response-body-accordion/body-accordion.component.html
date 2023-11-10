@@ -15,12 +15,12 @@
     limitations under the License.
 
 -->
-<cdk-accordion *ngIf="parsedBody">
+<cdk-accordion *ngIf="body">
   <cdk-accordion-item class="accordion" #accordionItem="cdkAccordionItem" [attr.aria-expanded]="accordionItem.expanded">
     <div class="accordion__header" (click)="accordionItem.toggle()">
       <div class="accordion__title" (click)="accordionItem.toggle()">Body</div>
       <mat-icon [svgIcon]="accordionItem.expanded ? 'gio:nav-arrow-down' : 'gio:nav-arrow-up'"></mat-icon>
     </div>
-    <div *ngIf="!accordionItem.expanded" class="accordion__body">{{ parsedBody | json }}</div>
+    <div *ngIf="!accordionItem.expanded" class="accordion__body">{{ body }}</div>
   </cdk-accordion-item>
 </cdk-accordion>

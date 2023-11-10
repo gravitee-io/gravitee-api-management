@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
 
-import { ApiRuntimeLogsSettingsModule } from './runtime-logs-settings/api-runtime-logs-settings.module';
-import { ApiRuntimeLogsModule } from './runtime-logs/api-runtime-logs.module';
-import { ApiRuntimeLogsDetailsModule } from './runtime-logs-details/api-runtime-logs-details.module';
+import { ApiRuntimeLogsDetailsComponent } from './api-runtime-logs-details.component';
+import { ApiRuntimeLogsProxyModule, ApiRuntimeLogsMessagesModule } from './components';
 
 @NgModule({
-  imports: [CommonModule, ApiRuntimeLogsModule, ApiRuntimeLogsSettingsModule, ApiRuntimeLogsDetailsModule],
+  declarations: [ApiRuntimeLogsDetailsComponent],
+  exports: [ApiRuntimeLogsDetailsComponent],
+  imports: [CommonModule, ApiRuntimeLogsProxyModule, ApiRuntimeLogsMessagesModule],
 })
-export class ApiRuntimeLogsV4Module {}
+export class ApiRuntimeLogsDetailsModule {}

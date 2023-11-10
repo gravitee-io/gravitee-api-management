@@ -22,7 +22,7 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { ApiRuntimeLogsConnectionLogDetailsHarness } from '../components/api-runtime-logs-connection-log-details/api-runtime-logs-connection-log-details.harness';
 
 export class ApiRuntimeLogsMessagesHarness extends ComponentHarness {
-  static hostSelector = 'runtime-logs-messages';
+  static hostSelector = 'api-runtime-logs-messages';
 
   private entrypointTabBodySelector = this.locatorFor(DivHarness.with({ selector: '[data-testId=entrypoint-tabs-body]' }));
   private endpointTabBodySelector = this.locatorFor(DivHarness.with({ selector: '[data-testId=endpoint-tabs-body]' }));

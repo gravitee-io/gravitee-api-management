@@ -19,8 +19,8 @@ import { catchError, takeUntil } from 'rxjs/operators';
 import { of, Subject } from 'rxjs';
 import { StateService } from '@uirouter/angular';
 
-import { UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
-import { ApiLogsV2Service } from '../../../../../services-ngx/api-logs-v2.service';
+import { UIRouterState, UIRouterStateParams } from '../../../../../../ajs-upgraded-providers';
+import { ApiLogsV2Service } from '../../../../../../services-ngx/api-logs-v2.service';
 
 @Component({
   selector: 'api-runtime-logs-proxy',

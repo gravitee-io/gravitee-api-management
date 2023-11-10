@@ -13,23 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input, OnInit } from '@angular/core';
+
+import { Component, Input } from '@angular/core';
+
+import { AggregatedMessageLog } from '../../../../../../../../entities/management-api-v2';
 
 @Component({
-  selector: 'body-accordion',
-  template: require('./body-accordion.component.html'),
-  styles: [require('./body-accordion.component.scss')],
+  selector: 'api-runtime-logs-message-item',
+  template: require('./api-runtime-logs-message-item.component.html'),
+  styles: [require('./api-runtime-logs-message-item.component.scss')],
 })
-export class BodyAccordionComponent implements OnInit {
-  @Input() body: string;
-
-  parsedBody: unknown;
-
-  ngOnInit() {
-    try {
-      this.parsedBody = JSON.parse(this.body);
-    } catch (_) {
-      this.parsedBody = this.body;
-    }
-  }
+export class ApiRuntimeLogsMessageItemComponent {
+  @Input()
+  messageLog: AggregatedMessageLog;
+  @Input()
+  entrypointConnectorIcon: string;
+  @Input()
+  endpointConnectorIcon: string;
 }
