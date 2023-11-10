@@ -101,6 +101,7 @@ export * from './resetUserPasswordInput';
 export * from './response';
 export * from './simpleApplicationSettings';
 export * from './subscription';
+export * from './subscriptionConfigurationInput';
 export * from './subscriptionInput';
 export * from './subscriptionsResponse';
 export * from './themeLinks';

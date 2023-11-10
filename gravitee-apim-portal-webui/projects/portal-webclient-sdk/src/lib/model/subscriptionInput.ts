@@ -29,5 +29,17 @@ export interface SubscriptionInput {
      */
     general_conditions_accepted?: boolean;
     general_conditions_content_revision?: PageRevisionId;
+    /**
+     * Subscription messages filter
+     */
+    filter?: string;
+    /**
+     * Subscription metadata
+     */
+    metadata?: { [key: string]: string; };
+    /**
+     * Subscription configuration
+     */
+    configuration?: object;
 }
 
