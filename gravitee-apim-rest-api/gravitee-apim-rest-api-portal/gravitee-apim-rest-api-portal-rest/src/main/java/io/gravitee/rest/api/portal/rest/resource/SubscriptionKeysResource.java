@@ -15,8 +15,11 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import io.gravitee.apim.core.api_key.use_case.RevokeApplicationApiKeyUseCase;
+import io.gravitee.apim.core.api_key.use_case.RevokeSubscriptionApiKeyUseCase;
+import io.gravitee.apim.core.audit.model.AuditActor;
+import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -28,7 +31,11 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
@@ -41,6 +48,9 @@ public class SubscriptionKeysResource extends AbstractResource {
 
     @Context
     private ResourceContext resourceContext;
+
+    @Inject
+    private RevokeSubscriptionApiKeyUseCase revokeSubscriptionApiKeyUsecase;
 
     @Inject
     private ApiKeyService apiKeyService;
@@ -88,15 +98,26 @@ public class SubscriptionKeysResource extends AbstractResource {
             ) ||
             hasPermission(executionContext, RolePermission.API_SUBSCRIPTION, subscriptionEntity.getApi(), RolePermissionAction.UPDATE)
         ) {
-            ApiKeyEntity apiKeyEntity = apiKeyService.findByKeyAndApi(executionContext, apiKey, subscriptionEntity.getApi());
-            if (!apiKeyEntity.hasSubscription(subscriptionId)) {
-                return Response
-                    .status(Response.Status.BAD_REQUEST)
-                    .entity("'keyId' parameter does not correspond to the subscription")
-                    .build();
-            }
-
-            apiKeyService.revoke(executionContext, apiKeyEntity, true);
+            final var user = getAuthenticatedUserDetails();
+            revokeSubscriptionApiKeyUsecase.execute(
+                new RevokeSubscriptionApiKeyUseCase.Input(
+                    subscriptionId,
+                    apiKey,
+                    AuditInfo
+                        .builder()
+                        .organizationId(executionContext.getOrganizationId())
+                        .environmentId(executionContext.getEnvironmentId())
+                        .actor(
+                            AuditActor
+                                .builder()
+                                .userId(user.getUsername())
+                                .userSource(user.getSource())
+                                .userSourceId(user.getSourceId())
+                                .build()
+                        )
+                        .build()
+                )
+            );
 
             return Response.noContent().build();
         }
