@@ -10,6 +10,7 @@
  */
 import { SubscriptionConfigurationInput } from './subscriptionConfigurationInput';
 import { PageRevisionId } from './pageRevisionId';
+import { ApiKeyModeEnum } from './apiKeyModeEnum';
 
 
 export interface SubscriptionInput { 
@@ -35,5 +36,6 @@ export interface SubscriptionInput {
      */
     metadata?: { [key: string]: string; };
     configuration?: SubscriptionConfigurationInput;
+    api_key_mode?: ApiKeyModeEnum;
 }
 
