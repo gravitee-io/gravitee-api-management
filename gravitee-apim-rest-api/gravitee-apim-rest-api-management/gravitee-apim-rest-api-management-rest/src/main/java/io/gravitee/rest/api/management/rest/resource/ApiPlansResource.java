@@ -99,14 +99,15 @@ public class ApiPlansResource extends AbstractResource {
         @QueryParam("security") @Parameter(explode = Explode.FALSE, schema = @Schema(type = "array")) final PlanSecurityParam security
     ) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        ApiEntity apiEntity = apiService.findById(executionContext, api);
+
         if (
             !hasPermission(executionContext, RolePermission.API_PLAN, api, RolePermissionAction.READ) &&
-            !hasPermission(executionContext, RolePermission.API_LOG, api, RolePermissionAction.READ)
+            !hasPermission(executionContext, RolePermission.API_LOG, api, RolePermissionAction.READ) &&
+            apiEntity.getVisibility() == Visibility.PRIVATE
         ) {
             throw new ForbiddenAccessException();
         }
-
-        ApiEntity apiEntity = apiService.findById(executionContext, api);
 
         return planService
             .findByApi(executionContext, api)

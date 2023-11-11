@@ -14,34 +14,10 @@
  * limitations under the License.
  */
 
-import { ApiKeyMode } from './apiKeyMode';
-
-import { PrimaryOwner } from '../api';
-
-export interface BaseApplication {
-  /**
-   * Application's uuid.
-   */
-  id?: string;
-  /**
-   * Application's name. Duplicate names can exist.
-   */
-  name?: string;
-  /**
-   * Application's description. A short description of your App.
-   */
-  description?: string;
-  /**
-   * Application's domain.
-   */
-  domain?: string;
-  /**
-   * Application's type.
-   */
-  type?: string;
-  primaryOwner?: PrimaryOwner;
-  /**
-   * The API Key mode used for this application.
-   */
-  apiKeyMode: ApiKeyMode;
-}
+/*
+ * The mode of an application regarding ApiKey plans.
+ *  - UNSPECIFIED: no selected mode yet
+ *  - EXCLUSIVE: an API Key is generated for each new subscription
+ *  - SHARED: reuse always the same API Key for all subscriptions
+ */
+export type ApiKeyMode = 'SHARED' | 'UNSPECIFIED' | 'EXCLUSIVE';
