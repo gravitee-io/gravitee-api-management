@@ -159,6 +159,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
         @Parameter(name = "application", required = true) @NotNull @QueryParam("application") String application,
         @Parameter(name = "plan", required = true) @NotNull @QueryParam("plan") String plan,
         @Parameter(name = "customApiKey") @CustomApiKey @QueryParam("customApiKey") String customApiKey,
+        @Parameter(name = "apiKeyMode") @QueryParam("apiKeyMode") ApiKeyMode apiKeyMode,
         @Valid NewSubscriptionConfigurationEntity newSubscriptionConfigurationEntity
     ) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
@@ -167,6 +168,10 @@ public class ApiSubscriptionsResource extends AbstractResource {
             !parameterService.findAsBoolean(executionContext, Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED, ParameterReferenceType.ENVIRONMENT)
         ) {
             return Response.status(Response.Status.BAD_REQUEST).entity("You are not allowed to provide a custom API Key").build();
+        }
+
+        if (apiKeyMode != null) {
+            applicationService.updateApiKeyMode(executionContext, application, apiKeyMode);
         }
 
         NewSubscriptionEntity newSubscriptionEntity = new NewSubscriptionEntity(plan, application);

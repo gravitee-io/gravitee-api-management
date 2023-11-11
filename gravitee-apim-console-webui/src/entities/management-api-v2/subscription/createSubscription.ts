@@ -15,6 +15,8 @@
  */
 import { SubscriptionConsumerConfiguration } from './subscriptionConsumerConfiguration';
 
+import { ApiKeyMode } from '../application';
+
 export interface CreateSubscription {
   /**
    * The id of the application subscribing.
@@ -33,4 +35,5 @@ export interface CreateSubscription {
    * A list of metadata associated to this subscription.
    */
   metadata?: { [key: string]: string };
+  apiKeyMode?: ApiKeyMode;
 }
