@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.NewApplicationEntity;
@@ -84,6 +85,8 @@ public interface ApplicationService {
     ApplicationEntity create(final ExecutionContext executionContext, NewApplicationEntity application, String username);
 
     ApplicationEntity update(final ExecutionContext executionContext, String applicationId, UpdateApplicationEntity application);
+
+    ApplicationEntity updateApiKeyMode(final ExecutionContext executionContext, String applicationId, ApiKeyMode apiKeyMode);
 
     ApplicationEntity renewClientSecret(final ExecutionContext executionContext, String applicationId);
 

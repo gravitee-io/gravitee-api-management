@@ -604,8 +604,13 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 throw new InvalidApplicationTypeException();
             }
 
-            // Check that application API Key mode is valid
-            checkApiKeyModeUpdate(executionContext, updateApplicationEntity, applicationToUpdate);
+            // Retro-compatibility : If input API Key mode is not specified, get it from existing application
+            if (updateApplicationEntity.getApiKeyMode() == null && applicationToUpdate.getApiKeyMode() != null) {
+                updateApplicationEntity.setApiKeyMode(ApiKeyMode.valueOf(applicationToUpdate.getApiKeyMode().name()));
+            } else {
+                // Check that application API Key mode is valid
+                checkApiKeyModeUpdate(executionContext, updateApplicationEntity.getApiKeyMode(), applicationToUpdate);
+            }
 
             // Update application metadata
             Map<String, String> metadata = new HashMap<>();
@@ -701,6 +706,48 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 String.format("An error occurs while trying to update application %s", applicationId),
                 ex
             );
+        }
+    }
+
+    @Override
+    public ApplicationEntity updateApiKeyMode(final ExecutionContext executionContext, String applicationId, ApiKeyMode apiKeyMode) {
+        try {
+            LOGGER.debug("Update application {} with apiKeyMode {}", applicationId, apiKeyMode);
+
+            Application applicationToUpdate = applicationRepository
+                .findById(applicationId)
+                .orElseThrow(() -> new ApplicationNotFoundException(applicationId));
+
+            if (ApplicationStatus.ARCHIVED.equals(applicationToUpdate.getStatus())) {
+                throw new ApplicationArchivedException(applicationToUpdate.getName());
+            }
+
+            // Check that application Api Key mode is valid
+            checkApiKeyModeUpdate(executionContext, apiKeyMode, applicationToUpdate);
+
+            applicationToUpdate.setApiKeyMode(io.gravitee.repository.management.model.ApiKeyMode.valueOf(apiKeyMode.name()));
+            Application updatedApplication = applicationRepository.update(applicationToUpdate);
+
+            // Audit
+            auditService.createApplicationAuditLog(
+                executionContext,
+                updatedApplication.getId(),
+                Collections.emptyMap(),
+                APPLICATION_UPDATED,
+                updatedApplication.getUpdatedAt(),
+                applicationToUpdate,
+                updatedApplication
+            );
+
+            return convertApplication(executionContext, Collections.singleton(updatedApplication)).iterator().next();
+        } catch (TechnicalException ex) {
+            String error = String.format(
+                "An error occurs while trying to update application {} with apiKeyMode {}",
+                applicationId,
+                apiKeyMode
+            );
+            LOGGER.error(error, ex);
+            throw new TechnicalManagementException(error, ex);
         }
     }
 
@@ -1363,18 +1410,11 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         }
     }
 
-    private void checkApiKeyModeUpdate(
-        ExecutionContext executionContext,
-        UpdateApplicationEntity updateApplicationEntity,
-        Application applicationToUpdate
-    ) {
-        // Retro-compatibility : If input apiKey mode is not specified, get it from existing application
-        if (updateApplicationEntity.getApiKeyMode() == null && applicationToUpdate.getApiKeyMode() != null) {
-            updateApplicationEntity.setApiKeyMode(ApiKeyMode.valueOf(applicationToUpdate.getApiKeyMode().name()));
-        } else if (
+    private void checkApiKeyModeUpdate(ExecutionContext executionContext, ApiKeyMode apiKeyMode, Application applicationToUpdate) {
+        if (
             applicationToUpdate.getApiKeyMode() != null &&
             !applicationToUpdate.getApiKeyMode().isUpdatable() &&
-            !applicationToUpdate.getApiKeyMode().name().equals(updateApplicationEntity.getApiKeyMode().name())
+            !applicationToUpdate.getApiKeyMode().name().equals(apiKeyMode.name())
         ) {
             throw new InvalidApplicationApiKeyModeException(
                 String.format(
@@ -1384,7 +1424,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 )
             );
         } else if (
-            updateApplicationEntity.getApiKeyMode() == ApiKeyMode.SHARED &&
+            apiKeyMode == ApiKeyMode.SHARED &&
             applicationToUpdate.getApiKeyMode() != io.gravitee.repository.management.model.ApiKeyMode.SHARED &&
             !parameterService.findAsBoolean(executionContext, Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED, ParameterReferenceType.ENVIRONMENT)
         ) {
