@@ -29,6 +29,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import fixtures.SubscriptionFixtures;
+import io.gravitee.rest.api.management.v2.rest.model.ApiKeyMode;
 import io.gravitee.rest.api.management.v2.rest.model.CreateSubscription;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.model.Subscription;
@@ -80,6 +81,7 @@ public class ApiSubscriptionsResource_CreateTest extends ApiSubscriptionsResourc
             .applicationId(APPLICATION)
             .planId(PLAN)
             .customApiKey(null)
+            .apiKeyMode(ApiKeyMode.EXCLUSIVE)
             .build();
         final SubscriptionEntity subscriptionEntity = SubscriptionFixtures
             .aSubscriptionEntity()
@@ -100,6 +102,8 @@ public class ApiSubscriptionsResource_CreateTest extends ApiSubscriptionsResourc
         assertEquals(PLAN, subscription.getPlan().getId());
         assertEquals(APPLICATION, subscription.getApplication().getId());
 
+        verify(applicationService)
+            .updateApiKeyMode(GraviteeContext.getExecutionContext(), APPLICATION, io.gravitee.rest.api.model.ApiKeyMode.EXCLUSIVE);
         verify(subscriptionService)
             .create(
                 eq(GraviteeContext.getExecutionContext()),

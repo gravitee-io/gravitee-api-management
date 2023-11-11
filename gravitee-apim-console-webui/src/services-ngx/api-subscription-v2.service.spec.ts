@@ -245,6 +245,7 @@ describe('ApiSubscriptionV2Service', () => {
         metadata: {
           key: 'value',
         },
+        apiKeyMode: 'EXCLUSIVE',
       };
 
       apiSubscriptionV2Service.create(API_ID, createSubscription).subscribe((subscription) => {

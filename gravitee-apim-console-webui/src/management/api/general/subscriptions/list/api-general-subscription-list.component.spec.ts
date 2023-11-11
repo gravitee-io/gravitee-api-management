@@ -36,6 +36,7 @@ import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/t
 import { User as DeprecatedUser } from '../../../../../entities/user';
 import {
   Api,
+  ApiKeyMode,
   ApiPlansResponse,
   ApiSubscribersResponse,
   ApiSubscriptionsResponse,
@@ -50,7 +51,7 @@ import {
   VerifySubscription,
 } from '../../../../../entities/management-api-v2';
 import { PagedResult } from '../../../../../entities/pagedResult';
-import { ApiKeyMode, Application } from '../../../../../entities/application/application';
+import { Application } from '../../../../../entities/application/application';
 import { fakeApplication } from '../../../../../entities/application/Application.fixture';
 import { ApiPortalSubscriptionCreationDialogHarness } from '../components/dialogs/creation/api-portal-subscription-creation-dialog.harness';
 import { PlanSecurityType } from '../../../../../entities/plan';
@@ -423,10 +424,8 @@ describe('ApiGeneralSubscriptionListComponent', () => {
 
       await creationDialogHarness.createSubscription();
       tick(400);
-      const subscription = fakeSubscription();
-      expectApplicationUpdateRequest(application, ApiKeyMode.EXCLUSIVE);
-      tick(400);
-      expectApiSubscriptionsPostRequest(planV4.id, application.id, undefined, subscription);
+      const subscription = fakeSubscription({ application: { apiKeyMode: 'EXCLUSIVE' } });
+      expectApiSubscriptionsPostRequest(planV4.id, application.id, undefined, 'EXCLUSIVE', subscription);
 
       expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.detail.portal.subscription.edit', {
         subscriptionId: expect.any(String),
@@ -481,10 +480,8 @@ describe('ApiGeneralSubscriptionListComponent', () => {
 
       await creationDialogHarness.createSubscription();
       tick(400);
-      const subscription = fakeSubscription();
-      expectApplicationUpdateRequest(application, ApiKeyMode.SHARED);
-      tick(400);
-      expectApiSubscriptionsPostRequest(planV4.id, application.id, undefined, subscription);
+      const subscription = fakeSubscription({ application: { apiKeyMode: 'SHARED' } });
+      expectApiSubscriptionsPostRequest(planV4.id, application.id, undefined, 'SHARED', subscription);
 
       expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.detail.portal.subscription.edit', {
         subscriptionId: expect.any(String),
@@ -519,7 +516,7 @@ describe('ApiGeneralSubscriptionListComponent', () => {
       await creationDialogHarness.createSubscription();
       tick(400);
       const subscription = fakeSubscription();
-      expectApiSubscriptionsPostRequest(planV4.id, application.id, undefined, subscription);
+      expectApiSubscriptionsPostRequest(planV4.id, application.id, undefined, undefined, subscription);
 
       expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.detail.portal.subscription.edit', {
         subscriptionId: expect.any(String),
@@ -569,7 +566,7 @@ describe('ApiGeneralSubscriptionListComponent', () => {
       await creationDialogHarness.createSubscription();
       tick(400);
       const subscription = fakeSubscription();
-      expectApiSubscriptionsPostRequest(planV4.id, application.id, '12345678', subscription);
+      expectApiSubscriptionsPostRequest(planV4.id, application.id, '12345678', undefined, subscription);
 
       expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.detail.portal.subscription.edit', {
         subscriptionId: expect.any(String),
@@ -808,6 +805,7 @@ describe('ApiGeneralSubscriptionListComponent', () => {
     planId: string,
     applicationId: string,
     customApiKey: string = undefined,
+    apiKeyMode: ApiKeyMode = undefined,
     subscription: Subscription,
   ) {
     const req = httpTestingController.expectOne({
@@ -818,27 +816,9 @@ describe('ApiGeneralSubscriptionListComponent', () => {
       planId,
       applicationId,
       customApiKey,
+      apiKeyMode,
     });
     req.flush(subscription);
-    fixture.detectChanges();
-  }
-
-  function expectApplicationUpdateRequest(application: Application, apiKeyMode: ApiKeyMode) {
-    const req = httpTestingController.expectOne({
-      url: `${CONSTANTS_TESTING.env.baseURL}/applications/${application.id}`,
-      method: 'PUT',
-    });
-    expect(req.request.body).toEqual({
-      name: application.name,
-      description: application.description,
-      domain: application.domain,
-      groups: application.groups,
-      settings: application.settings,
-      picture_url: application.picture_url,
-      disable_membership_notifications: application.disable_membership_notifications,
-      api_key_mode: apiKeyMode,
-    });
-    req.flush(application);
     fixture.detectChanges();
   }
 
