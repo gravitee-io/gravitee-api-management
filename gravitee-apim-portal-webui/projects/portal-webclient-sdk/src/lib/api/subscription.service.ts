@@ -207,7 +207,7 @@ export class SubscriptionService {
 
     /**
      * Create a subscription.
-     * Create a new subscription.  User must have APPLICATION_SUBSCRIPTION[CREATE] permission. 
+     * Create a new subscription. If the application used to subscribe has no api key mode (UNSPECIFIED) and the plan is APIKEY, then the api key mode can be set during creation. Otherwise, the api_key_mode field is ignored.  User must have APPLICATION_SUBSCRIPTION[CREATE] permission. 
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
