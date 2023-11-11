@@ -21,6 +21,7 @@ import { ApplicationExcludeFilter } from './application.service';
 import { Constants } from '../entities/Constants';
 import { PagedResult } from '../entities/pagedResult';
 import { IfMatchEtagInterceptor } from '../shared/interceptors/if-match-etag.interceptor';
+import { ApiKeyMode } from '../entities/application/application';
 
 export class LogsQuery {
   from: number;
@@ -581,12 +582,13 @@ export class ApiService {
     );
   }
 
-  subscribe(apiId: string, applicationId: string, planId: string, customApiKey: string): IHttpPromise<any> {
+  subscribe(apiId: string, applicationId: string, planId: string, customApiKey: string, apiKeyMode?: ApiKeyMode): IHttpPromise<any> {
     const params = {
       params: {
         plan: planId,
         application: applicationId,
         customApiKey: customApiKey,
+        ...(apiKeyMode ? { apiKeyMode } : ''),
       },
     };
     return this.$http.post(`${this.Constants.env.baseURL}/apis/${apiId}/subscriptions`, null, params);

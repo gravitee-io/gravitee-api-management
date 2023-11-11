@@ -28,6 +28,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
+import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.NewSubscriptionEntity;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.PlanSecurityType;
@@ -70,6 +71,7 @@ public class ApplicationSubscriptionsResourceTest extends AbstractResourceTest {
         newSubscriptionEntity.setApplication(APPLICATION);
         newSubscriptionEntity.setPlan(PLAN);
         newSubscriptionEntity.setRequest("request");
+        newSubscriptionEntity.setApiKeyMode(ApiKeyMode.EXCLUSIVE);
 
         when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(mock(PlanEntity.class));
 
