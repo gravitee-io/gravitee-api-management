@@ -28,6 +28,7 @@ import static org.mockito.internal.util.collections.Sets.newSet;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.ApiKeyEntity;
+import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.NewSubscriptionEntity;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
@@ -35,6 +36,7 @@ import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.portal.rest.model.ApiKeyModeEnum;
 import io.gravitee.rest.api.portal.rest.model.Key;
 import io.gravitee.rest.api.portal.rest.model.Links;
 import io.gravitee.rest.api.portal.rest.model.Subscription;
@@ -162,7 +164,8 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
             .plan(PLAN)
             .metadata(Map.of("my-metadata", "my-value"))
             ._configuration(configuration)
-            .request("request");
+            .request("request")
+            .apiKeyMode(ApiKeyModeEnum.EXCLUSIVE);
 
         final ApiKeyEntity apiKeyEntity = new ApiKeyEntity();
         final Key key = new Key();
@@ -181,6 +184,8 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
         assertEquals("request", newSubscriptionEntity.getRequest());
         assertEquals(Map.of("my-metadata", "my-value"), newSubscriptionEntity.getMetadata());
         assertEquals("{\"url\":\"my-url\"}", newSubscriptionEntity.getConfiguration().getEntrypointConfiguration());
+
+        Mockito.verify(applicationService).updateApiKeyMode(GraviteeContext.getExecutionContext(), APPLICATION, ApiKeyMode.EXCLUSIVE);
 
         final Subscription subscriptionResponse = response.readEntity(Subscription.class);
         assertNotNull(subscriptionResponse);
