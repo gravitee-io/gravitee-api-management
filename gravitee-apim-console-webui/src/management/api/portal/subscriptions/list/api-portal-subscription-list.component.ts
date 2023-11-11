@@ -280,10 +280,10 @@ export class ApiPortalSubscriptionListComponent implements OnInit, OnDestroy {
       .pipe(
         filter((result) => !!result),
         switchMap((result) => {
-          if (!result?.apiKeyMode) {
-            return of(result);
+          if (result?.apiKeyMode) {
+            result.subscriptionToCreate.apiKeyMode = result.apiKeyMode;
           }
-          return this.applicationService.update({ ...result.application, api_key_mode: result.apiKeyMode }).pipe(map(() => result));
+          return of(result);
         }),
         switchMap((result) => {
           return this.apiSubscriptionService.create(this.api.id, result.subscriptionToCreate);
