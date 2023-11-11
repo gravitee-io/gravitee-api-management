@@ -18,6 +18,7 @@ import { IHttpResponse } from 'angular';
 import * as _ from 'lodash';
 
 import { PagedResult } from '../entities/pagedResult';
+import { ApiKeyMode } from '../entities/application/application';
 
 export class LogsQuery {
   from: number;
@@ -161,13 +162,11 @@ class ApplicationService {
   /*
    * Subscriptions
    */
-  subscribe(applicationId: string, planId: string, request?: string): ng.IHttpPromise<any> {
-    let data;
-    if (request) {
-      data = { request: request };
-    } else {
-      data = '';
-    }
+  subscribe(applicationId: string, planId: string, request?: string, apiKeyMode?: ApiKeyMode): ng.IHttpPromise<any> {
+    const data = {
+      ...(request ? { request } : ''),
+      ...(apiKeyMode ? { apiKeyMode } : ''),
+    };
     return this.$http.post(this.subscriptionsURL(applicationId) + '?plan=' + planId, data);
   }
 
