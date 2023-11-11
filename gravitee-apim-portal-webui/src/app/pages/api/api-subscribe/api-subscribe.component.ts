@@ -499,18 +499,6 @@ export class ApiSubscribeComponent implements OnInit {
       try {
         this.showValidateLoader = true;
 
-        const apiKeyMode = this.subscribeForm.value.apiKeyMode;
-        if (apiKeyMode) {
-          const selectedApp = this.getSelectedApplication();
-          if (selectedApp.api_key_mode === ApiKeyModeEnum.UNSPECIFIED) {
-            const appToUpdate = await this.applicationService.getApplicationByApplicationId({ applicationId: selectedApp.id }).toPromise();
-            appToUpdate.api_key_mode = apiKeyMode;
-            await this.applicationService
-              .updateApplicationByApplicationId({ application: appToUpdate, applicationId: appToUpdate.id })
-              .toPromise();
-          }
-        }
-
         let subscription = await this.subscriptionService
           .createSubscription({
             subscriptionInput: {
@@ -528,6 +516,7 @@ export class ApiSubscribeComponent implements OnInit {
                 : undefined),
               general_conditions_accepted: this.subscribeForm.value.general_conditions_accepted,
               general_conditions_content_revision: this.subscribeForm.value.general_conditions_content_revision,
+              api_key_mode: this.subscribeForm.value.apiKeyMode,
             },
           })
           .toPromise();
