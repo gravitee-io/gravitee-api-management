@@ -21,10 +21,13 @@ import static java.util.stream.Collectors.toSet;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.rest.api.model.ApiKeyMode;
+import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.NewSubscriptionEntity;
 import io.gravitee.rest.api.model.PageEntity.PageRevisionId;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
+import io.gravitee.rest.api.model.UpdateApplicationEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
@@ -99,16 +102,18 @@ public class SubscriptionsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response createSubscription(@Valid @NotNull(message = "Input must not be null.") SubscriptionInput subscriptionInput) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        if (
-            hasPermission(
-                executionContext,
-                RolePermission.APPLICATION_SUBSCRIPTION,
-                subscriptionInput.getApplication(),
-                RolePermissionAction.CREATE
-            )
-        ) {
+        String applicationId = subscriptionInput.getApplication();
+        if (hasPermission(executionContext, RolePermission.APPLICATION_SUBSCRIPTION, applicationId, RolePermissionAction.CREATE)) {
+            if (subscriptionInput.getApiKeyMode() != null) {
+                applicationService.updateApiKeyMode(
+                    executionContext,
+                    applicationId,
+                    ApiKeyMode.valueOf(subscriptionInput.getApiKeyMode().name())
+                );
+            }
+
             NewSubscriptionEntity newSubscriptionEntity = new NewSubscriptionEntity();
-            newSubscriptionEntity.setApplication(subscriptionInput.getApplication());
+            newSubscriptionEntity.setApplication(applicationId);
             newSubscriptionEntity.setPlan(subscriptionInput.getPlan());
             newSubscriptionEntity.setRequest(subscriptionInput.getRequest());
             newSubscriptionEntity.setGeneralConditionsAccepted(subscriptionInput.getGeneralConditionsAccepted());

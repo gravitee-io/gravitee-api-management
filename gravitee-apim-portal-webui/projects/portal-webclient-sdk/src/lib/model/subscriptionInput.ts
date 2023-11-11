@@ -9,6 +9,7 @@
  * Do not edit the class manually.
  */
 import { PageRevisionId } from './pageRevisionId';
+import { ApiKeyModeEnum } from './apiKeyModeEnum';
 
 
 export interface SubscriptionInput { 
@@ -41,5 +42,6 @@ export interface SubscriptionInput {
      * Subscription configuration
      */
     configuration?: object;
+    api_key_mode?: ApiKeyModeEnum;
 }
 

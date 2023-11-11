@@ -1892,7 +1892,8 @@ paths:
               $ref: '#/components/schemas/SubscriptionInput'
       summary: Create a subscription.
       description: |
-        Create a new subscription.
+        Create a new subscription. If the application used to subscribe has no api key mode (UNSPECIFIED) and the plan is APIKEY, then the api key mode can be set during creation.
+        Otherwise, the api_key_mode field is ignored.
 
         User must have APPLICATION_SUBSCRIPTION[CREATE] permission.
       operationId: createSubscription
@@ -4882,6 +4883,8 @@ components:
         configuration:
           description: Subscription configuration
           type: object
+        api_key_mode:
+          $ref: '#/components/schemas/ApiKeyModeEnum'
     SubscriptionConfigurationInput:
       properties:
         filter:
