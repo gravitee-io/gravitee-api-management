@@ -36,6 +36,7 @@ import io.gravitee.rest.api.model.v4.plan.PlanMode;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.ApiService;
+import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.UserService;
@@ -77,7 +78,7 @@ public class ApplicationSubscriptionsResource extends AbstractResource {
     private PlanSearchService planSearchService;
 
     @Inject
-    private ApiService apiService;
+    private ApplicationService applicationService;
 
     @Inject
     private UserService userService;
@@ -113,6 +114,10 @@ public class ApplicationSubscriptionsResource extends AbstractResource {
             planEntity.isCommentRequired() && (newSubscriptionEntity.getRequest() == null || newSubscriptionEntity.getRequest().isEmpty())
         ) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Plan requires a consumer comment when subscribing").build();
+        }
+
+        if (newSubscriptionEntity.getApiKeyMode() != null) {
+            applicationService.updateApiKeyMode(executionContext, application, newSubscriptionEntity.getApiKeyMode());
         }
 
         newSubscriptionEntity.setApplication(application);

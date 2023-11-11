@@ -3587,6 +3587,8 @@ components:
                     description: A list of metadata associated to this subscription.
                     additionalProperties:
                         type: string
+                apiKeyMode:
+                    $ref: "#/components/schemas/ApiKeyMode"
             required: [applicationId, planId]
 
         UpdateSubscription:
@@ -3734,6 +3736,18 @@ components:
                     type: string
                     description: Optional custom API Key that can be given when custom API Key support is enabled.
 
+        ApiKeyMode:
+            type: string
+            description: |
+                The mode of an application regarding ApiKey plans.
+                * UNSPECIFIED: no selected mode yet
+                * EXCLUSIVE: an API Key is generated for each new subscription
+                * SHARED: reuse always the same API Key for all subscriptions
+            example: UNSPECIFIED
+            enum:
+                - SHARED
+                - EXCLUSIVE
+                - UNSPECIFIED
         BaseUser:
             type: object
             description: Base information about a user.
@@ -3773,6 +3787,7 @@ components:
                 primaryOwner:
                     $ref: "#/components/schemas/PrimaryOwner"
                 apiKeyMode:
+<<<<<<< HEAD:gravitee-apim-rest-api/gravitee-apim-rest-api-management-v2/gravitee-apim-rest-api-management-v2-rest/src/main/resources/openapi/openapi-apis.yaml
                     type: string
                     description: The API Key mode used for this application.
                     example: UNSPECIFIED
@@ -3848,6 +3863,9 @@ components:
             enum:
                 - API_CREATE
                 - APPLICATION_CREATE
+=======
+                    $ref: "#/components/schemas/ApiKeyMode"
+>>>>>>> 87238ba15e (feat: allow to update apikeymode while subscribing on console):gravitee-apim-rest-api/gravitee-apim-rest-api-management-v2/gravitee-apim-rest-api-management-v2-rest/src/main/resources/openapi/management-openapi-v2.yaml
         Member:
             type: object
             properties:

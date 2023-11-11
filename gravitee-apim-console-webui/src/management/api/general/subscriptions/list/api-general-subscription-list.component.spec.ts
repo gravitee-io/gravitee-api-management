@@ -35,6 +35,7 @@ import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/t
 import { User as DeprecatedUser } from '../../../../../entities/user';
 import {
   Api,
+  ApiKeyMode,
   ApiPlansResponse,
   ApiSubscriptionsResponse,
   fakeApiV1,
@@ -46,7 +47,7 @@ import {
   VerifySubscription,
 } from '../../../../../entities/management-api-v2';
 import { PagedResult } from '../../../../../entities/pagedResult';
-import { ApiKeyMode, Application } from '../../../../../entities/application/application';
+import { Application } from '../../../../../entities/application/application';
 import { fakeApplication } from '../../../../../entities/application/Application.fixture';
 import { ApiPortalSubscriptionCreationDialogHarness } from '../components/dialogs/creation/api-portal-subscription-creation-dialog.harness';
 import { PlanSecurityType } from '../../../../../entities/plan';
@@ -411,10 +412,8 @@ describe('ApiGeneralSubscriptionListComponent', () => {
 
       await creationDialogHarness.createSubscription();
       tick(400);
-      const subscription = fakeSubscription();
-      expectApplicationUpdateRequest(application, ApiKeyMode.EXCLUSIVE);
-      tick(400);
-      expectApiSubscriptionsPostRequest(planV4.id, application.id, undefined, subscription);
+      const subscription = fakeSubscription({ application: { apiKeyMode: 'EXCLUSIVE' } });
+      expectApiSubscriptionsPostRequest(planV4.id, application.id, undefined, 'EXCLUSIVE', subscription);
 
       expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.subscription.edit', { subscriptionId: expect.any(String) });
 
@@ -464,10 +463,8 @@ describe('ApiGeneralSubscriptionListComponent', () => {
 
       await creationDialogHarness.createSubscription();
       tick(400);
-      const subscription = fakeSubscription();
-      expectApplicationUpdateRequest(application, ApiKeyMode.SHARED);
-      tick(400);
-      expectApiSubscriptionsPostRequest(planV4.id, application.id, undefined, subscription);
+      const subscription = fakeSubscription({ application: { apiKeyMode: 'SHARED' } });
+      expectApiSubscriptionsPostRequest(planV4.id, application.id, undefined, 'SHARED', subscription);
 
       expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.subscription.edit', { subscriptionId: expect.any(String) });
 
@@ -500,7 +497,7 @@ describe('ApiGeneralSubscriptionListComponent', () => {
       await creationDialogHarness.createSubscription();
       tick(400);
       const subscription = fakeSubscription();
-      expectApiSubscriptionsPostRequest(planV4.id, application.id, undefined, subscription);
+      expectApiSubscriptionsPostRequest(planV4.id, application.id, undefined, undefined, subscription);
 
       expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.subscription.edit', { subscriptionId: expect.any(String) });
 
@@ -548,7 +545,7 @@ describe('ApiGeneralSubscriptionListComponent', () => {
       await creationDialogHarness.createSubscription();
       tick(400);
       const subscription = fakeSubscription();
-      expectApiSubscriptionsPostRequest(planV4.id, application.id, '12345678', subscription);
+      expectApiSubscriptionsPostRequest(planV4.id, application.id, '12345678', undefined, subscription);
 
       expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.subscription.edit', { subscriptionId: expect.any(String) });
 
@@ -766,6 +763,7 @@ describe('ApiGeneralSubscriptionListComponent', () => {
     planId: string,
     applicationId: string,
     customApiKey: string = undefined,
+    apiKeyMode: ApiKeyMode = undefined,
     subscription: Subscription,
   ) {
     const req = httpTestingController.expectOne({
@@ -776,11 +774,13 @@ describe('ApiGeneralSubscriptionListComponent', () => {
       planId,
       applicationId,
       customApiKey,
+      apiKeyMode,
     });
     req.flush(subscription);
     fixture.detectChanges();
   }
 
+<<<<<<< HEAD:gravitee-apim-console-webui/src/management/api/general/subscriptions/list/api-general-subscription-list.component.spec.ts
   function expectApplicationUpdateRequest(application: Application, apiKeyMode: ApiKeyMode) {
     const req = httpTestingController.expectOne({
       url: `${CONSTANTS_TESTING.env.baseURL}/applications/${application.id}`,
@@ -799,6 +799,8 @@ describe('ApiGeneralSubscriptionListComponent', () => {
     fixture.detectChanges();
   }
 
+=======
+>>>>>>> 87238ba15e (feat: allow to update apikeymode while subscribing on console):gravitee-apim-console-webui/src/management/api/portal/subscriptions/list/api-portal-subscription-list.component.spec.ts
   function expectApplicationsSearch(searchTerm: string, applications: Application[]) {
     const response: PagedResult<Application> = new PagedResult<Application>();
     response.populate({

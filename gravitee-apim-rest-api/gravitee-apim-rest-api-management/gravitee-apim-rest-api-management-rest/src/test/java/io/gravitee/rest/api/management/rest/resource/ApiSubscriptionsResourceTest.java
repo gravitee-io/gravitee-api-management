@@ -127,6 +127,7 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
             .queryParam("application", APP_NAME)
             .queryParam("plan", PLAN_NAME)
             .queryParam("customApiKey", customApiKey)
+            .queryParam("apiKeyMode", ApiKeyMode.EXCLUSIVE)
             .request()
             .post(null);
 
@@ -134,10 +135,16 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
             .create(eq(GraviteeContext.getExecutionContext()), any(NewSubscriptionEntity.class), customApiKeyCaptor.capture());
         verify(subscriptionService, times(1))
             .process(eq(GraviteeContext.getExecutionContext()), any(ProcessSubscriptionEntity.class), any());
+        verify(applicationService).updateApiKeyMode(GraviteeContext.getExecutionContext(), APP_NAME, ApiKeyMode.EXCLUSIVE);
         assertEquals(customApiKeyCaptor.getValue(), customApiKey);
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
         assertEquals(
-            envTarget().path(FAKE_SUBSCRIPTION_ID).queryParam("customApiKey", customApiKey).getUri().toString(),
+            envTarget()
+                .path(FAKE_SUBSCRIPTION_ID)
+                .queryParam("apiKeyMode", ApiKeyMode.EXCLUSIVE)
+                .queryParam("customApiKey", customApiKey)
+                .getUri()
+                .toString(),
             response.getHeaders().getFirst(HttpHeaders.LOCATION)
         );
     }

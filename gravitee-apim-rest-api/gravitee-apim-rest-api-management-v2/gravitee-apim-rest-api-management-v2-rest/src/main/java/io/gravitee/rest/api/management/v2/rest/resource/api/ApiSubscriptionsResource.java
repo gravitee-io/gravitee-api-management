@@ -56,6 +56,7 @@ import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.management.v2.rest.security.Permission;
 import io.gravitee.rest.api.management.v2.rest.security.Permissions;
 import io.gravitee.rest.api.model.ApiKeyEntity;
+import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.NewSubscriptionEntity;
 import io.gravitee.rest.api.model.ProcessSubscriptionEntity;
@@ -252,6 +253,14 @@ public class ApiSubscriptionsResource extends AbstractResource {
                 .status(Response.Status.BAD_REQUEST)
                 .entity(subscriptionInvalid("You are not allowed to provide a custom API Key"))
                 .build();
+        }
+
+        if (createSubscription.getApiKeyMode() != null) {
+            applicationService.updateApiKeyMode(
+                executionContext,
+                createSubscription.getApplicationId(),
+                ApiKeyMode.valueOf(createSubscription.getApiKeyMode().name())
+            );
         }
 
         final NewSubscriptionEntity newSubscriptionEntity = subscriptionMapper.map(createSubscription);

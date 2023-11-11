@@ -58,25 +58,7 @@ import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
-import io.gravitee.rest.api.model.ApiKeyEntity;
-import io.gravitee.rest.api.model.ApiModel;
-import io.gravitee.rest.api.model.ApplicationEntity;
-import io.gravitee.rest.api.model.GroupEntity;
-import io.gravitee.rest.api.model.NewSubscriptionEntity;
-import io.gravitee.rest.api.model.PageEntity;
-import io.gravitee.rest.api.model.PlanEntity;
-import io.gravitee.rest.api.model.PlanSecurityType;
-import io.gravitee.rest.api.model.PlanStatus;
-import io.gravitee.rest.api.model.PlanValidationType;
-import io.gravitee.rest.api.model.PrimaryOwnerEntity;
-import io.gravitee.rest.api.model.ProcessSubscriptionEntity;
-import io.gravitee.rest.api.model.SubscriptionConfigurationEntity;
-import io.gravitee.rest.api.model.SubscriptionEntity;
-import io.gravitee.rest.api.model.SubscriptionStatus;
-import io.gravitee.rest.api.model.TransferSubscriptionEntity;
-import io.gravitee.rest.api.model.UpdateSubscriptionConfigurationEntity;
-import io.gravitee.rest.api.model.UpdateSubscriptionEntity;
-import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.OAuthClientSettings;
@@ -97,6 +79,7 @@ import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiKeyAlreadyExistingException;
 import io.gravitee.rest.api.service.exceptions.PlanAlreadyClosedException;
@@ -195,7 +178,6 @@ public class SubscriptionServiceTest {
     @Mock
     private Subscription subscription;
 
-    @Mock
     private ApplicationEntity application;
 
     @Mock
@@ -264,6 +246,9 @@ public class SubscriptionServiceTest {
         planEntityV4 = new io.gravitee.rest.api.model.v4.plan.PlanEntity();
         planEntityV4.setId(PLAN_ID);
         planEntityV4.setApiId(API_ID);
+
+        application = new ApplicationEntity();
+        application.setId(APPLICATION_ID);
     }
 
     @Test
@@ -412,7 +397,7 @@ public class SubscriptionServiceTest {
         planEntity.setSecurity(PlanSecurityType.API_KEY);
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
 
-        when(application.hasApiKeySharedMode()).thenReturn(true);
+        application.setApiKeyMode(ApiKeyMode.SHARED);
         when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ID))).thenReturn(application);
 
         PlanEntity existingApiKeyPlan = new PlanEntity();
@@ -457,6 +442,134 @@ public class SubscriptionServiceTest {
         verify(subscriptionRepository, never()).update(any(Subscription.class));
         verify(apiKeyService, never()).generate(eq(GraviteeContext.getExecutionContext()), any(), any(), anyString());
         verify(subscriptionValidationService, times(1)).validateAndSanitize(any(), eq(newSubscriptionEntity));
+        assertNotNull(subscriptionEntity.getId());
+        assertNotNull(subscriptionEntity.getApplication());
+        assertNotNull(subscriptionEntity.getCreatedAt());
+    }
+
+    @Test
+    public void should_create_with_exclusive_apiKeyMode() throws Exception {
+        // Prepare data
+        planEntity.setValidation(PlanValidationType.MANUAL);
+        planEntity.setSecurity(PlanSecurityType.API_KEY);
+        application.setApiKeyMode(ApiKeyMode.UNSPECIFIED);
+
+        // Stub
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
+        when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiModelEntity);
+        when(subscriptionRepository.create(any())).thenAnswer(returnsFirstArg());
+
+        SecurityContextHolder.setContext(generateSecurityContext());
+
+        final NewSubscriptionEntity newSubscriptionEntity = new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID);
+        newSubscriptionEntity.setApiKeyMode(ApiKeyMode.EXCLUSIVE);
+
+        // Run
+        final SubscriptionEntity subscriptionEntity = subscriptionService.create(
+            GraviteeContext.getExecutionContext(),
+            newSubscriptionEntity
+        );
+
+        // Verify
+        verify(applicationService, times(1)).updateApiKeyMode(GraviteeContext.getExecutionContext(), APPLICATION_ID, ApiKeyMode.EXCLUSIVE);
+        assertNotNull(subscriptionEntity.getId());
+        assertNotNull(subscriptionEntity.getApplication());
+        assertNotNull(subscriptionEntity.getCreatedAt());
+    }
+
+    @Test
+    public void should_create_second_subscription_with_shared_apiKeyMode() throws Exception {
+        // Prepare data
+        planEntity.setValidation(PlanValidationType.MANUAL);
+        planEntity.setSecurity(PlanSecurityType.API_KEY);
+        application.setApiKeyMode(ApiKeyMode.UNSPECIFIED);
+
+        // Stub
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
+        when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiModelEntity);
+        when(subscriptionRepository.create(any())).thenAnswer(returnsFirstArg());
+
+        var otherPlan = new PlanEntity();
+        otherPlan.setId("planId");
+        otherPlan.setSecurity(PlanSecurityType.API_KEY);
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), otherPlan.getId())).thenReturn(otherPlan);
+
+        var otherSubscription = new Subscription();
+        otherSubscription.setPlan(otherPlan.getId());
+        otherSubscription.setStatus(ACCEPTED);
+        when(subscriptionRepository.search(any(SubscriptionCriteria.class))).thenReturn(List.of(otherSubscription));
+
+        SecurityContextHolder.setContext(generateSecurityContext());
+
+        final NewSubscriptionEntity newSubscriptionEntity = new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID);
+        newSubscriptionEntity.setApiKeyMode(ApiKeyMode.SHARED);
+
+        // Run
+        final SubscriptionEntity subscriptionEntity = subscriptionService.create(
+            GraviteeContext.getExecutionContext(),
+            newSubscriptionEntity
+        );
+
+        // Verify
+        verify(subscriptionRepository, times(1))
+            .search(
+                argThat(criteria ->
+                    criteria.getApplications().contains(APPLICATION_ID) &&
+                    criteria.getStatuses() != null &&
+                    criteria.getStatuses().containsAll(List.of(ACCEPTED.name(), PAUSED.name(), PENDING.name()))
+                )
+            );
+        verify(applicationService, times(1)).updateApiKeyMode(GraviteeContext.getExecutionContext(), APPLICATION_ID, ApiKeyMode.SHARED);
+        assertNotNull(subscriptionEntity.getId());
+        assertNotNull(subscriptionEntity.getApplication());
+        assertNotNull(subscriptionEntity.getCreatedAt());
+    }
+
+    @Test
+    public void should_create_second_subscription_with_exclusive_apiKeyMode_by_default() throws Exception {
+        // Prepare data
+        planEntity.setValidation(PlanValidationType.MANUAL);
+        planEntity.setSecurity(PlanSecurityType.API_KEY);
+        application.setApiKeyMode(ApiKeyMode.UNSPECIFIED);
+
+        // Stub
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
+        when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiModelEntity);
+        when(subscriptionRepository.create(any())).thenAnswer(returnsFirstArg());
+
+        var otherPlan = new PlanEntity();
+        otherPlan.setId("planId");
+        otherPlan.setSecurity(PlanSecurityType.API_KEY);
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), otherPlan.getId())).thenReturn(otherPlan);
+
+        var otherSubscription = new Subscription();
+        otherSubscription.setPlan(otherPlan.getId());
+        otherSubscription.setStatus(ACCEPTED);
+        when(subscriptionRepository.search(any(SubscriptionCriteria.class))).thenReturn(List.of(otherSubscription));
+
+        SecurityContextHolder.setContext(generateSecurityContext());
+
+        final NewSubscriptionEntity newSubscriptionEntity = new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID);
+
+        // Run
+        final SubscriptionEntity subscriptionEntity = subscriptionService.create(
+            GraviteeContext.getExecutionContext(),
+            newSubscriptionEntity
+        );
+
+        // Verify
+        verify(subscriptionRepository, times(1))
+            .search(
+                argThat(criteria ->
+                    criteria.getApplications().contains(APPLICATION_ID) &&
+                    criteria.getStatuses() != null &&
+                    criteria.getStatuses().containsAll(List.of(ACCEPTED.name(), PAUSED.name(), PENDING.name()))
+                )
+            );
+        verify(applicationService, times(1)).updateApiKeyMode(GraviteeContext.getExecutionContext(), APPLICATION_ID, ApiKeyMode.EXCLUSIVE);
         assertNotNull(subscriptionEntity.getId());
         assertNotNull(subscriptionEntity.getApplication());
         assertNotNull(subscriptionEntity.getCreatedAt());
@@ -671,7 +784,7 @@ public class SubscriptionServiceTest {
         OAuthClientSettings clientSettings = new OAuthClientSettings();
         clientSettings.setClientId("my-client-id");
         settings.setoAuthClient(clientSettings);
-        when(application.getSettings()).thenReturn(settings);
+        application.setSettings(settings);
 
         Subscription subscription = buildTestSubscription(PENDING);
 
@@ -908,6 +1021,42 @@ public class SubscriptionServiceTest {
         verify(subscriptionRepository, times(1)).update(any());
     }
 
+<<<<<<< HEAD
+=======
+    @Test(expected = SubscriptionNotFoundException.class)
+    public void shouldNotCloseSubscriptionBecauseDoesNoExist() throws Exception {
+        // Stub
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.empty());
+
+        subscriptionService.close(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
+    }
+
+    @Test
+    public void shouldCloseSubscription() throws Exception {
+        Subscription subscription = buildTestSubscription(ACCEPTED);
+        subscription.setEndingAt(new Date());
+
+        final ApiKeyEntity apiKey = new ApiKeyEntity();
+        apiKey.setKey("api-key");
+        apiKey.setRevoked(false);
+
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        when(subscriptionRepository.update(subscription)).thenReturn(subscription);
+        when(apiKeyService.findBySubscription(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID)).thenReturn(singletonList(apiKey));
+        when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiModelEntity);
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
+        application.setPrimaryOwner(new PrimaryOwnerEntity());
+
+        subscriptionService.close(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
+
+        verify(apiKeyService).revoke(GraviteeContext.getExecutionContext(), apiKey, false);
+        verify(notifierService).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.SUBSCRIPTION_CLOSED), anyString(), anyMap());
+        verify(notifierService)
+            .trigger(eq(GraviteeContext.getExecutionContext()), eq(ApplicationHook.SUBSCRIPTION_CLOSED), nullable(String.class), anyMap());
+    }
+
+>>>>>>> 87238ba15e (feat: allow to update apikeymode while subscribing on console)
     @Test
     public void shouldFailSubscription() throws TechnicalException {
         Subscription subscription = buildTestSubscription(ACCEPTED);
@@ -1008,7 +1157,7 @@ public class SubscriptionServiceTest {
         when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiModelEntity);
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
         when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
-        when(application.getPrimaryOwner()).thenReturn(mock(PrimaryOwnerEntity.class));
+        application.setPrimaryOwner(new PrimaryOwnerEntity());
 
         subscriptionService.pause(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
 
@@ -1705,12 +1854,69 @@ public class SubscriptionServiceTest {
     }
 
     @Test
+<<<<<<< HEAD
+=======
+    public void close_should_revoke_apikeys_if_not_shared_mode() throws Exception {
+        Subscription subscription = buildTestSubscription(ACCEPTED);
+        subscription.setEndingAt(new Date());
+
+        application.setApiKeyMode(ApiKeyMode.UNSPECIFIED);
+
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        when(subscriptionRepository.update(subscription)).thenReturn(subscription);
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+        when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ID))).thenReturn(application);
+
+        List<ApiKeyEntity> apiKeys = List.of(
+            buildTestApiKey("apikey-1", false, false),
+            buildTestApiKey("apikey-2", true, false),
+            buildTestApiKey("apikey-3", false, false),
+            buildTestApiKey("apikey-4", false, true)
+        );
+        when(apiKeyService.findBySubscription(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID)).thenReturn(apiKeys);
+
+        subscriptionService.close(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
+
+        // assert API Keys 1 and 3 have been revoked, but not 2 and 4 because it's already revoked or expired
+        verify(apiKeyService, times(1)).findBySubscription(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
+        verify(apiKeyService, times(1)).revoke(GraviteeContext.getExecutionContext(), apiKeys.get(0), false);
+        verify(apiKeyService, times(1)).revoke(GraviteeContext.getExecutionContext(), apiKeys.get(2), false);
+        verifyNoMoreInteractions(apiKeyService);
+    }
+
+    @Test
+    public void close_should_not_revoke_apikeys_if_shared_mode() throws Exception {
+        Subscription subscription = buildTestSubscription(ACCEPTED);
+        subscription.setEndingAt(new Date());
+
+        application.setApiKeyMode(ApiKeyMode.SHARED);
+
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        when(subscriptionRepository.update(subscription)).thenReturn(subscription);
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+        when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ID))).thenReturn(application);
+
+        List<ApiKeyEntity> apiKeys = List.of(
+            buildTestApiKey("apikey-1", false, false),
+            buildTestApiKey("apikey-2", true, false),
+            buildTestApiKey("apikey-3", false, false),
+            buildTestApiKey("apikey-4", false, true)
+        );
+
+        subscriptionService.close(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
+
+        // no key has been revoked nor updated, as their application use shared API Key mode
+        verifyNoMoreInteractions(apiKeyService);
+    }
+
+    @Test
+>>>>>>> 87238ba15e (feat: allow to update apikeymode while subscribing on console)
     public void shouldUpdateSubscriptionWithEndingDateAndSetApiKeyExpirationIfNotSharedApikey() throws Exception {
         UpdateSubscriptionEntity updatedSubscription = new UpdateSubscriptionEntity();
         updatedSubscription.setId(SUBSCRIPTION_ID);
         updatedSubscription.setEndingAt(new Date());
 
-        when(application.hasApiKeySharedMode()).thenReturn(false);
+        application.setApiKeyMode(ApiKeyMode.UNSPECIFIED);
 
         Subscription subscription = buildTestSubscription(ACCEPTED);
         subscription.setEndingAt(updatedSubscription.getEndingAt());
@@ -1754,7 +1960,7 @@ public class SubscriptionServiceTest {
         updatedSubscription.setId(SUBSCRIPTION_ID);
         updatedSubscription.setEndingAt(new Date());
 
-        when(application.hasApiKeySharedMode()).thenReturn(true);
+        application.setApiKeyMode(ApiKeyMode.SHARED);
 
         Subscription subscription = buildTestSubscription(ACCEPTED);
         subscription.setEndingAt(updatedSubscription.getEndingAt());
