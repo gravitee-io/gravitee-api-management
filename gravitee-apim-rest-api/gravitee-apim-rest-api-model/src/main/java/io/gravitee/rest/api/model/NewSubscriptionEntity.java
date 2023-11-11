@@ -38,6 +38,7 @@ public class NewSubscriptionEntity {
     private String request;
     private PageEntity.PageRevisionId generalConditionsContentRevision;
     private Boolean generalConditionsAccepted;
+    private ApiKeyMode apiKeyMode;
 
     private String filter;
 

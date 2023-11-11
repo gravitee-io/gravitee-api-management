@@ -234,9 +234,7 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
             if (data && data.application && data.plan) {
               this.$shouldPromptForKeyMode(data.application, data.plan).then((shouldPrompt) => {
                 if (shouldPrompt) {
-                  this.selectKeyMode()
-                    .then((mode) => this.ApplicationService.update({ ...data.application, api_key_mode: mode }))
-                    .then(() => this.doSubscribe(data.application, data.plan, data.customApiKey));
+                  this.selectKeyMode().then((mode) => this.doSubscribe(data.application, data.plan, data.customApiKey, mode));
                 } else {
                   this.doSubscribe(data.application, data.plan, data.customApiKey);
                 }
@@ -280,8 +278,8 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
       );
     }
 
-    doSubscribe(application: any, plan: any, customApiKey: string) {
-      this.ApiService.subscribe(this.api.id, application.id, plan.id, customApiKey).then((response) => {
+    doSubscribe(application: any, plan: any, customApiKey: string, apiKeyMode?: ApiKeyMode) {
+      this.ApiService.subscribe(this.api.id, application.id, plan.id, customApiKey, apiKeyMode).then((response) => {
         const subscription = response.data;
         this.NotificationService.show('A new subscription has been created.');
         this.$state.go('management.apis.detail.portal.subscriptions.subscription', { subscriptionId: subscription.id }, { reload: true });

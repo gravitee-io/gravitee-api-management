@@ -35,6 +35,7 @@ import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.ApiService;
+import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.UserService;
@@ -76,7 +77,7 @@ public class ApplicationSubscriptionsResource extends AbstractResource {
     private PlanSearchService planSearchService;
 
     @Inject
-    private ApiService apiService;
+    private ApplicationService applicationService;
 
     @Inject
     private UserService userService;

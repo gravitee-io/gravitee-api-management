@@ -161,6 +161,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
         @Parameter(name = "application", required = true) @NotNull @QueryParam("application") String application,
         @Parameter(name = "plan", required = true) @NotNull @QueryParam("plan") String plan,
         @Parameter(name = "customApiKey") @CustomApiKey @QueryParam("customApiKey") String customApiKey,
+        @Parameter(name = "apiKeyMode") @QueryParam("apiKeyMode") ApiKeyMode apiKeyMode,
         @Valid NewSubscriptionConfigurationEntity newSubscriptionConfigurationEntity
     ) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
