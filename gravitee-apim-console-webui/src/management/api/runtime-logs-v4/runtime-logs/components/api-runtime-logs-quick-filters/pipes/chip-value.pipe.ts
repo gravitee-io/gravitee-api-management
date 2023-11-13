@@ -19,7 +19,16 @@ import { MultiFilter, SimpleFilter } from '../../../models';
 
 @Pipe({ name: 'chipValue' })
 export class ChipValuePipe implements PipeTransform {
-  transform(filter: SimpleFilter | MultiFilter): string {
-    return Array.isArray(filter) ? filter.map((value) => value.label)?.join(', ') : filter.label;
+  transform(filter: SimpleFilter | MultiFilter | string[]): string {
+    return Array.isArray(filter)
+      ? filter
+          .map((value) => {
+            if (value.label) {
+              return value.label;
+            }
+            return value;
+          })
+          ?.join(', ')
+      : filter.label;
   }
 }
