@@ -133,6 +133,7 @@ async function getConsoleCustomizationForOem() {
     styles.forEach((style) => {
       document.documentElement.style.setProperty(style.key, style.value);
     });
+    document.getElementById('favicon').setAttribute('href', uiCustomization.data.favicon);
   }
 }
 
