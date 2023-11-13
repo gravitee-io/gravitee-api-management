@@ -33,13 +33,13 @@ export class ApiRuntimeLogsMoreFiltersFormComponent implements OnInit, OnDestroy
   @Output() valuesChangeEvent: EventEmitter<MoreFiltersForm> = new EventEmitter<MoreFiltersForm>();
   @Output() isInvalidEvent: EventEmitter<boolean> = new EventEmitter<boolean>();
   readonly periods = PERIODS;
-  moreFiltersForm: FormGroup;
+  datesForm: FormGroup;
   minDate: Moment;
 
   constructor(private readonly cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
-    this.moreFiltersForm = new FormGroup({
+    this.datesForm = new FormGroup({
       period: new FormControl(this.formValues.period),
       from: new FormControl(this.formValues.from),
       to: new FormControl(this.formValues.to),
@@ -54,41 +54,41 @@ export class ApiRuntimeLogsMoreFiltersFormComponent implements OnInit, OnDestroy
   }
 
   onDatesChange() {
-    this.moreFiltersForm
+    this.datesForm
       .get('period')
       .valueChanges.pipe(
         tap(() => {
-          this.moreFiltersForm.get('from').setValue(null, { emitEvent: false, onlySelf: true });
-          this.moreFiltersForm.get('to').setValue(null, { emitEvent: false, onlySelf: true });
+          this.datesForm.get('from').setValue(null, { emitEvent: false, onlySelf: true });
+          this.datesForm.get('to').setValue(null, { emitEvent: false, onlySelf: true });
         }),
         takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.emitValues());
 
-    this.moreFiltersForm
+    this.datesForm
       .get('from')
       .valueChanges.pipe(
         tap((from) => {
           this.minDate = from;
-          this.moreFiltersForm.get('period').setValue(DEFAULT_PERIOD, { emitEvent: false, onlySelf: true });
+          this.datesForm.get('period').setValue(DEFAULT_PERIOD, { emitEvent: false, onlySelf: true });
         }),
         takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.emitValues());
 
-    this.moreFiltersForm
+    this.datesForm
       .get('to')
       .valueChanges.pipe(
-        tap(() => this.moreFiltersForm.get('period').setValue(DEFAULT_PERIOD, { emitEvent: false, onlySelf: true })),
+        tap(() => this.datesForm.get('period').setValue(DEFAULT_PERIOD, { emitEvent: false, onlySelf: true })),
         takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.emitValues());
   }
 
   private emitValues() {
-    this.moreFiltersForm.updateValueAndValidity({ emitEvent: false });
-    this.isInvalidEvent.emit(this.moreFiltersForm.invalid);
-    this.valuesChangeEvent.emit(this.moreFiltersForm.getRawValue());
+    this.datesForm.updateValueAndValidity({ emitEvent: false });
+    this.isInvalidEvent.emit(this.datesForm.invalid);
+    this.valuesChangeEvent.emit(this.datesForm.getRawValue());
     this.cdr.detectChanges();
   }
 }
