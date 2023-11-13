@@ -59,7 +59,7 @@ Download API Management to document, discover, and publish your APIs.
 
 ## 📚 Documentation
 
-You can find Gravitee.io API Management's documentation on the [dedicated website](https://docs.gravitee.io/).
+You can find Gravitee.io API Management's documentation on the [dedicated website](https://documentation.gravitee.io/).
 
 ## 👥 Community
 
