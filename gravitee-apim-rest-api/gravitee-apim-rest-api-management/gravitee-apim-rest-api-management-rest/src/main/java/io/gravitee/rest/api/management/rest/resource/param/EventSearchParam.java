@@ -22,11 +22,15 @@ import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Getter
+@Setter
 public class EventSearchParam {
 
     @QueryParam("type")
@@ -51,53 +55,8 @@ public class EventSearchParam {
     @Parameter(explode = Explode.FALSE, schema = @Schema(type = "array"))
     private ListStringParam apiIdsParam;
 
-    public EventTypeListParam getEventTypeListParam() {
-        return eventTypeListParam;
-    }
-
-    public void setEventTypeListParam(EventTypeListParam eventTypeListParam) {
-        this.eventTypeListParam = eventTypeListParam;
-    }
-
-    public Long getFrom() {
-        return from;
-    }
-
-    public void setFrom(Long from) {
-        this.from = from;
-    }
-
-    public Long getTo() {
-        return to;
-    }
-
-    public void setTo(Long to) {
-        this.to = to;
-    }
-
-    public Integer getPage() {
-        return page;
-    }
-
-    public void setPage(Integer page) {
-        this.page = page;
-    }
-
-    public Integer getSize() {
-        return size;
-    }
-
-    public void setSize(Integer size) {
-        this.size = size;
-    }
-
-    public ListStringParam getApiIdsParam() {
-        return apiIdsParam;
-    }
-
-    public void setApiIdsParam(ListStringParam apiIdsParam) {
-        this.apiIdsParam = apiIdsParam;
-    }
+    @QueryParam("withPayload")
+    private boolean withPayload;
 
     public void validate() throws WebApplicationException {
         if (from == -1) {
