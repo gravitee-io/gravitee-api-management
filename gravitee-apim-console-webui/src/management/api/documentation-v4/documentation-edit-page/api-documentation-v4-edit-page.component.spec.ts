@@ -425,12 +425,14 @@ describe('ApiDocumentationV4EditPageComponent', () => {
           expect(await saveBtn.isDisabled()).toEqual(false);
           await saveBtn.click();
 
+          expectGetPage(PAGE);
+
           const req = httpTestingController.expectOne({
             method: 'PUT',
             url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages/${PAGE.id}`,
           });
           expect(req.request.body).toEqual({
-            type: 'MARKDOWN',
+            ...PAGE,
             name: 'New name',
             visibility: 'PRIVATE',
             content: 'New content',
@@ -471,13 +473,15 @@ describe('ApiDocumentationV4EditPageComponent', () => {
             expect(await saveBtn.isDisabled()).toEqual(false);
             await saveBtn.click();
 
+            expectGetPage(PAGE);
+
             const req = httpTestingController.expectOne({
               method: 'PUT',
               url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages/${PAGE.id}`,
             });
 
             expect(req.request.body).toEqual({
-              type: 'MARKDOWN',
+              ...PAGE,
               name: 'New name',
               visibility: 'PUBLIC',
               content: PAGE.content,

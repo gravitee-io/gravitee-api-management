@@ -17,7 +17,7 @@ import { Visibility } from './visibility';
 import { PageType } from './pageType';
 
 export interface BaseEditDocumentation {
-  type: PageType;
+  type?: PageType;
   name?: string;
   order?: number;
   visibility?: Visibility;

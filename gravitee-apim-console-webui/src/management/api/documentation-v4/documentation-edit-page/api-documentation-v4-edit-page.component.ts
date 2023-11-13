@@ -138,19 +138,20 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
 
   private updatePage(): Observable<Page> {
     const formValue = this.form.getRawValue();
-    return this.apiDocumentationService
-      .updateDocumentationPage(this.ajsStateParams.apiId, this.ajsStateParams.pageId, {
-        name: formValue.stepOne.name,
-        visibility: formValue.stepOne.visibility,
-        content: formValue.content,
-        type: this.page.type,
-      })
-      .pipe(
-        catchError((err) => {
-          this.snackBarService.error(err?.error?.message ?? 'Cannot update page');
-          return EMPTY;
+    return this.apiDocumentationService.getApiPage(this.ajsStateParams.apiId, this.ajsStateParams.pageId).pipe(
+      switchMap((page) =>
+        this.apiDocumentationService.updateDocumentationPage(this.ajsStateParams.apiId, this.ajsStateParams.pageId, {
+          ...page,
+          name: formValue.stepOne.name,
+          visibility: formValue.stepOne.visibility,
+          content: formValue.content,
         }),
-      );
+      ),
+      catchError((err) => {
+        this.snackBarService.error(err?.error?.message ?? 'Cannot update page');
+        return EMPTY;
+      }),
+    );
   }
 
   private createPage(): Observable<Page> {
