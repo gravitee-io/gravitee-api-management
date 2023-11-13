@@ -25,6 +25,13 @@
         </mat-select>
       </mat-form-field>
 
+      <mat-form-field class="quick-filters__methods">
+        <mat-label>HTTP methods</mat-label>
+        <mat-select formControlName="methods" aria-label="Methods selection" [multiple]="true">
+          <mat-option *ngFor="let httpMethod of httpMethods" [value]="httpMethod">{{ httpMethod }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
       <applications-filter
         formControlName="applications"
         class="quick-filters__applications"
@@ -47,7 +54,7 @@
           (applyMoreFiltersEvent)="applyMoreFilters($event)"
         ></api-runtime-logs-more-filters>
         <button mat-stroked-button type="button" class="action__button" [disabled]="loading" (click)="showMoreFilters = true">
-          <mat-icon svgIcon="gio:filter"></mat-icon> More
+          <mat-icon svgIcon="gio:filter"></mat-icon>More
         </button>
       </div>
       <div class="action">

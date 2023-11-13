@@ -378,6 +378,43 @@ describe('ApiRuntimeLogsComponent', () => {
       });
     });
 
+    describe('when there is more than one page and we apply a filter on methods', () => {
+      beforeEach(async () => {
+        await initComponentWithLogs({ hasLogs: true, total });
+      });
+
+      it('should filter on http request methods', async () => {
+        expect(await componentHarness.getSelectedMethods()).toEqual('');
+
+        await componentHarness.selectMethod('GET');
+        expect(await componentHarness.getSelectedMethods()).toEqual('GET');
+        expectApiWithLogs(total, { perPage, page: 1, methods: 'GET' });
+        expectUiRouterChange(2, { page: 1, perPage: 10, methods: 'GET' });
+
+        await componentHarness.selectMethod('POST');
+        expect(await componentHarness.getSelectedMethods()).toEqual('GET, POST');
+        expectApiWithLogs(total, { perPage, page: 1, methods: 'GET,POST' });
+        expectUiRouterChange(3, { page: 1, perPage: 10, methods: 'GET,POST' });
+
+        await componentHarness.goToNextPage();
+        expectApiWithLogs(total, { perPage, page: 2, methods: 'GET,POST' });
+        expectUiRouterChange(4, { page: 2, perPage: 10, methods: 'GET,POST' });
+      });
+
+      it('should remove methods filter', async () => {
+        await componentHarness.selectMethod('GET');
+        expect(await componentHarness.getSelectedMethods()).toEqual('GET');
+        expectApiWithLogs(total, { perPage, page: 1, methods: 'GET' });
+        expectUiRouterChange(2, { page: 1, perPage: 10, methods: 'GET' });
+        expect(await componentHarness.getMethodsChipText()).toStrictEqual('methods: GET');
+
+        await componentHarness.removeMethodsChip();
+        expect(await componentHarness.getQuickFiltersChips()).toBeNull();
+        expectApiWithLogs(total, { perPage, page: 1 });
+        expectUiRouterChange(3, { page: 1, perPage: 10 });
+      });
+    });
+
     describe('when we click on more filters button', () => {
       const fakeNow = moment('2023-10-25T00:00:00.000Z');
 
@@ -613,6 +650,22 @@ describe('ApiRuntimeLogsComponent', () => {
       });
     });
 
+    describe('there are methods filters in the url', () => {
+      it('should init the form with filters preselected', async () => {
+        await TestBed.overrideProvider(UIRouterStateParams, {
+          useValue: { ...stateParams, methods: 'POST' },
+        }).compileComponents();
+
+        await initComponent();
+        expectPlanList();
+        expectApiWithLogs(10, { page: 1, perPage: 10, methods: 'POST' });
+        expectApiWithLogEnabled();
+
+        expect(await componentHarness.getSelectedMethods()).toEqual('POST');
+        expect(await componentHarness.getMethodsChipText()).toStrictEqual('methods: POST');
+      });
+    });
+
     describe('should load page 2 by default', () => {
       beforeEach(async () => {
         await TestBed.overrideProvider(UIRouterStateParams, {
@@ -673,20 +726,11 @@ describe('ApiRuntimeLogsComponent', () => {
     }
 
     let expectedURL = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/logs?page=${param.page ?? 1}&perPage=${param.perPage ?? 10}`;
-    if (param.from) {
-      expectedURL = expectedURL.concat(`&from=${param.from}`);
-    }
-    if (param.to) {
-      expectedURL = expectedURL.concat(`&to=${param.to}`);
-    }
-
-    if (param.applicationIds) {
-      expectedURL = expectedURL.concat(`&applicationIds=${param.applicationIds}`);
-    }
-
-    if (param.planIds) {
-      expectedURL = expectedURL.concat(`&planIds=${param.planIds}`);
-    }
+    if (param.from) expectedURL = expectedURL.concat(`&from=${param.from}`);
+    if (param.to) expectedURL = expectedURL.concat(`&to=${param.to}`);
+    if (param.applicationIds) expectedURL = expectedURL.concat(`&applicationIds=${param.applicationIds}`);
+    if (param.planIds) expectedURL = expectedURL.concat(`&planIds=${param.planIds}`);
+    if (param.methods) expectedURL = expectedURL.concat(`&methods=${param.methods}`);
 
     httpTestingController
       .expectOne({
@@ -774,7 +818,7 @@ describe('ApiRuntimeLogsComponent', () => {
     expect(fakeUiRouter.go).toHaveBeenNthCalledWith(
       nthCall,
       '.',
-      { applicationIds: null, planIds: null, from: null, to: null, ...queryParams },
+      { applicationIds: null, planIds: null, methods: null, from: null, to: null, ...queryParams },
       { notify: false },
     );
   }

@@ -241,4 +241,32 @@ export class ApiRuntimeLogsHarness extends ComponentHarness {
   async moreFiltersPeriodText() {
     return this.selectPeriodFromMoreFilters().then((select) => select.getValueText());
   }
+
+  async getSelectedMethods() {
+    return this.quickFiltersHarness()
+      .then((harness) => harness.getMethodsSelect())
+      .then((select) => select.getValueText());
+  }
+
+  async selectMethod(text: string) {
+    return this.quickFiltersHarness()
+      .then((harness) => harness.getMethodsSelect())
+      .then((select) => select.clickOptions({ text }));
+  }
+
+  async getMethodsChip() {
+    return this.quickFiltersHarness().then((harness) => harness.getMethodsChip());
+  }
+
+  async getMethodsChipText() {
+    return this.quickFiltersHarness()
+      .then((harness) => harness.getMethodsChip())
+      .then((chip) => chip.getText());
+  }
+
+  async removeMethodsChip() {
+    return this.getMethodsChip()
+      .then((chip) => chip.getRemoveButton())
+      .then((button) => button.click());
+  }
 }
