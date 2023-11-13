@@ -395,6 +395,47 @@ public class ApiLogsResourceTest extends ApiResourceTest {
                         .build()
                 );
         }
+
+        @Test
+        public void should_return_connection_logs_filtered_by_methods() {
+            connectionLogStorageService.initWith(
+                List.of(
+                    connectionLogFixtures.aConnectionLog("req1").toBuilder().method(io.gravitee.common.http.HttpMethod.POST).build(),
+                    connectionLogFixtures.aConnectionLog("req2").toBuilder().method(io.gravitee.common.http.HttpMethod.GET).build(),
+                    connectionLogFixtures.aConnectionLog("req3").toBuilder().method(io.gravitee.common.http.HttpMethod.POST).build()
+                )
+            );
+
+            connectionLogsTarget = connectionLogsTarget.queryParam(SearchLogsParam.METHODS_QUERY_PARAM_NAME, HttpMethod.GET);
+            final Response response = connectionLogsTarget.request().get();
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(ApiLogsResponse.class)
+                .isEqualTo(
+                    ApiLogsResponse
+                        .builder()
+                        .data(
+                            List.of(
+                                ApiLog
+                                    .builder()
+                                    .application(BaseApplication.builder().id("app1").name(APPLICATION.getName()).build())
+                                    .plan(BasePlan.builder().id(PLAN_1.getId()).name(PLAN_1.getName()).apiId(API).build())
+                                    .method(HttpMethod.GET)
+                                    .status(200)
+                                    .clientIdentifier("client-identifier")
+                                    .requestEnded(true)
+                                    .transactionId("transaction-id")
+                                    .timestamp(Instant.parse("2020-02-01T20:00:00.00Z").atOffset(ZoneOffset.UTC))
+                                    .requestId("req2")
+                                    .build()
+                            )
+                        )
+                        .pagination(Pagination.builder().page(1).perPage(10).pageCount(1).pageItemsCount(1).totalCount(1L).build())
+                        .links(Links.builder().self(connectionLogsTarget.getUri().toString()).build())
+                        .build()
+                );
+        }
     }
 
     @Nested

@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.elasticsearch.v4.log.adapter.connection;
 
+import io.gravitee.common.http.HttpMethod;
 import io.gravitee.repository.log.v4.model.connection.ConnectionLogQuery;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -68,6 +69,10 @@ public class SearchConnectionLogQueryAdapter {
 
         if (!CollectionUtils.isEmpty(filter.getPlanIds())) {
             terms.add(JsonObject.of("terms", JsonObject.of("plan-id", filter.getPlanIds())));
+        }
+
+        if (!CollectionUtils.isEmpty(filter.getMethods())) {
+            terms.add(JsonObject.of("terms", JsonObject.of("http-method", filter.getMethods().stream().map(HttpMethod::code).toList())));
         }
 
         if (!terms.isEmpty()) {
