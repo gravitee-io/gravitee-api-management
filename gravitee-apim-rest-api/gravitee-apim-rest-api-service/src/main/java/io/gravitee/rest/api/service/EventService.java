@@ -88,8 +88,8 @@ public interface EventService {
         ExecutionContext executionContext,
         List<EventType> eventTypes,
         Map<String, Object> properties,
-        long from,
-        long to,
+        Long from,
+        Long to,
         int page,
         int size,
         final List<String> environments

@@ -315,13 +315,19 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         ExecutionContext executionContext,
         List<EventType> eventTypes,
         Map<String, Object> properties,
-        long from,
-        long to,
+        Long from,
+        Long to,
         int page,
         int size,
         final List<String> environmentsIds
     ) {
-        EventCriteria.EventCriteriaBuilder builder = EventCriteria.builder().from(from).to(to);
+        EventCriteria.EventCriteriaBuilder builder = EventCriteria.builder();
+        if (from != null) {
+            builder.from(from);
+        }
+        if (to != null) {
+            builder.to(to);
+        }
 
         if (eventTypes != null) {
             eventTypes.forEach(eventType -> builder.type(io.gravitee.repository.management.model.EventType.valueOf(eventType.name())));
