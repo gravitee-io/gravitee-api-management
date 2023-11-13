@@ -24,6 +24,7 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { ApiDocumentationV4EmptyStateComponent } from './api-documentation-v4-empty-state.component';
 
 import { ApiDocumentationV4Module } from '../../api-documentation-v4.module';
+import { GioHttpTestingModule } from '../../../../../shared/testing';
 
 describe('ApiDocumentationV4EmptyStateComponent', () => {
   let fixture: ComponentFixture<ApiDocumentationV4EmptyStateComponent>;
@@ -33,7 +34,7 @@ describe('ApiDocumentationV4EmptyStateComponent', () => {
   const init = async () => {
     await TestBed.configureTestingModule({
       declarations: [ApiDocumentationV4EmptyStateComponent],
-      imports: [NoopAnimationsModule, ApiDocumentationV4Module],
+      imports: [NoopAnimationsModule, ApiDocumentationV4Module, GioHttpTestingModule],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {
