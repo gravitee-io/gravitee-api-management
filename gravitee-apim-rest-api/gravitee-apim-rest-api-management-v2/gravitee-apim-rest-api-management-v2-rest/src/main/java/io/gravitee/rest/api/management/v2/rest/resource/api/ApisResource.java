@@ -30,9 +30,12 @@ import io.gravitee.rest.api.management.v2.rest.model.ApiSearchQuery;
 import io.gravitee.rest.api.management.v2.rest.model.ApisResponse;
 import io.gravitee.rest.api.management.v2.rest.model.CreateApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.ExportApiV4;
+<<<<<<< HEAD
 import io.gravitee.rest.api.management.v2.rest.model.VerifyApiPaths;
 import io.gravitee.rest.api.management.v2.rest.model.VerifyApiPathsResponse;
 import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
+=======
+>>>>>>> 0831edadf2 (refactor: optimize imports)
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.ApiSortByParam;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
