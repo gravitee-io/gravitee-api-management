@@ -23,6 +23,7 @@ import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.mongodb.management.internal.model.ApiMongo;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -42,4 +43,6 @@ public interface ApiMongoRepositoryCustom {
     Page<String> searchIds(List<ApiCriteria> apiCriteria, Pageable pageable, Sortable sortable);
 
     Set<String> listCategories(ApiCriteria apiCriteria);
+
+    Page<String> searchV1ApisId(Pageable pageable);
 }

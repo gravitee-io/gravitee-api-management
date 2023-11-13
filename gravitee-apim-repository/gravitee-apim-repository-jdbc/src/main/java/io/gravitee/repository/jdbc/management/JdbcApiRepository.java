@@ -209,6 +209,20 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
     }
 
     @Override
+    public Stream<String> searchV1ApisId(int batchSize) {
+        // As in JDBC, we do not paginate, we cannot use the batch size
+        LOGGER.debug("JdbcApiRepository.searchV1ApisId()");
+
+        final String query = new StringBuilder()
+            .append("select a.id from ")
+            .append(this.tableName)
+            .append(" a where a.definition LIKE '%\"gravitee\" : \"1.0.0\"%' ")
+            .toString();
+
+        return jdbcTemplate.queryForList(query, String.class).stream();
+    }
+
+    @Override
     public Page<String> searchIds(List<ApiCriteria> criteria, Pageable pageable, Sortable sortable) {
         LOGGER.debug("JdbcApiRepository.searchIds({})", criteria);
 

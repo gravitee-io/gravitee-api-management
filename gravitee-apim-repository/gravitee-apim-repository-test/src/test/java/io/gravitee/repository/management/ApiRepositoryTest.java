@@ -616,4 +616,13 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         boolean exist = apiRepository.existById("unknown-api");
         assertFalse(exist);
     }
+
+    @Test
+    public void shouldFindAllV1Apis() {
+        List<String> apis = apiRepository.searchV1ApisId().collect(toList());
+
+        assertNotNull(apis);
+        assertFalse(apis.isEmpty());
+        assertEquals(3, apis.size());
+    }
 }

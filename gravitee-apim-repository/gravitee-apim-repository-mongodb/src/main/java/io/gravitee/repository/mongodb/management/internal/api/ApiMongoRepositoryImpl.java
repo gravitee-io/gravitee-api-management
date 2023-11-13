@@ -29,6 +29,7 @@ import io.gravitee.repository.mongodb.management.internal.model.ApiMongo;
 import io.gravitee.repository.mongodb.utils.FieldUtils;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,6 +69,26 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
         List<ApiMongo> apis = mongoTemplate.find(query, ApiMongo.class);
 
         return new Page<>(apis, pageable != null ? pageable.pageNumber() : 0, pageable != null ? pageable.pageSize() : 0, total);
+    }
+
+    @Override
+    public Page<String> searchV1ApisId(Pageable pageable) {
+        Objects.requireNonNull(pageable, "Pageable must not be null");
+
+        final Query query = new Query();
+        // Only fetch the id
+        query.fields().include("_id");
+        query.addCriteria(where("definition").regex("\\\"gravitee\\\" : \\\"1.0.0\\\""));
+
+        // Get total count before adding pagination to the query
+        long total = mongoTemplate.count(query, ApiMongo.class);
+
+        // set pageable
+        query.with(PageRequest.of(pageable.pageNumber(), pageable.pageSize()));
+
+        List<String> apisIds = mongoTemplate.find(query, ApiMongo.class).stream().map(ApiMongo::getId).collect(Collectors.toList());
+
+        return new Page<>(apisIds, pageable.pageNumber(), apisIds.size(), total);
     }
 
     @Override
