@@ -47,6 +47,10 @@ export class ApiLogsV2Service {
       params = params.append('planIds', queryParam.planIds);
     }
 
+    if (queryParam?.methods) {
+      params = params.append('methods', queryParam.methods);
+    }
+
     return this.http.get<ApiLogsResponse>(`${this.constants.env.v2BaseURL}/apis/${apiId}/logs`, {
       params,
     });
