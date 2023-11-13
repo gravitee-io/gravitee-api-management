@@ -52,6 +52,7 @@ export class ApiRuntimeLogsQuickFiltersComponent implements OnInit, OnDestroy {
 
   readonly periods = PERIODS;
   readonly defaultFilters = DEFAULT_FILTERS;
+  readonly httpMethods = ['CONNECT', 'DELETE', 'GET', 'HEAD', 'OPTIONS', 'PATCH', 'POST', 'PUT', 'TRACE'];
   isFiltering = false;
   quickFiltersForm: FormGroup;
   applicationsCache: CacheEntry[];
@@ -75,6 +76,7 @@ export class ApiRuntimeLogsQuickFiltersComponent implements OnInit, OnDestroy {
         disabled: true,
       }),
       plans: new FormControl({ value: this.initialValues.plans?.map((plan) => plan.value) ?? DEFAULT_FILTERS.plans, disabled: true }),
+      methods: new FormControl({ value: this.initialValues.methods, disabled: true }),
     });
     this.onValuesChanges();
   }
@@ -132,7 +134,7 @@ export class ApiRuntimeLogsQuickFiltersComponent implements OnInit, OnDestroy {
       if (values.period && values.period === DEFAULT_PERIOD) {
         this.moreFiltersValues = { ...this.moreFiltersValues, period: values.period };
       } else {
-        this.moreFiltersValues = { period: values.period, from: null, to: null };
+        this.moreFiltersValues = { ...this.moreFiltersValues, period: values.period, from: null, to: null };
       }
       this.quickFilterStore.next(this.mapFormValues(values, this.moreFiltersValues));
       this.currentFilters = this.quickFilterStore.getFilters();
@@ -147,11 +149,12 @@ export class ApiRuntimeLogsQuickFiltersComponent implements OnInit, OnDestroy {
     };
   }
 
-  private mapQuickFiltersFormValues({ period, applications, plans }: LogFiltersForm) {
+  private mapQuickFiltersFormValues({ period, applications, plans, methods }: LogFiltersForm) {
     return {
       period,
       plans: this.plansFromValues(plans),
       applications: this.applicationsFromValues(applications),
+      methods: methods?.length > 0 ? methods : undefined,
     };
   }
 

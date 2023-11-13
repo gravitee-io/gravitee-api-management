@@ -45,7 +45,8 @@ export class QuickFiltersStoreService {
       from: logFilters.from ? logFilters.from : from,
       to: logFilters.to ? logFilters.to : to,
       applicationIds: logFilters.applications?.length > 0 ? logFilters.applications?.map((app) => app.value).join(',') : null,
-      planIds: logFilters.plans?.length > 0 ? logFilters.plans?.map((app) => app.value).join(',') : null,
+      planIds: logFilters.plans?.length > 0 ? logFilters.plans?.map((plan) => plan.value).join(',') : null,
+      methods: logFilters.methods?.length > 0 ? logFilters.methods?.join(',') : null,
     };
   }
 

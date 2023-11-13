@@ -140,6 +140,7 @@ export class ApiRuntimeLogsComponent implements OnInit, OnDestroy {
               }) ?? undefined,
             from: this.ajsStateParams.from ? moment(this.ajsStateParams.from) : undefined,
             to: this.ajsStateParams.to ? moment(this.ajsStateParams.to) : undefined,
+            methods: this.ajsStateParams.methods?.split(',') ?? undefined,
           };
         }),
       )

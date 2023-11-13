@@ -32,4 +32,10 @@ describe('ChipValuePipe', () => {
       ]),
     ).toStrictEqual('foo, bar');
   });
+
+  it("should join values when it's a string array", () => {
+    const pipe = new ChipValuePipe();
+
+    expect(pipe.transform(['foo', 'bar'])).toStrictEqual('foo, bar');
+  });
 });

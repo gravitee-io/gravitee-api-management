@@ -31,21 +31,11 @@ export class ApiLogsV2Service {
     params = params.append('page', queryParam?.page ?? 1);
     params = params.append('perPage', queryParam?.perPage ?? 10);
 
-    if (queryParam?.from) {
-      params = params.append('from', queryParam.from);
-    }
-
-    if (queryParam?.to) {
-      params = params.append('to', queryParam.to);
-    }
-
-    if (queryParam?.applicationIds) {
-      params = params.append('applicationIds', queryParam.applicationIds);
-    }
-
-    if (queryParam?.planIds) {
-      params = params.append('planIds', queryParam.planIds);
-    }
+    if (queryParam?.from) params = params.append('from', queryParam.from);
+    if (queryParam?.to) params = params.append('to', queryParam.to);
+    if (queryParam?.applicationIds) params = params.append('applicationIds', queryParam.applicationIds);
+    if (queryParam?.planIds) params = params.append('planIds', queryParam.planIds);
+    if (queryParam?.methods) params = params.append('methods', queryParam.methods);
 
     return this.http.get<ApiLogsResponse>(`${this.constants.env.v2BaseURL}/apis/${apiId}/logs`, {
       params,
