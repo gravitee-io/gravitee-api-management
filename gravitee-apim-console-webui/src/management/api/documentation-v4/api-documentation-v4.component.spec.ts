@@ -30,7 +30,7 @@ import { ApiDocumentationV4PagesListHarness } from './documentation-pages-list/a
 import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { Breadcrumb, Page } from '../../../entities/management-api-v2/documentation/page';
-import { fakeFolder } from '../../../entities/management-api-v2/documentation/page.fixture';
+import { fakeFolder, fakeMarkdown } from '../../../entities/management-api-v2/documentation/page.fixture';
 
 describe('ApiDocumentationV4', () => {
   let fixture: ComponentFixture<ApiDocumentationV4Component>;
@@ -245,6 +245,58 @@ describe('ApiDocumentationV4', () => {
       });
 
       expectGetPages([page], []);
+    });
+
+    it('should move folder down', async () => {
+      const firstPage = fakeFolder({ id: 'first-id', name: 'my first folder', visibility: 'PUBLIC', order: 0 });
+      const secondPage = fakeFolder({ id: 'second-id', name: 'my private folder', visibility: 'PRIVATE', order: 1 });
+      await init([firstPage, secondPage], []);
+
+      const pageListHarness = await harnessLoader.getHarness(ApiDocumentationV4PagesListHarness);
+      const firstRowButton = await pageListHarness.getMovePageDownButtonByRowIndex(0);
+      const secondRowButton = await pageListHarness.getMovePageDownButtonByRowIndex(1);
+
+      expect(await firstRowButton.isDisabled()).toEqual(false);
+      expect(await secondRowButton.isDisabled()).toEqual(true);
+
+      await firstRowButton.click();
+
+      const req = httpTestingController.expectOne({
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages/${firstPage.id}`,
+      });
+      expect(req.request.body).toEqual({
+        ...firstPage,
+        order: 1,
+      });
+      req.flush(firstPage);
+      expectGetPages([firstPage, secondPage], []);
+    });
+
+    it('should move page up', async () => {
+      const firstPage = fakeMarkdown({ id: 'first-id', name: 'my first folder', visibility: 'PUBLIC', order: 0, content: '1' });
+      const secondPage = fakeMarkdown({ id: 'second-id', name: 'my private folder', visibility: 'PRIVATE', order: 1, content: '2' });
+      await init([firstPage, secondPage], []);
+
+      const pageListHarness = await harnessLoader.getHarness(ApiDocumentationV4PagesListHarness);
+      const firstRowButton = await pageListHarness.getMovePageUpButtonByRowIndex(0);
+      const secondRowButton = await pageListHarness.getMovePageUpButtonByRowIndex(1);
+
+      expect(await firstRowButton.isDisabled()).toEqual(true);
+      expect(await secondRowButton.isDisabled()).toEqual(false);
+
+      await secondRowButton.click();
+
+      const req = httpTestingController.expectOne({
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages/${secondPage.id}`,
+      });
+      expect(req.request.body).toEqual({
+        ...secondPage,
+        order: 0,
+      });
+      req.flush(secondPage);
+      expectGetPages([firstPage, secondPage], []);
     });
   });
 

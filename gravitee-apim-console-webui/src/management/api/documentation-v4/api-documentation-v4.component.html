@@ -29,6 +29,8 @@
     (onGoToFolder)="navigateTo($event)"
     (onEditPage)="editPage($event)"
     (onEditFolder)="editFolder($event)"
+    (onMoveUp)="moveUp($event)"
+    (onMoveDown)="moveDown($event)"
   ></api-documentation-v4-pages-list>
   <ng-template #emptyState>
     <api-documentation-empty-state (onAddPage)="addPage()"></api-documentation-empty-state>
