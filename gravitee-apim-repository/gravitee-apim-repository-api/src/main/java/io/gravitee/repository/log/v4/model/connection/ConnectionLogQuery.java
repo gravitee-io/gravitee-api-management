@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.log.v4.model.connection;
 
+import io.gravitee.common.http.HttpMethod;
 import java.util.Set;
 import lombok.Builder;
 import lombok.Data;
@@ -40,5 +41,6 @@ public class ConnectionLogQuery {
         private Long to;
         private Set<String> applicationIds;
         private Set<String> planIds;
+        private Set<HttpMethod> methods;
     }
 }

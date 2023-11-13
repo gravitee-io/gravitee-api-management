@@ -18,6 +18,7 @@ package io.gravitee.repository.elasticsearch.v4.log.adapter.connection;
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static net.javacrumbs.jsonunit.core.Option.IGNORING_ARRAY_ORDER;
 
+import io.gravitee.common.http.HttpMethod;
 import io.gravitee.repository.log.v4.model.connection.ConnectionLogQuery;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -327,6 +328,36 @@ class SearchConnectionLogQueryAdapterTest {
                                  }
                               }
                              """
+            ),
+            Arguments.of(
+                ConnectionLogQuery.Filter.builder().apiId("1").methods(Set.of(HttpMethod.GET, HttpMethod.CONNECT)).build(),
+                """
+                                     {
+                                         "from": 0,
+                                         "size": 20,
+                                         "query": {
+                                             "bool": {
+                                                 "must": [
+                                                     {
+                                                         "term": {
+                                                             "api-id": "1"
+                                                         }
+                                                     },
+                                                     {
+                                                         "terms": {
+                                                             "http-method": [3, 1]
+                                                         }
+                                                     }
+                                                 ]
+                                             }
+                                         },
+                                         "sort": {
+                                             "@timestamp": {
+                                                 "order": "desc"
+                                             }
+                                         }
+                                     }
+                                     """
             )
         );
     }
