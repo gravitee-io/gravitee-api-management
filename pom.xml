@@ -150,7 +150,7 @@
         <maven-assembly-plugin.version>3.3.0</maven-assembly-plugin.version>
         <maven-clean-plugin.version>3.1.0</maven-clean-plugin.version>
         <maven-jar-plugin.version>3.3.0</maven-jar-plugin.version>
-        <jacoco-maven-plugin.version>0.8.10</jacoco-maven-plugin.version>
+        <jacoco-maven-plugin.version>0.8.11</jacoco-maven-plugin.version>
         <os-maven-plugin.version>1.7.0</os-maven-plugin.version>
         <swagger-maven-plugin.version>>2.2.9</swagger-maven-plugin.version>
         <maven-plugin-prettier.version>0.19</maven-plugin-prettier.version>
