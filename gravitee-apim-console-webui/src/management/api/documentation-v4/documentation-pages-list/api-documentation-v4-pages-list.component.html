@@ -68,13 +68,19 @@
     </ng-container>
     <ng-container matColumnDef="actions">
       <th mat-header-cell *matHeaderCellDef>Actions</th>
-      <td mat-cell *matCellDef="let page">
+      <td mat-cell *matCellDef="let page; let i = index">
         <div class="documentation-pages-list__table__actions">
           <button *ngIf="page.type === 'FOLDER'" mat-icon-button (click)="onEditFolder.emit(page)" aria-label="Edit folder">
             <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
           </button>
           <button *ngIf="page.type !== 'FOLDER'" mat-icon-button (click)="onEditPage.emit(page.id)" aria-label="Edit page">
             <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
+          </button>
+          <button mat-icon-button (click)="onMoveUp.emit(page)" [disabled]="i === 0 || page.order === 0" aria-label="Move page up">
+            <mat-icon svgIcon="gio:arrow-up"></mat-icon>
+          </button>
+          <button mat-icon-button (click)="onMoveDown.emit(page)" [disabled]="i === dataSource.data.length - 1" aria-label="Move page down">
+            <mat-icon svgIcon="gio:arrow-down"></mat-icon>
           </button>
           <button mat-icon-button (click)="onDeletePage.emit(page.id)" disabled="true">
             <mat-icon svgIcon="gio:trash"></mat-icon>

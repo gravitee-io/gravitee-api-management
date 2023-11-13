@@ -146,4 +146,29 @@ export class ApiDocumentationV4Component implements OnInit, OnDestroy {
         },
       });
   }
+
+  moveUp(page: Page) {
+    this.changeOrder(page, page.order - 1);
+  }
+
+  moveDown(page: Page) {
+    this.changeOrder(page, page.order + 1);
+  }
+
+  private changeOrder(page: Page, order: number): void {
+    this.apiDocumentationV2Service
+      .updateDocumentationPage(this.ajsStateParams.apiId, page.id, {
+        ...page,
+        order,
+      })
+      .subscribe({
+        next: () => {
+          this.snackBarService.success('Order updated successfully');
+          this.ngOnInit();
+        },
+        error: (error) => {
+          this.snackBarService.error(error?.error?.message ?? 'Error while changing order');
+        },
+      });
+  }
 }
