@@ -286,6 +286,29 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
                     tuple("5fc3b3e5-7aa7-408e-83b3-e57aa7708ed4", today + "T06:54:30.047Z")
                 );
         }
+
+        @Test
+        void should_return_the_connection_logs_for_methods() {
+            var result = logV4Repository.searchConnectionLogs(
+                ConnectionLogQuery
+                    .builder()
+                    .page(1)
+                    .size(10)
+                    .filter(Filter.builder().methods(Set.of(HttpMethod.GET, HttpMethod.POST)).build())
+                    .build()
+            );
+            assertThat(result).isNotNull();
+            assertThat(result.total()).isEqualTo(5);
+            assertThat(result.data())
+                .extracting(ConnectionLog::getRequestId, ConnectionLog::getMethod)
+                .containsExactly(
+                    tuple("8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48", HttpMethod.GET),
+                    tuple("26c61cfc-a4cc-4272-861c-fca4cc2272ab", HttpMethod.POST),
+                    tuple("ebaa9b08-eac8-490d-aa9b-08eac8590d3c", HttpMethod.POST),
+                    tuple("aed3a207-d5c0-4073-93a2-07d5c0007336", HttpMethod.GET),
+                    tuple("3aa93e93-eaa3-4fcd-a93e-93eaa3bfcd41", HttpMethod.GET)
+                );
+        }
     }
 
     @Nested
