@@ -10,6 +10,10 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
 - Make optional HTTP2 request processing via `gateway.http.alpn` set at `true` by default.
 - "fix 'gravitee.yml' > 'services.metrics' definition from helm `values.yaml`"
 
+### 4.1.4
+
+- "fix 'gravitee.yml' > 'services.metrics' definition from helm `values.yaml`"
+
 ### 4.1.0
 
 - Avoid empty user when disabling admin user
@@ -19,6 +23,24 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
 - Add nodePort value to all services
 - Remove smtp default example values
 - Allow wildcard in ingress host
+- Add unknownExpireAfter in management-api configuration
+
+### 4.0.13
+
+- "fix 'gravitee.yml' > 'services.metrics' definition from helm `values.yaml`"
+
+### 4.0.9
+
+- Allow wildcard in ingress host
+- Remove smtp default example values
+- Add unknownExpireAfter in management-api configuration
+
+### 4.0.6
+
+- Add revision history limit on portal
+- Add podSecurityContext
+- Avoid empty user when disabling admin user
+
 
 ### 4.0.2
 
@@ -28,6 +50,27 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
 
 - Define gateway http max sizes
 - Add support for DB less deployment
+
+### 3.20.23
+
+- "fix 'gravitee.yml' > 'services.metrics' definition from helm `values.yaml`"
+
+### 3.20.20
+
+- Allow wildcard in ingress host
+- Remove smtp default example values
+- Add unknownExpireAfter in management-api configuration
+
+### 3.20.17
+
+- Add revision history limit on portal
+- Add podSecurityContext
+
+- Avoid empty user when disabling admin user
+
+### 3.20.16
+
+- Define elasticsearch settings
 
 ### 3.20.15
 
