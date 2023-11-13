@@ -71,7 +71,6 @@ import { ApiCreationV4ConfirmationComponent } from './creation-v4/api-creation-v
 import { ApiCreationV2Component } from './creation-v2/steps/api-creation-v2.component';
 import { ApiPropertiesComponent } from './proxy/properties/properties/api-properties.component';
 import { ApiDocumentationV4Component } from './documentation-v4/api-documentation-v4.component';
-import { ApiDocumentationV4NewPageComponent } from './documentation-v4/documentation-new-page/api-documentation-v4-new-page.component';
 import { ApiDocumentationV4EditPageComponent } from './documentation-v4/documentation-edit-page/api-documentation-v4-edit-page.component';
 import { ApiDynamicPropertiesComponent } from './proxy/properties/dynamic-properties/api-dynamic-properties.component';
 import { ApiRuntimeLogsDetailsComponent } from './runtime-logs-v4/runtime-logs-details/api-runtime-logs-details.component';
@@ -1403,6 +1402,9 @@ export const states: Ng2StateDeclaration[] = [
     data: {
       useAngularMaterial: true,
       docs: null,
+      apiPermissions: {
+        only: ['api-documentation-c'],
+      },
     },
     params: {
       parentId: {
@@ -1411,14 +1413,17 @@ export const states: Ng2StateDeclaration[] = [
         dynamic: true,
       },
     },
-    component: ApiDocumentationV4NewPageComponent,
+    component: ApiDocumentationV4EditPageComponent,
   },
   {
     name: 'management.apis.documentationV4-edit',
-    url: '/documentation-v4/edit?pageId',
+    url: '/documentation-v4/:pageId/edit',
     data: {
       useAngularMaterial: true,
       docs: null,
+      apiPermissions: {
+        only: ['api-documentation-u'],
+      },
     },
     params: {
       pageId: {

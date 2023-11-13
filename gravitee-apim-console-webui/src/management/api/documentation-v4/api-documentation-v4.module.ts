@@ -34,12 +34,10 @@ import { ApiDocumentationV4EmptyStateComponent } from './components/documentatio
 import { ApiDocumentationV4ListNavigationHeaderComponent } from './components/documentation-list-navigation-header/api-documentation-v4-list-navigation-header.component';
 import { ApiDocumentationV4Component } from './api-documentation-v4.component';
 import { ApiDocumentationV4EditFolderDialog } from './dialog/documentation-edit-folder-dialog/api-documentation-v4-edit-folder-dialog.component';
-import { ApiDocumentationV4NewPageComponent } from './documentation-new-page/api-documentation-v4-new-page.component';
+import { ApiDocumentationV4EditPageComponent } from './documentation-edit-page/api-documentation-v4-edit-page.component';
 import { ApiDocumentationV4VisibilityComponent } from './components/api-documentation-v4-visibility/api-documentation-v4-visibility.component';
 import { ApiDocumentationV4PagesListComponent } from './documentation-pages-list/api-documentation-v4-pages-list.component';
 import { ApiDocumentationV4ContentEditorComponent } from './components/api-documentation-v4-content-editor/api-documentation-v4-content-editor.component';
-import { ApiDocumentationV4EditPageComponent } from './documentation-edit-page/api-documentation-v4-edit-page.component';
-import { ApiDocumentationV4PageHeaderComponent } from './components/api-documentation-v4-page-header/api-documentation-v4-page-header.component';
 import { ApiDocumentationV4PageTitleComponent } from './components/api-documentation-v4-page-title/api-documentation-v4-page-title.component';
 import { ApiDocumentationV4BreadcrumbComponent } from './components/api-documentation-v4-breadcrumb/api-documentation-v4-breadcrumb.component';
 
@@ -50,11 +48,9 @@ import { ApiDocumentationV4BreadcrumbComponent } from './components/api-document
     ApiDocumentationV4ListNavigationHeaderComponent,
     ApiDocumentationV4VisibilityComponent,
     ApiDocumentationV4ContentEditorComponent,
-    ApiDocumentationV4PageHeaderComponent,
     ApiDocumentationV4PageTitleComponent,
     ApiDocumentationV4BreadcrumbComponent,
     ApiDocumentationV4EditFolderDialog,
-    ApiDocumentationV4NewPageComponent,
     ApiDocumentationV4EditPageComponent,
     ApiDocumentationV4PagesListComponent,
     ApiDocumentationV4BreadcrumbComponent,
