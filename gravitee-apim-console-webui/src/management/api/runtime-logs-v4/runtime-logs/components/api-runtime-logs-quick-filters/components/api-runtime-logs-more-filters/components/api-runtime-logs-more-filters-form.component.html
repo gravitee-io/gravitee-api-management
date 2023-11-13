@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<form *ngIf="moreFiltersForm" [formGroup]="moreFiltersForm">
+<form *ngIf="datesForm" [formGroup]="datesForm">
   <div class="more-filters__body__block">
     <span class="more-filters__body__title">Date</span>
     <mat-form-field class="form-control__period">
@@ -37,8 +37,8 @@
       <input matInput [owlDateTime]="toDateTimePicker" [min]="minDate" formControlName="to" />
       <mat-icon [owlDateTimeTrigger]="toDateTimePicker" matSuffix svgIcon="gio:nav-arrow-down"></mat-icon>
       <owl-date-time #toDateTimePicker></owl-date-time>
-      <mat-error *ngIf="moreFiltersForm.get('to').hasError('owlDateTimeMin')">
-        <span> Date time value must be after {{ moreFiltersForm.get('from').value | date : 'yyyy-MM-dd HH:mm:ss' }} </span>
+      <mat-error *ngIf="datesForm.get('to').hasError('owlDateTimeMin')">
+        <span> Date time value must be after {{ datesForm.get('from').value | date : 'yyyy-MM-dd HH:mm:ss' }} </span>
       </mat-error>
     </mat-form-field>
   </div>
