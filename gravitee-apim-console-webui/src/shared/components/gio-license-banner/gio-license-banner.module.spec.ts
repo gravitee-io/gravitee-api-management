@@ -19,6 +19,8 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 import { GioLicenseBannerModule } from './gio-license-banner.module';
 
+import { GioHttpTestingModule } from '../../testing';
+
 const onRequestUpgrade = jest.fn();
 
 @Component({
@@ -34,7 +36,7 @@ describe('GioLicenseBannerModule', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       declarations: [TestComponent],
-      imports: [NoopAnimationsModule, GioLicenseBannerModule],
+      imports: [NoopAnimationsModule, GioLicenseBannerModule, GioHttpTestingModule],
     });
     fixture = TestBed.createComponent(TestComponent);
   });
