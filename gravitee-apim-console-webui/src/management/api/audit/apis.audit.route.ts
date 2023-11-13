@@ -51,12 +51,6 @@ function apisAuditRouterConfig($stateProvider) {
       template: require('./history/apiHistory.html'),
       controller: 'ApiHistoryController',
       controllerAs: 'apiHistoryCtrl',
-      resolve: {
-        resolvedEvents: function ($stateParams, ApiService) {
-          const eventTypes = 'PUBLISH_API';
-          return ApiService.getApiEvents($stateParams.apiId, eventTypes);
-        },
-      },
       data: {
         perms: {
           only: ['api-event-r'],

@@ -1514,8 +1514,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 executionContext,
                 Arrays.asList(PUBLISH_API, EventType.UNPUBLISH_API),
                 properties,
-                0,
-                0,
+                (long) 0,
+                (long) 0,
                 0,
                 1,
                 singletonList(executionContext.getEnvironmentId())
