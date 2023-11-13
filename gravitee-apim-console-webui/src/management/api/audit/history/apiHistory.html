@@ -67,6 +67,8 @@
         </timeline-event>
       </div>
     </timeline>
+
+    <a ng-if="apiHistoryCtrl.hasNextEventPageToLoad" ng-click="apiHistoryCtrl.appendNextPage()">Load more...</a>
   </div>
 
   <div class="api-events-content" flex="80">
