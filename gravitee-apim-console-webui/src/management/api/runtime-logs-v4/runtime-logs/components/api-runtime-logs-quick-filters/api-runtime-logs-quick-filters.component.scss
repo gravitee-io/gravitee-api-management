@@ -21,17 +21,28 @@ $typography: map.get(gio.$mat-theme, typography);
   &__selectors {
     display: flex;
     flex-direction: row;
+    flex-wrap: wrap;
   }
 
-  &__period,
   &__applications,
   &__plans {
     padding: 0;
     margin-right: 16px;
   }
 
+  &__period,
+  &__methods {
+    display: inline;
+    width: 132px;
+    padding: 0;
+    margin-right: 16px;
+  }
+
   .action {
-    margin-top: 0.25em;
+    // here we align the padding and margin of the button to angular mat-form-fields
+    padding-bottom: 1.34em;
+    margin: 0.25em 0;
+
     &__button {
       height: 48px;
       margin-right: 16px;
