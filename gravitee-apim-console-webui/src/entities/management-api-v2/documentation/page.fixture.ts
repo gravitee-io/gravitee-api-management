@@ -30,6 +30,7 @@ const BASE_PAGE: Page = {
 export function fakeMarkdown(modifier?: Partial<Page>): Page {
   const markdownModifier: Page = {
     content: 'my markdown content',
+    type: 'MARKDOWN',
   };
 
   return {

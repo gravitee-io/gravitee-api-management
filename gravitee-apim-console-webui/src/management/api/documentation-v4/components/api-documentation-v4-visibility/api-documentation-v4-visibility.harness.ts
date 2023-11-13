@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
-import { MatRadioButtonHarness } from '@angular/material/radio/testing';
+import { MatRadioButtonHarness, MatRadioGroupHarness } from '@angular/material/radio/testing';
 
 export class ApiDocumentationV4VisibilityHarness extends ComponentHarness {
   public static hostSelector = 'api-documentation-visibility';
 
+  private radioGroupLocator = this.locatorFor(MatRadioGroupHarness);
   private publicRadioLocator = this.locatorFor(MatRadioButtonHarness.with({ label: 'PublicRequires no subscription to view' }));
   private privateRadioLocator = this.locatorFor(MatRadioButtonHarness.with({ label: 'PrivateRequires approved subscription to view' }));
 
@@ -27,5 +28,9 @@ export class ApiDocumentationV4VisibilityHarness extends ComponentHarness {
   }
   public getPrivateRadioOption() {
     return this.privateRadioLocator();
+  }
+
+  public getValue(): Promise<string> {
+    return this.radioGroupLocator().then((radioGroup) => radioGroup.getCheckedValue());
   }
 }

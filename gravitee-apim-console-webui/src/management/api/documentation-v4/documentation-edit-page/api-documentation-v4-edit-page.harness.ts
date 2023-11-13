@@ -21,7 +21,7 @@ import { MatRadioGroupHarness } from '@angular/material/radio/testing';
 import { ApiDocumentationV4VisibilityHarness } from '../components/api-documentation-v4-visibility/api-documentation-v4-visibility.harness';
 
 export class ApiDocumentationV4EditPageHarness extends ComponentHarness {
-  public static hostSelector = 'api-documentation-new-page';
+  public static hostSelector = 'api-documentation-edit-page';
 
   private nextButtonLocator = this.locatorFor(MatButtonHarness.with({ text: 'Next' }));
   private nameInputLocator = this.locatorFor(MatInputHarness);
@@ -30,6 +30,10 @@ export class ApiDocumentationV4EditPageHarness extends ComponentHarness {
 
   async getNextButton() {
     return this.nextButtonLocator();
+  }
+
+  async getName(): Promise<string> {
+    return this.nameInputLocator().then((input) => input.getValue());
   }
 
   async setName(name: string) {
@@ -41,6 +45,10 @@ export class ApiDocumentationV4EditPageHarness extends ComponentHarness {
     const button =
       visibility === 'PRIVATE' ? await visibilityHarness.getPrivateRadioOption() : await visibilityHarness.getPublicRadioOption();
     return button.check();
+  }
+
+  async getVisibility() {
+    return this.visibilityHarness().then((harness) => harness.getValue());
   }
 
   async getSourceRadioGroupHarness() {

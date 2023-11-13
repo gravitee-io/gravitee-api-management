@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { StateParams } from '@uirouter/core';
 import { StateService } from '@uirouter/angularjs';
-import { MatDialog } from '@angular/material/dialog';
-import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
-import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { EMPTY, Subject } from 'rxjs';
+import { catchError, switchMap, tap } from 'rxjs/operators';
+import { EMPTY, Observable, of, Subject } from 'rxjs';
 
+import { CreateDocumentationMarkdown } from '../../../../entities/management-api-v2/documentation/createDocumentation';
 import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { ApiDocumentationV2Service } from '../../../../services-ngx/api-documentation-v2.service';
 import { Breadcrumb, Page } from '../../../../entities/management-api-v2/documentation/page';
-import { EditDocumentationMarkdown } from '../../../../entities/management-api-v2/documentation/editDocumentation';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 
 @Component({
@@ -33,13 +32,22 @@ import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
   styles: [require('./api-documentation-v4-edit-page.component.scss')],
 })
 export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
-  private unsubscribe$: Subject<void> = new Subject<void>();
-  page: Page;
-  content: string;
+  form: FormGroup;
+  stepOneForm: FormGroup;
+  mode: 'create' | 'edit';
+  pageTitle = 'Add new page';
+  step3Title: string;
+  source: 'FILL' | 'IMPORT' | 'EXTERNAL' = 'FILL';
   breadcrumbs: Breadcrumb[];
 
+  formUnchanged: boolean;
+  page: Page;
+
+  private loadPage$: Observable<Page>;
+  private unsubscribe$: Subject<void> = new Subject<void>();
+
   constructor(
-    private readonly matDialog: MatDialog,
+    private readonly formBuilder: FormBuilder,
     @Inject(UIRouterState) private readonly ajsState: StateService,
     @Inject(UIRouterStateParams) private readonly ajsStateParams: StateParams,
     private readonly apiDocumentationService: ApiDocumentationV2Service,
@@ -47,20 +55,53 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.apiDocumentationService
-      .getApiPage(this.ajsStateParams.apiId, this.ajsStateParams.pageId)
+    this.stepOneForm = this.formBuilder.group({
+      name: this.formBuilder.control('', [Validators.required]),
+      visibility: this.formBuilder.control('PUBLIC', [Validators.required]),
+    });
+    this.form = this.formBuilder.group({
+      stepOne: this.stepOneForm,
+      source: this.formBuilder.control(this.source, [Validators.required]),
+      content: this.formBuilder.control('', [Validators.required]),
+    });
+
+    if (this.ajsStateParams.pageId) {
+      this.mode = 'edit';
+      this.step3Title = 'Edit content';
+      this.loadPage$ = this.loadEditPage();
+
+      this.form.valueChanges
+        .pipe(
+          tap((value) => {
+            if (this.page) {
+              this.formUnchanged =
+                this.page.name === value.stepOne?.name &&
+                this.page.visibility === value.stepOne?.visibility &&
+                this.source === value.source &&
+                this.page.content === value.content;
+            }
+          }),
+        )
+        .subscribe();
+    } else {
+      this.mode = 'create';
+      this.step3Title = 'Add content';
+      this.loadPage$ = of({});
+    }
+
+    this.loadPage$
       .pipe(
-        tap((page) => {
-          this.page = page;
-          this.content = page.content;
-        }),
-        // get all pages from parent folder to build the breadcrumb. Will also be used to check page name is not a duplicate.
-        switchMap((page) => this.apiDocumentationService.getApiPages(this.ajsStateParams.apiId, page.parentId ?? 'ROOT')),
-        takeUntil(this.unsubscribe$),
+        switchMap((page) =>
+          this.apiDocumentationService.getApiPages(this.ajsStateParams.apiId, this.ajsStateParams.parentId ?? page?.parentId ?? 'ROOT'),
+        ),
       )
-      .subscribe((res) => {
-        this.breadcrumbs = res.breadcrumb;
+      .subscribe({
+        next: (pagesResponse) => {
+          this.breadcrumbs = pagesResponse.breadcrumb;
+        },
       });
+
+    this.stepOneForm.get('name').valueChanges.subscribe((value) => (this.pageTitle = value || 'Add new page'));
   }
 
   ngOnDestroy() {
@@ -68,68 +109,81 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
     this.unsubscribe$.unsubscribe();
   }
 
-  save() {
-    this.savePage().subscribe(() => {
-      this.ajsState.go('management.apis.documentationV4', { ...this.ajsStateParams, parentId: this.page.parentId });
+  create() {
+    this.createPage().subscribe(() => {
+      this.ajsState.go('management.apis.documentationV4', this.ajsStateParams);
     });
   }
 
-  saveAndPublish() {
-    this.savePage()
-      .pipe(switchMap(() => this.apiDocumentationService.publishDocumentationPage(this.ajsStateParams.apiId, this.ajsStateParams.pageId)))
+  createAndPublish() {
+    this.createPage()
+      .pipe(switchMap((page) => this.apiDocumentationService.publishDocumentationPage(this.ajsStateParams.apiId, page.id)))
       .subscribe({
         next: () => {
-          this.ajsState.go('management.apis.documentationV4', { ...this.ajsStateParams, parentId: this.page.parentId });
+          this.ajsState.go('management.apis.documentationV4', this.ajsStateParams);
         },
         error: (error) => {
-          this.snackBarService.error(error?.error?.message ?? 'Cannot save page');
+          this.snackBarService.error(error?.error?.message ?? 'Cannot publish page');
         },
       });
   }
 
-  private savePage() {
-    return this.apiDocumentationService.getApiPage(this.ajsStateParams.apiId, this.ajsStateParams.pageId).pipe(
-      switchMap((page) => {
-        const editPage: EditDocumentationMarkdown = {
-          ...page,
-          type: 'MARKDOWN',
-          content: this.content,
-        };
+  update() {
+    this.updatePage().subscribe({
+      next: () => {
+        this.ajsState.go('management.apis.documentationV4', this.ajsStateParams);
+      },
+    });
+  }
 
-        return this.apiDocumentationService.updateDocumentationPage(this.ajsStateParams.apiId, this.ajsStateParams.pageId, editPage);
-      }),
+  private updatePage(): Observable<Page> {
+    const formValue = this.form.getRawValue();
+    return this.apiDocumentationService
+      .updateDocumentationPage(this.ajsStateParams.apiId, this.ajsStateParams.pageId, {
+        name: formValue.stepOne.name,
+        visibility: formValue.stepOne.visibility,
+        content: formValue.content,
+        type: this.page.type,
+      })
+      .pipe(
+        catchError((err) => {
+          this.snackBarService.error(err?.error?.message ?? 'Cannot update page');
+          return EMPTY;
+        }),
+      );
+  }
+
+  private createPage(): Observable<Page> {
+    const createPage: CreateDocumentationMarkdown = {
+      type: 'MARKDOWN',
+      name: this.form.getRawValue().stepOne.name,
+      visibility: this.form.getRawValue().stepOne.visibility,
+      content: this.form.getRawValue().content,
+      parentId: this.ajsStateParams.parentId || 'ROOT',
+    };
+    return this.apiDocumentationService.createDocumentationPage(this.ajsStateParams.apiId, createPage).pipe(
       catchError((err) => {
         this.snackBarService.error(err?.error?.message ?? 'Cannot save page');
         return EMPTY;
       }),
     );
   }
-  exit() {
-    // When no changes, exit without confirmation
-    if (this.content === this.page.content) {
-      this.exitWithoutSaving();
-    } else {
-      this.matDialog
-        .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
-          width: GIO_DIALOG_WIDTH.SMALL,
-          data: {
-            title: 'Are you sure?',
-            content: 'If you leave this page, you will lose your changes.',
-            confirmButton: 'Discard changes',
-            cancelButton: 'Keep creating',
-          },
-          role: 'alertdialog',
-          id: 'exitWithoutSaving',
-        })
-        .afterClosed()
-        .pipe(takeUntil(this.unsubscribe$))
-        .subscribe((shouldExit) => {
-          if (shouldExit) this.exitWithoutSaving();
-        });
-    }
+
+  private loadEditPage(): Observable<Page> {
+    return this.apiDocumentationService.getApiPage(this.ajsStateParams.apiId, this.ajsStateParams.pageId).pipe(
+      tap((page) => {
+        this.pageTitle = page.name;
+        this.page = page;
+
+        this.stepOneForm.get('name').setValue(this.page.name);
+        this.stepOneForm.get('visibility').setValue(this.page.visibility);
+
+        this.form.get('content').setValue(this.page.content);
+      }),
+    );
   }
 
   exitWithoutSaving() {
-    this.ajsState.go('management.apis.documentationV4', { ...this.ajsStateParams, parentId: this.page.parentId });
+    this.ajsState.go('management.apis.documentationV4', this.ajsStateParams);
   }
 }

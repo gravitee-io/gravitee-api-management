@@ -17,23 +17,96 @@
 -->
 <api-documentation-page-title></api-documentation-page-title>
 <mat-card>
-  <api-documentation-page-header
-    [pageName]="page?.name"
-    [breadcrumbs]="breadcrumbs"
-    (exitWithoutSaving)="exitWithoutSaving()"
-  ></api-documentation-page-header>
-  <div class="content">
-    <api-documentation-content [(ngModel)]="content" [published]="page?.published"></api-documentation-content>
+  <div class="header">
+    <div>
+      <h3>{{ pageTitle }}</h3>
+      <div class="header__location">
+        In
+        <api-documentation-breadcrumb [breadcrumbs]="breadcrumbs" [canNavigate]="false"></api-documentation-breadcrumb>
+      </div>
+    </div>
+    <div class="header__actions">
+      <button mat-stroked-button (click)="exitWithoutSaving()">Exit without saving</button>
+    </div>
   </div>
-  <div class="actions">
-    <ng-container *ngIf="page?.published; else notPublished">
-      <button mat-flat-button color="primary" [disabled]="content?.length === 0" (click)="save()">Publish changes</button>
-      <button mat-stroked-button (click)="exit()">Cancel</button>
-    </ng-container>
-    <ng-template #notPublished>
-      <button mat-flat-button color="primary" [disabled]="content?.length === 0" (click)="saveAndPublish()">Save and publish</button>
-      <button mat-stroked-button [disabled]="content?.length === 0" (click)="save()">Save</button>
-      <button mat-stroked-button (click)="exit()">Cancel</button>
-    </ng-template>
+  <div class="stepper">
+    <form [formGroup]="form">
+      <mat-stepper linear color="accent" disableRipple>
+        <mat-step>
+          <ng-template matStepLabel>Configure page</ng-template>
+          <div class="stepper__content">
+            <form [formGroup]="stepOneForm">
+              <mat-form-field>
+                <mat-label>Name</mat-label>
+                <input matInput formControlName="name" placeholder="Name" autofocus />
+              </mat-form-field>
+              <api-documentation-visibility formControlName="visibility"></api-documentation-visibility>
+            </form>
+          </div>
+          <div class="stepper__actions">
+            <button mat-flat-button color="primary" matStepperNext [disabled]="stepOneForm.invalid">Next</button>
+          </div>
+        </mat-step>
+        <mat-step>
+          <ng-template matStepLabel>Determine source</ng-template>
+          <div class="stepper__content">
+            <div class="mat-body-2">Page source</div>
+
+            <mat-radio-group class="gio-radio-group stepper__content__source" formControlName="source">
+              <mat-radio-button value="FILL" class="gio-radio-button">
+                <gio-radio-button-content icon="gio:edit-pencil">
+                  <gio-radio-button-title>Fill in the content myself</gio-radio-button-title>
+                </gio-radio-button-content>
+              </mat-radio-button>
+              <mat-radio-button value="IMPORT" class="gio-radio-button" disabled="true">
+                <gio-radio-button-content icon="gio:down-circle">
+                  <gio-radio-button-title>Import from file</gio-radio-button-title>
+                  <gio-radio-button-subtitle><div class="gio-badge-primary">Coming soon</div></gio-radio-button-subtitle>
+                </gio-radio-button-content>
+              </mat-radio-button>
+              <mat-radio-button value="EXTERNAL" class="gio-radio-button" disabled="true">
+                <gio-radio-button-content icon="gio:language">
+                  <gio-radio-button-title>Import from file</gio-radio-button-title>
+                  <gio-radio-button-subtitle><div class="gio-badge-primary">Coming soon</div></gio-radio-button-subtitle>
+                </gio-radio-button-content>
+              </mat-radio-button>
+            </mat-radio-group>
+          </div>
+          <div class="stepper__actions">
+            <button mat-flat-button color="primary" matStepperNext>Next</button>
+            <button mat-stroked-button matStepperPrevious>Previous</button>
+          </div>
+        </mat-step>
+        <mat-step>
+          <ng-template matStepLabel>{{ step3Title }}</ng-template>
+          <div class="stepper__content">
+            <ng-container>
+              <api-documentation-content formControlName="content" [published]="page?.published"></api-documentation-content>
+            </ng-container>
+          </div>
+          <div class="stepper__actions">
+            <ng-container *ngIf="mode === 'create'">
+              <button mat-flat-button color="primary" [disabled]="form.invalid" (click)="createAndPublish()">Save and publish</button>
+              <button mat-stroked-button [disabled]="form.invalid" (click)="create()">Save</button>
+              <button mat-stroked-button matStepperPrevious>Previous</button>
+            </ng-container>
+
+            <ng-container *ngIf="mode === 'edit' && page?.published">
+              <button mat-flat-button color="primary" [disabled]="form.invalid || form.pristine || formUnchanged" (click)="update()">
+                Publish changes
+              </button>
+              <button mat-stroked-button matStepperPrevious>Previous</button>
+            </ng-container>
+
+            <ng-container *ngIf="mode === 'edit' && !page?.published">
+              <button mat-flat-button color="primary" [disabled]="form.invalid || form.pristine || formUnchanged" (click)="update()">
+                Save
+              </button>
+              <button mat-stroked-button matStepperPrevious>Previous</button>
+            </ng-container>
+          </div>
+        </mat-step>
+      </mat-stepper>
+    </form>
   </div>
 </mat-card>
