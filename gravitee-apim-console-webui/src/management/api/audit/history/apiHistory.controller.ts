@@ -132,6 +132,9 @@ class ApiHistoryController {
   private left: any;
   private added: number;
   private removed: number;
+  private eventPage: number;
+  private eventPageSize = 100;
+  public hasNextEventPageToLoad = false;
 
   constructor(
     private $mdDialog: ng.material.IDialogService,
@@ -140,14 +143,12 @@ class ApiHistoryController {
     private $state: StateService,
     private ApiService: ApiService,
     private NotificationService,
-    private resolvedEvents,
     private PolicyService,
     private ResourceService,
     private FlowService,
   ) {
     'ngInject';
     this.api = JSON.parse(angular.toJson(_.cloneDeep(this.$scope.$parent.apiCtrl.api)));
-    this.events = resolvedEvents.data;
     this.eventsSelected = [];
     this.eventsTimeline = [];
     this.eventsToCompare = [];
@@ -159,6 +160,19 @@ class ApiHistoryController {
       { title: Modes.Design, id: Modes.Design },
       { title: Modes.Payload, id: Modes.Payload },
     ];
+
+    this.$scope.$on('apiChangeSuccess', (event, args) => {
+      if (this.$state.current.name.endsWith('history')) {
+        // reload API
+        this.api = JSON.parse(angular.toJson(_.cloneDeep(args.api)));
+        this.init();
+      }
+    });
+    this.$scope.$on('checkAPISynchronizationSucceed', () => {
+      if (this.events && this.events.length) {
+        this.reloadEventsTimeline(this.events);
+      }
+    });
   }
 
   $onInit() {
@@ -177,26 +191,28 @@ class ApiHistoryController {
         this.studio.propertyProviders = propertyProviders;
       });
     }
+
     this.init();
-    this.initTimeline(this.events);
   }
 
   init() {
     this.$scope.$parent.apiCtrl.checkAPISynchronization(this.api);
-    this.$scope.$on('apiChangeSuccess', (event, args) => {
-      if (this.$state.current.name.endsWith('history')) {
-        // reload API
-        this.api = JSON.parse(angular.toJson(_.cloneDeep(args.api)));
-        // reload API events
-        this.ApiService.getApiEvents(this.api.id, this.eventTypes).then((response) => {
-          this.events = response.data;
-          this.reloadEventsTimeline(this.events);
-        });
-      }
-    });
-    this.$scope.$on('checkAPISynchronizationSucceed', () => {
-      this.reloadEventsTimeline(this.events);
-    });
+
+    this.eventPage = -1;
+    this.events = [];
+    this.appendNextPage();
+  }
+
+  appendNextPage() {
+    this.eventPage++;
+    this.ApiService.searchApiEvents(this.eventTypes, this.api.id, undefined, undefined, this.eventPage, this.eventPageSize, true).then(
+      (response) => {
+        this.events = [...(this.events ?? []), ...response.data.content];
+        this.hasNextEventPageToLoad =
+          response.data.totalElements > response.data.pageNumber * this.eventPageSize + response.data.pageElements;
+        this.initTimeline(this.events);
+      },
+    );
   }
 
   setEventToStudio(eventTimeline, api) {

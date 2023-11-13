@@ -385,9 +385,25 @@ export class ApiService {
     return this.$http.get(`${this.Constants.env.baseURL}/apis/${api}/events?type=${eventTypes}`);
   }
 
-  searchApiEvents(type: any, api: any, from: any, to: any, page: any, size: any): IHttpPromise<any> {
+  searchApiEvents(type: any, api: any, from: any, to: any, page: any, size: any, withPayload = false): IHttpPromise<any> {
+    const params = {
+      type,
+      page,
+      size,
+    };
+    if (from) {
+      params['from'] = from;
+    }
+    if (to) {
+      params['to'] = to;
+    }
+    if (withPayload) {
+      params['withPayload'] = withPayload;
+    }
     return this.$http.get(
-      `${this.Constants.env.baseURL}/apis/${api}/events/search?type=${type}&from=${from}&to=${to}&page=${page}&size=${size}`,
+      `${this.Constants.env.baseURL}/apis/${api}/events/search?${Object.entries(params)
+        .map(([key, value]) => `${key}=${value}`)
+        .join('&')}`,
     );
   }
 
