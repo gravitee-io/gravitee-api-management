@@ -134,6 +134,9 @@ class ApiHistoryControllerAjs {
   private left: any;
   private added: number;
   private removed: number;
+  private eventPage: number;
+  private eventPageSize = 100;
+  public hasNextEventPageToLoad = false;
 
   /* @ngInject */
   constructor(
@@ -160,34 +163,53 @@ class ApiHistoryControllerAjs {
       { title: Modes.Design, id: Modes.Design },
       { title: Modes.Payload, id: Modes.Payload },
     ];
+
+    this.$scope.$on('apiChangeSuccess', (event, args) => {
+      if (this.$state.current.name.endsWith('history')) {
+        // reload API
+        this.ApiService.get(args.apiId).then((response) => (this.api = response.data));
+        this.$onInit();
+      }
+    });
   }
 
   $onInit() {
     this.studio = document.querySelector('gv-policy-studio');
+    if (this.hasDesign()) {
+      Promise.all([
+        this.PolicyService.list(true, true),
+        this.ResourceService.list(true, true),
+        this.ApiService.getFlowSchemaForm(),
+        this.FlowService.getConfigurationSchema(),
+      ]).then(([policies, resources, flowSchema, configurationSchema]) => {
+        this.studio.policies = policies.data;
+        this.studio.resourceTypes = resources.data;
+        this.studio.flowSchema = flowSchema.data;
+        this.studio.configurationSchema = configurationSchema.data;
+        this.studio.propertyProviders = propertyProviders;
+      });
+    }
 
     this.ApiService.get(this.$state.params.apiId).then((api) => {
       this.api = api.data;
+      this.$scope.$parent.apiCtrl.checkAPISynchronization(this.api);
 
-      if (this.hasDesign()) {
-        return Promise.all([
-          this.PolicyService.list(true, true),
-          this.ResourceService.list(true, true),
-          this.ApiService.getFlowSchemaForm(),
-          this.FlowService.getConfigurationSchema(),
-          this.ApiService.getApiEvents(this.$state.params.apiId, 'PUBLISH_API'),
-        ]).then(([policies, resources, flowSchema, configurationSchema, events]) => {
-          this.studio.policies = policies.data;
-          this.studio.resourceTypes = resources.data;
-          this.studio.flowSchema = flowSchema.data;
-          this.studio.configurationSchema = configurationSchema.data;
-          this.studio.propertyProviders = propertyProviders;
-          this.events = events.data;
-
-          this.initTimeline(this.events);
-          this.$scope.$apply();
-        });
-      }
+      this.eventPage = -1;
+      this.events = [];
+      this.appendNextPage();
     });
+  }
+
+  appendNextPage() {
+    this.eventPage++;
+    this.ApiService.searchApiEvents(this.eventTypes, this.api.id, undefined, undefined, this.eventPage, this.eventPageSize, true).then(
+      (response) => {
+        this.events = [...(this.events ?? []), ...response.data.content];
+        this.hasNextEventPageToLoad =
+          response.data.totalElements > response.data.pageNumber * this.eventPageSize + response.data.pageElements;
+        this.initTimeline(this.events);
+      },
+    );
   }
 
   setEventToStudio(eventTimeline, api) {
