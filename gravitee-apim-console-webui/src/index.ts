@@ -73,7 +73,7 @@ function fetchData() {
       const consoleResponse = responses[0];
       const uiCustomization = responses[1];
       if (uiCustomization && uiCustomization.data) {
-        customizeUIForOem(uiCustomization.data);
+        customizeUI(uiCustomization.data);
       }
 
       const constants = _.assign(ConstantsJSON);
@@ -161,7 +161,7 @@ function initComponents() {
   return loadDefaultTranslations();
 }
 
-function customizeUIForOem(uiCustomization: ConsoleCustomization) {
+function customizeUI(uiCustomization: ConsoleCustomization) {
   if (uiCustomization !== null) {
     const styles = computeStyles({
       menuBackground: uiCustomization.theme.menuBackground,
