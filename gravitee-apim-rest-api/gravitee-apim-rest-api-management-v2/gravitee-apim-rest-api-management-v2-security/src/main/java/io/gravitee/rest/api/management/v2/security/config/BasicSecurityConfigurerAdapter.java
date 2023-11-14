@@ -262,7 +262,11 @@ public class BasicSecurityConfigurerAdapter {
 
         return security
             .authorizeHttpRequests()
-            .requestMatchers(HttpMethod.GET, "/openapi.*")
+            .requestMatchers(HttpMethod.GET, "/")
+            .permitAll()
+            .requestMatchers(HttpMethod.GET, "/index-*.html")
+            .permitAll()
+            .requestMatchers(HttpMethod.GET, "/openapi-*.yaml")
             .permitAll()
             .requestMatchers(HttpMethod.OPTIONS, "**")
             .permitAll()

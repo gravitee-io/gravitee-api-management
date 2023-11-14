@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.v2.rest.resource;
 
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Response;
 
@@ -34,44 +35,16 @@ public class OpenAPIResource {
     }
 
     @GET
-    @Path("/index-apis.html")
+    @Path("/index-{type}.html")
     @Produces("text/html")
-    public Response getAPIsOpenApiDocumentation() {
-        return Response.ok(this.getClass().getClassLoader().getResourceAsStream("openapi/index-apis.html")).build();
+    public Response getIndexHtml(@PathParam("type") final String openApiType) {
+        return Response.ok(this.getClass().getClassLoader().getResourceAsStream("openapi/index-%s.html".formatted(openApiType))).build();
     }
 
     @GET
-    @Path("/openapi.yaml")
+    @Path("/openapi-{type}.yaml")
     @Produces("application/yaml")
-    public Response getAPIsOpenApi() {
-        return Response.ok(this.getClass().getClassLoader().getResourceAsStream("openapi/openapi-apis.yaml")).build();
-    }
-
-    @GET
-    @Path("/index-plugins.html")
-    @Produces("text/html")
-    public Response getPluginsOpenApiDocumentation() {
-        return Response.ok(this.getClass().getClassLoader().getResourceAsStream("openapi/index-plugins.html")).build();
-    }
-
-    @GET
-    @Path("/openapi-plugins.yaml")
-    @Produces("application/yaml")
-    public Response getPluginsOpenApi() {
-        return Response.ok(this.getClass().getClassLoader().getResourceAsStream("openapi/openapi-plugins.yaml")).build();
-    }
-
-    @GET
-    @Path("/index-ui.html")
-    @Produces("text/html")
-    public Response getUIOpenApiDocumentation() {
-        return Response.ok(this.getClass().getClassLoader().getResourceAsStream("openapi/index-ui.html")).build();
-    }
-
-    @GET
-    @Path("/openapi-ui.yaml")
-    @Produces("application/yaml")
-    public Response getUIOpenApi() {
-        return Response.ok(this.getClass().getClassLoader().getResourceAsStream("openapi/openapi-ui.yaml")).build();
+    public Response getOpenApi(@PathParam("type") final String openApiType) {
+        return Response.ok(this.getClass().getClassLoader().getResourceAsStream("openapi/openapi-%s.yaml".formatted(openApiType))).build();
     }
 }

@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 package io.gravitee.apim.infra.query_service.cockpit;/*
- * Copyright (C) 2015 The Gravitee team (http://gravitee.io)&#10;&#10;Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);&#10;you may not use this file except in compliance with the License.&#10;You may obtain a copy of the License at&#10;&#10;        http://www.apache.org/licenses/LICENSE-2.0&#10;&#10;Unless required by applicable law or agreed to in writing, software&#10;distributed under the License is distributed on an &quot;AS IS&quot; BASIS,&#10;WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.&#10;See the License for the specific language governing permissions and&#10;limitations under the License.
- */
 
 import com.google.common.base.Strings;
 import com.google.common.net.InternetDomainName;
@@ -37,6 +35,23 @@ import org.springframework.stereotype.Service;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+
+import com.google.common.base.Strings;
+import com.google.common.net.InternetDomainName;
+import io.gravitee.apim.core.cockpit.model.AccessPointTemplate;
+import io.gravitee.apim.core.cockpit.query_service.CockpitAccessService;
+import io.gravitee.apim.core.installation.domain_service.InstallationTypeDomainService;
+import io.gravitee.apim.core.installation.model.InstallationType;
+import jakarta.annotation.PostConstruct;
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.stereotype.Service;
+
 @RequiredArgsConstructor
 @Service
 @Slf4j

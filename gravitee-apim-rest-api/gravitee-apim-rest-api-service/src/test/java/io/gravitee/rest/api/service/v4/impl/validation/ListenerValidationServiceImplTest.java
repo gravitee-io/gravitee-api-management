@@ -99,7 +99,7 @@ class ListenerValidationServiceImplTest {
 
     @BeforeEach
     void setUp() throws Exception {
-        when(installationAccessQueryService.getGatewayRestrictedDomains(any())).thenReturn(List.of());
+        lenient().when(installationAccessQueryService.getGatewayRestrictedDomains(any())).thenReturn(List.of());
         lenient()
             .when(entrypointService.validateConnectorConfiguration(any(String.class), any()))
             .thenAnswer(invocation -> invocation.getArgument(1));

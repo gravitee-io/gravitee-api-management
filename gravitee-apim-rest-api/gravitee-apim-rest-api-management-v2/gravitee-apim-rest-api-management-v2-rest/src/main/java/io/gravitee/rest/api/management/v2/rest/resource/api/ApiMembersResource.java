@@ -45,11 +45,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Path("/environments/{envId}/apis/{apiId}/members")
 public class ApiMembersResource extends AbstractResource {
-
-    @Context
-    private ResourceContext resourceContext;
 
     @PathParam("apiId")
     private String apiId;

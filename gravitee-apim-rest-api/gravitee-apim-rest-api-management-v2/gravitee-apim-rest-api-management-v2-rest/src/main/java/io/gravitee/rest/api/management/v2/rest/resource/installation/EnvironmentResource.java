@@ -19,7 +19,9 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.EnvironmentMapper;
 import io.gravitee.rest.api.management.v2.rest.model.Environment;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
+import io.gravitee.rest.api.management.v2.rest.resource.api.ApiMembersResource;
 import io.gravitee.rest.api.management.v2.rest.resource.api.ApisResource;
+import io.gravitee.rest.api.management.v2.rest.resource.group.GroupsResource;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
@@ -44,14 +46,19 @@ public class EnvironmentResource extends AbstractResource {
     @Inject
     private EnvironmentService environmentService;
 
+    @Path("/apis")
+    public ApisResource getApisResource() {
+        return resourceContext.getResource(ApisResource.class);
+    }
+
+    @Path("/groups")
+    public GroupsResource getGroupsResource() {
+        return resourceContext.getResource(GroupsResource.class);
+    }
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Environment getEnvironment(@PathParam("envId") String envId) {
         return EnvironmentMapper.INSTANCE.map(environmentService.findByOrgAndIdOrHrid(GraviteeContext.getCurrentOrganization(), envId));
-    }
-
-    @Path("/apis")
-    public ApisResource getApisResource() {
-        return resourceContext.getResource(ApisResource.class);
     }
 }
