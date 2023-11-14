@@ -13,14 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@use 'sass:map';
-@use '@gravitee/ui-particles-angular' as gio;
+import { Inject, Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
 
-.gio-top-nav {
-  border-bottom: 1px solid map.get(gio.$mat-space-palette, lighter40);
-}
+import { ConsoleCustomization } from '../entities/management-api-v2/consoleCustomization';
+import { Constants } from '../entities/Constants';
 
-.custom-logo {
-  max-height: 36px;
-  max-width: 36px;
+@Injectable({ providedIn: 'root' })
+export class UiCustomizationService {
+  constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
+
+  getConsoleCustomization(): Observable<ConsoleCustomization> {
+    return this.http.get<ConsoleCustomization>(`${this.constants.v2BaseURL}/ui/customization`);
+  }
 }
