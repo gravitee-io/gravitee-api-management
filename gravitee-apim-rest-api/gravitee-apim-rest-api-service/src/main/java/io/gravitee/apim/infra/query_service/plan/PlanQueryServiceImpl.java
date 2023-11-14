@@ -23,13 +23,19 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+/**
+ * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
+ * @author GraviteeSource Team
+ */
 @Service
 public class PlanQueryServiceImpl implements PlanQueryService {
 
@@ -59,6 +65,15 @@ public class PlanQueryServiceImpl implements PlanQueryService {
         } catch (TechnicalException e) {
             logger.error("An error occurred while finding plans by API ID {}", apiId, e);
             throw new TechnicalDomainException("An error occurred while trying to find plans by API ID: " + apiId, e);
+        }
+    }
+
+    @Override
+    public Optional<GenericPlanEntity> findByApiIdAndCrossId(String apiId, String crossId) {
+        try {
+            return planRepository.findByApiIdAndCrossId(apiId, crossId).map(PlanAdapter.INSTANCE::toEntity);
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException(e);
         }
     }
 }

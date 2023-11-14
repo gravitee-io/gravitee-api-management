@@ -17,14 +17,17 @@ package io.gravitee.apim.core.api.model;
 
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
+import io.gravitee.definition.model.v4.listener.Listener;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import lombok.Builder;
 import lombok.Data;
+import lombok.experimental.SuperBuilder;
 
 @Data
-@Builder
+@SuperBuilder
 public class Api {
 
     /**
@@ -109,6 +112,10 @@ public class Api {
      */
     @Builder.Default
     private LifecycleState lifecycleState = LifecycleState.STOPPED;
+
+    private List<Listener> listeners;
+
+    private List<EndpointGroup> endpointGroups;
 
     /**
      * The api picture

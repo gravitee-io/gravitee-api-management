@@ -15,10 +15,14 @@
  */
 package io.gravitee.apim.core.plan.query_service;
 
+import io.gravitee.apim.core.plan.model.v4.Plan;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import java.util.List;
+import java.util.Optional;
 
 public interface PlanQueryService {
     List<GenericPlanEntity> findAllByApiIdAndGeneralConditionsAndIsActive(String apiId, DefinitionVersion definitionVersion, String pageId);
+
+    Optional<GenericPlanEntity> findByApiIdAndCrossId(String apiId, String crossId);
 }

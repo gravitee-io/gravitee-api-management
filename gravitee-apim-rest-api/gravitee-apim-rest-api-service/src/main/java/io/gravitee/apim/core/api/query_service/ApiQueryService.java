@@ -19,8 +19,11 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiFieldFilter;
 import io.gravitee.apim.core.api.model.ApiSearchCriteria;
 import io.gravitee.apim.core.api.model.Sortable;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 public interface ApiQueryService {
     Stream<Api> search(ApiSearchCriteria apiCriteria, Sortable sortable, ApiFieldFilter apiFieldFilter);
+
+    Optional<Api> findByEnvironmentIdAndCrossId(String environmentId, String crossId);
 }

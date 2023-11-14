@@ -302,4 +302,22 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
             throw new TechnicalException("Failed to find plans by id list", ex);
         }
     }
+
+    @Override
+    public Optional<Plan> findByApiIdAndCrossId(String apiId, String crossId) throws TechnicalException {
+        LOGGER.debug("JdbcPlanRepository.findByApiIdAndCrossId({}, {})", apiId, crossId);
+        try {
+            var clause = " p where p.api = ? and p.crossId = ?";
+            List<Plan> plans = jdbcTemplate.query(getOrm().getSelectAllSql() + clause, getOrm().getRowMapper(), apiId, crossId);
+            Optional<Plan> result = plans.stream().findFirst();
+            if (result.isPresent()) {
+                addCharacteristics(result.get());
+                addExcludedGroups(result.get());
+                addTags(result.get());
+            }
+            return result;
+        } catch (final Exception ex) {
+            throw new TechnicalException("Failed to find plan by API ID and cross ID:", ex);
+        }
+    }
 }

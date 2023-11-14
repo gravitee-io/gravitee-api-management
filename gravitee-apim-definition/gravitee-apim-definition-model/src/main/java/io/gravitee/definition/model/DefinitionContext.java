@@ -15,9 +15,11 @@
  */
 package io.gravitee.definition.model;
 
+import jakarta.validation.constraints.Pattern;
 import java.io.Serializable;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -44,14 +46,17 @@ public class DefinitionContext implements Serializable {
     public static final String MODE_API_DEFINITION_ONLY = "api_definition_only";
 
     private String origin;
+
     private String mode;
+
+    @Getter
+    private String syncFrom;
 
     /**
      * Creates a default context with 'management' and 'fully_managed' mode.
      */
     public DefinitionContext() {
-        origin = ORIGIN_MANAGEMENT;
-        mode = MODE_FULLY_MANAGED;
+        this(ORIGIN_MANAGEMENT, MODE_FULLY_MANAGED, ORIGIN_MANAGEMENT);
     }
 
     /**
@@ -62,9 +67,14 @@ public class DefinitionContext implements Serializable {
      * @param origin the origin ('kubernetes', 'management')
      * @param mode the management mode ('fully_managed', 'api_definition_only')
      */
-    public DefinitionContext(String origin, String mode) {
+    public DefinitionContext(String origin, String mode, String syncFrom) {
         setOrigin(origin);
         setMode(mode);
+        setSyncFrom(syncFrom);
+    }
+
+    public DefinitionContext(String origin, String mode) {
+        this(origin, mode, null);
     }
 
     public static boolean isKubernetes(DefinitionContext context) {
@@ -107,5 +117,9 @@ public class DefinitionContext implements Serializable {
      */
     public void setMode(String mode) {
         this.mode = mode != null ? mode : MODE_FULLY_MANAGED;
+    }
+
+    public void setSyncFrom(String origin) {
+        this.syncFrom = origin == null ? ORIGIN_MANAGEMENT : origin;
     }
 }

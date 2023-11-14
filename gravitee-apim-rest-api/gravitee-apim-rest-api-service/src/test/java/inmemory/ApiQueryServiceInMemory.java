@@ -23,6 +23,7 @@ import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 public class ApiQueryServiceInMemory implements ApiQueryService, InMemoryAlternative<Api> {
@@ -35,6 +36,11 @@ public class ApiQueryServiceInMemory implements ApiQueryService, InMemoryAlterna
     @Override
     public Stream<Api> search(ApiSearchCriteria apiCriteria, Sortable sortable, ApiFieldFilter apiFieldFilter) {
         return this.storage().stream();
+    }
+
+    @Override
+    public Optional<Api> findByEnvironmentIdAndCrossId(String environmentId, String crossId) {
+        return Optional.empty();
     }
 
     @Override

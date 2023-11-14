@@ -16,17 +16,48 @@
 package io.gravitee.apim.infra.adapter;
 
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.api.model.ApiCRD;
+import io.gravitee.apim.core.api.model.ApiWithFlow;
+import io.gravitee.rest.api.model.v4.api.ApiEntity;
+import io.gravitee.rest.api.model.v4.api.NewApiEntity;
+import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import java.util.stream.Stream;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingConstants;
+import org.mapstruct.ValueMapping;
 import org.mapstruct.factory.Mappers;
 
 @Mapper
 public interface ApiAdapter {
     ApiAdapter INSTANCE = Mappers.getMapper(ApiAdapter.class);
 
+    @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
     Api toEntity(io.gravitee.repository.management.model.Api criteria);
+
     Stream<Api> toEntityStream(Stream<io.gravitee.repository.management.model.Api> criteria);
 
+    @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
     io.gravitee.repository.management.model.Api fromEntity(Api criteria);
+
     Stream<io.gravitee.repository.management.model.Api> fromEntityStream(Stream<Api> criteria);
+
+    @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
+    @Mapping(source = "version", target = "apiVersion")
+    NewApiEntity toNewApiEntity(Api api);
+
+    @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
+    @Mapping(source = "version", target = "apiVersion")
+    UpdateApiEntity toUpdateApiEntity(Api api);
+
+    @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
+    @Mapping(source = "version", target = "apiVersion")
+    ApiEntity toApiEntity(ApiWithFlow api);
+
+    @Mapping(source = "state", target = "lifecycleState")
+    @Mapping(source = "lifecycleState", target = "apiLifecycleState")
+    @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
+    Api fromApiEntity(ApiEntity apiEntity);
+
+    ApiWithFlow fromCRD(ApiCRD crd);
 }

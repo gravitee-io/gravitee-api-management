@@ -24,7 +24,10 @@ import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.apim.infra.adapter.ApiFieldFilterAdapter;
 import io.gravitee.apim.infra.adapter.ApiSearchCriteriaAdapter;
 import io.gravitee.apim.infra.adapter.SortableAdapter;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.util.Optional;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -49,5 +52,14 @@ public class ApiQueryServiceImpl implements ApiQueryService {
                     apiFieldFilter == null ? null : ApiFieldFilterAdapter.INSTANCE.toApiFieldFilterForRepository(apiFieldFilter)
                 )
         );
+    }
+
+    @Override
+    public Optional<Api> findByEnvironmentIdAndCrossId(String environmentId, String crossId) {
+        try {
+            return apiRepository.findByEnvironmentIdAndCrossId(environmentId, crossId).map(ApiAdapter.INSTANCE::toEntity);
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException(e);
+        }
     }
 }

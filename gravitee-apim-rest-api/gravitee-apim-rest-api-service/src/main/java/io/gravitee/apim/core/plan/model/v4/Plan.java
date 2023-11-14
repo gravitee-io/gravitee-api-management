@@ -13,23 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.mongodb.management.internal.plan;
+package io.gravitee.apim.core.plan.model.v4;
 
-import io.gravitee.repository.mongodb.management.internal.model.PlanMongo;
-import java.util.List;
-import java.util.Optional;
-import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.stereotype.Repository;
+import lombok.Builder;
+import lombok.Data;
+import lombok.With;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Repository
-public interface PlanMongoRepository extends MongoRepository<PlanMongo, String> {
-    List<PlanMongo> findByApi(String api);
+@Data
+@With
+@Builder
+public class Plan {
 
-    List<PlanMongo> findByApiIn(List<String> apis);
+    private String id;
 
-    Optional<PlanMongo> findByApiAndCrossId(String api, String crossId);
+    private String apiId;
 }

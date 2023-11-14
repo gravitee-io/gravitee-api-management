@@ -19,6 +19,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Plan;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -56,4 +57,6 @@ public interface PlanRepository extends CrudRepository<Plan, String> {
      * @throws TechnicalException
      */
     Set<Plan> findByIdIn(Collection<String> ids) throws TechnicalException;
+
+    Optional<Plan> findByApiIdAndCrossId(String apiId, String crossId) throws TechnicalException;
 }

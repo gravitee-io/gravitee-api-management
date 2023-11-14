@@ -13,13 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.api.crud_service;
+package io.gravitee.apim.core.api.model;
 
-import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.apim.core.api.model.ApiCRD;
+import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
+import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.listener.Listener;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.experimental.SuperBuilder;
 
-public interface ApiCrudService {
-    Api get(String id);
+@Data
+@EqualsAndHashCode(callSuper = true)
+@SuperBuilder
+public class ApiWithFlow extends Api {
 
-    void create(Api api);
+    @Builder.Default
+    private List<Flow> flows = List.of();
 }

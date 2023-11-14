@@ -13,23 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.mongodb.management.internal.plan;
+package io.gravitee.apim.core.api.model;
 
-import io.gravitee.repository.mongodb.management.internal.model.PlanMongo;
-import java.util.List;
-import java.util.Optional;
-import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.stereotype.Repository;
+import java.time.Instant;
+import java.util.Map;
+import lombok.Builder;
+import lombok.Data;
+import lombok.Singular;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Repository
-public interface PlanMongoRepository extends MongoRepository<PlanMongo, String> {
-    List<PlanMongo> findByApi(String api);
+@Data
+@Builder
+public class ApiCRDStatus {
 
-    List<PlanMongo> findByApiIn(List<String> apis);
+    private String organizationId;
 
-    Optional<PlanMongo> findByApiAndCrossId(String api, String crossId);
+    private String environmentId;
+    /**
+     * The API cross ID
+     */
+    private String crossId;
+
+    /**
+     * The API ID
+     */
+    private String id;
+
+    /**
+     * maps the name of the plan to its ID (not cross ID)
+     */
+    @Singular
+    private Map<String, String> plans;
+
+    private String state;
 }

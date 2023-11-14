@@ -20,12 +20,11 @@ import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
-import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 public class PlanQueryServiceInMemory implements PlanQueryService, InMemoryAlternative<GenericPlanEntity> {
 
@@ -60,5 +59,10 @@ public class PlanQueryServiceInMemory implements PlanQueryService, InMemoryAlter
     @Override
     public List<GenericPlanEntity> storage() {
         return Collections.unmodifiableList(storage);
+    }
+
+    @Override
+    public Optional<GenericPlanEntity> findByApiIdAndCrossId(String apiId, String crossId) {
+        return Optional.empty();
     }
 }

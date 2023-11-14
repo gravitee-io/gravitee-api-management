@@ -20,12 +20,16 @@ import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDoc
 
 import com.google.common.base.Strings;
 import io.gravitee.apim.core.api.exception.InvalidPathsException;
+import io.gravitee.apim.core.api.use_case.ImportCRDUseCase;
 import io.gravitee.apim.core.api.use_case.VerifyApiPathsUseCase;
+import io.gravitee.apim.core.audit.model.AuditActor;
+import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.exception.InvalidImageException;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.ImportExportApiMapper;
+import io.gravitee.rest.api.management.v2.rest.model.ApiCRD;
 import io.gravitee.rest.api.management.v2.rest.model.ApiSearchQuery;
 import io.gravitee.rest.api.management.v2.rest.model.ApisResponse;
 import io.gravitee.rest.api.management.v2.rest.model.CreateApiV4;
@@ -58,6 +62,7 @@ import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
@@ -98,6 +103,9 @@ public class ApisResource extends AbstractResource {
     public ApiResource getApiResource() {
         return resourceContext.getResource(ApiResource.class);
     }
+
+    @Inject
+    private ImportCRDUseCase importCRDUseCase;
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
@@ -143,6 +151,37 @@ public class ApisResource extends AbstractResource {
             )
             .pagination(PaginationInfo.computePaginationInfo(totalCount, pageItemsCount, paginationParam))
             .links(computePaginationLinks(totalCount, paginationParam));
+    }
+
+    @PUT
+    @Path("/_import/crd")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE) })
+    public Response createApiWithCRD(@Valid ApiCRD crd) {
+        var executionContext = GraviteeContext.getExecutionContext();
+        var userDetails = getAuthenticatedUserDetails();
+        return Response
+            .ok(
+                importCRDUseCase.execute(
+                    new ImportCRDUseCase.Input(
+                        AuditInfo
+                            .builder()
+                            .organizationId(executionContext.getOrganizationId())
+                            .environmentId(executionContext.getEnvironmentId())
+                            .actor(
+                                AuditActor
+                                    .builder()
+                                    .userId(userDetails.getUsername())
+                                    .userSource(userDetails.getSource())
+                                    .userSourceId(userDetails.getSourceId())
+                                    .build()
+                            )
+                            .build(),
+                        ApiMapper.INSTANCE.map(crd)
+                    )
+                )
+            )
+            .build();
     }
 
     @POST

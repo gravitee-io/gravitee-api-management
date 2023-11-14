@@ -110,4 +110,13 @@ public class MongoPlanRepository implements PlanRepository {
             throw new TechnicalException("Failed to find plans by id list", ex);
         }
     }
+
+    @Override
+    public Optional<Plan> findByApiIdAndCrossId(String apiId, String crossId) throws TechnicalException {
+        try {
+            return internalPlanRepository.findByApiAndCrossId(apiId, crossId).map(this::map);
+        } catch (Exception e) {
+            throw new TechnicalException("Failed to find plan by API ID and cross ID");
+        }
+    }
 }

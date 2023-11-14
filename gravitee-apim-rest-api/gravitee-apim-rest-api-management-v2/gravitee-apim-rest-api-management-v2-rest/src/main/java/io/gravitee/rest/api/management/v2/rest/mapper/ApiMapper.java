@@ -18,10 +18,7 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 import io.gravitee.rest.api.management.v2.rest.model.*;
 import io.gravitee.rest.api.management.v2.rest.utils.ManagementApiLinkHelper;
 import io.gravitee.rest.api.model.ReviewEntity;
-import io.gravitee.rest.api.model.v4.api.ApiEntity;
-import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
-import io.gravitee.rest.api.model.v4.api.NewApiEntity;
-import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
+import io.gravitee.rest.api.model.v4.api.*;
 import jakarta.ws.rs.core.UriInfo;
 import java.util.*;
 import java.util.function.Function;
@@ -39,6 +36,7 @@ import org.slf4j.LoggerFactory;
         EntrypointMapper.class,
         FlowMapper.class,
         ListenerMapper.class,
+        PlanMapper.class,
         PropertiesMapper.class,
         ResourceMapper.class,
         ResponseTemplateMapper.class,
@@ -115,6 +113,10 @@ public interface ApiMapper {
 
     @Mapping(target = "listeners", qualifiedByName = "toListeners")
     NewApiEntity map(CreateApiV4 api);
+
+    @Mapping(target = "listeners", qualifiedByName = "toListeners")
+    @Mapping(target = "plans", qualifiedByName = "toPlanEntity")
+    io.gravitee.apim.core.api.model.ApiCRD map(io.gravitee.rest.api.management.v2.rest.model.ApiCRD crd);
 
     // UpdateApi
     @Mapping(target = "listeners", qualifiedByName = "toListeners")

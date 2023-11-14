@@ -77,6 +77,7 @@ public interface PlanMapper {
 
     @Mapping(target = "security.type", qualifiedByName = "mapFromSecurityType")
     @Mapping(target = "security.configuration", qualifiedByName = "serializeConfiguration")
+    @Named("toPlanEntity")
     PlanEntity map(PlanV4 plan);
 
     @Mapping(target = "security.configuration", qualifiedByName = "serializeConfiguration")

@@ -13,23 +13,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.mongodb.management.internal.plan;
+package io.gravitee.apim.core.plan.model;
 
-import io.gravitee.repository.mongodb.management.internal.model.PlanMongo;
+import io.gravitee.definition.model.v4.flow.Flow;
 import java.util.List;
-import java.util.Optional;
-import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.stereotype.Repository;
+import java.util.Set;
+import lombok.Builder;
+import lombok.Data;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Repository
-public interface PlanMongoRepository extends MongoRepository<PlanMongo, String> {
-    List<PlanMongo> findByApi(String api);
+@Data
+@Builder
+public class CRDPlan {
 
-    List<PlanMongo> findByApiIn(List<String> apis);
+    private String id;
 
-    Optional<PlanMongo> findByApiAndCrossId(String api, String crossId);
+    private String crossId;
+
+    private String name;
+
+    private String type;
+
+    private String validation;
+
+    private Security security;
+
+    private String mode;
+
+    private String selectionRule;
+
+    private List<Flow> flows;
+
+    private Set<String> tags;
+
+    private String status;
+
+    public record Security(String type, String configuration) {}
 }

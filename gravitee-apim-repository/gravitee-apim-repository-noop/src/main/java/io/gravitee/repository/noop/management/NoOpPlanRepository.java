@@ -20,6 +20,7 @@ import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Plan;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -41,5 +42,10 @@ public class NoOpPlanRepository extends AbstractNoOpManagementRepository<Plan, S
     @Override
     public Set<Plan> findByIdIn(Collection<String> ids) throws TechnicalException {
         return Set.of();
+    }
+
+    @Override
+    public Optional<Plan> findByApiIdAndCrossId(String apiId, String crossId) throws TechnicalException {
+        return Optional.empty();
     }
 }

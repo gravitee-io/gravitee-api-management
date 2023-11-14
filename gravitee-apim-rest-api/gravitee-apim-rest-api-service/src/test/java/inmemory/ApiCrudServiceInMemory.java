@@ -33,6 +33,9 @@ public class ApiCrudServiceInMemory implements ApiCrudService, InMemoryAlternati
     }
 
     @Override
+    public void create(Api api) {}
+
+    @Override
     public void initWith(List<Api> items) {
         apis.clear();
         apis.addAll(items);

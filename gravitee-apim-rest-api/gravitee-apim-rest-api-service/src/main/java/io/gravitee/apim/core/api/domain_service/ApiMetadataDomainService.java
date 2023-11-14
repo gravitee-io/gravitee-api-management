@@ -13,23 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.mongodb.management.internal.plan;
+package io.gravitee.apim.core.api.domain_service;
 
-import io.gravitee.repository.mongodb.management.internal.model.PlanMongo;
+import io.gravitee.apim.core.api.model.ApiMetadata;
+import io.gravitee.apim.core.audit.model.AuditInfo;
 import java.util.List;
-import java.util.Optional;
-import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.stereotype.Repository;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Repository
-public interface PlanMongoRepository extends MongoRepository<PlanMongo, String> {
-    List<PlanMongo> findByApi(String api);
-
-    List<PlanMongo> findByApiIn(List<String> apis);
-
-    Optional<PlanMongo> findByApiAndCrossId(String api, String crossId);
+public interface ApiMetadataDomainService {
+    void saveApiMetadata(String apiId, List<ApiMetadata> metadata, AuditInfo auditInfo);
 }
