@@ -31,6 +31,7 @@ public class SearchLogsParam {
     public static final String APPLICATION_IDS_QUERY_PARAM_NAME = "applicationIds";
     public static final String PLAN_IDS_QUERY_PARAM_NAME = "planIds";
     public static final String METHODS_QUERY_PARAM_NAME = "methods";
+    public static final String STATUSES_QUERY_PARAM_NAME = "statuses";
 
     @QueryParam(FROM_QUERY_PARAM_NAME)
     @Min(0)
@@ -48,4 +49,7 @@ public class SearchLogsParam {
 
     @QueryParam(METHODS_QUERY_PARAM_NAME)
     Set<HttpMethod> methods;
+
+    @QueryParam(STATUSES_QUERY_PARAM_NAME)
+    Set<Integer> statuses;
 }

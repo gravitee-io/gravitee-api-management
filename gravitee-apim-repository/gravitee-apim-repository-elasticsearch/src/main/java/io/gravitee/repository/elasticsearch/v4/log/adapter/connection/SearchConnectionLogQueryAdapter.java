@@ -75,6 +75,10 @@ public class SearchConnectionLogQueryAdapter {
             terms.add(JsonObject.of("terms", JsonObject.of("http-method", filter.getMethods().stream().map(HttpMethod::code).toList())));
         }
 
+        if (!CollectionUtils.isEmpty(filter.getStatuses())) {
+            terms.add(JsonObject.of("terms", JsonObject.of("status", filter.getStatuses())));
+        }
+
         if (!terms.isEmpty()) {
             return JsonObject.of("bool", JsonObject.of("must", JsonArray.of(terms.toArray())));
         }

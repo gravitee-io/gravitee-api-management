@@ -309,6 +309,18 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
                     tuple("3aa93e93-eaa3-4fcd-a93e-93eaa3bfcd41", HttpMethod.GET)
                 );
         }
+
+        @Test
+        void should_return_the_connection_logs_for_statuses() {
+            var result = logV4Repository.searchConnectionLogs(
+                ConnectionLogQuery.builder().page(1).size(10).filter(Filter.builder().statuses(Set.of(500, 200)).build()).build()
+            );
+            assertThat(result).isNotNull();
+            assertThat(result.total()).isEqualTo(2);
+            assertThat(result.data())
+                .extracting(ConnectionLog::getRequestId, ConnectionLog::getStatus)
+                .containsExactly(tuple("aed3a207-d5c0-4073-93a2-07d5c0007336", 200), tuple("3aa93e93-eaa3-4fcd-a93e-93eaa3bfcd41", 500));
+        }
     }
 
     @Nested

@@ -358,6 +358,36 @@ class SearchConnectionLogQueryAdapterTest {
                                          }
                                      }
                                      """
+            ),
+            Arguments.of(
+                ConnectionLogQuery.Filter.builder().apiId("f1608475-dd77-4603-a084-75dd775603e9").statuses(Set.of(200, 202)).build(),
+                """
+                                     {
+                                         "from": 0,
+                                         "size": 20,
+                                         "query": {
+                                             "bool": {
+                                                 "must": [
+                                                     {
+                                                         "term": {
+                                                             "api-id": "f1608475-dd77-4603-a084-75dd775603e9"
+                                                         }
+                                                     },
+                                                     {
+                                                         "terms": {
+                                                             "status": [200, 202]
+                                                         }
+                                                    }
+                                                 ]
+                                             }
+                                         },
+                                         "sort": {
+                                             "@timestamp": {
+                                                 "order": "desc"
+                                             }
+                                         }
+                                      }
+                                     """
             )
         );
     }
