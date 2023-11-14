@@ -5698,6 +5698,15 @@ components:
                 type: array
                 items:
                     $ref: "#/components/schemas/HttpMethod"
+        statuses:
+            name: statuses
+            description: List of http statuses to filter on.
+            in: query
+            explode: false
+            schema:
+                type: array
+                items:
+                    type: integer
     responses:
         EnvironmentsResponse:
             description: Page of environments
