@@ -15,7 +15,7 @@
  */
 import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { tap } from 'rxjs/operators';
 
 import { Visibility } from '../../../../../entities/management-api-v2/documentation/visibility';
@@ -24,6 +24,7 @@ export interface ApiDocumentationV4EditFolderDialogData {
   mode: 'create' | 'edit';
   name?: string;
   visibility?: Visibility;
+  existingNames?: string[];
 }
 
 @Component({
@@ -52,7 +53,7 @@ export class ApiDocumentationV4EditFolderDialog implements OnInit {
     this.submitButtonText = this.data.mode === 'create' ? 'Add folder' : 'Save';
 
     this.formGroup = this.formBuilder.group({
-      name: this.formBuilder.control(this.data?.name ?? '', [Validators.required]),
+      name: this.formBuilder.control(this.data?.name ?? '', [Validators.required, this.folderNameUniqueValidator()]),
       visibility: this.formBuilder.control(this.data?.visibility ?? 'PUBLIC', [Validators.required]),
     });
 
@@ -70,5 +71,10 @@ export class ApiDocumentationV4EditFolderDialog implements OnInit {
   }
   cancel() {
     this.dialogRef.close(null);
+  }
+
+  private folderNameUniqueValidator(): ValidatorFn {
+    return (nameControl: AbstractControl): ValidationErrors | null =>
+      this.data.existingNames?.includes(nameControl.value?.toLowerCase().trim()) ? { unique: true } : null;
   }
 }
