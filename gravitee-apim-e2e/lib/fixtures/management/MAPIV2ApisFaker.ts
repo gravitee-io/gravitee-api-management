@@ -23,11 +23,19 @@ import {
   EndpointGroupV4,
   FlowExecution,
   FlowMode,
-  HttpListener,
+  HttpListener as GeneratedHttpListener,
   ListenerType,
-  SubscriptionListener,
+  SubscriptionListener as GeneratedSubscriptionListener,
   FlowV4,
+  TcpListener as GeneratedTcpListener,
 } from '@gravitee/management-v2-webclient-sdk/src/lib';
+
+/**
+ * Aliases type for listeners based on their type
+ */
+export type SubscriptionListener = { type: 'SUBSCRIPTION' } & GeneratedSubscriptionListener;
+export type HttpListener = { type: 'HTTP' } & GeneratedHttpListener;
+export type TcpListener = { type: 'TCP' } & GeneratedTcpListener;
 
 export class MAPIV2ApisFaker {
   static version() {
@@ -215,7 +223,6 @@ export class MAPIV2ApisFaker {
 
   static newHttpListener(attributes?: Partial<HttpListener>): HttpListener {
     return {
-      // @ts-ignore
       type: 'HTTP',
       paths: [{ path: `/${faker.random.word()}-${faker.datatype.uuid()}-${Math.floor(Date.now() / 1000)}` }],
       pathMappings: [],
@@ -226,9 +233,16 @@ export class MAPIV2ApisFaker {
 
   static newSubscriptionListener(attributes?: Partial<SubscriptionListener>): SubscriptionListener {
     return {
-      // @ts-ignore
       type: 'SUBSCRIPTION',
       entrypoints: [],
+      ...attributes,
+    };
+  }
+
+  static newTcpListener(attributes?: Partial<TcpListener>): TcpListener {
+    return {
+      type: 'TCP',
+      hosts: [],
       ...attributes,
     };
   }

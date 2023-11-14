@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 import { ADMIN_USER, API_PUBLISHER_USER } from '@fakers/users/users';
-import { MAPIV2ApisFaker } from '@gravitee/fixtures/management/MAPIV2ApisFaker';
-import { ApiType, ApiV4, FlowV4, HttpListener } from '@gravitee/management-v2-webclient-sdk/src/lib';
+import { HttpListener, MAPIV2ApisFaker } from '@gravitee/fixtures/management/MAPIV2ApisFaker';
+import { ApiType, ApiV4, FlowV4 } from '@gravitee/management-v2-webclient-sdk/src/lib';
 import { MAPIV2PlansFaker } from '@gravitee/fixtures/management/MAPIV2PlansFaker';
 
 const envId = 'DEFAULT';
