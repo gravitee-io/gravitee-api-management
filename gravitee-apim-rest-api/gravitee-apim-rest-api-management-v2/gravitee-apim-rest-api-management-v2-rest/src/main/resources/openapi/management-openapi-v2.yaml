@@ -4533,10 +4533,14 @@ components:
                           description: The message condition of the step
         SubscriptionListener:
             title: "SubscriptionListener"
+            required:
+                - type
             allOf:
                 - $ref: "#/components/schemas/BaseListener"
         TcpListener:
             title: "TcpListener"
+            required:
+                - type
             allOf:
                 - $ref: "#/components/schemas/BaseListener"
                 - type: object

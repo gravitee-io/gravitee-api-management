@@ -20,8 +20,8 @@ import faker from '@faker-js/faker';
 import ApiDetails from 'ui-test/support/PageObjects/Apis/ApiDetails';
 import { Api } from '@model/apis';
 import { MAPIV2PlansFaker } from '@gravitee/fixtures/management/MAPIV2PlansFaker';
-import { MAPIV2ApisFaker } from '@gravitee/fixtures/management/MAPIV2ApisFaker';
-import { ApiType, ApiV4, FlowV4, HttpListener } from '@gravitee/management-v2-webclient-sdk/src/lib';
+import { HttpListener, MAPIV2ApisFaker } from '@gravitee/fixtures/management/MAPIV2ApisFaker';
+import { ApiType, ApiV4, FlowV4 } from '@gravitee/management-v2-webclient-sdk/src/lib';
 
 const envId = 'DEFAULT';
 
