@@ -120,6 +120,7 @@ export class ApiRuntimeLogsComponent implements OnInit, OnDestroy {
   private initData() {
     const applicationIds: string[] = this.ajsStateParams.applicationIds ? this.ajsStateParams.applicationIds.split(',') : null;
     const planIds: string[] = this.ajsStateParams.planIds ? this.ajsStateParams.planIds.split(',') : null;
+    const statuses: Set<number> = this.ajsStateParams.statuses ? new Set(this.ajsStateParams.statuses.split(',').map(Number)) : null;
 
     forkJoin([
       applicationIds?.length > 0 ? this.applicationService.findByIds(applicationIds, 1, applicationIds?.length ?? 10) : of(null),
@@ -141,6 +142,7 @@ export class ApiRuntimeLogsComponent implements OnInit, OnDestroy {
             from: this.ajsStateParams.from ? moment(this.ajsStateParams.from) : undefined,
             to: this.ajsStateParams.to ? moment(this.ajsStateParams.to) : undefined,
             methods: this.ajsStateParams.methods?.split(',') ?? undefined,
+            statuses: statuses?.size > 0 ? statuses : undefined,
           };
         }),
       )

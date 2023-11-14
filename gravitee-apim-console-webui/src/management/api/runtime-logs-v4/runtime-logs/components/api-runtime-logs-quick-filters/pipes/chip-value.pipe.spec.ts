@@ -38,4 +38,11 @@ describe('ChipValuePipe', () => {
 
     expect(pipe.transform(['foo', 'bar'])).toStrictEqual('foo, bar');
   });
+
+  it("should join values when it's a number set ", () => {
+    const pipe = new ChipValuePipe();
+
+    expect(pipe.transform(new Set<number>([1]))).toStrictEqual('1');
+    expect(pipe.transform(new Set<number>([2, 3]))).toStrictEqual('2, 3');
+  });
 });

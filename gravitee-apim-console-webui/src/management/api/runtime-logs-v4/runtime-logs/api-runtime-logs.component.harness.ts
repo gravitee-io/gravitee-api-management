@@ -17,7 +17,7 @@ import { ComponentHarness } from '@angular/cdk/testing';
 import { DivHarness } from '@gravitee/ui-particles-angular/testing';
 
 import { ApiRuntimeLogsListHarness, ApiRuntimeLogsQuickFiltersHarness } from './components';
-import { ApiRuntimeLogsMoreFiltersHarness } from './components/api-runtime-logs-quick-filters/components/api-runtime-logs-more-filters/api-runtime-logs-more-filters.harness';
+import { ApiRuntimeLogsMoreFiltersHarness } from './components/api-runtime-logs-quick-filters/components';
 
 export class ApiRuntimeLogsHarness extends ComponentHarness {
   static hostSelector = 'api-runtime-logs';
@@ -268,5 +268,43 @@ export class ApiRuntimeLogsHarness extends ComponentHarness {
     return this.getMethodsChip()
       .then((chip) => chip.getRemoveButton())
       .then((button) => button.click());
+  }
+
+  async addInputStatusesChip(text: string) {
+    return this.moreFiltersHarness()
+      .then((harness) => harness.getStatusesChips())
+      .then((chipList) => chipList.getInput())
+      .then(async (input) => {
+        await input.setValue(text);
+        return input.blur();
+      });
+  }
+
+  async getStatusesInputChips() {
+    return this.moreFiltersHarness()
+      .then((harness) => harness.getStatusesChips())
+      .then((chipList) => chipList.getChips())
+      .then((chips) => Promise.all(chips.map((chip) => chip.getText())));
+  }
+
+  async removeInputStatusChip(text: string) {
+    return this.moreFiltersHarness()
+      .then((harness) => harness.getStatusesChips())
+      .then((chipList) => chipList.getChips({ text }))
+      .then((chips) => chips[0].getRemoveButton())
+      .then((btn) => btn.click());
+  }
+
+  async removeStatusChip() {
+    return this.quickFiltersHarness()
+      .then((quickFilters) => quickFilters.getStatusChip())
+      .then((chip) => chip.getRemoveButton())
+      .then((btn) => btn.click());
+  }
+
+  async getStatusChip() {
+    return this.quickFiltersHarness()
+      .then((quickFilters) => quickFilters.getStatusChip())
+      .then((chip) => chip.getText());
   }
 }

@@ -38,6 +38,7 @@ export class ApiRuntimeLogsQuickFiltersHarness extends ComponentHarness {
   public getToChip = this.locatorFor(MatChipHarness.with({ text: /^to:/ }));
   public getMethodsSelect = this.locatorFor(MatSelectHarness.with({ selector: '[formControlName="methods"]' }));
   public getMethodsChip = this.locatorFor(MatChipHarness.with({ text: /^methods:/ }));
+  public getStatusChip = this.locatorFor(MatChipHarness.with({ text: /^statuses:/ }));
 
   public async getApplicationAutocomplete() {
     const applicationFormField = await this.getApplicationFormField();

@@ -15,9 +15,8 @@ $typography: map.get(gio.$mat-theme, typography);
     &__block {
       display: flex;
       flex-direction: column;
-      margin-bottom: 8px;
 
-      .form-control__period {
+      mat-form-field {
         padding-bottom: 0;
       }
     }

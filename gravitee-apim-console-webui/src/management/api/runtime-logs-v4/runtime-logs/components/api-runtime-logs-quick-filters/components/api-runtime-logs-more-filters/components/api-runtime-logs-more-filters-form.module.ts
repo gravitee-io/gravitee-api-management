@@ -24,6 +24,7 @@ import { OwlMomentDateTimeModule } from '@danielmoncada/angular-datetime-picker-
 import { MatSelectModule } from '@angular/material/select';
 import { MatIconModule } from '@angular/material/icon';
 import { GioIconsModule } from '@gravitee/ui-particles-angular';
+import { MatChipsModule } from '@angular/material/chips';
 
 import { ApiRuntimeLogsMoreFiltersFormComponent } from './api-runtime-logs-more-filters-form.component';
 
@@ -35,6 +36,7 @@ import { DATE_TIME_FORMATS } from '../../../../../models';
   imports: [
     CommonModule,
     FormsModule,
+    MatChipsModule,
     MatDatepickerModule,
     MatIconModule,
     MatInputModule,

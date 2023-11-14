@@ -31,7 +31,7 @@ export class ApiRuntimeLogsMoreFiltersComponent {
   isInvalid: boolean;
 
   resetMoreFilters() {
-    this.currentValues = { period: DEFAULT_FILTERS.period, from: null, to: null };
+    this.currentValues = { period: DEFAULT_FILTERS.period, from: null, to: null, statuses: null };
     this.apply();
   }
 

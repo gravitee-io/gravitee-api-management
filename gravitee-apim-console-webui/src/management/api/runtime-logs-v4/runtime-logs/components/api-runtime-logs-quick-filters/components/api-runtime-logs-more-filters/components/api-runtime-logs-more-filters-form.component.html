@@ -18,7 +18,7 @@
 <form *ngIf="datesForm" [formGroup]="datesForm">
   <div class="more-filters__body__block">
     <span class="more-filters__body__title">Date</span>
-    <mat-form-field class="form-control__period">
+    <mat-form-field>
       <mat-label>Period</mat-label>
       <mat-select formControlName="period" aria-label="Period selection">
         <mat-option *ngFor="let period of periods" [value]="period">{{ period.label }}</mat-option>
@@ -40,6 +40,30 @@
       <mat-error *ngIf="datesForm.get('to').hasError('owlDateTimeMin')">
         <span> Date time value must be after {{ datesForm.get('from').value | date : 'yyyy-MM-dd HH:mm:ss' }} </span>
       </mat-error>
+    </mat-form-field>
+  </div>
+</form>
+
+<form *ngIf="moreFiltersForm" [formGroup]="moreFiltersForm">
+  <div class="more-filters__body__block">
+    <span class="more-filters__body__title">Response</span>
+    <mat-form-field>
+      <mat-label>Status</mat-label>
+      <mat-chip-list #statusChipList aria-label="Status chips" formControlName="statuses">
+        <mat-chip removable="true" selectable="false" *ngFor="let status of statuses" [value]="status" (removed)="removeStatus(status)">
+          {{ status }}
+          <button matChipRemove>
+            <mat-icon>cancel</mat-icon>
+          </button>
+        </mat-chip>
+        <input
+          type="number"
+          placeholder="HTTP status"
+          [matChipInputAddOnBlur]="true"
+          [matChipInputFor]="statusChipList"
+          (matChipInputTokenEnd)="addStatusFromInput($event)"
+        />
+      </mat-chip-list>
     </mat-form-field>
   </div>
 </form>
