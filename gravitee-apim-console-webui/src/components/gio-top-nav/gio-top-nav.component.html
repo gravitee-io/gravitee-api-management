@@ -18,7 +18,13 @@
 <div class="gio-top-nav">
   <gio-top-bar>
     <button mat-icon-button gioTopBarHome>
-      <mat-icon svgIcon="gio:gravitee" (click)="navigateToHome()"></mat-icon>
+      <ng-container *ngIf="customLogo; else defaultLogo">
+        <img [src]="customLogo" alt="custom logo" class="custom-logo" />
+      </ng-container>
+
+      <ng-template #defaultLogo>
+        <mat-icon svgIcon="gio:gravitee" (click)="navigateToHome()"></mat-icon>
+      </ng-template>
     </button>
     <gio-top-bar-content type="apim" productName="API Management"></gio-top-bar-content>
     <gio-top-bar-link

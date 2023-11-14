@@ -25,6 +25,7 @@ import { AjsRootScope, CurrentUserService, UIRouterState } from '../../ajs-upgra
 import UserService from '../../services/user.service';
 import { User } from '../../entities/user/user';
 import { TaskService } from '../../services-ngx/task.service';
+import { UiCustomizationService } from '../../services-ngx/ui-customization.service';
 
 @Component({
   selector: 'gio-top-nav',
@@ -37,9 +38,9 @@ export class GioTopNavComponent implements OnInit, OnDestroy {
   public hasAlert = false;
   public currentUser: User;
   public userTaskCount = 0;
-  public userShortName: string;
   public supportEnabled: boolean;
   public newsletterProposed: boolean;
+  public customLogo: string;
 
   constructor(
     @Inject(UIRouterState) private readonly ajsState: StateService,
@@ -48,6 +49,7 @@ export class GioTopNavComponent implements OnInit, OnDestroy {
     @Inject(CurrentUserService) private readonly currentUserService: UserService,
     public readonly taskService: TaskService,
     public readonly $transitions: TransitionService,
+    private readonly uiCustomizationService: UiCustomizationService,
   ) {}
 
   ngOnInit(): void {
@@ -68,6 +70,12 @@ export class GioTopNavComponent implements OnInit, OnDestroy {
     this.displayDocumentationButton = !!this.ajsState.current.data?.docs;
     this.ajsRootScope.$on('$locationChangeStart', () => {
       this.displayDocumentationButton = !!this.ajsState.current.data?.docs;
+    });
+
+    this.uiCustomizationService.getConsoleCustomization().subscribe((customization) => {
+      if (customization && customization.logo) {
+        this.customLogo = customization.logo;
+      }
     });
   }
 
