@@ -96,5 +96,25 @@
     </div>
   </mat-card>
 
+  <ng-container *ngIf="initialApplication.type === 'SIMPLE'">
+    <h2 class="details-title-oauth">OAuth2 Integration</h2>
+    <mat-card class="details-card" formGroupName="OAuth2Form">
+      <div class="details-card__header">
+        <div class="details-card__header__info-inputs">
+          <div class="details-card__header__info-inputs__client_id-row">
+            <mat-form-field>
+              <mat-label>Client ID</mat-label>
+              <input formControlName="client_id" matInput type="text" maxlength="300" minlength="1" gioClipboardCopyWrapper />
+              <mat-hint align="start"
+                >The <code>Client_id</code> of the application. This field is required to subscribe to certain type of API Plan (OAuth2,
+                JWT).
+              </mat-hint>
+            </mat-form-field>
+          </div>
+        </div>
+      </div>
+    </mat-card>
+  </ng-container>
+
   <gio-save-bar [form]="applicationForm" [formInitialValues]="initialApplicationGeneralFormsValue" (submitted)="onSubmit()"></gio-save-bar>
 </form>

@@ -34,8 +34,14 @@ export interface Application {
   picture?: string;
   background?: string;
   owner?: any;
-  settings?: unknown;
+  settings?: ApplicationSettings;
   disable_membership_notifications?: boolean;
   api_key_mode?: ApiKeyMode;
   origin?: string;
+}
+
+export interface ApplicationSettings {
+  app?: {
+    client_id?: string;
+  };
 }
