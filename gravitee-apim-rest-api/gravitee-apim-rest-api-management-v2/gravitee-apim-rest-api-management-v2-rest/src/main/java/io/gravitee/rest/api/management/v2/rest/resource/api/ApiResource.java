@@ -44,6 +44,8 @@ import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateGenericApi;
 import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
+import io.gravitee.rest.api.management.v2.rest.resource.api.log.ApiLogsResource;
+import io.gravitee.rest.api.management.v2.rest.resource.documentation.ApiPagesResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.LifecycleAction;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.model.InlinePictureEntity;
@@ -153,9 +155,6 @@ public class ApiResource extends AbstractResource {
     private ApplicationService applicationService;
 
     @Inject
-    private WorkflowService workflowService;
-
-    @Inject
     private ApiLicenseService apiLicenseService;
 
     @Inject
@@ -178,6 +177,21 @@ public class ApiResource extends AbstractResource {
     @Path("/subscriptions")
     public ApiSubscriptionsResource getApiSubscriptionsResource() {
         return resourceContext.getResource(ApiSubscriptionsResource.class);
+    }
+
+    @Path("/members")
+    public ApiMembersResource getApiMembersResource() {
+        return resourceContext.getResource(ApiMembersResource.class);
+    }
+
+    @Path("/logs")
+    public ApiLogsResource getApiLogsResource() {
+        return resourceContext.getResource(ApiLogsResource.class);
+    }
+
+    @Path("/pages")
+    public ApiPagesResource getApiPagesResource() {
+        return resourceContext.getResource(ApiPagesResource.class);
     }
 
     @GET

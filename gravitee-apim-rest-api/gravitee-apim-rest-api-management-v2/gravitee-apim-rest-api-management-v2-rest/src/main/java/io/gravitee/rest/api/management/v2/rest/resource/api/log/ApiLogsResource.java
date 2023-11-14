@@ -44,7 +44,6 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 
-@Path("/environments/{envId}/apis/{apiId}/logs")
 public class ApiLogsResource extends AbstractResource {
 
     @PathParam("apiId")

@@ -42,15 +42,15 @@ public class EnvironmentsResource extends AbstractResource {
     @Inject
     private EnvironmentService environmentService;
 
+    @Path("/{envId}")
+    public EnvironmentResource getEnvironmentResource() {
+        return resourceContext.getResource(EnvironmentResource.class);
+    }
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Collection<Environment> getEnvironments() {
         String organizationId = GraviteeContext.getCurrentOrganization();
         return EnvironmentMapper.INSTANCE.map(this.environmentService.findByOrganization(organizationId));
-    }
-
-    @Path("/{envId}")
-    public EnvironmentResource getEnvironmentResource() {
-        return resourceContext.getResource(EnvironmentResource.class);
     }
 }

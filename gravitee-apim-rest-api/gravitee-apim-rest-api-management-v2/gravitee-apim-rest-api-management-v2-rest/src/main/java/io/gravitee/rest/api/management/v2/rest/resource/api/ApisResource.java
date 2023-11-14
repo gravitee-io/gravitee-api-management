@@ -94,6 +94,11 @@ public class ApisResource extends AbstractResource {
     @Inject
     private VerifyApiPathsUseCase verifyApiPathsUsecase;
 
+    @Path("{apiId}")
+    public ApiResource getApiResource() {
+        return resourceContext.getResource(ApiResource.class);
+    }
+
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
@@ -265,10 +270,5 @@ public class ApisResource extends AbstractResource {
         } catch (InvalidPathsException e) {
             return Response.accepted(VerifyApiPathsResponse.builder().ok(false).reason(e.getMessage()).build()).build();
         }
-    }
-
-    @Path("{apiId}")
-    public ApiResource getApiResource() {
-        return resourceContext.getResource(ApiResource.class);
     }
 }
