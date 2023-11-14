@@ -18,6 +18,7 @@ import { FormControl, FormGroup } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil, tap } from 'rxjs/operators';
 import { Moment } from 'moment';
+import { MatChipInputEvent } from '@angular/material/chips';
 
 import { DEFAULT_PERIOD, MoreFiltersForm, PERIODS } from '../../../../../models';
 
@@ -34,7 +35,9 @@ export class ApiRuntimeLogsMoreFiltersFormComponent implements OnInit, OnDestroy
   @Output() isInvalidEvent: EventEmitter<boolean> = new EventEmitter<boolean>();
   readonly periods = PERIODS;
   datesForm: FormGroup;
+  moreFiltersForm: FormGroup;
   minDate: Moment;
+  statuses: Set<number>;
 
   constructor(private readonly cdr: ChangeDetectorRef) {}
 
@@ -46,6 +49,12 @@ export class ApiRuntimeLogsMoreFiltersFormComponent implements OnInit, OnDestroy
     });
     this.minDate = this.formValues.from;
     this.onDatesChange();
+
+    this.statuses = new Set(this.formValues.statuses);
+    this.moreFiltersForm = new FormGroup({
+      statuses: new FormControl(this.statuses),
+    });
+    this.moreFiltersForm.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe(() => this.emitValues());
   }
 
   ngOnDestroy(): void {
@@ -85,10 +94,23 @@ export class ApiRuntimeLogsMoreFiltersFormComponent implements OnInit, OnDestroy
       .subscribe(() => this.emitValues());
   }
 
+  addStatusFromInput(event: MatChipInputEvent) {
+    if (event.value && !isNaN(+event.value)) {
+      this.statuses.add(+event.value);
+      this.moreFiltersForm.get('statuses').setValue(this.statuses);
+      event.chipInput?.clear();
+    }
+  }
+
+  removeStatus(status: number) {
+    this.statuses.delete(status);
+    this.moreFiltersForm.get('statuses').setValue(this.statuses.size > 0 ? this.statuses : null);
+  }
+
   private emitValues() {
     this.datesForm.updateValueAndValidity({ emitEvent: false });
     this.isInvalidEvent.emit(this.datesForm.invalid);
-    this.valuesChangeEvent.emit(this.datesForm.getRawValue());
+    this.valuesChangeEvent.emit({ ...this.datesForm.getRawValue(), ...this.moreFiltersForm.getRawValue() });
     this.cdr.detectChanges();
   }
 }

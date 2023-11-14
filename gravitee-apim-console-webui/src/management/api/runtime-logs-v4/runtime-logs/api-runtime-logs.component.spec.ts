@@ -546,6 +546,54 @@ describe('ApiRuntimeLogsComponent', () => {
         await componentHarness.moreFiltersButtonClick();
         expect(await componentHarness.getToDate()).toStrictEqual('');
       });
+
+      it('should filter on http request status', async () => {
+        await componentHarness.moreFiltersButtonClick();
+        expect(await componentHarness.getStatusesInputChips()).toEqual([]);
+
+        await componentHarness.addInputStatusesChip('200');
+        expect(await componentHarness.getStatusesInputChips()).toEqual(['200']);
+
+        await componentHarness.moreFiltersApply();
+        expect(await componentHarness.getStatusChip()).toStrictEqual('statuses: 200');
+        expectApiWithLogs(total, { perPage, page: 1, statuses: '200' });
+        expectUiRouterChange(2, { page: 1, perPage: 10, statuses: '200' });
+
+        await componentHarness.moreFiltersButtonClick();
+        await componentHarness.addInputStatusesChip('202');
+        expect(await componentHarness.getStatusesInputChips()).toEqual(['200', '202']);
+
+        await componentHarness.moreFiltersApply();
+        expect(await componentHarness.getStatusChip()).toStrictEqual('statuses: 200, 202');
+        expectApiWithLogs(total, { perPage, page: 1, statuses: '200,202' });
+        expectUiRouterChange(3, { page: 1, perPage: 10, statuses: '200,202' });
+
+        await componentHarness.moreFiltersButtonClick();
+        await componentHarness.removeInputStatusChip('200');
+        expect(await componentHarness.getStatusesInputChips()).toEqual(['202']);
+
+        await componentHarness.moreFiltersApply();
+        expect(await componentHarness.getStatusChip()).toStrictEqual('statuses: 202');
+        expectApiWithLogs(total, { perPage, page: 1, statuses: '202' });
+        expectUiRouterChange(4, { page: 1, perPage: 10, statuses: '202' });
+
+        await componentHarness.goToNextPage();
+        expectApiWithLogs(total, { perPage, page: 2, statuses: '202' });
+        expectUiRouterChange(5, { page: 2, perPage: 10, statuses: '202' });
+      });
+
+      it('should remove status filter', async () => {
+        await componentHarness.moreFiltersButtonClick();
+        await componentHarness.addInputStatusesChip('404');
+        await componentHarness.moreFiltersApply();
+
+        expectApiWithLogs(total, { perPage, page: 1, statuses: '404' });
+        expectUiRouterChange(2, { page: 1, perPage: 10, statuses: '404' });
+
+        await componentHarness.removeStatusChip();
+        expectApiWithLogs(total, { perPage, page: 1 });
+        expectUiRouterChange(3, { page: 1, perPage: 10 });
+      });
     });
   });
 
@@ -681,6 +729,23 @@ describe('ApiRuntimeLogsComponent', () => {
         expectUiRouterChange(1, { page: 2, perPage: 10 });
       });
     });
+
+    describe('there are status filters in the url', () => {
+      it('should init the form with filters preselected', async () => {
+        await TestBed.overrideProvider(UIRouterStateParams, {
+          useValue: { ...stateParams, statuses: '200,202' },
+        }).compileComponents();
+
+        await initComponent();
+        expectPlanList();
+        expectApiWithLogs(10, { page: 1, perPage: 10, statuses: '200,202' });
+        expectApiWithLogEnabled();
+        expect(await componentHarness.getStatusChip()).toStrictEqual('statuses: 200, 202');
+
+        await componentHarness.moreFiltersButtonClick();
+        expect(await componentHarness.getStatusesInputChips()).toEqual(['200', '202']);
+      });
+    });
   });
 
   function expectApiWithLogEnabled(modifier?: Partial<ApiV4>) {
@@ -731,6 +796,7 @@ describe('ApiRuntimeLogsComponent', () => {
     if (param.applicationIds) expectedURL = expectedURL.concat(`&applicationIds=${param.applicationIds}`);
     if (param.planIds) expectedURL = expectedURL.concat(`&planIds=${param.planIds}`);
     if (param.methods) expectedURL = expectedURL.concat(`&methods=${param.methods}`);
+    if (param.statuses) expectedURL = expectedURL.concat(`&statuses=${param.statuses}`);
 
     httpTestingController
       .expectOne({
@@ -818,7 +884,7 @@ describe('ApiRuntimeLogsComponent', () => {
     expect(fakeUiRouter.go).toHaveBeenNthCalledWith(
       nthCall,
       '.',
-      { applicationIds: null, planIds: null, methods: null, from: null, to: null, ...queryParams },
+      { applicationIds: null, planIds: null, methods: null, statuses: null, from: null, to: null, ...queryParams },
       { notify: false },
     );
   }

@@ -16,6 +16,7 @@
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
+import { MatChipListHarness } from '@angular/material/chips/testing';
 
 export class ApiRuntimeLogsMoreFiltersFormHarness extends ComponentHarness {
   static hostSelector = 'api-runtime-logs-more-filters-form';
@@ -23,4 +24,5 @@ export class ApiRuntimeLogsMoreFiltersFormHarness extends ComponentHarness {
   public getPeriodSelectInput = this.locatorFor(MatSelectHarness.with({ selector: '[formControlName="period"]' }));
   public getFromInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="from"]' }));
   public getToInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="to"]' }));
+  public getStatusesChips = this.locatorFor(MatChipListHarness.with({ selector: '[formControlName="statuses"]' }));
 }

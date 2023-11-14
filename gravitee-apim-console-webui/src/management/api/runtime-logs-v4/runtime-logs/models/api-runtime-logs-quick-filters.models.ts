@@ -31,11 +31,12 @@ export type LogFilters = {
   applications?: MultiFilter;
   plans?: MultiFilter;
   methods?: string[];
+  statuses?: Set<number>;
 };
 
 export type LogFiltersForm = { period: SimpleFilter; applications: string[]; plans: string[]; methods: string[] };
 
-export type MoreFiltersForm = { period: SimpleFilter; from: Moment; to: Moment };
+export type MoreFiltersForm = { period: SimpleFilter; from: Moment; to: Moment; statuses: Set<number> };
 
 export type LogFiltersInitialValues = {
   applications?: MultiFilter;
@@ -43,6 +44,7 @@ export type LogFiltersInitialValues = {
   from: Moment;
   to: Moment;
   methods: string[];
+  statuses: Set<number>;
 };
 
 export const DEFAULT_PERIOD = { label: 'None', value: '0' };

@@ -68,6 +68,7 @@ export class ApiRuntimeLogsQuickFiltersComponent implements OnInit, OnDestroy {
       period: DEFAULT_PERIOD,
       from: this.initialValues.from,
       to: this.initialValues.to,
+      statuses: this.initialValues.statuses,
     };
     this.quickFiltersForm = new FormGroup({
       period: new FormControl({ value: DEFAULT_PERIOD, disabled: true }),
@@ -108,7 +109,7 @@ export class ApiRuntimeLogsQuickFiltersComponent implements OnInit, OnDestroy {
 
   resetAllFilters() {
     this.quickFiltersForm.reset(DEFAULT_FILTERS, { emitEvent: false });
-    this.applyMoreFilters({ period: DEFAULT_FILTERS.period, from: null, to: null });
+    this.applyMoreFilters({ period: DEFAULT_FILTERS.period, from: null, to: null, statuses: null });
   }
 
   @Input()
@@ -158,8 +159,8 @@ export class ApiRuntimeLogsQuickFiltersComponent implements OnInit, OnDestroy {
     };
   }
 
-  private mapMoreFiltersFormValues({ period, from, to }: MoreFiltersForm) {
-    return { period, from: from?.valueOf(), to: to?.valueOf() };
+  private mapMoreFiltersFormValues({ period, from, to, statuses }: MoreFiltersForm) {
+    return { period, from: from?.valueOf(), to: to?.valueOf(), statuses };
   }
 
   private plansFromValues(ids: string[]): MultiFilter {

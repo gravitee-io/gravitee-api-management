@@ -17,18 +17,28 @@ import { Pipe, PipeTransform } from '@angular/core';
 
 import { MultiFilter, SimpleFilter } from '../../../models';
 
+type IterableFilter = MultiFilter | string[] | Set<number>;
+
+const SEPARATOR = ', ';
+
 @Pipe({ name: 'chipValue' })
 export class ChipValuePipe implements PipeTransform {
-  transform(filter: SimpleFilter | MultiFilter | string[]): string {
-    return Array.isArray(filter)
-      ? filter
-          .map((value) => {
-            if (value.label) {
-              return value.label;
-            }
-            return value;
-          })
-          ?.join(', ')
-      : filter.label;
+  transform(filter: SimpleFilter | IterableFilter): string {
+    if (filter instanceof Set) {
+      return Array.from(filter)?.join(SEPARATOR);
+    }
+
+    if (Array.isArray(filter)) {
+      return filter
+        .map((value) => {
+          if (value.label) {
+            return value.label;
+          }
+          return value;
+        })
+        ?.join(SEPARATOR);
+    }
+
+    return filter?.label;
   }
 }
