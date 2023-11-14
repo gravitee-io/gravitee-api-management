@@ -97,9 +97,11 @@ describe('ApiDocumentationV4EditPageComponent', () => {
 
   describe('Create page', () => {
     describe('In the root folder of the API', () => {
+      const EXISTING_PAGE = fakeMarkdown({ id: 'page-id', name: 'page-name' });
+
       beforeEach(async () => {
         await init('ROOT', undefined);
-        initPageServiceRequests({ pages: [], breadcrumb: [], parentId: 'ROOT' });
+        initPageServiceRequests({ pages: [EXISTING_PAGE], breadcrumb: [], parentId: 'ROOT' });
       });
 
       it('should have 3 steps', async () => {
@@ -144,6 +146,12 @@ describe('ApiDocumentationV4EditPageComponent', () => {
           });
 
           expect(getPageTitle()).toEqual('New page');
+        });
+
+        it('should not allow duplicate name', async () => {
+          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
+          await harness.setName(EXISTING_PAGE.name);
+          expect(await harness.getNextButton().then((btn) => btn.isDisabled())).toEqual(true);
         });
       });
 
@@ -366,11 +374,18 @@ describe('ApiDocumentationV4EditPageComponent', () => {
   describe('Edit page', () => {
     describe('In the root folder', () => {
       describe('with published page', () => {
-        const PAGE = fakeMarkdown({ id: 'page-id', content: 'my content', visibility: 'PUBLIC', published: true });
+        const PAGE = fakeMarkdown({ id: 'page-id', name: 'page-name', content: 'my content', visibility: 'PUBLIC', published: true });
+        const OTHER_PAGE = fakeMarkdown({
+          id: 'other-page',
+          name: 'other-page-name',
+          content: 'my other content',
+          visibility: 'PUBLIC',
+          published: true,
+        });
 
         beforeEach(async () => {
           await init(undefined, PAGE.id);
-          initPageServiceRequests({ pages: [PAGE], breadcrumb: [], parentId: undefined, mode: 'edit' }, PAGE);
+          initPageServiceRequests({ pages: [PAGE, OTHER_PAGE], breadcrumb: [], parentId: undefined, mode: 'edit' }, PAGE);
         });
 
         it('should load step one with existing name and visibility', async () => {
@@ -387,6 +402,12 @@ describe('ApiDocumentationV4EditPageComponent', () => {
         it('should not have Next button clickable with name blank', async () => {
           const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
           await harness.setName('');
+          expect(await harness.getNextButton().then((btn) => btn.isDisabled())).toEqual(true);
+        });
+
+        it('should not have Next button clickable with duplicate name', async () => {
+          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
+          await harness.setName(' Other-page-Name  ');
           expect(await harness.getNextButton().then((btn) => btn.isDisabled())).toEqual(true);
         });
 

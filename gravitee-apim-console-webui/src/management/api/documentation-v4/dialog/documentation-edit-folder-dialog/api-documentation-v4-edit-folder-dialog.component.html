@@ -25,6 +25,8 @@
   <mat-form-field>
     <mat-label>Name</mat-label>
     <input matInput formControlName="name" placeholder="Name" />
+    <mat-error *ngIf="formGroup.controls.name?.errors?.required">Name is required</mat-error>
+    <mat-error *ngIf="formGroup.controls.name?.errors?.unique">Name already exists in this folder</mat-error>
   </mat-form-field>
   <api-documentation-visibility [showSubtitle]="data.mode === 'create'" formControlName="visibility"></api-documentation-visibility>
   <div class="new-folder-form__actions">

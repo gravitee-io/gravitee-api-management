@@ -75,6 +75,7 @@ export class ApiDocumentationV4Component implements OnInit, OnDestroy {
         width: GIO_DIALOG_WIDTH.MEDIUM,
         data: {
           mode: 'create',
+          existingNames: this.pages.filter((page) => page.type === 'FOLDER').map((page) => page.name.toLowerCase().trim()),
         },
       })
       .afterClosed()
@@ -122,6 +123,9 @@ export class ApiDocumentationV4Component implements OnInit, OnDestroy {
           mode: 'edit',
           name: folder.name,
           visibility: folder.visibility,
+          existingNames: this.pages
+            .filter((page) => page.type === 'FOLDER' && page.id !== folder.id)
+            .map((page) => page.name.toLowerCase().trim()),
         },
       })
       .afterClosed()

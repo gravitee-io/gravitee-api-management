@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { StateParams } from '@uirouter/core';
 import { StateService } from '@uirouter/angularjs';
 import { catchError, switchMap, tap } from 'rxjs/operators';
@@ -43,6 +43,7 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
   formUnchanged: boolean;
   page: Page;
 
+  private existingNames: string[] = [];
   private loadPage$: Observable<Page>;
   private unsubscribe$: Subject<void> = new Subject<void>();
 
@@ -56,7 +57,7 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.stepOneForm = this.formBuilder.group({
-      name: this.formBuilder.control('', [Validators.required]),
+      name: this.formBuilder.control('', [Validators.required, this.pageNameUniqueValidator()]),
       visibility: this.formBuilder.control('PUBLIC', [Validators.required]),
     });
     this.form = this.formBuilder.group({
@@ -98,6 +99,9 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (pagesResponse) => {
           this.breadcrumbs = pagesResponse.breadcrumb;
+          this.existingNames = pagesResponse.pages
+            .filter((page) => page.id !== this.page?.id && page.type === 'MARKDOWN')
+            .map((page) => page.name.toLowerCase().trim());
         },
       });
 
@@ -154,6 +158,10 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
     );
   }
 
+  exitWithoutSaving() {
+    this.ajsState.go('management.apis.documentationV4', this.ajsStateParams);
+  }
+
   private createPage(): Observable<Page> {
     const createPage: CreateDocumentationMarkdown = {
       type: 'MARKDOWN',
@@ -184,7 +192,8 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
     );
   }
 
-  exitWithoutSaving() {
-    this.ajsState.go('management.apis.documentationV4', this.ajsStateParams);
+  private pageNameUniqueValidator(): ValidatorFn {
+    return (nameControl: AbstractControl): ValidationErrors | null =>
+      this.existingNames.includes(nameControl.value?.toLowerCase().trim()) ? { unique: true } : null;
   }
 }

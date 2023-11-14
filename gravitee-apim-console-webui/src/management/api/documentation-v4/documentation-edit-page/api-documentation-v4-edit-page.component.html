@@ -39,6 +39,8 @@
               <mat-form-field>
                 <mat-label>Name</mat-label>
                 <input matInput formControlName="name" placeholder="Name" autofocus />
+                <mat-error *ngIf="stepOneForm.controls.name?.errors?.required">Name is required</mat-error>
+                <mat-error *ngIf="stepOneForm.controls.name?.errors?.unique">Name already exists in this folder</mat-error>
               </mat-form-field>
               <api-documentation-visibility formControlName="visibility"></api-documentation-visibility>
             </form>
@@ -82,6 +84,7 @@
           <div class="stepper__content">
             <ng-container>
               <api-documentation-content formControlName="content" [published]="page?.published"></api-documentation-content>
+              <mat-error *ngIf="stepOneForm.controls.content?.errors?.required">Page content cannot be empty</mat-error>
             </ng-container>
           </div>
           <div class="stepper__actions">
