@@ -43,6 +43,12 @@ $typography: map.get(gio.$mat-theme, typography);
           flex: 1 1 auto;
         }
       }
+
+      &__client_id-row {
+        margin-top: 8px;
+        display: flex;
+        flex-direction: column;
+      }
     }
 
     &__right-coll {
@@ -111,4 +117,8 @@ $typography: map.get(gio.$mat-theme, typography);
       margin-right: 8px;
     }
   }
+}
+
+.details-title-oauth {
+  margin: 20px 0 5px 0;
 }

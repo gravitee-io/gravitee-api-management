@@ -113,7 +113,44 @@ describe('ApplicationGeneralInfoComponent', () => {
         name: 'new test name',
         picture: null,
         settings: {
-          app: {},
+          app: {
+            client_id: null,
+          },
+        },
+      });
+    });
+  });
+
+  describe('Application General details when 0Auth2 integration enabled', () => {
+    it('should edit 0Auth2 form details', async () => {
+      const applicationDetails = fakeApplication();
+      expectListApplicationRequest(applicationDetails);
+      fixture.detectChanges();
+      await waitImageCheck();
+
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      expect(await saveBar.isVisible()).toBe(false);
+
+      const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="client_id"]' }));
+      expect(await nameInput.getValue()).toEqual('');
+      await nameInput.setValue('123');
+
+      expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
+      await saveBar.clickSubmit();
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/applications/${applicationDetails.id}`);
+      expect(req.request.method).toEqual('PUT');
+      expect(req.request.body).toEqual({
+        api_key_mode: 'UNSPECIFIED',
+        background: null,
+        description: 'My default application',
+        domain: null,
+        name: 'Default application',
+        picture: null,
+        settings: {
+          app: {
+            client_id: '123',
+          },
         },
       });
     });

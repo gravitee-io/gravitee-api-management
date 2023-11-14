@@ -33,7 +33,6 @@ export class ApplicationGeneralComponent implements OnInit {
   public applicationForm: FormGroup;
   public isLoadingData = true;
   public initialApplicationGeneralFormsValue: unknown;
-  public is0AuthClient: boolean;
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   constructor(
@@ -54,7 +53,6 @@ export class ApplicationGeneralComponent implements OnInit {
       )
       .subscribe(() => {
         this.isLoadingData = false;
-        this.is0AuthClient = this.initialApplication.type.toLowerCase() !== 'simple';
 
         this.applicationForm = new FormGroup({
           details: new FormGroup({
@@ -66,6 +64,11 @@ export class ApplicationGeneralComponent implements OnInit {
           images: new FormGroup({
             picture: new FormControl(this.initialApplication.picture ? [this.initialApplication.picture] : undefined),
             background: new FormControl(this.initialApplication.background ? [this.initialApplication.background] : undefined),
+          }),
+          OAuth2Form: new FormGroup({
+            client_id: new FormControl(
+              this.initialApplication.settings?.app?.client_id ? this.initialApplication.settings.app.client_id : undefined,
+            ),
           }),
         });
 
@@ -79,9 +82,18 @@ export class ApplicationGeneralComponent implements OnInit {
     const applicationToUpdate = {
       ...this.initialApplication,
       ...this.applicationForm.getRawValue().details,
+      settings:
+        this.initialApplication.type === 'SIMPLE'
+          ? {
+              app: {
+                ...this.applicationForm.getRawValue().OAuth2Form,
+              },
+            }
+          : this.initialApplication.settings,
       ...(imagesValue?.picture?.length ? { picture: imagesValue.picture[0].dataUrl } : { picture: null }),
       ...(imagesValue?.background?.length ? { background: imagesValue.background[0].dataUrl } : { background: null }),
     };
+
     this.applicationService
       .update(applicationToUpdate)
       .pipe(
