@@ -30,6 +30,7 @@ import { computeStyles, LicenseConfiguration } from '@gravitee/ui-particles-angu
 import { AppModule } from './app.module';
 import { Constants } from './entities/Constants';
 import { FeatureInfoData } from './shared/components/gio-license/gio-license-data';
+import { ConsoleCustomization } from './entities/management-api-v2/consoleCustomization';
 
 // fix angular-schema-form angular<1.7
 Object.assign(angular, { lowercase: _.toLower, uppercase: _.toUpper });
@@ -58,14 +59,20 @@ function fetchData() {
     })
     .then((bootstrapResponse: any) => {
       ConstantsJSON = prepareConstants(bootstrapResponse.data);
-      return getConsoleCustomizationForOem();
+      return $q.all([$http.get(`${ConstantsJSON.org.baseURL}/console`), $http.get(`${ConstantsJSON.v2BaseURL}/ui/customization`)]);
     })
-    .then(() => {
-      return $http.get(`${ConstantsJSON.org.baseURL}/console`);
-    })
-    .then((consoleResponse: any) => {
+    .then((responses: any) => {
+      const consoleResponse = responses[0];
+      const uiCustomization = responses[1];
+      if (uiCustomization && uiCustomization.data) {
+        customizeUIForOem(uiCustomization.data);
+      }
+
       const constants = _.assign(ConstantsJSON);
       constants.org.settings = consoleResponse.data;
+      if (uiCustomization?.data?.title) {
+        constants.org.settings.management.title = uiCustomization.data.title;
+      }
 
       angular.module('gravitee-management').constant('Constants', constants);
 
@@ -123,17 +130,16 @@ function initComponents() {
   return loadDefaultTranslations();
 }
 
-async function getConsoleCustomizationForOem() {
-  const uiCustomization: any = await $http.get(`${ConstantsJSON.v2BaseURL}/ui/customization`);
+function customizeUIForOem(uiCustomization: ConsoleCustomization) {
   if (uiCustomization !== null) {
     const styles = computeStyles({
-      menuBackground: uiCustomization.data.theme.menuBackground,
-      menuActive: uiCustomization.data.theme.menuActive,
+      menuBackground: uiCustomization.theme.menuBackground,
+      menuActive: uiCustomization.theme.menuActive,
     });
     styles.forEach((style) => {
       document.documentElement.style.setProperty(style.key, style.value);
     });
-    document.getElementById('favicon').setAttribute('href', uiCustomization.data.favicon);
+    document.getElementById('favicon').setAttribute('href', uiCustomization.favicon);
   }
 }
 
