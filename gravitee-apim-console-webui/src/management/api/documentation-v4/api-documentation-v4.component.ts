@@ -133,7 +133,7 @@ export class ApiDocumentationV4Component implements OnInit, OnDestroy {
         filter((updateFolder) => !!updateFolder),
         switchMap((updateFolder: EditDocumentationFolder) =>
           this.apiDocumentationV2Service.updateDocumentationPage(this.ajsStateParams.apiId, folder.id, {
-            type: 'FOLDER',
+            ...folder,
             name: updateFolder.name,
             visibility: updateFolder.visibility,
           }),
