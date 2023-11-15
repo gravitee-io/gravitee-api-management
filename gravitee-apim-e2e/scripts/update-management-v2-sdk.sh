@@ -14,10 +14,10 @@
 # limitations under the License.
 
 mkdir -p .tmp
-sed s/'uniqueItems: true'/'uniqueItems: false'/g ../gravitee-apim-rest-api/gravitee-apim-rest-api-management-v2/gravitee-apim-rest-api-management-v2-rest/src/main/resources/openapi/management-openapi-v2.yaml > .tmp/management-openapi-v2.yaml
+sed s/'uniqueItems: true'/'uniqueItems: false'/g ../gravitee-apim-rest-api/gravitee-apim-rest-api-management-v2/gravitee-apim-rest-api-management-v2-rest/src/main/resources/openapi/openapi-apis.yaml > .tmp/openapi-apis.yaml
 
 npx @openapitools/openapi-generator-cli@2.6.0 generate \
-  -i .tmp/management-openapi-v2.yaml \
+  -i .tmp/openapi-apis.yaml \
   -g typescript-fetch \
   -o lib/management-v2-webclient-sdk/src/lib/ \
   -puseSingleRequestParameter=true \
