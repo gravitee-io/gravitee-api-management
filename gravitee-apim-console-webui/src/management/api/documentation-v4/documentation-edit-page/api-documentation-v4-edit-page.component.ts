@@ -91,11 +91,7 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
     }
 
     this.loadPage$
-      .pipe(
-        switchMap((page) =>
-          this.apiDocumentationService.getApiPages(this.ajsStateParams.apiId, this.ajsStateParams.parentId ?? page?.parentId ?? 'ROOT'),
-        ),
-      )
+      .pipe(switchMap((_) => this.apiDocumentationService.getApiPages(this.ajsStateParams.apiId, this.getParentId())))
       .subscribe({
         next: (pagesResponse) => {
           this.breadcrumbs = pagesResponse.breadcrumb;
@@ -115,7 +111,7 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
 
   create() {
     this.createPage().subscribe(() => {
-      this.ajsState.go('management.apis.documentationV4', this.ajsStateParams);
+      this.goBackToPageList();
     });
   }
 
@@ -124,7 +120,7 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
       .pipe(switchMap((page) => this.apiDocumentationService.publishDocumentationPage(this.ajsStateParams.apiId, page.id)))
       .subscribe({
         next: () => {
-          this.ajsState.go('management.apis.documentationV4', this.ajsStateParams);
+          this.goBackToPageList();
         },
         error: (error) => {
           this.snackBarService.error(error?.error?.message ?? 'Cannot publish page');
@@ -135,7 +131,7 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
   update() {
     this.updatePage().subscribe({
       next: () => {
-        this.ajsState.go('management.apis.documentationV4', this.ajsStateParams);
+        this.goBackToPageList();
       },
     });
   }
@@ -158,8 +154,8 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
     );
   }
 
-  exitWithoutSaving() {
-    this.ajsState.go('management.apis.documentationV4', this.ajsStateParams);
+  goBackToPageList() {
+    this.ajsState.go('management.apis.documentationV4', { apiId: this.ajsStateParams.apiId, parentId: this.getParentId() });
   }
 
   private createPage(): Observable<Page> {
@@ -195,5 +191,9 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
   private pageNameUniqueValidator(): ValidatorFn {
     return (nameControl: AbstractControl): ValidationErrors | null =>
       this.existingNames.includes(nameControl.value?.toLowerCase().trim()) ? { unique: true } : null;
+  }
+
+  private getParentId(): string {
+    return this.ajsStateParams.parentId ?? this.page?.parentId ?? 'ROOT';
   }
 }
