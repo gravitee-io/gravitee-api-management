@@ -90,6 +90,7 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
   private interval: any;
   public numberOfPortalNotifications: any;
   public homepageTitle: string;
+  public currentYear = new Date().getFullYear().toString();
 
   constructor(
     private titleService: Title,
