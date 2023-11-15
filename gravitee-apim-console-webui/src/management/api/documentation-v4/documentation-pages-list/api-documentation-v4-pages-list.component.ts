@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
 
 import { Page } from '../../../../entities/management-api-v2/documentation/page';
@@ -24,7 +24,7 @@ import { Page } from '../../../../entities/management-api-v2/documentation/page'
   template: require('./api-documentation-v4-pages-list.component.html'),
   styles: [require('./api-documentation-v4-pages-list.component.scss')],
 })
-export class ApiDocumentationV4PagesListComponent implements OnChanges {
+export class ApiDocumentationV4PagesListComponent implements OnInit, OnChanges {
   @Input()
   pages: Page[];
 
@@ -33,6 +33,9 @@ export class ApiDocumentationV4PagesListComponent implements OnChanges {
 
   @Output()
   onEditPage = new EventEmitter<string>();
+
+  @Output()
+  onPublishPage = new EventEmitter<string>();
 
   @Output()
   onDeletePage = new EventEmitter<string>();
@@ -51,6 +54,11 @@ export class ApiDocumentationV4PagesListComponent implements OnChanges {
 
   public displayedColumns = ['name', 'status', 'visibility', 'lastUpdated', 'actions'];
   public dataSource: MatTableDataSource<Page>;
+  public pagesIncludeNonFolders: boolean;
+
+  ngOnInit(): void {
+    this.pagesIncludeNonFolders = this.pages.some((page) => page.type !== 'FOLDER');
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.pages) {

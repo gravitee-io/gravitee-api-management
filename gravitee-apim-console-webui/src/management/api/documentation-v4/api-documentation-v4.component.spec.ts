@@ -19,6 +19,7 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
+import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 
 import { ApiDocumentationV4Component } from './api-documentation-v4.component';
 import { ApiDocumentationV4Module } from './api-documentation-v4.module';
@@ -245,6 +246,39 @@ describe('ApiDocumentationV4', () => {
       });
 
       expectGetPages([page], []);
+    });
+
+    it('should publish page', async () => {
+      const ID = 'page-id';
+      const PAGE = fakeMarkdown({ id: ID, name: 'my first folder', visibility: 'PUBLIC', published: false });
+      await init([PAGE], []);
+
+      const pageListHarness = await harnessLoader.getHarness(ApiDocumentationV4PagesListHarness);
+      const publishPageBtn = await pageListHarness.getPublishPageButtonByRowIndex(0);
+      await publishPageBtn.click();
+
+      const dialogHarness = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
+      await dialogHarness.confirm();
+
+      httpTestingController
+        .expectOne({
+          method: 'POST',
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages/${ID}/_publish`,
+        })
+        .flush({ ...PAGE, published: true });
+
+      expectGetPages([{ ...PAGE, published: true }], []);
+    });
+
+    it('should not publish page that is already published', async () => {
+      const ID = 'page-id';
+      const PAGE = fakeMarkdown({ id: ID, name: 'my first folder', visibility: 'PUBLIC', published: true });
+      await init([PAGE], []);
+
+      const pageListHarness = await harnessLoader.getHarness(ApiDocumentationV4PagesListHarness);
+      await pageListHarness.getPublishPageButtonByRowIndex(0).then((found) => {
+        expect(found).toBeFalsy();
+      });
     });
 
     it('should move folder down', async () => {

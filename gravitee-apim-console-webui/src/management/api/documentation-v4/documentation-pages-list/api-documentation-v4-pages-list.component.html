@@ -70,12 +70,31 @@
       <th mat-header-cell *matHeaderCellDef>Actions</th>
       <td mat-cell *matCellDef="let page; let i = index">
         <div class="documentation-pages-list__table__actions">
-          <button *ngIf="page.type === 'FOLDER'" mat-icon-button (click)="onEditFolder.emit(page)" aria-label="Edit folder">
-            <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
-          </button>
-          <button *ngIf="page.type !== 'FOLDER'" mat-icon-button (click)="onEditPage.emit(page.id)" aria-label="Edit page">
-            <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
-          </button>
+          <ng-container *ngIf="page.type === 'FOLDER'">
+            <button mat-icon-button (click)="onEditFolder.emit(page)" aria-label="Edit folder">
+              <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
+            </button>
+            <div *ngIf="pagesIncludeNonFolders" class="empty-icon-button"></div>
+          </ng-container>
+
+          <ng-container *ngIf="page.type !== 'FOLDER'">
+            <button mat-icon-button (click)="onEditPage.emit(page.id)" aria-label="Edit page">
+              <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
+            </button>
+            <button
+              *ngIf="!page.published"
+              mat-icon-button
+              (click)="onPublishPage.emit(page.id)"
+              matTooltip="Publish page"
+              aria-label="Publish page"
+            >
+              <mat-icon svgIcon="gio:upload-cloud"></mat-icon>
+            </button>
+            <button *ngIf="page.published" disabled mat-icon-button matTooltip="Unpublish page" aria-label="Unpublish page">
+              <mat-icon svgIcon="gio:cloud-unpublished"></mat-icon>
+            </button>
+          </ng-container>
+
           <button mat-icon-button (click)="onMoveUp.emit(page)" [disabled]="i === 0 || page.order === 0" aria-label="Move page up">
             <mat-icon svgIcon="gio:arrow-up"></mat-icon>
           </button>
