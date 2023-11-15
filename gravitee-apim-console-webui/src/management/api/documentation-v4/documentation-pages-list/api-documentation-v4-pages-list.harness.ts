@@ -25,6 +25,7 @@ export class ApiDocumentationV4PagesListHarness extends ComponentHarness {
   protected tableLocator = this.locatorFor(MatTableHarness);
   protected addNewPageButtonLocator = this.locatorFor(MatButtonHarness.with({ text: 'Add new page' }));
   protected allEditFolderButtons = this.locatorForAll(MatButtonHarness.with({ selector: '[aria-label="Edit folder"]' }));
+  protected allPublishPageButtons = this.locatorForAll(MatButtonHarness.with({ selector: '[aria-label="Publish page"]' }));
   protected allMovePageDownButtons = this.locatorForAll(MatButtonHarness.with({ selector: '[aria-label="Move page down"]' }));
   protected allMovePageUpButtons = this.locatorForAll(MatButtonHarness.with({ selector: '[aria-label="Move page up"]' }));
 
@@ -48,6 +49,10 @@ export class ApiDocumentationV4PagesListHarness extends ComponentHarness {
 
   public getEditFolderButtonByRowIndex(idx: number): Promise<MatButtonHarness> {
     return this.allEditFolderButtons().then((buttonList) => buttonList[idx]);
+  }
+
+  public getPublishPageButtonByRowIndex(idx: number): Promise<MatButtonHarness> {
+    return this.allPublishPageButtons().then((buttonList) => buttonList[idx]);
   }
 
   public getMovePageDownButtonByRowIndex(idx: number): Promise<MatButtonHarness> {

@@ -20,7 +20,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { StateService } from '@uirouter/angularjs';
 import { filter, switchMap, takeUntil } from 'rxjs/operators';
 import { StateParams } from '@uirouter/core';
-import { GIO_DIALOG_WIDTH } from '@gravitee/ui-particles-angular';
+import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 
 import {
   ApiDocumentationV4EditFolderDialog,
@@ -147,6 +147,31 @@ export class ApiDocumentationV4Component implements OnInit, OnDestroy {
         },
         error: (error) => {
           this.snackBarService.error(error?.error?.message ?? 'Error while updating folder');
+        },
+      });
+  }
+
+  publishPage(pageId: string) {
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
+        data: {
+          title: 'Publish your page',
+          content: 'Your page will be published to the Portal. Are you sure?',
+          confirmButton: 'Publish',
+        },
+      })
+      .afterClosed()
+      .pipe(
+        filter((confirmed) => !!confirmed),
+        switchMap((_) => this.apiDocumentationV2Service.publishDocumentationPage(this.ajsStateParams.apiId, pageId)),
+      )
+      .subscribe({
+        next: (_) => {
+          this.snackBarService.success('Page published successfully');
+          this.ngOnInit();
+        },
+        error: (error) => {
+          this.snackBarService.error(error?.error?.message ?? 'Error while publishing page');
         },
       });
   }
