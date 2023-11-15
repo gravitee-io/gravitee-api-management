@@ -220,7 +220,9 @@ describe('ApiDocumentationV4', () => {
 
     it('should update folder', async () => {
       const ID = 'page-id';
-      await init([fakeFolder({ id: ID, name: 'my first folder', visibility: 'PUBLIC' })], []);
+      const FOLDER = fakeFolder({ id: ID, name: 'my first folder', visibility: 'PUBLIC', order: 1 });
+      const OTHER_FOLDER = fakeFolder({ id: 'top-folder', name: 'my top folder', visibility: 'PUBLIC', order: 0 });
+      await init([FOLDER, OTHER_FOLDER], []);
 
       const pageListHarness = await harnessLoader.getHarness(ApiDocumentationV4PagesListHarness);
       const editFolderButton = await pageListHarness.getEditFolderButtonByRowIndex(0);
@@ -240,7 +242,7 @@ describe('ApiDocumentationV4', () => {
       });
       req.flush(page);
       expect(req.request.body).toEqual({
-        type: 'FOLDER',
+        ...FOLDER,
         name: 'folder',
         visibility: 'PRIVATE',
       });
