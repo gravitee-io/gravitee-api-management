@@ -15,8 +15,8 @@
  */
 import { isMasterBranch, isSupportBranch, isSupportBranchOrMaster, sanitizeBranch } from '../branch';
 
-describe('branch', function () {
-  describe('sanitize', function () {
+describe('branch', () => {
+  describe('sanitize', () => {
     it.each`
       branchToSanitize                                                                                                  | sanitizedBranch
       ${'APIM-1234-my-custom-branch'}                                                                                   | ${'apim-1234-my-custom-branch'}
@@ -27,40 +27,51 @@ describe('branch', function () {
     });
   });
 
-  describe('isMaster', function () {
+  describe('isMaster', () => {
     it.each`
-      branch          | expected
-      ${'not-master'} | ${false}
-      ${'master'}     | ${true}
-    `('returns $expected is $branch is master', ({ branch, expected }) => {
+      branch               | expected
+      ${'not-master'}      | ${false}
+      ${'master-APIM-213'} | ${false}
+      ${'master'}          | ${true}
+    `('returns `$expected` for `$branch`', ({ branch, expected }) => {
       expect(isMasterBranch(branch)).toEqual(expected);
     });
   });
 
-  describe('isSupport', function () {
+  describe('isSupport', () => {
     it.each`
       branch                         | expected
       ${'APIM-1234-mycustom-branch'} | ${false}
       ${'master'}                    | ${false}
+      ${'1.2.x-master'}              | ${false}
+      ${'APIM-213-master'}           | ${false}
+      ${'master-APIM-213'}           | ${false}
       ${'1.2.3'}                     | ${false}
       ${'1.2.x'}                     | ${true}
+      ${'1.2.x-APIM-213'}            | ${false}
+      ${'APIM-213-1.2.x'}            | ${false}
       ${'1.x'}                       | ${false}
       ${'x'}                         | ${false}
-    `('returns $expected is $branch is support', ({ branch, expected }) => {
+    `('returns `$expected` for `$branch`', ({ branch, expected }) => {
       expect(isSupportBranch(branch)).toEqual(expected);
     });
   });
 
-  describe('isSupportOrMaster', function () {
+  describe('isSupportOrMaster', () => {
     it.each`
       branch                         | expected
       ${'APIM-1234-mycustom-branch'} | ${false}
       ${'master'}                    | ${true}
+      ${'1.2.x-master'}              | ${false}
+      ${'APIM-213-master'}           | ${false}
+      ${'master-APIM-213'}           | ${false}
       ${'1.2.3'}                     | ${false}
       ${'1.2.x'}                     | ${true}
+      ${'1.2.x-APIM-213'}            | ${false}
+      ${'APIM-213-1.2.x'}            | ${false}
       ${'1.x'}                       | ${false}
       ${'x'}                         | ${false}
-    `('returns $expected is $branch is support', ({ branch, expected }) => {
+    `('returns `$expected` for `$branch`', ({ branch, expected }) => {
       expect(isSupportBranchOrMaster(branch)).toEqual(expected);
     });
   });
