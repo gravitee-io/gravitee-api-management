@@ -23,7 +23,7 @@ tests:
       - matchRegex:
           path: data.[gravitee.yml]
           pattern: "installation:[\\S\\s\\n]*standalone:"
-  - it: Set installation.standalone.api.url with classical ingress path
+  - it: Set installation.api.url with classical ingress path
     template: api/api-configmap.yaml
     set:
       api:
@@ -35,7 +35,7 @@ tests:
     asserts:
       - matchRegex:
           path: data.[gravitee.yml]
-          pattern: "installation:[\\S\\s\\n]*standalone:[\\S\\s\\n]*api:[\\S\\s\\n]*url: https://apim.example.com"
+          pattern: "installation:[\\S\\s\\n]*api:[\\S\\s\\n]*url: https://apim.example.com"
   - it: Set installation.standalone.console.url with default ingress path
     template: api/api-configmap.yaml
     asserts:

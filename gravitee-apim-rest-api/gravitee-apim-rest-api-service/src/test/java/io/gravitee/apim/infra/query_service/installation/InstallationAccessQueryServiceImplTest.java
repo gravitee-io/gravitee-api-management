@@ -16,6 +16,7 @@
 package io.gravitee.apim.infra.query_service.installation;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.when;
 
@@ -56,6 +57,15 @@ class InstallationAccessQueryServiceImplTest {
         setValue("apiURL", null);
         setValue("managementProxyPath", "/management");
         setValue("portalProxyPath", "/portal");
+    }
+
+    @Test
+    void should_throw_validation_error_when_api_url_is_malformed() {
+        when(installationTypeDomainService.isMultiTenant()).thenReturn(false);
+        setValue("apiURL", "wrong");
+
+        assertThatThrownBy(() -> cut.afterPropertiesSet())
+            .isInstanceOf(InstallationAccessQueryServiceImpl.InvalidInstallationUrlException.class);
     }
 
     @Test

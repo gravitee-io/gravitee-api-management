@@ -52,7 +52,7 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
     @Value("${cockpit.enabled:false}")
     private boolean cockpitEnabled;
 
-    @Value("${installation.api.url:null}")
+    @Value("${installation.api.url:#{null}}")
     private String apiURL;
 
     @Value("${installation.api.proxyPath.management:${http.api.management.entrypoint:${http.api.entrypoint:/}management}}")
@@ -69,6 +69,18 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
         if (!installationTypeDomainService.isMultiTenant()) {
             consoleUrls.putAll(loadUrls("console", "orgId", "http://localhost:3000"));
             portalUrls.putAll(loadUrls("portal", "envId", "http://localhost:4100"));
+
+            // Validate api url
+            if (apiURL != null) {
+                try {
+                    URL url = URI.create(apiURL).toURL();
+                    if (!isValidDomainName(url.getHost())) {
+                        throw new InvalidInstallationUrlException("API url '%s' is malformed.".formatted(apiURL));
+                    }
+                } catch (Exception e) {
+                    throw new InvalidInstallationUrlException("API url '%s' must be a valid URL.".formatted(apiURL));
+                }
+            }
         }
     }
 
