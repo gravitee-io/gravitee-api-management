@@ -15,16 +15,14 @@
  */
 import { Component, Inject, OnInit } from '@angular/core';
 import { StateService } from '@uirouter/core';
-import { LicenseOptions, GioLicenseService, SelectorItem } from '@gravitee/ui-particles-angular';
-import { IRootScopeService } from 'angular';
+import { GioLicenseService, LicenseOptions, SelectorItem } from '@gravitee/ui-particles-angular';
 import { map } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 import { castArray } from 'lodash';
 
-import { AjsRootScope, CurrentUserService, PortalSettingsService, UIRouterState } from '../../ajs-upgraded-providers';
+import { CurrentUserService, PortalSettingsService, UIRouterState } from '../../ajs-upgraded-providers';
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
 import { Constants } from '../../entities/Constants';
-import { EnvironmentService } from '../../services-ngx/environment.service';
 import UserService from '../../services/user.service';
 import PortalConfigService from '../../services/portalConfig.service';
 import { ApimFeature, UTMTags } from '../../shared/components/gio-license/gio-license-data';
@@ -53,9 +51,7 @@ export class GioSideNavComponent implements OnInit {
 
   constructor(
     @Inject(UIRouterState) private readonly ajsState: StateService,
-    @Inject(AjsRootScope) private readonly ajsRootScope: IRootScopeService,
     private readonly permissionService: GioPermissionService,
-    private readonly environmentService: EnvironmentService,
     @Inject(PortalSettingsService) private readonly portalConfigService: PortalConfigService,
     @Inject(CurrentUserService) private readonly currentUserService: UserService,
     @Inject('Constants') private readonly constants: Constants,
@@ -63,15 +59,17 @@ export class GioSideNavComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.mainMenuItems = this.buildMainMenuItems();
-    this.footerMenuItems = this.buildFooterMenuItems();
-    this.environments = this.constants.org.environments.map((env) => ({ value: env.id, displayValue: env.name }));
+    this.gioLicenseService.isOEM$().subscribe((isOEM) => {
+      this.mainMenuItems = this.buildMainMenuItems(isOEM);
+      this.footerMenuItems = this.buildFooterMenuItems();
+      this.environments = this.constants.org.environments.map((env) => ({ value: env.id, displayValue: env.name }));
 
-    // FIXME: to remove after migration. This allow to get the current environment when user "Go back to APIM" from organisation settings
-    this.updateCurrentEnv();
+      // FIXME: to remove after migration. This allow to get the current environment when user "Go back to APIM" from organisation settings
+      this.updateCurrentEnv();
+    });
   }
 
-  private buildMainMenuItems(): MenuItem[] {
+  private buildMainMenuItems(isOEM: boolean): MenuItem[] {
     const auditLicenseOptions: LicenseOptions = {
       feature: ApimFeature.APIM_AUDIT_TRAIL,
       context: UTMTags.CONTEXT_ENVIRONMENT,
@@ -132,7 +130,7 @@ export class GioSideNavComponent implements OnInit {
       },
     ];
 
-    if (this.constants.org.settings.alert && this.constants.org.settings.alert.enabled) {
+    if (!isOEM && this.constants.org.settings.alert && this.constants.org.settings.alert.enabled) {
       mainMenuItems.push({
         icon: 'gio:alarm',
         displayName: 'Alerts',
