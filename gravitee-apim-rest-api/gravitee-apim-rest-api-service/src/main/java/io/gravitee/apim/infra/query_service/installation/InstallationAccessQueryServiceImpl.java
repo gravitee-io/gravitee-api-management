@@ -87,21 +87,21 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
     private Map<String, String> loadUrls(final String keyUI, final String keyId, final String defaultValue) {
         Map<String, String> urls = new HashMap<>();
         int idx = 0;
-        boolean hasMany = environment.containsProperty(INSTALLATION_STANDALONE_PROPERTY + keyUI + ".ui.urls[" + idx + "]." + keyId);
+        boolean hasMany = environment.containsProperty(INSTALLATION_STANDALONE_PROPERTY + keyUI + ".urls[" + idx + "]." + keyId);
         if (hasMany) {
             boolean hasNext = true;
             while (hasNext) {
-                String id = environment.getProperty(INSTALLATION_STANDALONE_PROPERTY + keyUI + ".ui.urls[" + idx + "]." + keyId);
+                String id = environment.getProperty(INSTALLATION_STANDALONE_PROPERTY + keyUI + ".urls[" + idx + "]." + keyId);
                 hasNext = (id != null);
                 if (hasNext) {
-                    String url = environment.getProperty(INSTALLATION_STANDALONE_PROPERTY + keyUI + ".ui.urls[" + idx + "].url");
+                    String url = environment.getProperty(INSTALLATION_STANDALONE_PROPERTY + keyUI + ".urls[" + idx + "].url");
                     validateUrl(keyUI, url);
                     urls.put(id, url);
                 }
                 idx++;
             }
         } else {
-            String uiUrl = environment.getProperty(INSTALLATION_STANDALONE_PROPERTY + keyUI + ".ui.url");
+            String uiUrl = environment.getProperty(INSTALLATION_STANDALONE_PROPERTY + keyUI + ".url");
             if (uiUrl != null) {
                 validateUrl(keyUI, uiUrl);
                 urls.put("DEFAULT", uiUrl);
