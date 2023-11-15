@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export const supportBranchPattern = '\\d+\\.\\d+\\.x';
-
 export function sanitizeBranch(branch: string) {
   return branch
     .replaceAll(/[~^]+/g, '')
@@ -25,20 +23,19 @@ export function sanitizeBranch(branch: string) {
 }
 
 export function isE2EBranch(branch: string): boolean {
-  const regex = new RegExp('.*-run-e2e.*');
+  const regex = /.*-run-e2e.*/;
   return regex.test(branch);
 }
 
-export function isMasterBranch(branch: string) {
+export function isMasterBranch(branch: string): boolean {
   return branch === 'master';
 }
 
 export function isSupportBranch(branch: string): boolean {
-  const regex = new RegExp(supportBranchPattern);
+  const regex = /^\d+\.\d+\.x$/;
   return regex.test(branch);
 }
 
 export function isSupportBranchOrMaster(branch: string): boolean {
-  const branchPattern = new RegExp(`^(${supportBranchPattern})|master$`);
-  return branchPattern.test(branch);
+  return isMasterBranch(branch) || isSupportBranch(branch);
 }
