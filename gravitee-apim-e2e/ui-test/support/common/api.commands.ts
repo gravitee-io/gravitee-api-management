@@ -48,7 +48,7 @@ declare global {
 }
 export {};
 
-Cypress.Commands.add('callGateway', (contextPath, checkConditionFn?, maxRetries = 5, retryDelay = 1500) => {
+Cypress.Commands.add('callGateway', (contextPath, checkConditionFn?, maxRetries = 15, retryDelay = 1500) => {
   const defaultCheckFunction = (response: Cypress.Response<any>) => response.status === 200;
   const isResponseValid = checkConditionFn || defaultCheckFunction;
   const url = `${Cypress.env('gatewayServer')}${contextPath}`;
