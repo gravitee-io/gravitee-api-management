@@ -101,7 +101,7 @@
         <li>
           <gv-link path="cookies" title="{{ 'route.cookies' | translate }}"></gv-link>
         </li>
-        <li>{{ 'footer.rights' | translate }}</li>
+        <li>{{ 'footer.rights' | translate }} {{ currentYear }}</li>
       </ul>
       <ul *ngIf="links.footer">
         <li *ngFor="let link of links.footer">
