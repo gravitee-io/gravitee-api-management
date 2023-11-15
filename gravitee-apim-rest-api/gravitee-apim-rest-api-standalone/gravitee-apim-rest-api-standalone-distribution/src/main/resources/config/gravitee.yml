@@ -586,14 +586,12 @@ notifiers:
 #  type: standalone # Could be either standalone, multi-tenant; Default is standalone.
 #  # Specify the URL of Management API of this instance, mandatory if you want to connect it to Cockpit
 #  api:
+#    # Specify the URLs of Management API, mandatory if you want to connect it to Cockpit with a standalone installation
+#    url: http://localhost:8083
 #    proxyPath:
 #      management: ${http.api.management.entrypoint}
 #      portal: ${http.api.portal.entrypoint}
 #  standalone:
-#    api:
-#    # Specify the URLs of Management API, mandatory if you want to connect it to Cockpit with a standalone installation
-#      url: http://localhost:8083
-#    # Specify the URL of Console UI of this instance, mandatory if you want to connect it to Cockpit with a standalone installation
 #    console:
 #      url: http://localhost:3000
 #      # If you have multi console instances targeting different organizations, you can configure the section as bellow instead:
