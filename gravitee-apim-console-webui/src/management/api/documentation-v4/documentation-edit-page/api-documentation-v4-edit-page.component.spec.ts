@@ -459,6 +459,8 @@ describe('ApiDocumentationV4EditPageComponent', () => {
             content: 'New content',
           });
           req.flush(PAGE);
+
+          expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.documentationV4', { apiId: API_ID, parentId: 'ROOT' });
         });
       });
       describe('with unpublished page', () => {
@@ -513,7 +515,7 @@ describe('ApiDocumentationV4EditPageComponent', () => {
       });
     });
     describe('In parent folder', () => {
-      const PAGE = fakeMarkdown({ id: 'page-id', content: 'my content', visibility: 'PUBLIC' });
+      const PAGE = fakeMarkdown({ id: 'page-id', content: 'my content', visibility: 'PUBLIC', parentId: 'parent-folder-id' });
 
       beforeEach(async () => {
         await init('parent-folder-id', PAGE.id);
@@ -531,6 +533,15 @@ describe('ApiDocumentationV4EditPageComponent', () => {
       it('should show breadcrumb', async () => {
         const harness = await harnessLoader.getHarness(ApiDocumentationV4BreadcrumbHarness);
         expect(await harness.getContent()).toEqual('Home>Parent Folder');
+      });
+
+      it('should exit without saving', async () => {
+        const exitBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Exit without saving' }));
+        await exitBtn.click();
+        expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.documentationV4', {
+          apiId: API_ID,
+          parentId: PAGE.parentId,
+        });
       });
     });
   });
