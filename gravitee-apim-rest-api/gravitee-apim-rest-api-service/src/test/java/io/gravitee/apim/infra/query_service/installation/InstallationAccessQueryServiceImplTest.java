@@ -83,51 +83,51 @@ class InstallationAccessQueryServiceImplTest {
     @Test
     void should_build_url_for_DEFAULT_organization_when_installation_is_not_multi_tenant() {
         when(installationTypeDomainService.isMultiTenant()).thenReturn(false);
-        environment.withProperty("installation.standalone.console.ui.url", "http://console.ui.url");
-        environment.withProperty("installation.standalone.portal.ui.url", "http://portal.ui.url");
+        environment.withProperty("installation.standalone.console.url", "http://console.url");
+        environment.withProperty("installation.standalone.portal.url", "http://portal.url");
 
         cut.afterPropertiesSet();
         assertThat(cut.getConsoleAPIUrl(DEFAULT_ORGANIZATION_ID)).isNull();
         assertThat(cut.getPortalAPIUrl(DEFAULT_ORGANIZATION_ID)).isNull();
-        assertThat(cut.getConsoleUrl(DEFAULT_ORGANIZATION_ID)).isEqualTo("http://console.ui.url");
-        assertThat(cut.getConsoleUrls(DEFAULT_ORGANIZATION_ID)).containsOnly("http://console.ui.url");
-        assertThat(cut.getPortalUrl(DEFAULT_ORGANIZATION_ID)).isEqualTo("http://portal.ui.url");
-        assertThat(cut.getPortalUrls(DEFAULT_ORGANIZATION_ID)).containsOnly("http://portal.ui.url");
+        assertThat(cut.getConsoleUrl(DEFAULT_ORGANIZATION_ID)).isEqualTo("http://console.url");
+        assertThat(cut.getConsoleUrls(DEFAULT_ORGANIZATION_ID)).containsOnly("http://console.url");
+        assertThat(cut.getPortalUrl(DEFAULT_ORGANIZATION_ID)).isEqualTo("http://portal.url");
+        assertThat(cut.getPortalUrls(DEFAULT_ORGANIZATION_ID)).containsOnly("http://portal.url");
     }
 
     @Test
     void should_use_api_url_when_installation_is_not_multi_tenant() {
         when(installationTypeDomainService.isMultiTenant()).thenReturn(false);
-        setValue("apiURL", "http://api.ui.url");
+        setValue("apiURL", "http://api.url");
 
         cut.afterPropertiesSet();
-        assertThat(cut.getConsoleAPIUrl(DEFAULT_ORGANIZATION_ID)).isEqualTo("http://api.ui.url/management");
-        assertThat(cut.getPortalAPIUrl(DEFAULT_ORGANIZATION_ID)).isEqualTo("http://api.ui.url/portal");
+        assertThat(cut.getConsoleAPIUrl(DEFAULT_ORGANIZATION_ID)).isEqualTo("http://api.url/management");
+        assertThat(cut.getPortalAPIUrl(DEFAULT_ORGANIZATION_ID)).isEqualTo("http://api.url/portal");
     }
 
     @Test
     void should_urls_when_installation_is_not_multi_tenant() {
         when(installationTypeDomainService.isMultiTenant()).thenReturn(false);
-        environment.withProperty("installation.standalone.console.ui.urls[0].orgId", "orgId");
-        environment.withProperty("installation.standalone.console.ui.urls[0].url", "http://orgId.console.ui.url");
-        environment.withProperty("installation.standalone.console.ui.urls[1].orgId", "orgId1");
-        environment.withProperty("installation.standalone.console.ui.urls[1].url", "http://orgId1.console.ui.url");
-        environment.withProperty("installation.standalone.portal.ui.urls[0].envId", "envId");
-        environment.withProperty("installation.standalone.portal.ui.urls[0].url", "http://envId.portal.ui.url");
-        environment.withProperty("installation.standalone.portal.ui.urls[1].envId", "envId1");
-        environment.withProperty("installation.standalone.portal.ui.urls[1].url", "http://envId1.portal.ui.url");
+        environment.withProperty("installation.standalone.console.urls[0].orgId", "orgId");
+        environment.withProperty("installation.standalone.console.urls[0].url", "http://orgId.console.url");
+        environment.withProperty("installation.standalone.console.urls[1].orgId", "orgId1");
+        environment.withProperty("installation.standalone.console.urls[1].url", "http://orgId1.console.url");
+        environment.withProperty("installation.standalone.portal.urls[0].envId", "envId");
+        environment.withProperty("installation.standalone.portal.urls[0].url", "http://envId.portal.url");
+        environment.withProperty("installation.standalone.portal.urls[1].envId", "envId1");
+        environment.withProperty("installation.standalone.portal.urls[1].url", "http://envId1.portal.url");
 
         cut.afterPropertiesSet();
         assertThat(cut.getConsoleAPIUrl(DEFAULT_ORGANIZATION_ID)).isNull();
         assertThat(cut.getPortalAPIUrl(DEFAULT_ORGANIZATION_ID)).isNull();
-        assertThat(cut.getConsoleUrl("orgId")).isEqualTo("http://orgId.console.ui.url");
-        assertThat(cut.getConsoleUrls("orgId")).containsOnly("http://orgId.console.ui.url");
-        assertThat(cut.getConsoleUrl("orgId1")).isEqualTo("http://orgId1.console.ui.url");
-        assertThat(cut.getConsoleUrls("orgId1")).containsOnly("http://orgId1.console.ui.url");
-        assertThat(cut.getPortalUrl("envId")).isEqualTo("http://envId.portal.ui.url");
-        assertThat(cut.getPortalUrls("envId")).containsOnly("http://envId.portal.ui.url");
-        assertThat(cut.getPortalUrl("envId1")).isEqualTo("http://envId1.portal.ui.url");
-        assertThat(cut.getPortalUrls("envId1")).containsOnly("http://envId1.portal.ui.url");
+        assertThat(cut.getConsoleUrl("orgId")).isEqualTo("http://orgId.console.url");
+        assertThat(cut.getConsoleUrls("orgId")).containsOnly("http://orgId.console.url");
+        assertThat(cut.getConsoleUrl("orgId1")).isEqualTo("http://orgId1.console.url");
+        assertThat(cut.getConsoleUrls("orgId1")).containsOnly("http://orgId1.console.url");
+        assertThat(cut.getPortalUrl("envId")).isEqualTo("http://envId.portal.url");
+        assertThat(cut.getPortalUrls("envId")).containsOnly("http://envId.portal.url");
+        assertThat(cut.getPortalUrl("envId1")).isEqualTo("http://envId1.portal.url");
+        assertThat(cut.getPortalUrls("envId1")).containsOnly("http://envId1.portal.url");
     }
 
     @Test
