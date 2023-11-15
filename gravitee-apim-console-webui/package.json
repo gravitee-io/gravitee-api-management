@@ -21,7 +21,7 @@
     "@fontsource/libre-franklin": "4.4.5",
     "@gravitee/ui-analytics": "7.40.0",
     "@gravitee/ui-components": "3.45.2",
-    "@gravitee/ui-particles-angular": "7.46.0",
+    "@gravitee/ui-particles-angular": "7.48.0",
     "@gravitee/ui-policy-studio-angular": "7.40.0",
     "@highcharts/map-collection": "1.1.4",
     "@ngx-formly/core": "6.1.8",

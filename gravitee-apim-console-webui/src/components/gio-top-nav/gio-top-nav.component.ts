@@ -19,6 +19,7 @@ import { IRootScopeService } from 'angular';
 import { TransitionService } from '@uirouter/angularjs';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { GioLicenseService } from '@gravitee/ui-particles-angular';
 
 import { Constants } from '../../entities/Constants';
 import { AjsRootScope, CurrentUserService, UIRouterState } from '../../ajs-upgraded-providers';
@@ -41,6 +42,7 @@ export class GioTopNavComponent implements OnInit, OnDestroy {
   public supportEnabled: boolean;
   public newsletterProposed: boolean;
   public customLogo: string;
+  public isOEM: boolean;
 
   constructor(
     @Inject(UIRouterState) private readonly ajsState: StateService,
@@ -50,6 +52,7 @@ export class GioTopNavComponent implements OnInit, OnDestroy {
     public readonly taskService: TaskService,
     public readonly $transitions: TransitionService,
     private readonly uiCustomizationService: UiCustomizationService,
+    private readonly licenseService: GioLicenseService,
   ) {}
 
   ngOnInit(): void {
@@ -67,6 +70,9 @@ export class GioTopNavComponent implements OnInit, OnDestroy {
         this.userTaskCount = taskPagedResult.page.total_elements;
         this.hasAlert = this.userTaskCount > 0;
       });
+    this.licenseService.isOEM$().subscribe((isOEM) => {
+      this.isOEM = isOEM;
+    });
     this.displayDocumentationButton = !!this.ajsState.current.data?.docs;
     this.ajsRootScope.$on('$locationChangeStart', () => {
       this.displayDocumentationButton = !!this.ajsState.current.data?.docs;

@@ -37,7 +37,7 @@
         mat-icon-button
         (click)="openContextualDocumentation()"
         aria-label="Display contextual documentation"
-        *ngIf="displayDocumentationButton"
+        *ngIf="!isOEM && displayDocumentationButton"
         data-pendoId="sidenav-resource-center"
       >
         <mat-icon svgIcon="gio:question-mark-circle"></mat-icon>
