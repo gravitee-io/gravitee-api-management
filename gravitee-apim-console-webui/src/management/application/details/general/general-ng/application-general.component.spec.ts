@@ -30,8 +30,8 @@ import { ApplicationGeneralModule } from './application-general.module';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
 import { UIRouterStateParams, CurrentUserService } from '../../../../../ajs-upgraded-providers';
 import { User } from '../../../../../entities/user';
-import { fakeApplication } from '../../../../../entities/application/Application.fixture';
-import { Application } from '../../../../../entities/application/application';
+import { fakeApplication, fakeApplicationType } from '../../../../../entities/application/Application.fixture';
+import { Application, ApplicationType } from '../../../../../entities/application/application';
 
 describe('ApplicationGeneralInfoComponent', () => {
   const APPLICATION_ID = 'id_test';
@@ -84,8 +84,10 @@ describe('ApplicationGeneralInfoComponent', () => {
 
   describe('Application General details', () => {
     it('should edit application details', async () => {
-      const applicationDetails = fakeApplication();
+      const applicationDetails = fakeApplication({ type: 'NATIVE' });
+      const applicationType = fakeApplicationType();
       expectListApplicationRequest(applicationDetails);
+      expectApplicationTypeRequest(applicationType);
       fixture.detectChanges();
       await waitImageCheck();
 
@@ -95,10 +97,6 @@ describe('ApplicationGeneralInfoComponent', () => {
       const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="name"]' }));
       expect(await nameInput.getValue()).toEqual('Default application');
       await nameInput.setValue('new test name');
-
-      const typeInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="type"]' }));
-      expect(await typeInput.getValue()).toEqual('SIMPLE');
-      await typeInput.setValue('new TYPE');
 
       expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
       await saveBar.clickSubmit();
@@ -113,8 +111,14 @@ describe('ApplicationGeneralInfoComponent', () => {
         name: 'new test name',
         picture: null,
         settings: {
-          app: {
-            client_id: null,
+          oauth: {
+            application_type: 'NATIVE',
+            client_id: 'test_client_id',
+            client_secret: 'test_client_secret',
+            grant_types: ['authorization_code', 'refresh_token', 'password', 'implicit'],
+            redirect_uris: ['https://apim-master-console.team-apim.gravitee.dev/'],
+            renew_client_secret_supported: false,
+            response_types: ['code', 'token', 'id_token'],
           },
         },
       });
@@ -123,8 +127,10 @@ describe('ApplicationGeneralInfoComponent', () => {
 
   describe('Application General details when 0Auth2 integration enabled', () => {
     it('should edit 0Auth2 form details', async () => {
-      const applicationDetails = fakeApplication();
+      const applicationDetails = fakeApplication({ type: 'SIMPLE' });
+      const applicationType = fakeApplicationType();
       expectListApplicationRequest(applicationDetails);
+      expectApplicationTypeRequest(applicationType);
       fixture.detectChanges();
       await waitImageCheck();
 
@@ -156,6 +162,49 @@ describe('ApplicationGeneralInfoComponent', () => {
     });
   });
 
+  describe('Application General details when OpenID Connect integration enabled', () => {
+    it('should edit OpenID Connect form details', async () => {
+      const applicationDetails = fakeApplication({ type: 'NATIVE' });
+      const applicationType = fakeApplicationType();
+      expectListApplicationRequest(applicationDetails);
+      expectApplicationTypeRequest(applicationType);
+      fixture.detectChanges();
+      await waitImageCheck();
+
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      expect(await saveBar.isVisible()).toBe(false);
+
+      const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="client_id"]' }));
+      expect(await nameInput.getValue()).toEqual('test_client_id');
+      await nameInput.setValue('123');
+
+      expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
+      await saveBar.clickSubmit();
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/applications/${applicationDetails.id}`);
+      expect(req.request.method).toEqual('PUT');
+      expect(req.request.body).toEqual({
+        api_key_mode: 'UNSPECIFIED',
+        background: null,
+        description: 'My default application',
+        domain: null,
+        name: 'Default application',
+        picture: null,
+        settings: {
+          oauth: {
+            application_type: 'NATIVE',
+            client_id: '123',
+            client_secret: 'test_client_secret',
+            grant_types: ['authorization_code', 'refresh_token', 'password', 'implicit'],
+            redirect_uris: ['https://apim-master-console.team-apim.gravitee.dev/'],
+            renew_client_secret_supported: false,
+            response_types: ['code', 'token', 'id_token'],
+          },
+        },
+      });
+    });
+  });
+
   function expectListApplicationRequest(applicationDetails: Application) {
     httpTestingController
       .expectOne({
@@ -163,6 +212,15 @@ describe('ApplicationGeneralInfoComponent', () => {
         method: 'GET',
       })
       .flush(applicationDetails);
+  }
+
+  function expectApplicationTypeRequest(applicationType: ApplicationType) {
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.baseURL}/applications/${APPLICATION_ID}/configuration`,
+        method: 'GET',
+      })
+      .flush(applicationType);
   }
 });
 

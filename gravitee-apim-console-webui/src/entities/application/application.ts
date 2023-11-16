@@ -44,4 +44,30 @@ export interface ApplicationSettings {
   app?: {
     client_id?: string;
   };
+  oauth?: {
+    client_id?: string;
+    client_secret?: string;
+    grant_types?: string[];
+    response_types?: string[];
+    application_type?: string;
+    redirect_uris?: string[];
+    renew_client_secret_supported?: boolean;
+  };
+}
+
+export interface ApplicationType {
+  id: string;
+  name: string;
+  description: string;
+  requires_redirect_uris: boolean;
+  allowed_grant_types: GrantTypes[];
+  default_grant_types: GrantTypes[];
+  mandatory_grant_types: GrantTypes[];
+}
+
+export interface GrantTypes {
+  code?: string;
+  type: string;
+  name: string;
+  response_types: string[];
 }

@@ -19,7 +19,7 @@ import { TestBed } from '@angular/core/testing';
 import { ApplicationService } from './application.service';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
-import { fakeApplication } from '../entities/application/Application.fixture';
+import { fakeApplication, fakeApplicationType } from '../entities/application/Application.fixture';
 
 describe('ApplicationService', () => {
   let httpTestingController: HttpTestingController;
@@ -125,6 +125,24 @@ describe('ApplicationService', () => {
       req.flush(mockApplication);
     });
   });
+
+  describe('getApplicationType', () => {
+    it('should call the API', (done) => {
+      const mockApplication = fakeApplicationType({ id: 'my-app-id' });
+
+      applicationService.getApplicationType('my-app-id').subscribe((response) => {
+        expect(response).toMatchObject(mockApplication);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        method: 'GET',
+        url: `${CONSTANTS_TESTING.env.baseURL}/applications/my-app-id/configuration`,
+      });
+
+      req.flush(mockApplication);
+    });
+  });
   describe('update', () => {
     it('should call the API', (done) => {
       const mockApplication = fakeApplication({ id: 'my-app-id' });
@@ -172,7 +190,7 @@ describe('ApplicationService', () => {
       req.flush(mockApplications);
     });
 
-    it('should call the API with custome pagination', (done) => {
+    it('should call the API with custom pagination', (done) => {
       const app1 = fakeApplication({ id: '1' });
       const app2 = fakeApplication({ id: '2' });
       const mockApplications = [app1, app2];
