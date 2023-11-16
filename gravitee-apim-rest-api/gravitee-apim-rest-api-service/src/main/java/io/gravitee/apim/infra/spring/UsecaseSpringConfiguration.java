@@ -35,6 +35,7 @@ import io.gravitee.apim.core.log.crud_service.MessageLogCrudService;
 import io.gravitee.apim.core.log.use_case.SearchConnectionLogUseCase;
 import io.gravitee.apim.core.log.use_case.SearchConnectionLogsUseCase;
 import io.gravitee.apim.core.log.use_case.SearchMessageLogsUseCase;
+import io.gravitee.apim.core.parameters.query_service.ParametersQueryService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
@@ -181,7 +182,10 @@ public class UsecaseSpringConfiguration {
     }
 
     @Bean
-    public GetConsoleCustomizationUseCase getConsoleCustomizationUseCase(GraviteeLicenseDomainService licenseDomainService) {
-        return new GetConsoleCustomizationUseCase(licenseDomainService);
+    public GetConsoleCustomizationUseCase getConsoleCustomizationUseCase(
+        GraviteeLicenseDomainService licenseDomainService,
+        ParametersQueryService parametersQueryService
+    ) {
+        return new GetConsoleCustomizationUseCase(licenseDomainService, parametersQueryService);
     }
 }

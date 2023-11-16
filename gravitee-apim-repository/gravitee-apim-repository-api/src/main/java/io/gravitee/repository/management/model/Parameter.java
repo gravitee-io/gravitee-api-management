@@ -16,11 +16,21 @@
 package io.gravitee.repository.management.model;
 
 import java.util.Objects;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Getter
+@Setter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class Parameter {
 
     public enum AuditEvent implements Audit.AuditEvent {
@@ -32,40 +42,7 @@ public class Parameter {
     private String key;
     private String referenceId;
     private ParameterReferenceType referenceType;
-
     private String value;
-
-    public String getKey() {
-        return key;
-    }
-
-    public void setKey(String key) {
-        this.key = key;
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    public void setValue(String value) {
-        this.value = value;
-    }
-
-    public String getReferenceId() {
-        return referenceId;
-    }
-
-    public void setReferenceId(String referenceId) {
-        this.referenceId = referenceId;
-    }
-
-    public ParameterReferenceType getReferenceType() {
-        return referenceType;
-    }
-
-    public void setReferenceType(ParameterReferenceType referenceType) {
-        this.referenceType = referenceType;
-    }
 
     @Override
     public boolean equals(Object o) {

@@ -16,12 +16,18 @@
 package io.gravitee.apim.core.console.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.apim.core.console.exceptions.CustomizationNotAllowedException;
+import inmemory.ParametersQueryServiceInMemory;
+import io.gravitee.apim.core.console.model.ConsoleCustomization;
+import io.gravitee.apim.core.console.model.ConsoleTheme;
+import io.gravitee.apim.core.console.model.CtaConfiguration;
 import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService;
 import io.gravitee.node.api.license.NodeLicenseService;
+import io.gravitee.repository.management.model.Parameter;
+import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.service.common.GraviteeContext;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,25 +40,93 @@ class GetConsoleCustomizationUseCaseTest {
     @Mock
     private NodeLicenseService nodeLicenseService;
 
+    private final ParametersQueryServiceInMemory parametersQueryService = new ParametersQueryServiceInMemory();
+
     private GetConsoleCustomizationUseCase useCase;
 
     @BeforeEach
     void setup() {
-        useCase = new GetConsoleCustomizationUseCase(new GraviteeLicenseDomainService(nodeLicenseService));
+        useCase = new GetConsoleCustomizationUseCase(new GraviteeLicenseDomainService(nodeLicenseService), parametersQueryService);
     }
 
     @Test
     void should_return_console_customization() {
-        when(nodeLicenseService.isFeatureEnabled(GraviteeLicenseDomainService.OEM_CUSTOMIZATION_FEATURE)).thenReturn(true);
-        var res = useCase.execute();
+        parametersQueryService.initWith(
+            List.of(
+                Parameter.builder().key(Key.CONSOLE_CUSTOMIZATION_TITLE.key()).value("title").build(),
+                Parameter.builder().key(Key.CONSOLE_CUSTOMIZATION_FAVICON.key()).value("favicon").build(),
+                Parameter.builder().key(Key.CONSOLE_CUSTOMIZATION_LOGO.key()).value("logo").build(),
+                Parameter.builder().key(Key.CONSOLE_CUSTOMIZATION_THEME_MENUACTIVE.key()).value("menuActive").build(),
+                Parameter.builder().key(Key.CONSOLE_CUSTOMIZATION_THEME_MENUBACKGROUND.key()).value("menuBackground").build(),
+                Parameter
+                    .builder()
+                    .key(Key.CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_CUSTOMEENTERPRISENAME.key())
+                    .value("enterprise name")
+                    .build(),
+                Parameter.builder().key(Key.CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_TITLE.key()).value("cta title").build(),
+                Parameter.builder().key(Key.CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_HIDEDAYS.key()).value("false").build(),
+                Parameter
+                    .builder()
+                    .key(Key.CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_TRIALBUTTONLABEL.key())
+                    .value("trial button label")
+                    .build(),
+                Parameter.builder().key(Key.CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_TRIALURL.key()).value("trial URL").build()
+            )
+        );
 
-        assertThat(res.consoleCustomization().title()).isEqualTo("Celigo");
+        when(nodeLicenseService.isFeatureEnabled(GraviteeLicenseDomainService.OEM_CUSTOMIZATION_FEATURE)).thenReturn(true);
+
+        var res = useCase.execute(new GetConsoleCustomizationUseCase.Input(GraviteeContext.getExecutionContext()));
+
+        assertThat(res.consoleCustomization()).isNotNull();
+        assertThat(res.consoleCustomization())
+            .extracting(ConsoleCustomization::title, ConsoleCustomization::favicon, ConsoleCustomization::logo)
+            .containsExactly("title", "favicon", "logo");
+        assertThat(res.consoleCustomization().theme())
+            .extracting(ConsoleTheme::menuBackground, ConsoleTheme::menuActive)
+            .containsExactly("menuBackground", "menuActive");
+        assertThat(res.consoleCustomization().ctaConfiguration())
+            .extracting(
+                CtaConfiguration::title,
+                CtaConfiguration::customEnterpriseName,
+                CtaConfiguration::hideDays,
+                CtaConfiguration::trialButtonLabel,
+                CtaConfiguration::trialURL
+            )
+            .containsExactly("cta title", "enterprise name", false, "trial button label", "trial URL");
+    }
+
+    @Test
+    void should_return_console_customization_default_values() {
+        parametersQueryService.reset();
+
+        when(nodeLicenseService.isFeatureEnabled(GraviteeLicenseDomainService.OEM_CUSTOMIZATION_FEATURE)).thenReturn(true);
+
+        var res = useCase.execute(new GetConsoleCustomizationUseCase.Input(GraviteeContext.getExecutionContext()));
+
+        assertThat(res.consoleCustomization()).isNotNull();
+        assertThat(res.consoleCustomization())
+            .extracting(ConsoleCustomization::title, ConsoleCustomization::favicon, ConsoleCustomization::logo)
+            .containsExactly(null, null, null);
+        assertThat(res.consoleCustomization().theme())
+            .extracting(ConsoleTheme::menuBackground, ConsoleTheme::menuActive)
+            .containsExactly(null, null);
+        assertThat(res.consoleCustomization().ctaConfiguration())
+            .extracting(
+                CtaConfiguration::title,
+                CtaConfiguration::customEnterpriseName,
+                CtaConfiguration::hideDays,
+                CtaConfiguration::trialButtonLabel,
+                CtaConfiguration::trialURL
+            )
+            .containsExactly(null, null, true, null, null);
     }
 
     @Test
     void should_return_null_if_license_doesnt_allow_customization() {
         when(nodeLicenseService.isFeatureEnabled(GraviteeLicenseDomainService.OEM_CUSTOMIZATION_FEATURE)).thenReturn(false);
-        var res = useCase.execute();
+
+        var res = useCase.execute(new GetConsoleCustomizationUseCase.Input(GraviteeContext.getExecutionContext()));
 
         assertThat(res.consoleCustomization()).isNull();
     }

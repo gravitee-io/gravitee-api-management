@@ -18,13 +18,17 @@ package io.gravitee.rest.api.management.v2.rest.resource.boostrap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
+import inmemory.ParametersQueryServiceInMemory;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.node.api.license.NodeLicenseService;
+import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.rest.api.management.v2.rest.model.ConsoleCustomization;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
+import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.Response;
+import java.util.List;
 import javax.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,9 +38,14 @@ class ManagementUIResourceTest extends AbstractResourceTest {
     @Inject
     NodeLicenseService nodeLicenseService;
 
+    @Inject
+    ParametersQueryServiceInMemory parametersQueryService;
+
     @BeforeEach
     public void init() {
         GraviteeContext.fromExecutionContext(new ExecutionContext(ORGANIZATION));
+
+        parametersQueryService.initWith(List.of(Parameter.builder().key(Key.CONSOLE_CUSTOMIZATION_TITLE.key()).value("title").build()));
     }
 
     @Override
@@ -51,7 +60,7 @@ class ManagementUIResourceTest extends AbstractResourceTest {
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
 
         var body = response.readEntity(ConsoleCustomization.class);
-        assertThat(body.getTitle()).isEqualTo("Celigo");
+        assertThat(body.getTitle()).isEqualTo("title");
     }
 
     @Test

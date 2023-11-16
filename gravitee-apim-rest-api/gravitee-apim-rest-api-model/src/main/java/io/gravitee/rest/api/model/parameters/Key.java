@@ -328,6 +328,25 @@ public enum Key {
     CONSOLE_ANALYTICS_PENDO_ACCOUNT_HRID("console.analytics.pendo.account.hrid", (String) null, Set.of(SYSTEM)),
     CONSOLE_ANALYTICS_PENDO_ACCOUNT_TYPE("console.analytics.pendo.account.type", (String) null, Set.of(SYSTEM)),
 
+    CONSOLE_CUSTOMIZATION_TITLE("console.customization.title", (String) null, Set.of(SYSTEM)),
+    CONSOLE_CUSTOMIZATION_FAVICON("console.customization.favicon", (String) null, Set.of(SYSTEM)),
+    CONSOLE_CUSTOMIZATION_LOGO("console.customization.logo", (String) null, Set.of(SYSTEM)),
+    CONSOLE_CUSTOMIZATION_THEME_MENUACTIVE("console.customization.theme.menuActive", (String) null, Set.of(SYSTEM)),
+    CONSOLE_CUSTOMIZATION_THEME_MENUBACKGROUND("console.customization.theme.menuBackground", (String) null, Set.of(SYSTEM)),
+    CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_CUSTOMEENTERPRISENAME(
+        "console.customization.ctaConfiguration.customEnterpriseName",
+        (String) null,
+        Set.of(SYSTEM)
+    ),
+    CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_TITLE("console.customization.ctaConfiguration.title", (String) null, Set.of(SYSTEM)),
+    CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_HIDEDAYS("console.customization.ctaConfiguration.hideDays", "true", Set.of(SYSTEM)),
+    CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_TRIALBUTTONLABEL(
+        "console.customization.ctaConfiguration.trialButtonLabel",
+        (String) null,
+        Set.of(SYSTEM)
+    ),
+    CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_TRIALURL("console.customization.ctaConfiguration.trialURL", (String) null, Set.of(SYSTEM)),
+
     V4_EMULATION_ENGINE_DEFAULT("api.v2.emulateV4Engine.default", "yes", Set.of(SYSTEM)),
 
     ALERT_ENGINE_ENABLED("alerts.alert-engine.enabled", "false", Set.of(SYSTEM));
