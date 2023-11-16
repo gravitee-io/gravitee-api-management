@@ -227,7 +227,7 @@ commands:
                   working_directory: << parameters.apim-ui-project >>
             - when:
                   condition:
-                      matches: { pattern: "^(\\d+\\.\\d+\\.x)|master$", value: << pipeline.git.branch >> }
+                      matches: { pattern: "^((\\d+\\.\\d+\\.x)|master)$", value: << pipeline.git.branch >> }
                   steps:
                       - keeper/env-export:
                             secret-url: keeper://s83JmReKpBZWjHdud6ZAlg/custom_field/gravitee_apim_org_api_token
@@ -584,7 +584,7 @@ jobs:
                       gateway-docker-context
             - when:
                   condition:
-                      matches: { pattern: "^(\\d+\\.\\d+\\.x)|master$", value: << pipeline.git.branch >> }
+                      matches: { pattern: "^((\\d+\\.\\d+\\.x)|master)$", value: << pipeline.git.branch >> }
                   steps:
                       - keeper/env-export:
                             secret-url: keeper://s83JmReKpBZWjHdud6ZAlg/custom_field/gravitee_apim_org_api_token
