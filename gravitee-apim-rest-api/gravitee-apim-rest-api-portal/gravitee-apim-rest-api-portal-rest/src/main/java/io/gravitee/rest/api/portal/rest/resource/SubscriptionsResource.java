@@ -104,14 +104,6 @@ public class SubscriptionsResource extends AbstractResource {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         String applicationId = subscriptionInput.getApplication();
         if (hasPermission(executionContext, RolePermission.APPLICATION_SUBSCRIPTION, applicationId, RolePermissionAction.CREATE)) {
-            if (subscriptionInput.getApiKeyMode() != null) {
-                applicationService.updateApiKeyMode(
-                    executionContext,
-                    applicationId,
-                    ApiKeyMode.valueOf(subscriptionInput.getApiKeyMode().name())
-                );
-            }
-
             NewSubscriptionEntity newSubscriptionEntity = new NewSubscriptionEntity();
             newSubscriptionEntity.setApplication(applicationId);
             newSubscriptionEntity.setPlan(subscriptionInput.getPlan());
@@ -127,6 +119,7 @@ public class SubscriptionsResource extends AbstractResource {
             newSubscriptionEntity.setFilter(subscriptionInput.getFilter());
             newSubscriptionEntity.setMetadata(subscriptionInput.getMetadata());
             newSubscriptionEntity.setConfiguration(MAPPER.valueToTree(subscriptionInput.getConfiguration()));
+            newSubscriptionEntity.setApiKeyMode(ApiKeyMode.valueOf(subscriptionInput.getApiKeyMode().name()));
             SubscriptionEntity createdSubscription = subscriptionService.create(executionContext, newSubscriptionEntity);
 
             // For consumer convenience, fetch the keys just after the subscription has been created.
