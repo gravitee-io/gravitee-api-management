@@ -172,10 +172,6 @@ public class ApiSubscriptionsResource extends AbstractResource {
             return Response.status(Response.Status.BAD_REQUEST).entity("You are not allowed to provide a custom API Key").build();
         }
 
-        if (apiKeyMode != null) {
-            applicationService.updateApiKeyMode(executionContext, application, apiKeyMode);
-        }
-
         NewSubscriptionEntity newSubscriptionEntity = new NewSubscriptionEntity(plan, application);
 
         if (newSubscriptionConfigurationEntity != null) {

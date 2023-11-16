@@ -135,7 +135,6 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
             .create(eq(GraviteeContext.getExecutionContext()), any(NewSubscriptionEntity.class), customApiKeyCaptor.capture());
         verify(subscriptionService, times(1))
             .process(eq(GraviteeContext.getExecutionContext()), any(ProcessSubscriptionEntity.class), any());
-        verify(applicationService).updateApiKeyMode(GraviteeContext.getExecutionContext(), APP_NAME, ApiKeyMode.EXCLUSIVE);
         assertEquals(customApiKeyCaptor.getValue(), customApiKey);
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
         assertEquals(

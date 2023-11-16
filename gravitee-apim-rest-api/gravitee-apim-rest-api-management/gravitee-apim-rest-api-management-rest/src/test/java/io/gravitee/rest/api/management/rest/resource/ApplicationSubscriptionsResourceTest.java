@@ -97,8 +97,6 @@ public class ApplicationSubscriptionsResourceTest extends AbstractResourceTest {
             .request()
             .post(Entity.json(newSubscriptionEntity));
 
-        verify(applicationService).updateApiKeyMode(GraviteeContext.getExecutionContext(), APPLICATION, ApiKeyMode.EXCLUSIVE);
-
         assertEquals(CREATED_201, response.getStatus());
         assertEquals(
             envTarget().path(APPLICATION).path("subscriptions").path(SUBSCRIPTION).getUri().toString(),

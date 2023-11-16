@@ -229,14 +229,6 @@ public class ApiSubscriptionsResource extends AbstractResource {
                 .build();
         }
 
-        if (createSubscription.getApiKeyMode() != null) {
-            applicationService.updateApiKeyMode(
-                executionContext,
-                createSubscription.getApplicationId(),
-                ApiKeyMode.valueOf(createSubscription.getApiKeyMode().name())
-            );
-        }
-
         final NewSubscriptionEntity newSubscriptionEntity = subscriptionMapper.map(createSubscription);
         SubscriptionEntity subscription = subscriptionService.create(
             executionContext,
