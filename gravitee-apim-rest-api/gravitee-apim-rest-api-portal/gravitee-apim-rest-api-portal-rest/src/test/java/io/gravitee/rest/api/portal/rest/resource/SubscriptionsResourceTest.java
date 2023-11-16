@@ -182,9 +182,7 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
         assertEquals("my-filter", argument.getValue().getFilter());
         assertEquals(Map.of("my-metadata", "my-value"), argument.getValue().getMetadata());
         assertEquals("{\"url\":\"my-url\"}", argument.getValue().getConfiguration());
-
-        Mockito.verify(applicationService).updateApiKeyMode(GraviteeContext.getExecutionContext(), APPLICATION, ApiKeyMode.EXCLUSIVE);
-
+        assertEquals(ApiKeyMode.EXCLUSIVE, argument.getValue().getApiKeyMode());
         final Subscription subscriptionResponse = response.readEntity(Subscription.class);
         assertNotNull(subscriptionResponse);
         assertEquals(SUBSCRIPTION, subscriptionResponse.getId());
@@ -203,7 +201,11 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
     public void testPermissionsForCreation() {
         reset(permissionService);
 
-        SubscriptionInput subscriptionInput = new SubscriptionInput().application(APPLICATION).plan(PLAN).request("request");
+        SubscriptionInput subscriptionInput = new SubscriptionInput()
+            .application(APPLICATION)
+            .plan(PLAN)
+            .request("request")
+            .apiKeyMode(ApiKeyModeEnum.EXCLUSIVE);
 
         doReturn(true)
             .when(permissionService)
