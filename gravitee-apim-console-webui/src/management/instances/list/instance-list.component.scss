@@ -8,3 +8,28 @@
   display: flex;
   flex-direction: column;
 }
+
+.mat-column-state {
+  width: 1%;
+  padding: 0 8px;
+  white-space: nowrap;
+
+  .mat-icon {
+    margin: 10px 4px;
+  }
+
+  .state {
+    &__instance-started {
+      color: mat.get-color-from-palette(gio.$mat-success-palette, 'default');
+    }
+
+    &__instance-stopped {
+      color: mat.get-color-from-palette(gio.$mat-error-palette, 'default');
+    }
+
+    &__instance-unknown {
+      color: mat.get-color-from-palette(gio.$mat-basic-palette, 'default');
+    }
+  }
+}
+

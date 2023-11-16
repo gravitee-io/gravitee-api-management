@@ -14,6 +14,17 @@
  * limitations under the License.
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { InstanceService } from '../../../services-ngx/instance.service';
+import { distinctUntilChanged, switchMap, takeUntil } from 'rxjs/operators';
+import { BehaviorSubject, Subject } from 'rxjs';
+import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
+import { isEqual } from 'lodash';
+
+type TableData = {
+  id: string;
+  hostname: string;
+  state: string;
+};
 
 @Component({
   selector: 'instance-list',
@@ -21,9 +32,45 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
   styles: [require('./instance-list.component.scss')],
 })
 export class InstanceListComponent implements OnInit, OnDestroy {
-  constructor() {}
+  displayedColumns = ['hostname', 'state'];
+  filteredTableData: TableData[] = [];
+  nbTotalInstances = 0;
 
-  ngOnDestroy(): void {}
+  filters: GioTableWrapperFilters = {
+    pagination: { index: 1, size: 10 },
+    searchTerm: '',
+  };
 
-  ngOnInit(): void {}
+  private filters$ = new BehaviorSubject<GioTableWrapperFilters>(this.filters);
+  private readonly unsubscribe$ = new Subject<void>();
+
+  constructor(private readonly instanceService: InstanceService) {}
+
+  ngOnInit(): void {
+    this.filters$
+      .pipe(
+        distinctUntilChanged(isEqual),
+        switchMap((filters: GioTableWrapperFilters) =>
+          this.instanceService.search(true, 0, 0, filters.pagination.index - 1, filters.pagination.size),
+        ),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe((searchResult) => {
+        this.nbTotalInstances = searchResult.totalElements;
+        this.filteredTableData = searchResult.content.map((instance) => ({
+          id: instance.event,
+          hostname: instance.hostname,
+          state: instance.state,
+        }));
+      });
+  }
+  ngOnDestroy() {
+    this.unsubscribe$.next();
+    this.unsubscribe$.unsubscribe();
+  }
+
+  onFiltersChanged(filters: GioTableWrapperFilters) {
+    this.filters = { ...this.filters, ...filters };
+    this.filters$.next(this.filters);
+  }
 }
