@@ -175,6 +175,7 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
 
         ArgumentCaptor<NewSubscriptionEntity> argument = ArgumentCaptor.forClass(NewSubscriptionEntity.class);
         Mockito.verify(subscriptionService).create(eq(GraviteeContext.getExecutionContext()), argument.capture());
+<<<<<<< HEAD
         NewSubscriptionEntity newSubscriptionEntity = argument.getValue();
         assertEquals(APPLICATION, newSubscriptionEntity.getApplication());
         assertEquals(PLAN, newSubscriptionEntity.getPlan());
@@ -182,6 +183,15 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
         assertEquals(Map.of("my-metadata", "my-value"), newSubscriptionEntity.getMetadata());
         assertEquals("{\"url\":\"my-url\"}", newSubscriptionEntity.getConfiguration().getEntrypointConfiguration());
 
+=======
+        assertEquals(APPLICATION, argument.getValue().getApplication());
+        assertEquals(PLAN, argument.getValue().getPlan());
+        assertEquals("request", argument.getValue().getRequest());
+        assertEquals("my-filter", argument.getValue().getFilter());
+        assertEquals(Map.of("my-metadata", "my-value"), argument.getValue().getMetadata());
+        assertEquals("{\"url\":\"my-url\"}", argument.getValue().getConfiguration());
+        assertEquals(ApiKeyMode.EXCLUSIVE, argument.getValue().getApiKeyMode());
+>>>>>>> c5a24108b3 (fix: updating ApiKeyMode is handle by SusbcriptionService)
         final Subscription subscriptionResponse = response.readEntity(Subscription.class);
         assertNotNull(subscriptionResponse);
         assertEquals(SUBSCRIPTION, subscriptionResponse.getId());
@@ -200,7 +210,11 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
     public void testPermissionsForCreation() {
         reset(permissionService);
 
-        SubscriptionInput subscriptionInput = new SubscriptionInput().application(APPLICATION).plan(PLAN).request("request");
+        SubscriptionInput subscriptionInput = new SubscriptionInput()
+            .application(APPLICATION)
+            .plan(PLAN)
+            .request("request")
+            .apiKeyMode(ApiKeyModeEnum.EXCLUSIVE);
 
         doReturn(true)
             .when(permissionService)

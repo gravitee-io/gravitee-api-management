@@ -92,6 +92,7 @@ public class SubscriptionsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response createSubscription(@Valid @NotNull(message = "Input must not be null.") SubscriptionInput subscriptionInput) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+<<<<<<< HEAD
         if (
             hasPermission(
                 executionContext,
@@ -100,6 +101,10 @@ public class SubscriptionsResource extends AbstractResource {
                 RolePermissionAction.CREATE
             )
         ) {
+=======
+        String applicationId = subscriptionInput.getApplication();
+        if (hasPermission(executionContext, RolePermission.APPLICATION_SUBSCRIPTION, applicationId, RolePermissionAction.CREATE)) {
+>>>>>>> c5a24108b3 (fix: updating ApiKeyMode is handle by SusbcriptionService)
             NewSubscriptionEntity newSubscriptionEntity = new NewSubscriptionEntity();
             newSubscriptionEntity.setApplication(subscriptionInput.getApplication());
             newSubscriptionEntity.setPlan(subscriptionInput.getPlan());
@@ -113,6 +118,7 @@ public class SubscriptionsResource extends AbstractResource {
                 newSubscriptionEntity.setGeneralConditionsContentRevision(generalConditionsContentRevision);
             }
             newSubscriptionEntity.setMetadata(subscriptionInput.getMetadata());
+<<<<<<< HEAD
             SubscriptionConfigurationInput inputConfiguration = subscriptionInput.getConfiguration();
             if (inputConfiguration != null) {
                 SubscriptionConfigurationEntity subscriptionConfigurationEntity = new SubscriptionConfigurationEntity();
@@ -125,6 +131,10 @@ public class SubscriptionsResource extends AbstractResource {
                 }
                 newSubscriptionEntity.setConfiguration(subscriptionConfigurationEntity);
             }
+=======
+            newSubscriptionEntity.setConfiguration(MAPPER.valueToTree(subscriptionInput.getConfiguration()));
+            newSubscriptionEntity.setApiKeyMode(ApiKeyMode.valueOf(subscriptionInput.getApiKeyMode().name()));
+>>>>>>> c5a24108b3 (fix: updating ApiKeyMode is handle by SusbcriptionService)
             SubscriptionEntity createdSubscription = subscriptionService.create(executionContext, newSubscriptionEntity);
 
             // For consumer convenience, fetch the keys just after the subscription has been created.
