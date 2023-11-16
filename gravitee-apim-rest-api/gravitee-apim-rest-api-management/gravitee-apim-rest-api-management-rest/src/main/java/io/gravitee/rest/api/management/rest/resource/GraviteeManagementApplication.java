@@ -27,6 +27,7 @@ import io.gravitee.rest.api.management.rest.provider.NotFoundExceptionMapper;
 import io.gravitee.rest.api.management.rest.provider.ThrowableMapper;
 import io.gravitee.rest.api.management.rest.provider.UnrecognizedPropertyExceptionMapper;
 import io.gravitee.rest.api.management.rest.resource.auth.CockpitAuthenticationResource;
+import io.gravitee.rest.api.management.rest.resource.auth.ExternalAuthenticationResource;
 import io.gravitee.rest.api.management.rest.resource.organization.OrganizationsResource;
 import io.gravitee.rest.api.management.rest.resource.organization.V1OrganizationsResource;
 import io.gravitee.rest.api.management.rest.resource.swagger.OpenAPIResource;
@@ -96,6 +97,7 @@ public class GraviteeManagementApplication extends ResourceConfig {
         register(OrganizationsResource.class);
         register(V1OrganizationsResource.class);
         register(CockpitAuthenticationResource.class);
+        register(ExternalAuthenticationResource.class);
 
         register(MultiPartFeature.class);
 

@@ -288,6 +288,11 @@ public class BasicSecurityConfigurerAdapter {
             .requestMatchers(HttpMethod.GET, "/auth/cockpit")
             .permitAll()
             /*
+             * Global external auth resources.
+             */
+            .requestMatchers(HttpMethod.GET, "/auth/external")
+            .permitAll()
+            /*
              * organizations resources
              */
             // Console resource
