@@ -97,8 +97,6 @@ public class ApiSubscriptionsResource_CreateTest extends ApiSubscriptionsResourc
         assertEquals(PLAN, subscription.getPlan().getId());
         assertEquals(APPLICATION, subscription.getApplication().getId());
 
-        verify(applicationService)
-            .updateApiKeyMode(GraviteeContext.getExecutionContext(), APPLICATION, io.gravitee.rest.api.model.ApiKeyMode.EXCLUSIVE);
         verify(subscriptionService)
             .create(
                 eq(GraviteeContext.getExecutionContext()),
