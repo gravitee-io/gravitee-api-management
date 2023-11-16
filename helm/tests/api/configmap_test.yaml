@@ -132,3 +132,24 @@ tests:
       - matchRegex:
           path: data.[gravitee.yml]
           pattern: "logging:\n  messageSampling:\n    count:\n      default: 500\n      limit: 100"
+
+  - it: Enable External Authentication
+    template: api/api-configmap.yaml
+    set:
+      api:
+        auth:
+          external:
+            enabled: true
+            algorithm: HS256
+            key: ozhbx5HJCS41NzKrBSQ0vZU1WOmG0Uhm
+            issuer: test
+    asserts:
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: "auth:\n
+                    * external:\n
+                    *   algorithm: HS256\n
+                    *   enabled: true\n
+                    *   issuer: test\n
+                    *   key: ozhbx5HJCS41NzKrBSQ0vZU1WOmG0Uhm"
+

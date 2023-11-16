@@ -732,6 +732,14 @@ api:
   analytics:
     type: elasticsearch # or none
 
+  # External Authentication settings
+  #  auth:
+  #    external:
+  #      enabled: false
+  #      algorithm: HS256
+  #      verificationKey: ozhbx5HJCS41NzKrBSQ0vZU1WOmG0Uhm # verificationKey or the JWKS URL
+  #      issuer: MY_ISSUER
+
 gateway:
   enabled: true
   # if enabled, required annotation will be added to allow the gateway to act as a runtime for the GKO

@@ -503,6 +503,11 @@ data:
     api: {{- toYaml .Values.api.api | nindent 6 -}}
     {{- end}}
     {{- end }}
+    # External Authentication
+    {{- if .Values.api.auth }}
+    auth:
+      external: {{- toYaml .Values.api.auth.external | nindent 8 -}}
+    {{- end }}
     {{- if .Values.api.logging.debug }}
   logback.xml: |
     <?xml version="1.0" encoding="UTF-8"?>
