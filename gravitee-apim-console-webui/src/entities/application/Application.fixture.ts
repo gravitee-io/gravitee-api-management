@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ApiKeyMode, Application } from './application';
+import { ApiKeyMode, Application, ApplicationType } from './application';
 
 export function fakeApplication(attributes?: Partial<Application>): Application {
   const base: Application = {
@@ -26,11 +26,56 @@ export function fakeApplication(attributes?: Partial<Application>): Application 
     picture_url:
       'https://apim-master-api.cloud.gravitee.io/management/organizations/DEFAULT/environments/DEFAULT/applications/61840ad7-7a93-4b5b-840a-d77a937b5bff/picture?hash=1636536375600',
 
-    settings: { app: {} },
+    settings: {
+      oauth: {
+        client_id: 'test_client_id',
+        client_secret: 'test_client_secret',
+        redirect_uris: ['https://apim-master-console.team-apim.gravitee.dev/'],
+        response_types: ['code', 'token', 'id_token'],
+        grant_types: ['authorization_code', 'refresh_token', 'password', 'implicit'],
+        application_type: 'NATIVE',
+        renew_client_secret_supported: false,
+      },
+    },
     status: 'ACTIVE',
     type: 'SIMPLE',
     updated_at: 1636536375600,
     origin: 'MANAGEMENT',
+  };
+
+  return {
+    ...base,
+    ...attributes,
+  };
+}
+
+export function fakeApplicationType(attributes?: Partial<ApplicationType>): ApplicationType {
+  const base: ApplicationType = {
+    id: 'id_test',
+    name: 'name_test',
+    requires_redirect_uris: true,
+    description: 'description_test',
+    allowed_grant_types: [
+      {
+        type: 'allowed_type',
+        name: 'allowed_name',
+        response_types: ['allowed_response_type'],
+      },
+    ],
+    default_grant_types: [
+      {
+        type: 'default_type',
+        name: 'default_name',
+        response_types: ['default_response_type'],
+      },
+    ],
+    mandatory_grant_types: [
+      {
+        type: 'mandatory_type',
+        name: 'mandatory_name',
+        response_types: ['mandatory_response_type'],
+      },
+    ],
   };
 
   return {

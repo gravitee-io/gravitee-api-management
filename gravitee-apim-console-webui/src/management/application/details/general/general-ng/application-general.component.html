@@ -116,5 +116,41 @@
     </mat-card>
   </ng-container>
 
+  <ng-container *ngIf="initialApplication.type === 'NATIVE'">
+    <h2 class="details-title-openid">OpenID Connect Integration</h2>
+    <mat-card class="details-card-openid" formGroupName="OpenIDForm">
+      <div class="details-card__header">
+        <div class="details-card__header__info-inputs">
+          <div class="details-card__header__right-coll__media coll-oauth">
+            <mat-form-field class="oauth">
+              <mat-label>Client ID</mat-label>
+              <input formControlName="client_id" matInput type="text" maxlength="50" readonly />
+            </mat-form-field>
+
+            <mat-form-field class="oauth">
+              <mat-label>Client Secret</mat-label>
+              <input formControlName="client_secret" matInput type="text" readonly />
+            </mat-form-field>
+          </div>
+          <div class="details-card__header__info-inputs__second-row">
+            <mat-form-field>
+              <mat-label>Allowed grant types</mat-label>
+              <mat-select formControlName="grant_types" multiple>
+                <mat-option *ngFor="let grantType of applicationType.allowed_grant_types" [value]="grantType.type">{{
+                  grantType.name
+                }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field class="example-chip-list" *ngIf="applicationType.requires_redirect_uris">
+              <mat-label>Redirect URIs</mat-label>
+              <gio-form-tags-input formControlName="redirect_uris" placeholder="Enter a redirect URI"> </gio-form-tags-input>
+              <mat-hint align="start">URIs where the authorization server will send OAuth responses</mat-hint>
+            </mat-form-field>
+          </div>
+        </div>
+      </div>
+    </mat-card>
+  </ng-container>
+
   <gio-save-bar [form]="applicationForm" [formInitialValues]="initialApplicationGeneralFormsValue" (submitted)="onSubmit()"></gio-save-bar>
 </form>

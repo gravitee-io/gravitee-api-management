@@ -19,7 +19,7 @@ import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
 import { PagedResult } from '../entities/pagedResult';
-import { Application } from '../entities/application/application';
+import { Application, ApplicationType } from '../entities/application/application';
 
 @Injectable({
   providedIn: 'root',
@@ -86,6 +86,10 @@ export class ApplicationService {
 
   getById(applicationId: string): Observable<Application> {
     return this.http.get<Application>(`${this.constants.env.baseURL}/applications/${applicationId}`);
+  }
+
+  getApplicationType(applicationId: string): Observable<ApplicationType> {
+    return this.http.get<ApplicationType>(`${this.constants.env.baseURL}/applications/${applicationId}/configuration`);
   }
 
   update(application: Application): Observable<Application> {

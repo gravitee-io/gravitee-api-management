@@ -15,13 +15,13 @@
  */
 import { Component, Inject, OnInit } from '@angular/core';
 import { takeUntil, tap } from 'rxjs/operators';
-import { Subject } from 'rxjs';
-import { FormControl, FormGroup } from '@angular/forms';
+import { combineLatest, Subject } from 'rxjs';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { ApplicationService } from '../../../../../services-ngx/application.service';
-import { Application } from '../../../../../entities/application/application';
+import { Application, ApplicationType } from '../../../../../entities/application/application';
 
 @Component({
   selector: 'application-general',
@@ -30,6 +30,7 @@ import { Application } from '../../../../../entities/application/application';
 })
 export class ApplicationGeneralComponent implements OnInit {
   public initialApplication: Application;
+  public applicationType: ApplicationType;
   public applicationForm: FormGroup;
   public isLoadingData = true;
   public initialApplicationGeneralFormsValue: unknown;
@@ -43,11 +44,14 @@ export class ApplicationGeneralComponent implements OnInit {
 
   public ngOnInit() {
     this.isLoadingData = true;
-    this.applicationService
-      .getById(this.ajsStateParams.applicationId)
+    combineLatest([
+      this.applicationService.getById(this.ajsStateParams.applicationId),
+      this.applicationService.getApplicationType(this.ajsStateParams.applicationId),
+    ])
       .pipe(
-        tap((application) => {
+        tap(([application, applicationType]) => {
           this.initialApplication = application;
+          this.applicationType = applicationType;
         }),
         takeUntil(this.unsubscribe$),
       )
@@ -65,12 +69,39 @@ export class ApplicationGeneralComponent implements OnInit {
             picture: new FormControl(this.initialApplication.picture ? [this.initialApplication.picture] : undefined),
             background: new FormControl(this.initialApplication.background ? [this.initialApplication.background] : undefined),
           }),
-          OAuth2Form: new FormGroup({
-            client_id: new FormControl(
-              this.initialApplication.settings?.app?.client_id ? this.initialApplication.settings.app.client_id : undefined,
-            ),
-          }),
         });
+
+        if (this.initialApplication.type === 'SIMPLE') {
+          this.applicationForm.addControl(
+            'OAuth2Form',
+            new FormGroup({
+              client_id: new FormControl(
+                this.initialApplication.settings?.app?.client_id ? this.initialApplication.settings.app.client_id : undefined,
+              ),
+            }),
+          );
+        }
+
+        if (this.initialApplication.type === 'NATIVE') {
+          this.applicationForm.addControl(
+            'OpenIDForm',
+            new FormGroup({
+              client_id: new FormControl(
+                this.initialApplication.settings?.oauth?.client_id ? this.initialApplication.settings.oauth.client_id : undefined,
+              ),
+              client_secret: new FormControl(
+                this.initialApplication.settings?.oauth?.client_secret ? this.initialApplication.settings.oauth.client_secret : undefined,
+              ),
+              grant_types: new FormControl(
+                this.initialApplication.settings?.oauth?.grant_types ? this.initialApplication.settings.oauth.grant_types : undefined,
+                [Validators.required],
+              ),
+              redirect_uris: new FormControl(
+                this.initialApplication.settings?.oauth?.redirect_uris ? this.initialApplication.settings.oauth.redirect_uris : undefined,
+              ),
+            }),
+          );
+        }
 
         this.initialApplicationGeneralFormsValue = this.applicationForm.getRawValue();
       });
@@ -89,7 +120,13 @@ export class ApplicationGeneralComponent implements OnInit {
                 ...this.applicationForm.getRawValue().OAuth2Form,
               },
             }
-          : this.initialApplication.settings,
+          : {
+              oauth: {
+                ...this.initialApplication.settings.oauth,
+                ...this.applicationForm.getRawValue().OpenIDForm,
+                application_type: 'NATIVE',
+              },
+            },
       ...(imagesValue?.picture?.length ? { picture: imagesValue.picture[0].dataUrl } : { picture: null }),
       ...(imagesValue?.background?.length ? { background: imagesValue.background[0].dataUrl } : { background: null }),
     };
