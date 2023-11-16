@@ -206,7 +206,7 @@
 				<artifactId>openapi-generator-maven-plugin</artifactId>
 				<version>${openapi-generator.version}</version>
 				<configuration>
-					<inputSpec>${project.basedir}/src/main/resources/openapi/management-openapi-v2.yaml</inputSpec>
+					<inputSpec>${project.basedir}/src/main/resources/openapi/openapi-apis.yaml</inputSpec>
 					<generatorName>java</generatorName>
 					<library>jersey3</library>
 					<modelPackage>${openapi.modelPackage}</modelPackage>

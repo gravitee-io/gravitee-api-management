@@ -15,6 +15,7 @@
  */
 import { ConsoleSettings } from './consoleSettings';
 import { Environment } from './environment/environment';
+import { ConsoleCustomization } from './management-api-v2/consoleCustomization';
 
 export interface Constants {
   env?: {
@@ -30,6 +31,8 @@ export interface Constants {
   };
   baseURL: string;
   v2BaseURL?: string;
+  isOEM: boolean;
+  customization?: ConsoleCustomization;
 }
 
 interface EnvSettings {

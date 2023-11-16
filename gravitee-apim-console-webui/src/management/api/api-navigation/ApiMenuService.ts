@@ -13,15 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Observable } from 'rxjs';
-
 import { MenuGroupItem, MenuItem } from './MenuGroupItem';
 
 import { Api } from '../../../entities/management-api-v2';
 
 export interface ApiMenuService {
-  getMenu(api: Api): Observable<{
+  getMenu(api: Api): {
     subMenuItems: MenuItem[];
     groupItems: MenuGroupItem[];
-  }>;
+  };
 }

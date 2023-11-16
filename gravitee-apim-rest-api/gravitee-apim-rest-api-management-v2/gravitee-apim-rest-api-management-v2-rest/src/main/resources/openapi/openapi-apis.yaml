@@ -5450,50 +5450,6 @@ components:
                     description: The configuration of the rule
             additionalProperties:
                 type: object
-        ConsoleCustomization:
-            type: object
-            properties:
-                theme:
-                    $ref: '#/components/schemas/ConsoleTheme'
-                logo:
-                    type: string
-                    description: The logo that should be displayed in the console
-                favicon:
-                    type: string
-                    description: The favicon for the console
-                title:
-                    type: string
-                    description: The title that will be displayed in the browser tab
-
-        ConsoleTheme:
-            type: object
-            description: Information related to the Console theme
-            properties:
-                menuBackground:
-                    type: string
-                    description: The background color of the menu
-                menuActive:
-                    type: string
-                    description: The color of an active menu item
-
-        CallToActionPopUp:
-            type: object
-            description: Settings to be used in the CTA Pop-up
-            properties:
-                image:
-                    type: string
-                    description: Image to be used in the CTA pop-up
-                description:
-                    type: string
-                    description: Description to be used
-                title:
-                    type: string
-                trialButtonLabel:
-                    type: string
-                hideDays:
-                    type: boolean
-                trialURL:
-                    type: string
 
     parameters:
         #############

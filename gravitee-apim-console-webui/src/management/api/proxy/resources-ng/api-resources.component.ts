@@ -28,6 +28,7 @@ import { AjsRootScope, UIRouterStateParams } from '../../../../ajs-upgraded-prov
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { ApiV2, ApiV4 } from '../../../../entities/management-api-v2';
 import { stringFeature, UTMTags } from '../../../../shared/components/gio-license/gio-license-data';
+import { Constants } from '../../../../entities/Constants';
 
 @Component({
   selector: 'api-resources',
@@ -51,6 +52,7 @@ export class ApiResourcesComponent implements OnInit, OnDestroy {
     private readonly gioLicenseService: GioLicenseService,
     @Inject(UIRouterStateParams) private readonly ajsStateParams: StateParams,
     @Inject(AjsRootScope) readonly ajsRootScope,
+    @Inject('Constants') private readonly constants: Constants,
   ) {}
 
   ngOnInit(): void {
@@ -87,7 +89,7 @@ export class ApiResourcesComponent implements OnInit, OnDestroy {
   onDisplayResourceCTA({ detail: event }) {
     const resourceId = event.detail.id;
     const featureName = this.resourceTypes.find((resourceType) => resourceType.id === resourceId).feature;
-    const feature = stringFeature(featureName);
+    const feature = stringFeature(this.constants.customization?.ctaConfiguration, featureName);
     this.gioLicenseService.openDialog({ feature, context: UTMTags.API_CONFLUENT });
   }
 

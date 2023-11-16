@@ -18,6 +18,7 @@ package io.gravitee.apim.core.console.use_case;
 import io.gravitee.apim.core.console.exceptions.CustomizationNotAllowedException;
 import io.gravitee.apim.core.console.model.ConsoleCustomization;
 import io.gravitee.apim.core.console.model.ConsoleTheme;
+import io.gravitee.apim.core.console.model.CtaConfiguration;
 import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService;
 
 public class GetConsoleCustomizationUseCase {
@@ -40,6 +41,16 @@ public class GetConsoleCustomizationUseCase {
                     .favicon(celigoLogo)
                     .logo(celigoLogo)
                     .theme(ConsoleTheme.builder().menuActive("#1d76c7").menuBackground("#333d47").build())
+                    .ctaConfiguration(
+                        CtaConfiguration
+                            .builder()
+                            .customEnterpriseName("Celigo Premium Package")
+                            .title("Request Celigo Premium Package")
+                            .hideDays(true)
+                            .trialButtonLabel("Contact us")
+                            .trialURL("https://www.celigo.com/")
+                            .build()
+                    )
                     .build()
             );
         }

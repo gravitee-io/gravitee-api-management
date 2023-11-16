@@ -18,10 +18,10 @@ import { ApimFeature, stringFeature } from './gio-license-data';
 
 describe('GIO license features', () => {
   it('should convert string to Feature', () => {
-    expect(stringFeature('apim-custom-roles')).toEqual(ApimFeature.APIM_CUSTOM_ROLES);
+    expect(stringFeature({ title: 'EE' }, 'apim-custom-roles')).toEqual(ApimFeature.APIM_CUSTOM_ROLES);
   });
 
   it('should throw error with unknown Feature string', () => {
-    expect(() => stringFeature('unknown feature')).toThrow();
+    expect(() => stringFeature({ title: 'EE' }, 'unknown feature')).toThrow();
   });
 });
