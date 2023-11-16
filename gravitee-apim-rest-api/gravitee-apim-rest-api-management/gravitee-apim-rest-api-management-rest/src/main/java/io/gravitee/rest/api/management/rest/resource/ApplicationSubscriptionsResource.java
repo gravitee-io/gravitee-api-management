@@ -116,10 +116,6 @@ public class ApplicationSubscriptionsResource extends AbstractResource {
             return Response.status(Response.Status.BAD_REQUEST).entity("Plan requires a consumer comment when subscribing").build();
         }
 
-        if (newSubscriptionEntity.getApiKeyMode() != null) {
-            applicationService.updateApiKeyMode(executionContext, application, newSubscriptionEntity.getApiKeyMode());
-        }
-
         newSubscriptionEntity.setApplication(application);
         newSubscriptionEntity.setPlan(plan);
         Subscription subscription = convert(executionContext, subscriptionService.create(executionContext, newSubscriptionEntity));
