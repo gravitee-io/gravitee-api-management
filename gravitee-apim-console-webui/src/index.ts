@@ -29,7 +29,7 @@ import { computeStyles, LicenseConfiguration } from '@gravitee/ui-particles-angu
 
 import { AppModule } from './app.module';
 import { Constants } from './entities/Constants';
-import { FeatureInfoData } from './shared/components/gio-license/gio-license-data';
+import { getFeatureInfoData } from './shared/components/gio-license/gio-license-data';
 import { ConsoleCustomization } from './entities/management-api-v2/consoleCustomization';
 
 // fix angular-schema-form angular<1.7
@@ -72,13 +72,14 @@ function fetchData() {
     .then((responses: any) => {
       const consoleResponse = responses[0];
       const uiCustomization = responses[1];
-      if (uiCustomization && uiCustomization.data) {
-        customizeUI(uiCustomization.data);
-      }
 
       const constants = _.assign(ConstantsJSON);
       constants.org.settings = consoleResponse.data;
-      if (uiCustomization?.data?.title) {
+
+      if (uiCustomization?.data) {
+        customizeUI(uiCustomization.data);
+        constants.isOEM = true;
+        constants.customization = uiCustomization.data;
         constants.org.settings.management.title = uiCustomization.data.title;
       }
 
@@ -143,6 +144,10 @@ function prepareConstants(bootstrap: any): any {
   constants.env.baseURL = `${constants.org.baseURL}/environments/{:envId}`;
   constants.env.v2BaseURL = `${constants.org.v2BaseURL}/environments/{:envId}`;
 
+  // Setup customization
+  constants.customization = {};
+  constants.customization.customEnterpriseName = 'Gravitee Enterprise';
+  constants.isOEM = false;
   return constants;
 }
 
@@ -179,13 +184,15 @@ function bootstrapApplication(constants: Constants) {
   urlDeferInterceptorConfig.$inject = ['$urlServiceProvider'];
   angular.module('gravitee-management').config(urlDeferInterceptorConfig);
   const resourceURL = `${constants.v2BaseURL}/license`;
-  const featureInfoData = FeatureInfoData;
+  const featureInfoData = getFeatureInfoData(constants.customization?.ctaConfiguration);
+  const trialURLConfiguration = {
+    trialResourceURL: constants.customization?.ctaConfiguration?.trialURL || 'https://gravitee.io/self-hosted-trial',
+    ...(constants.customization?.ctaConfiguration?.trialURL ? {} : { utmSource: 'oss_apim', utmCampaign: 'oss_apim_to_ee_apim' }),
+  };
   const licenseConfiguration: LicenseConfiguration = {
     resourceURL,
     featureInfoData,
-    trialResourceURL: 'https://gravitee.io/self-hosted-trial',
-    utmSource: 'oss_apim',
-    utmCampaign: 'oss_apim_to_ee_apim',
+    ...trialURLConfiguration,
   };
   platformBrowserDynamic([
     { provide: 'Constants', useValue: constants },

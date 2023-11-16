@@ -47,6 +47,13 @@ describe('UiCustomizationService', () => {
         menuBackground: 'menuBackground',
         menuActive: 'menuActive',
       },
+      ctaConfiguration: {
+        customEnterpriseName: 'EE',
+        title: 'custom CTA title',
+        trialButtonLabel: 'trial',
+        trialURL: 'http://url.com',
+        hideDays: true,
+      },
     };
 
     service.getConsoleCustomization().subscribe((res) => {

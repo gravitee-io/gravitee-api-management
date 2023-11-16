@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 import { Inject, Injectable } from '@angular/core';
-import { map, switchMap } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 import { GioLicenseService } from '@gravitee/ui-particles-angular';
-import { Observable, of } from 'rxjs';
 
 import { MenuGroupItem, MenuItem } from './MenuGroupItem';
 import { ApiMenuService } from './ApiMenuService';
@@ -37,10 +36,10 @@ export class ApiV1V2MenuService implements ApiMenuService {
     private readonly gioLicenseService: GioLicenseService,
   ) {}
 
-  public getMenu(api: ApiV1 | ApiV2): Observable<{
+  public getMenu(api: ApiV1 | ApiV2): {
     subMenuItems: MenuItem[];
     groupItems: MenuGroupItem[];
-  }> {
+  } {
     const subMenuItems: MenuItem[] = [
       ...(api.definitionVersion === 'V1'
         ? [
@@ -64,20 +63,16 @@ export class ApiV1V2MenuService implements ApiMenuService {
       },
     ];
 
-    return this.gioLicenseService.isOEM$().pipe(
-      switchMap((isOEM) => {
-        const groupItems: MenuGroupItem[] = [
-          this.getPortalGroup(),
-          this.getProxyGroup(api.definitionVersion),
-          this.getBackendServicesGroup(),
-          this.getAnalyticsGroup(isOEM),
-          this.getAuditGroup(),
-          this.getNotificationsGroup(isOEM),
-        ].filter((group) => !!group);
+    const groupItems: MenuGroupItem[] = [
+      this.getPortalGroup(),
+      this.getProxyGroup(api.definitionVersion),
+      this.getBackendServicesGroup(),
+      this.getAnalyticsGroup(),
+      this.getAuditGroup(),
+      this.getNotificationsGroup(),
+    ].filter((group) => !!group);
 
-        return of({ subMenuItems, groupItems });
-      }),
-    );
+    return { subMenuItems, groupItems };
   }
 
   private getPortalGroup(): MenuGroupItem {
@@ -301,7 +296,7 @@ export class ApiV1V2MenuService implements ApiMenuService {
     return undefined;
   }
 
-  private getAnalyticsGroup(isOEM: boolean): MenuGroupItem {
+  private getAnalyticsGroup(): MenuGroupItem {
     const analyticsGroup: MenuGroupItem = {
       title: 'Analytics',
       items: [],
@@ -328,7 +323,7 @@ export class ApiV1V2MenuService implements ApiMenuService {
         baseRoute: 'management.apis.analytics-path-mappings-v2',
       });
     }
-    if (!isOEM && this.constants.org.settings.alert?.enabled && this.permissionService.hasAnyMatching(['api-alert-r'])) {
+    if (!this.constants.isOEM && this.constants.org.settings.alert?.enabled && this.permissionService.hasAnyMatching(['api-alert-r'])) {
       const alertEngineLicenseOptions = {
         feature: ApimFeature.ALERT_ENGINE,
         context: UTMTags.CONTEXT_API_ANALYTICS,
@@ -389,7 +384,7 @@ export class ApiV1V2MenuService implements ApiMenuService {
     }
     return undefined;
   }
-  private getNotificationsGroup(isOEM: boolean): MenuGroupItem {
+  private getNotificationsGroup(): MenuGroupItem {
     const notificationsGroup: MenuGroupItem = {
       title: 'Notifications',
       items: [],
@@ -403,7 +398,7 @@ export class ApiV1V2MenuService implements ApiMenuService {
       });
     }
 
-    if (!isOEM && this.constants.org.settings.alert?.enabled && this.permissionService.hasAnyMatching(['api-alert-r'])) {
+    if (!this.constants.isOEM && this.constants.org.settings.alert?.enabled && this.permissionService.hasAnyMatching(['api-alert-r'])) {
       const alertEngineLicenseOptions = {
         feature: ApimFeature.ALERT_ENGINE,
         context: UTMTags.CONTEXT_API_NOTIFICATIONS,

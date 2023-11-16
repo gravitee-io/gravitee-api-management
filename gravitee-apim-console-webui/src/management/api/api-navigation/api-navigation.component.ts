@@ -17,7 +17,7 @@ import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { StateService } from '@uirouter/core';
 import { IScope } from 'angular';
 import { castArray, flatMap } from 'lodash';
-import { map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { map, takeUntil, tap } from 'rxjs/operators';
 import { GIO_DIALOG_WIDTH, GioBannerTypes, GioMenuService } from '@gravitee/ui-particles-angular';
 import { Observable, Subject } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
@@ -282,10 +282,10 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
       .getLastApiFetch(this.ajsStateParams.apiId)
       .pipe(
         tap((api) => (this.currentApi = api)),
-        switchMap((api) => (api.definitionVersion !== 'V4' ? this.apiNgV1V2MenuService.getMenu(api) : this.apiNgV4MenuService.getMenu())),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe((menu) => {
+      .subscribe((api) => {
+        const menu = api.definitionVersion !== 'V4' ? this.apiNgV1V2MenuService.getMenu(api) : this.apiNgV4MenuService.getMenu();
         this.groupItems = menu.groupItems;
         this.subMenuItems = menu.subMenuItems;
 

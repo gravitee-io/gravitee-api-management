@@ -59,17 +59,15 @@ export class GioSideNavComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.gioLicenseService.isOEM$().subscribe((isOEM) => {
-      this.mainMenuItems = this.buildMainMenuItems(isOEM);
-      this.footerMenuItems = this.buildFooterMenuItems();
-      this.environments = this.constants.org.environments.map((env) => ({ value: env.id, displayValue: env.name }));
+    this.mainMenuItems = this.buildMainMenuItems();
+    this.footerMenuItems = this.buildFooterMenuItems();
+    this.environments = this.constants.org.environments.map((env) => ({ value: env.id, displayValue: env.name }));
 
-      // FIXME: to remove after migration. This allow to get the current environment when user "Go back to APIM" from organisation settings
-      this.updateCurrentEnv();
-    });
+    // FIXME: to remove after migration. This allow to get the current environment when user "Go back to APIM" from organisation settings
+    this.updateCurrentEnv();
   }
 
-  private buildMainMenuItems(isOEM: boolean): MenuItem[] {
+  private buildMainMenuItems(): MenuItem[] {
     const auditLicenseOptions: LicenseOptions = {
       feature: ApimFeature.APIM_AUDIT_TRAIL,
       context: UTMTags.CONTEXT_ENVIRONMENT,
@@ -130,7 +128,7 @@ export class GioSideNavComponent implements OnInit {
       },
     ];
 
-    if (!isOEM && this.constants.org.settings.alert && this.constants.org.settings.alert.enabled) {
+    if (!this.constants.isOEM && this.constants.org.settings.alert && this.constants.org.settings.alert.enabled) {
       mainMenuItems.push({
         icon: 'gio:alarm',
         displayName: 'Alerts',

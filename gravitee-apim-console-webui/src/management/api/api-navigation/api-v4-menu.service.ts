@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 import { Inject, Injectable } from '@angular/core';
-import { GioLicenseService } from '@gravitee/ui-particles-angular';
-import { Observable, of } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
 
 import { MenuGroupItem, MenuItem } from './MenuGroupItem';
 import { ApiMenuService } from './ApiMenuService';
@@ -32,12 +29,11 @@ export class ApiV4MenuService implements ApiMenuService {
     private readonly permissionService: GioPermissionService,
     @Inject(CurrentUserService) private readonly currentUserService: UserService,
     @Inject('Constants') private readonly constants: Constants,
-    private readonly licenseService: GioLicenseService,
   ) {}
-  public getMenu(): Observable<{
+  public getMenu(): {
     subMenuItems: MenuItem[];
     groupItems: MenuGroupItem[];
-  }> {
+  } {
     const subMenuItems: MenuItem[] = [
       {
         displayName: 'Policy Studio',
@@ -72,22 +68,17 @@ export class ApiV4MenuService implements ApiMenuService {
         tabs: logsTabs,
       });
     }
-    return this.licenseService.isOEM$().pipe(
-      switchMap((isOEM) => {
-        const groupItems: MenuGroupItem[] = [
-          this.getGeneralGroup(),
-          this.getEntrypointsGroup(),
-          this.getEndpointsGroup(),
-          this.getAnalyticsGroup(isOEM),
-          this.getAuditGroup(),
-          this.getNotificationsGroup(isOEM),
-        ].filter((group) => !!group);
+    const groupItems: MenuGroupItem[] = [
+      this.getGeneralGroup(),
+      this.getEntrypointsGroup(),
+      this.getEndpointsGroup(),
+      this.getAnalyticsGroup(),
+      this.getAuditGroup(),
+      this.getNotificationsGroup(),
+    ].filter((group) => !!group);
 
-        return of({ subMenuItems, groupItems });
-      }),
-    );
+    return { subMenuItems, groupItems };
   }
-
   private getGeneralGroup(): MenuGroupItem {
     const generalGroup: MenuGroupItem = {
       title: 'General',
@@ -229,7 +220,7 @@ export class ApiV4MenuService implements ApiMenuService {
     return endpointsGroup;
   }
 
-  private getAnalyticsGroup(isOEM: boolean): MenuGroupItem {
+  private getAnalyticsGroup(): MenuGroupItem {
     const analyticsGroup: MenuGroupItem = {
       title: 'Analytics',
       items: [],
@@ -246,7 +237,7 @@ export class ApiV4MenuService implements ApiMenuService {
         targetRoute: 'DISABLED',
       });
     }
-    if (!isOEM && this.constants.org.settings.alert?.enabled && this.permissionService.hasAnyMatching(['api-alert-r'])) {
+    if (!this.constants.isOEM && this.constants.org.settings.alert?.enabled && this.permissionService.hasAnyMatching(['api-alert-r'])) {
       analyticsGroup.items.push({
         displayName: 'Alerts',
         targetRoute: 'DISABLED',
@@ -284,7 +275,7 @@ export class ApiV4MenuService implements ApiMenuService {
     return auditGroup;
   }
 
-  private getNotificationsGroup(isOEM: boolean): MenuGroupItem {
+  private getNotificationsGroup(): MenuGroupItem {
     const notificationsGroup: MenuGroupItem = {
       title: 'Notifications',
       items: [],
@@ -297,7 +288,7 @@ export class ApiV4MenuService implements ApiMenuService {
       });
     }
 
-    if (!isOEM && this.constants.org.settings.alert?.enabled && this.permissionService.hasAnyMatching(['api-alert-r'])) {
+    if (!this.constants.isOEM && this.constants.org.settings.alert?.enabled && this.permissionService.hasAnyMatching(['api-alert-r'])) {
       notificationsGroup.items.push({
         displayName: 'Alerts',
         targetRoute: 'DISABLED',

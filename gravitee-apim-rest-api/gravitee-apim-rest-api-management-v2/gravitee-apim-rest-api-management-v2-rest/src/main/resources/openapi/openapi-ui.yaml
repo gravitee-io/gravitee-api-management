@@ -46,6 +46,8 @@ components:
             properties:
                 theme:
                     $ref: '#/components/schemas/ConsoleTheme'
+                ctaConfiguration:
+                    $ref: '#/components/schemas/CtaConfiguration'
                 logo:
                     type: string
                     description: The logo that should be displayed in the console
@@ -66,6 +68,26 @@ components:
                 menuActive:
                     type: string
                     description: The color of an active menu item
+
+        CtaConfiguration:
+            type: object
+            description: Configuration for the CTA popups
+            properties:
+                customEnterpriseName:
+                    type: string
+                    description: The name of the custom enterprise feature. This name will be used in the description provided in CTA popups.
+                title:
+                    type: string
+                    description: The title that will be used in the CTA popup.
+                trialButtonLabel:
+                    type: string
+                    description: The label used on the action button in CTA popup.
+                trialURL:
+                    type: string
+                    description: The URL that will be targeted when clicking on the trail button.
+                hideDays:
+                    type: boolean
+                    description: Whether the number of days for trial is displayed or not in the CTA popup.
 
         Error:
             type: object
