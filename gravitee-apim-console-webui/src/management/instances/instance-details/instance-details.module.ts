@@ -25,9 +25,13 @@ import { InstanceDetailsMonitoringComponent } from './instance-details-monitorin
 import { InstanceDetailsMonitoringModule } from './instance-details-monitoring/instance-details-monitoring.module';
 import { InstanceDetailsEnvironmentModule } from './instance-details-environment/instance-details-environment.module';
 import { InstanceListComponent } from '../list/instance-list.component';
+import { MatTableModule } from '@angular/material/table';
+import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @NgModule({
-  declarations: [InstanceDetailsComponent],
+  declarations: [InstanceDetailsComponent, InstanceListComponent],
   exports: [InstanceDetailsComponent],
   imports: [
     CommonModule,
@@ -35,6 +39,10 @@ import { InstanceListComponent } from '../list/instance-list.component';
     InstanceDetailsHeaderModule,
     InstanceDetailsMonitoringModule,
     InstanceDetailsEnvironmentModule,
+    MatTableModule,
+    GioTableWrapperModule,
+    MatIconModule,
+    MatTooltipModule,
   ],
 })
 export class InstanceDetailsModule {
