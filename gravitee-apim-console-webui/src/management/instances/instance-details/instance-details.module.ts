@@ -24,6 +24,7 @@ import { InstanceDetailsEnvironmentComponent } from './instance-details-environm
 import { InstanceDetailsMonitoringComponent } from './instance-details-monitoring/instance-details-monitoring.component';
 import { InstanceDetailsMonitoringModule } from './instance-details-monitoring/instance-details-monitoring.module';
 import { InstanceDetailsEnvironmentModule } from './instance-details-environment/instance-details-environment.module';
+import { InstanceListComponent } from '../list/instance-list.component';
 
 @NgModule({
   declarations: [InstanceDetailsComponent],
@@ -39,6 +40,15 @@ import { InstanceDetailsEnvironmentModule } from './instance-details-environment
 export class InstanceDetailsModule {
   public static withRouting(config: { stateNamePrefix: string }): ModuleWithProviders<InstanceDetailsModule> {
     const states = [
+      {
+        // TMP State during migration of this component
+        name: `${config.stateNamePrefix}.list`,
+        url: '/list',
+        component: InstanceListComponent,
+        data: {
+          useAngularMaterial: true,
+        },
+      },
       {
         name: `${config.stateNamePrefix}`,
         url: '/:instanceId',
