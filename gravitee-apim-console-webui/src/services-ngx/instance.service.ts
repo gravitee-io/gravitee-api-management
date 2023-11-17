@@ -55,10 +55,10 @@ export class InstanceService {
   }
 
   get(id: string): Observable<Instance> {
-    return this.http.get<Instance>(`${this.constants.env.baseURL}/instances/` + id);
+    return this.http.get<Instance>(`${this.constants.env.baseURL}/instances/${id}`);
   }
 
   getMonitoringData(id: string, gatewayId: string): Observable<MonitoringData> {
-    return this.http.get<MonitoringData>(`${this.constants.env.baseURL}/instances/` + id + '/monitoring/' + gatewayId);
+    return this.http.get<MonitoringData>(`${this.constants.env.baseURL}/instances/${id}/monitoring/${gatewayId}`);
   }
 }
