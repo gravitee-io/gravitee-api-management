@@ -273,9 +273,11 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
     }
 
     private Step buildStep(HealthCheckStep step, long startTime, long endTime, Request request, HttpClientResponse response, String body) {
-        EndpointStatus.StepBuilder stepBuilder = validateAssertions(step, new EvaluableHttpResponse(response, body));
+        long responseTime = endTime - startTime;
+
+        EndpointStatus.StepBuilder stepBuilder = validateAssertions(step, new EvaluableHttpResponse(response, body), responseTime);
         stepBuilder.request(request);
-        stepBuilder.responseTime(endTime - startTime);
+        stepBuilder.responseTime(responseTime);
 
         Response healthResponse = new Response();
         healthResponse.setStatus(response.statusCode());
@@ -334,7 +336,11 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
         return reqHeaders;
     }
 
-    private EndpointStatus.StepBuilder validateAssertions(final HealthCheckStep step, final EvaluableHttpResponse response) {
+    private EndpointStatus.StepBuilder validateAssertions(
+        final HealthCheckStep step,
+        final EvaluableHttpResponse response,
+        final long responseTime
+    ) {
         EndpointStatus.StepBuilder stepBuilder = EndpointStatus.forStep(step.getName());
 
         // Run assertions
@@ -346,6 +352,7 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
                     // TODO: assertion must be compiled only one time to preserve CPU
                     AssertionEvaluation evaluation = new AssertionEvaluation(assertionIterator.next());
                     evaluation.setVariable("response", response);
+                    evaluation.setVariable("responseTime", responseTime);
 
                     // Run validation
                     success = evaluation.validate();
