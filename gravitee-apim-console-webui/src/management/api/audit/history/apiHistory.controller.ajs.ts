@@ -192,7 +192,6 @@ class ApiHistoryControllerAjs {
 
     this.ApiService.get(this.$state.params.apiId).then((api) => {
       this.api = api.data;
-      this.$scope.$parent.apiCtrl.checkAPISynchronization(this.api);
 
       this.eventPage = -1;
       this.events = [];
