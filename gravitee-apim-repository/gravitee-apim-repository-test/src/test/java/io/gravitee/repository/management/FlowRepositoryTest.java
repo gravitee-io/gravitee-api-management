@@ -119,6 +119,38 @@ public class FlowRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
+    public void shouldCreateWithBigValues() throws TechnicalException {
+        Flow flow = new Flow();
+        // Mandatory fields
+        flow.setId("flow-create-big-values");
+        flow.setOrder(1);
+        flow.setCreatedAt(new Date(1470157767000L));
+        flow.setReferenceId("my-orga");
+        flow.setReferenceType(FlowReferenceType.ORGANIZATION);
+
+        // Fields with big capacities
+        flow.setName(
+            "A big name with 256 characters-A big name with 256 characters-A big name with 256 characters-A big name with 256 characters-A big name with 256 characters-A big name with 256 characters-A big name with 256 characters-A big name with 256 characters---------"
+        );
+        flow.setCondition(
+            "A huge condition with 512 characters-A huge condition with 512 characters-A huge condition with 512 characters-A huge condition with 512 characters-A huge condition with 512 characters-A huge condition with 512 characters-A huge condition with 512 characters-A huge condition with 512 characters-A huge condition with 512 characters-A huge condition with 512 characters-A huge condition with 512 characters-A huge condition with 512 characters-A huge condition with 512 characters--------------------------------"
+        );
+        flow.setPath(
+            "A big path with 256 characters-A big path with 256 characters-A big path with 256 characters-A big path with 256 characters-A big path with 256 characters-A big path with 256 characters-A big path with 256 characters-A big path with 256 characters---------"
+        );
+
+        Flow flowCreated = flowRepository.create(flow);
+        assertEquals(flowCreated.getId(), flow.getId());
+        assertEquals(flowCreated.getName(), flow.getName());
+        assertEquals(flowCreated.getCondition(), flow.getCondition());
+        assertEquals(flowCreated.getPath(), flow.getPath());
+        assertEquals(flowCreated.getOrder(), flow.getOrder());
+        assertEquals(flowCreated.getCreatedAt(), flow.getCreatedAt());
+        assertEquals(flowCreated.getReferenceId(), flow.getReferenceId());
+        assertEquals(flowCreated.getReferenceType(), flow.getReferenceType());
+    }
+
+    @Test
     public void shouldUpdate() throws TechnicalException {
         Flow flow = new Flow();
         flow.setId("tag-updated");
