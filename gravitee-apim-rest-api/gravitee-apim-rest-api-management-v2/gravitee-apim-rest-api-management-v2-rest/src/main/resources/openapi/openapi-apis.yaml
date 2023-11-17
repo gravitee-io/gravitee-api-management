@@ -1772,6 +1772,30 @@ paths:
                                 $ref: "#/components/schemas/Page"
                 default:
                     $ref: "#/components/responses/Error"
+
+    /environments/{envId}/apis/{apiId}/pages/{pageId}/_unpublish:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+            - $ref: "#/components/parameters/pageIdParam"
+        post:
+            tags:
+                - API Documentation
+            summary: Unpublish API Documentation Page
+            description: |-
+                Unpublish API Documentation Page. Returns the unpublished page.
+
+                User must have the API_DOCUMENTATION[UPDATE] permission.
+            operationId: unpublishDocumentationPage
+            responses:
+                "200":
+                    description: API Documentation Page
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Page"
+                default:
+                    $ref: "#/components/responses/Error"
 components:
     schemas:
         GraviteeLicense:

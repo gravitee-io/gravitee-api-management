@@ -54,6 +54,9 @@ public class ApiPagesResource extends AbstractResource {
     @Inject
     private ApiPublishDocumentationPageUseCase apiPublishDocumentationPageUsecase;
 
+    @Inject
+    private ApiUnpublishDocumentationPageUseCase apiUnpublishDocumentationPageUsecase;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.READ }) })
@@ -122,6 +125,17 @@ public class ApiPagesResource extends AbstractResource {
     public Response publishDocumentationPage(@PathParam("apiId") String apiId, @PathParam("pageId") String pageId) {
         var page = apiPublishDocumentationPageUsecase
             .execute(new ApiPublishDocumentationPageUseCase.Input(apiId, pageId, getAuditInfo()))
+            .page();
+        return Response.ok(Mappers.getMapper(PageMapper.class).mapPage(page)).build();
+    }
+
+    @POST
+    @Path("{pageId}/_unpublish")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.UPDATE }) })
+    public Response unpublishDocumentationPage(@PathParam("apiId") String apiId, @PathParam("pageId") String pageId) {
+        var page = apiUnpublishDocumentationPageUsecase
+            .execute(new ApiUnpublishDocumentationPageUseCase.Input(apiId, pageId, getAuditInfo()))
             .page();
         return Response.ok(Mappers.getMapper(PageMapper.class).mapPage(page)).build();
     }
