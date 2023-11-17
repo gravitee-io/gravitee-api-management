@@ -15,14 +15,33 @@ security:
     - CookieAuth: []
 
 servers:
-    - url: /management/v2
-      description: Gravitee.io APIM - Management API - v2
-    - url: /management/v2/organizations/{orgId}
-      description: Gravitee.io APIM - Management API - v2
+    - url: "{protocol}://{gatewayHost}/management/v2"
+      description: APIM Management API v2 - Default base URL
       variables:
-        orgId:
-            default: DEFAULT
-            description: Allow to target a specific organization
+          protocol:
+              description: The protocol you want to use to communicate with the mAPI
+              default: https
+              enum:
+                  - https
+                  - http
+          gatewayHost:
+              description: The domain of the server hosting your Gateway
+              default: localhost:8083
+    - url: "{protocol}://{gatewayHost}/management/v2/organizations/{orgId}"
+      description: APIM Management API v2 - Base URL to target specific organizations
+      variables:
+          protocol:
+              description: The protocol you want to use to communicate with the mAPI
+              default: https
+              enum:
+                  - https
+                  - http
+          gatewayHost:
+              description: The domain of the server hosting your Gateway
+              default: localhost:8083
+          ordId:
+              description: The unique ID of your organization
+              default: DEFAULT
 
 tags:
     - name: APIs
@@ -460,7 +479,7 @@ paths:
             summary: Transfer the ownership of the API
             description: |-
                 Transfer the ownership of the API to a user, a group or an api member.
-                
+
                 Return a 404 HTTP Error if API cannot be found.
 
                 Return a 400 HTTP Error:
@@ -525,7 +544,7 @@ paths:
                 Return a 400 HTTP Error:
                  - when user tries to change reviews state of an ARCHIVED API
                  - when user tries to change reviews state of an API already in review
-                
+
                 User must have the API_DEFINITION[UPDATE] permission.
             operationId: reviewsAsk
             requestBody:
@@ -553,7 +572,7 @@ paths:
                 Return a 400 HTTP Error:
                  - when user tries to change reviews state of an ARCHIVED API
                  - when user tries to change reviews state of an API that is not in review
-                
+
                 User must have the API_REVIEWS[UPDATE] permission.
             operationId: reviewsAccept
             requestBody:
@@ -581,7 +600,7 @@ paths:
                 Return a 400 HTTP Error:
                  - when user tries to change reviews state of an ARCHIVED API
                  - when user tries to change reviews state of an API that is not in review
-                
+
                 User must have the API_REVIEWS[UPDATE] permission.
             operationId: reviewsReject
             requestBody:
@@ -1663,10 +1682,10 @@ paths:
             description: |-
                 Get API documentation pages.
                 When no parentId is specified, returns all the pages of the API.
-                
+
                 When parentId is specified (either ID of a folder, or 'ROOT'), only the pages with the given parent are returned, 
                 and the breadcrumb of the specified folder is added to the response. 
-                
+
                 User must have the API_DOCUMENTATION[READ] permission.
             operationId: getApiPages
             responses:
@@ -1926,12 +1945,12 @@ components:
                               - STOPPED
                               - STOPPING
                       deploymentState:
-                            type: string
-                            description: The deployment state of the API regarding the gateway(s).
-                            example: DEPLOYED
-                            enum:
-                                - NEED_REDEPLOY
-                                - DEPLOYED
+                          type: string
+                          description: The deployment state of the API regarding the gateway(s).
+                          example: DEPLOYED
+                          enum:
+                              - NEED_REDEPLOY
+                              - DEPLOYED
                       visibility:
                           $ref: "#/components/schemas/Visibility"
                       labels:
@@ -3842,51 +3861,51 @@ components:
             allOf:
                 - $ref: "#/components/schemas/BaseGroup"
                 - properties:
-                    eventRules:
-                        type: array
-                        items:
-                            $ref: "#/components/schemas/GroupEvent"
-                        description: Event rules for the group.
-                    manageable:
-                        type: boolean
-                        description: Current user can manage group.
-                    createdAt:
-                        type: string
-                        format: date-time
-                        description: Group's creation date.
-                        example: 2018-11-23T22:00:00.000Z
-                    updatedAt:
-                        type: string
-                        format: date-time
-                        description: Group's last updated date.
-                        example: 2018-11-23T22:00:00.000Z
-                    maxInvitation:
-                        type: integer
-                        description: Maximum number of group members.
-                    apiRole:
-                        type: string
-                        description: The Api role of the group.
-                    lockApiRole:
-                        type: boolean
-                        description: Api role cannot be changed.
-                    applicationRole:
-                        type: string
-                        description: The Application role of the group.
-                    lockApplicationRole:
-                        type: boolean
-                        description: Application role cannot be changed.
-                    systemInvitation:
-                        type: boolean
-                        description: Invitation via user search enabled.
-                    emailInvitation:
-                        type: boolean
-                        description: Email invitation enabled.
-                    disableMembershipNotifications:
-                        type: boolean
-                        description: Notifications of new members are disabled.
-                    primaryOwner:
-                        type: boolean
-                        description: Group's members contain one primary owner.
+                      eventRules:
+                          type: array
+                          items:
+                              $ref: "#/components/schemas/GroupEvent"
+                          description: Event rules for the group.
+                      manageable:
+                          type: boolean
+                          description: Current user can manage group.
+                      createdAt:
+                          type: string
+                          format: date-time
+                          description: Group's creation date.
+                          example: 2018-11-23T22:00:00.000Z
+                      updatedAt:
+                          type: string
+                          format: date-time
+                          description: Group's last updated date.
+                          example: 2018-11-23T22:00:00.000Z
+                      maxInvitation:
+                          type: integer
+                          description: Maximum number of group members.
+                      apiRole:
+                          type: string
+                          description: The Api role of the group.
+                      lockApiRole:
+                          type: boolean
+                          description: Api role cannot be changed.
+                      applicationRole:
+                          type: string
+                          description: The Application role of the group.
+                      lockApplicationRole:
+                          type: boolean
+                          description: Application role cannot be changed.
+                      systemInvitation:
+                          type: boolean
+                          description: Invitation via user search enabled.
+                      emailInvitation:
+                          type: boolean
+                          description: Email invitation enabled.
+                      disableMembershipNotifications:
+                          type: boolean
+                          description: Notifications of new members are disabled.
+                      primaryOwner:
+                          type: boolean
+                          description: Group's members contain one primary owner.
         GroupEvent:
             type: string
             description: Type of group event.
@@ -4134,13 +4153,13 @@ components:
                   properties:
                       hosts:
                           description: >-
-                            A list of hostnames for which the API will match against SNI. 
-                            This must be unique for all TCP listener for a given server id. See 'servers' attribute
+                              A list of hostnames for which the API will match against SNI. 
+                              This must be unique for all TCP listener for a given server id. See 'servers' attribute
                           type: array
                           minItems: 1
                           items:
-                             type: string
-                             minLength: 1
+                              type: string
+                              minLength: 1
                   required:
                       - "hosts"
         VerifyApiPaths:
@@ -4291,16 +4310,16 @@ components:
         EndpointDiscoveryService:
             type: object
             properties:
-                  provider:
-                      type: string
-                      description: The provider of the service
-                  configuration:
-                      type: object
-                      description: The configuration of the service
-                  enabled:
-                      type: boolean
-                      description: Is the service enabled or not.
-                      default: true
+                provider:
+                    type: string
+                    description: The provider of the service
+                configuration:
+                    type: object
+                    description: The configuration of the service
+                enabled:
+                    type: boolean
+                    description: Is the service enabled or not.
+                    default: true
         EndpointGroupV2:
             type: object
             properties:
@@ -4374,7 +4393,7 @@ components:
                     description: The list of cases associated with this failover.
                     items:
                         $ref: "#/components/schemas/FailoverCase"
-                    default: [ "TIMEOUT" ]
+                    default: ["TIMEOUT"]
         FailoverCase:
             type: string
             description: The case of the failover.
@@ -4459,16 +4478,16 @@ components:
         HealthCheckService:
             type: object
             properties:
-                  schedule:
-                      type: string
-                      description: The schedule of the service
-                  steps:
-                      type: array
-                      items:
-                          $ref: "#/components/schemas/HealthCheckStep"
-                  enabled:
-                      type: boolean
-                      description: Is the service enabled or not.
+                schedule:
+                    type: string
+                    description: The schedule of the service
+                steps:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/HealthCheckStep"
+                enabled:
+                    type: boolean
+                    description: Is the service enabled or not.
         HealthCheckStep:
             type: object
             properties:
@@ -5011,7 +5030,7 @@ components:
                     description: The list of headers associated with this message.
                     example:
                         - name: X-My-Header
-                          value: [ my-value ]
+                          value: [my-value]
                 body:
                     type: string
                     description: The request's body.
@@ -5030,7 +5049,7 @@ components:
                     description: The list of headers associated with this message.
                     example:
                         - name: X-My-Header
-                          value: [ my-value ]
+                          value: [my-value]
                 body:
                     type: string
                     description: The response's body.
@@ -5101,7 +5120,7 @@ components:
                 value:
                     type: string
                     description: The value of the metadata
-                    example: [ my-value ]
+                    example: [my-value]
 
         # Documentation pages
         AccessControl:
@@ -5350,14 +5369,14 @@ components:
             allOf:
                 - $ref: "#/components/schemas/CreateDocumentation"
                 - properties:
-                    content:
-                        type: string
-                        description: Page's content.
-                        example: My Page content
-                    homepage:
-                        type: boolean
-                        description: Page's homepage status.
-                        example: true
+                      content:
+                          type: string
+                          description: Page's content.
+                          example: My Page content
+                      homepage:
+                          type: boolean
+                          description: Page's homepage status.
+                          example: true
             required:
                 - name
                 - type
@@ -5636,15 +5655,15 @@ components:
         # Other Query Parameters      #
         ###############################
         apiExpandsParam:
-          name: expands
-          in: query
-          description: Expansion of data to return in APIs.
-          schema:
-              type: array
-              items:
-                  type: string
-                  enum:
-                      - deploymentState
+            name: expands
+            in: query
+            description: Expansion of data to return in APIs.
+            schema:
+                type: array
+                items:
+                    type: string
+                    enum:
+                        - deploymentState
         from:
             name: from
             in: query
@@ -5905,39 +5924,39 @@ components:
                         title: "ApiLogResponse"
                         description: API log for a request.
                         properties:
-                          timestamp:
-                            type: string
-                            format: date-time
-                            description: The date (as timestamp) of the log.
-                            example: 2023-05-18T12:40:46.184Z
-                          apiId:
-                            type: string
-                            description: The id of the api.
-                            example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
-                          requestId:
-                            type: string
-                            description: The id of the request.
-                            example: 1719d8d1-8d01-48f6-99d8-d18d0178f6d4
-                          clientIdentifier:
-                            type: string
-                            description: The client identifier of the request.
-                            example: 12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0
-                          transactionId:
-                            type: string
-                            description: The id of the transaction.
-                            example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
-                          requestEnded:
-                            type: boolean
-                            description: The flag indicating if the request has ended.
-                            example: true
-                          entrypointRequest:
-                            $ref: "#/components/schemas/ApiLogRequestContent"
-                          entrypointResponse:
-                            $ref: "#/components/schemas/ApiLogResponseContent"
-                          endpointRequest:
-                            $ref: "#/components/schemas/ApiLogRequestContent"
-                          endpointResponse:
-                            $ref: "#/components/schemas/ApiLogResponseContent"
+                            timestamp:
+                                type: string
+                                format: date-time
+                                description: The date (as timestamp) of the log.
+                                example: 2023-05-18T12:40:46.184Z
+                            apiId:
+                                type: string
+                                description: The id of the api.
+                                example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+                            requestId:
+                                type: string
+                                description: The id of the request.
+                                example: 1719d8d1-8d01-48f6-99d8-d18d0178f6d4
+                            clientIdentifier:
+                                type: string
+                                description: The client identifier of the request.
+                                example: 12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0
+                            transactionId:
+                                type: string
+                                description: The id of the transaction.
+                                example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+                            requestEnded:
+                                type: boolean
+                                description: The flag indicating if the request has ended.
+                                example: true
+                            entrypointRequest:
+                                $ref: "#/components/schemas/ApiLogRequestContent"
+                            entrypointResponse:
+                                $ref: "#/components/schemas/ApiLogResponseContent"
+                            endpointRequest:
+                                $ref: "#/components/schemas/ApiLogRequestContent"
+                            endpointResponse:
+                                $ref: "#/components/schemas/ApiLogResponseContent"
         ApiMessageLogsResponse:
             description: Page of API Messages Logs
             content:
