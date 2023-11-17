@@ -69,8 +69,13 @@ public class InMemoryConfiguration {
     }
 
     @Bean
-    public PlanCrudServiceInMemory planRepository() {
+    public PlanCrudServiceInMemory planCrudServiceInMemory() {
         return new PlanCrudServiceInMemory();
+    }
+
+    @Bean
+    public PlanQueryServiceInMemory planQueryServiceInMemory() {
+        return new PlanQueryServiceInMemory();
     }
 
     @Bean
