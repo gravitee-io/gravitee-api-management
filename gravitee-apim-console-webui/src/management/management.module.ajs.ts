@@ -95,8 +95,6 @@ import ApplicationLogsComponent from './application/details/logs/application-log
 import ApplicationLogComponent from './application/details/logs/application-log.component';
 import DialogAddMemberController from './application/details/members/addMemberDialog.controller';
 import DialogTransferApplicationController from './application/details/members/transferApplicationDialog.controller';
-// Instances
-import InstancesService from '../services/instances.service';
 // Analytics / widgets
 import WidgetComponent from '../components/widget/widget.component';
 import WidgetDataTableComponent from '../components/widget/table/widget-data-table.component';
@@ -631,7 +629,6 @@ graviteeManagementModule.service('debugApiService', DebugApiService);
 graviteeManagementModule.service('ApiPrimaryOwnerModeService', ApiPrimaryOwnerModeService);
 graviteeManagementModule.service('CorsService', CorsService);
 graviteeManagementModule.service('DocumentationService', DocumentationService);
-graviteeManagementModule.service('InstancesService', InstancesService);
 graviteeManagementModule.service('NotificationService', NotificationService);
 graviteeManagementModule.service('PolicyService', PolicyService);
 graviteeManagementModule.service('NotifierService', NotifierService);
