@@ -166,6 +166,21 @@ public class UsecaseSpringConfiguration {
     }
 
     @Bean
+    public ApiUnpublishDocumentationPageUseCase apiUnpublishDocumentationPageUseCase(
+        ApiDocumentationDomainService apiDocumentationDomainService,
+        UpdateApiDocumentationDomainService updateApiDocumentationDomainService,
+        ApiCrudService apiCrudService,
+        PageCrudService pageCrudService
+    ) {
+        return new ApiUnpublishDocumentationPageUseCase(
+            apiDocumentationDomainService,
+            updateApiDocumentationDomainService,
+            apiCrudService,
+            pageCrudService
+        );
+    }
+
+    @Bean
     public GetConsoleCustomizationUseCase getConsoleCustomizationUseCase(GraviteeLicenseDomainService licenseDomainService) {
         return new GetConsoleCustomizationUseCase(licenseDomainService);
     }
