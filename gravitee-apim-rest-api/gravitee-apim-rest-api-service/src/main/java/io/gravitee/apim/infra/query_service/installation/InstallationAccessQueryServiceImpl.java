@@ -26,6 +26,7 @@ import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryS
 import jakarta.annotation.PostConstruct;
 import java.net.URI;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -140,6 +141,16 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
     }
 
     @Override
+    public List<String> getConsoleUrls() {
+        if (installationTypeDomainService.isMultiTenant()) {
+            List<AccessPoint> accessPoints = accessPointQueryService.getConsoleAccessPoints();
+            return accessPoints.stream().map(this::buildHttpUrl).toList();
+        } else {
+            return new ArrayList<>(consoleUrls.values());
+        }
+    }
+
+    @Override
     public List<String> getConsoleUrls(final String organizationId) {
         if (installationTypeDomainService.isMultiTenant()) {
             List<AccessPoint> accessPoints = accessPointQueryService.getConsoleAccessPoints(organizationId);
@@ -174,6 +185,16 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
             return fullUrl.toString();
         }
         return null;
+    }
+
+    @Override
+    public List<String> getPortalUrls() {
+        if (installationTypeDomainService.isMultiTenant()) {
+            List<AccessPoint> accessPoints = accessPointQueryService.getPortalAccessPoints();
+            return accessPoints.stream().map(this::buildHttpUrl).toList();
+        } else {
+            return new ArrayList<>(portalUrls.values());
+        }
     }
 
     @Override
@@ -228,14 +249,7 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
 
     private String buildHttpUrl(final AccessPoint accessPoint) {
         if (accessPoint != null) {
-            StringBuilder consoleUrl = new StringBuilder();
-            if (accessPoint.isSecured()) {
-                consoleUrl.append("https");
-            } else {
-                consoleUrl.append("http");
-            }
-            consoleUrl.append("://").append(accessPoint.getHost());
-            return consoleUrl.toString();
+            return accessPoint.buildHttpUrl();
         }
         return null;
     }

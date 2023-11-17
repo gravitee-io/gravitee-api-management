@@ -30,6 +30,9 @@ public interface AccessPointMongoRepository extends MongoRepository<AccessPointM
     @Query(value = "{ 'host': ?0 }")
     AccessPointMongo findByHost(String host);
 
+    @Query(value = "{ 'target': ?0 }")
+    List<AccessPointMongo> findAllByTarget(final String target);
+
     @Query(value = "{ 'referenceType': ?0, 'referenceId': ?1 , 'target': ?2 }")
     List<AccessPointMongo> findAllByReferenceAndTarget(final String referenceType, final String referenceIds, final String target);
 

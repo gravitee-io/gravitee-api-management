@@ -82,6 +82,20 @@ public class AccessPointRepositoryTest extends AbstractManagementRepositoryTest 
     }
 
     @Test
+    public void should_return_accesspoint_from_target() throws Exception {
+        List<AccessPoint> accessPoints = accessPointRepository.findByTarget(AccessPointTarget.PORTAL);
+
+        assertFalse(accessPoints.isEmpty());
+        assertEquals(2, accessPoints.size());
+        AccessPoint accessPoint = accessPoints.get(0);
+        assertEquals("dev.en.company.apim-portal.gravitee.io:4100", accessPoint.getHost());
+        assertEquals("69a7a51a-98b7-4943-a7a5-1a98b79943e6", accessPoint.getReferenceId());
+        assertEquals(AccessPointTarget.PORTAL, accessPoint.getTarget());
+        assertEquals(false, accessPoint.isSecured());
+        assertEquals(false, accessPoint.isOverriding());
+    }
+
+    @Test
     public void should_return_accesspoint_from_host() throws Exception {
         Optional<AccessPoint> accessPointOptional = accessPointRepository.findByHost("dev.en.company.apim-portal.gravitee.io:4100");
 

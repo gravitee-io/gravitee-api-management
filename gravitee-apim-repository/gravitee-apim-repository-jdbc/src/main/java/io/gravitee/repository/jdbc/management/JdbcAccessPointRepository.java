@@ -69,6 +69,15 @@ public class JdbcAccessPointRepository extends JdbcAbstractCrudRepository<Access
     }
 
     @Override
+    public List<AccessPoint> findByTarget(final AccessPointTarget target) throws TechnicalException {
+        try {
+            return jdbcTemplate.query(getOrm().getSelectAllSql() + " t where target = ?", getOrm().getRowMapper(), target.name());
+        } catch (final Exception ex) {
+            throw new TechnicalException("Failed to find access point by target", ex);
+        }
+    }
+
+    @Override
     public List<AccessPoint> findByReferenceAndTarget(
         final AccessPointReferenceType referenceType,
         final String referenceId,

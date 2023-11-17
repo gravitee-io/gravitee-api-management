@@ -29,6 +29,11 @@ public class AccessPointQueryServiceInMemory implements AccessPointQueryService 
     }
 
     @Override
+    public List<AccessPoint> getConsoleAccessPoints() {
+        return List.of();
+    }
+
+    @Override
     public List<AccessPoint> getConsoleAccessPoints(final String organizationId) {
         return List.of();
     }
@@ -41,6 +46,11 @@ public class AccessPointQueryServiceInMemory implements AccessPointQueryService 
     @Override
     public AccessPoint getConsoleApiAccessPoint(final String organizationId) {
         return null;
+    }
+
+    @Override
+    public List<AccessPoint> getPortalAccessPoints() {
+        return List.of();
     }
 
     @Override

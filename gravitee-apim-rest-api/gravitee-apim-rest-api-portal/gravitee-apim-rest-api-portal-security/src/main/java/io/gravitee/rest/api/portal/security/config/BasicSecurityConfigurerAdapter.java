@@ -22,6 +22,7 @@ import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryS
 import io.gravitee.common.event.EventManager;
 import io.gravitee.rest.api.idp.api.IdentityProvider;
 import io.gravitee.rest.api.idp.core.plugin.IdentityProviderManager;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.security.authentication.AuthenticationProvider;
 import io.gravitee.rest.api.security.authentication.AuthenticationProviderManager;
 import io.gravitee.rest.api.security.authentication.GraviteeAuthenticationDetails;
@@ -138,7 +139,13 @@ public class BasicSecurityConfigurerAdapter {
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-        return new GraviteeUrlBasedCorsConfigurationSource(parameterService, installationAccessQueryService, eventManager);
+        return new GraviteeUrlBasedCorsConfigurationSource(
+            environment,
+            parameterService,
+            installationAccessQueryService,
+            eventManager,
+            ParameterReferenceType.ENVIRONMENT
+        );
     }
 
     /*
