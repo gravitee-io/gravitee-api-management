@@ -17,10 +17,10 @@ package io.gravitee.apim.infra.crud_service.api;
 
 import static org.mockito.Mockito.*;
 
+import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.*;
-import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import java.util.Optional;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
