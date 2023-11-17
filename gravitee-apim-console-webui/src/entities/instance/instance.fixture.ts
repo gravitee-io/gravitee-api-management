@@ -15,7 +15,6 @@
  */
 import { Instance } from './instance';
 import { MonitoringData } from './monitoringData';
-import { SearchResult } from './searchResult';
 
 export function fakeInstance(attributes?: Partial<Instance>): Instance {
   const defaultValue: Instance = {
@@ -26,8 +25,8 @@ export function fakeInstance(attributes?: Partial<Instance>): Instance {
     port: '8082',
     version: '3.20.0-SNAPSHOT (build: 174998) revision#a67b37a366',
     state: 'STARTED',
-    started_at: new Date(1667812198374),
-    last_heartbeat_at: new Date(1667813521610),
+    started_at: 1667812198374,
+    last_heartbeat_at: 1667813521610,
     operating_system_name: 'Linux',
   };
 
@@ -84,20 +83,6 @@ export function fakeMonitoringData(attributes?: Partial<MonitoringData>): Monito
       old_collection_count: 4,
       old_collection_time_in_millis: 971,
     },
-  };
-
-  return {
-    ...defaultValue,
-    ...attributes,
-  };
-}
-
-export function fakeSearchResult(attributes?: Partial<SearchResult>): SearchResult {
-  const defaultValue: SearchResult = {
-    content: [fakeInstance()],
-    pageElements: 1,
-    pageNumber: 0,
-    totalElements: 1,
   };
 
   return {

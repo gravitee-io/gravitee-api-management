@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Instance } from './instance';
+import { InstanceListItem } from './instanceListItem';
 
 export interface SearchResult {
-  content: Instance[];
+  content: InstanceListItem[];
   pageNumber: number;
   pageElements: number;
   totalElements: number;

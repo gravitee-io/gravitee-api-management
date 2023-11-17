@@ -139,11 +139,11 @@ export class InstanceDetailsEnvironmentComponent implements OnInit, OnDestroy {
       });
     }
 
-    if (this.instance.tenants?.length > 0) {
+    if (this.instance.tenant) {
       this.informationItemsDS.push({
         icon: 'gio:shuffle',
         type: 'Tenant',
-        value: this.instance.tenants.join(', '),
+        value: this.instance.tenant,
       });
     }
 

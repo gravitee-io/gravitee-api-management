@@ -13,30 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export interface Instance {
-  id: string;
+export interface InstanceListItem {
   event: string;
+  id: string;
+  started_at: number;
+  last_heartbeat_at: number;
+  stopped_at?: number;
   hostname: string;
   ip: string;
   port: string;
   version: string;
-  state: string;
-  started_at: number;
-  last_heartbeat_at: number;
-  stopped_at?: number;
-  operating_system_name?: string;
-  environments?: string[];
-  environments_hrids?: string[];
-  organizations_hrids?: string[];
   tags?: string[];
   tenant?: string;
-  systemProperties?: { [key: string]: string };
-  plugins?: {
-    id: string;
-    name: string;
-    description: string;
-    version: string;
-    plugin: string;
-    type: string;
-  }[];
+  state: 'STARTED' | 'STOPPED' | 'UNKNOWN';
+  operating_system_name?: string;
 }

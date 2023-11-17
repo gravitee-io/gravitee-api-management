@@ -27,6 +27,8 @@ import { MatTableHarness } from '@angular/material/table/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { UIRouterModule } from '@uirouter/angular';
 import { Instance } from '../../../entities/instance/instance';
+import { InstanceListItem } from '../../../entities/instance/instanceListItem';
+import { fakeInstanceListItem } from '../../../entities/instance/instanceListItem.fixture';
 
 describe('InstanceListComponent', () => {
   let fixture: ComponentFixture<InstanceListComponent>;
@@ -67,15 +69,15 @@ describe('InstanceListComponent', () => {
 
   it('should display gateway instances', fakeAsync(async () => {
     expectInstancesSearchRequest([
-      fakeInstance({
+      fakeInstanceListItem({
         hostname: 'GW 1',
         state: 'STARTED',
       }),
-      fakeInstance({
+      fakeInstanceListItem({
         hostname: 'GW 2',
         state: 'STOPPED',
       }),
-      fakeInstance({
+      fakeInstanceListItem({
         hostname: 'GW 3',
         state: 'UNKNOWN',
       }),
@@ -104,7 +106,7 @@ describe('InstanceListComponent', () => {
     httpTestingController.verify();
   });
 
-  function expectInstancesSearchRequest(content: Instance[]) {
+  function expectInstancesSearchRequest(content: InstanceListItem[]) {
     const req = httpTestingController.expectOne(
       `${CONSTANTS_TESTING.env.baseURL}/instances/?includeStopped=true&from=0&to=0&page=0&size=10`,
     );
