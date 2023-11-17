@@ -26,6 +26,11 @@ import java.util.List;
 public class InstallationAccessQueryServiceInMemory implements InstallationAccessQueryService {
 
     @Override
+    public List<String> getConsoleUrls() {
+        return List.of();
+    }
+
+    @Override
     public List<String> getConsoleUrls(final String organizationId) {
         return List.of();
     }
@@ -38,6 +43,11 @@ public class InstallationAccessQueryServiceInMemory implements InstallationAcces
     @Override
     public String getConsoleAPIUrl(final String organizationId) {
         return null;
+    }
+
+    @Override
+    public List<String> getPortalUrls() {
+        return List.of();
     }
 
     @Override

@@ -29,6 +29,8 @@ import java.util.Optional;
 public interface AccessPointRepository extends CrudRepository<AccessPoint, String> {
     Optional<AccessPoint> findByHost(final String host) throws TechnicalException;
 
+    List<AccessPoint> findByTarget(final AccessPointTarget target) throws TechnicalException;
+
     List<AccessPoint> findByReferenceAndTarget(
         final AccessPointReferenceType referenceType,
         final String referenceId,

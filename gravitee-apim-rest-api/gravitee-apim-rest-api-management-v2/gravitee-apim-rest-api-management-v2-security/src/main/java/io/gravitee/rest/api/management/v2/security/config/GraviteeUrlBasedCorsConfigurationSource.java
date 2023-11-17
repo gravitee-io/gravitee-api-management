@@ -17,38 +17,30 @@ package io.gravitee.rest.api.management.v2.security.config;
 
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.common.event.EventManager;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
+import io.gravitee.rest.api.security.cors.AbstractGraviteeUrlBasedCorsConfigurationSource;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import jakarta.servlet.http.HttpServletRequest;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.core.env.Environment;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RequiredArgsConstructor
-public class GraviteeUrlBasedCorsConfigurationSource extends UrlBasedCorsConfigurationSource {
+public class GraviteeUrlBasedCorsConfigurationSource extends AbstractGraviteeUrlBasedCorsConfigurationSource {
 
-    private final Map<String, GraviteeCorsConfiguration> corsConfigurationByOrganization = new ConcurrentHashMap<>();
-
-    private final ParameterService parameterService;
-    private final InstallationAccessQueryService installationAccessQueryService;
-    private final EventManager eventManager;
+    public GraviteeUrlBasedCorsConfigurationSource(
+        final Environment environment,
+        final ParameterService parameterService,
+        final InstallationAccessQueryService installationAccessQueryService,
+        final EventManager eventManager,
+        final ParameterReferenceType parameterReferenceType
+    ) {
+        super(environment, parameterService, installationAccessQueryService, eventManager, parameterReferenceType);
+    }
 
     @Override
-    public CorsConfiguration getCorsConfiguration(final @NonNull HttpServletRequest request) {
-        String organizationId = GraviteeContext.getCurrentOrganization();
-        if (organizationId != null) {
-            return this.corsConfigurationByOrganization.computeIfAbsent(
-                    organizationId,
-                    id -> new GraviteeCorsConfiguration(parameterService, installationAccessQueryService, eventManager, organizationId)
-                );
-        }
-        return super.getCorsConfiguration(request);
+    protected String getReferenceId() {
+        return GraviteeContext.getCurrentOrganization();
     }
 }

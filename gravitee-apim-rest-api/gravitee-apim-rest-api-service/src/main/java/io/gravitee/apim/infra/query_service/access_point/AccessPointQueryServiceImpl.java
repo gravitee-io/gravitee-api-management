@@ -59,12 +59,25 @@ public class AccessPointQueryServiceImpl implements AccessPointQueryService {
     }
 
     @Override
+    public List<AccessPoint> getConsoleAccessPoints() {
+        try {
+            return accessPointRepository
+                .findByTarget(AccessPointAdapter.INSTANCE.fromEntity(AccessPoint.Target.CONSOLE))
+                .stream()
+                .map(AccessPointAdapter.INSTANCE::toEntity)
+                .toList();
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException("An error occurs while getting all console access points", e);
+        }
+    }
+
+    @Override
     public List<AccessPoint> getConsoleAccessPoints(final String organizationId) {
         try {
             return findAccessPoints(AccessPoint.ReferenceType.ORGANIZATION, organizationId, AccessPoint.Target.CONSOLE, true).toList();
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
-                String.format("An error occurs while getting console access point for environment '%s'", organizationId),
+                String.format("An error occurs while getting console access point for organization '%s'", organizationId),
                 e
             );
         }
@@ -95,6 +108,15 @@ public class AccessPointQueryServiceImpl implements AccessPointQueryService {
                 String.format("An error occurs while getting console api access point for organization '%s'", organizationId),
                 e
             );
+        }
+    }
+
+    @Override
+    public List<AccessPoint> getPortalAccessPoints() {
+        try {
+            return findAccessPoints(AccessPoint.Target.PORTAL);
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException("An error occurs while getting all portal access points", e);
         }
     }
 
@@ -148,6 +170,14 @@ public class AccessPointQueryServiceImpl implements AccessPointQueryService {
                 e
             );
         }
+    }
+
+    private List<AccessPoint> findAccessPoints(final AccessPoint.Target target) throws TechnicalException {
+        return accessPointRepository
+            .findByTarget(AccessPointAdapter.INSTANCE.fromEntity(target))
+            .stream()
+            .map(AccessPointAdapter.INSTANCE::toEntity)
+            .toList();
     }
 
     private Stream<AccessPoint> findAccessPoints(
