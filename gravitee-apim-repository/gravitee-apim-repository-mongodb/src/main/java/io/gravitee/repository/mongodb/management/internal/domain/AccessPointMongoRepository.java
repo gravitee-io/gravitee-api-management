@@ -37,5 +37,5 @@ public interface AccessPointMongoRepository extends MongoRepository<AccessPointM
     List<AccessPointMongo> findAllByReferenceAndTarget(final String referenceType, final String referenceIds, final String target);
 
     @Query(value = "{ 'referenceType': ?0, 'referenceId': ?1 }", delete = true)
-    void deleteAllByReference(final String referenceType, final String referenceIds);
+    List<AccessPointMongo> deleteAllByReference(final String referenceType, final String referenceIds);
 }

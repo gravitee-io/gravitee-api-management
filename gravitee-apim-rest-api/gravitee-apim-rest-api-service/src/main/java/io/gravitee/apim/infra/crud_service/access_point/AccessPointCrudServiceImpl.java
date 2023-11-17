@@ -17,7 +17,9 @@ package io.gravitee.apim.infra.crud_service.access_point;
 
 import io.gravitee.apim.core.access_point.crud_service.AccessPointCrudService;
 import io.gravitee.apim.core.access_point.model.AccessPoint;
+import io.gravitee.apim.core.access_point.model.AccessPointEvent;
 import io.gravitee.apim.infra.adapter.AccessPointAdapter;
+import io.gravitee.common.event.EventManager;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.AccessPointRepository;
 import io.gravitee.repository.management.model.AccessPointReferenceType;
@@ -32,9 +34,11 @@ import org.springframework.stereotype.Service;
 public class AccessPointCrudServiceImpl extends TransactionalService implements AccessPointCrudService {
 
     private final AccessPointRepository accessPointRepository;
+    private EventManager eventManager;
 
-    public AccessPointCrudServiceImpl(@Lazy AccessPointRepository accessPointRepository) {
+    public AccessPointCrudServiceImpl(@Lazy AccessPointRepository accessPointRepository, EventManager eventManager) {
         this.accessPointRepository = accessPointRepository;
+        this.eventManager = eventManager;
     }
 
     @Override
@@ -44,14 +48,23 @@ public class AccessPointCrudServiceImpl extends TransactionalService implements 
         final List<AccessPoint> accessPoints
     ) {
         try {
-            accessPointRepository.deleteByReference(AccessPointReferenceType.valueOf(referenceType.name()), referenceId);
-
+            List<io.gravitee.repository.management.model.AccessPoint> deleteAccessPoints = accessPointRepository.deleteByReference(
+                AccessPointReferenceType.valueOf(referenceType.name()),
+                referenceId
+            );
+            if (deleteAccessPoints != null) {
+                deleteAccessPoints
+                    .stream()
+                    .map(AccessPointAdapter.INSTANCE::toEntity)
+                    .forEach(accessPoint -> eventManager.publishEvent(AccessPointEvent.DELETED, accessPoint));
+            }
             for (AccessPoint accessPoint : accessPoints) {
                 var ap = AccessPointAdapter.INSTANCE.fromEntity(accessPoint);
                 if (ap.getId() == null) {
                     ap.setId(UuidString.generateRandom());
                 }
-                accessPointRepository.create(ap);
+                io.gravitee.repository.management.model.AccessPoint createdAccessPoint = accessPointRepository.create(ap);
+                eventManager.publishEvent(AccessPointEvent.CREATED, AccessPointAdapter.INSTANCE.toEntity(createdAccessPoint));
             }
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("An error occurs while creating access points", e);

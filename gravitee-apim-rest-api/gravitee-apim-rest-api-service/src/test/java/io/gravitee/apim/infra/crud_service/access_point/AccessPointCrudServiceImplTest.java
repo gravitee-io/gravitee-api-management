@@ -21,6 +21,7 @@ import static org.mockito.Mockito.verify;
 
 import io.gravitee.apim.core.access_point.model.AccessPoint;
 import io.gravitee.apim.infra.adapter.AccessPointAdapter;
+import io.gravitee.common.event.EventManager;
 import io.gravitee.repository.management.api.AccessPointRepository;
 import io.gravitee.repository.management.model.AccessPointTarget;
 import io.gravitee.rest.api.service.common.UuidString;
@@ -32,13 +33,22 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 class AccessPointCrudServiceImplTest {
 
+    @Mock
     AccessPointRepository accessPointRepository;
+
+    @Mock
+    EventManager eventManager;
+
     AccessPointCrudServiceImpl service;
 
     @BeforeAll
@@ -54,7 +64,7 @@ class AccessPointCrudServiceImplTest {
     @BeforeEach
     void setUp() {
         accessPointRepository = mock(AccessPointRepository.class);
-        service = new AccessPointCrudServiceImpl(accessPointRepository);
+        service = new AccessPointCrudServiceImpl(accessPointRepository, eventManager);
     }
 
     @Nested

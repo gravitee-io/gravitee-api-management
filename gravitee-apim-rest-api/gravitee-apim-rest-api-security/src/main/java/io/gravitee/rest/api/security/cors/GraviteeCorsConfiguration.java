@@ -17,6 +17,8 @@ package io.gravitee.rest.api.security.cors;
 
 import static java.util.Arrays.asList;
 
+import io.gravitee.apim.core.access_point.model.AccessPoint;
+import io.gravitee.apim.core.access_point.model.AccessPointEvent;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.common.event.Event;
 import io.gravitee.common.event.EventListener;
@@ -31,7 +33,7 @@ import java.util.List;
 import org.springframework.core.env.Environment;
 import org.springframework.web.cors.CorsConfiguration;
 
-public class GraviteeCorsConfiguration extends CorsConfiguration implements EventListener<Key, Parameter> {
+public class GraviteeCorsConfiguration extends CorsConfiguration {
 
     public static final String UNDEFINED_REFERENCE_ID = "undefined";
     private final Environment environment;
@@ -53,8 +55,10 @@ public class GraviteeCorsConfiguration extends CorsConfiguration implements Even
         this.installationAccessQueryService = installationAccessQueryService;
         this.referenceId = referenceId;
         this.parameterReferenceType = parameterReferenceType;
-        eventManager.subscribeForEvents(this, Key.class);
-
+        if (!this.referenceId.equals(UNDEFINED_REFERENCE_ID)) {
+            eventManager.subscribeForEvents(new ParameterKeyEventListener(this), Key.class);
+        }
+        eventManager.subscribeForEvents(new AccessPointEventListener(this), AccessPointEvent.class);
         this.setAllowCredentials(true);
         this.setAllowedOriginPatterns(buildAllowedOriginPatterns(getPropertiesAsList(allowOriginKey())));
         this.setAllowedHeaders(getPropertiesAsList(allowHeadersKey()));
@@ -108,23 +112,6 @@ public class GraviteeCorsConfiguration extends CorsConfiguration implements Even
         return null;
     }
 
-    @Override
-    public void onEvent(Event<Key, Parameter> event) {
-        if (referenceId.equals(event.content().getReferenceId())) {
-            if (event.type() == allowOriginKey()) {
-                this.setAllowedOriginPatterns(buildAllowedOriginPatterns(semicolonStringToList(event.content().getValue())));
-            } else if (event.type() == allowHeadersKey()) {
-                this.setAllowedHeaders(semicolonStringToList(event.content().getValue()));
-            } else if (event.type() == allowMethodsKey()) {
-                this.setAllowedMethods(semicolonStringToList(event.content().getValue()));
-            } else if (event.type() == exposedHeadersKey()) {
-                this.setExposedHeaders(semicolonStringToList(event.content().getValue()));
-            } else if (event.type() == maxAgeKey()) {
-                this.setMaxAge(Long.parseLong(event.content().getValue()));
-            }
-        }
-    }
-
     protected String getProperty(final Key propertyKey) {
         if (propertyKey != null) {
             if (referenceId.equals(UNDEFINED_REFERENCE_ID)) {
@@ -150,7 +137,7 @@ public class GraviteeCorsConfiguration extends CorsConfiguration implements Even
         return semicolonStringToList(property);
     }
 
-    private List<String> semicolonStringToList(final String listStr) {
+    private static List<String> semicolonStringToList(final String listStr) {
         return asList(listStr.replaceAll("\\s+", "").split(";"));
     }
 
@@ -195,6 +182,71 @@ public class GraviteeCorsConfiguration extends CorsConfiguration implements Even
                 }
             }
             return urls;
+        }
+    }
+
+    private record ParameterKeyEventListener(GraviteeCorsConfiguration graviteeCorsConfiguration) implements EventListener<Key, Parameter> {
+        @Override
+        public void onEvent(final Event<Key, Parameter> event) {
+            if (graviteeCorsConfiguration.referenceId.equals(event.content().getReferenceId())) {
+                if (event.type() == graviteeCorsConfiguration.allowOriginKey()) {
+                    graviteeCorsConfiguration.setAllowedOriginPatterns(
+                        graviteeCorsConfiguration.buildAllowedOriginPatterns(semicolonStringToList(event.content().getValue()))
+                    );
+                } else if (event.type() == graviteeCorsConfiguration.allowHeadersKey()) {
+                    graviteeCorsConfiguration.setAllowedHeaders(semicolonStringToList(event.content().getValue()));
+                } else if (event.type() == graviteeCorsConfiguration.allowMethodsKey()) {
+                    graviteeCorsConfiguration.setAllowedMethods(semicolonStringToList(event.content().getValue()));
+                } else if (event.type() == graviteeCorsConfiguration.exposedHeadersKey()) {
+                    graviteeCorsConfiguration.setExposedHeaders(semicolonStringToList(event.content().getValue()));
+                } else if (event.type() == graviteeCorsConfiguration.maxAgeKey()) {
+                    graviteeCorsConfiguration.setMaxAge(Long.parseLong(event.content().getValue()));
+                }
+            }
+        }
+    }
+
+    private record AccessPointEventListener(GraviteeCorsConfiguration graviteeCorsConfiguration)
+        implements EventListener<AccessPointEvent, AccessPoint> {
+        @Override
+        public void onEvent(final Event<AccessPointEvent, AccessPoint> event) {
+            if (isReferenced(event) && (isConsoleTarget(event) || isPortalTarget(event))) {
+                List<String> newAllowedOriginPatterns = new ArrayList<>();
+                List<String> allowedOriginPatterns = graviteeCorsConfiguration.getAllowedOriginPatterns();
+                if (allowedOriginPatterns != null) {
+                    newAllowedOriginPatterns.addAll(allowedOriginPatterns);
+                }
+                if (event.type() == AccessPointEvent.CREATED) {
+                    newAllowedOriginPatterns.add(event.content().buildInstallationAccess());
+                } else if (event.type() == AccessPointEvent.DELETED) {
+                    newAllowedOriginPatterns.remove(event.content().buildInstallationAccess());
+                }
+                graviteeCorsConfiguration.setAllowedOriginPatterns(newAllowedOriginPatterns);
+            }
+        }
+
+        private boolean isReferenced(final Event<AccessPointEvent, AccessPoint> event) {
+            return (
+                (
+                    graviteeCorsConfiguration.referenceId.equals(UNDEFINED_REFERENCE_ID) ||
+                    graviteeCorsConfiguration.referenceId.equals(event.content().getReferenceId())
+                ) &&
+                graviteeCorsConfiguration.parameterReferenceType.name().equals(event.content().getReferenceType().name())
+            );
+        }
+
+        private boolean isPortalTarget(final Event<AccessPointEvent, AccessPoint> event) {
+            return (
+                graviteeCorsConfiguration.parameterReferenceType == ParameterReferenceType.ENVIRONMENT &&
+                event.content().getTarget() == AccessPoint.Target.PORTAL
+            );
+        }
+
+        private boolean isConsoleTarget(final Event<AccessPointEvent, AccessPoint> event) {
+            return (
+                graviteeCorsConfiguration.parameterReferenceType == ParameterReferenceType.ORGANIZATION &&
+                event.content().getTarget() == AccessPoint.Target.CONSOLE
+            );
         }
     }
 }

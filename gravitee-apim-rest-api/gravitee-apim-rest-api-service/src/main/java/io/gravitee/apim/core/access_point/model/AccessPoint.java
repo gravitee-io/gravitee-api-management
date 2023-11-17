@@ -38,6 +38,17 @@ public class AccessPoint {
     private boolean secured;
     private boolean overriding;
 
+    public String buildInstallationAccess() {
+        StringBuilder consoleUrl = new StringBuilder();
+        if (secured) {
+            consoleUrl.append("https");
+        } else {
+            consoleUrl.append("http");
+        }
+        consoleUrl.append("://").append(host);
+        return consoleUrl.toString();
+    }
+
     public enum ReferenceType {
         ENVIRONMENT,
         ORGANIZATION,

@@ -249,7 +249,7 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
 
     private String buildHttpUrl(final AccessPoint accessPoint) {
         if (accessPoint != null) {
-            return accessPoint.buildHttpUrl();
+            return accessPoint.buildInstallationAccess();
         }
         return null;
     }

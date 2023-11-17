@@ -37,5 +37,5 @@ public interface AccessPointRepository extends CrudRepository<AccessPoint, Strin
         final AccessPointTarget target
     ) throws TechnicalException;
 
-    void deleteByReference(AccessPointReferenceType referenceType, String referenceId) throws TechnicalException;
+    List<AccessPoint> deleteByReference(AccessPointReferenceType referenceType, String referenceId) throws TechnicalException;
 }
