@@ -164,6 +164,7 @@ export class ApiDocumentationV4Component implements OnInit, OnDestroy {
       .pipe(
         filter((confirmed) => !!confirmed),
         switchMap((_) => this.apiDocumentationV2Service.publishDocumentationPage(this.ajsStateParams.apiId, pageId)),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe({
         next: (_) => {
@@ -189,6 +190,7 @@ export class ApiDocumentationV4Component implements OnInit, OnDestroy {
       .pipe(
         filter((confirmed) => !!confirmed),
         switchMap((_) => this.apiDocumentationV2Service.unpublishDocumentationPage(this.ajsStateParams.apiId, pageId)),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe({
         next: (_) => {
@@ -215,6 +217,7 @@ export class ApiDocumentationV4Component implements OnInit, OnDestroy {
         ...page,
         order,
       })
+      .pipe(takeUntil(this.unsubscribe$))
       .subscribe({
         next: () => {
           this.snackBarService.success('Order updated successfully');
