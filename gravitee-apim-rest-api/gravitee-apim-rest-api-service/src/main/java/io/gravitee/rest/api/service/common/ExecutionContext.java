@@ -32,6 +32,11 @@ public class ExecutionContext {
 
     private final Optional<String> environmentId;
 
+    public ExecutionContext() {
+        this.organizationId = Optional.empty();
+        this.environmentId = Optional.empty();
+    }
+
     public ExecutionContext(String organizationId, String environmentId) {
         this.organizationId = Optional.ofNullable(organizationId);
         this.environmentId = Optional.ofNullable(environmentId);
