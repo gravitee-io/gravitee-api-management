@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, Input } from '@angular/core';
-import { RawParams, StateOrName, StateService, TransitionOptions } from '@uirouter/angularjs';
-
-import { UIRouterState } from '../../../ajs-upgraded-providers';
+import { Component, Input } from '@angular/core';
+import { RawParams, StateOrName, TransitionOptions } from '@uirouter/angularjs';
 
 export type Tags = Array<string>;
 
@@ -30,11 +28,10 @@ export class GioGoBackComponent {
   @Input()
   ajsGo?: { to: StateOrName; params?: RawParams; options?: TransitionOptions };
 
-  constructor(@Inject(UIRouterState) private readonly ajsState: StateService) {}
-
   goBack() {
     if (this.ajsGo) {
-      this.ajsState.go(this.ajsGo.to, this.ajsGo.params, this.ajsGo.options);
+      // eslint-disable-next-line
+      console.error('Deprecated: use native angular router instead !');
     }
   }
 }

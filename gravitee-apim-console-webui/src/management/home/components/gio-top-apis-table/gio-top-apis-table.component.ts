@@ -22,8 +22,8 @@ import { GioTableWrapperFilters } from '../../../../shared/components/gio-table-
 import { gioTableFilterCollection } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
 
 export type TopApisData = {
-  values: { [key: string]: number };
-  metadata: { [key: string]: { name: string; version?: string; order: string; unknown?: boolean } };
+  values?: { [key: string]: number };
+  metadata?: { [key: string]: { name: string; version?: string; order: string; unknown?: boolean } };
 };
 
 type TableDataSource = {
@@ -66,7 +66,7 @@ export class GioTopApisTableComponent implements AfterViewInit, OnChanges {
 
   private buildDataSource() {
     this.dataSource = sortBy(
-      Object.entries(this.data.values).map(([key, value]) => {
+      Object.entries(this.data?.values ?? {}).map(([key, value]) => {
         return {
           id: key,
           name: this.data.metadata[key].name,

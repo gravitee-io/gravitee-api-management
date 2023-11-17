@@ -23,7 +23,7 @@
       </ng-container>
 
       <ng-template #defaultLogo>
-        <mat-icon svgIcon="gio:gravitee" (click)="navigateToHome()"></mat-icon>
+        <mat-icon svgIcon="gio:gravitee" routerLink="/"></mat-icon>
       </ng-template>
     </button>
     <gio-top-bar-content type="apim" productName="API Management"></gio-top-bar-content>
@@ -35,15 +35,15 @@
     <gio-top-bar-menu>
       <button
         mat-icon-button
-        (click)="openContextualDocumentation()"
+        (click)="openContextualDocumentationClick()"
         aria-label="Display contextual documentation"
-        *ngIf="!isOEM && displayDocumentationButton"
+        *ngIf="!isOEM && displayContextualDocumentationButton"
         data-pendoId="sidenav-resource-center"
       >
         <mat-icon svgIcon="gio:question-mark-circle"></mat-icon>
       </button>
-      <gio-notification-menu *ngIf="newsletterProposed"></gio-notification-menu>
-      <gio-user-menu *ngIf="newsletterProposed" [hasAlert]="hasAlert" [userTaskCount]="userTaskCount"></gio-user-menu>
+      <gio-notification-menu></gio-notification-menu>
+      <gio-user-menu [hasAlert]="hasAlert" [userTaskCount]="userTaskCount"></gio-user-menu>
     </gio-top-bar-menu>
   </gio-top-bar>
 </div>

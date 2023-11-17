@@ -20,6 +20,7 @@ import { Transition, TransitionService } from '@uirouter/angularjs';
 import * as angular from 'angular';
 import { switchMap } from 'rxjs/operators';
 import { of } from 'rxjs';
+import { CommonModule } from '@angular/common';
 
 import { ApiAnalyticsModule } from './analytics/api-analytics.module';
 import { ApiListModule } from './list/api-list.module';
@@ -33,7 +34,7 @@ import { ApiEntrypointsV4Module } from './entrypoints-v4/api-entrypoints-v4.modu
 import { GioPolicyStudioRoutingModule } from './policy-studio/gio-policy-studio-routing.module';
 import { ApiAuditModule } from './audit/api-audit.module';
 import { ApiV1PoliciesComponent } from './design/policies/policies.component';
-import { states } from './apis.route';
+import { ApisRoutingModule, states } from './apis.route';
 import { ApiNotificationSettingsModule } from './notification-settings/api-notification-settings.module';
 import { ApiCreationV2Module } from './creation-v2/api-creation-v2.module';
 import { ApiCreationGetStartedModule } from './creation-get-started/api-creation-get-started.module';
@@ -79,6 +80,7 @@ graviteeManagementModule.run(apiPermissionHook);
 @NgModule({
   declarations: [ApiV1PoliciesComponent],
   imports: [
+    CommonModule,
     ApiAnalyticsModule,
     ApiListModule,
     ApiNavigationModule,
@@ -101,6 +103,7 @@ graviteeManagementModule.run(apiPermissionHook);
     GioEmptyModule,
 
     UIRouterModule.forChild({ states }),
+    ApisRoutingModule,
   ],
 })
 export class ApisModule {}

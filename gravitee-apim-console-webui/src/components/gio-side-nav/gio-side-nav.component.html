@@ -20,7 +20,7 @@
     <gio-menu-header>
       <gio-menu-selector
         tabIndex="1"
-        [selectedItemValue]="this.constants.org.currentEnv.id"
+        [selectedItemValue]="currentEnv.id"
         selectorTitle="Environment"
         [selectorItems]="environments"
         (selectChange)="this.changeCurrentEnv($event)"
@@ -28,12 +28,14 @@
     </gio-menu-header>
     <gio-menu-list>
       <ng-container *ngFor="let item of mainMenuItems">
-        <a [uiSref]="item.targetRoute">
+        <a [routerLink]="item.routerLink">
           <gio-menu-item
             tabIndex="1"
+            routerLinkActive
+            #rla="routerLinkActive"
             [title]="item.displayName"
             [icon]="item.icon"
-            [active]="isActive(item.baseRoute)"
+            [active]="rla.isActive"
             [gioLicense]="item?.licenseOptions"
             [iconRight]="item?.iconRight$ | async"
             >{{ item.displayName }}</gio-menu-item
@@ -44,10 +46,16 @@
 
     <gio-menu-footer *ngIf="footerMenuItems.length > 0">
       <ng-container *ngFor="let item of footerMenuItems">
-        <a [uiSref]="item.targetRoute">
-          <gio-menu-item tabIndex="1" [title]="item.displayName" [icon]="item.icon" [active]="isActive(item.baseRoute)">{{
-            item.displayName
-          }}</gio-menu-item></a
+        <a [routerLink]="item.routerLink">
+          <gio-menu-item
+            tabIndex="1"
+            routerLinkActive
+            #rla="routerLinkActive"
+            [title]="item.displayName"
+            [icon]="item.icon"
+            [active]="rla.isActive"
+            >{{ item.displayName }}</gio-menu-item
+          ></a
         ></ng-container
       >
     </gio-menu-footer>

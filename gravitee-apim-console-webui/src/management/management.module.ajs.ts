@@ -114,7 +114,7 @@ import DashboardFilterComponent from '../components/dashboard/dashboard-filter.c
 import DashboardFilterController from '../components/dashboard/dashboard-filter.controller';
 import DashboardTimeframeComponent from '../components/dashboard/dashboard-timeframe.component';
 import DashboardTimeframeController from '../components/dashboard/dashboard-timeframe.controller';
-import ContextualDocComponent from '../components/contextual/contextual-doc.component';
+import ContextualDocComponentAjs from '../components/contextual/contextual-doc.component.ajs';
 import ContextualDocController from '../components/contextual/contextual-doc.controller';
 // Logs
 import { ApiAnalyticsLogsComponentAjs } from './api/analytics/logs/analytics-logs.component.ajs';
@@ -171,9 +171,6 @@ import MetadataValidatorDirective from '../components/metadata/metadata.validato
 
 import RoleService from '../services/role.service';
 
-import applicationRouterConfig from './application/applications.route';
-import configurationRouterConfig from './configuration/configuration.route';
-import globalNotificationsRouterConfig from './configuration/notifications/global.notifications.settings.route';
 // User
 import UserService from '../services/user.service';
 import UserController from '../user/user.controller';
@@ -223,12 +220,8 @@ import IdentityProviderService from '../services/identityProvider.service';
 import StringService from '../services/string.service';
 import AuthenticationService from '../services/authentication.service';
 
-import config from './management.config';
-import routerConfig from '../index.route';
-import managementRouterConfig from './management.route';
 import interceptorConfig from './management.interceptor';
 import delegatorConfig from './management.delegator';
-import runBlock from './management.run';
 
 import { permission, uiPermission } from 'angular-permission';
 
@@ -323,7 +316,6 @@ import PortalThemeController from './configuration/portal-theme/portalTheme.cont
 import PortalThemeComponent from './configuration/portal-theme/portalTheme.component';
 import PortalThemeService from '../services/portalTheme.service';
 
-import authenticationConfig from '../authentication/authentication.config';
 import NewsletterSubscriptionController from '../user/newsletter/newsletter-subscription.controller';
 import CustomUserFieldsComponent from './configuration/custom-user-fields/custom-user-fields.component';
 import CustomUserFieldsController from './configuration/custom-user-fields/custom-user-fields.controller';
@@ -451,6 +443,7 @@ import { EnvironmentNotificationSettingsListComponent } from './configuration/no
 import { EnvironmentNotificationSettingsDetailsComponent } from './configuration/notifications/notification-settings/notification-settings-details/environment-notification-settings-details.component';
 import { EnvironmentMetadataComponent } from './configuration/metadata/environment-metadata.component';
 import { ApplicationMetadataComponent } from './application/details/metadata/application-metadata.component';
+import { Router } from '@angular/router';
 import { ApplicationGeneralComponent } from './application/details/general/general-ng/application-general.component';
 import { ApplicationGeneralMembersComponent } from './application/details/user-group-access/members/application-general-members.component';
 import { ApplicationGeneralGroupsComponent } from './application/details/user-group-access/groups/application-general-groups.component';
@@ -501,7 +494,7 @@ const includeSpinnerConfig = (cfpLoadingBarProvider) => {
   cfpLoadingBarProvider.includeSpinner = false;
 };
 includeSpinnerConfig.$inject = ['cfpLoadingBarProvider'];
-graviteeManagementModule.config(includeSpinnerConfig);
+// graviteeManagementModule.config(includeSpinnerConfig);
 
 const localStorageConfig = (localStorageServiceProvider) => {
   localStorageServiceProvider.setPrefix('gravitee');
@@ -509,15 +502,30 @@ const localStorageConfig = (localStorageServiceProvider) => {
 localStorageConfig.$inject = ['localStorageServiceProvider'];
 graviteeManagementModule.config(localStorageConfig);
 
-graviteeManagementModule.config(config);
-graviteeManagementModule.config(routerConfig);
-graviteeManagementModule.config(authenticationConfig);
-graviteeManagementModule.config(managementRouterConfig);
-graviteeManagementModule.config(applicationRouterConfig);
-graviteeManagementModule.config(configurationRouterConfig);
-graviteeManagementModule.config(globalNotificationsRouterConfig);
+// graviteeManagementModule.config(config);
+// graviteeManagementModule.config(routerConfig);
+// graviteeManagementModule.config(authenticationConfig);
+// graviteeManagementModule.config(managementRouterConfig);
+// graviteeManagementModule.config(applicationRouterConfig);
+// graviteeManagementModule.config(configurationRouterConfig);
+// graviteeManagementModule.config(globalNotificationsRouterConfig);
 graviteeManagementModule.config(interceptorConfig);
 graviteeManagementModule.config(delegatorConfig);
+
+// Hack to disable location provider. Now we only use angular
+const disableAjsLocationProvider = ($provide) => {
+  $provide.decorator('$browser', [
+    '$delegate',
+    ($delegate) => {
+      $delegate.onUrlChange = () => null;
+      $delegate.url = () => '';
+
+      return $delegate;
+    },
+  ]);
+};
+disableAjsLocationProvider.$inject = ['$provide'];
+graviteeManagementModule.config(disableAjsLocationProvider);
 
 const themeConfig = ($mdThemingProvider: angular.material.IThemingProvider) => {
   $mdThemingProvider.definePalette('gravitee', {
@@ -565,7 +573,7 @@ const themeConfig = ($mdThemingProvider: angular.material.IThemingProvider) => {
 };
 themeConfig.$inject = ['$mdThemingProvider'];
 graviteeManagementModule.config(themeConfig);
-graviteeManagementModule.run(runBlock);
+// graviteeManagementModule.run(runBlock);
 
 // New Navigation components
 graviteeManagementModule.directive('gioSideNav', downgradeComponent({ component: GioSideNavComponent }));
@@ -814,7 +822,7 @@ graviteeManagementModule.controller('SearchAndSelectController', SearchAndSelect
 
 graviteeManagementModule.component('gvAudit', AuditComponent);
 graviteeManagementModule.component('gvNewsletterReminder', NewsletterReminderComponent);
-graviteeManagementModule.component('gvContextualDoc', ContextualDocComponent);
+graviteeManagementModule.component('gvContextualDoc', ContextualDocComponentAjs);
 graviteeManagementModule.controller('ContextualDocController', ContextualDocController);
 
 // Healthcheck
@@ -924,7 +932,7 @@ graviteeManagementModule.controller('QuickTimeRangeController', QuickTimeRangeCo
 graviteeManagementModule.service('promotionService', PromotionService);
 
 graviteeManagementModule.factory('ngIfMatchEtagInterceptor', downgradeInjectable(IfMatchEtagInterceptor));
-
+graviteeManagementModule.factory('ngRouter', downgradeInjectable(Router));
 graviteeManagementModule.filter('humanDateFilter', () => {
   return function (input) {
     if (input) {

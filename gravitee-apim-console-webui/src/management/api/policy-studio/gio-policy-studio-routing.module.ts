@@ -19,7 +19,6 @@ import { makeChildProviders, Ng2StateDeclaration, UIRouterModule } from '@uirout
 import { MatTabsModule } from '@angular/material/tabs';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { GioSaveBarModule, GioConfirmDialogModule, GioIconsModule, GioLicenseModule } from '@gravitee/ui-particles-angular';
 
 import { PolicyStudioDebugComponent } from './debug/policy-studio-debug.component';
@@ -35,7 +34,6 @@ import { GioPermissionModule } from '../../../shared/components/gio-permission/g
 @NgModule({
   imports: [
     CommonModule,
-    BrowserAnimationsModule,
     ReactiveFormsModule,
     UIRouterModule.forChild(),
 

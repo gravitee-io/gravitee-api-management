@@ -20,6 +20,10 @@ import UserService from './services/user.service';
 
 function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlService) {
   $stateProvider
+    .state('catchAll', {
+      url: '*',
+      template: '',
+    })
     .state('root', {
       resolve: {
         graviteeUser: ['UserService', (UserService: UserService) => UserService.current()],
@@ -80,6 +84,9 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
         redirectUri: {
           type: 'string',
         },
+      },
+      data: {
+        useAngularMaterial: true,
       },
     })
     .state('registration', {

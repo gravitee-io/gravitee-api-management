@@ -19,7 +19,6 @@ import { MatIconModule } from '@angular/material/icon';
 import { GioIconsModule } from '@gravitee/ui-particles-angular';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatTabsModule } from '@angular/material/tabs';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { ApiRuntimeLogsMessageItemComponent } from './api-runtime-logs-message-item.component';
 import { ApiRuntimeLogsMessageItemContentComponent } from './api-runtime-logs-message-item-content.component';
@@ -27,6 +26,6 @@ import { ApiRuntimeLogsMessageItemContentComponent } from './api-runtime-logs-me
 @NgModule({
   declarations: [ApiRuntimeLogsMessageItemComponent, ApiRuntimeLogsMessageItemContentComponent],
   exports: [ApiRuntimeLogsMessageItemComponent],
-  imports: [CommonModule, BrowserAnimationsModule, MatIconModule, GioIconsModule, MatTabsModule, MatExpansionModule],
+  imports: [CommonModule, MatIconModule, GioIconsModule, MatTabsModule, MatExpansionModule],
 })
 export class ApiRuntimeLogsMessageItemModule {}

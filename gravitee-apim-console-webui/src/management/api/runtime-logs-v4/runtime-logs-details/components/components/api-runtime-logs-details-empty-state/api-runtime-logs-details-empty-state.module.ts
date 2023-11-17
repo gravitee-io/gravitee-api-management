@@ -17,7 +17,6 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { GioIconsModule } from '@gravitee/ui-particles-angular';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 
@@ -26,6 +25,6 @@ import { ApiRuntimeLogsDetailsEmptyStateComponent } from './api-runtime-logs-det
 @NgModule({
   declarations: [ApiRuntimeLogsDetailsEmptyStateComponent],
   exports: [ApiRuntimeLogsDetailsEmptyStateComponent],
-  imports: [CommonModule, BrowserAnimationsModule, MatIconModule, GioIconsModule, MatButtonModule, MatCardModule],
+  imports: [CommonModule, MatIconModule, GioIconsModule, MatButtonModule, MatCardModule],
 })
 export class ApiRuntimeLogsDetailsEmptyStateModule {}

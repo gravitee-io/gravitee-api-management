@@ -19,7 +19,6 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { MatTabHarness } from '@angular/material/tabs/testing';
@@ -115,14 +114,6 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
       expectApiGetRequest(api);
       expectConnectorRequest();
       expectTenantsRequest();
-    });
-
-    it('should go back to endpoints', async () => {
-      const routerSpy = jest.spyOn(fakeUiRouter, 'go');
-
-      await loader.getHarness(MatButtonHarness.with({ selector: '[mattooltip="Go back"]' })).then((button) => button.click());
-
-      expect(routerSpy).toHaveBeenCalledWith('management.apis.endpoints-v2', { apiId: API_ID }, undefined);
     });
 
     it('should warn the user on update error', async () => {

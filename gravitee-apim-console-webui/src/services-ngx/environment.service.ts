@@ -33,4 +33,8 @@ export class EnvironmentService {
   getCurrent(): Observable<Environment> {
     return this.http.get<Environment>(this.constants.env.baseURL);
   }
+
+  getPermissions(envId: string): Observable<Record<string, ('C' | 'R' | 'U' | 'D')[]>> {
+    return this.http.get<Record<string, ('C' | 'R' | 'U' | 'D')[]>>(`${this.constants.org.baseURL}/environments/${envId}/permissions`);
+  }
 }

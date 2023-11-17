@@ -13,82 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { IOnDestroy, IOnInit } from 'angular';
 import { marked } from 'marked';
 
-class ContextualDocController implements IOnInit, IOnDestroy {
-  public isOpen = true;
+class ContextualDocController {
+  public contextualDocumentationPage;
+  public onClose;
+
   public page: any = {};
-  private contextualDocVisibilityKey = 'gv-contextual-doc-visibility';
 
-  private openContextualDocumentationListener: () => void;
+  constructor(private $http, public $state) {}
 
-  constructor(private $transitions, private $http, public $state, private $window, private $rootScope, private $Constants) {
-    if ($Constants.isOEM) {
-      // For OEM, documentation is hidden
-      this.isOpen = false;
-      return;
+  $onChanges(changes) {
+    if (changes.contextualDocumentationPage) {
+      this.changeDocumentationPage(this.contextualDocumentationPage);
     }
-    if (window.pendo && window.pendo.isReady()) {
-      // Do nothing, Pendo provide documentation
-      this.isOpen = false;
-      return;
-    }
-
-    // init contextual page visibility
-    if ($window.localStorage.getItem(this.contextualDocVisibilityKey) !== null) {
-      this.isOpen = JSON.parse($window.localStorage.getItem(this.contextualDocVisibilityKey));
-      this.$rootScope.helpDisplayed = this.isOpen;
-    } else {
-      this.setDocumentationVisibility();
-    }
-
-    // init contextual page
-    this.changeDocumentationPage($state.current);
-
-    // watch for transition changes
-    $transitions.onFinish({}, (trans) => {
-      this.changeDocumentationPage(trans.to());
-    });
   }
 
-  $onInit(): void {
-    if (window.pendo && window.pendo.isReady()) {
-      // Do nothing, Pendo provide documentation
-      this.isOpen = false;
-      return;
-    }
-
-    // watch for open documentation events
-    this.openContextualDocumentationListener = this.$rootScope.$on('openContextualDocumentation', () => {
-      this.openDocumentation();
-      this.changeDocumentationPage(this.$state.current);
-    });
+  close() {
+    this.onClose();
   }
 
-  $onDestroy(): void {
-    this.openContextualDocumentationListener();
-  }
-
-  openDocumentation() {
-    this.isOpen = !this.isOpen;
-    this.setDocumentationVisibility();
-    this.$rootScope.$broadcast('onWidgetResize');
-  }
-
-  changeDocumentationPage(state) {
-    if (this.isOpen && state.data && state.data.docs) {
-      this.$http.get(`./docs/${state.data.docs.page}.md`).then((response: any) => {
+  changeDocumentationPage(page?: string) {
+    if (page) {
+      this.$http.get(`./docs/${page}.md`).then((response: any) => {
         this.page.content = marked.parse(response.data);
       });
     }
   }
-
-  private setDocumentationVisibility() {
-    this.$window.localStorage.setItem(this.contextualDocVisibilityKey, this.isOpen);
-    this.$rootScope.helpDisplayed = this.isOpen;
-  }
 }
-ContextualDocController.$inject = ['$transitions', '$http', '$state', '$window', '$rootScope', 'Constants'];
+ContextualDocController.$inject = ['$http', '$state'];
 
 export default ContextualDocController;

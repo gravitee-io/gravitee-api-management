@@ -18,22 +18,20 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { UIRouterModule } from '@uirouter/angular';
 import { LICENSE_CONFIGURATION_TESTING } from '@gravitee/ui-particles-angular';
+import { ActivatedRoute } from '@angular/router';
 
 import { ApiNavigationModule } from './api-navigation.module';
 import { ApiNavigationComponent } from './api-navigation.component';
 
-import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
-import { GioUiRouterTestingModule } from '../../../shared/testing/gio-uirouter-testing-module';
+import { CurrentUserService } from '../../../ajs-upgraded-providers';
 import { User as DeprecatedUser } from '../../../entities/user';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { fakeApiV1, fakeApiV4 } from '../../../entities/management-api-v2';
 
-describe('ApiNgNavigationComponent', () => {
+describe('ApiNavigationComponent', () => {
   const API_ID = 'apiId';
 
-  const fakeUiRouter = { go: jest.fn() };
   let fixture: ComponentFixture<ApiNavigationComponent>;
   let apiNgNavigationComponent: ApiNavigationComponent;
   let httpTestingController: HttpTestingController;
@@ -47,22 +45,16 @@ describe('ApiNgNavigationComponent', () => {
   describe('without quality score', () => {
     beforeEach(async () => {
       await TestBed.configureTestingModule({
-        imports: [
-          ApiNavigationModule,
-          MatIconTestingModule,
-          GioUiRouterTestingModule,
-          NoopAnimationsModule,
-          GioHttpTestingModule,
-          UIRouterModule.forRoot({
-            useHash: true,
-          }),
-        ],
+        imports: [ApiNavigationModule, MatIconTestingModule, NoopAnimationsModule, GioHttpTestingModule],
         providers: [
-          { provide: UIRouterState, useValue: fakeUiRouter },
           {
-            provide: UIRouterStateParams,
+            provide: ActivatedRoute,
             useValue: {
-              apiId: API_ID,
+              snapshot: {
+                params: {
+                  apiId: API_ID,
+                },
+              },
             },
           },
           { provide: CurrentUserService, useValue: { currentUser } },

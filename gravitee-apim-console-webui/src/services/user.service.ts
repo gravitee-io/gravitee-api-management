@@ -123,6 +123,8 @@ class UserService {
   }
 
   current(): ng.IPromise<User> {
+    // TODO: remove when all are migrated
+    return;
     if (!this.currentUser || !this.currentUser.authenticated) {
       const promises: ng.IPromise<IHttpResponse<unknown>>[] = [
         this.$http.get<UserDetails>(`${this.Constants.org.baseURL}/user/`, {

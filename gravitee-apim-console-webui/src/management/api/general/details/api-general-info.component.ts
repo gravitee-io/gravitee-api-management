@@ -16,10 +16,10 @@
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
-import { StateService } from '@uirouter/angular';
 import { combineLatest, EMPTY, of, Subject } from 'rxjs';
 import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { NewFile } from '@gravitee/ui-particles-angular';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import {
   ApiGeneralInfoDuplicateDialogComponent,
@@ -35,7 +35,6 @@ import {
   ApiPortalDetailsPromoteDialogData,
 } from './api-general-info-promote-dialog/api-general-info-promote-dialog.component';
 
-import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { Category } from '../../../../entities/category/Category';
 import { Constants } from '../../../../entities/Constants';
 import { CategoryService } from '../../../../services-ngx/category.service';
@@ -48,7 +47,6 @@ import {
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { Api, ApiV2, ApiV4, UpdateApi, UpdateApiV2, UpdateApiV4 } from '../../../../entities/management-api-v2';
-import { ApiService } from '../../../../services-ngx/api.service';
 
 @Component({
   selector: 'api-general-info',
@@ -91,9 +89,8 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
   public isKubernetesOrigin = false;
 
   constructor(
-    @Inject(UIRouterStateParams) private readonly ajsStateParams,
-    @Inject(UIRouterState) private readonly ajsState: StateService,
-    private readonly legacyApiService: ApiService,
+    private readonly router: Router,
+    private readonly activatedRoute: ActivatedRoute,
     private readonly apiService: ApiV2Service,
     private readonly policyService: PolicyService,
     private readonly categoryService: CategoryService,
@@ -108,7 +105,9 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
 
     this.isQualityEnabled = this.constants.env?.settings?.apiQualityMetrics?.enabled;
 
-    combineLatest([this.apiService.get(this.ajsStateParams.apiId), this.categoryService.list()])
+    this.apiId = this.activatedRoute.snapshot.params.apiId;
+
+    combineLatest([this.apiService.get(this.apiId), this.categoryService.list()])
       .pipe(
         switchMap(([api, categories]) =>
           combineLatest([isImgUrl(api._links['pictureUrl']), isImgUrl(api._links['backgroundUrl'])]).pipe(
@@ -134,7 +133,6 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
           this.isReadOnly =
             !this.permissionService.hasAnyMatching(['api-definition-u']) || this.isKubernetesOrigin || api.definitionVersion === 'V1';
 
-          this.apiId = api.id;
           this.api = api;
 
           this.apiCategories = categories;
@@ -231,7 +229,7 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
     const apiImagesFormValue = this.apiImagesForm.getRawValue();
 
     return this.apiService
-      .get(this.ajsStateParams.apiId)
+      .get(this.apiId)
       .pipe(
         map((api: Api) => {
           if (api.definitionVersion === 'V2') {
@@ -308,7 +306,7 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
           this.matDialog
             .open<GioApiImportDialogComponent, GioApiImportDialogData>(GioApiImportDialogComponent, {
               data: {
-                apiId: this.ajsStateParams.apiId,
+                apiId: this.apiId,
                 policies,
               },
               role: 'alertdialog',
@@ -339,8 +337,7 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
       .afterClosed()
       .pipe(
         filter((apiDuplicated) => !!apiDuplicated),
-        tap((apiDuplicated) => this.ajsState.go('management.apis.general', { apiId: apiDuplicated.id })),
-
+        switchMap((apiDuplicated) => this.router.navigate(['../', apiDuplicated.id], { relativeTo: this.activatedRoute })),
         takeUntil(this.unsubscribe$),
       )
       .subscribe();

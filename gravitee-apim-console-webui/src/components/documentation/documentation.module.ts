@@ -20,6 +20,8 @@ import { DocumentationNewPageComponent } from './new-page.component';
 import { DocumentationEditPageComponent } from './edit-page.component';
 import { DocumentationImportPagesComponent } from './import-pages.component';
 
+import { ajsDocumentationServiceProvider } from '../../services/documentation.service';
+
 @NgModule({
   declarations: [
     DocumentationManagementComponent,
@@ -33,5 +35,6 @@ import { DocumentationImportPagesComponent } from './import-pages.component';
     DocumentationEditPageComponent,
     DocumentationImportPagesComponent,
   ],
+  providers: [ajsDocumentationServiceProvider],
 })
 export class DocumentationModule {}

@@ -21,10 +21,9 @@ import * as angular from 'angular';
 import * as _ from 'lodash';
 import './index.scss';
 import './management/management.module.ajs';
-import { loadDefaultTranslations } from '@gravitee/ui-components/src/lib/i18n';
+import { enableProdMode } from '@angular/core';
 import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
-import { UIRouter, UrlService } from '@uirouter/core';
-import { NgZone } from '@angular/core';
+import { loadDefaultTranslations } from '@gravitee/ui-components/src/lib/i18n';
 import { computeStyles, LicenseConfiguration } from '@gravitee/ui-particles-angular';
 
 import { AppModule } from './app.module';
@@ -32,60 +31,63 @@ import { Constants } from './entities/Constants';
 import { getFeatureInfoData } from './shared/components/gio-license/gio-license-data';
 import { ConsoleCustomization } from './entities/management-api-v2/consoleCustomization';
 
+const configNoCache = { headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' } };
+
 // fix angular-schema-form angular<1.7
 Object.assign(angular, { lowercase: _.toLower, uppercase: _.toUpper });
 
-const initInjector: ng.auto.IInjectorService = angular.injector(['ng']);
-const $http: ng.IHttpService = initInjector.get('$http');
-const $q: ng.IQService = initInjector.get('$q');
-const configNoCache = { headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' } };
-let ConstantsJSON: any;
+initLoader()
+  .then(() => fetchData())
+  .then(({ constants, build }) => {
+    initComponents();
+    bootstrapApplication(constants);
 
-fetchData().then((constants: Constants) => {
-  return initLoader(constants)
-    .then(() => initComponents())
-    .then(() => bootstrapApplication(constants));
-});
+    angular.module('gravitee-management').constant('Build', build);
 
-function fetchData() {
-  return $q
-    .all([$http.get('build.json', configNoCache), $http.get('constants.json', configNoCache)])
-    .then((responses: any) => {
-      // Store build information
-      angular.module('gravitee-management').constant('Build', responses[0].data);
-      // Store build information
-      const constants = responses[1].data;
-      const baseURL = sanitizeBaseURLs(constants);
-      const enforcedOrganizationId = getEnforcedOrganizationId(constants);
-      let bootstrapUrl: string;
-      if (enforcedOrganizationId) {
-        bootstrapUrl = `${baseURL}/v2/ui/bootstrap?organizationId=${enforcedOrganizationId}`;
-      } else {
-        bootstrapUrl = `${baseURL}/v2/ui/bootstrap`;
-      }
-      return $http.get(`${bootstrapUrl}`);
+    angular.module('gravitee-management').constant('Constants', constants);
+  });
+
+function fetchData(): Promise<{ constants: Constants; build: any }> {
+  return Promise.all([
+    fetch('build.json', configNoCache).then((r) => r.json()),
+    fetch('constants.json', configNoCache).then((r) => r.json()),
+  ])
+    .then(([buildResponse, constantsResponse]) => {
+      const baseURL = sanitizeBaseURLs(constantsResponse);
+      const enforcedOrganizationId = getEnforcedOrganizationId(constantsResponse);
+      return fetch(
+        enforcedOrganizationId ? `${baseURL}/v2/ui/bootstrap?organizationId=${enforcedOrganizationId}` : `${baseURL}/v2/ui/bootstrap`,
+      )
+        .then((r) => r.json())
+        .then((bootstrapResponse: { baseURL: string; organizationId: string }) => ({
+          bootstrapResponse,
+          build: buildResponse,
+          production: constantsResponse.production,
+        }));
     })
-    .then((bootstrapResponse: any) => {
-      ConstantsJSON = prepareConstants(bootstrapResponse.data);
-      return $q.all([$http.get(`${ConstantsJSON.org.baseURL}/console`), $http.get(`${ConstantsJSON.v2BaseURL}/ui/customization`)]);
-    })
-    .then((responses: any) => {
-      const consoleResponse = responses[0];
-      const uiCustomization = responses[1];
+    .then(({ bootstrapResponse, build, production }) => {
+      const constants = prepareConstants(bootstrapResponse);
 
-      const constants = _.assign(ConstantsJSON);
-      constants.org.settings = consoleResponse.data;
+      constants.production = production ?? true;
 
-      if (uiCustomization?.data) {
-        customizeUI(uiCustomization.data);
-        constants.isOEM = true;
-        constants.customization = uiCustomization.data;
-        constants.org.settings.management.title = uiCustomization.data.title;
-      }
+      return Promise.all([
+        fetch(`${constants.org.baseURL}/console`).then((r) => r.json()),
+        fetch(`${constants.v2BaseURL}/ui/customization`).then((r) => (r.status === 200 ? r.json() : null)),
+        fetch(`${constants.org.baseURL}/social-identities`).then((r) => r.json()),
+      ]).then(([consoleResponse, uiCustomizationResponse, identityProvidersResponse]) => {
+        if (uiCustomizationResponse) {
+          customizeUI(uiCustomizationResponse);
+          constants.isOEM = true;
+          constants.customization = uiCustomizationResponse;
+          if (uiCustomizationResponse.data.title) {
+            constants.org.settings.management.title = uiCustomizationResponse.data.title;
+          }
+        }
 
-      angular.module('gravitee-management').constant('Constants', constants);
-
-      return constants;
+        constants.org.settings = consoleResponse;
+        constants.org.identityProviders = identityProvidersResponse;
+        return { constants, build };
+      });
     })
     .catch((error) => {
       document.getElementById('gravitee-error').innerText = 'Management API unreachable or error occurs, please check logs';
@@ -93,7 +95,7 @@ function fetchData() {
     });
 }
 
-function sanitizeBaseURLs(constants: any): any {
+function sanitizeBaseURLs(constants): string {
   let baseURL = constants.baseURL;
   if (constants.baseURL.endsWith('/')) {
     baseURL = constants.baseURL.slice(0, -1);
@@ -105,8 +107,31 @@ function sanitizeBaseURLs(constants: any): any {
   return baseURL;
 }
 
-function getEnforcedOrganizationId(constants: any): string | undefined {
-  let organizationId;
+function prepareConstants(bootstrap: { baseURL: string; organizationId: string }): Constants {
+  if (bootstrap.baseURL.endsWith('/')) {
+    bootstrap.baseURL = bootstrap.baseURL.slice(0, -1);
+  }
+
+  return {
+    baseURL: bootstrap.baseURL,
+    v2BaseURL: `${bootstrap.baseURL}/v2`,
+    org: {
+      baseURL: `${bootstrap.baseURL}/organizations/${bootstrap.organizationId}`,
+      v2BaseURL: `${bootstrap.baseURL}/v2/organizations/${bootstrap.organizationId}`,
+      currentEnv: null,
+      settings: null,
+      environments: null,
+    },
+    env: {
+      baseURL: `${bootstrap.baseURL}/organizations/${bootstrap.organizationId}/environments/{:envId}`,
+      v2BaseURL: `${bootstrap.baseURL}/v2/environments/{:envId}`,
+    },
+    isOEM: false,
+  };
+}
+
+function getEnforcedOrganizationId(constants: { baseURL: string; organizationId?: string }): string | undefined {
+  let organizationId: string;
   if (constants.organizationId) {
     organizationId = constants.organizationId;
   } else {
@@ -123,55 +148,20 @@ function getEnforcedOrganizationId(constants: any): string | undefined {
   return organizationId;
 }
 
-function prepareConstants(bootstrap: any): any {
-  const constants: any = {};
-  if (bootstrap.baseURL.endsWith('/')) {
-    bootstrap.baseURL = bootstrap.baseURL.slice(0, -1);
-  }
-  // Setup base url
-  constants.baseURL = bootstrap.baseURL;
-  constants.v2BaseURL = `${constants.baseURL}/v2`;
-
-  // Setup organization
-  constants.org = {};
-  const organizationId = bootstrap.organizationId;
-  constants.org.baseURL = `${constants.baseURL}/organizations/${organizationId}`;
-  constants.org.v2BaseURL = `${constants.v2BaseURL}/organizations/${organizationId}`;
-
-  // Setup environment
-  constants.env = {};
-  // we use a placeholder here ({:envId}) that will be replaced in management.interceptor
-  constants.env.baseURL = `${constants.org.baseURL}/environments/{:envId}`;
-  constants.env.v2BaseURL = `${constants.org.v2BaseURL}/environments/{:envId}`;
-
-  // Setup customization
-  constants.customization = {};
-  constants.customization.customEnterpriseName = 'Gravitee Enterprise';
-  constants.isOEM = false;
-  return constants;
-}
-
-function initLoader(constants: Constants) {
-  let loader: HTMLImageElement | HTMLSpanElement;
-  if (constants.isOEM) {
-    loader = document.createElement('span');
-    loader.classList.add('gravitee-default-loader');
-    loader.style.border = `10px solid ${constants?.customization?.theme?.menuBackground ?? 'dimgrey'}`;
-    loader.style.animation = 'rotation 1s linear infinite';
-    loader.style.borderBottomColor = 'transparent';
-  } else {
-    loader = document.createElement('img');
-    loader.classList.add('gravitee-splash-screen');
-    loader.setAttribute('src', 'assets/gravitee_logo_anim.gif');
-  }
+function initLoader() {
+  const loader = document.createElement('span');
+  loader.classList.add('gravitee-default-loader');
+  loader.style.border = `10px solid dimgrey`;
+  loader.style.animation = 'rotation 1s linear infinite';
+  loader.style.borderBottomColor = 'transparent';
 
   document.getElementById('loader').appendChild(loader);
 
-  return $q.resolve(constants);
+  return Promise.resolve();
 }
 
 function initComponents() {
-  return loadDefaultTranslations();
+  loadDefaultTranslations();
 }
 
 function customizeUI(uiCustomization: ConsoleCustomization) {
@@ -188,9 +178,6 @@ function customizeUI(uiCustomization: ConsoleCustomization) {
 }
 
 function bootstrapApplication(constants: Constants) {
-  const urlDeferInterceptorConfig = ($urlServiceProvider: UrlService) => $urlServiceProvider.deferIntercept();
-  urlDeferInterceptorConfig.$inject = ['$urlServiceProvider'];
-  angular.module('gravitee-management').config(urlDeferInterceptorConfig);
   const resourceURL = `${constants.v2BaseURL}/license`;
   const featureInfoData = getFeatureInfoData(constants.customization?.ctaConfiguration);
   const trialURLConfiguration = {
@@ -202,23 +189,18 @@ function bootstrapApplication(constants: Constants) {
     featureInfoData,
     ...trialURLConfiguration,
   };
+
+  if (constants.production) {
+    enableProdMode();
+  }
+
   platformBrowserDynamic([
     { provide: 'Constants', useValue: constants },
     { provide: 'LicenseConfiguration', useValue: licenseConfiguration },
   ])
     .bootstrapModule(AppModule)
-    .then((platformRef) => {
-      // Intialize the Angular Module
-      // get() the UIRouter instance from DI to initialize the router
-      const urlService: UrlService = platformRef.injector.get(UIRouter).urlService;
-
-      // Instruct UIRouter to listen to URL changes
-      setTimeout(() => {
-        function startUIRouter() {
-          urlService.listen();
-          urlService.sync();
-        }
-        platformRef.injector.get<NgZone>(NgZone).run(startUIRouter);
-      }, 1000);
+    .catch((err) => {
+      // eslint-disable-next-line
+      console.error(err);
     });
 }

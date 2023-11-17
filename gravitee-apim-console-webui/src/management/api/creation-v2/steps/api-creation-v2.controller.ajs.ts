@@ -16,6 +16,7 @@
 import { StateService } from '@uirouter/core';
 import { IPromise } from 'angular';
 import * as _ from 'lodash';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { ApiService } from '../../../../services/api.service';
 import NotificationService from '../../../../services/notification.service';
@@ -51,6 +52,7 @@ class ApiCreationV2ControllerAjs {
   selectedTenants: any[];
   attachableGroups: any[];
   poGroups: any[];
+  activatedRoute: ActivatedRoute;
 
   private vm: {
     selectedStep: number;
@@ -101,6 +103,7 @@ class ApiCreationV2ControllerAjs {
     private Constants: any,
     private $rootScope,
     private readonly ngIfMatchEtagInterceptor: IfMatchEtagInterceptor,
+    private readonly ngRouter: Router,
   ) {
     this.api = {
       gravitee: ['2.0.0', '1.0.0'].includes($stateParams.definitionVersion) ? $stateParams.definitionVersion : '2.0.0',
@@ -206,7 +209,7 @@ class ApiCreationV2ControllerAjs {
     if (this.vm.selectedStep > 0) {
       this.vm.selectedStep = this.vm.selectedStep - 1;
     } else {
-      this.$state.go('management.apis-new');
+      this.ngRouter.navigate(['..'], { relativeTo: this.activatedRoute });
     }
   }
 
@@ -278,13 +281,14 @@ class ApiCreationV2ControllerAjs {
             this.ngIfMatchEtagInterceptor.updateLastEtag('api', response.headers('etag'));
             this.ApiService.start(api.data).then(() => {
               this.NotificationService.show('API created, deployed and started');
-              this.$state.go('management.apis.general', { apiId: api.data.id });
+              this.ngRouter.navigate(['../..', api.data.id], { relativeTo: this.activatedRoute });
             });
           });
         } else {
           this.NotificationService.show('API created');
-          this.$state.go('management.apis.general', { apiId: api.data.id });
+          this.ngRouter.navigate(['../..', api.data.id], { relativeTo: this.activatedRoute });
         }
+
         return api;
       })
       .then((api) => this.ngApiV2Service.get(api.data.id).toPromise())
@@ -542,6 +546,7 @@ ApiCreationV2ControllerAjs.$inject = [
   'Constants',
   '$rootScope',
   'ngIfMatchEtagInterceptor',
+  'ngRouter',
 ];
 
 export default ApiCreationV2ControllerAjs;

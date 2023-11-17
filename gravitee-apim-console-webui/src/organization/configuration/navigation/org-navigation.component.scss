@@ -1,16 +1,24 @@
 @use 'sass:map';
 
 .org-navigation {
-  display: flex;
-  flex-direction: row;
+  display: grid;
+  grid-template-columns: min-content auto;
+  grid-template-areas: 'menu content';
+
+  //display: flex;
+  //flex-direction: row;
   height: 100vh;
 
   a {
     text-decoration: none;
   }
+  &__nav {
+    grid-area: menu;
+  }
   &__content {
+    grid-area: content;
     overflow: auto;
-    min-height: 100vh;
-    width: 100%;
+    //min-height: 100vh;
+    //width: 100%;
   }
 }

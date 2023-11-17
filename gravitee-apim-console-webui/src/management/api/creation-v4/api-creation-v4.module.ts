@@ -37,6 +37,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatOptionModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
+import { RouterModule } from '@angular/router';
 
 import { ApiCreationV4Component } from './api-creation-v4.component';
 import { Step1ApiDetailsComponent } from './steps/step-1-api-details/step-1-api-details.component';
@@ -102,6 +103,7 @@ import { GioLicenseBannerModule } from '../../../shared/components/gio-license-b
     MatOptionModule,
     MatSelectModule,
     GioLicenseBannerModule,
+    RouterModule,
   ],
   declarations: [
     ApiCreationV4Component,

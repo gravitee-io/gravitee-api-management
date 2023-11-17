@@ -19,7 +19,7 @@ import { isEmpty } from 'lodash';
 import { GioChartPieInput } from '../../../../shared/components/gio-chart-pie/gio-chart-pie.component';
 
 export type ApiStateData = {
-  values: { [key: string]: number };
+  values?: { [key: string]: number };
 };
 
 const STATE_DISPLAYABLE = {
@@ -51,7 +51,7 @@ export class GioApiStateComponent implements OnChanges {
   }
 
   private buildDataSource() {
-    this.chartPieInput = Object.entries(this.data.values)
+    this.chartPieInput = Object.entries(this.data?.values ?? {})
       .map(([key, value]) => {
         const status = STATE_DISPLAYABLE[key];
         if (!status) {

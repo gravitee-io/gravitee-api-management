@@ -19,26 +19,32 @@ import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 @Injectable()
 export class CsrfInterceptor implements HttpInterceptor {
-  private readonly xsrfTokenHeaderName = 'X-Xsrf-Token';
-  public static xsrfToken?: string;
+  static get xsrfToken(): string {
+    return localStorage.getItem('XSRF-TOKEN');
+  }
+
+  static set xsrfToken(value: string) {
+    localStorage.setItem('XSRF-TOKEN', value);
+  }
+  public static readonly xsrfTokenHeaderName = 'X-Xsrf-Token';
 
   intercept(req: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
     const reqWithToken = CsrfInterceptor.xsrfToken
       ? req.clone({
-          headers: req.headers.set(this.xsrfTokenHeaderName, CsrfInterceptor.xsrfToken),
+          headers: req.headers.set(CsrfInterceptor.xsrfTokenHeaderName, CsrfInterceptor.xsrfToken),
         })
       : req;
 
     return next.handle(reqWithToken).pipe(
       tap(
         (event) => {
-          if (event instanceof HttpResponse && event.headers?.has(this.xsrfTokenHeaderName)) {
-            CsrfInterceptor.xsrfToken = event.headers.get(this.xsrfTokenHeaderName);
+          if (event instanceof HttpResponse && event.headers?.has(CsrfInterceptor.xsrfTokenHeaderName)) {
+            CsrfInterceptor.xsrfToken = event.headers.get(CsrfInterceptor.xsrfTokenHeaderName);
           }
         },
         (error) => {
-          if (error.headers?.has(this.xsrfTokenHeaderName)) {
-            CsrfInterceptor.xsrfToken = error.headers.get(this.xsrfTokenHeaderName);
+          if (error.headers?.has(CsrfInterceptor.xsrfTokenHeaderName)) {
+            CsrfInterceptor.xsrfToken = error.headers.get(CsrfInterceptor.xsrfTokenHeaderName);
           }
         },
       ),

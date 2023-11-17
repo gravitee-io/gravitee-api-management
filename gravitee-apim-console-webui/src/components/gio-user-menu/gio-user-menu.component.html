@@ -15,42 +15,44 @@
     limitations under the License.
 
 -->
-<button mat-icon-button [matMenuTriggerFor]="menu" class="gio-user-menu__button-avatar" data-testid="top-nav-user-menu-button">
-  <gio-avatar [roundedBorder]="true" [src]="userPicture" [name]="currentUser.displayName" size="36"></gio-avatar>
-</button>
-<span *ngIf="hasAlert" class="gio-user-menu__alert-badge gio-badge-accent"></span>
-<mat-menu #menu="matMenu" class="gio-user-menu">
-  <div mat-menu-item class="gio-user-menu__header">
-    <gio-avatar
-      [roundedBorder]="true"
-      [src]="userPicture"
-      [name]="currentUser.displayName"
-      size="36"
-      class="mat-icon gio-user-menu__header__user-avatar"
-    ></gio-avatar>
-    <span class="gio-user-menu__header__user-info">
-      <h5>{{ userShortName }}</h5>
-      <small>{{ currentUser.email }}</small>
-    </span>
-  </div>
-  <mat-divider></mat-divider>
-  <button mat-menu-item (click)="goToMyAccount()">
-    <mat-icon svgIcon="gio:user"></mat-icon>
-    <span>My account</span>
+<ng-container *ngIf="currentUser">
+  <button mat-icon-button [matMenuTriggerFor]="menu" class="gio-user-menu__button-avatar" data-testid="top-nav-user-menu-button">
+    <gio-avatar [roundedBorder]="true" [src]="userPicture" [name]="currentUser.displayName" size="36"></gio-avatar>
   </button>
-  <button mat-menu-item (click)="goToTask()" data-testid="user-menu-task-button">
-    <mat-icon svgIcon="gio:check-circled-outline"></mat-icon>
-    <span
-      >Task <span *ngIf="hasAlert" class="gio-badge-accent">{{ userTaskCount }}</span>
-    </span>
-  </button>
-  <button *ngIf="supportEnabled" mat-menu-item (click)="goToSupport()">
-    <mat-icon svgIcon="gio:megaphone"></mat-icon>
-    <span>Support</span>
-  </button>
-  <mat-divider></mat-divider>
-  <button mat-menu-item (click)="signOut()">
-    <mat-icon svgIcon="gio:logout"></mat-icon>
-    <span>Sign out</span>
-  </button>
-</mat-menu>
+  <span *ngIf="hasAlert" class="gio-user-menu__alert-badge gio-badge-accent"></span>
+  <mat-menu #menu="matMenu" class="gio-user-menu">
+    <div mat-menu-item class="gio-user-menu__header">
+      <gio-avatar
+        [roundedBorder]="true"
+        [src]="userPicture"
+        [name]="currentUser.displayName"
+        size="36"
+        class="mat-icon gio-user-menu__header__user-avatar"
+      ></gio-avatar>
+      <span class="gio-user-menu__header__user-info">
+        <h5>{{ userShortName }}</h5>
+        <small>{{ currentUser.email }}</small>
+      </span>
+    </div>
+    <mat-divider></mat-divider>
+    <button mat-menu-item (click)="goToMyAccount()">
+      <mat-icon svgIcon="gio:user"></mat-icon>
+      <span>My account</span>
+    </button>
+    <button mat-menu-item (click)="goToTask()" data-testid="user-menu-task-button">
+      <mat-icon svgIcon="gio:check-circled-outline"></mat-icon>
+      <span
+        >Task <span *ngIf="hasAlert" class="gio-badge-accent">{{ userTaskCount }}</span>
+      </span>
+    </button>
+    <button *ngIf="supportEnabled" mat-menu-item (click)="goToSupport()">
+      <mat-icon svgIcon="gio:megaphone"></mat-icon>
+      <span>Support</span>
+    </button>
+    <mat-divider></mat-divider>
+    <button mat-menu-item (click)="signOut()">
+      <mat-icon svgIcon="gio:logout"></mat-icon>
+      <span>Sign out</span>
+    </button>
+  </mat-menu>
+</ng-container>

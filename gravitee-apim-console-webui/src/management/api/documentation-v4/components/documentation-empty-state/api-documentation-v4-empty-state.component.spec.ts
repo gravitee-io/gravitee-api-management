@@ -38,7 +38,7 @@ describe('ApiDocumentationV4EmptyStateComponent', () => {
   const init = async () => {
     await TestBed.configureTestingModule({
       declarations: [ApiDocumentationV4EmptyStateComponent],
-      imports: [NoopAnimationsModule, ApiDocumentationV4Module, GioHttpTestingModule],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiDocumentationV4Module, GioHttpTestingModule],
       providers: [{ provide: CurrentUserService, useValue: { currentUser } }],
     })
       .overrideProvider(InteractivityChecker, {

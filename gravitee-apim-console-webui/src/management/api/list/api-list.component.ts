@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { StateService } from '@uirouter/core';
 import { catchError, debounceTime, distinctUntilChanged, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { BehaviorSubject, Observable, of, Subject } from 'rxjs';
 import { isEqual } from 'lodash';
+import { ActivatedRoute, Router } from '@angular/router';
 
-import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { toOrder, toSort } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
 import { ApiService } from '../../../services-ngx/api.service';
@@ -83,8 +82,8 @@ export class ApiListComponent implements OnInit, OnDestroy {
   };
 
   constructor(
-    @Inject(UIRouterStateParams) private ajsStateParams,
-    @Inject(UIRouterState) private readonly ajsState: StateService,
+    private readonly activatedRoute: ActivatedRoute,
+    private readonly router: Router,
     @Inject('Constants') private readonly constants: Constants,
     private readonly apiService: ApiService,
     private readonly apiServiceV2: ApiV2Service,
@@ -108,11 +107,11 @@ export class ApiListComponent implements OnInit, OnDestroy {
         distinctUntilChanged(isEqual),
         tap(({ pagination, searchTerm, status, sort }) => {
           // Change url params
-          this.ajsState.go(
-            '.',
-            { q: searchTerm, page: pagination.index, size: pagination.size, status, order: toOrder(sort) },
-            { notify: false },
-          );
+          this.router.navigate([], {
+            relativeTo: this.activatedRoute,
+            queryParams: { q: searchTerm, page: pagination.index, size: pagination.size, status, order: toOrder(sort) },
+            queryParamsHandling: 'merge',
+          });
         }),
         switchMap(({ pagination, searchTerm, sort }) =>
           this.apiServiceV2
@@ -134,19 +133,15 @@ export class ApiListComponent implements OnInit, OnDestroy {
     this.filters$.next(this.filters);
   }
 
-  onEditActionClicked(api: ApisTableDS[number]) {
-    this.ajsState.go(api.targetRoute, { apiId: api.id });
-  }
-
-  onAddApiClick() {
-    this.ajsState.go('management.apis-new');
-  }
-
   private initFilters() {
-    const initialSearchValue = this.ajsStateParams.q ?? this.filters.searchTerm;
-    const initialPageNumber = this.ajsStateParams.page ? Number(this.ajsStateParams.page) : this.filters.pagination.index;
-    const initialPageSize = this.ajsStateParams.size ? Number(this.ajsStateParams.size) : this.filters.pagination.size;
-    const initialSort = toSort(this.ajsStateParams.order, this.filters.sort);
+    const initialSearchValue = this.activatedRoute.snapshot.queryParams.q ?? this.filters.searchTerm;
+    const initialPageNumber = this.activatedRoute.snapshot.queryParams.page
+      ? Number(this.activatedRoute.snapshot.queryParams.page)
+      : this.filters.pagination.index;
+    const initialPageSize = this.activatedRoute.snapshot.queryParams.size
+      ? Number(this.activatedRoute.snapshot.queryParams.size)
+      : this.filters.pagination.size;
+    const initialSort = toSort(this.activatedRoute.snapshot.queryParams.order, this.filters.sort);
     this.filters = {
       searchTerm: initialSearchValue,
       sort: initialSort,

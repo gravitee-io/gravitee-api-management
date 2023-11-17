@@ -18,7 +18,7 @@
 <div class="title">
   <h1>APIs</h1>
   <button
-    (click)="onAddApiClick()"
+    [routerLink]="'./new'"
     mat-raised-button
     color="primary"
     aria-label="add-api"
@@ -49,7 +49,7 @@
     <ng-container matColumnDef="name">
       <th mat-header-cell *matHeaderCellDef mat-sort-header id="name">Name</th>
       <td mat-cell *matCellDef="let element" title="{{ element.name }} ({{ element.version }})">
-        <a [uiSref]="element.targetRoute" [uiParams]="{ apiId: element.id }">{{ element.name }} ({{ element.version }})</a>
+        <a [routerLink]="'./' + element.id">{{ element.name }} ({{ element.version }})</a>
       </td>
     </ng-container>
 
@@ -178,7 +178,7 @@
         <div class="actions__edit">
           <button
             *ngIf="!element.readonly"
-            (click)="onEditActionClicked(element)"
+            [routerLink]="'./' + element.id"
             mat-icon-button
             aria-label="Button to edit an API"
             matTooltip="Edit API"
@@ -187,7 +187,7 @@
           </button>
           <button
             *ngIf="element.readonly"
-            (click)="onEditActionClicked(element)"
+            [routerLink]="'./' + element.id"
             mat-icon-button
             aria-label="Button to view API details"
             matTooltip="View API details"

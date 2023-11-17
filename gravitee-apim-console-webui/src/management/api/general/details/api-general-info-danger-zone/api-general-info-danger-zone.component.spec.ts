@@ -25,20 +25,18 @@ import { GioConfirmAndValidateDialogHarness, GioLicenseService, LICENSE_CONFIGUR
 import { HarnessLoader } from '@angular/cdk/testing';
 import { SimpleChange } from '@angular/core';
 import { of } from 'rxjs';
+import { Router } from '@angular/router';
 
 import { ApiGeneralInfoDangerZoneComponent } from './api-general-info-danger-zone.component';
 
 import { ApiGeneralInfoModule } from '../api-general-info.module';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
-import { CurrentUserService, UIRouterState } from '../../../../../ajs-upgraded-providers';
+import { CurrentUserService } from '../../../../../ajs-upgraded-providers';
 import { User } from '../../../../../entities/user';
 import { Api, fakeApiV2, fakeApiV4 } from '../../../../../entities/management-api-v2';
 
 describe('ApiGeneralInfoDangerZoneComponent', () => {
   const API_ID = 'apiId';
-  const fakeAjsState = {
-    go: jest.fn(),
-  };
   const currentUser = new User();
   currentUser.userPermissions = ['api-definition-u', 'api-definition-d'];
 
@@ -46,13 +44,13 @@ describe('ApiGeneralInfoDangerZoneComponent', () => {
   let loader: HarnessLoader;
   let rootLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
+  let routerNavigateSpy: jest.SpyInstance;
   let component: ApiGeneralInfoDangerZoneComponent;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiGeneralInfoModule, MatIconTestingModule],
       providers: [
-        { provide: UIRouterState, useValue: fakeAjsState },
         { provide: CurrentUserService, useValue: { currentUser } },
         {
           provide: 'LicenseConfiguration',
@@ -100,6 +98,8 @@ describe('ApiGeneralInfoDangerZoneComponent', () => {
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
 
     httpTestingController = TestBed.inject(HttpTestingController);
+    const router = TestBed.inject(Router);
+    routerNavigateSpy = jest.spyOn(router, 'navigate');
     component = fixture.componentInstance;
     component.api = api;
     fixture.detectChanges();
@@ -272,7 +272,7 @@ describe('ApiGeneralInfoDangerZoneComponent', () => {
     await confirmDialog.confirm();
 
     httpTestingController.expectOne({ method: 'DELETE', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` }).flush({});
-    expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis-list');
+    expect(routerNavigateSpy).toHaveBeenCalledWith(['..'], expect.anything());
 
     expect(component.reloadDetails.emit).not.toHaveBeenCalled();
   });

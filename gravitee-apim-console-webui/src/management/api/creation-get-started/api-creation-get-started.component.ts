@@ -15,12 +15,11 @@
  */
 
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { StateService } from '@uirouter/core';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { EMPTY, of, Subject } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
+import { ActivatedRoute, Router } from '@angular/router';
 
-import { UIRouterState } from '../../../ajs-upgraded-providers';
 import { CockpitService, UtmCampaign } from '../../../services-ngx/cockpit.service';
 import { Constants } from '../../../entities/Constants';
 import { InstallationService } from '../../../services-ngx/installation.service';
@@ -48,8 +47,9 @@ export class ApiCreationGetStartedComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();
 
   constructor(
-    @Inject(UIRouterState) private readonly ajsState: StateService,
     @Inject('Constants') private readonly constants: Constants,
+    private readonly router: Router,
+    private readonly activatedRoute: ActivatedRoute,
     private readonly cockpitService: CockpitService,
     private readonly installationService: InstallationService,
     private readonly permissionService: GioPermissionService,
@@ -77,14 +77,6 @@ export class ApiCreationGetStartedComponent implements OnInit, OnDestroy {
     this.unsubscribe$.unsubscribe();
   }
 
-  goToApiV2CreationWizard() {
-    this.ajsState.go('management.apis-new-v2');
-  }
-
-  goToApiv4CreationWizard() {
-    this.ajsState.go('management.apis-new-v4');
-  }
-
   goToApiImport() {
     this.policyService
       .listSwaggerPolicies()
@@ -101,7 +93,7 @@ export class ApiCreationGetStartedComponent implements OnInit, OnDestroy {
             .afterClosed(),
         ),
         filter((apiId) => !!apiId),
-        tap((apiId) => this.ajsState.go('management.apis.general', { apiId })),
+        tap((apiId) => this.router.navigate(['..', apiId], { relativeTo: this.activatedRoute })),
         catchError((err) => {
           this.snackBarService.error(err.error?.message ?? 'An error occurred while importing the API.');
           return EMPTY;

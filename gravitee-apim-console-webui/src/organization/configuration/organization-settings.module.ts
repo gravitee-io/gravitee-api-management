@@ -56,6 +56,7 @@ import {
 import { MatTabsModule } from '@angular/material/tabs';
 import { Ng2StateDeclaration, UIRouterModule } from '@uirouter/angular';
 import { UIRouter } from '@uirouter/core';
+import { RouterModule, Routes } from '@angular/router';
 
 import { OrgSettingsGeneralComponent } from './console/org-settings-general.component';
 import { OrgSettingsUsersComponent } from './users/org-settings-users.component';
@@ -389,6 +390,78 @@ const states: Ng2StateDeclaration[] = [
   },
 ];
 
+const organizationRoutes: Routes = [
+  {
+    path: '',
+    component: OrgNavigationComponent,
+    // TODO add canActivate for org permissions
+    children: [
+      {
+        path: 'settings',
+        component: OrgSettingsGeneralComponent,
+        data: {
+          useAngularMaterial: true,
+          menu: null,
+          docs: {
+            page: 'organization-configuration-console',
+          },
+          perms: {
+            only: ['organization-settings-r'],
+          },
+        },
+      },
+      {
+        path: 'identities/new',
+        component: OrgSettingsIdentityProviderComponent,
+        data: {
+          useAngularMaterial: true,
+          menu: null,
+          docs: {
+            page: 'organization-configuration-identityproviders',
+          },
+          perms: {
+            only: ['organization-identity_provider-c'],
+          },
+        },
+      },
+      {
+        path: 'identities/:id',
+        component: OrgSettingsIdentityProviderComponent,
+        data: {
+          useAngularMaterial: true,
+          menu: null,
+          docs: {
+            page: 'organization-configuration-identityproviders',
+          },
+          perms: {
+            only: ['organization-identity_provider-r', 'organization-identity_provider-u', 'organization-identity_provider-d'],
+          },
+        },
+      },
+      {
+        path: 'identities',
+        component: OrgSettingsIdentityProvidersComponent,
+        data: {
+          useAngularMaterial: true,
+          menu: null,
+          docs: {
+            page: 'organization-configuration-identityproviders',
+          },
+          perms: {
+            only: ['organization-identity_provider-r'],
+          },
+        },
+      },
+
+      {
+        path: '',
+        pathMatch: 'full',
+        redirectTo: 'settings',
+      },
+    ],
+  },
+];
+
 export function configureModule(uiRouter: UIRouter) {
   const transitionService = uiRouter.transitionService;
   licenseGuard(transitionService);
@@ -446,7 +519,12 @@ export function configureModule(uiRouter: UIRouter) {
     GioMenuModule,
     GioSubmenuModule,
 
-    UIRouterModule.forChild({ states, config: configureModule }),
+    UIRouterModule.forChild({
+      states,
+      // TODO migrate to angular
+      // config: configureModule
+    }),
+    RouterModule.forChild(organizationRoutes),
   ],
   declarations: [
     OrgNavigationComponent,
@@ -478,6 +556,5 @@ export function configureModule(uiRouter: UIRouter) {
     OrgSettingsUserDetailAddGroupDialogComponent,
     OrgSettingsAuditComponent,
   ],
-  exports: [OrgSettingsGeneralComponent, OrgSettingsUsersComponent],
 })
 export class OrganizationSettingsModule {}

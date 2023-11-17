@@ -15,37 +15,63 @@
  */
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { GioConfirmDialogModule } from '@gravitee/ui-particles-angular';
+import { RouterModule, Routes } from '@angular/router';
 
 import { EnvAuditModule } from './audit/env-audit.module';
 import { EnvironmentApplicationModule } from './application/environment-application.module';
-import { ApisModule } from './api/apis.module';
 import { SettingsNavigationModule } from './configuration/settings-navigation/settings-navigation.module';
 import { MessagesModule } from './messages/messages.module';
-import { HomeModule } from './home/home.module';
 import { TasksModule } from './tasks/tasks.module';
 import { ClientRegistrationProvidersModule } from './configuration/client-registration-providers/client-registration-providers.module';
 import { ApiLoggingModule } from './configuration/api-logging/api-logging.module';
 import { EnvironmentNotificationSettingsModule } from './configuration/notifications/notification-settings/environment-notification-settings.module';
 import { EnvironmentMetadataModule } from './configuration/metadata/environment-metadata.module';
+import { ManagementComponent } from './management.component';
+import { AsEnvironmentPermissionGuard } from './as-environment-permission.guard';
+import { EnvironmentResolver } from './environement.resolver';
 import { InstancesModule } from './instances/instances.module';
 
 import { GioPermissionModule } from '../shared/components/gio-permission/gio-permission.module';
 import { NotificationsModule } from '../components/notifications/notifications.module';
 import { AlertsModule } from '../components/alerts/alerts.module';
+import { GioSideNavModule } from '../components/gio-side-nav/gio-side-nav.module';
+import { GioTopNavModule } from '../components/gio-top-nav/gio-top-nav.module';
+import { ContextualDocComponentComponent } from '../components/contextual/contextual-doc.component';
+
+const managementRoutes: Routes = [
+  {
+    path: '',
+    component: ManagementComponent,
+    canActivate: [AsEnvironmentPermissionGuard],
+    canActivateChild: [AsEnvironmentPermissionGuard],
+    resolve: {
+      environmentResolver: EnvironmentResolver,
+    },
+    children: [
+      {
+        path: 'home',
+        loadChildren: () => import('./home/home.module').then((m) => m.HomeModule),
+      },
+      {
+        path: 'apis',
+        loadChildren: () => import('./api/apis.module').then((m) => m.ApisModule),
+      },
+      { path: '', pathMatch: 'full', redirectTo: 'home' },
+    ],
+  },
+];
 
 @NgModule({
   imports: [
     CommonModule,
-    BrowserAnimationsModule,
     MatSnackBarModule,
     GioPermissionModule,
     GioConfirmDialogModule,
     EnvAuditModule,
-    HomeModule,
-    ApisModule,
+    // HomeModule,
+    // ApisModule,
     EnvironmentApplicationModule,
     SettingsNavigationModule,
     InstancesModule,
@@ -57,8 +83,11 @@ import { AlertsModule } from '../components/alerts/alerts.module';
     AlertsModule,
     EnvironmentNotificationSettingsModule,
     EnvironmentMetadataModule,
+    GioSideNavModule,
+    GioTopNavModule,
+    RouterModule.forChild(managementRoutes),
   ],
-  declarations: [],
-  entryComponents: [],
+  declarations: [ManagementComponent, ContextualDocComponentComponent],
+  exports: [RouterModule],
 })
 export class ManagementModule {}

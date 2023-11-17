@@ -23,11 +23,10 @@ import {
   GioConfirmDialogData,
   GioLicenseService,
 } from '@gravitee/ui-particles-angular';
-import { StateService } from '@uirouter/core';
 import { EMPTY, Observable, of, Subject } from 'rxjs';
 import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { ActivatedRoute, Router } from '@angular/router';
 
-import { UIRouterState } from '../../../../../ajs-upgraded-providers';
 import { Constants } from '../../../../../entities/Constants';
 import { Api, ApiV4, UpdateApi } from '../../../../../entities/management-api-v2';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
@@ -88,7 +87,8 @@ export class ApiGeneralInfoDangerZoneComponent implements OnChanges, OnDestroy {
   }
 
   constructor(
-    @Inject(UIRouterState) private readonly ajsState: StateService,
+    private readonly router: Router,
+    private readonly activatedRoute: ActivatedRoute,
     private readonly apiReviewV2Service: ApiReviewV2Service,
     private readonly apiService: ApiV2Service,
     private readonly matDialog: MatDialog,
@@ -292,7 +292,7 @@ export class ApiGeneralInfoDangerZoneComponent implements OnChanges, OnDestroy {
         takeUntil(this.unsubscribe$),
       )
       .subscribe(() => {
-        this.ajsState.go('management.apis-list');
+        this.router.navigate(['..'], { relativeTo: this.activatedRoute });
       });
   }
 

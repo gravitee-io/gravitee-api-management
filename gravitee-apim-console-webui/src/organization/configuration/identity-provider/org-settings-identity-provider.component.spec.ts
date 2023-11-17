@@ -28,6 +28,7 @@ import { MatCardHarness } from '@angular/material/card/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 import { GioFormTagsInputHarness, GioSaveBarHarness, GioLicenseTestingModule } from '@gravitee/ui-particles-angular';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { OrgSettingsIdentityProviderComponent } from './org-settings-identity-provider.component';
 
@@ -36,7 +37,6 @@ import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing
 import { GioFormCardGroupHarness } from '../../../shared/components/gio-form-card-group/gio-form-card-group.harness';
 import { GioFormColorInputHarness } from '../../../shared/components/gio-form-color-input/gio-form-color-input.harness';
 import { NewIdentityProvider } from '../../../entities/identity-provider/newIdentityProvider';
-import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { fakeIdentityProvider, IdentityProvider } from '../../../entities/identity-provider';
 import { Group } from '../../../entities/group/group';
 import { fakeGroup } from '../../../entities/group/group.fixture';
@@ -50,9 +50,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
   let loader: HarnessLoader;
   let component: OrgSettingsIdentityProviderComponent;
   let httpTestingController: HttpTestingController;
-  const fakeAjsState = {
-    go: jest.fn(),
-  };
+  let spyRouterNavigate: jest.SpyInstance;
 
   afterEach(() => {
     httpTestingController.verify();
@@ -63,10 +61,6 @@ describe('OrgSettingsIdentityProviderComponent', () => {
     beforeEach(() => {
       TestBed.configureTestingModule({
         imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule, MatIconTestingModule, GioLicenseTestingModule],
-        providers: [
-          { provide: UIRouterState, useValue: fakeAjsState },
-          { provide: UIRouterStateParams, useValue: {} },
-        ],
       });
 
       fixture = TestBed.createComponent(OrgSettingsIdentityProviderComponent);
@@ -74,6 +68,9 @@ describe('OrgSettingsIdentityProviderComponent', () => {
       component = fixture.componentInstance;
 
       httpTestingController = TestBed.inject(HttpTestingController);
+
+      const router = TestBed.inject(Router);
+      spyRouterNavigate = jest.spyOn(router, 'navigate');
 
       fixture.detectChanges();
     });
@@ -158,7 +155,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
         },
       });
 
-      expect(fakeAjsState.go).toHaveBeenCalledWith('organization.identity-edit', { id: 'google-idp' });
+      expect(spyRouterNavigate).toHaveBeenCalledWith(['../', 'google-idp'], expect.anything());
     });
 
     describe('github', () => {
@@ -343,10 +340,6 @@ describe('OrgSettingsIdentityProviderComponent', () => {
     beforeEach(() => {
       TestBed.configureTestingModule({
         imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule, GioLicenseTestingModule.with(true)],
-        providers: [
-          { provide: UIRouterState, useValue: fakeAjsState },
-          { provide: UIRouterStateParams, useValue: {} },
-        ],
       });
 
       fixture = TestBed.createComponent(OrgSettingsIdentityProviderComponent);
@@ -473,10 +466,18 @@ describe('OrgSettingsIdentityProviderComponent', () => {
   describe('edit', () => {
     beforeEach(() => {
       TestBed.configureTestingModule({
-        imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule, GioLicenseTestingModule],
+        imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule, GioLicenseTestingModule, MatIconTestingModule],
         providers: [
-          { provide: UIRouterState, useValue: fakeAjsState },
-          { provide: UIRouterStateParams, useValue: { id: 'providerId' } },
+          {
+            provide: ActivatedRoute,
+            useValue: {
+              snapshot: {
+                params: {
+                  id: 'providerId',
+                },
+              },
+            },
+          },
         ],
       });
 

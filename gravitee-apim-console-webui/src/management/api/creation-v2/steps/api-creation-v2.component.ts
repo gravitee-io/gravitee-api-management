@@ -13,8 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, ElementRef, Injector, Input, SimpleChange } from '@angular/core';
+import { Component, ElementRef, Injector, Input, OnDestroy, SimpleChange } from '@angular/core';
 import { UpgradeComponent } from '@angular/upgrade/static';
+import { combineLatest, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import { ActivatedRoute } from '@angular/router';
+
+import { GroupService } from '../../../../services-ngx/group.service';
+import { TenantService } from '../../../../services-ngx/tenant.service';
+import { TagService } from '../../../../services-ngx/tag.service';
 
 @Component({
   template: '',
@@ -23,24 +30,48 @@ import { UpgradeComponent } from '@angular/upgrade/static';
     class: 'bootstrap',
   },
 })
-export class ApiCreationV2Component extends UpgradeComponent {
+export class ApiCreationV2Component extends UpgradeComponent implements OnDestroy {
   @Input() groups;
   @Input() tenants;
   @Input() tags;
 
-  constructor(elementRef: ElementRef, injector: Injector) {
+  private unsubscribe$ = new Subject<void>();
+
+  constructor(
+    elementRef: ElementRef,
+    injector: Injector,
+    private readonly groupService: GroupService,
+    private readonly tenantService: TenantService,
+    private readonly tagService: TagService,
+    public readonly activatedRoute: ActivatedRoute,
+  ) {
     super('apiCreationV2ComponentAjs', elementRef, injector);
   }
 
   ngOnInit() {
-    // Hack to Force the binding between Angular and AngularJS
-    // Don't know why, but the binding is not done automatically when resolver is used
-    this.ngOnChanges({
-      groups: new SimpleChange(null, this.groups, true),
-      tenants: new SimpleChange(null, this.tenants, true),
-      tags: new SimpleChange(null, this.tags, true),
-    });
+    combineLatest([this.groupService.list(), this.tenantService.list(), this.tagService.list()])
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe(([groups, tenants, tags]) => {
+        this.groups = groups;
+        this.tenants = tenants;
+        this.tags = tags;
 
-    super.ngOnInit();
+        // Hack to Force the binding between Angular and AngularJS
+        this.ngOnChanges({
+          groups: new SimpleChange(null, this.groups, true),
+          tenants: new SimpleChange(null, this.tenants, true),
+          tags: new SimpleChange(null, this.tags, true),
+          activatedRoute: new SimpleChange(null, this.activatedRoute, true),
+        });
+
+        super.ngOnInit();
+      });
+  }
+
+  ngOnDestroy() {
+    this.unsubscribe$.next();
+    this.unsubscribe$.complete();
+
+    super.ngOnDestroy();
   }
 }

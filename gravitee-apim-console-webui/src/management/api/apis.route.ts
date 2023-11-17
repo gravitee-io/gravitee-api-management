@@ -16,6 +16,8 @@
 
 import { Ng2StateDeclaration } from '@uirouter/angular';
 import { StateParams } from '@uirouter/core';
+import { RouterModule, Routes } from '@angular/router';
+import { NgModule } from '@angular/core';
 
 import { ApiNavigationComponent } from './api-navigation/api-navigation.component';
 import { ApiGeneralInfoComponent } from './general/details/api-general-info.component';
@@ -74,6 +76,7 @@ import { ApiDocumentationV4Component } from './documentation-v4/api-documentatio
 import { ApiDocumentationV4EditPageComponent } from './documentation-v4/documentation-edit-page/api-documentation-v4-edit-page.component';
 import { ApiDynamicPropertiesComponent } from './proxy/properties/dynamic-properties/api-dynamic-properties.component';
 import { ApiRuntimeLogsDetailsComponent } from './runtime-logs-v4/runtime-logs-details/api-runtime-logs-details.component';
+import { AsApiPermissionGuard } from './as-api-permission.guard';
 
 import { ApiService } from '../../services/api.service';
 import { GioEmptyComponent } from '../../shared/components/gio-empty/gio-empty.component';
@@ -1615,3 +1618,140 @@ export const states: Ng2StateDeclaration[] = [
     },
   },
 ];
+
+const apisRoutes: Routes = [
+  {
+    path: '',
+    pathMatch: 'full',
+    component: ApiListComponent,
+    data: {
+      useAngularMaterial: true,
+      docs: {
+        page: 'management-apis',
+      },
+    },
+  },
+
+  /**
+   * New API
+   */
+  {
+    path: 'new/v4',
+    component: ApiCreationV4Component,
+    data: {
+      useAngularMaterial: true,
+      perms: {
+        only: ['environment-api-c'],
+      },
+    },
+  },
+  {
+    path: 'new/v2',
+    component: ApiCreationV2Component,
+    data: {
+      useAngularMaterial: true,
+      perms: {
+        only: ['environment-api-c'],
+      },
+    },
+  },
+  {
+    path: 'new',
+    component: ApiCreationGetStartedComponent,
+    data: {
+      useAngularMaterial: true,
+      perms: {
+        only: ['environment-api-c'],
+      },
+      docs: {
+        page: 'management-apis-create',
+      },
+    },
+  },
+
+  /**
+   * Existing API
+   */
+  {
+    path: ':apiId',
+    component: ApiNavigationComponent,
+    canActivate: [AsApiPermissionGuard],
+    canActivateChild: [AsApiPermissionGuard],
+    children: [
+      {
+        path: '',
+        component: ApiGeneralInfoComponent,
+      },
+
+      /**
+       * Common Api state
+       */
+      {
+        path: 'documentation/new',
+        component: DocumentationNewPageComponent,
+        data: {
+          docs: {
+            page: 'management-api-documentation',
+          },
+          apiPermissions: {
+            only: ['api-documentation-r'],
+          },
+        },
+      },
+      {
+        path: 'documentation',
+        component: DocumentationManagementComponent,
+        data: {
+          docs: {
+            page: 'management-api-documentation',
+          },
+          apiPermissions: {
+            only: ['api-documentation-r'],
+          },
+        },
+      },
+      {
+        path: 'metadata',
+        component: ApiPortalDocumentationMetadataComponent,
+        data: {
+          apiPermissions: {
+            only: ['api-metadata-r'],
+          },
+          useAngularMaterial: true,
+        },
+      },
+
+      /**
+       * V1 Api state only
+       */
+
+      /**
+       * V1 & V2 Api state only
+       */
+
+      /**
+       * V2 & V4 Api state only
+       */
+
+      /**
+       * V4 Api state only
+       */
+      {
+        path: 'confirmation',
+        component: ApiCreationV4ConfirmationComponent,
+        data: {
+          useAngularMaterial: true,
+          perms: {
+            only: ['environment-api-c'],
+          },
+        },
+      },
+    ],
+  },
+];
+
+@NgModule({
+  imports: [RouterModule.forChild(apisRoutes)],
+  exports: [RouterModule],
+})
+export class ApisRoutingModule {}

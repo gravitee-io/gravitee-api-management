@@ -38,7 +38,7 @@
   <div class="org-settings-identity-providers__list-card__title">
     <h2>Identity Providers</h2>
 
-    <button (click)="onAddIdpClicked()" mat-raised-button color="primary"><mat-icon>add</mat-icon>Add an identity provider</button>
+    <button [routerLink]="'new'" mat-raised-button color="primary"><mat-icon>add</mat-icon>Add an identity provider</button>
   </div>
 
   <gio-table-wrapper [length]="tableUnpaginatedLength" (filtersChange)="onFiltersChanged($event)">
@@ -60,7 +60,7 @@
       <!-- Id Column -->
       <ng-container matColumnDef="id">
         <th mat-header-cell *matHeaderCellDef id="id">Id</th>
-        <td mat-cell *matCellDef="let element" (click)="onEditActionClicked(element)">
+        <td mat-cell *matCellDef="let element" [routerLink]="element.id">
           <a>{{ element.id }}</a>
         </td>
       </ng-container>
@@ -138,7 +138,7 @@
               </button>
             </ng-container>
             <button
-              (click)="onEditActionClicked(element)"
+              [routerLink]="element.id"
               mat-icon-button
               aria-label="Button to edit an identity provider"
               matTooltip="Edit identity provider"

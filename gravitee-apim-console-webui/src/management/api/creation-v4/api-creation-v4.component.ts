@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { Component, HostBinding, Inject, Injector, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostBinding, Injector, OnDestroy, OnInit } from '@angular/core';
 import { catchError, concatMap, map, switchMap, takeUntil, toArray } from 'rxjs/operators';
 import { from, Observable, of, Subject, throwError } from 'rxjs';
-import { StateService } from '@uirouter/angular';
 import { isEmpty, isString } from 'lodash';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { ApiCreationStep, ApiCreationStepperService } from './services/api-creation-stepper.service';
 import { Step1ApiDetailsComponent } from './steps/step-1-api-details/step-1-api-details.component';
@@ -32,7 +32,6 @@ import { Step4MenuItemComponent } from './steps/step-4-menu-item/step-4-menu-ite
 
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
-import { UIRouterState } from '../../../ajs-upgraded-providers';
 import { ApiPlanV2Service } from '../../../services-ngx/api-plan-v2.service';
 import { PlanV4, Api, CreateApiV4, EndpointGroupV4, Entrypoint, Listener } from '../../../entities/management-api-v2';
 import { ApiReviewV2Service } from '../../../services-ngx/api-review-v2.service';
@@ -107,12 +106,13 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
   );
 
   constructor(
+    private readonly router: Router,
+    private readonly activatedRoute: ActivatedRoute,
     private readonly injector: Injector,
     private readonly apiV2Service: ApiV2Service,
     private readonly apiPlanV2Service: ApiPlanV2Service,
     private readonly apiReviewV2Service: ApiReviewV2Service,
     private readonly snackBarService: SnackBarService,
-    @Inject(UIRouterState) readonly ajsState: StateService,
   ) {}
 
   ngOnInit(): void {
@@ -153,7 +153,7 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
             this.snackBarService.error(finalResult.errorMessages.join('\n'));
           }
           if (finalResult.result?.api?.id) {
-            this.ajsState.go('management.apis-new-v4-confirmation', { apiId: finalResult.result.api.id });
+            this.router.navigate(['../..', finalResult.result.api.id, 'confirmation'], { relativeTo: this.activatedRoute });
           }
         },
         (error) => {

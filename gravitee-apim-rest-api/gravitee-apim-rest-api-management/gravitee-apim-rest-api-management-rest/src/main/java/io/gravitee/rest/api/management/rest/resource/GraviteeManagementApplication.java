@@ -17,15 +17,7 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import com.fasterxml.jackson.databind.JavaType;
 import io.gravitee.rest.api.management.rest.mapper.ObjectMapperResolver;
-import io.gravitee.rest.api.management.rest.provider.BadRequestExceptionMapper;
-import io.gravitee.rest.api.management.rest.provider.ByteArrayOutputStreamWriter;
-import io.gravitee.rest.api.management.rest.provider.ConstraintValidationExceptionMapper;
-import io.gravitee.rest.api.management.rest.provider.EnumParamConverterProvider;
-import io.gravitee.rest.api.management.rest.provider.ManagementExceptionMapper;
-import io.gravitee.rest.api.management.rest.provider.NotAllowedExceptionMapper;
-import io.gravitee.rest.api.management.rest.provider.NotFoundExceptionMapper;
-import io.gravitee.rest.api.management.rest.provider.ThrowableMapper;
-import io.gravitee.rest.api.management.rest.provider.UnrecognizedPropertyExceptionMapper;
+import io.gravitee.rest.api.management.rest.provider.*;
 import io.gravitee.rest.api.management.rest.resource.auth.CockpitAuthenticationResource;
 import io.gravitee.rest.api.management.rest.resource.auth.ExternalAuthenticationResource;
 import io.gravitee.rest.api.management.rest.resource.organization.OrganizationsResource;
@@ -101,6 +93,7 @@ public class GraviteeManagementApplication extends ResourceConfig {
 
         register(MultiPartFeature.class);
 
+        register(PayloadInputBodyReader.class);
         register(ObjectMapperResolver.class);
         register(ManagementExceptionMapper.class);
         register(ConstraintValidationExceptionMapper.class);

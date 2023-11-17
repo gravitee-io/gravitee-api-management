@@ -15,13 +15,13 @@
  */
 import { CommonModule } from '@angular/common';
 import { HttpClientModule, HttpClientXsrfModule } from '@angular/common/http';
-import { NgModule } from '@angular/core';
+import { ApplicationRef, DoBootstrap, NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { UpgradeModule } from '@angular/upgrade/static';
+import { setAngularJSGlobal, UpgradeModule } from '@angular/upgrade/static';
 import { GioPendoModule, GIO_PENDO_SETTINGS_TOKEN } from '@gravitee/ui-analytics';
-import { UIRouterUpgradeModule } from '@uirouter/angular-hybrid';
 import { GioMatConfigModule } from '@gravitee/ui-particles-angular';
+import * as angular from 'angular';
 
 import {
   uiRouterStateProvider,
@@ -29,31 +29,36 @@ import {
   currentUserProvider,
   ajsRootScopeProvider,
   portalSettingsProvider,
+  ajsScopeProvider,
 } from './ajs-upgraded-providers';
 import { Constants } from './entities/Constants';
-import { ManagementModule } from './management/management.module';
-import { OrganizationSettingsModule } from './organization/configuration/organization-settings.module';
 import { httpInterceptorProviders } from './shared/interceptors/http-interceptors';
 import { GioSideNavModule } from './components/gio-side-nav/gio-side-nav.module';
 import { GioTopNavModule } from './components/gio-top-nav/gio-top-nav.module';
+import { AppComponent } from './app.component';
+import { AppRoutingModule } from './app-routing.module';
+import { LoginModule } from './user/login/login.module';
 
 @NgModule({
+  declarations: [AppComponent],
   imports: [
-    CommonModule,
+    // /!\ This module must be importer only once in the application.
     BrowserModule,
     BrowserAnimationsModule,
     HttpClientModule,
+
+    CommonModule,
     // Explicitly disable automatic csrf handling as it will not work for cross-domain (using custom csrf interceptor).
     HttpClientXsrfModule.withOptions({
       cookieName: 'none',
       headerName: 'none',
     }),
     UpgradeModule,
-    UIRouterUpgradeModule,
-    OrganizationSettingsModule,
-    ManagementModule,
-    GioMatConfigModule,
+
+    AppRoutingModule,
     GioPendoModule.forRoot(),
+    GioMatConfigModule,
+    LoginModule,
     GioSideNavModule,
     GioTopNavModule,
   ],
@@ -63,6 +68,7 @@ import { GioTopNavModule } from './components/gio-top-nav/gio-top-nav.module';
     uiRouterStateParamsProvider,
     currentUserProvider,
     ajsRootScopeProvider,
+    ajsScopeProvider,
     portalSettingsProvider,
     {
       provide: GIO_PENDO_SETTINGS_TOKEN,
@@ -76,10 +82,12 @@ import { GioTopNavModule } from './components/gio-top-nav/gio-top-nav.module';
     },
   ],
 })
-export class AppModule {
+export class AppModule implements DoBootstrap {
   constructor(private upgrade: UpgradeModule) {}
 
-  ngDoBootstrap() {
+  ngDoBootstrap(app: ApplicationRef) {
+    setAngularJSGlobal(angular);
     this.upgrade.bootstrap(document.documentElement, ['gravitee-management'], { strictDi: true });
+    app.bootstrap(AppComponent);
   }
 }

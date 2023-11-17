@@ -58,7 +58,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 abstract class AbstractAuthenticationResource {
 
     public static final String CLIENT_ID_KEY = "client_id", REDIRECT_URI_KEY = "redirect_uri", CLIENT_SECRET = "client_secret", CODE_KEY =
-        "code", GRANT_TYPE_KEY = "grant_type", AUTH_CODE = "authorization_code", TOKEN = "token", STATE = "state";
+        "code", GRANT_TYPE_KEY = "grant_type", AUTH_CODE = "authorization_code", CODE_VERIFIER_KEY = "code_verifier", TOKEN =
+        "token", STATE = "state";
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     @Autowired
@@ -169,35 +170,5 @@ abstract class AbstractAuthenticationResource {
         servletResponse.addCookie(bearerCookie);
 
         return Response.ok(tokenEntity).build();
-    }
-
-    public static class Payload {
-
-        @NotBlank
-        String clientId;
-
-        @NotBlank
-        String redirectUri;
-
-        @NotBlank
-        String code;
-
-        String state;
-
-        public String getClientId() {
-            return clientId;
-        }
-
-        public String getRedirectUri() {
-            return redirectUri;
-        }
-
-        public String getCode() {
-            return code;
-        }
-
-        public String getState() {
-            return state;
-        }
     }
 }

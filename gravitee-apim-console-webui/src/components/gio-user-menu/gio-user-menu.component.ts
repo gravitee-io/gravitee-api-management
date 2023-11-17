@@ -15,12 +15,14 @@
  */
 import { Component, Inject, Input, OnInit } from '@angular/core';
 import { StateService } from '@uirouter/core';
+import { Router } from '@angular/router';
 
 import { Constants } from '../../entities/Constants';
-import { CurrentUserService, UIRouterState } from '../../ajs-upgraded-providers';
-import UserService from '../../services/user.service';
+import { UIRouterState } from '../../ajs-upgraded-providers';
 import { User } from '../../entities/user/user';
 import { TaskService } from '../../services-ngx/task.service';
+import { CurrentUserService } from '../../services-ngx/current-user.service';
+import { AuthService } from '../../auth/auth.service';
 
 @Component({
   selector: 'gio-user-menu',
@@ -42,19 +44,23 @@ export class GioUserMenuComponent implements OnInit {
   constructor(
     @Inject(UIRouterState) private readonly ajsState: StateService,
     @Inject('Constants') public readonly constants: Constants,
-    @Inject(CurrentUserService) private readonly currentUserService: UserService,
     public readonly taskService: TaskService,
+    public readonly router: Router,
+    public readonly currentUserService: CurrentUserService,
+    public readonly authService: AuthService,
   ) {}
 
   ngOnInit(): void {
-    this.currentUser = this.currentUserService.currentUser;
-    this.newsletterProposed =
-      (this.currentUser && !this.currentUser.firstLogin) ||
-      !!window.localStorage.getItem('newsletterProposed') ||
-      !this.constants.org.settings.newsletter.enabled;
-    this.userShortName = this.getUserShortName();
-    this.userPicture = this.currentUserService.currentUserPicture();
-    this.supportEnabled = this.constants.org.settings.management.support.enabled;
+    this.currentUserService.current().subscribe((user) => {
+      this.currentUser = user;
+      this.newsletterProposed =
+        (this.currentUser && !this.currentUser.firstLogin) ||
+        !!window.localStorage.getItem('newsletterProposed') ||
+        !this.constants.org.settings.newsletter.enabled;
+      this.userShortName = this.getUserShortName();
+      this.userPicture = this.currentUserService.getUserPictureUrl(user);
+      this.supportEnabled = this.constants.org.settings.management.support.enabled;
+    });
   }
 
   goToMyAccount(): void {
@@ -73,7 +79,7 @@ export class GioUserMenuComponent implements OnInit {
   }
 
   signOut(): void {
-    this.ajsState.go('logout');
+    this.authService.logout().subscribe();
   }
 
   private getUserShortName = (): string => {

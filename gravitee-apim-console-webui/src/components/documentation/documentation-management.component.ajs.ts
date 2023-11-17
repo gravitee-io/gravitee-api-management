@@ -17,6 +17,7 @@
 import { StateService } from '@uirouter/core';
 import { IController, IScope } from 'angular';
 import * as _ from 'lodash';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { DocumentationQuery, DocumentationService, FolderSituation, PageType } from '../../services/documentation.service';
 import NotificationService from '../../services/notification.service';
@@ -30,8 +31,10 @@ class DocumentationManagementComponentController implements IController {
   pages: any[];
   folders: any[];
   systemFolders: any[];
-
   apiId: string;
+  parent: string;
+  activatedRoute: ActivatedRoute;
+
   rootDir: string;
   foldersById: _.Dictionary<any>;
   systemFoldersById: _.Dictionary<any>;
@@ -47,15 +50,14 @@ class DocumentationManagementComponentController implements IController {
     private $state: StateService,
     private $scope: IDocumentationManagementScope,
     private readonly $mdDialog: angular.material.IDialogService,
-  ) {
-    this.apiId = $state.params.apiId;
-  }
+    private readonly ngRouter: Router,
+  ) {}
 
   $onInit() {
     // remove the ROOT page
     this.pages = this.filterROOTAndSystemPages(this.pages);
 
-    this.rootDir = this.$state.params.parent;
+    this.rootDir = this.parent;
     this.foldersById = _.keyBy(this.folders, 'id');
     this.systemFoldersById = _.keyBy(this.systemFolders, 'id');
 
@@ -398,7 +400,10 @@ class DocumentationManagementComponentController implements IController {
 
   newPage(type: string) {
     if (this.apiId) {
-      this.$state.go('management.apis.documentationNew', { type: type, parent: this.rootDir });
+      this.ngRouter.navigate(['new'], {
+        queryParams: { type: type, parent: this.rootDir },
+        relativeTo: this.activatedRoute,
+      });
     } else {
       this.$state.go('management.settings.documentation.new', { type: type, parent: this.rootDir });
     }
@@ -475,13 +480,23 @@ class DocumentationManagementComponentController implements IController {
     };
   }
 }
-DocumentationManagementComponentController.$inject = ['NotificationService', 'DocumentationService', '$state', '$scope', '$mdDialog'];
+DocumentationManagementComponentController.$inject = [
+  'NotificationService',
+  'DocumentationService',
+  '$state',
+  '$scope',
+  '$mdDialog',
+  'ngRouter',
+];
 
 export const DocumentationManagementComponentAjs: ng.IComponentOptions = {
   bindings: {
     pages: '<',
     folders: '<',
     systemFolders: '<',
+    apiId: '<',
+    parent: '<',
+    activatedRoute: '<',
   },
   template: require('./documentation-management.html'),
   controller: DocumentationManagementComponentController,

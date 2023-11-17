@@ -15,9 +15,9 @@
  */
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { HttpClient } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, HttpClient } from '@angular/common/http';
 
-import { httpInterceptorProviders } from './http-interceptors';
+import { ReplaceEnvInterceptor } from './replace-env.interceptor';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../testing';
 
@@ -28,7 +28,7 @@ describe('ReplaceEnvInterceptor', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [GioHttpTestingModule, HttpClientTestingModule],
-      providers: [httpInterceptorProviders],
+      providers: [{ provide: HTTP_INTERCEPTORS, useClass: ReplaceEnvInterceptor, multi: true }],
     });
 
     httpClient = TestBed.inject(HttpClient);

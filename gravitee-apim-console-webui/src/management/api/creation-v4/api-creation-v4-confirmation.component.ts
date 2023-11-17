@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnInit } from '@angular/core';
-import { StateService } from '@uirouter/core';
+import { Component, OnInit } from '@angular/core';
 import { takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
+import { ActivatedRoute } from '@angular/router';
 
-import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import { Api } from '../../../entities/management-api-v2';
 
@@ -30,19 +29,11 @@ import { Api } from '../../../entities/management-api-v2';
 export class ApiCreationV4ConfirmationComponent implements OnInit {
   private unsubscribe$: Subject<void> = new Subject<void>();
   public api: Api;
-  constructor(
-    @Inject(UIRouterState) readonly ajsState: StateService,
-    @Inject(UIRouterStateParams) private readonly ajsStateParams,
-    private readonly apiV2Service: ApiV2Service,
-  ) {}
-
-  navigate(urlState: string) {
-    return this.ajsState.go(urlState, { apiId: this.ajsStateParams.apiId }, { reload: true });
-  }
+  constructor(private readonly activatedRoute: ActivatedRoute, private readonly apiV2Service: ApiV2Service) {}
 
   ngOnInit(): void {
     this.apiV2Service
-      .get(this.ajsStateParams.apiId)
+      .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe((api) => {
         this.api = api;

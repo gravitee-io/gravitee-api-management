@@ -75,6 +75,7 @@ export interface IdentityProvider {
   name?: string;
   description?: string;
   type?: IdentityProviderType;
+  color?: string;
   enabled?: boolean;
   configuration?: IdentityProviderConfiguration;
   groupMappings?: GroupMapping[];

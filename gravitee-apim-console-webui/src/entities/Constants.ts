@@ -15,9 +15,11 @@
  */
 import { ConsoleSettings } from './consoleSettings';
 import { Environment } from './environment/environment';
+import { SocialIdentityProvider } from './organization/socialIdentityProvider';
 import { ConsoleCustomization } from './management-api-v2/consoleCustomization';
 
 export interface Constants {
+  production?: boolean;
   env?: {
     baseURL?: string;
     v2BaseURL?: string;
@@ -27,7 +29,9 @@ export interface Constants {
     environments: Environment[];
     currentEnv: Environment;
     settings?: ConsoleSettings;
+    identityProviders?: SocialIdentityProvider[];
     baseURL?: string;
+    v2BaseURL?: string;
   };
   baseURL: string;
   v2BaseURL?: string;
@@ -35,7 +39,7 @@ export interface Constants {
   customization?: ConsoleCustomization;
 }
 
-interface EnvSettings {
+export interface EnvSettings {
   analytics: {
     clientTimeout: number;
   };

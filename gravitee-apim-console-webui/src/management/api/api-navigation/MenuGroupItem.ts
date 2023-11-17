@@ -18,6 +18,7 @@ import { LicenseOptions } from '@gravitee/ui-particles-angular';
 
 export interface MenuItem {
   targetRoute?: string;
+  routerLink?: string;
   baseRoute?: string | string[];
   displayName: string;
   license?: LicenseOptions;

@@ -28,7 +28,6 @@ import {
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { UIRouterModule } from '@uirouter/angular';
-import { HttpClientModule } from '@angular/common/http';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatCardModule } from '@angular/material/card';
@@ -51,7 +50,6 @@ import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrap
   exports: [NotificationSettingsListComponent, NotificationSettingsDetailsComponent],
   imports: [
     CommonModule,
-    HttpClientModule,
 
     GioIconsModule,
     GioTableWrapperModule,

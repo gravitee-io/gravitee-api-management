@@ -14,8 +14,12 @@
  * limitations under the License.
  */
 
-import { Component, ElementRef, Injector, Input, SimpleChange } from '@angular/core';
+import { Component, ElementRef, Inject, Injector, Input, SimpleChange } from '@angular/core';
 import { UpgradeComponent } from '@angular/upgrade/static';
+import { ActivatedRoute } from '@angular/router';
+import { isEmpty } from 'lodash';
+
+import { DocumentationService } from '../../services/documentation.service';
 
 @Component({
   template: '',
@@ -23,25 +27,66 @@ import { UpgradeComponent } from '@angular/upgrade/static';
   host: {
     class: 'bootstrap',
   },
-  jit: true,
 })
 export class DocumentationManagementComponent extends UpgradeComponent {
   @Input() pages;
   @Input() folders;
   @Input() systemFolders;
-  constructor(elementRef: ElementRef, injector: Injector) {
+  apiId: string;
+  parent: string;
+  constructor(
+    elementRef: ElementRef,
+    injector: Injector,
+    private readonly activatedRoute: ActivatedRoute,
+    @Inject('ajsDocumentationService') private readonly ajsDocumentationService: DocumentationService,
+  ) {
     super('documentationManagementAjs', elementRef, injector);
   }
 
   ngOnInit() {
-    // Hack to Force the binding between Angular and AngularJS
-    // Don't know why, but the binding is not done automatically when resolver is used
-    this.ngOnChanges({
-      pages: new SimpleChange(null, this.pages, true),
-      folders: new SimpleChange(null, this.folders, true),
-      systemFolders: new SimpleChange(null, this.systemFolders, true),
-    });
+    const apiId = this.activatedRoute.snapshot.params.apiId;
+    const parent = this.activatedRoute.snapshot.queryParams.parent;
 
-    super.ngOnInit();
+    Promise.all([
+      this.ajsDocumentationService.search(isEmpty(parent) ? { root: true } : { parent: parent }, apiId).then((response) => {
+        return response.data;
+      }),
+      this.ajsDocumentationService
+        .search(
+          {
+            type: 'FOLDER',
+          },
+          apiId,
+        )
+        .then((response) => response.data),
+      this.ajsDocumentationService
+        .search(
+          {
+            type: 'SYSTEM_FOLDER',
+          },
+          apiId,
+        )
+        .then((response) => response.data),
+    ])
+      .then(([pages, folders, systemFolders]) => {
+        this.pages = pages;
+        this.folders = folders;
+        this.systemFolders = systemFolders;
+        this.parent = parent;
+        this.apiId = apiId;
+      })
+      .then(() => {
+        // Hack to Force the binding between Angular and AngularJS
+        this.ngOnChanges({
+          parent: new SimpleChange(null, this.parent, true),
+          apiId: new SimpleChange(null, this.apiId, true),
+          pages: new SimpleChange(null, this.pages, true),
+          folders: new SimpleChange(null, this.folders, true),
+          systemFolders: new SimpleChange(null, this.systemFolders, true),
+          activatedRoute: new SimpleChange(null, this.activatedRoute, true),
+        });
+
+        super.ngOnInit();
+      });
   }
 }

@@ -32,12 +32,13 @@ import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { ApiGeneralInfoModule } from './api-general-info.module';
 import { ApiGeneralInfoComponent } from './api-general-info.component';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
-import { UIRouterStateParams, CurrentUserService, UIRouterState } from '../../../../ajs-upgraded-providers';
+import { CurrentUserService } from '../../../../ajs-upgraded-providers';
 import { User } from '../../../../entities/user';
 import { Category } from '../../../../entities/category/Category';
 import { Api, fakeApiV1, fakeApiV2, fakeApiV4 } from '../../../../entities/management-api-v2';
@@ -46,21 +47,25 @@ describe('ApiGeneralInfoComponent', () => {
   const API_ID = 'apiId';
   const currentUser = new User();
   currentUser.userPermissions = ['api-definition-u', 'api-definition-d', 'api-definition-c', 'api-definition-r'];
-  const fakeAjsState = {
-    go: jest.fn().mockReturnValue({}),
-  };
 
   let fixture: ComponentFixture<ApiGeneralInfoComponent>;
   let loader: HarnessLoader;
   let rootLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
+  let routerNavigateSpy: jest.SpyInstance;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiGeneralInfoModule, MatIconTestingModule],
       providers: [
-        { provide: UIRouterState, useValue: fakeAjsState },
-        { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            snapshot: {
+              params: { apiId: API_ID },
+            },
+          },
+        },
         { provide: CurrentUserService, useValue: { currentUser } },
         {
           provide: 'LicenseConfiguration',
@@ -97,6 +102,8 @@ describe('ApiGeneralInfoComponent', () => {
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
 
     httpTestingController = TestBed.inject(HttpTestingController);
+    const router = TestBed.inject(Router);
+    routerNavigateSpy = jest.spyOn(router, 'navigate');
     fixture.detectChanges();
 
     GioFormFilePickerInputHarness.forceImageOnload();
@@ -104,6 +111,7 @@ describe('ApiGeneralInfoComponent', () => {
 
   afterEach(() => {
     httpTestingController.verify({ ignoreCancelled: true });
+    jest.resetAllMocks();
   });
 
   describe('API V1', () => {
@@ -372,7 +380,7 @@ describe('ApiGeneralInfoComponent', () => {
 
       await expectDuplicatePostRequest(API_ID);
 
-      expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.general', { apiId: 'newApiId' });
+      expect(routerNavigateSpy).toHaveBeenCalledWith(['../', 'newApiId'], expect.anything());
     });
   });
 
@@ -554,6 +562,10 @@ describe('ApiGeneralInfoComponent', () => {
       const api = fakeApiV4({
         id: API_ID,
       });
+
+      const router = TestBed.inject(Router);
+      routerNavigateSpy = jest.spyOn(router, 'navigate');
+
       expectApiGetRequest(api);
       expectCategoriesGetRequest();
 
@@ -577,9 +589,9 @@ describe('ApiGeneralInfoComponent', () => {
       const confirmButton = await confirmDialog.getHarness(MatButtonHarness.with({ text: 'Duplicate' }));
       await confirmButton.click();
 
-      expectDuplicatePostRequest(API_ID);
+      await expectDuplicatePostRequest(API_ID);
 
-      expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.general', { apiId: 'newApiId' });
+      expect(routerNavigateSpy).toHaveBeenCalledWith(['../', 'newApiId'], expect.anything());
     });
   });
 
