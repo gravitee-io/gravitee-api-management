@@ -21,8 +21,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { UIRouterModule } from '@uirouter/angular';
 
+import { InstanceListComponent } from './instance-list.component';
+
 import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
-import { InstanceListComponent } from '../list/instance-list.component';
 
 @NgModule({
   declarations: [InstanceListComponent],
