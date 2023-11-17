@@ -11,8 +11,18 @@ info:
     version: 2.0.0
 
 servers:
-    - url: /management/v2
-      description: Gravitee.io APIM - Management API - v2
+    - url: "{protocol}://{gatewayHost}/management/v2"
+      description: APIM Management API v2 - Default base URL
+      variables:
+          protocol:
+              description: The protocol you want to use to communicate with the mAPI
+              default: https
+              enum:
+                  - https
+                  - http
+          gatewayHost:
+              description: The domain of the server hosting your Gateway
+              default: localhost:8083
 
 tags:
     - name: Management UI
