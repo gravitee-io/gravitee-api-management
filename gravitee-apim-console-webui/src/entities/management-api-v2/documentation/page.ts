@@ -41,6 +41,7 @@ export interface Page {
   parentPath?: string;
   contentRevision?: Revision;
   hidden?: boolean;
+  generalConditions?: boolean;
 }
 
 export interface Breadcrumb {
