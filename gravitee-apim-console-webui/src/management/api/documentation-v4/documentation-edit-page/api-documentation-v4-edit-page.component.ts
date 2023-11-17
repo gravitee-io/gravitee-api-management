@@ -17,7 +17,7 @@ import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { StateParams } from '@uirouter/core';
 import { StateService } from '@uirouter/angularjs';
-import { catchError, switchMap, tap } from 'rxjs/operators';
+import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { EMPTY, Observable, of, Subject } from 'rxjs';
 
 import { CreateDocumentationMarkdown } from '../../../../entities/management-api-v2/documentation/createDocumentation';
@@ -91,7 +91,10 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
     }
 
     this.loadPage$
-      .pipe(switchMap((_) => this.apiDocumentationService.getApiPages(this.ajsStateParams.apiId, this.getParentId())))
+      .pipe(
+        switchMap((_) => this.apiDocumentationService.getApiPages(this.ajsStateParams.apiId, this.getParentId())),
+        takeUntil(this.unsubscribe$),
+      )
       .subscribe({
         next: (pagesResponse) => {
           this.breadcrumbs = pagesResponse.breadcrumb;
@@ -110,14 +113,19 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
   }
 
   create() {
-    this.createPage().subscribe(() => {
-      this.goBackToPageList();
-    });
+    this.createPage()
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe(() => {
+        this.goBackToPageList();
+      });
   }
 
   createAndPublish() {
     this.createPage()
-      .pipe(switchMap((page) => this.apiDocumentationService.publishDocumentationPage(this.ajsStateParams.apiId, page.id)))
+      .pipe(
+        switchMap((page) => this.apiDocumentationService.publishDocumentationPage(this.ajsStateParams.apiId, page.id)),
+        takeUntil(this.unsubscribe$),
+      )
       .subscribe({
         next: () => {
           this.goBackToPageList();
@@ -129,11 +137,13 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
   }
 
   update() {
-    this.updatePage().subscribe({
-      next: () => {
-        this.goBackToPageList();
-      },
-    });
+    this.updatePage()
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe({
+        next: () => {
+          this.goBackToPageList();
+        },
+      });
   }
 
   private updatePage(): Observable<Page> {
