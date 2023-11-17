@@ -30,8 +30,8 @@
         separator="pipe"
       ></api-navigation-title>
       <ng-container *ngFor="let menuItem of this.subMenuItems">
-        <ng-container *ngIf="!menuItem?.targetRoute && menuItem?.tabs?.length > 0">
-          <a [uiSref]="menuItem?.tabs[0]?.targetRoute">
+        <ng-container *ngIf="!menuItem?.routerLink && menuItem?.tabs?.length > 0">
+          <a [routerLink]="menuItem?.tabs[0]?.routerLink">
             <gio-submenu-item
               tabIndex="1"
               [active]="isTabActive(menuItem?.tabs)"
@@ -41,11 +41,11 @@
             ></a
           >
         </ng-container>
-        <ng-container *ngIf="menuItem?.targetRoute && menuItem.targetRoute !== 'DISABLED'">
-          <a [uiSref]="menuItem?.targetRoute">
+        <ng-container *ngIf="menuItem?.routerLink && menuItem.routerLink !== 'DISABLED'">
+          <a [routerLink]="menuItem?.routerLink">
             <gio-submenu-item
               tabIndex="1"
-              [active]="isActive(menuItem?.baseRoute)"
+              [active]="isActive(menuItem)"
               [gioLicense]="menuItem?.license"
               [iconRight]="menuItem?.iconRight$ | async"
               >{{ menuItem?.displayName }}</gio-submenu-item
@@ -53,7 +53,7 @@
           ></ng-container
         >
         <api-navigation-disabled
-          *ngIf="menuItem?.targetRoute === 'DISABLED'"
+          *ngIf="menuItem?.routerLink === 'DISABLED'"
           class="api-navigation__menu__disabled"
           [displayName]="menuItem.displayName"
         ></api-navigation-disabled>
@@ -61,8 +61,8 @@
       <ng-container *ngFor="let group of this.groupItems">
         <gio-submenu-group [title]="group.title" *ngIf="group.title">
           <ng-container *ngFor="let subItem of group.items">
-            <ng-container *ngIf="!subItem?.targetRoute && subItem?.tabs?.length > 0">
-              <a [uiSref]="subItem?.tabs[0]?.targetRoute">
+            <ng-container *ngIf="!subItem?.routerLink && subItem?.tabs?.length > 0">
+              <a [routerLink]="subItem?.tabs[0]?.routerLink">
                 <gio-submenu-item
                   tabIndex="1"
                   [active]="isTabActive(subItem?.tabs)"
@@ -72,11 +72,11 @@
                 ></a
               ></ng-container
             >
-            <ng-container *ngIf="subItem?.targetRoute && subItem.targetRoute !== 'DISABLED'">
-              <a [uiSref]="subItem?.targetRoute">
+            <ng-container *ngIf="subItem?.routerLink && subItem.routerLink !== 'DISABLED'">
+              <a [routerLink]="subItem?.routerLink">
                 <gio-submenu-item
                   tabIndex="1"
-                  [active]="isActive(subItem?.baseRoute)"
+                  [active]="isActive(subItem)"
                   [gioLicense]="subItem?.license"
                   [iconRight]="subItem?.iconRight$ | async"
                   >{{ subItem?.displayName }}</gio-submenu-item
@@ -84,7 +84,7 @@
               ></ng-container
             >
             <api-navigation-disabled
-              *ngIf="subItem?.targetRoute === 'DISABLED'"
+              *ngIf="subItem?.routerLink === 'DISABLED'"
               class="api-navigation__submenu__disabled"
               [displayName]="subItem.displayName"
             ></api-navigation-disabled>
@@ -133,7 +133,7 @@
         [menuItemHeader]="this.selectedItemWithTabs?.header"
       ></api-navigation-tabs>
 
-      <ui-view class="api-navigation__content__view__ui"></ui-view>
+      <router-outlet></router-outlet>
     </div>
   </div>
 </div>

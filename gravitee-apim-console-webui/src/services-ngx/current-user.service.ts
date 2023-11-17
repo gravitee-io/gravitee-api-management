@@ -16,16 +16,38 @@
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { shareReplay } from 'rxjs/operators';
 
 import { Constants } from '../entities/Constants';
+import { User } from '../entities/user/user';
+import { hashStringToCode } from '../services/string.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class CurrentUserService {
+  private currentUser: Observable<User> | null;
+
   constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
 
   getTags(): Observable<string[]> {
     return this.http.get<string[]>(`${this.constants.org.baseURL}/user/tags`);
+  }
+
+  current(): Observable<User> {
+    if (!this.currentUser) {
+      return this.http.get<User>(`${this.constants.org.baseURL}/user`).pipe(shareReplay(1));
+    }
+    return this.currentUser;
+  }
+
+  getUserPictureUrl(user: User): string {
+    if (user && user.id) {
+      return `${this.constants.org.baseURL}/user/avatar?${hashStringToCode(user.id)}`;
+    }
+  }
+
+  clearCurrent() {
+    this.currentUser = null;
   }
 }

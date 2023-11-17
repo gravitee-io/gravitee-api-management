@@ -19,6 +19,7 @@ import { GioAvatarModule, GioIconsModule, GioTopBarLinkModule, GioTopBarMenuModu
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
+import { RouterModule } from '@angular/router';
 
 import { GioTopNavComponent } from './gio-top-nav.component';
 
@@ -38,6 +39,7 @@ import { GioNotificationMenuModule } from '../gio-notification-menu/gio-notifica
     MatDividerModule,
     GioUserMenuModule,
     GioNotificationMenuModule,
+    RouterModule,
   ],
   declarations: [GioTopNavComponent],
   exports: [GioTopNavComponent],

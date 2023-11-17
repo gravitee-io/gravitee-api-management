@@ -241,20 +241,6 @@ describe('ApiEndpointGroupComponent', () => {
         expect(await componentHarness.configurationTabIsVisible()).toEqual(true);
       });
     });
-
-    // Back Button
-    describe('WHEN the back button is clicked', () => {
-      const routerSpy = jest.spyOn(FAKE_UI_ROUTER, 'go');
-
-      beforeEach(async () => {
-        await componentHarness.clickBackButton();
-        expectApiSchemaGetRequests(api, fixture, httpTestingController);
-      });
-
-      it('THEN the endpoint groups list page should be the next page expected to be shown', async () => {
-        expect(routerSpy).toHaveBeenCalledWith('management.apis.endpoint-groups', undefined, undefined);
-      });
-    });
   });
 
   describe('GIVEN the current page is a mock endpoint group page', () => {

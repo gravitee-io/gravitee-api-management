@@ -19,6 +19,7 @@ export interface ConsoleCustomization {
   favicon: string;
   title: string;
   ctaConfiguration: CTAConfiguration;
+  customEnterpriseName: string;
 }
 
 export interface ConsoleTheme {

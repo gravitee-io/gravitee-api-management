@@ -26,6 +26,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
+import { Route, RouterModule } from '@angular/router';
 
 import { HomeApiHealthCheckComponent } from './home-api-health-check/home-api-health-check.component';
 import { HomeLayoutComponent } from './home-layout/home-layout.component';
@@ -98,11 +99,38 @@ export const states: Ng2StateDeclaration[] = [
   },
 ];
 
+const homeRoutes: Route[] = [
+  {
+    path: '',
+    component: HomeLayoutComponent,
+    children: [
+      {
+        path: 'overview',
+        component: HomeOverviewComponent,
+      },
+      {
+        path: 'apiHealthCheck',
+        component: HomeApiHealthCheckComponent,
+      },
+      {
+        path: 'tasks',
+        component: TasksComponent,
+      },
+      {
+        path: '',
+        redirectTo: 'overview',
+        pathMatch: 'full',
+      },
+    ],
+  },
+];
+
 @NgModule({
   imports: [
     CommonModule,
     ReactiveFormsModule,
     UIRouterModule.forChild({ states }),
+    RouterModule.forChild(homeRoutes),
 
     MatTabsModule,
     MatCardModule,

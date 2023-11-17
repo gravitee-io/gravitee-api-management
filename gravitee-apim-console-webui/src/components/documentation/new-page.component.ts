@@ -16,6 +16,7 @@
 
 import { Component, ElementRef, Injector, Input, SimpleChange } from '@angular/core';
 import { UpgradeComponent } from '@angular/upgrade/static';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   template: '',
@@ -31,13 +32,13 @@ export class DocumentationNewPageComponent extends UpgradeComponent {
   @Input() pageResources;
   @Input() categoryResources;
   @Input() pagesToLink;
-  constructor(elementRef: ElementRef, injector: Injector) {
+
+  constructor(elementRef: ElementRef, injector: Injector, public readonly activatedRoute: ActivatedRoute) {
     super('documentationNewPageAjs', elementRef, injector);
   }
 
   ngOnInit() {
     // Hack to Force the binding between Angular and AngularJS
-    // Don't know why, but the binding is not done automatically when resolver is used
     this.ngOnChanges({
       resolvedFetchers: new SimpleChange(null, this.resolvedFetchers, true),
       folders: new SimpleChange(null, this.folders, true),
@@ -45,6 +46,7 @@ export class DocumentationNewPageComponent extends UpgradeComponent {
       pageResources: new SimpleChange(null, this.pageResources, true),
       categoryResources: new SimpleChange(null, this.categoryResources, true),
       pagesToLink: new SimpleChange(null, this.pagesToLink, true),
+      activatedRoute: new SimpleChange(null, this.activatedRoute, true),
     });
 
     super.ngOnInit();

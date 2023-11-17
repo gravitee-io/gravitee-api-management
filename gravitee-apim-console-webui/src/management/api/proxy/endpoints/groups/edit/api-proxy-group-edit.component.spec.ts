@@ -19,7 +19,6 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
-import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { MatSelectHarness } from '@angular/material/select/testing';
@@ -79,21 +78,6 @@ describe('ApiProxyGroupEditComponent', () => {
       loader = TestbedHarnessEnvironment.loader(fixture);
       httpTestingController = TestBed.inject(HttpTestingController);
       fixture.detectChanges();
-    });
-
-    it('should go back to endpoints', async () => {
-      const api = fakeApiV2({
-        id: API_ID,
-      });
-      expectApiGetRequest(api);
-
-      expectServiceDiscoveryRequest(serviceDiscovery);
-
-      const routerSpy = jest.spyOn(fakeUiRouter, 'go');
-
-      await loader.getHarness(MatButtonHarness.with({ selector: '[mattooltip="Go back"]' })).then((button) => button.click());
-
-      expect(routerSpy).toHaveBeenCalledWith('management.apis.endpoints-v2', { apiId: API_ID }, undefined);
     });
 
     describe('Edit general information of existing group', () => {

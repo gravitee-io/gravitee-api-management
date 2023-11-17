@@ -32,18 +32,18 @@ export class HomeLayoutComponent {
     catchError(() => of('Tasks')),
   );
 
-  public tabs: { label: Observable<string>; uiSref: string }[] = [
+  public tabs: { label: Observable<string>; routerLink: string }[] = [
     {
       label: of('Overview'),
-      uiSref: 'home.overview',
+      routerLink: './overview',
     },
     {
       label: of('APIs health-check'),
-      uiSref: 'home.apiHealthCheck',
+      routerLink: './apiHealthCheck',
     },
     {
       label: this.taskLabel,
-      uiSref: 'home.tasks',
+      routerLink: './tasks',
     },
   ];
 

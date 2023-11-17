@@ -15,18 +15,17 @@
  */
 
 import { Component, Inject, OnInit } from '@angular/core';
-import { StateService } from '@uirouter/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { LicenseOptions, GioLicenseService } from '@gravitee/ui-particles-angular';
+import { Router } from '@angular/router';
 
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { Constants } from '../../../entities/Constants';
-import { UIRouterState } from '../../../ajs-upgraded-providers';
 import { ApimFeature, UTMTags } from '../../../shared/components/gio-license/gio-license-data';
 
 interface MenuItem {
-  targetRoute: string;
+  routerLink: string;
   displayName: string;
   permissions?: string[];
   licenseOptions?: LicenseOptions;
@@ -45,25 +44,19 @@ interface GroupItem {
 })
 export class OrgNavigationComponent implements OnInit {
   public groupItems: GroupItem[] = [];
-  public hasGoBackButton: boolean;
   constructor(
-    @Inject(UIRouterState) private readonly ajsState: StateService,
+    private readonly router: Router,
     private readonly permissionService: GioPermissionService,
     @Inject('Constants') private readonly constants: Constants,
     private readonly gioLicenseService: GioLicenseService,
   ) {}
   ngOnInit(): void {
-    this.hasGoBackButton = this.constants.org.environments && this.constants.org.environments.length > 0;
     this.appendConsoleItems();
     this.appendUserManagementItems();
     this.appendGatewayItems();
     this.appendNotificationsItems();
     this.appendAuditItems();
     this.appendCockpitItems();
-  }
-
-  isActive(route: string): boolean {
-    return this.ajsState.includes(route);
   }
 
   private filterMenuByPermission(menuItems: MenuItem[]): MenuItem[] {
@@ -74,12 +67,12 @@ export class OrgNavigationComponent implements OnInit {
     const items = this.filterMenuByPermission([
       {
         displayName: 'Authentication',
-        targetRoute: 'organization.identities',
+        routerLink: 'identities',
         permissions: ['organization-identity_provider-r'],
       },
       {
         displayName: 'Settings',
-        targetRoute: 'organization.settings',
+        routerLink: 'settings',
         permissions: ['organization-settings-r'],
       },
     ]);
@@ -95,12 +88,12 @@ export class OrgNavigationComponent implements OnInit {
     const items = this.filterMenuByPermission([
       {
         displayName: 'Users',
-        targetRoute: 'organization.users',
+        routerLink: 'users',
         permissions: ['organization-user-c', 'organization-user-r', 'organization-user-u', 'organization-user-d'],
       },
       {
         displayName: 'Roles',
-        targetRoute: 'organization.roles',
+        routerLink: 'roles',
         permissions: ['organization-role-r'],
       },
     ]);
@@ -116,17 +109,17 @@ export class OrgNavigationComponent implements OnInit {
     const items = this.filterMenuByPermission([
       {
         displayName: 'Sharding tags',
-        targetRoute: 'organization.tags',
+        routerLink: 'tags',
         permissions: ['organization-tag-r'],
       },
       {
         displayName: 'Tenants',
-        targetRoute: 'organization.tenants',
+        routerLink: 'tenants',
         permissions: ['organization-tenant-r'],
       },
       {
         displayName: 'Policies',
-        targetRoute: 'organization.policies',
+        routerLink: 'policies',
         permissions: ['organization-policies-r'],
       },
     ]);
@@ -143,7 +136,7 @@ export class OrgNavigationComponent implements OnInit {
     const items = this.filterMenuByPermission([
       {
         displayName: 'Templates',
-        targetRoute: 'organization.notificationTemplates',
+        routerLink: 'notification-templates',
         permissions: ['organization-notification_templates-r'],
       },
     ]);
@@ -162,7 +155,7 @@ export class OrgNavigationComponent implements OnInit {
     const items = this.filterMenuByPermission([
       {
         displayName: 'Audit',
-        targetRoute: 'organization.audit',
+        routerLink: 'audit',
         licenseOptions,
         iconRight$,
       },
@@ -180,7 +173,7 @@ export class OrgNavigationComponent implements OnInit {
     const items = this.filterMenuByPermission([
       {
         displayName: 'Discover cockpit',
-        targetRoute: 'organization.cockpit',
+        routerLink: 'cockpit',
         permissions: ['organization-installation-r'],
       },
     ]);
@@ -196,6 +189,6 @@ export class OrgNavigationComponent implements OnInit {
   }
 
   goBack() {
-    this.ajsState.go('management');
+    this.router.navigate(['/']);
   }
 }

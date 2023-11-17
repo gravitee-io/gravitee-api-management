@@ -54,6 +54,7 @@ describe('UiCustomizationService', () => {
         trialURL: 'http://url.com',
         hideDays: true,
       },
+      customEnterpriseName: 'EE',
     };
 
     service.getConsoleCustomization().subscribe((res) => {

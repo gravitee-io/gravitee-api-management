@@ -81,8 +81,7 @@ export class ApiV1V2MenuService implements ApiMenuService {
       items: [
         {
           displayName: 'Info',
-          targetRoute: 'management.apis.general',
-          baseRoute: 'management.apis.general',
+          routerLink: '.',
         },
       ],
     };
@@ -118,20 +117,14 @@ export class ApiV1V2MenuService implements ApiMenuService {
     if (this.permissionService.hasAnyMatching(['api-documentation-r'])) {
       documentationMenuItem.tabs.push({
         displayName: 'Pages',
-        targetRoute: 'management.apis.documentation',
-        baseRoute: [
-          'management.apis.documentation',
-          'management.apis.documentationNew',
-          'management.apis.documentationImport',
-          'management.apis.documentationEdit',
-        ],
+        routerLink: './documentation',
+        baseRoute: ['./documentation/new'],
       });
     }
     if (this.permissionService.hasAnyMatching(['api-metadata-r'])) {
       documentationMenuItem.tabs.push({
         displayName: 'Metadata',
-        targetRoute: 'management.apis.metadata',
-        baseRoute: 'management.apis.metadata',
+        routerLink: './metadata',
       });
     }
     if (documentationMenuItem.tabs.length > 0) {

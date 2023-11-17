@@ -15,10 +15,14 @@
  */
 package io.gravitee.rest.api.management.rest.resource.auth;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.el.spel.function.json.JsonPathFunction;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
+import io.gravitee.rest.api.management.rest.model.PayloadInput;
 import io.gravitee.rest.api.management.rest.utils.BlindTrustManager;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType;
@@ -28,11 +32,15 @@ import io.gravitee.rest.api.service.SocialIdentityProviderService;
 import io.gravitee.rest.api.service.builder.JerseyClientBuilder;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
@@ -45,10 +53,12 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import javax.inject.Singleton;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
+import lombok.*;
 import org.glassfish.jersey.internal.util.collection.MultivaluedStringMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -175,9 +185,10 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public Response exchangeAuthorizationCode(
         @PathParam(value = "identity") String identity,
-        @Valid @NotNull final Payload payload,
+        @Valid @NotNull final PayloadInput payloadInput,
         @Context final HttpServletResponse servletResponse
     ) throws IOException {
         SocialIdentityProviderEntity identityProvider = socialIdentityProviderService.findById(
@@ -191,10 +202,11 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
         if (identityProvider != null) {
             // Step 1. Exchange authorization code for access token.
             final MultivaluedStringMap accessData = new MultivaluedStringMap();
-            accessData.add(CLIENT_ID_KEY, payload.getClientId());
-            accessData.add(REDIRECT_URI_KEY, payload.getRedirectUri());
+            accessData.add(CLIENT_ID_KEY, payloadInput.getClient_id());
+            accessData.add(REDIRECT_URI_KEY, payloadInput.getRedirect_uri());
             accessData.add(CLIENT_SECRET, identityProvider.getClientSecret());
-            accessData.add(CODE_KEY, payload.getCode());
+            accessData.add(CODE_KEY, payloadInput.getCode());
+            accessData.add(CODE_VERIFIER_KEY, payloadInput.getCode_verifier());
             accessData.add(GRANT_TYPE_KEY, AUTH_CODE);
 
             Response response = client
@@ -207,7 +219,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
                 final Map<String, Object> responseEntity = getResponseEntity(response);
                 final String accessToken = (String) responseEntity.get(ACCESS_TOKEN_PROPERTY);
                 final String idToken = (String) responseEntity.get(ID_TOKEN_PROPERTY);
-                return authenticateUser(identityProvider, servletResponse, accessToken, idToken, payload.getState());
+                return authenticateUser(identityProvider, servletResponse, accessToken, idToken, payloadInput.getState());
             } else {
                 LOGGER.error(
                     "Exchange authorization code failed with status {}: {}\n{}",

@@ -36,7 +36,7 @@
         </div>
 
         <div class="api-creation-get-started__row__card__action">
-          <button mat-flat-button color="primary" (click)="goToApiv4CreationWizard()" data-testid="api_create_v4_button">
+          <button mat-flat-button color="primary" [routerLink]="'./v4'" data-testid="api_create_v4_button">
             Create <mat-icon svgIcon="gio:right-circle"></mat-icon>
           </button>
         </div>
@@ -83,7 +83,7 @@
         </div>
 
         <div class="api-creation-get-started__row__card__action">
-          <button mat-stroked-button (click)="goToApiV2CreationWizard()">Create <mat-icon svgIcon="gio:right-circle"></mat-icon></button>
+          <button mat-stroked-button [routerLink]="'./v2'">Create <mat-icon svgIcon="gio:right-circle"></mat-icon></button>
         </div>
       </div>
 

@@ -13,9 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const ContextualDocComponent: ng.IComponentOptions = {
-  template: require('./contextual-doc.component.html'),
-  controller: 'ContextualDocController',
-};
 
-export default ContextualDocComponent;
+import { Component, ElementRef, EventEmitter, Injector, Input, Output } from '@angular/core';
+import { UpgradeComponent } from '@angular/upgrade/static';
+
+@Component({
+  template: '',
+  selector: 'gio-contextual-doc',
+  host: {
+    class: 'bootstrap',
+  },
+})
+export class ContextualDocComponentComponent extends UpgradeComponent {
+  @Input()
+  public contextualDocumentationPage: string;
+
+  @Output()
+  onClose!: EventEmitter<void>;
+  constructor(elementRef: ElementRef, injector: Injector) {
+    super('gvContextualDoc', elementRef, injector);
+  }
+}

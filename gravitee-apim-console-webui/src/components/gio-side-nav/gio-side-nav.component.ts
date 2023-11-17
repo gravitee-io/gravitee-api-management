@@ -13,23 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnInit } from '@angular/core';
-import { StateService } from '@uirouter/core';
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { GioLicenseService, LicenseOptions, SelectorItem } from '@gravitee/ui-particles-angular';
 import { map } from 'rxjs/operators';
-import { Observable } from 'rxjs';
-import { castArray } from 'lodash';
+import { Observable, Subject } from 'rxjs';
+import { ActivatedRoute, Router } from '@angular/router';
 
-import { CurrentUserService, PortalSettingsService, UIRouterState } from '../../ajs-upgraded-providers';
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
 import { Constants } from '../../entities/Constants';
-import UserService from '../../services/user.service';
-import PortalConfigService from '../../services/portalConfig.service';
 import { ApimFeature, UTMTags } from '../../shared/components/gio-license/gio-license-data';
+import { Environment } from '../../entities/environment/environment';
 
 interface MenuItem {
   icon: string;
-  targetRoute: string;
+  // @Deprecated
+  targetRoute?: string;
+  routerLink?: string;
   baseRoute: string | string[];
   displayName: string;
   permissions?: string[];
@@ -43,28 +42,40 @@ interface MenuItem {
   template: require('./gio-side-nav.component.html'),
   styles: [require('./gio-side-nav.component.scss')],
 })
-export class GioSideNavComponent implements OnInit {
+export class GioSideNavComponent implements OnInit, OnDestroy {
+  private unsubscribe$ = new Subject<void>();
+
   public mainMenuItems: MenuItem[] = [];
   public footerMenuItems: MenuItem[] = [];
 
   public environments: SelectorItem[] = [];
 
+  public currentEnv: Environment;
+
+  public readonly currentEnvironment: Environment;
+
   constructor(
-    @Inject(UIRouterState) private readonly ajsState: StateService,
     private readonly permissionService: GioPermissionService,
-    @Inject(PortalSettingsService) private readonly portalConfigService: PortalConfigService,
-    @Inject(CurrentUserService) private readonly currentUserService: UserService,
     @Inject('Constants') private readonly constants: Constants,
     private readonly gioLicenseService: GioLicenseService,
+    private readonly router: Router,
+    private readonly activatedRoute: ActivatedRoute,
   ) {}
 
   ngOnInit(): void {
+    this.environments = this.activatedRoute.snapshot.data.environmentResolver.environments.map((env) => ({
+      value: env.id,
+      displayValue: env.name,
+    }));
+    this.currentEnv = this.activatedRoute.snapshot.data.environmentResolver.currentEnvironment;
+
     this.mainMenuItems = this.buildMainMenuItems();
     this.footerMenuItems = this.buildFooterMenuItems();
-    this.environments = this.constants.org.environments.map((env) => ({ value: env.id, displayValue: env.name }));
+  }
 
-    // FIXME: to remove after migration. This allow to get the current environment when user "Go back to APIM" from organisation settings
-    this.updateCurrentEnv();
+  ngOnDestroy(): void {
+    this.unsubscribe$.next();
+    this.unsubscribe$.complete();
   }
 
   private buildMainMenuItems(): MenuItem[] {
@@ -82,10 +93,11 @@ export class GioSideNavComponent implements OnInit {
     const alertEngineIconRight$ = this.getMenuItemIconRight$(alertEngineLicenseOptions);
 
     const mainMenuItems: MenuItem[] = [
-      { icon: 'gio:home', targetRoute: 'home', baseRoute: 'home', displayName: 'Dashboard' },
+      { icon: 'gio:home', routerLink: './home', baseRoute: 'home', displayName: 'Dashboard' },
       {
         icon: 'gio:upload-cloud',
         targetRoute: 'management.apis-list',
+        routerLink: './apis',
         baseRoute: ['management.apis-list', 'management.apis', 'management.apis-new', 'management.apis-new-v2', 'management.apis-new-v4'],
         displayName: 'APIs',
       },
@@ -191,6 +203,7 @@ export class GioSideNavComponent implements OnInit {
       {
         icon: 'gio:building',
         targetRoute: 'organization.settings',
+        routerLink: '/_organization',
         baseRoute: 'organization',
         displayName: 'Organization',
         permissions: ['organization-settings-r'],
@@ -202,21 +215,9 @@ export class GioSideNavComponent implements OnInit {
     return menuItems.filter((item) => !item.permissions || this.permissionService.hasAnyMatching(item.permissions));
   }
 
-  isActive(baseRoute: string | string[]): boolean {
-    return castArray(baseRoute).some((baseRoute) => this.ajsState.includes(baseRoute));
-  }
-
-  updateCurrentEnv(): void {
-    this.portalConfigService.get().then((response) => {
-      this.constants.env.settings = response.data;
-    });
-  }
-
   changeCurrentEnv($event: string): void {
     localStorage.setItem('gv-last-environment-loaded', $event);
 
-    this.currentUserService.refreshEnvironmentPermissions().then(() => {
-      this.ajsState.go('management', { environmentId: $event }, { reload: true });
-    });
+    this.router.navigate(['env', $event]);
   }
 }

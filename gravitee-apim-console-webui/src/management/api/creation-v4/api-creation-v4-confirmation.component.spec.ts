@@ -21,20 +21,16 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { MatCardHarness } from '@angular/material/card/testing';
+import { ActivatedRoute } from '@angular/router';
 
 import { ApiCreationV4ConfirmationComponent } from './api-creation-v4-confirmation.component';
 import { ApiCreationV4Module } from './api-creation-v4.module';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
-import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { Api, fakeApiV4 } from '../../../entities/management-api-v2';
 
 describe('ApiCreationV4ConfirmationComponent', () => {
   const API_ID = 'api-id';
-
-  const fakeAjsState = {
-    go: jest.fn(),
-  };
 
   let fixture: ComponentFixture<ApiCreationV4ConfirmationComponent>;
   let rootLoader: HarnessLoader;
@@ -44,8 +40,16 @@ describe('ApiCreationV4ConfirmationComponent', () => {
     await TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiCreationV4Module, MatIconTestingModule],
       providers: [
-        { provide: UIRouterState, useValue: fakeAjsState },
-        { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            snapshot: {
+              params: {
+                apiId: API_ID,
+              },
+            },
+          },
+        },
       ],
     })
       .overrideProvider(InteractivityChecker, {

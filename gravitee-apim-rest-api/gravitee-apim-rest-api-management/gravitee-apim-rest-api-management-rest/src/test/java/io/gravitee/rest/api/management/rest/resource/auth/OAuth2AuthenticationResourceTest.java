@@ -17,7 +17,7 @@ package io.gravitee.rest.api.management.rest.resource.auth;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static jakarta.ws.rs.client.Entity.json;
+import static jakarta.ws.rs.client.Entity.form;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -35,7 +35,6 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.el.exceptions.ExpressionEvaluationException;
-import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.management.rest.model.TokenEntity;
 import io.gravitee.rest.api.management.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.*;
@@ -48,9 +47,7 @@ import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.EmailRequiredException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
-import jakarta.ws.rs.core.HttpHeaders;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
@@ -204,9 +201,9 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
 
         // -- CALL
 
-        AbstractAuthenticationResource.Payload payload = createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE");
+        final MultivaluedMap<String, String> payload = createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE");
 
-        Response response = orgTarget().request().post(json(payload));
+        Response response = orgTarget().request().post(form(payload));
 
         // -- VERIFY
         verify(userService, times(1)).connect(any(), eq(userEntity.getSourceId()));
@@ -244,13 +241,11 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         assertNull(response.getCookies().get(HttpHeaders.AUTHORIZATION));
     }
 
-    private AbstractAuthenticationResource.Payload createPayload(String clientId, String redirectUri, String code, String state) {
-        AbstractAuthenticationResource.Payload payload = new AbstractAuthenticationResource.Payload();
-        payload.clientId = clientId;
-        payload.redirectUri = redirectUri;
-        payload.code = code;
-        payload.state = state;
-
+    private MultivaluedMap<String, String> createPayload(String clientId, String redirectUri, String code, String state) {
+        final MultivaluedMap<String, String> payload = new MultivaluedHashMap<>();
+        payload.add("client_id", clientId);
+        payload.add("redirect_uri", redirectUri);
+        payload.add("code", code);
         return payload;
     }
 
@@ -277,9 +272,9 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
 
         // -- CALL
 
-        AbstractAuthenticationResource.Payload payload = createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE");
+        final MultivaluedMap<String, String> payload = createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE");
 
-        Response response = orgTarget().request().post(json(payload));
+        Response response = orgTarget().request().post(form(payload));
 
         // -- VERIFY
         verify(userService, times(1)).createOrUpdateUserFromSocialIdentityProvider(any(), any(), any());
@@ -338,9 +333,9 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
 
         // -- CALL
 
-        AbstractAuthenticationResource.Payload payload = createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE");
+        final MultivaluedMap<String, String> payload = createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE");
 
-        Response response = orgTarget().request().post(json(payload));
+        Response response = orgTarget().request().post(form(payload));
 
         // -- VERIFY
         verify(userService, times(0)).createOrUpdateUserFromSocialIdentityProvider(any(), any(), any());
@@ -369,9 +364,9 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         when(userService.createOrUpdateUserFromSocialIdentityProvider(any(), any(), any())).thenThrow(new EmailRequiredException("email"));
         // -- CALL
 
-        AbstractAuthenticationResource.Payload payload = createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE");
+        final MultivaluedMap<String, String> payload = createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE");
 
-        Response response = orgTarget().request().post(json(payload));
+        Response response = orgTarget().request().post(form(payload));
 
         // -- VERIFY
         verify(userService, times(1)).createOrUpdateUserFromSocialIdentityProvider(any(), any(), any());
@@ -394,12 +389,12 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
 
     private void mockExchangeAuthorizationCodeForAccessToken() throws IOException {
         String tokenRequestBody =
-            "" +
             "code=CoDe&" +
             "grant_type=authorization_code&" +
             "redirect_uri=http%3A%2F%2Flocalhost%2Fcallback&" +
             "client_secret=the_client_secret&" +
-            "client_id=the_client_id";
+            "client_id=the_client_id&" +
+            "code_verifier=";
 
         stubFor(
             post("/token")
@@ -474,9 +469,9 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
 
         // -- CALL
 
-        AbstractAuthenticationResource.Payload payload = createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE");
+        final MultivaluedMap<String, String> payload = createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE");
 
-        Response response = orgTarget().request().post(json(payload));
+        Response response = orgTarget().request().post(form(payload));
 
         // -- VERIFY
         verify(userService, times(1)).createOrUpdateUserFromSocialIdentityProvider(any(), refEq(identityProvider), anyString());
@@ -522,9 +517,9 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
 
         // -- CALL
 
-        AbstractAuthenticationResource.Payload payload = createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE");
+        final MultivaluedMap<String, String> payload = createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE");
 
-        Response response = orgTarget().request().post(json(payload));
+        Response response = orgTarget().request().post(form(payload));
 
         // -- VERIFY
         verify(userService, times(1)).createOrUpdateUserFromSocialIdentityProvider(any(), refEq(identityProvider), anyString());
@@ -581,9 +576,9 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
 
         // -- CALL
 
-        AbstractAuthenticationResource.Payload payload = createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE");
+        final MultivaluedMap<String, String> payload = createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE");
 
-        Response response = orgTarget().request().post(json(payload));
+        Response response = orgTarget().request().post(form(payload));
 
         // -- VERIFY
         verify(userService, times(1)).createOrUpdateUserFromSocialIdentityProvider(any(), refEq(identityProvider), anyString());
@@ -624,9 +619,9 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
 
         // -- CALL
 
-        AbstractAuthenticationResource.Payload payload = createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE");
+        final MultivaluedMap<String, String> payload = createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE");
 
-        Response response = orgTarget().request().post(json(payload));
+        Response response = orgTarget().request().post(form(payload));
 
         // -- VERIFY
         verify(userService, times(1)).createOrUpdateUserFromSocialIdentityProvider(any(), any(), any());

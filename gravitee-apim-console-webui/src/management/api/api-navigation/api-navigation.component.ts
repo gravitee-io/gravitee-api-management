@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { StateService } from '@uirouter/core';
-import { IScope } from 'angular';
 import { castArray, flatMap } from 'lodash';
-import { map, takeUntil, tap } from 'rxjs/operators';
+import { filter, map, startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { GIO_DIALOG_WIDTH, GioBannerTypes, GioMenuService } from '@gravitee/ui-particles-angular';
 import { Observable, Subject } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
+import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 
 import {
   ApiConfirmDeploymentDialogComponent,
@@ -32,9 +31,7 @@ import { MenuGroupItem, MenuItem } from './MenuGroupItem';
 import { ApiV4MenuService } from './api-v4-menu.service';
 import { ApiV1V2MenuService } from './api-v1-v2-menu.service';
 
-import { AjsRootScope, CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
-import UserService from '../../../services/user.service';
 import { Constants } from '../../../entities/Constants';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import { Api } from '../../../entities/management-api-v2';
@@ -65,7 +62,7 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
   public bannerState: string;
   public hasBreadcrumb = false;
   public breadcrumbItems: string[] = [];
-  public banners$: Observable<TopBanner[]> = this.apiV2Service.getLastApiFetch(this.ajsStateParams.apiId).pipe(
+  public banners$: Observable<TopBanner[]> = this.apiV2Service.getLastApiFetch(this.activatedRoute.snapshot.params.apiId).pipe(
     map((api) => {
       const banners: TopBanner[] = [];
 
@@ -83,7 +80,6 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
                 .migrateApiToPolicyStudio(this.currentApi.id)
                 .pipe(takeUntil(this.unsubscribe$))
                 .subscribe({
-                  next: () => this.ajsState.reload(),
                   error: ({ error }) => {
                     this.snackBarService.error(error.message);
                   },
@@ -114,9 +110,7 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
                 })
                 .afterClosed()
                 .pipe(takeUntil(this.unsubscribe$))
-                .subscribe(() => {
-                  this.ajsState.reload();
-                });
+                .subscribe();
             },
           },
         });
@@ -139,9 +133,7 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
                 })
                 .afterClosed()
                 .pipe(takeUntil(this.unsubscribe$))
-                .subscribe(() => {
-                  this.ajsState.reload();
-                });
+                .subscribe();
             },
           },
         });
@@ -164,9 +156,7 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
                 })
                 .afterClosed()
                 .pipe(takeUntil(this.unsubscribe$))
-                .subscribe(() => {
-                  this.ajsState.reload();
-                });
+                .subscribe();
             },
           },
         });
@@ -230,9 +220,7 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
                       )
                       .afterClosed()
                       .pipe(takeUntil(this.unsubscribe$))
-                      .subscribe(() => {
-                        this.ajsState.reload();
-                      });
+                      .subscribe();
                   },
                 },
               }
@@ -256,12 +244,10 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
 
   private unsubscribe$ = new Subject();
   constructor(
-    @Inject(UIRouterState) private readonly ajsState: StateService,
-    @Inject(UIRouterStateParams) private readonly ajsStateParams,
+    private readonly router: Router,
+    private readonly activatedRoute: ActivatedRoute,
     private readonly permissionService: GioPermissionService,
-    @Inject(CurrentUserService) private readonly currentUserService: UserService,
     @Inject('Constants') private readonly constants: Constants,
-    @Inject(AjsRootScope) private readonly ajsRootScope: IScope,
     private readonly gioMenuService: GioMenuService,
     private readonly apiV2Service: ApiV2Service,
     private readonly legacyApiService: ApiService,
@@ -279,29 +265,26 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
     this.bannerState = localStorage.getItem('gv-api-navigation-banner');
 
     this.apiV2Service
-      .getLastApiFetch(this.ajsStateParams.apiId)
+      .getLastApiFetch(this.activatedRoute.snapshot.params.apiId)
       .pipe(
         tap((api) => (this.currentApi = api)),
+        tap((api) => {
+          const menu = api.definitionVersion !== 'V4' ? this.apiNgV1V2MenuService.getMenu(api) : this.apiNgV4MenuService.getMenu();
+          this.groupItems = menu.groupItems;
+          this.subMenuItems = menu.subMenuItems;
+
+          this.breadcrumbItems = this.computeBreadcrumbItems();
+        }),
+        switchMap(() => this.router.events),
+        filter((event) => event instanceof NavigationEnd),
+        map((event: NavigationEnd) => event),
+        startWith(this.activatedRoute.snapshot),
+        tap(() => {
+          this.selectedItemWithTabs = this.findMenuItemWithTabs();
+        }),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe((api) => {
-        const menu = api.definitionVersion !== 'V4' ? this.apiNgV1V2MenuService.getMenu(api) : this.apiNgV4MenuService.getMenu();
-        this.groupItems = menu.groupItems;
-        this.subMenuItems = menu.subMenuItems;
-
-        this.selectedItemWithTabs = this.findMenuItemWithTabs();
-        this.breadcrumbItems = this.computeBreadcrumbItems();
-
-        this.ajsRootScope.$on('$locationChangeStart', () => {
-          this.selectedItemWithTabs = this.findMenuItemWithTabs();
-        });
-        this.ajsRootScope.$on('$locationChangeSuccess', () => {
-          const contentDiv = document.getElementsByClassName('api-navigation__content');
-          if (contentDiv.length > 0) {
-            contentDiv.item(0).scrollIntoView();
-          }
-        });
-      });
+      .subscribe();
   }
 
   ngOnDestroy() {
@@ -326,12 +309,24 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
     return items.filter((item) => item.tabs).find((item) => this.isTabActive(item.tabs));
   }
 
-  isActive(baseRoute: MenuItem['baseRoute']): boolean {
-    return castArray(baseRoute).some((baseRoute) => this.ajsState.includes(baseRoute));
+  isActive(item: MenuItem): boolean {
+    if (!item.routerLink) {
+      return false;
+    }
+    return [item.routerLink, ...castArray(item.baseRoute)]
+      .filter((r) => !!r)
+      .some((routerLink) => {
+        return this.router.isActive(this.router.createUrlTree([routerLink], { relativeTo: this.activatedRoute }), {
+          paths: 'exact',
+          queryParams: 'subset',
+          fragment: 'ignored',
+          matrixParams: 'ignored',
+        });
+      });
   }
 
   isTabActive(tabs: MenuItem[]): boolean {
-    return flatMap(tabs, (tab) => tab.baseRoute).some((baseRoute) => this.ajsState.includes(baseRoute));
+    return flatMap(tabs, (tab) => tab).some((tab) => this.isActive(tab));
   }
 
   public computeBreadcrumbItems(): string[] {
@@ -339,7 +334,7 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
 
     this.groupItems.forEach((groupItem) => {
       groupItem.items.forEach((item) => {
-        if (this.isActive(item.baseRoute)) {
+        if (this.isActive(item)) {
           breadcrumbItems.push(groupItem.title);
           breadcrumbItems.push(item.displayName);
         } else if (item.tabs && this.isTabActive(item.tabs)) {

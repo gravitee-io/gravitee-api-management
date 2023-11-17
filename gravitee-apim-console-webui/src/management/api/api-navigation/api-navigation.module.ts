@@ -22,6 +22,7 @@ import {
   GioIconsModule,
   GioLicenseModule,
   GioLoaderModule,
+  GioMenuModule,
   GioSubmenuModule,
 } from '@gravitee/ui-particles-angular';
 import { MatButtonModule } from '@angular/material/button';
@@ -34,6 +35,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { RouterModule } from '@angular/router';
 
 import { ApiReviewDialogComponent } from './api-review-dialog/api-review-dialog.component';
 import { ApiConfirmDeploymentDialogComponent } from './api-confirm-deployment-dialog/api-confirm-deployment-dialog.component';
@@ -63,6 +65,8 @@ import { ApiNavigationDisabledComponent } from './api-navigation-disabled/api-na
     GioLicenseModule,
     MatSnackBarModule,
     UIRouterModule,
+    RouterModule,
+    GioMenuModule,
   ],
   declarations: [
     ApiNavigationComponent,

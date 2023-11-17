@@ -36,7 +36,7 @@ describe('GioLicenseBannerModule', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       declarations: [TestComponent],
-      imports: [NoopAnimationsModule, GioLicenseBannerModule, GioHttpTestingModule],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, GioLicenseBannerModule, GioHttpTestingModule],
     });
     fixture = TestBed.createComponent(TestComponent);
   });

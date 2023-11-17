@@ -17,7 +17,6 @@ import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testin
 import { HarnessLoader, parallel } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatIconHarness, MatIconTestingModule } from '@angular/material/icon/testing';
-import { MatButtonHarness } from '@angular/material/button/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatTableHarness } from '@angular/material/table/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
@@ -29,16 +28,14 @@ import { ApiListModule } from './api-list.module';
 import { ApiListComponent } from './api-list.component';
 
 import { GioUiRouterTestingModule } from '../../../shared/testing/gio-uirouter-testing-module';
-import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
+import { CurrentUserService } from '../../../ajs-upgraded-providers';
 import { User as DeprecatedUser } from '../../../entities/user';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { GioTableWrapperHarness } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.harness';
-import { fakePagedResult, fakeApiV2, fakeApiV4, ApiLifecycleState, Api, ApiState, OriginEnum } from '../../../entities/management-api-v2';
+import { fakePagedResult, fakeApiV2, fakeApiV4, Api } from '../../../entities/management-api-v2';
 
 describe('ApisListComponent', () => {
-  const fakeUiRouter = { go: jest.fn() };
   let fixture: ComponentFixture<ApiListComponent>;
-  let apiListComponent: ApiListComponent;
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
   const fakeConstants = CONSTANTS_TESTING;
@@ -63,15 +60,12 @@ describe('ApisListComponent', () => {
           }),
         ],
         providers: [
-          { provide: UIRouterState, useValue: fakeUiRouter },
-          { provide: UIRouterStateParams, useValue: {} },
           { provide: CurrentUserService, useValue: { currentUser } },
           { provide: 'Constants', useValue: fakeConstants },
         ],
       }).compileComponents();
 
       fixture = TestBed.createComponent(ApiListComponent);
-      apiListComponent = await fixture.componentInstance;
       httpTestingController = TestBed.inject(HttpTestingController);
     });
 
@@ -396,46 +390,6 @@ describe('ApisListComponent', () => {
       expectApisListRequest(apis, 'name');
     }));
 
-    describe('onAddApiClick', () => {
-      beforeEach(fakeAsync(() => initComponent([fakeApiV2()])));
-      it('should navigate to new apis page on click to add button', async () => {
-        const routerSpy = jest.spyOn(fakeUiRouter, 'go');
-
-        await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="add-api"]' })).then((button) => button.click());
-
-        expect(routerSpy).toHaveBeenCalledWith('management.apis-new');
-      });
-    });
-
-    describe('onEditApiClick', () => {
-      beforeEach(fakeAsync(() => initComponent([fakeApiV2()])));
-      it('should navigate to new apis page on click to add button', () => {
-        const routerSpy = jest.spyOn(fakeUiRouter, 'go');
-        const api = {
-          id: 'api-id',
-          name: 'api#1',
-          version: '1.0.0',
-          contextPath: ['/api-1'],
-          tags: null,
-          owner: 'admin',
-          ownerEmail: 'admin@gio.com',
-          picture: null,
-          state: 'CREATED' as ApiState,
-          lifecycleState: 'PUBLISHED' as ApiLifecycleState,
-          workflowState: 'REVIEW_OK',
-          visibility: { label: 'PUBLIC', icon: 'public' },
-          origin: 'management' as OriginEnum,
-          readonly: false,
-          definitionVersion: { label: 'v2', icon: '' },
-          targetRoute: 'route',
-        };
-
-        apiListComponent.onEditActionClicked(api);
-
-        expect(routerSpy).toHaveBeenCalledWith('route', { apiId: api.id });
-      });
-    });
-
     async function initComponent(apis: Api[]) {
       expectApisListRequest(apis);
       loader = TestbedHarnessEnvironment.loader(fixture);
@@ -460,15 +414,12 @@ describe('ApisListComponent', () => {
           }),
         ],
         providers: [
-          { provide: UIRouterState, useValue: fakeUiRouter },
-          { provide: UIRouterStateParams, useValue: {} },
           { provide: CurrentUserService, useValue: { currentUser } },
           { provide: 'Constants', useValue: withQualityEnabled },
         ],
       }).compileComponents();
 
       fixture = TestBed.createComponent(ApiListComponent);
-      apiListComponent = await fixture.componentInstance;
       httpTestingController = TestBed.inject(HttpTestingController);
     });
 

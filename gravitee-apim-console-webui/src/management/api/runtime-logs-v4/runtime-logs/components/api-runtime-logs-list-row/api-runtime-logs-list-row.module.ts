@@ -16,7 +16,6 @@
 import { NgModule } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { UIRouterModule } from '@uirouter/angular';
-import { BrowserModule } from '@angular/platform-browser';
 import { CommonModule } from '@angular/common';
 
 import { ApiRuntimeLogsListRowComponent } from './api-runtime-logs-list-row.component';
@@ -24,6 +23,6 @@ import { ApiRuntimeLogsListRowComponent } from './api-runtime-logs-list-row.comp
 @NgModule({
   declarations: [ApiRuntimeLogsListRowComponent],
   exports: [ApiRuntimeLogsListRowComponent],
-  imports: [CommonModule, MatButtonModule, BrowserModule, UIRouterModule],
+  imports: [CommonModule, MatButtonModule, UIRouterModule],
 })
 export class ApiRuntimeLogsListRowModule {}

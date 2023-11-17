@@ -15,6 +15,7 @@
  */
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { NgModule } from '@angular/core';
+import { RouterTestingModule } from '@angular/router/testing';
 
 import { AjsRootScope } from '../../ajs-upgraded-providers';
 import { Constants } from '../../entities/Constants';
@@ -49,7 +50,7 @@ export const CONSTANTS_TESTING: Constants = {
 };
 
 @NgModule({
-  imports: [HttpClientTestingModule],
+  imports: [HttpClientTestingModule, RouterTestingModule.withRoutes([{ path: '**', redirectTo: '' }])],
   providers: [
     {
       provide: 'Constants',
@@ -61,4 +62,5 @@ export const CONSTANTS_TESTING: Constants = {
     },
   ],
 })
+// Todo rename to GioTestingModule
 export class GioHttpTestingModule {}

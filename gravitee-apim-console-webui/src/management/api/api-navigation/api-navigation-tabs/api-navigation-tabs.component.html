@@ -26,15 +26,17 @@
 <nav mat-tab-nav-bar class="api-navigation-tabs">
   <ng-container *ngFor="let menuItem of this.tabMenuItems">
     <a
-      *ngIf="menuItem.targetRoute !== 'DISABLED'"
+      *ngIf="menuItem.routerLink !== 'DISABLED'"
       mat-tab-link
-      (click)="navigateTo(menuItem.targetRoute)"
-      [active]="isActive(menuItem.baseRoute)"
+      routerLinkActive
+      #rla="routerLinkActive"
+      [routerLink]="menuItem.routerLink"
+      [active]="rla.isActive"
       class="api-navigation-tabs__link"
       >{{ menuItem.displayName }}</a
     >
     <a
-      *ngIf="menuItem.targetRoute === 'DISABLED'"
+      *ngIf="menuItem.routerLink === 'DISABLED'"
       mat-tab-link
       matTooltip="Coming soon for V4 APIs"
       matTooltipPosition="below"

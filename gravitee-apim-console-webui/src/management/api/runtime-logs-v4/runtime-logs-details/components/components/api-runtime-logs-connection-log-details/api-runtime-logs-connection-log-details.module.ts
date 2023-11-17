@@ -19,7 +19,6 @@ import { MatIconModule } from '@angular/material/icon';
 import { GioIconsModule } from '@gravitee/ui-particles-angular';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatTabsModule } from '@angular/material/tabs';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { ApiRuntimeLogsConnectionLogDetailsComponent } from './api-runtime-logs-connection-log-details.component';
 import { BodyAccordionModule } from './components/response-body-accordion';
@@ -27,6 +26,6 @@ import { BodyAccordionModule } from './components/response-body-accordion';
 @NgModule({
   declarations: [ApiRuntimeLogsConnectionLogDetailsComponent],
   exports: [ApiRuntimeLogsConnectionLogDetailsComponent],
-  imports: [CommonModule, BrowserAnimationsModule, MatExpansionModule, MatIconModule, GioIconsModule, MatTabsModule, BodyAccordionModule],
+  imports: [CommonModule, MatExpansionModule, MatIconModule, GioIconsModule, MatTabsModule, BodyAccordionModule],
 })
 export class ApiRuntimeLogsConnectionLogDetailsModule {}

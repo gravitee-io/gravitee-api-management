@@ -22,6 +22,7 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { set } from 'lodash';
+import { Router } from '@angular/router';
 
 import { ApiCreationV4Component } from './api-creation-v4.component';
 import { Step1ApiDetailsHarness } from './steps/step-1-api-details/step-1-api-details.harness';
@@ -38,7 +39,6 @@ import { Step2Entrypoints0ArchitectureHarness } from './steps/step-2-entrypoints
 import { ApiCreationStepperMenuHarness } from './components/api-creation-stepper-menu/api-creation-stepper-menu.harness';
 import { Step5SummaryHarness } from './steps/step-5-summary/step-5-summary.harness';
 
-import { UIRouterState } from '../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { PortalSettings } from '../../../entities/portal/portalSettings';
 import {
@@ -56,14 +56,11 @@ import { fakeRestrictedDomains } from '../../../entities/restricted-domain/restr
 describe('ApiCreationV4Component', () => {
   const httpProxyEntrypoint: Partial<ConnectorPlugin>[] = [{ id: 'http-proxy', supportedApiType: 'PROXY', name: 'HTTP Proxy' }];
 
-  const fakeAjsState = {
-    go: jest.fn(),
-  };
-
   let fixture: ComponentFixture<ApiCreationV4Component>;
   let component: ApiCreationV4Component;
   let harnessLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
+  let routerNavigateSpy: jest.SpyInstance;
 
   let enabledReviewMode = false;
 
@@ -71,7 +68,6 @@ describe('ApiCreationV4Component', () => {
     await TestBed.configureTestingModule({
       declarations: [ApiCreationV4Component],
       providers: [
-        { provide: UIRouterState, useValue: fakeAjsState },
         {
           provide: 'Constants',
           useFactory: () => {
@@ -124,6 +120,9 @@ describe('ApiCreationV4Component', () => {
 
     fixture = TestBed.createComponent(ApiCreationV4Component);
     httpTestingController = TestBed.inject(HttpTestingController);
+
+    const router = TestBed.inject(Router);
+    routerNavigateSpy = jest.spyOn(router, 'navigate');
     component = fixture.componentInstance;
     harnessLoader = await TestbedHarnessEnvironment.loader(fixture);
   };
@@ -202,7 +201,7 @@ describe('ApiCreationV4Component', () => {
       expect(step1Harness).toBeDefined();
       await step1Harness.clickExit();
 
-      expect(fakeAjsState.go).toHaveBeenCalled();
+      expect(routerNavigateSpy).toHaveBeenCalled();
     });
 
     it('should cancel exit in confirmation', async () => {
@@ -217,7 +216,7 @@ describe('ApiCreationV4Component', () => {
       await dialogHarness.cancel();
       expect(component.currentStep.group.label).toEqual('API details');
 
-      expect(fakeAjsState.go).not.toHaveBeenCalled();
+      expect(routerNavigateSpy).not.toHaveBeenCalled();
     });
 
     it('should not save data after exiting', async () => {
@@ -233,7 +232,7 @@ describe('ApiCreationV4Component', () => {
       await dialogHarness.confirm();
       expect(component.currentStep.payload).toEqual({});
 
-      expect(fakeAjsState.go).toHaveBeenCalled();
+      expect(routerNavigateSpy).toHaveBeenCalled();
     });
   });
 
@@ -1452,7 +1451,7 @@ describe('ApiCreationV4Component', () => {
 
         expectCallsForApiDeployment(API_ID, PLAN_ID);
 
-        expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis-new-v4-confirmation', { apiId: API_ID });
+        expect(routerNavigateSpy).toHaveBeenCalledWith(['../..', 'my-api', 'confirmation'], expect.anything());
       });
     });
 

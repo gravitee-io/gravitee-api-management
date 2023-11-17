@@ -17,7 +17,7 @@
 /**
  * Provider to temporarily ensure compatibility between AngularJs and Angular
  */
-import { InjectionToken } from '@angular/core';
+import { InjectionToken, Injector } from '@angular/core';
 import { IScope } from 'angular';
 
 export const UIRouterState = new InjectionToken('UIRouterState');
@@ -73,4 +73,10 @@ export const portalSettingsProvider = {
   provide: PortalSettingsService,
   useFactory: portalSettingsServiceFactory,
   deps: ['$injector'],
+};
+
+export const ajsScopeProvider = {
+  deps: ['$injector'],
+  provide: '$scope',
+  useFactory: (injector: Injector) => injector.get('$rootScope').$new(),
 };

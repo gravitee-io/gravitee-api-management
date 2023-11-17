@@ -18,19 +18,19 @@
 <div class="org-navigation">
   <div class="org-navigation__nav">
     <gio-submenu theme="light" static="true">
-      <button gioSubmenuTitle mat-button aria-label="Organization Settings" *ngIf="hasGoBackButton" (click)="goBack()">
+      <button gioSubmenuTitle mat-button aria-label="Organization Settings" (click)="goBack()">
         <mat-icon svgIcon="gio:arrow-left"></mat-icon>Organization
       </button>
       <ng-container *ngFor="let group of this.groupItems">
         <gio-submenu-group [title]="group.title" *ngIf="group.title" theme="light">
           <ng-container *ngFor="let subItem of group.items">
-            <ng-container *ngIf="subItem?.targetRoute">
-              <a [uiSref]="subItem?.targetRoute">
+            <ng-container *ngIf="subItem?.routerLink">
+              <a routerLinkActive #rla="routerLinkActive" [routerLink]="subItem?.routerLink">
                 <gio-submenu-item
                   tabIndex="1"
                   [gioLicense]="subItem?.licenseOptions"
                   [iconRight]="subItem?.iconRight$ | async"
-                  [active]="isActive(subItem?.targetRoute)"
+                  [active]="rla.isActive"
                   >{{ subItem?.displayName }}
                 </gio-submenu-item>
               </a>
@@ -40,5 +40,7 @@
       </ng-container>
     </gio-submenu>
   </div>
-  <ui-view class="org-navigation__content"></ui-view>
+  <div class="org-navigation__content">
+    <router-outlet></router-outlet>
+  </div>
 </div>

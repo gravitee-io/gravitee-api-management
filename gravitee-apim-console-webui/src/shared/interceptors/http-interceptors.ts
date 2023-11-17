@@ -19,11 +19,17 @@ import { CsrfInterceptor } from './csrf.interceptor';
 import { AccessControlAllowCredentialsInterceptor } from './access-control-allow-credentials.interceptor';
 import { ReplaceEnvInterceptor } from './replace-env.interceptor';
 import { IfMatchEtagInterceptor } from './if-match-etag.interceptor';
+import { HeaderXRequestedWithInterceptor } from './header-x-requested-with.interceptor';
+import { ReCaptchaInterceptor } from './re-captcha.interceptor';
+import { HttpErrorInterceptor } from './http-error.interceptor';
 
 /** Http interceptor providers in outside-in order */
 export const httpInterceptorProviders = [
+  { provide: HTTP_INTERCEPTORS, useClass: HeaderXRequestedWithInterceptor, multi: true },
   { provide: HTTP_INTERCEPTORS, useClass: CsrfInterceptor, multi: true },
   { provide: HTTP_INTERCEPTORS, useClass: AccessControlAllowCredentialsInterceptor, multi: true },
   { provide: HTTP_INTERCEPTORS, useClass: ReplaceEnvInterceptor, multi: true },
   { provide: HTTP_INTERCEPTORS, useExisting: IfMatchEtagInterceptor, multi: true },
+  { provide: HTTP_INTERCEPTORS, useClass: ReCaptchaInterceptor, multi: true },
+  { provide: HTTP_INTERCEPTORS, useClass: HttpErrorInterceptor, multi: true },
 ];

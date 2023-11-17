@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { MatDialog } from '@angular/material/dialog';
-import { StateService } from '@uirouter/core';
+import { ActivatedRoute, Router } from '@angular/router';
 
-import { UIRouterState } from '../../../../../ajs-upgraded-providers';
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
 import { Step2Entrypoints0ArchitectureComponent } from '../step-2-entrypoints/step-2-entrypoints-0-architecture.component';
 
@@ -33,7 +32,8 @@ export class Step1ApiDetailsComponent implements OnInit {
   public form: FormGroup;
 
   constructor(
-    @Inject(UIRouterState) readonly ajsState: StateService,
+    private readonly router: Router,
+    private readonly activatedRoute: ActivatedRoute,
     private readonly formBuilder: FormBuilder,
     private readonly confirmDialog: MatDialog,
     private readonly stepService: ApiCreationStepService,
@@ -66,12 +66,12 @@ export class Step1ApiDetailsComponent implements OnInit {
         .afterClosed()
         .subscribe((confirmed) => {
           if (confirmed) {
-            this.ajsState.go('management.apis-new');
+            this.router.navigate(['..'], { relativeTo: this.activatedRoute });
           }
         });
       return;
     }
-    this.ajsState.go('management.apis-new');
+    this.router.navigate(['..'], { relativeTo: this.activatedRoute });
   }
 
   save() {

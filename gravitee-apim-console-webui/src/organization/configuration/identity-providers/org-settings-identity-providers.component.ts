@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { combineLatest, Subject } from 'rxjs';
 import { filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
-import { StateService } from '@uirouter/core';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 
 import { IdentityProviderService } from '../../../services-ngx/identity-provider.service';
@@ -26,7 +25,6 @@ import { ConsoleSettingsService } from '../../../services-ngx/console-settings.s
 import { ConsoleSettings } from '../../../entities/consoleSettings';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { OrganizationService } from '../../../services-ngx/organization.service';
-import { UIRouterState } from '../../../ajs-upgraded-providers';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { gioTableFilterCollection } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
 
@@ -64,7 +62,6 @@ export class OrgSettingsIdentityProvidersComponent implements OnInit, OnDestroy 
     private readonly organizationService: OrganizationService,
     private readonly snackBarService: SnackBarService,
     private readonly matDialog: MatDialog,
-    @Inject(UIRouterState) private readonly $state: StateService,
   ) {}
 
   ngOnInit() {
@@ -112,10 +109,6 @@ export class OrgSettingsIdentityProvidersComponent implements OnInit, OnDestroy 
         takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.ngOnInit());
-  }
-
-  onEditActionClicked(identityProvider: TableData) {
-    this.$state.go('organization.identity-edit', { id: identityProvider.id });
   }
 
   onActivationToggleActionClicked(identityProvider: TableData) {
@@ -216,9 +209,5 @@ export class OrgSettingsIdentityProvidersComponent implements OnInit, OnDestroy 
       return 'You must create and activate an identity provider to be able to update this setting';
     }
     return null;
-  }
-
-  onAddIdpClicked(): void {
-    this.$state.go('organization.identity-new');
   }
 }

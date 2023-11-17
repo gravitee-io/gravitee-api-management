@@ -33,7 +33,7 @@ import {
   IdentityProviderActivation,
   IdentityProviderListItem,
 } from '../../../entities/identity-provider';
-import { CurrentUserService, UIRouterState } from '../../../ajs-upgraded-providers';
+import { CurrentUserService } from '../../../ajs-upgraded-providers';
 import { User } from '../../../entities/user';
 
 describe('OrgSettingsIdentityProvidersComponent', () => {
@@ -48,15 +48,11 @@ describe('OrgSettingsIdentityProvidersComponent', () => {
   let rootLoader: HarnessLoader;
 
   let httpTestingController: HttpTestingController;
-  const fake$State = {
-    go: jest.fn(),
-  };
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, OrganizationSettingsModule, GioHttpTestingModule],
       providers: [
-        { provide: UIRouterState, useValue: fake$State },
         {
           provide: CurrentUserService,
           useValue: { currentUser },
@@ -150,64 +146,6 @@ describe('OrgSettingsIdentityProvidersComponent', () => {
       httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/identities/gravitee-am`).flush(null);
 
       flushResponseToInitialRequests(consoleSettings, [], []);
-    });
-  });
-
-  describe('onEditActionClicked', () => {
-    it('triggers AngularJS router', async () => {
-      const consoleSettings: ConsoleSettings = {
-        authentication: {
-          localLogin: { enabled: true },
-        },
-      };
-
-      flushResponseToInitialRequests(
-        consoleSettings,
-        [
-          fakeIdentityProviderListItem({
-            id: 'gravitee-am',
-          }),
-        ],
-        [
-          fakeIdentityProviderActivation({
-            identityProvider: 'gravitee-am',
-          }),
-        ],
-      );
-
-      const activateLoginSlideToggle = await getActionButtonWithAriaLabel('Button to edit an identity provider');
-      await activateLoginSlideToggle.click();
-
-      expect(fake$State.go).toHaveBeenCalledWith('organization.identity-edit', { id: 'gravitee-am' });
-    });
-  });
-
-  describe('onAddIdpClicked', () => {
-    it('triggers AngularJS router', async () => {
-      const consoleSettings: ConsoleSettings = {
-        authentication: {
-          localLogin: { enabled: true },
-        },
-      };
-
-      flushResponseToInitialRequests(
-        consoleSettings,
-        [
-          fakeIdentityProviderListItem({
-            id: 'gravitee-am',
-          }),
-        ],
-        [
-          fakeIdentityProviderActivation({
-            identityProvider: 'gravitee-am',
-          }),
-        ],
-      );
-
-      const activateLoginSlideToggle = await loader.getHarness(MatButtonHarness.with({ text: /Add an identity provider/ }));
-      await activateLoginSlideToggle.click();
-
-      expect(fake$State.go).toHaveBeenCalledWith('organization.identity-new');
     });
   });
 

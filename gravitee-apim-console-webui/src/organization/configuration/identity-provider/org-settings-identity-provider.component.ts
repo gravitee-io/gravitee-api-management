@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ChangeDetectorRef, Component, Inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormArray, FormControl, FormGroup, Validators } from '@angular/forms';
-import { StateService } from '@uirouter/angularjs';
 import { cloneDeep, isEmpty } from 'lodash';
 import { combineLatest, EMPTY, Observable, Subject } from 'rxjs';
 import { catchError, distinctUntilChanged, shareReplay, takeUntil, tap } from 'rxjs/operators';
 import { GioLicenseService } from '@gravitee/ui-particles-angular';
+import { ActivatedRoute, Router } from '@angular/router';
 
-import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { Environment } from '../../../entities/environment/environment';
 import { GroupMapping, IdentityProvider, RoleMapping } from '../../../entities/identity-provider';
 import { EnvironmentService } from '../../../services-ngx/environment.service';
@@ -88,8 +87,8 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
     private readonly snackBarService: SnackBarService,
     private readonly changeDetectorRef: ChangeDetectorRef,
     private readonly licenseService: GioLicenseService,
-    @Inject(UIRouterState) private readonly ajsState: StateService,
-    @Inject(UIRouterStateParams) private readonly ajsStateParams,
+    private readonly router: Router,
+    private readonly activatedRoute: ActivatedRoute,
   ) {}
 
   ngOnInit() {
@@ -111,10 +110,10 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
         this.identityProviderFormGroup.markAsUntouched();
       });
 
-    if (this.ajsStateParams.id) {
+    if (this.activatedRoute.snapshot.params.id) {
       this.mode = 'edit';
 
-      combineLatest([this.identityProviderService.get(this.ajsStateParams.id), this.environments$])
+      combineLatest([this.identityProviderService.get(this.activatedRoute.snapshot.params.id), this.environments$])
         .pipe(
           tap(([identityProvider, environments]) => {
             this.identityProviderType = identityProvider.type;
@@ -201,7 +200,7 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
       )
       .subscribe((identityProvider) => {
         if (this.mode === 'new') {
-          this.ajsState.go('organization.identity-edit', { id: identityProvider.id });
+          this.router.navigate(['../', identityProvider.id], { relativeTo: this.activatedRoute });
         } else {
           this.resetComponent();
         }

@@ -22,6 +22,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSortModule } from '@angular/material/sort';
 import { Ng2StateDeclaration, UIRouterModule } from '@uirouter/angular';
+import { RouterModule } from '@angular/router';
 
 import { ApiListComponent } from './api-list.component';
 
@@ -51,6 +52,7 @@ export const states: Ng2StateDeclaration[] = [
     GioTableWrapperModule,
     GioPermissionModule,
     UIRouterModule.forChild({ states }),
+    RouterModule,
   ],
 })
 export class ApiListModule {}

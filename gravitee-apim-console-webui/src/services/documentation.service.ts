@@ -15,16 +15,17 @@
  */
 
 import { IHttpPromise, IPromise } from 'angular';
+import { Injector } from '@angular/core';
 
 import { Constants } from '../entities/Constants';
 
 export class DocumentationQuery {
-  api: string;
-  name: string;
-  type: string;
+  api?: string;
+  name?: string;
+  type?: string;
   homepage?: boolean;
   published?: boolean;
-  parent: string;
+  parent?: string;
   root?: boolean;
   translated?: boolean;
 }
@@ -278,3 +279,9 @@ export class DocumentationService {
   }
 }
 DocumentationService.$inject = ['$http', '$q', 'Constants'];
+
+export const ajsDocumentationServiceProvider = {
+  deps: ['$injector'],
+  provide: 'ajsDocumentationService',
+  useFactory: (injector: Injector) => injector.get('DocumentationService'),
+};

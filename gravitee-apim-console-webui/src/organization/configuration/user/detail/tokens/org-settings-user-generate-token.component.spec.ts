@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
@@ -42,13 +42,6 @@ describe('OrgSettingsUserGenerateTokenComponent', () => {
 
   const userId = 'user-id';
 
-  const matDialogRefMock = {
-    close: jest.fn(),
-  };
-
-  afterEach(() => {
-    matDialogRefMock.close.mockClear();
-  });
   beforeEach(() => {
     const dialogData: OrgSettingsUserGenerateTokenDialogData = {
       userId: userId,
@@ -64,7 +57,6 @@ describe('OrgSettingsUserGenerateTokenComponent', () => {
           provide: MAT_DIALOG_DATA,
           useFactory: () => dialogData,
         },
-        { provide: MatDialogRef, useValue: matDialogRefMock },
       ],
     });
     fixture = TestBed.createComponent(OrgSettingsUserGenerateTokenComponent);
@@ -166,7 +158,7 @@ describe('OrgSettingsUserGenerateTokenComponent', () => {
     it('should return a proper curl example with url starting with /', () => {
       fakeConstants.org.baseURL = '/management/organizations/DEFAULT';
       expect(component.getExampleOfUse(token)).toEqual(
-        `curl -H "Authorization: Bearer A_TOKEN" "http://localhost/management/organizations/DEFAULT/environments/DEFAULT"`,
+        `curl -H "Authorization: Bearer A_TOKEN" "//management/organizations/DEFAULT/environments/DEFAULT"`,
       );
     });
   });

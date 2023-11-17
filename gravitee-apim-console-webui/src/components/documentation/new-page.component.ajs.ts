@@ -17,6 +17,7 @@
 import { StateService } from '@uirouter/core';
 import { IController, IPromise, IScope } from 'angular';
 import * as _ from 'lodash';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { DocumentationQuery, DocumentationService, PageType } from '../../services/documentation.service';
 import NotificationService from '../../services/notification.service';
@@ -32,6 +33,7 @@ class NewPageComponentController implements IController {
   pageResources: any[];
   categoryResources: any[];
   pagesToLink: any[];
+  activatedRoute: ActivatedRoute;
 
   apiId: string;
   error: any;
@@ -48,20 +50,21 @@ class NewPageComponentController implements IController {
     private readonly Constants,
     private $state: StateService,
     private $scope: IPageScope,
+    private readonly ngRouter: Router,
   ) {
-    this.apiId = this.$state.params.apiId;
     this.error = null;
-    this.page = {
-      name: '',
-      type: this.$state.params.type,
-      parentId: this.$state.params.parent,
-      visibility: 'PUBLIC',
-    };
-
     this.$scope.getContentMode = 'inline';
   }
 
   $onInit() {
+    this.apiId = this.activatedRoute.snapshot.params.apiId;
+    this.page = {
+      name: '',
+      type: this.activatedRoute.snapshot.queryParams.type,
+      parentId: this.activatedRoute.snapshot.queryParams.parent,
+      visibility: 'PUBLIC',
+    };
+
     this.foldersById = _.keyBy(this.folders, 'id');
     this.systemFoldersById = _.keyBy(this.systemFolders, 'id');
     const folderSituation = this.DocumentationService.getFolderSituation(this.systemFoldersById, this.foldersById, this.page.parentId);
@@ -69,7 +72,7 @@ class NewPageComponentController implements IController {
     this.pagesToLink = this.DocumentationService.buildPageList(this.pagesToLink, false, folderSituation);
 
     if (this.DocumentationService.supportedTypes(folderSituation).indexOf(this.page.type) < 0) {
-      this.$state.go('management.settings.documentation.list', { parent: this.$state.params.parent });
+      this.$state.go('management.settings.documentation.list', { parent: this.activatedRoute.snapshot.queryParams.parent });
     }
 
     const q = new DocumentationQuery();
@@ -169,7 +172,7 @@ class NewPageComponentController implements IController {
 
   gotoParent() {
     if (this.apiId) {
-      this.$state.go('management.apis.documentation', { apiId: this.apiId, parent: this.$state.params.parent });
+      this.ngRouter.navigate(['..'], { queryParams: { parent: this.$state.params.parent }, relativeTo: this.activatedRoute });
     } else {
       this.$state.go('management.settings.documentation.list', { parent: this.$state.params.parent });
     }
@@ -183,7 +186,7 @@ class NewPageComponentController implements IController {
     }
   }
 }
-NewPageComponentController.$inject = ['NotificationService', 'DocumentationService', 'Constants', '$state', '$scope'];
+NewPageComponentController.$inject = ['NotificationService', 'DocumentationService', 'Constants', '$state', '$scope', 'ngRouter'];
 
 export const DocumentationNewPageComponentAjs: ng.IComponentOptions = {
   bindings: {
@@ -193,6 +196,8 @@ export const DocumentationNewPageComponentAjs: ng.IComponentOptions = {
     pageResources: '<',
     categoryResources: '<',
     pagesToLink: '<',
+    params: '<',
+    activatedRoute: '<',
   },
   template: require('./new-page.html'),
   controller: NewPageComponentController,

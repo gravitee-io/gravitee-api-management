@@ -19,12 +19,12 @@
   <a
     *ngFor="let tab of tabs"
     mat-tab-link
-    [uiSref]="tab.uiSref"
-    uiSrefStatus
-    #uis="uiSrefStatus"
-    [active]="uis.status.active"
+    routerLinkActive
+    #rla="routerLinkActive"
+    [active]="rla.isActive"
+    [routerLink]="tab.routerLink"
     [innerHTML]="tab.label | async"
   >
   </a>
 </nav>
-<ui-view></ui-view>
+<router-outlet></router-outlet>
