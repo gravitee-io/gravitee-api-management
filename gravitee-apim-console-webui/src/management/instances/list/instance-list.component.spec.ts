@@ -16,17 +16,17 @@
 import { ComponentFixture, fakeAsync, TestBed } from '@angular/core/testing';
 import { HarnessLoader, parallel } from '@angular/cdk/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
-import { InstanceListComponent } from './instance-list.component';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
-import { UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { InstanceDetailsModule } from '../instance-details/instance-details.module';
-import { fakeInstance } from '../../../entities/instance/instance.fixture';
 import { MatTableHarness } from '@angular/material/table/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { UIRouterModule } from '@uirouter/angular';
-import { Instance } from '../../../entities/instance/instance';
+
+import { InstanceListComponent } from './instance-list.component';
+
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { UIRouterStateParams } from '../../../ajs-upgraded-providers';
+import { InstanceDetailsModule } from '../instance-details/instance-details.module';
 import { InstanceListItem } from '../../../entities/instance/instanceListItem';
 import { fakeInstanceListItem } from '../../../entities/instance/instanceListItem.fixture';
 
@@ -72,14 +72,29 @@ describe('InstanceListComponent', () => {
       fakeInstanceListItem({
         hostname: 'GW 1',
         state: 'STARTED',
+        ip: '192.168.1.48',
+        port: '8082',
+        last_heartbeat_at: 1700213066567,
+        operating_system_name: 'Mac OS X',
+        tags: ['products', 'stocks', '!international'],
+        tenant: 'europe',
+        version: '4.2.0-SNAPSHOT (build: 123213) revision#123123',
       }),
       fakeInstanceListItem({
         hostname: 'GW 2',
         state: 'STOPPED',
+        ip: '10.10.10.10',
+        port: '8082',
+        last_heartbeat_at: 1700209517057,
+        operating_system_name: 'Linux',
+        version: '4.2.0-SNAPSHOT (build: 1234) revision#1234',
       }),
       fakeInstanceListItem({
         hostname: 'GW 3',
         state: 'UNKNOWN',
+        ip: '10.0.0.1',
+        port: '8082',
+        last_heartbeat_at: 1700126699369,
       }),
     ]);
 
@@ -89,15 +104,33 @@ describe('InstanceListComponent', () => {
     expect(rowCells).toStrictEqual([
       {
         hostname: 'GW 1',
+        version: '4.2.0-SNAPSHOT',
         state: '',
+        lastHeartbeat: 'Nov 17, 2023, 9:24:26 AM',
+        os: 'Mac OS X',
+        'ip-port': '192.168.1.48:8082',
+        tags: 'products, stocks, !international',
+        tenant: 'europe',
       },
       {
         hostname: 'GW 2',
+        version: '4.2.0-SNAPSHOT',
         state: '',
+        lastHeartbeat: 'Nov 17, 2023, 8:25:17 AM',
+        os: 'Linux',
+        'ip-port': '10.10.10.10:8082',
+        tags: '',
+        tenant: '',
       },
       {
         hostname: 'GW 3',
+        version: '3.20.0-SNAPSHOT',
         state: '',
+        lastHeartbeat: 'Nov 16, 2023, 9:24:59 AM',
+        os: 'Linux',
+        'ip-port': '10.0.0.1:8082',
+        tags: '',
+        tenant: '',
       },
     ]);
   }));

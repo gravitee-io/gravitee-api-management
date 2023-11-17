@@ -25,7 +25,17 @@
     <ng-container matColumnDef="hostname">
       <th mat-header-cell *matHeaderCellDef id="hostname">Name</th>
       <td mat-cell *matCellDef="let element">
-        <a [uiSref]="'management.instances.detail.environment'" [uiParams]="{ instanceId: element.id }">{{ element.hostname }}</a>
+        <a [uiSref]="'management.instances.detail.environment'" [uiParams]="{ instanceId: element.id }" title="{{ element.hostname }}">{{
+          element.hostname
+        }}</a>
+      </td>
+    </ng-container>
+
+    <!-- Display version Column -->
+    <ng-container matColumnDef="version">
+      <th mat-header-cell *matHeaderCellDef id="version">Version</th>
+      <td mat-cell *matCellDef="let element">
+        {{ element.version }}
       </td>
     </ng-container>
 
@@ -54,6 +64,44 @@
           size="20"
           svgIcon="gio:question-mark-circle"
         ></mat-icon>
+      </td>
+    </ng-container>
+
+    <!-- Display Last Heartbeat Column -->
+    <ng-container matColumnDef="lastHeartbeat">
+      <th mat-header-cell *matHeaderCellDef id="lastHeartbeat">Last Heartbeat</th>
+      <td mat-cell *matCellDef="let element">
+        {{ element.lastHeartbeat | date : 'medium' }}
+      </td>
+    </ng-container>
+
+    <!-- Display IP and port Column -->
+    <ng-container matColumnDef="ip-port">
+      <th mat-header-cell *matHeaderCellDef id="ip-port">IP and Port</th>
+      <td mat-cell *matCellDef="let element">{{ element.ip }}:{{ element.port }}</td>
+    </ng-container>
+
+    <!-- Display OS Column -->
+    <ng-container matColumnDef="os">
+      <th mat-header-cell *matHeaderCellDef id="os">OS</th>
+      <td mat-cell *matCellDef="let element">
+        {{ element.os }}
+      </td>
+    </ng-container>
+
+    <!-- Display Tenant Column -->
+    <ng-container matColumnDef="tenant">
+      <th mat-header-cell *matHeaderCellDef id="tenant">Tenant</th>
+      <td mat-cell *matCellDef="let element">
+        {{ element.tenant }}
+      </td>
+    </ng-container>
+
+    <!-- Display Tags Column -->
+    <ng-container matColumnDef="tags">
+      <th mat-header-cell *matHeaderCellDef id="tags">Sharding Tags</th>
+      <td mat-cell *matCellDef="let element">
+        {{ element.tags }}
       </td>
     </ng-container>
 
