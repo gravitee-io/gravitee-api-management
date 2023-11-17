@@ -26,6 +26,7 @@ import io.gravitee.gateway.reactive.standalone.vertx.TcpProtocolVerticle;
 import io.gravitee.node.api.server.DefaultServerManager;
 import io.gravitee.node.api.server.ServerManager;
 import io.gravitee.node.certificates.KeyStoreLoaderManager;
+import io.gravitee.node.certificates.TrustStoreLoaderManager;
 import io.gravitee.node.vertx.server.VertxServer;
 import io.gravitee.node.vertx.server.VertxServerFactory;
 import io.gravitee.node.vertx.server.VertxServerOptions;
@@ -55,6 +56,7 @@ public class VertxReactorConfiguration {
     public ServerManager serverManager(
         VertxServerFactory<VertxServer<?, VertxServerOptions>, VertxServerOptions> serverFactory,
         Environment environment,
+        TrustStoreLoaderManager trustStoreLoaderManager,
         KeyStoreLoaderManager keyStoreLoaderManager
     ) {
         int counter = 0;
@@ -66,7 +68,7 @@ public class VertxReactorConfiguration {
 
             while ((environment.getProperty(prefix + ".type")) != null) {
                 final VertxServerOptions options = VertxServerOptions
-                    .builder(environment, prefix, keyStoreLoaderManager)
+                    .builder(environment, prefix, keyStoreLoaderManager, trustStoreLoaderManager)
                     .defaultPort(Objects.equals(environment.getProperty("%s.type".formatted(prefix)), TCP_PREFIX) ? TCP_DEFAULT_PORT : 8082)
                     .build();
                 serverManager.register(serverFactory.create(options));
@@ -79,6 +81,7 @@ public class VertxReactorConfiguration {
                 .defaultPort(8082)
                 .prefix(HTTP_PREFIX)
                 .keyStoreLoaderManager(keyStoreLoaderManager)
+                .trustStoreLoaderManager(trustStoreLoaderManager)
                 .environment(environment)
                 .id("http")
                 .build();
@@ -93,6 +96,7 @@ public class VertxReactorConfiguration {
                     .defaultPort(VertxServerOptions.TCP_DEFAULT_PORT)
                     .prefix(TCP_PREFIX)
                     .keyStoreLoaderManager(keyStoreLoaderManager)
+                    .trustStoreLoaderManager(trustStoreLoaderManager)
                     .environment(environment)
                     .id("tcp")
                     .build();
