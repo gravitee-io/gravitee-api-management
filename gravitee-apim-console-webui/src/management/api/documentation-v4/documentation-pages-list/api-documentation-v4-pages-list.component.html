@@ -40,6 +40,12 @@
       <td mat-cell *matCellDef="let page">
         <ng-container *ngIf="page.type != 'FOLDER'">
           <span *ngIf="page.published" class="gio-badge-success"> Published </span>
+          <span
+            *ngIf="page.published && page.generalConditions"
+            class="gio-badge-neutral"
+            matTooltip="Used by at least one plan as General Conditions"
+            ><mat-icon svgIcon="gio:book-open"></mat-icon
+          ></span>
           <span *ngIf="!page.published" class="gio-badge-neutral"> Unpublished </span>
         </ng-container>
         <ng-container *ngIf="page.type === 'FOLDER'">
@@ -90,7 +96,14 @@
             >
               <mat-icon svgIcon="gio:upload-cloud"></mat-icon>
             </button>
-            <button *ngIf="page.published" disabled mat-icon-button matTooltip="Unpublish page" aria-label="Unpublish page">
+            <button
+              *ngIf="page.published"
+              (click)="onUnpublishPage.emit(page.id)"
+              [disabled]="page.generalConditions"
+              mat-icon-button
+              [matTooltip]="page.generalConditions ? 'Cannot be unpublished if used by active plans' : 'Unpublish page'"
+              aria-label="Unpublish page"
+            >
               <mat-icon svgIcon="gio:cloud-unpublished"></mat-icon>
             </button>
           </ng-container>
