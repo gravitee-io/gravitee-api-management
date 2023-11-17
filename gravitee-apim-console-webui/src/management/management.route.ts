@@ -21,7 +21,6 @@ import AnalyticsService from '../services/analytics.service';
 import { ApiService } from '../services/api.service';
 import ApplicationService from '../services/application.service';
 import DashboardService from '../services/dashboard.service';
-import InstancesService from '../services/instances.service';
 import TicketService from '../services/ticket.service';
 import { ApimFeature } from '../shared/components/gio-license/gio-license-data';
 
@@ -40,31 +39,6 @@ function managementRouterConfig($stateProvider) {
       ],
       controllerAs: '$ctrl',
     })
-    .state('management.instances', {
-      abstract: true,
-      url: '/instances',
-      template: '<div ui-view></div>',
-    })
-    .state('management.instances.list', {
-      url: '/',
-      component: 'instances',
-      resolve: {
-        instances: [
-          'InstancesService',
-          (InstancesService: InstancesService) => InstancesService.search().then((response) => response.data),
-        ],
-      },
-      data: {
-        perms: {
-          only: ['environment-instance-r'],
-        },
-        docs: {
-          page: 'management-gateways',
-        },
-      },
-    })
-    // 'management.instances.detail' has been moved to src/management/instances/instance-details/instance-details.module.ts
-
     .state('management.logs', {
       url: '/logs?from&to&q&page&size',
       component: 'platformLogs',

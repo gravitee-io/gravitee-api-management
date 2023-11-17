@@ -100,8 +100,8 @@ export class GioSideNavComponent implements OnInit {
       },
       {
         icon: 'gio:cloud-server',
-        targetRoute: 'management.instances.list',
-        baseRoute: 'management.instances',
+        targetRoute: 'management.instances-list',
+        baseRoute: ['management.instances-list', 'management.instances.detail'],
         displayName: 'Gateways',
         permissions: ['environment-instance-r'],
       },
