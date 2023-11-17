@@ -188,4 +188,21 @@ describe('ApiDocumentationV2Service', () => {
       req.flush(fakeResponse);
     });
   });
+
+  describe('unpublishPage', () => {
+    const PAGE_ID = 'page-id';
+    it('should call the API to unpublish page', (done) => {
+      const fakeResponse: Page = fakeMarkdown();
+      service.unpublishDocumentationPage(API_ID, PAGE_ID).subscribe((response) => {
+        expect(response).toEqual(fakeResponse);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages/${PAGE_ID}/_unpublish`,
+        method: 'POST',
+      });
+      req.flush(fakeResponse);
+    });
+  });
 });
