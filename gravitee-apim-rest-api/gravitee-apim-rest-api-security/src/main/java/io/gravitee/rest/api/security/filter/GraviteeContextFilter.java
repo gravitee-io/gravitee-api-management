@@ -81,8 +81,10 @@ public class GraviteeContextFilter extends GenericFilterBean {
             }
 
             log.debug("GraviteeContext initialized from incoming request [context={}]", resolvedCtx);
+        } else {
+            GraviteeContext.fromExecutionContext(new ExecutionContext());
         }
-        // TODO: set empty context path if no organization or env has been resolved
+
         chain.doFilter(request, response);
     }
 
