@@ -15,7 +15,7 @@
  */
 import { Ng2StateDeclaration } from '@uirouter/angular';
 
-import { InstanceListComponent } from './list/instance-list.component';
+import { InstanceListComponent } from './instance-list/instance-list.component';
 import { InstanceDetailsComponent } from './instance-details/instance-details.component';
 import { InstanceDetailsEnvironmentComponent } from './instance-details/instance-details-environment/instance-details-environment.component';
 import { InstanceDetailsMonitoringComponent } from './instance-details/instance-details-monitoring/instance-details-monitoring.component';
