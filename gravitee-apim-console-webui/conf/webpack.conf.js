@@ -19,6 +19,8 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 const env = process.env.BACKEND_ENV;
+const port = process.env.CONSOLE_PORT ?? 3000;
+const constants = process.env.CONSOLE_CONSTANTS ?? 'constants.json';
 
 module.exports = {
   mode: 'development',
@@ -88,8 +90,8 @@ module.exports = {
     new CopyWebpackPlugin({
       patterns: [
         {
-          from: './constants.json',
-          to: '',
+          from: `./${constants}`,
+          to: './constants.json',
         },
         {
           from: './build.json',
@@ -161,7 +163,7 @@ module.exports = {
   },
   entry: `./${path.join('src', 'index')}`,
   devServer: {
-    port: 3000,
+    port: port,
     allowedHosts: 'all',
     proxy: {
       '/management': {
