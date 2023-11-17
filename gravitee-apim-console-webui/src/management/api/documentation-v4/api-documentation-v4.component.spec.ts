@@ -309,6 +309,46 @@ describe('ApiDocumentationV4', () => {
       expectGetPages([firstPage, secondPage], []);
     });
 
+    it('should unpublish page', async () => {
+      const ID = 'page-id';
+      const PAGE = fakeMarkdown({ id: ID, name: 'my first page', type: 'MARKDOWN', published: true, generalConditions: false });
+      await init([PAGE], []);
+
+      const pageListHarness = await harnessLoader.getHarness(ApiDocumentationV4PagesListHarness);
+      const unpublishPageBtn = await pageListHarness.getUnpublishPageButtonByRowIndex(0);
+      await unpublishPageBtn.click();
+
+      const dialogHarness = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
+      await dialogHarness.confirm();
+
+      httpTestingController
+        .expectOne({
+          method: 'POST',
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages/${ID}/_unpublish`,
+        })
+        .flush({ ...PAGE, published: false });
+
+      expectGetPages([{ ...PAGE, published: false }], []);
+    });
+
+    it('should not unpublish page if used as general conditions', async () => {
+      const ID = 'page-id';
+      const PAGE = fakeMarkdown({ id: ID, name: 'my first page', type: 'MARKDOWN', published: true, generalConditions: true });
+      await init([PAGE], []);
+
+      const pageListHarness = await harnessLoader.getHarness(ApiDocumentationV4PagesListHarness);
+      expect(await pageListHarness.getUnpublishPageButtonByRowIndex(0).then((btn) => btn.isDisabled())).toEqual(true);
+    });
+
+    it('should not unpublish folder', async () => {
+      const ID = 'page-id';
+      const PAGE = fakeMarkdown({ id: ID, name: 'my first page', type: 'FOLDER', published: true });
+      await init([PAGE], []);
+
+      const pageListHarness = await harnessLoader.getHarness(ApiDocumentationV4PagesListHarness);
+      await pageListHarness.getUnpublishPageButtonByRowIndex(0).then((btn) => expect(btn).toBeFalsy());
+    });
+
     it('should move page up', async () => {
       const firstPage = fakeMarkdown({ id: 'first-id', name: 'my first folder', visibility: 'PUBLIC', order: 0, content: '1' });
       const secondPage = fakeMarkdown({ id: 'second-id', name: 'my private folder', visibility: 'PRIVATE', order: 1, content: '2' });

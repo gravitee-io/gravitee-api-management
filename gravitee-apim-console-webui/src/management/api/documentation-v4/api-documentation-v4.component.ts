@@ -176,6 +176,31 @@ export class ApiDocumentationV4Component implements OnInit, OnDestroy {
       });
   }
 
+  unpublishPage(pageId: string) {
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
+        data: {
+          title: 'Unpublish your page',
+          content: 'Your page will be unpublished from Portal. Are you sure?',
+          confirmButton: 'Unpublish',
+        },
+      })
+      .afterClosed()
+      .pipe(
+        filter((confirmed) => !!confirmed),
+        switchMap((_) => this.apiDocumentationV2Service.unpublishDocumentationPage(this.ajsStateParams.apiId, pageId)),
+      )
+      .subscribe({
+        next: (_) => {
+          this.snackBarService.success('Page unpublished successfully');
+          this.ngOnInit();
+        },
+        error: (error) => {
+          this.snackBarService.error(error?.error?.message ?? 'Error while unpublishing page');
+        },
+      });
+  }
+
   moveUp(page: Page) {
     this.changeOrder(page, page.order - 1);
   }
