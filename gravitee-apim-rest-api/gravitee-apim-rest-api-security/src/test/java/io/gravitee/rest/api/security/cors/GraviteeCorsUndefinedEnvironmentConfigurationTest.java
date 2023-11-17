@@ -27,6 +27,7 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.common.event.EventManager;
+import io.gravitee.common.event.impl.EventManagerImpl;
 import io.gravitee.common.event.impl.SimpleEvent;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.rest.api.model.parameters.Key;
@@ -62,7 +63,6 @@ public class GraviteeCorsUndefinedEnvironmentConfigurationTest {
     @Mock
     private InstallationAccessQueryService installationAccessQueryService;
 
-    @Mock
     private EventManager eventManager;
 
     private GraviteeCorsConfiguration cut;
@@ -72,6 +72,8 @@ public class GraviteeCorsUndefinedEnvironmentConfigurationTest {
         GraviteeContext.fromExecutionContext(new ExecutionContext());
 
         lenient().when(environment.getProperty(any(), eq(String.class), anyString())).thenAnswer(invocation -> invocation.getArgument(2));
+
+        eventManager = new EventManagerImpl();
         cut =
             new GraviteeCorsConfiguration(
                 environment,
@@ -132,10 +134,8 @@ public class GraviteeCorsUndefinedEnvironmentConfigurationTest {
 
     @Test
     void should_not_set_fields_on_event_with_wrong_env_id() {
-        cut.onEvent(new SimpleEvent<>(Key.CONSOLE_HTTP_CORS_MAX_AGE, buildParameter("12", "ANOTHER_ENV")));
+        eventManager.publishEvent(new SimpleEvent<>(Key.CONSOLE_HTTP_CORS_MAX_AGE, buildParameter("12", "ANOTHER_ENV")));
         assertThat(cut.getMaxAge()).isEqualTo(1728000L);
-
-        verify(eventManager, times(1)).subscribeForEvents(cut, Key.class);
     }
 
     private Parameter buildParameter(String value, String referenceId) {

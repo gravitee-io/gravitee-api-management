@@ -24,8 +24,11 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.access_point.model.AccessPoint;
+import io.gravitee.apim.core.access_point.model.AccessPointEvent;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.common.event.EventManager;
+import io.gravitee.common.event.impl.EventManagerImpl;
 import io.gravitee.common.event.impl.SimpleEvent;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.rest.api.model.parameters.Key;
@@ -61,7 +64,6 @@ public class GraviteeCorsOrganizationConfigurationTest {
     @Mock
     private InstallationAccessQueryService installationAccessQueryService;
 
-    @Mock
     private EventManager eventManager;
 
     private GraviteeCorsConfiguration cut;
@@ -73,6 +75,7 @@ public class GraviteeCorsOrganizationConfigurationTest {
         lenient()
             .when(parameterService.find(eq(GraviteeContext.getExecutionContext()), any(), eq(ORGANIZATION_ID), eq(ORGANIZATION_TYPE)))
             .thenReturn(null);
+        eventManager = new EventManagerImpl();
         cut =
             new GraviteeCorsConfiguration(
                 environment,
@@ -117,34 +120,30 @@ public class GraviteeCorsOrganizationConfigurationTest {
 
     @Test
     void should_set_fields_on_event() {
-        cut.onEvent(new SimpleEvent<>(Key.CONSOLE_HTTP_CORS_ALLOW_ORIGIN, buildParameter("origin1;origin2")));
-        cut.onEvent(new SimpleEvent<>(Key.CONSOLE_HTTP_CORS_ALLOW_HEADERS, buildParameter("header1;header2")));
-        cut.onEvent(new SimpleEvent<>(Key.CONSOLE_HTTP_CORS_ALLOW_METHODS, buildParameter("method1;method2")));
-        cut.onEvent(new SimpleEvent<>(Key.CONSOLE_HTTP_CORS_EXPOSED_HEADERS, buildParameter("exposed1")));
-        cut.onEvent(new SimpleEvent<>(Key.CONSOLE_HTTP_CORS_MAX_AGE, buildParameter("12")));
+        eventManager.publishEvent(new SimpleEvent<>(Key.CONSOLE_HTTP_CORS_ALLOW_ORIGIN, buildParameter("origin1;origin2")));
+        eventManager.publishEvent(new SimpleEvent<>(Key.CONSOLE_HTTP_CORS_ALLOW_HEADERS, buildParameter("header1;header2")));
+        eventManager.publishEvent(new SimpleEvent<>(Key.CONSOLE_HTTP_CORS_ALLOW_METHODS, buildParameter("method1;method2")));
+        eventManager.publishEvent(new SimpleEvent<>(Key.CONSOLE_HTTP_CORS_EXPOSED_HEADERS, buildParameter("exposed1")));
+        eventManager.publishEvent(new SimpleEvent<>(Key.CONSOLE_HTTP_CORS_MAX_AGE, buildParameter("12")));
 
         assertThat(cut.getAllowedOriginPatterns()).containsOnly("origin1", "origin2");
         assertThat(cut.getAllowedHeaders()).containsOnly("header1", "header2");
         assertThat(cut.getAllowedMethods()).containsOnly("method1", "method2");
         assertThat(cut.getExposedHeaders()).containsOnly("exposed1");
         assertThat(cut.getMaxAge()).isEqualTo(12L);
-
-        verify(eventManager, times(1)).subscribeForEvents(cut, Key.class);
     }
 
     @Test
     void should_not_set_fields_on_event_with_wrong_env_id() {
-        cut.onEvent(new SimpleEvent<>(Key.CONSOLE_HTTP_CORS_MAX_AGE, buildParameter("12", "ANOTHER_ORG")));
+        eventManager.publishEvent(new SimpleEvent<>(Key.CONSOLE_HTTP_CORS_MAX_AGE, buildParameter("12", "ANOTHER_ORG")));
         assertThat(cut.getMaxAge()).isEqualTo(1728000L);
-
-        verify(eventManager, times(1)).subscribeForEvents(cut, Key.class);
     }
 
     @Test
     void should_set_fields_on_event_with_installation() {
         when(installationAccessQueryService.getConsoleUrls(ORGANIZATION_ID)).thenReturn(List.of("custom-console-url"));
 
-        cut.onEvent(new SimpleEvent<>(Key.CONSOLE_HTTP_CORS_ALLOW_ORIGIN, buildParameter("origin1;origin2")));
+        eventManager.publishEvent(new SimpleEvent<>(Key.CONSOLE_HTTP_CORS_ALLOW_ORIGIN, buildParameter("origin1;origin2")));
         assertEquals(Arrays.asList("origin1", "origin2", "custom-console-url"), cut.getAllowedOriginPatterns());
     }
 
@@ -157,5 +156,58 @@ public class GraviteeCorsOrganizationConfigurationTest {
         parameter.setValue(value);
         parameter.setReferenceId(referenceId);
         return parameter;
+    }
+
+    @Test
+    void should_set_allowed_origin_on_access_points_event() {
+        eventManager.publishEvent(
+            new SimpleEvent<>(
+                AccessPointEvent.CREATED,
+                AccessPoint
+                    .builder()
+                    .referenceType(AccessPoint.ReferenceType.ORGANIZATION)
+                    .referenceId(ORGANIZATION_ID)
+                    .host("origin1")
+                    .target(AccessPoint.Target.CONSOLE)
+                    .build()
+            )
+        );
+
+        assertThat(cut.getAllowedOriginPatterns()).containsOnly("*", "http://origin1");
+    }
+
+    @Test
+    void should_not_set_allowed_origin_on_access_points_event_with_target() {
+        eventManager.publishEvent(
+            new SimpleEvent<>(
+                AccessPointEvent.CREATED,
+                AccessPoint
+                    .builder()
+                    .referenceType(AccessPoint.ReferenceType.ORGANIZATION)
+                    .referenceId(ORGANIZATION_ID)
+                    .host("origin1")
+                    .target(AccessPoint.Target.GATEWAY)
+                    .build()
+            )
+        );
+
+        assertThat(cut.getAllowedOriginPatterns()).containsOnly("*");
+    }
+
+    @Test
+    void should_not_set_allowed_origin_on_access_point_event_with_wrong_env_id() {
+        eventManager.publishEvent(
+            new SimpleEvent<>(
+                AccessPointEvent.CREATED,
+                AccessPoint
+                    .builder()
+                    .referenceType(AccessPoint.ReferenceType.ORGANIZATION)
+                    .referenceId("ANOTHER_ORG")
+                    .host("origin1")
+                    .target(AccessPoint.Target.CONSOLE)
+                    .build()
+            )
+        );
+        assertThat(cut.getAllowedOriginPatterns()).containsOnly("*");
     }
 }

@@ -97,13 +97,21 @@ public class JdbcAccessPointRepository extends JdbcAbstractCrudRepository<Access
     }
 
     @Override
-    public void deleteByReference(final AccessPointReferenceType referenceType, final String referenceId) throws TechnicalException {
+    public List<AccessPoint> deleteByReference(final AccessPointReferenceType referenceType, final String referenceId)
+        throws TechnicalException {
         try {
+            List<AccessPoint> accessPoints = jdbcTemplate.query(
+                getOrm().getSelectAllSql() + " t where reference_id = ? and reference_type = ?",
+                getOrm().getRowMapper(),
+                referenceId,
+                referenceType.name()
+            );
             jdbcTemplate.update(
                 "delete from " + tableName + " where reference_id = ? and reference_type = ?",
                 referenceId,
                 referenceType.name()
             );
+            return accessPoints;
         } catch (final Exception ex) {
             throw new TechnicalException("Failed to delete access points by reference", ex);
         }

@@ -48,7 +48,7 @@ public abstract class AbstractGraviteeUrlBasedCorsConfigurationSource extends Ur
     @Override
     public CorsConfiguration getCorsConfiguration(final @NonNull HttpServletRequest request) {
         String referenceId = getReferenceId();
-        if (referenceId != null) {
+        if (referenceId == null) {
             referenceId = UNDEFINED_REFERENCE_ID;
         }
         return corsConfigurationByOrganization.computeIfAbsent(
