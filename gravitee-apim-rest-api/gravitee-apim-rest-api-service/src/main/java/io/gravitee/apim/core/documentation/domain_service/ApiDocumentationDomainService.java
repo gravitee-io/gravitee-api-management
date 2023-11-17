@@ -15,10 +15,12 @@
  */
 package io.gravitee.apim.core.documentation.domain_service;
 
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.documentation.exception.ApiPageNotAssociatedException;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import io.gravitee.apim.core.sanitizer.HtmlSanitizer;
 import io.gravitee.apim.core.sanitizer.SanitizeResult;
 import io.gravitee.rest.api.service.exceptions.PageContentUnsafeException;
@@ -29,10 +31,16 @@ public class ApiDocumentationDomainService {
 
     private static final String ROOT = "ROOT";
     private final PageQueryService pageQueryService;
+    private final PlanQueryService planQueryService;
     private final HtmlSanitizer htmlSanitizer;
 
-    public ApiDocumentationDomainService(PageQueryService pageQueryService, HtmlSanitizer htmlSanitizer) {
+    public ApiDocumentationDomainService(
+        PageQueryService pageQueryService,
+        PlanQueryService planQueryService,
+        HtmlSanitizer htmlSanitizer
+    ) {
         this.pageQueryService = pageQueryService;
+        this.planQueryService = planQueryService;
         this.htmlSanitizer = htmlSanitizer;
     }
 
@@ -71,5 +79,14 @@ public class ApiDocumentationDomainService {
             return publishedChildren <= 0;
         }
         return null;
+    }
+
+    public boolean pageIsUsedAsGeneralConditions(Page page, Api api) {
+        if (page.isFolder()) {
+            return false;
+        }
+        var results =
+            this.planQueryService.findAllByApiIdAndGeneralConditionsAndIsActive(api.getId(), api.getDefinitionVersion(), page.getId());
+        return !results.isEmpty();
     }
 }

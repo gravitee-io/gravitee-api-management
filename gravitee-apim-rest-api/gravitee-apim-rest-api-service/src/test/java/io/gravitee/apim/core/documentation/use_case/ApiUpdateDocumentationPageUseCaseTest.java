@@ -96,6 +96,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
     private final PageCrudServiceInMemory pageCrudService = new PageCrudServiceInMemory();
     private final PageRevisionCrudServiceInMemory pageRevisionCrudService = new PageRevisionCrudServiceInMemory();
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
+    private final PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory();
     AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
     UpdateApiDocumentationDomainService updateApiDocumentationDomainService;
@@ -112,7 +113,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
         apiUpdateDocumentationPageUsecase =
             new ApiUpdateDocumentationPageUseCase(
                 updateApiDocumentationDomainService,
-                new ApiDocumentationDomainService(pageQueryService, new HtmlSanitizerImpl()),
+                new ApiDocumentationDomainService(pageQueryService, planQueryService, new HtmlSanitizerImpl()),
                 new HomepageDomainService(pageQueryService, pageCrudService),
                 apiCrudService,
                 pageCrudService,

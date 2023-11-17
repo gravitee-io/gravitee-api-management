@@ -48,7 +48,7 @@ class ApiCreateDocumentationPageUseCaseTest {
     private final PageQueryServiceInMemory pageQueryService = new PageQueryServiceInMemory();
     private final PageCrudServiceInMemory pageCrudService = new PageCrudServiceInMemory();
     private final PageRevisionCrudServiceInMemory pageRevisionCrudService = new PageRevisionCrudServiceInMemory();
-    private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
+    private final PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory();
     AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
     CreateApiDocumentationDomainService createApiDocumentationDomainService;
@@ -67,7 +67,7 @@ class ApiCreateDocumentationPageUseCaseTest {
         apiCreateDocumentationPageUsecase =
             new ApiCreateDocumentationPageUseCase(
                 createApiDocumentationDomainService,
-                new ApiDocumentationDomainService(pageQueryService, new HtmlSanitizerImpl()),
+                new ApiDocumentationDomainService(pageQueryService, planQueryService, new HtmlSanitizerImpl()),
                 new HomepageDomainService(pageQueryService, pageCrudService),
                 pageCrudService,
                 pageQueryService

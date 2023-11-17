@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.PageCrudServiceInMemory;
 import inmemory.PageQueryServiceInMemory;
+import inmemory.PlanQueryServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.model.Page;
@@ -38,6 +39,7 @@ class ApiGetDocumentationPageUseCaseTest {
     private final PageCrudServiceInMemory pageCrudService = new PageCrudServiceInMemory();
     private final PageQueryServiceInMemory pageQueryService = new PageQueryServiceInMemory();
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
+    private final PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory();
     private ApiGetDocumentationPageUseCase useCase;
     private static final String API_ID = "api-id";
     private static final String PAGE_ID = "page-id";
@@ -46,6 +48,7 @@ class ApiGetDocumentationPageUseCaseTest {
     void setUp() {
         ApiDocumentationDomainService apiDocumentationDomainService = new ApiDocumentationDomainService(
             pageQueryService,
+            planQueryService,
             new HtmlSanitizerImpl()
         );
         useCase = new ApiGetDocumentationPageUseCase(apiDocumentationDomainService, apiCrudService, pageCrudService);

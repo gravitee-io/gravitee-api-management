@@ -45,6 +45,7 @@ class ApiPublishDocumentationPageUseCaseTest {
     private final PageRevisionCrudServiceInMemory pageRevisionCrudService = new PageRevisionCrudServiceInMemory();
     private final AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     private final UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
+    private final PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory();
     private ApiPublishDocumentationPageUseCase useCase;
     private static final String ORGANIZATION_ID = "organization-id";
     private static final String ENVIRONMENT_ID = "environment-id";
@@ -56,7 +57,7 @@ class ApiPublishDocumentationPageUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        var apiDocumentationDomainService = new ApiDocumentationDomainService(pageQueryService, new HtmlSanitizerImpl());
+        var apiDocumentationDomainService = new ApiDocumentationDomainService(pageQueryService, planQueryService, new HtmlSanitizerImpl());
         var updateDocumentationDomainService = new UpdateApiDocumentationDomainService(
             pageCrudService,
             pageRevisionCrudService,
