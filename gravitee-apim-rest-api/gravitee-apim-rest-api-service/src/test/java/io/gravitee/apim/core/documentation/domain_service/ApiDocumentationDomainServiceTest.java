@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import inmemory.PageQueryServiceInMemory;
+import inmemory.PlanQueryServiceInMemory;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
 import java.util.List;
@@ -29,7 +30,12 @@ import org.junit.jupiter.api.Test;
 class ApiDocumentationDomainServiceTest {
 
     private final PageQueryServiceInMemory pageQueryService = new PageQueryServiceInMemory();
-    private final ApiDocumentationDomainService service = new ApiDocumentationDomainService(pageQueryService, new HtmlSanitizerImpl());
+    private final PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory();
+    private final ApiDocumentationDomainService service = new ApiDocumentationDomainService(
+        pageQueryService,
+        planQueryService,
+        new HtmlSanitizerImpl()
+    );
 
     @AfterEach
     void tearDown() {

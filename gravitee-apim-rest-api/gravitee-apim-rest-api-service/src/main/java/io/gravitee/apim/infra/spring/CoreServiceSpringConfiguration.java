@@ -36,6 +36,7 @@ import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryS
 import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService;
 import io.gravitee.apim.core.notification.domain_service.TriggerNotificationDomainService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
+import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import io.gravitee.apim.core.sanitizer.HtmlSanitizer;
 import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
@@ -119,8 +120,12 @@ public class CoreServiceSpringConfiguration {
     }
 
     @Bean
-    public ApiDocumentationDomainService apiDocumentationDomainService(PageQueryService pageQueryService, HtmlSanitizer htmlSanitizer) {
-        return new ApiDocumentationDomainService(pageQueryService, htmlSanitizer);
+    public ApiDocumentationDomainService apiDocumentationDomainService(
+        PageQueryService pageQueryService,
+        PlanQueryService planQueryService,
+        HtmlSanitizer htmlSanitizer
+    ) {
+        return new ApiDocumentationDomainService(pageQueryService, planQueryService, htmlSanitizer);
     }
 
     @Bean

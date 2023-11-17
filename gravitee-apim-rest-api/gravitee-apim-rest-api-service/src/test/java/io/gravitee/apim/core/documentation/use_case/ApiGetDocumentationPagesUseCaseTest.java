@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.PageCrudServiceInMemory;
 import inmemory.PageQueryServiceInMemory;
+import inmemory.PlanQueryServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.exception.InvalidPageParentException;
@@ -41,8 +42,9 @@ class ApiGetDocumentationPagesUseCaseTest {
     private final PageQueryServiceInMemory pageQueryService = new PageQueryServiceInMemory();
     private final PageCrudServiceInMemory pageCrudService = new PageCrudServiceInMemory();
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
+    private final PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory();
     private final ApiGetDocumentationPagesUseCase useCase = new ApiGetDocumentationPagesUseCase(
-        new ApiDocumentationDomainService(pageQueryService, new HtmlSanitizerImpl()),
+        new ApiDocumentationDomainService(pageQueryService, planQueryService, new HtmlSanitizerImpl()),
         apiCrudService,
         pageCrudService
     );
