@@ -44,14 +44,14 @@ export class InstanceDetailsHeaderComponent implements OnInit {
     this.tabMenuItems = [
       {
         displayName: 'Environment',
-        targetRoute: 'management.instances.detail.environment',
-        baseRoute: 'management.instances.detail.environment',
+        targetRoute: 'management.instance.environment',
+        baseRoute: 'management.instance.environment',
         testId: 'instances-detail-environment',
       },
       {
         displayName: 'Monitoring',
-        targetRoute: 'management.instances.detail.monitoring',
-        baseRoute: 'management.instances.detail.monitoring',
+        targetRoute: 'management.instance.monitoring',
+        baseRoute: 'management.instance.monitoring',
         testId: 'instances-detail-monitoring',
       },
     ];

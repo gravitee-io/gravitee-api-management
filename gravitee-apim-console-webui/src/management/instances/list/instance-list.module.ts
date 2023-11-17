@@ -16,16 +16,17 @@
 
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
+import { MatTableModule } from '@angular/material/table';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { UIRouterModule } from '@uirouter/angular';
 
-import { InstanceDetailsComponent } from './instance-details.component';
-import { InstanceDetailsHeaderModule } from './instance-details-header/instance-details-header.module';
-import { InstanceDetailsMonitoringModule } from './instance-details-monitoring/instance-details-monitoring.module';
-import { InstanceDetailsEnvironmentModule } from './instance-details-environment/instance-details-environment.module';
+import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
+import { InstanceListComponent } from '../list/instance-list.component';
 
 @NgModule({
-  declarations: [InstanceDetailsComponent],
-  exports: [InstanceDetailsComponent],
-  imports: [CommonModule, InstanceDetailsHeaderModule, InstanceDetailsMonitoringModule, InstanceDetailsEnvironmentModule, UIRouterModule],
+  declarations: [InstanceListComponent],
+  exports: [InstanceListComponent],
+  imports: [CommonModule, MatTableModule, MatIconModule, MatTooltipModule, GioTableWrapperModule, UIRouterModule],
 })
-export class InstanceDetailsModule {}
+export class InstanceListModule {}

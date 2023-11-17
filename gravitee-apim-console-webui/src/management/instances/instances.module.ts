@@ -15,17 +15,16 @@
  */
 
 import { CommonModule } from '@angular/common';
-import { NgModule } from '@angular/core';
 import { UIRouterModule } from '@uirouter/angular';
+import { NgModule } from '@angular/core';
 
-import { InstanceDetailsComponent } from './instance-details.component';
-import { InstanceDetailsHeaderModule } from './instance-details-header/instance-details-header.module';
-import { InstanceDetailsMonitoringModule } from './instance-details-monitoring/instance-details-monitoring.module';
-import { InstanceDetailsEnvironmentModule } from './instance-details-environment/instance-details-environment.module';
+import { InstanceDetailsModule } from './instance-details/instance-details.module';
+import { InstanceListModule } from './list/instance-list.module';
+import { states } from './instances.route';
 
 @NgModule({
-  declarations: [InstanceDetailsComponent],
-  exports: [InstanceDetailsComponent],
-  imports: [CommonModule, InstanceDetailsHeaderModule, InstanceDetailsMonitoringModule, InstanceDetailsEnvironmentModule, UIRouterModule],
+  declarations: [],
+  exports: [],
+  imports: [CommonModule, UIRouterModule.forChild({ states }), InstanceListModule, InstanceDetailsModule],
 })
-export class InstanceDetailsModule {}
+export class InstancesModule {}

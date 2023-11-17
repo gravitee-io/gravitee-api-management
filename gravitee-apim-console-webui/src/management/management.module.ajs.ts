@@ -97,8 +97,6 @@ import DialogAddMemberController from './application/details/members/addMemberDi
 import DialogTransferApplicationController from './application/details/members/transferApplicationDialog.controller';
 // Instances
 import InstancesService from '../services/instances.service';
-import InstancesController from '../management/instances/instances.controller';
-import InstancesComponent from '../management/instances/instances.component';
 // Analytics / widgets
 import WidgetComponent from '../components/widget/widget.component';
 import WidgetDataTableComponent from '../components/widget/table/widget-data-table.component';
@@ -588,7 +586,6 @@ graviteeManagementModule.controller('DialogAddPropertyController', DialogAddProp
 graviteeManagementModule.controller('UserController', UserController);
 graviteeManagementModule.controller('DialogEditPolicyController', DialogEditPolicyController);
 graviteeManagementModule.controller('LoginController', LoginController);
-graviteeManagementModule.controller('InstancesController', InstancesController);
 graviteeManagementModule.controller('AnalyticsDashboardController', AnalyticsDashboardController);
 graviteeManagementModule.component('gvAlertDashboard', AlertsDashboardComponent);
 graviteeManagementModule.controller('AlertsActivityController', AlertsActivityController);
@@ -715,8 +712,6 @@ graviteeManagementModule.component('analyticsSettings', AnalyticsSettingsCompone
 graviteeManagementModule.directive('gvMetadataValidator', () => MetadataValidatorDirective);
 graviteeManagementModule.component('customUserFields', CustomUserFieldsComponent);
 graviteeManagementModule.component('ticketDetail', TicketDetailComponent);
-
-graviteeManagementModule.component('instances', InstancesComponent);
 
 graviteeManagementModule.component('apiCreationV2ComponentAjs', ApiCreationV2ComponentAjs);
 graviteeManagementModule.controller('ApiCreationV2AjsController', ApiCreationV2ControllerAjs);

@@ -23,7 +23,6 @@ import { EnvAuditModule } from './audit/env-audit.module';
 import { EnvironmentApplicationModule } from './application/environment-application.module';
 import { ApisModule } from './api/apis.module';
 import { SettingsNavigationModule } from './configuration/settings-navigation/settings-navigation.module';
-import { InstanceDetailsModule } from './instances/instance-details/instance-details.module';
 import { MessagesModule } from './messages/messages.module';
 import { HomeModule } from './home/home.module';
 import { TasksModule } from './tasks/tasks.module';
@@ -31,6 +30,7 @@ import { ClientRegistrationProvidersModule } from './configuration/client-regist
 import { ApiLoggingModule } from './configuration/api-logging/api-logging.module';
 import { EnvironmentNotificationSettingsModule } from './configuration/notifications/notification-settings/environment-notification-settings.module';
 import { EnvironmentMetadataModule } from './configuration/metadata/environment-metadata.module';
+import { InstancesModule } from './instances/instances.module';
 
 import { GioPermissionModule } from '../shared/components/gio-permission/gio-permission.module';
 import { NotificationsModule } from '../components/notifications/notifications.module';
@@ -48,7 +48,7 @@ import { AlertsModule } from '../components/alerts/alerts.module';
     ApisModule,
     EnvironmentApplicationModule,
     SettingsNavigationModule,
-    InstanceDetailsModule.withRouting({ stateNamePrefix: 'management.instances.detail' }),
+    InstancesModule,
     MessagesModule,
     TasksModule,
     ClientRegistrationProvidersModule,

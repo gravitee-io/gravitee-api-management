@@ -23,10 +23,9 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { UIRouterModule } from '@uirouter/angular';
 
 import { InstanceListComponent } from './instance-list.component';
+import { InstanceListModule } from './instance-list.module';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
-import { UIRouterStateParams } from '../../../ajs-upgraded-providers';
-import { InstanceDetailsModule } from '../instance-details/instance-details.module';
 import { InstanceListItem } from '../../../entities/instance/instanceListItem';
 import { fakeInstanceListItem } from '../../../entities/instance/instanceListItem.fixture';
 
@@ -44,9 +43,8 @@ describe('InstanceListComponent', () => {
         UIRouterModule.forRoot({
           useHash: true,
         }),
-        InstanceDetailsModule,
+        InstanceListModule,
       ],
-      providers: [{ provide: UIRouterStateParams, useValue: {} }],
     });
   });
 
