@@ -76,6 +76,7 @@ public class GraviteeContextFilter extends GenericFilterBean {
             if (resolvedCtx != null) {
                 GraviteeContext.fromExecutionContext(resolvedCtx);
             } else {
+                log.warn("No execution context resolved from the request %s".formatted(((HttpServletRequest) request).getPathInfo()));
                 ErrorHelper.sendError(httpServletResponse, HttpStatusCode.BAD_REQUEST_400, ERROR_MSG);
                 return;
             }
@@ -90,23 +91,34 @@ public class GraviteeContextFilter extends GenericFilterBean {
 
     @Nullable
     private ExecutionContext resolveFromPath(final ExecutionContext pathExecutionContext) {
-        String organizationId = GraviteeContext.getDefaultOrganization();
+        String organizationId;
         if (pathExecutionContext.hasOrganizationId()) {
             organizationId = pathExecutionContext.getOrganizationId();
-        }
-        if (pathExecutionContext.hasEnvironmentId()) {
-            try {
-                EnvironmentEntity environment = environmentService.findByOrgAndIdOrHrid(
-                    organizationId,
-                    pathExecutionContext.getEnvironmentId()
-                );
-                return new ExecutionContext(environment);
-            } catch (Exception e) {
-                return null;
+            if (pathExecutionContext.hasEnvironmentId()) {
+                try {
+                    EnvironmentEntity environment = environmentService.findByOrgAndIdOrHrid(
+                        organizationId,
+                        pathExecutionContext.getEnvironmentId()
+                    );
+                    return new ExecutionContext(environment);
+                } catch (Exception e) {
+                    return null;
+                }
+            } else {
+                return new ExecutionContext(organizationId);
             }
         } else {
-            return new ExecutionContext(organizationId);
+            if (pathExecutionContext.hasEnvironmentId()) {
+                try {
+                    EnvironmentEntity environment = environmentService.findById(pathExecutionContext.getEnvironmentId());
+                    return new ExecutionContext(environment);
+                } catch (Exception e) {
+                    return null;
+                }
+            }
         }
+        // Shouldn't happen as path context must contain either organization or environment
+        return null;
     }
 
     @Nullable
