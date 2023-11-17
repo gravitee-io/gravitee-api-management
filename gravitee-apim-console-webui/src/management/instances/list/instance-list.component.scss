@@ -9,9 +9,17 @@
   flex-direction: column;
 }
 
+.mat-column-hostname {
+  width: 30%;
+}
+
+.mat-column-version {
+  width: 10%;
+}
+
 .mat-column-state {
   width: 1%;
-  padding: 0 8px;
+  padding: 0 16px 0 0;
   white-space: nowrap;
 
   .mat-icon {
@@ -31,4 +39,16 @@
       color: mat.get-color-from-palette(gio.$mat-basic-palette, 'default');
     }
   }
+}
+
+.mat-column-lastHeartbeat {
+  width: 15%;
+}
+
+.mat-column-ip-port {
+  width: 10%;
+}
+
+.mat-column-os {
+  width: 8%;
 }

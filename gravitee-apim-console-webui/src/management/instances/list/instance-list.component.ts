@@ -14,16 +14,24 @@
  * limitations under the License.
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { InstanceService } from '../../../services-ngx/instance.service';
 import { distinctUntilChanged, switchMap, takeUntil } from 'rxjs/operators';
 import { BehaviorSubject, Subject } from 'rxjs';
-import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { isEqual } from 'lodash';
+
+import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
+import { InstanceService } from '../../../services-ngx/instance.service';
 
 type TableData = {
   id: string;
   hostname: string;
-  state: string;
+  ip: string;
+  port: string;
+  state: 'STARTED' | 'STOPPED' | 'UNKNOWN';
+  version: string;
+  os: string;
+  tags: string;
+  tenant: string;
+  lastHeartbeat: Date;
 };
 
 @Component({
@@ -32,7 +40,7 @@ type TableData = {
   styles: [require('./instance-list.component.scss')],
 })
 export class InstanceListComponent implements OnInit, OnDestroy {
-  displayedColumns = ['hostname', 'state'];
+  displayedColumns = ['hostname', 'version', 'state', 'lastHeartbeat', 'os', 'ip-port', 'tenant', 'tags'];
   filteredTableData: TableData[] = [];
   nbTotalInstances = 0;
 
@@ -61,6 +69,15 @@ export class InstanceListComponent implements OnInit, OnDestroy {
           id: instance.event,
           hostname: instance.hostname,
           state: instance.state,
+          // Instance version is like "4.2.0-SNAPSHOT (build: 508664) revision#26c06dbf46547447c420f8683d62ada5c1e15617"
+          // so keep only the version number for this screen
+          version: instance.version.substring(0, instance.version.indexOf('(')),
+          ip: instance.ip,
+          port: instance.port,
+          os: instance.operating_system_name,
+          tags: (instance.tags ?? []).join(', '),
+          tenant: instance.tenant ?? '',
+          lastHeartbeat: new Date(instance.last_heartbeat_at),
         }));
       });
   }
