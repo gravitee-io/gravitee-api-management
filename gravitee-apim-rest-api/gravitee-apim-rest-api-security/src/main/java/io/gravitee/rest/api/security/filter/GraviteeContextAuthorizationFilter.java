@@ -57,7 +57,7 @@ public class GraviteeContextAuthorizationFilter extends GenericFilterBean {
                 ErrorHelper.sendError(httpServletResponse, HttpStatusCode.FORBIDDEN_403, "No organization associated to user");
                 return;
             }
-            if (!organizationId.equals(userDetails.getOrganizationId())) {
+            if (organizationId != null && !organizationId.equals(userDetails.getOrganizationId())) {
                 ErrorHelper.sendError(httpServletResponse, HttpStatusCode.FORBIDDEN_403, "User is not allowed to access this organization");
                 return;
             }
