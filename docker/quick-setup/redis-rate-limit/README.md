@@ -5,7 +5,7 @@ Here is a docker-compose to run APIM with Redis as database for Rate Limiting
 You can classically call your apis through your gateway, for example: `http://localhost:8082/myapi`.
 
 ---
-> For more information, please read this doc: https://docs.gravitee.io/apim/3.x/apim_installguide_repositories_redis.html
+> For more information, please read this doc: https://documentation.gravitee.io/apim/getting-started/configuration/configure-repositories/redis
 ---
 
 ## Verify Rate Limit counters in Redis

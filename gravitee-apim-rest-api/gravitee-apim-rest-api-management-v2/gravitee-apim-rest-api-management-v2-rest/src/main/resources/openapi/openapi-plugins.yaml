@@ -514,7 +514,7 @@ components:
                 documentationUrl:
                     type: string
                     description: Plugin's documentation URL.
-                    example: https://docs.gravitee.io
+                    example: https://documentation.gravitee.io
                 schemaImg:
                     type: string
                     description: Plugin's schema image as base64.
