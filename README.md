@@ -22,7 +22,7 @@
   <a href="https://community.gravitee.io">
     <img src="https://img.shields.io/badge/community-join-4BC424.svg" alt="Gravitee.io Community" />
   </a>
-  <a href="https://docs.gravitee.io">
+  <a href="https://documentation.gravitee.io">
     <img src="https://img.shields.io/badge/documentation-see-4BC424.svg" alt="Gravitee.io Documentation" />
   </a>
   <a href="https://twitter.com/intent/follow?screen_name=graviteeio">

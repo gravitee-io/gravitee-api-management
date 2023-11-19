@@ -4,7 +4,7 @@ Here is a docker-compose to run APIM with MongoDB as database.
 
 ---
 > For more information, please read :
-> https://docs.gravitee.io/apim/3.x/apim_installguide_repositories_mongodb.html
+> https://documentation.gravitee.io/apim/getting-started/configuration/configure-repositories/mongodb
 ---
 
 ## How to run ?

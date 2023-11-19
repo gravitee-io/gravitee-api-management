@@ -4,8 +4,8 @@ Here is a docker-compose to run APIM with a secured gateway and test expression 
 
 ---
 > For more information, please read :
-> https://docs.gravitee.io/apim/3.x/apim_installguide_gateway_configuration.html#how_to_enable_https_support
-> https://docs.gravitee.io/apim/3.x/apim_publisherguide_expression_language.html#request
+> https://documentation.gravitee.io/apim/getting-started/configuration/the-gravitee-api-gateway/environment-variables-system-properties-and-the-gravitee.yaml-file#enable-https-support
+> https://documentation.gravitee.io/apim/guides/gravitee-expression-language
 ---
 
 ## How to use ?

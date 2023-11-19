@@ -6,7 +6,7 @@ This repo contains the source code of APIM Console.
 
 APIM Console is a client-side only Angular application and can be deployed on any HTTP server, such as Apache or Nginx.
 
-For more information about installation and usage, see https://docs.gravitee.io/apim/3.x/apim_installguide_management_ui_install_zip.html[Gravitee.io Documentation Website].
+For more information about installation and usage, see https://documentation.gravitee.io/apim/getting-started/install-guides[Gravitee.io Documentation Website].
 
 == Contributing
 

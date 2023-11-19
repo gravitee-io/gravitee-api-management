@@ -270,7 +270,7 @@ es:
   # If the details for security are entered
   # authentication will be provided for the
   # elastic search cluster
-  # https://docs.gravitee.io/apim_installguide_repositories_elasticsearch.html#management_api_configuration
+  # https://documentation.gravitee.io/apim/getting-started/configuration/configure-repositories/elasticsearch#apim-api-configuration
   index_mode: daily # Index mode normal (daily index) vs ILM (managed by ILM)
   settings:
     number_of_shards: 1
@@ -1278,7 +1278,7 @@ ui:
   companyName: Gravitee.io
   title: Management UI
   managementTitle: API Management
-  documentationLink: http://docs.gravitee.io/
+  documentationLink: http://documentation.gravitee.io/
   scheduler:
     tasks: 10
   theme:

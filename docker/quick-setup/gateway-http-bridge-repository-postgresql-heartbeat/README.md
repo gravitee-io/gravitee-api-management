@@ -9,8 +9,8 @@ You can classically call your apis through your gateway, for example: `http://lo
 To test the **Bridge Server**, you can call, for example, `http://localhost:18092/_bridge/apis` to list all the apis directly from database.
 
 ---
-> For more information, please read this doc: https://docs.gravitee.io/apim/3.x/apim_installguide_hybrid_deployment.html#apim_gateway_http_bridge_server
-> and https://docs.gravitee.io/apim/3.x/apim_installguide_repositories_jdbc.html
+> For more information, please read this doc: https://documentation.gravitee.io/apim/getting-started/hybrid-deployment
+> and https://documentation.gravitee.io/apim/getting-started/configuration/configure-repositories/jdbc
 ---
 
 ## Requirements

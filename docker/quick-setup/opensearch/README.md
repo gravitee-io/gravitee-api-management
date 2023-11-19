@@ -4,7 +4,7 @@ Here is a docker-compose to run APIM with OpenSearch.
 
 ---
 > For more information, please read :
-> https://docs.gravitee.io/apim/3.x/apim_installguide_repositories_elasticsearch.html
+> https://documentation.gravitee.io/apim/getting-started/configuration/configure-repositories/elasticsearch
 ---
 
 ## How to run ?

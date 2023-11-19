@@ -409,7 +409,7 @@ retrieved from the management repository)_ |`+API Management+`
 
 |`+ui.documentationLink+` |UI link to documentation _(if set to
 `+null+`, retrieved from the management repository)_
-|`+http://docs.gravitee.io/+`
+|`+http://documentation.gravitee.io/+`
 
 |`+ui.portal.apikeyHeader+` |API Key header name _(if set to `+null+`,
 retrieved from the management repository)_ |`+X-Gravitee-Api-Key+`
@@ -1020,7 +1020,7 @@ command definition |`+null+`
 
 ==== License
 
-For Enterprise plugin, and only for them, you have to include a https://docs.gravitee.io/ee/ee_license.html[license] in APIM. You can define it by:
+For Enterprise plugin, and only for them, you have to include a https://documentation.gravitee.io/platform-overview/gravitee-essentials/gravitee-offerings-ce-vs-ee/enterprise-edition-licensing[license] in APIM. You can define it by:
 
 * fill the `license.key` field in the `values.yml` file.
 * add helm arg: `--set license.key=<license.key in base64>`
