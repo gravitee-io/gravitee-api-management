@@ -54,7 +54,7 @@
     "notificationsInSeconds" : 10
   },
   "documentation" : {
-    "url" : "https://docs.gravitee.io"
+    "url" : "https://documentation.gravitee.io"
   },
   "plan" : {
     "security" : {
