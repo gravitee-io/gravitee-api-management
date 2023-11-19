@@ -108,7 +108,7 @@ public abstract class AbstractGatewayTest
     /**
      * Override this method if you want to pass some specific configuration to the gateway.
      * WARNING: since the gateway is run only once for the test class, this configuration will impact all your test cases.
-     * To know the options, please check the documentation <a href="https://docs.gravitee.io/apim/3.x/apim_installguide_gateway_configuration.html#default_configuration">here</a>.
+     * To know the options, please check the documentation <a href="https://documentation.gravitee.io/apim/getting-started/install-guides">here</a>.
      * @param gatewayConfigurationBuilder is the configuration builder. Just use it with {@link GatewayConfigurationBuilder#set(String, Object)}.
      *                                    For example, to configure tags for the gateway, just use <code>gatewayConfigurationBuilder.set("tags", "my-tag")</code>
      */
