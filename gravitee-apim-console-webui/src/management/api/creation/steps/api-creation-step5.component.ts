@@ -18,6 +18,7 @@ const ApiCreationStep5Component: ng.IComponentOptions = {
     parent: '^apiCreation',
   },
   template: require('./api-creation-step5.html'),
+<<<<<<< HEAD:gravitee-apim-console-webui/src/management/api/creation/steps/api-creation-step5.component.ts
   /* @ngInject */
   controller: function (Constants) {
     if (Constants.env.settings.documentation && Constants.env.settings.documentation.url) {
@@ -26,6 +27,18 @@ const ApiCreationStep5Component: ng.IComponentOptions = {
       this.url = 'https://docs.gravitee.io';
     }
   },
+=======
+  controller: [
+    'Constants',
+    function (Constants) {
+      if (Constants.env.settings.documentation && Constants.env.settings.documentation.url) {
+        this.url = Constants.env.settings.documentation.url;
+      } else {
+        this.url = 'https://documentation.gravitee.io';
+      }
+    },
+  ],
+>>>>>>> d19b7da621 (Doc links updated to new docs site):gravitee-apim-console-webui/src/management/api/creation-v2/steps/api-creation-step5.component.ts
 };
 
 export default ApiCreationStep5Component;
