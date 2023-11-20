@@ -36,8 +36,7 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
   stepOneForm: FormGroup;
   mode: 'create' | 'edit';
   pageTitle = 'Add new page';
-  step3Title: string;
-  source: 'FILL' | 'IMPORT' | 'EXTERNAL' = 'FILL';
+  step2Title: string;
   breadcrumbs: Breadcrumb[];
 
   formUnchanged: boolean;
@@ -62,13 +61,12 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
     });
     this.form = this.formBuilder.group({
       stepOne: this.stepOneForm,
-      source: this.formBuilder.control(this.source, [Validators.required]),
       content: this.formBuilder.control('', [Validators.required]),
     });
 
     if (this.ajsStateParams.pageId) {
       this.mode = 'edit';
-      this.step3Title = 'Edit content';
+      this.step2Title = 'Edit content';
       this.loadPage$ = this.loadEditPage();
 
       this.form.valueChanges
@@ -78,7 +76,6 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
               this.formUnchanged =
                 this.page.name === value.stepOne?.name &&
                 this.page.visibility === value.stepOne?.visibility &&
-                this.source === value.source &&
                 this.page.content === value.content;
             }
           }),
@@ -86,7 +83,7 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
         .subscribe();
     } else {
       this.mode = 'create';
-      this.step3Title = 'Add content';
+      this.step2Title = 'Add content';
       this.loadPage$ = of({});
     }
 
