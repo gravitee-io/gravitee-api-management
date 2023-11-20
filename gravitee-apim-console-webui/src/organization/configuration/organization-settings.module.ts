@@ -452,6 +452,20 @@ const organizationRoutes: Routes = [
           },
         },
       },
+      {
+        path: 'users',
+        component: OrgSettingsUsersComponent,
+        data: {
+          useAngularMaterial: true,
+          menu: null,
+          docs: {
+            page: 'organization-configuration-users',
+          },
+          perms: {
+            only: ['organization-user-c', 'organization-user-r', 'organization-user-u', 'organization-user-d'],
+          },
+        },
+      },
 
       {
         path: '',

@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { StateService } from '@uirouter/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { BehaviorSubject, of, Subject } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { UsersService } from '../../../services-ngx/users.service';
-import { UIRouterStateParams, UIRouterState } from '../../../ajs-upgraded-providers';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { PagedResult } from '../../../entities/pagedResult';
 import { User } from '../../../entities/user/user';
@@ -58,8 +57,8 @@ export class OrgSettingsUsersComponent implements OnInit, OnDestroy {
   private filtersStream = new BehaviorSubject<GioTableWrapperFilters>({ pagination: { index: 1, size: 10 }, searchTerm: '' });
 
   constructor(
-    @Inject(UIRouterStateParams) private $stateParams,
-    @Inject(UIRouterState) private $state: StateService,
+    private readonly router: Router,
+    private readonly activatedRoute: ActivatedRoute,
     private readonly usersService: UsersService,
     private readonly matDialog: MatDialog,
     private readonly snackBarService: SnackBarService,
@@ -67,8 +66,8 @@ export class OrgSettingsUsersComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     // Init filters stream with state params
-    const initialSearchValue = this.$stateParams.q ?? '';
-    const initialPageNumber = this.$stateParams.page ? Number(this.$stateParams.page) : 1;
+    const initialSearchValue = this.activatedRoute.snapshot.queryParams.q ?? '';
+    const initialPageNumber = this.activatedRoute.snapshot.queryParams.page ? Number(this.activatedRoute.snapshot.queryParams.page) : 1;
     this.filters = {
       searchTerm: initialSearchValue,
       pagination: {
@@ -85,7 +84,11 @@ export class OrgSettingsUsersComponent implements OnInit, OnDestroy {
         distinctUntilChanged(),
         tap(({ pagination, searchTerm }) => {
           // Change url params
-          this.$state.go('.', { q: searchTerm, page: pagination.index }, { notify: false });
+          this.router.navigate([], {
+            relativeTo: this.activatedRoute,
+            queryParams: { q: searchTerm, page: pagination.index },
+            queryParamsHandling: 'merge',
+          });
         }),
         switchMap(({ pagination, searchTerm }) =>
           this.usersService.list(searchTerm, pagination.index, pagination.size).pipe(
@@ -101,10 +104,6 @@ export class OrgSettingsUsersComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.unsubscribe$.next(true);
     this.unsubscribe$.unsubscribe();
-  }
-
-  onDisplayNameClick(userId: string) {
-    this.$state.go('organization.user-edit', { userId });
   }
 
   onDeleteUserClick({ userId, displayName }: TableData) {
@@ -131,10 +130,6 @@ export class OrgSettingsUsersComponent implements OnInit, OnDestroy {
 
   onFiltersChanged(filters: GioTableWrapperFilters) {
     this.filtersStream.next(filters);
-  }
-
-  onAddUserClick() {
-    this.$state.go('organization.user-new');
   }
 
   private setDataSourceFromUsersList(users: PagedResult<User>) {
