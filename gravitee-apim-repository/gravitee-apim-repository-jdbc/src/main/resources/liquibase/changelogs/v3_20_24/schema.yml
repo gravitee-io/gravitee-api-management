@@ -7,3 +7,7 @@ databaseChangeLog:
             tableName: ${gravitee_prefix}flows
             columnName: name
             newDataType: nvarchar(256)
+        - modifyDataType:
+            tableName: ${gravitee_prefix}flows
+            columnName: path
+            newDataType: nvarchar(256)
