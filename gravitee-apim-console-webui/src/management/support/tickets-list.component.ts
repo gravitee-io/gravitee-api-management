@@ -22,16 +22,19 @@ import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   template: '',
-  selector: 'support-ticket-detail',
+  selector: 'support-tickets-list',
   host: {
     class: 'bootstrap',
   },
 })
-export class TicketDetailComponent extends UpgradeComponent {
+export class TicketsListComponent extends UpgradeComponent {
   private unsubscribe$ = new Subject<void>();
 
   @Output()
-  navigateToTicketsList!: EventEmitter<void>;
+  navigateToTicketNew!: EventEmitter<void>;
+
+  @Output()
+  navigateToTicketDetail!: EventEmitter<string>;
 
   constructor(
     elementRef: ElementRef,
@@ -39,18 +42,23 @@ export class TicketDetailComponent extends UpgradeComponent {
     private readonly router: Router,
     private readonly activatedRoute: ActivatedRoute,
   ) {
-    super('ticketDetail', elementRef, injector);
+    super('supportTicketsListComponentAjs', elementRef, injector);
   }
 
   ngOnInit() {
-    const ticketId = this.activatedRoute.snapshot.params.ticketId;
+    const apiId = this.activatedRoute.snapshot.params.apiId;
+
     // Hack to Force the binding between Angular and AngularJS
     this.ngOnChanges({
-      ticketId: new SimpleChange(null, ticketId, true),
+      apiId: new SimpleChange(null, apiId, true),
     });
 
-    this.navigateToTicketsList.pipe(takeUntil(this.unsubscribe$)).subscribe(() => {
-      this.router.navigate(['..', 'list'], { relativeTo: this.activatedRoute });
+    this.navigateToTicketNew.pipe(takeUntil(this.unsubscribe$)).subscribe(() => {
+      this.router.navigate(['..', 'new'], { relativeTo: this.activatedRoute });
+    });
+
+    this.navigateToTicketDetail.pipe(takeUntil(this.unsubscribe$)).subscribe((ticketId: string) => {
+      this.router.navigate(['..', ticketId], { relativeTo: this.activatedRoute });
     });
 
     super.ngOnInit();

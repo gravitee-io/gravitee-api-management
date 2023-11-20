@@ -19,7 +19,7 @@
   <div class="gv-forms" layout="column">
     <div class="gv-forms-header">
       <h1>Tickets history</h1>
-      <a ui-sref="management.support.create">Back to ticket creation</a>
+      <a ng-click="$ctrl.navigateToTicketNew()">Back to ticket creation</a>
     </div>
 
     <div class="gv-form">
@@ -28,10 +28,10 @@
           md-table
           class="gravitee-analytics-top-hits-table gv-table-dense"
           multiple
-          md-row-select="ticketsListCtrl.widget.chart.selectable"
-          data-ng-model="ticketsListCtrl.selected"
+          md-row-select="$ctrl.widget.chart.selectable"
+          data-ng-model="$ctrl.selected"
         >
-          <thead md-head md-order="ticketsListCtrl.query.order">
+          <thead md-head md-order="$ctrl.query.order">
             <tr md-row>
               <th md-column width="1%" md-order-by="created_at" nowrap>Date</th>
               <th md-column width="1%" md-order-by="api" nowrap>Api</th>
@@ -42,9 +42,9 @@
           </thead>
           <tbody md-body>
             <tr
-              ng-if="ticketsListCtrl.tickets.content.length > 0"
+              ng-if="$ctrl.tickets.content.length > 0"
               md-row
-              ng-repeat="ticket in ticketsListCtrl.tickets.content | limitTo: ticketsListCtrl.query.size"
+              ng-repeat="ticket in $ctrl.tickets.content | limitTo: $ctrl.query.size"
               md-auto-select
               md-select="ticket"
               md-select-id="key"
@@ -54,19 +54,10 @@
               <td md-cell nowrap>{{ticket.application}}</td>
               <td md-cell nowrap>{{ticket.subject}}</td>
               <td md-cell nowrap>
-                <ng-md-icon
-                  ui-sref="management.support.ticket({
-              ticketId: ticket.id,
-              page: ticketsListCtrl.query.page,
-              order: ticketsListCtrl.query.order,
-              size: ticketsListCtrl.query.size
-              })"
-                  icon="remove_red_eye"
-                >
-                </ng-md-icon>
+                <ng-md-icon ng-click="$ctrl.navigateToTicketDetail(ticket.id)" icon="remove_red_eye"> </ng-md-icon>
               </td>
             </tr>
-            <tr ng-if="ticketsListCtrl.tickets.totalElements === 0">
+            <tr ng-if="$ctrl.tickets.totalElements === 0">
               <td md-cell colspan="9" style="text-align: center">No ticket</td>
             </tr>
           </tbody>
@@ -74,11 +65,11 @@
       </md-table-container>
 
       <md-table-pagination
-        md-limit="ticketsListCtrl.query.size"
+        md-limit="$ctrl.query.size"
         md-limit-options="[5, 10, 15, 20, 30, 50, 100]"
-        md-page="ticketsListCtrl.query.page"
-        md-total="{{ticketsListCtrl.tickets.totalElements}}"
-        md-on-paginate="ticketsListCtrl.onPaginate"
+        md-page="$ctrl.query.page"
+        md-total="{{$ctrl.tickets.totalElements}}"
+        md-on-paginate="$ctrl.onPaginate"
       >
       </md-table-pagination>
     </div>

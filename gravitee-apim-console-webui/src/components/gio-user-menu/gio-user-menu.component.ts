@@ -67,11 +67,11 @@ export class GioUserMenuComponent implements OnInit {
   }
 
   goToSupport(): void {
-    this.ajsState.go('management.support.create');
+    this.router.navigate(['support', 'new'], { relativeTo: this.activatedRoute });
   }
 
   goToTask(): void {
-    this.ajsState.go('management.tasks');
+    this.router.navigate(['tasks'], { relativeTo: this.activatedRoute });
   }
 
   signOut(): void {

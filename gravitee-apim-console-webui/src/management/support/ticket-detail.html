@@ -15,11 +15,11 @@
     limitations under the License.
 
 -->
-<div class="gv-sub-content">
+<div class="gv-sub-content" ng-if="$ctrl.ticket">
   <div class="gv-forms" layout="column">
     <div class="gv-forms-header">
       <h1>Ticket detail</h1>
-      <a ui-sref="management.support.tickets($ctrl.backStateParams)">Back to tickets</a>
+      <a ng-click="$ctrl.navigateToTicketsList()">Back to tickets</a>
     </div>
 
     <hr />

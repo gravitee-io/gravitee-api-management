@@ -18,7 +18,10 @@ import { IScope } from 'angular';
 
 import TicketService, { TicketsQuery } from '../../services/ticket.service';
 
-class TicketsListController {
+class TicketsListComponentAjs {
+  private navigateToTicketDetail: any;
+  private navigateToTicketNew: any;
+
   private query: TicketsQuery;
   private tickets: { totalElements: number; content: any[] };
 
@@ -32,7 +35,7 @@ class TicketsListController {
     this.query.size = this.$state.params.size || 15;
     this.query.order = this.$state.params.order || '-created_at';
 
-    this.$scope.$watch('ticketsListCtrl.query.order', (order) => {
+    this.$scope.$watch('$ctrl.query.order', (order) => {
       if (order) {
         this.refresh();
       }
@@ -46,20 +49,21 @@ class TicketsListController {
   }
 
   refresh() {
-    this.$state.transitionTo(
-      this.$state.current,
-      {
-        page: this.query.page,
-        size: this.query.size,
-        order: this.query.order,
-      },
-      { notify: false },
-    );
     this.TicketService.search(this.query).then((tickets) => {
       this.tickets = tickets.data;
     });
   }
 }
-TicketsListController.$inject = ['TicketService', '$scope', '$state'];
+TicketsListComponentAjs.$inject = ['TicketService', '$scope', '$state'];
 
-export default TicketsListController;
+const SupportTicketsListComponentAjs: ng.IComponentOptions = {
+  bindings: {
+    apiId: '<',
+    navigateToTicketNew: '&',
+    navigateToTicketDetail: '&',
+  },
+  controller: TicketsListComponentAjs,
+  template: require('./tickets-list.html'),
+};
+
+export default SupportTicketsListComponentAjs;

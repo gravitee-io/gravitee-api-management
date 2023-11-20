@@ -22,12 +22,12 @@ import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   template: '',
-  selector: 'support-ticket-detail',
+  selector: 'support-ticket',
   host: {
     class: 'bootstrap',
   },
 })
-export class TicketDetailComponent extends UpgradeComponent {
+export class TicketComponent extends UpgradeComponent {
   private unsubscribe$ = new Subject<void>();
 
   @Output()
@@ -39,14 +39,15 @@ export class TicketDetailComponent extends UpgradeComponent {
     private readonly router: Router,
     private readonly activatedRoute: ActivatedRoute,
   ) {
-    super('ticketDetail', elementRef, injector);
+    super('supportTicketComponentAjs', elementRef, injector);
   }
 
   ngOnInit() {
-    const ticketId = this.activatedRoute.snapshot.params.ticketId;
+    const apiId = this.activatedRoute.snapshot.params.apiId;
+
     // Hack to Force the binding between Angular and AngularJS
     this.ngOnChanges({
-      ticketId: new SimpleChange(null, ticketId, true),
+      apiId: new SimpleChange(null, apiId, true),
     });
 
     this.navigateToTicketsList.pipe(takeUntil(this.unsubscribe$)).subscribe(() => {
