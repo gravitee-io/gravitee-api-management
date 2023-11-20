@@ -19,17 +19,15 @@ import io.gravitee.apim.core.console.model.ConsoleCustomization;
 import io.gravitee.apim.core.console.model.ConsoleTheme;
 import io.gravitee.apim.core.console.model.CtaConfiguration;
 import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService;
-import io.gravitee.apim.core.parameters.query_service.ParametersQueryService;
+import io.gravitee.apim.core.parameters.domain_service.ParametersDomainService;
 import io.gravitee.rest.api.model.parameters.Key;
-import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
-import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 import java.util.Map;
 
 public class GetConsoleCustomizationUseCase {
 
     private final GraviteeLicenseDomainService licenseDomainService;
-    private final ParametersQueryService parametersQueryService;
+    private final ParametersDomainService parametersDomainService;
     private static final List<Key> CONSOLE_CUSTOMIZATION_KEYS = List.of(
         Key.CONSOLE_CUSTOMIZATION_TITLE,
         Key.CONSOLE_CUSTOMIZATION_FAVICON,
@@ -45,54 +43,38 @@ public class GetConsoleCustomizationUseCase {
 
     public GetConsoleCustomizationUseCase(
         GraviteeLicenseDomainService licenseDomainService,
-        ParametersQueryService parametersQueryService
+        ParametersDomainService parametersDomainService
     ) {
         this.licenseDomainService = licenseDomainService;
-        this.parametersQueryService = parametersQueryService;
+        this.parametersDomainService = parametersDomainService;
     }
 
-    public Output execute(Input input) {
+    public Output execute() {
         if (this.licenseDomainService.isFeatureEnabled(GraviteeLicenseDomainService.OEM_CUSTOMIZATION_FEATURE)) {
-            Map<Key, List<String>> parameters = parametersQueryService.findAll(
-                input.executionContext,
-                CONSOLE_CUSTOMIZATION_KEYS,
-                ParameterReferenceType.SYSTEM
-            );
-
-            List<String> title = parameters.get(Key.CONSOLE_CUSTOMIZATION_TITLE);
-            List<String> favicon = parameters.get(Key.CONSOLE_CUSTOMIZATION_FAVICON);
-            List<String> logo = parameters.get(Key.CONSOLE_CUSTOMIZATION_LOGO);
-            List<String> menuActive = parameters.get(Key.CONSOLE_CUSTOMIZATION_THEME_MENUACTIVE);
-            List<String> menuBackground = parameters.get(Key.CONSOLE_CUSTOMIZATION_THEME_MENUBACKGROUND);
-            List<String> customEnterpriseName = parameters.get(Key.CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_CUSTOMEENTERPRISENAME);
-            List<String> ctaTitle = parameters.get(Key.CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_TITLE);
-            List<String> hideDays = parameters.get(Key.CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_HIDEDAYS);
-            List<String> trialButtonLabel = parameters.get(Key.CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_TRIALBUTTONLABEL);
-            List<String> trialURL = parameters.get(Key.CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_TRIALURL);
+            Map<Key, String> parameters = parametersDomainService.getSystemParameters(CONSOLE_CUSTOMIZATION_KEYS);
+            String hideDays = parameters.get(Key.CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_HIDEDAYS);
 
             return new Output(
                 ConsoleCustomization
                     .builder()
-                    .title(isNotEmpty(title) ? title.get(0) : null)
-                    // The ParameterService, by default, uses ";" as the separator when splitting values.
-                    // Since the Base64 encoding of icons may contain this separator, we need to join the array to reconstruct the default value accurately.
-                    .favicon(isNotEmpty(favicon) ? String.join(";", favicon) : null)
-                    .logo(isNotEmpty(logo) ? String.join(";", logo) : null)
+                    .title(parameters.get(Key.CONSOLE_CUSTOMIZATION_TITLE))
+                    .favicon(parameters.get(Key.CONSOLE_CUSTOMIZATION_FAVICON))
+                    .logo(parameters.get(Key.CONSOLE_CUSTOMIZATION_LOGO))
                     .theme(
                         ConsoleTheme
                             .builder()
-                            .menuActive(isNotEmpty(menuActive) ? menuActive.get(0) : null)
-                            .menuBackground(isNotEmpty(menuBackground) ? menuBackground.get(0) : null)
+                            .menuActive(parameters.get(Key.CONSOLE_CUSTOMIZATION_THEME_MENUACTIVE))
+                            .menuBackground(parameters.get(Key.CONSOLE_CUSTOMIZATION_THEME_MENUBACKGROUND))
                             .build()
                     )
                     .ctaConfiguration(
                         CtaConfiguration
                             .builder()
-                            .customEnterpriseName(isNotEmpty(customEnterpriseName) ? customEnterpriseName.get(0) : null)
-                            .title(isNotEmpty(ctaTitle) ? ctaTitle.get(0) : null)
-                            .hideDays(!isNotEmpty(hideDays) || Boolean.parseBoolean(hideDays.get(0)))
-                            .trialButtonLabel(isNotEmpty(trialButtonLabel) ? trialButtonLabel.get(0) : null)
-                            .trialURL(isNotEmpty(trialURL) ? trialURL.get(0) : null)
+                            .customEnterpriseName(parameters.get(Key.CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_CUSTOMEENTERPRISENAME))
+                            .title(parameters.get(Key.CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_TITLE))
+                            .hideDays(null == hideDays || Boolean.parseBoolean(hideDays))
+                            .trialButtonLabel(parameters.get(Key.CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_TRIALBUTTONLABEL))
+                            .trialURL(parameters.get(Key.CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_TRIALURL))
                             .build()
                     )
                     .build()
@@ -100,12 +82,6 @@ public class GetConsoleCustomizationUseCase {
         }
         return new Output(null);
     }
-
-    private boolean isNotEmpty(List<String> collection) {
-        return collection != null && !collection.isEmpty();
-    }
-
-    public record Input(ExecutionContext executionContext) {}
 
     public record Output(ConsoleCustomization consoleCustomization) {}
 }

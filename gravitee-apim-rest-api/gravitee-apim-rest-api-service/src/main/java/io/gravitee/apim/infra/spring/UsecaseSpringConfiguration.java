@@ -27,7 +27,12 @@ import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentation
 import io.gravitee.apim.core.documentation.domain_service.HomepageDomainService;
 import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
-import io.gravitee.apim.core.documentation.use_case.*;
+import io.gravitee.apim.core.documentation.use_case.ApiCreateDocumentationPageUseCase;
+import io.gravitee.apim.core.documentation.use_case.ApiGetDocumentationPageUseCase;
+import io.gravitee.apim.core.documentation.use_case.ApiGetDocumentationPagesUseCase;
+import io.gravitee.apim.core.documentation.use_case.ApiPublishDocumentationPageUseCase;
+import io.gravitee.apim.core.documentation.use_case.ApiUnpublishDocumentationPageUseCase;
+import io.gravitee.apim.core.documentation.use_case.ApiUpdateDocumentationPageUseCase;
 import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
 import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService;
 import io.gravitee.apim.core.log.crud_service.ConnectionLogsCrudService;
@@ -35,7 +40,7 @@ import io.gravitee.apim.core.log.crud_service.MessageLogCrudService;
 import io.gravitee.apim.core.log.use_case.SearchConnectionLogUseCase;
 import io.gravitee.apim.core.log.use_case.SearchConnectionLogsUseCase;
 import io.gravitee.apim.core.log.use_case.SearchMessageLogsUseCase;
-import io.gravitee.apim.core.parameters.query_service.ParametersQueryService;
+import io.gravitee.apim.core.parameters.domain_service.ParametersDomainService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
@@ -184,8 +189,8 @@ public class UsecaseSpringConfiguration {
     @Bean
     public GetConsoleCustomizationUseCase getConsoleCustomizationUseCase(
         GraviteeLicenseDomainService licenseDomainService,
-        ParametersQueryService parametersQueryService
+        ParametersDomainService parametersDomainService
     ) {
-        return new GetConsoleCustomizationUseCase(licenseDomainService, parametersQueryService);
+        return new GetConsoleCustomizationUseCase(licenseDomainService, parametersDomainService);
     }
 }

@@ -18,7 +18,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.boostrap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-import inmemory.ParametersQueryServiceInMemory;
+import inmemory.ParametersDomainServiceInMemory;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.node.api.license.NodeLicenseService;
 import io.gravitee.repository.management.model.Parameter;
@@ -39,13 +39,15 @@ class ManagementUIResourceTest extends AbstractResourceTest {
     NodeLicenseService nodeLicenseService;
 
     @Inject
-    ParametersQueryServiceInMemory parametersQueryService;
+    ParametersDomainServiceInMemory parametersDomainServiceInMemory;
 
     @BeforeEach
     public void init() {
         GraviteeContext.fromExecutionContext(new ExecutionContext(ORGANIZATION));
 
-        parametersQueryService.initWith(List.of(Parameter.builder().key(Key.CONSOLE_CUSTOMIZATION_TITLE.key()).value("title").build()));
+        parametersDomainServiceInMemory.initWith(
+            List.of(Parameter.builder().key(Key.CONSOLE_CUSTOMIZATION_TITLE.key()).value("title").build())
+        );
     }
 
     @Override

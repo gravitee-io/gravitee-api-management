@@ -13,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.parameters.query_service;
+package io.gravitee.apim.core.parameters.domain_service;
 
 import io.gravitee.rest.api.model.parameters.Key;
-import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
-import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 import java.util.Map;
 
-public interface ParametersQueryService {
-    Map<Key, List<String>> findAll(ExecutionContext executionContext, List<Key> keys, ParameterReferenceType referenceType);
+public interface ParametersDomainService {
+    Map<Key, String> getSystemParameters(List<Key> keys);
 }

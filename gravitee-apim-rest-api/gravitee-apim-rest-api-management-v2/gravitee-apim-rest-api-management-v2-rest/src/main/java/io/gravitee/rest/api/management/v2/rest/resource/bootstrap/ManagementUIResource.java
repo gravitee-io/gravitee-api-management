@@ -108,11 +108,7 @@ public class ManagementUIResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public ConsoleCustomization getConsoleCustomization() {
-        return ConsoleCustomizationMapper.INSTANCE.map(
-            getConsoleCustomizationUseCase
-                .execute(new GetConsoleCustomizationUseCase.Input(GraviteeContext.getExecutionContext()))
-                .consoleCustomization()
-        );
+        return ConsoleCustomizationMapper.INSTANCE.map(getConsoleCustomizationUseCase.execute().consoleCustomization());
     }
 
     private String getManagementProxyPath() {
