@@ -18,26 +18,19 @@ import { ADMIN_USER, API_PUBLISHER_USER } from '@fakers/users/users';
 describe('Get Gateway instance information as admin', () => {
   beforeEach(() => {
     cy.loginInAPIM(ADMIN_USER.username, ADMIN_USER.password);
-    cy.visit('/#!/environments/DEFAULT/instances/');
+    cy.visit('/#!/environments/DEFAULT/instances');
     cy.url().should('contain', 'instances');
   });
 
   it('should display all important UI elements', function () {
-    cy.wait(1000);
-    cy.get('h1').contains('API Gateway').should('be.visible');
-    cy.getByDataTestId('instances_search-gateway-textfield').should((textfield) => {
-      expect(textfield).to.have.attr('placeholder', 'Search Gateway instances...');
-      expect(textfield).to.have.attr('type', 'text');
-      expect(textfield).to.have.class('ng-empty');
-    });
-    cy.getByDataTestId('instances_instances-box').should((instancesBox) => {
+    cy.get('h1').contains('Gateways').should('be.visible');
+    cy.getByDataTestId('instance-list-table-row').should((instancesBox) => {
       expect(instancesBox).to.have.length.greaterThan(0);
-      expect(instancesBox[0]).to.contain('STARTED');
     });
   });
 
   it('should redirect to instance overview showing information of selected gateway', () => {
-    cy.getByDataTestId('instances_instances-box').first().trigger('click');
+    cy.getByDataTestId('instance-list-row-instance-details-link').first().trigger('click');
     cy.url().should('contain', 'environment');
     cy.contains('Information');
     cy.contains('Plugins');
@@ -45,7 +38,7 @@ describe('Get Gateway instance information as admin', () => {
   });
 
   it('should display monitoring information of selected gateway', () => {
-    cy.getByDataTestId('instances_instances-box').first().find('a').trigger('click');
+    cy.getByDataTestId('instance-list-row-instance-details-link').first().trigger('click');
     cy.getByDataTestId('instances-detail-monitoring').trigger('click');
     cy.getByDataTestId('instance-monitoring_jvm-box').contains('JVM').should('be.visible');
     cy.getByDataTestId('instance-monitoring_cpu-box').scrollIntoView().contains('CPU').should('be.visible');
@@ -61,9 +54,8 @@ describe('Get Gateway instance information as non-admin', () => {
     cy.loginInAPIM(API_PUBLISHER_USER.username, API_PUBLISHER_USER.password);
   });
 
-  it('should not be able to call gateway instances', function () {
-    cy.visit('/#!/environments/DEFAULT/instances/');
-    cy.wait(1000);
-    cy.url().should('not.contain', 'instances');
+  it('should not access', function () {
+    cy.visit('/#!/environments/DEFAULT/instances');
+    cy.contains('Gateways').should('not.exist');
   });
 });
