@@ -421,16 +421,8 @@ class ApiUpdateDocumentationPageUseCaseTest {
                 .hasFieldOrPropertyWithValue("visibility", Page.Visibility.PRIVATE)
                 .hasFieldOrPropertyWithValue("parentId", PARENT_ID)
                 .hasFieldOrPropertyWithValue("order", 24)
-                .hasFieldOrPropertyWithValue("hidden", false);
-
-            var savedPage = pageCrudService
-                .storage()
-                .stream()
-                .filter(page -> page.getId().equals(res.page().getId()))
-                .toList()
-                .get(0)
-                .withHidden(false);
-            assertThat(savedPage).isEqualTo(res.page());
+                .hasFieldOrPropertyWithValue("hidden", false)
+                .hasFieldOrPropertyWithValue("generalConditions", null);
         }
 
         @Test

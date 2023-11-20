@@ -37,12 +37,15 @@ public class ApiGetDocumentationPageUseCase {
     }
 
     public Output execute(Input input) {
-        this.apiCrudService.get(input.apiId);
+        var api = this.apiCrudService.get(input.apiId);
 
         var page = this.pageCrudService.get(input.pageId);
         this.apiDocumentationDomainService.validatePageAssociatedToApi(page, input.apiId);
 
-        page = page.withHidden(this.apiDocumentationDomainService.pageIsHidden(page));
+        page =
+            page
+                .withHidden(this.apiDocumentationDomainService.pageIsHidden(page))
+                .withGeneralConditions(this.apiDocumentationDomainService.pageIsUsedAsGeneralConditions(page, api));
 
         return new Output(page);
     }

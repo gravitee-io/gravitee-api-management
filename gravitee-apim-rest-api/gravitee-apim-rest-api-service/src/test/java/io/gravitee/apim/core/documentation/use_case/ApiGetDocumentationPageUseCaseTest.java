@@ -27,6 +27,8 @@ import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomain
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
+import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
 import java.util.List;
@@ -59,6 +61,7 @@ class ApiGetDocumentationPageUseCaseTest {
         pageCrudService.reset();
         pageQueryService.reset();
         apiCrudService.reset();
+        planQueryService.reset();
     }
 
     @Test
@@ -68,7 +71,30 @@ class ApiGetDocumentationPageUseCaseTest {
             List.of(Page.builder().id(PAGE_ID).referenceType(Page.ReferenceType.API).referenceId(API_ID).type(Page.Type.MARKDOWN).build())
         );
         var res = useCase.execute(new ApiGetDocumentationPageUseCase.Input(API_ID, PAGE_ID)).page();
-        assertThat(res).isNotNull().hasFieldOrPropertyWithValue("id", PAGE_ID).hasFieldOrPropertyWithValue("hidden", null);
+        assertThat(res)
+            .isNotNull()
+            .hasFieldOrPropertyWithValue("id", PAGE_ID)
+            .hasFieldOrPropertyWithValue("hidden", null)
+            .hasFieldOrPropertyWithValue("generalConditions", false);
+    }
+
+    @Test
+    void should_return_page_used_as_general_conditions() {
+        initApiServices(List.of(Api.builder().id(API_ID).definition("4.0.0").build()));
+        initPageServices(
+            List.of(Page.builder().id(PAGE_ID).referenceType(Page.ReferenceType.API).referenceId(API_ID).type(Page.Type.MARKDOWN).build())
+        );
+
+        planQueryService.initWith(
+            List.of(PlanEntity.builder().id("plan-1").status(PlanStatus.PUBLISHED).apiId(API_ID).generalConditions(PAGE_ID).build())
+        );
+
+        var res = useCase.execute(new ApiGetDocumentationPageUseCase.Input(API_ID, PAGE_ID)).page();
+        assertThat(res)
+            .isNotNull()
+            .hasFieldOrPropertyWithValue("id", PAGE_ID)
+            .hasFieldOrPropertyWithValue("hidden", null)
+            .hasFieldOrPropertyWithValue("generalConditions", true);
     }
 
     @Test
@@ -78,7 +104,11 @@ class ApiGetDocumentationPageUseCaseTest {
             List.of(Page.builder().id(PAGE_ID).referenceType(Page.ReferenceType.API).referenceId(API_ID).type(Page.Type.FOLDER).build())
         );
         var res = useCase.execute(new ApiGetDocumentationPageUseCase.Input(API_ID, PAGE_ID)).page();
-        assertThat(res).isNotNull().hasFieldOrPropertyWithValue("id", PAGE_ID).hasFieldOrPropertyWithValue("hidden", true);
+        assertThat(res)
+            .isNotNull()
+            .hasFieldOrPropertyWithValue("id", PAGE_ID)
+            .hasFieldOrPropertyWithValue("hidden", true)
+            .hasFieldOrPropertyWithValue("generalConditions", null);
     }
 
     @Test

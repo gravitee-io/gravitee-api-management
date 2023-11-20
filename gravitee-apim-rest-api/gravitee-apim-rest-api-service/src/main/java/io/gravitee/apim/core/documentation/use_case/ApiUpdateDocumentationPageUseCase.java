@@ -53,7 +53,7 @@ public class ApiUpdateDocumentationPageUseCase {
     }
 
     public Output execute(Input input) {
-        this.apiCrudService.get(input.apiId);
+        var api = this.apiCrudService.get(input.apiId);
 
         var oldPage = this.pageCrudService.get(input.pageId);
         this.apiDocumentationDomainService.validatePageAssociatedToApi(oldPage, input.apiId);
@@ -85,7 +85,10 @@ public class ApiUpdateDocumentationPageUseCase {
             this.updatePageOrders(oldPage.getOrder(), updatedPage, input.auditInfo);
         }
 
-        updatedPage = updatedPage.withHidden(this.apiDocumentationDomainService.pageIsHidden(updatedPage));
+        updatedPage =
+            updatedPage
+                .withHidden(this.apiDocumentationDomainService.pageIsHidden(updatedPage))
+                .withGeneralConditions(this.apiDocumentationDomainService.pageIsUsedAsGeneralConditions(updatedPage, api));
 
         return new Output(updatedPage);
     }
