@@ -192,7 +192,7 @@ import { ApiHealthcheckLogComponentAjs } from './api/proxy/health-check-dashboar
 
 // Ticket
 import TicketService from '../services/ticket.service';
-import SupportTicketController from '../management/support/ticket.controller';
+import SupportTicketComponentAjs from '../management/support/ticket.component.ajs';
 // Audit
 import AuditService from '../services/audit.service';
 import { ApiAuditComponentAjs } from './api/audit/general/audit.component.ajs';
@@ -324,8 +324,7 @@ import NewFieldDialogController from './configuration/custom-user-fields/dialog/
 import DeleteFieldDialogController from './configuration/custom-user-fields/dialog/delete.custom-user-field.dialog.controller';
 import UpdateFieldDialogController from './configuration/custom-user-fields/dialog/update.custom-user-field.dialog.controller';
 import FlowService from '../services/flow.service';
-import TicketsListController from './support/tickets-list.controller';
-import TicketDetailComponent from './support/ticket-detail.component';
+import TicketDetailComponentAjs from './support/ticket-detail.component.ajs';
 import SpelService from '../services/spel.service';
 import AlertsDashboardComponent from '../components/alerts/dashboard/alerts-dashboard.component';
 import WidgetChartCountComponent from '../components/widget/count/widget-chart-count.component';
@@ -448,6 +447,7 @@ import { ApplicationGeneralComponent } from './application/details/general/gener
 import { ApplicationGeneralMembersComponent } from './application/details/user-group-access/members/application-general-members.component';
 import { ApplicationGeneralGroupsComponent } from './application/details/user-group-access/groups/application-general-groups.component';
 import { ApplicationGeneralTransferOwnershipComponent } from './application/details/user-group-access/transfer-ownership/application-general-transfer-ownership.component';
+import SupportTicketsListComponentAjs from './support/tickets-list.component.ajs';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -623,8 +623,8 @@ graviteeManagementModule.controller('FileChooserDialogController', FileChooserDi
 graviteeManagementModule.controller('DialogConfirmController', DialogConfirmController);
 graviteeManagementModule.controller('DialogConfirmAndValidateController', DialogConfirmAndValidateController);
 graviteeManagementModule.controller('DialogDynamicProviderHttpController', DialogDynamicProviderHttpController);
-graviteeManagementModule.controller('SupportTicketController', SupportTicketController);
-graviteeManagementModule.controller('TicketsListController', TicketsListController);
+graviteeManagementModule.component('supportTicketComponentAjs', SupportTicketComponentAjs);
+graviteeManagementModule.component('supportTicketsListComponentAjs', SupportTicketsListComponentAjs);
 graviteeManagementModule.directive('ngEnvAudit', downgradeComponent({ component: EnvAuditComponent }));
 graviteeManagementModule.component('apiAuditComponentAjs', ApiAuditComponentAjs);
 graviteeManagementModule.controller('PortalThemeController', PortalThemeController);
@@ -720,7 +720,7 @@ graviteeManagementModule.component('portalSettings', PortalSettingsComponent);
 graviteeManagementModule.component('analyticsSettings', AnalyticsSettingsComponent);
 graviteeManagementModule.directive('gvMetadataValidator', () => MetadataValidatorDirective);
 graviteeManagementModule.component('customUserFields', CustomUserFieldsComponent);
-graviteeManagementModule.component('ticketDetail', TicketDetailComponent);
+graviteeManagementModule.component('ticketDetail', TicketDetailComponentAjs);
 
 graviteeManagementModule.component('apiCreationV2ComponentAjs', ApiCreationV2ComponentAjs);
 graviteeManagementModule.controller('ApiCreationV2AjsController', ApiCreationV2ControllerAjs);

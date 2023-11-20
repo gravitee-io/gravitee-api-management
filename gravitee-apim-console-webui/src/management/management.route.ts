@@ -15,7 +15,7 @@
  */
 import { StateParams } from '@uirouter/core';
 
-import TicketsListController from './support/tickets-list.controller';
+import TicketsListComponentAjs from './support/tickets-list.component.ajs';
 
 import AnalyticsService from '../services/analytics.service';
 import { ApiService } from '../services/api.service';
@@ -148,7 +148,7 @@ function managementRouterConfig($stateProvider) {
     .state('management.support.tickets', {
       url: '/support/tickets?page&size&order',
       template: require('./support/tickets-list.html'),
-      controller: TicketsListController,
+      controller: TicketsListComponentAjs,
       controllerAs: 'ticketsListCtrl',
       params: {
         page: {

@@ -31,6 +31,10 @@ import { EnvironmentMetadataModule } from './configuration/metadata/environment-
 import { ManagementComponent } from './management.component';
 import { AsEnvironmentPermissionGuard } from './as-environment-permission.guard';
 import { EnvironmentResolver } from './environement.resolver';
+import { TasksComponent } from './tasks/tasks.component';
+import { TicketComponent } from './support/ticket.component';
+import { TicketDetailComponent } from './support/ticket-detail.component';
+import { TicketsListComponent } from './support/tickets-list.component';
 import { InstancesModule } from './instances/instances.module';
 
 import { GioPermissionModule } from '../shared/components/gio-permission/gio-permission.module';
@@ -63,6 +67,28 @@ const managementRoutes: Routes = [
         path: 'my-account',
         component: UserComponent,
       },
+      {
+        path: 'tasks',
+        component: TasksComponent,
+        data: {
+          docs: {
+            page: 'management-tasks',
+          },
+        },
+      },
+      {
+        path: 'support/new',
+        component: TicketComponent,
+      },
+      {
+        path: 'support/list',
+        component: TicketsListComponent,
+      },
+      {
+        path: 'support/:ticketId',
+        component: TicketDetailComponent,
+      },
+
       { path: '', pathMatch: 'full', redirectTo: 'home' },
     ],
   },
@@ -92,7 +118,7 @@ const managementRoutes: Routes = [
     GioTopNavModule,
     RouterModule.forChild(managementRoutes),
   ],
-  declarations: [ManagementComponent, ContextualDocComponentComponent],
+  declarations: [ManagementComponent, ContextualDocComponentComponent, TicketComponent, TicketDetailComponent, TicketsListComponent],
   exports: [RouterModule],
 })
 export class ManagementModule {}

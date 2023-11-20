@@ -22,6 +22,9 @@ import TicketService from '../../services/ticket.service';
 import UserService from '../../services/user.service';
 
 class SupportTicketController {
+  private apiId: string;
+  private navigateToTicketsList: any;
+
   private ticket: any;
   private apis: [any];
   private applications: [any];
@@ -36,20 +39,17 @@ class SupportTicketController {
     private UserService: UserService,
     private ApiService: ApiService,
     private ApplicationService: ApplicationService,
-    private $stateParams,
   ) {
-    this.stateParams = $stateParams;
-
     if ((this.isAuthenticated = UserService.isAuthenticated())) {
       this.userHasAnEmail = !!UserService.currentUser.email;
       ApiService.list()
         .then((response) => (this.apis = response.data))
         .then((apis) => {
-          if ($stateParams.apiId) {
-            const api = _.find(apis, { id: $stateParams.apiId });
+          if (this.apiId) {
+            const api = _.find(apis, { id: this.apiId });
             if (api) {
               this.ticket = {
-                api: $stateParams.apiId,
+                api: this.apiId,
               };
             }
           }
@@ -76,4 +76,13 @@ SupportTicketController.$inject = [
   '$stateParams',
 ];
 
-export default SupportTicketController;
+const SupportTicketComponentAjs: ng.IComponentOptions = {
+  bindings: {
+    apiId: '<',
+    navigateToTicketsList: '&',
+  },
+  controller: SupportTicketController,
+  template: require('./ticket.html'),
+};
+
+export default SupportTicketComponentAjs;
