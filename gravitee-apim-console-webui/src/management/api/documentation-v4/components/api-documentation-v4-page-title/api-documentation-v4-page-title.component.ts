@@ -13,11 +13,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component } from '@angular/core';
+import { Component, Inject, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
+
+import { Constants } from '../../../../../entities/Constants';
+import { Api } from '../../../../../entities/management-api-v2';
 
 @Component({
   selector: 'api-documentation-page-title',
   template: require('./api-documentation-v4-page-title.component.html'),
   styles: [require('./api-documentation-v4-page-title.component.scss')],
 })
-export class ApiDocumentationV4PageTitleComponent {}
+export class ApiDocumentationV4PageTitleComponent implements OnInit, OnChanges {
+  @Input()
+  api: Api;
+
+  public apiPortalUrl: string;
+
+  constructor(@Inject('Constants') public readonly constants: Constants) {}
+
+  ngOnInit(): void {
+    this.calculateApiPortalUrl();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes.api) {
+      this.api = changes.api.currentValue;
+      this.calculateApiPortalUrl();
+    }
+  }
+
+  private calculateApiPortalUrl(): void {
+    if (this.api?.id && this.constants?.env?.settings?.portal?.url) {
+      const root = this.constants.env.settings.portal.url;
+      const apiPath = 'catalog/api/' + this.api.id;
+      const connector = '/';
+
+      this.apiPortalUrl = root.endsWith(connector) ? root + apiPath : root + connector + apiPath;
+    }
+  }
+}
