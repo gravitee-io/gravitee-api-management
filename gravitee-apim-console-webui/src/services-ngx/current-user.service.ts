@@ -15,8 +15,8 @@
  */
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
-import { shareReplay } from 'rxjs/operators';
+import { Observable, Subject } from 'rxjs';
+import { mergeMap, shareReplay, startWith } from 'rxjs/operators';
 
 import { Constants } from '../entities/Constants';
 import { User } from '../entities/user/user';
@@ -26,6 +26,7 @@ import { hashStringToCode } from '../services/string.service';
   providedIn: 'root',
 })
 export class CurrentUserService {
+  private updateCurrentUser$ = new Subject<void>();
   private currentUser: Observable<User> | null;
 
   constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
@@ -36,7 +37,11 @@ export class CurrentUserService {
 
   current(): Observable<User> {
     if (!this.currentUser) {
-      return this.http.get<User>(`${this.constants.org.baseURL}/user`).pipe(shareReplay(1));
+      this.currentUser = this.updateCurrentUser$.pipe(
+        startWith(true),
+        mergeMap(() => this.http.get<User>(`${this.constants.org.baseURL}/user`)),
+        shareReplay(1),
+      );
     }
     return this.currentUser;
   }
@@ -49,5 +54,8 @@ export class CurrentUserService {
 
   clearCurrent() {
     this.currentUser = null;
+  }
+  updateCurrent() {
+    this.updateCurrentUser$.next();
   }
 }

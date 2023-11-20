@@ -14,20 +14,17 @@
  * limitations under the License.
  */
 import { StateService } from '@uirouter/core';
-import { IScope } from 'angular';
 
-import { User } from '../entities/user';
-import NotificationService from '../services/notification.service';
-import TokenService from '../services/token.service';
-import UserService from '../services/user.service';
-
-interface IUserScope extends ng.IScope {
-  formUser: any;
-}
+import { User } from '../../entities/user';
+import NotificationService from '../../services/notification.service';
+import TokenService from '../../services/token.service';
+import UserService from '../../services/user.service';
 
 class UserController {
   private originalPicture: any;
   private user: User;
+  private onSaved: any;
+  private onDeleteMyAccount: any;
   private tokens: Array<any>;
 
   private fields: any[] = [];
@@ -37,8 +34,6 @@ class UserController {
     private UserService: UserService,
     private NotificationService: NotificationService,
     private $state: StateService,
-    private $scope: IUserScope,
-    private $rootScope: IScope,
     private TokenService: TokenService,
     private $mdDialog: angular.material.IDialogService,
     private Constants,
@@ -46,39 +41,33 @@ class UserController {
 
   $onInit() {
     this.UserService.customUserFieldsToRegister().then((resp) => (this.fields = resp.data));
-    if (!this.user || (this.user && this.user.id === undefined)) {
-      this.$state.go('login', {}, { reload: true, inherit: false });
-    } else {
-      this.originalPicture = this.getUserPicture();
-      this.user.picture_url = this.getUserPicture();
-      this.TokenService.list().then((response) => {
-        this.tokens = response.data;
-      });
-      if (this.user.groupsByEnvironment) {
-        const groupsByEnvironmentKeys = Object.keys(this.user.groupsByEnvironment);
-        if (groupsByEnvironmentKeys.length === 1) {
-          this.groups = Object.values(this.user.groupsByEnvironment)[0].join(' - ');
-        } else {
-          this.groups = groupsByEnvironmentKeys
-            .map((envId) => {
-              const env = this.Constants.org.environments.find((env) => env.id === envId);
-              return `[${env.name}] ${this.user.groupsByEnvironment[envId].join('/')}`;
-            })
-            .join(' - ');
-        }
+
+    this.originalPicture = this.getUserPicture();
+    this.user.picture_url = this.getUserPicture();
+    this.TokenService.list().then((response) => {
+      this.tokens = response.data;
+    });
+    if (this.user.groupsByEnvironment) {
+      const groupsByEnvironmentKeys = Object.keys(this.user.groupsByEnvironment);
+      if (groupsByEnvironmentKeys.length === 1) {
+        this.groups = Object.values(this.user.groupsByEnvironment)[0].join(' - ');
       } else {
-        this.groups = '-';
+        this.groups = groupsByEnvironmentKeys
+          .map((envId) => {
+            const env = this.Constants.org.environments.find((env) => env.id === envId);
+            return `[${env.name}] ${this.user.groupsByEnvironment[envId].join('/')}`;
+          })
+          .join(' - ');
       }
+    } else {
+      this.groups = '-';
     }
   }
 
   save() {
-    this.UserService.save(this.user).then((response) => {
-      this.user = response.data;
-      this.user.picture_url = this.getUserPicture();
-      this.$rootScope.$broadcast('graviteeUserRefresh', { user: this.user, refresh: true });
-      this.$scope.formUser.$setPristine();
+    this.UserService.save(this.user).then(() => {
       this.NotificationService.show('User has been updated successfully');
+      this.onSaved();
     });
   }
 
@@ -91,7 +80,7 @@ class UserController {
       .show({
         controller: 'DialogConfirmAndValidateController',
         controllerAs: 'ctrl',
-        template: require('../components/dialog/confirmAndValidate.dialog.html'),
+        template: require('../../components/dialog/confirmAndValidate.dialog.html'),
         clickOutsideToClose: true,
         locals: {
           title: 'Are you sure you want to delete your account ?',
@@ -105,8 +94,8 @@ class UserController {
       .then((response) => {
         if (response) {
           return this.UserService.removeCurrentUser().then(() => {
-            this.$state.go('logout');
             this.NotificationService.show('You have been successfully deleted');
+            this.onDeleteMyAccount();
           });
         }
       });
@@ -131,7 +120,7 @@ class UserController {
       .show({
         controller: 'DialogGenerateTokenController',
         controllerAs: 'ctrl',
-        template: require('./token/generateToken.dialog.html'),
+        template: require('../token/generateToken.dialog.html'),
         clickOutsideToClose: false,
         escapeToClose: false,
         locals: {
@@ -151,7 +140,7 @@ class UserController {
       .show({
         controller: 'DialogConfirmController',
         controllerAs: 'ctrl',
-        template: require('../components/dialog/confirmWarning.dialog.html'),
+        template: require('../../components/dialog/confirmWarning.dialog.html'),
         clickOutsideToClose: true,
         locals: {
           msg: 'Any applications or scripts using this token will no longer be able to access the Gravitee.io management API. You cannot undo this action.',
@@ -169,6 +158,6 @@ class UserController {
       });
   }
 }
-UserController.$inject = ['UserService', 'NotificationService', '$state', '$scope', '$rootScope', 'TokenService', '$mdDialog', 'Constants'];
+UserController.$inject = ['UserService', 'NotificationService', '$state', 'TokenService', '$mdDialog', 'Constants'];
 
 export default UserController;

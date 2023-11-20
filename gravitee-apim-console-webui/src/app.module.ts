@@ -38,9 +38,10 @@ import { GioTopNavModule } from './components/gio-top-nav/gio-top-nav.module';
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
 import { LoginModule } from './user/login/login.module';
+import { UserComponent } from './user/my-accout/user.component';
 
 @NgModule({
-  declarations: [AppComponent],
+  declarations: [AppComponent, UserComponent],
   imports: [
     // /!\ This module must be importer only once in the application.
     BrowserModule,
