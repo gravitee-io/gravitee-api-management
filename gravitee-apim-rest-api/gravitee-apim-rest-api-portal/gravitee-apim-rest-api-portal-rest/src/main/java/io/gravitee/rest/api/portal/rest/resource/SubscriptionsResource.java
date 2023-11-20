@@ -119,7 +119,9 @@ public class SubscriptionsResource extends AbstractResource {
             newSubscriptionEntity.setFilter(subscriptionInput.getFilter());
             newSubscriptionEntity.setMetadata(subscriptionInput.getMetadata());
             newSubscriptionEntity.setConfiguration(MAPPER.valueToTree(subscriptionInput.getConfiguration()));
-            newSubscriptionEntity.setApiKeyMode(ApiKeyMode.valueOf(subscriptionInput.getApiKeyMode().name()));
+            if (subscriptionInput.getApiKeyMode() != null) {
+                newSubscriptionEntity.setApiKeyMode(ApiKeyMode.valueOf(subscriptionInput.getApiKeyMode().name()));
+            }
             SubscriptionEntity createdSubscription = subscriptionService.create(executionContext, newSubscriptionEntity);
 
             // For consumer convenience, fetch the keys just after the subscription has been created.
