@@ -26,6 +26,7 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { MatSnackBarHarness } from '@angular/material/snack-bar/testing';
+import { set } from 'lodash';
 
 import { ApiDocumentationV4EditPageHarness } from './api-documentation-v4-edit-page.harness';
 import { ApiDocumentationV4EditPageComponent } from './api-documentation-v4-edit-page.component';
@@ -38,6 +39,8 @@ import { Breadcrumb, Page } from '../../../../entities/management-api-v2/documen
 import { ApiDocumentationV4ContentEditorHarness } from '../components/api-documentation-v4-content-editor/api-documentation-v4-content-editor.harness';
 import { ApiDocumentationV4BreadcrumbHarness } from '../components/api-documentation-v4-breadcrumb/api-documentation-v4-breadcrumb.harness';
 import { fakeFolder, fakeMarkdown } from '../../../../entities/management-api-v2/documentation/page.fixture';
+import { ApiDocumentationV4PageTitleHarness } from '../components/api-documentation-v4-page-title/api-documentation-v4-page-title.harness';
+import { fakeApiV4 } from '../../../../entities/management-api-v2';
 
 interface InitInput {
   pages?: Page[];
@@ -53,7 +56,7 @@ describe('ApiDocumentationV4EditPageComponent', () => {
   const API_ID = 'api-id';
   let httpTestingController: HttpTestingController;
 
-  const init = async (parentId: string, pageId: string) => {
+  const init = async (parentId: string, pageId: string, portalUrl = 'portal.url') => {
     await TestBed.configureTestingModule({
       declarations: [ApiDocumentationV4EditPageComponent],
       imports: [
@@ -68,6 +71,18 @@ describe('ApiDocumentationV4EditPageComponent', () => {
       providers: [
         { provide: UIRouterState, useValue: fakeUiRouter },
         { provide: UIRouterStateParams, useValue: { apiId: API_ID, parentId, pageId } },
+        {
+          provide: 'Constants',
+          useFactory: () => {
+            const constants = CONSTANTS_TESTING;
+            set(constants, 'env.settings.portal', {
+              get url() {
+                return portalUrl;
+              },
+            });
+            return constants;
+          },
+        },
       ],
     })
       .overrideProvider(InteractivityChecker, {
@@ -84,6 +99,13 @@ describe('ApiDocumentationV4EditPageComponent', () => {
   };
 
   const initPageServiceRequests = (input: InitInput, page: Page = {}) => {
+    httpTestingController
+      .expectOne({
+        method: 'GET',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`,
+      })
+      .flush(fakeApiV4({ id: API_ID, lifecycleState: 'PUBLISHED' }));
+
     if (input.mode === 'edit') {
       expectGetPage(page);
     }
@@ -588,7 +610,14 @@ describe('ApiDocumentationV4EditPageComponent', () => {
 
         it('should delete page and navigate to parent folder', async () => {
           await init(undefined, SUB_FOLDER_PAGE.id);
-          initPageServiceRequests({ pages: [FOLDER, SUB_FOLDER_PAGE], parentId: FOLDER.id, mode: 'edit' }, SUB_FOLDER_PAGE);
+          initPageServiceRequests(
+            {
+              pages: [FOLDER, SUB_FOLDER_PAGE],
+              parentId: FOLDER.id,
+              mode: 'edit',
+            },
+            SUB_FOLDER_PAGE,
+          );
           const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
           expect(await harness.getName()).toEqual(SUB_FOLDER_PAGE.name);
           expect(await harness.getVisibility()).toEqual(SUB_FOLDER_PAGE.visibility);
@@ -605,9 +634,34 @@ describe('ApiDocumentationV4EditPageComponent', () => {
             })
             .flush(null);
 
-          expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.documentationV4', { apiId: API_ID, parentId: FOLDER.id });
+          expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.documentationV4', {
+            apiId: API_ID,
+            parentId: FOLDER.id,
+          });
         });
       });
+    });
+  });
+
+  describe('Header', () => {
+    const PAGE = fakeMarkdown({ id: 'page-id', name: 'page-name', content: 'my content', visibility: 'PUBLIC', published: true });
+
+    it('should display Open in Portal button', async () => {
+      await init(undefined, PAGE.id);
+      initPageServiceRequests({ pages: [PAGE], breadcrumb: [], parentId: undefined, mode: 'edit' }, PAGE);
+
+      const header = await harnessLoader.getHarness(ApiDocumentationV4PageTitleHarness);
+      expect(header).toBeDefined();
+      const openInPortalBtn = await header.getOpenInPortalBtn();
+      expect(openInPortalBtn).toBeDefined();
+      expect(await openInPortalBtn.isDisabled()).toEqual(false);
+    });
+    it('should not display Open in Portal button if Portal url not defined', async () => {
+      await init(undefined, PAGE.id, null);
+      initPageServiceRequests({ pages: [PAGE], breadcrumb: [], parentId: undefined, mode: 'edit' }, PAGE);
+
+      const header = await harnessLoader.getHarness(ApiDocumentationV4PageTitleHarness);
+      expect(await header.getOpenInPortalBtn()).toEqual(null);
     });
   });
 
