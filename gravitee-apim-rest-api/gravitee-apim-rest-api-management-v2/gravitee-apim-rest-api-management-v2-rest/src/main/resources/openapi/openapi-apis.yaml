@@ -5232,6 +5232,9 @@ components:
                 hidden:
                     type: boolean
                     description: If folder is published but not shown in Portal.
+                generalConditions:
+                    type: boolean
+                    description: If page is used as General Conditions of an active plan.
         PageMedia:
             type: object
             properties:
