@@ -81,9 +81,9 @@ public class ApiDocumentationDomainService {
         return null;
     }
 
-    public boolean pageIsUsedAsGeneralConditions(Page page, Api api) {
+    public Boolean pageIsUsedAsGeneralConditions(Page page, Api api) {
         if (page.isFolder()) {
-            return false;
+            return null;
         }
         var results =
             this.planQueryService.findAllByApiIdAndGeneralConditionsAndIsActive(api.getId(), api.getDefinitionVersion(), page.getId());

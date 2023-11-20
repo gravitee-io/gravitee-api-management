@@ -54,7 +54,9 @@ public class ApiUnpublishDocumentationPageUseCase {
             throw new ValidationDomainException("Page is already unpublished.", Map.of("id", page.getId()));
         }
 
-        if (this.apiDocumentationDomainService.pageIsUsedAsGeneralConditions(page, api)) {
+        var isPageUsedAsGeneralConditions = this.apiDocumentationDomainService.pageIsUsedAsGeneralConditions(page, api);
+
+        if (Boolean.TRUE.equals(isPageUsedAsGeneralConditions)) {
             throw new ValidationDomainException("Page is used as Plan general conditions", Map.of("pageId", page.getId()));
         }
 
