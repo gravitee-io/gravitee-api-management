@@ -5,9 +5,19 @@ $typography: map.get(gio.$mat-theme, typography);
 
 .header {
   margin-bottom: 24px;
+  display: flex;
+  gap: 12px;
+
+  &__title {
+    flex: 1 1 100%;
+  }
 
   &__subtitle {
     color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
     @include mat.typography-level($typography, 'body-1');
+  }
+
+  &__actions {
+    padding-top: 12px;
   }
 }
