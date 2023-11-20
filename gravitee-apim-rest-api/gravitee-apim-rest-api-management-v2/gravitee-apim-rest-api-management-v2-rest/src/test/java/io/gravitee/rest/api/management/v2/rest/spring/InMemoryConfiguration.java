@@ -17,7 +17,7 @@ package io.gravitee.rest.api.management.v2.rest.spring;
 
 import inmemory.*;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
-import io.gravitee.apim.core.parameters.query_service.ParametersQueryService;
+import io.gravitee.apim.core.parameters.domain_service.ParametersDomainService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -127,7 +127,7 @@ public class InMemoryConfiguration {
     }
 
     @Bean
-    public ParametersQueryServiceInMemory parametersQueryServiceInMemory() {
-        return new ParametersQueryServiceInMemory();
+    public ParametersDomainServiceInMemory parametersDomainServiceInMemory() {
+        return new ParametersDomainServiceInMemory();
     }
 }

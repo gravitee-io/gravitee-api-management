@@ -23,7 +23,7 @@ import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.installation.domain_service.InstallationTypeDomainService;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
-import io.gravitee.apim.core.parameters.query_service.ParametersQueryService;
+import io.gravitee.apim.core.parameters.domain_service.ParametersDomainService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.infra.domain_service.api.ApiDefinitionParserDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.api.ApiHostValidatorDomainServiceImpl;
@@ -512,7 +512,7 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public ParametersQueryService parametersQueryService() {
-        return mock(ParametersQueryService.class);
+    public ParametersDomainService parametersDomainService() {
+        return mock(ParametersDomainService.class);
     }
 }
