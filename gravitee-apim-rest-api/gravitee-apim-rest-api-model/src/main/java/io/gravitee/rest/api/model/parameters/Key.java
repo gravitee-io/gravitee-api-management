@@ -95,7 +95,11 @@ public enum Key {
     PORTAL_SCHEDULER_TASKS("portal.scheduler.tasks", "10", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
     PORTAL_SCHEDULER_NOTIFICATIONS("portal.scheduler.notifications", "10", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
 
-    DOCUMENTATION_URL("documentation.url", "https://documentation.gravitee.io", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    DOCUMENTATION_URL(
+        "documentation.url",
+        "https://documentation.gravitee.io",
+        new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))
+    ),
 
     PLAN_SECURITY_JWT_ENABLED("plan.security.jwt.enabled", "true", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
     PLAN_SECURITY_OAUTH2_ENABLED("plan.security.oauth2.enabled", "true", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
