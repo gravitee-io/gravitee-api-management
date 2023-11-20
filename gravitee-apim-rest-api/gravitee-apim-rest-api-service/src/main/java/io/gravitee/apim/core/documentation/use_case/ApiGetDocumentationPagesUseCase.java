@@ -41,7 +41,7 @@ public class ApiGetDocumentationPagesUseCase {
     }
 
     public Output execute(Input input) {
-        this.apiCrudService.get(input.apiId);
+        var api = this.apiCrudService.get(input.apiId);
 
         List<Breadcrumb> breadcrumbList = new ArrayList<>();
 
@@ -64,7 +64,11 @@ public class ApiGetDocumentationPagesUseCase {
         var pages = apiDocumentationDomainService
             .getApiPages(input.apiId, input.parentId)
             .stream()
-            .map(page -> page.withHidden(this.apiDocumentationDomainService.pageIsHidden(page)))
+            .map(page ->
+                page
+                    .withHidden(this.apiDocumentationDomainService.pageIsHidden(page))
+                    .withGeneralConditions(this.apiDocumentationDomainService.pageIsUsedAsGeneralConditions(page, api))
+            )
             .toList();
 
         return new Output(pages, breadcrumbList);

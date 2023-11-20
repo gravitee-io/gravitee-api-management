@@ -28,6 +28,10 @@ import io.gravitee.apim.core.documentation.exception.InvalidPageParentException;
 import io.gravitee.apim.core.documentation.model.Breadcrumb;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
+import io.gravitee.definition.model.v4.plan.Plan;
+import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
+import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
 import java.util.ArrayList;
@@ -56,6 +60,7 @@ class ApiGetDocumentationPagesUseCaseTest {
         pageQueryService.reset();
         pageCrudService.reset();
         apiCrudService.reset();
+        planQueryService.reset();
     }
 
     @Nested
@@ -113,6 +118,35 @@ class ApiGetDocumentationPagesUseCaseTest {
             assertThat(res.get(3)).hasFieldOrPropertyWithValue("id", "folder#1").hasFieldOrPropertyWithValue("hidden", false);
             assertThat(res.get(4)).hasFieldOrPropertyWithValue("id", "folder#2").hasFieldOrPropertyWithValue("hidden", true);
             assertThat(res.get(5)).hasFieldOrPropertyWithValue("id", "folder#3").hasFieldOrPropertyWithValue("hidden", true);
+        }
+
+        @Test
+        void should_calculate_if_pages_used_as_general_conditions() {
+            initApiServices(List.of(Api.builder().id(API_ID).definition("4.0.0").build()));
+            initPageServices(
+                List.of(
+                    Page
+                        .builder()
+                        .id("page#1")
+                        .referenceType(Page.ReferenceType.API)
+                        .referenceId(API_ID)
+                        .type(Page.Type.MARKDOWN)
+                        .published(true)
+                        .build(),
+                    Page.builder().id("page#2").referenceType(Page.ReferenceType.API).referenceId(API_ID).type(Page.Type.MARKDOWN).build(),
+                    Page.builder().id("folder#1").referenceType(Page.ReferenceType.API).referenceId(API_ID).type(Page.Type.FOLDER).build()
+                )
+            );
+
+            planQueryService.initWith(
+                List.of(PlanEntity.builder().id("plan-1").apiId(API_ID).status(PlanStatus.PUBLISHED).generalConditions("page#1").build())
+            );
+
+            var res = useCase.execute(new ApiGetDocumentationPagesUseCase.Input(API_ID, null)).pages();
+            assertThat(res).hasSize(3);
+            assertThat(res.get(0)).hasFieldOrPropertyWithValue("id", "page#1").hasFieldOrPropertyWithValue("generalConditions", true);
+            assertThat(res.get(1)).hasFieldOrPropertyWithValue("id", "page#2").hasFieldOrPropertyWithValue("generalConditions", false);
+            assertThat(res.get(2)).hasFieldOrPropertyWithValue("id", "folder#1").hasFieldOrPropertyWithValue("generalConditions", null);
         }
 
         @Test

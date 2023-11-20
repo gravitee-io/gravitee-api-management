@@ -47,11 +47,16 @@ public class Page {
     private Date updatedAt;
     private String parentId;
 
+    // Folder attributes
     @With
     private Boolean hidden;
 
+    // Non-Folder attributes
     private String content;
     private boolean homepage;
+
+    @With
+    private Boolean generalConditions;
 
     // Legacy support
     private PageSource source;

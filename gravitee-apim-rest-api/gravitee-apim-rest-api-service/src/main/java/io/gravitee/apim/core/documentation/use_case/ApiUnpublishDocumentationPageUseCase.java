@@ -65,7 +65,10 @@ public class ApiUnpublishDocumentationPageUseCase {
 
         // TODO: Remove from Lucene index if MARKDOWN is unpublished
 
-        updatedPage = updatedPage.withHidden(this.apiDocumentationDomainService.pageIsHidden(updatedPage));
+        updatedPage =
+            updatedPage
+                .withHidden(this.apiDocumentationDomainService.pageIsHidden(updatedPage))
+                .withGeneralConditions(isPageUsedAsGeneralConditions);
 
         return new Output(updatedPage);
     }
