@@ -122,7 +122,9 @@ public class SubscriptionsResource extends AbstractResource {
                 }
                 newSubscriptionEntity.setConfiguration(subscriptionConfigurationEntity);
             }
-            newSubscriptionEntity.setApiKeyMode(ApiKeyMode.valueOf(subscriptionInput.getApiKeyMode().name()));
+            if (subscriptionInput.getApiKeyMode() != null) {
+                newSubscriptionEntity.setApiKeyMode(ApiKeyMode.valueOf(subscriptionInput.getApiKeyMode().name()));
+            }
             SubscriptionEntity createdSubscription = subscriptionService.create(executionContext, newSubscriptionEntity);
 
             // For consumer convenience, fetch the keys just after the subscription has been created.
