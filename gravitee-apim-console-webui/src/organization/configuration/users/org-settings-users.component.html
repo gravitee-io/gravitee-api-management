@@ -19,9 +19,7 @@
 <div class="title">
   <h1>Users</h1>
 
-  <button (click)="onAddUserClick()" mat-raised-button color="primary" data-testid="add-user">
-    <mat-icon>person_add</mat-icon> Add user
-  </button>
+  <button [routerLink]="'./new'" mat-raised-button color="primary" data-testid="add-user"><mat-icon>person_add</mat-icon> Add user</button>
 </div>
 
 <gio-table-wrapper [length]="nbTotalUsers" [filters]="filters" (filtersChange)="onFiltersChanged($event)">
@@ -37,7 +35,7 @@
     <!-- Display name Column -->
     <ng-container matColumnDef="displayName">
       <th mat-header-cell *matHeaderCellDef id="displayName">Display name</th>
-      <td mat-cell *matCellDef="let element" (click)="onDisplayNameClick(element.userId)">
+      <td mat-cell *matCellDef="let element" [routerLink]="'./' + element.userId">
         <a>{{ element.displayName }}</a>
         <span class="gio-badge" *ngIf="element.primary_owner">Primary Owner</span>
         <span class="gio-badge-error" *ngIf="element.number_of_active_tokens > 0">

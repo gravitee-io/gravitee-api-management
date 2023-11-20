@@ -22,11 +22,12 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
+import { ActivatedRoute } from '@angular/router';
 
 import { OrgSettingsUsersComponent } from './org-settings-users.component';
 
 import { OrganizationSettingsModule } from '../organization-settings.module';
-import { UIRouterStateParams, UIRouterState, CurrentUserService } from '../../../ajs-upgraded-providers';
+import { CurrentUserService } from '../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { User } from '../../../entities/user/user';
 import { fakePagedResult } from '../../../entities/pagedResult';
@@ -43,11 +44,7 @@ describe('OrgSettingsUsersComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, OrganizationSettingsModule, GioHttpTestingModule],
-      providers: [
-        { provide: UIRouterState, useValue: { go: jest.fn() } },
-        { provide: UIRouterStateParams, useValue: {} },
-        { provide: CurrentUserService, useValue: { currentUser: new DeprecatedUser() } },
-      ],
+      providers: [{ provide: CurrentUserService, useValue: { currentUser: new DeprecatedUser() } }],
     }).overrideProvider(InteractivityChecker, {
       useValue: {
         isFocusable: () => true, // This checks focus trap, set it to true to  avoid the warning
@@ -183,7 +180,7 @@ describe('OrgSettingsUsersComponent', () => {
 
   describe('with query params', () => {
     beforeEach(() => {
-      TestBed.overrideProvider(UIRouterStateParams, { useValue: { page: 2, q: 'Hello' } });
+      TestBed.overrideProvider(ActivatedRoute, { useValue: { snapshot: { queryParams: { q: 'Hello', page: 2 } } } });
       TestBed.compileComponents();
 
       httpTestingController = TestBed.inject(HttpTestingController);
