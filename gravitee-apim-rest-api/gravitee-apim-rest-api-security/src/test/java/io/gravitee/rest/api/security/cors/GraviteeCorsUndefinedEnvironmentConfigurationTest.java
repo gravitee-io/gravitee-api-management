@@ -37,6 +37,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Arrays;
 import java.util.List;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -83,6 +84,11 @@ public class GraviteeCorsUndefinedEnvironmentConfigurationTest {
                 GraviteeCorsConfiguration.UNDEFINED_REFERENCE_ID,
                 ENVIRONMENT_TYPE
             );
+    }
+
+    @AfterEach
+    public void afterEach() {
+        GraviteeContext.cleanContext();
     }
 
     @Test

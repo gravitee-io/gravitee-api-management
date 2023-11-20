@@ -25,9 +25,12 @@ import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,6 +46,9 @@ import org.springframework.security.core.authority.AuthorityUtils;
 @RunWith(MockitoJUnitRunner.class)
 public class AuthoritiesProviderTest {
 
+    public static final String ENVIRONMENT_ID = "environment#id";
+    public static final String ORGANIZATION_ID = "organization#id";
+
     @Mock
     private MembershipService membershipService;
 
@@ -50,7 +56,13 @@ public class AuthoritiesProviderTest {
 
     @Before
     public void init() {
+        GraviteeContext.fromExecutionContext(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID));
         cut = new AuthoritiesProvider(membershipService);
+    }
+
+    @After
+    public void clean() {
+        GraviteeContext.cleanContext();
     }
 
     @Test
@@ -71,9 +83,9 @@ public class AuthoritiesProviderTest {
         mgtRole2.setName("MGT_ROLE2");
         mgtRole2.setScope(RoleScope.ORGANIZATION);
 
-        when(membershipService.getRoles(MembershipReferenceType.ENVIRONMENT, "DEFAULT", MembershipMemberType.USER, USER_ID))
+        when(membershipService.getRoles(MembershipReferenceType.ENVIRONMENT, ENVIRONMENT_ID, MembershipMemberType.USER, USER_ID))
             .thenReturn(new HashSet<>(asList(portalRole)));
-        when(membershipService.getRoles(MembershipReferenceType.ORGANIZATION, "DEFAULT", MembershipMemberType.USER, USER_ID))
+        when(membershipService.getRoles(MembershipReferenceType.ORGANIZATION, ORGANIZATION_ID, MembershipMemberType.USER, USER_ID))
             .thenReturn(new HashSet<>(asList(mgtRole1, mgtRole2)));
 
         final Set<GrantedAuthority> grantedAuthorities = cut.retrieveAuthorities(USER_ID);
