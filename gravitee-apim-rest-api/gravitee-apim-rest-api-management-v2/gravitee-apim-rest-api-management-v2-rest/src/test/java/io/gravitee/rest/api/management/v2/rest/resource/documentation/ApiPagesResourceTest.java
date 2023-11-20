@@ -24,11 +24,13 @@ import assertions.MAPIAssertions;
 import inmemory.*;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.documentation.model.Page;
+import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.management.v2.rest.model.*;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import jakarta.ws.rs.client.Entity;
@@ -53,6 +55,9 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
     @Autowired
     private PageRevisionCrudServiceInMemory pageRevisionCrudServiceInMemory;
+
+    @Autowired
+    private PlanQueryServiceInMemory planQueryServiceInMemory;
 
     @Autowired
     private AuditCrudServiceInMemory auditCrudService;
@@ -88,7 +93,8 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                 pageRevisionCrudServiceInMemory,
                 auditCrudService,
                 userCrudService,
-                apiCrudServiceInMemory
+                apiCrudServiceInMemory,
+                planQueryServiceInMemory
             )
             .forEach(InMemoryAlternative::reset);
     }
@@ -103,7 +109,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
         @BeforeEach
         void setUp() {
-            apiCrudServiceInMemory.initWith(List.of(Api.builder().id("api-id").build()));
+            apiCrudServiceInMemory.initWith(List.of(Api.builder().id("api-id").definition("4.0.0").build()));
         }
 
         @Test
@@ -176,6 +182,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                             .configuration(Map.of())
                             .metadata(Map.of())
                             .excludedAccessControls(false)
+                            .generalConditions(false)
                             .build(),
                         io.gravitee.rest.api.management.v2.rest.model.Page
                             .builder()
@@ -232,6 +239,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                             .configuration(Map.of())
                             .metadata(Map.of())
                             .excludedAccessControls(false)
+                            .generalConditions(false)
                             .build(),
                         io.gravitee.rest.api.management.v2.rest.model.Page
                             .builder()
@@ -299,6 +307,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                             .metadata(Map.of())
                             .excludedAccessControls(false)
                             .parentId("")
+                            .generalConditions(false)
                             .build(),
                         io.gravitee.rest.api.management.v2.rest.model.Page
                             .builder()
@@ -370,6 +379,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                         .metadata(Map.of())
                         .excludedAccessControls(false)
                         .parentId("parent-id")
+                        .generalConditions(false)
                         .build()
                 );
         }
@@ -417,6 +427,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                             .excludedAccessControls(false)
                             .parentId("parent-id")
                             .published(true)
+                            .generalConditions(false)
                             .build(),
                         io.gravitee.rest.api.management.v2.rest.model.Page
                             .builder()
@@ -431,6 +442,67 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                             .excludedAccessControls(false)
                             .parentId(page.getParentId())
                             .hidden(false)
+                            .build()
+                    )
+                );
+        }
+
+        @Test
+        void should_return_pages_with_general_conditions_indicated() {
+            Page page1 = Page
+                .builder()
+                .referenceType(Page.ReferenceType.API)
+                .referenceId("api-id")
+                .type(Page.Type.MARKDOWN)
+                .id("page-1")
+                .name("page-1")
+                .build();
+            Page page2 = Page
+                .builder()
+                .referenceType(Page.ReferenceType.API)
+                .referenceId("api-id")
+                .type(Page.Type.MARKDOWN)
+                .id("page-2")
+                .name("page-2")
+                .build();
+            givenApiPagesQuery(List.of(page1, page2));
+            planQueryServiceInMemory.initWith(
+                List.of(PlanEntity.builder().id("plan-1").apiId("api-id").generalConditions("page-1").status(PlanStatus.PUBLISHED).build())
+            );
+
+            final Response response = rootTarget().request().get();
+            assertThat(response.getStatus()).isEqualTo(200);
+
+            var body = response.readEntity(ApiDocumentationPagesResponse.class);
+            assertThat(body.getBreadcrumb()).isNull();
+            assertThat(body.getPages())
+                .isEqualTo(
+                    List.of(
+                        io.gravitee.rest.api.management.v2.rest.model.Page
+                            .builder()
+                            .id("page-1")
+                            .type(PageType.MARKDOWN)
+                            .name("page-1")
+                            .order(0)
+                            .published(false)
+                            .homepage(false)
+                            .configuration(Map.of())
+                            .metadata(Map.of())
+                            .excludedAccessControls(false)
+                            .generalConditions(true)
+                            .build(),
+                        io.gravitee.rest.api.management.v2.rest.model.Page
+                            .builder()
+                            .id("page-2")
+                            .type(PageType.MARKDOWN)
+                            .name("page-2")
+                            .order(0)
+                            .published(false)
+                            .homepage(false)
+                            .configuration(Map.of())
+                            .metadata(Map.of())
+                            .excludedAccessControls(false)
+                            .generalConditions(false)
                             .build()
                     )
                 );
@@ -673,6 +745,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                         .configuration(Map.of())
                         .metadata(Map.of())
                         .excludedAccessControls(false)
+                        .generalConditions(false)
                         .build()
                 );
         }
