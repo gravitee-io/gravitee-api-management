@@ -104,13 +104,12 @@ describe('ApiDocumentationV4EditPageComponent', () => {
         initPageServiceRequests({ pages: [EXISTING_PAGE], breadcrumb: [], parentId: 'ROOT' });
       });
 
-      it('should have 3 steps', async () => {
+      it('should have 2 steps', async () => {
         const stepper = await harnessLoader.getHarness(MatStepperHarness);
         const steps = await Promise.all(await stepper.getSteps());
-        expect(steps.length).toEqual(3);
+        expect(steps.length).toEqual(2);
         expect(await steps[0].getLabel()).toEqual('Configure page');
-        expect(await steps[1].getLabel()).toEqual('Determine source');
-        expect(await steps[2].getLabel()).toEqual('Add content');
+        expect(await steps[1].getLabel()).toEqual('Add content');
       });
 
       it('should exit without saving', async () => {
@@ -142,7 +141,6 @@ describe('ApiDocumentationV4EditPageComponent', () => {
               visibility: 'PRIVATE',
             },
             content: '',
-            source: 'FILL',
           });
 
           expect(getPageTitle()).toEqual('New page');
@@ -155,41 +153,10 @@ describe('ApiDocumentationV4EditPageComponent', () => {
         });
       });
 
-      describe('step 2 - Determine source', () => {
+      describe('step 2 - Fill content ', () => {
         beforeEach(async () => {
           const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
           await harness.setName('New page');
-
-          await harness.getNextButton().then(async (btn) => {
-            expect(await btn.isDisabled()).toEqual(false);
-            return btn.click();
-          });
-          fixture.detectChanges();
-        });
-
-        it('should select source', async () => {
-          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
-          const options = await harness.getSourceOptions();
-
-          expect(options.length).toEqual(3);
-          const sourceOptions = await Promise.all(options.map(async (opt) => await opt.getLabelText()));
-          expect(sourceOptions).toEqual(['Fill in the content myself', 'Import from fileComing soon', 'Import from fileComing soon']);
-          expect(await options[1].isDisabled()).toEqual(true);
-          expect(await options[2].isDisabled()).toEqual(true);
-
-          await options[0].check();
-        });
-      });
-
-      describe('step 3 - Fill content ', () => {
-        beforeEach(async () => {
-          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
-          await harness.setName('New page');
-
-          await harness.getNextButton().then(async (btn) => {
-            expect(await btn.isDisabled()).toEqual(false);
-            return btn.click();
-          });
 
           await harness.getNextButton().then(async (btn) => {
             expect(await btn.isDisabled()).toEqual(false);
@@ -345,7 +312,6 @@ describe('ApiDocumentationV4EditPageComponent', () => {
         await harness.setName('New page');
 
         await harness.getNextButton().then(async (btn) => btn.click());
-        await harness.getNextButton().then(async (btn) => btn.click());
 
         const editor = await harnessLoader.getHarness(GioMonacoEditorHarness);
         await editor.setValue('File content');
@@ -423,7 +389,6 @@ describe('ApiDocumentationV4EditPageComponent', () => {
           const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
 
           await harness.getNextButton().then(async (btn) => btn.click());
-          await harness.getNextButton().then(async (btn) => btn.click());
 
           const saveBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Publish changes' }));
           expect(await saveBtn.isDisabled()).toEqual(true);
@@ -434,7 +399,6 @@ describe('ApiDocumentationV4EditPageComponent', () => {
           await harness.setName('New name');
           await harness.checkVisibility('PRIVATE');
 
-          await harness.getNextButton().then(async (btn) => btn.click());
           await harness.getNextButton().then(async (btn) => btn.click());
 
           await harnessLoader
@@ -475,7 +439,6 @@ describe('ApiDocumentationV4EditPageComponent', () => {
           beforeEach(async () => {
             const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
             await harness.getNextButton().then(async (btn) => btn.click());
-            await harness.getNextButton().then(async (btn) => btn.click());
           });
 
           it('should not update page', async () => {
@@ -487,7 +450,6 @@ describe('ApiDocumentationV4EditPageComponent', () => {
           beforeEach(async () => {
             const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
             await harness.setName('New name');
-            await harness.getNextButton().then(async (btn) => btn.click());
             await harness.getNextButton().then(async (btn) => btn.click());
           });
 

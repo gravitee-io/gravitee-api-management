@@ -50,37 +50,7 @@
           </div>
         </mat-step>
         <mat-step>
-          <ng-template matStepLabel>Determine source</ng-template>
-          <div class="stepper__content">
-            <div class="mat-body-2">Page source</div>
-
-            <mat-radio-group class="gio-radio-group stepper__content__source" formControlName="source">
-              <mat-radio-button value="FILL" class="gio-radio-button">
-                <gio-radio-button-content icon="gio:edit-pencil">
-                  <gio-radio-button-title>Fill in the content myself</gio-radio-button-title>
-                </gio-radio-button-content>
-              </mat-radio-button>
-              <mat-radio-button value="IMPORT" class="gio-radio-button" disabled="true">
-                <gio-radio-button-content icon="gio:down-circle">
-                  <gio-radio-button-title>Import from file</gio-radio-button-title>
-                  <gio-radio-button-subtitle><div class="gio-badge-primary">Coming soon</div></gio-radio-button-subtitle>
-                </gio-radio-button-content>
-              </mat-radio-button>
-              <mat-radio-button value="EXTERNAL" class="gio-radio-button" disabled="true">
-                <gio-radio-button-content icon="gio:language">
-                  <gio-radio-button-title>Import from file</gio-radio-button-title>
-                  <gio-radio-button-subtitle><div class="gio-badge-primary">Coming soon</div></gio-radio-button-subtitle>
-                </gio-radio-button-content>
-              </mat-radio-button>
-            </mat-radio-group>
-          </div>
-          <div class="stepper__actions">
-            <button mat-flat-button color="primary" matStepperNext>Next</button>
-            <button mat-stroked-button matStepperPrevious>Previous</button>
-          </div>
-        </mat-step>
-        <mat-step>
-          <ng-template matStepLabel>{{ step3Title }}</ng-template>
+          <ng-template matStepLabel>{{ step2Title }}</ng-template>
           <div class="stepper__content">
             <ng-container>
               <api-documentation-content formControlName="content" [published]="page?.published"></api-documentation-content>
