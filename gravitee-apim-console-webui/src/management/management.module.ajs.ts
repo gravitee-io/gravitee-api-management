@@ -173,8 +173,8 @@ import RoleService from '../services/role.service';
 
 // User
 import UserService from '../services/user.service';
-import UserController from '../user/user.controller';
-import UserComponent from '../user/user.component';
+import UserController from '../user/my-accout/user.controller';
+import UserComponentAjs from '../user/my-accout/user.component.ajs';
 import { TasksComponent } from './tasks/tasks.component';
 // Notification Settings
 import NotificationsComponentAjs from '../components/notifications/notifications.component.ajs';
@@ -774,7 +774,7 @@ graviteeManagementModule.controller('ApplicationLogsController', ApplicationLogs
 graviteeManagementModule.controller('DialogTransferApplicationController', DialogTransferApplicationController);
 graviteeManagementModule.component('apiPlan', ApiPlanComponent);
 
-graviteeManagementModule.component('user', UserComponent);
+graviteeManagementModule.component('user', UserComponentAjs);
 
 graviteeManagementModule.directive('tasks', downgradeComponent({ component: TasksComponent }));
 

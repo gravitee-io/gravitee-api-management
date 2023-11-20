@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const UserComponent: ng.IComponentOptions = {
+const UserComponentAjs: ng.IComponentOptions = {
   bindings: {
     user: '<',
+    onSaved: '&',
+    onDeleteMyAccount: '&',
   },
   controller: 'UserController',
   template: require('./user.html'),
 };
 
-export default UserComponent;
+export default UserComponentAjs;

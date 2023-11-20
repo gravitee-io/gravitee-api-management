@@ -15,12 +15,11 @@
  */
 import { Component, Inject, Input, OnInit } from '@angular/core';
 import { StateService } from '@uirouter/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { Constants } from '../../entities/Constants';
 import { UIRouterState } from '../../ajs-upgraded-providers';
 import { User } from '../../entities/user/user';
-import { TaskService } from '../../services-ngx/task.service';
 import { CurrentUserService } from '../../services-ngx/current-user.service';
 import { AuthService } from '../../auth/auth.service';
 
@@ -44,8 +43,8 @@ export class GioUserMenuComponent implements OnInit {
   constructor(
     @Inject(UIRouterState) private readonly ajsState: StateService,
     @Inject('Constants') public readonly constants: Constants,
-    public readonly taskService: TaskService,
     public readonly router: Router,
+    public readonly activatedRoute: ActivatedRoute,
     public readonly currentUserService: CurrentUserService,
     public readonly authService: AuthService,
   ) {}
@@ -64,10 +63,7 @@ export class GioUserMenuComponent implements OnInit {
   }
 
   goToMyAccount(): void {
-    this.ajsState.go('user', {
-      ...this.ajsState.params,
-      environmentId: this.ajsState.params.environmentId ?? this.constants.org.currentEnv.id,
-    });
+    this.router.navigate(['my-account'], { relativeTo: this.activatedRoute });
   }
 
   goToSupport(): void {

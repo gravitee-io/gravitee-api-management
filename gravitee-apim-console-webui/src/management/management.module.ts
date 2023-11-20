@@ -39,6 +39,7 @@ import { AlertsModule } from '../components/alerts/alerts.module';
 import { GioSideNavModule } from '../components/gio-side-nav/gio-side-nav.module';
 import { GioTopNavModule } from '../components/gio-top-nav/gio-top-nav.module';
 import { ContextualDocComponentComponent } from '../components/contextual/contextual-doc.component';
+import { UserComponent } from '../user/my-accout/user.component';
 
 const managementRoutes: Routes = [
   {
@@ -57,6 +58,10 @@ const managementRoutes: Routes = [
       {
         path: 'apis',
         loadChildren: () => import('./api/apis.module').then((m) => m.ApisModule),
+      },
+      {
+        path: 'my-account',
+        component: UserComponent,
       },
       { path: '', pathMatch: 'full', redirectTo: 'home' },
     ],
