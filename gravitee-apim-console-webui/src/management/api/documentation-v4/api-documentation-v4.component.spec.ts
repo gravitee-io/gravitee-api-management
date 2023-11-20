@@ -21,6 +21,7 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 import { InteractivityChecker } from '@angular/cdk/a11y';
+import { set } from 'lodash';
 
 import { ApiDocumentationV4Component } from './api-documentation-v4.component';
 import { ApiDocumentationV4Module } from './api-documentation-v4.module';
@@ -28,12 +29,14 @@ import { ApiDocumentationV4EmptyStateHarness } from './components/documentation-
 import { ApiDocumentationV4ListNavigationHeaderHarness } from './components/documentation-list-navigation-header/api-documentation-v4-list-navigation-header.harness';
 import { ApiDocumentationV4EditFolderDialogHarness } from './dialog/documentation-edit-folder-dialog/api-documentation-v4-edit-folder-dialog.harness';
 import { ApiDocumentationV4PagesListHarness } from './documentation-pages-list/api-documentation-v4-pages-list.harness';
+import { ApiDocumentationV4PageTitleHarness } from './components/api-documentation-v4-page-title/api-documentation-v4-page-title.harness';
 
 import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { Breadcrumb, Page } from '../../../entities/management-api-v2/documentation/page';
 import { fakeFolder, fakeMarkdown } from '../../../entities/management-api-v2/documentation/page.fixture';
 import { User } from '../../../entities/user';
+import { ApiLifecycleState, fakeApiV4 } from '../../../entities/management-api-v2';
 
 describe('ApiDocumentationV4', () => {
   let fixture: ComponentFixture<ApiDocumentationV4Component>;
@@ -45,7 +48,13 @@ describe('ApiDocumentationV4', () => {
   const currentUser = new User();
   currentUser.userPermissions = ['api-documentation-u', 'api-documentation-c', 'api-documentation-r', 'api-documentation-d'];
 
-  const init = async (pages: Page[], breadcrumb: Breadcrumb[], parentId = 'ROOT') => {
+  const init = async (
+    pages: Page[],
+    breadcrumb: Breadcrumb[],
+    parentId = 'ROOT',
+    portalUrl = 'portal.url',
+    apiLifecycleStatus: ApiLifecycleState = 'PUBLISHED',
+  ) => {
     await TestBed.configureTestingModule({
       declarations: [ApiDocumentationV4Component],
       imports: [NoopAnimationsModule, ApiDocumentationV4Module, MatIconTestingModule, GioHttpTestingModule],
@@ -53,6 +62,18 @@ describe('ApiDocumentationV4', () => {
         { provide: UIRouterState, useValue: fakeUiRouter },
         { provide: UIRouterStateParams, useValue: { apiId: API_ID, parentId } },
         { provide: CurrentUserService, useValue: { currentUser } },
+        {
+          provide: 'Constants',
+          useFactory: () => {
+            const constants = CONSTANTS_TESTING;
+            set(constants, 'env.settings.portal', {
+              get url() {
+                return portalUrl;
+              },
+            });
+            return constants;
+          },
+        },
       ],
     })
       .overrideProvider(InteractivityChecker, {
@@ -67,6 +88,14 @@ describe('ApiDocumentationV4', () => {
     httpTestingController = TestBed.inject(HttpTestingController);
 
     fixture.detectChanges();
+
+    httpTestingController
+      .expectOne({
+        method: 'GET',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`,
+      })
+      .flush(fakeApiV4({ id: API_ID, lifecycleState: apiLifecycleStatus }));
+
     expectGetPages(pages, breadcrumb, parentId);
   };
 
@@ -192,6 +221,7 @@ describe('ApiDocumentationV4', () => {
         })
         .flush(page);
 
+      expectGetApi();
       expectGetPages([page], []);
     });
     it('should create new folder under the current folder', async () => {
@@ -226,7 +256,7 @@ describe('ApiDocumentationV4', () => {
           url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages/${page.id}/_publish`,
         })
         .flush(page);
-
+      expectGetApi();
       expectGetPages([page], [], 'parent-folder-id');
     });
 
@@ -258,7 +288,7 @@ describe('ApiDocumentationV4', () => {
         name: 'folder',
         visibility: 'PRIVATE',
       });
-
+      expectGetApi();
       expectGetPages([page], []);
     });
 
@@ -280,7 +310,7 @@ describe('ApiDocumentationV4', () => {
           url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages/${ID}/_publish`,
         })
         .flush({ ...PAGE, published: true });
-
+      expectGetApi();
       expectGetPages([{ ...PAGE, published: true }], []);
     });
 
@@ -318,6 +348,8 @@ describe('ApiDocumentationV4', () => {
         order: 1,
       });
       req.flush(firstPage);
+
+      expectGetApi();
       expectGetPages([firstPage, secondPage], []);
     });
 
@@ -340,6 +372,7 @@ describe('ApiDocumentationV4', () => {
         })
         .flush({ ...PAGE, published: false });
 
+      expectGetApi();
       expectGetPages([{ ...PAGE, published: false }], []);
     });
 
@@ -384,6 +417,8 @@ describe('ApiDocumentationV4', () => {
         order: 0,
       });
       req.flush(secondPage);
+
+      expectGetApi();
       expectGetPages([firstPage, secondPage], []);
     });
 
@@ -407,7 +442,42 @@ describe('ApiDocumentationV4', () => {
         })
         .flush(null);
 
+      expectGetApi();
       expectGetPages([], []);
+    });
+  });
+
+  describe('Header', () => {
+    describe('with Published API', () => {
+      it('should display Open in Portal button', async () => {
+        await init([], []);
+        const header = await harnessLoader.getHarness(ApiDocumentationV4PageTitleHarness);
+        expect(header).toBeDefined();
+        const openInPortalBtn = await header.getOpenInPortalBtn();
+        expect(openInPortalBtn).toBeDefined();
+        expect(await openInPortalBtn.isDisabled()).toEqual(false);
+        expect(await header.getApiPortalUrl()).toEqual('portal.url/catalog/api/api-id');
+      });
+
+      it('should parse Portal url ending with "/"', async () => {
+        await init([], [], 'ROOT', 'portal.url/');
+        const header = await harnessLoader.getHarness(ApiDocumentationV4PageTitleHarness);
+        expect(await header.getApiPortalUrl()).toEqual('portal.url/catalog/api/api-id');
+      });
+
+      it('should not display Open in Portal button if Portal url not defined', async () => {
+        await init([], [], 'ROOT', null);
+        const header = await harnessLoader.getHarness(ApiDocumentationV4PageTitleHarness);
+        expect(await header.getOpenInPortalBtn()).toEqual(null);
+      });
+    });
+
+    describe('with Created API', () => {
+      it('should have disabled Open in Portal button', async () => {
+        await init([], [], 'ROOT', 'portal.url', 'CREATED');
+        const header = await harnessLoader.getHarness(ApiDocumentationV4PageTitleHarness);
+        expect(await header.getOpenInPortalBtn().then((btn) => btn.isDisabled())).toEqual(true);
+      });
     });
   });
 
@@ -418,5 +488,14 @@ describe('ApiDocumentationV4', () => {
     });
 
     req.flush({ pages, breadcrumb });
+  };
+
+  const expectGetApi = () => {
+    httpTestingController
+      .expectOne({
+        method: 'GET',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`,
+      })
+      .flush(fakeApiV4({ id: API_ID, lifecycleState: 'PUBLISHED' }));
   };
 });

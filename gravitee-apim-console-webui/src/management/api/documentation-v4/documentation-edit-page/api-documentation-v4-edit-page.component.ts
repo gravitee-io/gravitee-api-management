@@ -27,6 +27,8 @@ import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-pro
 import { ApiDocumentationV2Service } from '../../../../services-ngx/api-documentation-v2.service';
 import { Breadcrumb, Page } from '../../../../entities/management-api-v2/documentation/page';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
+import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
+import { Api } from '../../../../entities/management-api-v2';
 
 @Component({
   selector: 'api-documentation-edit-page',
@@ -41,17 +43,18 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
   step2Title: string;
   breadcrumbs: Breadcrumb[];
 
+  api: Api;
   formUnchanged: boolean;
   page: Page;
 
   private existingNames: string[] = [];
-  private loadPage$: Observable<Page>;
   private unsubscribe$: Subject<void> = new Subject<void>();
 
   constructor(
     private readonly formBuilder: FormBuilder,
     @Inject(UIRouterState) private readonly ajsState: StateService,
     @Inject(UIRouterStateParams) private readonly ajsStateParams: StateParams,
+    private readonly apiV2Service: ApiV2Service,
     private readonly apiDocumentationService: ApiDocumentationV2Service,
     private readonly snackBarService: SnackBarService,
     private readonly matDialog: MatDialog,
@@ -70,7 +73,6 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
     if (this.ajsStateParams.pageId) {
       this.mode = 'edit';
       this.step2Title = 'Edit content';
-      this.loadPage$ = this.loadEditPage();
 
       this.form.valueChanges
         .pipe(
@@ -87,12 +89,16 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
     } else {
       this.mode = 'create';
       this.step2Title = 'Add content';
-      this.loadPage$ = of({});
     }
 
-    this.loadPage$
+    this.apiV2Service
+      .get(this.ajsStateParams.apiId)
       .pipe(
-        switchMap((_) => this.apiDocumentationService.getApiPages(this.ajsStateParams.apiId, this.getParentId())),
+        switchMap((api) => {
+          this.api = api;
+          return this.mode === 'edit' ? this.loadEditPage() : of({});
+        }),
+        switchMap((_) => this.apiDocumentationService.getApiPages(this.api.id, this.getParentId())),
         takeUntil(this.unsubscribe$),
       )
       .subscribe({
@@ -123,7 +129,7 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
   createAndPublish() {
     this.createPage()
       .pipe(
-        switchMap((page) => this.apiDocumentationService.publishDocumentationPage(this.ajsStateParams.apiId, page.id)),
+        switchMap((page) => this.apiDocumentationService.publishDocumentationPage(this.api.id, page.id)),
         takeUntil(this.unsubscribe$),
       )
       .subscribe({
@@ -148,9 +154,9 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
 
   private updatePage(): Observable<Page> {
     const formValue = this.form.getRawValue();
-    return this.apiDocumentationService.getApiPage(this.ajsStateParams.apiId, this.ajsStateParams.pageId).pipe(
+    return this.apiDocumentationService.getApiPage(this.api.id, this.ajsStateParams.pageId).pipe(
       switchMap((page) =>
-        this.apiDocumentationService.updateDocumentationPage(this.ajsStateParams.apiId, this.ajsStateParams.pageId, {
+        this.apiDocumentationService.updateDocumentationPage(this.api.id, this.ajsStateParams.pageId, {
           ...page,
           name: formValue.stepOne.name,
           visibility: formValue.stepOne.visibility,
@@ -165,7 +171,7 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
   }
 
   goBackToPageList() {
-    this.ajsState.go('management.apis.documentationV4', { apiId: this.ajsStateParams.apiId, parentId: this.getParentId() });
+    this.ajsState.go('management.apis.documentationV4', { apiId: this.api.id, parentId: this.getParentId() });
   }
 
   deletePage() {
@@ -202,7 +208,7 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
       content: this.form.getRawValue().content,
       parentId: this.ajsStateParams.parentId || 'ROOT',
     };
-    return this.apiDocumentationService.createDocumentationPage(this.ajsStateParams.apiId, createPage).pipe(
+    return this.apiDocumentationService.createDocumentationPage(this.api.id, createPage).pipe(
       catchError((err) => {
         this.snackBarService.error(err?.error?.message ?? 'Cannot save page');
         return EMPTY;
@@ -211,7 +217,7 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
   }
 
   private loadEditPage(): Observable<Page> {
-    return this.apiDocumentationService.getApiPage(this.ajsStateParams.apiId, this.ajsStateParams.pageId).pipe(
+    return this.apiDocumentationService.getApiPage(this.api.id, this.ajsStateParams.pageId).pipe(
       tap((page) => {
         this.pageTitle = page.name;
         this.page = page;

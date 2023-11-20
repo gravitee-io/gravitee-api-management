@@ -167,6 +167,6 @@
     <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
   </table>
   <div class="documentation-pages-list__footer">
-    <button mat-stroked-button (click)="onAddPage.emit()" *gioPermission="{ anyOf: ['api-documentation-c'] }">Add new page</button>
+    <button mat-flat-button (click)="onAddPage.emit()" *gioPermission="{ anyOf: ['api-documentation-c'] }">Add new page</button>
   </div>
 </div>

@@ -18,7 +18,7 @@ import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { Subject } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { StateService } from '@uirouter/angularjs';
-import { filter, switchMap, takeUntil } from 'rxjs/operators';
+import { filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { StateParams } from '@uirouter/core';
 import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 
@@ -33,6 +33,8 @@ import { CreateDocumentationFolder } from '../../../entities/management-api-v2/d
 import { Breadcrumb, Page } from '../../../entities/management-api-v2/documentation/page';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { EditDocumentationFolder } from '../../../entities/management-api-v2/documentation/editDocumentation';
+import { ApiV2Service } from '../../../services-ngx/api-v2.service';
+import { Api } from '../../../entities/management-api-v2';
 
 @Component({
   selector: 'api-documentation-v4',
@@ -41,6 +43,7 @@ import { EditDocumentationFolder } from '../../../entities/management-api-v2/doc
 })
 export class ApiDocumentationV4Component implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();
+  api: Api;
   parentId: string;
   pages: Page[];
   breadcrumbs: Breadcrumb[];
@@ -49,15 +52,21 @@ export class ApiDocumentationV4Component implements OnInit, OnDestroy {
     private readonly matDialog: MatDialog,
     @Inject(UIRouterState) private readonly ajsState: StateService,
     @Inject(UIRouterStateParams) private readonly ajsStateParams: StateParams,
+    private readonly apiV2Service: ApiV2Service,
     private readonly apiDocumentationV2Service: ApiDocumentationV2Service,
     private readonly snackBarService: SnackBarService,
   ) {}
 
   ngOnInit() {
     this.parentId = this.ajsStateParams.parentId || 'ROOT';
-    this.apiDocumentationV2Service
-      .getApiPages(this.ajsStateParams.apiId, this.parentId)
-      .pipe(takeUntil(this.unsubscribe$))
+
+    this.apiV2Service
+      .get(this.ajsStateParams.apiId)
+      .pipe(
+        tap((api) => (this.api = api)),
+        switchMap((_) => this.apiDocumentationV2Service.getApiPages(this.api.id, this.parentId)),
+        takeUntil(this.unsubscribe$),
+      )
       .subscribe((res) => {
         this.pages = res.pages;
         this.breadcrumbs = res.breadcrumb;
@@ -82,14 +91,14 @@ export class ApiDocumentationV4Component implements OnInit, OnDestroy {
       .pipe(
         filter((createFolder) => !!createFolder),
         switchMap((createFolder: CreateDocumentationFolder) =>
-          this.apiDocumentationV2Service.createDocumentationPage(this.ajsStateParams.apiId, {
+          this.apiDocumentationV2Service.createDocumentationPage(this.api.id, {
             type: 'FOLDER',
             name: createFolder.name,
             visibility: createFolder.visibility,
             parentId: this.parentId,
           }),
         ),
-        switchMap((createdFolder) => this.apiDocumentationV2Service.publishDocumentationPage(this.ajsStateParams.apiId, createdFolder.id)),
+        switchMap((createdFolder) => this.apiDocumentationV2Service.publishDocumentationPage(this.api.id, createdFolder.id)),
         takeUntil(this.unsubscribe$),
       )
       .subscribe({
@@ -132,7 +141,7 @@ export class ApiDocumentationV4Component implements OnInit, OnDestroy {
       .pipe(
         filter((updateFolder) => !!updateFolder),
         switchMap((updateFolder: EditDocumentationFolder) =>
-          this.apiDocumentationV2Service.updateDocumentationPage(this.ajsStateParams.apiId, folder.id, {
+          this.apiDocumentationV2Service.updateDocumentationPage(this.api.id, folder.id, {
             ...folder,
             name: updateFolder.name,
             visibility: updateFolder.visibility,
@@ -163,7 +172,7 @@ export class ApiDocumentationV4Component implements OnInit, OnDestroy {
       .afterClosed()
       .pipe(
         filter((confirmed) => !!confirmed),
-        switchMap((_) => this.apiDocumentationV2Service.publishDocumentationPage(this.ajsStateParams.apiId, pageId)),
+        switchMap((_) => this.apiDocumentationV2Service.publishDocumentationPage(this.api.id, pageId)),
         takeUntil(this.unsubscribe$),
       )
       .subscribe({
@@ -189,7 +198,7 @@ export class ApiDocumentationV4Component implements OnInit, OnDestroy {
       .afterClosed()
       .pipe(
         filter((confirmed) => !!confirmed),
-        switchMap((_) => this.apiDocumentationV2Service.unpublishDocumentationPage(this.ajsStateParams.apiId, pageId)),
+        switchMap((_) => this.apiDocumentationV2Service.unpublishDocumentationPage(this.api.id, pageId)),
         takeUntil(this.unsubscribe$),
       )
       .subscribe({
@@ -241,7 +250,7 @@ export class ApiDocumentationV4Component implements OnInit, OnDestroy {
 
   private changeOrder(page: Page, order: number): void {
     this.apiDocumentationV2Service
-      .updateDocumentationPage(this.ajsStateParams.apiId, page.id, {
+      .updateDocumentationPage(this.api.id, page.id, {
         ...page,
         order,
       })
