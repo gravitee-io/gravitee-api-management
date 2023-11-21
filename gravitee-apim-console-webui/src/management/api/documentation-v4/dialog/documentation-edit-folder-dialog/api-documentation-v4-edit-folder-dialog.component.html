@@ -28,7 +28,11 @@
     <mat-error *ngIf="formGroup.controls.name?.errors?.required">Name is required</mat-error>
     <mat-error *ngIf="formGroup.controls.name?.errors?.unique">Name already exists in this folder</mat-error>
   </mat-form-field>
-  <api-documentation-visibility [showSubtitle]="data.mode === 'create'" formControlName="visibility"></api-documentation-visibility>
+  <api-documentation-visibility
+    [showSubtitle]="data.mode === 'create'"
+    documentationType="folder"
+    formControlName="visibility"
+  ></api-documentation-visibility>
   <div class="new-folder-form__actions">
     <button mat-stroked-button type="button" (click)="cancel()">Cancel</button>
     <button type="submit" mat-flat-button color="primary" [disabled]="formGroup.invalid || formGroup.pristine || !formValueChanged">

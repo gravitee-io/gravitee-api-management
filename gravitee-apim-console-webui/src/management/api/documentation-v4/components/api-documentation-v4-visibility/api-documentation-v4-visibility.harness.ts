@@ -20,8 +20,8 @@ export class ApiDocumentationV4VisibilityHarness extends ComponentHarness {
   public static hostSelector = 'api-documentation-visibility';
 
   private radioGroupLocator = this.locatorFor(MatRadioGroupHarness);
-  private publicRadioLocator = this.locatorFor(MatRadioButtonHarness.with({ label: 'PublicRequires no subscription to view' }));
-  private privateRadioLocator = this.locatorFor(MatRadioButtonHarness.with({ label: 'PrivateRequires approved subscription to view' }));
+  private publicRadioLocator = this.locatorFor(MatRadioButtonHarness.with({ selector: '[value="PUBLIC"]' }));
+  private privateRadioLocator = this.locatorFor(MatRadioButtonHarness.with({ selector: '[value="PRIVATE"]' }));
 
   public getPublicRadioOption() {
     return this.publicRadioLocator();

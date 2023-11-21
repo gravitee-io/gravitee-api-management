@@ -22,13 +22,23 @@
   <mat-radio-button value="PUBLIC" class="gio-radio-button">
     <gio-radio-button-content icon="gio:language">
       <gio-radio-button-title>Public</gio-radio-button-title>
-      <gio-radio-button-subtitle>Requires no subscription to view</gio-radio-button-subtitle>
+      <gio-radio-button-subtitle *ngIf="documentationType === 'page'"
+        >Anonymous users browsing the API in the Developer Portal can view the page</gio-radio-button-subtitle
+      >
+      <gio-radio-button-subtitle *ngIf="documentationType === 'folder'"
+        >Anonymous users browsing the API in the Developer Portal can view the contents of the folder</gio-radio-button-subtitle
+      >
     </gio-radio-button-content>
   </mat-radio-button>
   <mat-radio-button value="PRIVATE" class="gio-radio-button">
     <gio-radio-button-content icon="gio:lock">
       <gio-radio-button-title>Private</gio-radio-button-title>
-      <gio-radio-button-subtitle>Requires approved subscription to view</gio-radio-button-subtitle>
+      <gio-radio-button-subtitle *ngIf="documentationType === 'page'"
+        >Users must be authenticated in the Developer Portal to view the page</gio-radio-button-subtitle
+      >
+      <gio-radio-button-subtitle *ngIf="documentationType === 'folder'"
+        >Users must be authenticated in the Developer Portal to view the contents of the folder</gio-radio-button-subtitle
+      >
     </gio-radio-button-content>
   </mat-radio-button>
 </mat-radio-group>
