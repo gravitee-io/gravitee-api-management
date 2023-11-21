@@ -553,6 +553,20 @@ const organizationRoutes: Routes = [
           },
         },
       },
+      {
+        path: 'tags',
+        component: OrgSettingsTagsComponent,
+        data: {
+          useAngularMaterial: true,
+          menu: null,
+          docs: {
+            page: 'management-configuration-sharding-tags',
+          },
+          perms: {
+            only: ['organization-tag-r'],
+          },
+        },
+      },
 
       {
         path: '',
