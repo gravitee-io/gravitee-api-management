@@ -222,7 +222,7 @@ export class ApiDocumentationV4Component implements OnInit, OnDestroy {
       )
       .subscribe({
         next: (_) => {
-          this.snackBarService.success('Page deleted successfully');
+          this.snackBarService.success(`${page?.type === 'FOLDER' ? 'Folder' : 'Page'} deleted successfully`);
           this.ngOnInit();
         },
         error: (error) => {
