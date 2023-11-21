@@ -27,12 +27,13 @@ import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
+import { ActivatedRoute } from '@angular/router';
 
 import { OrgSettingsUserDetailComponent } from './org-settings-user-detail.component';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { OrganizationSettingsModule } from '../../organization-settings.module';
-import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+import { CurrentUserService } from '../../../../ajs-upgraded-providers';
 import { User } from '../../../../entities/user/user';
 import { fakeUser } from '../../../../entities/user/user.fixture';
 import { User as DeprecatedUser } from '../../../../entities/user';
@@ -51,10 +52,6 @@ import { Token } from '../../../../entities/user/userTokens';
 import { fakeUserToken } from '../../../../entities/user/userToken.fixture';
 
 describe('OrgSettingsUserDetailComponent', () => {
-  const fakeAjsState = {
-    go: jest.fn(),
-  };
-
   let fixture: ComponentFixture<OrgSettingsUserDetailComponent>;
   let loader: HarnessLoader;
   let rootLoader: HarnessLoader;
@@ -67,8 +64,7 @@ describe('OrgSettingsUserDetailComponent', () => {
     await TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule, MatIconTestingModule],
       providers: [
-        { provide: UIRouterState, useValue: fakeAjsState },
-        { provide: UIRouterStateParams, useValue: { userId: 'userId' } },
+        { provide: ActivatedRoute, useValue: { snapshot: { params: { userId: 'userId' } } } },
         { provide: CurrentUserService, useValue: { currentUser } },
       ],
     })
