@@ -20,12 +20,13 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { of } from 'rxjs';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
+import { ActivatedRoute } from '@angular/router';
 
 import { MessagesComponent } from './messages.component';
 import { MessagesHarness } from './messages.harness';
 import { MessagesModule } from './messages.module';
 
-import { CurrentUserService, UIRouterStateParams } from '../../ajs-upgraded-providers';
+import { CurrentUserService } from '../../ajs-upgraded-providers';
 import { RoleService } from '../../services-ngx/role.service';
 import { fakeRole } from '../../entities/role/role.fixture';
 import { User } from '../../entities/user';
@@ -46,9 +47,11 @@ describe('MigratedMessagesComponent', () => {
       imports: [NoopAnimationsModule, GioHttpTestingModule, MessagesModule, MatIconTestingModule],
       providers: [
         {
-          provide: UIRouterStateParams,
+          provide: ActivatedRoute,
           useValue: {
-            ...(apiId ? { apiId } : {}),
+            snapshot: {
+              params: { ...(apiId ? { apiId } : {}) },
+            },
           },
         },
         { provide: RoleService, useValue: { list: () => of(fakeRoles) } },

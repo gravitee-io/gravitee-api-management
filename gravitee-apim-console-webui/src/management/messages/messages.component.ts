@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { sortBy } from 'lodash';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { ActivatedRoute } from '@angular/router';
 
 import { RoleService } from '../../services-ngx/role.service';
-import { UIRouterStateParams } from '../../ajs-upgraded-providers';
 import { HttpMessagePayload, MessageScope, TextMessagePayload } from '../../entities/message/messagePayload';
 import { MessageService } from '../../services-ngx/message.service';
 import { SnackBarService } from '../../services-ngx/snack-bar.service';
@@ -45,14 +45,14 @@ export class MessagesComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();
 
   constructor(
+    private readonly activatedRoute: ActivatedRoute,
     private readonly roleService: RoleService,
-    @Inject(UIRouterStateParams) private readonly ajsStateParams,
     private readonly messageService: MessageService,
     private readonly snackBarService: SnackBarService,
   ) {}
 
   ngOnInit(): void {
-    this.apiId = this.ajsStateParams.apiId;
+    this.apiId = this.activatedRoute.snapshot.params.apiId;
     this.scope = this.apiId ? 'APPLICATION' : 'ENVIRONMENT';
     this.roleService
       .list(this.scope)
