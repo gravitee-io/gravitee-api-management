@@ -23,7 +23,6 @@ import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
-import io.gravitee.rest.api.service.common.UuidString;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Stream;
