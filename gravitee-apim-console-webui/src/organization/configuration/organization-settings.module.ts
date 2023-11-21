@@ -494,6 +494,65 @@ const organizationRoutes: Routes = [
           },
         },
       },
+      {
+        path: 'role/:roleScope/:role/members',
+        component: OrgSettingsRoleMembersComponent,
+        data: {
+          useAngularMaterial: true,
+          docs: {
+            page: 'organization-configuration-roles',
+          },
+          perms: {
+            only: ['organization-role-u'],
+          },
+        },
+      },
+      {
+        path: 'role/:roleScope/:role',
+        component: OrgSettingsRoleComponent,
+        data: {
+          useAngularMaterial: true,
+          menu: null,
+          docs: {
+            page: 'organization-configuration-roles',
+          },
+          perms: {
+            only: ['organization-role-u'],
+          },
+        },
+      },
+      {
+        path: 'role/:roleScope',
+        component: OrgSettingsRoleComponent,
+        data: {
+          useAngularMaterial: true,
+          menu: null,
+          requireLicense: {
+            license: { feature: 'apim-custom-roles' },
+            redirect: 'organization.roles',
+          },
+          docs: {
+            page: 'organization-configuration-roles',
+          },
+          perms: {
+            only: ['organization-role-u'],
+          },
+        },
+      },
+      {
+        path: 'roles',
+        component: OrgSettingsRolesComponent,
+        data: {
+          useAngularMaterial: true,
+          menu: null,
+          docs: {
+            page: 'organization-configuration-roles',
+          },
+          perms: {
+            only: ['organization-role-r'],
+          },
+        },
+      },
 
       {
         path: '',

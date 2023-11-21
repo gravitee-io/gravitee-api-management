@@ -17,11 +17,10 @@
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatCheckboxChange } from '@angular/material/checkbox';
-import { StateService } from '@uirouter/angularjs';
 import { combineLatest, EMPTY, of, Subject } from 'rxjs';
 import { catchError, takeUntil, tap } from 'rxjs/operators';
+import { ActivatedRoute, Router } from '@angular/router';
 
-import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { Role } from '../../../../entities/role/role';
 import { RoleService } from '../../../../services-ngx/role.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
@@ -64,17 +63,17 @@ export class OrgSettingsRoleComponent implements OnInit, OnDestroy {
   private unsubscribe$ = new Subject<boolean>();
 
   constructor(
-    @Inject(UIRouterState) private readonly ajsState: StateService,
-    @Inject(UIRouterStateParams) private readonly ajsStateParams: { roleScope: string; role: string },
+    private readonly router: Router,
+    private readonly activatedRoute: ActivatedRoute,
     @Inject('Constants') private readonly constants: Constants,
     private readonly roleService: RoleService,
     private readonly snackBarService: SnackBarService,
   ) {}
 
   ngOnInit(): void {
-    this.roleScope = this.ajsStateParams.roleScope;
-    this.isEditMode = !!this.ajsStateParams.role;
-    this.roleName = this.ajsStateParams.role;
+    this.roleScope = this.activatedRoute.snapshot.params.roleScope;
+    this.isEditMode = !!this.activatedRoute.snapshot.params.role;
+    this.roleName = this.activatedRoute.snapshot.params.role;
 
     combineLatest([
       this.isEditMode
@@ -177,7 +176,7 @@ export class OrgSettingsRoleComponent implements OnInit, OnDestroy {
       )
       .subscribe((resultingRole) => {
         if (!this.isEditMode) {
-          this.ajsState.go('organization.role-edit', { roleScope: this.roleScope, role: resultingRole.name });
+          this.router.navigate(['.', resultingRole.name], { relativeTo: this.activatedRoute });
         } else {
           this.ngOnInit();
         }

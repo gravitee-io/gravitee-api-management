@@ -21,12 +21,13 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatCellHarness } from '@angular/material/table/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
+import { ActivatedRoute } from '@angular/router';
 
 import { OrgSettingsRoleMembersComponent } from './org-settings-role-members.component';
 
 import { OrganizationSettingsModule } from '../organization-settings.module';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
-import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
+import { CurrentUserService } from '../../../ajs-upgraded-providers';
 import { MembershipListItem } from '../../../entities/role/membershipListItem';
 import { fakeMembershipListItem } from '../../../entities/role/membershipListItem.fixture';
 import { User } from '../../../entities/user';
@@ -54,8 +55,7 @@ describe('OrgSettingsRoleMembersComponent', () => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule],
       providers: [
-        { provide: UIRouterState, useValue: {} },
-        { provide: UIRouterStateParams, useValue: { roleScope, role } },
+        { provide: ActivatedRoute, useValue: { snapshot: { params: { roleScope, role } } } },
         { provide: CurrentUserService, useValue: { currentUser } },
       ],
     }).overrideProvider(InteractivityChecker, {
