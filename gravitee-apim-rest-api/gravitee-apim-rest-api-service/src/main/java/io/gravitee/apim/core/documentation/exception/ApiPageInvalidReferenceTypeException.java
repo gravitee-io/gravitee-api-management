@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.documentation.crud_service;
+package io.gravitee.apim.core.documentation.exception;
 
 import io.gravitee.apim.core.documentation.model.Page;
-import java.util.Optional;
+import io.gravitee.apim.core.exception.ValidationDomainException;
+import java.util.Map;
 
-public interface PageCrudService {
-    Page createDocumentationPage(Page page);
-    Page updateDocumentationPage(Page pageToUpdate);
-    Page get(String id);
-    Optional<Page> findById(String id);
-    void delete(String id);
+public class ApiPageInvalidReferenceTypeException extends ValidationDomainException {
+
+    public ApiPageInvalidReferenceTypeException(String pageId, String expectedType) {
+        super("Page has not the correct reference type.", Map.of("pageId", pageId, "referenceType", expectedType));
+    }
 }

@@ -18,7 +18,6 @@ package inmemory;
 import com.google.common.collect.ImmutableList;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.model.*;
-import io.gravitee.apim.infra.adapter.PageAdapter;
 import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
@@ -52,6 +51,11 @@ public class PageCrudServiceInMemory implements InMemoryAlternative<Page>, PageC
     @Override
     public Optional<Page> findById(String id) {
         return pages.stream().filter(p -> p.getId().equals(id)).findFirst();
+    }
+
+    @Override
+    public void delete(String id) {
+        pages.removeIf(page -> page.getId().equals(id));
     }
 
     @Override

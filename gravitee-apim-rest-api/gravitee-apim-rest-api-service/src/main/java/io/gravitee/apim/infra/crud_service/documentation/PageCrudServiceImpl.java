@@ -16,6 +16,7 @@
 package io.gravitee.apim.infra.crud_service.documentation;
 
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
+import io.gravitee.apim.core.documentation.exception.ApiPageNotDeletedException;
 import io.gravitee.apim.core.documentation.model.*;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.infra.adapter.PageAdapter;
@@ -70,6 +71,16 @@ public class PageCrudServiceImpl implements PageCrudService {
             logger.error("An error occurred while finding Page by id {}", id, e);
         }
         return Optional.empty();
+    }
+
+    @Override
+    public void delete(String id) {
+        try {
+            pageRepository.delete(id);
+        } catch (TechnicalException e) {
+            logger.error("An error occurred while deleting Page by id {}", id, e);
+            throw new ApiPageNotDeletedException(id, e);
+        }
     }
 
     private io.gravitee.repository.management.model.Page createDocumentation(io.gravitee.repository.management.model.Page page) {

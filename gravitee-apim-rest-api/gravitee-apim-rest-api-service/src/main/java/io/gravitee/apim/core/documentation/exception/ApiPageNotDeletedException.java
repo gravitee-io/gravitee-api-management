@@ -13,15 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.documentation.crud_service;
+package io.gravitee.apim.core.documentation.exception;
 
-import io.gravitee.apim.core.documentation.model.Page;
-import java.util.Optional;
+import io.gravitee.apim.core.exception.TechnicalDomainException;
 
-public interface PageCrudService {
-    Page createDocumentationPage(Page page);
-    Page updateDocumentationPage(Page pageToUpdate);
-    Page get(String id);
-    Optional<Page> findById(String id);
-    void delete(String id);
+public class ApiPageNotDeletedException extends TechnicalDomainException {
+
+    public ApiPageNotDeletedException(String pageId, Exception e) {
+        super(String.format("Page %s not deleted", pageId), e);
+    }
 }

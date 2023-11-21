@@ -1748,6 +1748,19 @@ paths:
                                 $ref: "#/components/schemas/Page"
                 default:
                     $ref: "#/components/responses/Error"
+        delete:
+            tags:
+                - API Documentation
+            summary: Delete API documentation page
+            description: |-
+                Delete API documentation page.
+                A FOLDER will be deleted only if it is empty.
+            operationId: deleteDocumentationPage
+            responses:
+                "204":
+                    description: API Documentation page deleted
+                default:
+                    $ref: "#/components/responses/Error"
 
     /environments/{envId}/apis/{apiId}/pages/{pageId}/_publish:
         parameters:

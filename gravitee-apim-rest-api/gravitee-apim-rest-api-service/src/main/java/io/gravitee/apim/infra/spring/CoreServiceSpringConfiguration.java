@@ -29,6 +29,7 @@ import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.crud_service.PageRevisionCrudService;
 import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
+import io.gravitee.apim.core.documentation.domain_service.DeleteApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.HomepageDomainService;
 import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
@@ -126,6 +127,16 @@ public class CoreServiceSpringConfiguration {
         HtmlSanitizer htmlSanitizer
     ) {
         return new ApiDocumentationDomainService(pageQueryService, planQueryService, htmlSanitizer);
+    }
+
+    @Bean
+    public DeleteApiDocumentationDomainService deleteApiDocumentationDomainService(
+        PageCrudService pageCrudService,
+        PageQueryService pageQueryService,
+        AuditDomainService auditDomainService,
+        PlanQueryService planQueryService
+    ) {
+        return new DeleteApiDocumentationDomainService(pageCrudService, pageQueryService, auditDomainService, planQueryService);
     }
 
     @Bean
