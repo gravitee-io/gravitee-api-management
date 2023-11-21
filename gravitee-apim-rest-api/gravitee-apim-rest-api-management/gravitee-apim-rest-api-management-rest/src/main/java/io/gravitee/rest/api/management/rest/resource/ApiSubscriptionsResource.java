@@ -178,6 +178,9 @@ public class ApiSubscriptionsResource extends AbstractResource {
             newSubscriptionEntity.setConfiguration(newSubscriptionConfigurationEntity.getConfiguration());
             newSubscriptionEntity.setMetadata(newSubscriptionConfigurationEntity.getMetadata());
         }
+        if (apiKeyMode != null) {
+            newSubscriptionEntity.setApiKeyMode(apiKeyMode);
+        }
 
         // Create subscription
         SubscriptionEntity subscription = subscriptionService.create(executionContext, newSubscriptionEntity, customApiKey);
