@@ -965,6 +965,7 @@ jobs:
 
             kubectl rollout restart deployment -n apim-apim-4-1-x
             kubectl rollout restart deployment -n apim-apim-4-1-x-ce
+            kubectl rollout restart deployment -n apim-apim-4-1-x-oem
       - cmd-notify-on-failure
 workflows:
   pull_requests:
