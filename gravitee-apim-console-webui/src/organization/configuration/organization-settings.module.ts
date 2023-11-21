@@ -640,6 +640,20 @@ const organizationRoutes: Routes = [
           },
         },
       },
+      {
+        path: 'cockpit',
+        component: OrgSettingsCockpitComponent,
+        data: {
+          useAngularMaterial: true,
+          menu: null,
+          docs: {
+            page: 'organization-configuration-cockpit',
+          },
+          perms: {
+            only: ['organization-installation-r'],
+          },
+        },
+      },
 
       {
         path: '',
