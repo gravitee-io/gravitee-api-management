@@ -20,6 +20,7 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
+import { InteractivityChecker } from '@angular/cdk/a11y';
 
 import { ApiDocumentationV4Component } from './api-documentation-v4.component';
 import { ApiDocumentationV4Module } from './api-documentation-v4.module';
@@ -28,10 +29,11 @@ import { ApiDocumentationV4ListNavigationHeaderHarness } from './components/docu
 import { ApiDocumentationV4EditFolderDialogHarness } from './dialog/documentation-edit-folder-dialog/api-documentation-v4-edit-folder-dialog.harness';
 import { ApiDocumentationV4PagesListHarness } from './documentation-pages-list/api-documentation-v4-pages-list.harness';
 
-import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
+import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { Breadcrumb, Page } from '../../../entities/management-api-v2/documentation/page';
 import { fakeFolder, fakeMarkdown } from '../../../entities/management-api-v2/documentation/page.fixture';
+import { User } from '../../../entities/user';
 
 describe('ApiDocumentationV4', () => {
   let fixture: ComponentFixture<ApiDocumentationV4Component>;
@@ -40,6 +42,9 @@ describe('ApiDocumentationV4', () => {
   const API_ID = 'api-id';
   let httpTestingController: HttpTestingController;
 
+  const currentUser = new User();
+  currentUser.userPermissions = ['api-documentation-u', 'api-documentation-c', 'api-documentation-r', 'api-documentation-d'];
+
   const init = async (pages: Page[], breadcrumb: Breadcrumb[], parentId = 'ROOT') => {
     await TestBed.configureTestingModule({
       declarations: [ApiDocumentationV4Component],
@@ -47,8 +52,15 @@ describe('ApiDocumentationV4', () => {
       providers: [
         { provide: UIRouterState, useValue: fakeUiRouter },
         { provide: UIRouterStateParams, useValue: { apiId: API_ID, parentId } },
+        { provide: CurrentUserService, useValue: { currentUser } },
       ],
-    }).compileComponents();
+    })
+      .overrideProvider(InteractivityChecker, {
+        useValue: {
+          isFocusable: () => true, // This checks focus trap, set it to true to avoid the warning
+        },
+      })
+      .compileComponents();
 
     fixture = TestBed.createComponent(ApiDocumentationV4Component);
     harnessLoader = TestbedHarnessEnvironment.loader(fixture);

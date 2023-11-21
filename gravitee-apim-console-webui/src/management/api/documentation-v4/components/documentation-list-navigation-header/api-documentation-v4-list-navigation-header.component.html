@@ -17,5 +17,7 @@
 -->
 <div class="header">
   <api-documentation-breadcrumb (onNavigateTo)="onNavigateTo.emit($event)" [breadcrumbs]="breadcrumbs"></api-documentation-breadcrumb>
-  <div class="header__action"><button mat-stroked-button (click)="onAddFolder.emit()">Add new folder</button></div>
+  <div class="header__action">
+    <button mat-stroked-button (click)="onAddFolder.emit()" *gioPermission="{ anyOf: ['api-documentation-c'] }">Add new folder</button>
+  </div>
 </div>

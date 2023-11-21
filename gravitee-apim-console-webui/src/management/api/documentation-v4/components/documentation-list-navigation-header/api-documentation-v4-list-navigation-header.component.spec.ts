@@ -25,16 +25,23 @@ import { ApiDocumentationV4ListNavigationHeaderComponent } from './api-documenta
 
 import { ApiDocumentationV4Module } from '../../api-documentation-v4.module';
 import { ApiDocumentationV4BreadcrumbHarness } from '../api-documentation-v4-breadcrumb/api-documentation-v4-breadcrumb.harness';
+import { CurrentUserService } from '../../../../../ajs-upgraded-providers';
+import { User } from '../../../../../entities/user';
+import { GioHttpTestingModule } from '../../../../../shared/testing';
 
 describe('ApiDocumentationV4NavigationHeaderComponent', () => {
   let fixture: ComponentFixture<ApiDocumentationV4ListNavigationHeaderComponent>;
   let component: ApiDocumentationV4ListNavigationHeaderComponent;
   let harnessLoader: HarnessLoader;
 
+  const currentUser = new User();
+  currentUser.userPermissions = ['api-documentation-u', 'api-documentation-c', 'api-documentation-r'];
+
   const init = async () => {
     await TestBed.configureTestingModule({
       declarations: [ApiDocumentationV4ListNavigationHeaderComponent],
-      imports: [NoopAnimationsModule, ApiDocumentationV4Module, MatIconTestingModule],
+      imports: [NoopAnimationsModule, ApiDocumentationV4Module, MatIconTestingModule, GioHttpTestingModule],
+      providers: [{ provide: CurrentUserService, useValue: { currentUser } }],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {

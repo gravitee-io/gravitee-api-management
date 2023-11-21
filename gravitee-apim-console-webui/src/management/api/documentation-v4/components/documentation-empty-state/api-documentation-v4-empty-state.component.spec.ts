@@ -25,16 +25,21 @@ import { ApiDocumentationV4EmptyStateComponent } from './api-documentation-v4-em
 
 import { ApiDocumentationV4Module } from '../../api-documentation-v4.module';
 import { GioHttpTestingModule } from '../../../../../shared/testing';
+import { CurrentUserService } from '../../../../../ajs-upgraded-providers';
+import { User } from '../../../../../entities/user';
 
 describe('ApiDocumentationV4EmptyStateComponent', () => {
   let fixture: ComponentFixture<ApiDocumentationV4EmptyStateComponent>;
   let component: ApiDocumentationV4EmptyStateComponent;
   let harnessLoader: HarnessLoader;
+  const currentUser = new User();
+  currentUser.userPermissions = ['api-documentation-u', 'api-documentation-c', 'api-documentation-r'];
 
   const init = async () => {
     await TestBed.configureTestingModule({
       declarations: [ApiDocumentationV4EmptyStateComponent],
       imports: [NoopAnimationsModule, ApiDocumentationV4Module, GioHttpTestingModule],
+      providers: [{ provide: CurrentUserService, useValue: { currentUser } }],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {
