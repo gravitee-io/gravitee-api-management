@@ -62,7 +62,8 @@ kubectl version --client=true`,
 az aks get-credentials --admin --resource-group Devs-Preprod-Hosted --name gravitee-devs-preprod-aks-cluster
 
 kubectl rollout restart deployment -n ${k8sNamespace}
-kubectl rollout restart deployment -n ${k8sNamespace}-ce`,
+kubectl rollout restart deployment -n ${k8sNamespace}-ce
+kubectl rollout restart deployment -n ${k8sNamespace}-oem`,
       }),
       new reusable.ReusedCommand(notifyOnFailureCmd),
     ];
