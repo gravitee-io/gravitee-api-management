@@ -89,7 +89,10 @@ public class ApiPagesResource extends AbstractResource {
             .execute(ApiCreateDocumentationPageUseCase.Input.builder().page(pageToCreate).auditInfo(getAuditInfo()).build())
             .createdPage();
 
-        return Response.ok(Mappers.getMapper(PageMapper.class).mapPage(createdPage)).build();
+        return Response
+            .created(this.getLocationHeader(createdPage.getId()))
+            .entity(Mappers.getMapper(PageMapper.class).mapPage(createdPage))
+            .build();
     }
 
     @GET
