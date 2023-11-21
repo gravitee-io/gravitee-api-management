@@ -17,13 +17,11 @@
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { Subject, combineLatest, EMPTY, Observable } from 'rxjs';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { StateService } from '@uirouter/angularjs';
 import { MatDialog } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData, GioLicenseService, LicenseOptions } from '@gravitee/ui-particles-angular';
 
 import { RoleService } from '../../../services-ngx/role.service';
 import { Role, RoleScope } from '../../../entities/role/role';
-import { UIRouterState } from '../../../ajs-upgraded-providers';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { Constants } from '../../../entities/Constants';
 import { ApimFeature } from '../../../shared/components/gio-license/gio-license-data';
@@ -52,7 +50,6 @@ export class OrgSettingsRolesComponent implements OnInit, OnDestroy {
 
   constructor(
     private readonly roleService: RoleService,
-    @Inject(UIRouterState) private readonly ajsState: StateService,
     private readonly matDialog: MatDialog,
     private readonly snackBarService: SnackBarService,
     @Inject('Constants') private readonly constants: Constants,
@@ -89,14 +86,6 @@ export class OrgSettingsRolesComponent implements OnInit, OnDestroy {
     this.unsubscribe$.unsubscribe();
   }
 
-  onAddARoleClicked(scope: string) {
-    this.ajsState.go('organization.role-new', { roleScope: scope });
-  }
-
-  onEditRoleClicked(scope: string, role: RoleVM) {
-    this.ajsState.go('organization.role-edit', { roleScope: scope, role: role.name });
-  }
-
   onDeleteRoleClicked(scope: string, role: RoleVM) {
     this.matDialog
       .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
@@ -121,10 +110,6 @@ export class OrgSettingsRolesComponent implements OnInit, OnDestroy {
         takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.ngOnInit());
-  }
-
-  onMembersClicked(scope: string, role: RoleVM) {
-    this.ajsState.go('organization.role-members', { roleScope: scope.toUpperCase(), role: role.name });
   }
 
   private convertToRoleVMs(roles: Role[]): RoleVM[] {

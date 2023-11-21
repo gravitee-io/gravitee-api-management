@@ -17,7 +17,7 @@
 -->
 <div class="org-settings-role">
   <h1>
-    <gio-go-back-button [ajsGo]="{ to: 'organization.roles' }"></gio-go-back-button>
+    <gio-go-back-button [routerLink]="isEditMode ? '../../../roles' : '../../roles'"></gio-go-back-button>
     {{ (isEditMode ? 'Update' : 'Create') + ' role in the ' + (roleScope | titlecase) + ' scope' }}
   </h1>
   <h4>Manage CRUD (Create, Read, Update, Delete) permissions for this role {{ roleName }} in the {{ roleScope | titlecase }} scope.</h4>

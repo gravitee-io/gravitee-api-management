@@ -28,7 +28,7 @@ import { OrgSettingsRolesComponent } from './org-settings-roles.component';
 import { OrganizationSettingsModule } from '../organization-settings.module';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { fakeRole } from '../../../entities/role/role.fixture';
-import { CurrentUserService, UIRouterState } from '../../../ajs-upgraded-providers';
+import { CurrentUserService } from '../../../ajs-upgraded-providers';
 import { User } from '../../../entities/user';
 import { Role } from '../../../entities/role/role';
 
@@ -48,10 +48,7 @@ describe('OrgSettingsRolesComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule, MatIconTestingModule, GioLicenseTestingModule],
-      providers: [
-        { provide: UIRouterState, useValue: { go: jest.fn() } },
-        { provide: CurrentUserService, useValue: { currentUser } },
-      ],
+      providers: [{ provide: CurrentUserService, useValue: { currentUser } }],
     }).overrideProvider(InteractivityChecker, {
       useValue: {
         isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with

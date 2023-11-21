@@ -24,21 +24,17 @@ import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { OrgSettingsRoleComponent } from './org-settings-role.component';
 
 import { OrganizationSettingsModule } from '../../organization-settings.module';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
-import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { fakeRole } from '../../../../entities/role/role.fixture';
 import { Role } from '../../../../entities/role/role';
 import { fakePermissionsByScopes } from '../../../../entities/role/permission.fixtures';
 
 describe('OrgSettingsRoleComponent', () => {
-  const fakeAjsState = {
-    go: jest.fn(),
-  };
-
   let fixture: ComponentFixture<OrgSettingsRoleComponent>;
   let httpTestingController: HttpTestingController;
   let loader: HarnessLoader;
@@ -234,15 +230,17 @@ describe('OrgSettingsRoleComponent', () => {
   });
 
   describe('create mode', () => {
+    let routerNavigateSpy: jest.SpyInstance;
+
     beforeEach(() => {
       TestBed.configureTestingModule({
         imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule],
-        providers: [
-          { provide: UIRouterState, useValue: fakeAjsState },
-          { provide: UIRouterStateParams, useValue: { roleScope: 'ORGANIZATION' } },
-        ],
+        providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: { roleScope: 'ORGANIZATION' } } } }],
       });
       httpTestingController = TestBed.inject(HttpTestingController);
+      const router = TestBed.inject(Router);
+      routerNavigateSpy = jest.spyOn(router, 'navigate');
+
       fixture = TestBed.createComponent(OrgSettingsRoleComponent);
       loader = TestbedHarnessEnvironment.loader(fixture);
       fixture.detectChanges();
@@ -308,20 +306,14 @@ describe('OrgSettingsRoleComponent', () => {
       });
       fixture.detectChanges();
 
-      expect(fakeAjsState.go).toHaveBeenCalledWith('organization.role-edit', {
-        role: 'CREATED_ROLE_NAME',
-        roleScope: 'ORGANIZATION',
-      });
+      expect(routerNavigateSpy).toHaveBeenCalledWith(['.', 'CREATED_ROLE_NAME'], expect.anything());
     });
   });
 
   function configureModule(role: Role) {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule, MatIconTestingModule],
-      providers: [
-        { provide: UIRouterState, useValue: fakeAjsState },
-        { provide: UIRouterStateParams, useValue: { roleScope: role.scope, role: role.name } },
-      ],
+      providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: { roleScope: role.scope, role: role.name } } } }],
     });
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture = TestBed.createComponent(OrgSettingsRoleComponent);

@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { combineLatest, EMPTY, Subject } from 'rxjs';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import { ActivatedRoute } from '@angular/router';
 
-import { UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { RoleService } from '../../../services-ngx/role.service';
 import { MembershipListItem } from '../../../entities/role/membershipListItem';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
@@ -49,15 +49,15 @@ export class OrgSettingsRoleMembersComponent implements OnInit, OnDestroy {
   private readonly unsubscribe$ = new Subject<boolean>();
 
   constructor(
-    @Inject(UIRouterStateParams) private readonly ajsStateParams: { roleScope: string; role: string },
+    private readonly activatedRoute: ActivatedRoute,
     private readonly roleService: RoleService,
     private readonly matDialog: MatDialog,
     private readonly snackBarService: SnackBarService,
   ) {}
 
   ngOnInit(): void {
-    this.roleScope = this.ajsStateParams.roleScope;
-    this.role = this.ajsStateParams.role;
+    this.roleScope = this.activatedRoute.snapshot.params.roleScope;
+    this.role = this.activatedRoute.snapshot.params.role;
 
     this.roleService
       .listMemberships(this.roleScope, this.role)

@@ -25,7 +25,7 @@
         <button
           *gioPermission="{ anyOf: ['organization-role-c'] }"
           [gioLicense]="customRolesLicenseOptions"
-          (click)="onAddARoleClicked(item.scopeId)"
+          [routerLink]="'../role/' + item.scopeId"
           mat-raised-button
           color="primary"
         >
@@ -36,7 +36,7 @@
       <mat-list class="org-settings-roles__content__list">
         <mat-list-item class="org-settings-roles__content__list__item" *ngFor="let role of item.roles">
           <mat-icon mat-list-icon>{{ role.icon }}</mat-icon>
-          <div class="org-settings-roles__content__list__item__description" (click)="onEditRoleClicked(item.scopeId, role)">
+          <div class="org-settings-roles__content__list__item__description" [routerLink]="'../role/' + item.scopeId + '/' + role.name">
             <div mat-line>
               <span>{{ role.name }}</span>
               <span *ngIf="role.isSystem" class="gio-badge">System</span>
@@ -60,7 +60,7 @@
             <ng-container *gioPermission="{ anyOf: ['organization-role-u'] }">
               <button
                 *ngIf="role.hasUserRoleManagement"
-                (click)="onMembersClicked(item.scopeId, role)"
+                [routerLink]="'../role/' + item.scopeId + '/' + role.name + '/members'"
                 mat-icon-button
                 aria-label="Button to see members with this role"
                 matTooltip="See members"
