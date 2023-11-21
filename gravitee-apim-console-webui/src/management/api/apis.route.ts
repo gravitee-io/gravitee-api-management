@@ -1687,6 +1687,16 @@ const apisRoutes: Routes = [
        * Common Api state
        */
       {
+        path: 'messages',
+        data: {
+          useAngularMaterial: true,
+          docs: {
+            page: 'management-messages',
+          },
+        },
+        component: MessagesComponent,
+      },
+      {
         path: 'documentation/new',
         component: DocumentationNewPageComponent,
         data: {

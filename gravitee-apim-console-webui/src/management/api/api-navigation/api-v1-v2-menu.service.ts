@@ -58,8 +58,7 @@ export class ApiV1V2MenuService implements ApiMenuService {
           ]),
       {
         displayName: 'Messages',
-        targetRoute: 'management.apis.messages',
-        baseRoute: 'management.apis.messages',
+        routerLink: 'messages',
       },
     ];
 
