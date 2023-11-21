@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { AbstractControl, FormControl, FormGroup, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { combineLatest, EMPTY, from, Observable, Subject, zip } from 'rxjs';
 import { catchError, filter, mergeMap, shareReplay, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { isEmpty } from 'lodash';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import { ActivatedRoute } from '@angular/router';
 
 import {
   OrgSettingsUserDetailAddGroupDialogComponent,
@@ -31,7 +32,6 @@ import {
   OrgSettingsUserGenerateTokenDialogData,
 } from './tokens/org-settings-user-generate-token.component';
 
-import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { Environment } from '../../../../entities/environment/environment';
 import { Group } from '../../../../entities/group/group';
 import { User } from '../../../../entities/user/user';
@@ -130,6 +130,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
   private unsubscribe$ = new Subject<boolean>();
 
   constructor(
+    private readonly activatedRoute: ActivatedRoute,
     private readonly usersService: UsersService,
     private readonly usersTokenService: UsersTokenService,
     private readonly roleService: RoleService,
@@ -137,14 +138,13 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
     private readonly snackBarService: SnackBarService,
     private readonly environmentService: EnvironmentService,
     private readonly matDialog: MatDialog,
-    @Inject(UIRouterStateParams) private readonly ajsStateParams,
   ) {}
 
   ngOnInit(): void {
     combineLatest([
-      this.usersService.get(this.ajsStateParams.userId),
+      this.usersService.get(this.activatedRoute.snapshot.params.userId),
       this.environmentService.list(),
-      this.usersService.getUserGroups(this.ajsStateParams.userId),
+      this.usersService.getUserGroups(this.activatedRoute.snapshot.params.userId),
     ])
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe(([user, environments, groups]) => {
@@ -152,7 +152,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
         this.user = {
           ...user,
           organizationRoles: organizationRoles.map((r) => r.name ?? r.id).join(', '),
-          avatarUrl: this.usersService.getUserAvatar(this.ajsStateParams.userId),
+          avatarUrl: this.usersService.getUserAvatar(this.activatedRoute.snapshot.params.userId),
           badgeCSSClass: UserHelper.getStatusBadgeCSSClass(user),
         };
 
@@ -174,7 +174,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
       });
 
     this.usersService
-      .getMemberships(this.ajsStateParams.userId, 'api')
+      .getMemberships(this.activatedRoute.snapshot.params.userId, 'api')
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe(({ metadata }) => {
         this.apisTableDS = Object.entries(metadata).map(([apiId, apiMetadata]: [string, any]) => ({
@@ -188,7 +188,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
       });
 
     this.usersService
-      .getMemberships(this.ajsStateParams.userId, 'application')
+      .getMemberships(this.activatedRoute.snapshot.params.userId, 'application')
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe(({ metadata }) => {
         this.applicationsTableDS = Object.entries(metadata).map(([applicationId, applicationMetadata]: [string, any]) => ({
@@ -200,7 +200,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
       });
 
     this.usersTokenService
-      .getTokens(this.ajsStateParams.userId)
+      .getTokens(this.activatedRoute.snapshot.params.userId)
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe((response) => {
         this.tokensTableDS = response.map((token) => ({
@@ -537,7 +537,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
       .afterClosed()
       .pipe(
         filter((confirm) => confirm === true),
-        switchMap(() => this.usersTokenService.revokeToken(this.ajsStateParams.userId, token.id)),
+        switchMap(() => this.usersTokenService.revokeToken(this.activatedRoute.snapshot.params.userId, token.id)),
         tap(() => this.snackBarService.success(`Token successfully deleted!`)),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
@@ -553,7 +553,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
       .open<OrgSettingsUserGenerateTokenComponent, OrgSettingsUserGenerateTokenDialogData, Token>(OrgSettingsUserGenerateTokenComponent, {
         width: '750px',
         data: {
-          userId: this.ajsStateParams.userId,
+          userId: this.activatedRoute.snapshot.params.userId,
         },
         role: 'dialog',
         id: 'generateTokenDialog',
