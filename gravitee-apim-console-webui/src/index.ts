@@ -152,12 +152,20 @@ function prepareConstants(bootstrap: any): any {
 }
 
 function initLoader(constants: Constants) {
-  const img = document.createElement('img');
-  img.classList.add('gravitee-splash-screen');
+  let loader: HTMLImageElement | HTMLSpanElement;
+  if (constants.isOEM) {
+    loader = document.createElement('span');
+    loader.classList.add('gravitee-default-loader');
+    loader.style.border = `10px solid ${constants?.customization?.theme?.menuBackground ?? 'dimgrey'}`;
+    loader.style.animation = 'rotation 1s linear infinite';
+    loader.style.borderBottomColor = 'transparent';
+  } else {
+    loader = document.createElement('img');
+    loader.classList.add('gravitee-splash-screen');
+    loader.setAttribute('src', 'assets/gravitee_logo_anim.gif');
+  }
 
-  img.setAttribute('src', 'assets/gravitee_logo_anim.gif');
-
-  document.getElementById('loader').appendChild(img);
+  document.getElementById('loader').appendChild(loader);
 
   return $q.resolve(constants);
 }
