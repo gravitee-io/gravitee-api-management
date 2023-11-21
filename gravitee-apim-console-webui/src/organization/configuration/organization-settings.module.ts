@@ -622,6 +622,24 @@ const organizationRoutes: Routes = [
           },
         },
       },
+      {
+        path: 'audit',
+        component: OrgSettingsAuditComponent,
+        data: {
+          useAngularMaterial: true,
+          requireLicense: {
+            license: { feature: 'apim-audit-trail' },
+            redirect: 'organization.settings',
+          },
+          menu: null,
+          docs: {
+            page: 'management-audit',
+          },
+          perms: {
+            only: ['organization-audit-r'],
+          },
+        },
+      },
 
       {
         path: '',
