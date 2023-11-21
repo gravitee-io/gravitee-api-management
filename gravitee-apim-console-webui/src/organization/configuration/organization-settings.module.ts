@@ -453,6 +453,20 @@ const organizationRoutes: Routes = [
         },
       },
       {
+        path: 'users/new',
+        component: OrgSettingsNewUserComponent,
+        data: {
+          useAngularMaterial: true,
+          menu: null,
+          docs: {
+            page: 'organization-configuration-create-user',
+          },
+          perms: {
+            only: ['organization-user-c'],
+          },
+        },
+      },
+      {
         path: 'users',
         component: OrgSettingsUsersComponent,
         data: {
