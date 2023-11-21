@@ -57,6 +57,9 @@ public class ApiPagesResource extends AbstractResource {
     @Inject
     private ApiUnpublishDocumentationPageUseCase apiUnpublishDocumentationPageUsecase;
 
+    @Inject
+    private ApiDeleteDocumentationPageUseCase apiDeleteDocumentationPageUseCase;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.READ }) })
@@ -138,6 +141,15 @@ public class ApiPagesResource extends AbstractResource {
             .execute(new ApiUnpublishDocumentationPageUseCase.Input(apiId, pageId, getAuditInfo()))
             .page();
         return Response.ok(Mappers.getMapper(PageMapper.class).mapPage(page)).build();
+    }
+
+    @DELETE
+    @Path("{pageId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.DELETE }) })
+    public Response deleteDocumentationPage(@PathParam("apiId") String apiId, @PathParam("pageId") String pageId) {
+        apiDeleteDocumentationPageUseCase.execute(new ApiDeleteDocumentationPageUseCase.Input(apiId, pageId, getAuditInfo()));
+        return Response.noContent().build();
     }
 
     private AuditInfo getAuditInfo() {

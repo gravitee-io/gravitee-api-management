@@ -15,9 +15,12 @@
  */
 package io.gravitee.apim.infra.crud_service.document;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.documentation.exception.ApiPageNotDeletedException;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.infra.crud_service.documentation.PageCrudServiceImpl;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -167,7 +170,7 @@ public class PageCrudServiceImplTest {
         void should_throw_exception_if_page_not_found() throws TechnicalException {
             when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.empty());
 
-            Assertions.assertThatThrownBy(() -> service.get(PAGE_ID)).isInstanceOf(PageNotFoundException.class);
+            assertThatThrownBy(() -> service.get(PAGE_ID)).isInstanceOf(PageNotFoundException.class);
         }
     }
 
@@ -261,6 +264,25 @@ public class PageCrudServiceImplTest {
             Assertions.assertThat(pageArgumentCaptor.getValue()).usingRecursiveComparison().isEqualTo(returnedPage);
 
             Assertions.assertThat(updatedPage).usingRecursiveComparison().isEqualTo(pageToUpdate);
+        }
+    }
+
+    @Nested
+    class Delete {
+
+        @Test
+        void should_delete_a_page() throws TechnicalException {
+            service.delete("page-id");
+            verify(pageRepository).delete("page-id");
+        }
+
+        @Test
+        void should_throw_if_deletion_problem_occurs() throws TechnicalException {
+            doThrow(new TechnicalException("exception")).when(pageRepository).delete("page-id");
+            assertThatThrownBy(() -> service.delete("page-id"))
+                .isInstanceOf(ApiPageNotDeletedException.class)
+                .hasMessage("Page page-id not deleted");
+            verify(pageRepository).delete("page-id");
         }
     }
 }

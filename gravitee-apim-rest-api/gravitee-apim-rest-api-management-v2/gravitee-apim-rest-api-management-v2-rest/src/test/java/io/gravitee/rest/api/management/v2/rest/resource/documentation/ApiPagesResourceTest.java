@@ -24,6 +24,10 @@ import assertions.MAPIAssertions;
 import inmemory.*;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.documentation.model.Page;
+import io.gravitee.apim.core.plan.query_service.PlanQueryService;
+import io.gravitee.common.component.Lifecycle;
+import io.gravitee.definition.model.v4.plan.Plan;
+import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.management.v2.rest.model.*;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
@@ -40,6 +44,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 class ApiPagesResourceTest extends AbstractResourceTest {
@@ -1114,6 +1120,175 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
             var body = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.Page.class);
             assertThat(body).isNotNull().hasFieldOrPropertyWithValue("published", false);
+        }
+    }
+
+    @Nested
+    class DeleteDocumentationPage {
+
+        private static final String PATH = PAGE_ID;
+
+        @Test
+        void should_return_403_if_incorrect_permissions() {
+            apiCrudServiceInMemory.initWith(List.of(Api.builder().id(API_ID).build()));
+
+            when(
+                permissionService.hasPermission(
+                    eq(GraviteeContext.getExecutionContext()),
+                    eq(RolePermission.API_DOCUMENTATION),
+                    eq(API_ID),
+                    eq(RolePermissionAction.DELETE)
+                )
+            )
+                .thenReturn(false);
+
+            final Response response = rootTarget().path(PATH).request().delete();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("You do not have sufficient rights to access this resource");
+        }
+
+        @Test
+        void should_return_404_if_api_does_not_exist() {
+            final Response response = rootTarget().path(PATH).request().delete();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(NOT_FOUND_404)
+                .asError()
+                .hasHttpStatus(NOT_FOUND_404)
+                .hasMessage("Api [" + API_ID + "] cannot be found.");
+        }
+
+        @Test
+        void should_return_404_if_page_does_not_exist() {
+            apiCrudServiceInMemory.initWith(List.of(Api.builder().id(API_ID).build()));
+
+            final Response response = rootTarget().path(PATH).request().delete();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(NOT_FOUND_404)
+                .asError()
+                .hasHttpStatus(NOT_FOUND_404)
+                .hasMessage("Page [" + PAGE_ID + "] cannot be found.");
+        }
+
+        @Test
+        void should_return_400_if_page_is_not_api_page() {
+            apiCrudServiceInMemory.initWith(List.of(Api.builder().id(API_ID).build()));
+
+            Page page1 = Page
+                .builder()
+                .referenceType(Page.ReferenceType.ENVIRONMENT)
+                .referenceId(API_ID)
+                .type(Page.Type.MARKDOWN)
+                .id(PAGE_ID)
+                .name("page-1")
+                .published(true)
+                .build();
+            givenApiPagesQuery(List.of(page1));
+
+            final Response response = rootTarget().path(PATH).request().delete();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(BAD_REQUEST_400)
+                .asError()
+                .hasHttpStatus(BAD_REQUEST_400)
+                .hasMessage("Page has not the correct reference type.");
+        }
+
+        @ParameterizedTest
+        @EnumSource(value = PlanStatus.class, names = { "PUBLISHED", "DEPRECATED" })
+        void should_return_400_if_page_is_used_as_general_condition(PlanStatus planStatus) {
+            apiCrudServiceInMemory.initWith(List.of(Api.builder().id(API_ID).build()));
+
+            Page page1 = Page
+                .builder()
+                .referenceType(Page.ReferenceType.API)
+                .referenceId(API_ID)
+                .type(Page.Type.MARKDOWN)
+                .id(PAGE_ID)
+                .name("page-1")
+                .published(true)
+                .build();
+            givenApiPagesQuery(List.of(page1));
+
+            planQueryServiceInMemory.initWith(
+                List.of(PlanEntity.builder().id("plan-id").status(planStatus).apiId(API_ID).generalConditions(PAGE_ID).build())
+            );
+
+            final Response response = rootTarget().path(PATH).request().delete();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(BAD_REQUEST_400)
+                .asError()
+                .hasHttpStatus(BAD_REQUEST_400)
+                .hasMessage("Page can not be deleted because used as general condition.");
+        }
+
+        @Test
+        void should_return_400_if_page_is_a_non_empty_folder() {
+            apiCrudServiceInMemory.initWith(List.of(Api.builder().id(API_ID).build()));
+
+            Page folder = Page
+                .builder()
+                .referenceType(Page.ReferenceType.API)
+                .referenceId(API_ID)
+                .type(Page.Type.FOLDER)
+                .id("folder-id")
+                .name("page-1")
+                .published(true)
+                .build();
+            Page page1 = Page
+                .builder()
+                .referenceType(Page.ReferenceType.API)
+                .referenceId(API_ID)
+                .type(Page.Type.MARKDOWN)
+                .id(PAGE_ID)
+                .name("page-1")
+                .published(true)
+                .parentId("folder-id")
+                .build();
+            givenApiPagesQuery(List.of(folder, page1));
+
+            final Response response = rootTarget().path("folder-id").request().delete();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(BAD_REQUEST_400)
+                .asError()
+                .hasHttpStatus(BAD_REQUEST_400)
+                .hasMessage("Folder cannot be deleted as it is not empty.");
+        }
+
+        @Test
+        void should_delete_page() {
+            apiCrudServiceInMemory.initWith(List.of(Api.builder().id(API_ID).build()));
+
+            Page page1 = Page
+                .builder()
+                .referenceType(Page.ReferenceType.API)
+                .referenceId(API_ID)
+                .type(Page.Type.MARKDOWN)
+                .id(PAGE_ID)
+                .name("page-1")
+                .published(true)
+                .parentId("folder-id")
+                .build();
+            givenApiPagesQuery(List.of(page1));
+
+            final Response response = rootTarget().path(PATH).request().delete();
+
+            MAPIAssertions.assertThat(response).hasStatus(NO_CONTENT_204);
+
+            assertThat(pageCrudServiceInMemory.findById(PAGE_ID)).isEmpty();
         }
     }
 

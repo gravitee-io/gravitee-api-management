@@ -24,10 +24,12 @@ import io.gravitee.apim.core.console.use_case.GetConsoleCustomizationUseCase;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
+import io.gravitee.apim.core.documentation.domain_service.DeleteApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.HomepageDomainService;
 import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
 import io.gravitee.apim.core.documentation.use_case.ApiCreateDocumentationPageUseCase;
+import io.gravitee.apim.core.documentation.use_case.ApiDeleteDocumentationPageUseCase;
 import io.gravitee.apim.core.documentation.use_case.ApiGetDocumentationPageUseCase;
 import io.gravitee.apim.core.documentation.use_case.ApiGetDocumentationPagesUseCase;
 import io.gravitee.apim.core.documentation.use_case.ApiPublishDocumentationPageUseCase;
@@ -184,6 +186,14 @@ public class UsecaseSpringConfiguration {
             apiCrudService,
             pageCrudService
         );
+    }
+
+    @Bean
+    public ApiDeleteDocumentationPageUseCase apiDeleteDocumentationPageUseCase(
+        DeleteApiDocumentationDomainService deleteApiDocumentationDomainService,
+        ApiCrudService apiCrudService
+    ) {
+        return new ApiDeleteDocumentationPageUseCase(deleteApiDocumentationDomainService, apiCrudService);
     }
 
     @Bean
