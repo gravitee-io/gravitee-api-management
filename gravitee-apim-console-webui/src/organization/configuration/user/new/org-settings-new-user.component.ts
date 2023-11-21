@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { EMPTY, Subject } from 'rxjs';
 import { catchError, takeUntil, tap } from 'rxjs/operators';
-import { StateService } from '@uirouter/core';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { UsersService } from '../../../../services-ngx/users.service';
 import { NewPreRegisterUser } from '../../../../entities/user/newPreRegisterUser';
 import { IdentityProviderService } from '../../../../services-ngx/identity-provider.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
-import { UIRouterState } from '../../../../ajs-upgraded-providers';
 
 export enum UserType {
   EXTERNAL_USER = 'EXTERNAL_USER',
@@ -51,11 +50,12 @@ export class OrgSettingsNewUserComponent implements OnInit, OnDestroy {
   };
 
   constructor(
+    private readonly router: Router,
+    private readonly activatedRoute: ActivatedRoute,
     private readonly formBuilder: FormBuilder,
     private readonly usersService: UsersService,
     private readonly identityProviderService: IdentityProviderService,
     private readonly snackBarService: SnackBarService,
-    @Inject(UIRouterState) private readonly $state: StateService,
   ) {}
 
   ngOnInit(): void {
@@ -146,7 +146,7 @@ export class OrgSettingsNewUserComponent implements OnInit, OnDestroy {
       .pipe(
         tap(() => {
           this.snackBarService.success('New user successfully registered!');
-          this.$state.go('organization.users');
+          this.router.navigate(['..'], { relativeTo: this.activatedRoute });
         }),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);

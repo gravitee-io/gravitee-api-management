@@ -16,7 +16,7 @@
 
 -->
 <form *ngIf="!isLoading" [formGroup]="userForm" (ngSubmit)="onSubmit()" gioFormFocusInvalid>
-  <h1><gio-go-back-button [ajsGo]="{ to: 'organization.users' }"></gio-go-back-button>Pre-register a user</h1>
+  <h1><gio-go-back-button></gio-go-back-button>Pre-register a user</h1>
   <h4>The new user will receive an email to finalize the creation by setting a password.</h4>
 
   <mat-card class="org-settings-new-user__card">

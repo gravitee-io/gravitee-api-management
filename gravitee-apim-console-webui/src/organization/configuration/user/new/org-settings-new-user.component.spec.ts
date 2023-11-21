@@ -29,7 +29,6 @@ import { OrgSettingsNewUserComponent, UserType } from './org-settings-new-user.c
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { OrganizationSettingsModule } from '../../organization-settings.module';
-import { UIRouterState } from '../../../../ajs-upgraded-providers';
 import { fakeIdentityProviderListItem } from '../../../../entities/identity-provider';
 import { fakeUser } from '../../../../entities/user/user.fixture';
 import { GioFormCardGroupHarness } from '../../../../shared/components/gio-form-card-group/gio-form-card-group.harness';
@@ -43,7 +42,6 @@ describe('OrgSettingsNewUserComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule],
-      providers: [{ provide: UIRouterState, useValue: { go: jest.fn() } }],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {
