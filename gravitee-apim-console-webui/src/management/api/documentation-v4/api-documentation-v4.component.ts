@@ -203,6 +203,34 @@ export class ApiDocumentationV4Component implements OnInit, OnDestroy {
       });
   }
 
+  deletePage(page: Page) {
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
+        data: {
+          title: `Delete your ${page?.type === 'FOLDER' ? 'folder' : 'page'}`,
+          content: `Are you sure you want to delete this ${
+            page?.type === 'FOLDER' ? 'folder? Only empty folders can be deleted.' : 'page?'
+          } This action is irreversible.`,
+          confirmButton: 'Delete',
+        },
+      })
+      .afterClosed()
+      .pipe(
+        filter((confirmed) => !!confirmed),
+        switchMap((_) => this.apiDocumentationV2Service.deleteDocumentationPage(this.ajsStateParams.apiId, page?.id)),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe({
+        next: (_) => {
+          this.snackBarService.success('Page deleted successfully');
+          this.ngOnInit();
+        },
+        error: (error) => {
+          this.snackBarService.error(error?.error?.message ?? 'Error while deleting page');
+        },
+      });
+  }
+
   moveUp(page: Page) {
     this.changeOrder(page, page.order - 1);
   }

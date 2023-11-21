@@ -24,12 +24,17 @@ export class ApiDocumentationV4EditPageHarness extends ComponentHarness {
   public static hostSelector = 'api-documentation-edit-page';
 
   private nextButtonLocator = this.locatorFor(MatButtonHarness.with({ text: 'Next' }));
+  private deleteButtonLocator = this.locatorFor(MatButtonHarness.with({ text: 'Delete page' }));
   private nameInputLocator = this.locatorFor(MatInputHarness);
   private visibilityHarness = this.locatorFor(ApiDocumentationV4VisibilityHarness);
   private sourceRadioHarness = this.locatorFor(MatRadioGroupHarness.with({ selector: '.stepper__content__source' }));
 
   async getNextButton() {
     return this.nextButtonLocator();
+  }
+
+  async getDeleteButton() {
+    return this.deleteButtonLocator().catch((_) => undefined);
   }
 
   async getName(): Promise<string> {

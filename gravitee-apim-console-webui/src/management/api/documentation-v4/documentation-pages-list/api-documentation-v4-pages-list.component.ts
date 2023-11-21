@@ -41,7 +41,7 @@ export class ApiDocumentationV4PagesListComponent implements OnInit, OnChanges {
   onUnpublishPage = new EventEmitter<string>();
 
   @Output()
-  onDeletePage = new EventEmitter<string>();
+  onDeletePage = new EventEmitter<Page>();
 
   @Output()
   onGoToFolder = new EventEmitter<string>();

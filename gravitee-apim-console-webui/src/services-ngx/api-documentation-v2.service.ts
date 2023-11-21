@@ -62,4 +62,8 @@ export class ApiDocumentationV2Service {
   unpublishDocumentationPage(apiId: any, pageId: string): Observable<Page> {
     return this.http.post<Page>(`${this.constants.env.v2BaseURL}/apis/${apiId}/pages/${pageId}/_unpublish`, {});
   }
+
+  deleteDocumentationPage(apiId: string, pageId: string): Observable<void> {
+    return this.http.delete<void>(`${this.constants.env.v2BaseURL}/apis/${apiId}/pages/${pageId}`, {});
+  }
 }

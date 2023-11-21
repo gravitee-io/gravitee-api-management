@@ -29,6 +29,7 @@ export class ApiDocumentationV4PagesListHarness extends ComponentHarness {
   protected allUnpublishPageButtons = this.locatorForAll(MatButtonHarness.with({ selector: '[aria-label="Unpublish page"]' }));
   protected allMovePageDownButtons = this.locatorForAll(MatButtonHarness.with({ selector: '[aria-label="Move page down"]' }));
   protected allMovePageUpButtons = this.locatorForAll(MatButtonHarness.with({ selector: '[aria-label="Move page up"]' }));
+  protected allDeletePageButtons = this.locatorForAll(MatButtonHarness.with({ selector: '[aria-label="Delete page"]' }));
 
   public async getNameDivByRowIndex(idx: number): Promise<DivHarness> {
     const table = await this.tableLocator();
@@ -66,6 +67,10 @@ export class ApiDocumentationV4PagesListHarness extends ComponentHarness {
 
   public getMovePageUpButtonByRowIndex(idx: number): Promise<MatButtonHarness> {
     return this.allMovePageUpButtons().then((buttonList) => buttonList[idx]);
+  }
+
+  public getDeletePageButtonByRowIndex(idx: number): Promise<MatButtonHarness> {
+    return this.allDeletePageButtons().then((buttonList) => buttonList[idx]);
   }
 
   public async clickAddNewPage() {
