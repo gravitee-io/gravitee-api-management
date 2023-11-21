@@ -21,6 +21,7 @@ import { ComponentCustomEvent } from '@gravitee/ui-components/src/lib/events';
 import { Location } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
 import { GioLicenseService } from '@gravitee/ui-particles-angular';
+import '@gravitee/ui-components/wc/gv-design';
 
 import { UrlParams } from '../../../../management/api/policy-studio/design/policy-studio-design.component';
 import { OrganizationService } from '../../../../services-ngx/organization.service';

@@ -581,6 +581,19 @@ const organizationRoutes: Routes = [
           },
         },
       },
+      {
+        path: 'policies',
+        component: OrgSettingsPlatformPoliciesComponent,
+        data: {
+          useAngularMaterial: true,
+          docs: {
+            page: 'management-configuration-policies',
+          },
+          perms: {
+            only: ['organization-policies-r'],
+          },
+        },
+      },
 
       {
         path: '',
