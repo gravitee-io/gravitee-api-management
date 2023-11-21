@@ -30,6 +30,7 @@ import io.gravitee.apim.core.documentation.crud_service.PageRevisionCrudService;
 import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.DeleteApiDocumentationDomainService;
+import io.gravitee.apim.core.documentation.domain_service.DocumentationValidationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.HomepageDomainService;
 import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
@@ -160,7 +161,11 @@ public class CoreServiceSpringConfiguration {
         PageRevisionCrudService pageRevisionCrudService,
         AuditDomainService auditDomainService
     ) {
-        return new CreateApiDocumentationDomainService(pageCrudService, pageRevisionCrudService, auditDomainService);
+        return new CreateApiDocumentationDomainService(
+            pageCrudService,
+            pageRevisionCrudService,
+            auditDomainService
+        );
     }
 
     @Bean
@@ -180,5 +185,10 @@ public class CoreServiceSpringConfiguration {
     @Bean
     public GraviteeLicenseDomainService graviteeLicenseDomainService(NodeLicenseService nodeLicenseService) {
         return new GraviteeLicenseDomainService(nodeLicenseService);
+    }
+
+    @Bean
+    DocumentationValidationDomainService documentationValidationDomainService() {
+        return new DocumentationValidationDomainService();
     }
 }

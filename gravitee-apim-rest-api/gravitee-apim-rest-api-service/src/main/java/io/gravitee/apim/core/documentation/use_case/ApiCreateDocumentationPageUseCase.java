@@ -19,6 +19,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
+import io.gravitee.apim.core.documentation.domain_service.DocumentationValidationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.HomepageDomainService;
 import io.gravitee.apim.core.documentation.exception.InvalidPageParentException;
 import io.gravitee.apim.core.documentation.model.Page;
@@ -28,7 +29,9 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.Objects;
 import lombok.Builder;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 public class ApiCreateDocumentationPageUseCase {
 
     private final CreateApiDocumentationDomainService createApiDocumentationDomainService;
@@ -36,26 +39,14 @@ public class ApiCreateDocumentationPageUseCase {
     private final HomepageDomainService homepageDomainService;
     private final PageCrudService pageCrudService;
     private final PageQueryService pageQueryService;
-
-    public ApiCreateDocumentationPageUseCase(
-        CreateApiDocumentationDomainService createApiDocumentationDomainService,
-        ApiDocumentationDomainService apiDocumentationDomainService,
-        HomepageDomainService homepageDomainService,
-        PageCrudService pageCrudService,
-        PageQueryService pageQueryService
-    ) {
-        this.createApiDocumentationDomainService = createApiDocumentationDomainService;
-        this.apiDocumentationDomainService = apiDocumentationDomainService;
-        this.homepageDomainService = homepageDomainService;
-        this.pageCrudService = pageCrudService;
-        this.pageQueryService = pageQueryService;
-    }
+    private final DocumentationValidationDomainService documentationValidationDomainService;
 
     public Output execute(Input input) {
         var pageToCreate = input.page;
         pageToCreate.setId(UuidString.generateRandom());
         pageToCreate.setCreatedAt(new Date());
         pageToCreate.setUpdatedAt(pageToCreate.getCreatedAt());
+        pageToCreate.setName(documentationValidationDomainService.sanitizeDocumentationName(pageToCreate.getName()));
 
         if (pageToCreate.isMarkdown()) {
             this.apiDocumentationDomainService.validateContentIsSafe(pageToCreate.getContent());

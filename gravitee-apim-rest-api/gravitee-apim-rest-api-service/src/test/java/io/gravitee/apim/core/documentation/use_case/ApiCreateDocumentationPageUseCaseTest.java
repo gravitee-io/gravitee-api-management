@@ -20,11 +20,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import fixtures.core.model.AuditInfoFixtures;
 import inmemory.*;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
+import io.gravitee.apim.core.documentation.domain_service.DocumentationValidationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.HomepageDomainService;
+import io.gravitee.apim.core.documentation.exception.InvalidPageNameException;
 import io.gravitee.apim.core.documentation.exception.InvalidPageParentException;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
@@ -34,6 +37,9 @@ import io.gravitee.rest.api.service.exceptions.PageContentUnsafeException;
 import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class ApiCreateDocumentationPageUseCaseTest {
 
@@ -49,6 +55,7 @@ class ApiCreateDocumentationPageUseCaseTest {
     private final PageCrudServiceInMemory pageCrudService = new PageCrudServiceInMemory();
     private final PageRevisionCrudServiceInMemory pageRevisionCrudService = new PageRevisionCrudServiceInMemory();
     private final PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory();
+    private final DocumentationValidationDomainService documentationValidationDomainService = new DocumentationValidationDomainService();
     AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
     CreateApiDocumentationDomainService createApiDocumentationDomainService;
@@ -70,7 +77,8 @@ class ApiCreateDocumentationPageUseCaseTest {
                 new ApiDocumentationDomainService(pageQueryService, planQueryService, new HtmlSanitizerImpl()),
                 new HomepageDomainService(pageQueryService, pageCrudService),
                 pageCrudService,
-                pageQueryService
+                pageQueryService,
+                documentationValidationDomainService
             );
     }
 
@@ -109,7 +117,7 @@ class ApiCreateDocumentationPageUseCaseTest {
                         Page
                             .builder()
                             .type(Page.Type.MARKDOWN)
-                            .name("new page")
+                            .name("new page ")
                             .content("nice content")
                             .homepage(false)
                             .visibility(Page.Visibility.PRIVATE)
@@ -408,6 +416,44 @@ class ApiCreateDocumentationPageUseCaseTest {
                     )
                 )
                 .isInstanceOf(InvalidPageParentException.class);
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = { "  " })
+        @NullAndEmptySource
+        void should_throw_error_if_page_name_is_null_or_empty(String name) {
+            var parentPage = Page
+                .builder()
+                .id(PARENT_ID)
+                .referenceType(Page.ReferenceType.API)
+                .referenceId("api-id")
+                .parentId("")
+                .name("parent")
+                .type(Page.Type.FOLDER)
+                .build();
+            pageCrudService.initWith(List.of(parentPage));
+
+            assertThatThrownBy(() ->
+                    apiCreateDocumentationPageUsecase.execute(
+                        ApiCreateDocumentationPageUseCase.Input
+                            .builder()
+                            .page(
+                                Page
+                                    .builder()
+                                    .type(Page.Type.MARKDOWN)
+                                    .name(name)
+                                    .visibility(Page.Visibility.PRIVATE)
+                                    .parentId(PARENT_ID)
+                                    .order(1)
+                                    .referenceType(Page.ReferenceType.API)
+                                    .referenceId(API_ID)
+                                    .build()
+                            )
+                            .auditInfo(AUDIT_INFO)
+                            .build()
+                    )
+                )
+                .isInstanceOf(InvalidPageNameException.class);
         }
     }
 
