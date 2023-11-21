@@ -32,7 +32,7 @@ export class AsApiPermissionGuard implements CanActivate, CanActivateChild, CanD
     return this.gioPermissionService.loadApiPermissions(route.params.apiId).pipe(switchMap(() => this.canActivateChild(route, state)));
   }
 
-  canActivateChild(route: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
+  canActivateChild(route: ActivatedRouteSnapshot, _state: RouterStateSnapshot) {
     const permissions = route.data.apiPermissions?.only;
     if (!permissions) {
       return of(true);
@@ -42,7 +42,7 @@ export class AsApiPermissionGuard implements CanActivate, CanActivateChild, CanD
     }
 
     // TODO : redirect to 403 page
-    this.router.navigate(['_login'], { queryParams: { redirect: state.url } });
+    this.router.navigate(['_login']);
     return of(false);
   }
 

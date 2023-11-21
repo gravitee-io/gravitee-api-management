@@ -54,8 +54,6 @@ import {
   GioLicenseModule,
 } from '@gravitee/ui-particles-angular';
 import { MatTabsModule } from '@angular/material/tabs';
-import { Ng2StateDeclaration, UIRouterModule } from '@uirouter/angular';
-import { UIRouter } from '@uirouter/core';
 import { RouterModule, Routes } from '@angular/router';
 
 import { OrgSettingsGeneralComponent } from './console/org-settings-general.component';
@@ -86,6 +84,7 @@ import { OrgSettingsAuditComponent } from './audit/org-settings-audit.component'
 import { OrgSettingsPlatformPoliciesConfigComponent } from './policies/config/org-settings-platform-policies-config.component';
 import { OrgNavigationComponent } from './navigation/org-navigation.component';
 import { OrgSettingsPlatformPoliciesStudioModule } from './policies/studio/org-settings-platform-policies-studio.module';
+import { AsOrganizationPermissionGuard } from './as-organization-permission.guard';
 
 import { GioTableOfContentsModule } from '../../shared/components/gio-table-of-contents/gio-table-of-contents.module';
 import { GioPermissionModule } from '../../shared/components/gio-permission/gio-permission.module';
@@ -94,314 +93,19 @@ import { GioFormColorInputModule } from '../../shared/components/gio-form-color-
 import { GioGoBackButtonModule } from '../../shared/components/gio-go-back-button/gio-go-back-button.module';
 import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioUsersSelectorModule } from '../../shared/components/gio-users-selector/gio-users-selector.module';
-import { licenseGuard } from '../../shared/components/gio-license/gio-license-guard';
-
-const states: Ng2StateDeclaration[] = [
-  {
-    name: 'organization',
-    url: '/organization',
-    abstract: true,
-    component: OrgNavigationComponent,
-  },
-  {
-    name: 'organization.settings',
-    url: '/settings',
-    component: OrgSettingsGeneralComponent,
-    data: {
-      useAngularMaterial: true,
-      menu: null,
-      docs: {
-        page: 'organization-configuration-console',
-      },
-      perms: {
-        only: ['organization-settings-r'],
-      },
-    },
-  },
-  {
-    name: 'organization.identities',
-    url: '/identities',
-    component: OrgSettingsIdentityProvidersComponent,
-    data: {
-      useAngularMaterial: true,
-      menu: null,
-      docs: {
-        page: 'organization-configuration-identityproviders',
-      },
-      perms: {
-        only: ['organization-identity_provider-r'],
-      },
-    },
-  },
-  {
-    name: 'organization.identity-edit',
-    url: '/identities/:id',
-    component: OrgSettingsIdentityProviderComponent,
-    data: {
-      useAngularMaterial: true,
-      menu: null,
-      docs: {
-        page: 'organization-configuration-identityproviders',
-      },
-      perms: {
-        only: ['organization-identity_provider-r', 'organization-identity_provider-u', 'organization-identity_provider-d'],
-      },
-    },
-  },
-  {
-    name: 'organization.identity-new',
-    url: '/identities/new',
-    component: OrgSettingsIdentityProviderComponent,
-    data: {
-      useAngularMaterial: true,
-      menu: null,
-      docs: {
-        page: 'organization-configuration-identityproviders',
-      },
-      perms: {
-        only: ['organization-identity_provider-c'],
-      },
-    },
-  },
-  {
-    name: 'organization.users',
-    url: '/users?q&page',
-    component: OrgSettingsUsersComponent,
-    data: {
-      useAngularMaterial: true,
-      menu: null,
-      docs: {
-        page: 'organization-configuration-users',
-      },
-      perms: {
-        only: ['organization-user-c', 'organization-user-r', 'organization-user-u', 'organization-user-d'],
-      },
-    },
-    params: {
-      page: {
-        value: '1',
-        dynamic: true,
-      },
-      q: {
-        dynamic: true,
-      },
-    },
-  },
-  {
-    name: 'organization.user-new',
-    url: '/users/new',
-    component: OrgSettingsNewUserComponent,
-    data: {
-      useAngularMaterial: true,
-      menu: null,
-      docs: {
-        page: 'organization-configuration-create-user',
-      },
-      perms: {
-        only: ['organization-user-c'],
-      },
-    },
-  },
-  {
-    name: 'organization.user-edit',
-    url: '/users/:userId',
-    component: OrgSettingsUserDetailComponent,
-    data: {
-      useAngularMaterial: true,
-      menu: null,
-      docs: {
-        page: 'organization-configuration-user',
-      },
-      perms: {
-        only: ['organization-user-c', 'organization-user-r', 'organization-user-u', 'organization-user-d'],
-      },
-    },
-  },
-  {
-    name: 'organization.roles',
-    url: '/roles',
-    component: OrgSettingsRolesComponent,
-    data: {
-      useAngularMaterial: true,
-      menu: null,
-      docs: {
-        page: 'organization-configuration-roles',
-      },
-      perms: {
-        only: ['organization-role-r'],
-      },
-    },
-  },
-  {
-    name: 'organization.role-new',
-    url: '/role/:roleScope',
-    component: OrgSettingsRoleComponent,
-    data: {
-      useAngularMaterial: true,
-      menu: null,
-      requireLicense: {
-        license: { feature: 'apim-custom-roles' },
-        redirect: 'organization.roles',
-      },
-      docs: {
-        page: 'organization-configuration-roles',
-      },
-      perms: {
-        only: ['organization-role-u'],
-      },
-    },
-  },
-  {
-    name: 'organization.role-edit',
-    url: '/role/:roleScope/:role',
-    component: OrgSettingsRoleComponent,
-    data: {
-      useAngularMaterial: true,
-      menu: null,
-      docs: {
-        page: 'organization-configuration-roles',
-      },
-      perms: {
-        only: ['organization-role-u'],
-      },
-    },
-  },
-  {
-    name: 'organization.role-members',
-    url: '/role/:roleScope/:role/members',
-    component: OrgSettingsRoleMembersComponent,
-    data: {
-      useAngularMaterial: true,
-      docs: {
-        page: 'organization-configuration-roles',
-      },
-      perms: {
-        only: ['organization-role-u'],
-      },
-    },
-  },
-  {
-    name: 'organization.tags',
-    url: '/tags',
-    component: OrgSettingsTagsComponent,
-    data: {
-      useAngularMaterial: true,
-      menu: null,
-      docs: {
-        page: 'management-configuration-sharding-tags',
-      },
-      perms: {
-        only: ['organization-tag-r'],
-      },
-    },
-  },
-  {
-    name: 'organization.tenants',
-    url: '/tenants',
-    component: OrgSettingsTenantsComponent,
-    data: {
-      useAngularMaterial: true,
-      menu: null,
-      docs: {
-        page: 'management-configuration-tenants',
-      },
-      perms: {
-        only: ['organization-tenant-r'],
-      },
-    },
-  },
-  {
-    name: 'organization.policies',
-    url: '/policies',
-    component: OrgSettingsPlatformPoliciesComponent,
-    data: {
-      useAngularMaterial: true,
-      docs: {
-        page: 'management-configuration-policies',
-      },
-      perms: {
-        only: ['organization-policies-r'],
-      },
-    },
-  },
-  {
-    name: 'organization.notificationTemplates',
-    url: '/notification-templates',
-    component: OrgSettingsNotificationTemplatesComponent,
-    data: {
-      useAngularMaterial: true,
-      menu: null,
-      docs: {
-        page: 'organization-configuration-notification-templates',
-      },
-      perms: {
-        only: ['organization-notification_templates-r'],
-      },
-    },
-  },
-  {
-    name: 'organization.notificationTemplate',
-    url: '/notification-templates/:scope/:hook',
-    component: OrgSettingsNotificationTemplateComponent,
-    data: {
-      useAngularMaterial: true,
-      menu: null,
-      docs: {
-        page: 'organization-configuration-notification-template',
-      },
-      perms: {
-        only: ['organization-notification_templates-r'],
-      },
-    },
-  },
-  {
-    name: 'organization.audit',
-    url: '/audit',
-    component: OrgSettingsAuditComponent,
-    data: {
-      useAngularMaterial: true,
-      requireLicense: {
-        license: { feature: 'apim-audit-trail' },
-        redirect: 'organization.settings',
-      },
-      menu: null,
-      docs: {
-        page: 'management-audit',
-      },
-      perms: {
-        only: ['organization-audit-r'],
-      },
-    },
-  },
-  {
-    name: 'organization.cockpit',
-    url: '/cockpit',
-    component: OrgSettingsCockpitComponent,
-    data: {
-      useAngularMaterial: true,
-      menu: null,
-      docs: {
-        page: 'organization-configuration-cockpit',
-      },
-      perms: {
-        only: ['organization-installation-r'],
-      },
-    },
-  },
-];
+import { AsLicenseGuard } from '../../shared/components/gio-license/as-license.guard';
 
 const organizationRoutes: Routes = [
   {
     path: '',
     component: OrgNavigationComponent,
-    // TODO add canActivate for org permissions
+    canActivate: [AsOrganizationPermissionGuard],
+    canActivateChild: [AsOrganizationPermissionGuard, AsLicenseGuard],
     children: [
       {
         path: 'settings',
         component: OrgSettingsGeneralComponent,
         data: {
-          useAngularMaterial: true,
-          menu: null,
           docs: {
             page: 'organization-configuration-console',
           },
@@ -414,8 +118,6 @@ const organizationRoutes: Routes = [
         path: 'identities/new',
         component: OrgSettingsIdentityProviderComponent,
         data: {
-          useAngularMaterial: true,
-          menu: null,
           docs: {
             page: 'organization-configuration-identityproviders',
           },
@@ -428,8 +130,6 @@ const organizationRoutes: Routes = [
         path: 'identities/:id',
         component: OrgSettingsIdentityProviderComponent,
         data: {
-          useAngularMaterial: true,
-          menu: null,
           docs: {
             page: 'organization-configuration-identityproviders',
           },
@@ -442,8 +142,6 @@ const organizationRoutes: Routes = [
         path: 'identities',
         component: OrgSettingsIdentityProvidersComponent,
         data: {
-          useAngularMaterial: true,
-          menu: null,
           docs: {
             page: 'organization-configuration-identityproviders',
           },
@@ -456,8 +154,6 @@ const organizationRoutes: Routes = [
         path: 'users/new',
         component: OrgSettingsNewUserComponent,
         data: {
-          useAngularMaterial: true,
-          menu: null,
           docs: {
             page: 'organization-configuration-create-user',
           },
@@ -470,8 +166,6 @@ const organizationRoutes: Routes = [
         path: 'users/:userId',
         component: OrgSettingsUserDetailComponent,
         data: {
-          useAngularMaterial: true,
-          menu: null,
           docs: {
             page: 'organization-configuration-user',
           },
@@ -484,8 +178,6 @@ const organizationRoutes: Routes = [
         path: 'users',
         component: OrgSettingsUsersComponent,
         data: {
-          useAngularMaterial: true,
-          menu: null,
           docs: {
             page: 'organization-configuration-users',
           },
@@ -498,7 +190,6 @@ const organizationRoutes: Routes = [
         path: 'role/:roleScope/:role/members',
         component: OrgSettingsRoleMembersComponent,
         data: {
-          useAngularMaterial: true,
           docs: {
             page: 'organization-configuration-roles',
           },
@@ -511,8 +202,6 @@ const organizationRoutes: Routes = [
         path: 'role/:roleScope/:role',
         component: OrgSettingsRoleComponent,
         data: {
-          useAngularMaterial: true,
-          menu: null,
           docs: {
             page: 'organization-configuration-roles',
           },
@@ -525,11 +214,9 @@ const organizationRoutes: Routes = [
         path: 'role/:roleScope',
         component: OrgSettingsRoleComponent,
         data: {
-          useAngularMaterial: true,
-          menu: null,
           requireLicense: {
             license: { feature: 'apim-custom-roles' },
-            redirect: 'organization.roles',
+            redirect: '/_organization/roles',
           },
           docs: {
             page: 'organization-configuration-roles',
@@ -543,8 +230,6 @@ const organizationRoutes: Routes = [
         path: 'roles',
         component: OrgSettingsRolesComponent,
         data: {
-          useAngularMaterial: true,
-          menu: null,
           docs: {
             page: 'organization-configuration-roles',
           },
@@ -557,8 +242,6 @@ const organizationRoutes: Routes = [
         path: 'tags',
         component: OrgSettingsTagsComponent,
         data: {
-          useAngularMaterial: true,
-          menu: null,
           docs: {
             page: 'management-configuration-sharding-tags',
           },
@@ -571,8 +254,6 @@ const organizationRoutes: Routes = [
         path: 'tenants',
         component: OrgSettingsTenantsComponent,
         data: {
-          useAngularMaterial: true,
-          menu: null,
           docs: {
             page: 'management-configuration-tenants',
           },
@@ -585,7 +266,6 @@ const organizationRoutes: Routes = [
         path: 'policies',
         component: OrgSettingsPlatformPoliciesComponent,
         data: {
-          useAngularMaterial: true,
           docs: {
             page: 'management-configuration-policies',
           },
@@ -598,8 +278,6 @@ const organizationRoutes: Routes = [
         path: 'notification-templates/:scope/:hook',
         component: OrgSettingsNotificationTemplateComponent,
         data: {
-          useAngularMaterial: true,
-          menu: null,
           docs: {
             page: 'organization-configuration-notification-template',
           },
@@ -612,8 +290,6 @@ const organizationRoutes: Routes = [
         path: 'notification-templates',
         component: OrgSettingsNotificationTemplatesComponent,
         data: {
-          useAngularMaterial: true,
-          menu: null,
           docs: {
             page: 'organization-configuration-notification-templates',
           },
@@ -626,12 +302,10 @@ const organizationRoutes: Routes = [
         path: 'audit',
         component: OrgSettingsAuditComponent,
         data: {
-          useAngularMaterial: true,
           requireLicense: {
             license: { feature: 'apim-audit-trail' },
-            redirect: 'organization.settings',
+            redirect: '/_organization/settings',
           },
-          menu: null,
           docs: {
             page: 'management-audit',
           },
@@ -644,8 +318,6 @@ const organizationRoutes: Routes = [
         path: 'cockpit',
         component: OrgSettingsCockpitComponent,
         data: {
-          useAngularMaterial: true,
-          menu: null,
           docs: {
             page: 'organization-configuration-cockpit',
           },
@@ -663,11 +335,6 @@ const organizationRoutes: Routes = [
     ],
   },
 ];
-
-export function configureModule(uiRouter: UIRouter) {
-  const transitionService = uiRouter.transitionService;
-  licenseGuard(transitionService);
-}
 
 @NgModule({
   imports: [
@@ -722,11 +389,6 @@ export function configureModule(uiRouter: UIRouter) {
     GioSubmenuModule,
     OrgSettingsPlatformPoliciesStudioModule,
 
-    UIRouterModule.forChild({
-      states,
-      // TODO migrate to angular
-      // config: configureModule
-    }),
     RouterModule.forChild(organizationRoutes),
   ],
   declarations: [

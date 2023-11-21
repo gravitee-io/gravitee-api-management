@@ -14,28 +14,19 @@
  * limitations under the License.
  */
 import { Injectable } from '@angular/core';
-import { ActivatedRouteSnapshot, CanActivate, CanActivateChild, CanDeactivate, Router, RouterStateSnapshot } from '@angular/router';
-import { switchMap } from 'rxjs/operators';
+import { ActivatedRouteSnapshot, CanActivate, CanActivateChild, Router, RouterStateSnapshot } from '@angular/router';
 import { Observable, of } from 'rxjs';
 
-import { ManagementComponent } from './management.component';
-
-import { GioPermissionService } from '../shared/components/gio-permission/gio-permission.service';
+import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
 
 @Injectable({
   providedIn: 'root',
 })
-export class AsEnvironmentPermissionGuard implements CanActivate, CanActivateChild, CanDeactivate<ManagementComponent> {
+export class AsOrganizationPermissionGuard implements CanActivate, CanActivateChild {
   constructor(private readonly gioPermissionService: GioPermissionService, private readonly router: Router) {}
 
-  canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
-    return this.gioPermissionService
-      .loadEnvironmentPermissions(route.params.envId)
-      .pipe(switchMap(() => this.canActivateChild(route, state)));
-  }
-
-  canActivateChild(route: ActivatedRouteSnapshot, _state: RouterStateSnapshot): Observable<boolean> {
-    const permissions = route.data.apiPermissions?.only;
+  canActivate(route: ActivatedRouteSnapshot, _state: RouterStateSnapshot): Observable<boolean> {
+    const permissions = route.data.perms?.only;
     if (!permissions) {
       return of(true);
     }
@@ -48,8 +39,7 @@ export class AsEnvironmentPermissionGuard implements CanActivate, CanActivateChi
     return of(false);
   }
 
-  canDeactivate(_component: ManagementComponent, _currentRoute: ActivatedRouteSnapshot, _currentState: RouterStateSnapshot): boolean {
-    this.gioPermissionService.clearEnvironmentPermissions();
-    return true;
+  canActivateChild(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean> {
+    return this.canActivate(route, state);
   }
 }
