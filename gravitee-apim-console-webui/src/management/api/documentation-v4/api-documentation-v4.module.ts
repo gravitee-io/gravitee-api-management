@@ -41,6 +41,8 @@ import { ApiDocumentationV4ContentEditorComponent } from './components/api-docum
 import { ApiDocumentationV4PageTitleComponent } from './components/api-documentation-v4-page-title/api-documentation-v4-page-title.component';
 import { ApiDocumentationV4BreadcrumbComponent } from './components/api-documentation-v4-breadcrumb/api-documentation-v4-breadcrumb.component';
 
+import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
+
 @NgModule({
   declarations: [
     ApiDocumentationV4Component,
@@ -75,6 +77,7 @@ import { ApiDocumentationV4BreadcrumbComponent } from './components/api-document
     MatSnackBarModule,
     MarkdownModule.forRoot(),
     MatTooltipModule,
+    GioPermissionModule,
   ],
 })
 export class ApiDocumentationV4Module {}

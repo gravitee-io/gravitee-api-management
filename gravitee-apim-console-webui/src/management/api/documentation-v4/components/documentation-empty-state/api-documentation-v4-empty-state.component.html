@@ -18,8 +18,16 @@
 <div class="empty">
   <div class="empty__icon"><mat-icon svgIcon="gio:search"></mat-icon></div>
   <div class="mat-h2">No pages available yet</div>
-  <div class="mat-body-1">Start creating pages to fill up your folder.</div>
+  <div class="mat-body-1" *gioPermission="{ anyOf: ['api-documentation-c'] }">Start creating pages to fill up your folder.</div>
   <div class="">
-    <button class="empty__action" mat-flat-button color="primary" (click)="onAddPage.emit()">Add new page</button>
+    <button
+      class="empty__action"
+      mat-flat-button
+      color="primary"
+      (click)="onAddPage.emit()"
+      *gioPermission="{ anyOf: ['api-documentation-c'] }"
+    >
+      Add new page
+    </button>
   </div>
 </div>

@@ -25,14 +25,26 @@
     <ng-container matColumnDef="name">
       <th mat-header-cell *matHeaderCellDef>Name</th>
       <td mat-cell *matCellDef="let page">
-        <div class="documentation-pages-list__table__name" *ngIf="page.type === 'FOLDER'" (click)="onGoToFolder.emit(page.id)">
-          <mat-icon svgIcon="gio:folder"></mat-icon>
-          <p>{{ page.name }}</p>
-        </div>
-        <div class="documentation-pages-list__table__name" *ngIf="page.type !== 'FOLDER'" (click)="onEditPage.emit(page.id)">
-          <mat-icon svgIcon="gio:page"></mat-icon>
-          <p>{{ page.name }}</p>
-        </div>
+        <ng-container *ngIf="page.type === 'FOLDER'">
+          <div class="documentation-pages-list__table__name" (click)="onGoToFolder.emit(page.id)">
+            <mat-icon svgIcon="gio:folder"></mat-icon>
+            <p>{{ page.name }}</p>
+          </div></ng-container
+        >
+        <ng-container *ngIf="page.type !== 'FOLDER'">
+          <div
+            class="documentation-pages-list__table__name"
+            *gioPermission="{ anyOf: ['api-documentation-u'] }"
+            (click)="onEditPage.emit(page.id)"
+          >
+            <mat-icon svgIcon="gio:page"></mat-icon>
+            <p>{{ page.name }}</p>
+          </div>
+          <div class="documentation-pages-list__table__name no-pointer" *gioPermission="{ noneOf: ['api-documentation-u'] }">
+            <mat-icon svgIcon="gio:page"></mat-icon>
+            <p>{{ page.name }}</p>
+          </div></ng-container
+        >
       </td>
     </ng-container>
     <ng-container matColumnDef="status">
@@ -77,44 +89,75 @@
       <td mat-cell *matCellDef="let page; let i = index">
         <div class="documentation-pages-list__table__actions">
           <ng-container *ngIf="page.type === 'FOLDER'">
-            <button mat-icon-button (click)="onEditFolder.emit(page)" aria-label="Edit folder">
+            <button
+              mat-icon-button
+              (click)="onEditFolder.emit(page)"
+              aria-label="Edit folder"
+              *gioPermission="{ anyOf: ['api-documentation-u'] }"
+            >
               <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
             </button>
             <div *ngIf="pagesIncludeNonFolders" class="empty-icon-button"></div>
           </ng-container>
 
           <ng-container *ngIf="page.type !== 'FOLDER'">
-            <button mat-icon-button (click)="onEditPage.emit(page.id)" aria-label="Edit page">
+            <button
+              mat-icon-button
+              (click)="onEditPage.emit(page.id)"
+              aria-label="Edit page"
+              *gioPermission="{ anyOf: ['api-documentation-u'] }"
+            >
               <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
             </button>
-            <button
-              *ngIf="!page.published"
-              mat-icon-button
-              (click)="onPublishPage.emit(page.id)"
-              matTooltip="Publish page"
-              aria-label="Publish page"
-            >
-              <mat-icon svgIcon="gio:upload-cloud"></mat-icon>
-            </button>
-            <button
-              *ngIf="page.published"
-              (click)="onUnpublishPage.emit(page.id)"
-              [disabled]="page.generalConditions"
-              mat-icon-button
-              [matTooltip]="page.generalConditions ? 'Cannot be unpublished if used by active plans' : 'Unpublish page'"
-              aria-label="Unpublish page"
-            >
-              <mat-icon svgIcon="gio:cloud-unpublished"></mat-icon>
-            </button>
+            <ng-container *ngIf="!page.published">
+              <button
+                *gioPermission="{ anyOf: ['api-documentation-u'] }"
+                mat-icon-button
+                (click)="onPublishPage.emit(page.id)"
+                matTooltip="Publish page"
+                aria-label="Publish page"
+              >
+                <mat-icon svgIcon="gio:upload-cloud"></mat-icon></button
+            ></ng-container>
+            <ng-container *ngIf="page.published">
+              <button
+                *gioPermission="{ anyOf: ['api-documentation-u'] }"
+                (click)="onUnpublishPage.emit(page.id)"
+                [disabled]="page.generalConditions"
+                mat-icon-button
+                [matTooltip]="page.generalConditions ? 'Cannot be unpublished if used by active plans' : 'Unpublish page'"
+                aria-label="Unpublish page"
+              >
+                <mat-icon svgIcon="gio:cloud-unpublished"></mat-icon>
+              </button>
+            </ng-container>
           </ng-container>
 
-          <button mat-icon-button (click)="onMoveUp.emit(page)" [disabled]="i === 0 || page.order === 0" aria-label="Move page up">
+          <button
+            mat-icon-button
+            *gioPermission="{ anyOf: ['api-documentation-u'] }"
+            (click)="onMoveUp.emit(page)"
+            [disabled]="i === 0 || page.order === 0"
+            aria-label="Move page up"
+          >
             <mat-icon svgIcon="gio:arrow-up"></mat-icon>
           </button>
-          <button mat-icon-button (click)="onMoveDown.emit(page)" [disabled]="i === dataSource.data.length - 1" aria-label="Move page down">
+          <button
+            mat-icon-button
+            *gioPermission="{ anyOf: ['api-documentation-u'] }"
+            (click)="onMoveDown.emit(page)"
+            [disabled]="i === dataSource.data.length - 1"
+            aria-label="Move page down"
+          >
             <mat-icon svgIcon="gio:arrow-down"></mat-icon>
           </button>
-          <button mat-icon-button (click)="onDeletePage.emit(page)" [disabled]="page.generalConditions" aria-label="Delete page">
+          <button
+            mat-icon-button
+            *gioPermission="{ anyOf: ['api-documentation-d'] }"
+            (click)="onDeletePage.emit(page)"
+            [disabled]="page.generalConditions"
+            aria-label="Delete page"
+          >
             <mat-icon svgIcon="gio:trash"></mat-icon>
           </button>
         </div>
@@ -124,6 +167,6 @@
     <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
   </table>
   <div class="documentation-pages-list__footer">
-    <button mat-stroked-button (click)="onAddPage.emit()">Add new page</button>
+    <button mat-stroked-button (click)="onAddPage.emit()" *gioPermission="{ anyOf: ['api-documentation-c'] }">Add new page</button>
   </div>
 </div>

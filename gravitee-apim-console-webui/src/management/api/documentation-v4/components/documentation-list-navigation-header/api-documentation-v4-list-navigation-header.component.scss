@@ -10,4 +10,6 @@ $typography: map.get(gio.$mat-theme, typography);
   display: flex;
   justify-content: space-between;
   align-items: center;
+
+  min-height: 54px;
 }
