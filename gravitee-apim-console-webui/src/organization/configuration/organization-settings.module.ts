@@ -567,6 +567,20 @@ const organizationRoutes: Routes = [
           },
         },
       },
+      {
+        path: 'tenants',
+        component: OrgSettingsTenantsComponent,
+        data: {
+          useAngularMaterial: true,
+          menu: null,
+          docs: {
+            page: 'management-configuration-tenants',
+          },
+          perms: {
+            only: ['organization-tenant-r'],
+          },
+        },
+      },
 
       {
         path: '',
