@@ -22,17 +22,16 @@ import { MatInputHarness } from '@angular/material/input/testing';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { ActivatedRoute } from '@angular/router';
 
 import { OrgSettingsNotificationTemplateComponent } from './org-settings-notification-template.component';
 
 import { OrganizationSettingsModule } from '../organization-settings.module';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
-import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { fakeAlertStatus } from '../../../entities/alerts/alertStatus.fixture';
 import { fakeNotificationTemplate } from '../../../entities/notification/notificationTemplate.fixture';
 
 describe('OrgSettingsNotificationTemplateComponent', () => {
-  const mockUiRouterState = { go: jest.fn() };
   let fixture: ComponentFixture<OrgSettingsNotificationTemplateComponent>;
   let component: OrgSettingsNotificationTemplateComponent;
   let httpTestingController: HttpTestingController;
@@ -46,12 +45,15 @@ describe('OrgSettingsNotificationTemplateComponent', () => {
           provide: 'Constants',
           useValue: CONSTANTS_TESTING,
         },
-        { provide: UIRouterState, useValue: mockUiRouterState },
         {
-          provide: UIRouterStateParams,
+          provide: ActivatedRoute,
           useValue: {
-            hook: 'hook',
-            scope: 'scope',
+            snapshot: {
+              params: {
+                hook: 'hook',
+                scope: 'scope',
+              },
+            },
           },
         },
       ],

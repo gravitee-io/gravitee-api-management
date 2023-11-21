@@ -83,9 +83,9 @@ import { OrgSettingsRoleComponent } from './roles/role/org-settings-role.compone
 import { OrgSettingsUserDetailAddGroupDialogComponent } from './user/detail/org-settings-user-detail-add-group-dialog.component';
 import { OrgSettingsUserGenerateTokenComponent } from './user/detail/tokens/org-settings-user-generate-token.component';
 import { OrgSettingsAuditComponent } from './audit/org-settings-audit.component';
-import { OrgSettingsPlatformPoliciesStudioComponent } from './policies/studio/org-settings-platform-policies-studio.component';
 import { OrgSettingsPlatformPoliciesConfigComponent } from './policies/config/org-settings-platform-policies-config.component';
 import { OrgNavigationComponent } from './navigation/org-navigation.component';
+import { OrgSettingsPlatformPoliciesStudioModule } from './policies/studio/org-settings-platform-policies-studio.module';
 
 import { GioTableOfContentsModule } from '../../shared/components/gio-table-of-contents/gio-table-of-contents.module';
 import { GioPermissionModule } from '../../shared/components/gio-permission/gio-permission.module';
@@ -594,6 +594,34 @@ const organizationRoutes: Routes = [
           },
         },
       },
+      {
+        path: 'notification-templates/:scope/:hook',
+        component: OrgSettingsNotificationTemplateComponent,
+        data: {
+          useAngularMaterial: true,
+          menu: null,
+          docs: {
+            page: 'organization-configuration-notification-template',
+          },
+          perms: {
+            only: ['organization-notification_templates-r'],
+          },
+        },
+      },
+      {
+        path: 'notification-templates',
+        component: OrgSettingsNotificationTemplatesComponent,
+        data: {
+          useAngularMaterial: true,
+          menu: null,
+          docs: {
+            page: 'organization-configuration-notification-templates',
+          },
+          perms: {
+            only: ['organization-notification_templates-r'],
+          },
+        },
+      },
 
       {
         path: '',
@@ -660,6 +688,7 @@ export function configureModule(uiRouter: UIRouter) {
     GioLicenseModule,
     GioMenuModule,
     GioSubmenuModule,
+    OrgSettingsPlatformPoliciesStudioModule,
 
     UIRouterModule.forChild({
       states,
@@ -685,7 +714,6 @@ export function configureModule(uiRouter: UIRouter) {
     OrgSettingsNotificationTemplateComponent,
     OrgSettingsCockpitComponent,
     OrgSettingsPlatformPoliciesComponent,
-    OrgSettingsPlatformPoliciesStudioComponent,
     OrgSettingsPlatformPoliciesConfigComponent,
     OrgSettingsTenantsComponent,
     OrgSettingAddTenantComponent,

@@ -16,12 +16,11 @@
 
 import { Component, Inject, OnInit } from '@angular/core';
 import { capitalize, chain } from 'lodash';
-import { StateService } from '@uirouter/angularjs';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { NotificationTemplate } from '../../../entities/notification/notificationTemplate';
 import { NotificationTemplateService } from '../../../services-ngx/notification-template.service';
 import { Constants } from '../../../entities/Constants';
-import { UIRouterState } from '../../../ajs-upgraded-providers';
 
 interface NotificationTemplateVM {
   humanReadableScope: string;
@@ -45,9 +44,10 @@ export class OrgSettingsNotificationTemplatesComponent implements OnInit {
   notificationTemplatesByScope: NotificationTemplatesByScope;
 
   constructor(
+    private readonly router: Router,
+    private readonly activatedRoute: ActivatedRoute,
     private readonly notificationTemplateService: NotificationTemplateService,
     @Inject('Constants') private readonly constants: Constants,
-    @Inject(UIRouterState) private readonly ajsState: StateService,
   ) {}
 
   ngOnInit(): void {
@@ -88,13 +88,13 @@ export class OrgSettingsNotificationTemplatesComponent implements OnInit {
   }
 
   onEditActionClicked(notificationTemplateVM: NotificationTemplateVM) {
-    this.ajsState.go('organization.notificationTemplate', {
-      scope: notificationTemplateVM.scope,
-      // FIXME: Find a way to handle this case in Notification Template screen and not here
-      //   Keep it like this for now for compatibility
-      //   If TEMPLATES TO INCLUDE, there is no hook. Must have at least a name to load the right template
-      hook: notificationTemplateVM.hook && notificationTemplateVM.hook !== '' ? notificationTemplateVM.hook : notificationTemplateVM.name,
-    });
+    const scope = notificationTemplateVM.scope;
+    // FIXME: Find a way to handle this case in Notification Template screen and not here
+    //   Keep it like this for now for compatibility
+    //   If TEMPLATES TO INCLUDE, there is no hook. Must have at least a name to load the right template
+    const hook =
+      notificationTemplateVM.hook && notificationTemplateVM.hook !== '' ? notificationTemplateVM.hook : notificationTemplateVM.name;
+    this.router.navigate(['../notification-templates', scope, hook], { relativeTo: this.activatedRoute });
   }
 
   getHumanReadableScope(scope: string): string {
