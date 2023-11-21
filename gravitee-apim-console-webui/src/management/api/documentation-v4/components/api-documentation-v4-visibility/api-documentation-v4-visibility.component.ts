@@ -32,6 +32,9 @@ export class ApiDocumentationV4VisibilityComponent implements ControlValueAccess
   @Input()
   public showSubtitle: boolean;
 
+  @Input()
+  public documentationType: 'page' | 'folder' = 'page';
+
   _value: string;
   protected _onChange: (_selection: 'PUBLIC' | 'PRIVATE') => void = () => ({});
 

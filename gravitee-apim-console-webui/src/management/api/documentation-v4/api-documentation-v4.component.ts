@@ -72,7 +72,7 @@ export class ApiDocumentationV4Component implements OnInit, OnDestroy {
   addFolder() {
     this.matDialog
       .open<ApiDocumentationV4EditFolderDialog, ApiDocumentationV4EditFolderDialogData>(ApiDocumentationV4EditFolderDialog, {
-        width: GIO_DIALOG_WIDTH.MEDIUM,
+        width: GIO_DIALOG_WIDTH.LARGE,
         data: {
           mode: 'create',
           existingNames: this.pages.filter((page) => page.type === 'FOLDER').map((page) => page.name.toLowerCase().trim()),
@@ -118,7 +118,7 @@ export class ApiDocumentationV4Component implements OnInit, OnDestroy {
   editFolder(folder: Page) {
     this.matDialog
       .open<ApiDocumentationV4EditFolderDialog, ApiDocumentationV4EditFolderDialogData>(ApiDocumentationV4EditFolderDialog, {
-        width: GIO_DIALOG_WIDTH.MEDIUM,
+        width: GIO_DIALOG_WIDTH.LARGE,
         data: {
           mode: 'edit',
           name: folder.name,
