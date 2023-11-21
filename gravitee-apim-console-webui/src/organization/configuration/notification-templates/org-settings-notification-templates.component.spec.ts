@@ -23,14 +23,12 @@ import { OrganizationSettingsModule } from '../organization-settings.module';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { fakeNotificationTemplate } from '../../../entities/notification/notificationTemplate.fixture';
 import { NotificationTemplate } from '../../../entities/notification/notificationTemplate';
-import { UIRouterState } from '../../../ajs-upgraded-providers';
 
 describe('OrgSettingsNotificationTemplatesComponent', () => {
   let fixture: ComponentFixture<OrgSettingsNotificationTemplatesComponent>;
   let component: OrgSettingsNotificationTemplatesComponent;
   let httpTestingController: HttpTestingController;
   const fakeConstants = CONSTANTS_TESTING;
-  const mockUiRouterState = { go: jest.fn() };
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -40,7 +38,6 @@ describe('OrgSettingsNotificationTemplatesComponent', () => {
           provide: 'Constants',
           useValue: fakeConstants,
         },
-        { provide: UIRouterState, useValue: mockUiRouterState },
       ],
     });
   });

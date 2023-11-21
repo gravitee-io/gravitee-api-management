@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { StateParams } from '@uirouter/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { combineLatest, EMPTY, Subject } from 'rxjs';
 import { catchError, takeUntil, tap } from 'rxjs/operators';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 
 import { NotificationTemplateService } from '../../../services-ngx/notification-template.service';
 import { AlertService } from '../../../services-ngx/alert.service';
-import { UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { Scope } from '../../../entities/alert';
 import { NotificationTemplate } from '../../../entities/notification/notificationTemplate';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
@@ -50,13 +49,13 @@ export class OrgSettingsNotificationTemplateComponent implements OnInit, OnDestr
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   constructor(
+    private readonly activatedRoute: ActivatedRoute,
     private readonly notificationTemplateService: NotificationTemplateService,
     private readonly alertService: AlertService,
-    @Inject(UIRouterStateParams) readonly routerStateParams: StateParams,
     private readonly snackBarService: SnackBarService,
   ) {
-    this.scopeParam = this.routerStateParams.scope;
-    this.hookParam = this.scopeParam.toUpperCase() === 'TEMPLATES_TO_INCLUDE' ? '' : this.routerStateParams.hook;
+    this.scopeParam = this.activatedRoute.snapshot.params.scope;
+    this.hookParam = this.scopeParam.toUpperCase() === 'TEMPLATES_TO_INCLUDE' ? '' : this.activatedRoute.snapshot.params.hook;
   }
 
   ngOnInit(): void {
