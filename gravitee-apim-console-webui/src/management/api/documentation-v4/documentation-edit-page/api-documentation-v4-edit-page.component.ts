@@ -17,8 +17,10 @@ import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { StateParams } from '@uirouter/core';
 import { StateService } from '@uirouter/angularjs';
-import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { EMPTY, Observable, of, Subject } from 'rxjs';
+import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import { MatDialog } from '@angular/material/dialog';
 
 import { CreateDocumentationMarkdown } from '../../../../entities/management-api-v2/documentation/createDocumentation';
 import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
@@ -52,6 +54,7 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
     @Inject(UIRouterStateParams) private readonly ajsStateParams: StateParams,
     private readonly apiDocumentationService: ApiDocumentationV2Service,
     private readonly snackBarService: SnackBarService,
+    private readonly matDialog: MatDialog,
   ) {}
 
   ngOnInit(): void {
@@ -163,6 +166,32 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
 
   goBackToPageList() {
     this.ajsState.go('management.apis.documentationV4', { apiId: this.ajsStateParams.apiId, parentId: this.getParentId() });
+  }
+
+  deletePage() {
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
+        data: {
+          title: `Delete your page`,
+          content: `Are you sure you want to delete this page? This action is irreversible.`,
+          confirmButton: 'Delete',
+        },
+      })
+      .afterClosed()
+      .pipe(
+        filter((confirmed) => !!confirmed),
+        switchMap((_) => this.apiDocumentationService.deleteDocumentationPage(this.ajsStateParams.apiId, this.page?.id)),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe({
+        next: (_) => {
+          this.snackBarService.success('Page deleted successfully');
+          this.goBackToPageList();
+        },
+        error: (error) => {
+          this.snackBarService.error(error?.error?.message ?? 'Error while deleting page');
+        },
+      });
   }
 
   private createPage(): Observable<Page> {

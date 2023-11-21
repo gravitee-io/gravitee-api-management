@@ -21,7 +21,7 @@ import { MatStepperHarness } from '@angular/material/stepper/testing';
 import { UIRouterModule } from '@uirouter/angular';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { FormsModule } from '@angular/forms';
-import { GioMonacoEditorHarness } from '@gravitee/ui-particles-angular';
+import { GioConfirmDialogHarness, GioMonacoEditorHarness } from '@gravitee/ui-particles-angular';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
@@ -37,7 +37,7 @@ import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/test
 import { Breadcrumb, Page } from '../../../../entities/management-api-v2/documentation/page';
 import { ApiDocumentationV4ContentEditorHarness } from '../components/api-documentation-v4-content-editor/api-documentation-v4-content-editor.harness';
 import { ApiDocumentationV4BreadcrumbHarness } from '../components/api-documentation-v4-breadcrumb/api-documentation-v4-breadcrumb.harness';
-import { fakeMarkdown } from '../../../../entities/management-api-v2/documentation/page.fixture';
+import { fakeFolder, fakeMarkdown } from '../../../../entities/management-api-v2/documentation/page.fixture';
 
 interface InitInput {
   pages?: Page[];
@@ -129,6 +129,9 @@ describe('ApiDocumentationV4EditPageComponent', () => {
 
           const nextBtn = await harness.getNextButton();
           expect(await nextBtn.isDisabled()).toEqual(true);
+
+          // In creation mode, delete button should not be present
+          expect(await harness.getDeleteButton()).toBeUndefined();
 
           await harness.setName('New page');
           await harness.checkVisibility('PRIVATE');
@@ -503,6 +506,106 @@ describe('ApiDocumentationV4EditPageComponent', () => {
         expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.documentationV4', {
           apiId: API_ID,
           parentId: PAGE.parentId,
+        });
+      });
+    });
+  });
+
+  describe('Delete page', () => {
+    describe('In the root folder', () => {
+      describe('with published page', () => {
+        const PAGE = fakeMarkdown({ id: 'page-id', name: 'page-name', content: 'my content', visibility: 'PUBLIC', published: true });
+        const OTHER_PAGE = fakeMarkdown({
+          id: 'other-page',
+          name: 'other-page-name',
+          content: 'my other content',
+          visibility: 'PUBLIC',
+          published: true,
+        });
+
+        it('should not delete page used as general condition', async () => {
+          const GENERAL_CONDITION_PAGE = fakeMarkdown({
+            id: 'general-condition-page',
+            name: 'general-condition-page-name',
+            content: 'my other content',
+            visibility: 'PUBLIC',
+            published: true,
+            generalConditions: true,
+          });
+
+          await init(undefined, GENERAL_CONDITION_PAGE.id);
+          initPageServiceRequests(
+            { pages: [GENERAL_CONDITION_PAGE, PAGE, OTHER_PAGE], breadcrumb: [], parentId: undefined, mode: 'edit' },
+            GENERAL_CONDITION_PAGE,
+          );
+
+          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
+          expect(await harness.getName()).toEqual(GENERAL_CONDITION_PAGE.name);
+          expect(await harness.getVisibility()).toEqual(GENERAL_CONDITION_PAGE.visibility);
+          const deleteButton = await harness.getDeleteButton();
+          expect(await deleteButton.isDisabled()).toBeTruthy();
+        });
+
+        it('should delete page and navigate to root list', async () => {
+          await init(undefined, PAGE.id);
+          initPageServiceRequests({ pages: [PAGE, OTHER_PAGE], breadcrumb: [], parentId: undefined, mode: 'edit' }, PAGE);
+          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
+          expect(await harness.getName()).toEqual(PAGE.name);
+          expect(await harness.getVisibility()).toEqual(PAGE.visibility);
+          const deleteButton = await harness.getDeleteButton();
+          await deleteButton.click();
+
+          const dialogHarness = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
+          await dialogHarness.confirm();
+
+          httpTestingController
+            .expectOne({
+              method: 'DELETE',
+              url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages/${PAGE.id}`,
+            })
+            .flush(null);
+
+          expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.documentationV4', { apiId: API_ID, parentId: 'ROOT' });
+        });
+      });
+    });
+    describe('Under another folder', () => {
+      describe('with published page', () => {
+        const FOLDER = fakeFolder({
+          id: 'folder',
+          name: 'folder-name',
+          visibility: 'PUBLIC',
+          published: true,
+        });
+        const SUB_FOLDER_PAGE = fakeMarkdown({
+          id: 'folder-page',
+          name: 'folder-page-name',
+          content: 'my other content',
+          visibility: 'PUBLIC',
+          published: true,
+          parentId: FOLDER.id,
+        });
+
+        it('should delete page and navigate to parent folder', async () => {
+          await init(undefined, SUB_FOLDER_PAGE.id);
+          initPageServiceRequests({ pages: [FOLDER, SUB_FOLDER_PAGE], parentId: FOLDER.id, mode: 'edit' }, SUB_FOLDER_PAGE);
+          const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
+          expect(await harness.getName()).toEqual(SUB_FOLDER_PAGE.name);
+          expect(await harness.getVisibility()).toEqual(SUB_FOLDER_PAGE.visibility);
+          const deleteButton = await harness.getDeleteButton();
+          await deleteButton.click();
+
+          const dialogHarness = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
+          await dialogHarness.confirm();
+
+          httpTestingController
+            .expectOne({
+              method: 'DELETE',
+              url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages/${SUB_FOLDER_PAGE.id}`,
+            })
+            .flush(null);
+
+          expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.documentationV4', { apiId: API_ID, parentId: FOLDER.id });
         });
       });
     });

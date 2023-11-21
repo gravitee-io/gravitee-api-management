@@ -114,7 +114,7 @@
           <button mat-icon-button (click)="onMoveDown.emit(page)" [disabled]="i === dataSource.data.length - 1" aria-label="Move page down">
             <mat-icon svgIcon="gio:arrow-down"></mat-icon>
           </button>
-          <button mat-icon-button (click)="onDeletePage.emit(page.id)" disabled="true">
+          <button mat-icon-button (click)="onDeletePage.emit(page)" [disabled]="page.generalConditions" aria-label="Delete page">
             <mat-icon svgIcon="gio:trash"></mat-icon>
           </button>
         </div>

@@ -26,6 +26,7 @@
       </div>
     </div>
     <div class="header__actions">
+      <button mat-stroked-button *ngIf="mode === 'edit'" (click)="deletePage()" [disabled]="!!page?.generalConditions">Delete page</button>
       <button mat-stroked-button (click)="goBackToPageList()">Exit without saving</button>
     </div>
   </div>

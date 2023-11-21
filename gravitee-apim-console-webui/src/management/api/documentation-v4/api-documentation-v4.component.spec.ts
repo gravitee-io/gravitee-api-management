@@ -374,6 +374,29 @@ describe('ApiDocumentationV4', () => {
       req.flush(secondPage);
       expectGetPages([firstPage, secondPage], []);
     });
+
+    it.each([
+      ['page', fakeMarkdown({ id: 'id', name: 'my first page', visibility: 'PUBLIC', published: false })],
+      ['folder', fakeFolder({ id: 'id', name: 'my first folder', visibility: 'PUBLIC', published: false })],
+    ])('should delete %s', async (name: string, page: Page) => {
+      await init([page], []);
+
+      const pageListHarness = await harnessLoader.getHarness(ApiDocumentationV4PagesListHarness);
+      const publishPageBtn = await pageListHarness.getDeletePageButtonByRowIndex(0);
+      await publishPageBtn.click();
+
+      const dialogHarness = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
+      await dialogHarness.confirm();
+
+      httpTestingController
+        .expectOne({
+          method: 'DELETE',
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages/${page.id}`,
+        })
+        .flush(null);
+
+      expectGetPages([], []);
+    });
   });
 
   const expectGetPages = (pages: Page[], breadcrumb: Breadcrumb[], parentId = 'ROOT') => {
