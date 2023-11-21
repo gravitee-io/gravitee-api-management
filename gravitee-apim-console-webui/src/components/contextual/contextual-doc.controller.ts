@@ -23,7 +23,12 @@ class ContextualDocController implements IOnInit, IOnDestroy {
 
   private openContextualDocumentationListener: () => void;
 
-  constructor(private $transitions, private $http, public $state, private $window, private $rootScope) {
+  constructor(private $transitions, private $http, public $state, private $window, private $rootScope, private $Constants) {
+    if ($Constants.isOEM) {
+      // For OEM, documentation is hidden
+      this.isOpen = false;
+      return;
+    }
     if (window.pendo && window.pendo.isReady()) {
       // Do nothing, Pendo provide documentation
       this.isOpen = false;
@@ -84,6 +89,6 @@ class ContextualDocController implements IOnInit, IOnDestroy {
     this.$rootScope.helpDisplayed = this.isOpen;
   }
 }
-ContextualDocController.$inject = ['$transitions', '$http', '$state', '$window', '$rootScope'];
+ContextualDocController.$inject = ['$transitions', '$http', '$state', '$window', '$rootScope', 'Constants'];
 
 export default ContextualDocController;
