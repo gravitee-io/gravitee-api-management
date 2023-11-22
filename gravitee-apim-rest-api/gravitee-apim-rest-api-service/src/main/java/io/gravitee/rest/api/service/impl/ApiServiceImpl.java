@@ -354,7 +354,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             groupEntityStream = groupEntityStream.filter(group -> StringUtils.isEmpty(group.getApiPrimaryOwner()));
         }
 
-        return groupEntityStream.map(GroupEntity::getId).collect(Collectors.toSet());
+        return groupEntityStream.map(GroupEntity::getId).collect(Collectors.toCollection(HashSet::new)); // Using a mutable Set, so we can add groups if necessary
     }
 
     @Override
