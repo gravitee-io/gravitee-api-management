@@ -60,7 +60,7 @@ class ApiUnpublishDocumentationPageUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        var apiDocumentationDomainService = new ApiDocumentationDomainService(pageQueryService, planQueryService, new HtmlSanitizerImpl());
+        var apiDocumentationDomainService = new ApiDocumentationDomainService(pageQueryService, planQueryService);
         var updateDocumentationDomainService = new UpdateApiDocumentationDomainService(
             pageCrudService,
             pageRevisionCrudService,

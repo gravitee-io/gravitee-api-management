@@ -48,7 +48,7 @@ class ApiGetDocumentationPagesUseCaseTest {
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     private final PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory();
     private final ApiGetDocumentationPagesUseCase useCase = new ApiGetDocumentationPagesUseCase(
-        new ApiDocumentationDomainService(pageQueryService, planQueryService, new HtmlSanitizerImpl()),
+        new ApiDocumentationDomainService(pageQueryService, planQueryService),
         apiCrudService,
         pageCrudService
     );

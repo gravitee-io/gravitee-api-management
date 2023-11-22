@@ -31,11 +31,7 @@ class ApiDocumentationDomainServiceTest {
 
     private final PageQueryServiceInMemory pageQueryService = new PageQueryServiceInMemory();
     private final PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory();
-    private final ApiDocumentationDomainService service = new ApiDocumentationDomainService(
-        pageQueryService,
-        planQueryService,
-        new HtmlSanitizerImpl()
-    );
+    private final ApiDocumentationDomainService service = new ApiDocumentationDomainService(pageQueryService, planQueryService);
 
     @AfterEach
     void tearDown() {

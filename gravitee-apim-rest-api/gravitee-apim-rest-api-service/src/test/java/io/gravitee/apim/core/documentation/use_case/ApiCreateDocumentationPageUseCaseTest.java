@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import fixtures.core.model.AuditInfoFixtures;
 import inmemory.*;
-import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
@@ -55,7 +54,9 @@ class ApiCreateDocumentationPageUseCaseTest {
     private final PageCrudServiceInMemory pageCrudService = new PageCrudServiceInMemory();
     private final PageRevisionCrudServiceInMemory pageRevisionCrudService = new PageRevisionCrudServiceInMemory();
     private final PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory();
-    private final DocumentationValidationDomainService documentationValidationDomainService = new DocumentationValidationDomainService();
+    private final DocumentationValidationDomainService documentationValidationDomainService = new DocumentationValidationDomainService(
+        new HtmlSanitizerImpl()
+    );
     AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
     CreateApiDocumentationDomainService createApiDocumentationDomainService;
@@ -74,7 +75,7 @@ class ApiCreateDocumentationPageUseCaseTest {
         apiCreateDocumentationPageUsecase =
             new ApiCreateDocumentationPageUseCase(
                 createApiDocumentationDomainService,
-                new ApiDocumentationDomainService(pageQueryService, planQueryService, new HtmlSanitizerImpl()),
+                new ApiDocumentationDomainService(pageQueryService, planQueryService),
                 new HomepageDomainService(pageQueryService, pageCrudService),
                 pageCrudService,
                 pageQueryService,

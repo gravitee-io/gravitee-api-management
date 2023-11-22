@@ -17,30 +17,60 @@ package io.gravitee.apim.core.documentation.domain_service;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 import io.gravitee.apim.core.documentation.exception.InvalidPageNameException;
+import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
+import io.gravitee.rest.api.service.exceptions.PageContentUnsafeException;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 public class DocumentationValidationDomainServiceTest {
 
     private DocumentationValidationDomainService cut;
 
     @BeforeEach
     void setUp() {
-        cut = new DocumentationValidationDomainService();
+        cut = new DocumentationValidationDomainService(new HtmlSanitizerImpl());
     }
 
-    @Test
-    void should_throw_an_exception() {
-        assertThatThrownBy(() -> cut.sanitizeDocumentationName("")).isInstanceOf(InvalidPageNameException.class);
-        assertThatThrownBy(() -> cut.sanitizeDocumentationName("  ")).isInstanceOf(InvalidPageNameException.class);
-        assertThatThrownBy(() -> cut.sanitizeDocumentationName(null)).isInstanceOf(InvalidPageNameException.class);
+    @Nested
+    class SanitizeDocumentationName {
+
+        @Test
+        void should_throw_an_exception() {
+            assertThatThrownBy(() -> cut.sanitizeDocumentationName("")).isInstanceOf(InvalidPageNameException.class);
+            assertThatThrownBy(() -> cut.sanitizeDocumentationName("  ")).isInstanceOf(InvalidPageNameException.class);
+            assertThatThrownBy(() -> cut.sanitizeDocumentationName(null)).isInstanceOf(InvalidPageNameException.class);
+        }
+
+        @Test
+        void should_sanitize_name() {
+            assertThat(cut.sanitizeDocumentationName("foo")).isEqualTo("foo");
+            assertThat(cut.sanitizeDocumentationName("bar     ")).isEqualTo("bar");
+        }
     }
 
-    @Test
-    void should_sanitize_name() {
-        assertThat(cut.sanitizeDocumentationName("foo")).isEqualTo("foo");
-        assertThat(cut.sanitizeDocumentationName("bar     ")).isEqualTo("bar");
+    @Nested
+    class ValidateContentIsSafe {
+
+        @Test
+        void should_throw_an_exception() {
+            assertThatThrownBy(() ->
+                    cut.validateContentIsSafe(
+                        "<script src=\"/external.jpg\" /><div onClick=\\\"alert('test');\\\" style=\\\"margin: auto\\\">onclick alert<div>\""
+                    )
+                )
+                .isInstanceOf(PageContentUnsafeException.class);
+        }
+
+        @Test
+        void should_not_throw_an_exception() {
+            assertDoesNotThrow(() -> cut.validateContentIsSafe("content"));
+        }
     }
 }
