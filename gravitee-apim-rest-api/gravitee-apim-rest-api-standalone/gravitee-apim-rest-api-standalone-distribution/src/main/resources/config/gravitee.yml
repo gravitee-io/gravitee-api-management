@@ -8,7 +8,7 @@
 # - You can reference other property by using ${property.name} syntax
 # - gravitee.home property is automatically set-up by launcher and refers to the installation path. Do not override it !
 #
-# Please have a look to http://documentation.gravitee.io/ for more options and fine-grained granularity
+# Please have a look to https://documentation.gravitee.io/ for more options and fine-grained granularity
 ############################################################################################################
 
 # Console settings
