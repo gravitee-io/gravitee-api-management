@@ -66,6 +66,7 @@ import ApiCreationStep3Component from './api/creation-v2/steps/api-creation-step
 import ApiCreationStep4Component from './api/creation-v2/steps/api-creation-step4.component';
 import ApiCreationStep5Component from './api/creation-v2/steps/api-creation-step5.component';
 // API Plan
+import ApiPlanComponent from '../management/application/components/api-plan/api-plan.component';
 // API PrimaryOwner Mode
 import ApiPrimaryOwnerModeService from '../services/apiPrimaryOwnerMode.service';
 // Applications
@@ -760,6 +761,7 @@ graviteeManagementModule.controller('ApplicationSubscriptionsListController', Ap
 graviteeManagementModule.controller('ApplicationAnalyticsController', ApplicationAnalyticsController);
 graviteeManagementModule.controller('ApplicationLogsController', ApplicationLogsController);
 graviteeManagementModule.controller('DialogTransferApplicationController', DialogTransferApplicationController);
+graviteeManagementModule.component('apiPlan', ApiPlanComponent);
 
 graviteeManagementModule.component('user', UserComponent);
 

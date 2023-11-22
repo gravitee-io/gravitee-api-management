@@ -1,0 +1,77 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<md-card class="gravitee-card gravitee-plan-box plans" style="min-width: 250px; max-width: 350px; margin: 0 auto">
+  <md-card-header>
+    <md-toolbar>
+      <div class="md-toolbar-tools">
+        <div layout="column">
+          <h4>{{$ctrl.plan.name}}</h4>
+          <span style="font-size: 12px">Authentication: {{$ctrl.plan.security}}</span>
+          <span ng-if="$ctrl.plan.general_conditions" style="font-size: 12px; margin-bottom: 1rem">With general conditions</span>
+        </div>
+        <span flex></span>
+        <span ng-if="$ctrl.plan.alreadySubscribed && $ctrl.unsubscribable && !$ctrl.plan.pending">
+          <md-tooltip md-direction="top">Unsubscribe</md-tooltip>
+          <ng-md-icon style="fill: grey" icon="cancel" ng-click="$ctrl.unsubscribe();" disabled></ng-md-icon>
+        </span>
+      </div>
+    </md-toolbar>
+  </md-card-header>
+  <md-divider></md-divider>
+  <md-card-content layout="column">
+    <h4 class="gravitee-plan-content">{{$ctrl.plan.description}}</h4>
+    <md-divider></md-divider>
+    <div ng-if="$ctrl.plan.characteristics.length > 0">
+      <h5 class="gravitee-plan-content">Characteristics</h5>
+      <div class="gravitee-plan-content-div">
+        <gv-state ng-repeat="characteristic in $ctrl.plan.characteristics">{{characteristic}}</gv-state>
+      </div>
+      <md-divider></md-divider>
+    </div>
+    <div ng-if="$ctrl.plan.excluded_groups_names.length > 0">
+      <h5 class="gravitee-plan-content">Excluded groups</h5>
+      <div class="gravitee-plan-content-div">
+        <gv-state ng-repeat="excludedGroupName in $ctrl.plan.excluded_groups_names">{{excludedGroupName}}</gv-state>
+      </div>
+      <md-divider></md-divider>
+    </div>
+  </md-card-content>
+  <md-card-footer ng-if="$ctrl.authenticated">
+    <md-divider></md-divider>
+    <div layout="column">
+      <div layout="row" layout-align="end">
+        <md-button
+          ng-if="$ctrl.plan.security !== 'KEY_LESS' || $ctrl.plan.security === undefined"
+          class="md-primary md-raised"
+          aria-label="Execute"
+          ng-click="$ctrl.subscribe()"
+          ng-disabled="!$ctrl.subscribable || $ctrl.plan.alreadySubscribed || $ctrl.plan.general_conditions"
+        >
+          {{$ctrl.plan.alreadySubscribed ? 'Subscribed' : ($ctrl.plan.validation === 'AUTO'?'Subscribe': 'Request for subscription')}}
+          {{$ctrl.plan.pending ? '(pending)' : ''}}
+        </md-button>
+        <md-button ng-if="$ctrl.plan.security === 'KEY_LESS'" class="md-primary md-raised" aria-label="Execute" ng-disabled="true">
+          No subscription required
+        </md-button>
+      </div>
+      <div ng-if="$ctrl.plan.general_conditions && $ctrl.subscribable" class="general_conditions_info">
+        Plan with general conditions can only be subscribed through the portal
+      </div>
+    </div>
+  </md-card-footer>
+</md-card>
