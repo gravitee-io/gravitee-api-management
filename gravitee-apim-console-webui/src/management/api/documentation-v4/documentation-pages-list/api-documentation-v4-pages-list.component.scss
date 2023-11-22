@@ -26,6 +26,13 @@
       }
     }
 
+    &__status {
+      flex: 1 1 100%;
+      span:first-child {
+        margin-left: 0;
+      }
+    }
+
     &__actions {
       display: flex;
       gap: 8px;
@@ -37,7 +44,7 @@
 }
 
 .empty-icon-button {
-  width: 40px;
+  min-width: 40px;
 }
 
 .no-pointer {
