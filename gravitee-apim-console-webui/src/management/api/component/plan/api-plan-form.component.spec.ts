@@ -229,7 +229,9 @@ describe('ApiPlanFormComponent', () => {
           .httpRequest(httpTestingController)
           .expectTagsListRequest([fakeTag({ id: TAG_1_ID, name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
         planForm.httpRequest(httpTestingController).expectGroupListRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
-        planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API.id, [{ id: 'doc-1', name: 'Doc 1' }]);
+        planForm
+          .httpRequest(httpTestingController)
+          .expectDocumentationSearchRequest(API.id, [{ id: 'doc-1', name: 'Doc 1', published: true }]);
         planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
         fixture.detectChanges();
 
@@ -376,7 +378,9 @@ describe('ApiPlanFormComponent', () => {
           .httpRequest(httpTestingController)
           .expectTagsListRequest([fakeTag({ id: TAG_1_ID, name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
         planForm.httpRequest(httpTestingController).expectGroupListRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
-        planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API.id, [{ id: 'doc-1', name: 'Doc 1' }]);
+        planForm
+          .httpRequest(httpTestingController)
+          .expectDocumentationSearchRequest(API.id, [{ id: 'doc-1', name: 'Doc 1', published: true }]);
         planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
         fixture.detectChanges();
 
@@ -525,7 +529,9 @@ describe('ApiPlanFormComponent', () => {
           .httpRequest(httpTestingController)
           .expectTagsListRequest([fakeTag({ id: TAG_1_ID, name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
         planForm.httpRequest(httpTestingController).expectGroupListRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
-        planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API.id, [{ id: 'doc-1', name: 'Doc 1' }]);
+        planForm
+          .httpRequest(httpTestingController)
+          .expectDocumentationSearchRequest(API.id, [{ id: 'doc-1', name: 'Doc 1', published: true }]);
         planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
         fixture.detectChanges();
 
@@ -909,7 +915,9 @@ describe('ApiPlanFormComponent', () => {
         .httpRequest(httpTestingController)
         .expectTagsListRequest([fakeTag({ id: TAG_1_ID, name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
       planForm.httpRequest(httpTestingController).expectGroupListRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
-      planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API.id, [{ id: 'doc-1', name: 'Doc 1' }]);
+      planForm
+        .httpRequest(httpTestingController)
+        .expectDocumentationSearchRequest(API.id, [{ id: 'doc-1', name: 'Doc 1', published: true }]);
       planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
       fixture.detectChanges();
 
@@ -1053,7 +1061,9 @@ describe('ApiPlanFormComponent', () => {
           .httpRequest(httpTestingController)
           .expectTagsListRequest([fakeTag({ id: TAG_1_ID, name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
         planForm.httpRequest(httpTestingController).expectGroupListRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
-        planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API.id, [{ id: 'doc-1', name: 'Doc 1' }]);
+        planForm
+          .httpRequest(httpTestingController)
+          .expectDocumentationSearchRequest(API.id, [{ id: 'doc-1', name: 'Doc 1', published: true }]);
         planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
         fixture.detectChanges();
 
@@ -1109,6 +1119,27 @@ describe('ApiPlanFormComponent', () => {
           generalConditions: 'doc-1',
           selectionRule: undefined,
         } as PlanV4);
+      });
+
+      it('should only show published pages for general conditions', async () => {
+        const planForm = await loader.getHarness(ApiPlanFormHarness);
+
+        planForm
+          .httpRequest(httpTestingController)
+          .expectTagsListRequest([fakeTag({ id: TAG_1_ID, name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
+        planForm.httpRequest(httpTestingController).expectGroupListRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+        planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API.id, [
+          { id: 'doc-1', name: 'Doc 1', published: true },
+          { id: 'doc-2', name: 'Doc 2', published: false },
+        ]);
+        planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
+
+        const generalConditionsInput = await planForm.getGeneralConditionsInput();
+        await generalConditionsInput.open();
+        const options = await generalConditionsInput.getOptions();
+        expect(options.length).toEqual(2);
+        expect(await options[0].getText()).toEqual(''); // First option is blank so user can choose not to have general conditions
+        expect(await options[1].getText()).toEqual('Doc 1');
       });
     });
     describe('API Key plan', () => {
