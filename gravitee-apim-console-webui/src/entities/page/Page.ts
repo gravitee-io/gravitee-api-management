@@ -19,6 +19,7 @@ export class Page {
   name?: string;
   parentId?: string;
   type?: PageType;
+  published?: boolean;
 }
 
 export enum PageType {

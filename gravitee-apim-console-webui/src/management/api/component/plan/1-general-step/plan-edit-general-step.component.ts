@@ -60,6 +60,7 @@ export class PlanEditGeneralStepComponent implements OnInit, OnDestroy {
         api: api.id,
       }),
     ),
+    map((pages) => pages.filter((page) => page.published)),
   );
   shardingTags$ = this.api$.pipe(
     // Only load tags if api is defined
