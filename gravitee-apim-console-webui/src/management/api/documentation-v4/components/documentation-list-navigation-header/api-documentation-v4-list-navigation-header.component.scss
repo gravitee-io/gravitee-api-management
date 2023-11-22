@@ -12,4 +12,10 @@ $typography: map.get(gio.$mat-theme, typography);
   align-items: center;
 
   min-height: 54px;
+
+  &__action {
+    &__button {
+      margin-right: 4px;
+    }
+  }
 }

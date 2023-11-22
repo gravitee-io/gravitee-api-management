@@ -177,9 +177,4 @@
     <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
     <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
   </table>
-  <div class="documentation-pages-list__footer">
-    <button mat-flat-button color="primary" (click)="onAddPage.emit()" *gioPermission="{ anyOf: ['api-documentation-c'] }">
-      Add new page
-    </button>
-  </div>
 </div>

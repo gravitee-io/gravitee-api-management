@@ -29,5 +29,7 @@ export class ApiDocumentationV4ListNavigationHeaderComponent {
   @Output()
   onAddFolder = new EventEmitter<void>();
   @Output()
+  onAddPage = new EventEmitter<void>();
+  @Output()
   onNavigateTo = new EventEmitter<string>();
 }

@@ -23,7 +23,6 @@ export class ApiDocumentationV4PagesListHarness extends ComponentHarness {
   static hostSelector = 'api-documentation-v4-pages-list';
 
   protected tableLocator = this.locatorFor(MatTableHarness);
-  protected addNewPageButtonLocator = this.locatorFor(MatButtonHarness.with({ text: 'Add new page' }));
   protected allEditFolderButtons = this.locatorForAll(MatButtonHarness.with({ selector: '[aria-label="Edit folder"]' }));
   protected allPublishPageButtons = this.locatorForAll(MatButtonHarness.with({ selector: '[aria-label="Publish page"]' }));
   protected allUnpublishPageButtons = this.locatorForAll(MatButtonHarness.with({ selector: '[aria-label="Unpublish page"]' }));
@@ -71,10 +70,6 @@ export class ApiDocumentationV4PagesListHarness extends ComponentHarness {
 
   public getDeletePageButtonByRowIndex(idx: number): Promise<MatButtonHarness> {
     return this.allDeletePageButtons().then((buttonList) => buttonList[idx]);
-  }
-
-  public async clickAddNewPage() {
-    return this.addNewPageButtonLocator().then((btn) => btn.click());
   }
 
   private async getColumnTextByIndex(columnName: string, idx: number): Promise<string> {
