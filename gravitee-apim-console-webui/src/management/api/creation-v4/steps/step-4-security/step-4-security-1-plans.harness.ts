@@ -76,7 +76,7 @@ export class Step4Security1PlansHarness extends ComponentHarness {
 
     const apiPlanFormHarness = await this.locatorFor(ApiPlanFormHarness)();
 
-    apiPlanFormHarness.httpRequest(httpTestingController).expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+    apiPlanFormHarness.httpRequest(httpTestingController).expectGroupListRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
     await apiPlanFormHarness.getNameInput().then((i) => i.setValue(planName));
 
     apiPlanFormHarness.httpRequest(httpTestingController).expectPolicySchemaV2GetRequest('api-key', {});
@@ -98,7 +98,7 @@ export class Step4Security1PlansHarness extends ComponentHarness {
 
     const apiPlanFormHarness = await this.locatorFor(ApiPlanFormHarness)();
 
-    apiPlanFormHarness.httpRequest(httpTestingController).expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+    apiPlanFormHarness.httpRequest(httpTestingController).expectGroupListRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
     // Change plan name
     await apiPlanFormHarness.getNameInput().then((i) => i.setValue(newPlanName));
 

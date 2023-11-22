@@ -71,7 +71,7 @@ export class ApiPlanFormHarness extends ComponentHarness {
         .flush(tags);
     }
 
-    function expectGroupLisRequest(groups: Group[] = []) {
+    function expectGroupListRequest(groups: Group[] = []) {
       httpTestingController
         .expectOne({
           method: 'GET',
@@ -80,13 +80,13 @@ export class ApiPlanFormHarness extends ComponentHarness {
         .flush(groups);
     }
 
-    function expectDocumentationSearchRequest(apiId: string, groups: Page[] = []) {
+    function expectDocumentationSearchRequest(apiId: string, pages: Page[] = []) {
       httpTestingController
         .expectOne({
           method: 'GET',
           url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/pages?type=MARKDOWN&api=${apiId}`,
         })
-        .flush(groups);
+        .flush(pages);
     }
 
     function expectCurrentUserTagsRequest(tags: string[]) {
@@ -110,7 +110,7 @@ export class ApiPlanFormHarness extends ComponentHarness {
 
     return {
       expectTagsListRequest,
-      expectGroupLisRequest,
+      expectGroupListRequest,
       expectDocumentationSearchRequest,
       expectCurrentUserTagsRequest,
       expectPolicySchemaGetRequest,
