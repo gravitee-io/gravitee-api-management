@@ -201,7 +201,7 @@ public class OAIToAPIConverter implements SwaggerToApiConverter<OAIDescriptor>, 
                     .stream()
                     .flatMap(group -> groupService.findByName(executionContext.getEnvironmentId(), group).stream())
                     .map(GroupEntity::getId)
-                    .collect(Collectors.toSet());
+                    .collect(Collectors.toCollection(HashSet::new)); // Using a mutable Set, so we can add groups if necessary
                 apiEntity.setGroups(groupIdsToImport);
             }
 
