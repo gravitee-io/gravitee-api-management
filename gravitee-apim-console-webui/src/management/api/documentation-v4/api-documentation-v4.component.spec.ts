@@ -101,6 +101,7 @@ describe('ApiDocumentationV4', () => {
 
   afterEach(() => {
     httpTestingController.verify();
+    jest.resetAllMocks();
   });
 
   describe('API does not have pages', () => {
@@ -132,17 +133,39 @@ describe('ApiDocumentationV4', () => {
         ],
       );
       const headerHarness = await harnessLoader.getHarness(ApiDocumentationV4ListNavigationHeaderHarness);
-      expect(await headerHarness.getBreadcrumb()).toEqual('Home>level 1>level 2');
+      expect(await headerHarness.getBreadcrumb()).toEqual('Home > level 1 > level 2');
 
       await headerHarness.clickOnBreadcrumbItem('level 1');
       expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.documentationV4', { parentId: 'level-1' }, { reload: true });
     });
 
-    it('should navigate to root', async () => {
+    it('should navigate to root if in a sub folder', async () => {
       await init([], [{ name: 'level 1', id: 'level-1', position: 1 }]);
       const headerHarness = await harnessLoader.getHarness(ApiDocumentationV4ListNavigationHeaderHarness);
       await headerHarness.clickOnBreadcrumbItem('Home');
       expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.documentationV4', { parentId: 'ROOT' }, { reload: true });
+    });
+
+    it('should not navigate to root if already in root', async () => {
+      await init([], []);
+      const headerHarness = await harnessLoader.getHarness(ApiDocumentationV4ListNavigationHeaderHarness);
+      await headerHarness.clickOnBreadcrumbItem('Home');
+      expect(fakeUiRouter.go).toHaveBeenCalledTimes(0);
+    });
+
+    it('should show breadcrumb items and not be able to click on last item', async () => {
+      await init(
+        [],
+        [
+          { name: 'level 1', id: 'level-1', position: 1 },
+          { name: 'level 2', id: 'level-2', position: 2 },
+        ],
+      );
+      const headerHarness = await harnessLoader.getHarness(ApiDocumentationV4ListNavigationHeaderHarness);
+      expect(await headerHarness.getBreadcrumb()).toEqual('Home > level 1 > level 2');
+
+      await headerHarness.clickOnBreadcrumbItem('level 2');
+      expect(fakeUiRouter.go).toHaveBeenCalledTimes(0);
     });
   });
 
