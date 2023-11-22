@@ -161,11 +161,7 @@ public class CoreServiceSpringConfiguration {
         PageRevisionCrudService pageRevisionCrudService,
         AuditDomainService auditDomainService
     ) {
-        return new CreateApiDocumentationDomainService(
-            pageCrudService,
-            pageRevisionCrudService,
-            auditDomainService
-        );
+        return new CreateApiDocumentationDomainService(pageCrudService, pageRevisionCrudService, auditDomainService);
     }
 
     @Bean
