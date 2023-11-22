@@ -22,7 +22,7 @@ import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
 import { CreateDocumentation, CreateDocumentationFolder } from '../entities/management-api-v2/documentation/createDocumentation';
 import { Page } from '../entities/management-api-v2/documentation/page';
 import { EditDocumentationMarkdown } from '../entities/management-api-v2/documentation/editDocumentation';
-import { fakeMarkdown } from '../entities/management-api-v2/documentation/page.fixture';
+import { fakeFolder, fakeMarkdown, fakePage } from '../entities/management-api-v2/documentation/page.fixture';
 
 describe('ApiDocumentationV2Service', () => {
   let httpTestingController: HttpTestingController;
@@ -67,6 +67,40 @@ describe('ApiDocumentationV2Service', () => {
 
       service.getApiPages(API_ID, 'ROOT').subscribe((response) => {
         expect(response).toEqual(fakeResponse);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages?parentId=ROOT`,
+        method: 'GET',
+      });
+
+      req.flush(fakeResponse);
+    });
+
+    it('should filter the non supported page type', (done) => {
+      const markdown = fakeMarkdown();
+      const folder = fakeFolder();
+      const fakeResponse = {
+        pages: [
+          markdown,
+          folder,
+          fakePage({ type: 'ASCIIDOC' }),
+          fakePage({ type: 'ASYNCAPI' }),
+          fakePage({ type: 'MARKDOWN_TEMPLATE' }),
+          fakePage({ type: 'SYSTEM_FOLDER' }),
+          fakePage({ type: 'SWAGGER' }),
+          fakePage({ type: 'LINK' }),
+          fakePage({ type: 'TRANSLATION' }),
+        ],
+        breadcrumb: [],
+      };
+
+      service.getApiPages(API_ID, 'ROOT').subscribe((response) => {
+        expect(response).toEqual({
+          pages: [markdown, folder],
+          breadcrumb: [],
+        });
         done();
       });
 

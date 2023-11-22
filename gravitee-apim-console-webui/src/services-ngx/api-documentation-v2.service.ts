@@ -38,6 +38,14 @@ export class ApiDocumentationV2Service {
   getApiPages(apiId: string, parentId: string): Observable<ApiDocumentationPageResult> {
     return this.http.get<ApiDocumentationPageResult>(`${this.constants.env.v2BaseURL}/apis/${apiId}/pages?parentId=${parentId}`).pipe(
       map((result: ApiDocumentationPageResult) => {
+        // TODO: update this filter with new supported types
+        const filteredResult: ApiDocumentationPageResult = {
+          pages: result.pages.filter((page) => page.type === 'FOLDER' || page.type === 'MARKDOWN'),
+          breadcrumb: result.breadcrumb,
+        };
+        return filteredResult;
+      }),
+      map((result: ApiDocumentationPageResult) => {
         const sortedResult: ApiDocumentationPageResult = {
           pages: result.pages,
           breadcrumb: result.breadcrumb?.sort((b1, b2) => b1.position - b2.position),
