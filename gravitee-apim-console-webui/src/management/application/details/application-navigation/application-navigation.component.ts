@@ -28,6 +28,7 @@ interface MenuItem {
   baseRoute?: string | string[];
   displayName: string;
   permissions?: string[];
+  tabs?: MenuItem[];
 }
 
 @Component({
@@ -40,6 +41,8 @@ export class ApplicationNavigationComponent implements OnInit, OnDestroy {
   public applicationName: string;
   public subMenuItems: MenuItem[] = [];
   public hasBreadcrumb = false;
+  public selectedItemWithTabs: MenuItem = undefined;
+  public isMenuTabAvailable = false;
   private unsubscribe$ = new Subject();
 
   constructor(
@@ -59,6 +62,27 @@ export class ApplicationNavigationComponent implements OnInit, OnDestroy {
         baseRoute: 'management.applications.application.general',
         permissions: ['application-definition-r'],
       },
+      // {
+      //   displayName: "User and group access",
+      //   targetRoute: "management.applications.application.membersng",
+      //   baseRoute: "management.applications.application.membersng",
+      //   permissions: ["application-definition-r"],
+      //   tabs: [
+      //     {
+      //       displayName: "Members",
+      //       targetRoute: "management.applications.application.membersng",
+      //       baseRoute: "management.applications.application.membersng"
+      //     }, {
+      //       displayName: "Groups",
+      //       targetRoute: "management.applications.application.groupsng",
+      //       baseRoute: "management.applications.application.groupsng"
+      //     }, {
+      //       displayName: "Transfer ownership",
+      //       targetRoute: "management.applications.application.transferownershipng",
+      //       baseRoute: "management.applications.application.transferownershipng"
+      //     }
+      //   ]
+      // },
       {
         displayName: 'Metadata',
         targetRoute: 'management.applications.application.metadata',
@@ -114,6 +138,18 @@ export class ApplicationNavigationComponent implements OnInit, OnDestroy {
   }
 
   isActive(baseRoute: MenuItem['baseRoute']): boolean {
+    castArray(baseRoute).some((baseRoute) => {
+      if (this.ajsState.includes(baseRoute)) {
+        this.subMenuItems.map((selectedItem) => {
+          if (selectedItem.baseRoute === baseRoute) {
+            this.selectedItemWithTabs = selectedItem;
+            this.isMenuTabAvailable = true;
+          } else {
+            this.isMenuTabAvailable = false;
+          }
+        });
+      }
+    });
     return castArray(baseRoute).some((baseRoute) => this.ajsState.includes(baseRoute));
   }
 

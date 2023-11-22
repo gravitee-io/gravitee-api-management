@@ -17,55 +17,23 @@
 @use '@angular/material' as mat;
 @use '@gravitee/ui-particles-angular' as gio;
 
-$textColor: map.get(gio.$mat-dove-palette, default);
+$typography: map.get(gio.$mat-theme, typography);
 
-:host {
-  height: 100%;
+.application-navigation-tabs {
+  display: flex;
+  align-items: center;
+  width: 100%;
+
+  &__link__icon {
+    margin-left: 8px;
+  }
 }
 
-.application-navigation {
-  display: flex;
-  justify-content: flex-start;
-  height: 100%;
+.header {
+  margin-bottom: 24px;
 
-  &__menu {
-    display: flex;
-    flex-direction: column;
-  }
-
-  &__submenu {
-    z-index: 70;
-    height: 100%;
-    color: $textColor;
-
-    &__title {
-      width: 100%;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    a {
-      text-decoration: none;
-    }
-  }
-
-  &__breadcrumb {
-    padding: 24px 32px 0 32px;
-
-    &__item {
-      display: contents;
-    }
-  }
-
-  &__content {
-    display: flex;
-    flex-direction: column;
-    flex: 1 1 auto;
-    height: 100%;
-
-    &__tabs {
-      padding: 24px 32px;
-    }
+  &__subtitle {
+    color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+    @include mat.typography-level($typography, 'body-1');
   }
 }

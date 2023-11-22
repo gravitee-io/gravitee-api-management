@@ -17,12 +17,15 @@ import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { GioBreadcrumbModule, GioSubmenuModule } from '@gravitee/ui-particles-angular';
 import { UIRouterModule } from '@uirouter/angular';
+import { MatTabsModule } from '@angular/material/tabs';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { ApplicationNavigationComponent } from './application-navigation.component';
+import { ApplicationNavigationTabsComponent } from './application-navigation-tabs/application-navigation-tabs.component';
 
 @NgModule({
-  imports: [CommonModule, GioSubmenuModule, GioBreadcrumbModule, UIRouterModule],
-  declarations: [ApplicationNavigationComponent],
+  imports: [CommonModule, GioSubmenuModule, GioBreadcrumbModule, UIRouterModule, MatTabsModule, MatTooltipModule],
+  declarations: [ApplicationNavigationComponent, ApplicationNavigationTabsComponent],
   exports: [ApplicationNavigationComponent],
   entryComponents: [ApplicationNavigationComponent],
 })

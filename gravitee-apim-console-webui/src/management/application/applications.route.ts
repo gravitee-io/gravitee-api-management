@@ -446,6 +446,45 @@ function applicationsConfig($stateProvider) {
         ],
       },
     })
+    .state('management.applications.application.membersng', {
+      url: '/membersng',
+      component: 'applicationGeneralMembersNg',
+      data: {
+        perms: {
+          only: ['application-member-r'],
+        },
+        useAngularMaterial: true,
+        docs: {
+          page: 'management-application-members',
+        },
+      },
+    })
+    .state('management.applications.application.groupsng', {
+      url: '/groupsng',
+      component: 'applicationGeneralGroupsNg',
+      data: {
+        perms: {
+          only: ['application-definition-r'],
+        },
+        useAngularMaterial: true,
+        docs: {
+          page: 'management-application-groups',
+        },
+      },
+    })
+    .state('management.applications.application.transferownershipng', {
+      url: '/transferownershipng',
+      component: 'applicationGeneralTransferOwnershipNg',
+      data: {
+        perms: {
+          only: ['application-definition-r'],
+        },
+        useAngularMaterial: true,
+        docs: {
+          page: 'management-application-transferownership',
+        },
+      },
+    })
     .state('management.applications.application.notification-settings', {
       url: '/notification-settings',
       component: 'applicationNotificationSettingsList',
