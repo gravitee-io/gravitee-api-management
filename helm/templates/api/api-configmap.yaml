@@ -93,7 +93,11 @@ data:
     installation:
       type: {{ include "installation.type" . }}
       api:
+      {{- if .Values.installation.api.url }}
+        url: {{ .Values.installation.api.url }}
+      {{ else }}
         url: {{ .Values.api.ingress.management.scheme }}://{{ index .Values.api.ingress.management.hosts 0 }}
+      {{- end }}
         proxyPath:
           management: {{ regexFind "/[a-zA-Z-_.~]+" .Values.api.ingress.management.path }}
           portal: {{ regexFind "/[a-zA-Z-_.~]+" .Values.api.ingress.portal.path }}

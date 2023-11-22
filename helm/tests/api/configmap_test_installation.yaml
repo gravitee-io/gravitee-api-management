@@ -123,3 +123,14 @@ tests:
       - matchRegex:
           path: data.[gravitee.yml]
           pattern: "installation:[\\S\\s\\n]*multi-tenant:[\\S\\s\\n]*accessPoints:[\\S\\s\\n]*organization:[\\S\\s\\n]*console"
+  - it: Override installation.api.url
+    template: api/api-configmap.yaml
+    set:
+      installation:
+        type: multi-tenant
+        api:
+          url: https://mapi.example.com
+    asserts:
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: "installation:[\\S\\s\\n]*api:[\\S\\s\\n]*url: https://mapi.example.com"
