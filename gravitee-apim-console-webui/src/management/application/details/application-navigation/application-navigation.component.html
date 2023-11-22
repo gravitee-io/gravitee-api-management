@@ -37,6 +37,12 @@
       </ng-template>
     </gio-breadcrumb>
 
+    <application-navigation-tabs
+      *ngIf="isMenuTabAvailable"
+      class="application-navigation__content__tabs"
+      [tabMenuItems]="this.selectedItemWithTabs?.tabs"
+      [menuItemHeader]="this.selectedItemWithTabs?.header"
+    ></application-navigation-tabs>
     <ng-content></ng-content>
   </div>
 </div>

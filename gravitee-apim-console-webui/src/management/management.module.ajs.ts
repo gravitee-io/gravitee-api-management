@@ -452,6 +452,9 @@ import { EnvironmentNotificationSettingsDetailsComponent } from './configuration
 import { EnvironmentMetadataComponent } from './configuration/metadata/environment-metadata.component';
 import { ApplicationMetadataComponent } from './application/details/metadata/application-metadata.component';
 import { ApplicationGeneralComponent } from './application/details/general/general-ng/application-general.component';
+import { ApplicationGeneralMembersComponent } from './application/details/user-group-access/members/application-general-members.component';
+import { ApplicationGeneralGroupsComponent } from './application/details/user-group-access/groups/application-general-groups.component';
+import { ApplicationGeneralTransferOwnershipComponent } from './application/details/user-group-access/transfer-ownership/application-general-transfer-ownership.component';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -784,6 +787,12 @@ graviteeManagementModule.directive(
 graviteeManagementModule.directive(
   'applicationNotificationSettingsList',
   downgradeComponent({ component: ApplicationNotificationSettingsListComponent }),
+);
+graviteeManagementModule.directive('applicationGeneralMembersNg', downgradeComponent({ component: ApplicationGeneralMembersComponent }));
+graviteeManagementModule.directive('applicationGeneralGroupsNg', downgradeComponent({ component: ApplicationGeneralGroupsComponent }));
+graviteeManagementModule.directive(
+  'applicationGeneralTransferOwnershipNg',
+  downgradeComponent({ component: ApplicationGeneralTransferOwnershipComponent }),
 );
 graviteeManagementModule.directive(
   'applicationNotificationSettingsDetails',
