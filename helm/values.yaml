@@ -16,6 +16,11 @@ extraObjects: []
   #  data:
   #    license.key: myLicenceInBase64==
 
+installation:
+  type:
+  api:
+    url:
+
 apim:
   name: apim
   # Whether this chart should self-manage its service account, role, and associated role binding.
