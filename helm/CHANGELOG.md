@@ -9,10 +9,12 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
 - Allow users to define extra manifests
 - Make optional HTTP2 request processing via `gateway.http.alpn` set at `true` by default.
 - "fix 'gravitee.yml' > 'services.metrics' definition from helm `values.yaml`"
+- Add requestTimeout and requestTimeoutGraceDelay in gateway
 
 ### 4.1.4
 
 - "fix 'gravitee.yml' > 'services.metrics' definition from helm `values.yaml`"
+- Add requestTimeout and requestTimeoutGraceDelay in gateway
 
 ### 4.1.0
 
@@ -28,6 +30,7 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
 ### 4.0.13
 
 - "fix 'gravitee.yml' > 'services.metrics' definition from helm `values.yaml`"
+- Add requestTimeout and requestTimeoutGraceDelay in gateway
 
 ### 4.0.9
 
