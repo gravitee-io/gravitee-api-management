@@ -66,6 +66,7 @@ export class ApiDocumentationV4PagesListComponent implements OnInit, OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.pages) {
       this.dataSource = new MatTableDataSource<Page>(this.pages);
+      this.ngOnInit();
     }
   }
 }
