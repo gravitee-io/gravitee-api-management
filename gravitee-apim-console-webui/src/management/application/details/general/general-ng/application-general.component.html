@@ -83,7 +83,7 @@
         </div>
       </div>
     </div>
-    <div class="details-card__actions">
+    <div class="details-card__actions" *ngIf="!isReadOnly">
       <button
         *gioPermission="{ anyOf: ['application-definition-u'] }"
         mat-button
@@ -116,7 +116,7 @@
     </mat-card>
   </ng-container>
 
-  <ng-container *ngIf="initialApplication.type === 'NATIVE'">
+  <ng-container *ngIf="initialApplication.type !== 'SIMPLE'">
     <h2 class="details-title-openid">OpenID Connect Integration</h2>
     <mat-card class="details-card-openid" formGroupName="OpenIDForm">
       <div class="details-card__header">
