@@ -329,7 +329,7 @@ describe('ApiDocumentationV4EditPageComponent', () => {
 
       it('should show breadcrumb', async () => {
         const harness = await harnessLoader.getHarness(ApiDocumentationV4BreadcrumbHarness);
-        expect(await harness.getContent()).toEqual('Home>Parent Folder');
+        expect(await harness.getContent()).toEqual('Home > Parent Folder');
       });
 
       it('should save page in the correct folder', async () => {
@@ -519,7 +519,7 @@ describe('ApiDocumentationV4EditPageComponent', () => {
 
       it('should show breadcrumb', async () => {
         const harness = await harnessLoader.getHarness(ApiDocumentationV4BreadcrumbHarness);
-        expect(await harness.getContent()).toEqual('Home>Parent Folder');
+        expect(await harness.getContent()).toEqual('Home > Parent Folder');
       });
 
       it('should exit without saving', async () => {

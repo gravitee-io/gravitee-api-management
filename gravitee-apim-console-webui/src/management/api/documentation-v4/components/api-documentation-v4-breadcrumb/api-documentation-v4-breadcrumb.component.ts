@@ -32,8 +32,8 @@ export class ApiDocumentationV4BreadcrumbComponent {
   @Output()
   onNavigateTo = new EventEmitter<string>();
 
-  doNavigate(id: string) {
-    if (this.canNavigate) {
+  doNavigate(id: string, isLast: boolean) {
+    if (this.canNavigate && !isLast) {
       this.onNavigateTo.emit(id);
     }
   }
