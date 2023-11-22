@@ -47,6 +47,7 @@ export class ApiDocumentationV4Component implements OnInit, DoCheck, OnDestroy {
   parentId: string;
   pages: Page[];
   breadcrumbs: Breadcrumb[];
+  isLoading = false;
 
   constructor(
     private readonly matDialog: MatDialog,
@@ -68,6 +69,7 @@ export class ApiDocumentationV4Component implements OnInit, DoCheck, OnDestroy {
   ngOnInit() {
     this.parentId = this.ajsStateParams.parentId || 'ROOT';
 
+    this.isLoading = true;
     this.apiV2Service
       .get(this.ajsStateParams.apiId)
       .pipe(
@@ -78,6 +80,7 @@ export class ApiDocumentationV4Component implements OnInit, DoCheck, OnDestroy {
       .subscribe((res) => {
         this.pages = res.pages;
         this.breadcrumbs = res.breadcrumb;
+        this.isLoading = false;
       });
   }
 

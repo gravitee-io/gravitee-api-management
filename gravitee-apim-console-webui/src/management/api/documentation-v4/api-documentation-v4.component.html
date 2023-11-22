@@ -36,6 +36,6 @@
     (onMoveDown)="moveDown($event)"
   ></api-documentation-v4-pages-list>
   <ng-template #emptyState>
-    <api-documentation-empty-state (onAddPage)="addPage()"></api-documentation-empty-state>
+    <api-documentation-empty-state *ngIf="!isLoading" (onAddPage)="addPage()"></api-documentation-empty-state>
   </ng-template>
 </mat-card>
