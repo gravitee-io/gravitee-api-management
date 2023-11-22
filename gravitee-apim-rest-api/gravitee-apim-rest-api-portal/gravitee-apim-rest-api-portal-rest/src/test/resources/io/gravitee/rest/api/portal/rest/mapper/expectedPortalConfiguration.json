@@ -54,7 +54,7 @@
     "notificationsInSeconds" : 10
   },
   "documentation" : {
-    "url" : "https://documentation.gravitee.io"
+    "url" : "https://documentation.gravitee.io/apim"
   },
   "plan" : {
     "security" : {

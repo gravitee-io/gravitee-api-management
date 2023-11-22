@@ -23,7 +23,7 @@ const ApplicationCreationStep4Component: ng.IComponentOptions = {
     if (Constants.env.settings.documentation && Constants.env.settings.documentation.url) {
       this.url = Constants.env.settings.documentation.url;
     } else {
-      this.url = 'https://documentation.gravitee.io';
+      this.url = 'https://documentation.gravitee.io/apim';
     }
   },
 };
