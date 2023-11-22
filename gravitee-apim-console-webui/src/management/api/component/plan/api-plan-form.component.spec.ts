@@ -150,7 +150,7 @@ describe('ApiPlanFormComponent', () => {
       it('should be added', async () => {
         const planForm = await loader.getHarness(ApiPlanFormHarness);
 
-        planForm.httpRequest(httpTestingController).expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+        planForm.httpRequest(httpTestingController).expectGroupListRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
         planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API.id, []);
         planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([]);
         planForm.httpRequest(httpTestingController).expectTagsListRequest([]);
@@ -228,7 +228,7 @@ describe('ApiPlanFormComponent', () => {
         planForm
           .httpRequest(httpTestingController)
           .expectTagsListRequest([fakeTag({ id: TAG_1_ID, name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
-        planForm.httpRequest(httpTestingController).expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+        planForm.httpRequest(httpTestingController).expectGroupListRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
         planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API.id, [{ id: 'doc-1', name: 'Doc 1' }]);
         planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
         fixture.detectChanges();
@@ -375,7 +375,7 @@ describe('ApiPlanFormComponent', () => {
         planForm
           .httpRequest(httpTestingController)
           .expectTagsListRequest([fakeTag({ id: TAG_1_ID, name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
-        planForm.httpRequest(httpTestingController).expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+        planForm.httpRequest(httpTestingController).expectGroupListRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
         planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API.id, [{ id: 'doc-1', name: 'Doc 1' }]);
         planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
         fixture.detectChanges();
@@ -524,7 +524,7 @@ describe('ApiPlanFormComponent', () => {
         planForm
           .httpRequest(httpTestingController)
           .expectTagsListRequest([fakeTag({ id: TAG_1_ID, name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
-        planForm.httpRequest(httpTestingController).expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+        planForm.httpRequest(httpTestingController).expectGroupListRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
         planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API.id, [{ id: 'doc-1', name: 'Doc 1' }]);
         planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
         fixture.detectChanges();
@@ -641,7 +641,7 @@ describe('ApiPlanFormComponent', () => {
 
       const planForm = await loader.getHarness(ApiPlanFormHarness);
 
-      planForm.httpRequest(httpTestingController).expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+      planForm.httpRequest(httpTestingController).expectGroupListRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
       fixture.detectChanges();
 
       expect(testComponent.planControl.touched).toEqual(false);
@@ -756,7 +756,7 @@ describe('ApiPlanFormComponent', () => {
 
       const planForm = await loader.getHarness(ApiPlanFormHarness);
 
-      planForm.httpRequest(httpTestingController).expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+      planForm.httpRequest(httpTestingController).expectGroupListRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
       planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API.id, []);
       planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([]);
       planForm.httpRequest(httpTestingController).expectTagsListRequest([]);
@@ -875,7 +875,7 @@ describe('ApiPlanFormComponent', () => {
 
     const planForm = await loader.getHarness(ApiPlanFormHarness);
 
-    planForm.httpRequest(httpTestingController).expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+    planForm.httpRequest(httpTestingController).expectGroupListRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
     fixture.detectChanges();
 
     expect(testComponent.planControl.touched).toEqual(false);
@@ -908,7 +908,7 @@ describe('ApiPlanFormComponent', () => {
       planForm
         .httpRequest(httpTestingController)
         .expectTagsListRequest([fakeTag({ id: TAG_1_ID, name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
-      planForm.httpRequest(httpTestingController).expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+      planForm.httpRequest(httpTestingController).expectGroupListRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
       planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API.id, [{ id: 'doc-1', name: 'Doc 1' }]);
       planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
       fixture.detectChanges();
@@ -993,7 +993,7 @@ describe('ApiPlanFormComponent', () => {
       planForm
         .httpRequest(httpTestingController)
         .expectTagsListRequest([fakeTag({ id: TAG_1_ID, name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
-      planForm.httpRequest(httpTestingController).expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+      planForm.httpRequest(httpTestingController).expectGroupListRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
       planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API.id, [{ id: 'doc-1', name: 'Doc 1' }]);
       planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
       fixture.detectChanges();
@@ -1052,7 +1052,7 @@ describe('ApiPlanFormComponent', () => {
         planForm
           .httpRequest(httpTestingController)
           .expectTagsListRequest([fakeTag({ id: TAG_1_ID, name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
-        planForm.httpRequest(httpTestingController).expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+        planForm.httpRequest(httpTestingController).expectGroupListRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
         planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API.id, [{ id: 'doc-1', name: 'Doc 1' }]);
         planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
         fixture.detectChanges();
@@ -1134,7 +1134,7 @@ describe('ApiPlanFormComponent', () => {
         planForm
           .httpRequest(httpTestingController)
           .expectTagsListRequest([fakeTag({ id: TAG_1_ID, name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
-        planForm.httpRequest(httpTestingController).expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+        planForm.httpRequest(httpTestingController).expectGroupListRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
         planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API.id, [{ id: 'doc-1', name: 'Doc 1' }]);
         planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
         planForm.httpRequest(httpTestingController).expectPolicySchemaV2GetRequest('api-key', fakeApiKeySchema);

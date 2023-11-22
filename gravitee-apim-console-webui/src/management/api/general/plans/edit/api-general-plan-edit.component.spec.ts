@@ -107,7 +107,7 @@ describe('ApiGeneralPlanEditComponent', () => {
         planForm
           .httpRequest(httpTestingController)
           .expectTagsListRequest([fakeTag({ id: TAG_1_ID, name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
-        planForm.httpRequest(httpTestingController).expectGroupLisRequest([
+        planForm.httpRequest(httpTestingController).expectGroupListRequest([
           fakeGroup({
             id: 'group-a',
             name: 'Group A',
@@ -190,7 +190,7 @@ describe('ApiGeneralPlanEditComponent', () => {
         planForm
           .httpRequest(httpTestingController)
           .expectTagsListRequest([fakeTag({ id: TAG_1_ID, name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
-        planForm.httpRequest(httpTestingController).expectGroupLisRequest([
+        planForm.httpRequest(httpTestingController).expectGroupListRequest([
           fakeGroup({
             id: 'group-a',
             name: 'Group A',
@@ -283,7 +283,7 @@ describe('ApiGeneralPlanEditComponent', () => {
         planForm
           .httpRequest(httpTestingController)
           .expectTagsListRequest([fakeTag({ id: TAG_1_ID, name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
-        planForm.httpRequest(httpTestingController).expectGroupLisRequest([
+        planForm.httpRequest(httpTestingController).expectGroupListRequest([
           fakeGroup({
             id: 'group-a',
             name: 'Group A',
@@ -324,7 +324,7 @@ describe('ApiGeneralPlanEditComponent', () => {
         planForm
           .httpRequest(httpTestingController)
           .expectTagsListRequest([fakeTag({ id: TAG_1_ID, name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
-        planForm.httpRequest(httpTestingController).expectGroupLisRequest([
+        planForm.httpRequest(httpTestingController).expectGroupListRequest([
           fakeGroup({
             id: 'group-a',
             name: 'Group A',
@@ -375,7 +375,7 @@ describe('ApiGeneralPlanEditComponent', () => {
         planForm
           .httpRequest(httpTestingController)
           .expectTagsListRequest([fakeTag({ id: TAG_1_ID, name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
-        planForm.httpRequest(httpTestingController).expectGroupLisRequest([
+        planForm.httpRequest(httpTestingController).expectGroupListRequest([
           fakeGroup({
             id: 'group-a',
             name: 'Group A',
@@ -415,7 +415,7 @@ describe('ApiGeneralPlanEditComponent', () => {
         planForm
           .httpRequest(httpTestingController)
           .expectTagsListRequest([fakeTag({ id: TAG_1_ID, name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
-        planForm.httpRequest(httpTestingController).expectGroupLisRequest([
+        planForm.httpRequest(httpTestingController).expectGroupListRequest([
           fakeGroup({
             id: 'group-a',
             name: 'Group A',
