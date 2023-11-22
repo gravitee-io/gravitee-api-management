@@ -29,8 +29,6 @@ import inmemory.PlanQueryServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
-import io.gravitee.apim.core.audit.model.ApiAuditLogEntity;
-import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.event.PageAuditEvent;
 import io.gravitee.apim.core.documentation.exception.ApiFolderNotEmptyException;
@@ -38,10 +36,10 @@ import io.gravitee.apim.core.documentation.exception.ApiPageInvalidReferenceType
 import io.gravitee.apim.core.documentation.exception.ApiPageUsedAsGeneralConditionException;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Stream;
@@ -59,7 +57,7 @@ class DeleteApiDocumentationDomainServiceTest {
     private static final String ENVIRONMENT_ID = "environment-id";
     private static final String USER_ID = "user-id";
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
-    private static final Api API = Api.builder().id("api-id").definitionVersion(Api.DefinitionVersion.V4).build();
+    private static final Api API = Api.builder().id("api-id").definitionVersion(DefinitionVersion.V4).build();
     public static final String PAGE_ID = "page-id";
     public static final String FOLDER_ID = "folder-id";
 

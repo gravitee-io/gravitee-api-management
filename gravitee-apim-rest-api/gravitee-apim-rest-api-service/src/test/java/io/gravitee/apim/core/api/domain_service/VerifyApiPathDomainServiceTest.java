@@ -33,6 +33,7 @@ import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.installation.model.RestrictedDomain;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
@@ -412,7 +413,7 @@ class VerifyApiPathDomainServiceTest {
             .builder()
             .id(apiId)
             .environmentId(environmentId)
-            .definitionVersion(Api.DefinitionVersion.V2)
+            .definitionVersion(DefinitionVersion.V2)
             .definition(objectMapper.writeValueAsString(apiDefV2))
             .build();
     }
@@ -437,7 +438,7 @@ class VerifyApiPathDomainServiceTest {
             .builder()
             .id(apiId)
             .environmentId(environmentId)
-            .definitionVersion(Api.DefinitionVersion.V4)
+            .definitionVersion(DefinitionVersion.V4)
             .definition(objectMapper.writeValueAsString(apiDefV4))
             .build();
     }
