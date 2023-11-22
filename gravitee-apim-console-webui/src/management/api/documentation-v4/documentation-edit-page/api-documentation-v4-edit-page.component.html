@@ -18,16 +18,22 @@
 <api-documentation-page-title [api]="api"></api-documentation-page-title>
 <mat-card>
   <div class="header">
-    <div>
-      <h3>{{ pageTitle }}</h3>
-      <div class="header__location">
-        In
-        <api-documentation-breadcrumb [breadcrumbs]="breadcrumbs" [canNavigate]="false"></api-documentation-breadcrumb>
-      </div>
+    <h3 class="header__title">{{ pageTitle }}</h3>
+    <div class="header__location">
+      In
+      <api-documentation-breadcrumb [breadcrumbs]="breadcrumbs" [canNavigate]="false"></api-documentation-breadcrumb>
     </div>
     <div class="header__actions">
-      <button mat-stroked-button *ngIf="mode === 'edit'" (click)="deletePage()" [disabled]="!!page?.generalConditions">Delete page</button>
-      <button mat-stroked-button (click)="goBackToPageList()">Exit without saving</button>
+      <button
+        class="header__delete"
+        mat-stroked-button
+        *ngIf="mode === 'edit'"
+        (click)="deletePage()"
+        [disabled]="!!page?.generalConditions"
+      >
+        Delete page
+      </button>
+      <button class="header__exit" mat-stroked-button (click)="goBackToPageList()">Exit without saving</button>
     </div>
   </div>
   <div class="stepper">
