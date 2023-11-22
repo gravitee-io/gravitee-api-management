@@ -48,11 +48,7 @@ class ApiGetDocumentationPageUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        ApiDocumentationDomainService apiDocumentationDomainService = new ApiDocumentationDomainService(
-            pageQueryService,
-            planQueryService,
-            new HtmlSanitizerImpl()
-        );
+        ApiDocumentationDomainService apiDocumentationDomainService = new ApiDocumentationDomainService(pageQueryService, planQueryService);
         useCase = new ApiGetDocumentationPageUseCase(apiDocumentationDomainService, apiCrudService, pageCrudService);
     }
 

@@ -55,7 +55,7 @@ public class ApiUpdateDocumentationPageUseCase {
         }
 
         if (oldPage.isMarkdown() && !Objects.equals(oldPage.getContent(), input.content)) {
-            this.apiDocumentationDomainService.validateContentIsSafe(input.content);
+            this.documentationValidationDomainService.validateContentIsSafe(input.content);
             newPage.content(input.content);
         }
 

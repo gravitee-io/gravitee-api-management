@@ -21,28 +21,16 @@ import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
-import io.gravitee.apim.core.sanitizer.HtmlSanitizer;
-import io.gravitee.apim.core.sanitizer.SanitizeResult;
-import io.gravitee.rest.api.service.exceptions.PageContentUnsafeException;
 import java.util.List;
 import java.util.Objects;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 public class ApiDocumentationDomainService {
 
     private static final String ROOT = "ROOT";
     private final PageQueryService pageQueryService;
     private final PlanQueryService planQueryService;
-    private final HtmlSanitizer htmlSanitizer;
-
-    public ApiDocumentationDomainService(
-        PageQueryService pageQueryService,
-        PlanQueryService planQueryService,
-        HtmlSanitizer htmlSanitizer
-    ) {
-        this.pageQueryService = pageQueryService;
-        this.planQueryService = planQueryService;
-        this.htmlSanitizer = htmlSanitizer;
-    }
 
     public List<Page> getApiPages(String apiId, String parentId) {
         if (Objects.nonNull(parentId) && !parentId.isEmpty()) {
@@ -56,13 +44,6 @@ public class ApiDocumentationDomainService {
     public void validatePageAssociatedToApi(Page page, String apiId) {
         if (!Objects.equals(page.getReferenceId(), apiId) || !Page.ReferenceType.API.equals(page.getReferenceType())) {
             throw new ApiPageNotAssociatedException(apiId, page.getId());
-        }
-    }
-
-    public void validateContentIsSafe(String content) {
-        final SanitizeResult sanitizeInfos = htmlSanitizer.isSafe(content);
-        if (!sanitizeInfos.isSafe()) {
-            throw new PageContentUnsafeException(sanitizeInfos.getRejectedMessage());
         }
     }
 

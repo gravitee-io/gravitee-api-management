@@ -132,10 +132,9 @@ public class CoreServiceSpringConfiguration {
     @Bean
     public ApiDocumentationDomainService apiDocumentationDomainService(
         PageQueryService pageQueryService,
-        PlanQueryService planQueryService,
-        HtmlSanitizer htmlSanitizer
+        PlanQueryService planQueryService
     ) {
-        return new ApiDocumentationDomainService(pageQueryService, planQueryService, htmlSanitizer);
+        return new ApiDocumentationDomainService(pageQueryService, planQueryService);
     }
 
     @Bean
@@ -184,7 +183,7 @@ public class CoreServiceSpringConfiguration {
     }
 
     @Bean
-    DocumentationValidationDomainService documentationValidationDomainService() {
-        return new DocumentationValidationDomainService();
+    DocumentationValidationDomainService documentationValidationDomainService(HtmlSanitizer htmlSanitizer) {
+        return new DocumentationValidationDomainService(htmlSanitizer);
     }
 }

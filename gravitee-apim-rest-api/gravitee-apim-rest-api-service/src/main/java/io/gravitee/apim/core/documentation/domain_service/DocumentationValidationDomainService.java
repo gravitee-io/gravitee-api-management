@@ -16,13 +16,27 @@
 package io.gravitee.apim.core.documentation.domain_service;
 
 import io.gravitee.apim.core.documentation.exception.InvalidPageNameException;
+import io.gravitee.apim.core.sanitizer.HtmlSanitizer;
+import io.gravitee.apim.core.sanitizer.SanitizeResult;
+import io.gravitee.rest.api.service.exceptions.PageContentUnsafeException;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 public class DocumentationValidationDomainService {
+
+    private final HtmlSanitizer htmlSanitizer;
 
     public String sanitizeDocumentationName(String name) {
         if (null == name || name.trim().isEmpty()) {
             throw new InvalidPageNameException();
         }
         return name.trim();
+    }
+
+    public void validateContentIsSafe(String content) {
+        final SanitizeResult sanitizeInfos = htmlSanitizer.isSafe(content);
+        if (!sanitizeInfos.isSafe()) {
+            throw new PageContentUnsafeException(sanitizeInfos.getRejectedMessage());
+        }
     }
 }
