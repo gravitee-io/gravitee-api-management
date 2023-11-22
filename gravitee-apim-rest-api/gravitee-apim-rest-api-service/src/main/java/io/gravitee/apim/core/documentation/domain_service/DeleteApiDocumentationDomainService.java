@@ -28,10 +28,10 @@ import io.gravitee.apim.core.documentation.exception.ApiPageUsedAsGeneralConditi
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
-import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Map;
+import java.util.Objects;
 
 public class DeleteApiDocumentationDomainService {
 
@@ -39,16 +39,19 @@ public class DeleteApiDocumentationDomainService {
     private final PageQueryService pageQueryService;
     private final AuditDomainService auditDomainService;
     private final PlanQueryService planQueryService;
+    private final UpdateApiDocumentationDomainService updateApiDocumentationDomainService;
 
     public DeleteApiDocumentationDomainService(
         PageCrudService pageCrudService,
         PageQueryService pageQueryService,
         AuditDomainService auditDomainService,
+        UpdateApiDocumentationDomainService updateApiDocumentationDomainService,
         PlanQueryService planQueryService
     ) {
         this.pageCrudService = pageCrudService;
         this.pageQueryService = pageQueryService;
         this.auditDomainService = auditDomainService;
+        this.updateApiDocumentationDomainService = updateApiDocumentationDomainService;
         this.planQueryService = planQueryService;
     }
 
@@ -60,6 +63,7 @@ public class DeleteApiDocumentationDomainService {
         throwIfDeletingNonEmptyFolder(api, pageToDelete);
 
         this.pageCrudService.delete(pageId);
+        updatePageOrders(pageToDelete, auditInfo);
 
         // TODO: remove revisions ?
         // TODO: remove from search engine index
@@ -109,5 +113,24 @@ public class DeleteApiDocumentationDomainService {
         if (!pageToDelete.getReferenceType().equals(Page.ReferenceType.API)) {
             throw new ApiPageInvalidReferenceTypeException(pageToDelete.getId(), Page.ReferenceType.API.name());
         }
+    }
+
+    private void updatePageOrders(Page deletedPage, AuditInfo auditInfo) {
+        this.pageQueryService.searchByApiIdAndParentId(deletedPage.getReferenceId(), deletedPage.getParentId())
+            .stream()
+            .filter(page -> areDifferentPages(deletedPage, page))
+            .filter(page -> isAfterDeletedPagePosition(deletedPage, page))
+            .forEach(page -> {
+                var updatedOrder = page.getOrder() - 1;
+                this.updateApiDocumentationDomainService.updatePage(page.toBuilder().order(updatedOrder).build(), page, auditInfo);
+            });
+    }
+
+    private static boolean areDifferentPages(Page deletedPage, Page page) {
+        return !Objects.equals(page.getId(), deletedPage.getId());
+    }
+
+    private static boolean isAfterDeletedPagePosition(Page deletedPage, Page page) {
+        return page.getOrder() >= deletedPage.getOrder();
     }
 }
