@@ -409,7 +409,7 @@ retrieved from the management repository)_ |`+API Management+`
 
 |`+ui.documentationLink+` |UI link to documentation _(if set to
 `+null+`, retrieved from the management repository)_
-|`+http://documentation.gravitee.io/+`
+|`+https://documentation.gravitee.io/+`
 
 |`+ui.portal.apikeyHeader+` |API Key header name _(if set to `+null+`,
 retrieved from the management repository)_ |`+X-Gravitee-Api-Key+`
