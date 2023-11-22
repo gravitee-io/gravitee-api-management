@@ -71,7 +71,7 @@
     "maxAge": 1
   },
   "documentation" : {
-    "url" : "https://documentation.gravitee.io"
+    "url" : "https://documentation.gravitee.io/apim"
   },
   "openAPIDocViewer": {
     "openAPIDocType": {
