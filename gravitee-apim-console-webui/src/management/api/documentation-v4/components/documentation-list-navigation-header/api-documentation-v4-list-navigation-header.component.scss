@@ -6,7 +6,7 @@ $typography: map.get(gio.$mat-theme, typography);
 .header {
   border-bottom: 2px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker10');
 
-  padding: 8px;
+  padding: 12px 24px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -14,8 +14,7 @@ $typography: map.get(gio.$mat-theme, typography);
   min-height: 54px;
 
   &__action {
-    &__button {
-      margin-right: 4px;
-    }
+    display: flex;
+    gap: 8px;
   }
 }

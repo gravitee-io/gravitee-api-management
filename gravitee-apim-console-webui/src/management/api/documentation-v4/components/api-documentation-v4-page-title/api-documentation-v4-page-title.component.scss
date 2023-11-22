@@ -10,6 +10,9 @@ $typography: map.get(gio.$mat-theme, typography);
 
   &__title {
     flex: 1 1 100%;
+    display: flex;
+    gap: 4px;
+    flex-flow: column;
   }
 
   &__subtitle {
@@ -18,6 +21,6 @@ $typography: map.get(gio.$mat-theme, typography);
   }
 
   &__actions {
-    padding-top: 12px;
+    align-self: center;
   }
 }
