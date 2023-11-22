@@ -18,9 +18,7 @@ package io.gravitee.apim.core.documentation.use_case;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.domain_service.DeleteApiDocumentationDomainService;
-import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 
 public class ApiDeleteDocumentationPageUseCase {
 

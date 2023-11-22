@@ -142,9 +142,16 @@ public class CoreServiceSpringConfiguration {
         PageCrudService pageCrudService,
         PageQueryService pageQueryService,
         AuditDomainService auditDomainService,
+        UpdateApiDocumentationDomainService updateApiDocumentationDomainService,
         PlanQueryService planQueryService
     ) {
-        return new DeleteApiDocumentationDomainService(pageCrudService, pageQueryService, auditDomainService, planQueryService);
+        return new DeleteApiDocumentationDomainService(
+            pageCrudService,
+            pageQueryService,
+            auditDomainService,
+            updateApiDocumentationDomainService,
+            planQueryService
+        );
     }
 
     @Bean
