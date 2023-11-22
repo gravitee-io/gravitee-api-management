@@ -19,6 +19,7 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiCRD;
 import io.gravitee.apim.core.api.model.ApiWithFlow;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import java.util.stream.Stream;
@@ -58,6 +59,11 @@ public interface ApiAdapter {
     @Mapping(source = "lifecycleState", target = "apiLifecycleState")
     @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
     Api fromApiEntity(ApiEntity apiEntity);
+
+    @Mapping(source = "state", target = "lifecycleState")
+    @Mapping(source = "lifecycleState", target = "apiLifecycleState")
+    @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
+    Api fromApiEntity(GenericApiEntity apiEntity);
 
     ApiWithFlow fromCRD(ApiCRD crd);
 }

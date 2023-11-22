@@ -17,6 +17,7 @@ package io.gravitee.apim.core.api.use_case;
 
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
+import io.gravitee.apim.core.api.domain_service.DeployApiDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiCRD;
@@ -43,6 +44,7 @@ public class ImportCRDUseCase {
     private final CreatePlanDomainService createPlanDomainService;
     private final UpdatePlansDomainService updatePlansDomainService;
     private final ApiMetadataDomainService apiMetadataDomainService;
+    private final DeployApiDomainService deployApiDomainService;
 
     // ApiCRDAdapter
     // PlanCRDAdapter
@@ -56,7 +58,8 @@ public class ImportCRDUseCase {
         UpdateApiDomainService updateApiDomainService,
         CreatePlanDomainService createPlanDomainService,
         UpdatePlansDomainService updatePlansDomainService,
-        ApiMetadataDomainService apiMetadataDomainService
+        ApiMetadataDomainService apiMetadataDomainService,
+        DeployApiDomainService deployApiDomainService
     ) {
         this.apiQueryService = apiQueryService;
         this.createApiDomainService = createApiDomainService;
@@ -64,6 +67,7 @@ public class ImportCRDUseCase {
         this.createPlanDomainService = createPlanDomainService;
         this.updatePlansDomainService = updatePlansDomainService;
         this.apiMetadataDomainService = apiMetadataDomainService;
+        this.deployApiDomainService = deployApiDomainService;
     }
 
     public record Output(ApiCRDStatus status) {}
@@ -94,6 +98,7 @@ public class ImportCRDUseCase {
 
             if (request.crd.getDefinitionContext().syncFrom().equals("MANAGEMENT")) {
                 // deploy API so that it's sync from DB
+                deployApiDomainService.deploy(api, "Import via Kubernetes operator", request.auditInfo);
             }
 
             return ApiCRDStatus

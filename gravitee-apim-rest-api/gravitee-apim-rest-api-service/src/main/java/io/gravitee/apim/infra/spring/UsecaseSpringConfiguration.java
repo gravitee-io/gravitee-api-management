@@ -18,6 +18,7 @@ package io.gravitee.apim.infra.spring;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
+import io.gravitee.apim.core.api.domain_service.DeployApiDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
@@ -282,7 +283,8 @@ public class UsecaseSpringConfiguration {
         UpdateApiDomainService updateApiDomainService,
         CreatePlanDomainService createPlanDomainService,
         UpdatePlansDomainService updatePlansDomainService,
-        ApiMetadataDomainService apiMetadataDomainService
+        ApiMetadataDomainService apiMetadataDomainService,
+        DeployApiDomainService deployApiDomainService
     ) {
         return new ImportCRDUseCase(
             apiQueryService,
@@ -290,7 +292,8 @@ public class UsecaseSpringConfiguration {
             updateApiDomainService,
             createPlanDomainService,
             updatePlansDomainService,
-            apiMetadataDomainService
+            apiMetadataDomainService,
+            deployApiDomainService
         );
     }
 }
