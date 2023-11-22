@@ -323,7 +323,8 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 importedApi.getGroups().add(group.getId());
             }
         } else {
-            importedApi.setGroups(Collections.emptySet());
+            // Using a mutable Set, so we can add groups if necessary
+            importedApi.setGroups(new HashSet<>());
         }
 
         // Views & Categories
