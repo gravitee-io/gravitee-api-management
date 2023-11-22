@@ -14,17 +14,29 @@
   &__table {
     &__name {
       display: flex;
+      max-width: 450px;
       cursor: pointer;
       gap: 8px;
       align-items: center;
+
       p {
         margin-bottom: 0;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+
+      mat-icon {
+        flex: 0 0 24px;
       }
     }
 
     &__actions {
       display: flex;
       gap: 8px;
+    }
+    .mat-column-actions {
+      max-width: 232px;
     }
   }
 }
