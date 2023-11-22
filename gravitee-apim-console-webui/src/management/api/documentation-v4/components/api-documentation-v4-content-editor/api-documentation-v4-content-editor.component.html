@@ -28,6 +28,7 @@
     [(ngModel)]="_value"
     [languageConfig]="{ language: 'markdown' }"
     (ngModelChange)="_onChange(_value)"
+    [disableMiniMap]="true"
   ></gio-monaco-editor>
   <markdown *ngIf="preview" [data]="_value"> </markdown>
 </div>
