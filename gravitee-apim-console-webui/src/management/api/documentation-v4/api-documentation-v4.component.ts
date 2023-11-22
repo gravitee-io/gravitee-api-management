@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, DoCheck, Inject, OnDestroy, OnInit } from '@angular/core';
 import { Subject } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { StateService } from '@uirouter/angularjs';
@@ -41,7 +41,7 @@ import { Api } from '../../../entities/management-api-v2';
   template: require('./api-documentation-v4.component.html'),
   styles: [require('./api-documentation-v4.component.scss')],
 })
-export class ApiDocumentationV4Component implements OnInit, OnDestroy {
+export class ApiDocumentationV4Component implements OnInit, DoCheck, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();
   api: Api;
   parentId: string;
@@ -56,6 +56,14 @@ export class ApiDocumentationV4Component implements OnInit, OnDestroy {
     private readonly apiDocumentationV2Service: ApiDocumentationV2Service,
     private readonly snackBarService: SnackBarService,
   ) {}
+
+  ngDoCheck() {
+    // TODO: remove this when ActivatedRoute available
+    // Reload the component on browser navigation (previous or forward)
+    if (this.parentId && this.parentId !== this.ajsStateParams.parentId) {
+      this.ngOnInit();
+    }
+  }
 
   ngOnInit() {
     this.parentId = this.ajsStateParams.parentId || 'ROOT';
