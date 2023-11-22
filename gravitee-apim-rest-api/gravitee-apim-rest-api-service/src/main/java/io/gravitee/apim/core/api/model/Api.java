@@ -31,15 +31,6 @@ import lombok.experimental.SuperBuilder;
 public class Api {
 
     /**
-     * Indicates that this api comes from Gravitee Management Console.
-     */
-    public static final String ORIGIN_MANAGEMENT = "management";
-    /**
-     * Mode indicating the api is fully managed by the origin and so, only the origin should be able to manage the api.
-     */
-    public static final String MODE_FULLY_MANAGED = "fully_managed";
-
-    /**
      * The api ID.
      */
     private String id;
@@ -66,17 +57,10 @@ public class Api {
     private String version;
 
     /**
-     * The origin of the api (management, kubernetes, ...). Default is {@link io.gravitee.repository.management.model.Api#ORIGIN_MANAGEMENT}.
+     * the API definition context.
      */
     @Builder.Default
-    private String origin = ORIGIN_MANAGEMENT;
-
-    /**
-     * How the api is managed by the origin (fully, api_definition_only, ...).
-     * Default is {@link io.gravitee.repository.management.model.Api#MODE_FULLY_MANAGED}.
-     */
-    @Builder.Default
-    private String mode = MODE_FULLY_MANAGED;
+    private ApiCRD.DefinitionContext definitionContext = new ApiCRD.DefinitionContext("MANAGEMENT", "FULLY_MANAGED", "MANAGEMENT");
 
     /**
      * The api definition version.

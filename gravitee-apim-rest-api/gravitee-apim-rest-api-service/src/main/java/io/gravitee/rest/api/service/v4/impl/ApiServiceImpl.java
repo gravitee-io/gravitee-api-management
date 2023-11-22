@@ -284,8 +284,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         repositoryApi.setUpdatedAt(repositoryApi.getCreatedAt());
 
         repositoryApi.setApiLifecycleState(ApiLifecycleState.CREATED);
-        if (!DefinitionContext.isKubernetes(repositoryApi.getOrigin())) {
+        if (DefinitionContext.isManagement(apiEntity.getDefinitionContext())) {
             repositoryApi.setLifecycleState(LifecycleState.STOPPED);
+        } else {
+            repositoryApi.setLifecycleState(LifecycleState.valueOf(apiEntity.getState().name()));
         }
         // Make sure visibility is PRIVATE by default if not set.
         repositoryApi.setVisibility(

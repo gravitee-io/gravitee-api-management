@@ -53,6 +53,7 @@ public interface ApiAdapter {
 
     @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
     @Mapping(source = "version", target = "apiVersion")
+    @Mapping(source = "lifecycleState", target = "state")
     ApiEntity toApiEntity(ApiWithFlow api);
 
     @Mapping(source = "state", target = "lifecycleState")
@@ -65,5 +66,6 @@ public interface ApiAdapter {
     @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
     Api fromApiEntity(GenericApiEntity apiEntity);
 
+    @Mapping(source = "state", target = "lifecycleState")
     ApiWithFlow fromCRD(ApiCRD crd);
 }
