@@ -34,6 +34,7 @@ import io.gravitee.apim.core.documentation.domain_service.DeleteApiDocumentation
 import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import java.util.List;
 import java.util.stream.Stream;
@@ -46,7 +47,7 @@ import org.junit.jupiter.api.Test;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class ApiDeleteDocumentationPageUseCaseTest {
 
-    private static final Api API = Api.builder().id("api-id").definitionVersion(Api.DefinitionVersion.V4).build();
+    private static final Api API = Api.builder().id("api-id").definitionVersion(DefinitionVersion.V4).build();
     public static final String PAGE_ID = "page-id";
     private static final String ORGANIZATION_ID = "organization-id";
     private static final String ENVIRONMENT_ID = "environment-id";

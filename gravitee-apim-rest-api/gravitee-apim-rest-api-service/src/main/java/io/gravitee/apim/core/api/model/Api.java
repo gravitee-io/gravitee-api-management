@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.core.api.model;
 
+import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.ApiType;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -155,16 +157,5 @@ public class Api {
         UNPUBLISHED,
         DEPRECATED,
         ARCHIVED,
-    }
-
-    public enum DefinitionVersion {
-        V1,
-        V2,
-        V4,
-    }
-
-    public enum ApiType {
-        PROXY,
-        MESSAGE,
     }
 }

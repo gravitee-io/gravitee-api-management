@@ -77,11 +77,7 @@ class PlanQueryServiceImplTest {
 
             when(planRepository.findByApi(eq(API_ID))).thenReturn(Set.of(plan_published, plan_closed, plan_staging, plan_different_page));
 
-            var res = service.findAllByApiIdAndGeneralConditionsAndIsActive(
-                API_ID,
-                io.gravitee.apim.core.api.model.Api.DefinitionVersion.V4,
-                PAGE_ID
-            );
+            var res = service.findAllByApiIdAndGeneralConditionsAndIsActive(API_ID, DefinitionVersion.V4, PAGE_ID);
             assertThat(res).hasSize(1);
             assertThat(res.get(0).getId()).isEqualTo("published-id");
             assertThat(res.get(0).getPlanSecurity()).isEqualTo(PlanSecurity.builder().type("api-key").build());
@@ -93,11 +89,7 @@ class PlanQueryServiceImplTest {
         void should_return_empty_list_if_no_results() {
             when(planRepository.findByApi(eq(API_ID))).thenReturn(Set.of());
 
-            var res = service.findAllByApiIdAndGeneralConditionsAndIsActive(
-                API_ID,
-                io.gravitee.apim.core.api.model.Api.DefinitionVersion.V4,
-                PAGE_ID
-            );
+            var res = service.findAllByApiIdAndGeneralConditionsAndIsActive(API_ID, DefinitionVersion.V4, PAGE_ID);
             assertThat(res).hasSize(0);
         }
     }

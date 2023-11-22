@@ -16,7 +16,6 @@
 package io.gravitee.apim.infra.adapter;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
@@ -56,10 +55,8 @@ public interface PlanAdapter {
     @Mapping(target = "security", expression = "java(computeBasePlanEntitySecurityV2(plan))")
     io.gravitee.rest.api.model.BasePlanEntity toEntityV2(Plan plan);
 
-    default GenericPlanEntity toGenericEntity(Plan plan, Api.DefinitionVersion definitionVersion) {
-        return definitionVersion == Api.DefinitionVersion.V4
-            ? PlanAdapter.INSTANCE.toEntityV4(plan)
-            : PlanAdapter.INSTANCE.toEntityV2(plan);
+    default GenericPlanEntity toGenericEntity(Plan plan, DefinitionVersion definitionVersion) {
+        return definitionVersion == DefinitionVersion.V4 ? PlanAdapter.INSTANCE.toEntityV4(plan) : PlanAdapter.INSTANCE.toEntityV2(plan);
     }
 
     @Named("computeBasePlanEntityMode")

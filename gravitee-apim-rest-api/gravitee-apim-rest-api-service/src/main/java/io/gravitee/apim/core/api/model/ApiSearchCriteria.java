@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.api.model;
 
+import io.gravitee.definition.model.DefinitionVersion;
 import java.util.List;
 import lombok.Builder;
 import lombok.Data;
@@ -35,5 +36,5 @@ public class ApiSearchCriteria {
     private String environmentId;
     private List<String> environments;
     private String crossId;
-    private List<Api.DefinitionVersion> definitionVersion;
+    private List<DefinitionVersion> definitionVersion;
 }

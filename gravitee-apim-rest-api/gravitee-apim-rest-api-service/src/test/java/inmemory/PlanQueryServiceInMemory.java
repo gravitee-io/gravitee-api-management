@@ -17,6 +17,7 @@ package inmemory;
 
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
@@ -33,7 +34,7 @@ public class PlanQueryServiceInMemory implements PlanQueryService, InMemoryAlter
     @Override
     public List<GenericPlanEntity> findAllByApiIdAndGeneralConditionsAndIsActive(
         String apiId,
-        Api.DefinitionVersion definitionVersion,
+        DefinitionVersion definitionVersion,
         String pageId
     ) {
         return storage

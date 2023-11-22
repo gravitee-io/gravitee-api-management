@@ -15,12 +15,11 @@
  */
 package io.gravitee.apim.infra.query_service.plan;
 
-import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import io.gravitee.apim.infra.adapter.PlanAdapter;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
@@ -44,7 +43,7 @@ public class PlanQueryServiceImpl implements PlanQueryService {
     @Override
     public List<GenericPlanEntity> findAllByApiIdAndGeneralConditionsAndIsActive(
         String apiId,
-        Api.DefinitionVersion definitionVersion,
+        DefinitionVersion definitionVersion,
         String pageId
     ) {
         try {
