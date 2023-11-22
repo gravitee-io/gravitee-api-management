@@ -27,6 +27,13 @@ const BASE_PAGE: Page = {
   parentId: null,
 };
 
+export function fakePage(modifier?: Partial<Page>): Page {
+  return {
+    ...BASE_PAGE,
+    ...modifier,
+  };
+}
+
 export function fakeMarkdown(modifier?: Partial<Page>): Page {
   const markdownModifier: Page = {
     content: 'my markdown content',
