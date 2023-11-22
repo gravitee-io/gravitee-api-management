@@ -22,7 +22,7 @@
   <a href="https://community.gravitee.io">
     <img src="https://img.shields.io/badge/community-join-4BC424.svg" alt="Gravitee.io Community" />
   </a>
-  <a href="https://documentation.gravitee.io">
+  <a href="https://documentation.gravitee.io/apim">
     <img src="https://img.shields.io/badge/documentation-see-4BC424.svg" alt="Gravitee.io Documentation" />
   </a>
   <a href="https://twitter.com/intent/follow?screen_name=graviteeio">
@@ -59,7 +59,7 @@ Download API Management to document, discover, and publish your APIs.
 
 ## 📚 Documentation
 
-You can find Gravitee.io API Management's documentation on the [dedicated website](https://documentation.gravitee.io/).
+You can find Gravitee.io API Management's documentation on the [dedicated website](https://documentation.gravitee.io/apim/).
 
 ## 👥 Community
 
