@@ -190,8 +190,8 @@ describe('ApiDocumentationV4', () => {
 
     it('should navigate to create page', async () => {
       await init([fakeFolder({ name: 'my first folder', visibility: 'PUBLIC' })], []);
-      const pageListHarness = await harnessLoader.getHarness(ApiDocumentationV4PagesListHarness);
-      await pageListHarness.clickAddNewPage();
+      const headerHarness = await harnessLoader.getHarness(ApiDocumentationV4ListNavigationHeaderHarness);
+      await headerHarness.clickAddNewPage();
 
       expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.documentationV4-create', {
         apiId: API_ID,

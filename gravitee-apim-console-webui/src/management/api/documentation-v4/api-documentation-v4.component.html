@@ -20,12 +20,12 @@
   <api-documentation-list-navigation-header
     [breadcrumbs]="breadcrumbs || []"
     (onAddFolder)="addFolder()"
+    (onAddPage)="addPage()"
     (onNavigateTo)="navigateTo($event)"
   ></api-documentation-list-navigation-header>
   <api-documentation-v4-pages-list
     *ngIf="pages && pages.length > 0; else emptyState"
     [pages]="pages"
-    (onAddPage)="addPage()"
     (onGoToFolder)="navigateTo($event)"
     (onEditPage)="editPage($event)"
     (onEditFolder)="editFolder($event)"
