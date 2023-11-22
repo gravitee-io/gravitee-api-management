@@ -94,6 +94,7 @@
               (click)="onEditFolder.emit(page)"
               aria-label="Edit folder"
               *gioPermission="{ anyOf: ['api-documentation-u'] }"
+              matTooltip="Edit folder"
             >
               <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
             </button>
@@ -106,6 +107,7 @@
               (click)="onEditPage.emit(page.id)"
               aria-label="Edit page"
               *gioPermission="{ anyOf: ['api-documentation-u'] }"
+              matTooltip="Edit page"
             >
               <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
             </button>
@@ -139,6 +141,7 @@
             (click)="onMoveUp.emit(page)"
             [disabled]="i === 0 || page.order === 0"
             aria-label="Move page up"
+            matTooltip="Move page up"
           >
             <mat-icon svgIcon="gio:arrow-up"></mat-icon>
           </button>
@@ -148,6 +151,7 @@
             (click)="onMoveDown.emit(page)"
             [disabled]="i === dataSource.data.length - 1"
             aria-label="Move page down"
+            matTooltip="Move page down"
           >
             <mat-icon svgIcon="gio:arrow-down"></mat-icon>
           </button>
@@ -157,6 +161,7 @@
             (click)="onDeletePage.emit(page)"
             [disabled]="page.generalConditions"
             aria-label="Delete page"
+            [matTooltip]="page.generalConditions ? 'Cannot delete page used as General Conditions' : 'Delete page'"
           >
             <mat-icon svgIcon="gio:trash"></mat-icon>
           </button>
