@@ -28,27 +28,46 @@ export class ApiDocumentationV4PageTitleComponent implements OnInit, OnChanges {
   api: Api;
 
   public apiPortalUrl: string;
+  public apiNotInPortalTooltip: string;
 
   constructor(@Inject('Constants') public readonly constants: Constants) {}
 
   ngOnInit(): void {
-    this.calculateApiPortalUrl();
+    if (this.api) {
+      this.calculateApiPortalUrl();
+      this.apiNotInPortalTooltip = this.getApiNotInPortalTooltip();
+    }
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.api) {
       this.api = changes.api.currentValue;
-      this.calculateApiPortalUrl();
+      this.ngOnInit();
     }
   }
 
   private calculateApiPortalUrl(): void {
-    if (this.api?.id && this.constants?.env?.settings?.portal?.url) {
+    if (this.api.id && this.constants?.env?.settings?.portal?.url) {
       const root = this.constants.env.settings.portal.url;
       const apiPath = 'catalog/api/' + this.api.id;
       const connector = '/';
 
       this.apiPortalUrl = root.endsWith(connector) ? root + apiPath : root + connector + apiPath;
+    }
+  }
+
+  private getApiNotInPortalTooltip(): string {
+    switch (this.api.lifecycleState) {
+      case 'DEPRECATED':
+        return 'Deprecated APIs do not appear in the Developer Portal';
+      case 'ARCHIVED':
+        return 'Archived APIs do not appear in the Developer Portal';
+      case 'CREATED':
+      case 'UNPUBLISHED':
+        return "Activate the Developer Portal by publishing your API under 'General > Info'";
+      case 'PUBLISHED':
+      default:
+        return undefined;
     }
   }
 }
