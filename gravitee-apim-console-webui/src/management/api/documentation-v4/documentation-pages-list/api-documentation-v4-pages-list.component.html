@@ -141,7 +141,7 @@
             (click)="onMoveUp.emit(page)"
             [disabled]="i === 0 || page.order === 0"
             aria-label="Move page up"
-            matTooltip="Move page up"
+            [matTooltip]="page.type === 'FOLDER' ? 'Move folder up' : 'Move page up'"
           >
             <mat-icon svgIcon="gio:arrow-up"></mat-icon>
           </button>
@@ -151,7 +151,7 @@
             (click)="onMoveDown.emit(page)"
             [disabled]="i === dataSource.data.length - 1"
             aria-label="Move page down"
-            matTooltip="Move page down"
+            [matTooltip]="page.type === 'FOLDER' ? 'Move folder down' : 'Move page down'"
           >
             <mat-icon svgIcon="gio:arrow-down"></mat-icon>
           </button>
@@ -161,7 +161,13 @@
             (click)="onDeletePage.emit(page)"
             [disabled]="page.generalConditions"
             aria-label="Delete page"
-            [matTooltip]="page.generalConditions ? 'Cannot delete page used as General Conditions' : 'Delete page'"
+            [matTooltip]="
+              page.generalConditions
+                ? 'Cannot delete page used as General Conditions'
+                : page.type === 'FOLDER'
+                ? 'Delete folder'
+                : 'Delete page'
+            "
           >
             <mat-icon svgIcon="gio:trash"></mat-icon>
           </button>
