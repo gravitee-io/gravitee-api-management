@@ -19,6 +19,7 @@ import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
+import io.gravitee.apim.core.documentation.domain_service.DocumentationValidationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.HomepageDomainService;
 import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.model.Page;
@@ -26,7 +27,9 @@ import io.gravitee.apim.core.documentation.query_service.PageQueryService;
 import java.util.Date;
 import java.util.Objects;
 import lombok.Builder;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 public class ApiUpdateDocumentationPageUseCase {
 
     private final UpdateApiDocumentationDomainService updateApiDocumentationDomainService;
@@ -35,22 +38,7 @@ public class ApiUpdateDocumentationPageUseCase {
     private final ApiCrudService apiCrudService;
     private final PageCrudService pageCrudService;
     private final PageQueryService pageQueryService;
-
-    public ApiUpdateDocumentationPageUseCase(
-        UpdateApiDocumentationDomainService updateApiDocumentationDomainService,
-        ApiDocumentationDomainService apiDocumentationDomainService,
-        HomepageDomainService homepageDomainService,
-        ApiCrudService apiCrudService,
-        PageCrudService pageCrudService,
-        PageQueryService pageQueryService
-    ) {
-        this.updateApiDocumentationDomainService = updateApiDocumentationDomainService;
-        this.apiDocumentationDomainService = apiDocumentationDomainService;
-        this.homepageDomainService = homepageDomainService;
-        this.apiCrudService = apiCrudService;
-        this.pageCrudService = pageCrudService;
-        this.pageQueryService = pageQueryService;
-    }
+    private final DocumentationValidationDomainService documentationValidationDomainService;
 
     public Output execute(Input input) {
         var api = this.apiCrudService.get(input.apiId);
@@ -60,9 +48,10 @@ public class ApiUpdateDocumentationPageUseCase {
 
         Page.PageBuilder newPage = oldPage.toBuilder();
 
-        if (!Objects.equals(oldPage.getName(), input.name)) {
-            this.apiDocumentationDomainService.validateNameIsUnique(input.apiId, oldPage.getParentId(), input.name, oldPage.getType());
-            newPage.name(input.name);
+        var name = documentationValidationDomainService.sanitizeDocumentationName(input.name);
+        if (!Objects.equals(oldPage.getName(), name)) {
+            this.apiDocumentationDomainService.validateNameIsUnique(input.apiId, oldPage.getParentId(), name, oldPage.getType());
+            newPage.name(name);
         }
 
         if (oldPage.isMarkdown() && !Objects.equals(oldPage.getContent(), input.content)) {

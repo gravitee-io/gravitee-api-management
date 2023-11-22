@@ -24,8 +24,10 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
+import io.gravitee.apim.core.documentation.domain_service.DocumentationValidationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.HomepageDomainService;
 import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentationDomainService;
+import io.gravitee.apim.core.documentation.exception.InvalidPageNameException;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
@@ -37,6 +39,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class ApiUpdateDocumentationPageUseCaseTest {
 
@@ -97,6 +102,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
     private final PageRevisionCrudServiceInMemory pageRevisionCrudService = new PageRevisionCrudServiceInMemory();
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     private final PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory();
+    private final DocumentationValidationDomainService documentationValidationDomainService = new DocumentationValidationDomainService();
     AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
     UpdateApiDocumentationDomainService updateApiDocumentationDomainService;
@@ -117,7 +123,8 @@ class ApiUpdateDocumentationPageUseCaseTest {
                 new HomepageDomainService(pageQueryService, pageCrudService),
                 apiCrudService,
                 pageCrudService,
-                pageQueryService
+                pageQueryService,
+                documentationValidationDomainService
             );
     }
 
@@ -144,7 +151,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
                     .order(24)
                     .visibility(Page.Visibility.PRIVATE)
                     .content("new content")
-                    .name("new name")
+                    .name("new name   ")
                     .auditInfo(AUDIT_INFO)
                     .build()
             );
@@ -388,6 +395,31 @@ class ApiUpdateDocumentationPageUseCaseTest {
                     )
                 )
                 .isInstanceOf(ValidationDomainException.class);
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = { "  " })
+        @NullAndEmptySource
+        void should_throw_error_if_page_name_is_null_or_empty(String name) {
+            initApiServices(List.of(Api.builder().id(API_ID).build()));
+            initPageServices(List.of(PARENT_FOLDER, OLD_MARKDOWN_PAGE));
+
+            assertThatThrownBy(() ->
+                    apiUpdateDocumentationPageUsecase.execute(
+                        ApiUpdateDocumentationPageUseCase.Input
+                            .builder()
+                            .apiId(API_ID)
+                            .pageId(PAGE_ID)
+                            .order(OLD_MARKDOWN_PAGE.getOrder())
+                            .visibility(OLD_MARKDOWN_PAGE.getVisibility())
+                            .content("new content")
+                            .name(name)
+                            .homepage(OLD_MARKDOWN_PAGE.isHomepage())
+                            .auditInfo(AUDIT_INFO)
+                            .build()
+                    )
+                )
+                .isInstanceOf(InvalidPageNameException.class);
         }
     }
 

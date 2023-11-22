@@ -209,7 +209,8 @@ public class UsecaseSpringConfiguration {
         HomepageDomainService homepageDomainService,
         ApiCrudService apiCrudService,
         PageCrudService pageCrudService,
-        PageQueryService pageQueryService
+        PageQueryService pageQueryService,
+        DocumentationValidationDomainService documentationValidationDomainService
     ) {
         return new ApiUpdateDocumentationPageUseCase(
             updateApiDocumentationDomainService,
@@ -217,7 +218,8 @@ public class UsecaseSpringConfiguration {
             homepageDomainService,
             apiCrudService,
             pageCrudService,
-            pageQueryService
+            pageQueryService,
+            documentationValidationDomainService
         );
     }
 
