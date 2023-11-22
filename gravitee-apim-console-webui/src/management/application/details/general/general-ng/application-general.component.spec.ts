@@ -107,7 +107,6 @@ describe('ApplicationGeneralInfoComponent', () => {
         api_key_mode: 'UNSPECIFIED',
         background: null,
         description: 'My default application',
-        domain: null,
         name: 'new test name',
         picture: null,
         settings: {
@@ -150,7 +149,6 @@ describe('ApplicationGeneralInfoComponent', () => {
         api_key_mode: 'UNSPECIFIED',
         background: null,
         description: 'My default application',
-        domain: null,
         name: 'Default application',
         picture: null,
         settings: {
@@ -187,7 +185,6 @@ describe('ApplicationGeneralInfoComponent', () => {
         api_key_mode: 'UNSPECIFIED',
         background: null,
         description: 'My default application',
-        domain: null,
         name: 'Default application',
         picture: null,
         settings: {
@@ -202,6 +199,23 @@ describe('ApplicationGeneralInfoComponent', () => {
           },
         },
       });
+    });
+  });
+
+  describe('Application General details status is ARCHIVED', () => {
+    it('details form should be set to readonly', async () => {
+      const applicationDetails = fakeApplication({ status: 'ARCHIVED' });
+      const applicationType = fakeApplicationType();
+      expectListApplicationRequest(applicationDetails);
+      expectApplicationTypeRequest(applicationType);
+      fixture.detectChanges();
+      await waitImageCheck();
+
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      expect(await saveBar.isVisible()).toBe(false);
+
+      const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="client_id"]' }));
+      expect(await nameInput.isDisabled()).toEqual(true);
     });
   });
 

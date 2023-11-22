@@ -33,6 +33,7 @@ export class ApplicationGeneralComponent implements OnInit {
   public applicationType: ApplicationType;
   public applicationForm: FormGroup;
   public isLoadingData = true;
+  public isReadOnly = false;
   public initialApplicationGeneralFormsValue: unknown;
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
@@ -57,17 +58,24 @@ export class ApplicationGeneralComponent implements OnInit {
       )
       .subscribe(() => {
         this.isLoadingData = false;
+        this.isReadOnly = this.initialApplication.status === 'ARCHIVED';
 
         this.applicationForm = new FormGroup({
           details: new FormGroup({
-            name: new FormControl(this.initialApplication.name),
-            description: new FormControl(this.initialApplication.description),
-            domain: new FormControl(this.initialApplication.domain),
-            type: new FormControl(this.initialApplication.type),
+            name: new FormControl({ value: this.initialApplication.name, disabled: this.isReadOnly }),
+            description: new FormControl({ value: this.initialApplication.description, disabled: this.isReadOnly }),
+            domain: new FormControl({ value: this.initialApplication.domain, disabled: this.isReadOnly }),
+            type: new FormControl({ value: this.initialApplication.type, disabled: this.isReadOnly }),
           }),
           images: new FormGroup({
-            picture: new FormControl(this.initialApplication.picture ? [this.initialApplication.picture] : undefined),
-            background: new FormControl(this.initialApplication.background ? [this.initialApplication.background] : undefined),
+            picture: new FormControl({
+              value: this.initialApplication.picture ? [this.initialApplication.picture] : undefined,
+              disabled: this.isReadOnly,
+            }),
+            background: new FormControl({
+              value: this.initialApplication.background ? [this.initialApplication.background] : undefined,
+              disabled: this.isReadOnly,
+            }),
           }),
         });
 
@@ -75,30 +83,43 @@ export class ApplicationGeneralComponent implements OnInit {
           this.applicationForm.addControl(
             'OAuth2Form',
             new FormGroup({
-              client_id: new FormControl(
-                this.initialApplication.settings?.app?.client_id ? this.initialApplication.settings.app.client_id : undefined,
-              ),
+              client_id: new FormControl({
+                value: this.initialApplication.settings?.app?.client_id ? this.initialApplication.settings.app.client_id : undefined,
+                disabled: this.isReadOnly,
+              }),
             }),
           );
         }
 
-        if (this.initialApplication.type === 'NATIVE') {
+        if (this.initialApplication.type !== 'SIMPLE') {
           this.applicationForm.addControl(
             'OpenIDForm',
             new FormGroup({
-              client_id: new FormControl(
-                this.initialApplication.settings?.oauth?.client_id ? this.initialApplication.settings.oauth.client_id : undefined,
-              ),
-              client_secret: new FormControl(
-                this.initialApplication.settings?.oauth?.client_secret ? this.initialApplication.settings.oauth.client_secret : undefined,
-              ),
+              client_id: new FormControl({
+                value: this.initialApplication.settings?.oauth?.client_id ? this.initialApplication.settings.oauth.client_id : undefined,
+                disabled: this.isReadOnly,
+              }),
+              client_secret: new FormControl({
+                value: this.initialApplication.settings?.oauth?.client_secret
+                  ? this.initialApplication.settings.oauth.client_secret
+                  : undefined,
+                disabled: this.isReadOnly,
+              }),
               grant_types: new FormControl(
-                this.initialApplication.settings?.oauth?.grant_types ? this.initialApplication.settings.oauth.grant_types : undefined,
+                {
+                  value: this.initialApplication.settings?.oauth?.grant_types
+                    ? this.initialApplication.settings.oauth.grant_types
+                    : undefined,
+                  disabled: this.isReadOnly,
+                },
                 [Validators.required],
               ),
-              redirect_uris: new FormControl(
-                this.initialApplication.settings?.oauth?.redirect_uris ? this.initialApplication.settings.oauth.redirect_uris : undefined,
-              ),
+              redirect_uris: new FormControl({
+                value: this.initialApplication.settings?.oauth?.redirect_uris
+                  ? this.initialApplication.settings.oauth.redirect_uris
+                  : undefined,
+                disabled: this.isReadOnly,
+              }),
             }),
           );
         }
