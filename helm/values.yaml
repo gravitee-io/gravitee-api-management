@@ -724,6 +724,8 @@ gateway:
     maxInitialLineLength: 4096
     maxFormAttributeSize: 2048
     alpn: "true"
+    requestTimeout: 30000
+    requestTimeoutGraceDelay: 30
   logging:
     debug: false
     stdout:
