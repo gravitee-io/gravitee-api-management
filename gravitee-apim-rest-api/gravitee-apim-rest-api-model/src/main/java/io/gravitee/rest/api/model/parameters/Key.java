@@ -97,7 +97,7 @@ public enum Key {
 
     DOCUMENTATION_URL(
         "documentation.url",
-        "https://documentation.gravitee.io",
+        "https://documentation.gravitee.io/apim",
         new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))
     ),
 

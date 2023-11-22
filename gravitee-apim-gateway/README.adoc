@@ -13,7 +13,7 @@ Unlike traditional HTTP proxy, the gateway is able to apply policies (ie. rules)
 
 == Documentation
 
-You can find Gravitee.io API Management documentation from https://documentation.gravitee.io/[Gravitee.io website].
+You can find Gravitee.io API Management documentation from https://documentation.gravitee.io/apim[Gravitee.io website].
 
 == Building
 
