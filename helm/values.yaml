@@ -1278,7 +1278,7 @@ ui:
   companyName: Gravitee.io
   title: Management UI
   managementTitle: API Management
-  documentationLink: http://documentation.gravitee.io/
+  documentationLink: https://documentation.gravitee.io/
   scheduler:
     tasks: 10
   theme:
