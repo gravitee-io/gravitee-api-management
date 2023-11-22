@@ -45,3 +45,40 @@ tests:
           path: data.[gravitee.yml]
           pattern: |
             alpn: false
+
+  - it: Default timeouts (30 000 & 30)
+    template: gateway/gateway-configmap.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: ConfigMap
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: |
+            requestTimeout: 30000
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: |
+            requestTimeoutGraceDelay: 30
+
+  - it: Custom timeouts
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        http:
+          requestTimeout: 60000
+          requestTimeoutGraceDelay: 60
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: ConfigMap
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: |
+            requestTimeout: 60000
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: |
+            requestTimeoutGraceDelay: 60
