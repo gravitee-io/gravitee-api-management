@@ -14,12 +14,17 @@ $typography: map.get(gio.$mat-theme, typography);
   &__item {
     @include mat.typography-level($typography, 'body-2');
     color: mat.get-color-from-palette(gio.$mat-space-palette, 'default');
+    max-width: 250px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 
   &__item:last-of-type:not(:only-of-type) {
     @include mat.typography-level($typography, 'body-2');
     color: mat.get-color-from-palette(gio.$mat-space-palette, 'default');
     background-color: mat.get-color-from-palette(gio.$mat-dove-palette, 'default');
+    max-width: none;
   }
 }
 
