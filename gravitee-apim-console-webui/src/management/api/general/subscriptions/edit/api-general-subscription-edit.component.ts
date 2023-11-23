@@ -16,10 +16,10 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { EMPTY, Observable, Subject } from 'rxjs';
 import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { StateService } from '@uirouter/core';
 import { DatePipe } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
 import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import {
   PlanMode,
@@ -28,7 +28,6 @@ import {
   SubscriptionStatus,
 } from '../../../../../entities/management-api-v2';
 import { ApiSubscriptionV2Service } from '../../../../../services-ngx/api-subscription-v2.service';
-import { UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import {
   ApiPortalSubscriptionTransferDialogComponent,
   ApiPortalSubscriptionTransferDialogData,
@@ -108,8 +107,8 @@ export class ApiGeneralSubscriptionEditComponent implements OnInit {
   private canUseCustomApiKey: boolean;
 
   constructor(
-    @Inject(UIRouterStateParams) private readonly ajsStateParams,
-    @Inject(UIRouterState) private readonly ajsState: StateService,
+    private readonly router: Router,
+    private readonly activatedRoute: ActivatedRoute,
     @Inject('Constants') private readonly constants: Constants,
     private readonly apiSubscriptionService: ApiSubscriptionV2Service,
     private datePipe: DatePipe,
@@ -118,7 +117,7 @@ export class ApiGeneralSubscriptionEditComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.apiId = this.ajsStateParams.apiId;
+    this.apiId = this.activatedRoute.snapshot.params.apiId;
     this.canUseCustomApiKey = this.constants.env?.settings?.plan?.security?.customApiKey?.enabled;
     this.displayedColumns = ['key', 'createdAt', 'endDate', 'actions'];
     this.apiKeys = [];
@@ -126,7 +125,7 @@ export class ApiGeneralSubscriptionEditComponent implements OnInit {
     this.hasSharedApiKeyMode = false;
 
     this.apiSubscriptionService
-      .getById(this.apiId, this.ajsStateParams.subscriptionId, ['plan', 'application', 'subscribedBy'])
+      .getById(this.apiId, this.activatedRoute.snapshot.params.subscriptionId, ['plan', 'application', 'subscribedBy'])
       .pipe(
         switchMap((subscription) => {
           if (subscription) {
@@ -524,10 +523,6 @@ export class ApiGeneralSubscriptionEditComponent implements OnInit {
     if (this.apiKeys.length < this.apiKeysTotalCount || $event.pagination.size <= this.apiKeysTotalCount) {
       this.getApiKeysList($event.pagination.index, $event.pagination.size).subscribe();
     }
-  }
-
-  goBackToSubscriptions() {
-    this.ajsState.go('management.apis.subscriptions');
   }
 
   private serializeDate(date: Date): string {

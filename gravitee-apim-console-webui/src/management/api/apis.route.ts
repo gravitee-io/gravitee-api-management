@@ -1730,6 +1730,28 @@ const apisRoutes: Routes = [
         },
       },
       {
+        path: 'subscriptions',
+        component: ApiGeneralSubscriptionListComponent,
+        data: {
+          useAngularMaterial: true,
+          docs: null,
+          apiPermissions: {
+            only: ['api-subscription-r'],
+          },
+        },
+      },
+      {
+        path: 'subscriptions/:subscriptionId',
+        component: ApiGeneralSubscriptionEditComponent,
+        data: {
+          useAngularMaterial: true,
+          docs: null,
+          apiPermissions: {
+            only: ['api-subscription-r', 'api-subscription-u'],
+          },
+        },
+      },
+      {
         path: 'documentation/new',
         component: DocumentationNewPageComponent,
         data: {

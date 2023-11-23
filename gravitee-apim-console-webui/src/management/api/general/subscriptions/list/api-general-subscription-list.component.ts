@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { BehaviorSubject, EMPTY, Observable, of, Subject } from 'rxjs';
-import { StateService } from '@uirouter/core';
 import { isEqual } from 'lodash';
 import { FormControl, FormGroup } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { AutocompleteOptions } from '@gravitee/ui-particles-angular';
 import * as _ from 'lodash';
+import { ActivatedRoute, Router } from '@angular/router';
 
-import { UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { SubscriptionStatus } from '../../../../../entities/subscription/subscription';
 import { GioTableWrapperFilters } from '../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { ApiSubscriptionV2Service } from '../../../../../services-ngx/api-subscription-v2.service';
@@ -102,8 +101,8 @@ export class ApiGeneralSubscriptionListComponent implements OnInit, OnDestroy {
   public canUpdate = false;
   private isKubernetesOrigin = false;
   constructor(
-    @Inject(UIRouterStateParams) private readonly ajsStateParams,
-    @Inject(UIRouterState) private readonly ajsState: StateService,
+    private readonly router: Router,
+    private readonly activatedRoute: ActivatedRoute,
     private readonly apiService: ApiV2Service,
     private readonly apiPlanService: ApiPlanV2Service,
     private readonly apiSubscriptionService: ApiSubscriptionV2Service,
@@ -136,7 +135,7 @@ export class ApiGeneralSubscriptionListComponent implements OnInit, OnDestroy {
       );
 
     this.apiService
-      .get(this.ajsStateParams.apiId)
+      .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
         tap((api) => {
           this.api = api;
@@ -146,7 +145,7 @@ export class ApiGeneralSubscriptionListComponent implements OnInit, OnDestroy {
             !this.isKubernetesOrigin &&
             this.api.definitionVersion !== 'V1';
         }),
-        switchMap(() => this.apiPlanService.list(this.ajsStateParams.apiId, null, null, null, 1, 9999)),
+        switchMap(() => this.apiPlanService.list(this.activatedRoute.snapshot.params.apiId, null, null, null, 1, 9999)),
         tap((plansResponse) => (this.plans = plansResponse.data)),
         catchError((error) => {
           this.snackBarService.error(error.message);
@@ -162,9 +161,9 @@ export class ApiGeneralSubscriptionListComponent implements OnInit, OnDestroy {
         distinctUntilChanged(isEqual),
         tap(({ subscriptionsFilters, tableWrapper }) => {
           // Change url params
-          this.ajsState.go(
-            '.',
-            {
+          this.router.navigate(['.'], {
+            relativeTo: this.activatedRoute,
+            queryParams: {
               page: tableWrapper.pagination.index,
               size: tableWrapper.pagination.size,
               status: subscriptionsFilters.statuses?.join(','),
@@ -172,8 +171,7 @@ export class ApiGeneralSubscriptionListComponent implements OnInit, OnDestroy {
               application: subscriptionsFilters.applicationIds?.join(','),
               apiKey: subscriptionsFilters.apiKey,
             },
-            { notify: false },
-          );
+          });
         }),
         tap(({ subscriptionsFilters }) => {
           this.filtersForm.get('planIds').setValue(subscriptionsFilters.planIds);
@@ -184,7 +182,7 @@ export class ApiGeneralSubscriptionListComponent implements OnInit, OnDestroy {
         switchMap(({ subscriptionsFilters, tableWrapper }) =>
           this.apiSubscriptionService
             .list(
-              this.ajsStateParams.apiId,
+              this.activatedRoute.snapshot.params.apiId,
               tableWrapper.pagination.index,
               tableWrapper.pagination.size,
               subscriptionsFilters.statuses,
@@ -223,12 +221,8 @@ export class ApiGeneralSubscriptionListComponent implements OnInit, OnDestroy {
     this.unsubscribe$.unsubscribe();
   }
 
-  public navigateToSubscription(subscriptionId: string): void {
-    this.ajsState.go(`management.apis.subscription.edit`, { subscriptionId });
-  }
-
   public exportAsCSV(): void {
-    const apiId = this.ajsStateParams.apiId;
+    const apiId = this.activatedRoute.snapshot.params.apiId;
     const page = '1';
     const perPage = `${this.nbTotalSubscriptions}`;
     const planIds: string[] = this.filtersStream.value.subscriptionsFilters.statuses;
@@ -288,7 +282,9 @@ export class ApiGeneralSubscriptionListComponent implements OnInit, OnDestroy {
       .subscribe(
         (subscription) => {
           this.snackBarService.success(`Subscription successfully created`);
-          this.ajsState.go('management.apis.subscription.edit', { subscriptionId: subscription.id });
+          this.router.navigate(['.', subscription.id], {
+            relativeTo: this.activatedRoute,
+          });
         },
         (err) => this.snackBarService.error(err.message),
       );
@@ -299,12 +295,18 @@ export class ApiGeneralSubscriptionListComponent implements OnInit, OnDestroy {
   }
 
   private initFilters() {
-    const initialPageNumber = this.ajsStateParams.page ? Number(this.ajsStateParams.page) : 1;
-    const initialPageSize = this.ajsStateParams.size ? Number(this.ajsStateParams.size) : 10;
-    const initialPlanIds: string[] = this.ajsStateParams.plan ? this.ajsStateParams.plan.split(',') : null;
-    const initialApplicationIds = this.ajsStateParams.application ? this.ajsStateParams.application.split(',') : null;
-    const initialStatuses = this.ajsStateParams.status ? this.ajsStateParams.status.split(',') : ['ACCEPTED', 'PAUSED', 'PENDING'];
-    const initialApiKey = this.ajsStateParams.apiKey ? this.ajsStateParams.apiKey : undefined;
+    const initialPageNumber = this.activatedRoute.snapshot.queryParams?.page ? Number(this.activatedRoute.snapshot.queryParams.page) : 1;
+    const initialPageSize = this.activatedRoute.snapshot.queryParams?.size ? Number(this.activatedRoute.snapshot.queryParams.size) : 10;
+    const initialPlanIds: string[] = this.activatedRoute.snapshot.queryParams?.plan
+      ? this.activatedRoute.snapshot.queryParams.plan.split(',')
+      : null;
+    const initialApplicationIds = this.activatedRoute.snapshot.queryParams?.application
+      ? this.activatedRoute.snapshot.queryParams.application.split(',')
+      : null;
+    const initialStatuses = this.activatedRoute.snapshot.queryParams?.status
+      ? this.activatedRoute.snapshot.queryParams.status.split(',')
+      : ['ACCEPTED', 'PAUSED', 'PENDING'];
+    const initialApiKey = this.activatedRoute.snapshot.queryParams?.apiKey ? this.activatedRoute.snapshot.queryParams.apiKey : undefined;
 
     this.filtersForm = new FormGroup({
       planIds: new FormControl(initialPlanIds),
@@ -351,7 +353,7 @@ export class ApiGeneralSubscriptionListComponent implements OnInit, OnDestroy {
   }
 
   public searchApplications: (searchTerm: string) => Observable<AutocompleteOptions> = (searchTerm: string) => {
-    return this.apiService.getSubscribers(this.ajsStateParams.apiId, searchTerm, 1, 20).pipe(
+    return this.apiService.getSubscribers(this.activatedRoute.snapshot.params.apiId, searchTerm, 1, 20).pipe(
       map((subscribers) =>
         subscribers?.data?.map((subscriber) => ({
           value: subscriber.id,

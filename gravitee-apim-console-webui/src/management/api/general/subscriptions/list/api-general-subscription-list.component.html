@@ -161,12 +161,7 @@
       <td mat-cell *matCellDef="let element">
         <div class="subscriptions__table__actions">
           <ng-container *ngIf="canUpdate; else readOnlyPlanActions">
-            <button
-              mat-icon-button
-              aria-label="Edit the subscription"
-              matTooltip="Edit the subscription"
-              (click)="navigateToSubscription(element.id)"
-            >
+            <button mat-icon-button aria-label="Edit the subscription" matTooltip="Edit the subscription" [routerLink]="'./' + element.id">
               <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
             </button>
           </ng-container>
@@ -176,7 +171,7 @@
               mat-icon-button
               aria-label="View the subscription details"
               matTooltip="View the subscription details"
-              (click)="navigateToSubscription(element.id)"
+              [routerLink]="'./' + element.id"
             >
               <mat-icon svgIcon="gio:eye-empty"></mat-icon>
             </button>
