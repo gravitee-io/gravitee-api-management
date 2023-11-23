@@ -1848,6 +1848,19 @@ const apisRoutes: Routes = [
           useAngularMaterial: true,
         },
       },
+      {
+        path: 'cors',
+        component: ApiProxyCorsComponent,
+        data: {
+          apiPermissions: {
+            only: ['api-definition-r'],
+          },
+          docs: {
+            page: 'management-api-proxy',
+          },
+          useAngularMaterial: true,
+        },
+      },
 
       /**
        * V1 Api state only

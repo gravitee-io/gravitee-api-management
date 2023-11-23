@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { EMPTY, Subject } from 'rxjs';
 import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { ActivatedRoute } from '@angular/router';
 
-import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { CorsUtil } from '../../../../shared/utils';
@@ -43,8 +43,8 @@ export class ApiProxyCorsComponent implements OnInit, OnDestroy {
   private allowAllOriginsConfirmDialog?: MatDialogRef<GioConfirmDialogComponent, boolean>;
 
   constructor(
+    public readonly activatedRoute: ActivatedRoute,
     private readonly matDialog: MatDialog,
-    @Inject(UIRouterStateParams) private readonly ajsStateParams,
     private readonly apiService: ApiV2Service,
     private readonly snackBarService: SnackBarService,
     private readonly permissionService: GioPermissionService,
@@ -52,7 +52,7 @@ export class ApiProxyCorsComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.apiService
-      .get(this.ajsStateParams.apiId)
+      .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
         onlyApiV1V2Filter(this.snackBarService),
         tap((api) => {
@@ -155,7 +155,7 @@ export class ApiProxyCorsComponent implements OnInit, OnDestroy {
     const corsFormValue = this.corsForm.getRawValue();
 
     return this.apiService
-      .get(this.ajsStateParams.apiId)
+      .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
         onlyApiV2Filter(this.snackBarService),
         switchMap((api) =>
