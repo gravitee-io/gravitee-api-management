@@ -50,5 +50,25 @@ export function getJiraIssuesOfVersion(versionId) {
           issue.fields.issuetype.name === 'Public Security' ||
           issue.fields.issuetype.name === 'Public Improvement',
       ),
-    );
+    )
+    .then(async (issues) => {
+      // For each issue with empty GitHub field, get the remote link and extract the GitHub issue number
+      for (const issue of issues.filter((issue) => !issue.fields.customfield_10115)) {
+        const remoteLinks = await fetch(`https://gravitee.atlassian.net/rest/api/3/issue/${issue.key}/remotelink`, {
+          method: 'GET',
+          headers: {
+            Authorization: `Basic ${token}`,
+            Accept: 'application/json',
+          },
+        }).then((response) => response.json());
+
+        const githubIssue = remoteLinks.find((remoteLink) =>
+          remoteLink.object.url.includes('https://github.com/gravitee-io/issues/issues/'),
+        );
+        if (githubIssue) {
+          issue.fields.customfield_10115 = githubIssue.object.url.replace('https://github.com/gravitee-io/issues/issues/', '');
+        }
+      }
+      return issues;
+    });
 }
