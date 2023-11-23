@@ -1,7 +1,19 @@
+export const ComponentTypes = ['Gateway', 'Management API', 'Console', 'Portal', 'Helm Charts'];
+export const ChangelogSections = [
+  {
+    ticketType: 'Public Bug',
+    title: 'BugFixes',
+  },
+  {
+    ticketType: 'Public Improvement',
+    title: 'Improvements',
+  },
+];
+
 /**
  * Get the Ascii doc formatted changelog for input issues
  *
- * @param issues {Array<{id: string, githubIssue: string, fields: Array<{summary: string}>}>}
+ * @param issues {Array<{id: string, githubIssue: string, summary: string, components: Array<string>, type: string>}
  */
 export function getChangelogFor(issues) {
   return issues
@@ -22,7 +34,34 @@ export function getChangelogFor(issues) {
       }
 
       return `* ${issue.summary}`;
-
     })
     .join('\n');
+}
+
+/**
+ * Get the tickets for a given component and a given type of tickets. If type is 'Other', it will return tickets that are not in the ComponentTypes list.
+ *
+ * @param issues {Array<{id: string, githubIssue: string, summary: string, components: Array<string>, type: string>}
+ * @param componentType {ComponentTypes | 'Other'}
+ * @param ticketType {'Public Bug' | 'Public Improvement'}
+ */
+export function getTicketsFor(issues, componentType, ticketType) {
+  let componentsTickets;
+  if (componentType === 'Other') {
+    componentsTickets = issues.filter(
+      (issue) => issue.type === ticketType && issue.components.every((cmp) => !ComponentTypes.includes(cmp.name)),
+    );
+  } else {
+    componentsTickets = issues.filter((issue) => issue.type === ticketType && issue.components.some((cmp) => cmp.name === componentType));
+  }
+  let ticketsForComponent;
+  if (componentsTickets.length > 0) {
+    ticketsForComponent = `**${componentType}**
+
+${getChangelogFor(componentsTickets)}
+
+`;
+  }
+
+  return ticketsForComponent;
 }
