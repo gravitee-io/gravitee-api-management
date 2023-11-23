@@ -16,6 +16,8 @@
 package io.gravitee.apim.integration.tests.http;
 
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
+import io.gravitee.apim.gateway.tests.sdk.annotations.DeployOrganization;
+import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
@@ -23,22 +25,45 @@ import io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnectorFactory;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.entrypoint.http.proxy.HttpProxyEntrypointConnectorFactory;
 import java.util.Map;
+import org.junit.jupiter.api.Nested;
 
 /**
  * @author Benoit Bordigoni (benoit.bordigoni at graviteesource.com)
  * @author Gravitee Team
  */
-
-@DeployApi({ "/apis/v4/http/api.json", "/apis/v4/http/api-latency.json" })
 class HttpRequestTimeoutV4IntegrationTest extends HttpRequestTimeoutV4EmulationIntegrationTest {
 
-    @Override
-    public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-        entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+    @Nested
+    @GatewayTest
+    @DeployApi({ "/apis/v4/http/api.json", "/apis/v4/http/api-latency.json" })
+    @DeployOrganization("/organizations/organization-add-header.json")
+    class OrganizationWithAddHeader extends HttpRequestTimeoutV4EmulationIntegrationTest.OrganizationWithAddHeader {
+
+        @Override
+        public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
+            entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+        }
+
+        @Override
+        public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
+            endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+        }
     }
 
-    @Override
-    public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-        endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+    @Nested
+    @GatewayTest
+    @DeployApi({ "/apis/v4/http/api.json" })
+    @DeployOrganization("/organizations/organization-add-header-and-latency.json")
+    class OrganizationWithAddHeaderAndLatency extends HttpRequestTimeoutV4EmulationIntegrationTest.OrganizationWithAddHeaderAndLatency {
+
+        @Override
+        public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
+            entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+        }
+
+        @Override
+        public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
+            endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+        }
     }
 }
