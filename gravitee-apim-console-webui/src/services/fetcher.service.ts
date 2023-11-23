@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Injector } from '@angular/core';
+
 class FetcherService {
   constructor(private $http, private Constants) {}
 
@@ -24,3 +26,9 @@ class FetcherService {
 FetcherService.$inject = ['$http', 'Constants'];
 
 export default FetcherService;
+
+export const ajsFetcherServiceProvider = {
+  deps: ['$injector'],
+  provide: 'ajsFetcherService',
+  useFactory: (injector: Injector) => injector.get('FetcherService'),
+};

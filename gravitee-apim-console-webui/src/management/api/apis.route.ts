@@ -1764,6 +1764,30 @@ const apisRoutes: Routes = [
         },
       },
       {
+        path: 'documentation/import',
+        component: DocumentationImportPagesComponent,
+        data: {
+          docs: {
+            page: 'management-api-documentation',
+          },
+          apiPermissions: {
+            only: ['api-documentation-c'],
+          },
+        },
+      },
+      {
+        path: 'documentation/:pageId',
+        component: DocumentationEditPageComponent,
+        data: {
+          docs: {
+            page: 'management-api-documentation',
+          },
+          apiPermissions: {
+            only: ['api-documentation-c'],
+          },
+        },
+      },
+      {
         path: 'documentation',
         component: DocumentationManagementComponent,
         data: {

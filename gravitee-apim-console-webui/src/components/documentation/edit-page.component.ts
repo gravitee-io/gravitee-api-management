@@ -14,8 +14,14 @@
  * limitations under the License.
  */
 
-import { Component, ElementRef, Injector, Input, SimpleChange } from '@angular/core';
+import { Component, ElementRef, Inject, Injector, SimpleChange } from '@angular/core';
 import { UpgradeComponent } from '@angular/upgrade/static';
+import { ActivatedRoute } from '@angular/router';
+
+import { DocumentationService } from '../../services/documentation.service';
+import FetcherService from '../../services/fetcher.service';
+import CategoryService from '../../services/category.service';
+import { GroupService } from '../../services-ngx/group.service';
 
 @Component({
   template: '',
@@ -25,35 +31,97 @@ import { UpgradeComponent } from '@angular/upgrade/static';
   },
 })
 export class DocumentationEditPageComponent extends UpgradeComponent {
-  @Input() resolvedPage;
-  @Input() resolvedGroups;
-  @Input() resolvedFetchers;
-  @Input() pagesToLink;
-  @Input() folders;
-  @Input() systemFolders;
-  @Input() pageResources;
-  @Input() categoryResources;
-  @Input() attachedResources;
-
-  constructor(elementRef: ElementRef, injector: Injector) {
+  constructor(
+    elementRef: ElementRef,
+    injector: Injector,
+    public readonly activatedRoute: ActivatedRoute,
+    public readonly groupService: GroupService,
+    @Inject('ajsDocumentationService') private readonly ajsDocumentationService: DocumentationService,
+    @Inject('ajsFetcherService') private readonly ajsFetcherService: FetcherService,
+    @Inject('ajsCategoryService') private readonly ajsCategoryService: CategoryService,
+  ) {
     super('documentationEditPageAjs', elementRef, injector);
   }
 
   ngOnInit() {
-    // Hack to Force the binding between Angular and AngularJS
-    // Don't know why, but the binding is not done automatically when resolver is used
-    this.ngOnChanges({
-      resolvedPage: new SimpleChange(null, this.resolvedPage, true),
-      resolvedGroups: new SimpleChange(null, this.resolvedGroups, true),
-      resolvedFetchers: new SimpleChange(null, this.resolvedFetchers, true),
-      pagesToLink: new SimpleChange(null, this.pagesToLink, true),
-      folders: new SimpleChange(null, this.folders, true),
-      systemFolders: new SimpleChange(null, this.systemFolders, true),
-      pageResources: new SimpleChange(null, this.pageResources, true),
-      categoryResources: new SimpleChange(null, this.categoryResources, true),
-      attachedResources: new SimpleChange(null, this.attachedResources, true),
-    });
+    const apiId = this.activatedRoute.snapshot.params.apiId;
+    const pageId = this.activatedRoute.snapshot.params.pageId;
+    const type = this.activatedRoute.snapshot.queryParams.type;
 
-    super.ngOnInit();
+    Promise.all([
+      this.ajsFetcherService.list().then((response) => {
+        return response.data;
+      }),
+      this.ajsDocumentationService.get(apiId, pageId).then((response) => response.data),
+      this.groupService.list().toPromise(),
+      this.ajsDocumentationService
+        .search(
+          {
+            type: 'FOLDER',
+          },
+          apiId,
+        )
+        .then((response) => response.data),
+      this.ajsDocumentationService
+        .search(
+          {
+            type: 'SYSTEM_FOLDER',
+          },
+          apiId,
+        )
+        .then((response) => response.data),
+      type === 'LINK' ? this.ajsDocumentationService.search({}, apiId).then((response) => response.data) : Promise.resolve(null),
+      type === 'LINK' ? this.ajsCategoryService.list().then((response) => response.data) : Promise.resolve(null),
+      type === 'MARKDOWN' || type === 'MARKDOWN_TEMPLATE'
+        ? this.ajsDocumentationService
+            .search(
+              {
+                homepage: false,
+                published: true,
+              },
+              apiId,
+            )
+            .then((response) =>
+              response.data.filter(
+                (page) =>
+                  page.type.toUpperCase() === 'MARKDOWN' ||
+                  page.type.toUpperCase() === 'SWAGGER' ||
+                  page.type.toUpperCase() === 'ASCIIDOC' ||
+                  page.type.toUpperCase() === 'ASYNCAPI',
+              ),
+            )
+        : Promise.resolve(null),
+      type === 'MARKDOWN' || type === 'ASCIIDOC' || type === 'ASYNCAPI'
+        ? this.ajsDocumentationService.getMedia(pageId, apiId).then((response) => response.data)
+        : Promise.resolve(null),
+    ]).then(
+      ([
+        resolvedFetchers,
+        resolvedPage,
+        resolvedGroups,
+        folders,
+        systemFolders,
+        pageResources,
+        categoryResources,
+        pagesToLink,
+        attachedResources,
+      ]) => {
+        // Hack to Force the binding between Angular and AngularJS
+        this.ngOnChanges({
+          activatedRoute: new SimpleChange(null, this.activatedRoute, true),
+          resolvedFetchers: new SimpleChange(null, resolvedFetchers, true),
+          resolvedPage: new SimpleChange(null, resolvedPage, true),
+          resolvedGroups: new SimpleChange(null, resolvedGroups, true),
+          folders: new SimpleChange(null, folders, true),
+          systemFolders: new SimpleChange(null, systemFolders, true),
+          pageResources: new SimpleChange(null, pageResources, true),
+          categoryResources: new SimpleChange(null, categoryResources, true),
+          pagesToLink: new SimpleChange(null, pagesToLink, true),
+          attachedResources: new SimpleChange(null, attachedResources, true),
+        });
+
+        super.ngOnInit();
+      },
+    );
   }
 }

@@ -13,8 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, ElementRef, Injector, Input, SimpleChange } from '@angular/core';
+import { Component, ElementRef, Inject, Injector, SimpleChange } from '@angular/core';
 import { UpgradeComponent } from '@angular/upgrade/static';
+import { ActivatedRoute } from '@angular/router';
+
+import { GroupService } from '../../services-ngx/group.service';
+import { DocumentationService } from '../../services/documentation.service';
+import FetcherService from '../../services/fetcher.service';
 
 @Component({
   template: '',
@@ -24,21 +29,41 @@ import { UpgradeComponent } from '@angular/upgrade/static';
   },
 })
 export class DocumentationImportPagesComponent extends UpgradeComponent {
-  @Input() resolvedFetchers;
-  @Input() resolvedRootPage;
-
-  constructor(elementRef: ElementRef, injector: Injector) {
+  constructor(
+    elementRef: ElementRef,
+    injector: Injector,
+    public readonly activatedRoute: ActivatedRoute,
+    public readonly groupService: GroupService,
+    @Inject('ajsDocumentationService') private readonly ajsDocumentationService: DocumentationService,
+    @Inject('ajsFetcherService') private readonly ajsFetcherService: FetcherService,
+  ) {
     super('documentationImportPagesAjs', elementRef, injector);
   }
 
   ngOnInit() {
-    // Hack to Force the binding between Angular and AngularJS
-    // Don't know why, but the binding is not done automatically when resolver is used
-    this.ngOnChanges({
-      resolvedFetchers: new SimpleChange(null, this.resolvedFetchers, true),
-      resolvedRootPage: new SimpleChange(null, this.resolvedRootPage, true),
-    });
+    const apiId = this.activatedRoute.snapshot.params.apiId;
 
-    super.ngOnInit();
+    Promise.all([
+      this.ajsFetcherService.list().then((response) => {
+        return response.data;
+      }),
+      this.ajsDocumentationService
+        .search(
+          {
+            type: 'ROOT',
+          },
+          apiId,
+        )
+        .then((response) => (response.data && response.data.length > 0 ? response.data[0] : null)),
+    ]).then(([resolvedFetchers, resolvedRootPage]) => {
+      // Hack to Force the binding between Angular and AngularJS
+      this.ngOnChanges({
+        activatedRoute: new SimpleChange(null, this.activatedRoute, true),
+        resolvedFetchers: new SimpleChange(null, resolvedFetchers, true),
+        resolvedRootPage: new SimpleChange(null, resolvedRootPage, true),
+      });
+
+      super.ngOnInit();
+    });
   }
 }
