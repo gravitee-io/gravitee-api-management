@@ -1,0 +1,19 @@
+{
+  "priority": 99,
+  "request": {
+    "method": "GET",
+    "urlPathPattern": "/.*/oauth/check_token",
+    "queryParameters": {
+      "token": {
+        "equalTo": "inactive_token"
+      }
+    }
+  },
+  "response": {
+    "status": 200,
+    "bodyFileName": "oauth_check_token_inactive.json",
+    "headers": {
+      "Content-Type": "application/json"
+    }
+  }
+}
