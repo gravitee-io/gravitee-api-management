@@ -21,7 +21,7 @@ import { ApiDocumentationV4BreadcrumbHarness } from '../api-documentation-v4-bre
 
 export class ApiDocumentationV4ListNavigationHeaderHarness extends ComponentHarness {
   public static hostSelector = 'api-documentation-list-navigation-header';
-  private addNewPageButtonLocator = this.locatorFor(MatButtonHarness.with({ text: 'Add new page' }));
+  private addNewPageButtonLocator = this.locatorForOptional(MatButtonHarness.with({ text: 'Add new page' }));
 
   private addNewFolderButtonLocator = this.locatorFor(MatButtonHarness.with({ text: 'Add new folder' }));
   public async clickAddNewFolder() {
@@ -40,5 +40,9 @@ export class ApiDocumentationV4ListNavigationHeaderHarness extends ComponentHarn
 
   async clickAddNewPage() {
     return this.addNewPageButtonLocator().then((btn) => btn.click());
+  }
+
+  async getNewPageButton() {
+    return this.addNewPageButtonLocator();
   }
 }

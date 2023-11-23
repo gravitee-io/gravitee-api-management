@@ -26,6 +26,8 @@ import { Breadcrumb } from '../../../../../entities/management-api-v2/documentat
 export class ApiDocumentationV4ListNavigationHeaderComponent {
   @Input()
   breadcrumbs: Breadcrumb[];
+  @Input()
+  hasPages: boolean;
   @Output()
   onAddFolder = new EventEmitter<void>();
   @Output()

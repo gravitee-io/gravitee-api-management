@@ -199,6 +199,13 @@ describe('ApiDocumentationV4', () => {
       });
     });
 
+    it('should hide create page button when folder is empty', async () => {
+      await init([], []);
+      const headerHarness = await harnessLoader.getHarness(ApiDocumentationV4ListNavigationHeaderHarness);
+
+      expect(await headerHarness.getNewPageButton()).toBeNull();
+    });
+
     it('should navigate to folder when click in the list', async () => {
       await init([fakeFolder({ name: 'my first folder', id: 'my-first-folder', visibility: 'PUBLIC' })], []);
       const pageListHarness = await harnessLoader.getHarness(ApiDocumentationV4PagesListHarness);
