@@ -57,6 +57,7 @@ function fetchData() {
       const constants = responses[1].data;
       const baseURL = sanitizeBaseURLs(constants);
       const enforcedOrganizationId = getEnforcedOrganizationId(constants);
+      console.log(baseURL);
       let bootstrapUrl: string;
       if (enforcedOrganizationId) {
         bootstrapUrl = `${baseURL}/v2/ui/bootstrap?organizationId=${enforcedOrganizationId}`;
