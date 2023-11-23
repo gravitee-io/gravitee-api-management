@@ -81,73 +81,55 @@
       <th mat-header-cell *matHeaderCellDef>Actions</th>
       <td mat-cell *matCellDef="let page; let i = index">
         <div class="documentation-pages-list__table__actions">
-          <ng-container *ngIf="page.type === 'FOLDER'">
-            <button
-              mat-icon-button
-              (click)="onEditFolder.emit(page)"
-              aria-label="Edit folder"
-              *gioPermission="{ anyOf: ['api-documentation-u'] }"
-              matTooltip="Edit folder"
-            >
-              <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
-            </button>
-            <div *ngIf="pagesIncludeNonFolders" class="empty-icon-button"></div>
-          </ng-container>
-
-          <ng-container *ngIf="page.type !== 'FOLDER'">
-            <button
-              mat-icon-button
-              (click)="onEditPage.emit(page.id)"
-              aria-label="Edit page"
-              *gioPermission="{ anyOf: ['api-documentation-u'] }"
-              matTooltip="Edit page"
-            >
-              <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
-            </button>
-            <ng-container *ngIf="!page.published">
-              <button
-                *gioPermission="{ anyOf: ['api-documentation-u'] }"
-                mat-icon-button
-                (click)="onPublishPage.emit(page.id)"
-                matTooltip="Publish page"
-                aria-label="Publish page"
-              >
-                <mat-icon svgIcon="gio:upload-cloud"></mat-icon></button
-            ></ng-container>
-            <ng-container *ngIf="page.published">
-              <button
-                *gioPermission="{ anyOf: ['api-documentation-u'] }"
-                (click)="onUnpublishPage.emit(page.id)"
-                [disabled]="page.generalConditions"
-                mat-icon-button
-                [matTooltip]="page.generalConditions ? 'Cannot unpublish if used as General Conditions' : 'Unpublish page'"
-                aria-label="Unpublish page"
-              >
-                <mat-icon svgIcon="gio:cloud-unpublished"></mat-icon>
+          <ng-container *gioPermission="{ anyOf: ['api-documentation-u'] }">
+            <ng-container *ngIf="page.type === 'FOLDER'">
+              <button mat-icon-button (click)="onEditFolder.emit(page)" aria-label="Edit folder" matTooltip="Edit folder">
+                <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
               </button>
+              <div *ngIf="pagesIncludeNonFolders" class="empty-icon-button"></div>
             </ng-container>
+
+            <ng-container *ngIf="page.type !== 'FOLDER'">
+              <button mat-icon-button (click)="onEditPage.emit(page.id)" aria-label="Edit page" matTooltip="Edit page">
+                <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
+              </button>
+              <ng-container *ngIf="!page.published">
+                <button mat-icon-button (click)="onPublishPage.emit(page.id)" matTooltip="Publish page" aria-label="Publish page">
+                  <mat-icon svgIcon="gio:upload-cloud"></mat-icon></button
+              ></ng-container>
+              <ng-container *ngIf="page.published">
+                <button
+                  (click)="onUnpublishPage.emit(page.id)"
+                  [disabled]="page.generalConditions"
+                  mat-icon-button
+                  [matTooltip]="page.generalConditions ? 'Cannot unpublish if used as General Conditions' : 'Unpublish page'"
+                  aria-label="Unpublish page"
+                >
+                  <mat-icon svgIcon="gio:cloud-unpublished"></mat-icon>
+                </button>
+              </ng-container>
+            </ng-container>
+
+            <button
+              mat-icon-button
+              (click)="onMoveUp.emit(page)"
+              [disabled]="i === 0 || page.order === 0"
+              aria-label="Move page up"
+              [matTooltip]="page.type === 'FOLDER' ? 'Move folder up' : 'Move page up'"
+            >
+              <mat-icon svgIcon="gio:arrow-up"></mat-icon>
+            </button>
+            <button
+              mat-icon-button
+              (click)="onMoveDown.emit(page)"
+              [disabled]="i === dataSource.data.length - 1"
+              aria-label="Move page down"
+              [matTooltip]="page.type === 'FOLDER' ? 'Move folder down' : 'Move page down'"
+            >
+              <mat-icon svgIcon="gio:arrow-down"></mat-icon>
+            </button>
           </ng-container>
 
-          <button
-            mat-icon-button
-            *gioPermission="{ anyOf: ['api-documentation-u'] }"
-            (click)="onMoveUp.emit(page)"
-            [disabled]="i === 0 || page.order === 0"
-            aria-label="Move page up"
-            [matTooltip]="page.type === 'FOLDER' ? 'Move folder up' : 'Move page up'"
-          >
-            <mat-icon svgIcon="gio:arrow-up"></mat-icon>
-          </button>
-          <button
-            mat-icon-button
-            *gioPermission="{ anyOf: ['api-documentation-u'] }"
-            (click)="onMoveDown.emit(page)"
-            [disabled]="i === dataSource.data.length - 1"
-            aria-label="Move page down"
-            [matTooltip]="page.type === 'FOLDER' ? 'Move folder down' : 'Move page down'"
-          >
-            <mat-icon svgIcon="gio:arrow-down"></mat-icon>
-          </button>
           <button
             mat-icon-button
             *gioPermission="{ anyOf: ['api-documentation-d'] }"
