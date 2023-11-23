@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { combineLatest, EMPTY, forkJoin, Observable, Subject } from 'rxjs';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { isEmpty, uniqueId } from 'lodash';
+import { ActivatedRoute } from '@angular/router';
 
-import { UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { UsersService } from '../../../../../services-ngx/users.service';
 import { RoleService } from '../../../../../services-ngx/role.service';
@@ -70,7 +70,7 @@ export class ApiGeneralMembersComponent implements OnInit {
   private apiId: string;
 
   constructor(
-    @Inject(UIRouterStateParams) private readonly ajsStateParams,
+    public readonly activatedRoute: ActivatedRoute,
     private readonly apiService: ApiV2Service,
     private readonly apiMemberService: ApiMemberV2Service,
     private readonly userService: UsersService,
@@ -83,7 +83,7 @@ export class ApiGeneralMembersComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.apiId = this.ajsStateParams.apiId;
+    this.apiId = this.activatedRoute.snapshot.params.apiId;
 
     // Display the trash icon if the user is allowed to delete a member
     if (this.permissionService.hasAnyMatching(['api-member-d']) && !this.displayedColumns.includes('delete')) {

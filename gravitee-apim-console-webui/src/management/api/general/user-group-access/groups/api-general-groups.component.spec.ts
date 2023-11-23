@@ -19,22 +19,19 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { InteractivityChecker } from '@angular/cdk/a11y';
+import { ActivatedRoute } from '@angular/router';
 
 import { ApiGeneralGroupsComponent } from './api-general-groups.component';
 import { ApiGeneralGroupsHarness } from './api-general-groups.harness';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
 import { ApiGeneralUserGroupModule } from '../api-general-user-group.module';
-import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
+import { CurrentUserService } from '../../../../../ajs-upgraded-providers';
 import { User } from '../../../../../entities/user';
 import { Api, fakeApiV1, fakeApiV2, fakeApiV4, fakeGroup, Group } from '../../../../../entities/management-api-v2';
 
 describe('ApiPortalGroupsComponent', () => {
   const API_ID = 'api-id';
-
-  const fakeAjsState = {
-    go: jest.fn(),
-  };
 
   const currentUser = new User();
 
@@ -47,8 +44,7 @@ describe('ApiPortalGroupsComponent', () => {
     await TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiGeneralUserGroupModule, MatIconTestingModule],
       providers: [
-        { provide: UIRouterState, useValue: fakeAjsState },
-        { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
+        { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
         { provide: CurrentUserService, useValue: { currentUser } },
       ],
     })

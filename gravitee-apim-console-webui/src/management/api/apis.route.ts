@@ -1809,6 +1809,45 @@ const apisRoutes: Routes = [
           useAngularMaterial: true,
         },
       },
+      {
+        path: 'members',
+        component: ApiGeneralMembersComponent,
+        data: {
+          apiPermissions: {
+            only: ['api-member-r'],
+          },
+          docs: {
+            page: 'management-api-members',
+          },
+          useAngularMaterial: true,
+        },
+      },
+      {
+        path: 'groups',
+        component: ApiGeneralGroupsComponent,
+        data: {
+          apiPermissions: {
+            only: ['api-member-r'],
+          },
+          docs: {
+            page: 'management-api-members',
+          },
+          useAngularMaterial: true,
+        },
+      },
+      {
+        path: 'transfer-ownership',
+        component: ApiGeneralTransferOwnershipComponent,
+        data: {
+          apiPermissions: {
+            only: ['api-member-r'],
+          },
+          docs: {
+            page: 'management-api-members',
+          },
+          useAngularMaterial: true,
+        },
+      },
 
       /**
        * V1 Api state only

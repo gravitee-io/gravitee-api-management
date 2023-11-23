@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { switchMap, takeUntil } from 'rxjs/operators';
 import { Subject, combineLatest, throwError } from 'rxjs';
+import { ActivatedRoute } from '@angular/router';
 
-import { UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { GroupV2Service } from '../../../../../services-ngx/group-v2.service';
@@ -41,7 +41,7 @@ export class ApiGeneralGroupsComponent implements OnInit, OnDestroy {
   private isV1Api = false;
 
   constructor(
-    @Inject(UIRouterStateParams) private readonly ajsStateParams,
+    public readonly activatedRoute: ActivatedRoute,
     private readonly apiService: ApiV2Service,
     private readonly groupService: GroupV2Service,
     private readonly permissionService: GioPermissionService,
@@ -51,7 +51,7 @@ export class ApiGeneralGroupsComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']);
-    combineLatest([this.groupService.list(1, 9999), this.apiService.get(this.ajsStateParams.apiId)])
+    combineLatest([this.groupService.list(1, 9999), this.apiService.get(this.activatedRoute.snapshot.params.apiId)])
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe(([groups, api]) => {
         this.isV1Api = api.definitionVersion === 'V1';
@@ -76,7 +76,7 @@ export class ApiGeneralGroupsComponent implements OnInit, OnDestroy {
 
   save() {
     return this.apiService
-      .get(this.ajsStateParams.apiId)
+      .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
         switchMap((api) =>
           api.definitionVersion === 'V1'
