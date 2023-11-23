@@ -15,7 +15,7 @@ security:
     - CookieAuth: []
 
 servers:
-    - url: "{protocol}://{gatewayHost}/management/v2"
+    - url: "{protocol}://{managementAPIHost}/management/v2"
       description: APIM Management API v2 - Default base URL
       variables:
           protocol:
@@ -24,10 +24,10 @@ servers:
               enum:
                   - https
                   - http
-          gatewayHost:
-              description: The domain of the server hosting your Gateway
+          managementAPIHost:
+              description: The domain of the server hosting your Management API
               default: localhost:8083
-    - url: "{protocol}://{gatewayHost}/management/v2/organizations/{orgId}"
+    - url: "{protocol}://{managementAPIHost}/management/v2/organizations/{orgId}"
       description: APIM Management API v2 - Base URL to target specific organizations
       variables:
           protocol:
@@ -36,8 +36,8 @@ servers:
               enum:
                   - https
                   - http
-          gatewayHost:
-              description: The domain of the server hosting your Gateway
+          managementAPIHost:
+              description: The domain of the server hosting your Management API
               default: localhost:8083
           ordId:
               description: The unique ID of your organization
