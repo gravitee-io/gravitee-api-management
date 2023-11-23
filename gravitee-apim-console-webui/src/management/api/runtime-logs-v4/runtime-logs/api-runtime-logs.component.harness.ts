@@ -78,22 +78,16 @@ export class ApiRuntimeLogsHarness extends ComponentHarness {
   }
 
   async searchApplication(appName: string) {
-    return this.quickFiltersHarness()
+    return this.moreFiltersHarness()
       .then((harness) => harness.getApplicationAutocomplete())
       .then((autocomplete) => autocomplete.enterText(appName));
   }
 
   async selectedApplication(text: string) {
-    return this.quickFiltersHarness()
+    return this.moreFiltersHarness()
       .then((harness) => harness.getApplicationAutocomplete())
       .then((autocomplete) => autocomplete.getOptions({ text }))
       .then((options) => (options.length > 0 ? options[0].click() : Promise.reject('No option found')));
-  }
-
-  async getOptoons(text?: string) {
-    return this.quickFiltersHarness()
-      .then((harness) => harness.getApplicationAutocomplete())
-      .then((autocomplete) => autocomplete.getOptions({ text }));
   }
 
   async getApplicationsChip() {

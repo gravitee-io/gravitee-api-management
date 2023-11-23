@@ -21,13 +21,13 @@ import { catchError, map, tap } from 'rxjs/operators';
 import { AutocompleteOptions, DisplayValueWithFn } from '@gravitee/ui-particles-angular';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 
-import { ApplicationService } from '../../../../../../../../services-ngx/application.service';
-
-export type CacheEntry = { value: string; label: string };
+import { ApplicationService } from '../../../../../../../../../../../../services-ngx/application.service';
+import { MultiFilter } from '../../../../../../../../models';
 
 @Component({
   selector: 'applications-filter',
   template: require('./applications-filter.component.html'),
+  styles: [require('./applications-filter.component.scss')],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -41,8 +41,8 @@ export class ApplicationsFilterComponent implements ControlValueAccessor {
   private _onTouched: () => void = () => ({});
   private _selectedApplications: string[] = [];
 
-  @Output() applicationCache: EventEmitter<CacheEntry[]> = new EventEmitter();
-  private _applicationsCache: CacheEntry[] = [];
+  @Output() applicationCache: EventEmitter<MultiFilter> = new EventEmitter();
+  private _applicationsCache: MultiFilter = [];
 
   public autocompleteOptions: (searchTerm: string) => Observable<AutocompleteOptions> = (searchTerm: string) => {
     return this.applicationService.list(null, searchTerm).pipe(

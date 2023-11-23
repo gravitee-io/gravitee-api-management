@@ -39,4 +39,12 @@ export class ApiRuntimeLogsMoreFiltersHarness extends ComponentHarness {
   async getStatusesChips() {
     return this.getForm().then((form) => form.getStatusesChips());
   }
+
+  async getApplicationField() {
+    return this.getForm().then((form) => form.getApplicationField());
+  }
+
+  async getApplicationAutocomplete() {
+    return this.getForm().then((form) => form.getApplicationAutocomplete());
+  }
 }

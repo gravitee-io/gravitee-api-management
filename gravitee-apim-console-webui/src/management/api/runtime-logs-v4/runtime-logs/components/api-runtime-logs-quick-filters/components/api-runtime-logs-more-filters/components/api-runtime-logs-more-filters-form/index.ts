@@ -13,4 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './api-runtime-logs-more-filters';
+export * from './api-runtime-logs-more-filters-form.harness';
+export * from './api-runtime-logs-more-filters-form.module';
+export * from './components';

@@ -130,7 +130,6 @@ describe('ApiRuntimeLogsComponent', () => {
 
       expect(await quickFilter.getPlansSelect().then((select) => select.isDisabled())).toBeTruthy();
       expect(await quickFilter.getRefreshButton().then((select) => select.isDisabled())).toBeTruthy();
-      expect(await quickFilter.getApplicationsTags().then((select) => select.isDisabled())).toBeTruthy();
 
       expectApiWithNoLog();
     });
@@ -306,6 +305,8 @@ describe('ApiRuntimeLogsComponent', () => {
       it('should filter on application', async () => {
         const appName = 'a';
         const application = fakeApplication({ name: appName, owner: { displayName: 'owner' } });
+
+        await componentHarness.moreFiltersButtonClick();
         expect(await componentHarness.getApplicationsTags()).toHaveLength(0);
 
         await componentHarness.searchApplication(appName);
@@ -313,6 +314,8 @@ describe('ApiRuntimeLogsComponent', () => {
 
         await componentHarness.selectedApplication('a ( owner )');
         expect(await componentHarness.getApplicationsTags()).toHaveLength(1);
+
+        await componentHarness.moreFiltersApply();
 
         expectApplicationList(); // call happening after selecting an option
         expectApiWithLogs(total, { perPage, page: 1, applicationIds: application.id });
@@ -327,10 +330,12 @@ describe('ApiRuntimeLogsComponent', () => {
         const appName = 'a';
         const application = fakeApplication({ name: appName, owner: { displayName: 'owner' } });
 
+        await componentHarness.moreFiltersButtonClick();
         await componentHarness.searchApplication(appName);
         expectApplicationList(appName, [application]);
 
         await componentHarness.selectedApplication('a ( owner )');
+        await componentHarness.moreFiltersApply();
         expectApplicationList(); // call happening after selecting an option
         expectApiWithLogs(total, { perPage, page: 1, applicationIds: application.id });
         expectUiRouterChange(2, { page: 1, perPage: 10, applicationIds: application.id });
@@ -339,6 +344,9 @@ describe('ApiRuntimeLogsComponent', () => {
         expect(await componentHarness.getQuickFiltersChips()).toBeNull();
         expectApiWithLogs(total, { perPage, page: 1 });
         expectUiRouterChange(3, { page: 1, perPage: 10 });
+
+        await componentHarness.moreFiltersButtonClick();
+        expect(await componentHarness.getApplicationsTags()).toHaveLength(0);
       });
     });
 
@@ -633,8 +641,11 @@ describe('ApiRuntimeLogsComponent', () => {
 
       it('should init the form with filters preselected', async () => {
         const expectedApplicationChip = 'applications: Default application ( owner ), another one ( owner )';
+        await componentHarness.moreFiltersButtonClick();
         expect(await componentHarness.getApplicationsTags()).toHaveLength(2);
         expect(await componentHarness.getApplicationsChipText()).toStrictEqual(expectedApplicationChip);
+        await componentHarness.closeMoreFilters();
+
         expectApplicationFindById(application);
         // Here we simulate that this application is not returned by the default search because it does not belong to the response first page data.
         // Nevertheless, we should be able to display it in the chips and the tags
@@ -652,16 +663,19 @@ describe('ApiRuntimeLogsComponent', () => {
       it("should reset all filters when clicking on 'reset filters'", async () => {
         expect(await componentHarness.getApplicationsChip()).toBeTruthy();
         expect(await componentHarness.getPlanChip()).toBeTruthy();
+
+        await componentHarness.moreFiltersButtonClick();
+        expect(await componentHarness.getApplicationsTags()).toHaveLength(2);
+        await componentHarness.closeMoreFilters();
         expectApplicationFindById(application);
         expectApplicationFindById(anotherApplication);
 
         await componentHarness.quickFiltersHarness().then((harness) => harness.clickResetFilters());
-        expect(await componentHarness.getApplicationsTags()).toHaveLength(0);
         expect(await componentHarness.getSelectedPlans()).toEqual('');
-        expectApiWithLogs(10, { page: 1, perPage: 10, planIds: '1,2' });
         expectApiWithLogs(10, { page: 1, perPage: 10 });
 
         await componentHarness.moreFiltersButtonClick();
+        expect(await componentHarness.getApplicationsTags()).toHaveLength(0);
 
         await componentHarness.setFromDate(fromDate);
         await componentHarness.setToDate(toDate);
