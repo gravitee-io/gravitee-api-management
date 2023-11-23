@@ -42,6 +42,7 @@ import { ApiDocumentationV4PageTitleComponent } from './components/api-documenta
 import { ApiDocumentationV4BreadcrumbComponent } from './components/api-documentation-v4-breadcrumb/api-documentation-v4-breadcrumb.component';
 
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
+import { GioTooltipOnEllipsisModule } from '../../../shared/components/gio-tooltip-on-ellipsis/gio-tooltip-on-ellipsis.module';
 
 @NgModule({
   declarations: [
@@ -78,6 +79,7 @@ import { GioPermissionModule } from '../../../shared/components/gio-permission/g
     MarkdownModule.forRoot(),
     MatTooltipModule,
     GioPermissionModule,
+    GioTooltipOnEllipsisModule,
   ],
 })
 export class ApiDocumentationV4Module {}

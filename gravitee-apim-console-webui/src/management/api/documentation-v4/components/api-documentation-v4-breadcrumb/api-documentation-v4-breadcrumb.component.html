@@ -30,7 +30,12 @@
   </div>
   <ng-container *ngFor="let breadcrumb of breadcrumbs; last as isLast">
     <div class="breadcrumb__separator">></div>
-    <div class="breadcrumb__item" [class.clickable]="canNavigate && !isLast" (click)="doNavigate(breadcrumb.id, isLast)">
+    <div
+      class="breadcrumb__item"
+      gioTooltipOnEllipsis
+      [class.clickable]="canNavigate && !isLast"
+      (click)="doNavigate(breadcrumb.id, isLast)"
+    >
       {{ breadcrumb.name }}
     </div>
   </ng-container>
