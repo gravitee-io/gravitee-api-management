@@ -18,7 +18,7 @@
 <div class="visibility">Visibility</div>
 <div *ngIf="showSubtitle" class="visibility__subtitle">This can be changed later</div>
 
-<mat-radio-group [(ngModel)]="_value" class="gio-radio-group" (change)="_onChange($event.value)">
+<mat-radio-group [(ngModel)]="_value" class="gio-radio-group" (change)="_onChange($event.value)" [disabled]="disabled">
   <mat-radio-button value="PUBLIC" class="gio-radio-button">
     <gio-radio-button-content icon="gio:language">
       <gio-radio-button-title>Public</gio-radio-button-title>

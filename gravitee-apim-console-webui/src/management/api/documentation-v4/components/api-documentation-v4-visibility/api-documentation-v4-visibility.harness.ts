@@ -33,4 +33,11 @@ export class ApiDocumentationV4VisibilityHarness extends ComponentHarness {
   public getValue(): Promise<string> {
     return this.radioGroupLocator().then((radioGroup) => radioGroup.getCheckedValue());
   }
+
+  public async formIsDisabled(): Promise<boolean> {
+    const publicIsDisabled = await this.publicRadioLocator().then((btn) => btn.isDisabled());
+    const privateIsDisabled = await this.privateRadioLocator().then((btn) => btn.isDisabled());
+
+    return publicIsDisabled && privateIsDisabled;
+  }
 }

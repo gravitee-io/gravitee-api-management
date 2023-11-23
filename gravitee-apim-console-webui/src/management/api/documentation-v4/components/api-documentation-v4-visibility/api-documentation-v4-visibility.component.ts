@@ -36,6 +36,9 @@ export class ApiDocumentationV4VisibilityComponent implements ControlValueAccess
   public documentationType: 'page' | 'folder' = 'page';
 
   _value: string;
+
+  private _disabled = false;
+
   protected _onChange: (_selection: 'PUBLIC' | 'PRIVATE') => void = () => ({});
 
   protected _onTouched: () => void = () => ({});
@@ -52,5 +55,13 @@ export class ApiDocumentationV4VisibilityComponent implements ControlValueAccess
 
   writeValue(selection: 'PUBLIC' | 'PRIVATE'): void {
     this._value = selection;
+  }
+
+  get disabled(): boolean {
+    return this._disabled;
+  }
+
+  setDisabledState(isDisabled: boolean) {
+    this._disabled = isDisabled;
   }
 }
