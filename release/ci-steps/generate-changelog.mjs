@@ -1,6 +1,6 @@
 import { computeVersion, extractVersion } from '../helpers/version-helper.mjs';
 import { getJiraIssuesOfVersion, getJiraVersion } from '../helpers/jira-helper.mjs';
-import { getChangelogFor } from '../helpers/changelog-helper.mjs';
+import { ChangelogSections, ComponentTypes, getTicketsFor } from '../helpers/changelog-helper.mjs';
 
 console.log(chalk.magenta(`#############################################`));
 console.log(chalk.magenta(`# 📰 Open APIM docs PR for new Release Note #`));
@@ -21,7 +21,6 @@ const gitBranch = `release-apim-${releasingVersion}`;
 echo(chalk.blue(`# Create local tmp folder: ${localTmpFolder}`));
 await $`mkdir -p ${localTmpFolder}`;
 cd(localTmpFolder);
-await $`rm -rf ${docRepository}`;
 
 echo(chalk.blue(`# Clone ${docRepository} repository`));
 await $`git clone --depth 1  ${docRepositoryURL} --single-branch --branch=main`;
@@ -32,76 +31,30 @@ if (version === undefined) {
   echo(chalk.blue(`No Jira release found for: ${releasingVersion}, nothing to do.`));
   process.exit(0);
 }
-let issues = await getJiraIssuesOfVersion(version.id);
+const issues = await getJiraIssuesOfVersion(version.id);
 
 let changelogPatchTemplate = `
 ## Gravitee API Management ${releasingVersion} - ${new Date().toLocaleDateString('en-US', dateOptions)}
-
-<details>
-
-<summary>Bug fixes</summary>
-
 `;
 
-const gatewayIssues = issues.filter((issue) => issue.components.some((cmp) => cmp.name === 'Gateway'));
-issues = issues.filter((issue) => !gatewayIssues.includes(issue));
-if (gatewayIssues.length > 0) {
-  changelogPatchTemplate += `**Gateway**
+ChangelogSections.forEach((section) => {
+  let changelogSection = '';
+  [...ComponentTypes, 'Other'].forEach((componentType) => {
+    const ticketsForComponent = getTicketsFor(issues, componentType, section.ticketType);
+    if (ticketsForComponent) {
+      changelogSection += ticketsForComponent;
+    }
+  });
+  if (changelogSection) {
+    changelogPatchTemplate += `<details>
 
-${getChangelogFor(gatewayIssues)}
+<summary>${section.title}</summary>
 
-`;
-}
-
-const managementAPIIssues = issues.filter((issue) => issue.components.some((cmp) => cmp.name === 'Management API'));
-issues = issues.filter((issue) => !managementAPIIssues.includes(issue));
-if (managementAPIIssues.length > 0) {
-  changelogPatchTemplate += `**Management API**
-
-${getChangelogFor(managementAPIIssues)}
+${changelogSection}</details>
 
 `;
-}
-
-const consoleIssues = issues.filter((issue) => issue.components.some((cmp) => cmp.name === 'Console'));
-issues = issues.filter((issue) => !consoleIssues.includes(issue));
-if (consoleIssues.length > 0) {
-  changelogPatchTemplate += `**Console**
-
-${getChangelogFor(consoleIssues)}
-
-`;
-}
-
-const portalIssues = issues.filter((issue) => issue.components.some((cmp) => cmp.name === 'Portal'));
-issues = issues.filter((issue) => !portalIssues.includes(issue));
-if (portalIssues.length > 0) {
-  changelogPatchTemplate += `**Portal**
-
-${getChangelogFor(portalIssues)}
-
-`;
-}
-
-const helmChartIssues = issues.filter((issue) => issue.components.some((cmp) => cmp.name === 'Helm Chart'));
-if (helmChartIssues.length > 0) {
-  changelogPatchTemplate += `**Helm Chart**
-    
-${getChangelogFor(helmChartIssues)}
-
-`;
-}
-
-const otherIssues = issues.filter((issue) => !helmChartIssues.includes(issue));
-if (otherIssues.length > 0) {
-  changelogPatchTemplate += `**Other**
-
-${getChangelogFor(otherIssues)}
-
-`;
-}
-
-changelogPatchTemplate += `</details>`;
+  }
+});
 
 echo(changelogPatchTemplate);
 
