@@ -14,7 +14,9 @@ $typography: map.get(gio.$mat-theme, typography);
   min-height: 54px;
 
   &__action {
+    min-width: 260px;
     display: flex;
+    justify-content: flex-end;
     gap: 8px;
   }
 }
