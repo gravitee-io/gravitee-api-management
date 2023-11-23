@@ -26,14 +26,16 @@
     >
       Add new folder
     </button>
-    <button
-      class="header__action__button"
-      mat-flat-button
-      color="primary"
-      (click)="onAddPage.emit()"
-      *gioPermission="{ anyOf: ['api-documentation-c'] }"
-    >
-      Add new page
-    </button>
+    <ng-container *ngIf="hasPages">
+      <button
+        class="header__action__button"
+        mat-flat-button
+        color="primary"
+        (click)="onAddPage.emit()"
+        *gioPermission="{ anyOf: ['api-documentation-c'] }"
+      >
+        Add new page
+      </button>
+    </ng-container>
   </div>
 </div>

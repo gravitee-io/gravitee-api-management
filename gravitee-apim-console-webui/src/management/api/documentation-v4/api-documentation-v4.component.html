@@ -19,6 +19,7 @@
 <mat-card>
   <api-documentation-list-navigation-header
     [breadcrumbs]="breadcrumbs || []"
+    [hasPages]="pages && pages.length > 0"
     (onAddFolder)="addFolder()"
     (onAddPage)="addPage()"
     (onNavigateTo)="navigateTo($event)"
