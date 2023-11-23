@@ -343,8 +343,7 @@ export class ApiV1V2MenuService implements ApiMenuService {
     if (this.permissionService.hasAnyMatching(['api-audit-r'])) {
       auditGroup.items.push({
         displayName: 'Audit',
-        targetRoute: 'management.apis.audit',
-        baseRoute: 'management.apis.audit',
+        routerLink: 'audit',
         license,
         iconRight$,
       });
@@ -352,15 +351,13 @@ export class ApiV1V2MenuService implements ApiMenuService {
     if (this.permissionService.hasAnyMatching(['api-event-r'])) {
       auditGroup.items.push({
         displayName: 'History',
-        targetRoute: 'management.apis.history',
-        baseRoute: 'management.apis.history',
+        routerLink: 'history',
       });
     }
     if (this.permissionService.hasAnyMatching(['api-event-u'])) {
       auditGroup.items.push({
         displayName: 'Events',
-        targetRoute: 'management.apis.events',
-        baseRoute: 'management.apis.events',
+        routerLink: 'events',
       });
     }
 

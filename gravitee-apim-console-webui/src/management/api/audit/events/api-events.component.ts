@@ -21,6 +21,7 @@ import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { ApiService } from '../../../../services-ngx/api.service';
 import { Event, EventType } from '../../../../entities/event/event';
 import { User } from '../../../../entities/user/user';
+import { ActivatedRoute } from '@angular/router';
 
 type EventsTableDS = {
   type: EventType;
@@ -38,11 +39,11 @@ export class ApiEventsComponent implements OnInit, OnDestroy {
   public eventsTableDS: EventsTableDS[] = [];
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   public isLoadingData = true;
-  constructor(@Inject(UIRouterStateParams) private readonly ajsStateParams, private readonly apiService: ApiService) {}
+  constructor(public readonly activatedRoute: ActivatedRoute, private readonly apiService: ApiService) {}
 
   public ngOnInit(): void {
     this.apiService
-      .getApiEvents(this.ajsStateParams.apiId, ['START_API', 'STOP_API', 'PUBLISH_API'])
+      .getApiEvents(this.activatedRoute.snapshot.params.apiId, ['START_API', 'STOP_API', 'PUBLISH_API'])
       .pipe(
         tap((events) => {
           this.eventsTableDS = events.map((event: Event) => {

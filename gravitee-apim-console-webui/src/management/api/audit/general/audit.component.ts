@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, ElementRef, Injector } from '@angular/core';
+import { Component, ElementRef, Injector, SimpleChange } from '@angular/core';
 import { UpgradeComponent } from '@angular/upgrade/static';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   template: '',
@@ -24,7 +25,15 @@ import { UpgradeComponent } from '@angular/upgrade/static';
   },
 })
 export class ApiAuditComponent extends UpgradeComponent {
-  constructor(elementRef: ElementRef, injector: Injector) {
+  constructor(elementRef: ElementRef, injector: Injector, private readonly activatedRoute: ActivatedRoute) {
     super('apiAuditComponentAjs', elementRef, injector);
+  }
+
+  ngOnInit() {
+    this.ngOnChanges({
+      activatedRoute: new SimpleChange(null, this.activatedRoute, true),
+    });
+
+    super.ngOnInit();
   }
 }

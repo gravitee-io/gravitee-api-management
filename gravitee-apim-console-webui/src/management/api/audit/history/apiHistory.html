@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<div layout="row" flex class="api-events" style="margin-top: 20px">
+<div ng-if="$ctrl.eventsTimeline.length !== 0" layout="row" flex class="api-events" style="margin-top: 20px">
   <div class="api-history-timeline" flex="20">
     <timeline>
       <div ng-repeat="eventTimeline in $ctrl.eventsTimeline">
@@ -150,7 +150,7 @@
   </div>
 </div>
 <gravitee-empty-state
-  ng-if="$ctrl.eventsTimeline.length == 0"
+  ng-if="$ctrl.eventsTimeline.length === 0"
   icon="history"
   model="History"
   message="Your API history will appear here"

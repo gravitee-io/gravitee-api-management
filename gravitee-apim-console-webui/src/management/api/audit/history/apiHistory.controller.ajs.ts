@@ -18,10 +18,9 @@ import '@gravitee/ui-components/wc/gv-switch';
 import '@gravitee/ui-components/wc/gv-popover';
 import * as _ from 'lodash';
 import * as angular from 'angular';
-import { StateService } from '@uirouter/core';
+import { ActivatedRoute } from '@angular/router';
 
 import { ApiService } from '../../../../services/api.service';
-import AuditService from '../../../../services/audit.service';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -115,6 +114,7 @@ enum Modes {
 }
 
 class ApiHistoryControllerAjs {
+  public activatedRoute: ActivatedRoute;
   public modes = Modes;
   public modeOptions: any;
   private studio: any;
@@ -140,12 +140,8 @@ class ApiHistoryControllerAjs {
 
   constructor(
     private $mdDialog: ng.material.IDialogService,
-    private $scope: any,
-    private $rootScope: ng.IRootScopeService,
-    private $state: StateService,
     private ApiService: ApiService,
     private NotificationService,
-    private AuditService: AuditService,
     private PolicyService,
     private ResourceService,
     private FlowService,
@@ -162,14 +158,6 @@ class ApiHistoryControllerAjs {
       { title: Modes.Design, id: Modes.Design },
       { title: Modes.Payload, id: Modes.Payload },
     ];
-
-    this.$scope.$on('apiChangeSuccess', (event, args) => {
-      if (this.$state.current.name.endsWith('history')) {
-        // reload API
-        this.ApiService.get(args.apiId).then((response) => (this.api = response.data));
-        this.$onInit();
-      }
-    });
   }
 
   $onInit() {
@@ -189,7 +177,7 @@ class ApiHistoryControllerAjs {
       });
     }
 
-    this.ApiService.get(this.$state.params.apiId).then((api) => {
+    this.ApiService.get(this.activatedRoute.snapshot.params.apiId).then((api) => {
       this.api = api.data;
 
       this.eventPage = -1;
@@ -548,12 +536,8 @@ class ApiHistoryControllerAjs {
 }
 ApiHistoryControllerAjs.$inject = [
   '$mdDialog',
-  '$scope',
-  '$rootScope',
-  '$state',
   'ApiService',
   'NotificationService',
-  'AuditService',
   'PolicyService',
   'ResourceService',
   'FlowService',

@@ -24,10 +24,10 @@ import { MatIconHarness, MatIconTestingModule } from '@angular/material/icon/tes
 import { ApiEventsComponent } from './api-events.component';
 import { ApiEventsModule } from './api-events.module';
 
-import { UIRouterStateParams, AjsRootScope } from '../../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { fakeEvent } from '../../../../entities/event/event.fixture';
 import { Event } from '../../../../entities/event/event';
+import { ActivatedRoute } from '@angular/router';
 
 describe('ApiNgEventsComponent', () => {
   const API_ID = 'apiId';
@@ -39,10 +39,7 @@ describe('ApiNgEventsComponent', () => {
   const init = async () => {
     await TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule, ApiEventsModule],
-      providers: [
-        { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
-        { provide: AjsRootScope, useValue: null },
-      ],
+      providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } }],
     }).compileComponents();
   };
 
