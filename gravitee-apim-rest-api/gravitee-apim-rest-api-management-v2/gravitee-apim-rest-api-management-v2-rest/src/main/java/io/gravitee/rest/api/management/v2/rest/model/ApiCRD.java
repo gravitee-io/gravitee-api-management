@@ -18,7 +18,6 @@ package io.gravitee.rest.api.management.v2.rest.model;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -34,12 +33,6 @@ import lombok.Data;
  */
 @Data
 public class ApiCRD {
-
-    public record DefinitionContext(
-        @NotEmpty @Pattern(regexp = "KUBERNETES") String origin,
-        @NotEmpty @Pattern(regexp = "FULLY_MANAGED") String mode,
-        @NotEmpty @Pattern(regexp = "KUBERNETES|MANAGEMENT") String syncFrom
-    ) {}
 
     @NotEmpty
     private String crossId;

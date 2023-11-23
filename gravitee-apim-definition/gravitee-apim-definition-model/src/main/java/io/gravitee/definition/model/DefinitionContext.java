@@ -86,7 +86,7 @@ public class DefinitionContext implements Serializable {
     }
 
     public static boolean isManagement(DefinitionContext context) {
-        return context != null && isKubernetes(context.origin);
+        return context != null && !isKubernetes(context.origin);
     }
 
     public static boolean isManagement(String origin) {

@@ -27,7 +27,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.UpdatePlansDomainService;
 import io.gravitee.apim.infra.adapter.ApiAdapter;
-import io.gravitee.apim.infra.adapter.PlanAdapter;
+import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.rest.api.model.v4.plan.BasePlanEntity;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.stream.Collectors;
@@ -96,7 +96,7 @@ public class ImportCRDUseCase {
                 .map(plan -> createPlanDomainService.create(plan.toBuilder().apiId(api.getId()).build(), request.auditInfo))
                 .collect(Collectors.toMap(BasePlanEntity::getName, BasePlanEntity::getId));
 
-            if (request.crd.getDefinitionContext().syncFrom().equals("MANAGEMENT")) {
+            if (request.crd.getDefinitionContext().getSyncFrom().equals(DefinitionContext.ORIGIN_MANAGEMENT)) {
                 // deploy API so that it's sync from DB
                 deployApiDomainService.deploy(api, "Import via Kubernetes operator", request.auditInfo);
             }

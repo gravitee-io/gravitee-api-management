@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.api.model;
 
+import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
@@ -60,7 +61,7 @@ public class Api {
      * the API definition context.
      */
     @Builder.Default
-    private ApiCRD.DefinitionContext definitionContext = new ApiCRD.DefinitionContext("MANAGEMENT", "FULLY_MANAGED", "MANAGEMENT");
+    private DefinitionContext definitionContext = new DefinitionContext();
 
     /**
      * The api definition version.

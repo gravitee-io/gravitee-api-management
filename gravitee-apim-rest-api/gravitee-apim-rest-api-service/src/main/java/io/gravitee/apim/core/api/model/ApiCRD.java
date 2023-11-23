@@ -15,11 +15,11 @@
  */
 package io.gravitee.apim.core.api.model;
 
+import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.listener.Listener;
-import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import java.util.List;
@@ -73,6 +73,4 @@ public class ApiCRD {
     public String getDefinitionVersion() {
         return "V4";
     }
-
-    public record DefinitionContext(String origin, String mode, String syncFrom) {}
 }
