@@ -13,28 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.model.api;
+package io.gravitee.apim.core.plan.domain_service;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 
 /**
- * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
+ * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@ToString
-public class ApiDeploymentEntity {
-
-    @Schema(description = "Label for an Api deployment. Duplicate names can exists.", example = "My deployment")
-    @Size(max = 32)
-    private String deploymentLabel;
+public interface CreatePlanDomainService {
+    PlanEntity create(PlanEntity plan, AuditInfo auditInfo);
 }

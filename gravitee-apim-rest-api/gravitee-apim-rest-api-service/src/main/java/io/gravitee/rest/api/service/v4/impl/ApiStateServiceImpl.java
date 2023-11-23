@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.service.v4.impl;
 
 import static io.gravitee.repository.management.model.Api.AuditEvent.API_UPDATED;
-import static io.gravitee.repository.management.model.Event.EventProperties.API_ID;
 import static io.gravitee.rest.api.model.EventType.PUBLISH_API;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
@@ -24,7 +23,6 @@ import static java.util.Comparator.comparing;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -364,7 +362,7 @@ public class ApiStateServiceImpl implements ApiStateService {
     public boolean isSynchronized(ExecutionContext executionContext, GenericApiEntity genericApiEntity) {
         try {
             // The state of the api is managed by kubernetes. There is no synchronization allowed from management.
-            if (DefinitionContext.isKubernetes(genericApiEntity.getDefinitionContext())) {
+            if (genericApiEntity.getDefinitionContext().isOriginKubernetes()) {
                 return true;
             }
 

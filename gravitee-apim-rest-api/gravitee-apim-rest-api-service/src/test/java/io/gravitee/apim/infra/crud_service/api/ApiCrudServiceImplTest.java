@@ -15,12 +15,16 @@
  */
 package io.gravitee.apim.infra.crud_service.api;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
+import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.model.*;
+import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.ApiLifecycleState;
+import io.gravitee.repository.management.model.LifecycleState;
 import java.util.Optional;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,8 +56,6 @@ public class ApiCrudServiceImplTest {
                 .id(API_ID)
                 .apiLifecycleState(ApiLifecycleState.PUBLISHED)
                 .lifecycleState(LifecycleState.STARTED)
-                .mode("fully_managed")
-                .origin("management")
                 .build();
             when(apiRepository.findById(API_ID)).thenReturn(Optional.of(existingApi));
 
@@ -62,8 +64,7 @@ public class ApiCrudServiceImplTest {
                 .id(API_ID)
                 .apiLifecycleState(io.gravitee.apim.core.api.model.Api.ApiLifecycleState.PUBLISHED)
                 .lifecycleState(io.gravitee.apim.core.api.model.Api.LifecycleState.STARTED)
-                .mode("fully_managed")
-                .origin("management")
+                .definitionContext(new DefinitionContext())
                 .build();
 
             var foundPage = service.get(API_ID);

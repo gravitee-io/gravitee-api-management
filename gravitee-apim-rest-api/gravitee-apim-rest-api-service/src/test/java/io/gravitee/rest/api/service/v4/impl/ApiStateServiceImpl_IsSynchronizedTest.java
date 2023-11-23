@@ -19,7 +19,6 @@ import static io.gravitee.rest.api.model.EventType.PUBLISH_API;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -28,6 +27,7 @@ import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
@@ -187,6 +187,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setId("apiId");
         apiEntity.setName("Api name");
+        apiEntity.setDefinitionContext(new DefinitionContext());
 
         EventEntity eventEntity = new EventEntity();
         eventEntity.setType(EventType.PUBLISH_API);
@@ -230,6 +231,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
         apiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V2.getLabel());
         apiEntity.setId("apiId");
         apiEntity.setName("Api name");
+        apiEntity.setDefinitionContext(new DefinitionContext());
 
         // Add flow
         io.gravitee.definition.model.flow.Flow flow = new io.gravitee.definition.model.flow.Flow();
@@ -281,6 +283,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
         apiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V2.getLabel());
         apiEntity.setId("apiId");
         apiEntity.setName("Api name");
+        apiEntity.setDefinitionContext(new DefinitionContext());
 
         // Add flow
         io.gravitee.definition.model.flow.Flow flow = new io.gravitee.definition.model.flow.Flow();
@@ -335,6 +338,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setId("apiId");
         apiEntity.setName("Api name");
+        apiEntity.setDefinitionContext(new DefinitionContext());
 
         EventEntity eventEntity = new EventEntity();
         eventEntity.setType(EventType.PUBLISH_API);
@@ -385,6 +389,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
         apiEntity.setId("apiId");
         apiEntity.setName("Api name");
         apiEntity.setDeployedAt(nowDate);
+        apiEntity.setDefinitionContext(new DefinitionContext());
 
         EventEntity eventEntity = new EventEntity();
         eventEntity.setType(EventType.PUBLISH_API);
@@ -445,6 +450,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
         apiEntity.setId("apiId");
         apiEntity.setName("Api name");
         apiEntity.setDeployedAt(nowDate);
+        apiEntity.setDefinitionContext(new DefinitionContext());
 
         EventEntity eventEntity = new EventEntity();
         eventEntity.setType(EventType.PUBLISH_API);

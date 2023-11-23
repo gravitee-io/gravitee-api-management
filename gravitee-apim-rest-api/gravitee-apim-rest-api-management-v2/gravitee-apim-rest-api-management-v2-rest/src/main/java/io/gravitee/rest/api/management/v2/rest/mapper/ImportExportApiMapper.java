@@ -40,6 +40,7 @@ public interface ImportExportApiMapper {
     @Mapping(target = "apiEntity", expression = "java(buildApiEntity(exportApiV4))")
     @Mapping(target = "members", expression = "java(buildMembers(exportApiV4))")
     @Mapping(target = "metadata", expression = "java(buildMetadata(exportApiV4))")
+    @Mapping(target = "plans", qualifiedByName = "toPlanEntity")
     ExportApiEntity map(ExportApiV4 exportApiV4);
 
     @Mapping(target = "type", constant = "USER")

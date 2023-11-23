@@ -2619,6 +2619,7 @@ components:
                         - MANAGEMENT
                         - KUBERNETES
                 mode:
+                    deprecated: true
                     type: string
                     description: |-
                         The mode of the API.
@@ -2628,6 +2629,19 @@ components:
                     enum:
                         - FULLY_MANAGED
                         - API_DEFINITION_ONLY
+                syncFrom:
+                    type: string
+                    description: |-
+                        syncFrom stands for where the Gateway should source the API definition from. 
+                        If the value is KUBERNETES, then the gateway will sync the definition by listening to changes
+                        issued on a kubernetes config map. If the value is MANAGEMENT, then the gateway will sync
+                        the definition using the same datastore as APIM. 
+                        Defining MANAGEMENT as source for sync is useful e.g. when a single operator should operate
+                        on gateways deployed on multiple kubernetes clusters.
+                    example: MANAGEMENT
+                    enum:
+                        - MANAGEMENT
+                        - KUBERNETES
             readOnly: true
         DefinitionVersion:
             type: string

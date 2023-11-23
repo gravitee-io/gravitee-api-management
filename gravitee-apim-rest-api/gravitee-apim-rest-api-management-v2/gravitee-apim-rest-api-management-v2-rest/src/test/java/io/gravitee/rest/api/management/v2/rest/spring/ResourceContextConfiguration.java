@@ -17,8 +17,12 @@ package io.gravitee.rest.api.management.v2.rest.spring;
 
 import static org.mockito.Mockito.mock;
 
+import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
+import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
+import io.gravitee.apim.core.api.domain_service.DeployApiDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService;
+import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.infra.json.jackson.JacksonSpringConfiguration;
 import io.gravitee.apim.infra.sanitizer.SanitizerSpringConfiguration;
 import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
@@ -244,5 +248,25 @@ public class ResourceContextConfiguration {
     @Bean
     public GraviteeLicenseDomainService graviteeLicenseDomainService() {
         return new GraviteeLicenseDomainService(nodeLicenseService);
+    }
+
+    @Bean
+    public CreateApiDomainService createApiDomainService() {
+        return mock(CreateApiDomainService.class);
+    }
+
+    @Bean
+    public CreatePlanDomainService createPlanDomainService() {
+        return mock(CreatePlanDomainService.class);
+    }
+
+    @Bean
+    public DeployApiDomainService deployApiDomainService() {
+        return mock(DeployApiDomainService.class);
+    }
+
+    @Bean
+    public ApiMetadataDomainService apiMetadataDomainService() {
+        return mock(ApiMetadataDomainService.class);
     }
 }

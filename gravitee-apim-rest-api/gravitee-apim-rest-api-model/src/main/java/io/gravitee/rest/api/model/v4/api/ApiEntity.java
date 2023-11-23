@@ -180,7 +180,8 @@ public class ApiEntity implements GenericApiEntity {
     private List<String> labels;
 
     @Schema(description = "the context where the api definition was created from")
-    private DefinitionContext definitionContext;
+    @Builder.Default
+    private DefinitionContext definitionContext = new DefinitionContext();
 
     @JsonIgnore
     @Builder.Default

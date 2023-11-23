@@ -1300,8 +1300,6 @@ public class ApiServiceImplTest {
         apiEntity.setVisibility(Visibility.PUBLIC);
 
         DefinitionContext context = new DefinitionContext();
-        context.setMode("READ_ONLY");
-        context.setOrigin("MANAGEMENT");
         apiEntity.setDefinitionContext(context);
         PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity();
         primaryOwnerEntity.setId(USER_NAME);
