@@ -23,18 +23,18 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
+import { ActivatedRoute } from '@angular/router';
 
 import { ApiProxyResponseTemplatesListComponent } from './api-proxy-response-templates-list.component';
 
 import { ApiProxyResponseTemplatesModule } from '../api-proxy-response-templates.module';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
-import { UIRouterStateParams, CurrentUserService, UIRouterState, AjsRootScope } from '../../../../../ajs-upgraded-providers';
+import { CurrentUserService } from '../../../../../ajs-upgraded-providers';
 import { User } from '../../../../../entities/user';
 import { ApiV2, fakeApiV2 } from '../../../../../entities/management-api-v2';
 
 describe('ApiProxyResponseTemplatesListComponent', () => {
   const API_ID = 'apiId';
-  const fakeUiRouter = { go: jest.fn() };
 
   let fixture: ComponentFixture<ApiProxyResponseTemplatesListComponent>;
   let loader: HarnessLoader;
@@ -48,10 +48,8 @@ describe('ApiProxyResponseTemplatesListComponent', () => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiProxyResponseTemplatesModule, MatIconTestingModule],
       providers: [
-        { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
-        { provide: UIRouterState, useValue: fakeUiRouter },
+        { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
         { provide: CurrentUserService, useValue: { currentUser } },
-        { provide: AjsRootScope, useValue: null },
       ],
     }).overrideProvider(InteractivityChecker, {
       useValue: {
@@ -72,63 +70,6 @@ describe('ApiProxyResponseTemplatesListComponent', () => {
   afterEach(() => {
     jest.clearAllMocks();
     httpTestingController.verify();
-  });
-
-  describe('onAddResponseTemplateClicked', () => {
-    it('should navigate to new Response Template page on click to add button', async () => {
-      const api = fakeApiV2({
-        id: API_ID,
-      });
-      expectApiGetRequest(api);
-
-      const routerSpy = jest.spyOn(fakeUiRouter, 'go');
-
-      await loader.getHarness(MatButtonHarness.with({ text: /Add new Response Template/ })).then((button) => button.click());
-
-      expect(routerSpy).toHaveBeenCalledWith('management.apis.responseTemplateNew', { apiId: 'apiId' });
-    });
-  });
-
-  describe('onEditResponseTemplateClicked', () => {
-    it('should navigate to new apis page on click to add button', async () => {
-      const routerSpy = jest.spyOn(fakeUiRouter, 'go');
-
-      const api = fakeApiV2({
-        id: API_ID,
-        responseTemplates: {
-          DEFAULT: {
-            'application/json': {
-              body: 'json',
-              statusCode: 200,
-            },
-            'text/xml': {
-              body: 'xml',
-              statusCode: 200,
-            },
-            '*/*': {
-              body: 'default',
-              statusCode: 200,
-            },
-          },
-        },
-      });
-      expectApiGetRequest(api);
-
-      const rtTable = await loader.getHarness(MatTableHarness.with({ selector: '#responseTemplateTable' }));
-      const rtTableRows = await rtTable.getRows();
-
-      const [_1, _2, _3, rtTableFirstRowActionsCell] = await rtTableRows[0].getCells();
-
-      const vhTableFirstRowHostInput = await rtTableFirstRowActionsCell.getHarness(
-        MatButtonHarness.with({ selector: '[aria-label="Button to edit a Response Template"]' }),
-      );
-      await vhTableFirstRowHostInput.click();
-
-      expect(routerSpy).toHaveBeenCalledWith('management.apis.responseTemplateEdit', {
-        apiId: 'apiId',
-        responseTemplateId: 'DEFAULT-application/json',
-      });
-    });
   });
 
   it('should display response templates table', async () => {
@@ -204,8 +145,6 @@ describe('ApiProxyResponseTemplatesListComponent', () => {
   });
 
   it('should disable field when origin is kubernetes', async () => {
-    const routerSpy = jest.spyOn(fakeUiRouter, 'go');
-
     const api = fakeApiV2({
       id: API_ID,
       definitionContext: {
@@ -233,13 +172,6 @@ describe('ApiProxyResponseTemplatesListComponent', () => {
     // expect open detail btn
     const opentDetailBtn = allActionsBtn[0];
     expect(await (await opentDetailBtn.host()).getAttribute('aria-label')).toBe('Button to open Response Template detail');
-
-    await opentDetailBtn.click();
-
-    expect(routerSpy).toHaveBeenCalledWith('management.apis.responseTemplateEdit', {
-      apiId: 'apiId',
-      responseTemplateId: 'DEFAULT-application/json',
-    });
   });
 
   function expectApiGetRequest(api: ApiV2) {

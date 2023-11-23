@@ -19,7 +19,7 @@
 <form *ngIf="responseTemplatesForm" [formGroup]="responseTemplatesForm" autocomplete="off" gioFormFocusInvalid>
   <div>
     <span class="md-headline">
-      <gio-go-back-button [ajsGo]="{ to: 'management.apis.responseTemplates', params: { apiId: apiId } }"></gio-go-back-button>
+      <gio-go-back-button [routerLink]="'../'"></gio-go-back-button>
       <ng-container *ngIf="mode === 'new'">Create a new Response Template</ng-container>
       <ng-container *ngIf="mode === 'edit'">{{ isReadOnly ? '' : 'Update ' }}Response Template</ng-container>
     </span>

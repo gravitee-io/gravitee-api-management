@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { AbstractControl, FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { Header } from '@gravitee/ui-particles-angular';
-import { StateService } from '@uirouter/core';
 import { isEmpty, isNil, toString } from 'lodash';
 import { EMPTY, Observable, Subject } from 'rxjs';
 import { catchError, map, startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { ActivatedRoute, Router } from '@angular/router';
 
-import { UIRouterStateParams, UIRouterState } from '../../../../../ajs-upgraded-providers';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import { HttpUtil, StatusCode } from '../../../../../shared/utils';
@@ -51,8 +50,8 @@ export class ApiProxyResponseTemplatesEditComponent implements OnInit, OnDestroy
   public selectedStatusCodes$: Observable<StatusCode>;
 
   constructor(
-    @Inject(UIRouterStateParams) private readonly ajsStateParams,
-    @Inject(UIRouterState) private readonly ajsState: StateService,
+    private readonly activatedRoute: ActivatedRoute,
+    private readonly route: Router,
     private readonly apiService: ApiV2Service,
     private readonly permissionService: GioPermissionService,
     private readonly snackBarService: SnackBarService,
@@ -60,7 +59,7 @@ export class ApiProxyResponseTemplatesEditComponent implements OnInit, OnDestroy
 
   ngOnInit(): void {
     this.apiService
-      .get(this.ajsStateParams.apiId)
+      .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
         onlyApiV1V2Filter(this.snackBarService),
         tap((api) => {
@@ -68,7 +67,7 @@ export class ApiProxyResponseTemplatesEditComponent implements OnInit, OnDestroy
 
           const responseTemplates = toResponseTemplates(api.responseTemplates);
 
-          this.responseTemplateToEdit = responseTemplates.find((rt) => rt.id === this.ajsStateParams.responseTemplateId);
+          this.responseTemplateToEdit = responseTemplates.find((rt) => rt.id === this.activatedRoute.snapshot.params.responseTemplateId);
           this.mode = !isNil(this.responseTemplateToEdit) ? 'edit' : 'new';
 
           this.isReadOnly =
@@ -152,7 +151,7 @@ export class ApiProxyResponseTemplatesEditComponent implements OnInit, OnDestroy
     };
 
     return this.apiService
-      .get(this.ajsStateParams.apiId)
+      .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
         onlyApiV2Filter(this.snackBarService),
         switchMap((api) => {
@@ -176,7 +175,11 @@ export class ApiProxyResponseTemplatesEditComponent implements OnInit, OnDestroy
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
-        tap(() => this.ajsState.go('management.apis.responseTemplates', { apiId: this.apiId })),
+        tap(() =>
+          this.route.navigate(['../'], {
+            relativeTo: this.activatedRoute,
+          }),
+        ),
         takeUntil(this.unsubscribe$),
       )
       .subscribe();

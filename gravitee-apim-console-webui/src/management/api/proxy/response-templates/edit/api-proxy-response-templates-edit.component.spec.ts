@@ -22,18 +22,18 @@ import { MatInputHarness } from '@angular/material/input/testing';
 import { GioFormHeadersHarness, GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { cloneDeep } from 'lodash';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
+import { ActivatedRoute } from '@angular/router';
 
 import { ApiProxyResponseTemplatesEditComponent } from './api-proxy-response-templates-edit.component';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
 import { ApiProxyResponseTemplatesModule } from '../api-proxy-response-templates.module';
-import { UIRouterStateParams, UIRouterState, CurrentUserService, AjsRootScope } from '../../../../../ajs-upgraded-providers';
+import { CurrentUserService, AjsRootScope } from '../../../../../ajs-upgraded-providers';
 import { User } from '../../../../../entities/user';
 import { ApiV2, fakeApiV2 } from '../../../../../entities/management-api-v2';
 
 describe('ApiProxyResponseTemplatesComponent', () => {
   const API_ID = 'apiId';
-  const fakeUiRouter = { go: jest.fn() };
 
   let fixture: ComponentFixture<ApiProxyResponseTemplatesEditComponent>;
   let loader: HarnessLoader;
@@ -46,8 +46,7 @@ describe('ApiProxyResponseTemplatesComponent', () => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiProxyResponseTemplatesModule, MatIconTestingModule],
       providers: [
-        { provide: UIRouterStateParams, useValue: { apiId: API_ID, responseTemplateId } },
-        { provide: UIRouterState, useValue: fakeUiRouter },
+        { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID, responseTemplateId } } } },
         { provide: CurrentUserService, useValue: { currentUser } },
         { provide: AjsRootScope, useValue: null },
       ],
