@@ -17,25 +17,15 @@
 -->
 <div class="header">
   <api-documentation-breadcrumb (onNavigateTo)="onNavigateTo.emit($event)" [breadcrumbs]="breadcrumbs"></api-documentation-breadcrumb>
-  <div class="header__action">
+  <div class="header__action" *gioPermission="{ anyOf: ['api-documentation-c'] }">
     <button
       class="header__action__button"
       mat-stroked-button
       (click)="onAddFolder.emit()"
-      *gioPermission="{ anyOf: ['api-documentation-c'] }"
+      *gioPermission="{ anyOf: ['api-documentation-u'] }"
     >
       Add new folder
     </button>
-    <ng-container *ngIf="hasPages">
-      <button
-        class="header__action__button"
-        mat-flat-button
-        color="primary"
-        (click)="onAddPage.emit()"
-        *gioPermission="{ anyOf: ['api-documentation-c'] }"
-      >
-        Add new page
-      </button>
-    </ng-container>
+    <button *ngIf="hasPages" class="header__action__button" mat-flat-button color="primary" (click)="onAddPage.emit()">Add new page</button>
   </div>
 </div>
