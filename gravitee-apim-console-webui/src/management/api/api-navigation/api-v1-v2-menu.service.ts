@@ -138,21 +138,18 @@ export class ApiV1V2MenuService implements ApiMenuService {
       userAndGroupAccessMenuItems.tabs.push(
         {
           displayName: 'Members',
-          targetRoute: 'management.apis.members',
-          baseRoute: 'management.apis.members',
+          routerLink: 'members',
         },
         {
           displayName: 'Groups',
-          targetRoute: 'management.apis.groups',
-          baseRoute: 'management.apis.groups',
+          routerLink: 'groups',
         },
       );
     }
     if (this.currentUserService.currentUser.isOrganizationAdmin() || this.permissionService.hasAnyMatching(['api-member-u'])) {
       userAndGroupAccessMenuItems.tabs.push({
         displayName: 'Transfer ownership',
-        targetRoute: 'management.apis.transferOwnership',
-        baseRoute: 'management.apis.transferOwnership',
+        routerLink: 'transfer-ownership',
       });
     }
     if (userAndGroupAccessMenuItems.tabs.length > 0) {

@@ -25,13 +25,13 @@ import { set } from 'lodash';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { MatButtonToggleGroupHarness } from '@angular/material/button-toggle/testing';
+import { ActivatedRoute } from '@angular/router';
 
 import { ApiGeneralTransferOwnershipComponent } from './api-general-transfer-ownership.component';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
 import { ApiGeneralUserGroupModule } from '../api-general-user-group.module';
 import { ApiMember } from '../../../../../entities/api';
-import { UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { Role } from '../../../../../entities/role/role';
 import { fakeRole } from '../../../../../entities/role/role.fixture';
 import { Group } from '../../../../../entities/group/group';
@@ -54,7 +54,7 @@ describe('ApiGeneralTransferOwnershipComponent', () => {
       TestBed.configureTestingModule({
         imports: [NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule, ApiGeneralUserGroupModule],
         providers: [
-          { provide: UIRouterStateParams, useValue: { apiId } },
+          { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId } } } },
           {
             provide: 'Constants',
             useFactory: () => {
@@ -243,7 +243,7 @@ describe('ApiGeneralTransferOwnershipComponent', () => {
       TestBed.configureTestingModule({
         imports: [NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule, ApiGeneralUserGroupModule],
         providers: [
-          { provide: UIRouterStateParams, useValue: { apiId } },
+          { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId } } } },
           {
             provide: 'Constants',
             useFactory: () => {

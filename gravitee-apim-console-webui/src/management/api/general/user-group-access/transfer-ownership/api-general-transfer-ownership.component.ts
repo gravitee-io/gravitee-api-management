@@ -20,8 +20,8 @@ import { AbstractControl, FormControl, FormGroup, ValidationErrors } from '@angu
 import { MatDialog } from '@angular/material/dialog';
 import { isEmpty } from 'lodash';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import { ActivatedRoute } from '@angular/router';
 
-import { UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { ApiMemberService } from '../../../../../services-ngx/api-member.service';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { GroupService } from '../../../../../services-ngx/group.service';
@@ -55,7 +55,7 @@ export class ApiGeneralTransferOwnershipComponent implements OnInit {
   private apiId: string;
 
   constructor(
-    @Inject(UIRouterStateParams) private readonly ajsStateParams,
+    public readonly activatedRoute: ActivatedRoute,
     private readonly apiV2Service: ApiV2Service,
     private readonly apiMembersService: ApiMemberService,
     private readonly groupService: GroupService,
@@ -66,7 +66,7 @@ export class ApiGeneralTransferOwnershipComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.apiId = this.ajsStateParams.apiId;
+    this.apiId = this.activatedRoute.snapshot.params.apiId;
 
     this.mode = this.constants.env.settings.api.primaryOwnerMode.toUpperCase() as 'USER' | 'GROUP' | 'HYBRID';
 

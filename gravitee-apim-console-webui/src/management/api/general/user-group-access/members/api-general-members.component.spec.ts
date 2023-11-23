@@ -23,13 +23,14 @@ import { InteractivityChecker } from '@angular/cdk/a11y';
 import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 
 import { ApiGeneralMembersComponent } from './api-general-members.component';
 import { ApiGeneralMembersHarness } from './api-general-members.harness';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
 import { ApiGeneralUserGroupModule } from '../api-general-user-group.module';
-import { CurrentUserService, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
+import { CurrentUserService } from '../../../../../ajs-upgraded-providers';
 import { RoleService } from '../../../../../services-ngx/role.service';
 import { Role } from '../../../../../entities/role/role';
 import { fakeRole } from '../../../../../entities/role/role.fixture';
@@ -55,7 +56,7 @@ describe('ApiGeneralMembersComponent', () => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule, ApiGeneralUserGroupModule],
       providers: [
-        { provide: UIRouterStateParams, useValue: { apiId } },
+        { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId } } } },
         { provide: RoleService, useValue: { list: () => of(roles) } },
         { provide: CurrentUserService, useValue: { currentUser } },
       ],
