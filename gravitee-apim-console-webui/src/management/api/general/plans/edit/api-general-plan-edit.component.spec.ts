@@ -22,10 +22,11 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { set } from 'lodash';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { MatButtonHarness } from '@angular/material/button/testing';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { ApiGeneralPlanEditComponent } from './api-general-plan-edit.component';
 
-import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
+import { CurrentUserService } from '../../../../../ajs-upgraded-providers';
 import { User } from '../../../../../entities/user';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
 import { ApiGeneralPlansModule } from '../api-general-plans.module';
@@ -48,21 +49,25 @@ import {
 describe('ApiGeneralPlanEditComponent', () => {
   const API_ID = 'my-api';
   const currentUser = new User();
-  const fakeUiRouter = { go: jest.fn() };
 
   currentUser.userPermissions = ['api-plan-u'];
 
   let fixture: ComponentFixture<ApiGeneralPlanEditComponent>;
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
+  let routerNavigationSpy: jest.SpyInstance;
 
   const configureTestingModule = (planId: string = undefined) => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiGeneralPlansModule, MatIconTestingModule],
       providers: [
         { provide: CurrentUserService, useValue: { currentUser } },
-        { provide: UIRouterStateParams, useValue: { apiId: API_ID, planId, selectedPlanMenuItem: 'JWT' } },
-        { provide: UIRouterState, useValue: fakeUiRouter },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            snapshot: { params: { apiId: API_ID, planId }, queryParams: { selectedPlanMenuItem: 'JWT' } },
+          },
+        },
         {
           provide: 'Constants',
           useFactory: () => {
@@ -82,6 +87,8 @@ describe('ApiGeneralPlanEditComponent', () => {
     TestbedHarnessEnvironment.documentRootLoader(fixture);
 
     httpTestingController = TestBed.inject(HttpTestingController);
+    const router = TestBed.inject(Router);
+    routerNavigationSpy = jest.spyOn(router, 'navigate');
   };
 
   afterEach(() => {
@@ -164,7 +171,12 @@ describe('ApiGeneralPlanEditComponent', () => {
           ],
         } as CreatePlanV2);
         req.flush({});
-        expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.plans', { status: 'STAGING' });
+        expect(routerNavigationSpy).toHaveBeenCalledWith(['../'], {
+          queryParams: {
+            status: 'STAGING',
+          },
+          relativeTo: expect.anything(),
+        });
       });
     });
 
@@ -260,7 +272,12 @@ describe('ApiGeneralPlanEditComponent', () => {
           ],
         } as PlanV2);
         req.flush({});
-        expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.plans', { status: PLAN.status });
+        expect(routerNavigationSpy).toHaveBeenCalledWith(['../'], {
+          queryParams: {
+            status: PLAN.status,
+          },
+          relativeTo: expect.anything(),
+        });
       });
     });
 
@@ -352,7 +369,7 @@ describe('ApiGeneralPlanEditComponent', () => {
 
         expect(req.request.body).toEqual(expect.objectContaining({ name: 'My plan edited' }));
         req.flush({});
-        expect(fakeUiRouter.go).toHaveBeenCalled();
+        expect(routerNavigationSpy).toHaveBeenCalled();
       });
     });
 

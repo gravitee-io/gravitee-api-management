@@ -94,7 +94,7 @@ export class ApiV1V2MenuService implements ApiMenuService {
       plansMenuItem.tabs.push({
         displayName: 'Plans',
         targetRoute: 'management.apis.plans',
-        baseRoute: ['management.apis.plans', 'management.apis.plan'],
+        routerLink: 'plans',
       });
     }
     if (this.permissionService.hasAnyMatching(['api-subscription-r'])) {

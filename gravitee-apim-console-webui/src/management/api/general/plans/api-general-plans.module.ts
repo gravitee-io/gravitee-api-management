@@ -27,6 +27,7 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatCardModule } from '@angular/material/card';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatMenuModule } from '@angular/material/menu';
+import { RouterModule } from '@angular/router';
 
 import { ApiGeneralPlanListComponent } from './list/api-general-plan-list.component';
 import { ApiGeneralPlanEditComponent } from './edit/api-general-plan-edit.component';
@@ -42,6 +43,7 @@ import { GioGoBackButtonModule } from '../../../../shared/components/gio-go-back
     CommonModule,
     DragDropModule,
     ReactiveFormsModule,
+    RouterModule,
 
     MatCardModule,
     MatButtonModule,

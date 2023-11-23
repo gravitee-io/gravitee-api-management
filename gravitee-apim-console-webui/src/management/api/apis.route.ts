@@ -1697,6 +1697,39 @@ const apisRoutes: Routes = [
         component: MessagesComponent,
       },
       {
+        path: 'plans',
+        data: {
+          useAngularMaterial: true,
+          docs: null,
+          apiPermissions: {
+            only: ['api-plan-r'],
+          },
+        },
+        component: ApiGeneralPlanListComponent,
+      },
+      {
+        path: 'plans/new',
+        component: ApiGeneralPlanEditComponent,
+        data: {
+          useAngularMaterial: true,
+          docs: null,
+          apiPermissions: {
+            only: ['api-plan-c'],
+          },
+        },
+      },
+      {
+        path: 'plans/:planId',
+        component: ApiGeneralPlanEditComponent,
+        data: {
+          useAngularMaterial: true,
+          docs: null,
+          apiPermissions: {
+            only: ['api-plan-r'],
+          },
+        },
+      },
+      {
         path: 'documentation/new',
         component: DocumentationNewPageComponent,
         data: {

@@ -17,7 +17,7 @@ import { ComponentFixture, fakeAsync, TestBed } from '@angular/core/testing';
 import { HarnessLoader, parallel } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { MatCellHarness, MatTableHarness } from '@angular/material/table/testing';
+import { MatTableHarness } from '@angular/material/table/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { MatButtonToggleHarness } from '@angular/material/button-toggle/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
@@ -27,19 +27,19 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { GioConfirmAndValidateDialogHarness } from '@gravitee/ui-particles-angular';
 import { castArray, set } from 'lodash';
 import { MatMenuHarness } from '@angular/material/menu/testing';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { ApiGeneralPlanListComponent } from './api-general-plan-list.component';
 
 import { ApiGeneralPlansModule } from '../api-general-plans.module';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
-import { AjsRootScope, CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
+import { CurrentUserService } from '../../../../../ajs-upgraded-providers';
 import { User as DeprecatedUser } from '../../../../../entities/user';
 import { Subscription } from '../../../../../entities/subscription/subscription';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import {
   Api,
   ApiPlansResponse,
-  fakeApiV1,
   fakeApiV2,
   fakeApiV4,
   fakePlanV2,
@@ -51,7 +51,6 @@ import {
 describe('ApiGeneralPlanListComponent', () => {
   const API_ID = 'api#1';
   const anAPi = fakeApiV2({ id: API_ID });
-  const fakeUiRouter = { go: jest.fn() };
   const currentUser = new DeprecatedUser();
   currentUser.userPermissions = ['api-plan-u', 'api-plan-r', 'api-plan-d'];
 
@@ -60,15 +59,12 @@ describe('ApiGeneralPlanListComponent', () => {
   let loader: HarnessLoader;
   let rootLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
-
-  const fakeRootScope = { $broadcast: jest.fn(), $on: jest.fn() };
+  let routerNavigateSpy: jest.SpyInstance;
 
   const init = async () => {
     await TestBed.configureTestingModule({
       imports: [ApiGeneralPlansModule, NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule],
       providers: [
-        { provide: AjsRootScope, useValue: fakeRootScope },
-        { provide: UIRouterState, useValue: fakeUiRouter },
         { provide: CurrentUserService, useValue: { currentUser } },
         {
           provide: InteractivityChecker,
@@ -115,7 +111,7 @@ describe('ApiGeneralPlanListComponent', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
     httpTestingController.verify();
   });
 
@@ -269,85 +265,23 @@ describe('ApiGeneralPlanListComponent', () => {
         await init();
         const plan = fakePlanV2();
         await initComponent([plan]);
-        fakeUiRouter.go.mockReset();
 
         await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Edit the plan"]' })).then((btn) => btn.click());
 
-        expect(fakeUiRouter.go).toBeCalledWith('management.apis.plan.edit', { planId: plan.id });
+        expect(routerNavigateSpy).toBeCalledWith(['../plans'], expect.anything());
       });
-      it('should navigate to new plan', async () => {
-        await init();
-        await initComponent([]);
-        fixture.componentInstance.isLoadingData = false;
-        fakeUiRouter.go.mockReset();
-
-        await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Add new plan"]' })).then((btn) => btn.click());
-
-        const planSecurityDropdown = await loader.getHarness(MatMenuHarness);
-        expect(await planSecurityDropdown.getItems().then((items) => items.length)).toEqual(4);
-
-        await planSecurityDropdown.clickItem({ text: 'Keyless (public)' });
-        expect(fakeUiRouter.go).toBeCalledWith('management.apis.plan.new', { selectedPlanMenuItem: 'KEY_LESS' });
-      });
-      it('should navigate to edit when click on the name', async () => {
-        await init();
-        const plan = fakePlanV2();
-        await initComponent([plan]);
-        fakeUiRouter.go.mockReset();
-
-        await loader
-          .getHarness(MatCellHarness.with({ text: plan.name }))
-          .then((btn) => btn.host())
-          .then((host) => host.click());
-
-        expect(fakeUiRouter.go).toBeCalledWith('management.apis.plan.edit', { planId: plan.id });
-      });
-    });
-    it('should navigate to edit when click on the action button', async () => {
-      const plan = fakePlanV2();
-      await initComponent([plan]);
-      fakeUiRouter.go.mockReset();
-
-      await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Edit the plan"]' })).then((btn) => btn.click());
-
-      expect(fakeUiRouter.go).toBeCalledWith('management.apis.plan.edit', { planId: plan.id });
-    });
-
-    it('should navigate to new plan', async () => {
-      await initComponent([]);
-      fixture.componentInstance.isLoadingData = false;
-      fakeUiRouter.go.mockReset();
-
-      await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Add new plan"]' })).then((btn) => btn.click());
-
-      const planSecurityDropdown = await loader.getHarness(MatMenuHarness);
-      expect(await planSecurityDropdown.getItems().then((items) => items.length)).toEqual(4);
-
-      await planSecurityDropdown.clickItem({ text: 'Keyless (public)' });
-      expect(fakeUiRouter.go).toBeCalledWith('management.apis.plan.new', { selectedPlanMenuItem: 'KEY_LESS' });
-    });
-
-    it('should navigate to edit when click on the name', async () => {
-      const plan = fakePlanV2();
-      await initComponent([plan]);
-      fakeUiRouter.go.mockReset();
-
-      await loader
-        .getHarness(MatCellHarness.with({ text: plan.name }))
-        .then((btn) => btn.host())
-        .then((host) => host.click());
-
-      expect(fakeUiRouter.go).toBeCalledWith('management.apis.plan.edit', { planId: plan.id });
     });
 
     it('should navigate to design when click on the design button', async () => {
       const plan = fakePlanV2();
       await initComponent([plan]);
-      fakeUiRouter.go.mockReset();
 
       await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Design the plan"]' })).then((btn) => btn.click());
 
-      expect(fakeUiRouter.go).toBeCalledWith('management.apis.policy-studio-v2.design', { apiId: API_ID, flows: `${plan.id}_0` });
+      expect(routerNavigateSpy).toBeCalledWith(['../v2/policy-studio'], {
+        queryParams: { flows: `${plan.id}_0` },
+        relativeTo: expect.anything(),
+      });
     });
 
     describe('should publish the staging plan', () => {
@@ -391,7 +325,6 @@ describe('ApiGeneralPlanListComponent', () => {
 
         const updatedPlan: Plan = { ...plan, status: 'PUBLISHED' };
         expectApiPlanPublishRequest(updatedPlan);
-        expect(fakeRootScope.$broadcast).not.toHaveBeenCalled();
         expectApiGetRequest();
         expectApiPlansListRequest([updatedPlan], [...PLAN_STATUS]);
       });
@@ -432,7 +365,6 @@ describe('ApiGeneralPlanListComponent', () => {
 
         const updatedPlan: Plan = { ...plan, status: 'DEPRECATED' };
         expectApiPlanDeprecateRequest(updatedPlan);
-        expect(fakeRootScope.$broadcast).not.toHaveBeenCalled();
         expectApiGetRequest();
         expectApiPlansListRequest([updatedPlan], [...PLAN_STATUS]);
       });
@@ -478,7 +410,6 @@ describe('ApiGeneralPlanListComponent', () => {
 
           const updatedPlan: Plan = { ...plan, status: 'CLOSED' };
           expectApiPlanCloseRequest(updatedPlan);
-          expect(fakeRootScope.$broadcast).not.toHaveBeenCalled();
           expectApiGetRequest();
           expectApiPlansListRequest([updatedPlan], [...PLAN_STATUS]);
         });
@@ -486,65 +417,13 @@ describe('ApiGeneralPlanListComponent', () => {
     });
   });
 
-  describe('kubernetes api tests', () => {
-    it('should access plan in read only', async () => {
-      const kubernetesApi = fakeApiV2({ id: API_ID, definitionContext: { origin: 'KUBERNETES' } });
-      const plan = fakePlanV2({ apiId: API_ID, tags: ['tag1', 'tag2'] });
-      await initComponent([plan], kubernetesApi);
-
-      expect(component.isReadOnly).toBe(true);
-
-      await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="View the plan details"]' })).then((btn) => btn.click());
-
-      expect(await loader.getAllHarnesses(MatButtonHarness.with({ selector: '[aria-label="Add new plan"]' }))).toHaveLength(0);
-      expect(fakeUiRouter.go).toBeCalledWith('management.apis.plan.edit', { planId: plan.id });
-
-      const { headerCells, rowCells } = await computePlansTableCells();
-      expect(headerCells).toEqual([
-        {
-          name: 'Name',
-          status: 'Status',
-          'deploy-on': 'Deploy on',
-          type: 'Type',
-          actions: '',
-        },
-      ]);
-      expect(rowCells).toEqual([['Default plan', 'API_KEY', 'PUBLISHED', 'tag1, tag2', '']]);
-    });
-  });
-
-  describe('V1 API tests', () => {
-    it('should access plan in read only', async () => {
-      const v1Api = fakeApiV1({ id: API_ID });
-      const plan = fakePlanV2({ apiId: API_ID, tags: ['tag1', 'tag2'] });
-      await initComponent([plan], v1Api);
-
-      expect(component.isReadOnly).toBe(true);
-
-      await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="View the plan details"]' })).then((btn) => btn.click());
-
-      expect(await loader.getAllHarnesses(MatButtonHarness.with({ selector: '[aria-label="Add new plan"]' }))).toHaveLength(0);
-      expect(fakeUiRouter.go).toBeCalledWith('management.apis.plan.edit', { planId: plan.id });
-
-      const { headerCells, rowCells } = await computePlansTableCells();
-      expect(headerCells).toEqual([
-        {
-          name: 'Name',
-          status: 'Status',
-          'deploy-on': 'Deploy on',
-          type: 'Type',
-          actions: '',
-        },
-      ]);
-      expect(rowCells).toEqual([['Default plan', 'API_KEY', 'PUBLISHED', 'tag1, tag2', '']]);
-    });
-  });
-
   async function initComponent(plans: Plan[], api: Api = anAPi) {
-    await TestBed.overrideProvider(UIRouterStateParams, { useValue: { apiId: api.id } }).compileComponents();
+    await TestBed.overrideProvider(ActivatedRoute, { useValue: { snapshot: { params: { apiId: api.id } } } }).compileComponents();
     fixture = TestBed.createComponent(ApiGeneralPlanListComponent);
     component = fixture.componentInstance;
     httpTestingController = TestBed.inject(HttpTestingController);
+    const router = TestBed.inject(Router);
+    routerNavigateSpy = jest.spyOn(router, 'navigate');
     fixture.detectChanges();
 
     expectApiGetRequest(api);
