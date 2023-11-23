@@ -56,6 +56,7 @@ function fetchData() {
       // Store build information
       const constants = responses[1].data;
       const baseURL = sanitizeBaseURLs(constants);
+      console.log('baseURL: ', baseURL);
       const enforcedOrganizationId = getEnforcedOrganizationId(constants);
       let bootstrapUrl: string;
       if (enforcedOrganizationId) {
@@ -67,6 +68,7 @@ function fetchData() {
     })
     .then((bootstrapResponse: any) => {
       ConstantsJSON = prepareConstants(bootstrapResponse.data);
+      console.log('Constants', ConstantsJSON);
       return $q.all([$http.get(`${ConstantsJSON.org.baseURL}/console`), $http.get(`${ConstantsJSON.v2BaseURL}/ui/customization`)]);
     })
     .then((responses: any) => {
