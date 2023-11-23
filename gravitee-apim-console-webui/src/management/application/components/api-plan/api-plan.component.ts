@@ -25,18 +25,20 @@ const ApiPlanComponent: ng.IComponentOptions = {
     onUnsubscribe: '&',
   },
   template: require('./api-plan.html'),
-  /* @ngInject */
-  controller: function (UserService: UserService) {
-    this.authenticated = UserService.isAuthenticated();
+  controller: [
+    'UserService',
+    function (UserService: UserService) {
+      this.authenticated = UserService.isAuthenticated();
 
-    this.subscribe = function () {
-      this.onSubscribe(this.plan);
-    };
+      this.subscribe = function () {
+        this.onSubscribe(this.plan);
+      };
 
-    this.unsubscribe = function () {
-      this.onUnsubscribe(this.plan);
-    };
-  },
+      this.unsubscribe = function () {
+        this.onUnsubscribe(this.plan);
+      };
+    },
+  ],
 };
 
 export default ApiPlanComponent;
