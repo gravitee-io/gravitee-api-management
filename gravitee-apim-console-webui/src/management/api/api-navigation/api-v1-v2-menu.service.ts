@@ -81,6 +81,7 @@ export class ApiV1V2MenuService implements ApiMenuService {
         {
           displayName: 'Info',
           routerLink: '.',
+          routerLinkActiveOptions: { exact: true },
         },
       ],
     };
@@ -116,14 +117,13 @@ export class ApiV1V2MenuService implements ApiMenuService {
     if (this.permissionService.hasAnyMatching(['api-documentation-r'])) {
       documentationMenuItem.tabs.push({
         displayName: 'Pages',
-        routerLink: './documentation',
-        baseRoute: ['./documentation/new'],
+        routerLink: 'documentation',
       });
     }
     if (this.permissionService.hasAnyMatching(['api-metadata-r'])) {
       documentationMenuItem.tabs.push({
         displayName: 'Metadata',
-        routerLink: './metadata',
+        routerLink: 'metadata',
       });
     }
     if (documentationMenuItem.tabs.length > 0) {
