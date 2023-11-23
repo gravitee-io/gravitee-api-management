@@ -45,6 +45,10 @@ export class ApiDocumentationV4EditPageHarness extends ComponentHarness {
     return this.nameInputLocator().then((input) => input.setValue(name));
   }
 
+  async nameIsDisabled(): Promise<boolean> {
+    return this.nameInputLocator().then((input) => input.isDisabled());
+  }
+
   async checkVisibility(visibility: 'PRIVATE' | 'PUBLIC') {
     const visibilityHarness = await this.visibilityHarness();
     const button =
@@ -54,6 +58,10 @@ export class ApiDocumentationV4EditPageHarness extends ComponentHarness {
 
   async getVisibility() {
     return this.visibilityHarness().then((harness) => harness.getValue());
+  }
+
+  async visibilityIsDisabled(): Promise<boolean> {
+    return this.visibilityHarness().then((harness) => harness.formIsDisabled());
   }
 
   async getSourceRadioGroupHarness() {

@@ -24,15 +24,19 @@
       <api-documentation-breadcrumb [breadcrumbs]="breadcrumbs" [canNavigate]="false"></api-documentation-breadcrumb>
     </div>
     <div class="header__actions">
-      <button
-        class="header__delete"
-        mat-stroked-button
-        *ngIf="mode === 'edit'"
-        (click)="deletePage()"
-        [disabled]="!!page?.generalConditions"
-      >
-        Delete page
-      </button>
+      <ng-container *gioPermission="{ anyOf: ['api-documentation-d'] }">
+        <button
+          class="header__delete"
+          mat-stroked-button
+          *ngIf="mode === 'edit'"
+          (click)="deletePage()"
+          [disabled]="!!page?.generalConditions"
+          [matTooltip]="!!page?.generalConditions ? 'Cannot delete if used as General Conditions' : undefined"
+        >
+          Delete page
+        </button>
+      </ng-container>
+
       <button class="header__exit" mat-stroked-button (click)="goBackToPageList()">Exit without saving</button>
     </div>
   </div>
@@ -59,31 +63,38 @@
         <mat-step>
           <ng-template matStepLabel>{{ step2Title }}</ng-template>
           <div class="stepper__content">
-            <ng-container>
-              <api-documentation-content formControlName="content" [published]="page?.published"></api-documentation-content>
-              <mat-error *ngIf="stepOneForm.controls.content?.errors?.required">Page content cannot be empty</mat-error>
-            </ng-container>
+            <api-documentation-content formControlName="content" [published]="page?.published"></api-documentation-content>
+            <mat-error *ngIf="stepOneForm.controls.content?.errors?.required">Page content cannot be empty</mat-error>
           </div>
           <div class="stepper__actions">
             <ng-container *ngIf="mode === 'create'">
-              <button mat-flat-button color="primary" [disabled]="form.invalid" (click)="createAndPublish()">Save and publish</button>
-              <button mat-stroked-button [disabled]="form.invalid" (click)="create()">Save</button>
-              <button mat-stroked-button matStepperPrevious>Previous</button>
+              <ng-container *gioPermission="{ anyOf: ['api-documentation-c'] }">
+                <button
+                  *gioPermission="{ anyOf: ['api-documentation-u'] }"
+                  mat-flat-button
+                  color="primary"
+                  [disabled]="form.invalid"
+                  (click)="createAndPublish()"
+                >
+                  Save and publish
+                </button>
+                <button mat-stroked-button [disabled]="form.invalid" (click)="create()">Save</button>
+              </ng-container>
             </ng-container>
 
-            <ng-container *ngIf="mode === 'edit' && page?.published">
-              <button mat-flat-button color="primary" [disabled]="form.invalid || form.pristine || formUnchanged" (click)="update()">
-                Publish changes
+            <ng-container *ngIf="mode === 'edit' && page">
+              <button
+                *gioPermission="{ anyOf: ['api-documentation-u'] }"
+                mat-flat-button
+                color="primary"
+                [disabled]="form.invalid || form.pristine || formUnchanged"
+                (click)="update()"
+              >
+                {{ page.published ? 'Publish changes' : 'Save' }}
               </button>
-              <button mat-stroked-button matStepperPrevious>Previous</button>
             </ng-container>
 
-            <ng-container *ngIf="mode === 'edit' && !page?.published">
-              <button mat-flat-button color="primary" [disabled]="form.invalid || form.pristine || formUnchanged" (click)="update()">
-                Save
-              </button>
-              <button mat-stroked-button matStepperPrevious>Previous</button>
-            </ng-container>
+            <button mat-stroked-button matStepperPrevious>Previous</button>
           </div>
         </mat-step>
       </mat-stepper>
