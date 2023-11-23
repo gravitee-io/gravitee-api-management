@@ -34,10 +34,10 @@ describe('ApiDocumentationV4NavigationHeaderComponent', () => {
   let component: ApiDocumentationV4ListNavigationHeaderComponent;
   let harnessLoader: HarnessLoader;
 
-  const currentUser = new User();
-  currentUser.userPermissions = ['api-documentation-u', 'api-documentation-c', 'api-documentation-r'];
+  const init = async (userPermissions = ['api-documentation-u', 'api-documentation-c', 'api-documentation-r']) => {
+    const currentUser = new User();
+    currentUser.userPermissions = userPermissions;
 
-  const init = async () => {
     await TestBed.configureTestingModule({
       declarations: [ApiDocumentationV4ListNavigationHeaderComponent],
       imports: [NoopAnimationsModule, ApiDocumentationV4Module, MatIconTestingModule, GioHttpTestingModule],
@@ -52,21 +52,27 @@ describe('ApiDocumentationV4NavigationHeaderComponent', () => {
 
     fixture = TestBed.createComponent(ApiDocumentationV4ListNavigationHeaderComponent);
     component = fixture.componentInstance;
-    harnessLoader = await TestbedHarnessEnvironment.loader(fixture);
+    harnessLoader = TestbedHarnessEnvironment.loader(fixture);
   };
 
-  beforeEach(async () => await init());
-
   it('should show breadcrumb', async () => {
+    await init();
     const breadcrumb = await harnessLoader.getHarness(ApiDocumentationV4BreadcrumbHarness);
     expect(await breadcrumb.getContent()).toEqual('Home');
   });
 
   it('should emit event when clicking on add button', async () => {
+    await init();
     const spy = jest.spyOn(component.onAddFolder, 'emit');
     const button = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Add new folder' }));
     await button.click();
 
     expect(spy).toHaveBeenCalled();
+  });
+
+  it('should not show add folder button if does not have update permission', async () => {
+    await init(['api-documentation-c', 'api-documentation-r']);
+    const buttonHarnesses = await harnessLoader.getAllHarnesses(MatButtonHarness.with({ text: 'Add new folder' }));
+    expect(buttonHarnesses.length).toEqual(0);
   });
 });
