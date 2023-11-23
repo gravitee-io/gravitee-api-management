@@ -162,24 +162,26 @@ public class ApisResource extends AbstractResource {
         var userDetails = getAuthenticatedUserDetails();
         return Response
             .ok(
-                importCRDUseCase.execute(
-                    new ImportCRDUseCase.Input(
-                        AuditInfo
-                            .builder()
-                            .organizationId(executionContext.getOrganizationId())
-                            .environmentId(executionContext.getEnvironmentId())
-                            .actor(
-                                AuditActor
-                                    .builder()
-                                    .userId(userDetails.getUsername())
-                                    .userSource(userDetails.getSource())
-                                    .userSourceId(userDetails.getSourceId())
-                                    .build()
-                            )
-                            .build(),
-                        ApiMapper.INSTANCE.map(crd)
+                importCRDUseCase
+                    .execute(
+                        new ImportCRDUseCase.Input(
+                            AuditInfo
+                                .builder()
+                                .organizationId(executionContext.getOrganizationId())
+                                .environmentId(executionContext.getEnvironmentId())
+                                .actor(
+                                    AuditActor
+                                        .builder()
+                                        .userId(userDetails.getUsername())
+                                        .userSource(userDetails.getSource())
+                                        .userSourceId(userDetails.getSourceId())
+                                        .build()
+                                )
+                                .build(),
+                            ApiMapper.INSTANCE.map(crd)
+                        )
                     )
-                )
+                    .status()
             )
             .build();
     }

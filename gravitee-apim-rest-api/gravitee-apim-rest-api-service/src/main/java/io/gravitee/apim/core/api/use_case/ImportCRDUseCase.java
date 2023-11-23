@@ -105,7 +105,7 @@ public class ImportCRDUseCase {
                 .builder()
                 .id(api.getId())
                 .crossId(api.getCrossId())
-                .environmentId(api.getEnvironmentId())
+                .environmentId(request.auditInfo.environmentId())
                 .organizationId(request.auditInfo.organizationId())
                 .state(api.getLifecycleState().name())
                 .plans(planNameIdMapping)
