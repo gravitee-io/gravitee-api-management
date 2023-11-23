@@ -1422,7 +1422,7 @@ export const states: Ng2StateDeclaration[] = [
       useAngularMaterial: true,
       docs: null,
       apiPermissions: {
-        only: ['api-documentation-u'],
+        only: ['api-documentation-u', 'api-documentation-r'],
       },
     },
     params: {

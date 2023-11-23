@@ -34,13 +34,16 @@
         <ng-container *ngIf="page.type !== 'FOLDER'">
           <div
             class="documentation-pages-list__table__name"
-            *gioPermission="{ anyOf: ['api-documentation-u'] }"
+            *gioPermission="{ anyOf: ['api-documentation-u', 'api-documentation-r'] }"
             (click)="onEditPage.emit(page.id)"
           >
             <mat-icon svgIcon="gio:page"></mat-icon>
             <p gioTooltipOnEllipsis>{{ page.name }}</p>
           </div>
-          <div class="documentation-pages-list__table__name no-pointer" *gioPermission="{ noneOf: ['api-documentation-u'] }">
+          <div
+            class="documentation-pages-list__table__name no-pointer"
+            *gioPermission="{ noneOf: ['api-documentation-u', 'api-documentation-r'] }"
+          >
             <mat-icon svgIcon="gio:page"></mat-icon>
             <p gioTooltipOnEllipsis>{{ page.name }}</p>
           </div></ng-container
