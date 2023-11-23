@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { EMPTY, Observable, of, Subject } from 'rxjs';
-import { StateService } from '@uirouter/core';
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { orderBy } from 'lodash';
 import {
@@ -26,8 +25,8 @@ import {
   GioConfirmDialogData,
 } from '@gravitee/ui-particles-angular';
 import { MatDialog } from '@angular/material/dialog';
+import { ActivatedRoute, Router } from '@angular/router';
 
-import { UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { SubscriptionService } from '../../../../../services-ngx/subscription.service';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
@@ -54,8 +53,8 @@ export class ApiGeneralPlanListComponent implements OnInit, OnDestroy {
   public planMenuItems: PlanMenuItemVM[];
 
   constructor(
-    @Inject(UIRouterStateParams) private readonly ajsStateParams,
-    @Inject(UIRouterState) private readonly ajsState: StateService,
+    private readonly router: Router,
+    private readonly activatedRoute: ActivatedRoute,
     private readonly plansService: ApiPlanV2Service,
     private readonly constantsService: ConstantsService,
     private readonly apiService: ApiV2Service,
@@ -66,10 +65,10 @@ export class ApiGeneralPlanListComponent implements OnInit, OnDestroy {
   ) {}
 
   public ngOnInit(): void {
-    this.status = this.ajsStateParams.status ?? 'PUBLISHED';
+    this.status = this.activatedRoute.snapshot.queryParams?.status ?? 'PUBLISHED';
 
     this.apiService
-      .get(this.ajsStateParams.apiId)
+      .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
         tap((api) => {
           this.api = api;
@@ -128,16 +127,18 @@ export class ApiGeneralPlanListComponent implements OnInit, OnDestroy {
       .subscribe();
   }
 
-  public navigateToPlan(planId: string): void {
-    this.ajsState.go(`management.apis.plan.edit`, { planId });
-  }
-
-  public navigateToNewPlan(selectedPlanMenuItem: string): void {
-    this.ajsState.go(`management.apis.plan.new`, { selectedPlanMenuItem });
-  }
-
   public designPlan(planId: string): void {
-    this.ajsState.go('management.apis.policy-studio-v2.design', { apiId: this.api.id, flows: `${planId}_0` });
+    if (this.api.definitionVersion === 'V2') {
+      this.router.navigate(['../v2/policy-studio'], {
+        relativeTo: this.activatedRoute,
+        queryParams: { flows: `${planId}_0` },
+      });
+    }
+    if (this.api.definitionVersion === 'V4') {
+      this.router.navigate(['../v4/policy-studio'], {
+        relativeTo: this.activatedRoute,
+      });
+    }
   }
 
   public publishPlan(plan: Plan): void {
@@ -247,7 +248,7 @@ export class ApiGeneralPlanListComponent implements OnInit, OnDestroy {
   private initPlansTableDS(selectedStatus: PlanStatus, fullReload = false): void {
     // For full reload, we need to reset the number of plans for each status
     const getApiPlans$: Observable<Plan[]> = fullReload
-      ? this.plansService.list(this.ajsStateParams.apiId, undefined, [...PLAN_STATUS], undefined, 1, 9999).pipe(
+      ? this.plansService.list(this.activatedRoute.snapshot.params.apiId, undefined, [...PLAN_STATUS], undefined, 1, 9999).pipe(
           map((plans) => {
             // Update the number of plans for each status
             const plansNumber = plans.data.reduce((acc, plan) => {
@@ -265,13 +266,16 @@ export class ApiGeneralPlanListComponent implements OnInit, OnDestroy {
           }),
         )
       : this.plansService
-          .list(this.ajsStateParams.apiId, undefined, [selectedStatus], undefined, 1, 9999)
+          .list(this.activatedRoute.snapshot.params.apiId, undefined, [selectedStatus], undefined, 1, 9999)
           .pipe(map((response) => response.data));
 
     getApiPlans$
       .pipe(
         tap((plans) => {
-          this.ajsState.go(`management.apis.plans`, { status: this.status }, { notify: false });
+          this.router.navigate(['../plans'], {
+            relativeTo: this.activatedRoute,
+            queryParams: { status: this.status },
+          });
           this.plansTableDS = orderBy(plans, 'order', 'asc');
           this.isLoadingData = false;
         }),

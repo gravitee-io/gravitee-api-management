@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ChangeDetectorRef, Component, Inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { EMPTY, of, Subject } from 'rxjs';
 import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { StateService } from '@uirouter/angularjs';
+import { ActivatedRoute, Router } from '@angular/router';
 
-import { UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import { ApiPlanFormComponent, PlanFormValue } from '../../../component/plan/api-plan-form.component';
@@ -49,8 +48,8 @@ export class ApiGeneralPlanEditComponent implements OnInit, OnDestroy {
   public currentPlanStatus: PlanStatus;
 
   constructor(
-    @Inject(UIRouterStateParams) private readonly ajsStateParams,
-    @Inject(UIRouterState) private readonly ajsState: StateService,
+    private readonly router: Router,
+    private readonly activatedRoute: ActivatedRoute,
     private readonly apiService: ApiV2Service,
     private readonly planService: ApiPlanV2Service,
     private readonly snackBarService: SnackBarService,
@@ -59,10 +58,10 @@ export class ApiGeneralPlanEditComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    this.mode = this.ajsStateParams.planId ? 'edit' : 'create';
+    this.mode = this.activatedRoute.snapshot.params.planId ? 'edit' : 'create';
 
     this.apiService
-      .get(this.ajsStateParams.apiId)
+      .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
         tap((api) => {
           this.api = api;
@@ -72,7 +71,9 @@ export class ApiGeneralPlanEditComponent implements OnInit, OnDestroy {
             this.api.definitionVersion === 'V1';
         }),
         switchMap(() =>
-          this.mode === 'edit' ? this.planService.get(this.ajsStateParams.apiId, this.ajsStateParams.planId) : of(undefined),
+          this.mode === 'edit'
+            ? this.planService.get(this.activatedRoute.snapshot.params.apiId, this.activatedRoute.snapshot.params.planId)
+            : of(undefined),
         ),
         tap((plan: Plan) => {
           this.currentPlanStatus = plan?.status;
@@ -95,7 +96,7 @@ export class ApiGeneralPlanEditComponent implements OnInit, OnDestroy {
             ? plan.definitionVersion === 'V4' && plan.mode === 'PUSH'
               ? 'PUSH'
               : plan.security.type
-            : this.ajsStateParams.selectedPlanMenuItem;
+            : this.activatedRoute.snapshot.queryParams.selectedPlanMenuItem;
 
         this.planMenuItem = AVAILABLE_PLANS_FOR_MENU.find((vm) => vm.planFormType === planFormType);
 
@@ -120,7 +121,7 @@ export class ApiGeneralPlanEditComponent implements OnInit, OnDestroy {
     const savePlan$ =
       this.mode === 'edit'
         ? this.planService
-            .get(this.ajsStateParams.apiId, this.ajsStateParams.planId)
+            .get(this.activatedRoute.snapshot.params.apiId, this.activatedRoute.snapshot.params.planId)
             .pipe(switchMap((planToUpdate) => this.planService.update(this.api.id, planToUpdate.id, { ...planToUpdate, ...planFormValue })))
         : this.planService.create(this.api.id, {
             ...(this.api.definitionVersion === 'V4'
@@ -139,9 +140,12 @@ export class ApiGeneralPlanEditComponent implements OnInit, OnDestroy {
       )
       .subscribe(() => {
         if (this.mode === 'edit') {
-          this.ajsState.go('management.apis.plans', { status: this.currentPlanStatus ?? 'PUBLISHED' });
+          this.router.navigate(['../'], {
+            relativeTo: this.activatedRoute,
+            queryParams: { status: this.currentPlanStatus ?? 'PUBLISHED' },
+          });
         } else {
-          this.ajsState.go('management.apis.plans', { status: 'STAGING' });
+          this.router.navigate(['../'], { relativeTo: this.activatedRoute, queryParams: { status: 'STAGING' } });
         }
       });
   }
