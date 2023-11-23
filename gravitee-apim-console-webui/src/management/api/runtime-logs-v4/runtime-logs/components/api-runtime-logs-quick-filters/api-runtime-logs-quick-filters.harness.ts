@@ -17,13 +17,11 @@ import { ComponentHarness } from '@angular/cdk/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatChipHarness, MatChipListHarness } from '@angular/material/chips/testing';
 import { GioFormTagsInputHarness } from '@gravitee/ui-particles-angular';
-import { MatFormFieldHarness } from '@angular/material/form-field/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 
 export class ApiRuntimeLogsQuickFiltersHarness extends ComponentHarness {
   static hostSelector = 'api-runtime-logs-quick-filters';
 
-  private getApplicationFormField = this.locatorFor(MatFormFieldHarness.with({ floatingLabelText: 'Applications' }));
   public getPeriodSelectInput = this.locatorFor(MatSelectHarness.with({ selector: '[formControlName="period"]' }));
   public getChips = this.locatorForOptional(MatChipListHarness.with({ selector: '[class="quick-filters__chip_list"]' }));
   public getPeriodChip = this.locatorFor(MatChipHarness.with({ text: /^period:/ }));
@@ -39,12 +37,6 @@ export class ApiRuntimeLogsQuickFiltersHarness extends ComponentHarness {
   public getMethodsSelect = this.locatorFor(MatSelectHarness.with({ selector: '[formControlName="methods"]' }));
   public getMethodsChip = this.locatorFor(MatChipHarness.with({ text: /^methods:/ }));
   public getStatusChip = this.locatorFor(MatChipHarness.with({ text: /^statuses:/ }));
-
-  public async getApplicationAutocomplete() {
-    const applicationFormField = await this.getApplicationFormField();
-    const tagsInput: GioFormTagsInputHarness | null = await applicationFormField.getControl(GioFormTagsInputHarness);
-    return await tagsInput.getMatAutocompleteHarness();
-  }
 
   public async moreFiltersButtonClick() {
     return this.getMoreButton().then((btn) => btn.click());

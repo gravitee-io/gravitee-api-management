@@ -20,7 +20,7 @@ import { takeUntil, tap } from 'rxjs/operators';
 import { Moment } from 'moment';
 import { MatChipInputEvent } from '@angular/material/chips';
 
-import { DEFAULT_PERIOD, MoreFiltersForm, PERIODS } from '../../../../../models';
+import { DEFAULT_FILTERS, DEFAULT_PERIOD, MoreFiltersForm, MultiFilter, PERIODS } from '../../../../../../models';
 
 @Component({
   selector: 'api-runtime-logs-more-filters-form',
@@ -38,6 +38,7 @@ export class ApiRuntimeLogsMoreFiltersFormComponent implements OnInit, OnDestroy
   moreFiltersForm: FormGroup;
   minDate: Moment;
   statuses: Set<number>;
+  applicationsCache: MultiFilter;
 
   constructor(private readonly cdr: ChangeDetectorRef) {}
 
@@ -51,8 +52,10 @@ export class ApiRuntimeLogsMoreFiltersFormComponent implements OnInit, OnDestroy
     this.onDatesChange();
 
     this.statuses = new Set(this.formValues.statuses);
+    this.applicationsCache = this.formValues.applications;
     this.moreFiltersForm = new FormGroup({
       statuses: new FormControl(this.statuses),
+      applications: new FormControl(this.formValues.applications?.map((application) => application.value)),
     });
     this.moreFiltersForm.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe(() => this.emitValues());
   }
@@ -104,13 +107,21 @@ export class ApiRuntimeLogsMoreFiltersFormComponent implements OnInit, OnDestroy
 
   removeStatus(status: number) {
     this.statuses.delete(status);
-    this.moreFiltersForm.get('statuses').setValue(this.statuses.size > 0 ? this.statuses : null);
+    this.moreFiltersForm.get('statuses').setValue(this.statuses);
   }
 
   private emitValues() {
     this.datesForm.updateValueAndValidity({ emitEvent: false });
     this.isInvalidEvent.emit(this.datesForm.invalid);
-    this.valuesChangeEvent.emit({ ...this.datesForm.getRawValue(), ...this.moreFiltersForm.getRawValue() });
+    this.valuesChangeEvent.emit({
+      ...this.datesForm.getRawValue(),
+      statuses: this.statuses.size > 0 ? this.statuses : null,
+      applications: this.applicationsFromValues(this.moreFiltersForm.get('applications').value),
+    });
     this.cdr.detectChanges();
+  }
+
+  private applicationsFromValues(ids: string[]): MultiFilter {
+    return ids?.length > 0 ? ids.map((id) => this.applicationsCache.find((app) => app.value === id)) : DEFAULT_FILTERS.applications;
   }
 }

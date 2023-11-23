@@ -32,13 +32,6 @@
         </mat-select>
       </mat-form-field>
 
-      <applications-filter
-        formControlName="applications"
-        class="quick-filters__applications"
-        (applicationCache)="this.applicationsCache = $event"
-      >
-      </applications-filter>
-
       <mat-form-field class="quick-filters__plans">
         <mat-label>Plan</mat-label>
         <mat-select formControlName="plans" [multiple]="true">

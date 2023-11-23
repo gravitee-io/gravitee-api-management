@@ -34,9 +34,9 @@ export type LogFilters = {
   statuses?: Set<number>;
 };
 
-export type LogFiltersForm = { period: SimpleFilter; applications: string[]; plans: string[]; methods: string[] };
+export type LogFiltersForm = { period: SimpleFilter; plans: string[]; methods: string[] };
 
-export type MoreFiltersForm = { period: SimpleFilter; from: Moment; to: Moment; statuses: Set<number> };
+export type MoreFiltersForm = { period: SimpleFilter; from: Moment; to: Moment; statuses: Set<number>; applications?: MultiFilter };
 
 export type LogFiltersInitialValues = {
   applications?: MultiFilter;

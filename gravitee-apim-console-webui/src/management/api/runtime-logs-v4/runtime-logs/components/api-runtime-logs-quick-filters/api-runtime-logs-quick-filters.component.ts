@@ -21,8 +21,6 @@ import { isEqual } from 'lodash';
 import { Subject } from 'rxjs';
 import { KeyValue } from '@angular/common';
 
-import { CacheEntry } from './components';
-
 import {
   DEFAULT_FILTERS,
   DEFAULT_PERIOD,
@@ -55,7 +53,6 @@ export class ApiRuntimeLogsQuickFiltersComponent implements OnInit, OnDestroy {
   readonly httpMethods = ['CONNECT', 'DELETE', 'GET', 'HEAD', 'OPTIONS', 'PATCH', 'POST', 'PUT', 'TRACE'];
   isFiltering = false;
   quickFiltersForm: FormGroup;
-  applicationsCache: CacheEntry[];
   currentFilters: LogFilters;
   showMoreFilters = false;
   moreFiltersValues: MoreFiltersForm;
@@ -63,19 +60,16 @@ export class ApiRuntimeLogsQuickFiltersComponent implements OnInit, OnDestroy {
   constructor(private readonly quickFilterStore: QuickFiltersStoreService) {}
 
   ngOnInit(): void {
-    this.applicationsCache = this.initialValues.applications;
     this.moreFiltersValues = {
       period: DEFAULT_PERIOD,
       from: this.initialValues.from,
       to: this.initialValues.to,
       statuses: this.initialValues.statuses,
+      applications: this.initialValues.applications,
     };
     this.quickFiltersForm = new FormGroup({
       period: new FormControl({ value: DEFAULT_PERIOD, disabled: true }),
-      applications: new FormControl({
-        value: this.initialValues.applications?.map((application) => application.value) ?? null,
-        disabled: true,
-      }),
+
       plans: new FormControl({ value: this.initialValues.plans?.map((plan) => plan.value) ?? DEFAULT_FILTERS.plans, disabled: true }),
       methods: new FormControl({ value: this.initialValues.methods, disabled: true }),
     });
@@ -150,17 +144,16 @@ export class ApiRuntimeLogsQuickFiltersComponent implements OnInit, OnDestroy {
     };
   }
 
-  private mapQuickFiltersFormValues({ period, applications, plans, methods }: LogFiltersForm) {
+  private mapQuickFiltersFormValues({ period, plans, methods }: LogFiltersForm) {
     return {
       period,
       plans: this.plansFromValues(plans),
-      applications: this.applicationsFromValues(applications),
       methods: methods?.length > 0 ? methods : undefined,
     };
   }
 
-  private mapMoreFiltersFormValues({ period, from, to, statuses }: MoreFiltersForm) {
-    return { period, from: from?.valueOf(), to: to?.valueOf(), statuses };
+  private mapMoreFiltersFormValues({ period, from, to, statuses, applications }: MoreFiltersForm) {
+    return { period, from: from?.valueOf(), to: to?.valueOf(), applications, statuses };
   }
 
   private plansFromValues(ids: string[]): MultiFilter {
@@ -170,9 +163,5 @@ export class ApiRuntimeLogsQuickFiltersComponent implements OnInit, OnDestroy {
           return { label: plan.name, value: plan.id };
         })
       : DEFAULT_FILTERS.plans;
-  }
-
-  private applicationsFromValues(ids: string[]): MultiFilter {
-    return ids?.length > 0 ? ids.map((id) => this.applicationsCache.find((app) => app.value === id)) : DEFAULT_FILTERS.applications;
   }
 }

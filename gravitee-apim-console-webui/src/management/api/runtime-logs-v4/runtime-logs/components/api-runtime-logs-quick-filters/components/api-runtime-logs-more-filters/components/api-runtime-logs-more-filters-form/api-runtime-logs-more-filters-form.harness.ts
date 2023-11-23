@@ -17,6 +17,8 @@ import { ComponentHarness } from '@angular/cdk/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatChipListHarness } from '@angular/material/chips/testing';
+import { MatFormFieldHarness } from '@angular/material/form-field/testing';
+import { GioFormTagsInputHarness } from '@gravitee/ui-particles-angular';
 
 export class ApiRuntimeLogsMoreFiltersFormHarness extends ComponentHarness {
   static hostSelector = 'api-runtime-logs-more-filters-form';
@@ -25,4 +27,11 @@ export class ApiRuntimeLogsMoreFiltersFormHarness extends ComponentHarness {
   public getFromInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="from"]' }));
   public getToInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="to"]' }));
   public getStatusesChips = this.locatorFor(MatChipListHarness.with({ selector: '[formControlName="statuses"]' }));
+  public getApplicationField = this.locatorFor(MatFormFieldHarness.with({ floatingLabelText: 'Applications' }));
+
+  public async getApplicationAutocomplete() {
+    const applicationFormField = await this.getApplicationField();
+    const tagsInput: GioFormTagsInputHarness | null = await applicationFormField.getControl(GioFormTagsInputHarness);
+    return await tagsInput.getMatAutocompleteHarness();
+  }
 }

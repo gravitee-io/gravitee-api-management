@@ -28,7 +28,7 @@ import { MatSidenavModule } from '@angular/material/sidenav';
 
 import { ApiRuntimeLogsQuickFiltersComponent } from './api-runtime-logs-quick-filters.component';
 import { ChipValuePipe } from './pipes';
-import { ApplicationsFilterModule, ApiRuntimeLogsMoreFiltersModule } from './components';
+import { ApiRuntimeLogsMoreFiltersModule } from './components';
 
 import { QuickFiltersStoreService } from '../../services';
 
@@ -49,7 +49,6 @@ import { QuickFiltersStoreService } from '../../services';
     UIRouterModule,
 
     ApiRuntimeLogsMoreFiltersModule,
-    ApplicationsFilterModule,
     GioIconsModule,
   ],
   providers: [QuickFiltersStoreService],

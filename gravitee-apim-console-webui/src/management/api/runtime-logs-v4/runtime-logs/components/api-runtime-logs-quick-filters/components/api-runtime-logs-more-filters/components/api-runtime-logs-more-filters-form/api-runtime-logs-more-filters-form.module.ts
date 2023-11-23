@@ -27,8 +27,9 @@ import { GioIconsModule } from '@gravitee/ui-particles-angular';
 import { MatChipsModule } from '@angular/material/chips';
 
 import { ApiRuntimeLogsMoreFiltersFormComponent } from './api-runtime-logs-more-filters-form.component';
+import { ApplicationsFilterModule } from './components';
 
-import { DATE_TIME_FORMATS } from '../../../../../models';
+import { DATE_TIME_FORMATS } from '../../../../../../models';
 
 @NgModule({
   declarations: [ApiRuntimeLogsMoreFiltersFormComponent],
@@ -44,6 +45,7 @@ import { DATE_TIME_FORMATS } from '../../../../../models';
     MatSelectModule,
     ReactiveFormsModule,
 
+    ApplicationsFilterModule,
     GioIconsModule,
     OwlDateTimeModule,
     OwlMomentDateTimeModule,
