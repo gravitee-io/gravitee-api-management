@@ -15,13 +15,11 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
-import io.gravitee.rest.api.management.v2.rest.model.Resource;
 import io.gravitee.rest.api.management.v2.rest.model.ResponseTemplate;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
 @Mapper

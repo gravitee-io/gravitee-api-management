@@ -95,12 +95,30 @@ import io.gravitee.rest.api.service.impl.upgrade.initializer.DefaultMetadataInit
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.HookScope;
 import io.gravitee.rest.api.service.search.SearchEngineService;
-import io.gravitee.rest.api.service.v4.*;
+import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
+import io.gravitee.rest.api.service.v4.ApiNotificationService;
+import io.gravitee.rest.api.service.v4.ApiService;
+import io.gravitee.rest.api.service.v4.FlowService;
+import io.gravitee.rest.api.service.v4.PlanSearchService;
+import io.gravitee.rest.api.service.v4.PlanService;
+import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
+import io.gravitee.rest.api.service.v4.PropertiesService;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
 import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
 import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
 import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -284,14 +302,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         repositoryApi.setUpdatedAt(repositoryApi.getCreatedAt());
 
         repositoryApi.setApiLifecycleState(ApiLifecycleState.CREATED);
-        if (DefinitionContext.isKubernetes(repositoryApi.getOrigin())) {
-            // Be sure that api is always marked as STARTED when managed by k8s.
-            repositoryApi.setLifecycleState(LifecycleState.STARTED);
-        } else {
-            // Be sure that lifecycle is set to STOPPED
+        if (apiEntity.getDefinitionContext().isOriginManagement()) {
             repositoryApi.setLifecycleState(LifecycleState.STOPPED);
+        } else {
+            repositoryApi.setLifecycleState(LifecycleState.valueOf(apiEntity.getState().name()));
         }
-
         // Make sure visibility is PRIVATE by default if not set.
         repositoryApi.setVisibility(
             apiEntity.getVisibility() == null ? Visibility.PRIVATE : Visibility.valueOf(apiEntity.getVisibility().toString())

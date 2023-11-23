@@ -13,17 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.api.query_service;
+package io.gravitee.apim.core.api.domain_service;
 
 import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.apim.core.api.model.ApiFieldFilter;
-import io.gravitee.apim.core.api.model.ApiSearchCriteria;
-import io.gravitee.apim.core.api.model.Sortable;
-import java.util.Optional;
-import java.util.stream.Stream;
+import io.gravitee.apim.core.audit.model.AuditInfo;
 
-public interface ApiQueryService {
-    Stream<Api> search(ApiSearchCriteria apiCriteria, Sortable sortable, ApiFieldFilter apiFieldFilter);
-
-    Optional<Api> findByEnvironmentIdAndCrossId(String environmentId, String crossId);
+public interface DeployApiDomainService {
+    Api deploy(Api apiToDeploy, String deploymentLabel, AuditInfo auditInfo);
 }

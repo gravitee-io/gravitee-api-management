@@ -15,17 +15,34 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
-import io.gravitee.rest.api.management.v2.rest.model.*;
+import io.gravitee.rest.api.management.v2.rest.model.Api;
+import io.gravitee.rest.api.management.v2.rest.model.ApiLinks;
+import io.gravitee.rest.api.management.v2.rest.model.ApiReview;
+import io.gravitee.rest.api.management.v2.rest.model.ApiV2;
+import io.gravitee.rest.api.management.v2.rest.model.ApiV4;
+import io.gravitee.rest.api.management.v2.rest.model.BaseApi;
+import io.gravitee.rest.api.management.v2.rest.model.CreateApiV4;
+import io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion;
+import io.gravitee.rest.api.management.v2.rest.model.GenericApi;
+import io.gravitee.rest.api.management.v2.rest.model.PlanCRD;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV2;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV4;
 import io.gravitee.rest.api.management.v2.rest.utils.ManagementApiLinkHelper;
 import io.gravitee.rest.api.model.ReviewEntity;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
+import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import jakarta.ws.rs.core.UriInfo;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
-import org.mapstruct.*;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,6 +56,7 @@ import org.slf4j.LoggerFactory;
         EntrypointMapper.class,
         FlowMapper.class,
         ListenerMapper.class,
+        PlanMapper.class,
         PropertiesMapper.class,
         ResourceMapper.class,
         ResponseTemplateMapper.class,
@@ -116,6 +134,10 @@ public interface ApiMapper {
     @Mapping(target = "listeners", qualifiedByName = "toListeners")
     NewApiEntity map(CreateApiV4 api);
 
+    @Mapping(target = "listeners", qualifiedByName = "toListeners")
+    @Mapping(target = "plans", qualifiedByName = "mapPlanCRD")
+    io.gravitee.apim.core.api.model.ApiCRD map(io.gravitee.rest.api.management.v2.rest.model.ApiCRD crd);
+
     // UpdateApi
     @Mapping(target = "listeners", qualifiedByName = "toListeners")
     @Mapping(target = "id", expression = "java(apiId)")
@@ -141,6 +163,19 @@ public interface ApiMapper {
         return new ApiLinks()
             .pictureUrl(ManagementApiLinkHelper.apiPictureURL(uriInfo.getBaseUriBuilder(), api))
             .backgroundUrl(ManagementApiLinkHelper.apiBackgroundURL(uriInfo.getBaseUriBuilder(), api));
+    }
+
+    @Named("mapPlanCRD")
+    default List<PlanEntity> mapPlanCRD(Map<String, PlanCRD> plans) {
+        return plans
+            .entrySet()
+            .stream()
+            .map(entry -> {
+                var planName = entry.getKey();
+                var plan = entry.getValue();
+                return PlanMapper.INSTANCE.fromPlanCRD(plan, planName);
+            })
+            .toList();
     }
 
     BaseApi map(GenericApiEntity apiEntity);

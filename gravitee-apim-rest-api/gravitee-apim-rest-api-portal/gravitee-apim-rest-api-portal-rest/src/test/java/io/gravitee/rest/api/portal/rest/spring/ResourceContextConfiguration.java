@@ -19,12 +19,16 @@ import static org.mockito.Mockito.mock;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
+import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
+import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
+import io.gravitee.apim.core.api.domain_service.DeployApiDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.installation.domain_service.InstallationTypeDomainService;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService;
 import io.gravitee.apim.core.parameters.domain_service.ParametersDomainService;
+import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.use_case.CloseSubscriptionUseCase;
 import io.gravitee.apim.infra.domain_service.api.ApiDefinitionParserDomainServiceImpl;
@@ -517,5 +521,25 @@ public class ResourceContextConfiguration {
     @Bean
     public ParametersDomainService parametersDomainService() {
         return mock(ParametersDomainService.class);
+    }
+
+    @Bean
+    public CreateApiDomainService createApiDomainService() {
+        return mock(CreateApiDomainService.class);
+    }
+
+    @Bean
+    public CreatePlanDomainService createPlanDomainService() {
+        return mock(CreatePlanDomainService.class);
+    }
+
+    @Bean
+    public DeployApiDomainService deployApiDomainService() {
+        return mock(DeployApiDomainService.class);
+    }
+
+    @Bean
+    public ApiMetadataDomainService apiMetadataDomainService() {
+        return mock(ApiMetadataDomainService.class);
     }
 }

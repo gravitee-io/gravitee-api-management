@@ -1540,7 +1540,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             ApiEntity api = findById(executionContext, apiId);
 
             // The state of the api is managed by kubernetes. There is no synchronization allowed from management.
-            if (DefinitionContext.isKubernetes(api.getDefinitionContext())) {
+            if (api.getDefinitionContext().isOriginKubernetes()) {
                 return true;
             }
 

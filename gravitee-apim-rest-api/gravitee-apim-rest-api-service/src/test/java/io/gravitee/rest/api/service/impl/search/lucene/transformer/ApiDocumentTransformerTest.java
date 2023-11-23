@@ -25,7 +25,6 @@ import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.impl.ApiServiceImpl;
 import java.util.Arrays;
 import java.util.Date;
@@ -38,8 +37,6 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
 /**
@@ -115,7 +112,6 @@ public class ApiDocumentTransformerTest {
         metadatas.put("metadata3", "value3");
         toTransform.setMetadata(metadatas);
         DefinitionContext context = new DefinitionContext();
-        context.setOrigin(DefinitionContext.ORIGIN_KUBERNETES);
         toTransform.setDefinitionContext(context);
         return toTransform;
     }

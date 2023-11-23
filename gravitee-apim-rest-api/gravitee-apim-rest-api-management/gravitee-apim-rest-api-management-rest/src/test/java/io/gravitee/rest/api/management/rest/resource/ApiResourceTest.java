@@ -27,6 +27,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.common.component.Lifecycle;
+import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
@@ -80,6 +81,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         GraviteeContext.cleanContext();
 
         mockApi = new ApiEntity();
+        mockApi.setDefinitionContext(new DefinitionContext());
         mockApi.setId(API);
         mockApi.setName(API);
         mockApi.setVersion("1");

@@ -16,8 +16,12 @@
 package io.gravitee.apim.infra.spring;
 
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
+import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
+import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
+import io.gravitee.apim.core.api.domain_service.DeployApiDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
+import io.gravitee.apim.core.api.use_case.ImportCRDUseCase;
 import io.gravitee.apim.core.api.use_case.VerifyApiPathsUseCase;
 import io.gravitee.apim.core.api_key.domain_service.RevokeApiKeyDomainService;
 import io.gravitee.apim.core.api_key.query_service.ApiKeyQueryService;
@@ -51,6 +55,7 @@ import io.gravitee.apim.core.log.use_case.SearchConnectionLogsUseCase;
 import io.gravitee.apim.core.log.use_case.SearchMessageLogsUseCase;
 import io.gravitee.apim.core.parameters.domain_service.ParametersDomainService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
+import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
@@ -267,5 +272,22 @@ public class UsecaseSpringConfiguration {
         ParametersDomainService parametersDomainService
     ) {
         return new GetConsoleCustomizationUseCase(licenseDomainService, parametersDomainService);
+    }
+
+    @Bean
+    public ImportCRDUseCase importCRDUseCase(
+        ApiQueryService apiQueryService,
+        CreateApiDomainService createApiDomainService,
+        CreatePlanDomainService createPlanDomainService,
+        ApiMetadataDomainService apiMetadataDomainService,
+        DeployApiDomainService deployApiDomainService
+    ) {
+        return new ImportCRDUseCase(
+            apiQueryService,
+            createApiDomainService,
+            createPlanDomainService,
+            apiMetadataDomainService,
+            deployApiDomainService
+        );
     }
 }

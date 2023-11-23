@@ -15,9 +15,28 @@
  */
 package io.gravitee.rest.api.management.v2.rest.spring;
 
-import inmemory.*;
+import inmemory.AccessPointQueryServiceInMemory;
+import inmemory.ApiCrudServiceInMemory;
+import inmemory.ApiKeyCrudServiceInMemory;
+import inmemory.ApiKeyQueryServiceInMemory;
+import inmemory.ApiQueryServiceInMemory;
+import inmemory.ApplicationCrudServiceInMemory;
+import inmemory.AuditCrudServiceInMemory;
+import inmemory.ConnectionLogsCrudServiceInMemory;
+import inmemory.EnvironmentCrudServiceInMemory;
+import inmemory.InstallationAccessQueryServiceInMemory;
+import inmemory.MessageLogCrudServiceInMemory;
+import inmemory.PageCrudServiceInMemory;
+import inmemory.PageQueryServiceInMemory;
+import inmemory.PageRevisionCrudServiceInMemory;
+import inmemory.ParametersDomainServiceInMemory;
+import inmemory.PlanCrudServiceInMemory;
+import inmemory.PlanQueryServiceInMemory;
+import inmemory.SubscriptionCrudServiceInMemory;
+import inmemory.SubscriptionQueryServiceInMemory;
+import inmemory.TriggerNotificationDomainServiceInMemory;
+import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
-import io.gravitee.apim.core.parameters.domain_service.ParametersDomainService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

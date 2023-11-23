@@ -20,9 +20,10 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
-import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.model.v4.plan.BasePlanEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
+import io.gravitee.rest.api.model.v4.plan.NewPlanEntity;
+import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanMode;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import java.io.IOException;
@@ -48,30 +49,32 @@ public interface PlanAdapter {
     @Mapping(target = "mode", expression = "java(computeBasePlanEntityMode(plan))")
     @Mapping(target = "status", expression = "java(computeBasePlanEntityStatusV4(plan))")
     @Mapping(target = "security", expression = "java(computeBasePlanEntitySecurityV4(plan))")
-    BasePlanEntity toEntityV4(Plan plan);
+    BasePlanEntity toEntityV4(io.gravitee.repository.management.model.Plan plan);
 
     @Mapping(target = "paths", expression = "java(computeBasePlanEntityPaths(plan))")
     @Mapping(target = "status", expression = "java(computeBasePlanEntityStatusV2(plan))")
     @Mapping(target = "security", expression = "java(computeBasePlanEntitySecurityV2(plan))")
-    io.gravitee.rest.api.model.BasePlanEntity toEntityV2(Plan plan);
+    io.gravitee.rest.api.model.BasePlanEntity toEntityV2(io.gravitee.repository.management.model.Plan plan);
 
-    default GenericPlanEntity toGenericEntity(Plan plan, DefinitionVersion definitionVersion) {
+    NewPlanEntity entityToNewPlanEntity(PlanEntity entity);
+
+    default GenericPlanEntity toGenericEntity(io.gravitee.repository.management.model.Plan plan, DefinitionVersion definitionVersion) {
         return definitionVersion == DefinitionVersion.V4 ? PlanAdapter.INSTANCE.toEntityV4(plan) : PlanAdapter.INSTANCE.toEntityV2(plan);
     }
 
     @Named("computeBasePlanEntityMode")
-    default PlanMode computeBasePlanEntityMode(Plan plan) {
+    default PlanMode computeBasePlanEntityMode(io.gravitee.repository.management.model.Plan plan) {
         return plan.getMode() != null ? PlanMode.valueOf(plan.getMode().name()) : PlanMode.STANDARD;
     }
 
     @Named("computeBasePlanEntityStatusV4")
-    default PlanStatus computeBasePlanEntityStatusV4(Plan plan) {
+    default PlanStatus computeBasePlanEntityStatusV4(io.gravitee.repository.management.model.Plan plan) {
         // Ensure backward compatibility
         return plan.getStatus() != null ? PlanStatus.valueOf(plan.getStatus().name()) : PlanStatus.PUBLISHED;
     }
 
     @Named("computeBasePlanEntityStatusV2")
-    default io.gravitee.rest.api.model.PlanStatus computeBasePlanEntityStatusV2(Plan plan) {
+    default io.gravitee.rest.api.model.PlanStatus computeBasePlanEntityStatusV2(io.gravitee.repository.management.model.Plan plan) {
         // Ensure backward compatibility
         return plan.getStatus() != null
             ? io.gravitee.rest.api.model.PlanStatus.valueOf(plan.getStatus().name())
@@ -79,8 +82,8 @@ public interface PlanAdapter {
     }
 
     @Named("computeBasePlanEntitySecurityV4")
-    default PlanSecurity computeBasePlanEntitySecurityV4(Plan plan) {
-        if (Plan.PlanMode.PUSH != plan.getMode()) {
+    default PlanSecurity computeBasePlanEntitySecurityV4(io.gravitee.repository.management.model.Plan plan) {
+        if (io.gravitee.repository.management.model.Plan.PlanMode.PUSH != plan.getMode()) {
             return PlanSecurity
                 .builder()
                 .type(PlanSecurityType.valueOf(plan.getSecurity().name()).getLabel())
@@ -92,14 +95,14 @@ public interface PlanAdapter {
     }
 
     @Named("computeBasePlanEntitySecurityV2")
-    default io.gravitee.rest.api.model.PlanSecurityType computeBasePlanEntitySecurityV2(Plan plan) {
+    default io.gravitee.rest.api.model.PlanSecurityType computeBasePlanEntitySecurityV2(io.gravitee.repository.management.model.Plan plan) {
         return plan.getSecurity() != null
             ? io.gravitee.rest.api.model.PlanSecurityType.valueOf(plan.getSecurity().name())
             : io.gravitee.rest.api.model.PlanSecurityType.API_KEY;
     }
 
     @Named("computeBasePlanEntityPaths")
-    default Map<String, List<Rule>> computeBasePlanEntityPaths(Plan plan) {
+    default Map<String, List<Rule>> computeBasePlanEntityPaths(io.gravitee.repository.management.model.Plan plan) {
         if (plan.getDefinition() != null && !plan.getDefinition().isEmpty()) {
             try {
                 return GraviteeJacksonMapper.getInstance().readValue(plan.getDefinition(), new TypeReference<Map<String, List<Rule>>>() {});
