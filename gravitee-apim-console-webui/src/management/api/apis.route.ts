@@ -1913,6 +1913,49 @@ const apisRoutes: Routes = [
           useAngularMaterial: true,
         },
       },
+      {
+        path: 'audit',
+        component: ApiAuditComponent,
+        data: {
+          requireLicense: {
+            license: { feature: ApimFeature.APIM_AUDIT_TRAIL },
+            redirect: 'management.apis-list',
+          },
+          apiPermissions: {
+            only: ['api-audit-r'],
+          },
+          docs: {
+            page: 'management-api-audit',
+          },
+          useAngularMaterial: true,
+        },
+      },
+      {
+        path: 'history',
+        component: ApiHistoryComponent,
+        data: {
+          apiPermissions: {
+            only: ['api-event-r'],
+          },
+          docs: {
+            page: 'management-api-history',
+          },
+          useAngularMaterial: true,
+        },
+      },
+      {
+        path: 'events',
+        component: ApiEventsComponent,
+        data: {
+          apiPermissions: {
+            only: ['api-event-r'],
+          },
+          docs: {
+            page: 'management-api-events',
+          },
+          useAngularMaterial: true,
+        },
+      },
 
       /**
        * V1 Api state only

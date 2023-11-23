@@ -14,21 +14,23 @@
  * limitations under the License.
  */
 
+import { ActivatedRoute } from '@angular/router';
+
 import AuditService from '../../../../services/audit.service';
 
 class ApiAuditControllerAjs {
-  constructor(private AuditService: AuditService, private $scope, private $state) {
-    this.$scope.api = this.$state.params.apiId;
-    this.$scope.apis = [{ id: this.$state.params.apiId }];
-    this.$scope.applications = [];
-  }
+  activatedRoute: ActivatedRoute;
+  constructor(private AuditService: AuditService, private $scope) {}
 
   $onInit() {
-    this.AuditService.listEvents(this.$state.params.apiId).then((response) => {
+    this.$scope.api = this.activatedRoute.snapshot.params.apiId;
+    this.$scope.apis = [{ id: this.activatedRoute.snapshot.params.apiId }];
+    this.$scope.applications = [];
+    this.AuditService.listEvents(this.activatedRoute.snapshot.params.apiId).then((response) => {
       this.$scope.events = response.data;
     });
   }
 }
-ApiAuditControllerAjs.$inject = ['AuditService', '$scope', '$state'];
+ApiAuditControllerAjs.$inject = ['AuditService', '$scope'];
 
 export default ApiAuditControllerAjs;
