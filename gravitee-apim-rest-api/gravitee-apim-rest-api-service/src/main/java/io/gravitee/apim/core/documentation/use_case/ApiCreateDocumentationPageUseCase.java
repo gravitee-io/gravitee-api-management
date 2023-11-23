@@ -53,6 +53,7 @@ public class ApiCreateDocumentationPageUseCase {
         }
 
         this.validateParentId(pageToCreate);
+        this.validateNameIsUnique(pageToCreate);
 
         this.calculateOrder(pageToCreate);
 
@@ -89,6 +90,10 @@ public class ApiCreateDocumentationPageUseCase {
         }
 
         page.setParentId(null);
+    }
+
+    private void validateNameIsUnique(Page page) {
+        this.apiDocumentationDomainService.validateNameIsUnique(page.getReferenceId(), page.getParentId(), page.getName(), page.getType());
     }
 
     private void calculateOrder(Page page) {

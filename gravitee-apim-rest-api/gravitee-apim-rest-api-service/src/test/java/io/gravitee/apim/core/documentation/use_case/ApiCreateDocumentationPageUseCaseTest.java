@@ -29,6 +29,7 @@ import io.gravitee.apim.core.documentation.domain_service.HomepageDomainService;
 import io.gravitee.apim.core.documentation.exception.InvalidPageNameException;
 import io.gravitee.apim.core.documentation.exception.InvalidPageParentException;
 import io.gravitee.apim.core.documentation.model.Page;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
 import io.gravitee.rest.api.service.common.UuidString;
@@ -456,6 +457,53 @@ class ApiCreateDocumentationPageUseCaseTest {
                 )
                 .isInstanceOf(InvalidPageNameException.class);
         }
+
+        @Test
+        void should_throw_error_if_name_not_unique() {
+            var parentFolder = Page
+                .builder()
+                .id(PARENT_ID)
+                .referenceType(Page.ReferenceType.API)
+                .referenceId("api-id")
+                .type(Page.Type.FOLDER)
+                .parentId("")
+                .name("parent")
+                .build();
+            var subPage = Page
+                .builder()
+                .id("sub-page-id")
+                .referenceType(Page.ReferenceType.API)
+                .referenceId("api-id")
+                .type(Page.Type.MARKDOWN)
+                .parentId(PARENT_ID)
+                .name("sub-page")
+                .build();
+            pageCrudService.initWith(List.of(parentFolder, subPage));
+            pageQueryService.initWith(List.of(parentFolder, subPage));
+
+            assertThatThrownBy(() ->
+                    apiCreateDocumentationPageUsecase.execute(
+                        ApiCreateDocumentationPageUseCase.Input
+                            .builder()
+                            .page(
+                                Page
+                                    .builder()
+                                    .id("sub-page-id")
+                                    .referenceType(Page.ReferenceType.API)
+                                    .referenceId("api-id")
+                                    .type(Page.Type.MARKDOWN)
+                                    .parentId(PARENT_ID)
+                                    .name("sub-page")
+                                    .visibility(Page.Visibility.PRIVATE)
+                                    .build()
+                            )
+                            .auditInfo(AUDIT_INFO)
+                            .build()
+                    )
+                )
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessage("Name already exists with the same parent and type: sub-page");
+        }
     }
 
     @Nested
@@ -574,6 +622,53 @@ class ApiCreateDocumentationPageUseCaseTest {
                     )
                 )
                 .isInstanceOf(InvalidPageParentException.class);
+        }
+
+        @Test
+        void should_throw_error_if_name_not_unique() {
+            var parentFolder = Page
+                .builder()
+                .id(PARENT_ID)
+                .referenceType(Page.ReferenceType.API)
+                .referenceId("api-id")
+                .type(Page.Type.FOLDER)
+                .parentId("")
+                .name("parent")
+                .build();
+            var subFolder = Page
+                .builder()
+                .id("sub-page-id")
+                .referenceType(Page.ReferenceType.API)
+                .referenceId("api-id")
+                .type(Page.Type.FOLDER)
+                .parentId(PARENT_ID)
+                .name("sub-page")
+                .build();
+            pageCrudService.initWith(List.of(parentFolder, subFolder));
+            pageQueryService.initWith(List.of(parentFolder, subFolder));
+
+            assertThatThrownBy(() ->
+                    apiCreateDocumentationPageUsecase.execute(
+                        ApiCreateDocumentationPageUseCase.Input
+                            .builder()
+                            .page(
+                                Page
+                                    .builder()
+                                    .id("sub-page-id")
+                                    .referenceType(Page.ReferenceType.API)
+                                    .referenceId("api-id")
+                                    .type(Page.Type.FOLDER)
+                                    .parentId(PARENT_ID)
+                                    .name("sub-page")
+                                    .visibility(Page.Visibility.PRIVATE)
+                                    .build()
+                            )
+                            .auditInfo(AUDIT_INFO)
+                            .build()
+                    )
+                )
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessage("Name already exists with the same parent and type: sub-page");
         }
     }
 
