@@ -29,7 +29,7 @@ import { PlanStatus } from '@gravitee/management-webclient-sdk/src/lib/models/Pl
 import { UpdatePlanEntityFromJSON } from '@gravitee/management-webclient-sdk/src/lib/models/UpdatePlanEntity';
 import { ApplicationsFaker } from '@gravitee/fixtures/management/ApplicationsFaker';
 import { LifecycleAction } from '@gravitee/management-webclient-sdk/src/lib/models/LifecycleAction';
-import { fetchGatewaySuccess, fetchGatewayUnauthorized } from '@gravitee/utils/gateway';
+import { fetchGatewayServiceUnavailable, fetchGatewaySuccess, fetchGatewayUnauthorized } from '@gravitee/utils/gateway';
 import { UpdateApiEntityFromJSON } from '@gravitee/management-webclient-sdk/src/lib/models/UpdateApiEntity';
 import { PathOperatorOperatorEnum } from '@gravitee/management-webclient-sdk/src/lib/models';
 import { teardownApisAndApplications } from '@gravitee/utils/management';
@@ -197,9 +197,9 @@ describe('Create an API with OAuth2 plan and use it', () => {
       expect(res.headers.get('X-Test-OAuth2-Flow')).toEqual('ok');
     });
 
-    test('Should return Unauthorized 401 with invalid token', async () => {
-      // Token always considered invalid by wiremock with /oauth/check_token
-      const token = 'invalid_token';
+    test('Should return Unauthorized 401 with inactive token', async () => {
+      // Token always considered inactive by wiremock with /oauth/check_token
+      const token = 'inactive_token';
 
       await fetchGatewayUnauthorized({
         contextPath: `${createdApi.context_path}`,
@@ -209,10 +209,11 @@ describe('Create an API with OAuth2 plan and use it', () => {
       });
     });
 
-    test('Should return 401 Unauthorized with empty token', async () => {
-      const token = '';
+    test('Should return Service Unavailable 503 with if error while checking token', async () => {
+      // Token that generates an issue while checking validity on wiremock with /oauth/check_token
+      const token = 'error_token';
 
-      await fetchGatewayUnauthorized({
+      await fetchGatewayServiceUnavailable({
         contextPath: `${createdApi.context_path}`,
         headers: {
           Authorization: `Bearer ${token}`,

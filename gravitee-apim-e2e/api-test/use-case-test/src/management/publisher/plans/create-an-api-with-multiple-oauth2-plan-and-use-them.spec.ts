@@ -29,7 +29,7 @@ import { PlanStatus } from '@gravitee/management-webclient-sdk/src/lib/models/Pl
 import { UpdatePlanEntityFromJSON } from '@gravitee/management-webclient-sdk/src/lib/models/UpdatePlanEntity';
 import { ApplicationsFaker } from '@gravitee/fixtures/management/ApplicationsFaker';
 import { LifecycleAction } from '@gravitee/management-webclient-sdk/src/lib/models/LifecycleAction';
-import { fetchGatewaySuccess, fetchGatewayUnauthorized } from '@gravitee/utils/gateway';
+import { fetchGatewayServiceUnavailable, fetchGatewaySuccess, fetchGatewayUnauthorized } from '@gravitee/utils/gateway';
 import { teardownApisAndApplications } from '@gravitee/utils/management';
 import { PathOperatorOperatorEnum } from '@gravitee/management-webclient-sdk/src/lib/models/PathOperator';
 import { UpdateApiEntityFromJSON } from '@gravitee/management-webclient-sdk/src/lib/models/UpdateApiEntity';
@@ -210,11 +210,20 @@ describeIfV4EmulationEngine('Create an API with mutiple OAuth2 plans and use the
       }
     });
 
-    test('Should return 401 Unauthorized with invalid jwt token', async () => {
+    test('Should return 401 Unauthorized with inactive jwt token', async () => {
       await fetchGatewayUnauthorized({
         contextPath: `${createdApi.context_path}`,
         headers: {
-          Authorization: `Bearer invalid_token`,
+          Authorization: `Bearer inactive_token`,
+        },
+      });
+    });
+
+    test('Should return Service 503 Unavailable with if error while checking token', async () => {
+      await fetchGatewayServiceUnavailable({
+        contextPath: `${createdApi.context_path}`,
+        headers: {
+          Authorization: `Bearer error_token`,
         },
       });
     });
