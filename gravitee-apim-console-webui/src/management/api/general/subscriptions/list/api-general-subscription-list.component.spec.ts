@@ -25,12 +25,13 @@ import { MatTableHarness } from '@angular/material/table/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { set } from 'lodash';
 import { MatButtonHarness } from '@angular/material/button/testing';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { ApiGeneralSubscriptionListComponent } from './api-general-subscription-list.component';
 import { ApiGeneralSubscriptionListHarness } from './api-general-subscription-list.harness';
 
 import { ApiGeneralSubscriptionsModule } from '../api-general-subscriptions.module';
-import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
+import { CurrentUserService } from '../../../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
 import { User as DeprecatedUser } from '../../../../../entities/user';
 import {
@@ -67,19 +68,18 @@ describe('ApiGeneralSubscriptionListComponent', () => {
   const anAPI = fakeApiV4({ id: API_ID });
   const aPlan = fakePlanV4({ id: PLAN_ID, apiId: API_ID });
   const anApplication = fakeApplication({ id: APPLICATION_ID, owner: { displayName: 'Gravitee.io' } });
-  const fakeUiRouter = { go: jest.fn() };
   const currentUser = new DeprecatedUser();
 
   let fixture: ComponentFixture<TestComponent>;
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
+  let routerNavigateSpy: jest.SpyInstance;
 
   const init = async (planSecurity?: any) => {
     await TestBed.configureTestingModule({
       declarations: [TestComponent],
       imports: [ApiGeneralSubscriptionsModule, NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule],
       providers: [
-        { provide: UIRouterState, useValue: fakeUiRouter },
         { provide: CurrentUserService, useValue: { currentUser } },
         {
           provide: InteractivityChecker,
@@ -415,7 +415,7 @@ describe('ApiGeneralSubscriptionListComponent', () => {
       const subscription = fakeSubscription({ application: { apiKeyMode: 'EXCLUSIVE' } });
       expectApiSubscriptionsPostRequest(planV4.id, application.id, undefined, 'EXCLUSIVE', subscription);
 
-      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.subscription.edit', { subscriptionId: expect.any(String) });
+      expect(routerNavigateSpy).toHaveBeenCalledWith(['.', 'aee23b1e-34b1-4551-a23b-1e34b165516a'], expect.anything());
 
       flush();
     }));
@@ -466,7 +466,7 @@ describe('ApiGeneralSubscriptionListComponent', () => {
       const subscription = fakeSubscription({ application: { apiKeyMode: 'SHARED' } });
       expectApiSubscriptionsPostRequest(planV4.id, application.id, undefined, 'SHARED', subscription);
 
-      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.subscription.edit', { subscriptionId: expect.any(String) });
+      expect(routerNavigateSpy).toHaveBeenCalledWith(['.', 'aee23b1e-34b1-4551-a23b-1e34b165516a'], expect.anything());
 
       flush();
     }));
@@ -499,7 +499,7 @@ describe('ApiGeneralSubscriptionListComponent', () => {
       const subscription = fakeSubscription();
       expectApiSubscriptionsPostRequest(planV4.id, application.id, undefined, undefined, subscription);
 
-      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.subscription.edit', { subscriptionId: expect.any(String) });
+      expect(routerNavigateSpy).toHaveBeenCalledWith(['.', 'aee23b1e-34b1-4551-a23b-1e34b165516a'], expect.anything());
 
       flush();
     }));
@@ -547,7 +547,7 @@ describe('ApiGeneralSubscriptionListComponent', () => {
       const subscription = fakeSubscription();
       expectApiSubscriptionsPostRequest(planV4.id, application.id, '12345678', undefined, subscription);
 
-      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.subscription.edit', { subscriptionId: expect.any(String) });
+      expect(routerNavigateSpy).toHaveBeenCalledWith(['.', 'aee23b1e-34b1-4551-a23b-1e34b165516a'], expect.anything());
 
       flush();
     }));
@@ -570,7 +570,7 @@ describe('ApiGeneralSubscriptionListComponent', () => {
 
       await creationDialogHarness.cancelSubscription();
 
-      expect(fakeUiRouter.go).not.toHaveBeenCalledWith('management.apis.subscription.edit', { subscriptionId: expect.any(String) });
+      expect(routerNavigateSpy).not.toHaveBeenCalledWith(['.', 'aee23b1e-34b1-4551-a23b-1e34b165516a'], expect.anything());
 
       flush();
     }));
@@ -643,7 +643,14 @@ describe('ApiGeneralSubscriptionListComponent', () => {
     params?: { plan?: string; application?: string; status?: string; apiKey?: string },
     permissions: string[] = ['api-subscription-c', 'api-subscription-r'],
   ) {
-    await TestBed.overrideProvider(UIRouterStateParams, { useValue: { apiId: api.id, ...(params ? params : {}) } }).compileComponents();
+    await TestBed.overrideProvider(ActivatedRoute, {
+      useValue: {
+        snapshot: {
+          params: { apiId: api.id },
+          queryParams: { ...(params ? params : {}) },
+        },
+      },
+    }).compileComponents();
     if (permissions.length > 0) {
       const newCurrentUser = new DeprecatedUser();
       newCurrentUser.userPermissions = permissions;
@@ -651,6 +658,8 @@ describe('ApiGeneralSubscriptionListComponent', () => {
     }
     fixture = TestBed.createComponent(TestComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
+    const router = TestBed.inject(Router);
+    routerNavigateSpy = jest.spyOn(router, 'navigate');
     fixture.detectChanges();
 
     tick(800); // wait for debounce

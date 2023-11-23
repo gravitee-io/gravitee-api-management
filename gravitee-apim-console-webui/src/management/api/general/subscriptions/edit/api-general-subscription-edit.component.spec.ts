@@ -26,11 +26,12 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { set } from 'lodash';
 import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
+import { ActivatedRoute } from '@angular/router';
 
 import { ApiGeneralSubscriptionEditComponent } from './api-general-subscription-edit.component';
 import { ApiGeneralSubscriptionEditHarness } from './api-general-subscription-edit.harness';
 
-import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
+import { CurrentUserService } from '../../../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
 import { ApiGeneralSubscriptionsModule } from '../api-general-subscriptions.module';
 import { User as DeprecatedUser } from '../../../../../entities/user';
@@ -72,7 +73,6 @@ const BASIC_SUBSCRIPTION = (apiKeyMode: BaseApplication['apiKeyMode'] = 'UNSPECI
   });
 
 describe('ApiGeneralSubscriptionEditComponent', () => {
-  const fakeUiRouter = { go: jest.fn() };
   const currentUser = new DeprecatedUser();
   currentUser.userPermissions = ['api-subscription-u', 'api-subscription-r', 'api-subscription-d'];
 
@@ -84,7 +84,6 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
     await TestBed.configureTestingModule({
       imports: [ApiGeneralSubscriptionsModule, NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule],
       providers: [
-        { provide: UIRouterState, useValue: fakeUiRouter },
         { provide: CurrentUserService, useValue: { currentUser } },
         { provide: 'Constants', useValue: CONSTANTS_TESTING },
         {
@@ -139,9 +138,6 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
 
       expect(await harness.validateBtnIsVisible()).toEqual(false);
       expect(await harness.rejectBtnIsVisible()).toEqual(false);
-
-      await harness.goBackToSubscriptionsList();
-      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.subscriptions');
     });
 
     it('should load pending subscription', async () => {
@@ -1044,8 +1040,8 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
     permissions: string[] = ['api-subscription-r', 'api-subscription-u', 'api-subscription-d'],
     canUseCustomApiKey = true,
   ) {
-    await TestBed.overrideProvider(UIRouterStateParams, {
-      useValue: { apiId: API_ID, subscriptionId: SUBSCRIPTION_ID },
+    await TestBed.overrideProvider(ActivatedRoute, {
+      useValue: { snapshot: { params: { apiId: API_ID, subscriptionId: SUBSCRIPTION_ID } } },
     }).compileComponents();
     if (permissions) {
       const overrideUser = currentUser;
