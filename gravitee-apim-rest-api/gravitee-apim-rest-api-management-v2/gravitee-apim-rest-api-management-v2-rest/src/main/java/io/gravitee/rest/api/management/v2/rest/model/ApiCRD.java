@@ -20,6 +20,7 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -66,7 +67,7 @@ public class ApiCRD {
 
     private List<@Valid Resource> resources = new ArrayList<>();
 
-    private List<@Valid PlanV4> plans = new ArrayList<>();
+    private Map<String, PlanCRD> plans = new HashMap<>();
 
     private FlowExecution flowExecution;
 

@@ -80,11 +80,20 @@ public interface PlanMapper {
     @Named("toPlanEntity")
     PlanEntity map(PlanV4 plan);
 
+    @Mapping(target = "name", expression = "java(planName)")
+    @Mapping(target = "security", qualifiedByName = "mapToPlanSecurityV4")
+    PlanEntity fromPlanCRD(PlanCRD plan, String planName);
+
     @Mapping(target = "security.configuration", qualifiedByName = "serializeConfiguration")
     UpdatePlanEntity map(UpdatePlanV4 plan);
 
     @Mapping(target = "securityDefinition", source = "security.configuration", qualifiedByName = "serializeConfiguration")
     io.gravitee.rest.api.model.UpdatePlanEntity map(UpdatePlanV2 plan);
+
+    @Named("mapToPlanSecurityV4")
+    @Mapping(target = "type", qualifiedByName = "mapFromSecurityType")
+    @Mapping(target = "configuration", qualifiedByName = "serializeConfiguration")
+    io.gravitee.definition.model.v4.plan.PlanSecurity mapPlanSecurityV4(PlanSecurity planSecurity);
 
     @Named("mapToPlanSecurityType")
     default PlanSecurityType mapToPlanSecurityType(String securityType) {
