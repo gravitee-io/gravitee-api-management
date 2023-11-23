@@ -58,6 +58,8 @@ tags:
       description: Everything about groups
     - name: Installation
       description: Base resources about the installation
+    - name: Integration
+      description: Everything about integration
 
 paths:
     # APIs
@@ -1122,6 +1124,119 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
+
+    # Integration
+    /environments/{envId}/integrations:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+        get:
+            parameters:
+                - $ref: "#/components/parameters/pageParam"
+                - $ref: "#/components/parameters/perPageParam"
+            tags:
+                - Integration
+            summary: List Integrations
+            description: |-
+                Get the list of Integration for a specific environment.<br>
+                The results are paginated.
+
+                User must have the ENVIRONMENT_INTEGRATION[READ] permission.
+            operationId: listIntegrations
+            responses:
+                "200":
+                    $ref: "#/components/responses/IntegrationsResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+        post:
+            tags:
+                - Integration
+            summary: Create an Integration
+            description: |-
+                Create a new Integration.
+
+                User must have the ENVIRONMENT_INTEGRATION[CREATE] permission.
+            operationId: createIntegration
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/CreateIntegration"
+                required: true
+            responses:
+                "201":
+                    description: Integration successfully created
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Integration"
+                default:
+                    $ref: "#/components/responses/Error"
+    /environments/{envId}/integrations/{integrationId}:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/integrationIdParam"
+        get:
+            tags:
+                - Integration
+            summary: Get a specific Integration
+            description: |-
+                Get a specific Integration.
+
+                User must have at least one management (create, update, or delete) permission on the Integration to access it.
+            operationId: getIntegration
+            responses:
+                "200":
+                    description: Integration found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Integration"
+                default:
+                    $ref: "#/components/responses/Error"
+    /environments/{envId}/integrations/{integrationId}/entities:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/integrationIdParam"
+        get:
+            tags:
+                - Integration
+            summary: Get a list of entities for a specific Integration
+            description: |-
+                Get a list of entities for a specific Integration.
+
+                User must have at least one management (create, update, or delete) permission on the Integration to access it.
+            operationId: getIntegrationEntities
+            responses:
+                "200":
+                    $ref: "#/components/responses/IntegrationEntitiesResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+    /environments/{envId}/integrations/{integrationId}/entities/_import:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/integrationIdParam"
+        post:
+            tags:
+                - Integration
+            summary: Get a list of entities for a specific Integration
+            description: |-
+                Get a list of entities for a specific Integration.
+
+                User must have at least one management (create, update, or delete) permission on the Integration to access it.
+            operationId: importIntegrationEntities
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            type: array
+                            items:
+                                $ref: "#/components/schemas/IntegrationEntity"
+                required: true
+            responses:
+                "200":
+                    $ref: "#/components/responses/IntegrationEntitiesResponse"
+                default:
+                    $ref: "#/components/responses/Error"
 
     # API Subscriptions
     /environments/{envId}/apis/{apiId}/subscribers:
@@ -3002,6 +3117,46 @@ components:
                           items:
                               $ref: "#/components/schemas/HttpMethod"
                           uniqueItems: true
+        Integration:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: Id of the integration
+                name:
+                    type: string
+                    description: Name of the integration
+                deploymentType:
+                    type: string
+                    description: Type of deployment (EMBEDDED or REMOTE)
+                    enum:
+                        - EMBEDDED
+                        - REMOTE
+                provider:
+                    type: string
+                    description: Provider of this integration
+                configuration:
+                    type: object
+                    description: Configuration of this integration
+                entities:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/IntegrationEntity"
+        IntegrationEntity:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: Id of the entity
+                name:
+                    type: string
+                    description: Name of the entity
+                type:
+                    type: string
+                    description: Type of the entity
+                    enum:
+                        - OPENAPI
+                        - ASYNCAPI
         Links:
             description: List of links for pagination
             properties:
@@ -5630,6 +5785,11 @@ components:
             additionalProperties:
                 type: object
 
+        CreateIntegration:
+            type: object
+            allOf:
+                - $ref: "#/components/schemas/Integration"
+
     parameters:
         #############
         # PathParam #
@@ -5725,6 +5885,13 @@ components:
             in: path
             required: true
             description: Id of a policy.
+            schema:
+                type: string
+        integrationIdParam:
+            name: integrationId
+            in: path
+            required: true
+            description: Id of an integration.
             schema:
                 type: string
         ###############################
@@ -5900,6 +6067,38 @@ components:
                     schema:
                         type: string
                         format: binary
+        IntegrationsResponse:
+            description: Page of integrations
+            content:
+                application/json:
+                    schema:
+                        title: "IntegrationsResponse"
+                        properties:
+                            data:
+                                description: List of Integrations.
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/Integration"
+                            pagination:
+                                $ref: "#/components/schemas/Pagination"
+                            links:
+                                $ref: "#/components/schemas/Links"
+        IntegrationEntitiesResponse:
+            description: Page of integration entities
+            content:
+                application/json:
+                    schema:
+                        title: "IntegrationsResponse"
+                        properties:
+                            data:
+                                description: List of entities for an integration.
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/IntegrationEntity"
+                            pagination:
+                                $ref: "#/components/schemas/Pagination"
+                            links:
+                                $ref: "#/components/schemas/Links"
         PlansResponse:
             description: Page of API plans
             content:

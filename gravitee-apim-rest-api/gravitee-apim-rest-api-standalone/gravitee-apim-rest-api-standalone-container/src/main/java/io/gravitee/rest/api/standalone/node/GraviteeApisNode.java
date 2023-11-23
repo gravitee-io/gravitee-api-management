@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.standalone.node;
 
+import io.gravitee.apim.core.integration.domain_service.IntegrationDomainService;
 import io.gravitee.common.component.LifecycleComponent;
 import io.gravitee.node.api.NodeMetadataResolver;
 import io.gravitee.node.container.AbstractNode;
@@ -68,6 +69,7 @@ public class GraviteeApisNode extends AbstractNode {
         components.add(AlertTriggerProviderManager.class);
         components.add(AlertEventProducerManager.class);
         components.add(ScheduledCommandService.class);
+        components.add(IntegrationDomainService.class);
 
         // Keep it at the end
         components.addAll(UpgraderConfiguration.getComponents());

@@ -168,6 +168,11 @@ public interface GraviteeMapper {
 
     InstallationMongo map(Installation toMap);
 
+    // Integration mapping
+    Integration map(IntegrationMongo integrationMongo);
+
+    IntegrationMongo map(Integration toMap);
+
     // Invitation mapping
     Invitation map(InvitationMongo toMap);
 

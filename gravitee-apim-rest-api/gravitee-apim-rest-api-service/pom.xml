@@ -120,6 +120,12 @@
 			<groupId>io.gravitee.plugin</groupId>
 			<artifactId>gravitee-plugin-fetcher</artifactId>
 		</dependency>
+
+		<dependency>
+			<groupId>io.gravitee.plugin</groupId>
+			<artifactId>gravitee-plugin-integrationprovider</artifactId>
+		</dependency>
+
 		<dependency>
 			<groupId>io.gravitee.plugin</groupId>
 			<artifactId>gravitee-plugin-alert</artifactId>
@@ -174,6 +180,12 @@
 		<dependency>
 			<groupId>io.gravitee.node.services</groupId>
 			<artifactId>gravitee-node-services-initializer</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>io.gravitee.integration</groupId>
+			<artifactId>gravitee-integration-api</artifactId>
+			<version>1.0.0-SNAPSHOT</version>
 		</dependency>
 
 		<!-- Lucene -->

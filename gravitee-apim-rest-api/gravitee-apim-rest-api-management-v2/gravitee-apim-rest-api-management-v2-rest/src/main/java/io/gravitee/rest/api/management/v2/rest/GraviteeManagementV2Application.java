@@ -36,6 +36,7 @@ import io.gravitee.rest.api.management.v2.rest.resource.bootstrap.ManagementUIRe
 import io.gravitee.rest.api.management.v2.rest.resource.installation.EnvironmentsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.installation.GraviteeLicenseResource;
 import io.gravitee.rest.api.management.v2.rest.resource.installation.OrganizationResource;
+import io.gravitee.rest.api.management.v2.rest.resource.integration.IntegrationsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.plugin.EndpointsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.plugin.EntrypointsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.plugin.PoliciesResource;
@@ -67,6 +68,7 @@ public class GraviteeManagementV2Application extends ResourceConfig {
         register(EndpointsResource.class);
         register(EntrypointsResource.class);
         register(PoliciesResource.class);
+        register(IntegrationsResource.class);
 
         register(MultiPartFeature.class);
 

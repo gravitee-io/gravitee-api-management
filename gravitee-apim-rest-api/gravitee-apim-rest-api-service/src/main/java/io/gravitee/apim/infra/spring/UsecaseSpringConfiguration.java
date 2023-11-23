@@ -52,6 +52,12 @@ import io.gravitee.apim.core.documentation.use_case.ApiPublishDocumentationPageU
 import io.gravitee.apim.core.documentation.use_case.ApiUnpublishDocumentationPageUseCase;
 import io.gravitee.apim.core.documentation.use_case.ApiUpdateDocumentationPageUseCase;
 import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
+import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
+import io.gravitee.apim.core.integration.domain_service.IntegrationDomainService;
+import io.gravitee.apim.core.integration.usecase.IntegrationCreateUsecase;
+import io.gravitee.apim.core.integration.usecase.IntegrationGetEntitiesUsecase;
+import io.gravitee.apim.core.integration.usecase.IntegrationGetUsecase;
+import io.gravitee.apim.core.integration.usecase.IntegrationImportUsecase;
 import io.gravitee.apim.core.event.crud_service.EventCrudService;
 import io.gravitee.apim.core.gateway.query_service.InstanceQueryService;
 import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService;
@@ -78,6 +84,10 @@ import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomain
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
 import io.gravitee.apim.core.subscription.use_case.CloseExpiredSubscriptionsUseCase;
 import io.gravitee.apim.core.subscription.use_case.CloseSubscriptionUseCase;
+import io.gravitee.rest.api.service.ApiService;
+import io.gravitee.rest.api.service.PageService;
+import io.gravitee.rest.api.service.SwaggerService;
+import io.gravitee.rest.api.service.converter.ApiConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -358,5 +368,45 @@ public class UsecaseSpringConfiguration {
     @Bean
     public CreatePlanUseCase createPlanUseCase(CreatePlanDomainService createPlanDomainService, ApiCrudService apiCrudService) {
         return new CreatePlanUseCase(createPlanDomainService, apiCrudService);
+    }
+
+    @Bean
+    public IntegrationCreateUsecase integrationCreateUsecase(
+        IntegrationCrudService integrationCrudService,
+        IntegrationDomainService integrationDomainService
+    ) {
+        return new IntegrationCreateUsecase(integrationCrudService, integrationDomainService);
+    }
+
+    @Bean
+    public IntegrationGetUsecase integrationGetUsecase(IntegrationCrudService integrationCrudService) {
+        return new IntegrationGetUsecase(integrationCrudService);
+    }
+
+    @Bean
+    public IntegrationGetEntitiesUsecase integrationGetEntitiesUsecase(
+        IntegrationDomainService integrationDomainService,
+        IntegrationCrudService integrationCrudService
+    ) {
+        return new IntegrationGetEntitiesUsecase(integrationDomainService, integrationCrudService);
+    }
+
+    @Bean
+    public IntegrationImportUsecase integrationImportUsecase(
+        IntegrationDomainService integrationDomainService,
+        IntegrationCrudService integrationCrudService,
+        SwaggerService swaggerService,
+        ApiService apiService,
+        PageService pageService,
+        ApiConverter apiConverter
+    ) {
+        return new IntegrationImportUsecase(
+            integrationDomainService,
+            integrationCrudService,
+            swaggerService,
+            apiService,
+            pageService,
+            apiConverter
+        );
     }
 }
