@@ -25,6 +25,15 @@
       ],
       "post": [
         {
+          "name": "Add 1s Latency",
+          "description": "",
+          "enabled": true,
+          "policy": "latency",
+          "configuration": {
+            "latency": 1000
+          }
+        },
+        {
           "name": "Add Response Header",
           "description": "",
           "enabled": true,

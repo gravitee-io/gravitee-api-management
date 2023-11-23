@@ -17,21 +17,39 @@ package io.gravitee.apim.integration.tests.http;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
+import io.gravitee.apim.gateway.tests.sdk.annotations.DeployOrganization;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.integration.tests.fake.AddHeaderPolicy;
 import io.gravitee.definition.model.ExecutionMode;
 import io.vertx.rxjava3.core.http.HttpClientResponse;
+import org.junit.jupiter.api.Nested;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@GatewayTest(v2ExecutionMode = ExecutionMode.V3)
 class HttpRequestTimeoutV3IntegrationTest extends HttpRequestTimeoutV4EmulationIntegrationTest {
 
-    // IN V3 mode, if an exception is thrown during api flows, then platform response flow is not executed.
-    @Override
-    protected void assertPlatformHeaders(HttpClientResponse response) {
-        assertThat(response.headers().contains(AddHeaderPolicy.HEADER_NAME)).isFalse();
+    @Nested
+    @GatewayTest(v2ExecutionMode = ExecutionMode.V3)
+    @DeployApi({ "/apis/http/api.json", "/apis/http/api-latency.json" })
+    @DeployOrganization("/organizations/organization-add-header.json")
+    class OrganizationWithAddHeader extends HttpRequestTimeoutV4EmulationIntegrationTest.OrganizationWithAddHeader {
+
+        /**
+         * Assert that platform headers are not present in the response because in V3 mode,
+         * if an exception is thrown during api flows, then platform response flow is not executed.
+         */
+        @Override
+        protected void assertPlatformHeaders(HttpClientResponse response) {
+            assertThat(response.headers().contains(AddHeaderPolicy.HEADER_NAME)).isFalse();
+        }
     }
+
+    @Nested
+    @GatewayTest(v2ExecutionMode = ExecutionMode.V3)
+    @DeployApi({ "/apis/http/api.json" })
+    @DeployOrganization("/organizations/organization-add-header-and-latency.json")
+    class OrganizationWithAddHeaderAndLatency extends HttpRequestTimeoutV4EmulationIntegrationTest.OrganizationWithAddHeaderAndLatency {}
 }
