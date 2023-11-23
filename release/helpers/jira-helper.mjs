@@ -46,12 +46,18 @@ export async function getJiraIssuesOfVersion(versionId) {
 
   // Filter out issues that are not public bugs or public security issues
   const issues = issuesFromJira
-    .filter((issue) => issue.fields.issuetype.name === 'Public Bug' || issue.fields.issuetype.name === 'Public Security')
+    .filter(
+      (issue) =>
+        issue.fields.issuetype.name === 'Public Bug' ||
+        issue.fields.issuetype.name === 'Public Security' ||
+        issue.fields.issuetype.name === 'Public Improvement',
+    )
     .map((issue) => ({
       key: issue.key,
       githubIssue: issue.fields.customfield_10115,
       summary: issue.fields.summary,
       components: issue.fields.components,
+      type: issue.fields.issuetype.name,
     }));
 
   // For each issue with empty githubIssue field, get the remote link and extract the GitHub issue number
