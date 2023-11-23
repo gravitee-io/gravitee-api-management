@@ -95,7 +95,7 @@ public class PlanKeylessV4EmulationIntegrationTest extends AbstractGatewayTest {
 
     @ParameterizedTest
     @MethodSource("provideSecurityHeaders")
-    void should_access_api_and_ignore_security(
+    protected void should_access_api_and_ignore_security(
         final String apiId,
         boolean requireWiremock,
         final String headerName,
