@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-import { Component, Inject, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { takeUntil, tap } from 'rxjs/operators';
 import { combineLatest, Observable, Subject } from 'rxjs';
 import { groupBy, map } from 'lodash';
-import { StateService } from '@uirouter/angular';
 
-import { UIRouterState } from '../../../../ajs-upgraded-providers';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { Hooks } from '../../../../entities/notification/hooks';
 import { NotificationSettings } from '../../../../entities/notification/notificationSettings';
@@ -51,7 +49,6 @@ type CategoriesHooksVM = {
 export class NotificationSettingsDetailsComponent implements OnInit {
   public isLoadingData = true;
   public notificationForm: FormGroup;
-  public notificationSettingsListPath: string;
   public formInitialValues: unknown;
   public categoriesHooksVM: CategoriesHooksVM;
   public notifier: Notifier;
@@ -60,11 +57,10 @@ export class NotificationSettingsDetailsComponent implements OnInit {
 
   @Input() notificationSettingsDetailsServices: NotificationSettingsDetailsServices;
 
-  constructor(@Inject(UIRouterState) private readonly ajsState: StateService, private readonly snackBarService: SnackBarService) {}
+  constructor(private readonly snackBarService: SnackBarService) {}
 
   public ngOnInit() {
     this.isLoadingData = true;
-    this.notificationSettingsListPath = this.ajsState.$current.parent.name + '.notification-settings';
     combineLatest([
       this.notificationSettingsDetailsServices.getHooks(),
       this.notificationSettingsDetailsServices.getSingleNotificationSetting(),

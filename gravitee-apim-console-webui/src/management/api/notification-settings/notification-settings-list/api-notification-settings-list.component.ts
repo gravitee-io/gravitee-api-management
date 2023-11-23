@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Subject } from 'rxjs';
+import { ActivatedRoute } from '@angular/router';
 
 import { ApiNotificationSettingsService } from '../../../../services-ngx/api-notification-settings.service';
-import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
-import { NotificationSettingsListServices } from '../../../../components/notifications/notifications-list/notification-settings-list.component';
+import { NotificationSettingsListServices } from '../../../../components/notifications/notification-settings/notification-settings-list.component';
 
 @Component({
   selector: 'api-notification-settings-list',
@@ -31,17 +31,19 @@ export class ApiNotificationSettingsListComponent implements OnInit {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   constructor(
-    @Inject(UIRouterStateParams) private readonly ajsStateParams,
+    public readonly activatedRoute: ActivatedRoute,
     private readonly notificationSettingsService: ApiNotificationSettingsService,
   ) {}
 
   public ngOnInit() {
     this.notificationsServices = {
-      reference: { referenceType: 'API', referenceId: this.ajsStateParams.apiId },
-      getList: () => this.notificationSettingsService.getAll(this.ajsStateParams.apiId),
-      getNotifiers: () => this.notificationSettingsService.getNotifiers(this.ajsStateParams.apiId),
-      create: (notificationConfig) => this.notificationSettingsService.create(this.ajsStateParams.apiId, notificationConfig),
-      delete: (notificationId) => this.notificationSettingsService.delete(this.ajsStateParams.applicationId, notificationId),
+      reference: { referenceType: 'API', referenceId: this.activatedRoute.snapshot.params.apiId },
+      getList: () => this.notificationSettingsService.getAll(this.activatedRoute.snapshot.params.apiId),
+      getNotifiers: () => this.notificationSettingsService.getNotifiers(this.activatedRoute.snapshot.params.apiId),
+      create: (notificationConfig) =>
+        this.notificationSettingsService.create(this.activatedRoute.snapshot.params.apiId, notificationConfig),
+      delete: (notificationId) =>
+        this.notificationSettingsService.delete(this.activatedRoute.snapshot.params.applicationId, notificationId),
     };
   }
 

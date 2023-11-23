@@ -17,7 +17,7 @@
 -->
 <div>
   <div *ngIf="!isLoadingData" class="md-headline notifications-form__title">
-    <gio-go-back-button [ajsGo]="{ to: notificationSettingsListPath }"></gio-go-back-button>
+    <gio-go-back-button [routerLink]="'../'"></gio-go-back-button>
     Update <b>{{ notificationSettings.name }}</b>
     <span *ngIf="notifier" class="gio-badge-neutral">{{ notifier.name }}</span>
   </div>

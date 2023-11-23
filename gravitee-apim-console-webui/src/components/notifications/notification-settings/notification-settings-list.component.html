@@ -44,7 +44,7 @@
     <ng-container matColumnDef="name">
       <th mat-header-cell *matHeaderCellDef id="name">Name</th>
       <td mat-cell *matCellDef="let element">
-        <a [uiSref]="notificationSettingsDetailsPath" [uiParams]="{ notificationId: element.id || element.configType }">
+        <a [routerLink]="'./' + element.id || element.configType">
           {{ element.name }}
         </a>
       </td>

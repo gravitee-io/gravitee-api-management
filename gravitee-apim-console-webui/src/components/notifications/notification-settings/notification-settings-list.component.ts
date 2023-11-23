@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-import { Component, Inject, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { combineLatest, EMPTY, Observable, Subject } from 'rxjs';
 import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
-import { StateService } from '@uirouter/angular';
 
 import {
   NotificationSettingsAddDialogComponent,
@@ -27,7 +26,6 @@ import {
   NotificationSettingsAddDialogResult,
 } from './notifications-settings-add-dialog/notification-settings-add-dialog.component';
 
-import { UIRouterState } from '../../../ajs-upgraded-providers';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { gioTableFilterCollection } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
@@ -63,7 +61,6 @@ export class NotificationSettingsListComponent implements OnInit {
   public notificationUnpaginatedLength = 0;
   public filteredNotificationsSettingsTable = [];
   public notificationSettingsListTable: NotificationSettingsTable[] = [];
-  public notificationSettingsDetailsPath: string;
   public notifiersGroup: Notifier[];
   public notificationsList: NotificationSettings[];
   public isLoadingData = true;
@@ -78,11 +75,7 @@ export class NotificationSettingsListComponent implements OnInit {
 
   @Input() notificationSettingsListServices: NotificationSettingsListServices;
 
-  constructor(
-    @Inject(UIRouterState) private readonly ajsState: StateService,
-    private readonly matDialog: MatDialog,
-    private readonly snackBarService: SnackBarService,
-  ) {}
+  constructor(private readonly matDialog: MatDialog, private readonly snackBarService: SnackBarService) {}
 
   public ngOnInit() {
     this.isLoadingData = true;
@@ -109,7 +102,6 @@ export class NotificationSettingsListComponent implements OnInit {
       .subscribe(() => {
         this.isLoadingData = false;
       });
-    this.notificationSettingsDetailsPath = this.ajsState.$current.parent.name + '.notification-settings-details';
   }
 
   ngOnDestroy() {
