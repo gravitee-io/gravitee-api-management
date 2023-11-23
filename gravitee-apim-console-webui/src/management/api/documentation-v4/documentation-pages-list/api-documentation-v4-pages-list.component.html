@@ -28,7 +28,7 @@
         <ng-container *ngIf="page.type === 'FOLDER'">
           <div class="documentation-pages-list__table__name" (click)="onGoToFolder.emit(page.id)">
             <mat-icon svgIcon="gio:folder"></mat-icon>
-            <p>{{ page.name }}</p>
+            <p gioTooltipOnEllipsis>{{ page.name }}</p>
           </div></ng-container
         >
         <ng-container *ngIf="page.type !== 'FOLDER'">
@@ -38,11 +38,11 @@
             (click)="onEditPage.emit(page.id)"
           >
             <mat-icon svgIcon="gio:page"></mat-icon>
-            <p>{{ page.name }}</p>
+            <p gioTooltipOnEllipsis>{{ page.name }}</p>
           </div>
           <div class="documentation-pages-list__table__name no-pointer" *gioPermission="{ noneOf: ['api-documentation-u'] }">
             <mat-icon svgIcon="gio:page"></mat-icon>
-            <p>{{ page.name }}</p>
+            <p gioTooltipOnEllipsis>{{ page.name }}</p>
           </div></ng-container
         >
       </td>
