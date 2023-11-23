@@ -6,6 +6,7 @@ $typography: map.get(gio.$mat-theme, typography);
 .breadcrumb {
   display: flex;
   align-items: flex-end;
+  flex-wrap: wrap;
 
   * {
     margin-right: 8px;
@@ -24,7 +25,7 @@ $typography: map.get(gio.$mat-theme, typography);
     @include mat.typography-level($typography, 'body-2');
     color: mat.get-color-from-palette(gio.$mat-space-palette, 'default');
     background-color: mat.get-color-from-palette(gio.$mat-dove-palette, 'default');
-    max-width: none;
+    max-width: 450px;
   }
 }
 
