@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormGroup, FormControl } from '@angular/forms';
 import { combineLatest, EMPTY, Subject } from 'rxjs';
 import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { ActivatedRoute } from '@angular/router';
 
-import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { Tag } from '../../../../entities/tag/tag';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { TagService } from '../../../../services-ngx/tag.service';
@@ -39,7 +39,7 @@ export class ApiProxyDeploymentsComponent implements OnInit, OnDestroy {
   public initialDeploymentsFormValue: unknown;
 
   constructor(
-    @Inject(UIRouterStateParams) private readonly ajsStateParams,
+    public readonly activatedRoute: ActivatedRoute,
     private readonly apiService: ApiV2Service,
     private readonly tagService: TagService,
     private readonly snackBarService: SnackBarService,
@@ -47,7 +47,7 @@ export class ApiProxyDeploymentsComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    combineLatest([this.apiService.get(this.ajsStateParams.apiId), this.tagService.list()])
+    combineLatest([this.apiService.get(this.activatedRoute.snapshot.params.apiId), this.tagService.list()])
       .pipe(
         tap(([api, shardingTags]) => {
           this.shardingTags = shardingTags;
@@ -75,7 +75,7 @@ export class ApiProxyDeploymentsComponent implements OnInit, OnDestroy {
 
   onSubmit() {
     return this.apiService
-      .get(this.ajsStateParams.apiId)
+      .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
         onlyApiV2Filter(this.snackBarService),
         switchMap((api) => this.apiService.update(api.id, { ...api, tags: this.deploymentsForm.get('tags').value ?? [] })),
