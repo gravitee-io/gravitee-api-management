@@ -44,6 +44,11 @@ export function getJiraIssuesOfVersion(versionId) {
     .then((response) => response.json())
     .then((issues) =>
       // Filter out issues that are not public bugs or public security issues
-      issues.issues.filter((issue) => issue.fields.issuetype.name === 'Public Bug' || issue.fields.issuetype.name === 'Public Security'),
+      issues.issues.filter(
+        (issue) =>
+          issue.fields.issuetype.name === 'Public Bug' ||
+          issue.fields.issuetype.name === 'Public Security' ||
+          issue.fields.issuetype.name === 'Public Improvement',
+      ),
     );
 }
