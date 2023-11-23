@@ -34,6 +34,8 @@ export class ApiDocumentationV4ContentEditorComponent implements ControlValueAcc
 
   preview = true;
   _value: string;
+  private _disabled = false;
+
   protected _onChange: (_selection: string) => void = () => ({});
 
   protected _onTouched: () => void = () => ({});
@@ -50,5 +52,13 @@ export class ApiDocumentationV4ContentEditorComponent implements ControlValueAcc
 
   writeValue(content: string): void {
     this._value = content;
+  }
+
+  get disabled(): boolean {
+    return this._disabled;
+  }
+
+  setDisabledState(isDisabled: boolean) {
+    this._disabled = isDisabled;
   }
 }
