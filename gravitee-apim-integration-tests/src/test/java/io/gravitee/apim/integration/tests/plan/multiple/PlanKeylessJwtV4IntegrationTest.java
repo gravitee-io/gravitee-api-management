@@ -37,7 +37,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * @author GraviteeSource Team
@@ -137,9 +139,11 @@ public class PlanKeylessJwtV4IntegrationTest {
             return PlanKeylessJwtV4IntegrationTest.provideApis();
         }
 
+        @ParameterizedTest
+        @MethodSource("provideSelectionRuleApis")
         @DeployApi(value = { "/apis/plan/v4-proxy-api-selection-rule.json", "/apis/plan/v4-message-api-selection-rule.json" })
         void should_return_200_success_when_selection_rules_on_jwt_doesnt_match(String apiId, HttpClient client) throws Exception {
-            super.should_return_200_success_when_selection_rules_on_jwt_doesnt_match(apiId, client);
+            expect_return_200_success_when_selection_rules_on_jwt_doesnt_match(apiId, client);
         }
     }
 }

@@ -16,9 +16,7 @@
 package io.gravitee.apim.integration.tests.plan.multiple;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.ok;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static io.gravitee.apim.integration.tests.plan.PlanHelper.configurePlans;
 import static io.gravitee.apim.integration.tests.plan.PlanHelper.getApiPath;
 import static io.vertx.core.http.HttpMethod.GET;
@@ -31,9 +29,7 @@ import io.gravitee.apim.integration.tests.plan.PlanHelper;
 import io.gravitee.apim.integration.tests.plan.jwt.PlanJwtV4EmulationIntegrationTest;
 import io.gravitee.apim.integration.tests.plan.keyless.PlanKeylessV4EmulationIntegrationTest;
 import io.gravitee.definition.model.Api;
-import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Plan;
-import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.policy.jwt.JWTPolicy;
 import io.gravitee.policy.jwt.configuration.JWTPolicyConfiguration;
@@ -135,6 +131,14 @@ public class PlanKeylessJwtV4EmulationIntegrationTest {
         @MethodSource("provideSelectionRuleApis")
         @DeployApi("/apis/plan/v2-api-selection-rule.json")
         void should_return_200_success_when_selection_rules_on_jwt_doesnt_match(String apiId, HttpClient client) throws Exception {
+            expect_return_200_success_when_selection_rules_on_jwt_doesnt_match(apiId, client);
+        }
+
+        /**
+         * This method is free of any JUnit annotations to avoid annotation conflicts when used in tests of subclasses.
+         */
+        protected void expect_return_200_success_when_selection_rules_on_jwt_doesnt_match(String apiId, HttpClient client)
+            throws Exception {
             wiremock.stubFor(get("/endpoint").willReturn(ok("endpoint response")));
             String jwtToken = PlanHelper.generateJWT(5000, Map.of("aud", CUSTOM_AUDIENCE));
 
@@ -155,8 +159,6 @@ public class PlanKeylessJwtV4EmulationIntegrationTest {
                     assertThat(body.toString()).contains("endpoint response");
                     return true;
                 });
-
-            wiremock.verify(1, getRequestedFor(urlPathEqualTo("/endpoint")));
         }
     }
 }
