@@ -180,8 +180,7 @@ export class ApiV1V2MenuService implements ApiMenuService {
         },
         {
           displayName: 'Deployments',
-          targetRoute: 'management.apis.deployments',
-          baseRoute: 'management.apis.deployments',
+          routerLink: 'deployments',
         },
       );
     }

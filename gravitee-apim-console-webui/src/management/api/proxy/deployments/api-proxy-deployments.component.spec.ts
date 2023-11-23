@@ -21,12 +21,13 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatSnackBarHarness } from '@angular/material/snack-bar/testing';
+import { ActivatedRoute } from '@angular/router';
 
 import { ApiProxyDeploymentsModule } from './api-proxy-deployments.module';
 import { ApiProxyDeploymentsComponent } from './api-proxy-deployments.component';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
-import { UIRouterStateParams, CurrentUserService } from '../../../../ajs-upgraded-providers';
+import { CurrentUserService } from '../../../../ajs-upgraded-providers';
 import { User } from '../../../../entities/user';
 import { fakeTag } from '../../../../entities/tag/tag.fixture';
 import { Tag } from '../../../../entities/tag/tag';
@@ -47,7 +48,7 @@ describe('ApiProxyDeploymentsComponent', () => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiProxyDeploymentsModule],
       providers: [
-        { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
+        { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
         { provide: CurrentUserService, useValue: { currentUser } },
       ],
     });
