@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
-import { StateService } from '@uirouter/angular';
 import { EMPTY, of, Subject } from 'rxjs';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { ActivatedRoute } from '@angular/router';
 
-import { UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import { ResponseTemplate, toResponseTemplates } from '../response-templates.adapter';
@@ -41,8 +40,7 @@ export class ApiProxyResponseTemplatesListComponent implements OnInit, OnDestroy
   public apiId: string;
 
   constructor(
-    @Inject(UIRouterStateParams) private readonly ajsStateParams,
-    @Inject(UIRouterState) private readonly ajsState: StateService,
+    public readonly activatedRoute: ActivatedRoute,
     private readonly apiService: ApiV2Service,
     private readonly permissionService: GioPermissionService,
     private readonly matDialog: MatDialog,
@@ -51,7 +49,7 @@ export class ApiProxyResponseTemplatesListComponent implements OnInit, OnDestroy
 
   ngOnInit(): void {
     this.apiService
-      .get(this.ajsStateParams.apiId)
+      .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
         onlyApiV1V2Filter(this.snackBarService),
         tap((api) => {
@@ -71,14 +69,6 @@ export class ApiProxyResponseTemplatesListComponent implements OnInit, OnDestroy
     this.unsubscribe$.unsubscribe();
   }
 
-  onAddResponseTemplateClicked() {
-    this.ajsState.go('management.apis.responseTemplateNew', { apiId: this.apiId });
-  }
-
-  onEditResponseTemplateClicked(element: ResponseTemplate) {
-    this.ajsState.go('management.apis.responseTemplateEdit', { apiId: this.apiId, responseTemplateId: element.id });
-  }
-
   onDeleteResponseTemplateClicked(element: ResponseTemplate) {
     this.matDialog
       .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
@@ -94,7 +84,7 @@ export class ApiProxyResponseTemplatesListComponent implements OnInit, OnDestroy
       .afterClosed()
       .pipe(
         filter((confirm) => confirm === true),
-        switchMap(() => this.apiService.get(this.ajsStateParams.apiId)),
+        switchMap(() => this.apiService.get(this.activatedRoute.snapshot.params.apiId)),
         onlyApiV2Filter(this.snackBarService),
         switchMap((api) => {
           if (api.responseTemplates[element.key] && api.responseTemplates[element.key][element.contentType]) {

@@ -1874,6 +1874,45 @@ const apisRoutes: Routes = [
           useAngularMaterial: true,
         },
       },
+      {
+        path: 'response-templates/new',
+        component: ApiProxyResponseTemplatesEditComponent,
+        data: {
+          apiPermissions: {
+            only: ['api-definition-r'],
+          },
+          docs: {
+            only: ['api-response_templates-c', 'api-response_templates-r', 'api-response_templates-u'],
+          },
+          useAngularMaterial: true,
+        },
+      },
+      {
+        path: 'response-templates/:responseTemplateId',
+        component: ApiProxyResponseTemplatesEditComponent,
+        data: {
+          apiPermissions: {
+            only: ['api-response_templates-c', 'api-response_templates-r', 'api-response_templates-u'],
+          },
+          docs: {
+            page: 'management-api-proxy-response-templates',
+          },
+          useAngularMaterial: true,
+        },
+      },
+      {
+        path: 'response-templates',
+        component: ApiProxyResponseTemplatesListComponent,
+        data: {
+          apiPermissions: {
+            only: ['api-response_templates-r'],
+          },
+          docs: {
+            page: 'management-api-proxy-response-templates',
+          },
+          useAngularMaterial: true,
+        },
+      },
 
       /**
        * V1 Api state only
