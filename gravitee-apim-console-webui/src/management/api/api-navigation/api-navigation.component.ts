@@ -15,7 +15,7 @@
  */
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { castArray, flatMap } from 'lodash';
-import { filter, map, startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { GIO_DIALOG_WIDTH, GioBannerTypes, GioMenuService } from '@gravitee/ui-particles-angular';
 import { Observable, Subject } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
@@ -274,11 +274,11 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
           this.subMenuItems = menu.subMenuItems;
 
           this.breadcrumbItems = this.computeBreadcrumbItems();
+          this.selectedItemWithTabs = this.findMenuItemWithTabs();
         }),
         switchMap(() => this.router.events),
         filter((event) => event instanceof NavigationEnd),
         map((event: NavigationEnd) => event),
-        startWith(this.activatedRoute.snapshot),
         tap(() => {
           this.selectedItemWithTabs = this.findMenuItemWithTabs();
         }),
@@ -317,7 +317,7 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
       .filter((r) => !!r)
       .some((routerLink) => {
         return this.router.isActive(this.router.createUrlTree([routerLink], { relativeTo: this.activatedRoute }), {
-          paths: 'exact',
+          paths: item.routerLinkActiveOptions?.exact ? 'exact' : 'subset',
           queryParams: 'subset',
           fragment: 'ignored',
           matrixParams: 'ignored',
