@@ -33,7 +33,7 @@ import { ApiDocumentationV4EditPageComponent } from './api-documentation-v4-edit
 
 import { GioUiRouterTestingModule } from '../../../../shared/testing/gio-uirouter-testing-module';
 import { ApiDocumentationV4Module } from '../api-documentation-v4.module';
-import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { Breadcrumb, Page } from '../../../../entities/management-api-v2/documentation/page';
 import { ApiDocumentationV4ContentEditorHarness } from '../components/api-documentation-v4-content-editor/api-documentation-v4-content-editor.harness';
@@ -41,6 +41,7 @@ import { ApiDocumentationV4BreadcrumbHarness } from '../components/api-documenta
 import { fakeFolder, fakeMarkdown } from '../../../../entities/management-api-v2/documentation/page.fixture';
 import { ApiDocumentationV4PageTitleHarness } from '../components/api-documentation-v4-page-title/api-documentation-v4-page-title.harness';
 import { fakeApiV4 } from '../../../../entities/management-api-v2';
+import { User } from '../../../../entities/user';
 
 interface InitInput {
   pages?: Page[];
@@ -56,7 +57,15 @@ describe('ApiDocumentationV4EditPageComponent', () => {
   const API_ID = 'api-id';
   let httpTestingController: HttpTestingController;
 
-  const init = async (parentId: string, pageId: string, portalUrl = 'portal.url') => {
+  const init = async (
+    parentId: string,
+    pageId: string,
+    portalUrl = 'portal.url',
+    userPermissions = ['api-documentation-u', 'api-documentation-c', 'api-documentation-r', 'api-documentation-d'],
+  ) => {
+    const currentUser = new User();
+    currentUser.userPermissions = userPermissions;
+
     await TestBed.configureTestingModule({
       declarations: [ApiDocumentationV4EditPageComponent],
       imports: [
@@ -71,6 +80,7 @@ describe('ApiDocumentationV4EditPageComponent', () => {
       providers: [
         { provide: UIRouterState, useValue: fakeUiRouter },
         { provide: UIRouterStateParams, useValue: { apiId: API_ID, parentId, pageId } },
+        { provide: CurrentUserService, useValue: { currentUser } },
         {
           provide: 'Constants',
           useFactory: () => {
@@ -529,6 +539,31 @@ describe('ApiDocumentationV4EditPageComponent', () => {
           apiId: API_ID,
           parentId: PAGE.parentId,
         });
+      });
+    });
+    describe('In read-only mode', () => {
+      const PAGE = fakeMarkdown({ id: 'page-id', name: 'page-name', content: 'my content', visibility: 'PUBLIC', published: true });
+
+      beforeEach(async () => {
+        await init(undefined, PAGE.id, 'portal.url', ['api-documentation-r']);
+        initPageServiceRequests({ pages: [PAGE], breadcrumb: [], parentId: undefined, mode: 'edit' }, PAGE);
+      });
+
+      it('should not be able to delete page and form is disabled', async () => {
+        // No delete button
+        const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
+        expect(await harness.getDeleteButton()).toBeUndefined();
+
+        // All fields disabled
+        expect(await harness.nameIsDisabled()).toEqual(true);
+        expect(await harness.visibilityIsDisabled()).toEqual(true);
+
+        const editor = await harnessLoader.getHarness(GioMonacoEditorHarness);
+        expect(await editor.isDisabled()).toEqual(true);
+
+        // At end, no Publish Changes button
+        const publishChangesButtons = await harnessLoader.getAllHarnesses(MatButtonHarness.with({ text: 'Publish changes' }));
+        expect(publishChangesButtons.length).toEqual(0);
       });
     });
   });

@@ -29,6 +29,7 @@ import { Breadcrumb, Page } from '../../../../entities/management-api-v2/documen
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { Api } from '../../../../entities/management-api-v2';
+import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 
 @Component({
   selector: 'api-documentation-edit-page',
@@ -56,6 +57,7 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
     @Inject(UIRouterStateParams) private readonly ajsStateParams: StateParams,
     private readonly apiV2Service: ApiV2Service,
     private readonly apiDocumentationService: ApiDocumentationV2Service,
+    private readonly permissionService: GioPermissionService,
     private readonly snackBarService: SnackBarService,
     private readonly matDialog: MatDialog,
   ) {}
@@ -86,6 +88,10 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
           }),
         )
         .subscribe();
+
+      if (!this.permissionService.hasAnyMatching(['api-documentation-u'])) {
+        this.form.disable();
+      }
     } else {
       this.mode = 'create';
       this.step2Title = 'Add content';
