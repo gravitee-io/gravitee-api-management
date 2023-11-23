@@ -128,7 +128,7 @@ export class ApiDocumentationV4Component implements OnInit, DoCheck, OnDestroy {
   }
 
   navigateTo(folderId: string | null) {
-    this.ajsState.go('management.apis.documentationV4', { parentId: folderId || 'ROOT' }, { reload: true });
+    this.ajsState.go('management.apis.documentationV4', { parentId: folderId || 'ROOT' });
   }
 
   editPage(pageId: string) {

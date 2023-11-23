@@ -136,14 +136,14 @@ describe('ApiDocumentationV4', () => {
       expect(await headerHarness.getBreadcrumb()).toEqual('Home > level 1 > level 2');
 
       await headerHarness.clickOnBreadcrumbItem('level 1');
-      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.documentationV4', { parentId: 'level-1' }, { reload: true });
+      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.documentationV4', { parentId: 'level-1' });
     });
 
     it('should navigate to root if in a sub folder', async () => {
       await init([], [{ name: 'level 1', id: 'level-1', position: 1 }]);
       const headerHarness = await harnessLoader.getHarness(ApiDocumentationV4ListNavigationHeaderHarness);
       await headerHarness.clickOnBreadcrumbItem('Home');
-      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.documentationV4', { parentId: 'ROOT' }, { reload: true });
+      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.documentationV4', { parentId: 'ROOT' });
     });
 
     it('should not navigate to root if already in root', async () => {
@@ -212,7 +212,7 @@ describe('ApiDocumentationV4', () => {
       const nameDiv = await pageListHarness.getNameDivByRowIndex(0);
       await nameDiv.host().then((host) => host.click());
 
-      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.documentationV4', { parentId: 'my-first-folder' }, { reload: true });
+      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.documentationV4', { parentId: 'my-first-folder' });
     });
   });
 
