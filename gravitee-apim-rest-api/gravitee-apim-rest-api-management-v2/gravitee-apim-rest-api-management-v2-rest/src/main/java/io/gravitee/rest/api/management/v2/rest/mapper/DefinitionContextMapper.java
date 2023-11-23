@@ -40,17 +40,23 @@ public interface DefinitionContextMapper {
                 ? DefinitionContext.ModeEnum.FULLY_MANAGED
                 : DefinitionContext.ModeEnum.API_DEFINITION_ONLY
         );
+        context.setSyncFrom(
+            definitionContext.getSyncFrom().equals(ORIGIN_MANAGEMENT)
+                ? DefinitionContext.SyncFromEnum.MANAGEMENT
+                : DefinitionContext.SyncFromEnum.KUBERNETES
+        );
         return context;
     }
 
     default io.gravitee.definition.model.DefinitionContext map(DefinitionContext definitionContext) {
-        if (definitionContext == null || null == definitionContext.getOrigin() || null == definitionContext.getMode()) {
+        if (definitionContext == null) {
             return null;
         }
 
         return new io.gravitee.definition.model.DefinitionContext(
             definitionContext.getOrigin() == DefinitionContext.OriginEnum.MANAGEMENT ? ORIGIN_MANAGEMENT : ORIGIN_KUBERNETES,
-            definitionContext.getMode() == DefinitionContext.ModeEnum.FULLY_MANAGED ? MODE_FULLY_MANAGED : MODE_API_DEFINITION_ONLY
+            definitionContext.getMode() == DefinitionContext.ModeEnum.FULLY_MANAGED ? MODE_FULLY_MANAGED : MODE_API_DEFINITION_ONLY,
+            definitionContext.getSyncFrom() == DefinitionContext.SyncFromEnum.MANAGEMENT ? ORIGIN_MANAGEMENT : ORIGIN_KUBERNETES
         );
     }
 }
