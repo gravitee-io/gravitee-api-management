@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import { Injector } from '@angular/core';
+
 class CategoryService {
   constructor(private $http, private Constants) {}
 
@@ -47,3 +49,9 @@ class CategoryService {
 CategoryService.$inject = ['$http', 'Constants'];
 
 export default CategoryService;
+
+export const ajsCategoryServiceProvider = {
+  deps: ['$injector'],
+  provide: 'ajsCategoryService',
+  useFactory: (injector: Injector) => injector.get('CategoryService'),
+};

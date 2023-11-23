@@ -17,6 +17,7 @@
 import { StateService } from '@uirouter/core';
 import angular, { IController, IScope } from 'angular';
 import * as _ from 'lodash';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { DocumentationService } from '../../services/documentation.service';
 import NotificationService from '../../services/notification.service';
@@ -28,6 +29,7 @@ interface IPageScope extends IScope {
 class ImportPagesComponentController implements IController {
   resolvedFetchers: any[];
   resolvedRootPage: any;
+  activatedRoute: ActivatedRoute;
 
   apiId: string;
   page: any;
@@ -38,11 +40,11 @@ class ImportPagesComponentController implements IController {
     private readonly DocumentationService: DocumentationService,
     private $state: StateService,
     private $scope: IPageScope,
-  ) {
-    this.apiId = this.$state.params.apiId;
-  }
+    private ngRouter: Router,
+  ) {}
 
   $onInit() {
+    this.apiId = this.activatedRoute.snapshot.params.apiId;
     this.page = this.resolvedRootPage || {
       name: 'root',
       type: 'ROOT',
@@ -86,7 +88,7 @@ class ImportPagesComponentController implements IController {
           }
         }
         if (this.apiId) {
-          this.$state.go('management.apis.documentation', { apiId: this.apiId });
+          this.ngRouter.navigate(['..'], { relativeTo: this.activatedRoute });
         } else {
           this.$state.go('management.settings.documentation.list');
         }
@@ -98,18 +100,19 @@ class ImportPagesComponentController implements IController {
 
   cancel() {
     if (this.apiId) {
-      this.$state.go('management.apis.documentation', { apiId: this.apiId });
+      this.ngRouter.navigate(['..'], { relativeTo: this.activatedRoute });
     } else {
       this.$state.go('management.settings.documentation.list');
     }
   }
 }
-ImportPagesComponentController.$inject = ['NotificationService', 'DocumentationService', '$state', '$scope'];
+ImportPagesComponentController.$inject = ['NotificationService', 'DocumentationService', '$state', '$scope', 'ngRouter'];
 
 export const DocumentationImportPagesComponentAjs: ng.IComponentOptions = {
   bindings: {
     resolvedFetchers: '<',
     resolvedRootPage: '<',
+    activatedRoute: '<',
   },
   template: require('./import-pages.html'),
   controller: ImportPagesComponentController,

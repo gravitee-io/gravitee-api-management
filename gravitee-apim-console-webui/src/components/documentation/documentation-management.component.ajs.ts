@@ -412,13 +412,19 @@ class DocumentationManagementComponentController implements IController {
   openUrl(page: any) {
     if ('FOLDER' === page.type || 'SYSTEM_FOLDER' === page.type) {
       if (this.apiId) {
-        return this.$state.go('management.apis.documentation', { apiId: this.apiId, type: page.type, parent: page.id });
+        this.ngRouter.navigate(['.'], {
+          queryParams: { type: page.type, parent: page.id },
+          relativeTo: this.activatedRoute,
+        });
       } else {
         return this.$state.go('management.settings.documentation.list', { parent: page.id });
       }
     } else {
       if (this.apiId) {
-        return this.$state.go('management.apis.documentationEdit', { apiId: this.apiId, type: page.type, pageId: page.id });
+        this.ngRouter.navigate(['./', page.id], {
+          queryParams: { type: page.type },
+          relativeTo: this.activatedRoute,
+        });
       } else {
         return this.$state.go('management.settings.documentation.edit', { pageId: page.id, type: page.type, tab: 'content' });
       }
@@ -427,7 +433,9 @@ class DocumentationManagementComponentController implements IController {
 
   importPages() {
     if (this.apiId) {
-      this.$state.go('management.apis.documentationImport', { apiId: this.apiId });
+      this.ngRouter.navigate(['import'], {
+        relativeTo: this.activatedRoute,
+      });
     } else {
       this.$state.go('management.settings.documentation.import');
     }

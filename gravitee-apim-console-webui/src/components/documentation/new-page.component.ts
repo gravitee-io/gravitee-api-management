@@ -14,9 +14,13 @@
  * limitations under the License.
  */
 
-import { Component, ElementRef, Injector, Input, SimpleChange } from '@angular/core';
+import { Component, ElementRef, Inject, Injector, SimpleChange } from '@angular/core';
 import { UpgradeComponent } from '@angular/upgrade/static';
 import { ActivatedRoute } from '@angular/router';
+
+import { DocumentationService } from '../../services/documentation.service';
+import FetcherService from '../../services/fetcher.service';
+import CategoryService from '../../services/category.service';
 
 @Component({
   template: '',
@@ -26,29 +30,76 @@ import { ActivatedRoute } from '@angular/router';
   },
 })
 export class DocumentationNewPageComponent extends UpgradeComponent {
-  @Input() resolvedFetchers;
-  @Input() folders;
-  @Input() systemFolders;
-  @Input() pageResources;
-  @Input() categoryResources;
-  @Input() pagesToLink;
+  constructor(
+    elementRef: ElementRef,
+    injector: Injector,
+    public readonly activatedRoute: ActivatedRoute,
 
-  constructor(elementRef: ElementRef, injector: Injector, public readonly activatedRoute: ActivatedRoute) {
+    @Inject('ajsDocumentationService') private readonly ajsDocumentationService: DocumentationService,
+    @Inject('ajsFetcherService') private readonly ajsFetcherService: FetcherService,
+    @Inject('ajsCategoryService') private readonly ajsCategoryService: CategoryService,
+  ) {
     super('documentationNewPageAjs', elementRef, injector);
   }
 
   ngOnInit() {
-    // Hack to Force the binding between Angular and AngularJS
-    this.ngOnChanges({
-      resolvedFetchers: new SimpleChange(null, this.resolvedFetchers, true),
-      folders: new SimpleChange(null, this.folders, true),
-      systemFolders: new SimpleChange(null, this.systemFolders, true),
-      pageResources: new SimpleChange(null, this.pageResources, true),
-      categoryResources: new SimpleChange(null, this.categoryResources, true),
-      pagesToLink: new SimpleChange(null, this.pagesToLink, true),
-      activatedRoute: new SimpleChange(null, this.activatedRoute, true),
-    });
+    const apiId = this.activatedRoute.snapshot.params.apiId;
+    const type = this.activatedRoute.snapshot.queryParams.type;
 
-    super.ngOnInit();
+    Promise.all([
+      this.ajsFetcherService.list().then((response) => {
+        return response.data;
+      }),
+      this.ajsDocumentationService
+        .search(
+          {
+            type: 'FOLDER',
+          },
+          apiId,
+        )
+        .then((response) => response.data),
+      this.ajsDocumentationService
+        .search(
+          {
+            type: 'SYSTEM_FOLDER',
+          },
+          apiId,
+        )
+        .then((response) => response.data),
+      type === 'LINK' ? this.ajsDocumentationService.search({}, apiId).then((response) => response.data) : Promise.resolve(null),
+      type === 'LINK' ? this.ajsCategoryService.list().then((response) => response.data) : Promise.resolve(null),
+      type === 'MARKDOWN' || type === 'MARKDOWN_TEMPLATE'
+        ? this.ajsDocumentationService
+            .search(
+              {
+                homepage: false,
+                published: true,
+              },
+              apiId,
+            )
+            .then((response) =>
+              response.data.filter(
+                (page) =>
+                  page.type.toUpperCase() === 'MARKDOWN' ||
+                  page.type.toUpperCase() === 'SWAGGER' ||
+                  page.type.toUpperCase() === 'ASCIIDOC' ||
+                  page.type.toUpperCase() === 'ASYNCAPI',
+              ),
+            )
+        : Promise.resolve(null),
+    ]).then(([resolvedFetchers, folders, systemFolders, pageResources, categoryResources, pagesToLink]) => {
+      // Hack to Force the binding between Angular and AngularJS
+      this.ngOnChanges({
+        activatedRoute: new SimpleChange(null, this.activatedRoute, true),
+        resolvedFetchers: new SimpleChange(null, resolvedFetchers, true),
+        folders: new SimpleChange(null, folders, true),
+        systemFolders: new SimpleChange(null, systemFolders, true),
+        pageResources: new SimpleChange(null, pageResources, true),
+        categoryResources: new SimpleChange(null, categoryResources, true),
+        pagesToLink: new SimpleChange(null, pagesToLink, true),
+      });
+
+      super.ngOnInit();
+    });
   }
 }

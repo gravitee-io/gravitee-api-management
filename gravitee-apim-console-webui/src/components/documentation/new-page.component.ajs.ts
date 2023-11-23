@@ -180,7 +180,7 @@ class NewPageComponentController implements IController {
 
   gotoEdit(page: any) {
     if (this.apiId) {
-      this.$state.go('management.apis.documentationEdit', { apiId: this.apiId, pageId: page.id, type: page.type });
+      this.ngRouter.navigate(['../', page.id], { queryParams: { type: page.type }, relativeTo: this.activatedRoute });
     } else {
       this.$state.go('management.settings.documentation.edit', { pageId: page.id, type: page.type });
     }
