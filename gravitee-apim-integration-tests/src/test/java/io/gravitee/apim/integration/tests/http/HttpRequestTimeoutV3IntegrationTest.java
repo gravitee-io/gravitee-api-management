@@ -34,8 +34,8 @@ class HttpRequestTimeoutV3IntegrationTest extends HttpRequestTimeoutV4EmulationI
     @Nested
     @GatewayTest(v2ExecutionMode = ExecutionMode.V3)
     @DeployOrganization(
-            organization = "/organizations/organization-add-header.json",
-            apis = { "/apis/http/api.json", "/apis/http/api-latency.json" }
+        organization = "/organizations/organization-add-header.json",
+        apis = { "/apis/http/api.json", "/apis/http/api-latency.json" }
     )
     class OrganizationWithAddHeader extends HttpRequestTimeoutV4EmulationIntegrationTest.OrganizationWithAddHeader {
 
@@ -51,9 +51,6 @@ class HttpRequestTimeoutV3IntegrationTest extends HttpRequestTimeoutV4EmulationI
 
     @Nested
     @GatewayTest(v2ExecutionMode = ExecutionMode.V3)
-    @DeployOrganization(
-            organization = "/organizations/organization-add-header-and-latency.json",
-            apis = { "/apis/http/api.json" }
-    )
+    @DeployOrganization(organization = "/organizations/organization-add-header-and-latency.json", apis = { "/apis/http/api.json" })
     class OrganizationWithAddHeaderAndLatency extends HttpRequestTimeoutV4EmulationIntegrationTest.OrganizationWithAddHeaderAndLatency {}
 }
