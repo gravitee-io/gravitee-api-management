@@ -15,15 +15,14 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.security;
 
+import static io.gravitee.common.http.HttpStatusCode.SERVICE_UNAVAILABLE_503;
 import static io.gravitee.common.http.HttpStatusCode.UNAUTHORIZED_401;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.*;
-import static io.reactivex.rxjava3.core.Completable.defer;
 import static io.reactivex.rxjava3.core.Completable.defer;
 
 import io.gravitee.definition.model.Api;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
-import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.hook.Hookable;
 import io.gravitee.gateway.reactive.api.hook.SecurityPlanHook;
@@ -54,7 +53,11 @@ import org.slf4j.LoggerFactory;
 public class SecurityChain implements Hookable<SecurityPlanHook> {
 
     protected static final String PLAN_UNRESOLVABLE = "GATEWAY_PLAN_UNRESOLVABLE";
+    protected static final String PLAN_RESOLUTION_FAILURE = "GATEWAY_PLAN_RESOLUTION_FAILURE";
     protected static final String UNAUTHORIZED_MESSAGE = "Unauthorized";
+    protected static final String TEMPORARILY_UNAVAILABLE_MESSAGE = "Temporarily Unavailable";
+    protected static final String ATTR_INTERNAL_PLAN_RESOLUTION_FAILURE = "securityChain.planResolutionFailure";
+
     protected static final Single<Boolean> TRUE = Single.just(true);
     protected static final Single<Boolean> FALSE = Single.just(false);
     private static final Logger log = LoggerFactory.getLogger(SecurityChain.class);
@@ -101,8 +104,15 @@ public class SecurityChain implements Hookable<SecurityPlanHook> {
                     .concatMapSingle(policy -> continueChain(ctx, policy))
                     .any(Boolean::booleanValue)
                     .flatMapCompletable(securityHandled -> {
-                        ctx.removeInternalAttribute(ATTR_INTERNAL_SECURITY_TOKEN);
                         if (Boolean.FALSE.equals(securityHandled)) {
+                            Throwable throwable = ctx.getInternalAttribute(ATTR_INTERNAL_PLAN_RESOLUTION_FAILURE);
+                            if (throwable != null) {
+                                return ctx.interruptWith(
+                                    new ExecutionFailure(SERVICE_UNAVAILABLE_503)
+                                        .key(PLAN_RESOLUTION_FAILURE)
+                                        .message(TEMPORARILY_UNAVAILABLE_MESSAGE)
+                                );
+                            }
                             return ctx.interruptWith(
                                 new ExecutionFailure(UNAUTHORIZED_401).key(PLAN_UNRESOLVABLE).message(UNAUTHORIZED_MESSAGE)
                             );
@@ -113,7 +123,11 @@ public class SecurityChain implements Hookable<SecurityPlanHook> {
                         log.debug("Executing security chain");
                         ctx.putInternalAttribute(ATTR_INTERNAL_FLOW_STAGE, "security");
                     })
-                    .doOnComplete(() -> ctx.removeInternalAttribute(ATTR_INTERNAL_FLOW_STAGE));
+                    .doFinally(() -> {
+                        ctx.removeInternalAttribute(ATTR_INTERNAL_FLOW_STAGE);
+                        ctx.removeInternalAttribute(ATTR_INTERNAL_PLAN_RESOLUTION_FAILURE);
+                        ctx.removeInternalAttribute(ATTR_INTERNAL_SECURITY_TOKEN);
+                    });
             }
 
             log.debug("Skipping security chain because it has been explicitly required");
@@ -124,6 +138,11 @@ public class SecurityChain implements Hookable<SecurityPlanHook> {
     private Single<Boolean> continueChain(ExecutionContext ctx, SecurityPlan securityPlan) {
         return securityPlan
             .canExecute(ctx)
+            .onErrorResumeNext(throwable -> {
+                log.error("An error occurred while checking if security plan {} can be executed", securityPlan.id(), throwable);
+                ctx.setInternalAttribute(ATTR_INTERNAL_PLAN_RESOLUTION_FAILURE, throwable);
+                return FALSE;
+            })
             .flatMap(canExecute -> {
                 if (Boolean.TRUE.equals(canExecute)) {
                     return HookHelper
