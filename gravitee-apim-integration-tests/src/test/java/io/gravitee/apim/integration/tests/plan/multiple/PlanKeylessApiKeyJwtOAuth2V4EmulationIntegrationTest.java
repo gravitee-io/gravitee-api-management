@@ -80,8 +80,9 @@ public class PlanKeylessApiKeyJwtOAuth2V4EmulationIntegrationTest {
             PlanKeylessApiKeyJwtOAuth2V4EmulationIntegrationTest.configurePolicies(policies);
         }
 
-        @Disabled
-        void should_access_api_and_ignore_security(
+        @Disabled("Disabled as all security type are defined on the api")
+        @Override
+        protected void should_access_api_and_ignore_security(
             final String apiId,
             boolean requireWiremock,
             final String headerName,
