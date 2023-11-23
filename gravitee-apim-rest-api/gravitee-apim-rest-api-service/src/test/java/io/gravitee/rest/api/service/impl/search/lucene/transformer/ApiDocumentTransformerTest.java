@@ -115,7 +115,6 @@ public class ApiDocumentTransformerTest {
         metadatas.put("metadata3", "value3");
         toTransform.setMetadata(metadatas);
         DefinitionContext context = new DefinitionContext();
-        context.setOrigin(DefinitionContext.ORIGIN_KUBERNETES);
         toTransform.setDefinitionContext(context);
         return toTransform;
     }

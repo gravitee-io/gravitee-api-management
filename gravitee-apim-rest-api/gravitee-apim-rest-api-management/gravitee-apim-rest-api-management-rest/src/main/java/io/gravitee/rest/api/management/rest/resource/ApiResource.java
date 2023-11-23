@@ -20,7 +20,6 @@ import static java.util.Collections.singletonList;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
@@ -60,7 +59,15 @@ import io.gravitee.rest.api.rest.annotation.GraviteeLicenseFeature;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.security.utils.ImageUtils;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.ApiDuplicatorService;
+import io.gravitee.rest.api.service.ApiExportService;
+import io.gravitee.rest.api.service.DebugApiService;
+import io.gravitee.rest.api.service.JsonPatchService;
+import io.gravitee.rest.api.service.MessageService;
+import io.gravitee.rest.api.service.NotifierService;
+import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.QualityMetricsService;
+import io.gravitee.rest.api.service.SwaggerService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
@@ -991,12 +998,12 @@ public class ApiResource extends AbstractResource {
         }
         switch (api.getState()) {
             case STARTED:
-                if (!DefinitionContext.isKubernetes(api.getDefinitionContext()) && LifecycleAction.START.equals(action)) {
+                if (!api.getDefinitionContext().isOriginKubernetes() && LifecycleAction.START.equals(action)) {
                     throw new BadRequestException("API is already started");
                 }
                 break;
             case STOPPED:
-                if (!DefinitionContext.isKubernetes(api.getDefinitionContext()) && LifecycleAction.STOP.equals(action)) {
+                if (!api.getDefinitionContext().isOriginKubernetes() && LifecycleAction.STOP.equals(action)) {
                     throw new BadRequestException("API is already stopped");
                 }
 

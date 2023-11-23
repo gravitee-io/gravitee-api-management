@@ -15,7 +15,7 @@
  */
 package io.gravitee.definition.model;
 
-import jakarta.validation.constraints.Pattern;
+import java.io.Serial;
 import java.io.Serializable;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -26,9 +26,11 @@ import lombok.Getter;
  * @author GraviteeSource Team
  */
 @EqualsAndHashCode
+@Getter
 @Builder
 public class DefinitionContext implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = -8942499479175567992L;
 
     public static final String ORIGIN_KUBERNETES = "kubernetes";
@@ -49,7 +51,6 @@ public class DefinitionContext implements Serializable {
 
     private String mode;
 
-    @Getter
     private String syncFrom;
 
     /**
@@ -68,58 +69,36 @@ public class DefinitionContext implements Serializable {
      * @param mode the management mode ('fully_managed', 'api_definition_only')
      */
     public DefinitionContext(String origin, String mode, String syncFrom) {
-        setOrigin(origin);
-        setMode(mode);
-        setSyncFrom(syncFrom);
+        this.origin = origin != null ? origin : ORIGIN_MANAGEMENT;
+        this.mode = mode != null ? mode : MODE_FULLY_MANAGED;
+        this.syncFrom = origin == null ? ORIGIN_MANAGEMENT : origin;
     }
 
     public DefinitionContext(String origin, String mode) {
         this(origin, mode, null);
     }
 
-    public static boolean isKubernetes(DefinitionContext context) {
-        return context != null && isKubernetes(context.origin);
+    public boolean isOriginManagement() {
+        return isManagement(origin);
     }
 
-    public static boolean isKubernetes(String origin) {
-        return ORIGIN_KUBERNETES.equalsIgnoreCase(origin);
+    public boolean isOriginKubernetes() {
+        return isKubernetes(origin);
     }
 
-    public static boolean isManagement(DefinitionContext context) {
-        return context != null && !isKubernetes(context.origin);
+    public boolean isSyncFromKubernetes() {
+        return isKubernetes(syncFrom);
     }
 
-    public static boolean isManagement(String origin) {
-        return ORIGIN_MANAGEMENT.equalsIgnoreCase(origin);
+    public boolean isSyncFromManagement() {
+        return isManagement(syncFrom);
     }
 
-    public String getOrigin() {
-        return origin;
+    public static boolean isManagement(String value) {
+        return ORIGIN_MANAGEMENT.equalsIgnoreCase(value);
     }
 
-    /**
-     * Set the origin if not <code>null</code>, else set 'management'.
-     *
-     * @param origin the origin to set.
-     */
-    public void setOrigin(String origin) {
-        this.origin = origin != null ? origin : ORIGIN_MANAGEMENT;
-    }
-
-    public String getMode() {
-        return mode;
-    }
-
-    /**
-     * Set the mode if not <code>null</code>, else set 'fully_managed'.
-     *
-     * @param mode the mode to set.
-     */
-    public void setMode(String mode) {
-        this.mode = mode != null ? mode : MODE_FULLY_MANAGED;
-    }
-
-    public void setSyncFrom(String origin) {
-        this.syncFrom = origin == null ? ORIGIN_MANAGEMENT : origin;
+    public static boolean isKubernetes(String value) {
+        return ORIGIN_KUBERNETES.equalsIgnoreCase(value);
     }
 }
