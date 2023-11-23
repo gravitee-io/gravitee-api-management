@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subject } from 'rxjs';
+import { ActivatedRoute } from '@angular/router';
 
-import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { ApiNotificationSettingsService } from '../../../../services-ngx/api-notification-settings.service';
 import { NotificationSettings } from '../../../../entities/notification/notificationSettings';
 
@@ -30,18 +30,25 @@ export class ApiNotificationSettingsDetailsComponent implements OnInit, OnDestro
 
   constructor(
     private readonly notificationSettingsService: ApiNotificationSettingsService,
-    @Inject(UIRouterStateParams) private readonly ajsStateParams,
+    public readonly activatedRoute: ActivatedRoute,
   ) {}
 
   public ngOnInit() {
     this.notificationsDetailsServices = {
-      reference: { referenceType: 'API', referenceId: this.ajsStateParams.applicationId },
+      reference: { referenceType: 'API', referenceId: this.activatedRoute.snapshot.params.applicationId },
       update: (notificationConfig: NotificationSettings) =>
-        this.notificationSettingsService.update(this.ajsStateParams.apiId, this.ajsStateParams.notificationId, notificationConfig),
+        this.notificationSettingsService.update(
+          this.activatedRoute.snapshot.params.apiId,
+          this.activatedRoute.snapshot.params.notificationId,
+          notificationConfig,
+        ),
       getHooks: () => this.notificationSettingsService.getHooks(),
       getSingleNotificationSetting: () =>
-        this.notificationSettingsService.getSingleNotificationSetting(this.ajsStateParams.apiId, this.ajsStateParams.notificationId),
-      getNotifiers: () => this.notificationSettingsService.getNotifiers(this.ajsStateParams.apiId),
+        this.notificationSettingsService.getSingleNotificationSetting(
+          this.activatedRoute.snapshot.params.apiId,
+          this.activatedRoute.snapshot.params.notificationId,
+        ),
+      getNotifiers: () => this.notificationSettingsService.getNotifiers(this.activatedRoute.snapshot.params.apiId),
     };
   }
 

@@ -20,6 +20,7 @@ import { HarnessLoader, parallel } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatRowHarness, MatTableHarness } from '@angular/material/table/testing';
 import { MatIconHarness, MatIconTestingModule } from '@angular/material/icon/testing';
+import { ActivatedRoute } from '@angular/router';
 
 import { ApiEventsComponent } from './api-events.component';
 import { ApiEventsModule } from './api-events.module';
@@ -27,7 +28,6 @@ import { ApiEventsModule } from './api-events.module';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { fakeEvent } from '../../../../entities/event/event.fixture';
 import { Event } from '../../../../entities/event/event';
-import { ActivatedRoute } from '@angular/router';
 
 describe('ApiNgEventsComponent', () => {
   const API_ID = 'apiId';

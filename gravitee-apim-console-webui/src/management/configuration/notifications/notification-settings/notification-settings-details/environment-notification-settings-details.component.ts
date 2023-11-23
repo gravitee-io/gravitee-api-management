@@ -20,7 +20,7 @@ import { Subject } from 'rxjs';
 import { UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { EnvironmentNotificationSettingsService } from '../../../../../services-ngx/environment-notification-settings.service';
 import { NotificationSettings } from '../../../../../entities/notification/notificationSettings';
-import { NotificationSettingsDetailsServices } from '../../../../../components/notifications/notifications-list/notification-details/notification-settings-details.component';
+import { NotificationSettingsDetailsServices } from '../../../../../components/notifications/notification-settings/notification-settings-details/notification-settings-details.component';
 
 @Component({
   selector: 'environment-notification-settings-details',

@@ -1956,6 +1956,32 @@ const apisRoutes: Routes = [
           useAngularMaterial: true,
         },
       },
+      {
+        path: 'notification-settings',
+        component: ApiNotificationSettingsListComponent,
+        data: {
+          apiPermissions: {
+            only: ['api-notification-r'],
+          },
+          docs: {
+            page: 'management-api-notifications',
+          },
+          useAngularMaterial: true,
+        },
+      },
+      {
+        path: 'notification-settings/:notificationId',
+        component: ApiNotificationSettingsDetailsComponent,
+        data: {
+          apiPermissions: {
+            only: ['api-notification-r', 'api-notification-c', 'api-notification-u'],
+          },
+          docs: {
+            page: 'management-api-notifications',
+          },
+          useAngularMaterial: true,
+        },
+      },
 
       /**
        * V1 Api state only

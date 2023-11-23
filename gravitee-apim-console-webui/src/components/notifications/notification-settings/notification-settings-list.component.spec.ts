@@ -18,7 +18,6 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
-import { UIRouterModule } from '@uirouter/angular';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatTableHarness } from '@angular/material/table/testing';
@@ -35,7 +34,7 @@ import { NotificationSettingsListServices } from './notification-settings-list.c
 
 import { fakeNotifier } from '../../../entities/notification/notifier.fixture';
 import { fakeNotificationSettings } from '../../../entities/notification/notificationSettings.fixture';
-import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
+import { CurrentUserService } from '../../../ajs-upgraded-providers';
 import { GioUiRouterTestingModule } from '../../../shared/testing/gio-uirouter-testing-module';
 import { GioHttpTestingModule } from '../../../shared/testing';
 import { User } from '../../../entities/user';
@@ -54,7 +53,6 @@ class TestComponent {
 
 describe('NotificationsSettingsListComponent', () => {
   let fixture: ComponentFixture<TestComponent>;
-  const API_ID = 'apiId';
   const currentUser = new User();
   currentUser.userPermissions = ['api-notification-u', 'api-notification-d', 'api-notification-c'];
   let httpTestingController: HttpTestingController;
@@ -72,16 +70,8 @@ describe('NotificationsSettingsListComponent', () => {
           NotificationSettingsListModule,
           MatIconTestingModule,
           MatCardModule,
-          UIRouterModule.forRoot({
-            useHash: true,
-          }),
         ],
-        providers: [
-          { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
-          { provide: UIRouterState, useValue: { $current: { parent: { name: 'test' } } } },
-          { provide: CurrentUserService, useValue: { currentUser } },
-          ApplicationNotificationSettingsService,
-        ],
+        providers: [{ provide: CurrentUserService, useValue: { currentUser } }, ApplicationNotificationSettingsService],
       })
         .overrideProvider(InteractivityChecker, {
           useValue: {

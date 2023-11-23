@@ -36,10 +36,11 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { RouterModule } from '@angular/router';
 
 import { NotificationSettingsAddDialogModule } from './notifications-settings-add-dialog/notification-settings-add-dialog.module';
 import { NotificationSettingsListComponent } from './notification-settings-list.component';
-import { NotificationSettingsDetailsComponent } from './notification-details/notification-settings-details.component';
+import { NotificationSettingsDetailsComponent } from './notification-settings-details/notification-settings-details.component';
 
 import { GioGoBackButtonModule } from '../../../shared/components/gio-go-back-button/gio-go-back-button.module';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
@@ -50,6 +51,7 @@ import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrap
   exports: [NotificationSettingsListComponent, NotificationSettingsDetailsComponent],
   imports: [
     CommonModule,
+    RouterModule,
 
     GioIconsModule,
     GioTableWrapperModule,

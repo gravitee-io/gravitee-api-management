@@ -18,7 +18,7 @@ import { NgModule } from '@angular/core';
 import { ApiNotificationSettingsListComponent } from './notification-settings-list/api-notification-settings-list.component';
 import { ApiNotificationSettingsDetailsComponent } from './notofication-settings-details/api-notification-settings-details.component';
 
-import { NotificationSettingsListModule } from '../../../components/notifications/notifications-list/notification-settings-list.module';
+import { NotificationSettingsListModule } from '../../../components/notifications/notification-settings/notification-settings-list.module';
 
 @NgModule({
   declarations: [ApiNotificationSettingsListComponent, ApiNotificationSettingsDetailsComponent],
