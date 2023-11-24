@@ -37,7 +37,9 @@
         </button>
       </ng-container>
 
-      <button class="header__exit" mat-stroked-button (click)="goBackToPageList()">Exit without saving</button>
+      <button class="header__exit" mat-stroked-button (click)="goBackToPageList()">
+        {{ exitLabel }}
+      </button>
     </div>
   </div>
   <div class="stepper">

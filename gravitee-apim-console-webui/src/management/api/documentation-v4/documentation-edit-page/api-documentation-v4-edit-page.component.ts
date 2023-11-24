@@ -41,6 +41,7 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
   stepOneForm: FormGroup;
   mode: 'create' | 'edit';
   pageTitle = 'Add new page';
+  exitLabel = 'Exit without saving';
   step2Title: string;
   breadcrumbs: Breadcrumb[];
 
@@ -91,6 +92,7 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
 
       if (!this.permissionService.hasAnyMatching(['api-documentation-u'])) {
         this.form.disable();
+        this.exitLabel = 'Exit';
       }
     } else {
       this.mode = 'create';
