@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ChangeDetectorRef, Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { get, isEmpty, isNil } from 'lodash';
 import { combineLatest, EMPTY, Subject } from 'rxjs';
 import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 
-import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
@@ -47,7 +47,7 @@ export class ApiProxyEntrypointsComponent implements OnInit, OnDestroy {
   public api: ApiV1 | ApiV2;
 
   constructor(
-    @Inject(UIRouterStateParams) private readonly ajsStateParams,
+    private readonly activatedRoute: ActivatedRoute,
     private readonly apiService: ApiV2Service,
     private readonly restrictedDomainService: RestrictedDomainService,
     private readonly matDialog: MatDialog,
@@ -59,7 +59,7 @@ export class ApiProxyEntrypointsComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     combineLatest([
-      this.apiService.get(this.ajsStateParams.apiId).pipe(onlyApiV1V2Filter(this.snackBarService)),
+      this.apiService.get(this.activatedRoute.snapshot.params.apiId).pipe(onlyApiV1V2Filter(this.snackBarService)),
       this.restrictedDomainService.get(),
     ])
       .pipe(
@@ -81,7 +81,7 @@ export class ApiProxyEntrypointsComponent implements OnInit, OnDestroy {
 
   onSubmit() {
     return this.apiService
-      .get(this.ajsStateParams.apiId)
+      .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
         onlyApiV2Filter(this.snackBarService),
         switchMap((api) => {

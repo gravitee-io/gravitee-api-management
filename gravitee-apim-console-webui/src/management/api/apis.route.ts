@@ -2041,6 +2041,19 @@ const apisRoutes: Routes = [
       /**
        * V1 & V2 Api state only
        */
+      {
+        path: 'v2/entrypoints',
+        component: ApiProxyEntrypointsComponent,
+        data: {
+          apiPermissions: {
+            only: ['api-definition-r', 'api-health-r'],
+          },
+          docs: {
+            page: 'management-api-proxy',
+          },
+          useAngularMaterial: true,
+        },
+      },
 
       /**
        * V2 & V4 Api state only
