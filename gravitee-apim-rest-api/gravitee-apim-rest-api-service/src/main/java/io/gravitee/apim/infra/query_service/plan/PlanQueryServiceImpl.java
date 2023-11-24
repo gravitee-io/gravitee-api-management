@@ -16,13 +16,12 @@
 package io.gravitee.apim.infra.query_service.plan;
 
 import io.gravitee.apim.core.exception.TechnicalDomainException;
+import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import io.gravitee.apim.infra.adapter.PlanAdapter;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
-import io.gravitee.repository.management.model.Plan;
-import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import java.util.List;
 import java.util.Objects;
 import org.slf4j.Logger;
@@ -41,20 +40,19 @@ public class PlanQueryServiceImpl implements PlanQueryService {
     }
 
     @Override
-    public List<GenericPlanEntity> findAllByApiIdAndGeneralConditionsAndIsActive(
-        String apiId,
-        DefinitionVersion definitionVersion,
-        String pageId
-    ) {
+    public List<Plan> findAllByApiIdAndGeneralConditionsAndIsActive(String apiId, DefinitionVersion definitionVersion, String pageId) {
         try {
             return planRepository
                 .findByApi(apiId)
                 .stream()
                 .filter(plan ->
                     Objects.equals(plan.getGeneralConditions(), pageId) &&
-                    !(Plan.Status.CLOSED == plan.getStatus() || Plan.Status.STAGING == plan.getStatus())
+                    !(
+                        io.gravitee.repository.management.model.Plan.Status.CLOSED == plan.getStatus() ||
+                        io.gravitee.repository.management.model.Plan.Status.STAGING == plan.getStatus()
+                    )
                 )
-                .map(plan -> PlanAdapter.INSTANCE.toGenericEntity(plan, definitionVersion))
+                .map(PlanAdapter.INSTANCE::fromRepository)
                 .toList();
         } catch (TechnicalException e) {
             logger.error("An error occurred while finding plans by API ID {}", apiId, e);

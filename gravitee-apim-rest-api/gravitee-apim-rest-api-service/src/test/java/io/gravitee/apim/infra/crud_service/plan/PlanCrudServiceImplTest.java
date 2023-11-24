@@ -29,13 +29,13 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Plan;
-import io.gravitee.rest.api.model.v4.plan.BasePlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanMode;
 import io.gravitee.rest.api.model.v4.plan.PlanType;
 import io.gravitee.rest.api.model.v4.plan.PlanValidationType;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -58,7 +58,7 @@ public class PlanCrudServiceImplTest {
         planRepository = mock(PlanRepository.class);
         apiRepository = mock(ApiRepository.class);
 
-        service = new PlanCrudServiceImpl(planRepository, apiRepository);
+        service = new PlanCrudServiceImpl(planRepository);
     }
 
     @Nested
@@ -77,18 +77,15 @@ public class PlanCrudServiceImplTest {
                 );
 
             // When
-            var result = service.findById(planId);
+            var plan = service.findById(planId);
 
             // Then
             SoftAssertions.assertSoftly(soft -> {
-                soft.assertThat(result).isInstanceOf(BasePlanEntity.class);
-                BasePlanEntity plan = (BasePlanEntity) result;
-
                 soft.assertThat(plan.getApiId()).isEqualTo(apiId);
                 soft.assertThat(plan.getCharacteristics()).containsExactly("characteristic-1");
-                soft.assertThat(plan.getClosedAt()).isEqualTo(Date.from(Instant.parse("2020-02-04T20:22:02.00Z")));
+                soft.assertThat(plan.getClosedAt()).isEqualTo(Instant.parse("2020-02-04T20:22:02.00Z").atZone(ZoneOffset.UTC));
                 soft.assertThat(plan.getCommentMessage()).isEqualTo("comment-message");
-                soft.assertThat(plan.getCreatedAt()).isEqualTo(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")));
+                soft.assertThat(plan.getCreatedAt()).isEqualTo(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneOffset.UTC));
                 soft.assertThat(plan.getCrossId()).isEqualTo("cross-id");
                 soft.assertThat(plan.getDescription()).isEqualTo("plan-description");
                 soft.assertThat(plan.getExcludedGroups()).containsExactly("excluded-group-1");
@@ -104,10 +101,10 @@ public class PlanCrudServiceImplTest {
                 soft.assertThat(plan.getPlanStatus()).isEqualTo(PlanStatus.PUBLISHED);
                 soft.assertThat(plan.getPlanType()).isEqualTo(PlanType.API);
                 soft.assertThat(plan.getPlanValidation()).isEqualTo(PlanValidationType.AUTO);
-                soft.assertThat(plan.getPublishedAt()).isEqualTo(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")));
+                soft.assertThat(plan.getPublishedAt()).isEqualTo(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneOffset.UTC));
                 soft.assertThat(plan.getSelectionRule()).isEqualTo("selection-rule");
                 soft.assertThat(plan.getTags()).isEqualTo(Set.of("tag-1"));
-                soft.assertThat(plan.getUpdatedAt()).isEqualTo(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")));
+                soft.assertThat(plan.getUpdatedAt()).isEqualTo(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC));
                 soft.assertThat(plan.isCommentRequired()).isTrue();
             });
         }
@@ -125,18 +122,15 @@ public class PlanCrudServiceImplTest {
                 );
 
             // When
-            var result = service.findById(planId);
+            var plan = service.findById(planId);
 
             // Then
             SoftAssertions.assertSoftly(soft -> {
-                soft.assertThat(result).isInstanceOf(io.gravitee.rest.api.model.BasePlanEntity.class);
-                io.gravitee.rest.api.model.BasePlanEntity plan = (io.gravitee.rest.api.model.BasePlanEntity) result;
-
                 soft.assertThat(plan.getApiId()).isEqualTo(apiId);
                 soft.assertThat(plan.getCharacteristics()).containsExactly("characteristic-1");
-                soft.assertThat(plan.getClosedAt()).isEqualTo(Date.from(Instant.parse("2020-02-04T20:22:02.00Z")));
+                soft.assertThat(plan.getClosedAt()).isEqualTo(Instant.parse("2020-02-04T20:22:02.00Z").atZone(ZoneOffset.UTC));
                 soft.assertThat(plan.getCommentMessage()).isEqualTo("comment-message");
-                soft.assertThat(plan.getCreatedAt()).isEqualTo(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")));
+                soft.assertThat(plan.getCreatedAt()).isEqualTo(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneOffset.UTC));
                 soft.assertThat(plan.getCrossId()).isEqualTo("cross-id");
                 soft.assertThat(plan.getDescription()).isEqualTo("plan-description");
                 soft.assertThat(plan.getExcludedGroups()).containsExactly("excluded-group-1");
@@ -149,14 +143,14 @@ public class PlanCrudServiceImplTest {
                 soft.assertThat(plan.getPlanMode()).isEqualTo(PlanMode.STANDARD);
                 soft
                     .assertThat(plan.getPlanSecurity())
-                    .isEqualTo(PlanSecurity.builder().type("API_KEY").configuration("security-definition").build());
+                    .isEqualTo(PlanSecurity.builder().type("api-key").configuration("security-definition").build());
                 soft.assertThat(plan.getPlanStatus()).isEqualTo(PlanStatus.PUBLISHED);
                 soft.assertThat(plan.getPlanType()).isEqualTo(PlanType.API);
                 soft.assertThat(plan.getPlanValidation()).isEqualTo(PlanValidationType.AUTO);
-                soft.assertThat(plan.getPublishedAt()).isEqualTo(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")));
+                soft.assertThat(plan.getPublishedAt()).isEqualTo(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneOffset.UTC));
                 soft.assertThat(plan.getSelectionRule()).isEqualTo("selection-rule");
                 soft.assertThat(plan.getTags()).isEqualTo(Set.of("tag-1"));
-                soft.assertThat(plan.getUpdatedAt()).isEqualTo(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")));
+                soft.assertThat(plan.getUpdatedAt()).isEqualTo(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC));
                 soft.assertThat(plan.isCommentRequired()).isTrue();
             });
         }
@@ -187,21 +181,6 @@ public class PlanCrudServiceImplTest {
             assertThat(throwable)
                 .isInstanceOf(TechnicalManagementException.class)
                 .hasMessage("An error occurs while trying to find a plan by id: " + planId);
-        }
-
-        @Test
-        void should_throw_when_technical_exception_occurs_while_fetching_api() throws TechnicalException {
-            // Given
-            when(planRepository.findById(any(String.class))).thenReturn(Optional.of(planV4().api("api-id").build()));
-            when(apiRepository.findById(any(String.class))).thenThrow(TechnicalException.class);
-
-            // When
-            Throwable throwable = catchThrowable(() -> service.findById("plan-id"));
-
-            // Then
-            assertThat(throwable)
-                .isInstanceOf(TechnicalManagementException.class)
-                .hasMessage("An error occurs while trying to find an API using its ID: api-id");
         }
     }
 

@@ -19,7 +19,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import fixtures.core.model.AuditInfoFixtures;
-import inmemory.*;
+import fixtures.core.model.PlanFixtures;
+import inmemory.ApiCrudServiceInMemory;
+import inmemory.AuditCrudServiceInMemory;
+import inmemory.PageCrudServiceInMemory;
+import inmemory.PageQueryServiceInMemory;
+import inmemory.PageRevisionCrudServiceInMemory;
+import inmemory.PlanQueryServiceInMemory;
+import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -28,10 +35,7 @@ import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentation
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
-import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
-import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
-import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
 import java.util.Date;
@@ -143,7 +147,7 @@ class ApiUnpublishDocumentationPageUseCaseTest {
                     .build()
             )
         );
-        useCase.execute(new ApiUnpublishDocumentationPageUseCase.Input(API_ID, PAGE_ID, AUDIT_INFO)).page();
+        useCase.execute(new ApiUnpublishDocumentationPageUseCase.Input(API_ID, PAGE_ID, AUDIT_INFO));
         assertThat(auditCrudService.storage().get(0)).isNotNull().hasFieldOrPropertyWithValue("event", "PAGE_UPDATED");
     }
 
@@ -184,7 +188,16 @@ class ApiUnpublishDocumentationPageUseCaseTest {
             )
         );
         planQueryService.initWith(
-            List.of(PlanEntity.builder().id("plan-id").apiId(API_ID).generalConditions(PAGE_ID).status(PlanStatus.PUBLISHED).build())
+            List.of(
+                PlanFixtures
+                    .aPlanV4()
+                    .toBuilder()
+                    .id("plan-id")
+                    .apiId(API_ID)
+                    .generalConditions(PAGE_ID)
+                    .status(PlanStatus.PUBLISHED)
+                    .build()
+            )
         );
         assertThatThrownBy(() -> useCase.execute(new ApiUnpublishDocumentationPageUseCase.Input(API_ID, PAGE_ID, AUDIT_INFO)))
             .isInstanceOf(ValidationDomainException.class);

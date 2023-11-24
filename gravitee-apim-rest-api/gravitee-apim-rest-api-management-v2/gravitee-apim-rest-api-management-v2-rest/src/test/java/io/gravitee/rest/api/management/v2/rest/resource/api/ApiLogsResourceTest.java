@@ -24,6 +24,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.log.model.MessageLogFixtures;
+import fixtures.core.model.PlanFixtures;
 import fixtures.repository.ConnectionLogDetailFixtures;
 import fixtures.repository.ConnectionLogFixtures;
 import inmemory.ApplicationCrudServiceInMemory;
@@ -32,6 +33,7 @@ import inmemory.InMemoryAlternative;
 import inmemory.MessageLogCrudServiceInMemory;
 import inmemory.PlanCrudServiceInMemory;
 import io.gravitee.apim.core.log.model.MessageOperation;
+import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLog;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLogRequestContent;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLogResponse;
@@ -51,7 +53,6 @@ import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.log.connection.ConnectionLogDetail;
-import io.gravitee.rest.api.model.v4.plan.BasePlanEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.WebTarget;
@@ -69,8 +70,8 @@ import org.junit.jupiter.api.Test;
 
 public class ApiLogsResourceTest extends ApiResourceTest {
 
-    private static final BasePlanEntity PLAN_1 = BasePlanEntity.builder().id("plan1").name("1st plan").apiId(API).build();
-    private static final BasePlanEntity PLAN_2 = BasePlanEntity.builder().id("plan2").name("2nd plan").apiId(API).build();
+    private static final Plan PLAN_1 = Plan.builder().id("plan1").name("1st plan").apiId(API).build();
+    private static final Plan PLAN_2 = Plan.builder().id("plan2").name("2nd plan").apiId(API).build();
     private static final BaseApplicationEntity APPLICATION = BaseApplicationEntity.builder().id("app1").name("an application name").build();
     public static final String REQUEST_ID = "request-id";
 

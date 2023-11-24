@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import fixtures.core.model.AuditInfoFixtures;
+import fixtures.core.model.PlanFixtures;
 import fixtures.core.model.SubscriptionFixtures;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
@@ -38,7 +39,6 @@ import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
-import io.gravitee.rest.api.model.v4.plan.BasePlanEntity;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.PlanAlreadyClosedException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
@@ -97,8 +97,8 @@ public class RejectSubscriptionDomainServiceTest {
             );
         planCrudService.initWith(
             List.of(
-                BasePlanEntity.builder().id(PLAN_CLOSED).status(PlanStatus.CLOSED).build(),
-                BasePlanEntity.builder().id(PLAN_PUBLISHED).status(PlanStatus.PUBLISHED).build()
+                PlanFixtures.aPlanV4().toBuilder().id(PLAN_CLOSED).status(PlanStatus.CLOSED).build(),
+                PlanFixtures.aPlanV4().toBuilder().id(PLAN_PUBLISHED).status(PlanStatus.PUBLISHED).build()
             )
         );
     }

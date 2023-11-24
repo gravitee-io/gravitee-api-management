@@ -18,6 +18,7 @@ package io.gravitee.apim.core.documentation.use_case;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import fixtures.core.model.PlanFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.PageCrudServiceInMemory;
 import inmemory.PageQueryServiceInMemory;
@@ -27,11 +28,7 @@ import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomain
 import io.gravitee.apim.core.documentation.exception.InvalidPageParentException;
 import io.gravitee.apim.core.documentation.model.Breadcrumb;
 import io.gravitee.apim.core.documentation.model.Page;
-import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
-import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
-import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
-import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
 import java.util.ArrayList;
@@ -139,7 +136,16 @@ class ApiGetDocumentationPagesUseCaseTest {
             );
 
             planQueryService.initWith(
-                List.of(PlanEntity.builder().id("plan-1").apiId(API_ID).status(PlanStatus.PUBLISHED).generalConditions("page#1").build())
+                List.of(
+                    PlanFixtures
+                        .aPlanV4()
+                        .toBuilder()
+                        .id("plan-1")
+                        .apiId(API_ID)
+                        .status(PlanStatus.PUBLISHED)
+                        .generalConditions("page#1")
+                        .build()
+                )
             );
 
             var res = useCase.execute(new ApiGetDocumentationPagesUseCase.Input(API_ID, null)).pages();
@@ -176,7 +182,7 @@ class ApiGetDocumentationPagesUseCaseTest {
             assertThat(pages.get(0).getId()).isEqualTo("page#1");
             assertThat(pages.get(1).getId()).isEqualTo("page#2");
 
-            assertThat(res.breadcrumbList()).isNotNull().hasSize(0);
+            assertThat(res.breadcrumbList()).isEmpty();
         }
     }
 
@@ -209,7 +215,7 @@ class ApiGetDocumentationPagesUseCaseTest {
             assertThat(pages.get(0).getId()).isEqualTo("result-1");
             assertThat(pages.get(1).getId()).isEqualTo("result-2");
 
-            assertThat(res.breadcrumbList()).isNotNull().hasSize(3);
+            assertThat(res.breadcrumbList()).hasSize(3);
             assertThat(res.breadcrumbList().get(0))
                 .isNotNull()
                 .isEqualTo(Breadcrumb.builder().position(1).id(parentIdPos1).name(parentIdPos1 + "-name").build());

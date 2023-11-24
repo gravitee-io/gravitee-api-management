@@ -16,19 +16,19 @@
 package inmemory;
 
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
-import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
+import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class PlanCrudServiceInMemory implements PlanCrudService, InMemoryAlternative<GenericPlanEntity> {
+public class PlanCrudServiceInMemory implements PlanCrudService, InMemoryAlternative<Plan> {
 
-    private final List<GenericPlanEntity> storage = new ArrayList<>();
+    private final List<Plan> storage = new ArrayList<>();
 
     @Override
-    public GenericPlanEntity findById(String planId) {
+    public Plan findById(String planId) {
         if (planId == null) {
             throw new TechnicalManagementException("planId should not be null");
         }
@@ -40,7 +40,7 @@ public class PlanCrudServiceInMemory implements PlanCrudService, InMemoryAlterna
     }
 
     @Override
-    public void initWith(List<GenericPlanEntity> items) {
+    public void initWith(List<Plan> items) {
         storage.addAll(items);
     }
 
@@ -50,7 +50,7 @@ public class PlanCrudServiceInMemory implements PlanCrudService, InMemoryAlterna
     }
 
     @Override
-    public List<GenericPlanEntity> storage() {
+    public List<Plan> storage() {
         return Collections.unmodifiableList(storage);
     }
 }
