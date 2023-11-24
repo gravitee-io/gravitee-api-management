@@ -94,7 +94,6 @@ export class ApiV1V2MenuService implements ApiMenuService {
     if (this.permissionService.hasAnyMatching(['api-plan-r'])) {
       plansMenuItem.tabs.push({
         displayName: 'Plans',
-        targetRoute: 'management.apis.plans',
         routerLink: 'plans',
       });
     }
@@ -207,8 +206,6 @@ export class ApiV1V2MenuService implements ApiMenuService {
         proxyGroup.items.push(
           {
             displayName: 'Properties',
-            targetRoute: 'management.apis.properties',
-            baseRoute: ['management.apis.properties', 'management.apis.dynamicProperties'],
             tabs: [
               {
                 displayName: 'Properties',
@@ -222,8 +219,7 @@ export class ApiV1V2MenuService implements ApiMenuService {
           },
           {
             displayName: 'Resources',
-            targetRoute: 'management.apis.resources',
-            baseRoute: 'management.apis.resources',
+            routerLink: 'resources',
           },
         );
       }

@@ -2272,6 +2272,19 @@ const apisRoutes: Routes = [
           },
         },
       },
+      {
+        path: 'resources',
+        component: ApiResourcesComponent,
+        data: {
+          useAngularMaterial: true,
+          apiPermissions: {
+            only: ['api-definition-r'],
+          },
+          docs: {
+            page: 'management-api-policy-studio-resources',
+          },
+        },
+      },
 
       /**
        * V4 Api state only

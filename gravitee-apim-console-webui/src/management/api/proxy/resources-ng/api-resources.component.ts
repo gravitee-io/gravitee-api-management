@@ -18,13 +18,12 @@ import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { combineLatest, EMPTY, Subject } from 'rxjs';
 import { switchMap, takeUntil, tap } from 'rxjs/operators';
 import '@gravitee/ui-components/wc/gv-resources';
-import { StateParams } from '@uirouter/angularjs';
 import { GioLicenseService } from '@gravitee/ui-particles-angular';
+import { ActivatedRoute } from '@angular/router';
 
 import { ApiResourcesService } from './api-resources.service';
 
 import { ResourceListItem } from '../../../../entities/resource/resourceListItem';
-import { AjsRootScope, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { ApiV2, ApiV4 } from '../../../../entities/management-api-v2';
 import { stringFeature, UTMTags } from '../../../../shared/components/gio-license/gio-license-data';
@@ -47,17 +46,16 @@ export class ApiResourcesComponent implements OnInit, OnDestroy {
   public resourceTypes: ResourceListItem[];
 
   constructor(
+    private readonly activatedRoute: ActivatedRoute,
     private readonly apiService: ApiV2Service,
     private readonly apiResourcesService: ApiResourcesService,
     private readonly gioLicenseService: GioLicenseService,
-    @Inject(UIRouterStateParams) private readonly ajsStateParams: StateParams,
-    @Inject(AjsRootScope) readonly ajsRootScope,
     @Inject('Constants') private readonly constants: Constants,
   ) {}
 
   ngOnInit(): void {
     combineLatest([
-      this.apiService.get(this.ajsStateParams.apiId),
+      this.apiService.get(this.activatedRoute.snapshot.params.apiId),
       this.apiResourcesService.listResources({ expandSchema: true, expandIcon: true }),
     ])
       .pipe(
@@ -100,11 +98,11 @@ export class ApiResourcesComponent implements OnInit, OnDestroy {
 
   onSubmit() {
     this.apiService
-      .get(this.ajsStateParams.apiId)
+      .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
         switchMap((api) => {
           const updateApi = { ...api, ...this.api };
-          return this.apiService.update(this.ajsStateParams.apiId, updateApi);
+          return this.apiService.update(this.activatedRoute.snapshot.params.apiId, updateApi);
         }),
         tap((api: ApiV2 | ApiV4) => {
           this.api = api;

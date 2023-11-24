@@ -21,6 +21,7 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { GioLicenseService, GioSaveBarHarness, GioLicenseTestingModule } from '@gravitee/ui-particles-angular';
 import { MatDialogModule } from '@angular/material/dialog';
+import { ActivatedRoute } from '@angular/router';
 
 import { ApiResourcesComponent } from './api-resources.component';
 import { ApiResourcesModule } from './api-resources.module';
@@ -29,7 +30,7 @@ import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/test
 import { User } from '../../../../entities/user';
 import { fakeResourceListItem } from '../../../../entities/resource/resourceListItem.fixture';
 import { GioUiRouterTestingModule } from '../../../../shared/testing/gio-uirouter-testing-module';
-import { CurrentUserService, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+import { CurrentUserService } from '../../../../ajs-upgraded-providers';
 import { ApiV4, fakeApiV4 } from '../../../../entities/management-api-v2';
 
 describe('PolicyStudioResourcesComponent', () => {
@@ -57,7 +58,7 @@ describe('PolicyStudioResourcesComponent', () => {
         GioLicenseTestingModule,
       ],
       providers: [
-        { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
+        { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
         {
           provide: CurrentUserService,
           useValue: { currentUser },
