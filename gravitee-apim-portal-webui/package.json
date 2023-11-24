@@ -53,9 +53,14 @@
     "redoc": "2.0.0",
     "resize-observer-polyfill": "1.5.1",
     "rxjs": "6.5.5",
+<<<<<<< HEAD
     "swagger-ui-dist": "4.3.0",
     "tslib": "2.3.1",
     "url": "0.11.0",
+=======
+    "swagger-ui-dist": "5.10.3",
+    "tslib": "^2.0.0",
+>>>>>>> 181964235a (fix: bump `swagger-ui-dist` to 5.10)
     "zone.js": "0.14.2"
   },
   "engines": {
