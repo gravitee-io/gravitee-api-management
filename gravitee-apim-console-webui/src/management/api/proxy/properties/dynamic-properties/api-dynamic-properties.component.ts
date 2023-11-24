@@ -23,7 +23,6 @@ import { MonacoEditorLanguageConfig } from '@gravitee/ui-particles-angular';
 
 import { UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
-import { ApiPropertiesOldService } from '../../properties-ng/api-properties-old.service';
 import { CorsUtil } from '../../../../../shared/utils';
 import { ApiV2 } from '../../../../../entities/management-api-v2';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
@@ -62,7 +61,6 @@ export class ApiDynamicPropertiesComponent implements OnInit, OnDestroy {
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams: StateParams,
     private readonly apiService: ApiV2Service,
-    private readonly apiPropertiesService: ApiPropertiesOldService,
     private readonly snackBarService: SnackBarService,
   ) {}
 
