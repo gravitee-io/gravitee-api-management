@@ -168,8 +168,7 @@ export class ApiV1V2MenuService implements ApiMenuService {
     if (this.permissionService.hasAnyMatching(['api-definition-r', 'api-health-r'])) {
       proxyGroup.items.push({
         displayName: 'Entrypoints',
-        targetRoute: 'management.apis.entrypoints-v2',
-        baseRoute: 'management.apis.entrypoints-v2',
+        routerLink: 'v2/entrypoints',
       });
     }
     if (this.permissionService.hasAnyMatching(['api-definition-r'])) {
