@@ -272,19 +272,20 @@ workflows:
           matrix:
             parameters:
               jdbcType:
-                - postgresql~11
                 - postgresql~12
                 - postgresql~13
                 - postgresql~14
                 - postgresql~15
+                - postgresql~16
                 - mariadb~10.4
                 - mariadb~10.5
                 - mariadb~10.6
-                - mariadb~10.10
                 - mariadb~10.11
-                - mariadb~11
-                - mysql~5.7
+                - mariadb~11.0
+                - mariadb~11.1
+                - mariadb~11.2
                 - mysql~8.0
+                - mysql~8.2
                 - sqlserver~2017-latest
                 - sqlserver~2019-latest
                 - sqlserver~2022-latest
@@ -301,6 +302,7 @@ workflows:
                 - "5.0"
                 - "6.0"
                 - "7.0"
+                - "7.1"
       - job-elastic-test-container:
           name: Analytics repository tests - ElasticSearch << matrix.engineVersion >>
           context:
@@ -312,8 +314,8 @@ workflows:
               engineType:
                 - elasticsearch
               engineVersion:
-                - 7.17.10
-                - 8.8.1
+                - 7.17.15
+                - 8.11.1
       - job-elastic-test-container:
           name: Analytics repository tests - OpenSearch << matrix.engineVersion >>
           context:

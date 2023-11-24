@@ -49,19 +49,20 @@ export class RepositoriesTestsWorkflow {
         requires: [buildJobName],
         matrix: {
           jdbcType: [
-            'postgresql~11',
             'postgresql~12',
             'postgresql~13',
             'postgresql~14',
             'postgresql~15',
+            'postgresql~16',
             'mariadb~10.4',
             'mariadb~10.5',
             'mariadb~10.6',
-            'mariadb~10.10',
             'mariadb~10.11',
-            'mariadb~11',
-            'mysql~5.7',
+            'mariadb~11.0',
+            'mariadb~11.1',
+            'mariadb~11.2',
             'mysql~8.0',
+            'mysql~8.2',
             'sqlserver~2017-latest',
             'sqlserver~2019-latest',
             'sqlserver~2022-latest',
@@ -73,7 +74,7 @@ export class RepositoriesTestsWorkflow {
         context: ['cicd-orchestrator'],
         requires: [buildJobName],
         matrix: {
-          mongoVersion: ['4.4', '5.0', '6.0', '7.0'],
+          mongoVersion: ['4.4', '5.0', '6.0', '7.0', '7.1'],
         },
       }),
       new workflow.WorkflowJob(elasticTestContainerJob, {
@@ -82,7 +83,7 @@ export class RepositoriesTestsWorkflow {
         requires: [buildJobName],
         matrix: {
           engineType: ['elasticsearch'],
-          engineVersion: ['7.17.10', '8.8.1'],
+          engineVersion: ['7.17.15', '8.11.1'],
         },
       }),
       new workflow.WorkflowJob(opensearchTestContainerJob, {
