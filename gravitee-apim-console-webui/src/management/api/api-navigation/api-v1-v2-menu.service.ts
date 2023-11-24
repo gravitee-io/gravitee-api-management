@@ -251,8 +251,7 @@ export class ApiV1V2MenuService implements ApiMenuService {
         },
         {
           displayName: 'Failover',
-          targetRoute: 'management.apis.failover-v2',
-          baseRoute: 'management.apis.failover-v2',
+          routerLink: 'v2/failover',
         },
       );
     }
