@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { StateService } from '@uirouter/core';
 import * as _ from 'lodash';
 import { IQService } from 'angular';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import DashboardService from '../../../../services/dashboard.service';
 
@@ -23,12 +23,13 @@ class ApiAnalyticsOverviewControllerAjs {
   private api: any;
   private dashboard: any;
   private dashboards: any[];
+  private activatedRoute: ActivatedRoute;
 
   constructor(
     private ApiService,
     private DashboardService: DashboardService,
     private $scope,
-    private $state: StateService,
+    private ngRouter: Router,
     private $q: IQService,
   ) {
     this.ApiService = ApiService;
@@ -39,18 +40,25 @@ class ApiAnalyticsOverviewControllerAjs {
     this.$q
       .all({
         dashboards: this.DashboardService.list('API').then((response) => response.data),
-        api: this.ApiService.get(this.$state.params.apiId).then((response) => response.data),
+        api: this.ApiService.get(this.activatedRoute.snapshot.params.apiId).then((response) => response.data),
       })
       .then((results) => {
         this.api = results.api;
         this.dashboards = _.filter(results.dashboards, 'enabled');
 
-        const dashboardId = this.$state.params.dashboard;
+        const dashboardId = this.activatedRoute.snapshot.queryParams.dashboard;
         if (dashboardId) {
           this.dashboard = _.find(this.dashboards, { id: dashboardId });
           if (!this.dashboard) {
-            delete this.$state.params.dashboard;
-            this.$state.go(this.$state.current);
+            delete this.activatedRoute.snapshot.queryParams.dashboard;
+
+            this.ngRouter.navigate(['.'], {
+              relativeTo: this.activatedRoute,
+              queryParams: {
+                ...this.activatedRoute.snapshot.queryParams,
+                dashboard: undefined,
+              },
+            });
           }
         } else {
           this.dashboard = this.dashboards[0];
@@ -77,7 +85,12 @@ class ApiAnalyticsOverviewControllerAjs {
 
   viewLogs() {
     // Update the query parameter
-    this.$state.transitionTo('management.apis.analytics-logs-v2', this.$state.params);
+    this.ngRouter.navigate(['../', 'analytics-logs'], {
+      relativeTo: this.activatedRoute,
+      queryParams: {
+        ...this.activatedRoute.snapshot.queryParams,
+      },
+    });
   }
 
   onDashboardChanged() {
@@ -86,9 +99,15 @@ class ApiAnalyticsOverviewControllerAjs {
   }
 
   private setDashboard(dashboardId: string) {
-    this.$state.transitionTo(this.$state.current, _.merge(this.$state.params, { dashboard: dashboardId }), { reload: true });
+    this.ngRouter.navigate(['.'], {
+      relativeTo: this.activatedRoute,
+      queryParams: {
+        ...this.activatedRoute.snapshot.queryParams,
+        dashboard: dashboardId,
+      },
+    });
   }
 }
-ApiAnalyticsOverviewControllerAjs.$inject = ['ApiService', 'DashboardService', '$scope', '$state', '$q'];
+ApiAnalyticsOverviewControllerAjs.$inject = ['ApiService', 'DashboardService', '$scope', 'ngRouter', '$q'];
 
 export default ApiAnalyticsOverviewControllerAjs;

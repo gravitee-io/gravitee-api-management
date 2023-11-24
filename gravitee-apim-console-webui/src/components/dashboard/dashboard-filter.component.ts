@@ -17,6 +17,7 @@
 const DashboardFilterComponent: ng.IComponentOptions = {
   bindings: {
     onFilterChange: '&',
+    activatedRoute: '<',
   },
   template: require('./dashboard-filter.html'),
   controller: 'DashboardFilterController',

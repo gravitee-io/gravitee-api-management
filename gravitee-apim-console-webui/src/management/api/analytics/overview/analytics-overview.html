@@ -29,6 +29,11 @@
   </div>
 
   <div class="gv-form">
-    <gv-dashboard model="$ctrl.dashboard" on-view-log-click="$ctrl.viewLogs()" access-logs="true"></gv-dashboard>
+    <gv-dashboard
+      activated-route="$ctrl.activatedRoute"
+      model="$ctrl.dashboard"
+      on-view-log-click="$ctrl.viewLogs()"
+      access-logs="true"
+    ></gv-dashboard>
   </div>
 </div>

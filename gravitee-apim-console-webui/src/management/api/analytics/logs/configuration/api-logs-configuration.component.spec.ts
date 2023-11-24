@@ -18,15 +18,15 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { MatButtonHarness } from '@angular/material/button/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { MatInputHarness } from '@angular/material/input/testing';
+import { ActivatedRoute } from '@angular/router';
 
 import { ApiLogsConfigurationComponent } from './api-logs-configuration.component';
 
-import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
+import { CurrentUserService } from '../../../../../ajs-upgraded-providers';
 import { ApiLogsModule } from '../api-logs.module';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
 import { GioFormCardGroupHarness } from '../../../../../shared/components/gio-form-card-group/gio-form-card-group.harness';
@@ -36,7 +36,6 @@ import { ApiV2, fakeApiV2 } from '../../../../../entities/management-api-v2';
 
 describe('ApiLogsConfigurationComponent', () => {
   const API_ID = 'my-api';
-  const fakeUiRouter = { go: jest.fn() };
   const currentUser = new User();
   currentUser.userPermissions = ['api-log-u'];
   let fixture: ComponentFixture<ApiLogsConfigurationComponent>;
@@ -48,8 +47,7 @@ describe('ApiLogsConfigurationComponent', () => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, MatIconTestingModule, ApiLogsModule, GioHttpTestingModule],
       providers: [
-        { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
-        { provide: UIRouterState, useValue: fakeUiRouter },
+        { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
         {
           provide: CurrentUserService,
           useValue: { currentUser },
@@ -66,21 +64,6 @@ describe('ApiLogsConfigurationComponent', () => {
 
   afterEach(() => {
     httpTestingController.verify();
-  });
-
-  describe('goToLoggingDashboard', () => {
-    it('should redirect to logging dashboard', async () => {
-      const api = fakeApiV2({
-        id: API_ID,
-      });
-      expectApiGetRequest(api);
-
-      await loader
-        .getHarness(MatButtonHarness.with({ selector: '[aria-label="Go to Logging dashboard"]' }))
-        .then((button) => button.click());
-
-      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.analytics-logs-v2');
-    });
   });
 
   describe('form tests', () => {

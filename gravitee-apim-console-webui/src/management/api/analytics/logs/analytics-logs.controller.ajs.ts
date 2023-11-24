@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { StateService } from '@uirouter/core';
 import { IScope } from 'angular';
 import * as _ from 'lodash';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import AnalyticsService from '../../../../services/analytics.service';
 import TenantService from '../../../../services/tenant.service';
@@ -31,12 +31,12 @@ class ApiAnalyticsLogsControllerAjs {
     tenants?: any[];
   };
   private init: boolean;
+  private activatedRoute: ActivatedRoute;
 
   constructor(
     private ApiService: ApiService,
     private $scope: IScope,
-    private Constants,
-    private $state: StateService,
+    private ngRouter: Router,
     private $timeout: ng.ITimeoutService,
     private AnalyticsService: AnalyticsService,
     private TenantService: TenantService,
@@ -44,16 +44,15 @@ class ApiAnalyticsLogsControllerAjs {
   ) {
     this.ApiService = ApiService;
     this.$scope = $scope;
-    this.$state = $state;
   }
 
   $onInit() {
     this.$q
       .all({
-        plans: this.ApiService.getApiPlans(this.$state.params.apiId),
-        applications: this.ApiService.getSubscribers(this.$state.params.apiId, null, null, null, ['owner']),
+        plans: this.ApiService.getApiPlans(this.activatedRoute.snapshot.params.apiId),
+        applications: this.ApiService.getSubscribers(this.activatedRoute.snapshot.params.apiId, null, null, null, ['owner']),
         tenants: this.TenantService.list(),
-        resolvedApi: this.ApiService.get(this.$state.params.apiId),
+        resolvedApi: this.ApiService.get(this.activatedRoute.snapshot.params.apiId),
       })
       .then(({ resolvedApi, applications, plans, tenants }) => {
         this.api = resolvedApi.data;
@@ -72,7 +71,7 @@ class ApiAnalyticsLogsControllerAjs {
 
         this.onPaginate = this.onPaginate.bind(this);
 
-        this.query = this.AnalyticsService.buildQueryFromState(this.$state);
+        this.query = this.AnalyticsService.buildQueryFromState(this.activatedRoute.snapshot.queryParams);
 
         this.$scope.$watch('$ctrl.query.field', (field) => {
           if (field && this.init) {
@@ -86,7 +85,7 @@ class ApiAnalyticsLogsControllerAjs {
     this.init = true;
     this.query.from = timeframe.from;
     this.query.to = timeframe.to;
-    this.query.page = this.$state.params.page || 1;
+    this.query.page = this.activatedRoute.snapshot.queryParams.page || 1;
     if (this.api) {
       this.refresh();
     }
@@ -102,19 +101,17 @@ class ApiAnalyticsLogsControllerAjs {
       this.logs = logs.data;
       this.AnalyticsService.setFetchedLogs(logs.data.logs);
 
-      // FIXME: this transition breaks the navigation. We need to find another way to update the URL when data are updated
-      // this.$state.transitionTo(
-      //   this.$state.current,
-      //   {
-      //     ...this.$state.params,
-      //     from: this.query.from,
-      //     to: this.query.to,
-      //     page: this.query.page,
-      //     size: this.query.size,
-      //     q: this.query.query,
-      //   },
-      //   { notify: false },
-      // );
+      this.ngRouter.navigate(['.'], {
+        relativeTo: this.activatedRoute,
+        queryParams: {
+          ...this.activatedRoute.snapshot.queryParams,
+          from: this.query.from,
+          to: this.query.to,
+          page: this.query.page,
+          size: this.query.size,
+          q: this.query.query,
+        },
+      });
     });
   }
 
@@ -123,7 +120,7 @@ class ApiAnalyticsLogsControllerAjs {
   }
 
   filtersChange(filters) {
-    this.query.page = this.$state.params.page || 1;
+    this.query.page = this.activatedRoute.snapshot.queryParams.page || 1;
     this.query.query = filters;
     this.refresh();
   }
@@ -144,16 +141,27 @@ class ApiAnalyticsLogsControllerAjs {
       document.getElementById('hidden-export-container').removeChild(hiddenElement);
     });
   }
+
+  configureLogging() {
+    this.ngRouter.navigate(['.', 'configuration'], {
+      relativeTo: this.activatedRoute,
+    });
+  }
+
+  gotToLog(log: any) {
+    this.ngRouter.navigate(['.', log.id], {
+      relativeTo: this.activatedRoute,
+      queryParams: {
+        timestamp: log.timestamp,
+        from: this.query.from,
+        to: this.query.to,
+        q: this.query.query,
+        page: this.query.page,
+        size: this.query.size,
+      },
+    });
+  }
 }
-ApiAnalyticsLogsControllerAjs.$inject = [
-  'ApiService',
-  '$scope',
-  'Constants',
-  '$state',
-  '$timeout',
-  'AnalyticsService',
-  'TenantService',
-  '$q',
-];
+ApiAnalyticsLogsControllerAjs.$inject = ['ApiService', '$scope', 'ngRouter', '$timeout', 'AnalyticsService', 'TenantService', '$q'];
 
 export default ApiAnalyticsLogsControllerAjs;

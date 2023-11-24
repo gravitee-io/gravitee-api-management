@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ChangeDetectorRef, Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { StateService } from '@uirouter/angular';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { EMPTY, Subject } from 'rxjs';
 import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { isEmpty } from 'lodash';
+import { ActivatedRoute } from '@angular/router';
 
 import { CONTENT_MODES, DEFAULT_LOGGING, LOGGING_MODES, SCOPE_MODES } from './api-logs-configuration';
 
-import { AjsRootScope, UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import { ApiV1, ApiV2 } from '../../../../../entities/management-api-v2';
@@ -57,9 +56,7 @@ export class ApiLogsConfigurationComponent implements OnInit, OnDestroy {
   public scopeModes = SCOPE_MODES;
 
   constructor(
-    @Inject(UIRouterStateParams) private readonly ajsStateParams,
-    @Inject(UIRouterState) private readonly ajsState: StateService,
-    @Inject(AjsRootScope) readonly ajsRootScope,
+    private readonly activatedRoute: ActivatedRoute,
     private readonly apiService: ApiV2Service,
     private readonly snackBarService: SnackBarService,
     private readonly permissionService: GioPermissionService,
@@ -73,7 +70,7 @@ export class ApiLogsConfigurationComponent implements OnInit, OnDestroy {
 
   public ngOnInit() {
     this.apiService
-      .get(this.ajsStateParams.apiId)
+      .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
         onlyApiV1V2Filter(this.snackBarService),
         tap((api) => {
@@ -112,13 +109,9 @@ export class ApiLogsConfigurationComponent implements OnInit, OnDestroy {
       .subscribe();
   }
 
-  public goToLoggingDashboard() {
-    this.ajsState.go('management.apis.analytics-logs-v2');
-  }
-
   public onSubmit() {
     this.apiService
-      .get(this.ajsStateParams.apiId)
+      .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
         onlyApiV2Filter(this.snackBarService),
         switchMap((api) => {

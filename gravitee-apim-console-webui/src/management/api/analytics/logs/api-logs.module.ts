@@ -24,6 +24,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { RouterModule } from '@angular/router';
 
 import { ApiLogsConfigurationComponent } from './configuration/api-logs-configuration.component';
 import { ApiAnalyticsLogsComponent } from './analytics-logs.component';
@@ -37,6 +38,7 @@ import { GioFormCardGroupModule } from '../../../../shared/components/gio-form-c
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    RouterModule,
     MatButtonModule,
     MatCardModule,
     MatDividerModule,

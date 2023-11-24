@@ -19,5 +19,7 @@ import ApiAnalyticsLogsControllerAjs from './analytics-logs.controller.ajs';
 export const ApiAnalyticsLogsComponentAjs = {
   template: require('./analytics-logs.html'),
   controller: ApiAnalyticsLogsControllerAjs,
-  bindings: {},
+  bindings: {
+    activatedRoute: '<',
+  },
 };
