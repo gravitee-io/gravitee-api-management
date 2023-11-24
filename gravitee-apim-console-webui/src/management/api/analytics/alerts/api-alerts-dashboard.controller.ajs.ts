@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { StateService } from '@uirouter/core';
+import { ActivatedRoute } from '@angular/router';
 
 import AlertService from '../../../../services/alert.service';
 import { Scope } from '../../../../entities/alert';
@@ -22,16 +22,18 @@ class ApiAlertsDashboardControllerAjs {
   private hasConfiguredAlerts: boolean;
   private hasAlertingPlugin: boolean;
   apiId: string;
+  activatedRoute: ActivatedRoute;
 
-  constructor(private readonly $state: StateService, private readonly AlertService: AlertService, private readonly $q: ng.IQService) {
-    this.apiId = this.$state.params.apiId;
-  }
+  constructor(private readonly AlertService: AlertService, private readonly $q: ng.IQService) {}
 
   $onInit() {
+    this.apiId = this.activatedRoute.snapshot.params.apiId;
     this.$q
       .all({
-        configuredAlerts: this.AlertService.listAlerts(Scope.API, false, this.$state.params.apiId).then((response) => response.data),
-        alertingStatus: this.AlertService.getStatus(Scope.API, this.$state.params.apiId).then((response) => response.data),
+        configuredAlerts: this.AlertService.listAlerts(Scope.API, false, this.activatedRoute.snapshot.params.apiId).then(
+          (response) => response.data,
+        ),
+        alertingStatus: this.AlertService.getStatus(Scope.API, this.activatedRoute.snapshot.params.apiId).then((response) => response.data),
       })
       .then(({ configuredAlerts, alertingStatus }) => {
         this.hasConfiguredAlerts = configuredAlerts?.length > 0;
@@ -39,6 +41,6 @@ class ApiAlertsDashboardControllerAjs {
       });
   }
 }
-ApiAlertsDashboardControllerAjs.$inject = ['$state', 'AlertService', '$q'];
+ApiAlertsDashboardControllerAjs.$inject = ['AlertService', '$q'];
 
 export default ApiAlertsDashboardControllerAjs;

@@ -19,5 +19,7 @@ import ApiAlertsDashboardControllerAjs from './api-alerts-dashboard.controller.a
 export const ApiAlertsDashboardComponentAjs = {
   template: require('./api-alerts-dashboard.html'),
   controller: ApiAlertsDashboardControllerAjs,
-  bindings: {},
+  bindings: {
+    activatedRoute: '<',
+  },
 };
