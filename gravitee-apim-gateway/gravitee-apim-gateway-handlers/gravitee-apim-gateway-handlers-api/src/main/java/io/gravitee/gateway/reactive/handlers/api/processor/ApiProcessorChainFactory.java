@@ -41,6 +41,7 @@ import io.gravitee.gateway.reactive.handlers.api.v4.processor.logging.LogInitPro
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.logging.LogRequestProcessor;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.logging.LogResponseProcessor;
 import io.gravitee.node.api.Node;
+import io.gravitee.node.api.cache.CacheManager;
 import io.gravitee.node.api.configuration.Configuration;
 import java.util.ArrayList;
 import java.util.List;
@@ -57,10 +58,11 @@ public class ApiProcessorChainFactory {
     private final boolean overrideXForwardedPrefix;
     private final String clientIdentifierHeader;
     private final Node node;
+    private final CacheManager cacheManager;
     private final Configuration configuration;
     private final List<ProcessorHook> processorHooks = new ArrayList<>();
 
-    public ApiProcessorChainFactory(final Configuration configuration, Node node) {
+    public ApiProcessorChainFactory(final Configuration configuration, Node node, CacheManager cacheManager) {
         this.configuration = configuration;
         this.overrideXForwardedPrefix =
             configuration.getProperty(HANDLERS_REQUEST_HEADERS_X_FORWARDED_PREFIX_PROPERTY, Boolean.class, false);
@@ -68,6 +70,7 @@ public class ApiProcessorChainFactory {
             configuration.getProperty(HANDLERS_REQUEST_CLIENT_HEADER, String.class, DEFAULT_CLIENT_IDENTIFIER_HEADER);
 
         this.node = node;
+        this.cacheManager = cacheManager;
 
         boolean tracing = configuration.getProperty("services.tracing.enabled", Boolean.class, false);
         if (tracing) {
@@ -118,7 +121,7 @@ public class ApiProcessorChainFactory {
             preProcessorList.add(new PathParametersProcessor(extractor));
         }
 
-        preProcessorList.add(SubscriptionProcessor.instance(clientIdentifierHeader));
+        preProcessorList.add(SubscriptionProcessor.instance(clientIdentifierHeader, cacheManager));
 
         ProcessorChain processorChain = new ProcessorChain("processor-chain-before-api-execution", preProcessorList);
         processorChain.addHooks(processorHooks);

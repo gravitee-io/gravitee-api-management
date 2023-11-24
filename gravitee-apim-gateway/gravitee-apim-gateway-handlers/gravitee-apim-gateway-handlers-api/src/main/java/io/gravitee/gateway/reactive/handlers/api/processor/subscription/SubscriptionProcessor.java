@@ -29,10 +29,12 @@ import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactive.core.processor.Processor;
 import io.gravitee.gateway.reactive.handlers.api.context.SubscriptionTemplateVariableProvider;
+import io.gravitee.node.api.cache.Cache;
+import io.gravitee.node.api.cache.CacheConfiguration;
+import io.gravitee.node.api.cache.CacheManager;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
@@ -47,14 +49,23 @@ public class SubscriptionProcessor implements Processor {
 
     public static final String ID = "processor-subscription";
     public static final String DEFAULT_CLIENT_IDENTIFIER_HEADER = "X-Gravitee-Client-Identifier";
+    static final String REMOTE_ADDRESS_HASHES_CACHE = SubscriptionProcessor.class.getName() + "-remote-address-hashes";
     static final String APPLICATION_ANONYMOUS = "1";
     static final String PLAN_ANONYMOUS = "1";
-    private String clientIdentifierHeader = DEFAULT_CLIENT_IDENTIFIER_HEADER;
+    private String clientIdentifierHeader;
+    private CacheManager cacheManager;
 
-    public static SubscriptionProcessor instance(final String clientIdentifierHeader) {
+    public static SubscriptionProcessor instance(final String clientIdentifierHeader, final CacheManager cacheManager) {
         SubscriptionProcessor subscriptionProcessor = Holder.INSTANCE;
-        if (clientIdentifierHeader != null) {
-            subscriptionProcessor.clientIdentifierHeader = clientIdentifierHeader;
+        if (subscriptionProcessor.clientIdentifierHeader == null) {
+            if (clientIdentifierHeader != null) {
+                subscriptionProcessor.clientIdentifierHeader = clientIdentifierHeader;
+            } else {
+                subscriptionProcessor.clientIdentifierHeader = DEFAULT_CLIENT_IDENTIFIER_HEADER;
+            }
+        }
+        if (subscriptionProcessor.cacheManager == null) {
+            subscriptionProcessor.cacheManager = cacheManager;
         }
         return subscriptionProcessor;
     }
@@ -166,13 +177,26 @@ public class SubscriptionProcessor implements Processor {
 
     private String computeHashOrDefault(final String valueToHash, final String fallback) {
         try {
-            MessageDigest md = MessageDigest.getInstance("SHA-256");
-            md.update(valueToHash.getBytes());
-            byte[] digest = md.digest();
-            return Hex.toHexString(digest);
-        } catch (NoSuchAlgorithmException e) {
+            Cache<String, String> hashedValueCache = getOrCreateCache();
+            String hashedValue = hashedValueCache.get(valueToHash);
+            if (hashedValue == null) {
+                MessageDigest md = MessageDigest.getInstance("SHA3-256");
+                md.update(valueToHash.getBytes());
+                byte[] digest = md.digest();
+                hashedValue = Hex.toHexString(digest);
+                hashedValueCache.put(valueToHash, hashedValue);
+            }
+            return hashedValue;
+        } catch (Exception e) {
             return fallback;
         }
+    }
+
+    private Cache<String, String> getOrCreateCache() {
+        return cacheManager.getOrCreateCache(
+            REMOTE_ADDRESS_HASHES_CACHE,
+            CacheConfiguration.builder().timeToLiveInMs(60_000).timeToIdleInMs(60_000).maxSize(1000).distributed(false).build()
+        );
     }
 
     private static class Holder {
