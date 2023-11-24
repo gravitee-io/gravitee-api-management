@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { EMPTY, Subject } from 'rxjs';
 import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { ActivatedRoute } from '@angular/router';
 
-import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
@@ -49,8 +49,8 @@ export class ApiProxyFailoverComponent implements OnInit, OnDestroy {
   }
 
   constructor(
+    private readonly activatedRoute: ActivatedRoute,
     private readonly formBuilder: FormBuilder,
-    @Inject(UIRouterStateParams) private readonly ajsStateParams,
     private readonly apiService: ApiV2Service,
     private readonly snackBarService: SnackBarService,
     private readonly permissionService: GioPermissionService,
@@ -58,7 +58,7 @@ export class ApiProxyFailoverComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.apiService
-      .get(this.ajsStateParams.apiId)
+      .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
         onlyApiV1V2Filter(this.snackBarService),
         tap((api) => {
@@ -99,7 +99,7 @@ export class ApiProxyFailoverComponent implements OnInit, OnDestroy {
   onSubmit() {
     const { enabled, maxAttempts, retryTimeout } = this.failoverForm.getRawValue();
     return this.apiService
-      .get(this.ajsStateParams.apiId)
+      .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
         onlyApiV2Filter(this.snackBarService),
         switchMap(({ proxy, ...api }) =>

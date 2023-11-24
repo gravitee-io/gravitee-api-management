@@ -22,11 +22,12 @@ import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
+import { ActivatedRoute } from '@angular/router';
 
 import { ApiProxyFailoverComponent } from './api-proxy-failover.component';
 import { ApiProxyFailoverModule } from './api-proxy-failover.module';
 
-import { UIRouterStateParams, CurrentUserService, AjsRootScope } from '../../../../ajs-upgraded-providers';
+import { CurrentUserService } from '../../../../ajs-upgraded-providers';
 import { User } from '../../../../entities/user';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { ApiV2, fakeApiV2 } from '../../../../entities/management-api-v2';
@@ -45,9 +46,8 @@ describe('ApiProxyFailoverComponent', () => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiProxyFailoverModule],
       providers: [
-        { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
+        { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
         { provide: CurrentUserService, useValue: { currentUser } },
-        { provide: AjsRootScope, useValue: null },
       ],
     }).overrideProvider(InteractivityChecker, {
       useValue: {
