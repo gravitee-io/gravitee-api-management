@@ -26,6 +26,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { RouterModule } from '@angular/router';
 
 import { ApiProxyEndpointListComponent } from './list/api-proxy-endpoint-list.component';
 import { ApiProxyGroupsModule } from './groups/api-proxy-groups.module';
@@ -38,6 +39,7 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    RouterModule,
 
     MatButtonModule,
     MatCardModule,

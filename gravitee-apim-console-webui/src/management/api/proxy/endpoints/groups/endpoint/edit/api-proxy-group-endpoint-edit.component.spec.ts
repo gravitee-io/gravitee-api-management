@@ -25,11 +25,12 @@ import { MatTabHarness } from '@angular/material/tabs/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
+import { ActivatedRoute } from '@angular/router';
 
 import { ApiProxyGroupEndpointEditComponent } from './api-proxy-group-endpoint-edit.component';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../../../shared/testing';
-import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../../../../ajs-upgraded-providers';
+import { CurrentUserService } from '../../../../../../../ajs-upgraded-providers';
 import { ApiProxyGroupEndpointModule } from '../api-proxy-group-endpoint.module';
 import { ConnectorListItem } from '../../../../../../../entities/connector/connector-list-item';
 import { fakeConnectorListItem } from '../../../../../../../entities/connector/connector-list-item.fixture';
@@ -43,7 +44,6 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
   const API_ID = 'apiId';
   const DEFAULT_GROUP_NAME = 'default-group';
   const DEFAULT_ENDPOINT_NAME = 'endpoint#1';
-  const fakeUiRouter = { go: jest.fn() };
   const tenants = [fakeTenant({ id: 'tenant#1', name: 'tenant#1-name' }), fakeTenant({ id: 'tenant#2', name: 'tenant#2' })];
   const currentUser = new User();
   currentUser.userPermissions = ['api-definition-u'];
@@ -58,8 +58,10 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiProxyGroupEndpointModule, MatIconTestingModule],
       providers: [
-        { provide: UIRouterStateParams, useValue: { apiId: API_ID, groupName: DEFAULT_GROUP_NAME, endpointName: DEFAULT_ENDPOINT_NAME } },
-        { provide: UIRouterState, useValue: fakeUiRouter },
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { params: { apiId: API_ID, groupName: DEFAULT_GROUP_NAME, endpointName: DEFAULT_ENDPOINT_NAME } } },
+        },
         { provide: CurrentUserService, useValue: { currentUser } },
       ],
     });
@@ -274,7 +276,9 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
     let api: ApiV2;
 
     beforeEach(async () => {
-      TestBed.overrideProvider(UIRouterStateParams, { useValue: { apiId: API_ID, groupName: DEFAULT_GROUP_NAME, endpointName: null } });
+      TestBed.overrideProvider(ActivatedRoute, {
+        useValue: { snapshot: { params: { apiId: API_ID, groupName: DEFAULT_GROUP_NAME, endpointName: null } } },
+      });
       TestBed.compileComponents();
       fixture = TestBed.createComponent(ApiProxyGroupEndpointEditComponent);
       loader = TestbedHarnessEnvironment.loader(fixture);
@@ -371,7 +375,9 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
     let api: ApiV2;
 
     beforeEach(async () => {
-      TestBed.overrideProvider(UIRouterStateParams, { useValue: { apiId: API_ID, groupName: DEFAULT_GROUP_NAME, endpointName: null } });
+      TestBed.overrideProvider(ActivatedRoute, {
+        useValue: { snapshot: { params: { apiId: API_ID, groupName: DEFAULT_GROUP_NAME, endpointName: null } } },
+      });
       TestBed.compileComponents();
       fixture = TestBed.createComponent(ApiProxyGroupEndpointEditComponent);
       loader = TestbedHarnessEnvironment.loader(fixture);
@@ -450,7 +456,9 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
     let api: ApiV2;
 
     beforeEach(async () => {
-      TestBed.overrideProvider(UIRouterStateParams, { useValue: { apiId: API_ID, groupName: DEFAULT_GROUP_NAME, endpointName: null } });
+      TestBed.overrideProvider(ActivatedRoute, {
+        useValue: { snapshot: { params: { apiId: API_ID, groupName: DEFAULT_GROUP_NAME, endpointName: null } } },
+      });
       TestBed.compileComponents();
       fixture = TestBed.createComponent(ApiProxyGroupEndpointEditComponent);
       loader = TestbedHarnessEnvironment.loader(fixture);
@@ -534,8 +542,8 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
     let api: ApiV2;
 
     beforeEach(() => {
-      TestBed.overrideProvider(UIRouterStateParams, {
-        useValue: { apiId: API_ID, groupName: DEFAULT_GROUP_NAME, endpointName: DEFAULT_ENDPOINT_NAME },
+      TestBed.overrideProvider(ActivatedRoute, {
+        useValue: { snapshot: { params: { apiId: API_ID, groupName: DEFAULT_GROUP_NAME, endpointName: DEFAULT_ENDPOINT_NAME } } },
       });
       TestBed.compileComponents();
       fixture = TestBed.createComponent(ApiProxyGroupEndpointEditComponent);

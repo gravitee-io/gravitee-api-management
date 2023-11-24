@@ -247,8 +247,7 @@ export class ApiV1V2MenuService implements ApiMenuService {
       backendServicesGroup.items.push(
         {
           displayName: 'Endpoints',
-          targetRoute: 'management.apis.endpoints-v2',
-          baseRoute: ['management.apis.endpoints-v2', 'management.apis.endpoint-v2', 'management.apis.endpoint-group-v2'],
+          routerLink: 'v2/endpoints',
         },
         {
           displayName: 'Failover',

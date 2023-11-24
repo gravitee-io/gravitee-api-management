@@ -13,18 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { catchError, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { EMPTY, Subject, Subscription } from 'rxjs';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { StateService } from '@uirouter/core';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { isUniq, serviceDiscoveryValidator } from './api-proxy-group-edit.validator';
 import { ProxyGroupServiceDiscoveryConfiguration } from './service-discovery/api-proxy-group-service-discovery.model';
 import { toProxyGroup } from './api-proxy-group-edit.adapter';
 import { ApiProxyGroupConfigurationComponent } from './configuration/api-proxy-group-configuration.component';
 
-import { UIRouterState, UIRouterStateParams } from '../../../../../../ajs-upgraded-providers';
 import { SnackBarService } from '../../../../../../services-ngx/snack-bar.service';
 import { ResourceListItem } from '../../../../../../entities/resource/resourceListItem';
 import { ServiceDiscoveryService } from '../../../../../../services-ngx/service-discovery.service';
@@ -52,8 +51,8 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
   public serviceDiscoveryItems: ResourceListItem[];
 
   constructor(
-    @Inject(UIRouterStateParams) private readonly ajsStateParams,
-    @Inject(UIRouterState) private readonly ajsState: StateService,
+    private readonly activatedRoute: ActivatedRoute,
+    private readonly router: Router,
     private readonly formBuilder: FormBuilder,
     private readonly apiService: ApiV2Service,
     private readonly snackBarService: SnackBarService,
@@ -62,8 +61,8 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
   ) {}
 
   public ngOnInit(): void {
-    this.apiId = this.ajsStateParams.apiId;
-    this.mode = !this.ajsStateParams.groupName ? 'new' : 'edit';
+    this.apiId = this.activatedRoute.snapshot.params.apiId;
+    this.mode = !this.activatedRoute.snapshot.params.groupName ? 'new' : 'edit';
 
     this.apiService
       .get(this.apiId)
@@ -95,7 +94,7 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
         onlyApiV2Filter(this.snackBarService),
         switchMap((api) => {
           const groupIndex =
-            this.mode === 'edit' ? api.proxy.groups.findIndex((group) => group.name === this.ajsStateParams.groupName) : -1;
+            this.mode === 'edit' ? api.proxy.groups.findIndex((group) => group.name === this.activatedRoute.snapshot.params.groupName) : -1;
 
           const updatedGroup = toProxyGroup(
             api.proxy.groups[groupIndex],
@@ -112,13 +111,9 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
-        tap(() =>
+        switchMap(() =>
           // Redirect to same page with last group name
-          this.ajsState.go(
-            'management.apis.endpoint-group-v2',
-            { apiId: this.apiId, groupName: this.generalForm.get('name').value },
-            { reload: true },
-          ),
+          this.router.navigate(['../', this.generalForm.get('name').value], { relativeTo: this.activatedRoute }),
         ),
         takeUntil(this.unsubscribe$),
       )
@@ -147,7 +142,7 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
   }
 
   private initForms(): void {
-    const group = { ...this.api.proxy.groups.find((group) => group.name === this.ajsStateParams.groupName) };
+    const group = { ...this.api.proxy.groups.find((group) => group.name === this.activatedRoute.snapshot.params.groupName) };
 
     this.generalForm = this.formBuilder.group({
       name: [

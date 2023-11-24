@@ -19,21 +19,20 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatIconHarness, MatIconTestingModule } from '@angular/material/icon/testing';
-import { MatButtonHarness } from '@angular/material/button/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
+import { ActivatedRoute } from '@angular/router';
 
 import { ApiProxyEndpointListComponent } from './api-proxy-endpoint-list.component';
 import { ApiProxyEndpointListHarness } from './api-proxy-endpoint-list.harness';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
-import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
+import { CurrentUserService } from '../../../../../ajs-upgraded-providers';
 import { User } from '../../../../../entities/user';
 import { ApiProxyEndpointModule } from '../api-proxy-endpoints.module';
 import { ApiV2, fakeApiV2 } from '../../../../../entities/management-api-v2';
 
 describe('ApiProxyEndpointListComponent', () => {
   const API_ID = 'apiId';
-  const fakeUiRouter = { go: jest.fn() };
 
   let fixture: ComponentFixture<ApiProxyEndpointListComponent>;
   let rootLoader: HarnessLoader;
@@ -48,8 +47,7 @@ describe('ApiProxyEndpointListComponent', () => {
       declarations: [ApiProxyEndpointListComponent],
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiProxyEndpointModule, MatIconTestingModule],
       providers: [
-        { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
-        { provide: UIRouterState, useValue: fakeUiRouter },
+        { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
         { provide: CurrentUserService, useValue: { currentUser } },
       ],
     }).overrideProvider(InteractivityChecker, {
@@ -71,59 +69,6 @@ describe('ApiProxyEndpointListComponent', () => {
   afterEach(() => {
     jest.clearAllMocks();
     httpTestingController.verify();
-  });
-
-  describe('navigateToGroup', () => {
-    let routerSpy: jest.SpyInstance;
-    beforeEach(async () => {
-      await initComponent(
-        fakeApiV2({
-          id: API_ID,
-        }),
-      );
-      routerSpy = jest.spyOn(fakeUiRouter, 'go');
-    });
-
-    it('should navigate to new Proxy Endpoint Group page on click to add button', async () => {
-      await endpointsGroupHarness.addEndpointGroup();
-      expect(routerSpy).toHaveBeenCalledWith('management.apis.endpoint-group-v2', { groupName: '' });
-    });
-
-    it('should navigate to existing group', async () => {
-      await endpointsGroupHarness.editEndpointGroup();
-      expect(routerSpy).toHaveBeenCalledWith('management.apis.endpoint-group-v2', { groupName: 'default-group' });
-    });
-  });
-
-  describe('navigateToEndpoint', () => {
-    it.each`
-      definitionContext | buttonAreaLabel
-      ${'MANAGEMENT'}   | ${'Button to edit an endpoint'}
-      ${'KUBERNETES'}   | ${'Button to open endpoint detail'}
-    `('should be able to open an endpoint for API with origin $definitionContext', async ({ definitionContext, buttonAreaLabel }) => {
-      const routerSpy = jest.spyOn(fakeUiRouter, 'go');
-      await initComponent(
-        fakeApiV2({
-          id: API_ID,
-          definitionContext: { origin: definitionContext },
-        }),
-      );
-
-      const rtTable = await endpointsGroupHarness.getTable(0);
-      const rtTableRows = await rtTable.getRows();
-
-      const [_1, _2, _3, _4, _5, rtTableFirstRowActionsCell] = await rtTableRows[0].getCells();
-
-      const vhTableFirstRowHostInput = await rtTableFirstRowActionsCell.getHarness(
-        MatButtonHarness.with({ selector: `[aria-label="${buttonAreaLabel}"]` }),
-      );
-      await vhTableFirstRowHostInput.click();
-
-      expect(routerSpy).toHaveBeenCalledWith('management.apis.endpoint-v2', {
-        groupName: 'default-group',
-        endpointName: 'default',
-      });
-    });
   });
 
   describe('mat table tests', () => {
