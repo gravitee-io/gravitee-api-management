@@ -23,7 +23,6 @@ import { ApiProxyResponseTemplatesModule } from './response-templates/api-proxy-
 import { ApiProxyEndpointModule } from './endpoints/api-proxy-endpoints.module';
 import { ApiProxyFailoverModule } from './failover/api-proxy-failover.module';
 import { ApiProxyHealthCheckModule } from './health-check/api-proxy-health-check.module';
-import { ApiPropertiesOldModule } from './properties-ng/api-properties-old.module';
 import { ApiResourcesModule } from './resources-ng/api-resources.module';
 import { ApiProxyHealthCheckDashboardModule } from './health-check-dashboard/api-proxy-health-check-dashboard.module';
 import { ApiV1PropertiesComponent } from './properties-v1/properties.component';
@@ -42,7 +41,6 @@ import { ApiDynamicPropertiesModule } from './properties/dynamic-properties/api-
     ApiProxyFailoverModule,
     ApiProxyHealthCheckModule,
     ApiProxyHealthCheckDashboardModule,
-    ApiPropertiesOldModule,
     ApiPropertiesModule,
     ApiDynamicPropertiesModule,
     ApiResourcesModule,
