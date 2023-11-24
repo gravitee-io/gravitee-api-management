@@ -480,6 +480,11 @@ describe('ApiDocumentationV4EditPageComponent', () => {
             const publishBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Save' }));
             expect(await publishBtn.isDisabled()).toEqual(true);
           });
+
+          it('should not update and publish page', async () => {
+            const publishBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Save and publish' }));
+            expect(await publishBtn.isDisabled()).toEqual(true);
+          });
         });
         describe('and with changes', () => {
           beforeEach(async () => {
@@ -507,6 +512,35 @@ describe('ApiDocumentationV4EditPageComponent', () => {
               content: PAGE.content,
             });
             req.flush({ ...PAGE, name: 'New name' });
+          });
+
+          it('should update and publish page', async () => {
+            const saveBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Save and publish' }));
+            expect(await saveBtn.isDisabled()).toEqual(false);
+            await saveBtn.click();
+
+            expectGetPage(PAGE);
+
+            const updatedPage = { ...PAGE, name: 'New name' };
+            const req = httpTestingController.expectOne({
+              method: 'PUT',
+              url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages/${PAGE.id}`,
+            });
+
+            expect(req.request.body).toEqual({
+              ...PAGE,
+              name: 'New name',
+              visibility: 'PUBLIC',
+              content: PAGE.content,
+            });
+            req.flush(updatedPage);
+
+            httpTestingController
+              .expectOne({
+                method: 'POST',
+                url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/pages/${PAGE.id}/_publish`,
+              })
+              .flush({ updatedPage, published: true });
           });
         });
       });
