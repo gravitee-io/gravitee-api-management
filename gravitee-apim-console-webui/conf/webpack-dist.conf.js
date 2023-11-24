@@ -72,6 +72,11 @@ module.exports = {
         resolve: { mainFields: ['es2015', 'browser', 'module', 'main'] },
       },
       {
+        test: /\.js$/,
+        use: ['babel-loader'],
+        include: /node_modules\/swagger-ui-dist/,
+      },
+      {
         test: /\.html$/i,
         loader: 'html-loader',
       },
