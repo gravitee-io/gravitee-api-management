@@ -24,11 +24,12 @@ import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatTabHarness } from '@angular/material/tabs/testing';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
+import { ActivatedRoute } from '@angular/router';
 
 import { ApiProxyGroupEditComponent } from './api-proxy-group-edit.component';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../../shared/testing';
-import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../../../ajs-upgraded-providers';
+import { CurrentUserService } from '../../../../../../ajs-upgraded-providers';
 import { ApiProxyGroupsModule } from '../api-proxy-groups.module';
 import { SnackBarService } from '../../../../../../services-ngx/snack-bar.service';
 import { ResourceListItem } from '../../../../../../entities/resource/resourceListItem';
@@ -40,7 +41,6 @@ import { EndpointHttpConfigHarness } from '../../components/endpoint-http-config
 describe('ApiProxyGroupEditComponent', () => {
   const API_ID = 'apiId';
   const DEFAULT_GROUP_NAME = 'default-group';
-  const fakeUiRouter = { go: jest.fn() };
 
   let fixture: ComponentFixture<ApiProxyGroupEditComponent>;
   let loader: HarnessLoader;
@@ -54,8 +54,7 @@ describe('ApiProxyGroupEditComponent', () => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiProxyGroupsModule, MatIconTestingModule],
       providers: [
-        { provide: UIRouterStateParams, useValue: { apiId: API_ID, groupName: DEFAULT_GROUP_NAME } },
-        { provide: UIRouterState, useValue: fakeUiRouter },
+        { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID, groupName: DEFAULT_GROUP_NAME } } } },
         { provide: CurrentUserService, useValue: { currentUser } },
       ],
     });
@@ -405,7 +404,7 @@ describe('ApiProxyGroupEditComponent', () => {
     let api: ApiV2;
 
     beforeEach(() => {
-      TestBed.overrideProvider(UIRouterStateParams, { useValue: { apiId: API_ID, groupName: null } });
+      TestBed.overrideProvider(ActivatedRoute, { useValue: { snapshot: { params: { apiId: API_ID, groupName: null } } } });
       TestBed.compileComponents();
       fixture = TestBed.createComponent(ApiProxyGroupEditComponent);
       loader = TestbedHarnessEnvironment.loader(fixture);
@@ -497,7 +496,8 @@ describe('ApiProxyGroupEditComponent', () => {
     let api: ApiV2;
 
     beforeEach(async () => {
-      TestBed.overrideProvider(UIRouterStateParams, { useValue: { apiId: API_ID, groupName: null } });
+      TestBed.overrideProvider(ActivatedRoute, { useValue: { snapshot: { params: { apiId: API_ID, groupName: null } } } });
+
       await TestBed.compileComponents();
       fixture = TestBed.createComponent(ApiProxyGroupEditComponent);
       loader = TestbedHarnessEnvironment.loader(fixture);

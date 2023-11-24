@@ -27,6 +27,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { RouterModule } from '@angular/router';
 
 import { ApiProxyGroupEndpointEditComponent } from './edit/api-proxy-group-endpoint-edit.component';
 import { ApiProxyGroupEndpointEditGeneralComponent } from './edit/general/api-proxy-group-endpoint-edit-general.component';
@@ -46,6 +47,7 @@ import { EndpointHttpConfigModule } from '../../components/endpoint-http-config/
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    RouterModule,
 
     ApiProxyHealthCheckFormModule,
     EndpointHttpConfigModule,

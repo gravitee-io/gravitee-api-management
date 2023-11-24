@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { catchError, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { combineLatest, EMPTY, Subject, Subscription } from 'rxjs';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { StateService } from '@uirouter/core';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { ApiProxyGroupEndpointConfigurationComponent } from './configuration/api-proxy-group-endpoint-configuration.component';
 
-import { UIRouterState, UIRouterStateParams } from '../../../../../../../ajs-upgraded-providers';
 import { ConnectorService } from '../../../../../../../services-ngx/connector.service';
 import { TenantService } from '../../../../../../../services-ngx/tenant.service';
 import { Tenant } from '../../../../../../../entities/tenant/tenant';
@@ -58,8 +57,8 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
   public tenants: Tenant[];
 
   constructor(
-    @Inject(UIRouterStateParams) private readonly ajsStateParams,
-    @Inject(UIRouterState) private readonly ajsState: StateService,
+    private readonly activatedRoute: ActivatedRoute,
+    private readonly router: Router,
     private readonly formBuilder: FormBuilder,
     private readonly apiService: ApiV2Service,
     private readonly connectorService: ConnectorService,
@@ -69,8 +68,8 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
   ) {}
 
   public ngOnInit(): void {
-    this.apiId = this.ajsStateParams.apiId;
-    this.mode = !this.ajsStateParams.groupName || !this.ajsStateParams.endpointName ? 'new' : 'edit';
+    this.apiId = this.activatedRoute.snapshot.params.apiId;
+    this.mode = !this.activatedRoute.snapshot.params.groupName || !this.activatedRoute.snapshot.params.endpointName ? 'new' : 'edit';
 
     combineLatest([
       this.apiService.get(this.apiId).pipe(onlyApiV1V2Filter(this.snackBarService)),
@@ -102,12 +101,12 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
       .pipe(
         onlyApiV2Filter(this.snackBarService),
         switchMap((api) => {
-          const groupIndex = api.proxy.groups.findIndex((group) => group.name === this.ajsStateParams.groupName);
+          const groupIndex = api.proxy.groups.findIndex((group) => group.name === this.activatedRoute.snapshot.params.groupName);
 
           let endpointIndex = -1;
           if (this.mode === 'edit') {
             endpointIndex = api.proxy.groups[groupIndex].endpoints.findIndex(
-              (endpoint) => endpoint.name === this.ajsStateParams.endpointName,
+              (endpoint) => endpoint.name === this.activatedRoute.snapshot.params.endpointName,
             );
           } else {
             if (!api.proxy.groups[groupIndex].endpoints) {
@@ -136,17 +135,9 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
           this.snackBarService.error(error.error?.message ?? 'Error while saving configuration.');
           return EMPTY;
         }),
-        tap(() =>
+        switchMap(() =>
           // Redirect to same page with last endpoint name
-          this.ajsState.go(
-            'management.apis.endpoint-v2',
-            {
-              apiId: this.apiId,
-              groupName: this.ajsStateParams.groupName,
-              endpointName: this.generalForm.getRawValue().name,
-            },
-            { reload: true },
-          ),
+          this.router.navigate(['../', this.generalForm.get('name').value], { relativeTo: this.activatedRoute }),
         ),
         tap(() => this.ngOnInit()),
         takeUntil(this.unsubscribe$),
@@ -155,11 +146,11 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
   }
 
   private initForms(): void {
-    const group = this.api.proxy.groups.find((group) => group.name === this.ajsStateParams.groupName);
+    const group = this.api.proxy.groups.find((group) => group.name === this.activatedRoute.snapshot.params.groupName);
 
     if (group && group.endpoints && group.endpoints.length > 0) {
       this.endpoint = {
-        ...group.endpoints.find((endpoint) => endpoint.name === this.ajsStateParams.endpointName),
+        ...group.endpoints.find((endpoint) => endpoint.name === this.activatedRoute.snapshot.params.endpointName),
       };
     } else {
       this.endpoint = { type: 'http', inherit: true };

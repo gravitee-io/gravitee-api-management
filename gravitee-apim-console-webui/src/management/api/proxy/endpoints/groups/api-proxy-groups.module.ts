@@ -31,6 +31,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { RouterModule } from '@angular/router';
 
 import { ApiProxyGroupGeneralComponent } from './edit/general/api-proxy-group-general.component';
 import { ApiProxyGroupEditComponent } from './edit/api-proxy-group-edit.component';
@@ -52,6 +53,7 @@ import { EndpointHttpConfigModule } from '../components/endpoint-http-config/end
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    RouterModule,
 
     MatCardModule,
     MatTabsModule,

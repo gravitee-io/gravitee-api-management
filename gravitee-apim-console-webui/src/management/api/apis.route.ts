@@ -2054,6 +2054,45 @@ const apisRoutes: Routes = [
           useAngularMaterial: true,
         },
       },
+      {
+        path: 'v2/endpoints/:groupName/:endpointName',
+        component: ApiProxyGroupEndpointEditComponent,
+        data: {
+          apiPermissions: {
+            only: ['api-definition-r'],
+          },
+          docs: {
+            page: 'management-api-proxy-endpoints',
+          },
+          useAngularMaterial: true,
+        },
+      },
+      {
+        path: 'v2/endpoints/:groupName',
+        component: ApiProxyGroupEditComponent,
+        data: {
+          apiPermissions: {
+            only: ['api-definition-r'],
+          },
+          docs: {
+            page: 'management-api-proxy-group',
+          },
+          useAngularMaterial: true,
+        },
+      },
+      {
+        path: 'v2/endpoints',
+        component: ApiProxyEndpointListComponent,
+        data: {
+          apiPermissions: {
+            only: ['api-definition-r'],
+          },
+          docs: {
+            page: 'management-api-proxy-endpoints',
+          },
+          useAngularMaterial: true,
+        },
+      },
 
       /**
        * V2 & V4 Api state only
