@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { StateService } from '@uirouter/core';
 import * as _ from 'lodash';
 import moment, { Moment } from 'moment';
+import { ActivatedRoute, Router } from '@angular/router';
 
 // eslint:disable-next-line:interface-name
 interface Timeframe {
@@ -26,6 +26,7 @@ interface Timeframe {
 }
 
 class LogsTimeframeController {
+  private activatedRoute: ActivatedRoute;
   private timeframes: Timeframe[];
   private timeframe: Timeframe;
   private pickerStartDate: Moment;
@@ -34,7 +35,7 @@ class LogsTimeframeController {
   private onTimeframeChange: any;
   private unRegisterTimeframeZoom: () => void;
 
-  constructor(private $scope, private $rootScope, private $state: StateService, private $timeout: ng.ITimeoutService) {
+  constructor(private ngRouter: Router, private $rootScope, private $timeout: ng.ITimeoutService) {
     this.timeframes = [
       {
         id: '5m',
@@ -131,13 +132,13 @@ class LogsTimeframeController {
   }
 
   $onInit() {
-    if (this.$state.params.from && this.$state.params.to) {
+    if (this.activatedRoute.snapshot.queryParams.from && this.activatedRoute.snapshot.queryParams.to) {
       this.update({
-        from: this.$state.params.from,
-        to: this.$state.params.to,
+        from: this.activatedRoute.snapshot.queryParams.from,
+        to: this.activatedRoute.snapshot.queryParams.to,
       });
     } else {
-      this.setTimeframe(this.$state.params.timeframe || '5m', true);
+      this.setTimeframe(this.activatedRoute.snapshot.queryParams.timeframe || '5m', true);
     }
   }
 
@@ -148,14 +149,14 @@ class LogsTimeframeController {
   updateTimeframe(timeframeId) {
     if (timeframeId) {
       this.$timeout(async () => {
-        await this.$state.transitionTo(
-          this.$state.current,
-          _.merge(this.$state.params, {
+        await this.ngRouter.navigate(['.'], {
+          relativeTo: this.activatedRoute,
+          queryParams: {
+            ...this.activatedRoute.snapshot.queryParams,
             timestamp: '',
             timeframe: timeframeId,
-          }),
-          { notify: false },
-        );
+          },
+        });
         this.setTimeframe(timeframeId, true);
       });
     }
@@ -225,7 +226,13 @@ class LogsTimeframeController {
     };
 
     this.$timeout(async () => {
-      await this.$state.transitionTo(this.$state.current, _.merge(this.$state.params, this.current), { notify: false });
+      await this.ngRouter.navigate(['.'], {
+        relativeTo: this.activatedRoute,
+        queryParams: {
+          ...this.current,
+          ...this.activatedRoute.snapshot.queryParams,
+        },
+      });
     });
 
     this.pickerStartDate = moment(timeframe.from);
@@ -253,6 +260,6 @@ class LogsTimeframeController {
     });
   }
 }
-LogsTimeframeController.$inject = ['$scope', '$rootScope', '$state', '$timeout'];
+LogsTimeframeController.$inject = ['ngRouter', '$rootScope', '$timeout'];
 
 export default LogsTimeframeController;

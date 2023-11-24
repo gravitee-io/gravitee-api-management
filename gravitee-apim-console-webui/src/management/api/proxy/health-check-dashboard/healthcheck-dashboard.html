@@ -19,14 +19,18 @@
   <div class="gv-form">
     <div class="gv-form-content" layout="column">
       <div layout="row" layout-align="end center">
-        <a permission permission-only="'api-health-u'" ui-sref="management.apis.healthcheck-v2">Configure Health-check</a>
+        <a permission permission-only="'api-health-u'" ng-click="$ctrl.goToConfigureHealthCheck()">Configure Health-check</a>
         <md-button class="md-primary" permission permission-only="'api-health-r'" ng-click="healthCheckCtrl.updateChart()">
           <ng-md-icon icon="refresh"></ng-md-icon>
           Refresh data
         </md-button>
       </div>
       <md-content flex>
-        <gv-logs-timeframe on-timeframe-change="$ctrl.timeframeChange(timeframe)" flex></gv-logs-timeframe>
+        <gv-logs-timeframe
+          activated-route="$ctrl.activatedRoute"
+          on-timeframe-change="$ctrl.timeframeChange(timeframe)"
+          flex
+        ></gv-logs-timeframe>
         <div layout="column" flex>
           <div layout="row" flex>
             <md-card flex>
@@ -284,7 +288,7 @@
                                 ng-if="!log.success"
                                 icon="remove_red_eye"
                                 size="16px"
-                                ui-sref="management.apis.healthcheck-log-v2({logId: log.id})"
+                                ng-click="$ctrl.showLog(log.id)"
                               ></ng-md-icon>
                             </td>
                           </tr>

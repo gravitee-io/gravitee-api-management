@@ -19,5 +19,7 @@ import ApiHealthcheckDashboardControllerAjs from './healthcheck-dashboard.contro
 export const ApiHealthcheckDashboardComponentAjs = {
   template: require('./healthcheck-dashboard.html'),
   controller: ApiHealthcheckDashboardControllerAjs,
-  bindings: {},
+  bindings: {
+    activatedRoute: '<',
+  },
 };

@@ -258,8 +258,7 @@ export class ApiV1V2MenuService implements ApiMenuService {
     if (this.permissionService.hasAnyMatching(['api-health-r'])) {
       backendServicesGroup.items.push({
         displayName: 'Health-check',
-        targetRoute: 'management.apis.healthcheck-v2',
-        baseRoute: 'management.apis.healthcheck-v2',
+        routerLink: 'v2/healthcheck',
       });
     }
 
@@ -267,8 +266,7 @@ export class ApiV1V2MenuService implements ApiMenuService {
     if (this.permissionService.hasAnyMatching(['api-health-r'])) {
       backendServicesGroup.items.push({
         displayName: 'Health-check dashboard',
-        targetRoute: 'management.apis.healthcheck-dashboard-v2',
-        baseRoute: ['management.apis.healthcheck-dashboard-v2', 'management.apis.healthcheck-log-v2'],
+        routerLink: 'v2/healthcheck-dashboard',
       });
     }
 

@@ -19,6 +19,7 @@ const LogsTimeframeComponent: ng.IComponentOptions = {
   controller: 'LogsTimeframeController',
   bindings: {
     onTimeframeChange: '&',
+    activatedRoute: '<',
   },
 };
 
