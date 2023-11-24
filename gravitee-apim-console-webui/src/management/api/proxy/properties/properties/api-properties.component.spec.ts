@@ -26,6 +26,7 @@ import { MatInputHarness } from '@angular/material/input/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { DivHarness } from '@gravitee/ui-particles-angular/testing';
+import { ActivatedRoute } from '@angular/router';
 
 import { ApiPropertiesComponent } from './api-properties.component';
 import { ApiPropertiesModule } from './api-properties.module';
@@ -34,7 +35,7 @@ import { PropertiesImportDialogHarness } from './properties-import-dialog/proper
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
 import { User } from '../../../../../entities/user';
-import { CurrentUserService, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
+import { CurrentUserService } from '../../../../../ajs-upgraded-providers';
 import { GioUiRouterTestingModule } from '../../../../../shared/testing/gio-uirouter-testing-module';
 import { Api, fakeApiV4 } from '../../../../../entities/management-api-v2/api';
 
@@ -53,7 +54,7 @@ describe('ApiPropertiesComponent', () => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiPropertiesModule, GioUiRouterTestingModule, MatIconTestingModule],
       providers: [
-        { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
+        { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
         {
           provide: CurrentUserService,
           useValue: { currentUser },

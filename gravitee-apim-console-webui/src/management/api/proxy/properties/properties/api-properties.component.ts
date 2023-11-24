@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { EMPTY, Subject } from 'rxjs';
-import { StateParams } from '@uirouter/angularjs';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { isEmpty, omit, uniqueId } from 'lodash';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { GIO_DIALOG_WIDTH } from '@gravitee/ui-particles-angular';
+import { ActivatedRoute } from '@angular/router';
 
 import {
   PropertiesAddDialogComponent,
@@ -34,7 +34,6 @@ import {
   PropertiesImportDialogResult,
 } from './properties-import-dialog/properties-import-dialog.component';
 
-import { UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { GioTableWrapperFilters } from '../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { ApiV2, ApiV4, Property } from '../../../../../entities/management-api-v2';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
@@ -76,7 +75,7 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
   public isDirty = false;
 
   constructor(
-    @Inject(UIRouterStateParams) private readonly ajsStateParams: StateParams,
+    private readonly activatedRoute: ActivatedRoute,
     private readonly apiService: ApiV2Service,
     private readonly snackBarService: SnackBarService,
     private readonly matDialog: MatDialog,
@@ -87,7 +86,7 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
     this.isDirty = false;
     this.filteredTableData = [];
     this.apiService
-      .get(this.ajsStateParams.apiId)
+      .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
         tap((api) => {
           if (api.definitionVersion === 'V1') {
@@ -292,10 +291,10 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     this.filteredTableData = [];
 
-    return this.apiService.get(this.ajsStateParams.apiId).pipe(
+    return this.apiService.get(this.activatedRoute.snapshot.params.apiId).pipe(
       switchMap((api: ApiV2 | ApiV4) => {
         const propertiesSorted = propertiesToSave(api.properties ?? []).sort((a, b) => a.key.localeCompare(b.key));
-        return this.apiService.update(this.ajsStateParams.apiId, {
+        return this.apiService.update(this.activatedRoute.snapshot.params.apiId, {
           ...api,
           properties: propertiesSorted,
         });

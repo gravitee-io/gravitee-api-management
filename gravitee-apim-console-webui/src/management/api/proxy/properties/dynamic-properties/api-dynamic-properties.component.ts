@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { combineLatest, Subject } from 'rxjs';
-import { StateParams } from '@uirouter/angularjs';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { MonacoEditorLanguageConfig } from '@gravitee/ui-particles-angular';
+import { ActivatedRoute } from '@angular/router';
 
-import { UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
 import { CorsUtil } from '../../../../../shared/utils';
 import { ApiV2 } from '../../../../../entities/management-api-v2';
@@ -59,13 +58,13 @@ export class ApiDynamicPropertiesComponent implements OnInit, OnDestroy {
   public httpMethods = CorsUtil.httpMethods;
 
   constructor(
-    @Inject(UIRouterStateParams) private readonly ajsStateParams: StateParams,
+    private readonly activatedRoute: ActivatedRoute,
     private readonly apiService: ApiV2Service,
     private readonly snackBarService: SnackBarService,
   ) {}
 
   ngOnInit(): void {
-    combineLatest([this.apiService.get(this.ajsStateParams.apiId)])
+    combineLatest([this.apiService.get(this.activatedRoute.snapshot.params.apiId)])
       .pipe(
         tap(([api]) => {
           if (api.definitionVersion !== 'V2') {
@@ -151,11 +150,11 @@ export class ApiDynamicPropertiesComponent implements OnInit, OnDestroy {
     const dynamicPropertyFormValue = this.form.getRawValue();
 
     this.apiService
-      .get(this.ajsStateParams.apiId)
+      .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
         onlyApiV2Filter(this.snackBarService),
         switchMap((api: ApiV2) => {
-          return this.apiService.update(this.ajsStateParams.apiId, {
+          return this.apiService.update(this.activatedRoute.snapshot.params.apiId, {
             ...api,
             services: {
               ...api.services,
