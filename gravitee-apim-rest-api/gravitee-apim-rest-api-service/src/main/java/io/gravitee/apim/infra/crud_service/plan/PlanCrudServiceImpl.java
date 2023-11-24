@@ -15,13 +15,13 @@
  */
 package io.gravitee.apim.infra.crud_service.plan;
 
+import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.infra.adapter.PlanAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -45,7 +45,36 @@ public class PlanCrudServiceImpl implements PlanCrudService {
                 .map(PlanAdapter.INSTANCE::fromRepository)
                 .orElseThrow(() -> new PlanNotFoundException(planId));
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException(String.format("An error occurs while trying to find a plan by id: %s", planId), ex);
+            throw new TechnicalDomainException(String.format("An error occurs while trying to find a plan by id: %s", planId), ex);
+        }
+    }
+
+    @Override
+    public Plan create(Plan plan) {
+        try {
+            var result = planRepository.create(PlanAdapter.INSTANCE.toRepository(plan));
+            return PlanAdapter.INSTANCE.fromRepository(result);
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException("An error occurs while trying to create the plan: " + plan.getId(), e);
+        }
+    }
+
+    @Override
+    public Plan update(io.gravitee.apim.core.plan.model.Plan plan) {
+        try {
+            var result = planRepository.update(PlanAdapter.INSTANCE.toRepository(plan));
+            return PlanAdapter.INSTANCE.fromRepository(result);
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException("An error occurs while trying to update the plan: " + plan.getId(), e);
+        }
+    }
+
+    @Override
+    public void delete(String planId) {
+        try {
+            planRepository.delete(planId);
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException("An error occurs while trying to delete the plan: " + planId, e);
         }
     }
 }

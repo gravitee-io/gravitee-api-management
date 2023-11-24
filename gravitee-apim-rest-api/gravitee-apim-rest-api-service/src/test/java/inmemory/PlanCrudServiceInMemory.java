@@ -22,6 +22,7 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.OptionalInt;
 
 public class PlanCrudServiceInMemory implements PlanCrudService, InMemoryAlternative<Plan> {
 
@@ -37,6 +38,34 @@ public class PlanCrudServiceInMemory implements PlanCrudService, InMemoryAlterna
             .filter(plan -> planId.equals(plan.getId()))
             .findFirst()
             .orElseThrow(() -> new PlanNotFoundException(planId));
+    }
+
+    @Override
+    public Plan create(Plan plan) {
+        if (storage.stream().anyMatch(p -> p.getId().equals(plan.getId()))) {
+            throw new IllegalStateException("Plan already exists");
+        }
+        storage.add(plan);
+        return plan;
+    }
+
+    @Override
+    public Plan update(Plan entity) {
+        OptionalInt index = this.findIndex(this.storage, plan -> plan.getId().equals(entity.getId()));
+        if (index.isPresent()) {
+            storage.set(index.getAsInt(), entity);
+            return entity;
+        }
+
+        throw new IllegalStateException("Plan not found");
+    }
+
+    @Override
+    public void delete(String planId) {
+        OptionalInt index = this.findIndex(this.storage, plan -> plan.getId().equals(planId));
+        if (index.isPresent()) {
+            storage.remove(index.getAsInt());
+        }
     }
 
     @Override
