@@ -311,8 +311,7 @@ export class ApiV1V2MenuService implements ApiMenuService {
 
       analyticsGroup.items.push({
         displayName: 'Alerts',
-        targetRoute: 'management.apis.analytics-alerts-v2',
-        baseRoute: 'management.apis.analytics-alerts-v2',
+        routerLink: 'v2/analytics-alerts',
         license: alertEngineLicenseOptions,
         iconRight$: alertEngineIconRight$,
       });

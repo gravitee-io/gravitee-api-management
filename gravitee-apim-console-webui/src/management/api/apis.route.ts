@@ -2229,6 +2229,23 @@ const apisRoutes: Routes = [
           useAngularMaterial: true,
         },
       },
+      {
+        path: 'v2/analytics-alerts',
+        component: ApiAlertsDashboardComponent,
+        data: {
+          requireLicense: {
+            license: { feature: ApimFeature.ALERT_ENGINE },
+            redirect: 'management.apis-list',
+          },
+          apiPermissions: {
+            only: ['api-alert-r'],
+          },
+          docs: {
+            page: 'management-api-alerts',
+          },
+          useAngularMaterial: true,
+        },
+      },
 
       /**
        * V2 & V4 Api state only
