@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { StateService } from '@uirouter/core';
 import { IOnDestroy, IOnInit, IRootScopeService } from 'angular';
 import * as _ from 'lodash';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import AnalyticsService from '../../services/analytics.service';
 
@@ -25,10 +25,11 @@ class DashboardFilterController implements IOnInit, IOnDestroy {
   private onFilterChange: any;
   private lastSource: any;
   private readonly filterItemChangeListener: () => void;
+  private activatedRoute: ActivatedRoute;
 
   constructor(
     private readonly $rootScope: IRootScopeService,
-    private readonly $state: StateService,
+    private readonly ngRouter: Router,
     private readonly AnalyticsService: AnalyticsService,
     private readonly $timeout: ng.ITimeoutService,
   ) {
@@ -152,13 +153,14 @@ class DashboardFilterController implements IOnInit, IOnDestroy {
     // Update the query parameter
     if (!silent) {
       this.$timeout(async () => {
-        await this.$state.transitionTo(
-          this.$state.current,
-          _.merge(this.$state.params, {
+        await this.ngRouter.navigate(['.'], {
+          relativeTo: this.activatedRoute,
+          queryParams: {
+            ...this.activatedRoute.snapshot.queryParams,
             q: query,
-          }),
-          { notify: false },
-        );
+          },
+        });
+
         this.onFilterChange({ query: query, widget: this.lastSource });
       });
     }
@@ -184,6 +186,6 @@ class DashboardFilterController implements IOnInit, IOnDestroy {
     this.createAndSendQuery(lastFilter.silent);
   }
 }
-DashboardFilterController.$inject = ['$rootScope', '$state', 'AnalyticsService', '$timeout'];
+DashboardFilterController.$inject = ['$rootScope', 'ngRouter', 'AnalyticsService', '$timeout'];
 
 export default DashboardFilterController;

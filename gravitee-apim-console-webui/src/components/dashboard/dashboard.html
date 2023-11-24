@@ -17,8 +17,14 @@
 -->
 <div class="gv-form-content" layout="column" ng-if="$ctrl.model.definition && $ctrl.model.definition.length">
   <div ng-if="!$ctrl.updateMode && !$ctrl.customTimeframe">
-    <gv-dashboard-timeframe on-timeframe-change="$ctrl.timeframeChange(timeframe)"></gv-dashboard-timeframe>
-    <gv-dashboard-filter on-filter-change="$ctrl.queryFilterChange(query, widget)"></gv-dashboard-filter>
+    <gv-dashboard-timeframe
+      activated-route="$ctrl.activatedRoute"
+      on-timeframe-change="$ctrl.timeframeChange(timeframe)"
+    ></gv-dashboard-timeframe>
+    <gv-dashboard-filter
+      activated-route="$ctrl.activatedRoute"
+      on-filter-change="$ctrl.queryFilterChange(query, widget)"
+    ></gv-dashboard-filter>
     <div layout="row" flex="100" layout-align="end center" ng-if="$ctrl.accessLogs">
       <md-button md-no-ink class="md-primary" ng-click="$ctrl.viewLogs()">View logs</md-button>
     </div>

@@ -24,6 +24,7 @@ const DashboardComponent: ng.IComponentOptions = {
     onViewLogClick: '&',
     updateMode: '<',
     customTimeframe: '<',
+    activatedRoute: '<',
   },
   controller: [
     '$scope',

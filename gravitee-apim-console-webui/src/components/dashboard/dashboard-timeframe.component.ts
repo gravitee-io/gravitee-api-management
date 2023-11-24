@@ -19,6 +19,7 @@ const DashboardTimeframeComponent: ng.IComponentOptions = {
   controller: 'DashboardTimeframeController',
   bindings: {
     onTimeframeChange: '&',
+    activatedRoute: '<',
   },
   require: {
     parent: '^gvDashboard',

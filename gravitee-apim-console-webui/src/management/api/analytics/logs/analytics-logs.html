@@ -18,13 +18,17 @@
 <div class="gv-forms gv-forms-fluid" layout="column">
   <div class="gv-forms-header">
     <h1>Logs</h1>
-    <a permission permission-only="'api-log-u'" ui-sref="management.apis.analytics-logs-configuration-v2">Configure the logging</a>
+    <a permission permission-only="'api-log-u'" ng-click="$ctrl.configureLogging()">Configure the logging</a>
   </div>
   <div ng-if="$ctrl.api" class="gv-form">
     <h2></h2>
     <div class="gv-form-content" layout="column">
       <div layout="row">
-        <gv-logs-timeframe on-timeframe-change="$ctrl.timeframeChange(timeframe)" flex></gv-logs-timeframe>
+        <gv-logs-timeframe
+          activated-route="$ctrl.activatedRoute"
+          on-timeframe-change="$ctrl.timeframeChange(timeframe)"
+          flex
+        ></gv-logs-timeframe>
         <div style="margin: auto">
           <md-button
             type="button"
@@ -77,19 +81,7 @@
               ng-class="{'log-error': log.status >= 400}"
             >
               <td md-cell nowrap>
-                <a
-                  ui-sref="management.apis.analytics-log-v2({
-              logId: log.id,
-              timestamp: log.timestamp,
-              from: $ctrl.query.from,
-              to: $ctrl.query.to,
-              q: $ctrl.query.query,
-              page: $ctrl.query.page,
-              size: $ctrl.query.size
-              })"
-                >
-                  {{log.timestamp | date:'yyyy-MM-dd HH:mm:ss.sss'}}
-                </a>
+                <a ng-click="$ctrl.gotToLog(log)"> {{log.timestamp | date:'yyyy-MM-dd HH:mm:ss.sss'}} </a>
               </td>
               <td md-cell nowrap><span class="gv-statuscode-{{log.status / 100 | number:0}}xx">{{log.status}}</span></td>
               <td md-cell nowrap>{{$ctrl.getMetadata(log.application).name}}</td>

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { StateService } from '@uirouter/core';
 import * as _ from 'lodash';
+import { Params } from '@angular/router';
 
 export class LogsQuery {
   from: number;
@@ -103,13 +103,13 @@ class AnalyticsService {
     return queryParam;
   }
 
-  buildQueryFromState($state: StateService) {
+  buildQueryFromState(queryParams: Params) {
     const query = new LogsQuery();
-    query.page = $state.params.page || 1;
-    query.size = $state.params.size || 15;
-    query.from = $state.params.from;
-    query.to = $state.params.to;
-    query.query = $state.params.q;
+    query.page = queryParams.page || 1;
+    query.size = queryParams.size || 15;
+    query.from = queryParams.from;
+    query.to = queryParams.to;
+    query.query = queryParams.q;
     query.field = '-@timestamp';
     return query;
   }

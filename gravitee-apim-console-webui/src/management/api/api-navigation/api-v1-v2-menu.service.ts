@@ -285,15 +285,13 @@ export class ApiV1V2MenuService implements ApiMenuService {
     if (this.permissionService.hasAnyMatching(['api-analytics-r'])) {
       analyticsGroup.items.push({
         displayName: 'Overview',
-        targetRoute: 'management.apis.analytics-overview-v2',
-        baseRoute: 'management.apis.analytics-overview-v2',
+        routerLink: 'v2/analytics-overview',
       });
     }
     if (this.permissionService.hasAnyMatching(['api-log-r'])) {
       analyticsGroup.items.push({
         displayName: 'Logs',
-        targetRoute: 'management.apis.analytics-logs-v2',
-        baseRoute: ['management.apis.analytics-logs-v2', 'management.apis.analytics-logs-configuration-v2'],
+        routerLink: 'v2/analytics-logs',
       });
     }
     if (this.permissionService.hasAnyMatching(['api-definition-u'])) {

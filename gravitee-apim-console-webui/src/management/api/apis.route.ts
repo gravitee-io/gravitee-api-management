@@ -2142,6 +2142,80 @@ const apisRoutes: Routes = [
           useAngularMaterial: true,
         },
       },
+      {
+        path: 'v2/analytics-overview',
+        component: ApiAnalyticsOverviewComponent,
+        data: {
+          apiPermissions: {
+            only: ['api-analytics-r'],
+          },
+          docs: {
+            page: 'management-api-analytics',
+          },
+          useAngularMaterial: true,
+        },
+      },
+      {
+        path: 'v2/analytics-logs/configuration',
+        component: ApiLogsConfigurationComponent,
+        data: {
+          apiPermissions: {
+            only: ['api-log-u'],
+          },
+          docs: {
+            page: 'management-api-logging-configuration',
+          },
+          useAngularMaterial: true,
+        },
+      },
+      {
+        path: 'v2/analytics-logs/:logId',
+        component: ApiAnalyticsLogComponent,
+        data: {
+          apiPermissions: {
+            only: ['api-log-r'],
+          },
+          docs: {
+            page: 'management-api-log',
+          },
+          useAngularMaterial: true,
+        },
+      },
+      {
+        path: 'v2/analytics-logs',
+        component: ApiAnalyticsLogsComponent,
+        data: {
+          apiPermissions: {
+            only: ['api-log-r'],
+          },
+          docs: {
+            page: 'management-api-logs',
+          },
+          useAngularMaterial: true,
+          params: {
+            from: {
+              type: 'int',
+              dynamic: true,
+            },
+            to: {
+              type: 'int',
+              dynamic: true,
+            },
+            q: {
+              type: 'string',
+              dynamic: true,
+            },
+            page: {
+              type: 'int',
+              dynamic: true,
+            },
+            size: {
+              type: 'int',
+              dynamic: true,
+            },
+          },
+        },
+      },
 
       /**
        * V2 & V4 Api state only

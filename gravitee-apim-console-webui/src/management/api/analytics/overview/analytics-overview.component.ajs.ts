@@ -19,5 +19,7 @@ import ApiAnalyticsOverviewControllerAjs from './analytics-overview.controller.a
 export const ApiAnalyticsOverviewComponentAjs = {
   template: require('./analytics-overview.html'),
   controller: ApiAnalyticsOverviewControllerAjs,
-  bindings: {},
+  bindings: {
+    activatedRoute: '<',
+  },
 };
