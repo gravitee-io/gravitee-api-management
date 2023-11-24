@@ -19,12 +19,14 @@ import static io.gravitee.apim.core.log.use_case.SearchConnectionLogsUseCase.UNK
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
+import fixtures.core.model.PlanFixtures;
 import fixtures.repository.ConnectionLogFixtures;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.ConnectionLogsCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.PlanCrudServiceInMemory;
 import io.gravitee.apim.core.log.use_case.SearchConnectionLogsUseCase.Input;
+import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.model.analytics.SearchLogsFilters;
@@ -45,8 +47,8 @@ import org.junit.jupiter.api.Test;
 public class SearchConnectionLogsUseCaseTest {
 
     private static final String API_ID = "f1608475-dd77-4603-a084-75dd775603e9";
-    private static final BasePlanEntity PLAN_1 = BasePlanEntity.builder().id("plan1").name("1st plan").build();
-    private static final BasePlanEntity PLAN_2 = BasePlanEntity.builder().id("plan2").name("2nd plan").build();
+    private static final Plan PLAN_1 = PlanFixtures.aPlanV4().toBuilder().id("plan1").name("1st plan").build();
+    private static final Plan PLAN_2 = PlanFixtures.aPlanV4().toBuilder().id("plan2").name("2nd plan").build();
     private static final BaseApplicationEntity APPLICATION_1 = BaseApplicationEntity
         .builder()
         .id("app1")
@@ -266,9 +268,9 @@ public class SearchConnectionLogsUseCaseTest {
         assertThat(result.data())
             .extracting(ConnectionLogModel::getRequestId, ConnectionLogModel::getPlan)
             .containsExactlyInAnyOrder(
-                tuple("req1", BasePlanEntity.builder().id(PLAN_1.getId()).name(PLAN_1.getName()).build()),
-                tuple("req2", BasePlanEntity.builder().id(PLAN_1.getId()).name(PLAN_1.getName()).build()),
-                tuple("req3", BasePlanEntity.builder().id(PLAN_2.getId()).name(PLAN_2.getName()).build())
+                tuple("req1", PlanFixtures.aPlanV4().toBuilder().id(PLAN_1.getId()).name(PLAN_1.getName()).build()),
+                tuple("req2", PlanFixtures.aPlanV4().toBuilder().id(PLAN_1.getId()).name(PLAN_1.getName()).build()),
+                tuple("req3", PlanFixtures.aPlanV4().toBuilder().id(PLAN_2.getId()).name(PLAN_2.getName()).build())
             );
     }
 
@@ -312,7 +314,7 @@ public class SearchConnectionLogsUseCaseTest {
         );
 
         SoftAssertions.assertSoftly(soft -> {
-            soft.assertThat(result.total()).isEqualTo(1);
+            soft.assertThat(result.total()).isOne();
             soft
                 .assertThat(result.data())
                 .extracting(ConnectionLogModel::getRequestId, ConnectionLogModel::getTimestamp)

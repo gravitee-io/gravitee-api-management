@@ -20,6 +20,7 @@ import static org.assertj.core.api.ThrowableAssert.catchThrowable;
 
 import fixtures.core.model.ApiKeyFixtures;
 import fixtures.core.model.AuditInfoFixtures;
+import fixtures.core.model.PlanFixtures;
 import fixtures.core.model.SubscriptionFixtures;
 import inmemory.ApiKeyCrudServiceInMemory;
 import inmemory.ApiKeyQueryServiceInMemory;
@@ -39,6 +40,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.event.SubscriptionAuditEvent;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionClosedApiHookContext;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionClosedApplicationHookContext;
+import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.RejectSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
@@ -47,7 +49,6 @@ import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
-import io.gravitee.rest.api.model.v4.plan.BasePlanEntity;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
 import java.time.Instant;
@@ -189,7 +190,7 @@ class CloseSubscriptionUseCaseTest {
     @Test
     void should_reject_pending_subscription() {
         // Given
-        var plan = givenExistingPlan(BasePlanEntity.builder().id("plan-id").status(PlanStatus.PUBLISHED).build());
+        var plan = givenExistingPlan(PlanFixtures.aPlanV4().toBuilder().id("plan-id").status(PlanStatus.PUBLISHED).build());
         givenExistingSubscription(
             SubscriptionFixtures
                 .aSubscription()
@@ -379,7 +380,7 @@ class CloseSubscriptionUseCaseTest {
         return subscription;
     }
 
-    private BasePlanEntity givenExistingPlan(BasePlanEntity plan) {
+    private Plan givenExistingPlan(Plan plan) {
         planCrudService.initWith(List.of(plan));
         return plan;
     }

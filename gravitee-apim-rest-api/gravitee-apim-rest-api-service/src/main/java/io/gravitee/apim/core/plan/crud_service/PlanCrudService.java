@@ -15,8 +15,8 @@
  */
 package io.gravitee.apim.core.plan.crud_service;
 
-import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
+import io.gravitee.apim.core.plan.model.Plan;
 
 public interface PlanCrudService {
-    GenericPlanEntity findById(String planId);
+    Plan findById(String planId);
 }

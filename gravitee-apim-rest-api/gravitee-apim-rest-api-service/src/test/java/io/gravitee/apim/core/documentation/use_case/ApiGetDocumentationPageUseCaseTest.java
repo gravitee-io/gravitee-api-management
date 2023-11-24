@@ -18,6 +18,7 @@ package io.gravitee.apim.core.documentation.use_case;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import fixtures.core.model.PlanFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.PageCrudServiceInMemory;
 import inmemory.PageQueryServiceInMemory;
@@ -26,9 +27,7 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.exception.ValidationDomainException;
-import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
-import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
 import java.util.List;
@@ -82,7 +81,16 @@ class ApiGetDocumentationPageUseCaseTest {
         );
 
         planQueryService.initWith(
-            List.of(PlanEntity.builder().id("plan-1").status(PlanStatus.PUBLISHED).apiId(API_ID).generalConditions(PAGE_ID).build())
+            List.of(
+                PlanFixtures
+                    .aPlanV4()
+                    .toBuilder()
+                    .id("plan-1")
+                    .status(PlanStatus.PUBLISHED)
+                    .apiId(API_ID)
+                    .generalConditions(PAGE_ID)
+                    .build()
+            )
         );
 
         var res = useCase.execute(new ApiGetDocumentationPageUseCase.Input(API_ID, PAGE_ID)).page();

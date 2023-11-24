@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.groups.Tuple.tuple;
 
 import fixtures.core.model.AuditInfoFixtures;
+import fixtures.core.model.PlanFixtures;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.PageCrudServiceInMemory;
@@ -38,7 +39,6 @@ import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
-import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
 import java.util.Date;
 import java.util.List;
@@ -116,7 +116,14 @@ class DeleteApiDocumentationDomainServiceTest {
             );
             planQueryService.initWith(
                 List.of(
-                    PlanEntity.builder().id("plan-1").apiId(API.getId()).status(PlanStatus.PUBLISHED).generalConditions(PAGE_ID).build()
+                    PlanFixtures
+                        .aPlanV4()
+                        .toBuilder()
+                        .id("plan-1")
+                        .apiId(API.getId())
+                        .status(PlanStatus.PUBLISHED)
+                        .generalConditions(PAGE_ID)
+                        .build()
                 )
             );
             assertThatThrownBy(() -> cut.delete(API, PAGE_ID, AUDIT_INFO)).isInstanceOf(ApiPageUsedAsGeneralConditionException.class);
@@ -143,7 +150,14 @@ class DeleteApiDocumentationDomainServiceTest {
             pageQueryService.initWith(List.of(folder, page));
             planQueryService.initWith(
                 List.of(
-                    PlanEntity.builder().id("plan-1").apiId(API.getId()).status(PlanStatus.PUBLISHED).generalConditions(PAGE_ID).build()
+                    PlanFixtures
+                        .aPlanV4()
+                        .toBuilder()
+                        .id("plan-1")
+                        .apiId(API.getId())
+                        .status(PlanStatus.PUBLISHED)
+                        .generalConditions(PAGE_ID)
+                        .build()
                 )
             );
 

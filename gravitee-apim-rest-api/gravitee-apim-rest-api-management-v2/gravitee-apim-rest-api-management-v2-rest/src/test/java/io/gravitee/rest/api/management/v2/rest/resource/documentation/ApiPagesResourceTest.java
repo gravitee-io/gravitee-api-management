@@ -25,6 +25,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 import assertions.MAPIAssertions;
+import fixtures.core.model.PlanFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
@@ -490,7 +491,16 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                 .build();
             givenApiPagesQuery(List.of(page1, page2));
             planQueryServiceInMemory.initWith(
-                List.of(PlanEntity.builder().id("plan-1").apiId("api-id").generalConditions("page-1").status(PlanStatus.PUBLISHED).build())
+                List.of(
+                    PlanFixtures
+                        .aPlanV4()
+                        .toBuilder()
+                        .id("plan-1")
+                        .apiId("api-id")
+                        .generalConditions("page-1")
+                        .status(PlanStatus.PUBLISHED)
+                        .build()
+                )
             );
 
             final Response response = rootTarget().request().get();
@@ -1237,7 +1247,9 @@ class ApiPagesResourceTest extends AbstractResourceTest {
             givenApiPagesQuery(List.of(page1));
 
             planQueryServiceInMemory.initWith(
-                List.of(PlanEntity.builder().id("plan-id").status(planStatus).apiId(API_ID).generalConditions(PAGE_ID).build())
+                List.of(
+                    PlanFixtures.aPlanV4().toBuilder().id("plan-id").status(planStatus).apiId(API_ID).generalConditions(PAGE_ID).build()
+                )
             );
 
             final Response response = rootTarget().path(PATH).request().delete();

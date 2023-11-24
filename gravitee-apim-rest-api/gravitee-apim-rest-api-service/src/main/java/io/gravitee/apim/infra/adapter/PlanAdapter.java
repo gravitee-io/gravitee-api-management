@@ -16,6 +16,7 @@
 package io.gravitee.apim.infra.adapter;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
@@ -44,6 +45,17 @@ import org.slf4j.LoggerFactory;
 public interface PlanAdapter {
     Logger LOGGER = LoggerFactory.getLogger(PlanAdapter.class);
     PlanAdapter INSTANCE = Mappers.getMapper(PlanAdapter.class);
+
+    @Mapping(source = "api", target = "apiId")
+    @Mapping(target = "security", expression = "java(computeBasePlanEntitySecurityV4(plan))")
+    @Mapping(target = "paths", expression = "java(computeBasePlanEntityPaths(plan))")
+    Plan fromRepository(io.gravitee.repository.management.model.Plan plan);
+
+    @Mapping(source = "apiId", target = "api")
+    @Mapping(target = "security", qualifiedByName = "computeRepositorySecurityType")
+    @Mapping(target = "securityDefinition", source = "security.configuration")
+    @Mapping(target = "definition", source = "paths", qualifiedByName = "computeBasePlanEntityPaths")
+    io.gravitee.repository.management.model.Plan toRepository(Plan plan);
 
     @Mapping(target = "apiId", source = "api")
     @Mapping(target = "mode", expression = "java(computeBasePlanEntityMode(plan))")
@@ -105,7 +117,7 @@ public interface PlanAdapter {
     default Map<String, List<Rule>> computeBasePlanEntityPaths(io.gravitee.repository.management.model.Plan plan) {
         if (plan.getDefinition() != null && !plan.getDefinition().isEmpty()) {
             try {
-                return GraviteeJacksonMapper.getInstance().readValue(plan.getDefinition(), new TypeReference<Map<String, List<Rule>>>() {});
+                return GraviteeJacksonMapper.getInstance().readValue(plan.getDefinition(), new TypeReference<>() {});
             } catch (IOException ioe) {
                 LOGGER.error("Unexpected error while generating policy definition", ioe);
                 return null;
@@ -113,5 +125,28 @@ public interface PlanAdapter {
         } else {
             return null;
         }
+    }
+
+    @Named("computeBasePlanEntityPaths")
+    default String serializeV2PlanPaths(Map<String, List<Rule>> paths) {
+        if (paths != null && !paths.isEmpty()) {
+            try {
+                return GraviteeJacksonMapper.getInstance().writeValueAsString(paths);
+            } catch (IOException ioe) {
+                LOGGER.error("Unexpected error while serializing v2 plan paths", ioe);
+                return null;
+            }
+        } else {
+            return null;
+        }
+    }
+
+    @Named("computeRepositorySecurityType")
+    default io.gravitee.repository.management.model.Plan.PlanSecurityType computeRepositorySecurityType(PlanSecurity planSecurity) {
+        if (planSecurity != null) {
+            PlanSecurityType planSecurityType = PlanSecurityType.valueOfLabel(planSecurity.getType());
+            return io.gravitee.repository.management.model.Plan.PlanSecurityType.valueOf(planSecurityType.name());
+        }
+        return null;
     }
 }

@@ -16,21 +16,16 @@
 package io.gravitee.apim.infra.query_service.page;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.apim.core.exception.NotFoundDomainException;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import io.gravitee.apim.infra.query_service.plan.PlanQueryServiceImpl;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
-import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.PlanRepository;
-import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Plan;
-import java.util.Optional;
 import java.util.Set;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
@@ -90,7 +85,7 @@ class PlanQueryServiceImplTest {
             when(planRepository.findByApi(eq(API_ID))).thenReturn(Set.of());
 
             var res = service.findAllByApiIdAndGeneralConditionsAndIsActive(API_ID, DefinitionVersion.V4, PAGE_ID);
-            assertThat(res).hasSize(0);
+            assertThat(res).isEmpty();
         }
     }
 }
