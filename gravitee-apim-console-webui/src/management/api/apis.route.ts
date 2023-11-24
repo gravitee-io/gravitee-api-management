@@ -29,7 +29,6 @@ import { ApiGeneralSubscriptionEditComponent } from './general/subscriptions/edi
 import { ApiEntrypointsV4GeneralComponent } from './entrypoints-v4/api-entrypoints-v4-general.component';
 import { ApiEndpointComponent } from './endpoints-v4/endpoint/api-endpoint.component';
 import { ApiEntrypointsV4EditComponent } from './entrypoints-v4/edit/api-entrypoints-v4-edit.component';
-import { ApiPropertiesOldComponent } from './proxy/properties-ng/api-properties-old.component';
 import { ApiResourcesComponent } from './proxy/resources-ng/api-resources.component';
 import { ApiGeneralMembersComponent } from './general/user-group-access/members/api-general-members.component';
 import { ApiGeneralGroupsComponent } from './general/user-group-access/groups/api-general-groups.component';
@@ -1326,20 +1325,20 @@ export const states: Ng2StateDeclaration[] = [
   /**
    * V2 & V4 Api state only
    */
-  {
-    name: 'management.apis.properties-old',
-    url: '/properties-old',
-    component: ApiPropertiesOldComponent,
-    data: {
-      useAngularMaterial: true,
-      apiPermissions: {
-        only: ['api-definition-r'],
-      },
-      docs: {
-        page: 'management-api-policy-studio-properties',
-      },
-    },
-  },
+  // {
+  //   name: 'management.apis.properties-old',
+  //   url: '/properties-old',
+  //   component: ApiPropertiesOldComponent,
+  //   data: {
+  //     useAngularMaterial: true,
+  //     apiPermissions: {
+  //       only: ['api-definition-r'],
+  //     },
+  //     docs: {
+  //       page: 'management-api-policy-studio-properties',
+  //     },
+  //   },
+  // },
   {
     name: 'management.apis.properties',
     url: '/properties',
@@ -2250,6 +2249,29 @@ const apisRoutes: Routes = [
       /**
        * V2 & V4 Api state only
        */
+      {
+        path: 'properties',
+        component: ApiPropertiesComponent,
+        data: {
+          useAngularMaterial: true,
+          apiPermissions: {
+            only: ['api-definition-r'],
+          },
+          docs: {
+            page: 'management-api-policy-studio-properties',
+          },
+        },
+      },
+      {
+        path: 'dynamic-properties',
+        component: ApiDynamicPropertiesComponent,
+        data: {
+          useAngularMaterial: true,
+          apiPermissions: {
+            only: ['api-definition-r'],
+          },
+        },
+      },
 
       /**
        * V4 Api state only

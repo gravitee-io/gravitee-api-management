@@ -25,12 +25,12 @@ import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
 import { GioFormCronHarness, GioFormHeadersHarness, GioMonacoEditorHarness, GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { MatInputHarness } from '@angular/material/input/testing';
+import { ActivatedRoute } from '@angular/router';
 
 import { ApiDynamicPropertiesComponent } from './api-dynamic-properties.component';
 import { ApiDynamicPropertiesModule } from './api-dynamic-properties.module';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
-import { UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { GioUiRouterTestingModule } from '../../../../../shared/testing/gio-uirouter-testing-module';
 import { Api, fakeApiV2 } from '../../../../../entities/management-api-v2';
 
@@ -43,7 +43,7 @@ describe('ApiDynamicPropertiesComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiDynamicPropertiesModule, GioUiRouterTestingModule, MatIconTestingModule],
-      providers: [{ provide: UIRouterStateParams, useValue: { apiId: API_ID } }],
+      providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } }],
     }).overrideProvider(InteractivityChecker, {
       useValue: {
         isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
