@@ -2216,6 +2216,19 @@ const apisRoutes: Routes = [
           },
         },
       },
+      {
+        path: 'v2/path-mappings',
+        component: ApiPathMappingsComponent,
+        data: {
+          apiPermissions: {
+            only: ['api-definition-r'],
+          },
+          docs: {
+            page: 'management-api-pathMappings',
+          },
+          useAngularMaterial: true,
+        },
+      },
 
       /**
        * V2 & V4 Api state only

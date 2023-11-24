@@ -297,8 +297,7 @@ export class ApiV1V2MenuService implements ApiMenuService {
     if (this.permissionService.hasAnyMatching(['api-definition-u'])) {
       analyticsGroup.items.push({
         displayName: 'Path mappings',
-        targetRoute: 'management.apis.analytics-path-mappings-v2',
-        baseRoute: 'management.apis.analytics-path-mappings-v2',
+        routerLink: 'v2/path-mappings',
       });
     }
     if (!this.constants.isOEM && this.constants.org.settings.alert?.enabled && this.permissionService.hasAnyMatching(['api-alert-r'])) {

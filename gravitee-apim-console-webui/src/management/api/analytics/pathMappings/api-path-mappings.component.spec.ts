@@ -24,11 +24,12 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { MatInputHarness } from '@angular/material/input/testing';
+import { ActivatedRoute } from '@angular/router';
 
 import { ApiPathMappingsComponent } from './api-path-mappings.component';
 import { ApiPathMappingsModule } from './api-path-mappings.module';
 
-import { AjsRootScope, CurrentUserService, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+import { CurrentUserService } from '../../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { User } from '../../../../entities/user';
 import { Page } from '../../../../entities/page';
@@ -49,9 +50,8 @@ describe('ApiPathMappingsComponent', () => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiPathMappingsModule, MatIconTestingModule],
       providers: [
-        { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
+        { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
         { provide: CurrentUserService, useValue: { currentUser } },
-        { provide: AjsRootScope, useValue: { $broadcast: jest.fn() } },
       ],
     })
       .overrideProvider(InteractivityChecker, {

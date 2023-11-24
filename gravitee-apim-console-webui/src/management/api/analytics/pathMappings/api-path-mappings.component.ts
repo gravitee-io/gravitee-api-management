@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { EMPTY, Subject } from 'rxjs';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { remove, sortBy } from 'lodash';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { MatDialog } from '@angular/material/dialog';
+import { ActivatedRoute } from '@angular/router';
 
 import {
   ApiPathMappingsEditDialogComponent,
@@ -29,7 +30,6 @@ import {
   ApiPathMappingsAddDialogData,
 } from './api-path-mappings-add-dialog/api-path-mappings-add-dialog.component';
 
-import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { DocumentationService } from '../../../../services-ngx/documentation.service';
 import { Page } from '../../../../entities/page';
@@ -56,7 +56,7 @@ export class ApiPathMappingsComponent implements OnInit, OnDestroy {
   private swaggerDocs: Page[];
 
   constructor(
-    @Inject(UIRouterStateParams) private readonly ajsStateParams,
+    private readonly activatedRoute: ActivatedRoute,
     private readonly apiService: ApiV2Service,
     private readonly matDialog: MatDialog,
     private readonly snackBarService: SnackBarService,
@@ -65,7 +65,7 @@ export class ApiPathMappingsComponent implements OnInit, OnDestroy {
 
   public ngOnInit(): void {
     this.apiService
-      .get(this.ajsStateParams.apiId)
+      .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
         onlyApiV1V2Filter(this.snackBarService),
         tap((api) => {
@@ -78,9 +78,9 @@ export class ApiPathMappingsComponent implements OnInit, OnDestroy {
       .subscribe();
 
     this.documentationService
-      .apiSearch(this.ajsStateParams.apiId, {
+      .apiSearch(this.activatedRoute.snapshot.params.apiId, {
         type: 'SWAGGER',
-        api: this.ajsStateParams.apiId,
+        api: this.activatedRoute.snapshot.params.apiId,
       })
       .subscribe((response) => {
         this.swaggerDocs = response;
@@ -107,7 +107,7 @@ export class ApiPathMappingsComponent implements OnInit, OnDestroy {
       .afterClosed()
       .pipe(
         filter((confirm) => confirm === true),
-        switchMap(() => this.apiService.get(this.ajsStateParams.apiId)),
+        switchMap(() => this.apiService.get(this.activatedRoute.snapshot.params.apiId)),
         onlyApiV2Filter(this.snackBarService),
         switchMap((api) => {
           remove(api.pathMappings, (p) => p === path);
