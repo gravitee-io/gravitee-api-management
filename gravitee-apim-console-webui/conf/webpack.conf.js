@@ -74,6 +74,11 @@ module.exports = {
         include: /node_modules\/codemirror/,
       },
       {
+        test: /\.js$/,
+        use: ['babel-loader'],
+        include: /node_modules\/swagger-ui-dist/,
+      },
+      {
         test: /.html$/,
         use: ['html-loader'],
       },
