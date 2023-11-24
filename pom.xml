@@ -62,7 +62,7 @@
         <gravitee-fetcher-api.version>1.4.0</gravitee-fetcher-api.version>
         <gravitee-gateway-api.version>3.4.0</gravitee-gateway-api.version>
         <gravitee-license-node.version>1.3.1</gravitee-license-node.version>
-        <gravitee-node.version>4.4.0-alpha.5</gravitee-node.version>
+        <gravitee-node.version>4.6.0</gravitee-node.version>
         <gravitee-notifier-api.version>1.4.3</gravitee-notifier-api.version>
         <gravitee-plugin.version>2.1.0</gravitee-plugin.version>
         <gravitee-platform-repository-api.version>1.3.0</gravitee-platform-repository-api.version>
@@ -271,7 +271,7 @@
         <gravitee-endpoint-rabbitmq.version>1.3.0</gravitee-endpoint-rabbitmq.version>
         <gravitee-endpoint-solace.version>1.1.0</gravitee-endpoint-solace.version>
         <gravitee-resource-schema-registry-confluent.version>2.0.0</gravitee-resource-schema-registry-confluent.version>
-        <gravitee-reactor-message.version>2.0.0-alpha.1</gravitee-reactor-message.version>
+        <gravitee-reactor-message.version>2.0.0</gravitee-reactor-message.version>
         <gravitee-repository-bridge.version>4.0.1</gravitee-repository-bridge.version>
         <gravitee-secretprovider-hc-vault.version>1.0.0-alpha.3</gravitee-secretprovider-hc-vault.version>
 
