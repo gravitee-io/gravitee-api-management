@@ -26,7 +26,7 @@ import java.util.OptionalInt;
 
 public class PlanCrudServiceInMemory implements PlanCrudService, InMemoryAlternative<Plan> {
 
-    private final List<Plan> storage = new ArrayList<>();
+    final List<Plan> storage = new ArrayList<>();
 
     @Override
     public Plan findById(String planId) {
