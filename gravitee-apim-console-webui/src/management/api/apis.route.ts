@@ -2106,6 +2106,42 @@ const apisRoutes: Routes = [
           useAngularMaterial: true,
         },
       },
+      {
+        path: 'v2/healthcheck',
+        component: ApiProxyHealthCheckComponent,
+        data: {
+          apiPermissions: {
+            only: ['api-health-c'],
+          },
+          docs: {
+            page: 'management-api-health-check-configure',
+          },
+          useAngularMaterial: true,
+        },
+      },
+      {
+        path: 'v2/healthcheck-dashboard/:logId',
+        component: ApiHealthCheckLogComponent,
+        data: {
+          apiPermissions: {
+            only: ['api-health-r'],
+          },
+          useAngularMaterial: true,
+        },
+      },
+      {
+        path: 'v2/healthcheck-dashboard',
+        component: ApiHealthCheckDashboardComponent,
+        data: {
+          apiPermissions: {
+            only: ['api-health-r'],
+          },
+          docs: {
+            page: 'management-api-health-check',
+          },
+          useAngularMaterial: true,
+        },
+      },
 
       /**
        * V2 & V4 Api state only

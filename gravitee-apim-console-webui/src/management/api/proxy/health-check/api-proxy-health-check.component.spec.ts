@@ -24,19 +24,19 @@ import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { GioFormCronHarness, GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
+import { ActivatedRoute } from '@angular/router';
 
 import { ApiProxyHealthCheckComponent } from './api-proxy-health-check.component';
 import { ApiProxyHealthCheckModule } from './api-proxy-health-check.module';
 
 import { User } from '../../../../entities/user';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
-import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+import { CurrentUserService } from '../../../../ajs-upgraded-providers';
 import { ApiV2, fakeApiV2 } from '../../../../entities/management-api-v2';
 
 describe('ApiProxyHealthCheckComponent', () => {
   const currentUser = new User();
   currentUser.userPermissions = ['api-health-c'];
-  const fakeUiRouter = { go: jest.fn() };
   const API_ID = 'my-api';
 
   let fixture: ComponentFixture<ApiProxyHealthCheckComponent>;
@@ -47,9 +47,8 @@ describe('ApiProxyHealthCheckComponent', () => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiProxyHealthCheckModule, MatIconTestingModule],
       providers: [
-        { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
+        { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
         { provide: CurrentUserService, useValue: { currentUser } },
-        { provide: UIRouterState, useValue: fakeUiRouter },
       ],
     }).overrideProvider(InteractivityChecker, {
       useValue: {

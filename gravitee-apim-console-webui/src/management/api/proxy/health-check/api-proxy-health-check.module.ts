@@ -20,6 +20,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { GioBannerModule, GioFormFocusInvalidModule, GioIconsModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatButtonModule } from '@angular/material/button';
+import { RouterModule } from '@angular/router';
 
 import { ApiProxyHealthCheckComponent } from './api-proxy-health-check.component';
 
@@ -31,6 +32,7 @@ import { ApiProxyHealthCheckFormModule } from '../components/health-check-form/a
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    RouterModule,
 
     MatSnackBarModule,
     MatButtonModule,

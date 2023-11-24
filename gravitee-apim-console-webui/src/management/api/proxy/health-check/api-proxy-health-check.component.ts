@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormGroup } from '@angular/forms';
-import { StateService } from '@uirouter/angular';
 import { EMPTY, Subject } from 'rxjs';
 import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { ActivatedRoute } from '@angular/router';
 
-import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { ApiProxyHealthCheckFormComponent } from '../components/health-check-form/api-proxy-health-check-form.component';
@@ -40,8 +39,7 @@ export class ApiProxyHealthCheckComponent implements OnInit, OnDestroy {
   public isReadOnly = false;
 
   constructor(
-    @Inject(UIRouterStateParams) private readonly ajsStateParams,
-    @Inject(UIRouterState) private readonly ajsState: StateService,
+    private readonly activatedRoute: ActivatedRoute,
     private readonly apiService: ApiV2Service,
     private readonly snackBarService: SnackBarService,
     private readonly permissionService: GioPermissionService,
@@ -49,7 +47,7 @@ export class ApiProxyHealthCheckComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.apiService
-      .get(this.ajsStateParams.apiId)
+      .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
         onlyApiV1V2Filter(this.snackBarService),
         tap((api) => {
@@ -70,7 +68,7 @@ export class ApiProxyHealthCheckComponent implements OnInit, OnDestroy {
 
   onSubmit() {
     return this.apiService
-      .get(this.ajsStateParams.apiId)
+      .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
         onlyApiV2Filter(this.snackBarService),
         switchMap((api) => {
@@ -94,10 +92,6 @@ export class ApiProxyHealthCheckComponent implements OnInit, OnDestroy {
         takeUntil(this.unsubscribe$),
       )
       .subscribe();
-  }
-
-  gotToHealthCheckDashboard() {
-    this.ajsState.go('management.apis.healthcheck-dashboard-v2');
   }
 
   updateEndpointsHealthCheckConfig(groups: Proxy['groups']) {

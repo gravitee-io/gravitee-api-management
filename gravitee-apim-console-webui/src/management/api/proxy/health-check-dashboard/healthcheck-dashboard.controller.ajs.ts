@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { StateService } from '@uirouter/core';
-import { IQService, IRootScopeService, IScope } from 'angular';
+import { IQService, IRootScopeService } from 'angular';
 import * as _ from 'lodash';
 import * as moment from 'moment';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { ApiService, LogsQuery } from '../../../../services/api.service';
 import UserService from '../../../../services/user.service';
 
 class ApiHealthcheckDashboardControllerAjs {
+  public activatedRoute: ActivatedRoute;
   public chartData: any;
 
   private api: any;
@@ -33,30 +34,28 @@ class ApiHealthcheckDashboardControllerAjs {
 
   constructor(
     private ApiService: ApiService,
-    private $scope: IScope,
     private $rootScope: IRootScopeService,
-    private $state: StateService,
     private $q: IQService,
     private UserService: UserService,
     private $window,
+    private ngRouter: Router,
   ) {
     this.gateway = { availabilities: {}, responsetimes: {} };
     this.endpoint = { availabilities: {}, responsetimes: {} };
 
     this.onPaginate = this.onPaginate.bind(this);
-
-    this.query = new LogsQuery();
-    this.query.size = this.$state.params.size ? this.$state.params.size : 10;
-    this.query.page = this.$state.params.page ? this.$state.params.page : 1;
-
-    this.query.from = this.$state.params.from;
-    this.query.to = this.$state.params.to;
-
-    $window.localStorage.lastHealthCheckQuery = JSON.stringify(this.query);
   }
 
   $onInit() {
-    this.ApiService.get(this.$state.params.apiId).then((api) => {
+    this.query = new LogsQuery();
+    this.query.size = this.activatedRoute.snapshot.queryParams.size ? this.activatedRoute.snapshot.queryParams.size : 10;
+    this.query.page = this.activatedRoute.snapshot.queryParams.page ? this.activatedRoute.snapshot.queryParams.page : 1;
+
+    this.query.from = this.activatedRoute.snapshot.queryParams.from;
+    this.query.to = this.activatedRoute.snapshot.queryParams.to;
+    this.$window.localStorage.lastHealthCheckQuery = JSON.stringify(this.query);
+
+    this.ApiService.get(this.activatedRoute.snapshot.params.apiId).then((api) => {
       this.api = api.data;
       this.updateChart();
     });
@@ -254,7 +253,15 @@ class ApiHealthcheckDashboardControllerAjs {
   displayGatewayHC() {
     return this.UserService.currentUser.isOrganizationAdmin();
   }
+
+  showLog(logId: string) {
+    this.ngRouter.navigate(['./', logId], { relativeTo: this.activatedRoute });
+  }
+
+  goToConfigureHealthCheck() {
+    this.ngRouter.navigate(['../', 'healthcheck'], { relativeTo: this.activatedRoute });
+  }
 }
-ApiHealthcheckDashboardControllerAjs.$inject = ['ApiService', '$scope', '$rootScope', '$state', '$q', 'UserService', '$window'];
+ApiHealthcheckDashboardControllerAjs.$inject = ['ApiService', '$rootScope', '$q', 'UserService', '$window', 'ngRouter'];
 
 export default ApiHealthcheckDashboardControllerAjs;

@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-import { StateService } from '@uirouter/core';
-import { IScope } from 'angular';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { ApiService } from '../../../../services/api.service';
 
 class ApiHealthcheckLogControllerAjs {
+  private activatedRoute: ActivatedRoute;
   private log: any;
 
-  constructor(private $scope: IScope, private $state: StateService, private $window, private ApiService: ApiService) {}
+  constructor(private ngRouter: Router, private $window, private ApiService: ApiService) {}
 
   $onInit() {
-    this.ApiService.getHealthLog(this.$state.params.apiId, this.$state.params.logId).then((response) => {
+    this.ApiService.getHealthLog(this.activatedRoute.snapshot.params.apiId, this.activatedRoute.snapshot.params.logId).then((response) => {
       this.log = response.data;
     });
   }
@@ -41,14 +41,17 @@ class ApiHealthcheckLogControllerAjs {
 
   backToHealthcheck() {
     const query = JSON.parse(this.$window.localStorage.lastHealthCheckQuery);
-    this.$state.go('management.apis.healthcheck-dashboard-v2', {
-      page: query.page,
-      size: query.size,
-      from: query.from,
-      to: query.to,
+    this.ngRouter.navigate(['../'], {
+      relativeTo: this.activatedRoute,
+      queryParams: {
+        page: query.page,
+        size: query.size,
+        from: query.from,
+        to: query.to,
+      },
     });
   }
 }
-ApiHealthcheckLogControllerAjs.$inject = ['$scope', '$state', '$window', 'ApiService'];
+ApiHealthcheckLogControllerAjs.$inject = ['ngRouter', '$window', 'ApiService'];
 
 export default ApiHealthcheckLogControllerAjs;
