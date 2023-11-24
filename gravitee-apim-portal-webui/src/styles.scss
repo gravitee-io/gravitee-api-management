@@ -295,3 +295,18 @@ body {
   content: '*';
   margin: 0 0.2rem;
 }
+
+.loader {
+  position: absolute;
+  top: 45%;
+  left: 45%;
+  display: flex;
+  margin: 0 auto;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  box-sizing: border-box;
+  border: 10px solid var(--gv-theme-font-color-dark);
+  animation: rotation 1s linear infinite;
+  border-bottom-color: transparent;
+}
