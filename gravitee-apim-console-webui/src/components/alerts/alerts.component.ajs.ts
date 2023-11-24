@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { StateService } from '@uirouter/core';
+import { Router } from '@angular/router';
 
 import { Alert, Scope } from '../../entities/alert';
 import AlertService from '../../services/alert.service';
@@ -22,40 +22,21 @@ import UserService from '../../services/user.service';
 
 const AlertsComponentAjs: ng.IComponentOptions = {
   bindings: {
+    activatedRoute: '<',
     alerts: '<',
+    reload: '&',
   },
   template: require('./alerts.html'),
   controller: [
-    '$stateParams',
-    '$state',
+    'ngRouter',
     'AlertService',
     'NotificationService',
     'UserService',
     '$mdDialog',
-    function (
-      $stateParams,
-      $state: StateService,
-      AlertService: AlertService,
-      NotificationService: NotificationService,
-      UserService: UserService,
-      $mdDialog,
-    ) {
+    function (ngRouter: Router, AlertService: AlertService, NotificationService: NotificationService, UserService: UserService, $mdDialog) {
       this.alerts = this.alerts ?? [];
-      this.goTo = (suffixState: string, alertId: string) => {
-        if ($stateParams.apiId) {
-          $state.go('management.apis.alerts.' + suffixState, { apiId: $stateParams.apiId, alertId: alertId });
-        } else if ($stateParams.applicationId) {
-          $state.go('management.applications.application.alerts.' + suffixState, {
-            applicationId: $stateParams.applicationId,
-            alertId: alertId,
-          });
-        } else {
-          if (suffixState === 'editalert') {
-            $state.go('management.editalert', { alertId: alertId });
-          } else {
-            $state.go('management.alertnew');
-          }
-        }
+      this.goTo = (urlSegment: string) => {
+        ngRouter.navigate(['./', urlSegment], { relativeTo: this.activatedRoute });
       };
 
       this.delete = (alert: Alert) => {
@@ -76,7 +57,7 @@ const AlertsComponentAjs: ng.IComponentOptions = {
             if (response) {
               AlertService.delete(alert).then(() => {
                 NotificationService.show("Alert '" + alert.name + "' has been deleted");
-                $state.go($state.current, {}, { reload: true });
+                this.reload();
               });
             }
           });
@@ -89,7 +70,7 @@ const AlertsComponentAjs: ng.IComponentOptions = {
             NotificationService.show('Alert saved with success');
           })
           .finally(() => {
-            $state.go($state.current, {}, { reload: true });
+            this.reload();
           });
       };
 
@@ -99,9 +80,9 @@ const AlertsComponentAjs: ng.IComponentOptions = {
       };
 
       this.enhanceAlert = (alert: Alert) => {
-        if ($stateParams.apiId) {
+        if (this.activatedRoute.snapshot.params.apiId) {
           alert.reference_type = Scope.API;
-        } else if ($stateParams.applicationId) {
+        } else if (this.activatedRoute.snapshot.params.applicationId) {
           alert.reference_type = Scope.APPLICATION;
         } else {
           alert.reference_type = Scope.ENVIRONMENT;
@@ -121,9 +102,9 @@ const AlertsComponentAjs: ng.IComponentOptions = {
 
       this.hasPermissionForCurrentScope = (permission: string): boolean => {
         let scope = 'environment';
-        if ($stateParams.apiId) {
+        if (this.activatedRoute.snapshot.params.apiId) {
           scope = 'api';
-        } else if ($stateParams.applicationId) {
+        } else if (this.activatedRoute.snapshot.params.applicationId) {
           scope = 'application';
         }
         return UserService.isUserHasPermissions([`${scope}-${permission}`]);

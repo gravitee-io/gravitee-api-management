@@ -46,7 +46,7 @@
                     </span>
                   </td>
                   <td md-cell>
-                    <a ng-style="alert.enabled?'':{'font-style': 'italic', 'color': 'grey'}" ng-click="$ctrl.goTo('editalert', alert.id)">
+                    <a ng-style="alert.enabled?'':{'font-style': 'italic', 'color': 'grey'}" ng-click="$ctrl.goTo(alert.id)">
                       <span ng-if="alert.template">[Template] </span>
                       {{alert.name}}
                     </a>
@@ -117,7 +117,7 @@
         ng-if="$ctrl.hasPermissionForCurrentScope('alert-c')"
         class="md-fab"
         aria-label="create-alert"
-        ng-click="$ctrl.goTo('alertnew')"
+        ng-click="$ctrl.goTo('new')"
       >
         <ng-md-icon icon="add" style="fill: #fff"></ng-md-icon>
       </md-button>
@@ -129,7 +129,7 @@
     ng-if="$ctrl.hasPermissionForCurrentScope('alert-c')"
     class="md-fab md-fab-bottom-right"
     aria-label="create-alert"
-    ng-click="$ctrl.goTo('alertnew')"
+    ng-click="$ctrl.goTo('new')"
   >
     <ng-md-icon icon="add" style="fill: #fff"></ng-md-icon>
   </md-button>

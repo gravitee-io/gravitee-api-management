@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Injector } from '@angular/core';
+
 class NotifierService {
   constructor(private $http, private Constants) {}
 
@@ -27,3 +29,9 @@ class NotifierService {
 NotifierService.$inject = ['$http', 'Constants'];
 
 export default NotifierService;
+
+export const ajsNotifierServiceProvider = {
+  deps: ['$injector'],
+  provide: 'ajsNotifierService',
+  useFactory: (injector: Injector) => injector.get('NotifierService'),
+};

@@ -15,6 +15,7 @@
  */
 
 import { IHttpPromise } from 'angular';
+import { Injector } from '@angular/core';
 
 import { Alert, Scope } from '../entities/alert';
 
@@ -138,3 +139,9 @@ class AlertService {
 AlertService.$inject = ['$http', 'Constants'];
 
 export default AlertService;
+
+export const ajsAlertServiceProvider = {
+  deps: ['$injector'],
+  provide: 'ajsAlertService',
+  useFactory: (injector: Injector) => injector.get('AlertService'),
+};

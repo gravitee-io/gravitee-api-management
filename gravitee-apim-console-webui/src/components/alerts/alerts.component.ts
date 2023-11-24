@@ -14,8 +14,14 @@
  * limitations under the License.
  */
 
-import { Component, ElementRef, Injector, Input, SimpleChange } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Inject, Injector, Output, SimpleChange } from '@angular/core';
 import { UpgradeComponent } from '@angular/upgrade/static';
+import { ActivatedRoute } from '@angular/router';
+import { startWith, takeUntil } from 'rxjs/operators';
+import { Subject } from 'rxjs';
+
+import AlertService from '../../services/alert.service';
+import { Scope as AlertScope } from '../../entities/alert';
 
 @Component({
   template: '',
@@ -25,19 +31,48 @@ import { UpgradeComponent } from '@angular/upgrade/static';
   },
 })
 export class AlertsComponent extends UpgradeComponent {
-  @Input() alerts;
+  private unsubscribe$ = new Subject<void>();
 
-  constructor(elementRef: ElementRef, injector: Injector) {
+  @Output()
+  reload!: EventEmitter<void>;
+
+  private fistChange = true;
+  constructor(
+    elementRef: ElementRef,
+    injector: Injector,
+    private readonly activatedRoute: ActivatedRoute,
+    @Inject('ajsAlertService') private readonly ajsAlertService: AlertService,
+  ) {
     super('alertsComponentAjs', elementRef, injector);
   }
 
   ngOnInit() {
-    // Hack to Force the binding between Angular and AngularJS
-    // Don't know why, but the binding is not done automatically when resolver is used
+    const apiId = this.activatedRoute.snapshot.params.apiId;
+
     this.ngOnChanges({
-      alerts: new SimpleChange(null, this.alerts, true),
+      activatedRoute: new SimpleChange(null, this.activatedRoute, true),
+    });
+
+    this.reload.pipe(startWith({}), takeUntil(this.unsubscribe$)).subscribe(() => {
+      Promise.all([
+        this.ajsAlertService.listAlerts(AlertScope.API, true, apiId).then((response) => {
+          return response.data;
+        }),
+      ]).then(([alerts]) => {
+        // Hack to Force the binding between Angular and AngularJS
+        this.ngOnChanges({
+          alerts: new SimpleChange(null, alerts, this.fistChange),
+        });
+        this.fistChange = false;
+      });
     });
 
     super.ngOnInit();
+  }
+
+  ngOnDestroy() {
+    this.unsubscribe$.next();
+    this.unsubscribe$.unsubscribe();
+    super.ngOnDestroy();
   }
 }
