@@ -18,8 +18,12 @@ import { NgModule } from '@angular/core';
 import { AlertsComponent } from './alerts.component';
 import { AlertComponent } from './alert/alert.component';
 
+import { ajsAlertServiceProvider } from '../../services/alert.service';
+import { ajsNotifierServiceProvider } from '../../services/notifier.service';
+
 @NgModule({
   declarations: [AlertsComponent, AlertComponent],
   exports: [AlertsComponent, AlertComponent],
+  providers: [ajsAlertServiceProvider, ajsNotifierServiceProvider],
 })
 export class AlertsModule {}

@@ -390,8 +390,7 @@ export class ApiV1V2MenuService implements ApiMenuService {
 
       notificationsGroup.items.push({
         displayName: 'Alerts',
-        targetRoute: 'management.apis.alerts.list',
-        baseRoute: 'management.apis.alerts',
+        routerLink: 'alerts',
         license: alertEngineLicenseOptions,
         iconRight$: alertEngineIconRight$,
       });

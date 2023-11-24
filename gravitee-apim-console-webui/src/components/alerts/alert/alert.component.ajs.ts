@@ -15,6 +15,7 @@
  */
 import { IScope } from 'angular';
 import * as _ from 'lodash';
+import { Router } from '@angular/router';
 
 import { Alert, Scope } from '../../../entities/alert';
 import { Rule } from '../../../entities/alerts/rule.metrics';
@@ -29,6 +30,8 @@ const AlertComponentAjs: ng.IComponentOptions = {
     status: '<',
     mode: '<',
     resolvedApi: '<',
+    activatedRoute: '<',
+    reload: '&',
   },
   template: require('./alert.html'),
   controller: [
@@ -37,7 +40,7 @@ const AlertComponentAjs: ng.IComponentOptions = {
     'AlertService',
     'NotificationService',
     'UserService',
-    '$state',
+    'ngRouter',
     '$mdDialog',
     function (
       Constants: any,
@@ -45,27 +48,27 @@ const AlertComponentAjs: ng.IComponentOptions = {
       AlertService: AlertService,
       NotificationService: NotificationService,
       UserService: UserService,
-      $state,
+      router: Router,
       $mdDialog,
     ) {
       this.$onInit = () => {
         this.tabs = ['general', 'notifications', 'history'];
         this.severities = ['INFO', 'WARNING', 'CRITICAL'];
-        const indexOfTab = this.tabs.indexOf($state.params.tab);
+        const indexOfTab = this.tabs.indexOf(this.activatedRoute.snapshot.queryParams.tab);
         this.selectedTab = indexOfTab > -1 ? indexOfTab : 0;
         this.currentTab = this.tabs[this.selectedTab];
 
         let referenceId;
         let referenceType;
 
-        if ($state.params.apiId) {
+        if (this.activatedRoute.snapshot.params.apiId) {
           referenceType = Scope.API;
-          referenceId = $state.params.apiId;
+          referenceId = this.activatedRoute.snapshot.params.apiId;
           this.groups = ['API metrics', 'Health-check'];
-          this.titlePrefix = this.resolvedApi.data.name;
-        } else if ($state.params.applicationId) {
+          this.titlePrefix = this.resolvedApi.name;
+        } else if (this.activatedRoute.snapshot.params.applicationId) {
           referenceType = Scope.APPLICATION;
-          referenceId = $state.params.applicationId;
+          referenceId = this.activatedRoute.snapshot.params.applicationId;
           this.groups = ['Application'];
           this.titlePrefix = ($scope.$parent as any).$resolve.resolvedApplication.data.name;
         } else {
@@ -75,13 +78,13 @@ const AlertComponentAjs: ng.IComponentOptions = {
         }
 
         this.rules = Rule.findByScope(referenceType);
-        this.updateMode = $state.params.alertId !== undefined;
+        this.updateMode = this.activatedRoute.snapshot.params.alertId !== undefined;
 
         if (!this.updateMode) {
           this.alert = new Alert('New alert', 'INFO', undefined, undefined, undefined, referenceType, referenceId);
           this.alerts.push(this.alert);
         } else {
-          this.alert = _.find(this.alerts, { id: $state.params.alertId }) || this.alerts[0];
+          this.alert = _.find(this.alerts, { id: this.activatedRoute.snapshot.params.alertId }) || this.alerts[0];
           this.alert.type = (this.alert.source + '@' + this.alert.type).toUpperCase();
           this.alert.reference_type = referenceType;
         }
@@ -121,7 +124,9 @@ const AlertComponentAjs: ng.IComponentOptions = {
           this.formAlert.$setPristine();
           NotificationService.show('Alert has been saved successfully');
           const alert = response.data;
-          $state.go('^.alert', { alertId: alert.id }, { reload: true });
+          router.navigate(['../', alert.id], { relativeTo: this.activatedRoute });
+          this.reload();
+          this.$onInit();
           return alert;
         });
       };
@@ -155,7 +160,8 @@ const AlertComponentAjs: ng.IComponentOptions = {
 
       this.associateToApis = () => {
         AlertService.associate(this.alert, 'api').then(() => {
-          $state.reload();
+          this.reload();
+          this.$onInit();
           NotificationService.show("Alert '" + this.alert.name + "' has been associated to all APIs");
         });
       };
@@ -172,20 +178,14 @@ const AlertComponentAjs: ng.IComponentOptions = {
       };
 
       this.backToAlerts = () => {
-        if ($state.params.apiId) {
-          $state.go('management.apis.alerts.list', { apiId: $state.params.apiId });
-        } else if ($state.params.applicationId) {
-          $state.go('management.applications.application.alerts.list', { applicationId: $state.params.applicationId });
-        } else {
-          $state.go('management.alerts.list');
-        }
+        router.navigate(['../'], { relativeTo: this.activatedRoute });
       };
 
       this.hasPermissionForCurrentScope = (permission: string): boolean => {
         let scope = 'environment';
-        if ($state.params.apiId) {
+        if (this.activatedRoute.snapshot.params.apiId) {
           scope = 'api';
-        } else if ($state.params.applicationId) {
+        } else if (this.activatedRoute.snapshot.params.applicationId) {
           scope = 'application';
         }
         return UserService.isUserHasPermissions([`${scope}-${permission}`]);

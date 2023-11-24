@@ -1982,6 +1982,57 @@ const apisRoutes: Routes = [
           useAngularMaterial: true,
         },
       },
+      {
+        path: 'alerts/new',
+        component: AlertComponent,
+        data: {
+          requireLicense: {
+            license: { feature: ApimFeature.ALERT_ENGINE },
+            redirect: 'management.apis-list',
+          },
+          apiPermissions: {
+            only: ['api-alert-c'],
+          },
+          docs: {
+            page: 'management-alerts',
+          },
+          useAngularMaterial: true,
+        },
+      },
+      {
+        path: 'alerts/:alertId',
+        component: AlertComponent,
+        data: {
+          requireLicense: {
+            license: { feature: ApimFeature.ALERT_ENGINE },
+            redirect: 'management.apis-list',
+          },
+          apiPermissions: {
+            only: ['api-alert-r'],
+          },
+          docs: {
+            page: 'management-alerts',
+          },
+          useAngularMaterial: true,
+        },
+      },
+      {
+        path: 'alerts',
+        component: AlertsComponent,
+        data: {
+          requireLicense: {
+            license: { feature: ApimFeature.ALERT_ENGINE },
+            redirect: 'management.apis-list',
+          },
+          apiPermissions: {
+            only: ['api-alert-r'],
+          },
+          docs: {
+            page: 'management-alerts',
+          },
+          useAngularMaterial: true,
+        },
+      },
 
       /**
        * V1 Api state only
