@@ -158,6 +158,22 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
       });
   }
 
+  updateAndPublish() {
+    this.updatePage()
+      .pipe(
+        switchMap((page) => this.apiDocumentationService.publishDocumentationPage(this.api.id, page.id)),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe({
+        next: () => {
+          this.goBackToPageList();
+        },
+        error: (error) => {
+          this.snackBarService.error(error?.error?.message ?? 'Cannot publish page');
+        },
+      });
+  }
+
   private updatePage(): Observable<Page> {
     const formValue = this.form.getRawValue();
     return this.apiDocumentationService.getApiPage(this.api.id, this.ajsStateParams.pageId).pipe(

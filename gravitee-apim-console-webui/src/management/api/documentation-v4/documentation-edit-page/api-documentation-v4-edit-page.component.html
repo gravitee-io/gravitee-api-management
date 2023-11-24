@@ -83,15 +83,37 @@
             </ng-container>
 
             <ng-container *ngIf="mode === 'edit' && page">
-              <button
-                *gioPermission="{ anyOf: ['api-documentation-u'] }"
-                mat-flat-button
-                color="primary"
-                [disabled]="form.invalid || form.pristine || formUnchanged"
-                (click)="update()"
-              >
-                {{ page.published ? 'Publish changes' : 'Save' }}
-              </button>
+              <ng-container *ngIf="!page.published">
+                <button
+                  *gioPermission="{ anyOf: ['api-documentation-u'] }"
+                  mat-flat-button
+                  color="primary"
+                  [disabled]="form.invalid || form.pristine || formUnchanged"
+                  (click)="updateAndPublish()"
+                >
+                  Save and publish
+                </button>
+                <button
+                  *gioPermission="{ anyOf: ['api-documentation-u'] }"
+                  mat-stroked-button
+                  [disabled]="form.invalid || form.pristine || formUnchanged"
+                  (click)="update()"
+                >
+                  Save
+                </button>
+              </ng-container>
+
+              <ng-container *ngIf="page.published">
+                <button
+                  *gioPermission="{ anyOf: ['api-documentation-u'] }"
+                  mat-flat-button
+                  color="primary"
+                  [disabled]="form.invalid || form.pristine || formUnchanged"
+                  (click)="update()"
+                >
+                  Publish changes
+                </button>
+              </ng-container>
             </ng-container>
 
             <button mat-stroked-button matStepperPrevious>Previous</button>
