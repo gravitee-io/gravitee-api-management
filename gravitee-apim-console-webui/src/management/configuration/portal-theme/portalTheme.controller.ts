@@ -390,7 +390,7 @@ class PortalThemeController {
         this.$scope.themeForm.$commitViewValue();
         this.$scope.themeForm.$setSubmitted();
         this.$scope.themeForm.$setPristine();
-        this.NotificationService.show('The "Gravitee" default theme has been restore.');
+        this.NotificationService.show('The default theme has been restored.');
       });
     });
   };
