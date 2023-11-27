@@ -2329,6 +2329,14 @@ const apisRoutes: Routes = [
         },
         component: ApiDocumentationV4EditPageComponent,
       },
+      {
+        path: 'v4/policy-studio',
+        data: {
+          useAngularMaterial: true,
+          docs: null,
+        },
+        component: ApiV4PolicyStudioDesignComponent,
+      },
     ],
   },
 ];
