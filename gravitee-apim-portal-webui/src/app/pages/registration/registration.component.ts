@@ -14,10 +14,16 @@
  * limitations under the License.
  */
 import { Component, OnInit } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 
 import { RegisterUserInput, UsersService, CustomUserFields } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { ReCaptchaService } from '../../services/recaptcha.service';
+
+type RegistrationFormType = FormGroup<{
+  firstname: FormControl<string>;
+  lastname: FormControl<string>;
+  email: FormControl<string>;
+}>;
 
 @Component({
   selector: 'app-registration',
@@ -26,22 +32,22 @@ import { ReCaptchaService } from '../../services/recaptcha.service';
 })
 export class RegistrationComponent implements OnInit {
   isSubmitted: boolean;
-  registrationForm: UntypedFormGroup;
+  registrationForm: RegistrationFormType;
   customUserFields: Array<CustomUserFields>;
 
   // boolean used to display the form only once the FormGroup is completed using the CustomUserFields.
   canDisplayForm = false;
 
-  constructor(private usersService: UsersService, private formBuilder: UntypedFormBuilder, private reCaptchaService: ReCaptchaService) {
+  constructor(private usersService: UsersService, private reCaptchaService: ReCaptchaService) {
     this.isSubmitted = false;
   }
 
   ngOnInit() {
-    const formDescriptor: any = {
-      firstname: new UntypedFormControl('', Validators.required),
-      lastname: new UntypedFormControl('', Validators.required),
-      email: new UntypedFormControl('', [Validators.required, Validators.email]),
-    };
+    const formDescriptor = new FormGroup({
+      firstname: new FormControl('', Validators.required),
+      lastname: new FormControl('', Validators.required),
+      email: new FormControl('', [Validators.required, Validators.email]),
+    });
 
     this.usersService
       .listCustomUserFields()
@@ -51,17 +57,17 @@ export class RegistrationComponent implements OnInit {
 
         if (this.customUserFields) {
           this.customUserFields.forEach(field => {
-            formDescriptor[field.key] = new UntypedFormControl('', field.required ? Validators.required : null);
+            formDescriptor[field.key] = new FormControl('', field.required ? Validators.required : null);
           });
         }
 
-        this.registrationForm = this.formBuilder.group(formDescriptor);
+        this.registrationForm = formDescriptor;
       })
       .catch(() => {
         // in case of error load the minimal form
         // user will be able to complete information through the account page
         // or admin will reject the registration
-        this.registrationForm = this.formBuilder.group(formDescriptor);
+        this.registrationForm = formDescriptor;
       })
       .finally(() => {
         this.canDisplayForm = true;
