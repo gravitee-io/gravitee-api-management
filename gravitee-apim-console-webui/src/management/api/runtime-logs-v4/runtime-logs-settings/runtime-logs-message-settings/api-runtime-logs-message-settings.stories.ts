@@ -17,12 +17,12 @@ import { Meta, moduleMetadata } from '@storybook/angular';
 import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
 import { of } from 'rxjs';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { ActivatedRoute } from '@angular/router';
 
 import { ApiRuntimeLogsMessageSettingsModule } from './api-runtime-logs-message-settings.module';
 import { ApiRuntimeLogsMessageSettingsComponent } from './api-runtime-logs-message-settings.component';
 
 import { ApiV4, fakeApiV4 } from '../../../../../entities/management-api-v2';
-import { UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
 import { CurrentUserService } from '../../../../../services-ngx/current-user.service';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
@@ -55,7 +55,7 @@ export default {
     moduleMetadata({
       imports: [ApiRuntimeLogsMessageSettingsModule, BrowserAnimationsModule],
       providers: [
-        { provide: UIRouterStateParams, useValue: { apiId: api.id } },
+        { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: api.id } } } },
         {
           provide: ApiV2Service,
           useValue: {

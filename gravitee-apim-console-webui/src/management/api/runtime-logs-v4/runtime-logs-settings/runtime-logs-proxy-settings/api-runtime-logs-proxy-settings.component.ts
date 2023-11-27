@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { EMPTY, merge, Subject } from 'rxjs';
 import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { ActivatedRoute } from '@angular/router';
 
-import { UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
 import { ApiV4 } from '../../../../../entities/management-api-v2';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
@@ -44,14 +44,14 @@ export class ApiRuntimeLogsProxySettingsComponent implements OnInit {
   defaultConfiguration: DefaultConfiguration;
 
   constructor(
-    @Inject(UIRouterStateParams) private readonly ajsStateParams,
+    private readonly activatedRoute: ActivatedRoute,
     private readonly apiService: ApiV2Service,
     private readonly snackBarService: SnackBarService,
   ) {}
 
   ngOnInit() {
     this.apiService
-      .get(this.ajsStateParams.apiId)
+      .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
         tap((api: ApiV4) => {
           this.initForm(api);
@@ -75,7 +75,7 @@ export class ApiRuntimeLogsProxySettingsComponent implements OnInit {
 
   submit() {
     this.apiService
-      .get(this.ajsStateParams.apiId)
+      .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
         switchMap((api: ApiV4) => {
           const configurationValues = this.form.getRawValue();

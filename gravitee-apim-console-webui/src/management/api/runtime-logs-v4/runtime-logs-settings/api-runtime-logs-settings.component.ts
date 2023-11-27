@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject } from '@angular/core';
+import { Component } from '@angular/core';
 import { Observable } from 'rxjs';
-import { StateParams } from '@uirouter/core';
+import { ActivatedRoute } from '@angular/router';
 
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { Api } from '../../../../entities/management-api-v2';
-import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 
 @Component({
   selector: 'api-runtime-logs-settings',
@@ -27,7 +26,7 @@ import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
   styles: [require('./api-runtime-logs-settings.component.scss')],
 })
 export class ApiRuntimeLogsSettingsComponent {
-  api$: Observable<Api> = this.apiService.get(this.ajsStateParams.apiId);
+  api$: Observable<Api> = this.apiService.get(this.activatedRoute.snapshot.params.apiId);
 
-  constructor(@Inject(UIRouterStateParams) private readonly ajsStateParams: StateParams, private readonly apiService: ApiV2Service) {}
+  constructor(private readonly activatedRoute: ActivatedRoute, private readonly apiService: ApiV2Service) {}
 }

@@ -18,7 +18,7 @@ import { MatCardModule } from '@angular/material/card';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTabsModule } from '@angular/material/tabs';
-import { UIRouterModule } from '@uirouter/angular';
+import { RouterModule } from '@angular/router';
 
 import { ApiRuntimeLogsMessageItemModule } from './components';
 import { ApiRuntimeLogsMessagesComponent } from './api-runtime-logs-messages.component';
@@ -30,9 +30,9 @@ import { ApiRuntimeLogsDetailsEmptyStateModule, ApiRuntimeLogsConnectionLogDetai
   exports: [ApiRuntimeLogsMessagesComponent],
   imports: [
     CommonModule,
+    RouterModule,
     MatButtonModule,
     MatCardModule,
-    UIRouterModule,
     MatTabsModule,
     ApiRuntimeLogsMessageItemModule,
     ApiRuntimeLogsDetailsEmptyStateModule,

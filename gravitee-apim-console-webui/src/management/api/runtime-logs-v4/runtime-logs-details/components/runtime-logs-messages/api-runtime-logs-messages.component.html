@@ -21,7 +21,7 @@
       <div class="card__header__title">Details</div>
       <div class="card__header__subtitle">Analyse the connection logs and messages for a specific connection</div>
     </div>
-    <a mat-button mat-raised-button [uiSref]="'management.apis.runtimeLogs'" aria-label="Back to Connections">Back to Connections</a>
+    <a mat-button mat-raised-button [routerLink]="'..'" aria-label="Back to Connections">Back to Connections</a>
   </div>
 
   <mat-tab-group (selectedTabChange)="onTabChange($event)">

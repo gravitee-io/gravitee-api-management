@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { AbstractControl, FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { catchError, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { EMPTY, merge, Subject } from 'rxjs';
-import { StateParams } from '@uirouter/angularjs';
 import { duration } from 'moment/moment';
+import { ActivatedRoute } from '@angular/router';
 
 import { isIso8601DateValid } from './iso-8601-date.validator';
 
-import { UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
 import { Analytics, ApiV4, SamplingTypeEnum } from '../../../../../entities/management-api-v2';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
@@ -44,7 +43,7 @@ export class ApiRuntimeLogsMessageSettingsComponent implements OnInit, OnDestroy
   private settings: ConsoleSettings;
 
   constructor(
-    @Inject(UIRouterStateParams) private readonly ajsStateParams: StateParams,
+    private readonly activatedRoute: ActivatedRoute,
     private readonly apiService: ApiV2Service,
     private readonly snackBarService: SnackBarService,
     private readonly consoleSettingsService: ConsoleSettingsService,
@@ -71,7 +70,7 @@ export class ApiRuntimeLogsMessageSettingsComponent implements OnInit, OnDestroy
 
   public save(): void {
     this.apiService
-      .get(this.ajsStateParams.apiId)
+      .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
         switchMap((api: ApiV4) => {
           const formValues = this.form.getRawValue();

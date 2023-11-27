@@ -14,20 +14,18 @@
  * limitations under the License.
  */
 
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { PageEvent } from '@angular/material/paginator';
 import { map, shareReplay, skip, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { StateParams } from '@uirouter/core';
-import { StateService } from '@uirouter/angular';
 import { forkJoin, of, ReplaySubject, Subject } from 'rxjs';
 import * as moment from 'moment';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { QuickFiltersStoreService } from './services';
 import { LogFiltersInitialValues } from './models';
 
 import { ApiLogsV2Service } from '../../../../services-ngx/api-logs-v2.service';
 import { ApiLogsParam, ApiLogsResponse, ApiV4 } from '../../../../entities/management-api-v2';
-import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { ApplicationService } from '../../../../services-ngx/application.service';
 import { ApiPlanV2Service } from '../../../../services-ngx/api-plan-v2.service';
@@ -39,20 +37,22 @@ import { ApiPlanV2Service } from '../../../../services-ngx/api-plan-v2.service';
 })
 export class ApiRuntimeLogsComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();
-  private api$ = this.apiService.get(this.ajsStateParams.apiId).pipe(shareReplay(1));
+  private api$ = this.apiService.get(this.activatedRoute.snapshot.params.apiId).pipe(shareReplay(1));
   apiLogsSubject$ = new ReplaySubject<ApiLogsResponse>(1);
   isMessageApi$ = this.api$.pipe(map((api: ApiV4) => api?.type === 'MESSAGE'));
   apiLogsEnabled$ = this.api$.pipe(map(ApiRuntimeLogsComponent.isLogEnabled));
-  apiPlans$ = this.planService.list(this.ajsStateParams.apiId, undefined, ['PUBLISHED', 'DEPRECATED', 'CLOSED'], undefined, 1, 9999).pipe(
-    map((plans) => plans.data),
-    shareReplay(1),
-  );
+  apiPlans$ = this.planService
+    .list(this.activatedRoute.snapshot.params.apiId, undefined, ['PUBLISHED', 'DEPRECATED', 'CLOSED'], undefined, 1, 9999)
+    .pipe(
+      map((plans) => plans.data),
+      shareReplay(1),
+    );
   initialValues: LogFiltersInitialValues;
   loading = true;
 
   constructor(
-    @Inject(UIRouterState) private readonly ajsState: StateService,
-    @Inject(UIRouterStateParams) private readonly ajsStateParams: StateParams,
+    private readonly activatedRoute: ActivatedRoute,
+    private readonly router: Router,
     private readonly apiLogsService: ApiLogsV2Service,
     private readonly apiService: ApiV2Service,
     private readonly applicationService: ApplicationService,
@@ -68,13 +68,13 @@ export class ApiRuntimeLogsComponent implements OnInit, OnDestroy {
         skip(1), // skip first value from the store as the filters will be initialized and update it
         switchMap((values, index) => {
           // for the first trigger we keep the page in the URL to be sure that the user can load the data in a specific page
-          const page = index === 0 ? +this.ajsStateParams.page : 1;
+          const page = index === 0 ? +(this.activatedRoute.snapshot.queryParams.page ?? 1) : 1;
           return of({ values, page });
         }),
         takeUntil(this.unsubscribe$),
       )
       .subscribe(({ values, page }) => {
-        const params = this.quickFilterStore.toLogFilterQueryParam(values, page, +this.ajsStateParams.perPage);
+        const params = this.quickFilterStore.toLogFilterQueryParam(values, page, +(this.activatedRoute.snapshot.queryParams.perPage ?? 10));
         this.searchConnectionLogs(params);
       });
   }
@@ -91,7 +91,9 @@ export class ApiRuntimeLogsComponent implements OnInit, OnDestroy {
   }
 
   openLogsSettings() {
-    return this.ajsState.go('management.apis.runtimeLogs-settings');
+    this.router.navigate(['../runtime-logs-settings'], {
+      relativeTo: this.activatedRoute,
+    });
   }
 
   refresh() {
@@ -101,12 +103,15 @@ export class ApiRuntimeLogsComponent implements OnInit, OnDestroy {
   searchConnectionLogs(queryParam?: ApiLogsParam) {
     this.loading = true;
     this.apiLogsService
-      .searchConnectionLogs(this.ajsStateParams.apiId, queryParam)
+      .searchConnectionLogs(this.activatedRoute.snapshot.params.apiId, queryParam)
       .pipe(
         tap((apiLogsResponse) => {
           this.apiLogsSubject$.next(apiLogsResponse);
           this.loading = false;
-          this.ajsState.go('.', queryParam, { notify: false });
+          this.router.navigate(['.'], {
+            relativeTo: this.activatedRoute,
+            queryParams: queryParam,
+          });
         }),
         takeUntil(this.unsubscribe$),
       )
@@ -118,9 +123,15 @@ export class ApiRuntimeLogsComponent implements OnInit, OnDestroy {
   };
 
   private initData() {
-    const applicationIds: string[] = this.ajsStateParams.applicationIds ? this.ajsStateParams.applicationIds.split(',') : null;
-    const planIds: string[] = this.ajsStateParams.planIds ? this.ajsStateParams.planIds.split(',') : null;
-    const statuses: Set<number> = this.ajsStateParams.statuses ? new Set(this.ajsStateParams.statuses.split(',').map(Number)) : null;
+    const applicationIds: string[] = this.activatedRoute.snapshot.queryParams?.applicationIds
+      ? this.activatedRoute.snapshot.queryParams.applicationIds.split(',')
+      : null;
+    const planIds: string[] = this.activatedRoute.snapshot.queryParams?.planIds
+      ? this.activatedRoute.snapshot.queryParams.planIds.split(',')
+      : null;
+    const statuses: Set<number> = this.activatedRoute.snapshot.queryParams?.statuses
+      ? new Set(this.activatedRoute.snapshot.queryParams.statuses.split(',').map(Number))
+      : null;
 
     forkJoin([
       applicationIds?.length > 0 ? this.applicationService.findByIds(applicationIds, 1, applicationIds?.length ?? 10) : of(null),
@@ -139,9 +150,9 @@ export class ApiRuntimeLogsComponent implements OnInit, OnDestroy {
                 const application = applications.data.find((app) => app.id === id);
                 return { value: id, label: `${application.name} ( ${application.owner?.displayName} )` };
               }) ?? undefined,
-            from: this.ajsStateParams.from ? moment(this.ajsStateParams.from) : undefined,
-            to: this.ajsStateParams.to ? moment(this.ajsStateParams.to) : undefined,
-            methods: this.ajsStateParams.methods?.split(',') ?? undefined,
+            from: this.activatedRoute.snapshot.queryParams?.from ? moment(this.activatedRoute.snapshot.queryParams.from) : undefined,
+            to: this.activatedRoute.snapshot.queryParams?.to ? moment(this.activatedRoute.snapshot.queryParams.to) : undefined,
+            methods: this.activatedRoute.snapshot.queryParams?.methods?.split(',') ?? undefined,
             statuses: statuses?.size > 0 ? statuses : undefined,
           };
         }),

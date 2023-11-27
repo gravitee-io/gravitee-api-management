@@ -15,7 +15,6 @@
  */
 import { Meta, moduleMetadata } from '@storybook/angular';
 import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
-import { UIRouterModule } from '@uirouter/angular';
 
 import { ApiRuntimeLogsListRowComponent } from './api-runtime-logs-list-row.component';
 import { ApiRuntimeLogsListRowModule } from './api-runtime-logs-list-row.module';
@@ -30,7 +29,7 @@ export default {
   component: ApiRuntimeLogsListRowComponent,
   decorators: [
     moduleMetadata({
-      imports: [ApiRuntimeLogsListRowModule, UIRouterModule.forRoot({ useHash: true })],
+      imports: [ApiRuntimeLogsListRowModule],
     }),
   ],
   argTypes: {},

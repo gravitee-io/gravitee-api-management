@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { StateService } from '@uirouter/angular';
-import { StateParams } from '@uirouter/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { catchError, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { BehaviorSubject, Observable, of, Subject } from 'rxjs';
 import { uniqBy } from 'lodash';
 import { MatTabChangeEvent } from '@angular/material/tabs';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { ApiLogsV2Service } from '../../../../../../services-ngx/api-logs-v2.service';
-import { UIRouterState, UIRouterStateParams } from '../../../../../../ajs-upgraded-providers';
 import { AggregatedMessageLog, ConnectionLogDetail, ConnectorPlugin, ConnectorType } from '../../../../../../entities/management-api-v2';
 import { IconService } from '../../../../../../services-ngx/icon.service';
 import { ConnectorPluginsV2Service } from '../../../../../../services-ngx/connector-plugins-v2.service';
@@ -44,8 +42,8 @@ export class ApiRuntimeLogsMessagesComponent implements OnInit, OnDestroy {
   public selectedTab: string;
 
   constructor(
-    @Inject(UIRouterState) private readonly ajsState: StateService,
-    @Inject(UIRouterStateParams) private readonly ajsStateParams: StateParams,
+    private readonly activatedRoute: ActivatedRoute,
+    private readonly router: Router,
     private readonly apiLogsService: ApiLogsV2Service,
     private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
     private readonly iconService: IconService,
@@ -61,21 +59,23 @@ export class ApiRuntimeLogsMessagesComponent implements OnInit, OnDestroy {
   }
 
   public openLogsSettings() {
-    return this.ajsState.go('management.apis.runtimeLogs-settings');
+    this.router.navigate(['../../runtime-logs-settings'], { relativeTo: this.activatedRoute });
   }
 
   private loadConnectionLog(): Observable<ConnectionLogDetail> {
-    return this.apiLogsService.searchConnectionLogDetail(this.ajsStateParams.apiId, this.ajsStateParams.requestId).pipe(
-      catchError(() => {
-        return of(undefined);
-      }),
-      takeUntil(this.unsubscribe$),
-    );
+    return this.apiLogsService
+      .searchConnectionLogDetail(this.activatedRoute.snapshot.params.apiId, this.activatedRoute.snapshot.params.requestId)
+      .pipe(
+        catchError(() => {
+          return of(undefined);
+        }),
+        takeUntil(this.unsubscribe$),
+      );
   }
 
   private loadMessages(pageIndex: number): void {
     this.apiLogsService
-      .searchMessageLogs(this.ajsStateParams.apiId, this.ajsStateParams.requestId, pageIndex, this.pageSize)
+      .searchMessageLogs(this.activatedRoute.snapshot.params.apiId, this.activatedRoute.snapshot.params.requestId, pageIndex, this.pageSize)
       .pipe(
         map((messageLogs) => {
           this.messageLogs$.next([...this.messageLogs$.getValue(), ...messageLogs.data]);

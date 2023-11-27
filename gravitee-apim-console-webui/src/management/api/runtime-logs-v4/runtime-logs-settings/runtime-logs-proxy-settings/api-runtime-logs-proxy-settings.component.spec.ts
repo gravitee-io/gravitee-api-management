@@ -19,12 +19,12 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { ActivatedRoute } from '@angular/router';
 
 import { ApiRuntimeLogsProxySettingsModule } from './api-runtime-logs-proxy-settings.module';
 import { ApiRuntimeLogsProxySettingsComponent } from './api-runtime-logs-proxy-settings.component';
 import { ApiRuntimeLogsProxySettingsHarness } from './api-runtime-logs-proxy-settings.harness';
 
-import { UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
 import { ApiV4, fakeApiV4, fakeProxyApiV4 } from '../../../../../entities/management-api-v2';
 
@@ -37,7 +37,7 @@ describe('ApiRuntimeLogsProxySettingsComponent', () => {
   const initComponent = async () => {
     await TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiRuntimeLogsProxySettingsModule, MatIconTestingModule],
-      providers: [{ provide: UIRouterStateParams, useValue: { apiId: API_ID } }],
+      providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ApiRuntimeLogsProxySettingsComponent);
