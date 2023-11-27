@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 
 import { ResetUserPasswordInput, UsersService } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { ReCaptchaService } from '../../services/recaptcha.service';
@@ -26,9 +26,9 @@ import { ReCaptchaService } from '../../services/recaptcha.service';
 })
 export class ResetPasswordComponent implements OnInit {
   isSubmitted: boolean;
-  resetPasswordForm: FormGroup;
+  resetPasswordForm: UntypedFormGroup;
 
-  constructor(private usersService: UsersService, private formBuilder: FormBuilder, private reCaptchaService: ReCaptchaService) {
+  constructor(private usersService: UsersService, private formBuilder: UntypedFormBuilder, private reCaptchaService: ReCaptchaService) {
     this.isSubmitted = false;
   }
 

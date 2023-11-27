@@ -187,7 +187,6 @@
       }
     }
   },
-  "defaultProject": "gravitee-portal-webui",
   "cli": {
     "analytics": false,
     "packageManager": "npm"

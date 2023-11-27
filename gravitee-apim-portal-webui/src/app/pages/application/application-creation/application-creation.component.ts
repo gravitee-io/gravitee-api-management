@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import '@gravitee/ui-components/wc/gv-stepper';
 import '@gravitee/ui-components/wc/gv-option';
 import '@gravitee/ui-components/wc/gv-switch';
@@ -63,7 +63,7 @@ export class ApplicationCreationComponent implements OnInit {
   private _allSteps: any;
   steps: any;
   currentStep: number;
-  applicationForm: FormGroup;
+  applicationForm: UntypedFormGroup;
   allowedTypes: Array<ApplicationTypeOption>;
   plans: Array<Plan>;
   subscribeList: {
@@ -87,15 +87,15 @@ export class ApplicationCreationComponent implements OnInit {
   creationError: boolean;
   createdApplication: Application;
   applicationType: ApplicationTypeOption;
-  private stepOneForm: FormGroup;
-  private stepTwoForm: FormGroup;
+  private stepOneForm: UntypedFormGroup;
+  private stepTwoForm: UntypedFormGroup;
 
   subscriptionErrors: { api: Api; message: string }[];
 
   constructor(
     private translateService: TranslateService,
     private configurationService: ConfigurationService,
-    private formBuilder: FormBuilder,
+    private formBuilder: UntypedFormBuilder,
     private router: Router,
     private route: ActivatedRoute,
     private portalService: PortalService,
@@ -149,11 +149,11 @@ export class ApplicationCreationComponent implements OnInit {
     );
 
     this.applicationForm = this.formBuilder.group({
-      name: new FormControl(null, [Validators.required]),
-      description: new FormControl(null, [Validators.required]),
-      domain: new FormControl(null),
-      picture: new FormControl(null),
-      settings: new FormControl(null, [Validators.required]),
+      name: new UntypedFormControl(null, [Validators.required]),
+      description: new UntypedFormControl(null, [Validators.required]),
+      domain: new UntypedFormControl(null),
+      picture: new UntypedFormControl(null),
+      settings: new UntypedFormControl(null, [Validators.required]),
     });
   }
 
@@ -216,7 +216,7 @@ export class ApplicationCreationComponent implements OnInit {
     return plan && plan.comment_required;
   }
 
-  onStepOneUpdated(stepOneForm: FormGroup) {
+  onStepOneUpdated(stepOneForm: UntypedFormGroup) {
     this.stepOneForm = stepOneForm;
     this.applicationForm.patchValue(this.stepOneForm.getRawValue());
     this.updateSteps();
@@ -233,7 +233,7 @@ export class ApplicationCreationComponent implements OnInit {
     return { description: '', valid: false, invalid: false };
   }
 
-  onStepTwoUpdated(stepTwoForm: FormGroup) {
+  onStepTwoUpdated(stepTwoForm: UntypedFormGroup) {
     this.stepTwoForm = stepTwoForm;
     this.applicationForm.get('settings').patchValue(this.stepTwoForm.getRawValue());
     this.updateSteps();
