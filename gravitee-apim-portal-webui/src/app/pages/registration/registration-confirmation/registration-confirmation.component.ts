@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, OnInit } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 
 import { FinalizeRegistrationInput, UsersService } from '../../../../../projects/portal-webclient-sdk/src/lib';
@@ -22,13 +22,21 @@ import { TokenService } from '../../../services/token.service';
 import { GvValidators } from '../../../utils/gv-validators';
 import { ReCaptchaService } from '../../../services/recaptcha.service';
 
+type RegistrationConfirmationFormType = FormGroup<{
+  firstname: FormControl<string>;
+  lastname: FormControl<string>;
+  email: FormControl<string>;
+  password: FormControl<string>;
+  confirmedPassword: FormControl<string>;
+}>;
+
 @Component({
   selector: 'app-registration-confirmation',
   templateUrl: './registration-confirmation.component.html',
   styleUrls: ['./registration-confirmation.component.css'],
 })
 export class RegistrationConfirmationComponent implements OnInit {
-  registrationConfirmationForm: UntypedFormGroup;
+  registrationConfirmationForm: RegistrationConfirmationFormType;
   isSubmitted: boolean;
   token: string;
   userFromToken: any;
@@ -36,7 +44,6 @@ export class RegistrationConfirmationComponent implements OnInit {
 
   constructor(
     private usersService: UsersService,
-    private formBuilder: UntypedFormBuilder,
     private route: ActivatedRoute,
     private tokenService: TokenService,
     private reCaptchaService: ReCaptchaService,
@@ -48,12 +55,12 @@ export class RegistrationConfirmationComponent implements OnInit {
     this.userFromToken = this.tokenService.parseToken(this.token);
     this.isTokenExpired = this.tokenService.isParsedTokenExpired(this.userFromToken);
 
-    this.registrationConfirmationForm = this.formBuilder.group({
-      firstname: new UntypedFormControl({ value: this.userFromToken.firstname, disabled: true }),
-      lastname: new UntypedFormControl({ value: this.userFromToken.lastname, disabled: true }),
-      email: new UntypedFormControl({ value: this.userFromToken.email, disabled: true }),
-      password: new UntypedFormControl('', Validators.required),
-      confirmedPassword: new UntypedFormControl('', Validators.required),
+    this.registrationConfirmationForm = new FormGroup({
+      firstname: new FormControl({ value: this.userFromToken.firstname, disabled: true }),
+      lastname: new FormControl({ value: this.userFromToken.lastname, disabled: true }),
+      email: new FormControl({ value: this.userFromToken.email, disabled: true }),
+      password: new FormControl('', Validators.required),
+      confirmedPassword: new FormControl('', Validators.required),
     });
 
     this.registrationConfirmationForm
