@@ -29,6 +29,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MarkdownModule } from 'ngx-markdown';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { RouterModule } from '@angular/router';
 
 import { ApiDocumentationV4EmptyStateComponent } from './components/documentation-empty-state/api-documentation-v4-empty-state.component';
 import { ApiDocumentationV4ListNavigationHeaderComponent } from './components/documentation-list-navigation-header/api-documentation-v4-list-navigation-header.component';
@@ -62,22 +63,26 @@ import { GioTooltipOnEllipsisModule } from '../../../shared/components/gio-toolt
   imports: [
     CommonModule,
     FormsModule,
-    MatCardModule,
-    GioIconsModule,
-    MatButtonModule,
     ReactiveFormsModule,
+    RouterModule,
+    UIRouterModule,
+
+    MatCardModule,
+    MatButtonModule,
     MatInputModule,
     MatRadioModule,
     MatDialogModule,
-    UIRouterModule,
     MatStepperModule,
     MatButtonToggleModule,
-    GioMonacoEditorModule,
-    GioRadioButtonModule,
     MatTableModule,
     MatSnackBarModule,
-    MarkdownModule.forRoot(),
     MatTooltipModule,
+
+    MarkdownModule.forRoot(),
+
+    GioIconsModule,
+    GioMonacoEditorModule,
+    GioRadioButtonModule,
     GioPermissionModule,
     GioTooltipOnEllipsisModule,
   ],

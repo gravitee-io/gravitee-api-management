@@ -22,6 +22,8 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { set } from 'lodash';
+import { ActivatedRoute, Router } from '@angular/router';
+import { BehaviorSubject } from 'rxjs';
 
 import { ApiDocumentationV4Component } from './api-documentation-v4.component';
 import { ApiDocumentationV4Module } from './api-documentation-v4.module';
@@ -31,7 +33,7 @@ import { ApiDocumentationV4EditFolderDialogHarness } from './dialog/documentatio
 import { ApiDocumentationV4PagesListHarness } from './documentation-pages-list/api-documentation-v4-pages-list.harness';
 import { ApiDocumentationV4PageTitleHarness } from './components/api-documentation-v4-page-title/api-documentation-v4-page-title.harness';
 
-import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
+import { CurrentUserService } from '../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { Breadcrumb, Page } from '../../../entities/management-api-v2/documentation/page';
 import { fakeFolder, fakeMarkdown } from '../../../entities/management-api-v2/documentation/page.fixture';
@@ -41,9 +43,9 @@ import { ApiLifecycleState, fakeApiV4 } from '../../../entities/management-api-v
 describe('ApiDocumentationV4', () => {
   let fixture: ComponentFixture<ApiDocumentationV4Component>;
   let harnessLoader: HarnessLoader;
-  const fakeUiRouter = { go: jest.fn() };
   const API_ID = 'api-id';
   let httpTestingController: HttpTestingController;
+  let routerNavigateSpy: jest.SpyInstance;
 
   const currentUser = new User();
   currentUser.userPermissions = ['api-documentation-u', 'api-documentation-c', 'api-documentation-r', 'api-documentation-d'];
@@ -59,8 +61,13 @@ describe('ApiDocumentationV4', () => {
       declarations: [ApiDocumentationV4Component],
       imports: [NoopAnimationsModule, ApiDocumentationV4Module, MatIconTestingModule, GioHttpTestingModule],
       providers: [
-        { provide: UIRouterState, useValue: fakeUiRouter },
-        { provide: UIRouterStateParams, useValue: { apiId: API_ID, parentId } },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            snapshot: { params: { apiId: API_ID } },
+            queryParams: new BehaviorSubject({ parentId }),
+          },
+        },
         { provide: CurrentUserService, useValue: { currentUser } },
         {
           provide: 'Constants',
@@ -86,6 +93,8 @@ describe('ApiDocumentationV4', () => {
     fixture = TestBed.createComponent(ApiDocumentationV4Component);
     harnessLoader = TestbedHarnessEnvironment.loader(fixture);
     httpTestingController = TestBed.inject(HttpTestingController);
+    const router = TestBed.inject(Router);
+    routerNavigateSpy = jest.spyOn(router, 'navigate');
 
     fixture.detectChanges();
 
@@ -116,9 +125,9 @@ describe('ApiDocumentationV4', () => {
       const headerHarness = await harnessLoader.getHarness(ApiDocumentationV4EmptyStateHarness);
       await headerHarness.clickAddNewPage();
 
-      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.documentationV4-create', {
-        apiId: API_ID,
-        parentId: 'ROOT',
+      expect(routerNavigateSpy).toHaveBeenCalledWith(['new'], {
+        relativeTo: expect.anything(),
+        queryParams: { parentId: 'ROOT' },
       });
     });
   });
@@ -136,21 +145,27 @@ describe('ApiDocumentationV4', () => {
       expect(await headerHarness.getBreadcrumb()).toEqual('Home > level 1 > level 2');
 
       await headerHarness.clickOnBreadcrumbItem('level 1');
-      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.documentationV4', { parentId: 'level-1' });
+      expect(routerNavigateSpy).toHaveBeenCalledWith(['.'], {
+        relativeTo: expect.anything(),
+        queryParams: { parentId: 'level-1' },
+      });
     });
 
     it('should navigate to root if in a sub folder', async () => {
       await init([], [{ name: 'level 1', id: 'level-1', position: 1 }]);
       const headerHarness = await harnessLoader.getHarness(ApiDocumentationV4ListNavigationHeaderHarness);
       await headerHarness.clickOnBreadcrumbItem('Home');
-      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.documentationV4', { parentId: 'ROOT' });
+      expect(routerNavigateSpy).toHaveBeenCalledWith(['.'], {
+        relativeTo: expect.anything(),
+        queryParams: { parentId: 'ROOT' },
+      });
     });
 
     it('should not navigate to root if already in root', async () => {
       await init([], []);
       const headerHarness = await harnessLoader.getHarness(ApiDocumentationV4ListNavigationHeaderHarness);
       await headerHarness.clickOnBreadcrumbItem('Home');
-      expect(fakeUiRouter.go).toHaveBeenCalledTimes(0);
+      expect(routerNavigateSpy).toHaveBeenCalledTimes(0);
     });
 
     it('should show breadcrumb items and not be able to click on last item', async () => {
@@ -165,7 +180,7 @@ describe('ApiDocumentationV4', () => {
       expect(await headerHarness.getBreadcrumb()).toEqual('Home > level 1 > level 2');
 
       await headerHarness.clickOnBreadcrumbItem('level 2');
-      expect(fakeUiRouter.go).toHaveBeenCalledTimes(0);
+      expect(routerNavigateSpy).toHaveBeenCalledTimes(0);
     });
   });
 
@@ -193,9 +208,9 @@ describe('ApiDocumentationV4', () => {
       const headerHarness = await harnessLoader.getHarness(ApiDocumentationV4ListNavigationHeaderHarness);
       await headerHarness.clickAddNewPage();
 
-      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.documentationV4-create', {
-        apiId: API_ID,
-        parentId: 'ROOT',
+      expect(routerNavigateSpy).toHaveBeenCalledWith(['new'], {
+        relativeTo: expect.anything(),
+        queryParams: { parentId: 'ROOT' },
       });
     });
 
@@ -212,7 +227,10 @@ describe('ApiDocumentationV4', () => {
       const nameDiv = await pageListHarness.getNameDivByRowIndex(0);
       await nameDiv.host().then((host) => host.click());
 
-      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.documentationV4', { parentId: 'my-first-folder' });
+      expect(routerNavigateSpy).toHaveBeenCalledWith(['.'], {
+        relativeTo: expect.anything(),
+        queryParams: { parentId: 'my-first-folder' },
+      });
     });
   });
 

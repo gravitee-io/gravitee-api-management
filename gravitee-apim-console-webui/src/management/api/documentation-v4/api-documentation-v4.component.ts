@@ -14,20 +14,18 @@
  * limitations under the License.
  */
 
-import { Component, DoCheck, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subject } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
-import { StateService } from '@uirouter/angularjs';
 import { filter, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { StateParams } from '@uirouter/core';
 import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import {
   ApiDocumentationV4EditFolderDialog,
   ApiDocumentationV4EditFolderDialogData,
 } from './dialog/documentation-edit-folder-dialog/api-documentation-v4-edit-folder-dialog.component';
 
-import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { ApiDocumentationV2Service } from '../../../services-ngx/api-documentation-v2.service';
 import { CreateDocumentationFolder } from '../../../entities/management-api-v2/documentation/createDocumentation';
 import { Breadcrumb, Page } from '../../../entities/management-api-v2/documentation/page';
@@ -41,7 +39,7 @@ import { Api } from '../../../entities/management-api-v2';
   template: require('./api-documentation-v4.component.html'),
   styles: [require('./api-documentation-v4.component.scss')],
 })
-export class ApiDocumentationV4Component implements OnInit, DoCheck, OnDestroy {
+export class ApiDocumentationV4Component implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();
   api: Api;
   parentId: string;
@@ -50,31 +48,26 @@ export class ApiDocumentationV4Component implements OnInit, DoCheck, OnDestroy {
   isLoading = false;
 
   constructor(
+    private readonly activatedRoute: ActivatedRoute,
+    private readonly router: Router,
     private readonly matDialog: MatDialog,
-    @Inject(UIRouterState) private readonly ajsState: StateService,
-    @Inject(UIRouterStateParams) private readonly ajsStateParams: StateParams,
     private readonly apiV2Service: ApiV2Service,
     private readonly apiDocumentationV2Service: ApiDocumentationV2Service,
     private readonly snackBarService: SnackBarService,
   ) {}
 
-  ngDoCheck() {
-    // TODO: remove this when ActivatedRoute available
-    // Reload the component on browser navigation (previous or forward)
-    if (this.parentId && this.parentId !== this.ajsStateParams.parentId) {
-      this.ngOnInit();
-    }
-  }
-
   ngOnInit() {
-    this.parentId = this.ajsStateParams.parentId || 'ROOT';
-
     this.isLoading = true;
+
     this.apiV2Service
-      .get(this.ajsStateParams.apiId)
+      .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
         tap((api) => (this.api = api)),
-        switchMap((_) => this.apiDocumentationV2Service.getApiPages(this.api.id, this.parentId)),
+        switchMap(() => this.activatedRoute.queryParams),
+        switchMap((queryParams) => {
+          this.parentId = queryParams.parentId || 'ROOT';
+          return this.apiDocumentationV2Service.getApiPages(this.api.id, this.parentId);
+        }),
         takeUntil(this.unsubscribe$),
       )
       .subscribe((res) => {
@@ -124,15 +117,23 @@ export class ApiDocumentationV4Component implements OnInit, DoCheck, OnDestroy {
   }
 
   addPage() {
-    this.ajsState.go('management.apis.documentationV4-create', this.ajsStateParams);
+    this.router.navigate(['new'], {
+      relativeTo: this.activatedRoute,
+      queryParams: { parentId: this.parentId },
+    });
   }
 
   navigateTo(folderId: string | null) {
-    this.ajsState.go('management.apis.documentationV4', { parentId: folderId || 'ROOT' });
+    this.router.navigate(['.'], {
+      relativeTo: this.activatedRoute,
+      queryParams: { parentId: folderId || 'ROOT' },
+    });
   }
 
   editPage(pageId: string) {
-    this.ajsState.go('management.apis.documentationV4-edit', { pageId }, { reload: true });
+    this.router.navigate([pageId], {
+      relativeTo: this.activatedRoute,
+    });
   }
 
   editFolder(folder: Page) {
@@ -237,7 +238,7 @@ export class ApiDocumentationV4Component implements OnInit, DoCheck, OnDestroy {
       .afterClosed()
       .pipe(
         filter((confirmed) => !!confirmed),
-        switchMap((_) => this.apiDocumentationV2Service.deleteDocumentationPage(this.ajsStateParams.apiId, page?.id)),
+        switchMap((_) => this.apiDocumentationV2Service.deleteDocumentationPage(this.activatedRoute.snapshot.params.apiId, page?.id)),
         takeUntil(this.unsubscribe$),
       )
       .subscribe({

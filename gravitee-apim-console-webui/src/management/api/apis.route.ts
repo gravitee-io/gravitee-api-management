@@ -2299,6 +2299,36 @@ const apisRoutes: Routes = [
           },
         },
       },
+      {
+        path: 'v4/documentation',
+        data: {
+          useAngularMaterial: true,
+          docs: null,
+        },
+        component: ApiDocumentationV4Component,
+      },
+      {
+        path: 'v4/documentation/new',
+        data: {
+          useAngularMaterial: true,
+          docs: null,
+          apiPermissions: {
+            only: ['api-documentation-c'],
+          },
+        },
+        component: ApiDocumentationV4EditPageComponent,
+      },
+      {
+        path: 'v4/documentation/:pageId',
+        data: {
+          useAngularMaterial: true,
+          docs: null,
+          apiPermissions: {
+            only: ['api-documentation-u', 'api-documentation-r'],
+          },
+        },
+        component: ApiDocumentationV4EditPageComponent,
+      },
     ],
   },
 ];

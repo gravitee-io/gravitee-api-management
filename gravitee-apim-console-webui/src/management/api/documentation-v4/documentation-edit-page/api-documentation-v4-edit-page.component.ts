@@ -13,17 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
-import { StateParams } from '@uirouter/core';
-import { StateService } from '@uirouter/angularjs';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { EMPTY, Observable, of, Subject } from 'rxjs';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { MatDialog } from '@angular/material/dialog';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { CreateDocumentationMarkdown } from '../../../../entities/management-api-v2/documentation/createDocumentation';
-import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { ApiDocumentationV2Service } from '../../../../services-ngx/api-documentation-v2.service';
 import { Breadcrumb, Page } from '../../../../entities/management-api-v2/documentation/page';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
@@ -53,9 +51,9 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();
 
   constructor(
+    private readonly activatedRoute: ActivatedRoute,
+    private readonly router: Router,
     private readonly formBuilder: FormBuilder,
-    @Inject(UIRouterState) private readonly ajsState: StateService,
-    @Inject(UIRouterStateParams) private readonly ajsStateParams: StateParams,
     private readonly apiV2Service: ApiV2Service,
     private readonly apiDocumentationService: ApiDocumentationV2Service,
     private readonly permissionService: GioPermissionService,
@@ -73,7 +71,7 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
       content: this.formBuilder.control('', [Validators.required]),
     });
 
-    if (this.ajsStateParams.pageId) {
+    if (this.activatedRoute.snapshot.params.pageId) {
       this.mode = 'edit';
       this.step2Title = 'Edit content';
 
@@ -100,7 +98,7 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
     }
 
     this.apiV2Service
-      .get(this.ajsStateParams.apiId)
+      .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
         switchMap((api) => {
           this.api = api;
@@ -178,9 +176,9 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
 
   private updatePage(): Observable<Page> {
     const formValue = this.form.getRawValue();
-    return this.apiDocumentationService.getApiPage(this.api.id, this.ajsStateParams.pageId).pipe(
+    return this.apiDocumentationService.getApiPage(this.api.id, this.activatedRoute.snapshot.params.pageId).pipe(
       switchMap((page) =>
-        this.apiDocumentationService.updateDocumentationPage(this.api.id, this.ajsStateParams.pageId, {
+        this.apiDocumentationService.updateDocumentationPage(this.api.id, this.activatedRoute.snapshot.params.pageId, {
           ...page,
           name: formValue.stepOne.name,
           visibility: formValue.stepOne.visibility,
@@ -195,7 +193,10 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
   }
 
   goBackToPageList() {
-    this.ajsState.go('management.apis.documentationV4', { apiId: this.api.id, parentId: this.getParentId() });
+    this.router.navigate(['../'], {
+      relativeTo: this.activatedRoute,
+      queryParams: { parentId: this.getParentId() },
+    });
   }
 
   deletePage() {
@@ -210,7 +211,7 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
       .afterClosed()
       .pipe(
         filter((confirmed) => !!confirmed),
-        switchMap((_) => this.apiDocumentationService.deleteDocumentationPage(this.ajsStateParams.apiId, this.page?.id)),
+        switchMap((_) => this.apiDocumentationService.deleteDocumentationPage(this.activatedRoute.snapshot.params.apiId, this.page?.id)),
         takeUntil(this.unsubscribe$),
       )
       .subscribe({
@@ -230,7 +231,7 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
       name: this.form.getRawValue().stepOne.name,
       visibility: this.form.getRawValue().stepOne.visibility,
       content: this.form.getRawValue().content,
-      parentId: this.ajsStateParams.parentId || 'ROOT',
+      parentId: this.activatedRoute.snapshot.queryParams.parentId || 'ROOT',
     };
     return this.apiDocumentationService.createDocumentationPage(this.api.id, createPage).pipe(
       catchError((err) => {
@@ -241,7 +242,7 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
   }
 
   private loadEditPage(): Observable<Page> {
-    return this.apiDocumentationService.getApiPage(this.api.id, this.ajsStateParams.pageId).pipe(
+    return this.apiDocumentationService.getApiPage(this.api.id, this.activatedRoute.snapshot.params.pageId).pipe(
       tap((page) => {
         this.pageTitle = page.name;
         this.page = page;
@@ -260,6 +261,6 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
   }
 
   private getParentId(): string {
-    return this.ajsStateParams.parentId ?? this.page?.parentId ?? 'ROOT';
+    return this.activatedRoute.snapshot.queryParams.parentId ?? this.page?.parentId ?? 'ROOT';
   }
 }

@@ -27,13 +27,14 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { MatSnackBarHarness } from '@angular/material/snack-bar/testing';
 import { set } from 'lodash';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { ApiDocumentationV4EditPageHarness } from './api-documentation-v4-edit-page.harness';
 import { ApiDocumentationV4EditPageComponent } from './api-documentation-v4-edit-page.component';
 
 import { GioUiRouterTestingModule } from '../../../../shared/testing/gio-uirouter-testing-module';
 import { ApiDocumentationV4Module } from '../api-documentation-v4.module';
-import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+import { CurrentUserService } from '../../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { Breadcrumb, Page } from '../../../../entities/management-api-v2/documentation/page';
 import { ApiDocumentationV4ContentEditorHarness } from '../components/api-documentation-v4-content-editor/api-documentation-v4-content-editor.harness';
@@ -53,9 +54,9 @@ interface InitInput {
 describe('ApiDocumentationV4EditPageComponent', () => {
   let fixture: ComponentFixture<ApiDocumentationV4EditPageComponent>;
   let harnessLoader: HarnessLoader;
-  const fakeUiRouter = { go: jest.fn() };
   const API_ID = 'api-id';
   let httpTestingController: HttpTestingController;
+  let routerNavigateSpy: jest.SpyInstance;
 
   const init = async (
     parentId: string,
@@ -78,8 +79,7 @@ describe('ApiDocumentationV4EditPageComponent', () => {
         GioHttpTestingModule,
       ],
       providers: [
-        { provide: UIRouterState, useValue: fakeUiRouter },
-        { provide: UIRouterStateParams, useValue: { apiId: API_ID, parentId, pageId } },
+        { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID, pageId }, queryParams: { parentId } } } },
         { provide: CurrentUserService, useValue: { currentUser } },
         {
           provide: 'Constants',
@@ -105,6 +105,8 @@ describe('ApiDocumentationV4EditPageComponent', () => {
     fixture = TestBed.createComponent(ApiDocumentationV4EditPageComponent);
     harnessLoader = TestbedHarnessEnvironment.loader(fixture);
     httpTestingController = TestBed.inject(HttpTestingController);
+    const router = TestBed.inject(Router);
+    routerNavigateSpy = jest.spyOn(router, 'navigate');
     fixture.detectChanges();
   };
 
@@ -147,9 +149,10 @@ describe('ApiDocumentationV4EditPageComponent', () => {
       it('should exit without saving', async () => {
         const exitBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Exit without saving' }));
         await exitBtn.click();
-        expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.documentationV4', {
-          apiId: API_ID,
-          parentId: 'ROOT',
+
+        expect(routerNavigateSpy).toHaveBeenCalledWith(['../'], {
+          relativeTo: expect.anything(),
+          queryParams: { parentId: 'ROOT' },
         });
       });
 
@@ -459,7 +462,10 @@ describe('ApiDocumentationV4EditPageComponent', () => {
           });
           req.flush(PAGE);
 
-          expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.documentationV4', { apiId: API_ID, parentId: 'ROOT' });
+          expect(routerNavigateSpy).toHaveBeenCalledWith(['../'], {
+            relativeTo: expect.anything(),
+            queryParams: { parentId: 'ROOT' },
+          });
         });
       });
       describe('with unpublished page', () => {
@@ -569,9 +575,9 @@ describe('ApiDocumentationV4EditPageComponent', () => {
       it('should exit without saving', async () => {
         const exitBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Exit without saving' }));
         await exitBtn.click();
-        expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.documentationV4', {
-          apiId: API_ID,
-          parentId: PAGE.parentId,
+        expect(routerNavigateSpy).toHaveBeenCalledWith(['../'], {
+          relativeTo: expect.anything(),
+          queryParams: { parentId: PAGE.parentId },
         });
       });
     });
@@ -656,7 +662,10 @@ describe('ApiDocumentationV4EditPageComponent', () => {
             })
             .flush(null);
 
-          expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.documentationV4', { apiId: API_ID, parentId: 'ROOT' });
+          expect(routerNavigateSpy).toHaveBeenCalledWith(['../'], {
+            relativeTo: expect.anything(),
+            queryParams: { parentId: 'ROOT' },
+          });
         });
       });
     });
@@ -703,9 +712,9 @@ describe('ApiDocumentationV4EditPageComponent', () => {
             })
             .flush(null);
 
-          expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.documentationV4', {
-            apiId: API_ID,
-            parentId: FOLDER.id,
+          expect(routerNavigateSpy).toHaveBeenCalledWith(['../'], {
+            relativeTo: expect.anything(),
+            queryParams: { parentId: FOLDER.id },
           });
         });
       });
