@@ -20,12 +20,13 @@ import { Subject } from 'rxjs';
 import { GioMenuService } from '@gravitee/ui-particles-angular';
 import { castArray } from 'lodash';
 
-import { Constants } from '../../../entities/Constants';
 import { UIRouterState } from '../../../ajs-upgraded-providers';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 
 interface MenuItem {
+  // @deprecated
   targetRoute?: string;
+  routerLink?: string;
   baseRoute?: string | string[];
   displayName: string;
   permissions?: string[];
@@ -49,7 +50,6 @@ export class SettingsNavigationComponent implements OnInit {
   constructor(
     @Inject(UIRouterState) private readonly ajsState: StateService,
     private readonly permissionService: GioPermissionService,
-    @Inject('Constants') private readonly constants: Constants,
     private readonly gioMenuService: GioMenuService,
   ) {}
 
@@ -64,8 +64,9 @@ export class SettingsNavigationComponent implements OnInit {
         items: [
           {
             displayName: 'Analytics',
-            targetRoute: 'management.settings.analytics.list',
-            baseRoute: 'management.settings.analytics',
+            routerLink: './analytics',
+            // targetRoute: 'management.settings.analytics.list',
+            baseRoute: ['management.settings.analytics'],
             permissions: ['environment-dashboard-r'],
           },
           {

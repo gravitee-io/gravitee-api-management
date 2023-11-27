@@ -155,8 +155,8 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
 
     mainMenuItems.push({
       icon: 'gio:settings',
-      targetRoute: 'management.settings.analytics.list',
-      baseRoute: 'management.settings',
+      routerLink: './settings',
+      baseRoute: ['management.settings'],
       displayName: 'Settings',
       // prettier-ignore
       permissions: [
