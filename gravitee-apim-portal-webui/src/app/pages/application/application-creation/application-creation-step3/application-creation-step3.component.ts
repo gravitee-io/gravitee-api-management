@@ -18,8 +18,12 @@ import { ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, O
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 =======
 import { ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
+<<<<<<< HEAD
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 >>>>>>> 5da4546d7e (chore: bump Angular to 14.3)
+=======
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+>>>>>>> 72d6e66ca6 (refactor: add type on app creation step 3 form)
 import { ActivatedRoute } from '@angular/router';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { TranslateService } from '@ngx-translate/core';
@@ -50,11 +54,20 @@ export class ApplicationCreationStep3Component implements OnInit, OnDestroy {
   @Input() hasValidClientId: Function;
   @ViewChild('searchApiAutocomplete') searchApiAutocomplete;
 <<<<<<< HEAD
+<<<<<<< HEAD
 
   planForm: FormGroup;
 =======
   planForm: UntypedFormGroup;
 >>>>>>> 5da4546d7e (chore: bump Angular to 14.3)
+=======
+  planForm: FormGroup<{
+    apiId: FormControl<string | null>;
+    planId: FormControl<string | null>;
+    general_conditions_accepted: FormControl<boolean | null>;
+  }>;
+
+>>>>>>> 72d6e66ca6 (refactor: add type on app creation step 3 form)
   apiList: { data: any; id: string; value: string }[];
   plans: Array<Plan>;
   selectedApi: Api;
@@ -72,6 +85,7 @@ export class ApplicationCreationStep3Component implements OnInit, OnDestroy {
 
   constructor(
 <<<<<<< HEAD
+<<<<<<< HEAD
     private readonly formBuilder: FormBuilder,
     private readonly apiService: ApiService,
     private readonly activatedRoute: ActivatedRoute,
@@ -80,6 +94,9 @@ export class ApplicationCreationStep3Component implements OnInit, OnDestroy {
     private readonly entrypointsService: EntrypointsService,
 =======
     private formBuilder: UntypedFormBuilder,
+=======
+    private formBuilder: FormBuilder,
+>>>>>>> 72d6e66ca6 (refactor: add type on app creation step 3 form)
     private apiService: ApiService,
     private activatedRoute: ActivatedRoute,
     private translateService: TranslateService,
@@ -99,6 +116,7 @@ export class ApplicationCreationStep3Component implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.planForm = this.formBuilder.group({
 <<<<<<< HEAD
+<<<<<<< HEAD
       apiId: new FormControl(null, [Validators.required]),
       planId: new FormControl(null, [Validators.required]),
       general_conditions_accepted: new FormControl(null),
@@ -110,6 +128,11 @@ export class ApplicationCreationStep3Component implements OnInit, OnDestroy {
       planId: new UntypedFormControl(null, [Validators.required]),
       general_conditions_accepted: new UntypedFormControl(null),
 >>>>>>> 5da4546d7e (chore: bump Angular to 14.3)
+=======
+      apiId: new FormControl(null, [Validators.required]),
+      planId: new FormControl(null, [Validators.required]),
+      general_conditions_accepted: new FormControl(null),
+>>>>>>> 72d6e66ca6 (refactor: add type on app creation step 3 form)
     });
 
     this.planForm.valueChanges.pipe(distinctUntilChanged((prev, curr) => prev.planId === curr.planId)).subscribe(() => {
