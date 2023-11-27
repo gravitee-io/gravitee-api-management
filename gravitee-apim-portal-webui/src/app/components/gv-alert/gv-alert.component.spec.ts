@@ -85,7 +85,7 @@ describe('GvAlertComponent', () => {
       duration: 1,
       enabled: true,
       status_code: '4xx',
-      status_percent: '1',
+      status_percent: 1,
       time_unit: 'MINUTES',
       type: 'STATUS',
     });
@@ -125,10 +125,10 @@ describe('GvAlertComponent', () => {
     expect(req.request.body).toEqual({
       api: '',
       description: '',
-      duration: '1',
+      duration: 1,
       enabled: true,
       status_code: '4xx',
-      status_percent: '1',
+      status_percent: 1,
       time_unit: 'MINUTES',
       type: 'STATUS',
       webhook: {

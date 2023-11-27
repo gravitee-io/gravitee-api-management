@@ -4,8 +4,6 @@
 // make sure to add in the required preset and
 // and setup file entries
 module.exports = {
-  preset: 'jest-preset-angular',
-  globalSetup: 'jest-preset-angular/global-setup',
   roots: [__dirname + '/src'],
   setupFilesAfterEnv: [__dirname + '/src/setup-jest.ts'],
   restoreMocks: true,

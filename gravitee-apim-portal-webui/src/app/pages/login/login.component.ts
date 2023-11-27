@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import '@gravitee/ui-components/wc/gv-button';
 import '@gravitee/ui-components/wc/gv-icon';
 import '@gravitee/ui-components/wc/gv-input';
 
 import { IdentityProvider, PortalService } from '../../../../projects/portal-webclient-sdk/src/lib';
-import { NotificationService } from '../../services/notification.service';
 import { ConfigurationService } from '../../services/configuration.service';
 import { FeatureEnum } from '../../model/feature.enum';
 import { AuthService } from '../../services/auth.service';
@@ -33,7 +32,7 @@ import { ReCaptchaService } from '../../services/recaptcha.service';
   styleUrls: ['./login.component.css'],
 })
 export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
-  loginForm: FormGroup;
+  loginForm: FormGroup<{ username: FormControl<string>; password: FormControl<string> }>;
   registrationEnabled: boolean;
   loginEnabled: boolean;
   providers: IdentityProvider[];
@@ -43,8 +42,6 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
   constructor(
     private portalService: PortalService,
     private formBuilder: FormBuilder,
-    private router: Router,
-    private notificationService: NotificationService,
     private config: ConfigurationService,
     private authService: AuthService,
     private activatedRoute: ActivatedRoute,
