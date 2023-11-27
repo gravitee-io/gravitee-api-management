@@ -30,7 +30,6 @@
     <name>Gravitee.io APIM - Gateway - Tests - SDK</name>
 
     <properties>
-        <gravitee-connector-http.version>3.0.1</gravitee-connector-http.version>
         <reactiverse-junit5-rx-java2-web-client.version>0.3.0</reactiverse-junit5-rx-java2-web-client.version>
     </properties>
 
