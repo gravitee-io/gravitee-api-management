@@ -22,12 +22,10 @@ setupAngularJsTesting();
 
 describe('AlertsComponent', () => {
   let $componentController: IComponentControllerService;
-  let $stateParams;
   let alertsComponent: any;
 
   beforeEach(inject((_$stateParams_, _$componentController_) => {
     $componentController = _$componentController_;
-    $stateParams = _$stateParams_;
     alertsComponent = $componentController('alertsComponentAjs', null, {});
   }));
 
@@ -35,8 +33,14 @@ describe('AlertsComponent', () => {
     const alert = new Alert('alert', 'INFO', 'source', 'my alert', 'test', undefined, undefined);
 
     it('should set reference_type to ENVIRONMENT', () => {
-      $stateParams.apiId = undefined;
-      $stateParams.applicationId = undefined;
+      alertsComponent.activatedRoute = {
+        snapshot: {
+          params: {
+            apiId: undefined,
+            applicationId: undefined,
+          },
+        },
+      };
 
       alertsComponent.enhanceAlert(alert);
 
@@ -44,8 +48,14 @@ describe('AlertsComponent', () => {
     });
 
     it('should set reference_type to API', () => {
-      $stateParams.apiId = 'test-api';
-      $stateParams.applicationId = undefined;
+      alertsComponent.activatedRoute = {
+        snapshot: {
+          params: {
+            apiId: 'test-api',
+            applicationId: undefined,
+          },
+        },
+      };
 
       alertsComponent.enhanceAlert(alert);
 
@@ -53,8 +63,14 @@ describe('AlertsComponent', () => {
     });
 
     it('should set reference_type to APPLICATION', () => {
-      $stateParams.apiId = undefined;
-      $stateParams.applicationId = 'test-application';
+      alertsComponent.activatedRoute = {
+        snapshot: {
+          params: {
+            apiId: undefined,
+            applicationId: 'test-application',
+          },
+        },
+      };
 
       alertsComponent.enhanceAlert(alert);
 

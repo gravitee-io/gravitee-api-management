@@ -18,6 +18,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { UIRouterModule } from '@uirouter/angular';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 import { ApiRuntimeLogsDetailsComponent } from './api-runtime-logs-details.component';
 import { ApiRuntimeLogsDetailsModule } from './api-runtime-logs-details.module';
@@ -37,7 +38,7 @@ describe('ApiRuntimeLogsDetailsComponent', () => {
 
   const initComponent = async () => {
     TestBed.configureTestingModule({
-      imports: [ApiRuntimeLogsDetailsModule, GioHttpTestingModule, UIRouterModule.forRoot({ useHash: true })],
+      imports: [NoopAnimationsModule, ApiRuntimeLogsDetailsModule, GioHttpTestingModule, UIRouterModule.forRoot({ useHash: true })],
       providers: [
         { provide: UIRouterState, useValue: fakeUiRouter },
         { provide: UIRouterStateParams, useValue: { apiId: API_ID } },

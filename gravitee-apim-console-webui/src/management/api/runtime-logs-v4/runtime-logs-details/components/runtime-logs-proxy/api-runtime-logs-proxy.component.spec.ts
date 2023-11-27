@@ -17,6 +17,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { UIRouterModule } from '@uirouter/angular';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 import { ApiRuntimeLogsProxyComponent } from './api-runtime-logs-proxy.component';
 import { ApiRuntimeLogsProxyHarness } from './api-runtime-logs-proxy.harness';
@@ -44,6 +45,7 @@ describe('ApiRuntimeLogsProxyComponent', () => {
   const initComponent = async () => {
     TestBed.configureTestingModule({
       imports: [
+        NoopAnimationsModule,
         ApiRuntimeLogsProxyModule,
         UIRouterModule.forRoot({
           useHash: true,
