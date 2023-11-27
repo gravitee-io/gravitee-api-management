@@ -14,7 +14,14 @@
  * limitations under the License.
  */
 import { Component, EventEmitter, OnInit, Output } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+
+export type CreationFormType = FormGroup<{
+  name: FormControl<string | null>;
+  description: FormControl<string | null>;
+  domain: FormControl<string | null>;
+  picture: FormControl<string | null>;
+}>;
 
 @Component({
   selector: 'app-application-creation-step1',
@@ -22,18 +29,18 @@ import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } 
   styleUrls: ['../application-creation.component.css'],
 })
 export class ApplicationCreationStep1Component implements OnInit {
-  form: UntypedFormGroup;
+  form: CreationFormType;
 
-  @Output() updated = new EventEmitter<UntypedFormGroup>();
+  @Output() updated = new EventEmitter<CreationFormType>();
 
-  constructor(private formBuilder: UntypedFormBuilder) {}
+  constructor(private formBuilder: FormBuilder) {}
 
   ngOnInit(): void {
     this.form = this.formBuilder.group({
-      name: new UntypedFormControl(null, [Validators.required]),
-      description: new UntypedFormControl(null, [Validators.required]),
-      domain: new UntypedFormControl(null),
-      picture: new UntypedFormControl(null),
+      name: new FormControl(null, [Validators.required]),
+      description: new FormControl(null, [Validators.required]),
+      domain: new FormControl(null),
+      picture: new FormControl(null),
     });
 
     this.form.valueChanges.subscribe(() => {
