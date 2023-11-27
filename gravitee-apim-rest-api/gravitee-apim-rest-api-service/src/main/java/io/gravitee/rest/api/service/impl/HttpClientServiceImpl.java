@@ -19,20 +19,13 @@ import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.rest.api.service.HttpClientService;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.Promise;
-import io.vertx.core.Vertx;
+import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.HttpClient;
-import io.vertx.core.http.HttpClientOptions;
-import io.vertx.core.http.HttpClientRequest;
-import io.vertx.core.http.HttpClientResponse;
-import io.vertx.core.http.RequestOptions;
+import io.vertx.core.http.*;
 import io.vertx.core.net.ProxyOptions;
 import io.vertx.core.net.ProxyType;
 import java.net.URI;
@@ -40,8 +33,6 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
@@ -55,41 +46,13 @@ public class HttpClientServiceImpl extends AbstractService implements HttpClient
 
     private static final String HTTPS_SCHEME = "https";
 
-    @Value("${httpClient.timeout:10000}")
-    private int httpClientTimeout;
+    private final Configuration configuration;
+    private final Vertx vertx;
 
-    @Value("${httpClient.proxy.type:HTTP}")
-    private String httpClientProxyType;
-
-    @Value("${httpClient.proxy.http.host:#{systemProperties['http.proxyHost'] ?: 'localhost'}}")
-    private String httpClientProxyHttpHost;
-
-    @Value("${httpClient.proxy.http.port:#{systemProperties['http.proxyPort'] ?: 3128}}")
-    private int httpClientProxyHttpPort;
-
-    @Value("${httpClient.proxy.http.username:#{null}}")
-    private String httpClientProxyHttpUsername;
-
-    @Value("${httpClient.proxy.http.password:#{null}}")
-    private String httpClientProxyHttpPassword;
-
-    @Value("${httpClient.proxy.https.host:#{systemProperties['https.proxyHost'] ?: 'localhost'}}")
-    private String httpClientProxyHttpsHost;
-
-    @Value("${httpClient.proxy.https.port:#{systemProperties['https.proxyPort'] ?: 3128}}")
-    private int httpClientProxyHttpsPort;
-
-    @Value("${httpClient.proxy.https.username:#{null}}")
-    private String httpClientProxyHttpsUsername;
-
-    @Value("${httpClient.proxy.https.password:#{null}}")
-    private String httpClientProxyHttpsPassword;
-
-    @Value("#{systemProperties['httpClient.proxy'] == null ? false : true }")
-    private boolean isProxyConfigured;
-
-    @Autowired
-    private Vertx vertx;
+    public HttpClientServiceImpl(Configuration configuration, Vertx vertx) {
+        this.configuration = configuration;
+        this.vertx = vertx;
+    }
 
     @Override
     public HttpClient createHttpClient(String uriScheme, Boolean useSystemProxy) {
@@ -102,21 +65,21 @@ public class HttpClientServiceImpl extends AbstractService implements HttpClient
             .setMaxPoolSize(1)
             .setKeepAlive(false)
             .setTcpKeepAlive(false)
-            .setConnectTimeout(httpClientTimeout);
+            .setConnectTimeout(httpClientTimeout());
 
-        if ((useSystemProxy == Boolean.TRUE) || (useSystemProxy == null && this.isProxyConfigured)) {
+        if ((useSystemProxy == Boolean.TRUE) || (useSystemProxy == null && this.isProxyConfigured())) {
             ProxyOptions proxyOptions = new ProxyOptions();
-            proxyOptions.setType(ProxyType.valueOf(httpClientProxyType));
+            proxyOptions.setType(ProxyType.valueOf(httpClientProxyType()));
             if (HTTPS_SCHEME.equals(uriScheme)) {
-                proxyOptions.setHost(httpClientProxyHttpsHost);
-                proxyOptions.setPort(httpClientProxyHttpsPort);
-                proxyOptions.setUsername(httpClientProxyHttpsUsername);
-                proxyOptions.setPassword(httpClientProxyHttpsPassword);
+                proxyOptions.setHost(httpClientProxyHttpsHost());
+                proxyOptions.setPort(httpClientProxyHttpsPort());
+                proxyOptions.setUsername(httpClientProxyHttpsUsername());
+                proxyOptions.setPassword(httpClientProxyHttpsPassword());
             } else {
-                proxyOptions.setHost(httpClientProxyHttpHost);
-                proxyOptions.setPort(httpClientProxyHttpPort);
-                proxyOptions.setUsername(httpClientProxyHttpUsername);
-                proxyOptions.setPassword(httpClientProxyHttpPassword);
+                proxyOptions.setHost(httpClientProxyHttpHost());
+                proxyOptions.setPort(httpClientProxyHttpPort());
+                proxyOptions.setUsername(httpClientProxyHttpUsername());
+                proxyOptions.setPassword(httpClientProxyHttpPassword());
             }
             options.setProxyOptions(proxyOptions);
         }
@@ -144,7 +107,7 @@ public class HttpClientServiceImpl extends AbstractService implements HttpClient
             .setHost(requestUri.getHost())
             .setPort(port)
             .setURI(requestUri.getPath())
-            .setTimeout(httpClientTimeout);
+            .setTimeout(httpClientTimeout());
 
         //headers
         if (headers != null) {
@@ -247,5 +210,57 @@ public class HttpClientServiceImpl extends AbstractService implements HttpClient
             Thread.currentThread().interrupt();
             throw new TechnicalManagementException(e.getMessage(), e);
         }
+    }
+
+    private Integer httpClientTimeout() {
+        return configuration.getProperty("httpClient.timeout", Integer.class, 10000);
+    }
+
+    private String httpClientProxyType() {
+        return configuration.getProperty("httpClient.proxy.type", "HTTP");
+    }
+
+    private String httpClientProxyHttpHost() {
+        return configuration.getProperty("httpClient.proxy.http.host", System.getProperty("http.proxyHost", "localhost"));
+    }
+
+    private Integer httpClientProxyHttpPort() {
+        return configuration.getProperty(
+            "httpClient.proxy.http.port",
+            Integer.class,
+            Integer.valueOf(System.getProperty("http.proxyPort", "3128"))
+        );
+    }
+
+    private String httpClientProxyHttpUsername() {
+        return configuration.getProperty("httpClient.proxy.http.username");
+    }
+
+    private String httpClientProxyHttpPassword() {
+        return configuration.getProperty("httpClient.proxy.http.password");
+    }
+
+    private String httpClientProxyHttpsHost() {
+        return configuration.getProperty("httpClient.proxy.https.host", System.getProperty("https.proxyHost", "localhost"));
+    }
+
+    private Integer httpClientProxyHttpsPort() {
+        return configuration.getProperty(
+            "httpClient.proxy.https.port",
+            Integer.class,
+            Integer.valueOf(System.getProperty("https.proxyPort", "3128"))
+        );
+    }
+
+    private String httpClientProxyHttpsUsername() {
+        return configuration.getProperty("httpClient.proxy.https.username");
+    }
+
+    private String httpClientProxyHttpsPassword() {
+        return configuration.getProperty("httpClient.proxy.https.password");
+    }
+
+    private Boolean isProxyConfigured() {
+        return Boolean.valueOf(System.getProperty("httpClient.proxy", "false"));
     }
 }

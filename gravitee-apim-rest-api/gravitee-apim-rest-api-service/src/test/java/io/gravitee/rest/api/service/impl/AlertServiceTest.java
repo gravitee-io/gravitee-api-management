@@ -16,6 +16,9 @@
 package io.gravitee.rest.api.service.impl;
 
 import static java.util.stream.Collectors.toList;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,6 +26,7 @@ import io.gravitee.alert.api.condition.StringCondition;
 import io.gravitee.alert.api.trigger.Dampening;
 import io.gravitee.alert.api.trigger.Trigger.Severity;
 import io.gravitee.alert.api.trigger.TriggerProvider;
+import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.notifier.api.Notification;
 import io.gravitee.plugin.alert.AlertTriggerProviderManager;
 import io.gravitee.repository.management.api.AlertEventRepository;
@@ -45,9 +49,7 @@ import java.util.List;
 import java.util.UUID;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
-import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
 
 /**
  * @author Rémi SULTAN (remi.sultan at graviteesource.com)
@@ -91,29 +93,34 @@ public class AlertServiceTest {
     @Mock
     protected EnvironmentService environmentService;
 
+    @Mock
+    protected Configuration configuration;
+
     protected AlertServiceImpl alertService;
 
     protected ExecutionContext executionContext = new ExecutionContext("DEFAULT", "DEFAULT");
 
     @Before
     public void setup() throws Exception {
-        alertService = getAlertService("my.host.io");
+        alertService = getAlertService();
         alertService.afterPropertiesSet();
+
+        lenient().when(configuration.getProperty(eq("notifiers.email.subject"), anyString())).thenReturn("[Gravitee.io %s]");
+        lenient().when(configuration.getProperty("notifiers.email.host")).thenReturn("my.host.io");
+        lenient().when(configuration.getProperty(eq("notifiers.email.port"), eq(Integer.class))).thenReturn(587);
+        lenient().when(configuration.getProperty("notifiers.email.username")).thenReturn("username");
+        lenient().when(configuration.getProperty("notifiers.email.password")).thenReturn("password");
+        lenient()
+            .when(configuration.getProperty("notifiers.email.authMethods", String[].class))
+            .thenReturn(new String[] { "LOGIN", "PLAIN" });
+        lenient().when(configuration.getProperty("notifiers.email.starttls.enabled", Boolean.class, false)).thenReturn(false);
+        lenient().when(configuration.getProperty("notifiers.email.ssl.trustAll", Boolean.class, false)).thenReturn(false);
     }
 
     @NotNull
-    protected AlertServiceImpl getAlertService(String host) {
+    protected AlertServiceImpl getAlertService() {
         return new AlertServiceImpl(
-            "[Gravitee.io %s]",
-            host,
-            "587",
-            "username",
-            "password",
-            new String[] { "LOGIN", "PLAIN" },
-            false,
-            false,
-            null,
-            null,
+            configuration,
             objectMapper,
             alertTriggerRepository,
             apiService,

@@ -83,7 +83,7 @@ public class AlertService_CreateTest extends AlertServiceTest {
         when(alertTriggerProviderManager.findAll()).thenReturn(List.of(mock(TriggerProvider.class)));
         when(alertTriggerRepository.create(any())).thenReturn(alertTrigger);
 
-        alertService = getAlertService(null);
+        alertService = getAlertService();
         alertService.afterPropertiesSet();
         alertService.create(executionContext, alert);
 

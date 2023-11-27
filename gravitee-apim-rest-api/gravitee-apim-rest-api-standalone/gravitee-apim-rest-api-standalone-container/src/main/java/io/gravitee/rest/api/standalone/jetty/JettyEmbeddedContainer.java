@@ -53,8 +53,9 @@ import org.springframework.web.filter.DelegatingFilterProxy;
 public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<JettyEmbeddedContainer> implements ApplicationContextAware {
 
     @Autowired
-    private Server server;
+    private JettyServerFactory jettyServerFactory;
 
+    private Server server;
     private ApplicationContext applicationContext;
 
     @Value("${http.api.management.enabled:true}")
@@ -71,6 +72,8 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
 
     @Override
     protected void doStart() throws Exception {
+        server = jettyServerFactory.getObject();
+
         AbstractHandler noContentHandler = new NoContentOutputErrorHandler();
         // This part is needed to avoid WARN while starting container.
         noContentHandler.setServer(server);
@@ -150,7 +153,9 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
 
     @Override
     protected void doStop() throws Exception {
-        server.stop();
+        if (server != null) {
+            server.stop();
+        }
     }
 
     @Override

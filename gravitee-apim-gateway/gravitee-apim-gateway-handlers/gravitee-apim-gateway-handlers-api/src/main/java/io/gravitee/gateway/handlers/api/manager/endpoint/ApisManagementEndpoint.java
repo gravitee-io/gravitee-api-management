@@ -34,6 +34,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -43,6 +44,7 @@ public class ApisManagementEndpoint implements Handler<RoutingContext>, Manageme
 
     private final Logger LOGGER = LoggerFactory.getLogger(ApisManagementEndpoint.class);
 
+    @Lazy
     @Autowired
     private ApiManager apiManager;
 
