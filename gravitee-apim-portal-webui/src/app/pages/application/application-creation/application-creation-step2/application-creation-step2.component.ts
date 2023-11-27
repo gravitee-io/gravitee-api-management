@@ -19,6 +19,11 @@ import { Subscription } from 'rxjs';
 
 import { ApplicationTypeOption } from '../application-creation.component';
 
+export type AppFormType = FormGroup<{ app: FormGroup<{ type: FormControl<string>; client_id: FormControl<string> }> }> | null;
+export type OAuthFormType = FormGroup<{
+  oauth: FormGroup<{ redirect_uris: FormArray; grant_types: FormArray; application_type: FormControl<string> }>;
+}>;
+
 @Component({
   selector: 'app-application-creation-step2',
   templateUrl: './application-creation-step2.component.html',
@@ -28,11 +33,11 @@ export class ApplicationCreationStep2Component implements OnInit, OnChanges {
   @Input() allowedTypes: Array<ApplicationTypeOption>;
   @Input() requireClientId: boolean;
   @Output() applicationTypeSelected = new EventEmitter<ApplicationTypeOption>();
-  @Output() updated = new EventEmitter<FormGroup>();
+  @Output() updated = new EventEmitter<AppFormType | OAuthFormType>();
   applicationType: ApplicationTypeOption;
   allGrantTypes: { name?: string; disabled: boolean; type?: string; value: boolean }[];
-  oauthForm: any;
-  appForm: any;
+  oauthForm: OAuthFormType;
+  appForm: AppFormType;
   private formSubscription: Subscription;
 
   constructor(private formBuilder: FormBuilder) {}

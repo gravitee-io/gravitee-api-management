@@ -14,10 +14,14 @@
  * limitations under the License.
  */
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { FormControl, FormGroup } from '@angular/forms';
 
 import { ResetUserPasswordInput, UsersService } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { ReCaptchaService } from '../../services/recaptcha.service';
+
+type ResetPasswordFormType = FormGroup<{
+  username: FormControl<string>;
+}>;
 
 @Component({
   selector: 'app-reset-password',
@@ -26,15 +30,15 @@ import { ReCaptchaService } from '../../services/recaptcha.service';
 })
 export class ResetPasswordComponent implements OnInit {
   isSubmitted: boolean;
-  resetPasswordForm: FormGroup;
+  resetPasswordForm: ResetPasswordFormType;
 
-  constructor(private usersService: UsersService, private formBuilder: FormBuilder, private reCaptchaService: ReCaptchaService) {
+  constructor(private usersService: UsersService, private reCaptchaService: ReCaptchaService) {
     this.isSubmitted = false;
   }
 
   ngOnInit() {
-    this.resetPasswordForm = this.formBuilder.group({
-      username: '',
+    this.resetPasswordForm = new FormGroup({
+      username: new FormControl<string>(''),
     });
     this.reCaptchaService.displayBadge();
   }

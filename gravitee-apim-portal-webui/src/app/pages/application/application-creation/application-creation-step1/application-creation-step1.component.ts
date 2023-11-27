@@ -16,15 +16,22 @@
 import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 
+export type CreationFormType = FormGroup<{
+  name: FormControl<string | null>;
+  description: FormControl<string | null>;
+  domain: FormControl<string | null>;
+  picture: FormControl<string | null>;
+}>;
+
 @Component({
   selector: 'app-application-creation-step1',
   templateUrl: './application-creation-step1.component.html',
   styleUrls: ['../application-creation.component.css'],
 })
 export class ApplicationCreationStep1Component implements OnInit {
-  form: FormGroup;
+  form: CreationFormType;
 
-  @Output() updated = new EventEmitter<FormGroup>();
+  @Output() updated = new EventEmitter<CreationFormType>();
 
   constructor(private formBuilder: FormBuilder) {}
 

@@ -21,7 +21,7 @@ import '@gravitee/ui-components/wc/gv-confirm';
 import { ActivatedRoute, Router } from '@angular/router';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { TranslateService } from '@ngx-translate/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { getPictureDisplayName } from '@gravitee/ui-components/src/lib/item';
 
 import { NotificationService } from '../../../services/notification.service';
@@ -42,6 +42,12 @@ import {
 const StatusEnum = Subscription.StatusEnum;
 const SecurityEnum = Plan.SecurityEnum;
 
+type ApplicationSubscriptionsFormType = FormGroup<{
+  api: FormControl<string>;
+  status: FormControl<GetSubscriptionsRequestParams['statuses']>;
+  apiKey: FormControl<string>;
+}>;
+
 @Component({
   selector: 'app-application-subscriptions',
   templateUrl: './application-subscriptions.component.html',
@@ -51,7 +57,7 @@ export class ApplicationSubscriptionsComponent implements OnInit {
   subscriptions: Array<Subscription>;
   options: any;
   format: any;
-  form: FormGroup = this.formBuilder.group({
+  form: ApplicationSubscriptionsFormType = this.formBuilder.group({
     api: '',
     status: [],
     apiKey: '',
