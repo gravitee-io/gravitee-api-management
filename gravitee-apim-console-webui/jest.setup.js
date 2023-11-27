@@ -53,6 +53,7 @@ export function setupAngularJsTesting() {
         },
       }),
     ]);
+    angular.module('gravitee-management').factory('ngRouter', [() => ({})]);
 
     angular.module('gravitee-management').constant('Constants', {
       org: {
