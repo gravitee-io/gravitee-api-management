@@ -75,7 +75,7 @@ import { ApiDocumentationV4Component } from './documentation-v4/api-documentatio
 import { ApiDocumentationV4EditPageComponent } from './documentation-v4/documentation-edit-page/api-documentation-v4-edit-page.component';
 import { ApiDynamicPropertiesComponent } from './proxy/properties/dynamic-properties/api-dynamic-properties.component';
 import { ApiRuntimeLogsDetailsComponent } from './runtime-logs-v4/runtime-logs-details/api-runtime-logs-details.component';
-import { AsApiPermissionGuard } from './as-api-permission.guard';
+import { HasApiPermissionGuard } from './has-api-permission.guard';
 
 import { ApiService } from '../../services/api.service';
 import { GioEmptyComponent } from '../../shared/components/gio-empty/gio-empty.component';
@@ -1674,8 +1674,8 @@ const apisRoutes: Routes = [
   {
     path: ':apiId',
     component: ApiNavigationComponent,
-    canActivate: [AsApiPermissionGuard],
-    canActivateChild: [AsApiPermissionGuard],
+    canActivate: [HasApiPermissionGuard],
+    canActivateChild: [HasApiPermissionGuard],
     children: [
       {
         path: '',

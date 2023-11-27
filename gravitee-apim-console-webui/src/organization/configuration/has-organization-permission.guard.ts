@@ -22,7 +22,7 @@ import { GioPermissionService } from '../../shared/components/gio-permission/gio
 @Injectable({
   providedIn: 'root',
 })
-export class AsOrganizationPermissionGuard implements CanActivate, CanActivateChild {
+export class HasOrganizationPermissionGuard implements CanActivate, CanActivateChild {
   constructor(private readonly gioPermissionService: GioPermissionService, private readonly router: Router) {}
 
   canActivate(route: ActivatedRouteSnapshot, _state: RouterStateSnapshot): Observable<boolean> {

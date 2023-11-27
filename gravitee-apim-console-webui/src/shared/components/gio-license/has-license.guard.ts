@@ -29,7 +29,7 @@ export interface GioRequireLicenseRouterData {
 @Injectable({
   providedIn: 'root',
 })
-export class AsLicenseGuard implements CanActivateChild {
+export class HasLicenseGuard implements CanActivateChild {
   constructor(private readonly gioLicenseService: GioLicenseService, private readonly router: Router) {}
 
   canActivateChild(route: ActivatedRouteSnapshot, _state: RouterStateSnapshot): Observable<boolean> {

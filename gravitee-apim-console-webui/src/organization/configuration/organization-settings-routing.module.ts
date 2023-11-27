@@ -33,17 +33,17 @@ import { OrgSettingsRoleMembersComponent } from './roles/org-settings-role-membe
 import { OrgSettingsRoleComponent } from './roles/role/org-settings-role.component';
 import { OrgSettingsAuditComponent } from './audit/org-settings-audit.component';
 import { OrgNavigationComponent } from './navigation/org-navigation.component';
-import { AsOrganizationPermissionGuard } from './as-organization-permission.guard';
+import { HasOrganizationPermissionGuard } from './has-organization-permission.guard';
 import { OrganizationSettingsModule } from './organization-settings.module';
 
-import { AsLicenseGuard } from '../../shared/components/gio-license/as-license.guard';
+import { HasLicenseGuard } from '../../shared/components/gio-license/has-license.guard';
 
 const organizationRoutes: Routes = [
   {
     path: '',
     component: OrgNavigationComponent,
-    canActivate: [AsOrganizationPermissionGuard],
-    canActivateChild: [AsOrganizationPermissionGuard, AsLicenseGuard],
+    canActivate: [HasOrganizationPermissionGuard],
+    canActivateChild: [HasOrganizationPermissionGuard, HasLicenseGuard],
     children: [
       {
         path: 'settings',
