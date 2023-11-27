@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { TranslateService } from '@ngx-translate/core';
 import { distinctUntilChanged, map, takeUntil, tap } from 'rxjs/operators';
 import { Subject } from 'rxjs';
+import { ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 
 import {
   Api,
@@ -31,6 +31,15 @@ import {
   Plan,
 } from '../../../../../../projects/portal-webclient-sdk/src/lib';
 import { SearchRequestParams } from '../../../../utils/search-query-param.enum';
+
+type PlanFormType = FormGroup<{
+  apiId: FormControl<string | null>;
+  planId: FormControl<string | null>;
+  general_conditions_accepted: FormControl<boolean | null>;
+  channel: FormControl<any>;
+  entrypoint: FormControl<any>;
+  entrypointConfiguration: FormControl<any>;
+}>;
 
 @Component({
   selector: 'app-application-creation-step3',
@@ -45,7 +54,8 @@ export class ApplicationCreationStep3Component implements OnInit, OnDestroy {
   @Input() hasValidClientId: Function;
   @ViewChild('searchApiAutocomplete') searchApiAutocomplete;
 
-  planForm: FormGroup;
+  planForm: PlanFormType;
+
   apiList: { data: any; id: string; value: string }[];
   plans: Array<Plan>;
   selectedApi: Api;
@@ -62,7 +72,6 @@ export class ApplicationCreationStep3Component implements OnInit, OnDestroy {
   private availableEntrypoints: Map<string, Entrypoint>;
 
   constructor(
-    private readonly formBuilder: FormBuilder,
     private readonly apiService: ApiService,
     private readonly activatedRoute: ActivatedRoute,
     private readonly translateService: TranslateService,
@@ -80,7 +89,7 @@ export class ApplicationCreationStep3Component implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.planForm = this.formBuilder.group({
+    this.planForm = new FormGroup({
       apiId: new FormControl(null, [Validators.required]),
       planId: new FormControl(null, [Validators.required]),
       general_conditions_accepted: new FormControl(null),

@@ -28,6 +28,19 @@ import '@gravitee/ui-components/wc/gv-option';
 import '@gravitee/ui-components/wc/gv-date-picker';
 import { NavRouteService } from '../../services/nav-route.service';
 
+type AnalyticsFormType = FormGroup<{
+  timeframe: FormControl<string>;
+  range: FormControl<number[]>;
+  requestId: FormControl<string>;
+  transactionId: FormControl<string>;
+  methods: FormControl<string>;
+  path: FormControl<string>;
+  responseTimes: FormControl<string>;
+  status: FormControl<string>;
+  api: FormControl<string>;
+  payloads: FormControl<string>;
+}>;
+
 @Component({
   selector: 'app-gv-analytics-filters',
   templateUrl: './gv-analytics-filters.component.html',
@@ -43,7 +56,7 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
   @Input() searchLoading: boolean;
 
   private maxDateTimer: any;
-  analyticsForm: FormGroup;
+  analyticsForm: AnalyticsFormType;
   tags: Array<any>;
   apisOptions: Array<any>;
   maxDate: number;

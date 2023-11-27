@@ -23,7 +23,7 @@ import '@gravitee/ui-components/wc/gv-list';
 import '@gravitee/ui-components/wc/gv-schema-form-group';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { distinctUntilChanged } from 'rxjs/operators';
 import { getPicture, getPictureDisplayName } from '@gravitee/ui-components/src/lib/item';
 
@@ -39,9 +39,10 @@ import {
   ApplicationService,
   Entrypoint,
   EntrypointsService,
-  Page,
-  Plan,
   PlanMode,
+  Page,
+  PageRevisionId,
+  Plan,
   Subscription,
   SubscriptionService,
   SubscriptionsResponse,
@@ -49,6 +50,18 @@ import {
 
 const StatusEnum = Subscription.StatusEnum;
 const SecurityEnum = Plan.SecurityEnum;
+
+type ApiSubscribeFormType = FormGroup<{
+  channel: FormControl<any>;
+  entrypoint: FormControl<any>;
+  entrypointConfiguration: FormControl<any>;
+  application: FormControl<string>;
+  apiKeyMode: FormControl<ApiKeyModeEnum>;
+  plan: FormControl<string>;
+  request: FormControl<string>;
+  general_conditions_accepted: FormControl<boolean>;
+  general_conditions_content_revision: FormControl<PageRevisionId>;
+}>;
 
 @Component({
   selector: 'app-api-subscribe',
@@ -71,11 +84,10 @@ export class ApiSubscribeComponent implements OnInit {
 
   steps: any;
   currentStep: number;
-  stepperContentClass: any;
   api: Api;
   plans: any;
   application: any;
-  subscribeForm: FormGroup;
+  subscribeForm: ApiSubscribeFormType;
   availableApplications: { label: string; value: string }[];
   apiKeyModeOptions: { id: string; title: string; description: string }[];
   connectedApps: any[];
@@ -101,7 +113,6 @@ export class ApiSubscribeComponent implements OnInit {
     private translateService: TranslateService,
     private applicationService: ApplicationService,
     private subscriptionService: SubscriptionService,
-    private formBuilder: FormBuilder,
     private configurationService: ConfigurationService,
     private entrypointsService: EntrypointsService,
   ) {}
@@ -116,7 +127,7 @@ export class ApiSubscribeComponent implements OnInit {
     this._currentGeneralConditions = null;
     this.connectedApps = [];
 
-    this.subscribeForm = this.formBuilder.group({
+    this.subscribeForm = new FormGroup({
       channel: new FormControl(null),
       entrypoint: new FormControl(null),
       entrypointConfiguration: new FormControl(null),
