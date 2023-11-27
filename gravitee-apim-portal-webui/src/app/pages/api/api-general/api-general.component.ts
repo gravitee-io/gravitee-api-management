@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 import { Component, HostListener, OnInit } from '@angular/core';
-import { Location } from '@angular/common';
-import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Params, PRIMARY_OUTLET, Router } from '@angular/router';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { TranslateService } from '@ngx-translate/core';
@@ -30,7 +29,6 @@ import {
   Link,
   Page,
   PermissionsResponse,
-  PermissionsService,
   PortalService,
   Rating,
   Subscription,
@@ -49,6 +47,12 @@ import { CurrentUserService } from '../../../services/current-user.service';
 import { NotificationService } from '../../../services/notification.service';
 import { ScrollService } from '../../../services/scroll.service';
 import { SearchQueryParam } from '../../../utils/search-query-param.enum';
+
+type RatingFormType = FormGroup<{
+  title: FormControl<string>;
+  comment: FormControl<string>;
+  value: FormControl<number>;
+}>;
 
 const StatusEnum = Subscription.StatusEnum;
 
@@ -78,7 +82,7 @@ export class ApiGeneralComponent implements OnInit {
   connectedApps: Promise<any[]>;
   permissions: PermissionsResponse = {};
   ratingListPermissions: { update; delete; addAnswer; deleteAnswer };
-  ratingForm: UntypedFormGroup;
+  ratingForm: RatingFormType;
   ratings: Array<Rating>;
   ratingsSortOptions: any;
   resources: any[];
@@ -95,12 +99,9 @@ export class ApiGeneralComponent implements OnInit {
     private translateService: TranslateService,
     private router: Router,
     private currentUserService: CurrentUserService,
-    private permissionsService: PermissionsService,
     private notificationService: NotificationService,
     private configService: ConfigurationService,
-    private formBuilder: UntypedFormBuilder,
     private scrollService: ScrollService,
-    private location: Location,
     private portalService: PortalService,
     private applicationService: ApplicationService,
   ) {
@@ -189,10 +190,10 @@ export class ApiGeneralComponent implements OnInit {
 
   _updateRatings() {
     if (this.hasRatingFeature) {
-      this.ratingForm = this.formBuilder.group({
-        title: new UntypedFormControl(''),
-        comment: new UntypedFormControl(''),
-        value: new UntypedFormControl(null, [Validators.required]),
+      this.ratingForm = new FormGroup({
+        title: new FormControl(''),
+        comment: new FormControl(''),
+        value: new FormControl(null, [Validators.required]),
       });
 
       if (this.configService.hasFeature(FeatureEnum.ratingCommentMandatory)) {
