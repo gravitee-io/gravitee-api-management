@@ -92,7 +92,6 @@ public interface PluginRegister {
      *     }
      *     }
      * </pre>
-     * You can check {@link io.gravitee.plugin.entrypoint.sse.SseEntrypointConnectorFactory} to know how to implement it.
      * @param entrypoints is the map containing entrypoints to deploy
      */
     default void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {}

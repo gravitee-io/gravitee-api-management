@@ -31,7 +31,7 @@ public class HttpClientUtils {
     }
 
     /**
-     * Extracts headers from {@link HttpClientResponse} to a {@link Map <String, String>} to ease the assertions
+     * Extracts headers from {@link HttpClientResponse} to a {@link Map<String, String>} to ease the assertions
      * @param response on which extract the headers
      * @return a {@link Map<String, String>} of the headers
      */
