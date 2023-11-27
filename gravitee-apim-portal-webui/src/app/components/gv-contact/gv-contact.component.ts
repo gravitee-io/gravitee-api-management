@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, Input, OnInit } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 
 import { ApiService, ApplicationService, PortalService } from '../../../../projects/portal-webclient-sdk/src/lib';
@@ -29,7 +29,7 @@ import { CurrentUserService } from '../../services/current-user.service';
 export class GvContactComponent implements OnInit {
   @Input() apiId: string;
 
-  contactForm: FormGroup;
+  contactForm: UntypedFormGroup;
   applications: {
     label: string;
     value: string;
@@ -44,7 +44,7 @@ export class GvContactComponent implements OnInit {
     private applicationService: ApplicationService,
     private apiService: ApiService,
     private portalService: PortalService,
-    private formBuilder: FormBuilder,
+    private formBuilder: UntypedFormBuilder,
     private notificationService: NotificationService,
     private currentUserService: CurrentUserService,
   ) {}
@@ -53,8 +53,8 @@ export class GvContactComponent implements OnInit {
     this.contactForm = this.formBuilder.group({
       api: this.apiId || null,
       application: null,
-      subject: new FormControl(null, Validators.required),
-      content: new FormControl(null, Validators.required),
+      subject: new UntypedFormControl(null, Validators.required),
+      content: new UntypedFormControl(null, Validators.required),
       copy_to_sender: false,
     });
 
