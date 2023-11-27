@@ -13,15 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, Input, OnDestroy, OnInit } from '@angular/core';
-import { StateService } from '@uirouter/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { GioMenuService } from '@gravitee/ui-particles-angular';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { castArray } from 'lodash';
+import { ActivatedRoute, Router } from '@angular/router';
 
-import { UIRouterState } from '../../../../ajs-upgraded-providers';
-import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
+import { MenuItemHeader } from '../../api/api-navigation/MenuGroupItem';
+import { Application } from '../../../entities/application/application';
+import { ApplicationService } from '../../../services-ngx/application.service';
 
 interface MenuItem {
   targetRoute?: string;
@@ -29,6 +31,9 @@ interface MenuItem {
   displayName: string;
   permissions?: string[];
   tabs?: MenuItem[];
+  header?: MenuItemHeader;
+  routerLink?: string;
+  routerLinkActiveOptions?: { exact: boolean };
 }
 
 @Component({
@@ -37,8 +42,7 @@ interface MenuItem {
   styles: [require('./application-navigation.component.scss')],
 })
 export class ApplicationNavigationComponent implements OnInit, OnDestroy {
-  @Input()
-  public applicationName: string;
+  public application: Application;
   public subMenuItems: MenuItem[] = [];
   public hasBreadcrumb = false;
   public selectedItemWithTabs: MenuItem = undefined;
@@ -46,18 +50,28 @@ export class ApplicationNavigationComponent implements OnInit, OnDestroy {
   private unsubscribe$ = new Subject();
 
   constructor(
-    @Inject(UIRouterState) private readonly ajsState: StateService,
+    private readonly router: Router,
+    private readonly activatedRoute: ActivatedRoute,
     private readonly permissionService: GioPermissionService,
     private readonly gioMenuService: GioMenuService,
+    private readonly applicationService: ApplicationService,
   ) {}
 
   ngOnInit() {
+    this.applicationService
+      .getById(this.activatedRoute.snapshot.params.applicationId)
+      .pipe()
+      .subscribe({
+        next: (application) => (this.application = application),
+      });
+
     this.gioMenuService.reduced$.pipe(takeUntil(this.unsubscribe$)).subscribe((reduced) => {
       this.hasBreadcrumb = reduced;
     });
     this.subMenuItems = this.filterMenuByPermission([
       {
         displayName: 'Global settings',
+        routerLink: 'general',
         targetRoute: 'management.applications.application.general',
         baseRoute: 'management.applications.application.general',
         permissions: ['application-definition-r'],
@@ -137,27 +151,36 @@ export class ApplicationNavigationComponent implements OnInit, OnDestroy {
     return [];
   }
 
-  isActive(baseRoute: MenuItem['baseRoute']): boolean {
-    castArray(baseRoute).some((baseRoute) => {
-      if (this.ajsState.includes(baseRoute)) {
+  isActive(item: MenuItem): boolean {
+    if (!item.routerLink) {
+      return false;
+    }
+    return [item.routerLink, ...castArray(item.baseRoute)]
+      .filter((r) => !!r)
+      .some((routerLink) => {
+        // TODO: Implement into new navigation
         this.subMenuItems.map((selectedItem) => {
-          if (selectedItem.baseRoute === baseRoute) {
+          if (selectedItem.baseRoute === item.baseRoute) {
             this.selectedItemWithTabs = selectedItem;
             this.isMenuTabAvailable = true;
           } else {
             this.isMenuTabAvailable = false;
           }
         });
-      }
-    });
-    return castArray(baseRoute).some((baseRoute) => this.ajsState.includes(baseRoute));
+        return this.router.isActive(this.router.createUrlTree([routerLink], { relativeTo: this.activatedRoute }), {
+          paths: item.routerLinkActiveOptions?.exact ? 'exact' : 'subset',
+          queryParams: 'subset',
+          fragment: 'ignored',
+          matrixParams: 'ignored',
+        });
+      });
   }
 
   public computeBreadcrumbItems(): string[] {
     const breadcrumbItems: string[] = [];
 
     this.subMenuItems.forEach((item) => {
-      if (this.isActive(item.baseRoute)) {
+      if (this.isActive(item)) {
         breadcrumbItems.push(item.displayName);
       }
     });

@@ -20,7 +20,6 @@ import { GioConfirmDialogModule } from '@gravitee/ui-particles-angular';
 import { RouterModule, Routes } from '@angular/router';
 
 import { EnvAuditModule } from './audit/env-audit.module';
-import { EnvironmentApplicationModule } from './application/environment-application.module';
 import { SettingsNavigationModule } from './configuration/settings-navigation/settings-navigation.module';
 import { MessagesModule } from './messages/messages.module';
 import { TasksModule } from './tasks/tasks.module';
@@ -88,6 +87,10 @@ const managementRoutes: Routes = [
         path: 'support/:ticketId',
         component: TicketDetailComponent,
       },
+      {
+        path: 'applications',
+        loadChildren: () => import('./application/applications.route').then((m) => m.ApplicationsRouteModule),
+      },
 
       { path: '', pathMatch: 'full', redirectTo: 'home' },
     ],
@@ -103,7 +106,7 @@ const managementRoutes: Routes = [
     EnvAuditModule,
     // HomeModule,
     // ApisModule,
-    EnvironmentApplicationModule,
+    // ApplicationsModule,
     SettingsNavigationModule,
     InstancesModule,
     MessagesModule,

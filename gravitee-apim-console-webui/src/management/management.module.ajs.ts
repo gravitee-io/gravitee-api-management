@@ -424,7 +424,7 @@ import { EnvApplicationListComponent } from './application/list/env-application-
 import { GioSideNavComponent } from '../components/gio-side-nav/gio-side-nav.component';
 import { GioTopNavComponent } from '../components/gio-top-nav/gio-top-nav.component';
 import { SettingsNavigationComponent } from './configuration/settings-navigation/settings-navigation.component';
-import { ApplicationNavigationComponent } from './application/details/application-navigation/application-navigation.component';
+import { ApplicationNavigationComponent } from './application/application-navigation/application-navigation.component';
 import { IfMatchEtagInterceptor } from '../shared/interceptors/if-match-etag.interceptor';
 import SearchAndSelectComponent from '../components/search-and-select/search-and-select.component';
 import { SearchAndSelectController } from '../components/search-and-select/search-and-select.controller';

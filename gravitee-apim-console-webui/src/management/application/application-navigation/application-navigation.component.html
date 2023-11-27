@@ -15,23 +15,21 @@
     limitations under the License.
 
 -->
-<div class="application-navigation">
+<div class="application-navigation" *ngIf="application">
   <div class="application-navigation__menu">
     <gio-submenu class="application-navigation__submenu">
-      <div gioSubmenuTitle class="application-navigation__submenu__title">{{ this.applicationName }}</div>
+      <div gioSubmenuTitle class="application-navigation__submenu__title">{{ application.name }}</div>
       <ng-container *ngFor="let item of this.subMenuItems">
-        <ng-container *ngIf="item.targetRoute">
-          <a [uiSref]="item.targetRoute">
-            <gio-submenu-item tabIndex="1" [active]="isActive(item.baseRoute)">{{ item.displayName }}</gio-submenu-item>
-          </a></ng-container
-        >
+        <a *ngIf="item.routerLink" [routerLink]="item.routerLink">
+          <gio-submenu-item tabIndex="1" [active]="isActive(item)">{{ item.displayName }}</gio-submenu-item>
+        </a>
       </ng-container>
     </gio-submenu>
   </div>
   <div class="application-navigation__content">
     <gio-breadcrumb *ngIf="hasBreadcrumb" class="application-navigation__breadcrumb">
       <span *gioBreadcrumbItem class="application-navigation__breadcrumb__item">Applications</span>
-      <div *gioBreadcrumbItem gioSubmenuTitle class="application-navigation__menu__title">{{ this.applicationName }}</div>
+      <div *gioBreadcrumbItem gioSubmenuTitle class="application-navigation__menu__title">{{ application.name }}</div>
       <ng-template ngFor let-item [ngForOf]="this.computeBreadcrumbItems()">
         <span *gioBreadcrumbItem class="application-navigation__breadcrumb__item">{{ item }}</span>
       </ng-template>
@@ -43,6 +41,7 @@
       [tabMenuItems]="this.selectedItemWithTabs?.tabs"
       [menuItemHeader]="this.selectedItemWithTabs?.header"
     ></application-navigation-tabs>
-    <ng-content></ng-content>
+
+    <router-outlet></router-outlet>
   </div>
 </div>
