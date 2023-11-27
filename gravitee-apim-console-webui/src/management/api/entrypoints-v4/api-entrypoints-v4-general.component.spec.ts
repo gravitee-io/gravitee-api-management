@@ -24,6 +24,7 @@ import { InteractivityChecker } from '@angular/cdk/a11y';
 import { GioConfirmDialogHarness, GioLicenseTestingModule } from '@gravitee/ui-particles-angular';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatRowHarnessColumnsText } from '@angular/material/table/testing';
+import { ActivatedRoute } from '@angular/router';
 
 import { ApiEntrypointsV4GeneralComponent } from './api-entrypoints-v4-general.component';
 import { ApiEntrypointsV4Module } from './api-entrypoints-v4.module';
@@ -31,7 +32,7 @@ import { ApiEntrypointsV4GeneralHarness } from './api-entrypoints-v4-general.har
 import { ApiEntrypointsV4AddDialogHarness } from './edit/api-entrypoints-v4-add-dialog.harness';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
-import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
+import { CurrentUserService } from '../../../ajs-upgraded-providers';
 import { Api, ApiV4, ConnectorPlugin, fakeApiV4, UpdateApiV4 } from '../../../entities/management-api-v2';
 import { GioFormListenersContextPathHarness } from '../component/gio-form-listeners/gio-form-listeners-context-path/gio-form-listeners-context-path.harness';
 import { PortalSettings } from '../../../entities/portal/portalSettings';
@@ -42,7 +43,6 @@ import { fakeRestrictedDomain, fakeRestrictedDomains } from '../../../entities/r
 
 describe('ApiProxyV4EntrypointsComponent', () => {
   const API_ID = 'apiId';
-  const fakeUiRouter = { go: jest.fn() };
   let fixture: ComponentFixture<ApiEntrypointsV4GeneralComponent>;
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
@@ -75,8 +75,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
         GioLicenseTestingModule,
       ],
       providers: [
-        { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
-        { provide: UIRouterState, useValue: fakeUiRouter },
+        { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
         { provide: CurrentUserService, useValue: { currentUser } },
       ],
     }).overrideProvider(InteractivityChecker, {

@@ -184,8 +184,7 @@ export class ApiV4MenuService implements ApiMenuService {
         items: [
           {
             displayName: 'General',
-            targetRoute: 'management.apis.entrypoints',
-            baseRoute: ['management.apis.entrypoints', 'management.apis.entrypoints-edit'],
+            routerLink: 'v4/entrypoints',
           },
         ],
       };

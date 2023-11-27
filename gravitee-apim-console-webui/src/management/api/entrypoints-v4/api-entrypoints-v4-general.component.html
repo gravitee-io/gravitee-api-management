@@ -80,7 +80,7 @@
           <th mat-header-cell *matHeaderCellDef></th>
           <td mat-cell *matCellDef="let element" class="entrypoints__type__table__actions">
             <ng-container *ngIf="canUpdate">
-              <button type="button" mat-icon-button aria-label="Edit" (click)="onEdit(element)">
+              <button type="button" mat-icon-button aria-label="Edit" [routerLink]="[element.id]">
                 <mat-icon svgIcon="gio:edit-pencil" matTooltip="Edit"> </mat-icon>
               </button>
               <button type="button" [disabled]="dataSource.length <= 1" mat-icon-button aria-label="Delete" (click)="onDelete(element)">
