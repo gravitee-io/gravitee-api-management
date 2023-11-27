@@ -18,7 +18,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { GioIconsModule } from '@gravitee/ui-particles-angular';
 import { CommonModule } from '@angular/common';
-import { UIRouterModule } from '@uirouter/angular';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatOptionModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
@@ -46,7 +45,6 @@ import { QuickFiltersStoreService } from '../../services';
     MatSidenavModule,
     MatTooltipModule,
     ReactiveFormsModule,
-    UIRouterModule,
 
     ApiRuntimeLogsMoreFiltersModule,
     GioIconsModule,

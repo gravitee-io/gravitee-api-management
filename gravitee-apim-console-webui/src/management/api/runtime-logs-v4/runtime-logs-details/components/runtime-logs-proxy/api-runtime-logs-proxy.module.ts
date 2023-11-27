@@ -17,7 +17,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
-import { UIRouterModule } from '@uirouter/angular';
+import { RouterModule } from '@angular/router';
 
 import { ApiRuntimeLogsProxyComponent } from './api-runtime-logs-proxy.component';
 
@@ -27,10 +27,9 @@ import { ApiRuntimeLogsConnectionLogDetailsModule, ApiRuntimeLogsDetailsEmptySta
   declarations: [ApiRuntimeLogsProxyComponent],
   imports: [
     CommonModule,
+    RouterModule,
     MatButtonModule,
     MatCardModule,
-    UIRouterModule,
-
     ApiRuntimeLogsConnectionLogDetailsModule,
     ApiRuntimeLogsDetailsEmptyStateModule,
   ],

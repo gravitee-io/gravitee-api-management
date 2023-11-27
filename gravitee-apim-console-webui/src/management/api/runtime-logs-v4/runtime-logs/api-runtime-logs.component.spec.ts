@@ -18,17 +18,16 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
-import { UIRouterModule } from '@uirouter/angular';
 import * as moment from 'moment';
 import { OwlDateTimeModule } from '@danielmoncada/angular-datetime-picker';
 import { OwlMomentDateTimeModule } from '@danielmoncada/angular-datetime-picker-moment-adapter';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { ApiRuntimeLogsModule } from './api-runtime-logs.module';
 import { ApiRuntimeLogsComponent } from './api-runtime-logs.component';
 import { ApiRuntimeLogsHarness } from './api-runtime-logs.component.harness';
 import { QuickFiltersStoreService } from './services';
 
-import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import {
   ApiLogsParam,
@@ -57,9 +56,10 @@ describe('ApiRuntimeLogsComponent', () => {
   let fixture: ComponentFixture<ApiRuntimeLogsComponent>;
   let httpTestingController: HttpTestingController;
   let componentHarness: ApiRuntimeLogsHarness;
+  let routerNavigateSpy: jest.SpyInstance;
+
   const API_ID = 'an-api-id';
-  const fakeUiRouter = { go: jest.fn() };
-  const stateParams = { apiId: API_ID, page: 1, perPage: 10 };
+  const queryParams = { page: 1, perPage: 10 };
   const plan1 = fakePlanV4({ id: '1', name: 'plan 1' });
   const plan2 = fakePlanV4({ id: '2', name: 'plan 2' });
   const application = fakeApplication({ id: '1', owner: { displayName: 'owner' } });
@@ -76,15 +76,11 @@ describe('ApiRuntimeLogsComponent', () => {
         HttpClientTestingModule,
         MatIconTestingModule,
         GioHttpTestingModule,
-        UIRouterModule.forRoot({
-          useHash: true,
-        }),
         OwlDateTimeModule,
         OwlMomentDateTimeModule,
       ],
       providers: [
-        { provide: UIRouterState, useValue: fakeUiRouter },
-        { provide: UIRouterStateParams, useValue: stateParams },
+        { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID }, queryParams: queryParams } } },
         QuickFiltersStoreService,
       ],
     });
@@ -92,6 +88,8 @@ describe('ApiRuntimeLogsComponent', () => {
     await TestBed.compileComponents();
     fixture = TestBed.createComponent(ApiRuntimeLogsComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
+    const router = TestBed.inject(Router);
+    routerNavigateSpy = jest.spyOn(router, 'navigate');
     componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiRuntimeLogsHarness);
     fixture.detectChanges();
   };
@@ -101,7 +99,7 @@ describe('ApiRuntimeLogsComponent', () => {
     expectPlanList(plans);
     hasLogs ? expectApiWithLogs(total) : expectApiWithNoLog();
     areLogsEnabled ? expectApiWithLogEnabled() : expectApiWithLogDisabled();
-    expectUiRouterChange(1, { page: 1, perPage: perPage ?? 10 });
+    expectRouterUrlChange(1, { page: 1, perPage: perPage ?? 10 });
   };
 
   afterEach(() => {
@@ -150,7 +148,9 @@ describe('ApiRuntimeLogsComponent', () => {
 
     it('should navigate to logs settings', async () => {
       await componentHarness.clickOpenSettings();
-      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.runtimeLogs-settings');
+      expect(routerNavigateSpy).toHaveBeenCalledWith(['../runtime-logs-settings'], {
+        relativeTo: expect.anything(),
+      });
     });
 
     it('should not display the list', async () => {
@@ -190,14 +190,14 @@ describe('ApiRuntimeLogsComponent', () => {
       it('should navigate to next page', async () => {
         await componentHarness.goToNextPage();
         expectSecondPage(total, perPage);
-        expectUiRouterChange(2, { page: 2, perPage: 10 });
+        expectRouterUrlChange(2, { page: 2, perPage: 10 });
       });
 
       it('should change page size', async () => {
         const paginator = await componentHarness.getPaginator();
         await paginator.setPageSize(25);
         expectApiWithLogs(total, { perPage: 25, page: 1 });
-        expectUiRouterChange(2, { page: 1, perPage: 25 });
+        expectRouterUrlChange(2, { page: 1, perPage: 25 });
       });
     });
   });
@@ -252,7 +252,7 @@ describe('ApiRuntimeLogsComponent', () => {
         const expectedTo = fakeNow.valueOf();
         const expectedFrom = expectedTo - 5 * 60 * 1000;
         expectApiWithLogs(total, { perPage, page: 1, from: expectedFrom, to: expectedTo });
-        expectUiRouterChange(2, { page: 1, perPage: 10, from: expectedFrom, to: expectedTo });
+        expectRouterUrlChange(2, { page: 1, perPage: 10, from: expectedFrom, to: expectedTo });
 
         await componentHarness.goToNextPage();
         expectApiWithLogs(total, { perPage, page: 2, from: expectedFrom, to: expectedTo });
@@ -271,13 +271,13 @@ describe('ApiRuntimeLogsComponent', () => {
         expectApiWithLogs(total, { perPage, page: 1, from: expectedFrom, to: expectedTo });
 
         // First time, add filters to URL
-        expectUiRouterChange(2, { page: 1, perPage: 10, from: expectedFrom, to: expectedTo });
+        expectRouterUrlChange(2, { page: 1, perPage: 10, from: expectedFrom, to: expectedTo });
 
         await componentHarness.removePeriodChip();
         expectApiWithLogs(total, { perPage, page: 1 });
 
         // Second time, we removed the filter from URL
-        expectUiRouterChange(3, { page: 1, perPage: 10 });
+        expectRouterUrlChange(3, { page: 1, perPage: 10 });
 
         expect(await periodSelectInput.isDisabled()).toEqual(false);
         expect(await periodSelectInput.getValueText()).toEqual('None');
@@ -319,11 +319,11 @@ describe('ApiRuntimeLogsComponent', () => {
 
         expectApplicationList(); // call happening after selecting an option
         expectApiWithLogs(total, { perPage, page: 1, applicationIds: application.id });
-        expectUiRouterChange(2, { page: 1, perPage: 10, applicationIds: application.id });
+        expectRouterUrlChange(2, { page: 1, perPage: 10, applicationIds: application.id });
 
         await componentHarness.goToNextPage();
         expectApiWithLogs(total, { perPage, page: 2, applicationIds: application.id });
-        expectUiRouterChange(3, { page: 2, perPage: 10, applicationIds: application.id });
+        expectRouterUrlChange(3, { page: 2, perPage: 10, applicationIds: application.id });
       });
 
       it('should remove application filter', async () => {
@@ -338,12 +338,12 @@ describe('ApiRuntimeLogsComponent', () => {
         await componentHarness.moreFiltersApply();
         expectApplicationList(); // call happening after selecting an option
         expectApiWithLogs(total, { perPage, page: 1, applicationIds: application.id });
-        expectUiRouterChange(2, { page: 1, perPage: 10, applicationIds: application.id });
+        expectRouterUrlChange(2, { page: 1, perPage: 10, applicationIds: application.id });
 
         await componentHarness.removeApplicationsChip();
         expect(await componentHarness.getQuickFiltersChips()).toBeNull();
         expectApiWithLogs(total, { perPage, page: 1 });
-        expectUiRouterChange(3, { page: 1, perPage: 10 });
+        expectRouterUrlChange(3, { page: 1, perPage: 10 });
 
         await componentHarness.moreFiltersButtonClick();
         expect(await componentHarness.getApplicationsTags()).toHaveLength(0);
@@ -361,28 +361,28 @@ describe('ApiRuntimeLogsComponent', () => {
         await componentHarness.selectPlan(plan1.name);
         expect(await componentHarness.getSelectedPlans()).toEqual(plan1.name);
         expectApiWithLogs(total, { perPage, page: 1, planIds: plan1.id });
-        expectUiRouterChange(2, { page: 1, perPage: 10, planIds: plan1.id });
+        expectRouterUrlChange(2, { page: 1, perPage: 10, planIds: plan1.id });
 
         await componentHarness.selectPlan(plan2.name);
         expect(await componentHarness.getSelectedPlans()).toEqual(`${plan1.name}, ${plan2.name}`);
         expectApiWithLogs(total, { perPage, page: 1, planIds: `${plan1.id},${plan2.id}` });
-        expectUiRouterChange(3, { page: 1, perPage: 10, planIds: `${plan1.id},${plan2.id}` });
+        expectRouterUrlChange(3, { page: 1, perPage: 10, planIds: `${plan1.id},${plan2.id}` });
 
         await componentHarness.goToNextPage();
         expectApiWithLogs(total, { perPage, page: 2, planIds: `${plan1.id},${plan2.id}` });
-        expectUiRouterChange(4, { page: 2, perPage: 10, planIds: `${plan1.id},${plan2.id}` });
+        expectRouterUrlChange(4, { page: 2, perPage: 10, planIds: `${plan1.id},${plan2.id}` });
       });
 
       it('should remove plan filter', async () => {
         await componentHarness.selectPlan(plan1.name);
         expect(await componentHarness.getSelectedPlans()).toEqual(plan1.name);
         expectApiWithLogs(total, { perPage, page: 1, planIds: plan1.id });
-        expectUiRouterChange(2, { page: 1, perPage: 10, planIds: plan1.id });
+        expectRouterUrlChange(2, { page: 1, perPage: 10, planIds: plan1.id });
 
         await componentHarness.removePlanChip();
         expect(await componentHarness.getQuickFiltersChips()).toBeNull();
         expectApiWithLogs(total, { perPage, page: 1 });
-        expectUiRouterChange(3, { page: 1, perPage: 10 });
+        expectRouterUrlChange(3, { page: 1, perPage: 10 });
       });
     });
 
@@ -397,29 +397,29 @@ describe('ApiRuntimeLogsComponent', () => {
         await componentHarness.selectMethod('GET');
         expect(await componentHarness.getSelectedMethods()).toEqual('GET');
         expectApiWithLogs(total, { perPage, page: 1, methods: 'GET' });
-        expectUiRouterChange(2, { page: 1, perPage: 10, methods: 'GET' });
+        expectRouterUrlChange(2, { page: 1, perPage: 10, methods: 'GET' });
 
         await componentHarness.selectMethod('POST');
         expect(await componentHarness.getSelectedMethods()).toEqual('GET, POST');
         expectApiWithLogs(total, { perPage, page: 1, methods: 'GET,POST' });
-        expectUiRouterChange(3, { page: 1, perPage: 10, methods: 'GET,POST' });
+        expectRouterUrlChange(3, { page: 1, perPage: 10, methods: 'GET,POST' });
 
         await componentHarness.goToNextPage();
         expectApiWithLogs(total, { perPage, page: 2, methods: 'GET,POST' });
-        expectUiRouterChange(4, { page: 2, perPage: 10, methods: 'GET,POST' });
+        expectRouterUrlChange(4, { page: 2, perPage: 10, methods: 'GET,POST' });
       });
 
       it('should remove methods filter', async () => {
         await componentHarness.selectMethod('GET');
         expect(await componentHarness.getSelectedMethods()).toEqual('GET');
         expectApiWithLogs(total, { perPage, page: 1, methods: 'GET' });
-        expectUiRouterChange(2, { page: 1, perPage: 10, methods: 'GET' });
+        expectRouterUrlChange(2, { page: 1, perPage: 10, methods: 'GET' });
         expect(await componentHarness.getMethodsChipText()).toStrictEqual('methods: GET');
 
         await componentHarness.removeMethodsChip();
         expect(await componentHarness.getQuickFiltersChips()).toBeNull();
         expectApiWithLogs(total, { perPage, page: 1 });
-        expectUiRouterChange(3, { page: 1, perPage: 10 });
+        expectRouterUrlChange(3, { page: 1, perPage: 10 });
       });
     });
 
@@ -469,7 +469,7 @@ describe('ApiRuntimeLogsComponent', () => {
         await componentHarness.moreFiltersApply();
 
         expectApiWithLogs(total, { perPage, page: 1, from: fromDateTime, to: toDateTime });
-        expectUiRouterChange(2, { page: 1, perPage: 10, from: fromDateTime, to: toDateTime });
+        expectRouterUrlChange(2, { page: 1, perPage: 10, from: fromDateTime, to: toDateTime });
         expect(await componentHarness.getFromChipText()).toEqual(`from:${fromDate}`);
         expect(await componentHarness.getToChipText()).toEqual(`to:${toDate}`);
 
@@ -565,7 +565,7 @@ describe('ApiRuntimeLogsComponent', () => {
         await componentHarness.moreFiltersApply();
         expect(await componentHarness.getStatusChip()).toStrictEqual('statuses: 200');
         expectApiWithLogs(total, { perPage, page: 1, statuses: '200' });
-        expectUiRouterChange(2, { page: 1, perPage: 10, statuses: '200' });
+        expectRouterUrlChange(2, { page: 1, perPage: 10, statuses: '200' });
 
         await componentHarness.moreFiltersButtonClick();
         await componentHarness.addInputStatusesChip('202');
@@ -574,7 +574,7 @@ describe('ApiRuntimeLogsComponent', () => {
         await componentHarness.moreFiltersApply();
         expect(await componentHarness.getStatusChip()).toStrictEqual('statuses: 200, 202');
         expectApiWithLogs(total, { perPage, page: 1, statuses: '200,202' });
-        expectUiRouterChange(3, { page: 1, perPage: 10, statuses: '200,202' });
+        expectRouterUrlChange(3, { page: 1, perPage: 10, statuses: '200,202' });
 
         await componentHarness.moreFiltersButtonClick();
         await componentHarness.removeInputStatusChip('200');
@@ -583,11 +583,11 @@ describe('ApiRuntimeLogsComponent', () => {
         await componentHarness.moreFiltersApply();
         expect(await componentHarness.getStatusChip()).toStrictEqual('statuses: 202');
         expectApiWithLogs(total, { perPage, page: 1, statuses: '202' });
-        expectUiRouterChange(4, { page: 1, perPage: 10, statuses: '202' });
+        expectRouterUrlChange(4, { page: 1, perPage: 10, statuses: '202' });
 
         await componentHarness.goToNextPage();
         expectApiWithLogs(total, { perPage, page: 2, statuses: '202' });
-        expectUiRouterChange(5, { page: 2, perPage: 10, statuses: '202' });
+        expectRouterUrlChange(5, { page: 2, perPage: 10, statuses: '202' });
       });
 
       it('should remove status filter', async () => {
@@ -596,11 +596,11 @@ describe('ApiRuntimeLogsComponent', () => {
         await componentHarness.moreFiltersApply();
 
         expectApiWithLogs(total, { perPage, page: 1, statuses: '404' });
-        expectUiRouterChange(2, { page: 1, perPage: 10, statuses: '404' });
+        expectRouterUrlChange(2, { page: 1, perPage: 10, statuses: '404' });
 
         await componentHarness.removeStatusChip();
         expectApiWithLogs(total, { perPage, page: 1 });
-        expectUiRouterChange(3, { page: 1, perPage: 10 });
+        expectRouterUrlChange(3, { page: 1, perPage: 10 });
       });
     });
   });
@@ -620,7 +620,9 @@ describe('ApiRuntimeLogsComponent', () => {
 
     it('should navigate to logs settings', async () => {
       await componentHarness.clickOpenSettings();
-      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.runtimeLogs-settings');
+      expect(routerNavigateSpy).toHaveBeenCalledWith(['../runtime-logs-settings'], {
+        relativeTo: expect.anything(),
+      });
     });
   });
 
@@ -629,8 +631,17 @@ describe('ApiRuntimeLogsComponent', () => {
 
     describe('there are applications and plans in the url', () => {
       beforeEach(async () => {
-        await TestBed.overrideProvider(UIRouterStateParams, {
-          useValue: { ...stateParams, applicationIds: `${application.id},${anotherApplication.id}`, planIds: `${plan1.id},${plan2.id}` },
+        await TestBed.overrideProvider(ActivatedRoute, {
+          useValue: {
+            snapshot: {
+              params: { apiId: API_ID },
+              queryParams: {
+                ...queryParams,
+                applicationIds: `${application.id},${anotherApplication.id}`,
+                planIds: `${plan1.id},${plan2.id}`,
+              },
+            },
+          },
         }).compileComponents();
         await initComponent();
         expectPlanList([plan1, plan2]);
@@ -693,8 +704,17 @@ describe('ApiRuntimeLogsComponent', () => {
 
     describe('there are from and to filters in the url', () => {
       beforeEach(async () => {
-        await TestBed.overrideProvider(UIRouterStateParams, {
-          useValue: { ...stateParams, from: fromDateTime, to: toDateTime },
+        await TestBed.overrideProvider(ActivatedRoute, {
+          useValue: {
+            snapshot: {
+              params: { apiId: API_ID },
+              queryParams: {
+                ...queryParams,
+                from: fromDateTime,
+                to: toDateTime,
+              },
+            },
+          },
         }).compileComponents();
 
         await initComponent();
@@ -714,8 +734,16 @@ describe('ApiRuntimeLogsComponent', () => {
 
     describe('there are methods filters in the url', () => {
       it('should init the form with filters preselected', async () => {
-        await TestBed.overrideProvider(UIRouterStateParams, {
-          useValue: { ...stateParams, methods: 'POST' },
+        await TestBed.overrideProvider(ActivatedRoute, {
+          useValue: {
+            snapshot: {
+              params: { apiId: API_ID },
+              queryParams: {
+                ...queryParams,
+                methods: 'POST',
+              },
+            },
+          },
         }).compileComponents();
 
         await initComponent();
@@ -730,8 +758,16 @@ describe('ApiRuntimeLogsComponent', () => {
 
     describe('should load page 2 by default', () => {
       beforeEach(async () => {
-        await TestBed.overrideProvider(UIRouterStateParams, {
-          useValue: { ...stateParams, page: 2 },
+        await TestBed.overrideProvider(ActivatedRoute, {
+          useValue: {
+            snapshot: {
+              params: { apiId: API_ID },
+              queryParams: {
+                ...queryParams,
+                page: 2,
+              },
+            },
+          },
         }).compileComponents();
         await initComponent();
         expectPlanList();
@@ -740,14 +776,22 @@ describe('ApiRuntimeLogsComponent', () => {
       it('should init the form with filters preselected', async () => {
         expectApiWithLogs(10, { page: 2, perPage: 10 });
         expectApiWithLogEnabled();
-        expectUiRouterChange(1, { page: 2, perPage: 10 });
+        expectRouterUrlChange(1, { page: 2, perPage: 10 });
       });
     });
 
     describe('there are status filters in the url', () => {
       it('should init the form with filters preselected', async () => {
-        await TestBed.overrideProvider(UIRouterStateParams, {
-          useValue: { ...stateParams, statuses: '200,202' },
+        await TestBed.overrideProvider(ActivatedRoute, {
+          useValue: {
+            snapshot: {
+              params: { apiId: API_ID },
+              queryParams: {
+                ...queryParams,
+                statuses: '200,202',
+              },
+            },
+          },
         }).compileComponents();
 
         await initComponent();
@@ -894,12 +938,10 @@ describe('ApiRuntimeLogsComponent', () => {
     return expectApiWithLogs(total, { perPage, page: 2 });
   }
 
-  function expectUiRouterChange(nthCall: number, queryParams) {
-    expect(fakeUiRouter.go).toHaveBeenNthCalledWith(
-      nthCall,
-      '.',
-      { applicationIds: null, planIds: null, methods: null, statuses: null, from: null, to: null, ...queryParams },
-      { notify: false },
-    );
+  function expectRouterUrlChange(nthCall: number, queryParams) {
+    expect(routerNavigateSpy).toHaveBeenNthCalledWith(nthCall, ['.'], {
+      relativeTo: expect.anything(),
+      queryParams: { applicationIds: null, planIds: null, methods: null, statuses: null, from: null, to: null, ...queryParams },
+    });
   }
 });

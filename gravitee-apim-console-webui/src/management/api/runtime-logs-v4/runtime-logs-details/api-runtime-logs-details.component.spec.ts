@@ -17,8 +17,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { UIRouterModule } from '@uirouter/angular';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { ActivatedRoute } from '@angular/router';
 
 import { ApiRuntimeLogsDetailsComponent } from './api-runtime-logs-details.component';
 import { ApiRuntimeLogsDetailsModule } from './api-runtime-logs-details.module';
@@ -26,23 +26,18 @@ import { ApiRuntimeLogsProxyHarness } from './components/runtime-logs-proxy/api-
 import { ApiRuntimeLogsMessagesHarness } from './components/runtime-logs-messages/api-runtime-logs-messages.harness';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
-import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { ApiV4, fakeApiV4 } from '../../../../entities/management-api-v2';
 
 describe('ApiRuntimeLogsDetailsComponent', () => {
   const API_ID = 'an-api-id';
-  const fakeUiRouter = { go: jest.fn() };
 
   let fixture: ComponentFixture<ApiRuntimeLogsDetailsComponent>;
   let httpTestingController: HttpTestingController;
 
   const initComponent = async () => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, ApiRuntimeLogsDetailsModule, GioHttpTestingModule, UIRouterModule.forRoot({ useHash: true })],
-      providers: [
-        { provide: UIRouterState, useValue: fakeUiRouter },
-        { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
-      ],
+      imports: [NoopAnimationsModule, ApiRuntimeLogsDetailsModule, GioHttpTestingModule],
+      providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } }],
     });
 
     await TestBed.compileComponents();

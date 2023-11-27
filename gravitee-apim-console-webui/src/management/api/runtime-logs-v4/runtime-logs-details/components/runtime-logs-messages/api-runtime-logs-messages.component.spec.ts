@@ -15,16 +15,15 @@
  */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { UIRouterModule } from '@uirouter/angular';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { ActivatedRoute } from '@angular/router';
 
 import { ApiRuntimeLogsMessagesComponent } from './api-runtime-logs-messages.component';
 import { ApiRuntimeLogsMessagesModule } from './api-runtime-logs-messages.module';
 import { ApiRuntimeLogsMessagesHarness } from './api-runtime-logs-messages.harness';
 
-import { UIRouterState, UIRouterStateParams } from '../../../../../../ajs-upgraded-providers';
 import { GioUiRouterTestingModule } from '../../../../../../shared/testing/gio-uirouter-testing-module';
 import {
   AggregatedMessageLog,
@@ -41,7 +40,6 @@ import { IconService } from '../../../../../../services-ngx/icon.service';
 describe('ApiRuntimeLogsMessagesComponent', () => {
   const API_ID = 'an-api-id';
   const REQUEST_ID = 'a-request-id';
-  const fakeUiRouter = { go: jest.fn() };
 
   let fixture: ComponentFixture<ApiRuntimeLogsMessagesComponent>;
   let httpTestingController: HttpTestingController;
@@ -49,20 +47,8 @@ describe('ApiRuntimeLogsMessagesComponent', () => {
 
   const initComponent = async () => {
     TestBed.configureTestingModule({
-      imports: [
-        ApiRuntimeLogsMessagesModule,
-        UIRouterModule.forRoot({
-          useHash: true,
-        }),
-        GioUiRouterTestingModule,
-        GioHttpTestingModule,
-        MatIconTestingModule,
-        NoopAnimationsModule,
-      ],
-      providers: [
-        { provide: UIRouterState, useValue: fakeUiRouter },
-        { provide: UIRouterStateParams, useValue: { apiId: API_ID, requestId: REQUEST_ID } },
-      ],
+      imports: [ApiRuntimeLogsMessagesModule, GioUiRouterTestingModule, GioHttpTestingModule, MatIconTestingModule, NoopAnimationsModule],
+      providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID, requestId: REQUEST_ID } } } }],
     });
 
     await TestBed.compileComponents();

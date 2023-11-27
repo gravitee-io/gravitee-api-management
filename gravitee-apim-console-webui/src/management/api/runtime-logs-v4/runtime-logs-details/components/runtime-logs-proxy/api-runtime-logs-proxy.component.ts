@@ -13,13 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnDestroy } from '@angular/core';
-import { StateParams } from '@uirouter/core';
+import { Component, OnDestroy } from '@angular/core';
 import { catchError, takeUntil } from 'rxjs/operators';
 import { of, Subject } from 'rxjs';
-import { StateService } from '@uirouter/angular';
+import { ActivatedRoute, Router } from '@angular/router';
 
-import { UIRouterState, UIRouterStateParams } from '../../../../../../ajs-upgraded-providers';
 import { ApiLogsV2Service } from '../../../../../../services-ngx/api-logs-v2.service';
 
 @Component({
@@ -29,16 +27,18 @@ import { ApiLogsV2Service } from '../../../../../../services-ngx/api-logs-v2.ser
 })
 export class ApiRuntimeLogsProxyComponent implements OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
-  public connectionLog$ = this.apiLogsService.searchConnectionLogDetail(this.ajsStateParams.apiId, this.ajsStateParams.requestId).pipe(
-    catchError(() => {
-      return of(undefined);
-    }),
-    takeUntil(this.unsubscribe$),
-  );
+  public connectionLog$ = this.apiLogsService
+    .searchConnectionLogDetail(this.activatedRoute.snapshot.params.apiId, this.activatedRoute.snapshot.params.requestId)
+    .pipe(
+      catchError(() => {
+        return of(undefined);
+      }),
+      takeUntil(this.unsubscribe$),
+    );
 
   constructor(
-    @Inject(UIRouterState) private readonly ajsState: StateService,
-    @Inject(UIRouterStateParams) private readonly ajsStateParams: StateParams,
+    private readonly activatedRoute: ActivatedRoute,
+    private readonly router: Router,
     private readonly apiLogsService: ApiLogsV2Service,
   ) {}
 
@@ -48,6 +48,6 @@ export class ApiRuntimeLogsProxyComponent implements OnDestroy {
   }
 
   openLogsSettings() {
-    return this.ajsState.go('management.apis.runtimeLogs-settings');
+    this.router.navigate(['../../runtime-logs-settings'], { relativeTo: this.activatedRoute });
   }
 }

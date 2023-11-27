@@ -46,15 +46,13 @@ export class ApiV4MenuService implements ApiMenuService {
     if (this.permissionService.hasAnyMatching(['api-log-r'])) {
       logsTabs.push({
         displayName: 'Connections',
-        targetRoute: 'management.apis.runtimeLogs',
-        baseRoute: ['management.apis.runtimeLogs', 'management.apis.runtimeLogs-messages'],
+        routerLink: 'v4/runtime-logs',
       });
     }
     if (this.permissionService.hasAnyMatching(['api-definition-u', 'api-log-u'])) {
       logsTabs.push({
         displayName: 'Settings',
-        targetRoute: 'management.apis.runtimeLogs-settings',
-        baseRoute: 'management.apis.runtimeLogs-settings',
+        routerLink: 'v4/runtime-logs-settings',
       });
     }
     if (logsTabs.length > 0) {

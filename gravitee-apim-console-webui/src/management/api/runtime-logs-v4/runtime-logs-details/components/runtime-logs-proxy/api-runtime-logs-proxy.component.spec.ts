@@ -15,16 +15,15 @@
  */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
-import { UIRouterModule } from '@uirouter/angular';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { ApiRuntimeLogsProxyComponent } from './api-runtime-logs-proxy.component';
 import { ApiRuntimeLogsProxyHarness } from './api-runtime-logs-proxy.harness';
 import { ApiRuntimeLogsProxyModule } from './api-runtime-logs-proxy.module';
 
 import { GioUiRouterTestingModule } from '../../../../../../shared/testing/gio-uirouter-testing-module';
-import { UIRouterState, UIRouterStateParams } from '../../../../../../ajs-upgraded-providers';
 import {
   ConnectionLogDetail,
   fakeConnectionLogDetail,
@@ -36,33 +35,24 @@ import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../../share
 describe('ApiRuntimeLogsProxyComponent', () => {
   const API_ID = 'an-api-id';
   const REQUEST_ID = 'a-request-id';
-  const fakeUiRouter = { go: jest.fn() };
 
   let fixture: ComponentFixture<ApiRuntimeLogsProxyComponent>;
   let httpTestingController: HttpTestingController;
   let componentHarness: ApiRuntimeLogsProxyHarness;
+  let routerNavigateSpy: jest.SpyInstance;
 
   const initComponent = async () => {
     TestBed.configureTestingModule({
-      imports: [
-        NoopAnimationsModule,
-        ApiRuntimeLogsProxyModule,
-        UIRouterModule.forRoot({
-          useHash: true,
-        }),
-        GioUiRouterTestingModule,
-        GioHttpTestingModule,
-      ],
-      providers: [
-        { provide: UIRouterState, useValue: fakeUiRouter },
-        { provide: UIRouterStateParams, useValue: { apiId: API_ID, requestId: REQUEST_ID } },
-      ],
+      imports: [NoopAnimationsModule, ApiRuntimeLogsProxyModule, GioUiRouterTestingModule, GioHttpTestingModule],
+      providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID, requestId: REQUEST_ID } } } }],
     });
 
     await TestBed.compileComponents();
     fixture = TestBed.createComponent(ApiRuntimeLogsProxyComponent);
     componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiRuntimeLogsProxyHarness);
     httpTestingController = TestBed.inject(HttpTestingController);
+    const router = TestBed.inject(Router);
+    routerNavigateSpy = jest.spyOn(router, 'navigate');
     fixture.detectChanges();
   };
 
@@ -134,7 +124,7 @@ describe('ApiRuntimeLogsProxyComponent', () => {
     const emptyStateHarness = await componentHarness.emptyStateHarness();
     await emptyStateHarness.clickOpenSettingsButton();
 
-    expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.runtimeLogs-settings');
+    expect(routerNavigateSpy).toHaveBeenCalledWith(['../../runtime-logs-settings'], { relativeTo: expect.anything() });
   });
 
   function expectApiWithConnectionLog(data: ConnectionLogDetail) {

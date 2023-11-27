@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject } from '@angular/core';
-import { StateParams } from '@uirouter/core';
+import { Component } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 
-import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 
 @Component({
@@ -24,7 +23,7 @@ import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
   template: require('./api-runtime-logs-details.component.html'),
 })
 export class ApiRuntimeLogsDetailsComponent {
-  api$ = this.apiService.get(this.ajsStateParams.apiId);
+  api$ = this.apiService.get(this.activatedRoute.snapshot.params.apiId);
 
-  constructor(@Inject(UIRouterStateParams) private readonly ajsStateParams: StateParams, private readonly apiService: ApiV2Service) {}
+  constructor(private readonly activatedRoute: ActivatedRoute, private readonly apiService: ApiV2Service) {}
 }

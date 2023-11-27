@@ -18,12 +18,13 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
+import { ActivatedRoute } from '@angular/router';
 
 import { ApiRuntimeLogsMessageSettingsModule } from './api-runtime-logs-message-settings.module';
 import { ApiRuntimeLogsMessageSettingsComponent } from './api-runtime-logs-message-settings.component';
 import { ApiRuntimeLogsMessageSettingsHarness } from './api-runtime-logs-message-settings.harness';
 
-import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
+import { CurrentUserService } from '../../../../../ajs-upgraded-providers';
 import { User } from '../../../../../entities/user';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
 import { ApiV4, fakeApiV4 } from '../../../../../entities/management-api-v2';
@@ -81,8 +82,7 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
     await TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiRuntimeLogsMessageSettingsModule, MatIconTestingModule],
       providers: [
-        { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
-        { provide: UIRouterState, useValue: { go: jest.fn() } },
+        { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
         { provide: CurrentUserService, useValue: { currentUser } },
         {
           provide: 'Constants',

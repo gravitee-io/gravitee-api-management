@@ -2337,6 +2337,45 @@ const apisRoutes: Routes = [
         },
         component: ApiV4PolicyStudioDesignComponent,
       },
+      {
+        path: 'v4/runtime-logs',
+        data: {
+          apiPermissions: {
+            only: ['api-log-r'],
+          },
+          docs: {
+            page: 'management-api-logs',
+          },
+          useAngularMaterial: true,
+        },
+        component: ApiRuntimeLogsComponent,
+      },
+      {
+        path: 'v4/runtime-logs/:requestId',
+        data: {
+          apiPermissions: {
+            only: ['api-log-r'],
+          },
+          docs: {
+            page: 'management-api-logs',
+          },
+          useAngularMaterial: true,
+        },
+        component: ApiRuntimeLogsDetailsComponent,
+      },
+      {
+        path: 'v4/runtime-logs-settings',
+        data: {
+          apiPermissions: {
+            only: ['api-log-u'],
+          },
+          docs: {
+            page: 'management-api-logs',
+          },
+          useAngularMaterial: true,
+        },
+        component: ApiRuntimeLogsSettingsComponent,
+      },
     ],
   },
 ];
