@@ -57,8 +57,6 @@ describe('OrgSettingsUsersComponent', () => {
   });
   describe('without query params', () => {
     beforeEach(() => {
-      TestBed.compileComponents();
-
       httpTestingController = TestBed.inject(HttpTestingController);
       fixture = TestBed.createComponent(OrgSettingsUsersComponent);
       loader = TestbedHarnessEnvironment.loader(fixture);
