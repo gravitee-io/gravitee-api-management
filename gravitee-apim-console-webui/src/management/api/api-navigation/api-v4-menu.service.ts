@@ -37,8 +37,7 @@ export class ApiV4MenuService implements ApiMenuService {
     const subMenuItems: MenuItem[] = [
       {
         displayName: 'Policy Studio',
-        targetRoute: 'management.apis.policyStudio',
-        baseRoute: 'management.apis.policyStudio',
+        routerLink: 'v4/policy-studio',
         tabs: undefined,
       },
     ];

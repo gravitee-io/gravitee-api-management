@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { combineLatest, EMPTY, forkJoin, Observable, Subject } from 'rxjs';
 import { catchError, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import {
@@ -27,8 +27,8 @@ import {
   SaveOutput,
 } from '@gravitee/ui-policy-studio-angular';
 import { GioLicenseService } from '@gravitee/ui-particles-angular';
+import { ActivatedRoute } from '@angular/router';
 
-import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { ApiType, ApiV4, FlowExecution, PlanV4, UpdateApiV4, UpdatePlanV4 } from '../../../../entities/management-api-v2';
 import { IconService } from '../../../../services-ngx/icon.service';
@@ -63,7 +63,7 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
   public policyDocumentationFetcher: PolicyDocumentationFetcher = (policy) => this.policyV2Service.getDocumentation(policy.id);
 
   constructor(
-    @Inject(UIRouterStateParams) private readonly ajsStateParams,
+    private readonly activatedRoute: ActivatedRoute,
     private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
     private readonly iconService: IconService,
     private readonly apiV2Service: ApiV2Service,
@@ -76,12 +76,12 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     combineLatest([
-      this.apiV2Service.get(this.ajsStateParams.apiId).pipe(map((api) => api as ApiV4)),
+      this.apiV2Service.get(this.activatedRoute.snapshot.params.apiId).pipe(map((api) => api as ApiV4)),
       this.connectorPluginsV2Service.listEntrypointPlugins(),
       this.connectorPluginsV2Service.listEndpointPlugins(),
       this.apiPlanV2Service
         .list(
-          this.ajsStateParams.apiId,
+          this.activatedRoute.snapshot.params.apiId,
           undefined,
           ['PUBLISHED'],
           undefined,
@@ -170,7 +170,7 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
   }
 
   private updateApiFlows(commonFlows: PSFlow[], flowExecution: FlowExecution) {
-    return this.apiV2Service.get(this.ajsStateParams.apiId).pipe(
+    return this.apiV2Service.get(this.activatedRoute.snapshot.params.apiId).pipe(
       switchMap((api: ApiV4) => {
         const updatedApi: UpdateApiV4 = {
           ...api,
@@ -178,7 +178,7 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
           ...(flowExecution ? { flowExecution } : {}),
         };
 
-        return this.apiV2Service.update(this.ajsStateParams.apiId, updatedApi);
+        return this.apiV2Service.update(this.activatedRoute.snapshot.params.apiId, updatedApi);
       }),
       catchError((err) => {
         this.snackBarService.error(err.error?.message ?? err.message);
@@ -190,14 +190,14 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
 
   private updatePlans(plans: PSPlan[]) {
     const updatePlan$ = (plan: PSPlan) =>
-      this.apiPlanV2Service.get(this.ajsStateParams.apiId, plan.id).pipe(
+      this.apiPlanV2Service.get(this.activatedRoute.snapshot.params.apiId, plan.id).pipe(
         switchMap((apiPlan: PlanV4) => {
           const updatedApiPlan: UpdatePlanV4 = {
             ...apiPlan,
             flows: plan.flows,
           };
 
-          return this.apiPlanV2Service.update(this.ajsStateParams.apiId, apiPlan.id, updatedApiPlan);
+          return this.apiPlanV2Service.update(this.activatedRoute.snapshot.params.apiId, apiPlan.id, updatedApiPlan);
         }),
         catchError((err) => {
           this.snackBarService.error(err.error?.message ?? err.message);

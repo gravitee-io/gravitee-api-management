@@ -25,6 +25,7 @@ import { of } from 'rxjs';
 import { GioLicenseTestingModule } from '@gravitee/ui-particles-angular';
 import { GioPolicyStudioComponent } from '@gravitee/ui-policy-studio-angular';
 import { By } from '@angular/platform-browser';
+import { ActivatedRoute } from '@angular/router';
 
 import { ApiV4PolicyStudioDesignComponent } from './api-v4-policy-studio-design.component';
 
@@ -43,7 +44,6 @@ import {
   FlowV4,
   PlanV4,
 } from '../../../../entities/management-api-v2';
-import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 
 describe('ApiV4PolicyStudioDesignComponent', () => {
   const API_ID = 'api-id';
@@ -56,7 +56,7 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiV4PolicyStudioModule, MatIconTestingModule, GioLicenseTestingModule],
-      providers: [{ provide: UIRouterStateParams, useValue: { apiId: API_ID } }],
+      providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } }],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {
