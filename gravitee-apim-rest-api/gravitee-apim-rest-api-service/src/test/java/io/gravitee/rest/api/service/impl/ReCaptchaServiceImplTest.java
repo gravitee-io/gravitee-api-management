@@ -16,12 +16,12 @@
 package io.gravitee.rest.api.service.impl;
 
 import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.rest.api.service.HttpClientService;
-import io.gravitee.rest.api.service.impl.ReCaptchaServiceImpl;
 import io.vertx.core.buffer.Buffer;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,7 +29,6 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.reflections.ReflectionUtils;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
@@ -45,17 +44,20 @@ public class ReCaptchaServiceImplTest {
     @Mock
     private HttpClientService httpClientService;
 
-    private ObjectMapper objectMapper = new ObjectMapper();
+    @Mock
+    private Configuration configuration;
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Before
     public void before() {
         ReflectionTestUtils.setField(reCaptchaService, "objectMapper", objectMapper);
-        ReflectionTestUtils.setField(reCaptchaService, "serviceUrl", "https://verif");
+        when(configuration.getProperty(eq("reCaptcha.serviceUrl"), anyString())).thenReturn("https://verif");
     }
 
     @Test
     public void isValidWhenDisabled() {
-        ReflectionTestUtils.setField(reCaptchaService, "enabled", false);
+        when(configuration.getProperty("reCaptcha.enabled", Boolean.class, false)).thenReturn(false);
 
         assertTrue(reCaptchaService.isValid(null));
         assertTrue(reCaptchaService.isValid(""));
@@ -64,7 +66,7 @@ public class ReCaptchaServiceImplTest {
 
     @Test
     public void isNotValidIfNoToken() {
-        ReflectionTestUtils.setField(reCaptchaService, "enabled", true);
+        when(configuration.getProperty("reCaptcha.enabled", Boolean.class, false)).thenReturn(true);
 
         assertFalse(reCaptchaService.isValid(null));
         assertFalse(reCaptchaService.isValid(""));
@@ -72,9 +74,8 @@ public class ReCaptchaServiceImplTest {
 
     @Test
     public void isValid() {
-        ReflectionTestUtils.setField(reCaptchaService, "minScore", 0.5d);
-        ReflectionTestUtils.setField(reCaptchaService, "enabled", true);
-
+        when(configuration.getProperty("reCaptcha.minScore", Double.class, 0.5)).thenReturn(0.5);
+        when(configuration.getProperty("reCaptcha.enabled", Boolean.class, false)).thenReturn(true);
         when(httpClientService.request(any(), any(), any(), any(), any()))
             .thenReturn(Buffer.buffer("{ \"success\": true, \"score\": 1.0 }"));
 
@@ -83,9 +84,8 @@ public class ReCaptchaServiceImplTest {
 
     @Test
     public void isValidAboveMinScore() {
-        ReflectionTestUtils.setField(reCaptchaService, "minScore", 0.5d);
-        ReflectionTestUtils.setField(reCaptchaService, "enabled", true);
-
+        when(configuration.getProperty("reCaptcha.minScore", Double.class, 0.5)).thenReturn(0.5);
+        when(configuration.getProperty("reCaptcha.enabled", Boolean.class, false)).thenReturn(true);
         when(httpClientService.request(any(), any(), any(), any(), any()))
             .thenReturn(Buffer.buffer("{ \"success\": true, \"score\": 1.0 }"));
 
@@ -94,9 +94,8 @@ public class ReCaptchaServiceImplTest {
 
     @Test
     public void isNotValidBelowMinScore() {
-        ReflectionTestUtils.setField(reCaptchaService, "minScore", 0.5d);
-        ReflectionTestUtils.setField(reCaptchaService, "enabled", true);
-
+        when(configuration.getProperty("reCaptcha.minScore", Double.class, 0.5)).thenReturn(0.5);
+        when(configuration.getProperty("reCaptcha.enabled", Boolean.class, false)).thenReturn(true);
         when(httpClientService.request(any(), any(), any(), any(), any()))
             .thenReturn(Buffer.buffer("{ \"success\": true, \"score\": 0.4 }"));
 
@@ -105,9 +104,7 @@ public class ReCaptchaServiceImplTest {
 
     @Test
     public void isNotValidNoSuccess() {
-        ReflectionTestUtils.setField(reCaptchaService, "minScore", 0.5d);
-        ReflectionTestUtils.setField(reCaptchaService, "enabled", true);
-
+        when(configuration.getProperty("reCaptcha.enabled", Boolean.class, false)).thenReturn(true);
         when(httpClientService.request(any(), any(), any(), any(), any())).thenReturn(Buffer.buffer("{ \"success\": false }"));
 
         assertFalse(reCaptchaService.isValid("any"));
@@ -115,14 +112,15 @@ public class ReCaptchaServiceImplTest {
 
     @Test
     public void isEnabled() {
-        ReflectionTestUtils.setField(reCaptchaService, "enabled", true);
+        when(configuration.getProperty("reCaptcha.enabled", Boolean.class, false)).thenReturn(true);
 
         assertTrue(reCaptchaService.isEnabled());
     }
 
     @Test
     public void isNotEnabled() {
-        ReflectionTestUtils.setField(reCaptchaService, "enabled", false);
+        when(configuration.getProperty("reCaptcha.enabled", Boolean.class, false)).thenReturn(false);
+
         assertFalse(reCaptchaService.isEnabled());
     }
 
@@ -133,7 +131,7 @@ public class ReCaptchaServiceImplTest {
 
     @Test
     public void getSiteKey() {
-        ReflectionTestUtils.setField(reCaptchaService, "siteKey", "test");
+        when(configuration.getProperty("reCaptcha.siteKey")).thenReturn("test");
 
         assertEquals("test", reCaptchaService.getSiteKey());
     }
