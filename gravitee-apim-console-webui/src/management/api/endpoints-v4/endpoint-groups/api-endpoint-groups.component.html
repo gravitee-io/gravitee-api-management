@@ -65,7 +65,7 @@
             *gioPermission="{ anyOf: ['api-definition-u'] }"
             mat-stroked-button
             aria-label="Edit endpoint group"
-            (click)="editEndpointGroup(i)"
+            [routerLink]="['./', i, '']"
           >
             <mat-icon svgIcon="gio:edit-pencil"></mat-icon>Edit
           </button>
@@ -119,7 +119,7 @@
             <th mat-header-cell *matHeaderCellDef id="actions">Actions</th>
             <td mat-cell *matCellDef="let element; let j = index">
               <div class="endpoint-group-card__table__actions" *gioPermission="{ anyOf: ['api-definition-u'] }">
-                <a mat-icon-button aria-label="Edit endpoint" matTooltip="Edit endpoint" (click)="editEndpoint(i, j)">
+                <a mat-icon-button aria-label="Edit endpoint" matTooltip="Edit endpoint" [routerLink]="['./', i, j]">
                   <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
                 </a>
                 <button
@@ -154,7 +154,7 @@
           mat-stroked-button
           aria-label="Add endpoint"
           class="add_endpoint"
-          (click)="addEndpoint(i)"
+          [routerLink]="['./', i, 'new']"
           >Add endpoint</a
         >
       </mat-card-content>
@@ -167,7 +167,7 @@
   mat-flat-button
   color="primary"
   aria-label="Add endpoint group"
-  (click)="addEndpointGroup()"
+  [routerLink]="['./', 'new']"
 >
   Add endpoint group
 </button>

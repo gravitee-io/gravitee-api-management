@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { StateService } from '@uirouter/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { switchMap, takeUntil } from 'rxjs/operators';
 import { Observable, Subject } from 'rxjs';
+import { ActivatedRoute } from '@angular/router';
 
 import { Api, ApiV4, UpdateApiV4 } from '../../../../entities/management-api-v2';
-import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { isUniqueAndDoesNotMatchDefaultValue } from '../../../../shared/utils';
@@ -46,15 +45,14 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
   public endpointGroupType: string;
 
   constructor(
-    @Inject(UIRouterStateParams) private readonly ajsStateParams,
-    @Inject(UIRouterState) private readonly ajsState: StateService,
+    private readonly activatedRoute: ActivatedRoute,
     private readonly apiService: ApiV2Service,
     private readonly snackBarService: SnackBarService,
     private readonly permissionService: GioPermissionService,
   ) {}
 
   public ngOnInit(): void {
-    const apiId = this.ajsStateParams.apiId;
+    const apiId = this.activatedRoute.snapshot.params.apiId;
 
     this.apiService
       .get(apiId)
@@ -92,11 +90,11 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
   private initializeComponent(api: ApiV4): void {
     this.api = api;
     this.initialApi = this.api;
-    this.endpointGroupType = this.api.endpointGroups[this.ajsStateParams.groupIndex].type;
+    this.endpointGroupType = this.api.endpointGroups[this.activatedRoute.snapshot.params.groupIndex].type;
 
     this.isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-r']) || api.definitionContext?.origin === 'KUBERNETES';
 
-    const group = { ...this.api.endpointGroups[this.ajsStateParams.groupIndex] };
+    const group = { ...this.api.endpointGroups[this.activatedRoute.snapshot.params.groupIndex] };
 
     this.generalForm = new FormGroup({
       name: new FormControl(
@@ -139,8 +137,8 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
    */
   private updateApiObjectWithFormData(api: ApiV4): UpdateApiV4 {
     const updatedEndpointGroups = [...api.endpointGroups];
-    updatedEndpointGroups[this.ajsStateParams.groupIndex] = {
-      ...this.api.endpointGroups[this.ajsStateParams.groupIndex],
+    updatedEndpointGroups[this.activatedRoute.snapshot.params.groupIndex] = {
+      ...this.api.endpointGroups[this.activatedRoute.snapshot.params.groupIndex],
       name: this.generalForm.getRawValue().name,
       loadBalancer: {
         type: this.generalForm.getRawValue().loadBalancerType,

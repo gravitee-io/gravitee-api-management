@@ -23,6 +23,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { GioBannerModule, GioIconsModule } from '@gravitee/ui-particles-angular';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { RouterModule } from '@angular/router';
 
 import { ApiEndpointGroupsComponent } from './api-endpoint-groups.component';
 
@@ -35,6 +36,7 @@ import { GioLicenseBannerModule } from '../../../../shared/components/gio-licens
   exports: [ApiEndpointGroupsComponent],
   imports: [
     CommonModule,
+    RouterModule,
     MatCardModule,
     MatButtonModule,
     MatDialogModule,

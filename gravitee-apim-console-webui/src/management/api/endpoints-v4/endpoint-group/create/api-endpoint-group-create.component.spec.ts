@@ -21,18 +21,17 @@ import { FormsModule } from '@angular/forms';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatStepHarness } from '@angular/material/stepper/testing';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { ApiEndpointGroupCreateComponent } from './api-endpoint-group-create.component';
 import { ApiEndpointGroupCreateHarness } from './api-endpoint-group-create.harness';
 
-import { UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { ApiEndpointGroupModule } from '../api-endpoint-group.module';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
 import { ApiV4, EndpointGroupV4, EndpointV4Default, fakeApiV4 } from '../../../../../entities/management-api-v2';
 
 const API_ID = 'api-id';
 const ENDPOINT_GROUP_NAME = 'My Endpoint Group';
-const FAKE_UI_ROUTER = { go: jest.fn() };
 const fakeKafkaSchema = {
   $schema: 'http://json-schema.org/draft-07/schema#',
   type: 'object',
@@ -106,7 +105,7 @@ describe('ApiEndpointGroupCreateComponent', () => {
   let fixture: ComponentFixture<ApiEndpointGroupCreateComponent>;
   let harness: ApiEndpointGroupCreateHarness;
   let api: ApiV4;
-  let routerSpy: any;
+  let routerNavigationSpy: jest.SpyInstance;
 
   const initComponent = async (testApi: ApiV4) => {
     const routerParams: unknown = { apiId: API_ID };
@@ -115,10 +114,7 @@ describe('ApiEndpointGroupCreateComponent', () => {
 
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiEndpointGroupModule, MatIconTestingModule, FormsModule],
-      providers: [
-        { provide: UIRouterState, useValue: FAKE_UI_ROUTER },
-        { provide: UIRouterStateParams, useValue: routerParams },
-      ],
+      providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: routerParams } } }],
     }).overrideProvider(InteractivityChecker, {
       useValue: {
         isFocusable: () => true,
@@ -130,7 +126,8 @@ describe('ApiEndpointGroupCreateComponent', () => {
     httpTestingController = TestBed.inject(HttpTestingController);
     harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiEndpointGroupCreateHarness);
 
-    routerSpy = jest.spyOn(FAKE_UI_ROUTER, 'go');
+    const router = TestBed.inject(Router);
+    routerNavigationSpy = jest.spyOn(router, 'navigate');
 
     expectApiGet();
     fixture.detectChanges();
@@ -153,7 +150,7 @@ describe('ApiEndpointGroupCreateComponent', () => {
 
       it('should go back to endpoint groups page on exit', async () => {
         await harness.goBackToEndpointGroups();
-        expect(routerSpy).toHaveBeenCalledWith('management.apis.endpoint-groups');
+        expect(routerNavigationSpy).toHaveBeenCalledWith(['../'], { relativeTo: expect.anything() });
       });
 
       it('should not go to General step if endpoint type not selected', async () => {
@@ -297,7 +294,7 @@ describe('ApiEndpointGroupCreateComponent', () => {
       it('should go back to endpoint groups page on exit', async () => {
         expect(await isStepActive(harness.getGeneralStep())).toEqual(true);
         await harness.goBackToEndpointGroups();
-        expect(routerSpy).toHaveBeenCalledWith('management.apis.endpoint-groups');
+        expect(routerNavigationSpy).toHaveBeenCalledWith(['../'], { relativeTo: expect.anything() });
       });
     });
 
@@ -407,6 +404,6 @@ describe('ApiEndpointGroupCreateComponent', () => {
 
     expectApiGet();
     expectApiPut(updatedApi);
-    expect(routerSpy).toHaveBeenCalledWith('management.apis.endpoint-groups');
+    expect(routerNavigationSpy).toHaveBeenCalledWith(['../'], { relativeTo: expect.anything() });
   }
 });

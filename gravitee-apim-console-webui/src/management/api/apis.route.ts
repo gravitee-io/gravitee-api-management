@@ -2398,6 +2398,71 @@ const apisRoutes: Routes = [
           },
         },
       },
+      {
+        path: 'v4/endpoints',
+        component: ApiEndpointGroupsComponent,
+        data: {
+          useAngularMaterial: true,
+          apiPermissions: {
+            only: ['api-definition-r'],
+          },
+          docs: {
+            page: 'management-api-proxy-endpoints',
+          },
+        },
+      },
+      {
+        path: 'v4/endpoints/new',
+        component: ApiEndpointGroupCreateComponent,
+        data: {
+          useAngularMaterial: true,
+          apiPermissions: {
+            only: ['api-definition-u'],
+          },
+          docs: {
+            page: 'management-api-proxy-endpoints',
+          },
+        },
+      },
+      {
+        path: 'v4/endpoints/:groupIndex',
+        component: ApiEndpointGroupComponent,
+        data: {
+          useAngularMaterial: true,
+          apiPermissions: {
+            only: ['api-definition-r'],
+          },
+          docs: {
+            page: 'management-api-proxy-endpoints',
+          },
+        },
+      },
+      {
+        path: 'v4/endpoints/:groupIndex/new',
+        component: ApiEndpointComponent,
+        data: {
+          useAngularMaterial: true,
+          apiPermissions: {
+            only: ['api-definition-u'],
+          },
+          docs: {
+            page: 'management-api-proxy-endpoints',
+          },
+        },
+      },
+      {
+        path: 'v4/endpoints/:groupIndex/:endpointIndex',
+        component: ApiEndpointComponent,
+        data: {
+          useAngularMaterial: true,
+          apiPermissions: {
+            only: ['api-definition-u'],
+          },
+          docs: {
+            page: 'management-api-proxy-endpoints',
+          },
+        },
+      },
     ],
   },
 ];

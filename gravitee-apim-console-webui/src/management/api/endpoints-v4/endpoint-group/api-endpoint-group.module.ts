@@ -18,7 +18,6 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { UIRouterModule } from '@uirouter/angular';
 import {
   GioBannerModule,
   GioFormFocusInvalidModule,
@@ -39,6 +38,7 @@ import { MatRadioModule } from '@angular/material/radio';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { RouterModule } from '@angular/router';
 
 import { ApiEndpointGroupComponent } from './api-endpoint-group.component';
 import { ApiEndpointGroupGeneralComponent } from './general/api-endpoint-group-general.component';
@@ -62,7 +62,7 @@ import { GioConnectorListModule } from '../../../../shared/components/gio-connec
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    UIRouterModule,
+    RouterModule,
 
     MatButtonModule,
     MatCardModule,
