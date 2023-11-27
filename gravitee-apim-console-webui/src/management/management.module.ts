@@ -29,7 +29,7 @@ import { ApiLoggingModule } from './configuration/api-logging/api-logging.module
 import { EnvironmentNotificationSettingsModule } from './configuration/notifications/notification-settings/environment-notification-settings.module';
 import { EnvironmentMetadataModule } from './configuration/metadata/environment-metadata.module';
 import { ManagementComponent } from './management.component';
-import { AsEnvironmentPermissionGuard } from './as-environment-permission.guard';
+import { HasEnvironmentPermissionGuard } from './has-environment-permission.guard';
 import { EnvironmentResolver } from './environement.resolver';
 import { TasksComponent } from './tasks/tasks.component';
 import { TicketComponent } from './support/ticket.component';
@@ -49,8 +49,8 @@ const managementRoutes: Routes = [
   {
     path: '',
     component: ManagementComponent,
-    canActivate: [AsEnvironmentPermissionGuard],
-    canActivateChild: [AsEnvironmentPermissionGuard],
+    canActivate: [HasEnvironmentPermissionGuard],
+    canActivateChild: [HasEnvironmentPermissionGuard],
     resolve: {
       environmentResolver: EnvironmentResolver,
     },
