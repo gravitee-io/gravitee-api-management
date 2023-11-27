@@ -17,7 +17,7 @@ import { Component, HostListener, OnInit } from '@angular/core';
 import '@gravitee/ui-components/wc/gv-input';
 import '@gravitee/ui-components/wc/gv-row';
 import { Pagination } from '@gravitee/ui-components/wc/gv-pagination';
-import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { Api, ApiService, ApisResponse } from '../../../../../projects/portal-webclient-sdk/src/lib';
@@ -31,16 +31,16 @@ import { createPromiseList } from '../../../utils/utils';
   styleUrls: ['./catalog-search.component.css'],
 })
 export class CatalogSearchComponent implements OnInit {
-  searchForm: UntypedFormGroup;
+  searchForm: FormGroup<{ query: FormControl<string> }>;
   pageSize: number;
   pageSizes: Array<number>;
   paginationData: Pagination;
   apiResults: Promise<any>[];
   totalElements: number;
-  currentPage;
+  currentPage: number;
 
   constructor(
-    private formBuilder: UntypedFormBuilder,
+    private formBuilder: FormBuilder,
     private apiService: ApiService,
     private activatedRoute: ActivatedRoute,
     private router: Router,
@@ -63,7 +63,7 @@ export class CatalogSearchComponent implements OnInit {
         : this.config.get('pagination.size.default', 10);
 
       this.searchForm.reset({ query: this.searchForm.value.query });
-      this.currentPage = params.get(SearchQueryParam.PAGE) || 1;
+      this.currentPage = +params.get(SearchQueryParam.PAGE) || 1;
       if (this.searchForm.value.query.trim() !== '') {
         this._loadData();
       }
@@ -119,7 +119,7 @@ export class CatalogSearchComponent implements OnInit {
   onSubmitSearch() {
     if (this.searchForm.valid) {
       const query = this.searchForm.value.query || this.activatedRoute.snapshot.queryParamMap.get(SearchQueryParam.QUERY);
-      const queryParams = new SearchRequestParams(query, this.searchForm.value.size);
+      const queryParams = new SearchRequestParams(query);
       this.router.navigate([], { queryParams, queryParamsHandling: 'merge' });
     }
   }
