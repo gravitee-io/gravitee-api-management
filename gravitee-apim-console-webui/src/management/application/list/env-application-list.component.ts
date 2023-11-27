@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { catchError, debounceTime, distinctUntilChanged, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { BehaviorSubject, of, Subject } from 'rxjs';
-import { StateService } from '@uirouter/core';
 import { MatDialog } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { PagedResult } from '../../../entities/pagedResult';
 import { GioTableWrapperFilters, Sort } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
-import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { ApplicationService } from '../../../services-ngx/application.service';
 import { Application } from '../../../entities/application/application';
@@ -75,8 +74,8 @@ export class EnvApplicationListComponent implements OnInit, OnDestroy {
   private filtersStream = new BehaviorSubject<ApplicationTableFilters>(this.defaultFilters);
 
   constructor(
-    @Inject(UIRouterStateParams) private $stateParams,
-    @Inject(UIRouterState) private $state: StateService,
+    private readonly router: Router,
+    private readonly activatedRoute: ActivatedRoute,
     private readonly roleService: GioRoleService,
     private readonly applicationService: ApplicationService,
     private readonly matDialog: MatDialog,
@@ -89,12 +88,13 @@ export class EnvApplicationListComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    const { q, page, size, order } = this.activatedRoute.snapshot.queryParams;
     // Init filters stream with state params
-    const initialSearchValue = this.$stateParams.q ?? this.defaultFilters.searchTerm;
-    const initialPageNumber = this.$stateParams.page ? Number(this.$stateParams.page) : this.defaultFilters.pagination.index;
-    const initialPageSize = this.$stateParams.size ? Number(this.$stateParams.size) : this.defaultFilters.pagination.size;
+    const initialSearchValue = q ?? this.defaultFilters.searchTerm;
+    const initialPageNumber = page ? Number(page) : this.defaultFilters.pagination.index;
+    const initialPageSize = size ? Number(size) : this.defaultFilters.pagination.size;
     this.currentStatus = this.getCurrentStatus();
-    const initialSort = toSort(this.$stateParams.order, this.defaultFilters.sort);
+    const initialSort = toSort(order, this.defaultFilters.sort);
     this.filters = {
       searchTerm: initialSearchValue,
       status: this.currentStatus,
@@ -114,7 +114,11 @@ export class EnvApplicationListComponent implements OnInit, OnDestroy {
         distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b)),
         tap(({ pagination, searchTerm, status, sort }) => {
           // Change url params
-          this.$state.go('.', this.toQueryParams({ pagination, searchTerm, status, sort }), { notify: false });
+          this.router.navigate([], {
+            relativeTo: this.activatedRoute,
+            queryParams: this.toQueryParams({ pagination, searchTerm, status, sort }),
+            queryParamsHandling: 'merge',
+          });
         }),
         switchMap(({ pagination, searchTerm, status, sort }) => {
           return this.applicationService.list(status, searchTerm, toOrder(sort), pagination.index, pagination.size).pipe(
@@ -130,10 +134,6 @@ export class EnvApplicationListComponent implements OnInit, OnDestroy {
   private toQueryParams(filters: ApplicationTableFilters) {
     const { searchTerm, pagination, status, sort } = filters;
     return { q: searchTerm, page: pagination.index, size: pagination.size, status, order: toOrder(sort) };
-  }
-
-  onAddApplicationClick() {
-    this.$state.go('management.applications.create');
   }
 
   onFiltersChanged(filters: GioTableWrapperFilters) {
@@ -162,10 +162,6 @@ export class EnvApplicationListComponent implements OnInit, OnDestroy {
     this.onFiltersChanged(filters);
   }
 
-  onEditActionClicked(application: TableData) {
-    this.$state.go('management.applications.application.general', { applicationId: application.applicationId });
-  }
-
   onRestoreActionClicked(application: TableData) {
     this.matDialog
       .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
@@ -188,11 +184,10 @@ export class EnvApplicationListComponent implements OnInit, OnDestroy {
         takeUntil(this.unsubscribe$),
       )
       .subscribe(() =>
-        this.$state.go(
-          'management.applications.application.subscriptions.list',
-          { applicationId: application.applicationId },
-          { reload: true },
-        ),
+        // TODO: redirects to former 'management.applications.application.subscriptions.list'
+        this.router.navigate(['applications', application.applicationId, 'subscriptions/list'], {
+          relativeTo: this.activatedRoute,
+        }),
       );
   }
 
@@ -202,8 +197,10 @@ export class EnvApplicationListComponent implements OnInit, OnDestroy {
 
   private getCurrentStatus() {
     if (this.canListArchiveApplication()) {
-      if (this.$stateParams.status && this.statusFilters.includes(this.$stateParams.status.toUpperCase())) {
-        return this.$stateParams.status.toUpperCase();
+      const queryParamStatus = this.activatedRoute.snapshot.queryParams.status;
+
+      if (queryParamStatus && this.statusFilters.includes(queryParamStatus.toUpperCase())) {
+        return queryParamStatus.toUpperCase();
       }
     }
     return this.defaultFilters.status;

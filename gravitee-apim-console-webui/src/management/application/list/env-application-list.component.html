@@ -33,7 +33,7 @@
   </div>
 
   <button
-    (click)="onAddApplicationClick()"
+    [routerLink]="'new'"
     mat-raised-button
     color="primary"
     data-testid="add-application"
@@ -64,9 +64,7 @@
     <ng-container matColumnDef="name">
       <th mat-header-cell *matHeaderCellDef mat-sort-header id="name">Name</th>
       <td mat-cell *matCellDef="let element">
-        <a [uiSref]="'management.applications.application.general'" [uiParams]="{ applicationId: element.applicationId }">{{
-          element.name
-        }}</a>
+        <a [routerLink]="['management.applications.application.general', { applicationId: element.applicationId }]">{{ element.name }}</a>
       </td>
     </ng-container>
 
@@ -97,7 +95,7 @@
         <div class="table__centered-cell">
           <button
             *ngIf="'ACTIVE' === element.status && element.origin === 'MANAGEMENT'"
-            (click)="onEditActionClicked(element)"
+            [routerLink]="['management.applications.application.general', { applicationId: element.applicationId }]"
             mat-icon-button
             aria-label="Button to edit an application"
             matTooltip="Edit application"
