@@ -22,7 +22,7 @@ import '@gravitee/ui-components/wc/gv-code';
 import '@gravitee/ui-components/wc/gv-list';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
-import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { distinctUntilChanged } from 'rxjs/operators';
 import { getPicture, getPictureDisplayName } from '@gravitee/ui-components/src/lib/item';
 
@@ -36,8 +36,9 @@ import {
   ApiService,
   Application,
   ApplicationService,
-  Plan,
   Page,
+  PageRevisionId,
+  Plan,
   Subscription,
   SubscriptionService,
   SubscriptionsResponse,
@@ -45,6 +46,15 @@ import {
 
 const StatusEnum = Subscription.StatusEnum;
 const SecurityEnum = Plan.SecurityEnum;
+
+type ApiSubscribeFormType = FormGroup<{
+  application: FormControl<string>;
+  apiKeyMode: FormControl<ApiKeyModeEnum>;
+  plan: FormControl<string>;
+  request: FormControl<string>;
+  general_conditions_accepted: FormControl<boolean>;
+  general_conditions_content_revision: FormControl<PageRevisionId>;
+}>;
 
 @Component({
   selector: 'app-api-subscribe',
@@ -67,11 +77,10 @@ export class ApiSubscribeComponent implements OnInit {
 
   steps: any;
   currentStep: number;
-  stepperContentClass: any;
   api: Api;
   plans: any;
   application: any;
-  subscribeForm: UntypedFormGroup;
+  subscribeForm: ApiSubscribeFormType;
   availableApplications: { label: string; value: string }[];
   apiKeyModeOptions: { id: string; title: string; description: string }[];
   connectedApps: any[];
@@ -93,7 +102,6 @@ export class ApiSubscribeComponent implements OnInit {
     private translateService: TranslateService,
     private applicationService: ApplicationService,
     private subscriptionService: SubscriptionService,
-    private formBuilder: UntypedFormBuilder,
     private configurationService: ConfigurationService,
   ) {}
 
@@ -107,13 +115,13 @@ export class ApiSubscribeComponent implements OnInit {
     this._currentGeneralConditions = null;
     this.connectedApps = [];
 
-    this.subscribeForm = this.formBuilder.group({
-      application: new UntypedFormControl(null, [Validators.required]),
-      apiKeyMode: new UntypedFormControl(null),
-      plan: new UntypedFormControl(null, [Validators.required]),
-      request: new UntypedFormControl(''),
-      general_conditions_accepted: new UntypedFormControl(null),
-      general_conditions_content_revision: new UntypedFormControl(null),
+    this.subscribeForm = new FormGroup({
+      application: new FormControl(null, [Validators.required]),
+      apiKeyMode: new FormControl(null),
+      plan: new FormControl(null, [Validators.required]),
+      request: new FormControl(''),
+      general_conditions_accepted: new FormControl(null),
+      general_conditions_content_revision: new FormControl(null),
     });
     this.translateService
       .get([i18n('apiSubscribe.apps.comment'), i18n('apiSubscribe.plan'), i18n('apiSubscribe.apps.missingClientId')])
