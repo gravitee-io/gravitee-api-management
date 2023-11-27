@@ -42,8 +42,8 @@ export class PackageBundleJob {
       }),
       new commands.Checkout(),
       new commands.Run({
-        name: `Checkout tag ${parsedGraviteeioVersion.version.full}`,
-        command: `git checkout ${parsedGraviteeioVersion.version.full}`,
+        name: `Checkout tag ${parsedGraviteeioVersion.full}`,
+        command: `git checkout ${parsedGraviteeioVersion.full}`,
       }),
       new commands.Run({
         name: 'Install dependencies',
@@ -52,7 +52,7 @@ export class PackageBundleJob {
       }),
       new commands.Run({
         name: 'Building package bundle',
-        command: `npm run zx -- --quiet --experimental ci-steps/package-bundles.mjs --version=${parsedGraviteeioVersion.version.full}`,
+        command: `npm run zx -- --quiet --experimental ci-steps/package-bundles.mjs --version=${parsedGraviteeioVersion.full}`,
         working_directory: './release',
         environment: {
           ARTIFACTORY_REPO_URL: PackageBundleJob.ARTIFACTORY_REPO_URL,
@@ -84,7 +84,7 @@ export class PackageBundleJob {
     }
     return new reusable.ReusedCommand(orbs.awsS3.commands.sync, {
       arguments: '--endpoint-url https://cellar-c2.services.clever-cloud.com --acl public-read',
-      from: `./release/.tmp/${graviteeioVersion.version.full}/dist`,
+      from: `./release/.tmp/${graviteeioVersion.full}/dist`,
       to: `${to}`,
     });
   }
