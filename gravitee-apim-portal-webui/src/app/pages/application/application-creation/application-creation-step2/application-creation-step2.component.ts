@@ -14,10 +14,15 @@
  * limitations under the License.
  */
 import { Component, EventEmitter, HostListener, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
-import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { Subscription } from 'rxjs';
 
 import { ApplicationTypeOption } from '../application-creation.component';
+
+export type AppFormType = FormGroup<{ app: FormGroup<{ type: FormControl<string>; client_id: FormControl<string> }> }> | null;
+export type OAuthFormType = FormGroup<{
+  oauth: FormGroup<{ redirect_uris: FormArray; grant_types: FormArray; application_type: FormControl<string> }>;
+}>;
 
 @Component({
   selector: 'app-application-creation-step2',
@@ -28,14 +33,14 @@ export class ApplicationCreationStep2Component implements OnInit, OnChanges {
   @Input() allowedTypes: Array<ApplicationTypeOption>;
   @Input() requireClientId: boolean;
   @Output() applicationTypeSelected = new EventEmitter<ApplicationTypeOption>();
-  @Output() updated = new EventEmitter<UntypedFormGroup>();
+  @Output() updated = new EventEmitter<AppFormType | OAuthFormType>();
   applicationType: ApplicationTypeOption;
   allGrantTypes: { name?: string; disabled: boolean; type?: string; value: boolean }[];
-  oauthForm: any;
-  appForm: any;
+  oauthForm: OAuthFormType;
+  appForm: AppFormType;
   private formSubscription: Subscription;
 
-  constructor(private formBuilder: UntypedFormBuilder) {}
+  constructor(private formBuilder: FormBuilder) {}
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes.requireClientId && this.appForm && changes.requireClientId.previousValue !== changes.requireClientId.currentValue) {
@@ -54,15 +59,15 @@ export class ApplicationCreationStep2Component implements OnInit, OnChanges {
 
     this.appForm = this.formBuilder.group({
       app: this.formBuilder.group({
-        type: new UntypedFormControl('', null),
-        client_id: new UntypedFormControl('', null),
+        type: new FormControl('', null),
+        client_id: new FormControl('', null),
       }),
     });
     this.oauthForm = this.formBuilder.group({
       oauth: this.formBuilder.group({
-        redirect_uris: new UntypedFormArray([], null),
-        grant_types: new UntypedFormArray([], [Validators.required]),
-        application_type: new UntypedFormControl(null, [Validators.required]),
+        redirect_uris: new FormArray([], null),
+        grant_types: new FormArray([], [Validators.required]),
+        application_type: new FormControl(null, [Validators.required]),
       }),
     });
     this.setApplicationType(firstApplicationType);
@@ -81,7 +86,7 @@ export class ApplicationCreationStep2Component implements OnInit, OnChanges {
       const disabled = this.applicationType.mandatory_grant_types.find(grant => allowedGrantType.type === grant.type) != null;
 
       if (value === true) {
-        this.grantTypes.push(new UntypedFormControl(allowedGrantType.type));
+        this.grantTypes.push(new FormControl(allowedGrantType.type));
       }
       return { ...allowedGrantType, disabled, value };
     });
@@ -113,11 +118,11 @@ export class ApplicationCreationStep2Component implements OnInit, OnChanges {
   }
 
   get redirectURIs() {
-    return this.oauthForm.get('oauth.redirect_uris') as UntypedFormArray;
+    return this.oauthForm.get('oauth.redirect_uris') as FormArray;
   }
 
   get grantTypes() {
-    return this.oauthForm.get('oauth.grant_types') as UntypedFormArray;
+    return this.oauthForm.get('oauth.grant_types') as FormArray;
   }
 
   get requiresRedirectUris() {
@@ -138,7 +143,7 @@ export class ApplicationCreationStep2Component implements OnInit, OnChanges {
 
   onSwitchGrant(event, grantType) {
     if (event.target.value) {
-      this.grantTypes.push(new UntypedFormControl(grantType.type));
+      this.grantTypes.push(new FormControl(grantType.type));
     } else {
       let index = -1;
       this.grantTypes.controls.forEach((control, i) => {
@@ -156,7 +161,7 @@ export class ApplicationCreationStep2Component implements OnInit, OnChanges {
       const value = event.target.value;
       if (value && value.trim() !== '') {
         if (!this.redirectURIs.controls.map(c => c.value).includes(value)) {
-          this.redirectURIs.push(new UntypedFormControl(value, Validators.required));
+          this.redirectURIs.push(new FormControl(value, Validators.required));
         }
         event.target.value = '';
       }
