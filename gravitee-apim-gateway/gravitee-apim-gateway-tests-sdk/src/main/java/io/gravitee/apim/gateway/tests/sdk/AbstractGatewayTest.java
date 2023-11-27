@@ -154,7 +154,7 @@ public abstract class AbstractGatewayTest
      * when implementing the test cases, the developer will need a {@link io.vertx.ext.web.client.WebClient}, which is automatically resolved as a parameter if Vertx has already been resolved.
      * Injecting it in the BeforeEach at abstract class level allows to automatically inject it to ease the life of the developer.
      * <p>
-     * Ensure the testContext is completed before starting a test, see <a href="io.gravitee.gateway.standalone.flow>Vertx documentation</a>"
+     * Ensure the testContext is completed before starting a test, see Vertx documentation"
      * Update endpoints for each apis deployed for the whole test class, see {@link AbstractGatewayTest#updateEndpointsOnDeployedApisForClassIfNeeded()}
      * </p>
      * @param vertx this parameter is only used to let the VertxExtension initialize it. It will allow to use WebClient directly.
