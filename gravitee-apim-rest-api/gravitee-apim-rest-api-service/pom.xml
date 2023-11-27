@@ -187,6 +187,11 @@
 			<artifactId>gravitee-integration-api</artifactId>
 			<version>1.0.0-SNAPSHOT</version>
 		</dependency>
+		<dependency>
+			<groupId>io.gravitee.exchange</groupId>
+			<artifactId>gravitee-exchange-api</artifactId>
+			<version>1.0.0-SNAPSHOT</version>
+		</dependency>
 
 		<!-- Lucene -->
 		<dependency>

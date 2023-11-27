@@ -16,11 +16,12 @@
 package io.gravitee.apim.infra.domain_service.integration;
 
 import io.gravitee.common.service.AbstractService;
+import io.gravitee.exchange.api.command.CommandHandler;
 import io.gravitee.integration.api.DeploymentType;
-import io.gravitee.integration.api.command.Command;
-import io.gravitee.integration.api.command.CommandHandler;
-import io.gravitee.integration.api.command.Reply;
-import io.gravitee.integration.api.command.ignored.IgnoredReply;
+import io.gravitee.integration.api.command.IntegrationCommand;
+import io.gravitee.integration.api.command.IntegrationCommandType;
+import io.gravitee.integration.api.command.IntegrationReply;
+import io.gravitee.integration.api.command.unknown.UnknownReply;
 import io.reactivex.rxjava3.core.Maybe;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
@@ -34,9 +35,9 @@ import org.springframework.stereotype.Service;
 @Service
 public class IntegrationController extends AbstractService<IntegrationController> {
 
-    private final Map<Command.Type, CommandHandler<Command<?>, Reply>> integrationCommandHandlers;
+    private final Map<IntegrationCommandType, CommandHandler<IntegrationCommand<?>, IntegrationReply>> integrationCommandHandlers;
 
-    public IntegrationController(Map<Command.Type, CommandHandler<Command<?>, Reply>> integrationCommandHandlers) {
+    public IntegrationController(Map<IntegrationCommandType, CommandHandler<IntegrationCommand<?>, IntegrationReply>> integrationCommandHandlers) {
         this.integrationCommandHandlers = integrationCommandHandlers;
     }
 
@@ -47,7 +48,7 @@ public class IntegrationController extends AbstractService<IntegrationController
         log.info("IntegrationController started");
     }
 
-    public Maybe<Reply> sendCommand(Command<?> command, String integrationId, DeploymentType deploymentType) {
+    public Maybe<IntegrationReply> sendCommand(IntegrationCommand<?> command, String integrationId, DeploymentType deploymentType) {
         //Check deployment type (embedded or remote)
         if (deploymentType == DeploymentType.EMBEDDED) {
             return sendEmbedded(command, integrationId);
@@ -56,24 +57,25 @@ public class IntegrationController extends AbstractService<IntegrationController
         }
     }
 
-    private Maybe<Reply> sendRemote(Command<?> command, String integrationId) {
+    private Maybe<IntegrationReply> sendRemote(IntegrationCommand<?> command, String integrationId) {
         //Get channel manager: channelManager.send(command, integrationId);
         return Maybe.empty();
     }
 
-    private Maybe<Reply> sendEmbedded(Command<?> command, String integrationId) {
-        CommandHandler<Command<?>, Reply> commandHandler = integrationCommandHandlers.get(command.getType());
+    private Maybe<IntegrationReply> sendEmbedded(IntegrationCommand<?> command, String integrationId) {
+        IntegrationCommandType commandType = IntegrationCommandType.valueOf(command.getType());
+        CommandHandler<IntegrationCommand<?>, IntegrationReply> commandHandler = integrationCommandHandlers.get(commandType);
         if (commandHandler != null) {
             return commandHandler.handle(command).toMaybe();
         } else {
             log.info("No handler found for command type {}. Ignoring.", command.getType());
-            return Maybe.just(new IgnoredReply(command.getId()));
+            return Maybe.just(new UnknownReply(command.getId()));
         }
     }
 
     public void handleClusteredCommand() {}
 
-    private Maybe<Reply> reply(Reply reply) {
+    private Maybe<IntegrationReply> reply(IntegrationReply integrationReply) {
         return Maybe.empty();
     }
 }
