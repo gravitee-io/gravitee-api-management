@@ -13,18 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ChangeDetectorRef, Component, Inject, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { EMPTY, forkJoin, Observable, of, Subject } from 'rxjs';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData, GioLicenseService } from '@gravitee/ui-particles-angular';
 import { MatDialog } from '@angular/material/dialog';
-import { StateService } from '@uirouter/core';
 import { flatten, isEmpty, remove } from 'lodash';
+import { ActivatedRoute } from '@angular/router';
 
 import { ApiEntrypointsV4AddDialogComponent, ApiEntrypointsV4AddDialogComponentData } from './edit/api-entrypoints-v4-add-dialog.component';
 
-import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import {
   Api,
@@ -72,8 +71,7 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
   public shouldUpgrade = false;
   public canUpdate = false;
   constructor(
-    @Inject(UIRouterStateParams) private readonly ajsStateParams,
-    @Inject(UIRouterState) private readonly ajsState: StateService,
+    private readonly activatedRoute: ActivatedRoute,
     private readonly apiService: ApiV2Service,
     private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
     private readonly restrictedDomainService: RestrictedDomainService,
@@ -85,7 +83,7 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
     private readonly changeDetector: ChangeDetectorRef,
     private readonly licenseService: GioLicenseService,
   ) {
-    this.apiId = this.ajsStateParams.apiId;
+    this.apiId = this.activatedRoute.snapshot.params.apiId;
   }
 
   ngOnInit(): void {
@@ -148,10 +146,6 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
       })
       .sort((a, b) => a.id.localeCompare(b.id));
     this.changeDetector.detectChanges();
-  }
-
-  onEdit(element: EntrypointVM) {
-    this.ajsState.go(`management.apis.entrypoints-edit`, { entrypointId: element.id });
   }
 
   onDelete(elementToRemove: EntrypointVM) {

@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnInit } from '@angular/core';
-import { StateService } from '@uirouter/core';
+import { Component, OnInit } from '@angular/core';
 import { EMPTY, forkJoin, of, Subject } from 'rxjs';
 import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { GioJsonSchema } from '@gravitee/ui-particles-angular';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
-import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { ApiV4, ConnectorPlugin, Entrypoint, Listener, Qos, UpdateApiV4 } from '../../../../entities/management-api-v2';
 import { ConnectorPluginsV2Service } from '../../../../services-ngx/connector-plugins-v2.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
@@ -51,15 +50,15 @@ export class ApiEntrypointsV4EditComponent implements OnInit {
   public dlqElements: { name: string; elements: DlqElement[] }[] = [];
 
   constructor(
-    @Inject(UIRouterStateParams) private readonly ajsStateParams,
-    @Inject(UIRouterState) private readonly ajsState: StateService,
+    private readonly router: Router,
+    private readonly activatedRoute: ActivatedRoute,
     private readonly apiService: ApiV2Service,
     private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
     private readonly snackBarService: SnackBarService,
     private readonly iconService: IconService,
   ) {
-    this.apiId = this.ajsStateParams.apiId;
-    this.entrypointId = this.ajsStateParams.entrypointId;
+    this.apiId = this.activatedRoute.snapshot.params.apiId;
+    this.entrypointId = this.activatedRoute.snapshot.params.entrypointId;
   }
 
   ngOnInit(): void {
@@ -223,7 +222,9 @@ export class ApiEntrypointsV4EditComponent implements OnInit {
         takeUntil(this.unsubscribe$),
       )
       .subscribe(() => {
-        this.ajsState.go('management.apis.entrypoints');
+        this.router.navigate(['..'], {
+          relativeTo: this.activatedRoute,
+        });
       });
   }
 

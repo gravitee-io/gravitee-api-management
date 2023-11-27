@@ -2376,6 +2376,28 @@ const apisRoutes: Routes = [
         },
         component: ApiRuntimeLogsSettingsComponent,
       },
+      {
+        path: 'v4/entrypoints',
+        component: ApiEntrypointsV4GeneralComponent,
+        data: {
+          useAngularMaterial: true,
+          docs: null,
+          apiPermissions: {
+            only: ['api-definition-r'],
+          },
+        },
+      },
+      {
+        path: 'v4/entrypoints/:entrypointId',
+        component: ApiEntrypointsV4EditComponent,
+        data: {
+          useAngularMaterial: true,
+          docs: null,
+          apiPermissions: {
+            only: ['api-definition-u'],
+          },
+        },
+      },
     ],
   },
 ];

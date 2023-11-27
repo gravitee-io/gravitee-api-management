@@ -34,6 +34,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatOptionModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { RouterModule } from '@angular/router';
 
 import { ApiEntrypointsV4GeneralComponent } from './api-entrypoints-v4-general.component';
 import { ApiEntrypointsV4EditComponent } from './edit/api-entrypoints-v4-edit.component';
@@ -50,6 +51,7 @@ import { GioLicenseBannerModule } from '../../../shared/components/gio-license-b
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    RouterModule,
 
     GioEntrypointsSelectionListModule,
     GioFormJsonSchemaModule,
