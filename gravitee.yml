@@ -1,0 +1,642 @@
+############################################################################################################
+#################################### Gravitee.IO Gateway - Configuration ###################################
+############################################################################################################
+
+############################################################################################################
+# This file is the general configuration of Gravitee.IO Gateway:
+# - Properties (and respective default values) in comment are provided for information.
+# - You can reference other property by using ${property.name} syntax
+# - gravitee.home property is automatically set-up by launcher and refers to the installation path. Do not override it !
+#
+# Please have a look to http://docs.gravitee.io/ for more options and fine-grained granularity
+############################################################################################################
+
+# Secret managers config in order to use secret://<plugin id>/<secret-path>[:key][?namespace=<name>&keymap=<mapping>&option=value...] syntax
+secrets:
+  # loadFirst: kubernetes # if ever we want to store creds for another secret provider (e.g. store TLS information for VAULT in k8s)
+  kubernetes:
+    enabled: false
+    # namespace: default   # if left empty will assume the namespace is the current namespace in which gravitee is deployed
+    # kubeConfigFile: /opt/gravitee/config/kube-config.json
+    # timeoutMs: 3000      # client timeout
+  vault:
+    enabled: false
+#    host: 127.0.0.1
+#    port: 8200
+#    # namespace:
+#    # kvEngine: V2                          # defaults to v2 can be "v1", no mixing supported
+#    # readTimeoutSec: 2
+#    # connectTimeoutSec: 3
+#    ssl:
+#      enabled: false                        # not for production
+#      # format: "pemfile"                   # one of "pem","pemfile" "truststore"
+#      # pem:                                # pem in base64 with headers
+#      # file: /opt/gravitee/vault.pem       # for 'pemfile' and 'truststore'
+#    auth:
+#      method: token # one of "token", "github", "userpass", "approle", "cert" (mTLS)
+#      config:
+#        ### token config
+#        # token:
+#        ### github config
+#        # token:
+#        ## path: <non standard github mount path>
+#        ### userpass config
+#        # username:
+#        # password:
+#        ## path: <non standard userpass mount path>
+#        ### approle
+#        # roleId:
+#        # secretId:
+#        ## path: <non standard approle mount path>
+#        ### cert
+#        # format:        # one of "pem", "pemfile", "keystore"
+#        ## path: <non standard cert mount path>
+#        ## for 'pem' and 'pemfile' format
+#        # cert:          # filename or inline cert
+#        # key:           # filename or inline private key
+#        ## for 'keystore' format
+#        # keyStore:      # for "keystore": keystore filename
+#        # password:      # keystore password
+#    retry:
+#      attempts: 2          # set '0' to disable
+#      intervalMs: 1000
+#    # if false an error will be displayed at load time if http.ssl.keystore.secret is used with watch enabled
+#    watch:
+#      enabled: true
+#      pollIntervalSec: 30
+
+
+# Gateway HTTP server
+# http:
+#  port: 8080
+#  host: 0.0.0.0
+#  idleTimeout: 0
+#  tcpKeepAlive: true
+#  compressionSupported: false
+#  maxHeaderSize: 8192
+#  maxChunkSize: 8192
+#  maxInitialLineLength: 4096
+#  instances: 0
+#  requestTimeout: 0 (in v4 mode, default is 30_000 ms)
+#  The following is only used in v4 engine. It represents the maximum delay to let the response's platform flows execute properly in case of error during the previous phases.
+#  It's configures a timeout from the max between (requestTimeout - api elapsed time) and requestTimeoutGraceDelay.
+#  requestTimeoutGraceDelay: 30
+#  secured: false
+#  alpn: false
+#  ssl:
+#    clientAuth: none # Supports none, request, required
+#    tlsProtocols: TLSv1.2, TLSv1.3
+#    tlsCiphers: TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384, TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA
+#    keystore:
+#      type: jks # Supports jks, pem, pkcs12, self-signed
+#      path: ${gravitee.home}/security/keystore.jks # A path is required if certificate's type is jks or pkcs12
+#      certificates: # Certificates are required if keystore's type is pem
+#        - cert: ${gravitee.home}/security/mycompany.org.pem
+#          key: ${gravitee.home}/security/mycompany.org.key
+#        - cert: ${gravitee.home}/security/mycompany.com.pem
+#          key: ${gravitee.home}/security/mycompany.com.key
+#      password: secret
+#      watch: true # Watch for any updates on the keystore and reload it. Default is true.
+#      The following is for type 'pem', report to 'secrets' section for other secret-provider plugins.
+#      This method is now the preferred way for kubernetes: /namespace/secrets/my-tls-secret
+#      secret: secret://kubernetes/my-tls-secret
+#    truststore:
+#      type: jks # Supports jks, pem, pkcs12
+#      path: ${gravitee.home}/security/truststore.jks
+#      password: secret
+#    sni: false
+#    openssl: false # Used to rely on OpenSSL Engine instead of default JDK SSL Engine
+#  websocket:
+#    enabled: false
+#    subProtocols: v10.stomp, v11.stomp, v12.stomp
+#    perMessageWebSocketCompressionSupported: true
+#    perFrameWebSocketCompressionSupported: true
+#    maxWebSocketFrameSize: 65536
+#    maxWebSocketMessageSize: 262144 # 4 full frames worth of data
+#  haproxy: # Support for https://www.haproxy.org/download/1.8/doc/proxy-protocol.txt
+#    proxyProtocol: false
+#    proxyProtocolTimeout: 10000
+
+# Gateway TCP server
+tcp:
+  enabled: true
+  port: 4082
+#  host: 0.0.0.0
+#  idleTimeout: 0
+#  tcpKeepAlive: true
+#  instances: 0
+#  requestTimeout: 0 (in v4 mode, default is 30_000 ms)
+#  # TCP REQUIRES TLS to be set up properly
+  secured: true
+  ssl:
+#    # TCP REQUIRES SNI to be setup to match APIs
+    sni: true
+    clientAuth: request # Supports none, request, required
+#    tlsProtocols: TLSv1.2
+#    tlsCiphers: TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384, TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA
+    keystore:
+      type: pem # Supports jks, pem, pkcs12, self-signed
+#      path: ${gravitee.home}/security/keystore.jks # A path is required if certificate's type is jks or pkcs12
+      certificates: # Certificates are required if keystore's type is pem
+        - cert: ${user.home}/sandbox/tls/localhost/certificate.pem
+          key: ${user.home}/sandbox/tls/localhost/private_key.pem
+#        - cert: ${gravitee.home}/security/mycompany.com.pem
+#          key: ${gravitee.home}/security/mycompany.com.key
+#      password: secret
+#      kubernetes:
+#      secret:
+#      watch: true # Watch for any updates on the keystore and reload it. Default is true.
+    truststore:
+      type: pem # Supports jks, pem, pkcs12
+      path: ${user.home}/sandbox/tls/localhost/trust/client_cert.pem
+      watch: true
+#      password: secret
+#    openssl: false # Used to rely on OpenSSL Engine instead of default JDK SSL Engine
+#  haproxy: # Support for https://www.haproxy.org/download/1.8/doc/proxy-protocol.txt
+#    proxyProtocol: false
+#    proxyProtocolTimeout: 10000
+
+# Plugins repository
+#plugins:
+#  path:
+#    - ${gravitee.home}/plugins
+#    - ${gravitee.home}/my-custom-plugins
+# note that for a given plugin a more recent zip file will take precedence regardless its manifest version
+
+# Management repository is used to store global configuration such as APIs, applications, apikeys, ...
+# If you use a JDBC repository, we recommend disabling liquibase scripts execution by the Gateway. Let the Management API do it.
+# management:
+#   type: jdbc
+#   jdbc:
+#     liquibase: false
+
+# This is the default configuration using MongoDB (single server)
+# For more information about MongoDB configuration, please have a look to:
+# - http://mongodb.github.io/mongo-java-driver/4.1/apidocs/mongodb-driver-core/com/mongodb/MongoClientSettings.Builder.html
+management:
+  type: mongodb                  # repository type
+  mongodb:                       # mongodb repository
+#    prefix:                      # collections prefix
+    dbname: ${ds.mongodb.dbname} # mongodb name (default gravitee)
+    host: ${ds.mongodb.host}     # mongodb host (default localhost)
+    port: ${ds.mongodb.port}     # mongodb port (default 27017)
+
+## Client settings
+#    description:                 # mongodb description (default gravitee.io)
+#    username:                    # mongodb username (default null)
+#    password:                    # mongodb password (default null)
+#    authSource:                  # mongodb authentication source (when at least a user or a password is defined, default gravitee)
+#    retryWrites:                 # mongodb retriable writes (default true)
+#    readPreference:              # possible values are 'nearest', 'primary', 'primaryPreferred', 'secondary', 'secondaryPreferred'
+#    readPreferenceTags:          # list of read preference tags (https://docs.mongodb.com/manual/core/read-preference-tags/#std-label-replica-set-read-preference-tag-sets)
+### Write concern
+#    writeConcern:               # possible values are 1,2,3... (the number of node) or 'majority' (default is 1)
+#    wtimeout:                   # (default is 0)
+#    journal:                    # (default is true)
+
+## Socket settings
+#    connectTimeout:              # mongodb connection timeout (default 1000)
+#    socketTimeout:               # mongodb socket timeout (default 1000)
+
+## Cluster settings
+#    serverSelectionTimeout:      # mongodb server selection timeout (default 1000)
+#    localThreshold:              # mongodb local threshold (default 15)
+
+## Connection pool settings
+#    maxWaitTime:                 # mongodb max wait time (default 120000)
+#    maxConnectionLifeTime:       # mongodb max connection life time (default 0)
+#    maxConnectionIdleTime:       # mongodb max connection idle time (default 0)
+#    connectionsPerHost:          # mongodb max connections per host (default 100)
+#    minConnectionsPerHost:       # mongodb min connections per host (default 0)
+
+## Server settings
+#    heartbeatFrequency:          # mongodb heartbeat frequency (default 10000)
+#    minHeartbeatFrequency:       # mongodb min heartbeat frequency (default 500)
+
+## SSL settings
+#    sslEnabled:                  # mongodb ssl mode (default false)
+#    tlsProtocol:                 # protocol to use when connecting to the mongodb instance (when sslEnabled is true, default TLS)
+#    keystore:
+#      path:                      # Path to the keystore (when sslEnabled is true, default null)
+#      type:                      # Type of the keystore, supports jks, pem, pkcs12 (when sslEnabled is true, default null)
+#      password:                  # KeyStore password (when sslEnabled is true, default null)
+#      keyPassword:               # Password for recovering keys in the KeyStore (when sslEnabled is true, default null)
+#    truststore:
+#      path:                      # Path to the truststore (when sslEnabled is true, default null)
+#      type:                      # Type of the truststore, supports jks, pem, pkcs12 (when sslEnabled is true, default null)
+#      password:                  # Truststore password (when sslEnabled is true, default null)
+# Management repository: single MongoDB using URI
+# For more information about MongoDB configuration using URI, please have a look to:
+# - http://mongodb.github.io/mongo-java-driver/4.1/apidocs/mongodb-driver-core/com/mongodb/ConnectionString.html
+#management:
+#  type: mongodb
+#  mongodb:
+#    uri: mongodb://[username:password@]host1[:port1][,host2[:port2],...[,hostN[:portN]]][/[database][?options]]
+
+# Management repository: clustered MongoDB
+#management:
+#  type: mongodb
+#  mongodb:
+#    servers:
+#      - host: mongo1
+#        port: 27017
+#      - host: mongo2
+#        port: 27017
+#    dbname: ${ds.mongodb.dbname}
+#    connectTimeout: 500
+#    socketTimeout: 250
+
+# When defining rate-limiting policy, the gateway has to store data to share with other gateway instances.
+# In this example, we are using MongoDB to store counters.
+ratelimit:
+  type: mongodb
+  mongodb:
+    uri: mongodb://${ds.mongodb.host}:${ds.mongodb.port}/${ds.mongodb.dbname}
+#  redis:
+#    password:
+#    # Redis Standalone settings
+#    host: localhost
+#    port: 6379
+#    # Redis Sentinel settings
+#    sentinel:
+#      master: redis-master
+#      nodes:
+#        - host: sentinel1
+#          port: 26379
+#        - host: sentinel2
+#          port: 26379
+#    # SSL settings
+#    ssl: false
+#    trustAll: true # default value is true to keep backward compatibility but you should set it to false and configure a truststore for security concerns
+#    tlsProtocols: # List of TLS protocols to allow comma separated i.e: TLSv1.2, TLSv1.3
+#    tlsCiphers: # List of TLS ciphers to allow comma separated i.e: TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384, TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384
+#    alpn: false
+#    openssl: false # Used to rely on OpenSSL Engine instead of default JDK SSL Engine
+#    # Keystore for redis mTLS (client certificate)
+#    keystore:
+#      type: pem # Supports jks, pem, pkcs12
+#      path: ${gravitee.home}/security/redis-keystore.jks # A path is required if certificate's type is jks or pkcs12
+#      password: secret
+#      keyPassword:
+#      alias:
+#      certificates: # Certificates are required if keystore's type is pem
+#        - cert: ${gravitee.home}/security/redis-mycompany.org.pem
+#          key: ${gravitee.home}/security/redis-mycompany.org.key
+#        - cert: ${gravitee.home}/security/redis-mycompany.com.pem
+#          key: ${gravitee.home}/security/redis-mycompany.com.key
+#    truststore:
+#      type: pem # Supports jks, pem, pkcs12
+#      path: ${gravitee.home}/security/redis-truststore.jks
+#      password: secret
+#      alias:
+
+# You must define the type of repository to use, when enabling distributed sync in clustering mode
+# because the gateway has to store data to share with other gateway instances.
+# Only Redis is available at the moment.
+#distributed-sync:
+  # type: redis
+  #redis:
+  #  # Redis Standalone settings
+  #  host: localhost
+  #  port: 6379
+  #  password:
+  #    # Redis Sentinel settings
+  #    sentinel:
+  #      master: redis-master
+  #      nodes:
+  #        - host: sentinel1
+  #          port: 26379
+  #        - host: sentinel2
+  #          port: 26379
+  #    # SSL settings
+  #    ssl: false
+  #    trustAll: true # default value is true to keep backward compatibility but you should set it to false and configure a truststore for security concerns
+  #    tlsProtocols: # List of TLS protocols to allow comma separated i.e: TLSv1.2, TLSv1.3
+  #    tlsCiphers: # List of TLS ciphers to allow comma separated i.e: TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384, TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384
+  #    alpn: false
+  #    openssl: false # Used to rely on OpenSSL Engine instead of default JDK SSL Engine
+  #    # Keystore for redis mTLS (client certificate)
+  #    keystore:
+  #      type: pem # Supports jks, pem, pkcs12
+  #      path: ${gravitee.home}/security/redis-keystore.jks # A path is required if certificate's type is jks or pkcs12
+  #      password: secret
+  #      keyPassword:
+  #      alias:
+  #      certificates: # Certificates are required if keystore's type is pem
+  #        - cert: ${gravitee.home}/security/redis-mycompany.org.pem
+  #          key: ${gravitee.home}/security/redis-mycompany.org.key
+  #        - cert: ${gravitee.home}/security/redis-mycompany.com.pem
+  #          key: ${gravitee.home}/security/redis-mycompany.com.key
+  #    truststore:
+  #      type: pem # Supports jks, pem, pkcs12
+  #      path: ${gravitee.home}/security/redis-truststore.jks
+  #      password: secret
+  #      alias:
+
+# You can change the cache type to use Hazelcast Distributed cache and file to configure the Hz network
+#cache:
+#  type: hazelcast
+#  hazelcast:
+#    config-path: ${gravitee.home}/config/hazelcast.xml
+
+# Reporters configuration (used to store reporting monitoring data, request metrics, healthchecks and others...
+# All reporters are enabled by default. To stop one of them, you have to add the property 'enabled: false'
+reporters:
+  # logging configuration
+#  logging:
+#    max_size: -1 # max size per API log content respectively : client-request, client-response, proxy-request and proxy-response in MB (-1 means no limit)
+#    excluded_response_types: video.*|audio.*|image.*|application\/octet-stream|application\/pdf # Response content types to exclude in logging (must be a regular expression)
+  # Elasticsearch reporter
+  elasticsearch:
+    enabled: true # Is the reporter enabled or not (default to true)
+    endpoints:
+      - http://${ds.elastic.host}:${ds.elastic.port}
+#    lifecycle:
+#      policy_property_name: index.lifecycle.name   #for openDistro, use 'opendistro.index_state_management.policy_id' instead of 'index.lifecycle.name'
+#      policies:
+#        monitor: my_policy ## ILM policy for the gravitee-monitor-* indexes
+#        request: my_policy ## ILM policy for the gravitee-request-* indexes
+#        health: my_policy ## ILM policy for the gravitee-health-* indexes
+#        log: my_policy ## ILM policy for the gravitee-log-* indexes
+#    index: gravitee
+#    index_per_type: true
+#    index_mode: daily         # "daily" indexes, suffixed with date. Or "ilm" managed indexes, without date
+#    bulk:
+#      actions: 1000           # Number of requests action before flush
+#      flush_interval: 5       # Flush interval in seconds
+#    settings:
+#      number_of_shards: 1
+#      number_of_replicas: 1
+#      refresh_interval: 5s
+#    pipeline:
+#      plugins:
+#        ingest: geoip, user_agent      # geoip and user_agent are enabled by default
+#    security:
+#      username: user
+#      password: secret
+#    http:
+#      timeout: 30000 # in milliseconds
+#      proxy:
+#        type: HTTP #HTTP, SOCK4, SOCK5
+#        http:
+#          host: localhost
+#          port: 3128
+#          username: user
+#          password: secret
+#        https:
+#          host: localhost
+#          port: 3128
+#          username: user
+#          password: secret
+#    template_mapping:
+#      path: ${gravitee.home}/config/reporter/elasticsearch/templates
+#      extended_request_mapping: request.ftl
+  file:
+    enabled: false # Is the reporter enabled or not (default to false)
+#    fileName: ${gravitee.home}/metrics/%s-yyyy_mm_dd
+#    output: json # Can be csv, json, elasticsearch or message_pack
+#    request: # (Following mapping section is also available for other types: node, health-check, log)
+#     exclude: # Can be a wildcard (ie '*') to exclude all fields (supports json path)
+#       - response-time
+#       - log.clientRequest
+#     include: # Only if exclude is used (supports json path)
+#       - api
+#     rename: # (supports json path)
+#       application: app
+#       request.ip: address
+
+# Gateway service configurations. Provided values are default values.
+# All services are enabled by default. To stop one of them, you have to add the property 'enabled: false' (See the
+# 'local' service for an example).
+services:
+  core:
+    http:
+      enabled: true
+      port: 18082
+      host: localhost
+      authentication:
+        # authentication type to be used for the core services
+        # - none : to disable authentication
+        # - basic : to use basic authentication
+        # default is "basic"
+        type: basic
+        users:
+          admin: adminadmin
+
+  # The thresholds to determine if a probe is healthy or not
+#  health:
+#    threshold:
+#      cpu: # Default is 80%
+#      memory: # Default is 80%
+
+  # Synchronization daemon used to keep the gateway state in sync with the configuration from the management repository
+  # Be aware that, by disabling it, the gateway will not be sync with the configuration done through management API
+  # and management UI
+  sync:
+    # Synchronization is done each 5 seconds
+    delay: 5000
+    unit: MILLISECONDS
+    repository:
+      enabled : true
+    distributed:
+      enabled : false # By enabling this mode, data synchronization process is distributed over clustered API gateways. You must configure distributed-sync repository.
+    bulk_items: 100 # Defines the number of items to retrieve during synchronization (events, plans, API Keys, ...).
+
+     # [Alpha] Enable Kubernetes Synchronization
+     # This sync service requires to install Gravitee Kubernetes Operator
+#    kubernetes:
+#      enabled: false
+      # by default only the current namespace that the Gateway is running will be watched but you can watch "ALL" or a list
+      # of comma seprated namespaces "ns1,ns2,ns3" or an array of namespaces
+#      namespaces:
+#        - ALL
+#        - ns1
+#        - ns2
+#        - ns3
+
+  # Gateway monitoring service.
+  # This service retrieves metrics like os / process / jvm metrics and send them to an underlying reporting service.
+  monitoring:
+    delay: 5000
+    unit: MILLISECONDS
+    distributed: false # By enabling this mode, data monitoring gathering process is distributed over clustered API gateways.
+
+  # metrics service
+  metrics:
+    enabled: false
+# default: local, http_method, http_code
+#    labels:
+#      - local
+#      - remote
+#      - http_method
+#      - http_code
+#      - http_path
+    prometheus:
+      enabled: true
+
+  # heartbeat
+#  heartbeat:
+#    enabled: true
+#    delay: 5000
+#    unit: MILLISECONDS
+#    storeSystemProperties: true
+
+  tracing:
+    enabled: false
+    type: jaeger
+    jaeger:
+      host: localhost
+      port: 14250
+#      ssl:
+#        enabled: false
+
+#handlers:
+#  request:
+#    # manage traceparent header defined by W3C trace-context specification
+#    trace-context:
+#      enabled: false
+#    # possible values: hex, uuid. Default: uuid.
+#    format: uuid
+#    headers:
+#      # Override X-Forwarded-Prefix with context path. Disabled by default.
+#      x-forwarded-prefix: false
+#    transaction:
+#      # Default: X-Gravitee-Transaction-Id.
+#      header: X-Gravitee-Transaction-Id
+#      # Possible values of overrideMode are:
+#      #   - override: The header set by the APIM Gateway will override the one provided by the backend
+#      #   - merge: Both headers set by the APIM Gateway and the backend will be kept (as headers can be multivalued)
+#      #   - keep: The header set by the backend will be kept and the one provided by the APIM Gateway discarded
+#      overrideMode: override
+#    request:
+#      # Default: X-Gravitee-Request-Id.
+#      header: X-Gravitee-Request-Id
+#      # Possible values of overrideMode are:
+#      #   - override: The header set by the APIM Gateway will override the one provided by the backend
+#      #   - merge: Both headers set by the APIM Gateway and the backend will be kept (as headers can be multivalued)
+#      #   - keep: The header set by the backend will be kept and the one provided by the APIM Gateway discarded
+#      overrideMode: override
+#  notfound:
+#    analytics:
+#      enabled: false
+
+# Referenced properties
+ds:
+  mongodb:
+    dbname: gravitee
+    host: localhost
+    port: 27017
+  elastic:
+    host: localhost
+    port: 9200
+
+#system:
+#  # Proxy configuration that can be used to proxy request to api endpoints (see endpoint http configuration -> Use system proxy).
+#  proxy:
+#    type: HTTP #HTTP, SOCK4, SOCK5
+#    host: localhost
+#    port: 3128
+#    username: user
+#    password: secret
+
+# Organizations and Environments configuration
+# Associate this gateway to a list of environments belonging to organizations. This is a list of environment hrids.
+#organizations: mycompany
+#environments: dev,qa
+
+# Sharding tags configuration
+# Allows to define inclusion/exclusion sharding tags to only deploy a part of APIs. To exclude just prefix the tag with '!'.
+#tags: products,stocks,!international
+#zone: national-products
+
+# Multi-tenant configuration
+# Allow only a single-value
+#tenant: europe
+
+#policy:
+# Customize the api-key header and / or query parameter.
+# Set an empty value to prohibit its use.
+#  api-key:
+#    header: X-Gravitee-Api-Key
+#    param: api-key
+
+#el:
+  # Allows to define which methods or classes are accessible to the Expression Language engine (/!\ caution, changing default whitelist may expose you to security issues).
+  # A complete list of default whitelist methods can be found here (https://raw.githubusercontent.com/gravitee-io/gravitee-expression-language/master/src/main/resources/whitelist).
+#  whitelist:
+    # Allows to define if the specified list of method or classes should be append to the default one or should replace it.
+    # We recommend you to always choose 'append' unless you absolutely know what you are doing.
+#    mode: append
+    # Define the list of classes or methods to append (or set) to made accessible to the Expression Language.
+    # start with 'method' to allow a specific method (complete signature).
+    # start with 'class' to allow a complete class. All methods of the class will then be accessible.
+#    list:
+      # Ex: allow access to DateTimeFormatter.ofLocalizedDate(FormatStyle) method
+      # - method java.time.format.DateTimeFormatter ofLocalizedDate java.time.format.FormatStyle
+      # Ex: allow access to all methods of DateTimeFormatter class
+      # - class java.time.format.DateTimeFormatter
+
+#groovy:
+  # Allows to define which methods, fields, constructors, annotations or classes are accessible to the Groovy Script (/!\ caution, changing default whitelist may expose you to security issues).
+  # A complete list of default whitelist methods can be found here (https://raw.githubusercontent.com/gravitee-io/gravitee-policy-groovy/master/src/main/resources/groovy-whitelist).
+#  whitelist:
+    # Allows to define if the specified list of methods, fields, constructors or classes should be append to the default one or should replace it.
+    # We recommend you to always choose 'append' unless you absolutely know what you are doing.
+#    mode: append
+    # Define the list of classes, methods, constructors, fields or annotations to append (or set) to made accessible to the Groovy Script.
+    # start with 'method' to allow a specific method (complete signature).
+    # start with 'class' to allow a complete class. All methods, constructors and fields of the class will then be accessible.
+    # start with 'new' to allow a specific constructor (complete signature).
+    # start with 'field' to allow access to a specific field of a class.
+    # start with 'annotation' to allow use of a specific annotation.
+#    list:
+      # Ex: allow access to DateTimeFormatter.ofLocalizedDate(FormatStyle) method
+      # - method java.time.format.DateTimeFormatter ofLocalizedDate java.time.format.FormatStyle
+      # Ex: allow access to all methods, constructors and fields of DateTimeFormatter class
+      # - class java.time.format.DateTimeFormatter
+      # Ex: allow usage of field Integer.MAX_VALUE
+      # - field java.lang.Integer MAX_VALUE
+      # Ex: allow usage of @Override annotation
+      # - annotation java.lang.Override
+
+# If you want to create cluster of nodes, you can change the Hazelcast file to configure the Hz network
+# Clustering capabilities can be used for:
+#   - Distributed sync process
+#   - Distributed rate-limiting / quota counters
+#cluster:
+#  type: hazelcast
+#  hazelcast:
+#    config-path: ${gravitee.home}/config/hazelcast.xml
+
+# Configuration of geoip (requires geoip-plugin)
+#geoip:
+#  database:
+#    city:
+#      filename: /path/to/GeoLite2-City.mmdb #if null defaults to the embedded db
+#      watch: true  #if null defaults to false
+#      cache:
+#        capacity: 8200  #if null defaults to 4096
+
+api:
+  # Encrypt API properties using this secret
+  properties:
+    encryption:
+      secret: vvLJ4Q8Khvv9tm2tIPdkGEdmgKUruAL6
+  # when an API is un-deployed (either because it has been stopped or because it has restarted due to a configuration
+  # change), this timeout will be the maximum time (in milliseconds) to wait for all pending requests to terminate
+#  pending_requests_timeout: 10000
+  validateSubscription: true  # set to false if you want to skip validating the subscription, default value is true
+# Graceful shutdown.
+#gracefulShutdown:
+  # Default delay is 0 but it can be useful to set it to an adequate value depending on how much time the load balancer takes to stop routing traffic to a gateway instance which is shutting down.
+  # When SIGTERM is sent to the gateway, the shutdown process begin, each client will be explicitly asked for closing connection and the shutdown delay will be applied.
+  # The shutdown delay should allow enough time to client to close their current active connections and create new one. In the same time the load balancer should progressively stop routing traffic to the gateway.
+  # After the delay is expired, the gateway continue the shutdown process. Any pending request will have a chance to finish gracefully and the gateway will stop normally unless it takes too much time and a SIGKILL signal is sent to the gateway.
+#  delay: 0
+#  unit: MILLISECONDS
+
+# Since v3.15.0, a new internal classloader used to load api policies is in place.
+# Setting it to true will switch back to the legacy mode used prior the v3.15.0.
+classloader:
+  legacy:
+    enabled: false
