@@ -74,7 +74,7 @@ export class RepositoriesTestsWorkflow {
         context: ['cicd-orchestrator'],
         requires: [buildJobName],
         matrix: {
-          mongoVersion: ['4.4', '5.0', '6.0', '7.0', '7.1'],
+          mongoVersion: ['4.4', '5.0', '6.0', '7.0'],
         },
       }),
       new workflow.WorkflowJob(elasticTestContainerJob, {
