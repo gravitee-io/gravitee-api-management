@@ -20,6 +20,7 @@ import { RouterModule, Routes } from '@angular/router';
 
 import { ApplicationsModule } from './applications.module';
 import { ApplicationNavigationComponent } from './application-navigation/application-navigation.component';
+import { EnvApplicationListComponent } from './list/env-application-list.component';
 
 import { ApplicationType } from '../../entities/application';
 import ApplicationService from '../../services/application.service';
@@ -32,44 +33,6 @@ export default applicationsConfig;
 
 function applicationsConfig($stateProvider) {
   $stateProvider
-    .state('management.applications', {
-      abstract: true,
-      template: '<div flex layout="column" ui-view></div>',
-      url: '/applications',
-    })
-    .state('management.applications.list', {
-      url: '/?q&page&status&size&order',
-      component: 'ngEnvApplicationList',
-      params: {
-        page: {
-          value: '1',
-          dynamic: true,
-        },
-        q: {
-          dynamic: true,
-        },
-        size: {
-          value: '10',
-          dynamic: true,
-        },
-        status: {
-          value: 'ACTIVE',
-          dynamic: true,
-        },
-        order: {
-          dynamic: true,
-        },
-      },
-      data: {
-        useAngularMaterial: true,
-        perms: {
-          only: ['environment-application-r'],
-        },
-        docs: {
-          page: 'management-applications',
-        },
-      },
-    })
     .state('management.applications.create', {
       url: '/create',
       component: 'createApplication',
@@ -541,6 +504,21 @@ function applicationsConfig($stateProvider) {
 const applicationRoutes: Routes = [
   {
     path: '',
+    component: EnvApplicationListComponent,
+    canActivate: [HasEnvironmentPermissionGuard],
+    canActivateChild: [HasEnvironmentPermissionGuard],
+    data: {
+      useAngularMaterial: true,
+      perms: {
+        only: ['environment-application-r'],
+      },
+      docs: {
+        page: 'management-applications',
+      },
+    },
+  },
+  {
+    path: ':applicationId',
     component: ApplicationNavigationComponent,
     canActivate: [HasEnvironmentPermissionGuard],
     canActivateChild: [HasEnvironmentPermissionGuard],

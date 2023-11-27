@@ -23,6 +23,7 @@ import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { UIRouterModule } from '@uirouter/angular';
+import { ActivatedRoute } from '@angular/router';
 
 import { EnvApplicationListComponent } from './env-application-list.component';
 
@@ -47,19 +48,8 @@ describe('EnvApplicationListComponent', () => {
       currentUser.roles = [{ scope: 'ORGANIZATION', name: 'ADMIN' }];
 
       TestBed.configureTestingModule({
-        imports: [
-          NoopAnimationsModule,
-          ApplicationsModule,
-          GioHttpTestingModule,
-          UIRouterModule.forRoot({
-            useHash: true,
-          }),
-        ],
-        providers: [
-          { provide: UIRouterState, useValue: { go: jest.fn() } },
-          { provide: UIRouterStateParams, useValue: {} },
-          { provide: CurrentUserService, useValue: { currentUser } },
-        ],
+        imports: [NoopAnimationsModule, ApplicationsModule, GioHttpTestingModule],
+        providers: [{ provide: CurrentUserService, useValue: { currentUser } }],
       }).overrideProvider(InteractivityChecker, {
         useValue: {
           isFocusable: () => true, // This checks focus trap, set it to true to  avoid the warning
@@ -69,8 +59,6 @@ describe('EnvApplicationListComponent', () => {
 
     describe('without query params', () => {
       beforeEach(() => {
-        TestBed.compileComponents();
-
         httpTestingController = TestBed.inject(HttpTestingController);
         fixture = TestBed.createComponent(EnvApplicationListComponent);
         loader = TestbedHarnessEnvironment.loader(fixture);
@@ -147,7 +135,7 @@ describe('EnvApplicationListComponent', () => {
 
     describe('with query params', () => {
       beforeEach(() => {
-        TestBed.overrideProvider(UIRouterStateParams, { useValue: { page: 2, q: 'Hello' } });
+        TestBed.overrideProvider(ActivatedRoute, { useValue: { snapshot: { queryParams: { page: 2, q: 'Hello' } } } });
         TestBed.compileComponents();
 
         httpTestingController = TestBed.inject(HttpTestingController);
@@ -190,6 +178,7 @@ describe('EnvApplicationListComponent', () => {
 
     describe('without query params', () => {
       beforeEach(() => {
+        TestBed.overrideProvider(ActivatedRoute, { useValue: { snapshot: { queryParams: { page: 1, q: '', status: 'ARCHIVED' } } } });
         TestBed.compileComponents();
 
         httpTestingController = TestBed.inject(HttpTestingController);
@@ -292,7 +281,7 @@ describe('EnvApplicationListComponent', () => {
 
     describe('with query params', () => {
       beforeEach(() => {
-        TestBed.overrideProvider(UIRouterStateParams, { useValue: { page: 2, q: 'Hello', status: 'ARCHIVED' } });
+        TestBed.overrideProvider(ActivatedRoute, { useValue: { snapshot: { queryParams: { page: 2, q: 'Hello', status: 'ARCHIVED' } } } });
         TestBed.compileComponents();
 
         httpTestingController = TestBed.inject(HttpTestingController);
