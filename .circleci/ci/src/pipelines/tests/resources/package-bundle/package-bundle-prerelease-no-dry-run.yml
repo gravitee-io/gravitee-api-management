@@ -39,15 +39,15 @@ jobs:
           var-name: ARTIFACTORY_PASSWORD
       - checkout
       - run:
-          name: Checkout tag 4.1.0
-          command: git checkout 4.1.0
+          name: Checkout tag 4.1.0-alpha.1
+          command: git checkout 4.1.0-alpha.1
       - run:
           name: Install dependencies
           command: npm install
           working_directory: ./release
       - run:
           name: Building package bundle
-          command: npm run zx -- --quiet --experimental ci-steps/package-bundles.mjs --version=4.1.0
+          command: npm run zx -- --quiet --experimental ci-steps/package-bundles.mjs --version=4.1.0-alpha.1
           working_directory: ./release
           environment:
             ARTIFACTORY_REPO_URL: https://odbxikk7vo-artifactory.services.clever-cloud.com/external-dependencies-n-gravitee-all
@@ -59,7 +59,7 @@ jobs:
           var-name: AWS_SECRET_ACCESS_KEY
       - aws-s3/sync:
           arguments: --endpoint-url https://cellar-c2.services.clever-cloud.com --acl public-read
-          from: ./release/.tmp/4.1.0/dist
+          from: ./release/.tmp/4.1.0-alpha.1/dist
           to: s3://gravitee-releases-downloads/pre-releases/graviteeio-apim
 workflows:
   package_bundle:
