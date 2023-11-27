@@ -15,7 +15,7 @@
  */
 import { AfterViewInit, Component, EventEmitter, HostListener, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 
 import { ApplicationService, Dashboard } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { AnalyticsService } from '../../services/analytics.service';
@@ -27,6 +27,19 @@ import '@gravitee/ui-components/wc/gv-select';
 import '@gravitee/ui-components/wc/gv-option';
 import '@gravitee/ui-components/wc/gv-date-picker';
 import { NavRouteService } from '../../services/nav-route.service';
+
+type AnalyticsFormType = FormGroup<{
+  timeframe: FormControl<string>;
+  range: FormControl<number[]>;
+  requestId: FormControl<string>;
+  transactionId: FormControl<string>;
+  methods: FormControl<string>;
+  path: FormControl<string>;
+  responseTimes: FormControl<string>;
+  status: FormControl<string>;
+  api: FormControl<string>;
+  payloads: FormControl<string>;
+}>;
 
 @Component({
   selector: 'app-gv-analytics-filters',
@@ -43,7 +56,7 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
   @Input() searchLoading: boolean;
 
   private maxDateTimer: any;
-  analyticsForm: UntypedFormGroup;
+  analyticsForm: AnalyticsFormType;
   tags: Array<any>;
   apisOptions: Array<any>;
   maxDate: number;
@@ -51,7 +64,7 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
 
   constructor(
     private router: Router,
-    private formBuilder: UntypedFormBuilder,
+    private formBuilder: FormBuilder,
     private applicationService: ApplicationService,
     public route: ActivatedRoute,
     public analyticsService: AnalyticsService,
@@ -60,16 +73,16 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
 
   ngOnInit(): void {
     this.analyticsForm = this.formBuilder.group({
-      timeframe: new UntypedFormControl(null),
-      range: new UntypedFormControl([null, null]),
-      requestId: new UntypedFormControl(null),
-      transactionId: new UntypedFormControl(null),
-      methods: new UntypedFormControl(null),
-      path: new UntypedFormControl(null),
-      responseTimes: new UntypedFormControl(null),
-      status: new UntypedFormControl(null),
-      api: new UntypedFormControl(null),
-      payloads: new UntypedFormControl(null),
+      timeframe: new FormControl(null),
+      range: new FormControl([null, null]),
+      requestId: new FormControl(null),
+      transactionId: new FormControl(null),
+      methods: new FormControl(null),
+      path: new FormControl(null),
+      responseTimes: new FormControl(null),
+      status: new FormControl(null),
+      api: new FormControl(null),
+      payloads: new FormControl(null),
     });
 
     this.analyticsForm.get('timeframe').setValidators(GvValidators.oneRequired(this.analyticsForm.get('range')));
