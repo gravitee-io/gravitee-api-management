@@ -35,7 +35,8 @@ const appRoutes: Routes = [
       {
         path: '_organization',
         component: AppComponent,
-        loadChildren: () => import('./organization/configuration/organization-settings.module').then((m) => m.OrganizationSettingsModule),
+        loadChildren: () =>
+          import('./organization/configuration/organization-settings-routing.module').then((m) => m.OrganizationSettingsRoutingModule),
       },
       {
         path: 'env/:envId',
