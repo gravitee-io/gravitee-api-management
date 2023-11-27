@@ -202,13 +202,7 @@ export class ApiV4MenuService implements ApiMenuService {
     if (this.permissionService.hasAnyMatching(['api-definition-r'])) {
       endpointsGroup.items.push({
         displayName: 'Backend services',
-        targetRoute: 'management.apis.endpoint-groups',
-        baseRoute: [
-          'management.apis.endpoint-groups',
-          'management.apis.endpoint',
-          'management.apis.endpoint-group',
-          'management.apis.endpoint-group-new',
-        ],
+        routerLink: 'v4/endpoints',
       });
     }
 

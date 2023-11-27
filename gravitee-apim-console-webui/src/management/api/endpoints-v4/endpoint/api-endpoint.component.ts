@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { StateService } from '@uirouter/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { catchError, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { combineLatest, EMPTY, Subject } from 'rxjs';
 import { GioFormJsonSchemaComponent, GioJsonSchema } from '@gravitee/ui-particles-angular';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 
-import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { ApiV4, ConnectorPlugin, EndpointGroupV4, EndpointV4 } from '../../../../entities/management-api-v2';
 import { ConnectorPluginsV2Service } from '../../../../services-ngx/connector-plugins-v2.service';
@@ -43,8 +42,8 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
   public isLoading = false;
 
   constructor(
-    @Inject(UIRouterState) private readonly ajsState: StateService,
-    @Inject(UIRouterStateParams) private readonly ajsStateParams,
+    private readonly router: Router,
+    private readonly activatedRoute: ActivatedRoute,
     private readonly apiService: ApiV2Service,
     private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
     private readonly snackBarService: SnackBarService,
@@ -53,8 +52,8 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
 
   public ngOnInit(): void {
     this.isLoading = true;
-    const apiId = this.ajsStateParams.apiId;
-    this.groupIndex = +this.ajsStateParams.groupIndex;
+    const apiId = this.activatedRoute.snapshot.params.apiId;
+    this.groupIndex = +this.activatedRoute.snapshot.params.groupIndex;
 
     this.apiService
       .get(apiId)
@@ -98,7 +97,7 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
     };
 
     this.apiService
-      .get(this.ajsStateParams.apiId)
+      .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
         switchMap((api: ApiV4) => {
           const endpointGroups = api.endpointGroups.map((group, i) => {
@@ -121,7 +120,7 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
         }),
         map(() => {
           this.snackBarService.success(`Endpoint successfully created!`);
-          this.ajsState.go('management.apis.endpoint-groups');
+          this.router.navigate(['../../'], { relativeTo: this.activatedRoute });
         }),
         takeUntil(this.unsubscribe$),
       )
@@ -144,7 +143,7 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
     let weight = null;
 
     if (this.isEditing()) {
-      this.endpointIndex = +this.ajsStateParams.endpointIndex;
+      this.endpointIndex = +this.activatedRoute.snapshot.params.endpointIndex;
       const endpoint = this.endpointGroup.endpoints[this.endpointIndex];
       name = endpoint.name;
       weight = endpoint.weight;
@@ -166,6 +165,6 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
 
   private isEditing() {
     // If endpointIndex is defined, then we are editing an endpoint
-    return this.ajsStateParams.endpointIndex !== undefined;
+    return this.activatedRoute.snapshot.params.endpointIndex !== undefined;
   }
 }

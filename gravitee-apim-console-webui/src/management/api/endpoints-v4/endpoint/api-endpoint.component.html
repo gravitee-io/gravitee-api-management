@@ -16,7 +16,7 @@
 
 -->
 <div class="back-button">
-  <a mat-icon-button class="mat-body-strong" [uiSref]="'management.apis.endpoint-groups'"
+  <a mat-icon-button class="mat-body-strong" [routerLink]="'../../'"
     ><mat-icon svgIcon="gio:arrow-left"></mat-icon> Go back to your endpoints</a
   >
 </div>
@@ -78,7 +78,7 @@
     </div>
 
     <div class="endpoint-card__actions">
-      <a mat-stroked-button type="button" [uiSref]="'management.apis.endpoint-groups'">Previous</a>
+      <a mat-stroked-button type="button" [routerLink]="'../'">Previous</a>
       <button
         mat-flat-button
         aria-label="Validate my endpoints"

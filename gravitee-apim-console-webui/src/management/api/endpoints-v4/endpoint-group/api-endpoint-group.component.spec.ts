@@ -20,13 +20,14 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 
 import { ApiEndpointGroupComponent } from './api-endpoint-group.component';
 import { ApiEndpointGroupHarness } from './api-endpoint-group.harness';
 import { ApiEndpointGroupModule } from './api-endpoint-group.module';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
-import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+import { CurrentUserService } from '../../../../ajs-upgraded-providers';
 import { User as DeprecatedUser } from '../../../../entities/user';
 import { ApiV4, EndpointGroupV4, fakeApiV4 } from '../../../../entities/management-api-v2';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
@@ -43,7 +44,6 @@ const DEFAULT_LOAD_BALANCER_TYPE = 'ROUND_ROBIN';
 const ALTERNATE_LOAD_BALANCER_TYPE = 'RANDOM';
 const ALTERNATE_LOAD_BALANCER_TYPE_2 = 'WEIGHTED_RANDOM';
 const GROUP_INDEX = 0;
-const FAKE_UI_ROUTER = { go: jest.fn() };
 
 /**
  * Given the api and the updated endpoint group attributes
@@ -109,8 +109,7 @@ describe('ApiEndpointGroupComponent', () => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiEndpointGroupModule, MatIconTestingModule, FormsModule],
       providers: [
-        { provide: UIRouterState, useValue: FAKE_UI_ROUTER },
-        { provide: UIRouterStateParams, useValue: routerParams },
+        { provide: ActivatedRoute, useValue: { snapshot: { params: routerParams } } },
         { provide: CurrentUserService, useValue: { currentUser } },
         { provide: SnackBarService, useValue: SnackBarService },
       ],

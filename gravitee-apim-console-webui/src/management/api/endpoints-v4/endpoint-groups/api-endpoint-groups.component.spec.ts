@@ -21,6 +21,7 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { GioLicenseTestingModule } from '@gravitee/ui-particles-angular';
+import { ActivatedRoute } from '@angular/router';
 
 import { ApiEndpointGroupsComponent } from './api-endpoint-groups.component';
 import { ApiEndpointGroupsHarness } from './api-endpoint-groups.harness';
@@ -28,7 +29,7 @@ import { ApiEndpointGroupsModule } from './api-endpoint-groups.module';
 
 import { ApiV4, EndpointGroupV4, fakeApiV4, fakeConnectorPlugin } from '../../../../entities/management-api-v2';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
-import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+import { CurrentUserService } from '../../../../ajs-upgraded-providers';
 import { User as DeprecatedUser } from '../../../../entities/user';
 
 describe('ApiEndpointGroupsComponent', () => {
@@ -72,7 +73,6 @@ describe('ApiEndpointGroupsComponent', () => {
       },
     ],
   };
-  const fakeUiRouter = { go: jest.fn() };
 
   let fixture: ComponentFixture<ApiEndpointGroupsComponent>;
   let httpTestingController: HttpTestingController;
@@ -86,8 +86,7 @@ describe('ApiEndpointGroupsComponent', () => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiEndpointGroupsModule, MatIconTestingModule, GioLicenseTestingModule],
       providers: [
-        { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
-        { provide: UIRouterState, useValue: fakeUiRouter },
+        { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
         { provide: CurrentUserService, useValue: { currentUser } },
       ],
     }).overrideProvider(InteractivityChecker, {
@@ -173,54 +172,6 @@ describe('ApiEndpointGroupsComponent', () => {
     });
   });
 
-  describe('GIVEN an endpoint group', () => {
-    describe('WHEN the Configure Group Defaults button is clicked', () => {
-      it('THEN the page should navigate to the endpoint group edit page AND the button should be visible', async () => {
-        const apiV4 = fakeApiV4({
-          id: API_ID,
-          endpointGroups: [group1, group2],
-        });
-
-        await initComponent(apiV4);
-
-        expect(await componentHarness.isEditEndpointGroupNameFieldAvailable(0)).toEqual(true);
-
-        await componentHarness.clickEditEndpointGroup(0);
-
-        expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.endpoint-group', { groupIndex: 0 });
-      });
-    });
-  });
-
-  describe('addEndpoint', () => {
-    it('should navigate to endpoint creation page', async () => {
-      const apiV4 = fakeApiV4({
-        id: API_ID,
-        endpointGroups: [group1, group2],
-      });
-      await initComponent(apiV4);
-      expect(await componentHarness.isAddEndpointButtonVisible()).toEqual(true);
-      await componentHarness.clickAddEndpoint(0);
-
-      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.endpoint-new', { groupIndex: 0 });
-    });
-  });
-
-  describe('editEndpoint', () => {
-    it('should navigate to endpoint edition page', async () => {
-      const apiV4 = fakeApiV4({
-        id: API_ID,
-        endpointGroups: [group1, group2],
-      });
-      await initComponent(apiV4);
-
-      expect(await componentHarness.isEditEndpointButtonVisible()).toEqual(true);
-      await componentHarness.clickEditEndpoint(0);
-
-      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.endpoint-edit', { groupIndex: 0, endpointIndex: 0 });
-    });
-  });
-
   describe('reorderEndpointGroup', () => {
     it('should move down the first group', async () => {
       const apiV4 = fakeApiV4({
@@ -266,20 +217,6 @@ describe('ApiEndpointGroupsComponent', () => {
       expect(await componentHarness.isEndpointDeleteButtonVisible()).toEqual(false);
       expect(await componentHarness.isAddEndpointButtonVisible()).toEqual(false);
       expect(await componentHarness.isEditEndpointButtonVisible()).toEqual(false);
-    });
-  });
-
-  describe('addEndpointGroup', () => {
-    it('should navigate to endpoint group creation page', async () => {
-      const apiV4 = fakeApiV4({
-        id: API_ID,
-        endpointGroups: [group1, group2],
-      });
-      await initComponent(apiV4);
-      expect(await componentHarness.isAddEndpointGroupClickable()).toEqual(true);
-      await componentHarness.clickAddEndpointGroup();
-
-      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.endpoint-group-new');
     });
   });
 

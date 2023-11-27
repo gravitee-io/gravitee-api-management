@@ -16,7 +16,7 @@
 
 -->
 <div class="back-button">
-  <gio-go-back-button [ajsGo]="{ to: 'management.apis.endpoint-groups' }"></gio-go-back-button>
+  <gio-go-back-button [routerLink]="'..'"></gio-go-back-button>
   Go back to endpoint groups
 </div>
 <form *ngIf="groupForm" autocomplete="off" gioFormFocusInvalid [formGroup]="groupForm">

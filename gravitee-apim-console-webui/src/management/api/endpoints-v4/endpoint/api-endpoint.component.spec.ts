@@ -23,6 +23,7 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { UIRouterModule } from '@uirouter/angular';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { ApiEndpointComponent } from './api-endpoint.component';
 import { ApiEndpointModule } from './api-endpoint.module';
@@ -30,7 +31,6 @@ import { ApiEndpointHarness } from './api-endpoint.harness';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { ApiV4, fakeApiV4, fakeConnectorPlugin } from '../../../../entities/management-api-v2';
-import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { GioUiRouterTestingModule } from '../../../../shared/testing/gio-uirouter-testing-module';
 
 @Component({
@@ -43,14 +43,12 @@ class TestComponent {
 
 describe('ApiEndpointComponent', () => {
   const API_ID = 'apiId';
-  const fakeAjsState = {
-    go: jest.fn(),
-  };
 
   let fixture: ComponentFixture<TestComponent>;
   let httpTestingController: HttpTestingController;
   let loader: HarnessLoader;
   let componentHarness: ApiEndpointHarness;
+  let routerNavigationSpy: jest.SpyInstance;
 
   const initComponent = async (api: ApiV4, routerParams: unknown = { apiId: API_ID, groupIndex: 0 }) => {
     TestBed.configureTestingModule({
@@ -65,10 +63,7 @@ describe('ApiEndpointComponent', () => {
         }),
         GioUiRouterTestingModule,
       ],
-      providers: [
-        { provide: UIRouterState, useValue: fakeAjsState },
-        { provide: UIRouterStateParams, useValue: routerParams },
-      ],
+      providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: routerParams } } }],
     });
 
     fixture = TestBed.createComponent(TestComponent);
@@ -76,6 +71,8 @@ describe('ApiEndpointComponent', () => {
 
     loader = TestbedHarnessEnvironment.loader(fixture);
     httpTestingController = TestBed.inject(HttpTestingController);
+    const router = TestBed.inject(Router);
+    routerNavigationSpy = jest.spyOn(router, 'navigate');
     fixture.detectChanges();
 
     componentHarness = await loader.getHarness(ApiEndpointHarness);
@@ -148,7 +145,7 @@ describe('ApiEndpointComponent', () => {
         ],
       };
       expectApiPutRequest(updatedApi);
-      expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.endpoint-groups');
+      expect(routerNavigationSpy).toHaveBeenCalledWith(['../../'], { relativeTo: expect.anything() });
     });
 
     it('should edit and save an existing endpoint', async () => {
@@ -187,7 +184,7 @@ describe('ApiEndpointComponent', () => {
         ],
       };
       expectApiPutRequest(updatedApi);
-      expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.endpoint-groups');
+      expect(routerNavigationSpy).toHaveBeenCalledWith(['../../'], { relativeTo: expect.anything() });
     });
 
     it('should inherit configuration from parent', async () => {

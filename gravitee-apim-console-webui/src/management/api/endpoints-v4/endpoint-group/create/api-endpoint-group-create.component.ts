@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewChild } from '@angular/core';
 import { STEPPER_GLOBAL_OPTIONS } from '@angular/cdk/stepper';
 import { of, Subject } from 'rxjs';
 import { GioJsonSchema } from '@gravitee/ui-particles-angular';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { distinctUntilChanged, switchMap, takeUntil } from 'rxjs/operators';
-import { StateService } from '@uirouter/angular';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { ApiEndpointGroupSelectionComponent } from '../selection/api-endpoint-group-selection.component';
 import { ApiEndpointGroupConfigurationComponent } from '../configuration/api-endpoint-group-configuration.component';
@@ -27,7 +27,6 @@ import { ApiEndpointGroupGeneralComponent } from '../general/api-endpoint-group-
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
 import { isUnique } from '../../../../../shared/utils';
 import { ApiType, ApiV4, EndpointGroupV4, EndpointV4Default, UpdateApiV4 } from '../../../../../entities/management-api-v2';
-import { UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
 
@@ -63,8 +62,8 @@ export class ApiEndpointGroupCreateComponent implements OnInit {
   public apiType: ApiType;
 
   constructor(
-    @Inject(UIRouterStateParams) private readonly ajsStateParams,
-    @Inject(UIRouterState) readonly ajsState: StateService,
+    private readonly router: Router,
+    private readonly activatedRoute: ActivatedRoute,
     private readonly apiService: ApiV2Service,
     private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
     private readonly snackBarService: SnackBarService,
@@ -75,7 +74,7 @@ export class ApiEndpointGroupCreateComponent implements OnInit {
     this.initCreateForm();
 
     this.apiService
-      .get(this.ajsStateParams.apiId)
+      .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe({
         next: (api) => {
@@ -127,7 +126,7 @@ export class ApiEndpointGroupCreateComponent implements OnInit {
     };
 
     this.apiService
-      .get(this.ajsStateParams.apiId)
+      .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
         switchMap((api) => {
           const updatedApi: UpdateApiV4 = { ...(api as ApiV4) };
@@ -146,7 +145,7 @@ export class ApiEndpointGroupCreateComponent implements OnInit {
   }
 
   goBackToEndpointGroups() {
-    this.ajsState.go('management.apis.endpoint-groups');
+    this.router.navigate(['../'], { relativeTo: this.activatedRoute });
   }
 
   private initCreateForm(): void {

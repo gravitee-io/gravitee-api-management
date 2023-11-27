@@ -26,8 +26,8 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { UIRouterModule } from '@uirouter/angular';
 import { MatTabsModule } from '@angular/material/tabs';
+import { RouterModule } from '@angular/router';
 
 import { ApiEndpointComponent } from './api-endpoint.component';
 
@@ -39,6 +39,7 @@ import { GioGoBackButtonModule } from '../../../../shared/components/gio-go-back
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    RouterModule,
 
     MatButtonModule,
     MatCardModule,
@@ -52,7 +53,6 @@ import { GioGoBackButtonModule } from '../../../../shared/components/gio-go-back
     GioFormJsonSchemaModule,
     GioFormSlideToggleModule,
     GioGoBackButtonModule,
-    UIRouterModule,
     MatTabsModule,
   ],
 })

@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { GioConfirmDialogComponent, GioConfirmDialogData, GioLicenseService } from '@gravitee/ui-particles-angular';
 import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { find, remove } from 'lodash';
 import { combineLatest, EMPTY, Subject } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
-import { StateService } from '@uirouter/angular';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { EndpointGroup, toEndpoints } from './api-endpoint-groups.adapter';
 
@@ -28,7 +28,6 @@ import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { ApiV4, ConnectorPlugin, UpdateApi } from '../../../../entities/management-api-v2';
 import { ConnectorPluginsV2Service } from '../../../../services-ngx/connector-plugins-v2.service';
 import { IconService } from '../../../../services-ngx/icon.service';
-import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { ApimFeature, UTMTags } from '../../../../shared/components/gio-license/gio-license-data';
 
 @Component({
@@ -50,8 +49,8 @@ export class ApiEndpointGroupsComponent implements OnInit, OnDestroy {
   };
 
   constructor(
-    @Inject(UIRouterState) private readonly ajsState: StateService,
-    @Inject(UIRouterStateParams) private readonly ajsStateParams,
+    private readonly router: Router,
+    private readonly activatedRoute: ActivatedRoute,
     private readonly matDialog: MatDialog,
     private readonly apiService: ApiV2Service,
     private readonly snackBarService: SnackBarService,
@@ -61,7 +60,7 @@ export class ApiEndpointGroupsComponent implements OnInit, OnDestroy {
   ) {}
 
   public ngOnInit() {
-    combineLatest([this.apiService.get(this.ajsStateParams.apiId), this.connectorPluginsV2Service.listEndpointPlugins()])
+    combineLatest([this.apiService.get(this.activatedRoute.snapshot.params.apiId), this.connectorPluginsV2Service.listEndpointPlugins()])
       .pipe(
         tap(([apiV4, plugins]: [ApiV4, ConnectorPlugin[]]) => {
           this.groupsTableData = toEndpoints(apiV4);
@@ -103,7 +102,7 @@ export class ApiEndpointGroupsComponent implements OnInit, OnDestroy {
       .afterClosed()
       .pipe(
         filter((confirm) => confirm === true),
-        switchMap(() => this.apiService.get(this.ajsStateParams.apiId)),
+        switchMap(() => this.apiService.get(this.activatedRoute.snapshot.params.apiId)),
         switchMap((api: ApiV4) => {
           remove(api.endpointGroups, (g) => g.name === groupName);
           return this.apiService.update(api.id, { ...api } as UpdateApi);
@@ -136,7 +135,7 @@ export class ApiEndpointGroupsComponent implements OnInit, OnDestroy {
       .afterClosed()
       .pipe(
         filter((confirm) => confirm === true),
-        switchMap(() => this.apiService.get(this.ajsStateParams.apiId)),
+        switchMap(() => this.apiService.get(this.activatedRoute.snapshot.params.apiId)),
         switchMap((api: ApiV4) => {
           remove(find(api.endpointGroups, (g) => g.name === groupName).endpoints, (e) => e.name === endpointName);
           return this.apiService.update(api.id, { ...api } as UpdateApi);
@@ -154,18 +153,10 @@ export class ApiEndpointGroupsComponent implements OnInit, OnDestroy {
       .subscribe();
   }
 
-  public addEndpoint(groupIndex: number): void {
-    this.ajsState.go('management.apis.endpoint-new', { groupIndex });
-  }
-
-  public editEndpoint(groupIndex: number, endpointIndex: number): void {
-    this.ajsState.go('management.apis.endpoint-edit', { groupIndex, endpointIndex });
-  }
-
   public reorderEndpointGroup(oldIndex: number, newIndex: number): void {
     this.isReordering = true;
     this.apiService
-      .get(this.ajsStateParams.apiId)
+      .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
         switchMap((api: ApiV4) => {
           api.endpointGroups.splice(newIndex, 0, api.endpointGroups.splice(oldIndex, 1)[0]);
@@ -183,14 +174,6 @@ export class ApiEndpointGroupsComponent implements OnInit, OnDestroy {
           this.snackBarService.error(error.message);
         },
       });
-  }
-
-  public editEndpointGroup(groupIndex: number): void {
-    this.ajsState.go('management.apis.endpoint-group', { groupIndex });
-  }
-
-  addEndpointGroup() {
-    this.ajsState.go('management.apis.endpoint-group-new');
   }
 
   public onRequestUpgrade() {
