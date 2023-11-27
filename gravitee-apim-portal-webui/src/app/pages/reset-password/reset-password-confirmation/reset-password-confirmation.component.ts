@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 
 import { ChangeUserPasswordInput, UsersService } from '../../../../../projects/portal-webclient-sdk/src/lib';
@@ -28,7 +28,7 @@ import { ReCaptchaService } from '../../../services/recaptcha.service';
   styleUrls: ['./reset-password-confirmation.component.css'],
 })
 export class ResetPasswordConfirmationComponent implements OnInit {
-  resetPasswordConfirmationForm: FormGroup;
+  resetPasswordConfirmationForm: UntypedFormGroup;
   isSubmitted: boolean;
   token: string;
   userFromToken: any;
@@ -36,7 +36,7 @@ export class ResetPasswordConfirmationComponent implements OnInit {
 
   constructor(
     private usersService: UsersService,
-    private formBuilder: FormBuilder,
+    private formBuilder: UntypedFormBuilder,
     private route: ActivatedRoute,
     private tokenService: TokenService,
     private reCaptchaService: ReCaptchaService,
@@ -49,11 +49,11 @@ export class ResetPasswordConfirmationComponent implements OnInit {
     this.isTokenExpired = this.tokenService.isParsedTokenExpired(this.userFromToken);
 
     this.resetPasswordConfirmationForm = this.formBuilder.group({
-      firstname: new FormControl({ value: this.userFromToken.firstname, disabled: true }),
-      lastname: new FormControl({ value: this.userFromToken.lastname, disabled: true }),
-      email: new FormControl({ value: this.userFromToken.email, disabled: true }),
-      password: new FormControl('', Validators.required),
-      confirmedPassword: new FormControl('', Validators.required),
+      firstname: new UntypedFormControl({ value: this.userFromToken.firstname, disabled: true }),
+      lastname: new UntypedFormControl({ value: this.userFromToken.lastname, disabled: true }),
+      email: new UntypedFormControl({ value: this.userFromToken.email, disabled: true }),
+      password: new UntypedFormControl('', Validators.required),
+      confirmedPassword: new UntypedFormControl('', Validators.required),
     });
 
     this.resetPasswordConfirmationForm

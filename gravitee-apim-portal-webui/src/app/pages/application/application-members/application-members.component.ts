@@ -17,7 +17,7 @@ import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/cor
 import { ActivatedRoute, Router } from '@angular/router';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { TranslateService } from '@ngx-translate/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 
 import '@gravitee/ui-components/wc/gv-autocomplete';
 import '@gravitee/ui-components/wc/gv-button';
@@ -99,11 +99,11 @@ export class ApplicationMembersComponent implements OnInit {
   groups: Array<{ groupId: string; groupName: string; groupMembers: Array<Member>; nbGroupMembers: any }>;
   groupMembersOptions: any;
 
-  addMemberForm: FormGroup;
+  addMemberForm: UntypedFormGroup;
   userListForAddMember: Array<User> = [];
   selectedUserToAdd: User;
 
-  transferOwnershipForm: FormGroup;
+  transferOwnershipForm: UntypedFormGroup;
   userListForTransferOwnership: Array<User> = [];
   selectedUserForTransferOwnership: User;
 
@@ -256,16 +256,16 @@ export class ApplicationMembersComponent implements OnInit {
   resetAddMember() {
     this.selectedUserToAdd = null;
     this.userListForAddMember = [];
-    this.addMemberForm = new FormGroup({
-      newMemberRole: new FormControl('USER'),
+    this.addMemberForm = new UntypedFormGroup({
+      newMemberRole: new UntypedFormControl('USER'),
     });
   }
 
   resetTransferOwnership() {
     this.selectedUserForTransferOwnership = null;
     this.userListForTransferOwnership = [];
-    this.transferOwnershipForm = new FormGroup({
-      primaryOwnerNewRole: new FormControl('USER'),
+    this.transferOwnershipForm = new UntypedFormGroup({
+      primaryOwnerNewRole: new UntypedFormControl('USER'),
     });
   }
 

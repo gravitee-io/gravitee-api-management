@@ -15,7 +15,7 @@
  */
 import { AfterViewInit, Component, EventEmitter, HostListener, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 
 import { ApplicationService, Dashboard } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { AnalyticsService } from '../../services/analytics.service';
@@ -43,7 +43,7 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
   @Input() searchLoading: boolean;
 
   private maxDateTimer: any;
-  analyticsForm: FormGroup;
+  analyticsForm: UntypedFormGroup;
   tags: Array<any>;
   apisOptions: Array<any>;
   maxDate: number;
@@ -51,7 +51,7 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
 
   constructor(
     private router: Router,
-    private formBuilder: FormBuilder,
+    private formBuilder: UntypedFormBuilder,
     private applicationService: ApplicationService,
     public route: ActivatedRoute,
     public analyticsService: AnalyticsService,
@@ -60,16 +60,16 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
 
   ngOnInit(): void {
     this.analyticsForm = this.formBuilder.group({
-      timeframe: new FormControl(null),
-      range: new FormControl([null, null]),
-      requestId: new FormControl(null),
-      transactionId: new FormControl(null),
-      methods: new FormControl(null),
-      path: new FormControl(null),
-      responseTimes: new FormControl(null),
-      status: new FormControl(null),
-      api: new FormControl(null),
-      payloads: new FormControl(null),
+      timeframe: new UntypedFormControl(null),
+      range: new UntypedFormControl([null, null]),
+      requestId: new UntypedFormControl(null),
+      transactionId: new UntypedFormControl(null),
+      methods: new UntypedFormControl(null),
+      path: new UntypedFormControl(null),
+      responseTimes: new UntypedFormControl(null),
+      status: new UntypedFormControl(null),
+      api: new UntypedFormControl(null),
+      payloads: new UntypedFormControl(null),
     });
 
     this.analyticsForm.get('timeframe').setValidators(GvValidators.oneRequired(this.analyticsForm.get('range')));

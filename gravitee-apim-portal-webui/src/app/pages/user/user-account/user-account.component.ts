@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import '@gravitee/ui-components/wc/gv-file-upload';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 
@@ -32,7 +32,7 @@ import { NotificationService } from '../../../services/notification.service';
 export class UserAccountComponent implements OnInit, OnDestroy {
   private subscription: any;
   public currentUser: User;
-  public userForm: FormGroup;
+  public userForm: UntypedFormGroup;
   customUserFields: Array<CustomUserFields>;
 
   fields: any = {};
@@ -48,7 +48,7 @@ export class UserAccountComponent implements OnInit, OnDestroy {
     private userService: UserService,
     private usersService: UsersService,
     private notificationService: NotificationService,
-    private formBuilder: FormBuilder,
+    private formBuilder: UntypedFormBuilder,
     private eventService: EventService,
   ) {}
 
@@ -56,10 +56,10 @@ export class UserAccountComponent implements OnInit, OnDestroy {
     this.subscription = this.currentUserService.get().subscribe(user => {
       this.currentUser = user;
       const formDescriptor: any = {
-        last_name: new FormControl({ value: this.lastName, disabled: !this.isProfileEditable }, Validators.required),
-        first_name: new FormControl({ value: this.firstName, disabled: !this.isProfileEditable }, Validators.required),
-        email: new FormControl({ value: this.email, disabled: !this.isProfileEditable }, Validators.email),
-        avatar: new FormControl(this.avatar),
+        last_name: new UntypedFormControl({ value: this.lastName, disabled: !this.isProfileEditable }, Validators.required),
+        first_name: new UntypedFormControl({ value: this.firstName, disabled: !this.isProfileEditable }, Validators.required),
+        email: new UntypedFormControl({ value: this.email, disabled: !this.isProfileEditable }, Validators.email),
+        avatar: new UntypedFormControl(this.avatar),
       };
 
       if (this.currentUser.customFields) {
@@ -71,7 +71,7 @@ export class UserAccountComponent implements OnInit, OnDestroy {
 
             if (this.customUserFields) {
               this.customUserFields.forEach(field => {
-                const controlField = new FormControl('', field.required ? Validators.required : null);
+                const controlField = new UntypedFormControl('', field.required ? Validators.required : null);
                 controlField.setValue(this.currentUser.customFields[field.key]);
                 formDescriptor[field.key] = controlField;
               });

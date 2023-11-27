@@ -15,7 +15,7 @@
  */
 import { Component, HostListener, OnInit } from '@angular/core';
 import { Location } from '@angular/common';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Params, PRIMARY_OUTLET, Router } from '@angular/router';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { TranslateService } from '@ngx-translate/core';
@@ -78,7 +78,7 @@ export class ApiGeneralComponent implements OnInit {
   connectedApps: Promise<any[]>;
   permissions: PermissionsResponse = {};
   ratingListPermissions: { update; delete; addAnswer; deleteAnswer };
-  ratingForm: FormGroup;
+  ratingForm: UntypedFormGroup;
   ratings: Array<Rating>;
   ratingsSortOptions: any;
   resources: any[];
@@ -98,7 +98,7 @@ export class ApiGeneralComponent implements OnInit {
     private permissionsService: PermissionsService,
     private notificationService: NotificationService,
     private configService: ConfigurationService,
-    private formBuilder: FormBuilder,
+    private formBuilder: UntypedFormBuilder,
     private scrollService: ScrollService,
     private location: Location,
     private portalService: PortalService,
@@ -190,9 +190,9 @@ export class ApiGeneralComponent implements OnInit {
   _updateRatings() {
     if (this.hasRatingFeature) {
       this.ratingForm = this.formBuilder.group({
-        title: new FormControl(''),
-        comment: new FormControl(''),
-        value: new FormControl(null, [Validators.required]),
+        title: new UntypedFormControl(''),
+        comment: new UntypedFormControl(''),
+        value: new UntypedFormControl(null, [Validators.required]),
       });
 
       if (this.configService.hasFeature(FeatureEnum.ratingCommentMandatory)) {
