@@ -45,33 +45,23 @@
         z-index: 99999;
       }
 
-      img.gravitee-splash-screen {
-        color: silver;
-        display: flex;
-        margin: 0 auto;
-        max-width: 200px;
+      @keyframes gioLoader {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .gravitee-loader {
         position: relative;
         top: 40%;
-      }
-
-      .gravitee-default-loader {
+        width: 56px;
+        height: 56px;
         display: flex;
-        position: relative;
-        top: 40%;
+        align-items: center;
+        justify-content: center;
         margin: 0 auto;
-        width: 200px;
-        height: 200px;
-        border-radius: 50%;
-        box-sizing: border-box;
       }
-
-      .animate-show-hide.ng-hide {
-        opacity: 0;
-      }
-
-      .animate-show-hide.ng-hide-add,
-      .animate-show-hide.ng-hide-remove {
-        transition: all linear 0.5s;
+      .gravitee-loader svg {
+        animation: gioLoader 2s infinite linear;
       }
 
       #gravitee-error {
@@ -130,7 +120,18 @@
 
     <app-root>
       <div id="gravitee-error"></div>
-      <div id="loader" ng-show="displayLoader" class="gravitee-splash-screen animate-show-hide"></div>
+      <div id="loader" ng-show="displayLoader" class="gravitee-splash-screen">
+        <div class="gravitee-loader">
+          <svg fill="none" viewBox="0 0 24 24" fit="" height="100%" width="100%" preserveAspectRatio="xMidYMid meet" focusable="false">
+            <g>
+              <path
+                fill="currentColor"
+                d="M12 1a1 1 0 0 1 1 1v4a1 1 0 1 1-2 0V2a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1v4a1 1 0 1 1-2 0v-4a1 1 0 0 1 1-1ZM4.223 4.223a1 1 0 0 1 1.414 0l2.83 2.83a1 1 0 1 1-1.414 1.414l-2.83-2.83a1 1 0 0 1 0-1.414Zm11.31 11.31a1 1 0 0 1 1.414 0l2.83 2.83a1 1 0 1 1-1.414 1.414l-2.83-2.83a1 1 0 0 1 0-1.414ZM1 12a1 1 0 0 1 1-1h4a1 1 0 1 1 0 2H2a1 1 0 0 1-1-1Zm16 0a1 1 0 0 1 1-1h4a1 1 0 1 1 0 2h-4a1 1 0 0 1-1-1Zm-8.533 3.533a1 1 0 0 1 0 1.414l-2.83 2.83a1 1 0 0 1-1.414-1.414l2.83-2.83a1 1 0 0 1 1.414 0Zm11.31-11.31a1 1 0 0 1 0 1.414l-2.83 2.83a1 1 0 1 1-1.414-1.414l2.83-2.83a1 1 0 0 1 1.414 0Z"
+              ></path>
+            </g>
+          </svg>
+        </div>
+      </div>
     </app-root>
     <script src="webcomponents/webcomponents-loader.js"></script>
   </body>

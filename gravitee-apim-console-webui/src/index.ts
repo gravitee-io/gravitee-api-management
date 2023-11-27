@@ -36,16 +36,14 @@ const configNoCache = { headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cach
 // fix angular-schema-form angular<1.7
 Object.assign(angular, { lowercase: _.toLower, uppercase: _.toUpper });
 
-initLoader()
-  .then(() => fetchData())
-  .then(({ constants, build }) => {
-    initComponents();
-    bootstrapApplication(constants);
+fetchData().then(({ constants, build }) => {
+  initComponents();
+  bootstrapApplication(constants);
 
-    angular.module('gravitee-management').constant('Build', build);
+  angular.module('gravitee-management').constant('Build', build);
 
-    angular.module('gravitee-management').constant('Constants', constants);
-  });
+  angular.module('gravitee-management').constant('Constants', constants);
+});
 
 function fetchData(): Promise<{ constants: Constants; build: any }> {
   return Promise.all([
@@ -146,18 +144,6 @@ function getEnforcedOrganizationId(constants: { baseURL: string; organizationId?
     }
   }
   return organizationId;
-}
-
-function initLoader() {
-  const loader = document.createElement('span');
-  loader.classList.add('gravitee-default-loader');
-  loader.style.border = `10px solid dimgrey`;
-  loader.style.animation = 'rotation 1s linear infinite';
-  loader.style.borderBottomColor = 'transparent';
-
-  document.getElementById('loader').appendChild(loader);
-
-  return Promise.resolve();
 }
 
 function initComponents() {
