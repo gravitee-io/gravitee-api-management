@@ -23,7 +23,7 @@ import { getPictureDisplayName } from '@gravitee/ui-components/src/lib/item';
 import { ActivatedRoute, Router } from '@angular/router';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { TranslateService } from '@ngx-translate/core';
-import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 
 import {
   Application,
@@ -44,7 +44,7 @@ const StatusEnum = Subscription.StatusEnum;
   styleUrls: ['./application-general.component.css'],
 })
 export class ApplicationGeneralComponent implements OnInit, OnDestroy {
-  applicationForm: FormGroup;
+  applicationForm: UntypedFormGroup;
   application: Application;
   connectedApis: Promise<any[]>;
   permissions: PermissionsResponse;
@@ -63,7 +63,7 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private notificationService: NotificationService,
-    private formBuilder: FormBuilder,
+    private formBuilder: UntypedFormBuilder,
     private eventService: EventService,
   ) {}
 
@@ -113,28 +113,28 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
       if (this.isOAuth()) {
         settings = this.formBuilder.group({
           oauth: this.formBuilder.group({
-            client_secret: new FormControl(this.application.settings.oauth.client_secret, null),
-            client_id: new FormControl(this.application.settings.oauth.client_id, null),
-            redirect_uris: new FormArray([]),
-            grant_types: new FormArray([]),
+            client_secret: new UntypedFormControl(this.application.settings.oauth.client_secret, null),
+            client_id: new UntypedFormControl(this.application.settings.oauth.client_id, null),
+            redirect_uris: new UntypedFormArray([]),
+            grant_types: new UntypedFormArray([]),
           }),
         });
       } else {
         settings = this.formBuilder.group({
           app: this.formBuilder.group({
-            type: new FormControl(this.application.settings.app.type, null),
-            client_id: new FormControl(this.application.settings.app.client_id, null),
+            type: new UntypedFormControl(this.application.settings.app.type, null),
+            client_id: new UntypedFormControl(this.application.settings.app.client_id, null),
           }),
         });
       }
 
       this.applicationForm = this.formBuilder.group({
         id: this.application.id,
-        name: new FormControl(this.application.name, [Validators.required]),
-        description: new FormControl(this.application.description, [Validators.required]),
-        domain: new FormControl(this.application.domain),
-        picture: new FormControl(this.application.picture),
-        background: new FormControl(this.application.background),
+        name: new UntypedFormControl(this.application.name, [Validators.required]),
+        description: new UntypedFormControl(this.application.description, [Validators.required]),
+        domain: new UntypedFormControl(this.application.domain),
+        picture: new UntypedFormControl(this.application.picture),
+        background: new UntypedFormControl(this.application.background),
         settings,
       });
     }
@@ -142,7 +142,7 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
 
   onSwitchGrant(event, grantType) {
     if (event.target.value) {
-      this.grantTypes.push(new FormControl(grantType.type));
+      this.grantTypes.push(new UntypedFormControl(grantType.type));
     } else {
       let index = -1;
       this.grantTypes.controls.forEach((control, i) => {
@@ -165,7 +165,7 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
         const disabled = this.applicationTypeEntity.mandatory_grant_types.find(grant => allowedGrantType.type === grant.type) != null;
 
         if (value === true) {
-          this.grantTypes.push(new FormControl(allowedGrantType.type));
+          this.grantTypes.push(new UntypedFormControl(allowedGrantType.type));
         }
         return { ...allowedGrantType, disabled, value };
       });
@@ -174,13 +174,13 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
       }
       this.redirectURIs.clear();
       this.application.settings.oauth.redirect_uris.forEach(value => {
-        this.redirectURIs.push(new FormControl(value));
+        this.redirectURIs.push(new UntypedFormControl(value));
       });
     }
   }
 
   get grantTypes() {
-    return this.applicationForm.get('settings.oauth.grant_types') as FormArray;
+    return this.applicationForm.get('settings.oauth.grant_types') as UntypedFormArray;
   }
 
   get requiresRedirectUris() {
@@ -192,7 +192,7 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
       const value = event.target.value;
       if (value && value.trim() !== '') {
         if (!this.redirectURIs.controls.map(c => c.value).includes(value)) {
-          this.redirectURIs.push(new FormControl(value, Validators.required));
+          this.redirectURIs.push(new UntypedFormControl(value, Validators.required));
           this.applicationForm.markAsDirty();
         }
         event.target.value = '';
@@ -201,7 +201,7 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
   }
 
   get redirectURIs() {
-    return this.applicationForm.get('settings.oauth.redirect_uris') as FormArray;
+    return this.applicationForm.get('settings.oauth.redirect_uris') as UntypedFormArray;
   }
 
   removeRedirectUri(index: number) {

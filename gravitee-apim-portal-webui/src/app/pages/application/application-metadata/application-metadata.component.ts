@@ -17,7 +17,7 @@ import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { TranslateService } from '@ngx-translate/core';
-import { FormBuilder, FormControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, ValidatorFn, Validators } from '@angular/forms';
 
 import {
   Application,
@@ -38,7 +38,7 @@ import '@gravitee/ui-components/wc/gv-table';
 export class ApplicationMetadataComponent implements OnInit {
   constructor(
     private applicationService: ApplicationService,
-    private formBuilder: FormBuilder,
+    private formBuilder: UntypedFormBuilder,
     private translateService: TranslateService,
     private route: ActivatedRoute,
     private router: Router,
@@ -60,8 +60,8 @@ export class ApplicationMetadataComponent implements OnInit {
   metadataOptions: any;
   tableTranslations: any[];
 
-  addMetadataForm: FormGroup;
-  updateMetadataForms: Record<string, FormGroup>;
+  addMetadataForm: UntypedFormGroup;
+  updateMetadataForms: Record<string, UntypedFormGroup>;
 
   async ngOnInit() {
     this.application = this.route.snapshot.data.application;
@@ -202,20 +202,20 @@ export class ApplicationMetadataComponent implements OnInit {
     };
   }
 
-  _getUpdateForm(metadata: ReferenceMetadata): FormGroup {
+  _getUpdateForm(metadata: ReferenceMetadata): UntypedFormGroup {
     if (metadata.key == null) {
       metadata.key = `${new Date().getTime()}`;
       this.updateMetadataForms[metadata.key] = this.formBuilder.group({
-        name: new FormControl(metadata.name, Validators.required),
-        format: new FormControl(metadata.format, Validators.required),
-        value: new FormControl(metadata.value, Validators.required),
-        new: new FormControl(true),
+        name: new UntypedFormControl(metadata.name, Validators.required),
+        format: new UntypedFormControl(metadata.format, Validators.required),
+        value: new UntypedFormControl(metadata.value, Validators.required),
+        new: new UntypedFormControl(true),
       });
     } else if (this.updateMetadataForms[metadata.key] == null) {
       this.updateMetadataForms[metadata.key] = this.formBuilder.group({
-        name: new FormControl(metadata.name, Validators.required),
-        format: new FormControl(metadata.format, Validators.required),
-        value: new FormControl(metadata.value, Validators.required),
+        name: new UntypedFormControl(metadata.name, Validators.required),
+        format: new UntypedFormControl(metadata.format, Validators.required),
+        value: new UntypedFormControl(metadata.value, Validators.required),
       });
     }
     return this.updateMetadataForms[metadata.key];
@@ -357,9 +357,9 @@ export class ApplicationMetadataComponent implements OnInit {
 
   resetAddMetadata() {
     this.addMetadataForm = this.formBuilder.group({
-      name: new FormControl(null, Validators.required),
-      format: new FormControl('STRING', Validators.required),
-      value: new FormControl(null, Validators.required),
+      name: new UntypedFormControl(null, Validators.required),
+      format: new UntypedFormControl('STRING', Validators.required),
+      value: new UntypedFormControl(null, Validators.required),
     });
   }
 

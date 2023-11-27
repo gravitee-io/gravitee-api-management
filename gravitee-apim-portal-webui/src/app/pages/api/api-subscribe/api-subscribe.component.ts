@@ -22,7 +22,7 @@ import '@gravitee/ui-components/wc/gv-code';
 import '@gravitee/ui-components/wc/gv-list';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { distinctUntilChanged } from 'rxjs/operators';
 import { getPicture, getPictureDisplayName } from '@gravitee/ui-components/src/lib/item';
 
@@ -71,7 +71,7 @@ export class ApiSubscribeComponent implements OnInit {
   api: Api;
   plans: any;
   application: any;
-  subscribeForm: FormGroup;
+  subscribeForm: UntypedFormGroup;
   availableApplications: { label: string; value: string }[];
   apiKeyModeOptions: { id: string; title: string; description: string }[];
   connectedApps: any[];
@@ -93,7 +93,7 @@ export class ApiSubscribeComponent implements OnInit {
     private translateService: TranslateService,
     private applicationService: ApplicationService,
     private subscriptionService: SubscriptionService,
-    private formBuilder: FormBuilder,
+    private formBuilder: UntypedFormBuilder,
     private configurationService: ConfigurationService,
   ) {}
 
@@ -108,12 +108,12 @@ export class ApiSubscribeComponent implements OnInit {
     this.connectedApps = [];
 
     this.subscribeForm = this.formBuilder.group({
-      application: new FormControl(null, [Validators.required]),
-      apiKeyMode: new FormControl(null),
-      plan: new FormControl(null, [Validators.required]),
-      request: new FormControl(''),
-      general_conditions_accepted: new FormControl(null),
-      general_conditions_content_revision: new FormControl(null),
+      application: new UntypedFormControl(null, [Validators.required]),
+      apiKeyMode: new UntypedFormControl(null),
+      plan: new UntypedFormControl(null, [Validators.required]),
+      request: new UntypedFormControl(''),
+      general_conditions_accepted: new UntypedFormControl(null),
+      general_conditions_content_revision: new UntypedFormControl(null),
     });
     this.translateService
       .get([i18n('apiSubscribe.apps.comment'), i18n('apiSubscribe.plan'), i18n('apiSubscribe.apps.missingClientId')])
