@@ -38,13 +38,34 @@ import { NotificationService } from '../../../services/notification.service';
 import { SearchQueryParam } from '../../../utils/search-query-param.enum';
 
 const StatusEnum = Subscription.StatusEnum;
+
+type AppFormType = FormGroup<{ app: FormGroup<{ type: FormControl<string>; client_id: FormControl<string> }> }>;
+type OAuthFormType = FormGroup<{
+  oauth: FormGroup<{
+    redirect_uris: FormArray;
+    grant_types: FormArray;
+    client_secret: FormControl<string>;
+    client_id: FormControl<string>;
+  }>;
+}>;
+
+type ApplicationFormType = FormGroup<{
+  id: FormControl<string>;
+  name: FormControl<string>;
+  description: FormControl<string>;
+  domain: FormControl<string>;
+  picture: FormControl<string>;
+  background: FormControl<string>;
+  settings: AppFormType | OAuthFormType;
+}>;
+
 @Component({
   selector: 'app-application-general',
   templateUrl: './application-general.component.html',
   styleUrls: ['./application-general.component.css'],
 })
 export class ApplicationGeneralComponent implements OnInit, OnDestroy {
-  applicationForm: FormGroup;
+  applicationForm: ApplicationFormType;
   application: Application;
   connectedApis: Promise<any[]>;
   permissions: PermissionsResponse;
@@ -108,7 +129,7 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
   }
 
   initForm() {
-    let settings;
+    let settings: OAuthFormType | AppFormType;
     if (this.application) {
       if (this.isOAuth()) {
         settings = this.formBuilder.group({
@@ -135,7 +156,7 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
         domain: new FormControl(this.application.domain),
         picture: new FormControl(this.application.picture),
         background: new FormControl(this.application.background),
-        settings,
+        settings: settings as FormGroup,
       });
     }
   }
