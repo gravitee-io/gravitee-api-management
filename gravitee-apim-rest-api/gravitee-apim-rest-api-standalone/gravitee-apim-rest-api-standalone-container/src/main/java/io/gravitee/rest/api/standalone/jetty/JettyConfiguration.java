@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.standalone.jetty;
 
+import io.gravitee.node.api.configuration.Configuration;
 import org.springframework.beans.factory.annotation.Value;
 
 /**
@@ -23,223 +24,92 @@ import org.springframework.beans.factory.annotation.Value;
  */
 public class JettyConfiguration {
 
-    @Value("${jetty.host:0.0.0.0}")
-    private String httpHost;
+    private final Configuration configuration;
 
-    @Value("${jetty.port:8083}")
-    private int httpPort;
-
-    @Value("${jetty.idleTimeout:30000}")
-    private int idleTimeout;
-
-    @Value("${jetty.acceptors:-1}")
-    private int acceptors;
-
-    @Value("${jetty.selectors:-1}")
-    private int selectors;
-
-    @Value("${jetty.pool.minThreads:10}")
-    private int poolMinThreads;
-
-    @Value("${jetty.pool.maxThreads:200}")
-    private int poolMaxThreads;
-
-    @Value("${jetty.pool.idleTimeout:60000}")
-    private int poolIdleTimeout;
-
-    @Value("${jetty.pool.queueSize:6000}")
-    private int poolQueueSize;
-
-    @Value("${jetty.jmx:false}")
-    private boolean jmxEnabled;
-
-    @Value("${jetty.statistics:false}")
-    private boolean statisticsEnabled;
-
-    @Value("${jetty.accesslog.enabled:true}")
-    private boolean accessLogEnabled;
-
-    @Value("${jetty.accesslog.path:${gravitee.home}/logs/gravitee_accesslog_yyyy_mm_dd.log}")
-    private String accessLogPath;
-
-    @Value("${jetty.secured:false}")
-    private boolean secured;
-
-    @Value("${jetty.ssl.keystore.path:#{null}}")
-    private String keyStorePath;
-
-    @Value("${jetty.ssl.keystore.type:#{null}}")
-    private String keyStoreType;
-
-    @Value("${jetty.ssl.keystore.password:#{null}}")
-    private String keyStorePassword;
-
-    @Value("${jetty.ssl.truststore.path:#{null}}")
-    private String trustStorePath;
-
-    @Value("${jetty.ssl.truststore.type:#{null}}")
-    private String trustStoreType;
-
-    @Value("${jetty.ssl.truststore.password:#{null}}")
-    private String trustStorePassword;
-
-    public String getHttpHost() {
-        return httpHost;
+    public JettyConfiguration(Configuration configuration) {
+        this.configuration = configuration;
     }
 
-    public void setHttpHost(String httpHost) {
-        this.httpHost = httpHost;
+    public String getHttpHost() {
+        return configuration.getProperty("jetty.host", "0.0.0.0");
     }
 
     public int getHttpPort() {
-        return httpPort;
-    }
-
-    public void setHttpPort(int httpPort) {
-        this.httpPort = httpPort;
+        return configuration.getProperty("jetty.port", Integer.class, 8083);
     }
 
     public int getAcceptors() {
-        return acceptors;
-    }
-
-    public void setAcceptors(int acceptors) {
-        this.acceptors = acceptors;
+        return configuration.getProperty("jetty.acceptors", Integer.class, -1);
     }
 
     public int getSelectors() {
-        return selectors;
-    }
-
-    public void setSelectors(int selectors) {
-        this.selectors = selectors;
+        return configuration.getProperty("jetty.selectors", Integer.class, -1);
     }
 
     public int getPoolMinThreads() {
-        return poolMinThreads;
-    }
-
-    public void setPoolMinThreads(int poolMinThreads) {
-        this.poolMinThreads = poolMinThreads;
+        return configuration.getProperty("jetty.pool.minThreads", Integer.class, 10);
     }
 
     public int getPoolMaxThreads() {
-        return poolMaxThreads;
-    }
-
-    public void setPoolMaxThreads(int poolMaxThreads) {
-        this.poolMaxThreads = poolMaxThreads;
+        return configuration.getProperty("jetty.pool.maxThreads", Integer.class, 200);
     }
 
     public boolean isJmxEnabled() {
-        return jmxEnabled;
-    }
-
-    public void setJmxEnabled(boolean jmxEnabled) {
-        this.jmxEnabled = jmxEnabled;
+        return configuration.getProperty("jetty.jmx", Boolean.class, false);
     }
 
     public int getIdleTimeout() {
-        return idleTimeout;
-    }
-
-    public void setIdleTimeout(int idleTimeout) {
-        this.idleTimeout = idleTimeout;
+        return configuration.getProperty("jetty.idleTimeout", Integer.class, 30000);
     }
 
     public boolean isStatisticsEnabled() {
-        return statisticsEnabled;
-    }
-
-    public void setStatisticsEnabled(boolean statisticsEnabled) {
-        this.statisticsEnabled = statisticsEnabled;
+        return configuration.getProperty("jetty.statistics", Boolean.class, false);
     }
 
     public int getPoolIdleTimeout() {
-        return poolIdleTimeout;
-    }
-
-    public void setPoolIdleTimeout(int poolIdleTimeout) {
-        this.poolIdleTimeout = poolIdleTimeout;
+        return configuration.getProperty("jetty.pool.idleTimeout", Integer.class, 60000);
     }
 
     public int getPoolQueueSize() {
-        return poolQueueSize;
-    }
-
-    public void setPoolQueueSize(int poolQueueSize) {
-        this.poolQueueSize = poolQueueSize;
+        return configuration.getProperty("jetty.pool.queueSize", Integer.class, 6000);
     }
 
     public boolean isAccessLogEnabled() {
-        return accessLogEnabled;
-    }
-
-    public void setAccessLogEnabled(boolean accessLogEnabled) {
-        this.accessLogEnabled = accessLogEnabled;
+        return configuration.getProperty("jetty.accesslog.enabled", Boolean.class, true);
     }
 
     public String getAccessLogPath() {
-        return accessLogPath;
-    }
-
-    public void setAccessLogPath(String accessLogPath) {
-        this.accessLogPath = accessLogPath;
+        return configuration.getProperty(
+            "jetty.accesslog.path",
+            configuration.getProperty("gravitee.home") + "/logs/gravitee_accesslog_yyyy_mm_dd.log"
+        );
     }
 
     public boolean isSecured() {
-        return secured;
-    }
-
-    public void setSecured(boolean secured) {
-        this.secured = secured;
+        return configuration.getProperty("jetty.secured", Boolean.class, false);
     }
 
     public String getKeyStorePath() {
-        return keyStorePath;
-    }
-
-    public void setKeyStorePath(String keyStorePath) {
-        this.keyStorePath = keyStorePath;
+        return configuration.getProperty("jetty.ssl.keystore.path");
     }
 
     public String getKeyStorePassword() {
-        return keyStorePassword;
-    }
-
-    public void setKeyStorePassword(String keyStorePassword) {
-        this.keyStorePassword = keyStorePassword;
+        return configuration.getProperty("jetty.ssl.keystore.password");
     }
 
     public String getTrustStorePath() {
-        return trustStorePath;
-    }
-
-    public void setTrustStorePath(String trustStorePath) {
-        this.trustStorePath = trustStorePath;
+        return configuration.getProperty("jetty.ssl.truststore.path");
     }
 
     public String getTrustStorePassword() {
-        return trustStorePassword;
-    }
-
-    public void setTrustStorePassword(String trustStorePassword) {
-        this.trustStorePassword = trustStorePassword;
+        return configuration.getProperty("jetty.ssl.truststore.password");
     }
 
     public String getKeyStoreType() {
-        return keyStoreType;
-    }
-
-    public void setKeyStoreType(String keyStoreType) {
-        this.keyStoreType = keyStoreType;
+        return configuration.getProperty("jetty.ssl.keystore.type");
     }
 
     public String getTrustStoreType() {
-        return trustStoreType;
-    }
-
-    public void setTrustStoreType(String trustStoreType) {
-        this.trustStoreType = trustStoreType;
+        return configuration.getProperty("jetty.ssl.truststore.type");
     }
 }

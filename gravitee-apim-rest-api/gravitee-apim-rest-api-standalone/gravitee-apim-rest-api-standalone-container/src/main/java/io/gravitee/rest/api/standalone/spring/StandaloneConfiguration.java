@@ -54,8 +54,8 @@ public class StandaloneConfiguration {
     }
 
     @Bean
-    public JettyConfiguration jettyConfiguration() {
-        return new JettyConfiguration();
+    public JettyConfiguration jettyConfiguration(io.gravitee.node.api.configuration.Configuration configuration) {
+        return new JettyConfiguration(configuration);
     }
 
     @Bean
