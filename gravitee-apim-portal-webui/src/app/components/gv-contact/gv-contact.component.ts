@@ -14,12 +14,20 @@
  * limitations under the License.
  */
 import { Component, Input, OnInit } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 
 import { ApiService, ApplicationService, PortalService } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { NotificationService } from '../../services/notification.service';
 import { CurrentUserService } from '../../services/current-user.service';
+
+type ContactFormType = FormGroup<{
+  api: FormControl<string>;
+  application: FormControl<string>;
+  subject: FormControl<string>;
+  content: FormControl<string>;
+  copy_to_sender: FormControl<boolean>;
+}>;
 
 @Component({
   selector: 'app-gv-contact',
@@ -29,7 +37,7 @@ import { CurrentUserService } from '../../services/current-user.service';
 export class GvContactComponent implements OnInit {
   @Input() apiId: string;
 
-  contactForm: UntypedFormGroup;
+  contactForm: ContactFormType;
   applications: {
     label: string;
     value: string;
@@ -44,18 +52,17 @@ export class GvContactComponent implements OnInit {
     private applicationService: ApplicationService,
     private apiService: ApiService,
     private portalService: PortalService,
-    private formBuilder: UntypedFormBuilder,
     private notificationService: NotificationService,
     private currentUserService: CurrentUserService,
   ) {}
 
   ngOnInit(): void {
-    this.contactForm = this.formBuilder.group({
-      api: this.apiId || null,
-      application: null,
-      subject: new UntypedFormControl(null, Validators.required),
-      content: new UntypedFormControl(null, Validators.required),
-      copy_to_sender: false,
+    this.contactForm = new FormGroup({
+      api: new FormControl(this.apiId || null),
+      application: new FormControl(null),
+      subject: new FormControl(null, Validators.required),
+      content: new FormControl(null, Validators.required),
+      copy_to_sender: new FormControl(false) as FormControl<boolean>,
     });
 
     // Feature request: https://github.com/gravitee-io/issues/issues/6700
@@ -91,7 +98,7 @@ export class GvContactComponent implements OnInit {
   submit() {
     this.isSending = true;
     this.portalService
-      .createTicket({ ticketInput: this.contactForm.value })
+      .createTicket({ ticketInput: this.contactForm.getRawValue() })
       .toPromise()
       .then(() => {
         this.notificationService.success(i18n('gv-contact.success'));
