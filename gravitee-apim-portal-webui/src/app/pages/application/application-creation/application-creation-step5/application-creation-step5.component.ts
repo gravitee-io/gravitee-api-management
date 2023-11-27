@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, Input, OnInit } from '@angular/core';
-import { FormGroup } from '@angular/forms';
+import { UntypedFormGroup } from '@angular/forms';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { TranslateService } from '@ngx-translate/core';
 
@@ -30,7 +30,7 @@ export class ApplicationCreationStep5Component implements OnInit {
   @Input() canValidate: boolean;
   @Input() creationError: boolean;
   @Input() creationSuccess: boolean;
-  @Input() applicationForm: FormGroup;
+  @Input() applicationForm: UntypedFormGroup;
   @Input() subscribeList: any[];
   @Input() subscriptionErrors: { message: string; api: Api }[];
   @Input() applicationType: ApplicationTypeOption;

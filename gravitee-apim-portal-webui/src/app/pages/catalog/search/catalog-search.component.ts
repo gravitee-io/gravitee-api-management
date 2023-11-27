@@ -17,7 +17,7 @@ import { Component, HostListener, OnInit } from '@angular/core';
 import '@gravitee/ui-components/wc/gv-input';
 import '@gravitee/ui-components/wc/gv-row';
 import { Pagination } from '@gravitee/ui-components/wc/gv-pagination';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { Api, ApiService, ApisResponse } from '../../../../../projects/portal-webclient-sdk/src/lib';
@@ -31,7 +31,7 @@ import { createPromiseList } from '../../../utils/utils';
   styleUrls: ['./catalog-search.component.css'],
 })
 export class CatalogSearchComponent implements OnInit {
-  searchForm: FormGroup;
+  searchForm: UntypedFormGroup;
   pageSize: number;
   pageSizes: Array<number>;
   paginationData: Pagination;
@@ -40,7 +40,7 @@ export class CatalogSearchComponent implements OnInit {
   currentPage;
 
   constructor(
-    private formBuilder: FormBuilder,
+    private formBuilder: UntypedFormBuilder,
     private apiService: ApiService,
     private activatedRoute: ActivatedRoute,
     private router: Router,

@@ -20,7 +20,7 @@ import '@gravitee/ui-components/wc/gv-switch';
 import { ActivatedRoute } from '@angular/router';
 import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -64,7 +64,7 @@ export class GvAlertComponent implements OnInit, OnDestroy {
 
   application: Application;
   permissions: Array<string>;
-  alertForm: FormGroup;
+  alertForm: UntypedFormGroup;
   types: Array<any>;
   timeUnits: Array<any>;
   webhookHttpMethods: Array<HttpMethod>;
@@ -276,15 +276,15 @@ export class GvAlertComponent implements OnInit, OnDestroy {
   }
 
   resetAddAlert() {
-    this.alertForm = new FormGroup({
-      api: new FormControl(''),
-      type: new FormControl(AlertType.STATUS, [Validators.required]),
-      duration: new FormControl('1'),
-      timeUnit: new FormControl(AlertTimeUnit.MINUTES, [Validators.required]),
-      description: new FormControl(''),
-      hasWebhook: new FormControl(false),
-      webhookMethod: new FormControl(HttpMethod.POST),
-      webhookUrl: new FormControl(''),
+    this.alertForm = new UntypedFormGroup({
+      api: new UntypedFormControl(''),
+      type: new UntypedFormControl(AlertType.STATUS, [Validators.required]),
+      duration: new UntypedFormControl('1'),
+      timeUnit: new UntypedFormControl(AlertTimeUnit.MINUTES, [Validators.required]),
+      description: new UntypedFormControl(''),
+      hasWebhook: new UntypedFormControl(false),
+      webhookMethod: new UntypedFormControl(HttpMethod.POST),
+      webhookUrl: new UntypedFormControl(''),
     });
   }
 
@@ -305,15 +305,15 @@ export class GvAlertComponent implements OnInit, OnDestroy {
   }
 
   private resetAddAlertStatus() {
-    this.alertForm.addControl('status', new FormControl('4xx', [Validators.required]));
-    this.alertForm.addControl('threshold', new FormControl('1', [Validators.min(1), Validators.max(100)]));
+    this.alertForm.addControl('status', new UntypedFormControl('4xx', [Validators.required]));
+    this.alertForm.addControl('threshold', new UntypedFormControl('1', [Validators.min(1), Validators.max(100)]));
     this.alertForm.removeControl('responseTime');
   }
 
   private resetAddAlertResponseTime() {
     this.alertForm.removeControl('status');
     this.alertForm.removeControl('threshold');
-    this.alertForm.addControl('responseTime', new FormControl('1', [Validators.min(1), Validators.max(100000)]));
+    this.alertForm.addControl('responseTime', new UntypedFormControl('1', [Validators.min(1), Validators.max(100000)]));
   }
 
   edit() {
@@ -321,21 +321,21 @@ export class GvAlertComponent implements OnInit, OnDestroy {
 
     const conditionalForm = this.isStatusAlert
       ? {
-          status: new FormControl(this.alert.status_code, [Validators.required]),
-          threshold: new FormControl('' + this.alert.status_percent, [Validators.min(1), Validators.max(100)]),
+          status: new UntypedFormControl(this.alert.status_code, [Validators.required]),
+          threshold: new UntypedFormControl('' + this.alert.status_percent, [Validators.min(1), Validators.max(100)]),
         }
       : {
-          responseTime: new FormControl('' + this.alert.response_time, [Validators.min(1), Validators.max(100000)]),
+          responseTime: new UntypedFormControl('' + this.alert.response_time, [Validators.min(1), Validators.max(100000)]),
         };
-    this.alertForm = new FormGroup({
-      type: new FormControl({ value: this.alert.type, disabled: true }),
-      api: new FormControl(this.alert.api),
-      duration: new FormControl(this.alert.duration),
-      timeUnit: new FormControl(this.alert.time_unit.toUpperCase(), [Validators.required]),
-      description: new FormControl(this.alert.description),
-      hasWebhook: new FormControl(!!this.alert.webhook),
-      webhookMethod: new FormControl(this.alert.webhook ? this.alert.webhook.httpMethod : HttpMethod.POST),
-      webhookUrl: new FormControl(this.alert.webhook?.url, this.alert.webhook ? [Validators.required] : []),
+    this.alertForm = new UntypedFormGroup({
+      type: new UntypedFormControl({ value: this.alert.type, disabled: true }),
+      api: new UntypedFormControl(this.alert.api),
+      duration: new UntypedFormControl(this.alert.duration),
+      timeUnit: new UntypedFormControl(this.alert.time_unit.toUpperCase(), [Validators.required]),
+      description: new UntypedFormControl(this.alert.description),
+      hasWebhook: new UntypedFormControl(!!this.alert.webhook),
+      webhookMethod: new UntypedFormControl(this.alert.webhook ? this.alert.webhook.httpMethod : HttpMethod.POST),
+      webhookUrl: new UntypedFormControl(this.alert.webhook?.url, this.alert.webhook ? [Validators.required] : []),
       ...conditionalForm,
     });
   }

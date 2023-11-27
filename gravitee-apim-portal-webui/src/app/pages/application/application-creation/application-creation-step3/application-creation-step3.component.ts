@@ -13,8 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+<<<<<<< HEAD
 import { ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+=======
+import { ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
+import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+>>>>>>> 5da4546d7e (chore: bump Angular to 14.3)
 import { ActivatedRoute } from '@angular/router';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { TranslateService } from '@ngx-translate/core';
@@ -44,8 +49,12 @@ export class ApplicationCreationStep3Component implements OnInit, OnDestroy {
   // eslint-disable-next-line @typescript-eslint/ban-types
   @Input() hasValidClientId: Function;
   @ViewChild('searchApiAutocomplete') searchApiAutocomplete;
+<<<<<<< HEAD
 
   planForm: FormGroup;
+=======
+  planForm: UntypedFormGroup;
+>>>>>>> 5da4546d7e (chore: bump Angular to 14.3)
   apiList: { data: any; id: string; value: string }[];
   plans: Array<Plan>;
   selectedApi: Api;
@@ -62,12 +71,20 @@ export class ApplicationCreationStep3Component implements OnInit, OnDestroy {
   private availableEntrypoints: Map<string, Entrypoint>;
 
   constructor(
+<<<<<<< HEAD
     private readonly formBuilder: FormBuilder,
     private readonly apiService: ApiService,
     private readonly activatedRoute: ActivatedRoute,
     private readonly translateService: TranslateService,
     private readonly ref: ChangeDetectorRef,
     private readonly entrypointsService: EntrypointsService,
+=======
+    private formBuilder: UntypedFormBuilder,
+    private apiService: ApiService,
+    private activatedRoute: ActivatedRoute,
+    private translateService: TranslateService,
+    private ref: ChangeDetectorRef,
+>>>>>>> 5da4546d7e (chore: bump Angular to 14.3)
   ) {
     this.apiList = [];
     this.subscribeList = [];
@@ -81,12 +98,18 @@ export class ApplicationCreationStep3Component implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.planForm = this.formBuilder.group({
+<<<<<<< HEAD
       apiId: new FormControl(null, [Validators.required]),
       planId: new FormControl(null, [Validators.required]),
       general_conditions_accepted: new FormControl(null),
       channel: new FormControl(null),
       entrypoint: new FormControl(null),
       entrypointConfiguration: new FormControl(null),
+=======
+      apiId: new UntypedFormControl(null, [Validators.required]),
+      planId: new UntypedFormControl(null, [Validators.required]),
+      general_conditions_accepted: new UntypedFormControl(null),
+>>>>>>> 5da4546d7e (chore: bump Angular to 14.3)
     });
 
     this.planForm.valueChanges.pipe(distinctUntilChanged((prev, curr) => prev.planId === curr.planId)).subscribe(() => {
