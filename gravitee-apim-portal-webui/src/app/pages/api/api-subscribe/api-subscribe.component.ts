@@ -23,7 +23,7 @@ import '@gravitee/ui-components/wc/gv-list';
 import '@gravitee/ui-components/wc/gv-schema-form-group';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
-import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { distinctUntilChanged } from 'rxjs/operators';
 import { getPicture, getPictureDisplayName } from '@gravitee/ui-components/src/lib/item';
 
@@ -37,11 +37,17 @@ import {
   ApiService,
   Application,
   ApplicationService,
+<<<<<<< HEAD
   Entrypoint,
   EntrypointsService,
   Page,
   Plan,
   PlanMode,
+=======
+  Page,
+  PageRevisionId,
+  Plan,
+>>>>>>> 8d2eb36534 (refactor: add type on api subscribe form)
   Subscription,
   SubscriptionService,
   SubscriptionsResponse,
@@ -49,6 +55,15 @@ import {
 
 const StatusEnum = Subscription.StatusEnum;
 const SecurityEnum = Plan.SecurityEnum;
+
+type ApiSubscribeFormType = FormGroup<{
+  application: FormControl<string>;
+  apiKeyMode: FormControl<ApiKeyModeEnum>;
+  plan: FormControl<string>;
+  request: FormControl<string>;
+  general_conditions_accepted: FormControl<boolean>;
+  general_conditions_content_revision: FormControl<PageRevisionId>;
+}>;
 
 @Component({
   selector: 'app-api-subscribe',
@@ -71,11 +86,10 @@ export class ApiSubscribeComponent implements OnInit {
 
   steps: any;
   currentStep: number;
-  stepperContentClass: any;
   api: Api;
   plans: any;
   application: any;
-  subscribeForm: UntypedFormGroup;
+  subscribeForm: ApiSubscribeFormType;
   availableApplications: { label: string; value: string }[];
   apiKeyModeOptions: { id: string; title: string; description: string }[];
   connectedApps: any[];
@@ -101,7 +115,6 @@ export class ApiSubscribeComponent implements OnInit {
     private translateService: TranslateService,
     private applicationService: ApplicationService,
     private subscriptionService: SubscriptionService,
-    private formBuilder: UntypedFormBuilder,
     private configurationService: ConfigurationService,
     private entrypointsService: EntrypointsService,
   ) {}
@@ -116,17 +129,22 @@ export class ApiSubscribeComponent implements OnInit {
     this._currentGeneralConditions = null;
     this.connectedApps = [];
 
+<<<<<<< HEAD
     this.subscribeForm = this.formBuilder.group({
 <<<<<<< HEAD
       channel: new FormControl(null),
       entrypoint: new FormControl(null),
       entrypointConfiguration: new FormControl(null),
+=======
+    this.subscribeForm = new FormGroup({
+>>>>>>> 8d2eb36534 (refactor: add type on api subscribe form)
       application: new FormControl(null, [Validators.required]),
       apiKeyMode: new FormControl(null),
       plan: new FormControl(null, [Validators.required]),
       request: new FormControl(''),
       general_conditions_accepted: new FormControl(null),
       general_conditions_content_revision: new FormControl(null),
+<<<<<<< HEAD
 =======
       application: new UntypedFormControl(null, [Validators.required]),
       apiKeyMode: new UntypedFormControl(null),
@@ -135,6 +153,8 @@ export class ApiSubscribeComponent implements OnInit {
       general_conditions_accepted: new UntypedFormControl(null),
       general_conditions_content_revision: new UntypedFormControl(null),
 >>>>>>> 5da4546d7e (chore: bump Angular to 14.3)
+=======
+>>>>>>> 8d2eb36534 (refactor: add type on api subscribe form)
     });
     this.translateService
       .get([i18n('apiSubscribe.apps.comment'), i18n('apiSubscribe.plan'), i18n('apiSubscribe.apps.missingClientId')])
