@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { TranslateService } from '@ngx-translate/core';
@@ -36,7 +36,12 @@ export class ApplicationCreationStep3Component implements OnInit {
   @Input() hasValidClientId: Function;
 
   @ViewChild('searchApiAutocomplete') searchApiAutocomplete;
-  planForm: UntypedFormGroup;
+  planForm: FormGroup<{
+    apiId: FormControl<string | null>;
+    planId: FormControl<string | null>;
+    general_conditions_accepted: FormControl<boolean | null>;
+  }>;
+
   apiList: { data: any; id: string; value: string }[];
   plans: Array<Plan>;
   selectedApi: Api;
@@ -52,7 +57,7 @@ export class ApplicationCreationStep3Component implements OnInit {
   private updateStepsTimer: any;
 
   constructor(
-    private formBuilder: UntypedFormBuilder,
+    private formBuilder: FormBuilder,
     private apiService: ApiService,
     private activatedRoute: ActivatedRoute,
     private translateService: TranslateService,
@@ -70,9 +75,9 @@ export class ApplicationCreationStep3Component implements OnInit {
 
   ngOnInit(): void {
     this.planForm = this.formBuilder.group({
-      apiId: new UntypedFormControl(null, [Validators.required]),
-      planId: new UntypedFormControl(null, [Validators.required]),
-      general_conditions_accepted: new UntypedFormControl(null),
+      apiId: new FormControl(null, [Validators.required]),
+      planId: new FormControl(null, [Validators.required]),
+      general_conditions_accepted: new FormControl(null),
     });
 
     this.planForm.valueChanges.pipe(distinctUntilChanged((prev, curr) => prev.planId === curr.planId)).subscribe(() => {
