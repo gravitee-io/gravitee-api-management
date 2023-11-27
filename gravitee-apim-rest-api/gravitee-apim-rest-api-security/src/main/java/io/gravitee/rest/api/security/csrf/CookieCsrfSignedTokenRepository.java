@@ -19,6 +19,7 @@ import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
+import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,6 +27,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.UUID;
+import lombok.SneakyThrows;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -41,7 +43,7 @@ import org.springframework.web.util.WebUtils;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class CookieCsrfSignedTokenRepository implements InitializingBean, CsrfTokenRepository {
+public class CookieCsrfSignedTokenRepository implements CsrfTokenRepository {
 
     private final Logger LOGGER = LoggerFactory.getLogger(CookieCsrfSignedTokenRepository.class);
 
@@ -58,11 +60,8 @@ public class CookieCsrfSignedTokenRepository implements InitializingBean, CsrfTo
     @Autowired
     private CookieGenerator cookieGenerator;
 
-    @Value("${jwt.secret}")
-    private String secret;
-
-    @Value("${jwt.issuer:" + DEFAULT_JWT_ISSUER + "}")
-    private String issuer;
+    @Autowired
+    private Configuration configuration;
 
     private JWSSigner signer;
     private JWSVerifier verifier;
@@ -79,7 +78,10 @@ public class CookieCsrfSignedTokenRepository implements InitializingBean, CsrfTo
     }
 
     @Override
+    @SneakyThrows
     public void saveToken(CsrfToken token, HttpServletRequest request, HttpServletResponse response) {
+        initializeSignerAndVerifier();
+
         if (request.getAttribute(DEFAULT_CSRF_COOKIE_NAME) != null) {
             // Token already persisted in cookie.
             return;
@@ -94,7 +96,7 @@ public class CookieCsrfSignedTokenRepository implements InitializingBean, CsrfTo
         String tokenValue = token.getToken();
 
         try {
-            JWTClaimsSet claims = new JWTClaimsSet.Builder().issuer(issuer).issueTime(new Date()).claim(TOKEN_CLAIM, tokenValue).build();
+            JWTClaimsSet claims = new JWTClaimsSet.Builder().issuer(issuer()).issueTime(new Date()).claim(TOKEN_CLAIM, tokenValue).build();
 
             JWSObject jwsObject = new JWSObject(new JWSHeader((JWSAlgorithm.HS256)), new Payload(claims.toJSONObject()));
             jwsObject.sign(signer);
@@ -108,7 +110,9 @@ public class CookieCsrfSignedTokenRepository implements InitializingBean, CsrfTo
     }
 
     @Override
+    @SneakyThrows
     public CsrfToken loadToken(HttpServletRequest request) {
+        initializeSignerAndVerifier();
         Cookie cookie = WebUtils.getCookie(request, DEFAULT_CSRF_COOKIE_NAME);
         if (cookie == null) {
             return null;
@@ -137,13 +141,22 @@ public class CookieCsrfSignedTokenRepository implements InitializingBean, CsrfTo
         return null;
     }
 
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        // Add padding if necessary
-        // HS256 need, at least, 32 ascii characters
-        secret = org.apache.commons.lang3.StringUtils.leftPad(secret, 32, '0');
+    private void initializeSignerAndVerifier() throws Exception {
+        if (signer == null || verifier == null) {
+            // Add padding if necessary
+            // HS256 need, at least, 32 ascii characters
+            final String secret = org.apache.commons.lang3.StringUtils.leftPad(secret(), 32, '0');
 
-        signer = new MACSigner(secret);
-        verifier = new MACVerifier(secret);
+            signer = new MACSigner(secret);
+            verifier = new MACVerifier(secret);
+        }
+    }
+
+    private String issuer() {
+        return configuration.getProperty("jwt.issuer", DEFAULT_JWT_ISSUER);
+    }
+
+    private String secret() {
+        return configuration.getProperty("jwt.secret");
     }
 }

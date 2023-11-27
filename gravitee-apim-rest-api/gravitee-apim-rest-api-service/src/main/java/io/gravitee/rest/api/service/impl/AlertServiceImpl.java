@@ -20,8 +20,7 @@ import static io.gravitee.rest.api.model.alert.AlertReferenceType.APPLICATION;
 import static io.gravitee.rest.api.service.common.ReferenceContext.Type.ENVIRONMENT;
 import static io.gravitee.rest.api.service.common.ReferenceContext.Type.ORGANIZATION;
 import static io.gravitee.rest.api.service.impl.AbstractService.convert;
-import static java.util.Comparator.*;
-import static java.util.Optional.ofNullable;
+import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -36,6 +35,7 @@ import io.gravitee.alert.api.trigger.command.Handler;
 import io.gravitee.alert.api.trigger.command.ResolvePropertyCommand;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.utils.UUID;
+import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.notifier.api.Notification;
 import io.gravitee.plugin.alert.AlertTriggerProviderManager;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -70,7 +70,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -97,17 +96,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
     private static final String METADATA_DELETED_APPLICATION_NAME = "Deleted application";
     private static final String METADATA_DELETED_PLAN_NAME = "Deleted plan";
 
-    private final String subject;
-    private final String host;
-    private final String port;
-    private final String username;
-    private final String password;
-    private final Set<String> authMethods;
-    private final boolean startTLSEnabled;
-    private final boolean sslTrustAll;
-    private final String sslKeyStore;
-    private final String sslKeyStorePassword;
-
+    private final Configuration configuration;
     private final ObjectMapper mapper;
     private final AlertTriggerRepository alertTriggerRepository;
     private final ApiService apiService;
@@ -125,16 +114,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
 
     @Autowired
     public AlertServiceImpl(
-        @Value("${notifiers.email.subject:[Gravitee.io] %s}") String subject,
-        @Value("${notifiers.email.host:#{null}}") String host,
-        @Value("${notifiers.email.port}") String port,
-        @Value("${notifiers.email.username:#{null}}") String username,
-        @Value("${notifiers.email.password:#{null}}") String password,
-        @Value("${notifiers.email.authMethods:#{null}}") String[] authMethods,
-        @Value("${notifiers.email.starttls.enabled:false}") boolean startTLSEnabled,
-        @Value("${notifiers.email.ssl.trustAll:false}") boolean sslTrustAll,
-        @Value("${notifiers.email.ssl.keyStore:#{null}}") String sslKeyStore,
-        @Value("${notifiers.email.ssl.keyStorePassword:#{null}}") String sslKeyStorePassword,
+        Configuration configuration,
         ObjectMapper mapper,
         @Lazy AlertTriggerRepository alertTriggerRepository,
         @Lazy ApiService apiService,
@@ -148,16 +128,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
         AlertTriggerConverter alertTriggerConverter,
         EnvironmentService environmentService
     ) {
-        this.subject = subject;
-        this.host = host;
-        this.port = port;
-        this.username = username;
-        this.password = password;
-        this.authMethods = ofNullable(authMethods).map(Set::of).orElse(null);
-        this.startTLSEnabled = startTLSEnabled;
-        this.sslTrustAll = sslTrustAll;
-        this.sslKeyStore = sslKeyStore;
-        this.sslKeyStorePassword = sslKeyStorePassword;
+        this.configuration = configuration;
         this.mapper = mapper;
         this.alertTriggerRepository = alertTriggerRepository;
         this.apiService = apiService;
@@ -565,7 +536,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
     private void setDefaultEmailNotifier(final ExecutionContext executionContext, Notification notification) {
         EmailNotifierConfiguration configuration = new EmailNotifierConfiguration();
 
-        if (host == null) {
+        if (host() == null) {
             configuration.setHost(parameterService.find(executionContext, Key.EMAIL_HOST, ParameterReferenceType.ORGANIZATION));
             final String emailPort = parameterService.find(executionContext, Key.EMAIL_PORT, ParameterReferenceType.ORGANIZATION);
             if (emailPort != null) {
@@ -577,23 +548,23 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
                 parameterService.findAsBoolean(executionContext, Key.EMAIL_HOST, ParameterReferenceType.ORGANIZATION)
             );
         } else {
-            configuration.setHost(host);
-            configuration.setPort(Integer.parseInt(port));
-            configuration.setUsername(username);
-            configuration.setPassword(password);
-            configuration.setStartTLSEnabled(startTLSEnabled);
-            configuration.setSslKeyStore(sslKeyStore);
-            configuration.setSslKeyStorePassword(sslKeyStorePassword);
-            configuration.setSslTrustAll(sslTrustAll);
+            configuration.setHost(host());
+            configuration.setPort(port());
+            configuration.setUsername(username());
+            configuration.setPassword(password());
+            configuration.setStartTLSEnabled(startTLSEnabled());
+            configuration.setSslKeyStore(sslKeyStore());
+            configuration.setSslKeyStorePassword(sslKeyStorePassword());
+            configuration.setSslTrustAll(sslTrustAll());
         }
 
-        configuration.setAuthMethods(authMethods);
+        configuration.setAuthMethods(authMethods());
 
         try {
             JsonNode emailNode = mapper.readTree(notification.getConfiguration());
             configuration.setFrom(emailNode.path("from").asText());
             configuration.setTo(emailNode.path("to").asText());
-            configuration.setSubject(String.format(subject, emailNode.path("subject").asText()));
+            configuration.setSubject(String.format(subject(), emailNode.path("subject").asText()));
             configuration.setBody(emailNode.path("body").asText());
 
             notification.setConfiguration(mapper.writeValueAsString(configuration));
@@ -813,5 +784,45 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
 
     private StringCondition stringMatchesCondition(ReferenceContext.Type key, String value) {
         return StringCondition.matches(key.name().toLowerCase(), "(?:.*,|^)" + value + "(?:,.*|$)|\\*").build();
+    }
+
+    private String subject() {
+        return this.configuration.getProperty("notifiers.email.subject", "[Gravitee.io] %s");
+    }
+
+    private String host() {
+        return this.configuration.getProperty("notifiers.email.host");
+    }
+
+    private Integer port() {
+        return this.configuration.getProperty("notifiers.email.port", Integer.class);
+    }
+
+    private String username() {
+        return this.configuration.getProperty("notifiers.email.username");
+    }
+
+    private String password() {
+        return this.configuration.getProperty("notifiers.email.password");
+    }
+
+    private Set<String> authMethods() {
+        return Optional.ofNullable(this.configuration.getProperty("notifiers.email.authMethods", String[].class)).map(Set::of).orElse(null);
+    }
+
+    private boolean startTLSEnabled() {
+        return this.configuration.getProperty("notifiers.email.starttls.enabled", Boolean.class, false);
+    }
+
+    private boolean sslTrustAll() {
+        return this.configuration.getProperty("notifiers.email.ssl.trustAll", Boolean.class, false);
+    }
+
+    private String sslKeyStore() {
+        return this.configuration.getProperty("notifiers.email.ssl.keyStore");
+    }
+
+    private String sslKeyStorePassword() {
+        return this.configuration.getProperty("notifiers.email.ssl.keyStorePassword");
     }
 }

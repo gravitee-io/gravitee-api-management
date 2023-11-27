@@ -40,7 +40,7 @@ public class IdentityProviderPluginConfiguration {
     }
 
     @Bean
-    public ReferenceSerializer referenceSerializer() {
-        return new ReferenceSerializer();
+    public ReferenceSerializer referenceSerializer(io.gravitee.node.api.configuration.Configuration configuration) {
+        return new ReferenceSerializer(configuration);
     }
 }

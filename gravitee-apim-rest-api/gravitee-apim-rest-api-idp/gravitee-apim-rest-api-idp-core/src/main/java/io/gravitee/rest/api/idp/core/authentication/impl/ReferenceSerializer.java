@@ -22,25 +22,26 @@ import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.rest.api.idp.api.identity.IdentityReference;
 import java.util.Base64;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ReferenceSerializer implements ApplicationContextAware {
+public class ReferenceSerializer {
 
-    @Value("${user.reference.secret:s3cR3t4grAv1t33.1Ous3D4R3f3r3nc3}")
-    private String secret;
+    private final Configuration configuration;
 
     private SecretKey secretKey;
+
+    public ReferenceSerializer(Configuration configuration) {
+        this.configuration = configuration;
+    }
 
     /*
     Per JDK-8170157, the unlimited cryptographic policy is now enabled by default.
@@ -61,15 +62,9 @@ public class ReferenceSerializer implements ApplicationContextAware {
         }
     }
     */
-
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) {
-        secretKey = new SecretKeySpec(secret.getBytes(), "AES");
-    }
-
     public String serialize(IdentityReference reference) throws Exception {
         // Create HMAC signer
-        JWSSigner signer = new MACSigner(secretKey.getEncoded());
+        JWSSigner signer = new MACSigner(secretKey().getEncoded());
 
         // Prepare JWT with claims set
         JWTClaimsSet claimsSet = new JWTClaimsSet.Builder().subject(reference.getReference()).issuer(reference.getSource()).build();
@@ -88,7 +83,7 @@ public class ReferenceSerializer implements ApplicationContextAware {
         );
 
         // Perform encryption
-        jweObject.encrypt(new DirectEncrypter(secretKey.getEncoded()));
+        jweObject.encrypt(new DirectEncrypter(secretKey().getEncoded()));
 
         // Serialize to compact form
         return new String(Base64.getEncoder().encode(jweObject.serialize().getBytes()));
@@ -101,15 +96,27 @@ public class ReferenceSerializer implements ApplicationContextAware {
         JWEObject jweObject = JWEObject.parse(sToken);
 
         // Decrypt with shared key
-        jweObject.decrypt(new DirectDecrypter(secretKey.getEncoded()));
+        jweObject.decrypt(new DirectDecrypter(secretKey().getEncoded()));
 
         // Extract payload
         SignedJWT signedJWT = jweObject.getPayload().toSignedJWT();
 
         // Check the HMAC
-        signedJWT.verify(new MACVerifier(secretKey.getEncoded()));
+        signedJWT.verify(new MACVerifier(secretKey().getEncoded()));
 
         // Retrieve the JWT claims
         return new IdentityReference(signedJWT.getJWTClaimsSet().getIssuer(), signedJWT.getJWTClaimsSet().getSubject());
+    }
+
+    private String secret() {
+        return configuration.getProperty("user.reference.secret", "s3cR3t4grAv1t33.1Ous3D4R3f3r3nc3");
+    }
+
+    private SecretKey secretKey() {
+        if (secretKey == null) {
+            secretKey = new SecretKeySpec(secret().getBytes(), "AES");
+        }
+
+        return secretKey;
     }
 }

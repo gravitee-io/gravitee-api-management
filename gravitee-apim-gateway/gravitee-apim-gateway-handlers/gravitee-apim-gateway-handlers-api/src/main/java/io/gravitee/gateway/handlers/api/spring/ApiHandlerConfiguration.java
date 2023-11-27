@@ -59,6 +59,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
 
 /**
@@ -77,6 +78,7 @@ public class ApiHandlerConfiguration {
     @Autowired
     private io.gravitee.node.api.configuration.Configuration configuration;
 
+    @Lazy
     @Bean
     public ApiManager apiManager(EventManager eventManager, GatewayConfiguration gatewayConfiguration, DataEncryptor dataEncryptor) {
         return new ApiManagerImpl(eventManager, gatewayConfiguration, dataEncryptor);
@@ -122,6 +124,7 @@ public class ApiHandlerConfiguration {
         return new SpringComponentProvider(applicationContext);
     }
 
+    @Lazy
     @Bean
     public DataEncryptor apiPropertiesEncryptor(Environment environment) {
         return new DataEncryptor(environment, "api.properties.encryption.secret", "vvLJ4Q8Khvv9tm2tIPdkGEdmgKUruAL6");
