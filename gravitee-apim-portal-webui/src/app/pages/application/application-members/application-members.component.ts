@@ -19,17 +19,6 @@ import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { TranslateService } from '@ngx-translate/core';
 import { FormControl, FormGroup } from '@angular/forms';
 
-import '@gravitee/ui-components/wc/gv-autocomplete';
-import '@gravitee/ui-components/wc/gv-button';
-import '@gravitee/ui-components/wc/gv-confirm';
-import '@gravitee/ui-components/wc/gv-icon';
-import '@gravitee/ui-components/wc/gv-identity-picture';
-import '@gravitee/ui-components/wc/gv-relative-time';
-import '@gravitee/ui-components/wc/gv-input';
-import '@gravitee/ui-components/wc/gv-list';
-import '@gravitee/ui-components/wc/gv-select';
-import '@gravitee/ui-components/wc/gv-table';
-
 import {
   Application,
   ApplicationService,
@@ -46,6 +35,25 @@ import { ItemResourceTypeEnum } from '../../../model/itemResourceType.enum';
 import { NotificationService } from '../../../services/notification.service';
 import { CurrentUserService } from '../../../services/current-user.service';
 import { SearchQueryParam } from '../../../utils/search-query-param.enum';
+
+import '@gravitee/ui-components/wc/gv-autocomplete';
+import '@gravitee/ui-components/wc/gv-button';
+import '@gravitee/ui-components/wc/gv-confirm';
+import '@gravitee/ui-components/wc/gv-icon';
+import '@gravitee/ui-components/wc/gv-identity-picture';
+import '@gravitee/ui-components/wc/gv-relative-time';
+import '@gravitee/ui-components/wc/gv-input';
+import '@gravitee/ui-components/wc/gv-list';
+import '@gravitee/ui-components/wc/gv-select';
+import '@gravitee/ui-components/wc/gv-table';
+
+type AddMemberFormType = FormGroup<{
+  newMemberRole: FormControl<string>;
+}>;
+
+type TransferOwnershipFormType = FormGroup<{
+  primaryOwnerNewRole: FormControl<string>;
+}>;
 
 const StatusEnum = Subscription.StatusEnum;
 @Component({
@@ -99,11 +107,11 @@ export class ApplicationMembersComponent implements OnInit {
   groups: Array<{ groupId: string; groupName: string; groupMembers: Array<Member>; nbGroupMembers: any }>;
   groupMembersOptions: any;
 
-  addMemberForm: FormGroup;
+  addMemberForm: AddMemberFormType;
   userListForAddMember: Array<User> = [];
   selectedUserToAdd: User;
 
-  transferOwnershipForm: FormGroup;
+  transferOwnershipForm: TransferOwnershipFormType;
   userListForTransferOwnership: Array<User> = [];
   selectedUserForTransferOwnership: User;
 

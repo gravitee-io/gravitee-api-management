@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { TranslateService } from '@ngx-translate/core';
-import { FormBuilder, FormControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
+import { FormControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
 
 import {
   Application,
@@ -30,6 +30,13 @@ import { NotificationService } from '../../../services/notification.service';
 
 import '@gravitee/ui-components/wc/gv-table';
 
+type AddMetadataFormType = FormGroup<{
+  name: FormControl<string>;
+  format: FormControl<ReferenceMetadataFormatType>;
+  value: FormControl<any>;
+  new?: FormControl<boolean>;
+}>;
+
 @Component({
   selector: 'app-application-metadata',
   templateUrl: './application-metadata.component.html',
@@ -38,10 +45,8 @@ import '@gravitee/ui-components/wc/gv-table';
 export class ApplicationMetadataComponent implements OnInit {
   constructor(
     private applicationService: ApplicationService,
-    private formBuilder: FormBuilder,
     private translateService: TranslateService,
     private route: ActivatedRoute,
-    private router: Router,
     private notificationService: NotificationService,
     private permissionService: PermissionsService,
     private ref: ChangeDetectorRef,
@@ -60,8 +65,8 @@ export class ApplicationMetadataComponent implements OnInit {
   metadataOptions: any;
   tableTranslations: any[];
 
-  addMetadataForm: FormGroup;
-  updateMetadataForms: Record<string, FormGroup>;
+  addMetadataForm: AddMetadataFormType;
+  updateMetadataForms: Record<string, AddMetadataFormType>;
 
   async ngOnInit() {
     this.application = this.route.snapshot.data.application;
@@ -205,14 +210,14 @@ export class ApplicationMetadataComponent implements OnInit {
   _getUpdateForm(metadata: ReferenceMetadata): FormGroup {
     if (metadata.key == null) {
       metadata.key = `${new Date().getTime()}`;
-      this.updateMetadataForms[metadata.key] = this.formBuilder.group({
+      this.updateMetadataForms[metadata.key] = new FormGroup({
         name: new FormControl(metadata.name, Validators.required),
         format: new FormControl(metadata.format, Validators.required),
         value: new FormControl(metadata.value, Validators.required),
-        new: new FormControl(true),
-      });
+        new: new FormControl(true) as FormControl<boolean>,
+      }) as AddMetadataFormType;
     } else if (this.updateMetadataForms[metadata.key] == null) {
-      this.updateMetadataForms[metadata.key] = this.formBuilder.group({
+      this.updateMetadataForms[metadata.key] = new FormGroup({
         name: new FormControl(metadata.name, Validators.required),
         format: new FormControl(metadata.format, Validators.required),
         value: new FormControl(metadata.value, Validators.required),
@@ -268,7 +273,7 @@ export class ApplicationMetadataComponent implements OnInit {
     return validators;
   }
 
-  private _getDefaultValue(item: any) {
+  private _getDefaultValue(item: any): boolean | null {
     if (item.format.toUpperCase() === 'BOOLEAN') {
       return false;
     }
@@ -356,9 +361,9 @@ export class ApplicationMetadataComponent implements OnInit {
   }
 
   resetAddMetadata() {
-    this.addMetadataForm = this.formBuilder.group({
+    this.addMetadataForm = new FormGroup({
       name: new FormControl(null, Validators.required),
-      format: new FormControl('STRING', Validators.required),
+      format: new FormControl('STRING', Validators.required) as FormControl<ReferenceMetadataFormatType>,
       value: new FormControl(null, Validators.required),
     });
   }
