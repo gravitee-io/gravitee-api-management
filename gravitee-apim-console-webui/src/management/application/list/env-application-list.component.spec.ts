@@ -26,7 +26,7 @@ import { UIRouterModule } from '@uirouter/angular';
 
 import { EnvApplicationListComponent } from './env-application-list.component';
 
-import { EnvironmentApplicationModule } from '../environment-application.module';
+import { ApplicationsModule } from '../applications.module';
 import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { fakePagedResult } from '../../../entities/pagedResult';
@@ -49,7 +49,7 @@ describe('EnvApplicationListComponent', () => {
       TestBed.configureTestingModule({
         imports: [
           NoopAnimationsModule,
-          EnvironmentApplicationModule,
+          ApplicationsModule,
           GioHttpTestingModule,
           UIRouterModule.forRoot({
             useHash: true,
@@ -170,7 +170,7 @@ describe('EnvApplicationListComponent', () => {
       TestBed.configureTestingModule({
         imports: [
           NoopAnimationsModule,
-          EnvironmentApplicationModule,
+          ApplicationsModule,
           GioHttpTestingModule,
           UIRouterModule.forRoot({
             useHash: true,

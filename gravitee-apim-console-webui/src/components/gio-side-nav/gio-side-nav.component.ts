@@ -103,6 +103,7 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
       },
       {
         icon: 'gio:multi-window',
+        routerLink: './applications',
         targetRoute: 'management.applications.list',
         baseRoute: 'management.applications',
         displayName: 'Applications',

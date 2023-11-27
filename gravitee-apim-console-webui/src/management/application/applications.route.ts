@@ -15,12 +15,18 @@
  */
 import { StateParams, StateService } from '@uirouter/core';
 import * as _ from 'lodash';
+import { NgModule } from '@angular/core';
+import { RouterModule, Routes } from '@angular/router';
+
+import { ApplicationsModule } from './applications.module';
+import { ApplicationNavigationComponent } from './application-navigation/application-navigation.component';
 
 import { ApplicationType } from '../../entities/application';
 import ApplicationService from '../../services/application.service';
 import ApplicationTypesService from '../../services/applicationTypes.service';
 import EnvironmentService from '../../services/environment.service';
 import GroupService from '../../services/group.service';
+import { HasEnvironmentPermissionGuard } from '../has-environment-permission.guard';
 
 export default applicationsConfig;
 
@@ -531,4 +537,19 @@ function applicationsConfig($stateProvider) {
       },
     });
 }
-applicationsConfig.$inject = ['$stateProvider'];
+
+const applicationRoutes: Routes = [
+  {
+    path: '',
+    component: ApplicationNavigationComponent,
+    canActivate: [HasEnvironmentPermissionGuard],
+    canActivateChild: [HasEnvironmentPermissionGuard],
+    children: [],
+  },
+];
+
+@NgModule({
+  imports: [ApplicationsModule, RouterModule.forChild(applicationRoutes)],
+  exports: [RouterModule],
+})
+export class ApplicationsRouteModule {}

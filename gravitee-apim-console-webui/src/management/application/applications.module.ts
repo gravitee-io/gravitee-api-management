@@ -27,10 +27,9 @@ import { MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { NgModule } from '@angular/core';
-import { UIRouterModule } from '@uirouter/angular';
 
 import { EnvApplicationListComponent } from './list/env-application-list.component';
-import { ApplicationNavigationModule } from './details/application-navigation/application-navigation.module';
+import { ApplicationNavigationModule } from './application-navigation/application-navigation.module';
 import { ApplicationNotificationSettingsModule } from './details/notifications/notification-settings/application-notification-settings.module';
 import { ApplicationMetadataModule } from './details/metadata/application-metadata.module';
 import { ApplicationGeneralModule } from './details/general/general-ng/application-general.module';
@@ -64,7 +63,6 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
     MatTooltipModule,
 
     ApplicationNavigationModule,
-    UIRouterModule,
     ApplicationNotificationSettingsModule,
     ApplicationMetadataModule,
     ApplicationGeneralModule,
@@ -75,4 +73,4 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
   entryComponents: [EnvApplicationListComponent],
   providers: [],
 })
-export class EnvironmentApplicationModule {}
+export class ApplicationsModule {}
