@@ -16,7 +16,6 @@
 
 package io.gravitee.apim.core.integration.model;
 
-import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -30,19 +29,16 @@ import lombok.NoArgsConstructor;
 @Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class IntegrationEntity {
+public class Page {
 
-    String id;
-    String name;
-    String version;
-    Type type;
-    String host;
-    String path;
-    String description;
-    List<Page> pages;
+    PageType pageType;
+    String content;
 
-    public enum Type {
-        OPENAPI,
+    public enum PageType {
+        ASCIIDOC,
         ASYNCAPI,
+        MARKDOWN,
+        MARKDOWN_TEMPLATE,
+        SWAGGER,
     }
 }

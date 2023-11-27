@@ -51,6 +51,11 @@ import io.gravitee.apim.core.documentation.use_case.ApiGetDocumentationPagesUseC
 import io.gravitee.apim.core.documentation.use_case.ApiPublishDocumentationPageUseCase;
 import io.gravitee.apim.core.documentation.use_case.ApiUnpublishDocumentationPageUseCase;
 import io.gravitee.apim.core.documentation.use_case.ApiUpdateDocumentationPageUseCase;
+import io.gravitee.apim.core.documentation.usecase.ApiCreateDocumentationPageUsecase;
+import io.gravitee.apim.core.documentation.usecase.ApiGetDocumentationPageUsecase;
+import io.gravitee.apim.core.documentation.usecase.ApiGetDocumentationPagesUsecase;
+import io.gravitee.apim.core.documentation.usecase.ApiPublishDocumentationPageUsecase;
+import io.gravitee.apim.core.documentation.usecase.ApiUpdateDocumentationPageUsecase;
 import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
 import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
 import io.gravitee.apim.core.integration.domain_service.IntegrationDomainService;
@@ -84,10 +89,8 @@ import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomain
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
 import io.gravitee.apim.core.subscription.use_case.CloseExpiredSubscriptionsUseCase;
 import io.gravitee.apim.core.subscription.use_case.CloseSubscriptionUseCase;
-import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.PageService;
-import io.gravitee.rest.api.service.SwaggerService;
-import io.gravitee.rest.api.service.converter.ApiConverter;
+import io.gravitee.rest.api.service.v4.ApiService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -395,18 +398,9 @@ public class UsecaseSpringConfiguration {
     public IntegrationImportUsecase integrationImportUsecase(
         IntegrationDomainService integrationDomainService,
         IntegrationCrudService integrationCrudService,
-        SwaggerService swaggerService,
         ApiService apiService,
-        PageService pageService,
-        ApiConverter apiConverter
+        PageService pageService
     ) {
-        return new IntegrationImportUsecase(
-            integrationDomainService,
-            integrationCrudService,
-            swaggerService,
-            apiService,
-            pageService,
-            apiConverter
-        );
+        return new IntegrationImportUsecase(integrationDomainService, integrationCrudService, apiService, pageService);
     }
 }
