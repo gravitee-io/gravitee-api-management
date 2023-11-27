@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import '@gravitee/ui-components/wc/gv-stepper';
 import '@gravitee/ui-components/wc/gv-option';
 import '@gravitee/ui-components/wc/gv-switch';
@@ -28,17 +28,18 @@ import { ConfigurationService } from '../../../services/configuration.service';
 import {
   Api,
   ApiKeyModeEnum,
-  ApiService,
   Application,
   ApplicationInput,
   ApplicationService,
   ApplicationType,
   Plan,
-  PortalService,
   SubscriptionService,
 } from '../../../../../projects/portal-webclient-sdk/src/lib';
 import { NotificationService } from '../../../services/notification.service';
 import { FeatureEnum } from '../../../model/feature.enum';
+
+import { AppFormType, OAuthFormType } from './application-creation-step2/application-creation-step2.component';
+import { CreationFormType } from './application-creation-step1/application-creation-step1.component';
 
 const SecurityEnum = Plan.SecurityEnum;
 
@@ -54,6 +55,14 @@ interface StepState {
   invalid: boolean;
 }
 
+type ApplicationFormType = FormGroup<{
+  name: FormControl<string>;
+  description: FormControl<string>;
+  domain: FormControl<string>;
+  picture: FormControl<string>;
+  settings: AppFormType | OAuthFormType;
+}>;
+
 @Component({
   selector: 'app-application-creation',
   templateUrl: './application-creation.component.html',
@@ -63,7 +72,7 @@ export class ApplicationCreationComponent implements OnInit {
   private _allSteps: any;
   steps: any;
   currentStep: number;
-  applicationForm: UntypedFormGroup;
+  applicationForm: ApplicationFormType;
   allowedTypes: Array<ApplicationTypeOption>;
   plans: Array<Plan>;
   subscribeList: {
@@ -87,21 +96,18 @@ export class ApplicationCreationComponent implements OnInit {
   creationError: boolean;
   createdApplication: Application;
   applicationType: ApplicationTypeOption;
-  private stepOneForm: UntypedFormGroup;
-  private stepTwoForm: UntypedFormGroup;
+  private stepOneForm: CreationFormType;
+  private stepTwoForm: AppFormType | OAuthFormType;
 
   subscriptionErrors: { api: Api; message: string }[];
 
   constructor(
     private translateService: TranslateService,
     private configurationService: ConfigurationService,
-    private formBuilder: UntypedFormBuilder,
+    private formBuilder: FormBuilder,
     private router: Router,
     private route: ActivatedRoute,
-    private portalService: PortalService,
     private notificationService: NotificationService,
-    private apiService: ApiService,
-    private activatedRoute: ActivatedRoute,
     private subscriptionService: SubscriptionService,
     private applicationService: ApplicationService,
     private ref: ChangeDetectorRef,
@@ -149,15 +155,15 @@ export class ApplicationCreationComponent implements OnInit {
     );
 
     this.applicationForm = this.formBuilder.group({
-      name: new UntypedFormControl(null, [Validators.required]),
-      description: new UntypedFormControl(null, [Validators.required]),
-      domain: new UntypedFormControl(null),
-      picture: new UntypedFormControl(null),
-      settings: new UntypedFormControl(null, [Validators.required]),
+      name: new FormControl(null, [Validators.required]),
+      description: new FormControl(null, [Validators.required]),
+      domain: new FormControl(null),
+      picture: new FormControl(null),
+      settings: new FormGroup(null, [Validators.required]),
     });
   }
 
-  setCurrentStep(step) {
+  setCurrentStep(step: number) {
     if (!this.creationSuccess) {
       if (!this.readSteps.includes(step)) {
         this.readSteps.push(step);
@@ -196,8 +202,8 @@ export class ApplicationCreationComponent implements OnInit {
       (plan.security?.toUpperCase() === Plan.SecurityEnum.OAUTH2 || plan.security?.toUpperCase() === Plan.SecurityEnum.JWT)
     ) {
       const { settings } = this.applicationForm.getRawValue();
-      if (settings.app) {
-        if (settings.app.client_id == null || settings.app.client_id.trim() === '') {
+      if ((settings as any).app) {
+        if ((settings as any).app.client_id == null || (settings as any).app.client_id.trim() === '') {
           return false;
         }
       }
@@ -216,7 +222,7 @@ export class ApplicationCreationComponent implements OnInit {
     return plan && plan.comment_required;
   }
 
-  onStepOneUpdated(stepOneForm: UntypedFormGroup) {
+  onStepOneUpdated(stepOneForm: CreationFormType) {
     this.stepOneForm = stepOneForm;
     this.applicationForm.patchValue(this.stepOneForm.getRawValue());
     this.updateSteps();
@@ -233,7 +239,7 @@ export class ApplicationCreationComponent implements OnInit {
     return { description: '', valid: false, invalid: false };
   }
 
-  onStepTwoUpdated(stepTwoForm: UntypedFormGroup) {
+  onStepTwoUpdated(stepTwoForm: AppFormType | OAuthFormType) {
     this.stepTwoForm = stepTwoForm;
     this.applicationForm.get('settings').patchValue(this.stepTwoForm.getRawValue());
     this.updateSteps();
