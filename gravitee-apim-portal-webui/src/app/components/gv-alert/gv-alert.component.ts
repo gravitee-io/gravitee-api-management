@@ -49,6 +49,20 @@ export enum AlertMode {
   READING = 'READING',
 }
 
+type AlertFormType = FormGroup<{
+  api: FormControl<string>;
+  type: FormControl<AlertType>;
+  duration: FormControl<number>;
+  timeUnit: FormControl<AlertTimeUnit>;
+  description: FormControl<string>;
+  hasWebhook: FormControl<boolean>;
+  webhookMethod: FormControl<HttpMethod>;
+  webhookUrl: FormControl<string>;
+  status?: FormControl<string>;
+  threshold?: FormControl<number>;
+  responseTime?: FormControl<number>;
+}>;
+
 @Component({
   selector: 'app-gv-alert',
   templateUrl: './gv-alert.component.html',
@@ -64,7 +78,7 @@ export class GvAlertComponent implements OnInit, OnDestroy {
 
   application: Application;
   permissions: Array<string>;
-  alertForm: FormGroup;
+  alertForm: AlertFormType;
   types: Array<any>;
   timeUnits: Array<any>;
   webhookHttpMethods: Array<HttpMethod>;
@@ -279,10 +293,10 @@ export class GvAlertComponent implements OnInit, OnDestroy {
     this.alertForm = new FormGroup({
       api: new FormControl(''),
       type: new FormControl(AlertType.STATUS, [Validators.required]),
-      duration: new FormControl('1'),
+      duration: new FormControl(1),
       timeUnit: new FormControl(AlertTimeUnit.MINUTES, [Validators.required]),
       description: new FormControl(''),
-      hasWebhook: new FormControl(false),
+      hasWebhook: new FormControl<boolean>(false),
       webhookMethod: new FormControl(HttpMethod.POST),
       webhookUrl: new FormControl(''),
     });
@@ -300,38 +314,38 @@ export class GvAlertComponent implements OnInit, OnDestroy {
     return this.permissions?.find(p => p === 'U');
   }
 
-  hasReadPermission() {
-    return this.permissions?.find(p => p === 'R');
-  }
-
   private resetAddAlertStatus() {
     this.alertForm.addControl('status', new FormControl('4xx', [Validators.required]));
-    this.alertForm.addControl('threshold', new FormControl('1', [Validators.min(1), Validators.max(100)]));
+    this.alertForm.addControl('threshold', new FormControl(1, [Validators.min(1), Validators.max(100)]));
     this.alertForm.removeControl('responseTime');
   }
 
   private resetAddAlertResponseTime() {
     this.alertForm.removeControl('status');
     this.alertForm.removeControl('threshold');
-    this.alertForm.addControl('responseTime', new FormControl('1', [Validators.min(1), Validators.max(100000)]));
+    this.alertForm.addControl('responseTime', new FormControl(1, [Validators.min(1), Validators.max(100000)]));
   }
 
   edit() {
     this.mode = AlertMode.EDITION;
 
-    const conditionalForm = this.isStatusAlert
+    const conditionalForm: {
+      status?: FormControl<string>;
+      threshold?: FormControl<number>;
+      responseTime?: FormControl<number>;
+    } = this.isStatusAlert
       ? {
           status: new FormControl(this.alert.status_code, [Validators.required]),
-          threshold: new FormControl('' + this.alert.status_percent, [Validators.min(1), Validators.max(100)]),
+          threshold: new FormControl(this.alert.status_percent, [Validators.min(1), Validators.max(100)]),
         }
       : {
-          responseTime: new FormControl('' + this.alert.response_time, [Validators.min(1), Validators.max(100000)]),
+          responseTime: new FormControl<number>(this.alert.response_time, [Validators.min(1), Validators.max(100000)]),
         };
     this.alertForm = new FormGroup({
       type: new FormControl({ value: this.alert.type, disabled: true }),
       api: new FormControl(this.alert.api),
       duration: new FormControl(this.alert.duration),
-      timeUnit: new FormControl(this.alert.time_unit.toUpperCase(), [Validators.required]),
+      timeUnit: new FormControl(this.alert.time_unit, [Validators.required]),
       description: new FormControl(this.alert.description),
       hasWebhook: new FormControl(!!this.alert.webhook),
       webhookMethod: new FormControl(this.alert.webhook ? this.alert.webhook.httpMethod : HttpMethod.POST),

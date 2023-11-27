@@ -24,6 +24,13 @@ import { CustomUserFields, User, UserService, UsersService } from '../../../../.
 import { EventService, GvEvent } from '../../../services/event.service';
 import { NotificationService } from '../../../services/notification.service';
 
+type UserFormType = FormGroup<{
+  last_name: FormControl<string>;
+  first_name: FormControl<string>;
+  email: FormControl<string>;
+  avatar: FormControl<string>;
+}>;
+
 @Component({
   selector: 'app-user-account',
   templateUrl: './user-account.component.html',
@@ -32,7 +39,7 @@ import { NotificationService } from '../../../services/notification.service';
 export class UserAccountComponent implements OnInit, OnDestroy {
   private subscription: any;
   public currentUser: User;
-  public userForm: FormGroup;
+  public userForm: UserFormType;
   customUserFields: Array<CustomUserFields>;
 
   fields: any = {};
@@ -55,7 +62,7 @@ export class UserAccountComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.subscription = this.currentUserService.get().subscribe(user => {
       this.currentUser = user;
-      const formDescriptor: any = {
+      const formDescriptor = {
         last_name: new FormControl({ value: this.lastName, disabled: !this.isProfileEditable }, Validators.required),
         first_name: new FormControl({ value: this.firstName, disabled: !this.isProfileEditable }, Validators.required),
         email: new FormControl({ value: this.email, disabled: !this.isProfileEditable }, Validators.email),
@@ -71,7 +78,7 @@ export class UserAccountComponent implements OnInit, OnDestroy {
 
             if (this.customUserFields) {
               this.customUserFields.forEach(field => {
-                const controlField = new FormControl('', field.required ? Validators.required : null);
+                const controlField = new FormControl<any>('', field.required ? Validators.required : null);
                 controlField.setValue(this.currentUser.customFields[field.key]);
                 formDescriptor[field.key] = controlField;
               });

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 
 import { ChangeUserPasswordInput, UsersService } from '../../../../../projects/portal-webclient-sdk/src/lib';
@@ -22,13 +22,21 @@ import { TokenService } from '../../../services/token.service';
 import { GvValidators } from '../../../utils/gv-validators';
 import { ReCaptchaService } from '../../../services/recaptcha.service';
 
+type ResetPasswordConfirmationFormType = FormGroup<{
+  firstname: FormControl<string>;
+  lastname: FormControl<string>;
+  email: FormControl<string>;
+  password: FormControl<string>;
+  confirmedPassword: FormControl<string>;
+}>;
+
 @Component({
   selector: 'app-reset-password-confirmation',
   templateUrl: './reset-password-confirmation.component.html',
   styleUrls: ['./reset-password-confirmation.component.css'],
 })
 export class ResetPasswordConfirmationComponent implements OnInit {
-  resetPasswordConfirmationForm: FormGroup;
+  resetPasswordConfirmationForm: ResetPasswordConfirmationFormType;
   isSubmitted: boolean;
   token: string;
   userFromToken: any;
@@ -36,7 +44,6 @@ export class ResetPasswordConfirmationComponent implements OnInit {
 
   constructor(
     private usersService: UsersService,
-    private formBuilder: FormBuilder,
     private route: ActivatedRoute,
     private tokenService: TokenService,
     private reCaptchaService: ReCaptchaService,
@@ -48,7 +55,7 @@ export class ResetPasswordConfirmationComponent implements OnInit {
     this.userFromToken = this.tokenService.parseToken(this.token);
     this.isTokenExpired = this.tokenService.isParsedTokenExpired(this.userFromToken);
 
-    this.resetPasswordConfirmationForm = this.formBuilder.group({
+    this.resetPasswordConfirmationForm = new FormGroup({
       firstname: new FormControl({ value: this.userFromToken.firstname, disabled: true }),
       lastname: new FormControl({ value: this.userFromToken.lastname, disabled: true }),
       email: new FormControl({ value: this.userFromToken.email, disabled: true }),
