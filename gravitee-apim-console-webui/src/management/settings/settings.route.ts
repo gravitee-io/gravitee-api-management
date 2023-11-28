@@ -19,6 +19,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { SettingsNavigationComponent } from '../configuration/settings-navigation/settings-navigation.component';
 import { SettingsAnalyticsComponent } from '../configuration/analytics/settings-analytics.component';
 import { SettingsAnalyticsDashboardComponent } from '../configuration/analytics/dashboard/settings-analytics-dashboard.component';
+import { ApiPortalHeaderComponent } from '../configuration/api-portal-header/api-portal-header.component';
 
 export const settingsRoutes: Routes = [
   {
@@ -62,6 +63,20 @@ export const settingsRoutes: Routes = [
           },
           perms: {
             only: ['environment-dashboard-u'],
+          },
+        },
+      },
+      {
+        path: 'api-portal-header',
+        component: ApiPortalHeaderComponent,
+        data: {
+          menu: null,
+          docs: {
+            page: 'management-configuration-apiportalheader',
+          },
+          perms: {
+            only: ['environment-api_header-r'],
+            unauthorizedFallbackTo: 'management.settings.apiQuality.list',
           },
         },
       },

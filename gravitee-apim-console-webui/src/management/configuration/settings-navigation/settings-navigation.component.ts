@@ -70,8 +70,7 @@ export class SettingsNavigationComponent implements OnInit {
           },
           {
             displayName: 'API Portal Information',
-            targetRoute: 'management.settings.apiPortalHeader',
-            baseRoute: 'management.settings.apiPortalHeader',
+            routerLink: './api-portal-header',
             permissions: ['environment-api_header-r'],
           },
           {
