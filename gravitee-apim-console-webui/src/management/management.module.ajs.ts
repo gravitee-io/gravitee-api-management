@@ -280,7 +280,6 @@ import EntrypointService from '../services/entrypoint.service';
 
 import SelectFolderDialogController from '../components/documentation/dialog/selectfolder.controller';
 import SelectPageDialogController from '../components/documentation/dialog/selectpage.controller';
-import AnalyticsSettingsComponent from './configuration/analytics/analytics.component';
 // Settings - Client Registration
 import { ClientRegistrationProvidersComponent } from './configuration/client-registration-providers/client-registration-providers.component';
 
@@ -448,6 +447,7 @@ import { ApplicationGeneralMembersComponent } from './application/details/user-g
 import { ApplicationGeneralGroupsComponent } from './application/details/user-group-access/groups/application-general-groups.component';
 import { ApplicationGeneralTransferOwnershipComponent } from './application/details/user-group-access/transfer-ownership/application-general-transfer-ownership.component';
 import SupportTicketsListComponentAjs from './support/tickets-list.component.ajs';
+import SettingsAnalyticsComponentAjs from './configuration/analytics/settings-analytics.component.ajs';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -717,7 +717,7 @@ graviteeManagementModule.component('topApis', TopApisComponent);
 graviteeManagementModule.factory('ngCockpitService', downgradeInjectable(CockpitService));
 
 graviteeManagementModule.component('portalSettings', PortalSettingsComponent);
-graviteeManagementModule.component('analyticsSettings', AnalyticsSettingsComponent);
+graviteeManagementModule.component('settingsAnalyticsAjs', SettingsAnalyticsComponentAjs);
 graviteeManagementModule.directive('gvMetadataValidator', () => MetadataValidatorDirective);
 graviteeManagementModule.component('customUserFields', CustomUserFieldsComponent);
 graviteeManagementModule.component('ticketDetail', TicketDetailComponentAjs);
