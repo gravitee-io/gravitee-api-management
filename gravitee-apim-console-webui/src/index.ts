@@ -31,7 +31,10 @@ import { Constants } from './entities/Constants';
 import { getFeatureInfoData } from './shared/components/gio-license/gio-license-data';
 import { ConsoleCustomization } from './entities/management-api-v2/consoleCustomization';
 
-const configNoCache = { headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' } };
+const requestConfig: RequestInit = {
+  headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' },
+  credentials: 'omit',
+};
 
 // fix angular-schema-form angular<1.7
 Object.assign(angular, { lowercase: _.toLower, uppercase: _.toUpper });
@@ -47,14 +50,15 @@ fetchData().then(({ constants, build }) => {
 
 function fetchData(): Promise<{ constants: Constants; build: any }> {
   return Promise.all([
-    fetch('build.json', configNoCache).then((r) => r.json()),
-    fetch('constants.json', configNoCache).then((r) => r.json()),
+    fetch('build.json', requestConfig).then((r) => r.json()),
+    fetch('constants.json', requestConfig).then((r) => r.json()),
   ])
     .then(([buildResponse, constantsResponse]) => {
       const baseURL = sanitizeBaseURLs(constantsResponse);
       const enforcedOrganizationId = getEnforcedOrganizationId(constantsResponse);
       return fetch(
         enforcedOrganizationId ? `${baseURL}/v2/ui/bootstrap?organizationId=${enforcedOrganizationId}` : `${baseURL}/v2/ui/bootstrap`,
+        requestConfig,
       )
         .then((r) => r.json())
         .then((bootstrapResponse: { baseURL: string; organizationId: string }) => ({
@@ -69,9 +73,9 @@ function fetchData(): Promise<{ constants: Constants; build: any }> {
       constants.production = production ?? true;
 
       return Promise.all([
-        fetch(`${constants.org.baseURL}/console`).then((r) => r.json()),
-        fetch(`${constants.v2BaseURL}/ui/customization`).then((r) => (r.status === 200 ? r.json() : null)),
-        fetch(`${constants.org.baseURL}/social-identities`).then((r) => r.json()),
+        fetch(`${constants.org.baseURL}/console`, requestConfig).then((r) => r.json()),
+        fetch(`${constants.v2BaseURL}/ui/customization`, requestConfig).then((r) => (r.status === 200 ? r.json() : null)),
+        fetch(`${constants.org.baseURL}/social-identities`, requestConfig).then((r) => r.json()),
       ]).then(([consoleResponse, uiCustomizationResponse, identityProvidersResponse]) => {
         if (uiCustomizationResponse) {
           customizeUI(uiCustomizationResponse);
