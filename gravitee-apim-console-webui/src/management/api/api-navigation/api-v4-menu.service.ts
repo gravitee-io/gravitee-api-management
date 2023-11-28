@@ -82,8 +82,8 @@ export class ApiV4MenuService implements ApiMenuService {
       items: [
         {
           displayName: 'Info',
-          targetRoute: 'management.apis.general',
-          baseRoute: 'management.apis.general',
+          routerLink: '.',
+          routerLinkActiveOptions: { exact: true },
         },
       ],
     };
@@ -96,15 +96,13 @@ export class ApiV4MenuService implements ApiMenuService {
     if (this.permissionService.hasAnyMatching(['api-plan-r'])) {
       plansMenuItem.tabs.push({
         displayName: 'Plans',
-        targetRoute: 'management.apis.plans',
-        baseRoute: ['management.apis.plans', 'management.apis.plan'],
+        routerLink: 'plans',
       });
     }
     if (this.permissionService.hasAnyMatching(['api-subscription-r'])) {
       plansMenuItem.tabs.push({
         displayName: 'Subscriptions',
-        targetRoute: 'management.apis.subscriptions',
-        baseRoute: ['management.apis.subscriptions', 'management.apis.subscription'],
+        routerLink: 'subscriptions',
       });
     }
     if (plansMenuItem.tabs.length > 0) {
@@ -115,24 +113,20 @@ export class ApiV4MenuService implements ApiMenuService {
       generalGroup.items.push(
         {
           displayName: 'Properties',
-          targetRoute: 'management.apis.properties',
-          baseRoute: ['management.apis.properties', 'management.apis.dynamicProperties'],
           tabs: [
             {
               displayName: 'Properties',
-              targetRoute: 'management.apis.properties',
-              baseRoute: 'management.apis.properties',
+              routerLink: 'properties',
             },
             {
               displayName: 'Dynamic properties',
-              targetRoute: 'DISABLED',
+              routerLink: 'DISABLED',
             },
           ],
         },
         {
           displayName: 'Resources',
-          targetRoute: 'management.apis.resources',
-          baseRoute: 'management.apis.resources',
+          routerLink: 'resources',
         },
       );
     }
@@ -153,21 +147,18 @@ export class ApiV4MenuService implements ApiMenuService {
       userAndGroupAccessMenuItems.tabs.push(
         {
           displayName: 'Members',
-          targetRoute: 'management.apis.members',
-          baseRoute: 'management.apis.members',
+          routerLink: 'members',
         },
         {
           displayName: 'Groups',
-          targetRoute: 'management.apis.groups',
-          baseRoute: 'management.apis.groups',
+          routerLink: 'groups',
         },
       );
     }
     if (this.currentUserService.currentUser.isOrganizationAdmin() || this.permissionService.hasAnyMatching(['api-member-u'])) {
       userAndGroupAccessMenuItems.tabs.push({
         displayName: 'Transfer ownership',
-        targetRoute: 'management.apis.transferOwnership',
-        baseRoute: 'management.apis.transferOwnership',
+        routerLink: 'transfer-ownership',
       });
     }
     if (userAndGroupAccessMenuItems.tabs.length > 0) {
@@ -217,19 +208,19 @@ export class ApiV4MenuService implements ApiMenuService {
     if (this.permissionService.hasAnyMatching(['api-analytics-r'])) {
       analyticsGroup.items.push({
         displayName: 'Overview',
-        targetRoute: 'DISABLED',
+        routerLink: 'DISABLED',
       });
     }
     if (this.permissionService.hasAnyMatching(['api-definition-u'])) {
       analyticsGroup.items.push({
         displayName: 'Path mappings',
-        targetRoute: 'DISABLED',
+        routerLink: 'DISABLED',
       });
     }
     if (!this.constants.isOEM && this.constants.org.settings.alert?.enabled && this.permissionService.hasAnyMatching(['api-alert-r'])) {
       analyticsGroup.items.push({
         displayName: 'Alerts',
-        targetRoute: 'DISABLED',
+        routerLink: 'DISABLED',
       });
     }
 
@@ -245,19 +236,19 @@ export class ApiV4MenuService implements ApiMenuService {
     if (this.permissionService.hasAnyMatching(['api-audit-r'])) {
       auditGroup.items.push({
         displayName: 'Audit',
-        targetRoute: 'DISABLED',
+        routerLink: 'DISABLED',
       });
     }
     if (this.permissionService.hasAnyMatching(['api-event-r'])) {
       auditGroup.items.push({
         displayName: 'History',
-        targetRoute: 'DISABLED',
+        routerLink: 'DISABLED',
       });
     }
     if (this.permissionService.hasAnyMatching(['api-event-u'])) {
       auditGroup.items.push({
         displayName: 'Events',
-        targetRoute: 'DISABLED',
+        routerLink: 'DISABLED',
       });
     }
 
@@ -273,14 +264,14 @@ export class ApiV4MenuService implements ApiMenuService {
     if (this.permissionService.hasAnyMatching(['api-notification-r'])) {
       notificationsGroup.items.push({
         displayName: 'Notification settings',
-        targetRoute: 'DISABLED',
+        routerLink: 'DISABLED',
       });
     }
 
     if (!this.constants.isOEM && this.constants.org.settings.alert?.enabled && this.permissionService.hasAnyMatching(['api-alert-r'])) {
       notificationsGroup.items.push({
         displayName: 'Alerts',
-        targetRoute: 'DISABLED',
+        routerLink: 'DISABLED',
       });
     }
 
