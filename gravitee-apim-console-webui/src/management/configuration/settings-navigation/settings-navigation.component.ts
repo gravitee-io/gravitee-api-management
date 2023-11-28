@@ -26,8 +26,9 @@ import { GioPermissionService } from '../../../shared/components/gio-permission/
 interface MenuItem {
   // @deprecated
   targetRoute?: string;
-  routerLink?: string;
+  // @deprecated
   baseRoute?: string | string[];
+  routerLink?: string;
   displayName: string;
   permissions?: string[];
 }
@@ -65,8 +66,6 @@ export class SettingsNavigationComponent implements OnInit {
           {
             displayName: 'Analytics',
             routerLink: './analytics',
-            // targetRoute: 'management.settings.analytics.list',
-            baseRoute: ['management.settings.analytics'],
             permissions: ['environment-dashboard-r'],
           },
           {

@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { StateService } from '@uirouter/core';
 import * as _ from 'lodash';
+import { Router } from '@angular/router';
 
 import { Dashboard } from '../../../entities/dashboard';
 import DashboardService from '../../../services/dashboard.service';
@@ -22,42 +22,44 @@ import NotificationService from '../../../services/notification.service';
 import PortalSettingsService from '../../../services/portalSettings.service';
 import UserService from '../../../services/user.service';
 
-const AnalyticsSettingsComponent: ng.IComponentOptions = {
+const SettingsAnalyticsComponentAjs: ng.IComponentOptions = {
   bindings: {
     dashboardsPlatform: '<',
     dashboardsApi: '<',
     dashboardsApplication: '<',
   },
-  template: require('./analytics.html'),
+  template: require('./settings-analytics.html'),
   controller: [
     'NotificationService',
     'PortalSettingsService',
-    '$state',
     'Constants',
     '$mdDialog',
     'DashboardService',
-    '$rootScope',
     'UserService',
+    'ngRouter',
     function (
       NotificationService: NotificationService,
       PortalSettingsService: PortalSettingsService,
-      $state: StateService,
       Constants: any,
       $mdDialog: angular.material.IDialogService,
       DashboardService: DashboardService,
-      $rootScope,
       UserService: UserService,
+      router: Router,
     ) {
+      this.router = router;
       this.settings = _.cloneDeep(Constants.env.settings);
-      this.$rootScope = $rootScope;
       this.providedConfigurationMessage = 'Configuration provided by the system';
 
       this.$onInit = () => {
-        this.dashboardsByType = {
-          Platform: this.dashboardsPlatform,
-          API: this.dashboardsApi,
-          Application: this.dashboardsApplication,
-        };
+        Promise.all([DashboardService.list('PLATFORM'), DashboardService.list('API'), DashboardService.list('APPLICATION')]).then(
+          ([dashboardsPlatform, dashboardsApi, dashboardsApplication]) => {
+            this.dashboardsByType = {
+              Platform: dashboardsPlatform.data,
+              API: dashboardsApi.data,
+              Application: dashboardsApplication.data,
+            };
+          },
+        );
 
         this.canUpdateSettings = UserService.isUserHasPermissions([
           'environment-settings-c',
@@ -100,7 +102,7 @@ const AnalyticsSettingsComponent: ng.IComponentOptions = {
             if (response) {
               DashboardService.delete(dashboard).then(() => {
                 NotificationService.show("Dashboard '" + dashboard.name + "' has been deleted");
-                $state.go($state.current, {}, { reload: true });
+                this.$onInit();
               });
             }
           });
@@ -112,7 +114,7 @@ const AnalyticsSettingsComponent: ng.IComponentOptions = {
             NotificationService.show('Dashboard saved with success');
           })
           .finally(() => {
-            $state.go($state.current, {}, { reload: true });
+            this.$onInit();
           });
       };
 
@@ -134,8 +136,16 @@ const AnalyticsSettingsComponent: ng.IComponentOptions = {
       this.isReadonlySetting = (property: string): boolean => {
         return PortalSettingsService.isReadonly(this.settings, property);
       };
+
+      this.navigateToDashboard = (type: string, dashboardId: string) => {
+        this.router.navigate(['dashboard', type, dashboardId], { relativeTo: this.activatedRoute });
+      };
+
+      this.newDashboard = (type: string) => {
+        this.router.navigate(['dashboard', type, 'new'], { relativeTo: this.activatedRoute });
+      };
     },
   ],
 };
 
-export default AnalyticsSettingsComponent;
+export default SettingsAnalyticsComponentAjs;

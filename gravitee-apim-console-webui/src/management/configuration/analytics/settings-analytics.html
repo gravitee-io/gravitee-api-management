@@ -37,7 +37,7 @@
               <td md-cell permission permission-only="'environment-dashboard-u'">
                 <a
                   ng-style="dashboard.enabled?'':{'font-style': 'italic', 'color': 'grey'}"
-                  ui-sref="management.settings.analytics.dashboard({type: type, dashboardId: dashboard.id})"
+                  ng-click="$ctrl.navigateToDashboard(type, dashboard.id)"
                   >{{dashboard.name}}</a
                 >
               </td>
@@ -95,7 +95,7 @@
           permission
           permission-only="'environment-dashboard-c'"
           aria-label="Add {{type}} dashboard"
-          ui-sref="management.settings.analytics.dashboardnew({type: type})"
+          ng-click="$ctrl.newDashboard(type)"
           class="md-raised md-primary"
         >
           Add a new {{type}} dashboard
