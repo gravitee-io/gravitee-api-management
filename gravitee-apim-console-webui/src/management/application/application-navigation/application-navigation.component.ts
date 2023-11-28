@@ -99,6 +99,7 @@ export class ApplicationNavigationComponent implements OnInit, OnDestroy {
       // },
       {
         displayName: 'Metadata',
+        routerLink: 'metadata',
         targetRoute: 'management.applications.application.metadata',
         baseRoute: 'management.applications.application.metadata',
         permissions: ['application-metadata-r'],

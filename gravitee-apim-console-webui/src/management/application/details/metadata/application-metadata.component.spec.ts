@@ -21,13 +21,14 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
+import { ActivatedRoute } from '@angular/router';
 
 import { ApplicationMetadataComponent } from './application-metadata.component';
 import { ApplicationMetadataModule } from './application-metadata.module';
 
 import { User } from '../../../../entities/user';
 import { GioMetadataHarness } from '../../../../components/gio-metadata/gio-metadata.harness';
-import { CurrentUserService, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+import { CurrentUserService } from '../../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { fakeMetadata } from '../../../../entities/metadata/metadata.fixture';
 import { Metadata } from '../../../../entities/metadata/metadata';
@@ -47,7 +48,7 @@ describe('ApplicationMetadataComponent', () => {
     await TestBed.configureTestingModule({
       declarations: [ApplicationMetadataComponent],
       providers: [
-        { provide: UIRouterStateParams, useValue: { applicationId: APPLICATION_ID } },
+        { provide: ActivatedRoute, useValue: { snapshot: { params: { applicationId: APPLICATION_ID } } } },
         { provide: CurrentUserService, useValue: { currentUser } },
       ],
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApplicationMetadataModule, MatIconTestingModule],

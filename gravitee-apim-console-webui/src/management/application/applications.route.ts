@@ -23,6 +23,7 @@ import { ApplicationNavigationComponent } from './application-navigation/applica
 import { EnvApplicationListComponent } from './list/env-application-list.component';
 import { HasApplicationPermissionGuard } from './has-application-permission.guard';
 import { ApplicationGeneralComponent } from './details/general/application-general.component';
+import { ApplicationMetadataComponent } from './details/metadata/application-metadata.component';
 
 import { ApplicationType } from '../../entities/application';
 import ApplicationService from '../../services/application.service';
@@ -130,19 +131,6 @@ function applicationsConfig($stateProvider) {
             UserService.reloadPermissions();
           },
         ],
-      },
-    })
-    .state('management.applications.application.metadata', {
-      url: '/metadata',
-      component: 'ngApplicationMetadata',
-      data: {
-        perms: {
-          only: ['application-metadata-r'],
-        },
-        docs: {
-          page: 'management-application-metadata',
-        },
-        useAngularMaterial: true,
       },
     })
     .state('management.applications.application.subscriptions', {
@@ -497,6 +485,10 @@ const applicationRoutes: Routes = [
       {
         path: 'general',
         component: ApplicationGeneralComponent,
+      },
+      {
+        path: 'metadata',
+        component: ApplicationMetadataComponent,
       },
     ],
   },
