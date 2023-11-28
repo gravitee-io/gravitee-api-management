@@ -21,14 +21,14 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
-import { UIRouterModule } from '@uirouter/angular';
 import { MatInputHarness } from '@angular/material/input/testing';
+import { ActivatedRoute } from '@angular/router';
 
-import { ApplicationGeneralComponent } from './application-general.component';
-import { ApplicationGeneralModule } from './application-general.module';
+import { ApplicationGeneralNgComponent } from './application-general-ng.component';
+import { ApplicationGeneralNgModule } from './application-general-ng.module';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
-import { UIRouterStateParams, CurrentUserService } from '../../../../../ajs-upgraded-providers';
+import { CurrentUserService } from '../../../../../ajs-upgraded-providers';
 import { User } from '../../../../../entities/user';
 import { fakeApplication, fakeApplicationType } from '../../../../../entities/application/Application.fixture';
 import { Application, ApplicationType } from '../../../../../entities/application/application';
@@ -43,35 +43,26 @@ describe('ApplicationGeneralInfoComponent', () => {
     'application-definition-r',
   ];
 
-  let fixture: ComponentFixture<ApplicationGeneralComponent>;
+  let fixture: ComponentFixture<ApplicationGeneralNgComponent>;
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [
-        NoopAnimationsModule,
-        GioHttpTestingModule,
-        ApplicationGeneralModule,
-        MatIconTestingModule,
-        UIRouterModule.forRoot({
-          useHash: true,
-        }),
-      ],
-      providers: [
-        { provide: UIRouterStateParams, useValue: { applicationId: APPLICATION_ID } },
-        { provide: CurrentUserService, useValue: { currentUser } },
-      ],
-    }).overrideProvider(InteractivityChecker, {
-      useValue: {
-        isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
-        isTabbable: () => true, // This traps focus checks and so avoid warnings when dealing with
-      },
-    });
+      imports: [NoopAnimationsModule, GioHttpTestingModule, ApplicationGeneralNgModule, MatIconTestingModule],
+      providers: [{ provide: CurrentUserService, useValue: { currentUser } }],
+    })
+      .overrideProvider(InteractivityChecker, {
+        useValue: {
+          isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
+          isTabbable: () => true, // This traps focus checks and so avoid warnings when dealing with
+        },
+      })
+      .overrideProvider(ActivatedRoute, { useValue: { snapshot: { params: { applicationId: APPLICATION_ID } } } });
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(ApplicationGeneralComponent);
+    fixture = TestBed.createComponent(ApplicationGeneralNgComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();

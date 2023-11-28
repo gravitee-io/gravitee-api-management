@@ -33,17 +33,17 @@ import { MatOptionModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { ReactiveFormsModule } from '@angular/forms';
-import { UIRouterModule } from '@uirouter/angular';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatChipsModule } from '@angular/material/chips';
+import { RouterModule } from '@angular/router';
 
-import { ApplicationGeneralComponent } from './application-general.component';
+import { ApplicationGeneralNgComponent } from './application-general-ng.component';
 
 import { GioPermissionModule } from '../../../../../shared/components/gio-permission/gio-permission.module';
 
 @NgModule({
-  declarations: [ApplicationGeneralComponent],
-  exports: [ApplicationGeneralComponent],
+  declarations: [ApplicationGeneralNgComponent],
+  exports: [ApplicationGeneralNgComponent],
   imports: [
     CommonModule,
 
@@ -68,7 +68,7 @@ import { GioPermissionModule } from '../../../../../shared/components/gio-permis
     MatChipsModule,
 
     ReactiveFormsModule,
-    UIRouterModule,
+    RouterModule,
   ],
 })
-export class ApplicationGeneralModule {}
+export class ApplicationGeneralNgModule {}

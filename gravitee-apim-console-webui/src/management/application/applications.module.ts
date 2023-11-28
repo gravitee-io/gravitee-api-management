@@ -33,8 +33,8 @@ import { EnvApplicationListComponent } from './list/env-application-list.compone
 import { ApplicationNavigationModule } from './application-navigation/application-navigation.module';
 import { ApplicationNotificationSettingsModule } from './details/notifications/notification-settings/application-notification-settings.module';
 import { ApplicationMetadataModule } from './details/metadata/application-metadata.module';
-import { ApplicationGeneralModule } from './details/general/general-ng/application-general.module';
 import { ApplicationGeneralUserGroupModule } from './details/user-group-access/application-general-user-group.module';
+import { ApplicationGeneralNgModule } from './details/general/general-ng/application-general-ng.module';
 
 import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioRoleModule } from '../../shared/components/gio-role/gio-role.module';
@@ -67,8 +67,8 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
     ApplicationNavigationModule,
     ApplicationNotificationSettingsModule,
     ApplicationMetadataModule,
-    ApplicationGeneralModule,
     ApplicationGeneralUserGroupModule,
+    ApplicationGeneralNgModule,
   ],
   declarations: [EnvApplicationListComponent],
   exports: [EnvApplicationListComponent],
