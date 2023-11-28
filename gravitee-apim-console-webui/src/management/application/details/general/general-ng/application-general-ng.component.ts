@@ -17,7 +17,7 @@ import { Component, OnInit } from '@angular/core';
 import { takeUntil, tap } from 'rxjs/operators';
 import { combineLatest, Subject } from 'rxjs';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { ApplicationService } from '../../../../../services-ngx/application.service';
@@ -38,7 +38,6 @@ export class ApplicationGeneralNgComponent implements OnInit {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   constructor(
-    private readonly router: Router,
     private readonly activatedRoute: ActivatedRoute,
     private readonly applicationService: ApplicationService,
     private readonly snackBarService: SnackBarService,

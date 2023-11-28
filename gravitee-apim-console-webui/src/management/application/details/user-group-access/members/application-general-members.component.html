@@ -1,13 +1,13 @@
 <!--
 
     Copyright (C) 2015 The Gravitee team (http://gravitee.io)
-    
+
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
-    
+
             http://www.apache.org/licenses/LICENSE-2.0
-    
+
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,4 +15,82 @@
     limitations under the License.
 
 -->
-test members
+<form [formGroup]="form" *ngIf="!isLoadingData">
+  <mat-card>
+    <div class="card__header">
+      <div>
+        <h3>Members ({{ members?.length }})</h3>
+        <p>Add users or groups as members of your Application, and define their roles to manage and perform tasks and operations.</p>
+      </div>
+      <div>
+        <button
+          *gioPermission="{ anyOf: ['application-member-c'] }"
+          mat-raised-button
+          type="button"
+          aria-label="Add member"
+          (click)="addMember()"
+          color="primary"
+        >
+          <mat-icon svgIcon="gio:plus"></mat-icon> Add members
+        </button>
+      </div>
+    </div>
+
+    <gio-form-slide-toggle class="card__enable-notification-toggle">
+      Notify members when they are added to the Application
+      <mat-slide-toggle
+        gioFormSlideToggle
+        formControlName="isNotificationsEnabled"
+        aria-label="Enable notifications when members are added to this Application"
+      ></mat-slide-toggle>
+    </gio-form-slide-toggle>
+
+    <table
+      mat-table
+      *ngIf="membersTable"
+      [dataSource]="membersTable"
+      class="card__table"
+      id="membersTable"
+      formGroupName="members"
+      aria-label="Direct members table"
+    >
+      <ng-container matColumnDef="picture">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let member">
+          <gio-avatar [src]="member.picture" [name]="member.displayName" size="24" [roundedBorder]="true"></gio-avatar>
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="displayName">
+        <th mat-header-cell *matHeaderCellDef>Name</th>
+        <td mat-cell *matCellDef="let member" [class.primary-owner-name]="member.role === 'PRIMARY_OWNER'">
+          {{ member.displayName }}
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="role">
+        <th mat-header-cell *matHeaderCellDef>Role</th>
+        <td mat-cell *matCellDef="let member">
+          <mat-form-field>
+            <mat-select [formControlName]="member.id">
+              <mat-option *ngFor="let role of roles" [value]="role" [disabled]="role === 'PRIMARY_OWNER'">{{ role }}</mat-option>
+            </mat-select>
+            <mat-error *ngIf="form.get('members').get(member.id).hasError('required')"> Role is required. </mat-error>
+          </mat-form-field>
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="delete">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let member">
+          <div class="action-cell">
+            <button type="button" mat-icon-button aria-label="Delete member" (click)="removeMember(member)">
+              <mat-icon svgIcon="gio:trash"></mat-icon>
+            </button>
+          </div>
+        </td>
+      </ng-container>
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+    </table>
+  </mat-card>
+
+  <gio-save-bar [form]="form" (resetClicked)="onReset()" (submitted)="onSubmit()"></gio-save-bar>
+</form>

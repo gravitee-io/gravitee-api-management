@@ -44,6 +44,7 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
 import { GioUsersSelectorModule } from '../../../../shared/components/gio-users-selector/gio-users-selector.module';
 import { GioFormUserAutocompleteModule } from '../../../../shared/components/gio-user-autocomplete/gio-form-user-autocomplete.module';
 import { GioTableWrapperModule } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
+import { ApiGeneralUserGroupModule } from '../../../api/general/user-group-access/api-general-user-group.module';
 
 @NgModule({
   declarations: [ApplicationGeneralGroupsComponent, ApplicationGeneralMembersComponent, ApplicationGeneralTransferOwnershipComponent],
@@ -74,6 +75,7 @@ import { GioTableWrapperModule } from '../../../../shared/components/gio-table-w
     GioFormSlideToggleModule,
     GioUsersSelectorModule,
     GioTableWrapperModule,
+    ApiGeneralUserGroupModule,
   ],
 })
 export class ApplicationGeneralUserGroupModule {}
