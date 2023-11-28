@@ -114,6 +114,7 @@ export class CatalogSearchComponent implements OnInit {
   _onPaginate({ page, size }) {
     const queryParams = new SearchRequestParams(this.activatedRoute.snapshot.queryParamMap.get(SearchQueryParam.QUERY), size, page);
     this.router.navigate([], { queryParams });
+
   }
 
   onSubmitSearch() {
