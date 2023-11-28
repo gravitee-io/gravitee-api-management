@@ -16,6 +16,7 @@
 
 import { StateService } from '@uirouter/core';
 import * as _ from 'lodash';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import ApplicationService from '../../../../services/application.service';
 import NotificationService from '../../../../services/notification.service';
@@ -27,6 +28,7 @@ interface IApplicationScope extends ng.IScope {
 class ApplicationGeneralController {
   private application: any;
   private initialApplication: any;
+  private activatedRoute: ActivatedRoute;
 
   private readonly = false;
 
@@ -36,6 +38,7 @@ class ApplicationGeneralController {
     private $state: StateService,
     private $scope: IApplicationScope,
     private $mdDialog: angular.material.IDialogService,
+    private readonly ngRouter: Router,
   ) {}
 
   $onInit() {
@@ -65,7 +68,7 @@ class ApplicationGeneralController {
   delete() {
     this.ApplicationService.delete(this.application.id).then(() => {
       this.NotificationService.show(this.application.name + ' has been deleted');
-      this.$state.go('management.applications.list', {}, { reload: true });
+      this.ngRouter.navigate(['../..'], { relativeTo: this.activatedRoute });
     });
   }
 
@@ -142,6 +145,6 @@ class ApplicationGeneralController {
     this.readonly = true;
   }
 }
-ApplicationGeneralController.$inject = ['ApplicationService', 'NotificationService', '$state', '$scope', '$mdDialog'];
+ApplicationGeneralController.$inject = ['ApplicationService', 'NotificationService', '$state', '$scope', '$mdDialog', 'ngRouter'];
 
 export default ApplicationGeneralController;
