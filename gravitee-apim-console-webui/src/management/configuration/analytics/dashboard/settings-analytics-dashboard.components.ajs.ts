@@ -13,39 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { StateService } from '@uirouter/core';
 import angular from 'angular';
 import * as _ from 'lodash';
+import { Router } from '@angular/router';
 
 import DashboardService from '../../../../services/dashboard.service';
 import NotificationService from '../../../../services/notification.service';
-const DashboardComponent: ng.IComponentOptions = {
-  template: require('./dashboard.html'),
+const SettingsAnalyticsDashboardComponentAjs: ng.IComponentOptions = {
+  template: require('./settings-analytics-dashboard.html'),
   controller: [
     'DashboardService',
     'NotificationService',
-    '$state',
     '$scope',
     '$rootScope',
     '$mdDialog',
     '$timeout',
+    'ngRouter',
     function (
       DashboardService: DashboardService,
       NotificationService: NotificationService,
-      $state: StateService,
       $scope,
       $rootScope,
       $mdDialog,
       $timeout,
+      ngRouter: Router,
     ) {
       let previousPristine = true;
       this.fields = DashboardService.getIndexedFields();
       this.$rootScope = $rootScope;
+      this.ngRouter = ngRouter;
       this.updateMode = true;
       this.$onInit = () => {
-        this.editMode = !!$state.params.dashboardId;
-        if ($state.params.dashboardId) {
-          DashboardService.get($state.params.dashboardId).then((response) => {
+        this.editMode = !!this.activatedRoute.snapshot.params.dashboardId;
+        if (this.activatedRoute.snapshot.params.dashboardId) {
+          DashboardService.get(this.activatedRoute.snapshot.params.dashboardId).then((response) => {
             this.dashboard = response.data;
             if (this.dashboard.definition) {
               this.dashboard.definition = JSON.parse(this.dashboard.definition);
@@ -65,7 +66,7 @@ const DashboardComponent: ng.IComponentOptions = {
           });
         } else {
           this.dashboard = {
-            reference_type: $state.params.type,
+            reference_type: this.activatedRoute.snapshot.params.type,
             reference_id: 'DEFAULT',
             enabled: true,
             definition: [],
@@ -97,14 +98,14 @@ const DashboardComponent: ng.IComponentOptions = {
           savePromise = DashboardService.create(clonedDashboard);
         }
         savePromise.then((response) => {
-          $state.go('management.settings.analytics.dashboard', _.merge($state.params, { dashboardId: response.data.id }), { reload: true });
           this.formDashboard.$setPristine();
           NotificationService.show(`Dashboard ${this.editMode ? 'updated' : 'created'} with success`);
+          return this.ngRouter.navigate(['..', response.data.id], { relativeTo: this.activatedRoute });
         });
       };
 
       this.reset = () => {
-        $state.reload();
+        this.$onInit();
       };
 
       this.displayPreview = () => {
@@ -144,8 +145,12 @@ const DashboardComponent: ng.IComponentOptions = {
           previousPristine = this.formDashboard.$pristine;
         }
       };
+
+      this.backToDashboards = () => {
+        this.ngRouter.navigate(['../../..'], { relativeTo: this.activatedRoute });
+      };
     },
   ],
 };
 
-export default DashboardComponent;
+export default SettingsAnalyticsDashboardComponentAjs;
