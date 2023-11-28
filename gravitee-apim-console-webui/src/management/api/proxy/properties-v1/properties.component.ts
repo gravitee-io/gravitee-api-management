@@ -23,7 +23,7 @@ import { ApiService } from '../../../../services-ngx/api.service';
   template: '',
   selector: 'api-properties-v1',
   host: {
-    class: 'bootstrap',
+    class: 'bootstrap gv-sub-content',
   },
 })
 export class ApiV1PropertiesComponent extends UpgradeComponent {

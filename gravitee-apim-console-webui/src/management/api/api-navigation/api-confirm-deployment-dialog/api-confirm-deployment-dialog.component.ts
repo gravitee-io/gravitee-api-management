@@ -17,7 +17,7 @@ import { Component, Inject, OnDestroy } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { FormControl } from '@angular/forms';
 import { Subject } from 'rxjs';
-import { map, takeUntil } from 'rxjs/operators';
+import { map, switchMap, takeUntil } from 'rxjs/operators';
 
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { FlowService } from '../../../../services-ngx/flow.service';
@@ -42,7 +42,6 @@ export class ApiConfirmDeploymentDialogComponent implements OnDestroy {
   constructor(
     private readonly dialogRef: MatDialogRef<ApiConfirmDeploymentDialogComponent, ApiConfirmDeploymentDialogResult>,
     @Inject(MAT_DIALOG_DATA) private readonly dialogData: ApiConfirmDeploymentDialogData,
-
     private readonly snackBarService: SnackBarService,
     private readonly apiV2Service: ApiV2Service,
     private readonly flowService: FlowService,
@@ -56,7 +55,10 @@ export class ApiConfirmDeploymentDialogComponent implements OnDestroy {
   onDeploy() {
     this.apiV2Service
       .deploy(this.dialogData.apiId, this.deploymentLabel.value)
-      .pipe(takeUntil(this.unsubscribe$))
+      .pipe(
+        switchMap(() => this.apiV2Service.get(this.dialogData.apiId)),
+        takeUntil(this.unsubscribe$),
+      )
       .subscribe(
         () => {
           this.dialogRef.close();

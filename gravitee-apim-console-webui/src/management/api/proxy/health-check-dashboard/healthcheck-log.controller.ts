@@ -21,7 +21,7 @@ import { ActivatedRoute } from '@angular/router';
   template: '',
   selector: 'api-healthcheck-log',
   host: {
-    class: 'bootstrap',
+    class: 'bootstrap gv-sub-content',
   },
 })
 export class ApiHealthCheckLogComponent extends UpgradeComponent {

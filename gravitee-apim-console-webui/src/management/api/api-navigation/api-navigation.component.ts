@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { castArray, flatMap } from 'lodash';
+import { flatMap } from 'lodash';
 import { filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { GIO_DIALOG_WIDTH, GioBannerTypes, GioMenuService } from '@gravitee/ui-particles-angular';
 import { Observable, Subject } from 'rxjs';
@@ -313,16 +313,12 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
     if (!item.routerLink) {
       return false;
     }
-    return [item.routerLink, ...castArray(item.baseRoute)]
-      .filter((r) => !!r)
-      .some((routerLink) => {
-        return this.router.isActive(this.router.createUrlTree([routerLink], { relativeTo: this.activatedRoute }), {
-          paths: item.routerLinkActiveOptions?.exact ? 'exact' : 'subset',
-          queryParams: 'subset',
-          fragment: 'ignored',
-          matrixParams: 'ignored',
-        });
-      });
+    return this.router.isActive(this.router.createUrlTree([item.routerLink], { relativeTo: this.activatedRoute }), {
+      paths: item.routerLinkActiveOptions?.exact ? 'exact' : 'subset',
+      queryParams: 'subset',
+      fragment: 'ignored',
+      matrixParams: 'ignored',
+    });
   }
 
   isTabActive(tabs: MenuItem[]): boolean {

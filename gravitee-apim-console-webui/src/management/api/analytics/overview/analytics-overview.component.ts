@@ -21,7 +21,7 @@ import { ActivatedRoute } from '@angular/router';
   template: '',
   selector: 'api-analytics-overview',
   host: {
-    class: 'bootstrap',
+    class: 'bootstrap gv-sub-content',
   },
 })
 export class ApiAnalyticsOverviewComponent extends UpgradeComponent {
