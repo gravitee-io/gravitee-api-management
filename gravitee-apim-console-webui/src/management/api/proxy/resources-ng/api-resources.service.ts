@@ -20,7 +20,7 @@ import { Observable } from 'rxjs';
 
 import { ResourceListItem } from '../../../../entities/resource/resourceListItem';
 import { Constants } from '../../../../entities/Constants';
-import { ListParams } from '../../policy-studio/models/ListParams';
+import { ListParams } from '../../policy-studio-v2/models/ListParams';
 
 @Injectable({
   providedIn: 'root',

@@ -24,7 +24,7 @@ import { FlowSchema } from '../../../entities/flow/flowSchema';
 import { ApiService } from '../../../services-ngx/api.service';
 import { PlatformFlowSchema } from '../../../entities/flow/platformFlowSchema';
 import { FlowService } from '../../../services-ngx/flow.service';
-import { ListParams } from '../../../management/api/policy-studio/models/ListParams';
+import { ListParams } from '../../../management/api/policy-studio-v2/models/ListParams';
 import { PolicyDocumentation, PolicyListItem, PolicySchema } from '../../../entities/policy';
 import { ResourceListItem } from '../../../entities/resource/resourceListItem';
 

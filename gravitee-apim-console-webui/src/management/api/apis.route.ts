@@ -57,7 +57,7 @@ import { ApiAuditComponent } from './audit/general/audit.component';
 import { ApiHistoryComponent } from './audit/history/apiHistory.component';
 import { ApiV1PropertiesComponent } from './proxy/properties-v1/properties.component';
 import { ApiV1ResourcesComponent } from './proxy/resources-v1/resources.component';
-import { ApiV1PoliciesComponent } from './design/policies/policies.component';
+import { ApiV1PoliciesComponent } from './policy-studio-v1/policies/policies.component';
 import { ApiEventsComponent } from './audit/events/api-events.component';
 import { ApiEndpointGroupComponent } from './endpoints-v4/endpoint-group/api-endpoint-group.component';
 import { ApiEndpointGroupCreateComponent } from './endpoints-v4/endpoint-group/create/api-endpoint-group-create.component';
@@ -76,10 +76,10 @@ import { ApiDocumentationV4EditPageComponent } from './documentation-v4/document
 import { ApiDynamicPropertiesComponent } from './proxy/properties/dynamic-properties/api-dynamic-properties.component';
 import { ApiRuntimeLogsDetailsComponent } from './runtime-logs-v4/runtime-logs-details/api-runtime-logs-details.component';
 import { HasApiPermissionGuard } from './has-api-permission.guard';
-import { GioPolicyStudioLayoutComponent } from './policy-studio/gio-policy-studio-layout.component';
-import { PolicyStudioDesignComponent } from './policy-studio/design/policy-studio-design.component';
-import { PolicyStudioConfigComponent } from './policy-studio/config/policy-studio-config.component';
-import { PolicyStudioDebugComponent } from './policy-studio/debug/policy-studio-debug.component';
+import { GioPolicyStudioLayoutComponent } from './policy-studio-v2/gio-policy-studio-layout.component';
+import { PolicyStudioDesignComponent } from './policy-studio-v2/design/policy-studio-design.component';
+import { PolicyStudioConfigComponent } from './policy-studio-v2/config/policy-studio-config.component';
+import { PolicyStudioDebugComponent } from './policy-studio-v2/debug/policy-studio-debug.component';
 
 import { ApiService } from '../../services/api.service';
 import { GioEmptyComponent } from '../../shared/components/gio-empty/gio-empty.component';
@@ -2040,6 +2040,19 @@ const apisRoutes: Routes = [
       /**
        * V1 Api state only
        */
+      {
+        path: 'v1/policies',
+        component: ApiV1PoliciesComponent,
+        data: {
+          useAngularMaterial: true,
+          apiPermissions: {
+            only: ['api-definition-r'],
+          },
+          docs: {
+            page: 'management-api-policies',
+          },
+        },
+      },
 
       /**
        * V1 & V2 Api state only

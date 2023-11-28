@@ -21,5 +21,6 @@ export const ApiV1PoliciesComponentAjs = {
   controller: ApiV1PoliciesControllerAjs,
   bindings: {
     api: '<',
+    activatedRoute: '<',
   },
 };

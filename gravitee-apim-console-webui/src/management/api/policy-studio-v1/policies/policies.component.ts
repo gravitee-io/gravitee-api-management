@@ -13,8 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, ElementRef, Injector, Input, SimpleChange } from '@angular/core';
+import { Component, ElementRef, Injector, SimpleChange } from '@angular/core';
 import { UpgradeComponent } from '@angular/upgrade/static';
+import { ActivatedRoute } from '@angular/router';
+
+import { ApiService } from '../../../../services-ngx/api.service';
 
 @Component({
   template: '',
@@ -24,18 +27,27 @@ import { UpgradeComponent } from '@angular/upgrade/static';
   },
 })
 export class ApiV1PoliciesComponent extends UpgradeComponent {
-  @Input() api;
-
-  constructor(elementRef: ElementRef, injector: Injector) {
+  constructor(
+    elementRef: ElementRef,
+    injector: Injector,
+    private readonly activatedRoute: ActivatedRoute,
+    private readonly apiService: ApiService,
+  ) {
     super('apiV1PoliciesComponentAjs', elementRef, injector);
   }
 
   ngOnInit() {
     // Hack to Force the binding between Angular and AngularJS
-    // Don't know why, but the binding is not done automatically when resolver is used
-    this.ngOnChanges({
-      api: new SimpleChange(null, this.api, true),
-    });
-    super.ngOnInit();
+
+    this.apiService
+      .get(this.activatedRoute.snapshot.params.apiId)
+      .toPromise()
+      .then((api) => {
+        this.ngOnChanges({
+          api: new SimpleChange(null, api, true),
+          activatedRoute: new SimpleChange(null, this.activatedRoute, true),
+        });
+        super.ngOnInit();
+      });
   }
 }
