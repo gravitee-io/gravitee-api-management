@@ -15,7 +15,8 @@
  */
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { BehaviorSubject, Observable, of } from 'rxjs';
+import { filter, shareReplay, switchMap, tap } from 'rxjs/operators';
 
 import { Constants } from '../entities/Constants';
 import { PagedResult } from '../entities/pagedResult';
@@ -25,6 +26,8 @@ import { Application, ApplicationType } from '../entities/application/applicatio
   providedIn: 'root',
 })
 export class ApplicationService {
+  private lastApplicationFetch$: BehaviorSubject<Application | null> = new BehaviorSubject<Application | null>(null);
+
   constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
 
   getAll(
@@ -85,7 +88,11 @@ export class ApplicationService {
   }
 
   getById(applicationId: string): Observable<Application> {
-    return this.http.get<Application>(`${this.constants.env.baseURL}/applications/${applicationId}`);
+    return this.http.get<Application>(`${this.constants.env.baseURL}/applications/${applicationId}`).pipe(
+      tap((application) => {
+        this.lastApplicationFetch$.next(application);
+      }),
+    );
   }
 
   getApplicationType(applicationId: string): Observable<ApplicationType> {
@@ -93,22 +100,37 @@ export class ApplicationService {
   }
 
   update(application: Application): Observable<Application> {
-    return this.http.put<Application>(`${this.constants.env.baseURL}/applications/${application.id}`, {
-      name: application.name,
-      description: application.description,
-      domain: application.domain,
-      groups: application.groups,
-      settings: application.settings,
-      ...(application.picture !== undefined ? { picture: application.picture } : {}),
-      ...(application.background !== undefined ? { background: application.background } : {}),
-      disable_membership_notifications: application.disable_membership_notifications,
-      api_key_mode: application.api_key_mode,
-    });
+    return this.http
+      .put<Application>(`${this.constants.env.baseURL}/applications/${application.id}`, {
+        name: application.name,
+        description: application.description,
+        domain: application.domain,
+        groups: application.groups,
+        settings: application.settings,
+        ...(application.picture !== undefined ? { picture: application.picture } : {}),
+        ...(application.background !== undefined ? { background: application.background } : {}),
+        disable_membership_notifications: application.disable_membership_notifications,
+        api_key_mode: application.api_key_mode,
+      })
+      .pipe(
+        tap((application) => {
+          this.lastApplicationFetch$.next(application);
+        }),
+      );
   }
 
   getPermissions(applicationId: string): Observable<Record<string, ('C' | 'R' | 'U' | 'D')[]>> {
     return this.http.get<Record<string, ('C' | 'R' | 'U' | 'D')[]>>(
       `${this.constants.env.baseURL}/applications/${applicationId}/members/permissions`,
+    );
+  }
+
+  getLastApplicationFetch(applicationId: string): Observable<Application> {
+    const start = this.lastApplicationFetch$.value ? of(this.lastApplicationFetch$.value) : this.getById(applicationId);
+    return start.pipe(
+      switchMap(() => this.lastApplicationFetch$.asObservable()),
+      filter((application) => !!application),
+      shareReplay({ bufferSize: 1, refCount: true }),
     );
   }
 }
