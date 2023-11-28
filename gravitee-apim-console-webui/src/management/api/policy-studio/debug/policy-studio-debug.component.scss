@@ -1,10 +1,16 @@
 @use '@angular/material' as mat;
 @use '@gravitee/ui-particles-angular' as gio;
 
+:host {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+}
+
 .policy-studio-debug {
+  flex: 1 1 auto;
   display: flex;
   flex-direction: row;
-  height: var(--gv-policy-studio--h);
 
   &__request {
     flex: 0 1 356px;

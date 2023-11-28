@@ -13,18 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { StateParams, StateService } from '@uirouter/angularjs';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { catchError, defaultIfEmpty, map, switchMap, takeUntil, tap, withLatestFrom } from 'rxjs/operators';
 import { combineLatest, EMPTY, forkJoin, Observable, of, Subject } from 'rxjs';
 import { GioLicenseService } from '@gravitee/ui-particles-angular';
 import { isEqual } from 'lodash';
+import { ActivatedRoute } from '@angular/router';
 
 import { PolicyStudioService } from './policy-studio.service';
 import { ApiDefinition, toApiDefinition, toApiPlansDefinition, toApiPlanV2, toApiV2 } from './models/ApiDefinition';
 
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
-import { AjsRootScope, UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { ApimFeature, UTMTags } from '../../../shared/components/gio-license/gio-license-data';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
@@ -34,7 +33,7 @@ import { ApiPlanV2Service } from '../../../services-ngx/api-plan-v2.service';
 
 interface MenuItem {
   label: string;
-  uiSref: Observable<string>;
+  routerLink: Observable<string>;
   license?: any;
   notAllowed$?: Observable<boolean>;
 }
@@ -47,23 +46,20 @@ interface MenuItem {
 export class GioPolicyStudioLayoutComponent implements OnInit, OnDestroy {
   private unsubscribe$ = new Subject<void>();
   policyStudioMenu: MenuItem[] = [
-    { label: 'Design', uiSref: of('.design') },
-    { label: 'Configuration', uiSref: of('.config') },
+    { label: 'Design', routerLink: of('design') },
+    { label: 'Configuration', routerLink: of('config') },
   ];
-  activeLink = this.policyStudioMenu[0];
   apiDefinition: ApiDefinition;
   isDirty: boolean;
 
   constructor(
+    private readonly activatedRoute: ActivatedRoute,
     readonly policyStudioService: PolicyStudioService,
     readonly gioLicenseService: GioLicenseService,
     readonly snackBarService: SnackBarService,
     readonly apiService: ApiV2Service,
     readonly apiPlanService: ApiPlanV2Service,
     readonly permissionService: GioPermissionService,
-    @Inject(UIRouterState) readonly ajsStateService: StateService,
-    @Inject(UIRouterStateParams) readonly ajsStateParams: StateParams,
-    @Inject(AjsRootScope) readonly ajsRootScope,
   ) {}
 
   ngOnInit(): void {
@@ -74,16 +70,16 @@ export class GioPolicyStudioLayoutComponent implements OnInit, OnDestroy {
     this.policyStudioMenu = this.policyStudioMenu.filter((i) => i.label !== 'Debug');
     this.policyStudioMenu.push({
       label: 'Debug',
-      uiSref: notAllowed$.pipe(map((notAllowed) => (notAllowed ? null : '.debug'))),
+      routerLink: notAllowed$.pipe(map((notAllowed) => (notAllowed ? null : 'debug'))),
       license: debugLicense,
       notAllowed$,
     });
 
     this.apiService
-      .get(this.ajsStateParams.apiId)
+      .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
         onlyApiV2Filter(this.snackBarService),
-        withLatestFrom(this.apiPlanService.list(this.ajsStateParams.apiId, undefined, undefined, undefined, 1, 9999)),
+        withLatestFrom(this.apiPlanService.list(this.activatedRoute.snapshot.params.apiId, undefined, undefined, undefined, 1, 9999)),
         tap(([api, plansResponse]) => {
           this.policyStudioService.setApiDefinition(this.toApiDefinition(api, plansResponse.data as PlanV2[]));
         }),
@@ -99,7 +95,7 @@ export class GioPolicyStudioLayoutComponent implements OnInit, OnDestroy {
   }
 
   onSubmit() {
-    const updatePlans$ = this.apiPlanService.list(this.ajsStateParams.apiId, undefined, undefined, undefined, 1, 9999).pipe(
+    const updatePlans$ = this.apiPlanService.list(this.activatedRoute.snapshot.params.apiId, undefined, undefined, undefined, 1, 9999).pipe(
       switchMap((plansResponse) => {
         const plans = plansResponse.data as PlanV2[];
 
@@ -115,7 +111,9 @@ export class GioPolicyStudioLayoutComponent implements OnInit, OnDestroy {
           })
           .filter((p) => p !== null);
 
-        return forkJoin(...planToUpdate.map((plan) => this.apiPlanService.update(this.ajsStateParams.apiId, plan.id, plan)));
+        return forkJoin(
+          ...planToUpdate.map((plan) => this.apiPlanService.update(this.activatedRoute.snapshot.params.apiId, plan.id, plan)),
+        );
       }),
       defaultIfEmpty(null),
     );
@@ -141,8 +139,7 @@ export class GioPolicyStudioLayoutComponent implements OnInit, OnDestroy {
   }
 
   onReset() {
-    this.policyStudioService.reset();
-    this.ajsStateService.reload();
+    this.ngOnInit();
   }
 
   private toApiDefinition(api: ApiV2, _plans: PlanV2[]): ApiDefinition {

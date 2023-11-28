@@ -19,12 +19,11 @@
   <nav mat-tab-nav-bar mat-align-tabs="end" class="gio-policy-studio-layout__header__nav">
     <a
       mat-tab-link
-      uiSrefStatus
-      #uis="uiSrefStatus"
+      routerLinkActive
+      #rla="routerLinkActive"
       *ngFor="let link of policyStudioMenu"
-      [uiParams]="link.params"
-      [uiSref]="link.uiSref | async"
-      [active]="uis.status.active"
+      [routerLink]="link.routerLink | async"
+      [active]="rla.isActive"
       [gioLicense]="link.license"
     >
       {{ link.label }}
@@ -33,8 +32,8 @@
   </nav>
 </div>
 
-<section ui-view class="gio-policy-studio-layout__tab-content" [class.save-bar-opened]="this.isDirty">
-  <h4 style="margin: 1em 2em">Loading...</h4>
+<section class="gio-policy-studio-layout__tab-content" [class.save-bar-opened]="this.isDirty">
+  <router-outlet></router-outlet>
 </section>
 
 <gio-save-bar

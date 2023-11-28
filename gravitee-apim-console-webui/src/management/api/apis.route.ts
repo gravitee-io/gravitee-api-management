@@ -76,6 +76,10 @@ import { ApiDocumentationV4EditPageComponent } from './documentation-v4/document
 import { ApiDynamicPropertiesComponent } from './proxy/properties/dynamic-properties/api-dynamic-properties.component';
 import { ApiRuntimeLogsDetailsComponent } from './runtime-logs-v4/runtime-logs-details/api-runtime-logs-details.component';
 import { HasApiPermissionGuard } from './has-api-permission.guard';
+import { GioPolicyStudioLayoutComponent } from './policy-studio/gio-policy-studio-layout.component';
+import { PolicyStudioDesignComponent } from './policy-studio/design/policy-studio-design.component';
+import { PolicyStudioConfigComponent } from './policy-studio/config/policy-studio-config.component';
+import { PolicyStudioDebugComponent } from './policy-studio/debug/policy-studio-debug.component';
 
 import { ApiService } from '../../services/api.service';
 import { GioEmptyComponent } from '../../shared/components/gio-empty/gio-empty.component';
@@ -2244,6 +2248,55 @@ const apisRoutes: Routes = [
           },
           useAngularMaterial: true,
         },
+      },
+      {
+        path: 'v2/policy-studio',
+        component: GioPolicyStudioLayoutComponent,
+        data: {
+          useAngularMaterial: true,
+          menu: null,
+          docs: null,
+        },
+        children: [
+          {
+            path: 'design',
+            component: PolicyStudioDesignComponent,
+            data: {
+              useAngularMaterial: true,
+              menu: null,
+              docs: {
+                page: 'management-api-policy-studio-design',
+              },
+            },
+          },
+          {
+            path: 'config',
+            component: PolicyStudioConfigComponent,
+            data: {
+              useAngularMaterial: true,
+              menu: null,
+              docs: {
+                page: 'management-api-policy-studio-config',
+              },
+            },
+          },
+          {
+            path: 'debug',
+            component: PolicyStudioDebugComponent,
+            data: {
+              useAngularMaterial: true,
+              menu: null,
+              docs: {
+                page: 'management-api-policy-studio-try-it',
+              },
+            },
+          },
+          {
+            path: '',
+            pathMatch: 'full',
+            redirectTo: 'design',
+          },
+        ],
       },
 
       /**

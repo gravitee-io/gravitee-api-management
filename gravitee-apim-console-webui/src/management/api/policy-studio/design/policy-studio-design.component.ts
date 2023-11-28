@@ -17,10 +17,11 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { combineLatest, Subject } from 'rxjs';
 import { takeUntil, tap } from 'rxjs/operators';
-import { Location } from '@angular/common';
 import '@gravitee/ui-components/wc/gv-design';
 import { MatDialog } from '@angular/material/dialog';
 import { GioLicenseService } from '@gravitee/ui-particles-angular';
+import { ActivatedRoute, Router } from '@angular/router';
+import { castArray } from 'lodash';
 
 import { PolicyStudioDesignService } from './policy-studio-design.service';
 import { ChangeDesignEvent } from './models/ChangeDesignEvent';
@@ -62,7 +63,8 @@ export class PolicyStudioDesignComponent implements OnInit, OnDestroy {
   private unsubscribe$ = new Subject<boolean>();
 
   constructor(
-    private readonly location: Location,
+    private readonly router: Router,
+    private readonly activatedRoute: ActivatedRoute,
     private readonly policyStudioService: PolicyStudioService,
     private readonly policyStudioDesignService: PolicyStudioDesignService,
     private readonly permissionService: GioPermissionService,
@@ -92,8 +94,10 @@ export class PolicyStudioDesignComponent implements OnInit, OnDestroy {
       )
       .subscribe();
 
-    const { flowsIds } = this.parseUrl();
-    this.selectedFlowsIds = [JSON.stringify(flowsIds)];
+    const flowsIds = this.activatedRoute.snapshot.queryParams?.flows;
+    if (flowsIds) {
+      this.selectedFlowsIds = castArray(flowsIds);
+    }
   }
 
   ngOnDestroy() {
@@ -110,7 +114,10 @@ export class PolicyStudioDesignComponent implements OnInit, OnDestroy {
   }
 
   public onFlowSelectionChanged({ flows }: { flows: string[] }): void {
-    this.updateUrl({ ...this.parseUrl(), flowsIds: flows });
+    this.router.navigate(['.'], {
+      relativeTo: this.activatedRoute,
+      queryParams: { flows },
+    });
   }
 
   public displayPolicyCta() {
@@ -138,32 +145,6 @@ export class PolicyStudioDesignComponent implements OnInit, OnDestroy {
       .getSpelGrammar()
       .pipe(tap((grammar) => (currentTarget.grammar = grammar)))
       .subscribe();
-  }
-
-  private parseUrl(): UrlParams {
-    // TODO: Improve this with Angular Router
-    // Hack to add the tab as Fragment part of the URL
-    const [path] = this.location.path(true).split(/#(\w*)$/);
-
-    const [basePath, ...flowsIds] = path.split('flows');
-
-    const cleanedPath = basePath.replace('?', '');
-    const cleanedFlows = (flowsIds ?? []).map((flow) => flow.replace('=', ''));
-
-    return {
-      path: cleanedPath,
-      flowsIds: cleanedFlows,
-    };
-  }
-
-  private updateUrl({ path, flowsIds }: UrlParams): void {
-    // TODO: Improve this with Angular Router
-    // Hack to add the tab as Fragment part of the URL
-    const flowsQueryParams = (flowsIds ?? []).map((value) => `flows=${value}`).join('&');
-
-    const queryParams = flowsQueryParams.length > 0 ? `?${flowsQueryParams}` : '';
-
-    this.location.go(`${path}${queryParams}`);
   }
 
   get isLoading() {

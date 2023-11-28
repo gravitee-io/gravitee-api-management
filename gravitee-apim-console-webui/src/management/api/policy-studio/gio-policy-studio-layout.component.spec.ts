@@ -21,6 +21,8 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { GioIconsModule, GioLicenseModule, GioSaveBarModule, LICENSE_CONFIGURATION_TESTING } from '@gravitee/ui-particles-angular';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatDialogModule } from '@angular/material/dialog';
+import { ActivatedRoute } from '@angular/router';
+import { RouterTestingModule } from '@angular/router/testing';
 
 import { GioPolicyStudioLayoutComponent } from './gio-policy-studio-layout.component';
 import { toApiDefinition, toApiPlansDefinition } from './models/ApiDefinition';
@@ -28,8 +30,7 @@ import { PolicyStudioService } from './policy-studio.service';
 
 import { User } from '../../../entities/user';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
-import { CurrentUserService, UIRouterStateParams } from '../../../ajs-upgraded-providers';
-import { GioUiRouterTestingModule } from '../../../shared/testing/gio-uirouter-testing-module';
+import { CurrentUserService } from '../../../ajs-upgraded-providers';
 import { fakeApiV2, fakePlanV2 } from '../../../entities/management-api-v2';
 
 describe('GioPolicyStudioLayoutComponent', () => {
@@ -47,18 +48,18 @@ describe('GioPolicyStudioLayoutComponent', () => {
     TestBed.configureTestingModule({
       declarations: [GioPolicyStudioLayoutComponent],
       imports: [
+        RouterTestingModule,
         NoopAnimationsModule,
         GioHttpTestingModule,
         MatSnackBarModule,
         MatTabsModule,
         GioSaveBarModule,
-        GioUiRouterTestingModule,
         GioLicenseModule,
         MatDialogModule,
         GioIconsModule,
       ],
       providers: [
-        { provide: UIRouterStateParams, useValue: { apiId: api.id } },
+        { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: api.id } } } },
         {
           provide: CurrentUserService,
           useValue: { currentUser },
@@ -116,18 +117,6 @@ describe('GioPolicyStudioLayoutComponent', () => {
         url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}/plans/${plans[0].id}`,
       });
       expect(planReq.request.body.flows[0].name).toEqual('new name');
-    });
-  });
-
-  describe('onReset', () => {
-    it('should reload on reset', async () => {
-      const resetSpy = jest.spyOn(component.policyStudioService, 'reset');
-      const reloadSpy = jest.spyOn(component.ajsStateService, 'reload');
-
-      component.onReset();
-
-      expect(resetSpy).toHaveBeenCalledTimes(1);
-      expect(reloadSpy).toHaveBeenCalledTimes(1);
     });
   });
 
