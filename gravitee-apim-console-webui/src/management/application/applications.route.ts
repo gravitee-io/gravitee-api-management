@@ -21,6 +21,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { ApplicationsModule } from './applications.module';
 import { ApplicationNavigationComponent } from './application-navigation/application-navigation.component';
 import { EnvApplicationListComponent } from './list/env-application-list.component';
+import { HasApplicationPermissionGuard } from './has-application-permission.guard';
 
 import { ApplicationType } from '../../entities/application';
 import ApplicationService from '../../services/application.service';
@@ -520,9 +521,9 @@ const applicationRoutes: Routes = [
   {
     path: ':applicationId',
     component: ApplicationNavigationComponent,
-    canActivate: [HasEnvironmentPermissionGuard],
-    canActivateChild: [HasEnvironmentPermissionGuard],
     children: [],
+    canActivate: [HasApplicationPermissionGuard],
+    canActivateChild: [HasApplicationPermissionGuard],
   },
 ];
 
