@@ -108,6 +108,7 @@ export class CatalogSearchComponent implements OnInit {
       .finally(() => {
         deferredList.forEach(row => row.resolve(undefined));
       });
+
   }
 
   @HostListener(':gv-pagination:paginate', ['$event.detail'])
