@@ -25,7 +25,7 @@ import { MenuItemHeader } from '../../api/api-navigation/MenuGroupItem';
 import { Application } from '../../../entities/application/application';
 import { ApplicationService } from '../../../services-ngx/application.service';
 
-interface MenuItem {
+export interface MenuItem {
   targetRoute?: string;
   baseRoute?: string | string[];
   displayName: string;
