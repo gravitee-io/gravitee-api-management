@@ -21,7 +21,7 @@ import { ActivatedRoute } from '@angular/router';
   template: '',
   selector: 'api-audit',
   host: {
-    class: 'bootstrap',
+    class: 'bootstrap gv-sub-content',
   },
 })
 export class ApiAuditComponent extends UpgradeComponent {

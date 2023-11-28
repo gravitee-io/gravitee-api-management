@@ -15,11 +15,6 @@
  */
 
 import { NgModule } from '@angular/core';
-import { UIRouterModule } from '@uirouter/angular';
-import { Transition, TransitionService } from '@uirouter/angularjs';
-import * as angular from 'angular';
-import { switchMap } from 'rxjs/operators';
-import { of } from 'rxjs';
 import { CommonModule } from '@angular/common';
 
 import { ApiAnalyticsModule } from './analytics/api-analytics.module';
@@ -34,53 +29,23 @@ import { ApiEntrypointsV4Module } from './entrypoints-v4/api-entrypoints-v4.modu
 import { GioPolicyStudioRoutingModule } from './policy-studio-v2/gio-policy-studio-routing.module';
 import { ApiAuditModule } from './audit/api-audit.module';
 import { ApiV1PoliciesComponent } from './policy-studio-v1/policies/policies.component';
-import { ApisRoutingModule, states } from './apis.route';
 import { ApiNotificationSettingsModule } from './notification-settings/api-notification-settings.module';
 import { ApiCreationV2Module } from './creation-v2/api-creation-v2.module';
 import { ApiCreationGetStartedModule } from './creation-get-started/api-creation-get-started.module';
 import { ApiCreationV4Module } from './creation-v4/api-creation-v4.module';
 import { ApiDocumentationV4Module } from './documentation-v4/api-documentation-v4.module';
+import { ApisRoutingModule } from './apis-routing.module';
 
-import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
-import { GioEmptyModule } from '../../shared/components/gio-empty/gio-empty.module';
 import { SpecificJsonSchemaTypeModule } from '../../shared/components/specific-json-schema-type/specific-json-schema-type.module';
 import { DocumentationModule } from '../../components/documentation/documentation.module';
-
-const graviteeManagementModule = angular.module('gravitee-management');
-apiPermissionHook.$inject = ['$transitions', 'ngGioPermissionService'];
-function apiPermissionHook($transitions: TransitionService, gioPermissionService: GioPermissionService) {
-  $transitions.onBefore(
-    {
-      to: 'management.apis.**',
-    },
-    (transition: Transition) => {
-      const stateService = transition.router.stateService;
-
-      return gioPermissionService
-        .loadApiPermissions(transition.params().apiId)
-        .pipe(
-          switchMap(() => {
-            const permissions = transition.$to().data?.apiPermissions?.only;
-            if (!permissions) {
-              return of(true);
-            }
-            if (gioPermissionService.hasAnyMatching(permissions)) {
-              return of(true);
-            }
-            return of(stateService.target('login'));
-          }),
-        )
-        .toPromise();
-    },
-    { priority: 9 },
-  );
-}
-graviteeManagementModule.run(apiPermissionHook);
 
 @NgModule({
   declarations: [ApiV1PoliciesComponent],
   imports: [
     CommonModule,
+
+    ApisRoutingModule,
+
     ApiAnalyticsModule,
     ApiListModule,
     ApiNavigationModule,
@@ -99,11 +64,6 @@ graviteeManagementModule.run(apiPermissionHook);
     ApiCreationV2Module,
     ApiCreationV4Module,
     ApiDocumentationV4Module,
-
-    GioEmptyModule,
-
-    UIRouterModule.forChild({ states }),
-    ApisRoutingModule,
   ],
 })
 export class ApisModule {}

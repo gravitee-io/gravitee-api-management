@@ -24,7 +24,7 @@ import { ResourceService } from '../../../../services-ngx/resource.service';
   template: '',
   selector: 'api-resources-v1',
   host: {
-    class: 'bootstrap',
+    class: 'bootstrap gv-sub-content',
   },
 })
 export class ApiV1ResourcesComponent extends UpgradeComponent {

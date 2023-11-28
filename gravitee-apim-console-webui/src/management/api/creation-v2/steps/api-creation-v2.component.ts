@@ -27,7 +27,7 @@ import { TagService } from '../../../../services-ngx/tag.service';
   template: '',
   selector: 'notifications-component',
   host: {
-    class: 'bootstrap',
+    class: 'bootstrap gv-sub-content',
   },
 })
 export class ApiCreationV2Component extends UpgradeComponent implements OnDestroy {

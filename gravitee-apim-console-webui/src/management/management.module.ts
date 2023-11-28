@@ -49,6 +49,7 @@ const managementRoutes: Routes = [
     component: ManagementComponent,
     canActivate: [HasEnvironmentPermissionGuard],
     canActivateChild: [HasEnvironmentPermissionGuard],
+    canDeactivate: [HasEnvironmentPermissionGuard],
     resolve: {
       environmentResolver: EnvironmentResolver,
     },
