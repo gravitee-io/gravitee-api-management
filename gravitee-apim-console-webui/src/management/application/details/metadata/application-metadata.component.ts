@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { ApplicationMetadataService } from '../../../../services-ngx/application-metadata.service';
-import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { MetadataSaveServices } from '../../../../components/gio-metadata/gio-metadata.component';
 
 @Component({
@@ -28,17 +28,19 @@ export class ApplicationMetadataComponent implements OnInit {
   description: string;
 
   constructor(
+    private readonly router: Router,
+    private readonly activatedRoute: ActivatedRoute,
     private readonly applicationMetadataService: ApplicationMetadataService,
-    @Inject(UIRouterStateParams) private readonly ajsStateParams,
   ) {}
 
   ngOnInit() {
+    const applicationId = this.activatedRoute.snapshot.params.applicationId;
     this.metadataSaveServices = {
       type: 'Application',
-      list: () => this.applicationMetadataService.listMetadata(this.ajsStateParams.applicationId),
-      create: (newMetadata) => this.applicationMetadataService.createMetadata(this.ajsStateParams.applicationId, newMetadata),
-      update: (updateMetadata) => this.applicationMetadataService.updateMetadata(this.ajsStateParams.applicationId, updateMetadata),
-      delete: (metadataKey) => this.applicationMetadataService.deleteMetadata(this.ajsStateParams.applicationId, metadataKey),
+      list: () => this.applicationMetadataService.listMetadata(applicationId),
+      create: (newMetadata) => this.applicationMetadataService.createMetadata(applicationId, newMetadata),
+      update: (updateMetadata) => this.applicationMetadataService.updateMetadata(applicationId, updateMetadata),
+      delete: (metadataKey) => this.applicationMetadataService.deleteMetadata(applicationId, metadataKey),
     };
     this.description = `Create Application metadata to retrieve custom information about your API`;
   }
