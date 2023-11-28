@@ -105,4 +105,10 @@ export class ApplicationService {
       api_key_mode: application.api_key_mode,
     });
   }
+
+  getPermissions(applicationId: string): Observable<Record<string, ('C' | 'R' | 'U' | 'D')[]>> {
+    return this.http.get<Record<string, ('C' | 'R' | 'U' | 'D')[]>>(
+      `${this.constants.env.baseURL}/applications/${applicationId}/members/permissions`,
+    );
+  }
 }

@@ -23,17 +23,20 @@ import { ApiService } from '../../../services-ngx/api.service';
 import { EnvironmentService } from '../../../services-ngx/environment.service';
 import { User } from '../../../entities/user/user';
 import { CurrentUserService as AjsCurrentUserService } from '../../../ajs-upgraded-providers';
+import { ApplicationService } from '../../../services-ngx/application.service';
 
 @Injectable({ providedIn: 'root' })
 export class GioPermissionService {
   private currentOrganizationPermissions: string[] = [];
   private currentApiPermissions: string[] = [];
   private currentEnvironmentPermissions: string[] = [];
+  private currentApplicationPermissions: string[] = [];
 
   constructor(
     @Inject(AjsCurrentUserService) private readonly ajsCurrentUserService: UserService,
     private readonly apiService: ApiService,
     private readonly environmentService: EnvironmentService,
+    private readonly applicationService: ApplicationService,
   ) {}
 
   loadOrganizationPermissions(user: User): void {
@@ -77,6 +80,21 @@ export class GioPermissionService {
     );
   }
 
+  loadApplicationPermissions(applicationId: string): Observable<void> {
+    return this.applicationService.getPermissions(applicationId).pipe(
+      map((applicationPermissions) => {
+        this.currentApplicationPermissions = Object.entries(applicationPermissions).flatMap(([key, crudValues]) =>
+          crudValues.map((crudValue) => toLower(`APPLICATION-${key}-${crudValue}`)),
+        );
+
+        // For legacy AngularJS permissions. Make permission ajs directive work (see : PermPermissionStore)
+        // TODO: Remove when AngularJS API permissions are removed
+        this.ajsCurrentUserService.currentUser.userApplicationPermissions = this.currentApplicationPermissions;
+        this.ajsCurrentUserService.reloadPermissions();
+      }),
+    );
+  }
+
   hasAnyMatching(permissions: string[]): boolean {
     if (!permissions || !this.ajsCurrentUserService.currentUser.userPermissions) {
       return false;
@@ -99,5 +117,9 @@ export class GioPermissionService {
 
   clearApiPermissions() {
     this.currentApiPermissions = [];
+  }
+
+  clearApplicationPermissions() {
+    this.currentApplicationPermissions = [];
   }
 }
