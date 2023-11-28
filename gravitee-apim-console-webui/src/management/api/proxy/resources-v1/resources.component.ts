@@ -13,8 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, ElementRef, Injector, Input, SimpleChange } from '@angular/core';
+import { Component, ElementRef, Injector, SimpleChange } from '@angular/core';
 import { UpgradeComponent } from '@angular/upgrade/static';
+import { ActivatedRoute } from '@angular/router';
+
+import { ApiService } from '../../../../services-ngx/api.service';
+import { ResourceService } from '../../../../services-ngx/resource.service';
 
 @Component({
   template: '',
@@ -24,19 +28,27 @@ import { UpgradeComponent } from '@angular/upgrade/static';
   },
 })
 export class ApiV1ResourcesComponent extends UpgradeComponent {
-  @Input() resolvedApi;
-  @Input() resolvedResources;
-  constructor(elementRef: ElementRef, injector: Injector) {
+  constructor(
+    elementRef: ElementRef,
+    injector: Injector,
+    private readonly activatedRoute: ActivatedRoute,
+    private readonly apiService: ApiService,
+    private readonly resourceService: ResourceService,
+  ) {
     super('apiV1ResourcesComponentAjs', elementRef, injector);
   }
 
   ngOnInit() {
     // Hack to Force the binding between Angular and AngularJS
-    // Don't know why, but the binding is not done automatically when resolver is used
-    this.ngOnChanges({
-      resolvedApi: new SimpleChange(null, this.resolvedApi, true),
-      resolvedResources: new SimpleChange(null, this.resolvedResources, true),
+    Promise.all([
+      this.apiService.get(this.activatedRoute.snapshot.params.apiId).toPromise(),
+      this.resourceService.list({}).toPromise(),
+    ]).then(([api, resolvedResources]) => {
+      this.ngOnChanges({
+        resolvedApi: new SimpleChange(null, api, true),
+        resolvedResources: new SimpleChange(null, resolvedResources, true),
+      });
+      super.ngOnInit();
     });
-    super.ngOnInit();
   }
 }

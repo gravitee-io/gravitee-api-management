@@ -2053,6 +2053,32 @@ const apisRoutes: Routes = [
           },
         },
       },
+      {
+        path: 'v1/properties',
+        component: ApiV1PropertiesComponent,
+        data: {
+          useAngularMaterial: true,
+          apiPermissions: {
+            only: ['api-definition-r'],
+          },
+          docs: {
+            page: 'management-api-properties',
+          },
+        },
+      },
+      {
+        path: 'v1/resources',
+        component: ApiV1ResourcesComponent,
+        data: {
+          useAngularMaterial: true,
+          apiPermissions: {
+            only: ['api-definition-r'],
+          },
+          docs: {
+            page: 'management-api-resources',
+          },
+        },
+      },
 
       /**
        * V1 & V2 Api state only

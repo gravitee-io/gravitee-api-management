@@ -61,7 +61,7 @@ class ApiV1PropertiesControllerAjs {
         name: 'Custom (HTTP)',
       },
     ];
-    this.api = this.resolvedApi.data;
+    this.api = this.resolvedApi;
 
     this.editor = undefined;
 

@@ -40,7 +40,7 @@ class ApiV1ResourcesControllerAjs {
   }
 
   $onInit() {
-    this.types = this.resolvedResources.data;
+    this.types = this.resolvedResources;
   }
 
   initState() {
@@ -142,7 +142,7 @@ class ApiV1ResourcesControllerAjs {
       })
       .then((response) => {
         if (response) {
-          this.resolvedApi.data.resources.splice(resourceIdx, 1);
+          this.resolvedApi.resources.splice(resourceIdx, 1);
           this.updateApi();
         }
       });
@@ -154,14 +154,14 @@ class ApiV1ResourcesControllerAjs {
     delete this.resource.$$hashKey;
 
     if (this.creation) {
-      this.resolvedApi.data.resources.push(this.resource);
+      this.resolvedApi.resources.push(this.resource);
     }
 
     this.updateApi();
   }
 
   updateApi() {
-    let api = this.resolvedApi.data;
+    let api = this.resolvedApi;
     return this.ApiService.update(api).then(({ data }) => {
       this.closeResourcePanel();
       this.$rootScope.$broadcast('apiChangeSuccess', { api: data });
