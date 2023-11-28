@@ -283,7 +283,7 @@ import SelectPageDialogController from '../components/documentation/dialog/selec
 import { ClientRegistrationProvidersComponent } from './configuration/client-registration-providers/client-registration-providers.component';
 
 import DashboardService from '../services/dashboard.service';
-import AnalyticsDashboardComponent from './configuration/analytics/dashboard/dashboard.components';
+import SettingsAnalyticsDashboardComponentAjs from './configuration/analytics/dashboard/settings-analytics-dashboard.components.ajs';
 // Tokens
 import TokenService from '../services/token.service';
 import DialogGenerateTokenController from '../user/token/generateTokenDialog.controller';
@@ -912,7 +912,7 @@ graviteeManagementModule.controller('CircularPercentageController', CircularPerc
 graviteeManagementModule.service('EntrypointService', EntrypointService);
 
 graviteeManagementModule.service('DashboardService', DashboardService);
-graviteeManagementModule.component('dashboard', AnalyticsDashboardComponent);
+graviteeManagementModule.component('settingsAnalyticsDashboardAjs', SettingsAnalyticsDashboardComponentAjs);
 graviteeManagementModule.controller('DialogQueryFilterInformationController', DialogQueryFilterInformationController);
 
 // Platform Analytics

@@ -19,7 +19,7 @@
   <div class="gv-forms-header">
     <h1 ng-if="!$ctrl.editMode">New dashboard [{{$ctrl.dashboard.reference_type}}]</h1>
     <h1 ng-if="$ctrl.editMode">{{::$ctrl.dashboard.name}} [{{$ctrl.dashboard.reference_type}}]</h1>
-    <a ui-sref="management.settings.analytics.list">Back to dashboards</a>
+    <a ng-click="$ctrl.backToDashboards()">Back to dashboards</a>
   </div>
 
   <form name="$ctrl.formDashboard" ng-submit="$ctrl.save()" novalidate>

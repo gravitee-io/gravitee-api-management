@@ -19,13 +19,13 @@ import { GioBreadcrumbModule, GioSubmenuModule } from '@gravitee/ui-particles-an
 import { CommonModule } from '@angular/common';
 
 import { SettingsRoutingModule } from './settings.route';
-import { SettingsMigratingComponent } from './settings-migrating-component';
 
 import { SettingsAnalyticsComponent } from '../configuration/analytics/settings-analytics.component';
 import { SettingsNavigationComponent } from '../configuration/settings-navigation/settings-navigation.component';
+import { SettingsAnalyticsDashboardComponent } from '../configuration/analytics/dashboard/settings-analytics-dashboard.component';
 
 @NgModule({
   imports: [SettingsRoutingModule, RouterModule, GioSubmenuModule, GioBreadcrumbModule, CommonModule],
-  declarations: [SettingsNavigationComponent, SettingsAnalyticsComponent, SettingsMigratingComponent],
+  declarations: [SettingsNavigationComponent, SettingsAnalyticsComponent, SettingsAnalyticsDashboardComponent],
 })
 export class SettingsModule {}

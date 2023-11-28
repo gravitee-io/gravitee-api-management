@@ -16,10 +16,9 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
-import { SettingsMigratingComponent } from './settings-migrating-component';
-
 import { SettingsNavigationComponent } from '../configuration/settings-navigation/settings-navigation.component';
 import { SettingsAnalyticsComponent } from '../configuration/analytics/settings-analytics.component';
+import { SettingsAnalyticsDashboardComponent } from '../configuration/analytics/dashboard/settings-analytics-dashboard.component';
 
 export const settingsRoutes: Routes = [
   {
@@ -42,11 +41,29 @@ export const settingsRoutes: Routes = [
       },
       {
         path: 'analytics/dashboard/:type/new',
-        component: SettingsMigratingComponent,
+        component: SettingsAnalyticsDashboardComponent,
+        data: {
+          menu: null,
+          docs: {
+            page: 'management-configuration-dashboard',
+          },
+          perms: {
+            only: ['environment-dashboard-c'],
+          },
+        },
       },
       {
         path: 'analytics/dashboard/:type/:dashboardId',
-        component: SettingsMigratingComponent,
+        component: SettingsAnalyticsDashboardComponent,
+        data: {
+          menu: null,
+          docs: {
+            page: 'management-configuration-dashboard',
+          },
+          perms: {
+            only: ['environment-dashboard-u'],
+          },
+        },
       },
     ],
   },
