@@ -63,6 +63,16 @@ executors:
         docker:
             - image: cimg/node:16.10
         resource_class: << parameters.class >>
+    node-18:
+        parameters:
+            class:
+                description: The resource class
+                type: enum
+                enum: ["small", "medium", "large", "xlarge"]
+                default: "medium"
+        docker:
+            - image: cimg/node:18.18
+        resource_class: << parameters.class >>
 
     azure-cli:
         parameters:
@@ -852,8 +862,11 @@ jobs:
             resource-class:
                 type: string
                 default: medium
+            executor-name:
+                type: string
+                default: node-lts
         executor:
-            name: node-lts
+            name: << parameters.executor-name>>
             class: << parameters.resource-class>>
         steps:
             - checkout
@@ -938,8 +951,11 @@ jobs:
                 type: string
                 default: ""
                 description: the name of the image
+            executor-name:
+                type: string
+                default: node-lts
         executor:
-            name: node-lts
+            name: << parameters.executor-name>>
             class: large
         steps:
             - checkout
@@ -1568,9 +1584,9 @@ jobs:
                   var-name: ARTIFACTORY_PASSWORD
             - checkout
             - run:
-                name: Checkout tag << pipeline.parameters.graviteeio_version >>
-                command: |
-                  git checkout << pipeline.parameters.graviteeio_version >>
+                  name: Checkout tag << pipeline.parameters.graviteeio_version >>
+                  command: |
+                      git checkout << pipeline.parameters.graviteeio_version >>
             - run:
                   name: Install dependencies
                   command: npm install
@@ -1980,6 +1996,7 @@ workflows:
                   context: cicd-orchestrator
                   apim-ui-project: gravitee-apim-portal-webui
                   resource-class: large
+                  executor-name: node-18
                   requires:
                       - Setup
             - job-sonarcloud-analysis:
@@ -1994,6 +2011,7 @@ workflows:
                   context: cicd-orchestrator
                   apim-ui-project: gravitee-apim-portal-webui
                   docker-image-name: apim-portal-ui
+                  executor-name: node-18
                   requires:
                       - Setup
             - job-lint-test-charts:

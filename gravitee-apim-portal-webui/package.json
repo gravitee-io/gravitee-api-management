@@ -60,8 +60,8 @@
     "zone.js": "~0.11.4"
   },
   "engines": {
-    "node": "^16.10",
-    "npm": "^7.24"
+    "node": "^18.18",
+    "npm": "^9.8"
   },
   "devDependencies": {
     "@angular-builders/jest": "14.1.0",
