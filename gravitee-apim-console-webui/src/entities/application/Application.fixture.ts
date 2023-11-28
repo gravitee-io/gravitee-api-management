@@ -41,6 +41,7 @@ export function fakeApplication(attributes?: Partial<Application>): Application 
     type: 'SIMPLE',
     updated_at: 1636536375600,
     origin: 'MANAGEMENT',
+    groups: ['f1194262-9157-4986-9942-629157f98682'],
   };
 
   return {

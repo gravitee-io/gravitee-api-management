@@ -97,6 +97,7 @@ describe('ApplicationGeneralInfoComponent', () => {
         description: 'My default application',
         name: 'new test name',
         picture: null,
+        groups: ['f1194262-9157-4986-9942-629157f98682'],
         settings: {
           oauth: {
             application_type: 'NATIVE',
@@ -139,6 +140,7 @@ describe('ApplicationGeneralInfoComponent', () => {
         description: 'My default application',
         name: 'Default application',
         picture: null,
+        groups: ['f1194262-9157-4986-9942-629157f98682'],
         settings: {
           app: {
             client_id: '123',
@@ -175,6 +177,7 @@ describe('ApplicationGeneralInfoComponent', () => {
         description: 'My default application',
         name: 'Default application',
         picture: null,
+        groups: ['f1194262-9157-4986-9942-629157f98682'],
         settings: {
           oauth: {
             application_type: 'NATIVE',

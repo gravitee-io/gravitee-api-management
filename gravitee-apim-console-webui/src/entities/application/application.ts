@@ -23,11 +23,10 @@ export interface Application {
   id: string;
   created_at: number;
   updated_at: number;
-
   name: string;
   description?: string;
   domain?: string;
-  groups?: Record<string, string>;
+  groups?: string[];
   status?: string;
   type?: string;
   picture_url?: string;
