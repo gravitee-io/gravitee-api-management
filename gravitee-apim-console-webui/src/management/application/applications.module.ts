@@ -35,6 +35,7 @@ import { ApplicationNotificationSettingsModule } from './details/notifications/n
 import { ApplicationMetadataModule } from './details/metadata/application-metadata.module';
 import { ApplicationGeneralUserGroupModule } from './details/user-group-access/application-general-user-group.module';
 import { ApplicationGeneralNgModule } from './details/general/general-ng/application-general-ng.module';
+import { ApplicationGeneralComponent } from './details/general/application-general.component';
 
 import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioRoleModule } from '../../shared/components/gio-role/gio-role.module';
@@ -70,7 +71,7 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
     ApplicationGeneralUserGroupModule,
     ApplicationGeneralNgModule,
   ],
-  declarations: [EnvApplicationListComponent],
+  declarations: [EnvApplicationListComponent, ApplicationGeneralComponent],
   exports: [EnvApplicationListComponent],
   entryComponents: [EnvApplicationListComponent],
   providers: [],

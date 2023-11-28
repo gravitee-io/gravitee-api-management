@@ -83,7 +83,6 @@ import ApplicationCreationStep4Component from './application/creation/steps/appl
 
 import ApplicationHeaderComponent from './application/details/header/application-header.component';
 import ApplicationGeneralController from './application/details/general/application-general.controller';
-import AjsApplicationGeneralComponent from './application/details/general/application-general.component';
 import ApplicationMembersController from './application/details/members/application-members.controller';
 import ApplicationMembersComponent from './application/details/members/application-members.component';
 import ApplicationSubscriptionsController from './application/details/subscriptions/application-subscriptions.controller';
@@ -448,6 +447,7 @@ import { ApplicationGeneralGroupsComponent } from './application/details/user-gr
 import { ApplicationGeneralTransferOwnershipComponent } from './application/details/user-group-access/transfer-ownership/application-general-transfer-ownership.component';
 import SupportTicketsListComponentAjs from './support/tickets-list.component.ajs';
 import SettingsAnalyticsComponentAjs from './configuration/analytics/settings-analytics.component.ajs';
+import ApplicationGeneralComponentAjs from './application/details/general/application-general.component.ajs';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -756,7 +756,7 @@ graviteeManagementModule.component('applicationCreationStep3', ApplicationCreati
 graviteeManagementModule.component('applicationCreationStep4', ApplicationCreationStep4Component);
 
 graviteeManagementModule.component('applicationHeader', ApplicationHeaderComponent);
-graviteeManagementModule.component('applicationGeneral', AjsApplicationGeneralComponent);
+graviteeManagementModule.component('applicationGeneral', ApplicationGeneralComponentAjs);
 graviteeManagementModule.component('applicationSubscriptions', ApplicationSubscriptionsComponent);
 graviteeManagementModule.component('applicationSubscription', ApplicationSubscriptionComponent);
 graviteeManagementModule.component('applicationSubscriptionsList', ApplicationSubscriptionsListComponent);

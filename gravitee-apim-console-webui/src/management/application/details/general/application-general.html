@@ -15,262 +15,271 @@
     limitations under the License.
 
 -->
-<form name="formApplication" ng-submit="$ctrl.update()" novalidate>
-  <div
-    class="gv-forms"
-    layout="column"
-    permission
-    permission-only="'application-definition-u'"
-    permission-on-unauthorized="$ctrl.onUnauthorized()"
-  >
-    <application-header application="$ctrl.application"></application-header>
-    <div class="gv-form">
-      <h2>General</h2>
-      <div class="gv-form-content" layout="column">
-        <div layout-gt-sm="row">
-          <div layout="column" flex>
-            <div layout-gt-sm="row">
-              <md-input-container flex>
-                <label>Name</label>
-                <input ng-model="$ctrl.application.name" type="text" name="name" md-maxlength="512" required ng-disabled="$ctrl.readonly" />
-                <div class="hint" ng-if="formApplication.name.$valid || formApplication.name.$pristine">Application name</div>
-                <div ng-messages="formApplication.name.$error">
-                  <div ng-message="required">Application name is required.</div>
-                  <div ng-message="md-maxlength">The name has to be less than 50 characters long.</div>
+<div class="gv-sub-content">
+  <form name="formApplication" ng-submit="$ctrl.update()" novalidate>
+    <div
+      class="gv-forms"
+      layout="column"
+      permission
+      permission-only="'application-definition-u'"
+      permission-on-unauthorized="$ctrl.onUnauthorized()"
+    >
+      <application-header application="$ctrl.application"></application-header>
+      <div class="gv-form">
+        <h2>General</h2>
+        <div class="gv-form-content" layout="column">
+          <div layout-gt-sm="row">
+            <div layout="column" flex>
+              <div layout-gt-sm="row">
+                <md-input-container flex>
+                  <label>Name</label>
+                  <input
+                    ng-model="$ctrl.application.name"
+                    type="text"
+                    name="name"
+                    md-maxlength="512"
+                    required
+                    ng-disabled="$ctrl.readonly"
+                  />
+                  <div class="hint" ng-if="formApplication.name.$valid || formApplication.name.$pristine">Application name</div>
+                  <div ng-messages="formApplication.name.$error">
+                    <div ng-message="required">Application name is required.</div>
+                    <div ng-message="md-maxlength">The name has to be less than 50 characters long.</div>
+                  </div>
+                </md-input-container>
+
+                <md-input-container ng-if="!$ctrl.isOAuthClient()">
+                  <label>Type</label>
+                  <input ng-model="$ctrl.application.settings.app.type" type="text" name="type" ng-disabled="$ctrl.readonly" />
+                  <div class="hint" ng-if="formApplication.type.$valid || formApplication.type.$pristine">
+                    Type of the application (mobile, web, ...).
+                  </div>
+                </md-input-container>
+              </div>
+
+              <md-input-container>
+                <label>Description</label>
+                <input ng-model="$ctrl.application.description" type="text" name="description" required ng-disabled="$ctrl.readonly" />
+                <div class="hint" ng-if="formApplication.description.$valid || formApplication.description.$pristine">
+                  Provide a description of your application, what it does, ...
+                </div>
+                <div ng-messages="formApplication.description.$error">
+                  <div ng-message="required">Application description is required.</div>
                 </div>
               </md-input-container>
 
-              <md-input-container ng-if="!$ctrl.isOAuthClient()">
-                <label>Type</label>
-                <input ng-model="$ctrl.application.settings.app.type" type="text" name="type" ng-disabled="$ctrl.readonly" />
-                <div class="hint" ng-if="formApplication.type.$valid || formApplication.type.$pristine">
-                  Type of the application (mobile, web, ...).
+              <md-input-container>
+                <label>Domain</label>
+                <input ng-model="$ctrl.application.domain" type="text" name="domain" ng-disabled="$ctrl.readonly" />
+                <div class="hint" ng-if="formApplication.domain.$valid || formApplication.domain.$pristine">
+                  The domain your application will use, if relevant.
                 </div>
               </md-input-container>
             </div>
 
-            <md-input-container>
-              <label>Description</label>
-              <input ng-model="$ctrl.application.description" type="text" name="description" required ng-disabled="$ctrl.readonly" />
-              <div class="hint" ng-if="formApplication.description.$valid || formApplication.description.$pristine">
-                Provide a description of your application, what it does, ...
-              </div>
-              <div ng-messages="formApplication.description.$error">
-                <div ng-message="required">Application description is required.</div>
-              </div>
-            </md-input-container>
-
-            <md-input-container>
-              <label>Domain</label>
-              <input ng-model="$ctrl.application.domain" type="text" name="domain" ng-disabled="$ctrl.readonly" />
-              <div class="hint" ng-if="formApplication.domain.$valid || formApplication.domain.$pristine">
-                The domain your application will use, if relevant.
-              </div>
-            </md-input-container>
-          </div>
-
-          <gravitee-image
-            ng-if="!$ctrl.readonly"
-            image-id="$ctrl.application.id"
-            image="$ctrl.application.picture"
-            image-url="$ctrl.application.picture_url"
-            success-event-name="applicationPictureChangeSuccess"
-            image-name="$ctrl.application.name + '  ' + $ctrl.application.type + '  ' + $ctrl.application.owner.displayName"
-            can-delete="true"
-            delete-label="Use default"
-          ></gravitee-image>
-          <!--
+            <gravitee-image
+              ng-if="!$ctrl.readonly"
+              image-id="$ctrl.application.id"
+              image="$ctrl.application.picture"
+              image-url="$ctrl.application.picture_url"
+              success-event-name="applicationPictureChangeSuccess"
+              image-name="$ctrl.application.name + '  ' + $ctrl.application.type + '  ' + $ctrl.application.owner.displayName"
+              can-delete="true"
+              delete-label="Use default"
+            ></gravitee-image>
+            <!--
                Only use to display the image in read-only mode (not enough rights) and to have the default jdenticon
                image if no image is defined.
            -->
-          <gravitee-identity-picture
-            ng-if="$ctrl.readonly"
-            image-id="$ctrl.application.id"
-            image="$ctrl.application.picture"
-            image-url="$ctrl.application.picture_url"
-            image-name="$ctrl.application.name + '  ' + $ctrl.application.type + '  ' + $ctrl.application.owner.displayName"
-            image-width="110"
-            no-default-image="noDefaultImage"
-          >
-          </gravitee-identity-picture>
+            <gravitee-identity-picture
+              ng-if="$ctrl.readonly"
+              image-id="$ctrl.application.id"
+              image="$ctrl.application.picture"
+              image-url="$ctrl.application.picture_url"
+              image-name="$ctrl.application.name + '  ' + $ctrl.application.type + '  ' + $ctrl.application.owner.displayName"
+              image-width="110"
+              no-default-image="noDefaultImage"
+            >
+            </gravitee-identity-picture>
 
-          <gravitee-image
-            ng-if="!$ctrl.readonly"
-            image-id="'bg-' + $ctrl.application.id"
-            image="$ctrl.application.background"
-            image-url="$ctrl.application.background_url"
-            change-label="Change background"
-            no-default-image="true"
-            success-event-name="applicationBackgroundChangeSuccess"
-            image-name="'bg-' + $ctrl.application.name + '  ' + $ctrl.application.type + '  ' + $ctrl.application.owner.displayName"
-            can-delete="true"
-            delete-label="Use default"
-            ng-disabled="$ctrl.readonly"
-          ></gravitee-image>
-        </div>
-        <div layout="row">
-          <md-input-container class="md-block" flex>
-            <label>Owner</label>
-            <input type="text" disabled value="{{$ctrl.application.owner.displayName}}" />
-          </md-input-container>
-          <md-input-container class="md-block" flex>
-            <label>Created at</label>
-            <input type="text" disabled value="{{$ctrl.application.created_at | humanDateFilter}}" />
-          </md-input-container>
+            <gravitee-image
+              ng-if="!$ctrl.readonly"
+              image-id="'bg-' + $ctrl.application.id"
+              image="$ctrl.application.background"
+              image-url="$ctrl.application.background_url"
+              change-label="Change background"
+              no-default-image="true"
+              success-event-name="applicationBackgroundChangeSuccess"
+              image-name="'bg-' + $ctrl.application.name + '  ' + $ctrl.application.type + '  ' + $ctrl.application.owner.displayName"
+              can-delete="true"
+              delete-label="Use default"
+              ng-disabled="$ctrl.readonly"
+            ></gravitee-image>
+          </div>
+          <div layout="row">
+            <md-input-container class="md-block" flex>
+              <label>Owner</label>
+              <input type="text" disabled value="{{$ctrl.application.owner.displayName}}" />
+            </md-input-container>
+            <md-input-container class="md-block" flex>
+              <label>Created at</label>
+              <input type="text" disabled value="{{$ctrl.application.created_at | humanDateFilter}}" />
+            </md-input-container>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div ng-if="!$ctrl.isOAuthClient()">
-      <h2>OAuth2 Integration</h2>
-      <div class="gv-form-content" layout="column">
-        <md-input-container>
-          <label>Client ID</label>
-          <input
-            ng-model="$ctrl.application.settings.app.client_id"
-            type="text"
-            name="clientId"
-            minlength="1"
-            md-maxlength="300"
-            ng-disabled="$ctrl.readonly"
-          />
-          <div class="hint" ng-if="formApplication.clientId.$valid || formApplication.clientId.$pristine">
-            The <code>Client_id</code> of the application. This field is required to subscribe to certain type of API Plan (OAuth2, JWT).
-          </div>
-          <div ng-messages="formApplication.clientId.$error">
-            <div ng-message="minlength">The name has to be more than 1 character long.</div>
-            <div ng-message="md-maxlength">The name has to be less than 300 characters long.</div>
-          </div>
-        </md-input-container>
-      </div>
-    </div>
-
-    <div ng-if="$ctrl.isOAuthClient()">
-      <h2>OpenID Connect Integration</h2>
-      <div class="gv-form-content" layout="column">
-        <div layout="row">
-          <md-input-container flex="40">
+      <div ng-if="!$ctrl.isOAuthClient()">
+        <h2>OAuth2 Integration</h2>
+        <div class="gv-form-content" layout="column">
+          <md-input-container>
             <label>Client ID</label>
-            <input ng-model="$ctrl.application.settings.oauth.client_id" type="text" readonly />
+            <input
+              ng-model="$ctrl.application.settings.app.client_id"
+              type="text"
+              name="clientId"
+              minlength="1"
+              md-maxlength="300"
+              ng-disabled="$ctrl.readonly"
+            />
+            <div class="hint" ng-if="formApplication.clientId.$valid || formApplication.clientId.$pristine">
+              The <code>Client_id</code> of the application. This field is required to subscribe to certain type of API Plan (OAuth2, JWT).
+            </div>
+            <div ng-messages="formApplication.clientId.$error">
+              <div ng-message="minlength">The name has to be more than 1 character long.</div>
+              <div ng-message="md-maxlength">The name has to be less than 300 characters long.</div>
+            </div>
           </md-input-container>
-
-          <span flex>
-            <md-tooltip md-direction="right">Copy to clipboard</md-tooltip>
-            <ng-md-icon
-              icon="content_copy"
-              ngclipboard
-              data-clipboard-text="{{$ctrl.application.settings.oauth.client_id}}"
-              ngclipboard-success="$ctrl.onCopyClientIdSuccess(e);"
-              role="button"
-            >
-            </ng-md-icon>
-          </span>
-
-          <md-input-container flex="40">
-            <label>Client Secret</label>
-            <input ng-model="$ctrl.application.settings.oauth.client_secret" type="text" readonly />
-          </md-input-container>
-
-          <span flex>
-            <md-tooltip md-direction="right">Copy to clipboard</md-tooltip>
-            <ng-md-icon
-              icon="content_copy"
-              ngclipboard
-              data-clipboard-text="{{$ctrl.application.settings.oauth.client_secret}}"
-              ngclipboard-success="$ctrl.onCopyClientSecretSuccess(e);"
-              role="button"
-            >
-            </ng-md-icon>
-          </span>
-
-          <md-button
-            class="md-raised md-primary"
-            type="button"
-            style="height: 36px"
-            ng-if="$ctrl.application.settings.oauth.renew_client_secret_supported"
-            ng-click="$ctrl.renewClientSecret($event)"
-            permission
-            permission-only="'application-definition-u'"
-          >
-            Renew secret
-          </md-button>
         </div>
+      </div>
 
-        <md-input-container class="md-block">
-          <label>Allowed grant types</label>
-          <md-select ng-model="$ctrl.application.settings.oauth.grant_types" ng-change="$ctrl.updateGrantTypes()" multiple required>
-            <md-option
-              ng-value="grantType.type"
-              ng-repeat="grantType in $ctrl.applicationType.allowed_grant_types"
-              ng-disabled="$ctrl.applicationType.isGrantTypeMandatory(grantType)"
+      <div ng-if="$ctrl.isOAuthClient()">
+        <h2>OpenID Connect Integration</h2>
+        <div class="gv-form-content" layout="column">
+          <div layout="row">
+            <md-input-container flex="40">
+              <label>Client ID</label>
+              <input ng-model="$ctrl.application.settings.oauth.client_id" type="text" readonly />
+            </md-input-container>
+
+            <span flex>
+              <md-tooltip md-direction="right">Copy to clipboard</md-tooltip>
+              <ng-md-icon
+                icon="content_copy"
+                ngclipboard
+                data-clipboard-text="{{$ctrl.application.settings.oauth.client_id}}"
+                ngclipboard-success="$ctrl.onCopyClientIdSuccess(e);"
+                role="button"
+              >
+              </ng-md-icon>
+            </span>
+
+            <md-input-container flex="40">
+              <label>Client Secret</label>
+              <input ng-model="$ctrl.application.settings.oauth.client_secret" type="text" readonly />
+            </md-input-container>
+
+            <span flex>
+              <md-tooltip md-direction="right">Copy to clipboard</md-tooltip>
+              <ng-md-icon
+                icon="content_copy"
+                ngclipboard
+                data-clipboard-text="{{$ctrl.application.settings.oauth.client_secret}}"
+                ngclipboard-success="$ctrl.onCopyClientSecretSuccess(e);"
+                role="button"
+              >
+              </ng-md-icon>
+            </span>
+
+            <md-button
+              class="md-raised md-primary"
+              type="button"
+              style="height: 36px"
+              ng-if="$ctrl.application.settings.oauth.renew_client_secret_supported"
+              ng-click="$ctrl.renewClientSecret($event)"
+              permission
+              permission-only="'application-definition-u'"
             >
-              {{::grantType.name}}
-            </md-option>
-          </md-select>
-          <div class="hint">Grant types allowed for the client. Please set only grant types you need for security reasons.</div>
-        </md-input-container>
+              Renew secret
+            </md-button>
+          </div>
 
-        <md-input-container class="md-block" ng-if="$ctrl.applicationType.requires_redirect_uris">
-          <label>Redirect URIs</label>
-          <md-chips
-            required
-            ng-model="$ctrl.application.settings.oauth.redirect_uris"
-            placeholder="Enter a redirect URI"
-            ng-click="$ctrl.formApplication.$setDirty()"
-            md-add-on-blur="true"
-            md-on-remove="$ctrl.formApplication.$setDirty()"
-          ></md-chips>
-          <div class="hint">URIs where the authorization server will send OAuth responses</div>
-        </md-input-container>
+          <md-input-container class="md-block">
+            <label>Allowed grant types</label>
+            <md-select ng-model="$ctrl.application.settings.oauth.grant_types" ng-change="$ctrl.updateGrantTypes()" multiple required>
+              <md-option
+                ng-value="grantType.type"
+                ng-repeat="grantType in $ctrl.applicationType.allowed_grant_types"
+                ng-disabled="$ctrl.applicationType.isGrantTypeMandatory(grantType)"
+              >
+                {{::grantType.name}}
+              </md-option>
+            </md-select>
+            <div class="hint">Grant types allowed for the client. Please set only grant types you need for security reasons.</div>
+          </md-input-container>
+
+          <md-input-container class="md-block" ng-if="$ctrl.applicationType.requires_redirect_uris">
+            <label>Redirect URIs</label>
+            <md-chips
+              required
+              ng-model="$ctrl.application.settings.oauth.redirect_uris"
+              placeholder="Enter a redirect URI"
+              ng-click="$ctrl.formApplication.$setDirty()"
+              md-add-on-blur="true"
+              md-on-remove="$ctrl.formApplication.$setDirty()"
+            ></md-chips>
+            <div class="hint">URIs where the authorization server will send OAuth responses</div>
+          </md-input-container>
+        </div>
+      </div>
+
+      <div class="gv-form">
+        <h2>Access-Control</h2>
+        <div class="gv-form-content" layout="column">
+          <md-input-container>
+            <label>Groups</label>
+            <md-select
+              aria-label="group"
+              ng-model="$ctrl.application.groups"
+              multiple
+              ng-disabled="!($ctrl.groups && $ctrl.groups.length > 0)"
+            >
+              <md-option ng-value="group.id" ng-repeat="group in $ctrl.groups">{{group.name}}</md-option>
+            </md-select>
+          </md-input-container>
+        </div>
+      </div>
+
+      <div class="md-actions gravitee-api-save-button" layout="row" ng-if="$ctrl.application.status !=='ARCHIVED'">
+        <md-button
+          class="md-raised md-primary"
+          type="submit"
+          ng-disabled="formApplication.$invalid || formApplication.$pristine"
+          permission
+          permission-only="'application-definition-u'"
+        >
+          Save
+        </md-button>
+        <md-button
+          class="md-raised"
+          type="button"
+          ng-click="$ctrl.reset()"
+          ng-disabled="formApplication.$invalid || formApplication.$pristine"
+          permission
+          permission-only="'application-definition-u'"
+        >
+          Reset
+        </md-button>
+        <md-button
+          class="md-raised md-warn"
+          type="button"
+          ng-click="$ctrl.showDeleteApplicationConfirm($event)"
+          permission
+          permission-only="'application-definition-d'"
+        >
+          Delete
+        </md-button>
       </div>
     </div>
-
-    <div class="gv-form">
-      <h2>Access-Control</h2>
-      <div class="gv-form-content" layout="column">
-        <md-input-container>
-          <label>Groups</label>
-          <md-select
-            aria-label="group"
-            ng-model="$ctrl.application.groups"
-            multiple
-            ng-disabled="!($ctrl.groups && $ctrl.groups.length > 0)"
-          >
-            <md-option ng-value="group.id" ng-repeat="group in $ctrl.groups">{{group.name}}</md-option>
-          </md-select>
-        </md-input-container>
-      </div>
-    </div>
-
-    <div class="md-actions gravitee-api-save-button" layout="row" ng-if="$ctrl.application.status !=='ARCHIVED'">
-      <md-button
-        class="md-raised md-primary"
-        type="submit"
-        ng-disabled="formApplication.$invalid || formApplication.$pristine"
-        permission
-        permission-only="'application-definition-u'"
-      >
-        Save
-      </md-button>
-      <md-button
-        class="md-raised"
-        type="button"
-        ng-click="$ctrl.reset()"
-        ng-disabled="formApplication.$invalid || formApplication.$pristine"
-        permission
-        permission-only="'application-definition-u'"
-      >
-        Reset
-      </md-button>
-      <md-button
-        class="md-raised md-warn"
-        type="button"
-        ng-click="$ctrl.showDeleteApplicationConfirm($event)"
-        permission
-        permission-only="'application-definition-d'"
-      >
-        Delete
-      </md-button>
-    </div>
-  </div>
-</form>
+  </form>
+</div>

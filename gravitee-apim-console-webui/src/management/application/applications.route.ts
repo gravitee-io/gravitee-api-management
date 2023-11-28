@@ -22,6 +22,7 @@ import { ApplicationsModule } from './applications.module';
 import { ApplicationNavigationComponent } from './application-navigation/application-navigation.component';
 import { EnvApplicationListComponent } from './list/env-application-list.component';
 import { HasApplicationPermissionGuard } from './has-application-permission.guard';
+import { ApplicationGeneralComponent } from './details/general/application-general.component';
 
 import { ApplicationType } from '../../entities/application';
 import ApplicationService from '../../services/application.service';
@@ -131,42 +132,6 @@ function applicationsConfig($stateProvider) {
         ],
       },
     })
-    .state('management.applications.application.general', {
-      url: '/',
-      component: 'applicationGeneral',
-      data: {
-        perms: {
-          only: ['application-definition-r'],
-        },
-        docs: {
-          page: 'management-application',
-        },
-      },
-      resolve: {
-        groups: [
-          'GroupService',
-          (GroupService: GroupService) => {
-            return GroupService.list().then((groups) => {
-              return _.filter(groups.data, 'manageable');
-            });
-          },
-        ],
-      },
-    })
-    .state('management.applications.application.general-ng', {
-      url: '/ng',
-      component: 'ngApplicationGeneralNg',
-      data: {
-        perms: {
-          only: ['application-definition-r'],
-        },
-        docs: {
-          page: 'management-application',
-        },
-        useAngularMaterial: true,
-      },
-    })
-
     .state('management.applications.application.metadata', {
       url: '/metadata',
       component: 'ngApplicationMetadata',
@@ -521,9 +486,19 @@ const applicationRoutes: Routes = [
   {
     path: ':applicationId',
     component: ApplicationNavigationComponent,
-    children: [],
     canActivate: [HasApplicationPermissionGuard],
     canActivateChild: [HasApplicationPermissionGuard],
+    children: [
+      {
+        path: '',
+        redirectTo: 'general',
+        pathMatch: 'full',
+      },
+      {
+        path: 'general',
+        component: ApplicationGeneralComponent,
+      },
+    ],
   },
 ];
 

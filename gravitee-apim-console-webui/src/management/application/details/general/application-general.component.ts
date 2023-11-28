@@ -13,14 +13,65 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const ApplicationGeneralComponent: ng.IComponentOptions = {
-  bindings: {
-    application: '<',
-    groups: '<',
-    applicationType: '<',
-  },
-  controller: 'ApplicationGeneralController',
-  template: require('./application-general.html'),
-};
+import { UpgradeComponent } from '@angular/upgrade/static';
+import { Component, ElementRef, Injector, SimpleChange } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import { combineLatest, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
-export default ApplicationGeneralComponent;
+import { GroupService } from '../../../../services-ngx/group.service';
+import { ApplicationService } from '../../../../services-ngx/application.service';
+
+@Component({
+  template: '',
+  selector: 'application-general',
+  host: {
+    class: 'bootstrap',
+  },
+})
+export class ApplicationGeneralComponent extends UpgradeComponent {
+  private unsubscribe$ = new Subject<void>();
+
+  constructor(
+    elementRef: ElementRef,
+    injector: Injector,
+    private readonly activatedRoute: ActivatedRoute,
+    private readonly groupService: GroupService,
+    private readonly applicationService: ApplicationService,
+  ) {
+    super('applicationGeneral', elementRef, injector);
+  }
+
+  ngOnInit() {
+    const applicationId = this.activatedRoute.snapshot.params.applicationId;
+    combineLatest([
+      this.groupService.list(),
+      this.applicationService.getLastApplicationFetch(applicationId),
+      this.applicationService.getApplicationType(applicationId),
+    ])
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe({
+        next: ([groups, application, applicationType]) => {
+          this.ngOnChanges({
+            application: new SimpleChange(null, application, true),
+            applicationType: new SimpleChange(null, applicationType, true),
+            groups: new SimpleChange(
+              null,
+              groups.filter((group) => group.manageable),
+              true,
+            ),
+            activatedRoute: new SimpleChange(null, this.activatedRoute, true),
+          });
+
+          super.ngOnInit();
+        },
+      });
+  }
+
+  ngOnDestroy() {
+    this.unsubscribe$.next();
+    this.unsubscribe$.complete();
+
+    super.ngOnDestroy();
+  }
+}
