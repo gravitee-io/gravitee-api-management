@@ -59,8 +59,8 @@ export class ApplicationNavigationComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.applicationService
-      .getById(this.activatedRoute.snapshot.params.applicationId)
-      .pipe()
+      .getLastApplicationFetch(this.activatedRoute.snapshot.params.applicationId)
+      .pipe(takeUntil(this.unsubscribe$))
       .subscribe({
         next: (application) => (this.application = application),
       });

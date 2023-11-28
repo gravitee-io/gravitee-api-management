@@ -47,7 +47,7 @@ export class ApplicationGeneralNgComponent implements OnInit {
   public ngOnInit() {
     this.isLoadingData = true;
     combineLatest([
-      this.applicationService.getById(this.activatedRoute.snapshot.params.applicationId),
+      this.applicationService.getLastApplicationFetch(this.activatedRoute.snapshot.params.applicationId),
       this.applicationService.getApplicationType(this.activatedRoute.snapshot.params.applicationId),
     ])
       .pipe(
