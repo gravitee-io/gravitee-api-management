@@ -19,20 +19,18 @@
 
 $textColor: map.get(gio.$mat-dove-palette, default);
 
-:host {
-  height: 100%;
-}
-
 .settings-navigation {
-  display: flex;
-  justify-content: flex-start;
   height: 100%;
+  display: grid;
+  grid-template-columns: min-content auto;
+  grid-template-areas: 'menu content';
 
   a {
     text-decoration: none;
   }
 
   &__menu {
+    grid-area: menu;
     display: flex;
     flex-direction: column;
   }
@@ -52,6 +50,7 @@ $textColor: map.get(gio.$mat-dove-palette, default);
   }
 
   &__content {
+    grid-area: content;
     display: flex;
     flex-direction: column;
     flex: 1 1 auto;
