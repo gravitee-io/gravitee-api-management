@@ -47,6 +47,10 @@
           "error",
           { "ignoreRestSiblings": true, "argsIgnorePattern": "^_", "caughtErrorsIgnorePattern": "^_" }
         ],
+        "@typescript-eslint/no-explicit-any": [
+          "warn",
+          { "ignoreRestArgs": true }
+        ],
         "import/order": [
           "error",
           {
