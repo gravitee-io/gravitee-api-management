@@ -13,22 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { takeUntil, tap } from 'rxjs/operators';
 import { combineLatest, Subject } from 'rxjs';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
-import { UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { ApplicationService } from '../../../../../services-ngx/application.service';
 import { Application, ApplicationType } from '../../../../../entities/application/application';
 
 @Component({
-  selector: 'application-general',
-  template: require('./application-general.component.html'),
-  styles: [require('./application-general.component.scss')],
+  selector: 'application-general-ng',
+  template: require('./application-general-ng.component.html'),
+  styles: [require('./application-general-ng.component.scss')],
 })
-export class ApplicationGeneralComponent implements OnInit {
+export class ApplicationGeneralNgComponent implements OnInit {
   public initialApplication: Application;
   public applicationType: ApplicationType;
   public applicationForm: FormGroup;
@@ -38,7 +38,8 @@ export class ApplicationGeneralComponent implements OnInit {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   constructor(
-    @Inject(UIRouterStateParams) private readonly ajsStateParams,
+    private readonly router: Router,
+    private readonly activatedRoute: ActivatedRoute,
     private readonly applicationService: ApplicationService,
     private readonly snackBarService: SnackBarService,
   ) {}
@@ -46,8 +47,8 @@ export class ApplicationGeneralComponent implements OnInit {
   public ngOnInit() {
     this.isLoadingData = true;
     combineLatest([
-      this.applicationService.getById(this.ajsStateParams.applicationId),
-      this.applicationService.getApplicationType(this.ajsStateParams.applicationId),
+      this.applicationService.getById(this.activatedRoute.snapshot.params.applicationId),
+      this.applicationService.getApplicationType(this.activatedRoute.snapshot.params.applicationId),
     ])
       .pipe(
         tap(([application, applicationType]) => {

@@ -442,7 +442,7 @@ import { EnvironmentNotificationSettingsDetailsComponent } from './configuration
 import { EnvironmentMetadataComponent } from './configuration/metadata/environment-metadata.component';
 import { ApplicationMetadataComponent } from './application/details/metadata/application-metadata.component';
 import { Router } from '@angular/router';
-import { ApplicationGeneralComponent } from './application/details/general/general-ng/application-general.component';
+import { ApplicationGeneralNgComponent } from './application/details/general/general-ng/application-general-ng.component';
 import { ApplicationGeneralMembersComponent } from './application/details/user-group-access/members/application-general-members.component';
 import { ApplicationGeneralGroupsComponent } from './application/details/user-group-access/groups/application-general-groups.component';
 import { ApplicationGeneralTransferOwnershipComponent } from './application/details/user-group-access/transfer-ownership/application-general-transfer-ownership.component';
@@ -807,7 +807,7 @@ graviteeManagementModule.directive(
   downgradeComponent({ component: ApplicationNotificationSettingsDetailsComponent }),
 );
 graviteeManagementModule.directive('ngApplicationMetadata', downgradeComponent({ component: ApplicationMetadataComponent }));
-graviteeManagementModule.directive('ngApplicationGeneralNg', downgradeComponent({ component: ApplicationGeneralComponent }));
+graviteeManagementModule.directive('ngApplicationGeneralNg', downgradeComponent({ component: ApplicationGeneralNgComponent }));
 
 graviteeManagementModule.component('logout', LogoutComponent);
 
