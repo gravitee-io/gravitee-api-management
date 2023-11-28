@@ -23,7 +23,7 @@
   <div class="gv-form">
     <h2></h2>
     <div class="gv-form-content" layout="column">
-      <md-table-container ng-show="$ctrl.resolvedApi.data.resources.length > 0">
+      <md-table-container ng-show="$ctrl.resolvedApi.resources.length > 0">
         <table md-table aria-description="Resources table">
           <thead md-head md-order="order">
             <tr md-row>
@@ -34,7 +34,7 @@
             </tr>
           </thead>
           <tbody md-body>
-            <tr md-row ng-repeat="resource in $ctrl.resolvedApi.data.resources | orderBy: order">
+            <tr md-row ng-repeat="resource in $ctrl.resolvedApi.resources | orderBy: order">
               <td md-cell>
                 <span><b>{{resource.name}}</b></span>
               </td>
@@ -134,7 +134,7 @@
       </md-sidenav>
 
       <gravitee-empty-state
-        ng-if="$ctrl.resolvedApi.data.resources.length == 0"
+        ng-if="$ctrl.resolvedApi.resources.length == 0"
         icon="style"
         model="Resource"
         message="Resources will appear here"
@@ -142,13 +142,9 @@
         create-mode="true"
       ></gravitee-empty-state>
 
-      <div
-        permission
-        permission-only="'api-definition-c'"
-        ng-style="$ctrl.resolvedApi.data.resources.length == 0 && {'text-align':'center'}"
-      >
+      <div permission permission-only="'api-definition-c'" ng-style="$ctrl.resolvedApi.resources.length == 0 && {'text-align':'center'}">
         <md-button
-          ng-class="{'md-fab-bottom-right': $ctrl.resolvedApi.data.resources.length > 0}"
+          ng-class="{'md-fab-bottom-right': $ctrl.resolvedApi.resources.length > 0}"
           class="md-fab"
           aria-label="Add resource"
           ng-click="$ctrl.showResourcePanel()"
