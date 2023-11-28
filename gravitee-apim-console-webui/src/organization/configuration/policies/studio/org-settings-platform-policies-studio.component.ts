@@ -23,7 +23,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { GioLicenseService } from '@gravitee/ui-particles-angular';
 import '@gravitee/ui-components/wc/gv-design';
 
-import { UrlParams } from '../../../../management/api/policy-studio/design/policy-studio-design.component';
+import { UrlParams } from '../../../../management/api/policy-studio-v2/design/policy-studio-design.component';
 import { OrganizationService } from '../../../../services-ngx/organization.service';
 import { OrgSettingsPlatformPoliciesService } from '../org-settings-platform-policies.service';
 import { Organization } from '../../../../entities/organization/organization';

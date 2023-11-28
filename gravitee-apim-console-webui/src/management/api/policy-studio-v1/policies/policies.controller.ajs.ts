@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { StateService } from '@uirouter/core';
 import angular from 'angular';
 import * as _ from 'lodash';
+import { ActivatedRoute, Router } from '@angular/router';
 
 class ApiV1PoliciesControllerAjs {
   api: any;
+  activatedRoute: ActivatedRoute;
 
   private apiPoliciesByPath: any;
   private policiesToCopy: any[];
@@ -43,7 +44,7 @@ class ApiV1PoliciesControllerAjs {
     private $rootScope,
     private StringService,
     private UserService,
-    private $state: StateService,
+    private ngRouter: Router,
   ) {
     this.pathsInitialized = [];
     this.dndEnabled = UserService.isUserHasPermissions(['api-definition-u']);
@@ -383,8 +384,8 @@ class ApiV1PoliciesControllerAjs {
       })
       .then((response) => {
         if (response) {
-          this.ApiService.migrateApiToPolicyStudio(this.api.id).then((response) => {
-            this.$state.go('management.apis.general', { apiId: response.data.id }, { reload: true });
+          this.ApiService.migrateApiToPolicyStudio(this.api.id).then((_response) => {
+            this.ngRouter.navigate(['../'], { relativeTo: this.activatedRoute });
           });
         }
       });
@@ -496,7 +497,7 @@ ApiV1PoliciesControllerAjs.$inject = [
   '$rootScope',
   'StringService',
   'UserService',
-  '$state',
+  'ngRouter',
 ];
 
 export default ApiV1PoliciesControllerAjs;

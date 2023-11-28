@@ -33,13 +33,13 @@ import AutofocusDirective from '../components/autofocus/autofocus.directive';
 import GvModelDirective from '../libraries/gv-model.directive';
 import { ApiService } from '../services/api.service';
 import CorsService from '../services/cors.service';
-import { ApiV1PoliciesComponentAjs } from './api/design/policies/policies.component.ajs';
-import AddPoliciesPathController from '../management/api/design/policies/addPoliciesPath.controller';
+import { ApiV1PoliciesComponentAjs } from './api/policy-studio-v1/policies/policies.component.ajs';
+import AddPoliciesPathController from './api/policy-studio-v1/policies/addPoliciesPath.controller';
 import { ApiV1ResourcesComponentAjs } from './api/proxy/resources-v1/resources.component.ajs';
 import { ApiV1PropertiesComponentAjs } from './api/proxy/properties-v1/properties.component.ajs';
 import { ApiHistoryComponentAjs } from './api/audit/history/apiHistory.component.ajs';
 import DialogAddPropertyController from './api/proxy/properties-v1/add-property.dialog.controller';
-import DialogEditPolicyController from '../management/api/design/policies/dialog/policyDialog.controller';
+import DialogEditPolicyController from './api/policy-studio-v1/policies/dialog/policyDialog.controller';
 import FileContentDirective from '../components/filecontent/filecontent.directive';
 import FileLoaderDirective from '../components/fileloader/fileloader.directive';
 
