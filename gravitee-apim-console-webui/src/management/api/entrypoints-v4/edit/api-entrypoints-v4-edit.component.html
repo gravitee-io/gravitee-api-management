@@ -15,9 +15,7 @@
     limitations under the License.
 
 -->
-<div class="back">
-  <gio-go-back-button [ajsGo]="{ to: 'management.apis.entrypoints', params: { apiId } }"></gio-go-back-button>Go back to your entrypoints
-</div>
+<div class="back"><gio-go-back-button [routerLink]="'..'"></gio-go-back-button>Go back to your entrypoints</div>
 
 <mat-card class="api-entrypoints-v4-edit">
   <form [formGroup]="form" *ngIf="form; else loader" (ngSubmit)="onSaveEntrypointConfig()">
