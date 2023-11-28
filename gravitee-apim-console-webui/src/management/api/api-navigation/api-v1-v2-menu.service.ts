@@ -52,8 +52,7 @@ export class ApiV1V2MenuService implements ApiMenuService {
         : [
             {
               displayName: 'Policy Studio',
-              targetRoute: 'management.apis.policy-studio-v2',
-              baseRoute: 'management.apis.policy-studio-v2',
+              routerLink: 'v2/policy-studio',
             },
           ]),
       {

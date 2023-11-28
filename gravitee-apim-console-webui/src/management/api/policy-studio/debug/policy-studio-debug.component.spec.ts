@@ -22,12 +22,12 @@ import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testin
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
+import { ActivatedRoute } from '@angular/router';
 
 import { PolicyStudioDebugComponent } from './policy-studio-debug.component';
 import { PolicyStudioDebugModule } from './policy-studio-debug.module';
 import { fakeDebugEvent } from './models/DebugEvent.fixture';
 
-import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { fakePolicyListItem } from '../../../../entities/policy';
 import { PolicyStudioService } from '../policy-studio.service';
@@ -64,7 +64,7 @@ describe('PolicyStudioDebugComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, PolicyStudioDebugModule, MatIconTestingModule],
-      providers: [{ provide: UIRouterStateParams, useValue: { apiId: api.id } }],
+      providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: api.id } } } }],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {

@@ -18,6 +18,7 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { GioLicenseTestingModule, GioLicenseService } from '@gravitee/ui-particles-angular';
+import { ActivatedRoute } from '@angular/router';
 
 import { PolicyStudioDesignComponent } from './policy-studio-design.component';
 import { PolicyStudioDesignModule } from './policy-studio-design.module';
@@ -25,7 +26,7 @@ import { PolicyStudioDesignModule } from './policy-studio-design.module';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { fakePolicyListItem } from '../../../../entities/policy';
 import { fakeResourceListItem } from '../../../../entities/resource/resourceListItem.fixture';
-import { AjsRootScope, CurrentUserService, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+import { CurrentUserService } from '../../../../ajs-upgraded-providers';
 import { User } from '../../../../entities/user';
 import { fakeFlowSchema } from '../../../../entities/flow/flowSchema.fixture';
 import { PolicyStudioService } from '../policy-studio.service';
@@ -53,12 +54,11 @@ describe('PolicyStudioDesignComponent', () => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, PolicyStudioDesignModule, GioLicenseTestingModule],
       providers: [
-        { provide: UIRouterStateParams, useValue: { apiId: api.id } },
+        { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: api.id } } } },
         {
           provide: CurrentUserService,
           useValue: { currentUser },
         },
-        { provide: AjsRootScope, useValue: null },
         {
           provide: GioLicenseService,
           useValue: {

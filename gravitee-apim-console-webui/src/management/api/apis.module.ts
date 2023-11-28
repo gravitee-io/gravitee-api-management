@@ -92,7 +92,7 @@ graviteeManagementModule.run(apiPermissionHook);
     ApiEndpointsModule,
     ApiAuditModule,
     ApiNotificationSettingsModule,
-    GioPolicyStudioRoutingModule.withRouting({ stateNamePrefix: 'management.apis.policy-studio-v2' }),
+    GioPolicyStudioRoutingModule,
     SpecificJsonSchemaTypeModule,
     DocumentationModule,
     ApiCreationGetStartedModule,

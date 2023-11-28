@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 import { CommonModule } from '@angular/common';
-import { ModuleWithProviders, NgModule } from '@angular/core';
-import { makeChildProviders, Ng2StateDeclaration, UIRouterModule } from '@uirouter/angular';
+import { NgModule } from '@angular/core';
 import { MatTabsModule } from '@angular/material/tabs';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { GioSaveBarModule, GioConfirmDialogModule, GioIconsModule, GioLicenseModule } from '@gravitee/ui-particles-angular';
+import { RouterModule } from '@angular/router';
 
-import { PolicyStudioDebugComponent } from './debug/policy-studio-debug.component';
-import { PolicyStudioDesignComponent } from './design/policy-studio-design.component';
 import { GioPolicyStudioLayoutComponent } from './gio-policy-studio-layout.component';
-import { PolicyStudioConfigComponent } from './config/policy-studio-config.component';
 import { PolicyStudioDesignModule } from './design/policy-studio-design.module';
 import { PolicyStudioDebugModule } from './debug/policy-studio-debug.module';
 import { PolicyStudioConfigModule } from './config/policy-studio-config.module';
@@ -35,7 +32,7 @@ import { GioPermissionModule } from '../../../shared/components/gio-permission/g
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    UIRouterModule.forChild(),
+    RouterModule,
 
     MatTabsModule,
     MatSnackBarModule,
@@ -52,69 +49,4 @@ import { GioPermissionModule } from '../../../shared/components/gio-permission/g
   ],
   declarations: [GioPolicyStudioLayoutComponent],
 })
-export class GioPolicyStudioRoutingModule {
-  public static withRouting(config: { stateNamePrefix: string }): ModuleWithProviders<GioPolicyStudioRoutingModule> {
-    const states = [
-      {
-        name: `${config.stateNamePrefix}`,
-        // Here URL should not start with a `/` in order to preserve parent route params (like API id)
-        url: 'policy-studio',
-        component: GioPolicyStudioLayoutComponent,
-        redirectTo: { state: `${config.stateNamePrefix}.design`, params: { psPage: 'design' } },
-        data: {
-          useAngularMaterial: true,
-          menu: null,
-          docs: null,
-        },
-      },
-      {
-        name: `${config.stateNamePrefix}.design`,
-        url: '/design?flows',
-        component: PolicyStudioDesignComponent,
-        // dynamic: true,
-        data: {
-          useAngularMaterial: true,
-          menu: null,
-          docs: {
-            page: 'management-api-policy-studio-design',
-          },
-        },
-        params: {
-          flows: {
-            type: 'string',
-            dynamic: true,
-          },
-        },
-      },
-      {
-        name: `${config.stateNamePrefix}.config`,
-        url: '/config',
-        component: PolicyStudioConfigComponent,
-        data: {
-          useAngularMaterial: true,
-          menu: null,
-          docs: {
-            page: 'management-api-policy-studio-config',
-          },
-        },
-      },
-      {
-        name: `${config.stateNamePrefix}.debug`,
-        url: '/debug',
-        component: PolicyStudioDebugComponent,
-        data: {
-          useAngularMaterial: true,
-          menu: null,
-          docs: {
-            page: 'management-api-policy-studio-try-it',
-          },
-        },
-      },
-    ] as Ng2StateDeclaration[];
-
-    return {
-      ngModule: GioPolicyStudioRoutingModule,
-      providers: [...makeChildProviders({ states })],
-    };
-  }
-}
+export class GioPolicyStudioRoutingModule {}
