@@ -238,7 +238,7 @@ import RouterService from '../services/router.service';
 import MessageService from '../services/message.service';
 import { MessagesComponent } from './messages/messages.component';
 
-import ApiPortalHeaderComponent from '../management/configuration/api-portal-header/api-portal-header.component';
+import ApiPortalHeaderComponentAjs from './configuration/api-portal-header/api-portal-header.component.ajs';
 import ApiHeaderService from '../services/apiHeader.service';
 
 import UpdateApiPortalHeaderDialogController from './configuration/api-portal-header/update.api-portal-header.dialog.controller';
@@ -851,7 +851,7 @@ graviteeManagementModule.controller('DictionaryController', DictionaryController
 graviteeManagementModule.controller('DialogDictionaryAddPropertyController', DialogDictionaryAddPropertyController);
 
 // ApiHeader
-graviteeManagementModule.component('configApiPortalHeader', ApiPortalHeaderComponent);
+graviteeManagementModule.component('settingsApiPortalHeaderAjs', ApiPortalHeaderComponentAjs);
 graviteeManagementModule.service('ApiHeaderService', ApiHeaderService);
 graviteeManagementModule.controller('NewApiPortalHeaderDialogController', NewApiPortalHeaderDialogController);
 graviteeManagementModule.controller('UpdateApiPortalHeaderDialogController', UpdateApiPortalHeaderDialogController);

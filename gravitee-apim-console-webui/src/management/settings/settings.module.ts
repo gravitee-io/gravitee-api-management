@@ -23,9 +23,10 @@ import { SettingsRoutingModule } from './settings.route';
 import { SettingsAnalyticsComponent } from '../configuration/analytics/settings-analytics.component';
 import { SettingsNavigationComponent } from '../configuration/settings-navigation/settings-navigation.component';
 import { SettingsAnalyticsDashboardComponent } from '../configuration/analytics/dashboard/settings-analytics-dashboard.component';
+import { ApiPortalHeaderComponent } from '../configuration/api-portal-header/api-portal-header.component';
 
 @NgModule({
   imports: [SettingsRoutingModule, RouterModule, GioSubmenuModule, GioBreadcrumbModule, CommonModule],
-  declarations: [SettingsNavigationComponent, SettingsAnalyticsComponent, SettingsAnalyticsDashboardComponent],
+  declarations: [SettingsNavigationComponent, SettingsAnalyticsComponent, SettingsAnalyticsDashboardComponent, ApiPortalHeaderComponent],
 })
 export class SettingsModule {}
