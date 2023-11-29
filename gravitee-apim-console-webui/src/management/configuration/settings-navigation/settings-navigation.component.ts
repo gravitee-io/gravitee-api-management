@@ -80,8 +80,7 @@ export class SettingsNavigationComponent implements OnInit {
           },
           {
             displayName: 'Authentication',
-            targetRoute: 'management.settings.environment.identityproviders',
-            baseRoute: 'management.settings.environment.identityproviders',
+            routerLink: './identity-providers',
             permissions: ['organization-identity_provider-r', 'environment-identity_provider_activation-r'],
           },
           {

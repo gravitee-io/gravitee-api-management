@@ -213,7 +213,7 @@ import DictionaryComponent from '../management/configuration/dictionaries/dictio
 import DictionaryController from '../management/configuration/dictionaries/dictionary.controller';
 import DialogDictionaryAddPropertyController from '../management/configuration/dictionaries/add-property.dialog.controller';
 // Settings - Identity providers
-import IdentityProvidersComponent from '../components/identityProviders/identity-providers.component';
+import IdentityProvidersComponentAjs from './configuration/identityProviders/identity-providers.component.ajs';
 import IdentityProviderService from '../services/identityProvider.service';
 // Others
 import StringService from '../services/string.service';
@@ -863,7 +863,7 @@ graviteeManagementModule.controller('DeleteApiQualityRuleDialogController', Dele
 graviteeManagementModule.service('QualityRuleService', QualityRuleService);
 
 // Settings: Identity provider
-graviteeManagementModule.component('identityProviders', IdentityProvidersComponent);
+graviteeManagementModule.component('settingsIdentityProvidersAjs', IdentityProvidersComponentAjs);
 
 graviteeManagementModule.service('IdentityProviderService', IdentityProviderService);
 
