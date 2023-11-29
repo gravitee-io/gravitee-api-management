@@ -164,8 +164,8 @@ import DialogConfirmAndValidateController from '../components/dialog/confirmAndV
 import DialogDynamicProviderHttpController from './api/proxy/properties-v1/dynamic-provider-http-dialog.controller';
 import TenantService from '../services/tenant.service';
 
-import CategoriesComponent from '../management/configuration/categories/categories.component';
-import CategoryComponent from './configuration/categories/category/category.component';
+import CategoriesComponentAjs from './configuration/categories/categories.component.ajs';
+import CategoryComponentAjs from './configuration/categories/category/category.component.ajs';
 import MetadataValidatorDirective from '../components/metadata/metadata.validator.directive';
 
 import RoleService from '../services/role.service';
@@ -707,8 +707,8 @@ graviteeManagementModule.component('gvWidgetDataStatsConfiguration', WidgetDataS
 graviteeManagementModule.component('gvError', ErrorComponent);
 graviteeManagementModule.controller('ErrorController', ErrorController);
 
-graviteeManagementModule.component('categories', CategoriesComponent);
-graviteeManagementModule.component('category', CategoryComponent);
+graviteeManagementModule.component('settingsCategoriesAjs', CategoriesComponentAjs);
+graviteeManagementModule.component('settingsCategoryEditAjs', CategoryComponentAjs);
 graviteeManagementModule.component('moved', MovedComponent);
 
 graviteeManagementModule.directive('ngEnvironmentMetadata', downgradeComponent({ component: EnvironmentMetadataComponent }));

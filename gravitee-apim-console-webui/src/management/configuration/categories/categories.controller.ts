@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { StateService } from '@uirouter/core';
 import { IScope } from 'angular';
 import * as _ from 'lodash';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import CategoryService from '../../../services/category.service';
 import NotificationService from '../../../services/notification.service';
@@ -26,20 +26,20 @@ class CategoriesController {
   public providedConfigurationMessage = 'Configuration provided by the system';
   public canUpdateSettings: boolean;
   private categoriesToUpdate: any[];
-  private categories: any[];
+  private categories: any[] = [];
   private Constants: any;
   private settings: any;
 
   constructor(
     private CategoryService: CategoryService,
     private NotificationService: NotificationService,
-    private $q: ng.IQService,
     private $mdDialog: angular.material.IDialogService,
-    private $state: StateService,
     private PortalSettingsService: PortalSettingsService,
     Constants: any,
     private $rootScope: IScope,
     private UserService: UserService,
+    private ngRouter: Router,
+    private activatedRoute: ActivatedRoute,
   ) {
     this.$rootScope = $rootScope;
     this.settings = _.cloneDeep(Constants.env.settings);
@@ -48,9 +48,11 @@ class CategoriesController {
   }
 
   $onInit() {
-    this.categories = _.sortBy(this.categories, 'order');
-    _.forEach(this.categories, (category, idx) => {
-      category.order = idx;
+    this.CategoryService.list(['total-apis']).then((response) => {
+      this.categories = _.sortBy(response.data, 'order');
+      _.forEach(this.categories, (category, idx) => {
+        category.order = idx;
+      });
     });
 
     this.canUpdateSettings = this.UserService.isUserHasPermissions([
@@ -125,17 +127,23 @@ class CategoriesController {
       this.categoriesToUpdate = [];
     });
   }
+
+  editCategory(categoryId: string) {
+    return this.ngRouter.navigate([categoryId], { relativeTo: this.activatedRoute });
+  }
+  createNewCategory() {
+    return this.ngRouter.navigate(['new'], { relativeTo: this.activatedRoute });
+  }
 }
 CategoriesController.$inject = [
   'CategoryService',
   'NotificationService',
-  '$q',
   '$mdDialog',
-  '$state',
   'PortalSettingsService',
   'Constants',
   '$rootScope',
   'UserService',
+  'ngRouter',
 ];
 
 export default CategoriesController;

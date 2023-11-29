@@ -61,12 +61,7 @@
                 ></gravitee-identity-picture>
               </td>
               <td md-cell width="1%" nowrap>
-                <a
-                  permission
-                  permission-only="'environment-category-u'"
-                  ui-sref="management.settings.categories.category({categoryId: category.key})"
-                  >{{category.name}}</a
-                >
+                <a permission permission-only="'environment-category-u'" ng-click="$ctrl.editCategory(category.key)">{{category.name}}</a>
                 <span permission permission-except="'environment-category-u'">{{category.name}}</span>
               </td>
               <td md-cell>{{category.description}}</td>
@@ -124,7 +119,7 @@
   aria-label="Add category"
   class="md-fab md-fab-bottom-right md-fab-scrollable"
   ng-class="{'gv-help-displayed': $ctrl.$rootScope.helpDisplayed}"
-  ui-sref="management.settings.categories.create"
+  ng-click="$ctrl.createNewCategory()"
 >
   <md-tooltip md-direction="top" md-visible="false">Add a new category</md-tooltip>
   <ng-md-icon icon="add"></ng-md-icon>

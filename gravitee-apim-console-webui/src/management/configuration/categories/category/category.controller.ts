@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { StateService } from '@uirouter/core';
 import { IScope } from 'angular';
 import * as _ from 'lodash';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { ApiService } from '../../../../services/api.service';
 import CategoryService from '../../../../services/category.service';
 import NotificationService from '../../../../services/notification.service';
+import { DocumentationQuery, DocumentationService } from '../../../../services/documentation.service';
 
 class CategoryController {
   public searchText = '';
@@ -38,19 +39,49 @@ class CategoryController {
     private ApiService: ApiService,
     private CategoryService: CategoryService,
     private NotificationService: NotificationService,
+    private DocumentationService: DocumentationService,
     private $q: ng.IQService,
     private $filter: ng.IFilterService,
-    private $state: StateService,
-    private $location: ng.ILocationService,
     private $mdDialog: angular.material.IDialogService,
     private $scope: IScope,
-  ) {
-    this.createMode = $location.path().endsWith('new');
-  }
+    private ngRouter: Router,
+    private activatedRoute: ActivatedRoute,
+  ) {}
 
   $onInit() {
+    this.createMode = !this.activatedRoute?.snapshot?.params?.categoryId;
+    if (this.activatedRoute?.snapshot?.params?.categoryId) {
+      Promise.all([
+        this.CategoryService.get(this.activatedRoute?.snapshot?.params?.categoryId),
+        this.ApiService.list(this.activatedRoute?.snapshot?.params?.categoryId),
+      ]).then(([categoriesResponse, apisResponse]) => {
+        this.category = categoriesResponse.data;
+        this.categoryApis = apisResponse.data;
+        this.selectedAPIs = this.categoryApis ? this.categoryApis.slice(0) : [];
+        this.initialCategory = _.cloneDeep(this.category);
+      });
+    }
+    const q = new DocumentationQuery();
+    q.type = 'MARKDOWN';
+    q.published = true;
+    this.DocumentationService.search(q).then((response) => {
+      this.pages = response.data.sort((a: any, b: any) => {
+        let comparison = 0;
+        const aFullPath = a.parentPath + '/' + a.name;
+        const bFullPath = b.parentPath + '/' + b.name;
+        if (aFullPath > bFullPath) {
+          comparison = 1;
+        } else if (aFullPath < bFullPath) {
+          comparison = -1;
+        }
+        return comparison;
+      });
+      if (this.pages && this.pages.length > 0) {
+        this.pages.unshift({});
+      }
+    });
+
     this.addedAPIs = [];
-    this.selectedAPIs = this.categoryApis ? this.categoryApis.slice(0) : [];
     this.$scope.$on('categoryPictureChangeSuccess', (event, args) => {
       this.category.picture = args.image;
       this.formChanged = true;
@@ -59,20 +90,6 @@ class CategoryController {
       this.category.background = args.image;
       this.formChanged = true;
     });
-    this.pages = this.pages.sort((a, b) => {
-      let comparison = 0;
-      const aFullPath = a.parentPath + '/' + a.name;
-      const bFullPath = b.parentPath + '/' + b.name;
-      if (aFullPath > bFullPath) {
-        comparison = 1;
-      } else if (aFullPath < bFullPath) {
-        comparison = -1;
-      }
-      return comparison;
-    });
-    if (this.pages && this.pages.length > 0) {
-      this.pages.unshift({});
-    }
     this.$scope.$on('apiPictureChangeSuccess', (event, args) => {
       if (!this.category) {
         this.category = {};
@@ -80,7 +97,6 @@ class CategoryController {
       this.category.picture = args.image;
       this.formChanged = true;
     });
-    this.initialCategory = _.cloneDeep(this.category);
   }
 
   reset() {
@@ -105,7 +121,7 @@ class CategoryController {
       });
       this.$q.all(apiFunctions).then(() => {
         this.NotificationService.show('Category ' + category.name + ' has been saved.');
-        this.$state.go('management.settings.categories.category', { categoryId: category.key }, { reload: true });
+        this.ngRouter.navigate(['../', category.key], { relativeTo: this.activatedRoute });
       });
     });
   }
@@ -185,17 +201,21 @@ class CategoryController {
   getApis() {
     return this.selectedAPIs;
   }
+
+  backToList() {
+    this.ngRouter.navigate(['..'], { relativeTo: this.activatedRoute });
+  }
 }
 CategoryController.$inject = [
   'ApiService',
   'CategoryService',
   'NotificationService',
+  'DocumentationService',
   '$q',
   '$filter',
-  '$state',
-  '$location',
   '$mdDialog',
   '$scope',
+  'ngRouter',
 ];
 
 export default CategoryController;
