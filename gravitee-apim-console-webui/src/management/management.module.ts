@@ -99,6 +99,7 @@ const managementRoutes: Routes = [
       { path: '', pathMatch: 'full', redirectTo: 'home' },
     ],
   },
+  { path: '', pathMatch: 'full', redirectTo: 'home' },
 ];
 
 @NgModule({

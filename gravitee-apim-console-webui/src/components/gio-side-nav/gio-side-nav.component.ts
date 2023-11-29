@@ -219,6 +219,6 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
   changeCurrentEnv($event: string): void {
     localStorage.setItem('gv-last-environment-loaded', $event);
 
-    this.router.navigate(['env', $event]);
+    this.router.navigate(['/', $event]);
   }
 }
