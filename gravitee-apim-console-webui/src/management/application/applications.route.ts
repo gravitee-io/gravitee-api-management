@@ -28,6 +28,7 @@ import { ApplicationSubscriptionsComponent } from './details/subscriptions/appli
 import { ApplicationSubscriptionComponent } from './details/subscriptions/application-subscription.component';
 import { ApplicationAnalyticsComponent } from './details/analytics/application-analytics.component';
 import { ApplicationLogsComponent } from './details/logs/application-logs.component';
+import { ApplicationLogComponent } from './details/logs/application-log.component';
 
 import { ApplicationType } from '../../entities/application';
 import ApplicationService from '../../services/application.service';
@@ -247,25 +248,6 @@ function applicationsConfig($stateProvider) {
         },
         useAngularMaterial: true,
       },
-    })
-    .state('management.applications.application.logs.log', {
-      url: '/:logId?timestamp&from&to&q&page&size',
-      component: 'applicationLog',
-      resolve: {
-        log: [
-          '$stateParams',
-          'ApplicationService',
-          ($stateParams, ApplicationService: ApplicationService) =>
-            ApplicationService.getLog($stateParams.applicationId, $stateParams.logId, $stateParams.timestamp).then(
-              (response) => response.data,
-            ),
-        ],
-      },
-      data: {
-        perms: {
-          only: ['application-log-r'],
-        },
-      },
     });
 }
 
@@ -319,6 +301,10 @@ const applicationRoutes: Routes = [
       {
         path: 'logs',
         component: ApplicationLogsComponent,
+      },
+      {
+        path: 'logs/:logId',
+        component: ApplicationLogComponent,
       },
     ],
   },

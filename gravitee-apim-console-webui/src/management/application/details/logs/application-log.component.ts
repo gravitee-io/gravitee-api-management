@@ -15,7 +15,7 @@
  */
 import { UpgradeComponent } from '@angular/upgrade/static';
 import { Component, ElementRef, Injector, SimpleChange } from '@angular/core';
-import { combineLatest, Subject } from 'rxjs';
+import { Subject } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
 import { takeUntil } from 'rxjs/operators';
 
@@ -23,7 +23,7 @@ import { ApplicationService } from '../../../../services-ngx/application.service
 
 @Component({
   template: '',
-  selector: 'application-subscription',
+  selector: 'application-log',
   host: {
     class: 'bootstrap',
   },
@@ -41,17 +41,17 @@ export class ApplicationLogComponent extends UpgradeComponent {
   }
 
   ngOnInit() {
-    const applicationId = this.activatedRoute.snapshot.params.applicationId;
-    combineLatest([
-      this.applicationService.getLastApplicationFetch(applicationId),
-      this.applicationService.getSubscribedAPIList(applicationId),
-    ])
+    this.applicationService
+      .getLog(
+        this.activatedRoute.snapshot.params.applicationId,
+        this.activatedRoute.snapshot.params.logId,
+        this.activatedRoute.snapshot.queryParams.timestamp,
+      )
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe({
-        next: ([application, subscribedApis]) => {
+        next: (log) => {
           this.ngOnChanges({
-            application: new SimpleChange(null, application, true),
-            apis: new SimpleChange(null, subscribedApis, true),
+            log: new SimpleChange(null, log, true),
             activatedRoute: new SimpleChange(null, this.activatedRoute, true),
           });
 

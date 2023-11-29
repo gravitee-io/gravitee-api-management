@@ -23,6 +23,7 @@ import { PagedResult } from '../entities/pagedResult';
 import { Application, ApplicationType } from '../entities/application/application';
 import { SubscribedApi } from '../entities/application/SubscribedApi';
 import { ApplicationSubscription } from '../entities/subscription/subscription';
+import { ApplicationLog } from '../entities/application/ApplicationLog';
 
 @Injectable({
   providedIn: 'root',
@@ -144,5 +145,10 @@ export class ApplicationService {
     return this.http.get<ApplicationSubscription>(
       `${this.constants.env.baseURL}/applications/${applicationId}/subscriptions/${subscriptionId}`,
     );
+  }
+
+  getLog(applicationId: string, logId: string, timestamp: string): Observable<ApplicationLog> {
+    const timestampInUrl = timestamp ? '?timestamp=' + timestamp : '';
+    return this.http.get<ApplicationLog>(`${this.constants.env.baseURL}/applications/${applicationId}/logs/${logId}${timestampInUrl}`);
   }
 }

@@ -17,7 +17,7 @@
 -->
 
 <div class="md-actions" layout="row">
-  <md-button ui-sref="management.applications.application.logs.list($ctrl.backStateParams)">
+  <md-button ng-click="$ctrl.goBackToLogList()">
     <ng-md-icon icon="reply"></ng-md-icon>
     <span style="color: rgba(0, 0, 0, 0.54)">Back to logs</span>
   </md-button>
