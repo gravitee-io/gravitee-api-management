@@ -1103,7 +1103,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             if (managementURL.endsWith("/")) {
                 managementURL = managementURL.substring(0, managementURL.length() - 1);
             }
-            userURL = managementURL + "/#!/settings/users/" + userEntity.getId();
+            userURL = managementURL + "/#!/_organization/users/" + userEntity.getId();
         }
 
         String registrationUrl = "";
