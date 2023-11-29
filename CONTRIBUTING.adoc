@@ -1,6 +1,6 @@
 = Contributing to Gravitee.io
 
-You think Gravitee.io is awesome and you'd like to contribute?
+You think Gravitee.io is awesome, and you'd like to contribute?
 Here are some guidelines that should help you get started.
 
 == Using GitHub issues
