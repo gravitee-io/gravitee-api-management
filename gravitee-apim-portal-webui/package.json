@@ -19,7 +19,7 @@
     "serve:apim-master": "NODE_OPTIONS=--max_old_space_size=8192 ng run gravitee-portal-webui:serve:apim-master --port=4100",
     "serve:prod": "node scripts/serve.js",
     "test": "NODE_OPTIONS=--max-old-space-size=6144 ng test",
-    "test:coverage": "NODE_OPTIONS=--max-old-space-size=6144 ng test --collect-coverage -w 3",
+    "test:coverage": "JEST_JUNIT_ADD_FILE_ATTRIBUTE=true JEST_JUNIT_OUTPUT_DIR=\"coverage\" NODE_OPTIONS=--max-old-space-size=6144 ng test --collect-coverage --run-in-band --reporters=\"default\" --reporters=\"jest-junit\"",
     "test:watch": "NODE_OPTIONS=--max-old-space-size=6144 ng test --watch -w 8",
     "update:sdk": "sh ./scripts/update-sdk.sh"
   },
@@ -93,6 +93,7 @@
     "eslint-plugin-prettier": "^4.0.0",
     "http-proxy-middleware": "1.3.1",
     "jest": "28.1.3",
+    "jest-junit": "16.0.0",
     "license-check-and-add": "4.0.3",
     "ng-packagr": "^15.2.2",
     "prettier": "2.8.4",

@@ -892,7 +892,7 @@ jobs:
                   paths:
                       - << parameters.apim-ui-project >>/coverage
             - store_test_results:
-                  path: << parameters.apim-ui-project >>/coverage
+                  path: << parameters.apim-ui-project >>/coverage/junit.xml
 
     job-webui-publish-artifactory:
         parameters:
