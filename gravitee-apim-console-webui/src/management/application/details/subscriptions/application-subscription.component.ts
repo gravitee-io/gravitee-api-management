@@ -13,71 +13,57 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { StateParams, StateService } from '@uirouter/core';
-import { Subject } from 'rxjs';
+import { UpgradeComponent } from '@angular/upgrade/static';
+import { Component, ElementRef, Injector, SimpleChange } from '@angular/core';
+import { combineLatest, Subject } from 'rxjs';
+import { ActivatedRoute } from '@angular/router';
+import { takeUntil } from 'rxjs/operators';
 
-import ApplicationService from '../../../../services/application.service';
-import NotificationService from '../../../../services/notification.service';
-import { PlanSecurityType } from '../../../../entities/plan/plan';
-import { ApiKeyMode } from '../../../../entities/application/application';
+import { ApplicationService } from '../../../../services-ngx/application.service';
 
-const ApplicationSubscriptionComponent: ng.IComponentOptions = {
-  bindings: {
-    application: '<',
-    subscription: '<',
+@Component({
+  template: '',
+  selector: 'application-subscription',
+  host: {
+    class: 'bootstrap',
   },
-  template: require('./application-subscription.html'),
-  controller: [
-    '$mdDialog',
-    'NotificationService',
-    'ApplicationService',
-    '$state',
-    class {
-      private subscription: any;
-      private keys: any[];
-      private application: any;
-      private $listApiKeysEvent = new Subject<void>();
-      private backStateParams: StateParams;
+})
+export class ApplicationSubscriptionComponent extends UpgradeComponent {
+  private unsubscribe$ = new Subject<void>();
 
-      constructor(
-        private $mdDialog: angular.material.IDialogService,
-        private NotificationService: NotificationService,
-        private ApplicationService: ApplicationService,
-        private $state: StateService,
-      ) {
-        this.backStateParams = $state.params;
-      }
+  constructor(
+    elementRef: ElementRef,
+    injector: Injector,
+    private readonly activatedRoute: ActivatedRoute,
+    private readonly applicationService: ApplicationService,
+  ) {
+    super('applicationSubscription', elementRef, injector);
+  }
 
-      close() {
-        let msg = 'The application will not be able to consume this API anymore.';
-        if (this.subscription.plan.security === PlanSecurityType.API_KEY && this.application.api_key_mode !== ApiKeyMode.SHARED) {
-          msg += '<br/>All Api-keys associated to this subscription will be closed and could not be used.';
-        }
-
-        this.$mdDialog
-          .show({
-            controller: 'DialogConfirmController',
-            controllerAs: 'ctrl',
-            template: require('../../../../components/dialog/confirmWarning.dialog.html'),
-            clickOutsideToClose: true,
-            locals: {
-              title: 'Are you sure you want to close this subscription?',
-              msg: msg,
-              confirmButton: 'Close',
-            },
-          })
-          .then((response) => {
-            if (response) {
-              this.ApplicationService.closeSubscription(this.application.id, this.subscription.id).then((response) => {
-                this.NotificationService.show('The subscription has been closed');
-                this.subscription = response.data;
-                this.$listApiKeysEvent.next();
-              });
-            }
+  ngOnInit() {
+    const applicationId = this.activatedRoute.snapshot.params.applicationId;
+    combineLatest([
+      this.applicationService.getLastApplicationFetch(applicationId),
+      this.applicationService.getSubscription(applicationId, this.activatedRoute.snapshot.params.subscriptionId),
+    ])
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe({
+        next: ([application, subscription]) => {
+          this.ngOnChanges({
+            application: new SimpleChange(null, application, true),
+            subscription: new SimpleChange(null, subscription, true),
+            activatedRoute: new SimpleChange(null, this.activatedRoute, true),
           });
-      }
-    },
-  ],
-};
 
-export default ApplicationSubscriptionComponent;
+          super.ngOnInit();
+        },
+      });
+  }
+
+  ngOnDestroy() {
+    this.unsubscribe$.next();
+    this.unsubscribe$.complete();
+
+    super.ngOnDestroy();
+  }
+}

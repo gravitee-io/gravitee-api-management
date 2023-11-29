@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { StateParams, StateService } from '@uirouter/core';
+import { StateService } from '@uirouter/core';
 import { Observable } from 'rxjs';
 
 import NotificationService from '../../services/notification.service';
@@ -26,16 +26,13 @@ class ApiKeysController {
   private keys: any[];
   private application: any;
   private listEvent: Observable<void>;
-  private backStateParams: StateParams;
 
   constructor(
     private $mdDialog: angular.material.IDialogService,
     private NotificationService: NotificationService,
     private ApplicationService: ApplicationService,
     private $state: StateService,
-  ) {
-    this.backStateParams = $state.params;
-  }
+  ) {}
 
   $onInit() {
     this.listApiKeys();

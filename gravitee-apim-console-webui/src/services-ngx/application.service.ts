@@ -22,6 +22,7 @@ import { Constants } from '../entities/Constants';
 import { PagedResult } from '../entities/pagedResult';
 import { Application, ApplicationType } from '../entities/application/application';
 import { SubscribedApi } from '../entities/application/SubscribedApi';
+import { ApplicationSubscription } from '../entities/subscription/subscription';
 
 @Injectable({
   providedIn: 'root',
@@ -137,5 +138,11 @@ export class ApplicationService {
 
   getSubscribedAPIList(applicationId: string): Observable<SubscribedApi[]> {
     return this.http.get<SubscribedApi[]>(`${this.constants.env.baseURL}/applications/${applicationId}/subscribed`);
+  }
+
+  getSubscription(applicationId: string, subscriptionId: string): Observable<ApplicationSubscription> {
+    return this.http.get<ApplicationSubscription>(
+      `${this.constants.env.baseURL}/applications/${applicationId}/subscriptions/${subscriptionId}`,
+    );
   }
 }
