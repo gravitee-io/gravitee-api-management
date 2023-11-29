@@ -23,6 +23,8 @@ import { ApiPortalHeaderComponent } from '../configuration/api-portal-header/api
 import { ApiQualityRulesComponent } from '../configuration/api-quality-rules/api-quality-rules.component';
 import { ApiQualityRuleComponent } from '../configuration/api-quality-rules/api-quality-rule/api-quality-rule.component';
 import { IdentityProvidersComponent } from '../configuration/identityProviders/identity-providers.component';
+import { CategoriesComponent } from '../configuration/categories/categories.component';
+import { CategoryComponent } from '../configuration/categories/category/category.component';
 
 export const settingsRoutes: Routes = [
   {
@@ -134,6 +136,46 @@ export const settingsRoutes: Routes = [
           perms: {
             only: ['environment-identity_provider_activation-r'],
             unauthorizedFallbackTo: 'management.settings.categories.list',
+          },
+        },
+      },
+      {
+        path: 'categories',
+        component: CategoriesComponent,
+        data: {
+          menu: null,
+          docs: {
+            page: 'management-configuration-categories',
+          },
+          perms: {
+            only: ['environment-category-r'],
+            unauthorizedFallbackTo: 'management.settings.clientregistrationproviders.list',
+          },
+        },
+      },
+      {
+        path: 'categories/new',
+        component: CategoryComponent,
+        data: {
+          menu: null,
+          docs: {
+            page: 'management-configuration-categories',
+          },
+          perms: {
+            only: ['environment-category-c'],
+          },
+        },
+      },
+      {
+        path: 'categories/:categoryId',
+        component: CategoryComponent,
+        data: {
+          menu: null,
+          docs: {
+            page: 'management-configuration-categories',
+          },
+          perms: {
+            only: ['environment-category-u', 'environment-category-d'],
           },
         },
       },

@@ -13,14 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const CategoryComponent: ng.IComponentOptions = {
-  bindings: {
-    category: '<',
-    categoryApis: '<',
-    pages: '<',
-  },
-  controller: 'CategoryController',
-  template: require('./category.html'),
-};
+import { Component, ElementRef, Injector, SimpleChange } from '@angular/core';
+import { UpgradeComponent } from '@angular/upgrade/static';
+import { ActivatedRoute } from '@angular/router';
 
-export default CategoryComponent;
+@Component({
+  template: '',
+  selector: 'settings-category-edit',
+  host: {
+    class: 'bootstrap',
+  },
+})
+export class CategoryComponent extends UpgradeComponent {
+  constructor(elementRef: ElementRef, injector: Injector, private readonly activatedRoute: ActivatedRoute) {
+    super('settingsCategoryEditAjs', elementRef, injector);
+  }
+
+  ngOnInit() {
+    // Hack to Force the binding between Angular and AngularJS
+    this.ngOnChanges({
+      activatedRoute: new SimpleChange(null, this.activatedRoute, true),
+    });
+
+    super.ngOnInit();
+  }
+}

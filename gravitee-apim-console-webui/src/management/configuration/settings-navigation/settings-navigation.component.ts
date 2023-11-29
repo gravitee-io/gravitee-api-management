@@ -85,8 +85,7 @@ export class SettingsNavigationComponent implements OnInit {
           },
           {
             displayName: 'Categories',
-            targetRoute: 'management.settings.categories.list',
-            baseRoute: 'management.settings.categories',
+            routerLink: './categories',
             permissions: ['environment-category-r'],
           },
           {
