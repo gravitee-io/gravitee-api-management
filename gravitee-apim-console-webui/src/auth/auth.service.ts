@@ -206,6 +206,15 @@ export class AuthService {
       lastname: userToConfirm.lastName,
     });
   }
+
+  resetPassword(userToReset: { userId: string; token: string; password: string; firstName: string; lastName: string }): Observable<void> {
+    return this.http.post<void>(`${this.constants.org.baseURL}/users/${userToReset.userId}/changePassword`, {
+      token: userToReset.token,
+      password: userToReset.password,
+      firstname: userToReset.firstName,
+      lastname: userToReset.lastName,
+    });
+  }
 }
 
 // see https://developer.mozilla.org/en-US/docs/Web/API/WindowBase64/Base64_encoding_and_decoding#The_Unicode_Problem
