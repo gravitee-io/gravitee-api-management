@@ -22,6 +22,7 @@ import { SettingsAnalyticsDashboardComponent } from '../configuration/analytics/
 import { ApiPortalHeaderComponent } from '../configuration/api-portal-header/api-portal-header.component';
 import { ApiQualityRulesComponent } from '../configuration/api-quality-rules/api-quality-rules.component';
 import { ApiQualityRuleComponent } from '../configuration/api-quality-rules/api-quality-rule/api-quality-rule.component';
+import { IdentityProvidersComponent } from '../configuration/identityProviders/identity-providers.component';
 
 export const settingsRoutes: Routes = [
   {
@@ -119,6 +120,20 @@ export const settingsRoutes: Routes = [
           },
           perms: {
             only: ['environment-quality_rule-u'],
+          },
+        },
+      },
+      {
+        path: 'identity-providers',
+        component: IdentityProvidersComponent,
+        data: {
+          menu: null,
+          docs: {
+            page: 'management-configuration-identityproviders',
+          },
+          perms: {
+            only: ['environment-identity_provider_activation-r'],
+            unauthorizedFallbackTo: 'management.settings.categories.list',
           },
         },
       },

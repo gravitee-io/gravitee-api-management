@@ -26,6 +26,7 @@ import { SettingsAnalyticsDashboardComponent } from '../configuration/analytics/
 import { ApiPortalHeaderComponent } from '../configuration/api-portal-header/api-portal-header.component';
 import { ApiQualityRulesComponent } from '../configuration/api-quality-rules/api-quality-rules.component';
 import { ApiQualityRuleComponent } from '../configuration/api-quality-rules/api-quality-rule/api-quality-rule.component';
+import { IdentityProvidersComponent } from '../configuration/identityProviders/identity-providers.component';
 
 @NgModule({
   imports: [SettingsRoutingModule, RouterModule, GioSubmenuModule, GioBreadcrumbModule, CommonModule],
@@ -36,6 +37,7 @@ import { ApiQualityRuleComponent } from '../configuration/api-quality-rules/api-
     ApiPortalHeaderComponent,
     ApiQualityRulesComponent,
     ApiQualityRuleComponent,
+    IdentityProvidersComponent,
   ],
 })
 export class SettingsModule {}
