@@ -27,7 +27,7 @@ import { AuthService } from '../../auth/auth.service';
 @Component({
   selector: 'sign-up-confirm',
   template: require('./sign-up-confirm.component.html'),
-  styles: [require('./sign-up-confirm.component.scss')],
+  styles: [require('../auth-common.component.scss')],
 })
 export class SignUpConfirmComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();

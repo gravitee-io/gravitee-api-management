@@ -1,0 +1,51 @@
+@use 'sass:map';
+@use '../../../node_modules/@angular/material/index' as mat;
+@use '../../../node_modules/@gravitee/ui-particles-angular/index' as gio;
+
+.card {
+  &__providers {
+    display: flex;
+    flex-direction: column;
+
+    &__button {
+      &__wrapper {
+        display: flex;
+        align-items: center;
+
+        &__logo {
+          width: 24px;
+          height: 24px;
+          margin-right: 8px;
+
+          background-repeat: no-repeat no-repeat;
+          background-position: right top;
+        }
+        &__name {
+          flex: 1 1 auto;
+        }
+      }
+
+      // Default color for all providers
+      &--graviteeio_am {
+        color: #383e3f;
+        background-color: #86c3d0;
+      }
+      &--google {
+        color: #fff;
+        background-color: #4285f4;
+      }
+      &--github {
+        color: #fff;
+        background-color: #444;
+      }
+      &--oidc {
+        color: #fff;
+        background-color: #000000;
+      }
+
+      & + & {
+        margin-top: 12px;
+      }
+    }
+  }
+}

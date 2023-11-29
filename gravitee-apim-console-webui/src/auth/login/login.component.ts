@@ -23,12 +23,12 @@ import { ReCaptchaService } from '../../services-ngx/re-captcha.service';
 import { IdentityProvider } from '../../entities/identity-provider';
 import { SnackBarService } from '../../services-ngx/snack-bar.service';
 import { SocialIdentityProvider } from '../../entities/organization/socialIdentityProvider';
-import { AuthService } from '../../auth/auth.service';
+import { AuthService } from '../auth.service';
 
 @Component({
   selector: 'login',
   template: require('./login.component.html'),
-  styles: [require('./login.component.scss')],
+  styles: [require('../auth-common.component.scss'), require('./login.component.scss')],
 })
 export class LoginComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();

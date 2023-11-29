@@ -37,11 +37,8 @@ import { GioSideNavModule } from './components/gio-side-nav/gio-side-nav.module'
 import { GioTopNavModule } from './components/gio-top-nav/gio-top-nav.module';
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
-import { LoginModule } from './user/login/login.module';
 import { UserComponent } from './user/my-accout/user.component';
-import { SignUpModule } from './auth/sign-up/sign-up.module';
-import { SignUpConfirmModule } from './auth/sign-up-confirm/sign-up-confirm.module';
-import { ResetPasswordModule } from './auth/reset-password/reset-password.module';
+import { AuthModule } from './auth/auth.module';
 
 @NgModule({
   declarations: [AppComponent, UserComponent],
@@ -62,10 +59,7 @@ import { ResetPasswordModule } from './auth/reset-password/reset-password.module
     AppRoutingModule,
     GioPendoModule.forRoot(),
     GioMatConfigModule,
-    LoginModule,
-    SignUpModule,
-    SignUpConfirmModule,
-    ResetPasswordModule,
+    AuthModule,
     GioSideNavModule,
     GioTopNavModule,
   ],

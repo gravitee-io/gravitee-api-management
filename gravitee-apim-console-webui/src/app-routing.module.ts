@@ -19,7 +19,7 @@ import { APP_BASE_HREF, HashLocationStrategy, LocationStrategy } from '@angular/
 
 import { AppComponent } from './app.component';
 import { IsLoggedInGuard } from './auth/is-logged-in.guard';
-import { LoginComponent } from './user/login/login.component';
+import { LoginComponent } from './auth/login/login.component';
 import { IsNotLoggedInGuard } from './auth/is-not-logged-in.guard';
 import { SignUpComponent } from './auth/sign-up/sign-up.component';
 import { SignUpConfirmComponent } from './auth/sign-up-confirm/sign-up-confirm.component';
