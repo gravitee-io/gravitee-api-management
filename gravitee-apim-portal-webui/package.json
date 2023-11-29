@@ -18,9 +18,9 @@
     "serve": "NODE_OPTIONS=--max_old_space_size=8192 ng serve --port=4100",
     "serve:apim-master": "NODE_OPTIONS=--max_old_space_size=8192 ng run gravitee-portal-webui:serve:apim-master --port=4100",
     "serve:prod": "node scripts/serve.js",
-    "test": "NODE_OPTIONS=--max-old-space-size=3072 ng test -w 8",
-    "test:coverage": "NODE_OPTIONS=--max-old-space-size=3072 ng test --collect-coverage -w 8",
-    "test:watch": "NODE_OPTIONS=--max-old-space-size=3072 ng test --watch -w 8",
+    "test": "NODE_OPTIONS=--max-old-space-size=6144 ng test",
+    "test:coverage": "NODE_OPTIONS=--max-old-space-size=6144 ng test --collect-coverage -w 3",
+    "test:watch": "NODE_OPTIONS=--max-old-space-size=6144 ng test --watch -w 8",
     "update:sdk": "sh ./scripts/update-sdk.sh"
   },
   "private": true,
