@@ -53,7 +53,7 @@ import ResourceService from '../services/resource.service';
 import FetcherService from '../services/fetcher.service';
 import NotifierService from '../services/notifier.service';
 import ServiceDiscoveryService from '../services/serviceDiscovery.service';
-import LoginController from '../user/login/login.controller';
+import LoginController from '../auth/login/login.controller';
 import { LogoutComponent } from '../user/logout/logout.component';
 
 import DiffDirective from '../components/diff/diff.directive';

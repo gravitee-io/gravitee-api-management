@@ -16,49 +16,49 @@
 
 -->
 
-<mat-card class="login__card">
-  <div class="login__card__header">
-    <img class="login__card__header__logo" src="/assets/gravitee-logo-dark-blue.png" alt="Gravitee.io" />
-    <div class="login__card__header__title">Sign In</div>
-    <div class="login__card__header__subtitle">to continue to the APIM Console</div>
+<mat-card class="card">
+  <div class="card__header">
+    <img class="card__header__logo" src="/assets/gravitee-logo-dark-blue.png" alt="Gravitee.io" />
+    <div class="card__header__title">Sign In</div>
+    <div class="card__header__subtitle">to continue to the APIM Console</div>
   </div>
 
-  <form *ngIf="!localLoginDisabled" class="login__card__form" [formGroup]="loginForm" (ngSubmit)="login()">
-    <mat-form-field class="login__card__form__input">
+  <form *ngIf="!localLoginDisabled" class="card__form" [formGroup]="loginForm" (ngSubmit)="login()">
+    <mat-form-field class="card__form__input">
       <mat-label>Username</mat-label>
       <input matInput type="text" formControlName="username" autofocus />
       <mat-error *ngIf="loginForm.get('username').hasError('required')">Username is required.</mat-error>
     </mat-form-field>
 
-    <mat-form-field class="login__card__form__input">
+    <mat-form-field class="card__form__input">
       <mat-label>Password</mat-label>
       <input matInput type="password" formControlName="password" />
       <mat-error *ngIf="loginForm.get('password').hasError('required')">Password is required.</mat-error>
     </mat-form-field>
 
-    <button type="submit" class="login__card__form__button" mat-raised-button [disabled]="loginForm.invalid || loginInProgress">
+    <button type="submit" class="card__form__button" mat-raised-button [disabled]="loginForm.invalid || loginInProgress">
       <mat-icon svgIcon="gio:login"></mat-icon>
       Sign in
     </button>
 
-    <p class="login__card__form__signUp" *ngIf="userCreationEnabled">Don't have an account yet? <a routerLink="/_sign-up">Sign up</a></p>
+    <p class="card__form__goTo" *ngIf="userCreationEnabled">Don't have an account yet? <a routerLink="/_sign-up">Sign up</a></p>
   </form>
 
-  <div class="login__card__providers">
+  <div class="card__providers">
     <button
       *ngFor="let provider of identityProviders"
       (click)="authenticate(provider)"
-      class="login__card__providers__button"
-      [ngClass]="'login__card__providers__button--' + (provider.type | lowercase)"
+      class="card__providers__button"
+      [ngClass]="'card__providers__button--' + (provider.type | lowercase)"
       [ngStyle]="{ 'background-color': provider.color }"
       mat-raised-button
     >
-      <span class="login__card__providers__button__wrapper">
+      <span class="card__providers__button__wrapper">
         <span
-          class="login__card__providers__button__wrapper__logo"
+          class="card__providers__button__wrapper__logo"
           [style.background-image]="'url(\'assets/logo_' + (provider.type | lowercase) + '-idp.svg\')'"
         ></span>
-        <span class="login__card__providers__button__wrapper__name">{{ provider.name }}</span>
+        <span class="card__providers__button__wrapper__name">{{ provider.name }}</span>
       </span>
     </button>
   </div>

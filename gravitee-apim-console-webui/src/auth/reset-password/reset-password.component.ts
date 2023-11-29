@@ -27,7 +27,7 @@ import { AuthService } from '../../auth/auth.service';
 @Component({
   selector: 'reset-password',
   template: require('./reset-password.component.html'),
-  styles: [require('./reset-password.component.scss')],
+  styles: [require('../auth-common.component.scss')],
 })
 export class ResetPasswordComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();

@@ -10,7 +10,7 @@ $typography: map.get(gio.$mat-theme, typography);
 }
 
 .card {
-  max-width: 360px;
+  max-width: 380px;
   margin: 100px auto 0 auto;
   padding: 32px;
 
@@ -44,7 +44,12 @@ $typography: map.get(gio.$mat-theme, typography);
       padding-bottom: 8px;
     }
 
-    &__signIn {
+    &__error {
+      @include mat.typography-level($typography, 'caption');
+      padding-bottom: 8px;
+    }
+
+    &__goTo {
       padding-top: 16px;
       text-align: center;
     }
