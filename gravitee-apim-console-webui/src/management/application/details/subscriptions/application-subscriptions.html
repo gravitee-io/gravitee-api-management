@@ -52,6 +52,7 @@
       subscribers="$ctrl.subscribers"
       filter-event="$ctrl.$filterEvent"
       subscriptions="$ctrl.exclusiveSubscriptions"
+      activated-route="$ctrl.activatedRoute"
     ></application-subscriptions-list>
   </div>
 
@@ -63,6 +64,7 @@
       filter-event="$ctrl.$filterEvent"
       subscriptions="$ctrl.exclusiveSubscriptions"
       security-types="['OAUTH2','JWT']"
+      activated-route="$ctrl.activatedRoute"
     ></application-subscriptions-list>
     <application-subscriptions-list
       list-label="'Subscriptions using shared API Key'"
@@ -72,6 +74,7 @@
       security-types="['API_KEY']"
       subscriptions="$ctrl.sharedSubscriptions"
       query-params-prefix="'shared_'"
+      activated-route="$ctrl.activatedRoute"
     ></application-subscriptions-list>
   </div>
 

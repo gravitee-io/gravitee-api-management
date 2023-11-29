@@ -21,6 +21,7 @@ import { filter, shareReplay, switchMap, tap } from 'rxjs/operators';
 import { Constants } from '../entities/Constants';
 import { PagedResult } from '../entities/pagedResult';
 import { Application, ApplicationType } from '../entities/application/application';
+import { SubscribedApi } from '../entities/application/SubscribedApi';
 
 @Injectable({
   providedIn: 'root',
@@ -132,5 +133,9 @@ export class ApplicationService {
       filter((application) => !!application),
       shareReplay({ bufferSize: 1, refCount: true }),
     );
+  }
+
+  getSubscribedAPIList(applicationId: string): Observable<SubscribedApi[]> {
+    return this.http.get<SubscribedApi[]>(`${this.constants.env.baseURL}/applications/${applicationId}/subscribed`);
   }
 }

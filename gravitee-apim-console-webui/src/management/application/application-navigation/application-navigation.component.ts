@@ -106,6 +106,7 @@ export class ApplicationNavigationComponent implements OnInit, OnDestroy {
       },
       {
         displayName: 'Subscriptions',
+        routerLink: 'subscriptions',
         targetRoute: 'management.applications.application.subscriptions.list',
         baseRoute: 'management.applications.application.subscriptions',
         permissions: ['application-subscription-r'],

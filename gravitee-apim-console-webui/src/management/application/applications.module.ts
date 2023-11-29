@@ -36,6 +36,7 @@ import { ApplicationMetadataModule } from './details/metadata/application-metada
 import { ApplicationGeneralUserGroupModule } from './details/user-group-access/application-general-user-group.module';
 import { ApplicationGeneralNgModule } from './details/general/general-ng/application-general-ng.module';
 import { ApplicationGeneralComponent } from './details/general/application-general.component';
+import { ApplicationSubscriptionsComponent } from './details/subscriptions/application-subscriptions.component';
 
 import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioRoleModule } from '../../shared/components/gio-role/gio-role.module';
@@ -71,7 +72,7 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
     ApplicationGeneralUserGroupModule,
     ApplicationGeneralNgModule,
   ],
-  declarations: [EnvApplicationListComponent, ApplicationGeneralComponent],
+  declarations: [EnvApplicationListComponent, ApplicationGeneralComponent, ApplicationSubscriptionsComponent],
   exports: [EnvApplicationListComponent],
   entryComponents: [EnvApplicationListComponent],
   providers: [],
