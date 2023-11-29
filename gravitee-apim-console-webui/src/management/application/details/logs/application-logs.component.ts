@@ -13,13 +13,57 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const ApplicationLogsComponent: ng.IComponentOptions = {
-  bindings: {
-    application: '<',
-    apis: '<',
-  },
-  controller: 'ApplicationLogsController',
-  template: require('./application-logs.html'),
-};
+import { UpgradeComponent } from '@angular/upgrade/static';
+import { Component, ElementRef, Injector, SimpleChange } from '@angular/core';
+import { combineLatest, Subject } from 'rxjs';
+import { ActivatedRoute } from '@angular/router';
+import { takeUntil } from 'rxjs/operators';
 
-export default ApplicationLogsComponent;
+import { ApplicationService } from '../../../../services-ngx/application.service';
+
+@Component({
+  template: '',
+  selector: 'application-logs',
+  host: {
+    class: 'bootstrap',
+  },
+})
+export class ApplicationLogsComponent extends UpgradeComponent {
+  private unsubscribe$ = new Subject<void>();
+
+  constructor(
+    elementRef: ElementRef,
+    injector: Injector,
+    private readonly activatedRoute: ActivatedRoute,
+    private readonly applicationService: ApplicationService,
+  ) {
+    super('applicationLogs', elementRef, injector);
+  }
+
+  ngOnInit() {
+    const applicationId = this.activatedRoute.snapshot.params.applicationId;
+    combineLatest([
+      this.applicationService.getLastApplicationFetch(applicationId),
+      this.applicationService.getSubscribedAPIList(applicationId),
+    ])
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe({
+        next: ([application, subscribedApiList]) => {
+          this.ngOnChanges({
+            application: new SimpleChange(null, application, true),
+            apis: new SimpleChange(null, subscribedApiList, true),
+            activatedRoute: new SimpleChange(null, this.activatedRoute, true),
+          });
+
+          super.ngOnInit();
+        },
+      });
+  }
+
+  ngOnDestroy() {
+    this.unsubscribe$.next();
+    this.unsubscribe$.complete();
+
+    super.ngOnDestroy();
+  }
+}

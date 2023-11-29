@@ -13,17 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-const LogsFiltersComponent: ng.IComponentOptions = {
-  template: require('./logs-filters.html'),
-  controller: 'LogsFiltersController',
+const ApplicationLogsComponentAjs: ng.IComponentOptions = {
   bindings: {
-    onFiltersChange: '&',
-    metadata: '<',
-    context: '@',
-    api: '<',
+    application: '<',
+    apis: '<',
     activatedRoute: '<',
   },
+  controller: 'ApplicationLogsController',
+  template: require('./application-logs.html'),
 };
 
-export default LogsFiltersComponent;
+export default ApplicationLogsComponentAjs;

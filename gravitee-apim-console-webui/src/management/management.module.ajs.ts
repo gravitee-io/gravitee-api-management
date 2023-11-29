@@ -91,8 +91,8 @@ import ApplicationSubscriptionComponentAjs from './application/details/subscript
 import ApplicationAnalyticsController from './application/details/analytics/application-analytics.controller';
 import ApplicationAnalyticsComponentAjs from './application/details/analytics/application-analytics.component.ajs';
 import ApplicationLogsController from './application/details/logs/application-logs.controller';
-import ApplicationLogsComponent from './application/details/logs/application-logs.component';
-import ApplicationLogComponent from './application/details/logs/application-log.component';
+import ApplicationLogsComponentAjs from './application/details/logs/application-logs.component.ajs';
+import ApplicationLogComponentAjs from './application/details/logs/application-log.component.ajs';
 import DialogAddMemberController from './application/details/members/addMemberDialog.controller';
 import DialogTransferApplicationController from './application/details/members/transferApplicationDialog.controller';
 // Analytics / widgets
@@ -762,8 +762,8 @@ graviteeManagementModule.component('applicationSubscription', ApplicationSubscri
 graviteeManagementModule.component('applicationSubscriptionsList', ApplicationSubscriptionsListComponent);
 graviteeManagementModule.component('applicationMembers', ApplicationMembersComponent);
 graviteeManagementModule.component('applicationAnalytics', ApplicationAnalyticsComponentAjs);
-graviteeManagementModule.component('applicationLogs', ApplicationLogsComponent);
-graviteeManagementModule.component('applicationLog', ApplicationLogComponent);
+graviteeManagementModule.component('applicationLogs', ApplicationLogsComponentAjs);
+graviteeManagementModule.component('applicationLog', ApplicationLogComponentAjs);
 graviteeManagementModule.controller('DialogAddMemberController', DialogAddMemberController);
 graviteeManagementModule.controller('ApplicationGeneralController', ApplicationGeneralController);
 graviteeManagementModule.controller('ApplicationMembersController', ApplicationMembersController);

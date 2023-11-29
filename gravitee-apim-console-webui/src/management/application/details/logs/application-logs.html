@@ -21,7 +21,11 @@
     <h2>Logs</h2>
     <div class="gv-form-content" layout="column">
       <div layout="row">
-        <gv-logs-timeframe on-timeframe-change="$ctrl.timeframeChange(timeframe)" flex></gv-logs-timeframe>
+        <gv-logs-timeframe
+          on-timeframe-change="$ctrl.timeframeChange(timeframe)"
+          activated-route="$ctrl.activatedRoute"
+          flex
+        ></gv-logs-timeframe>
         <div style="margin: auto">
           <md-button
             type="button"
@@ -34,7 +38,12 @@
         </div>
       </div>
 
-      <gv-logs-filters context="application" on-filters-change="$ctrl.filtersChange(filters)" metadata="$ctrl.metadata"></gv-logs-filters>
+      <gv-logs-filters
+        context="application"
+        on-filters-change="$ctrl.filtersChange(filters)"
+        metadata="$ctrl.metadata"
+        activated-route="$ctrl.activatedRoute"
+      ></gv-logs-filters>
 
       <md-table-container layout-padding>
         <table md-table class="gravitee-analytics-top-hits-table gv-table-dense">
@@ -61,19 +70,7 @@
               ng-class="{'log-error': log.status >= 400}"
             >
               <td md-cell nowrap>
-                <a
-                  ui-sref="management.applications.application.logs.log({
-          logId: log.id,
-          timestamp: log.timestamp,
-          from: $ctrl.query.from,
-          to: $ctrl.query.to,
-          q: $ctrl.query.query,
-          page: $ctrl.query.page,
-          size: $ctrl.query.size
-          })"
-                >
-                  {{log.timestamp | date:'yyyy-MM-dd HH:mm:ss.sss'}}
-                </a>
+                <a ng-click="$ctrl.goToLog(log)"> {{log.timestamp | date:'yyyy-MM-dd HH:mm:ss.sss'}} </a>
               </td>
               <td md-cell nowrap><span class="gv-statuscode-{{log.status / 100 | number:0}}xx">{{log.status}}</span></td>
               <td md-cell nowrap>{{$ctrl.logs.metadata[log.api].name}}</td>

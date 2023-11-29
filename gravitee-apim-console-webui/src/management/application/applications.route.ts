@@ -27,6 +27,7 @@ import { ApplicationMetadataComponent } from './details/metadata/application-met
 import { ApplicationSubscriptionsComponent } from './details/subscriptions/application-subscriptions.component';
 import { ApplicationSubscriptionComponent } from './details/subscriptions/application-subscription.component';
 import { ApplicationAnalyticsComponent } from './details/analytics/application-analytics.component';
+import { ApplicationLogsComponent } from './details/logs/application-logs.component';
 
 import { ApplicationType } from '../../entities/application';
 import ApplicationService from '../../services/application.service';
@@ -182,52 +183,6 @@ function applicationsConfig($stateProvider) {
         },
       },
     })
-    .state('management.applications.application.logs', {
-      abstract: true,
-      url: '/logs',
-    })
-    .state('management.applications.application.logs.list', {
-      url: '?from&to&q&page&size',
-      component: 'applicationLogs',
-      data: {
-        perms: {
-          only: ['application-log-r'],
-        },
-        docs: {
-          page: 'management-application-logs',
-        },
-      },
-      params: {
-        from: {
-          type: 'int',
-          dynamic: true,
-        },
-        to: {
-          type: 'int',
-          dynamic: true,
-        },
-        q: {
-          type: 'string',
-          dynamic: true,
-        },
-        page: {
-          type: 'int',
-          dynamic: true,
-        },
-        size: {
-          type: 'int',
-          dynamic: true,
-        },
-      },
-      resolve: {
-        apis: [
-          '$stateParams',
-          'ApplicationService',
-          ($stateParams: StateParams, ApplicationService: ApplicationService) =>
-            ApplicationService.getSubscribedAPI($stateParams.applicationId),
-        ],
-      },
-    })
     .state('management.applications.application.membersng', {
       url: '/membersng',
       component: 'applicationGeneralMembersNg',
@@ -360,6 +315,10 @@ const applicationRoutes: Routes = [
       {
         path: 'analytics',
         component: ApplicationAnalyticsComponent,
+      },
+      {
+        path: 'logs',
+        component: ApplicationLogsComponent,
       },
     ],
   },

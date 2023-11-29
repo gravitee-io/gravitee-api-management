@@ -126,6 +126,7 @@ export class ApplicationNavigationComponent implements OnInit, OnDestroy {
       },
       {
         displayName: 'Logs',
+        routerLink: 'logs',
         targetRoute: 'management.applications.application.logs.list',
         baseRoute: 'management.applications.application.logs',
         permissions: ['application-log-r'],
