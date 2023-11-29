@@ -104,9 +104,10 @@ export class SignUpComponent implements OnInit, OnDestroy {
           )
           .subscribe({
             error: (e) => {
+              this.signUpInProgress = false;
               this.snackBarService.error(e.error?.message ?? 'An error occurred while creating your account.');
             },
-            complete: () => {
+            next: () => {
               this.signUpInProgress = false;
             },
           });

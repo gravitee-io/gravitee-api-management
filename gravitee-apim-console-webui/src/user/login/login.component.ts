@@ -86,11 +86,12 @@ export class LoginComponent implements OnInit, OnDestroy {
         takeUntil(this.unsubscribe$),
       )
       .subscribe({
-        error: () => {
-          this.snackBarService.error('Login failed! Check username and password.');
-        },
-        complete: () => {
+        next: () => {
           this.loginInProgress = false;
+        },
+        error: () => {
+          this.loginInProgress = false;
+          this.snackBarService.error('Login failed! Check username and password.');
         },
       });
   }

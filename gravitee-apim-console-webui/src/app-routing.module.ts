@@ -23,6 +23,7 @@ import { LoginComponent } from './user/login/login.component';
 import { IsNotLoggedInGuard } from './auth/is-not-logged-in.guard';
 import { SignUpComponent } from './auth/sign-up/sign-up.component';
 import { SignUpConfirmComponent } from './auth/sign-up-confirm/sign-up-confirm.component';
+import { ResetPasswordComponent } from './auth/reset-password/reset-password.component';
 
 const appRoutes: Routes = [
   {
@@ -39,6 +40,10 @@ const appRoutes: Routes = [
     path: '_sign-up-confirm/:token',
     canActivate: [IsNotLoggedInGuard],
     component: SignUpConfirmComponent,
+  },
+  {
+    path: '_reset-password/:token',
+    component: ResetPasswordComponent,
   },
   {
     path: '',

@@ -16,26 +16,32 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subject } from 'rxjs';
 import { FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { switchMap, takeUntil, tap } from 'rxjs/operators';
 import { jwtDecode, JwtPayload } from 'jwt-decode';
 import { ActivatedRoute, Router } from '@angular/router';
-import { switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { ReCaptchaService } from '../../services-ngx/re-captcha.service';
 import { SnackBarService } from '../../services-ngx/snack-bar.service';
 import { AuthService } from '../../auth/auth.service';
 
 @Component({
-  selector: 'sign-up-confirm',
-  template: require('./sign-up-confirm.component.html'),
-  styles: [require('./sign-up-confirm.component.scss')],
+  selector: 'reset-password',
+  template: require('./reset-password.component.html'),
+  styles: [require('./reset-password.component.scss')],
 })
-export class SignUpConfirmComponent implements OnInit, OnDestroy {
+export class ResetPasswordComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();
 
-  public signUpConfirmForm: FormGroup;
-  public signUpConfirmError?: string;
-  public signUpConfirmSuccess = false;
-  public signUpConfirmInProgress = false;
+  public resetPasswordForm: FormGroup;
+  public resetPasswordError?: string;
+  public resetPasswordSuccess = false;
+  public resetPasswordInProgress = false;
+
+  private userTokenDecoded: JwtPayload & {
+    firstname?: string;
+    lastname?: string;
+    email: string;
+  };
 
   constructor(
     private readonly activatedRoute: ActivatedRoute,
@@ -49,14 +55,9 @@ export class SignUpConfirmComponent implements OnInit, OnDestroy {
     this.reCaptchaService.displayBadge();
 
     const token = this.activatedRoute.snapshot.params.token;
-    let userTokenDecoded: JwtPayload & {
-      firstname?: string;
-      lastname?: string;
-      email: string;
-    };
 
     try {
-      userTokenDecoded = jwtDecode<
+      this.userTokenDecoded = jwtDecode<
         JwtPayload & {
           firstname?: string;
           lastname?: string;
@@ -64,36 +65,30 @@ export class SignUpConfirmComponent implements OnInit, OnDestroy {
         }
       >(token);
     } catch (error) {
-      this.signUpConfirmError = 'Invalid registration token!';
+      this.resetPasswordError = 'Invalid registration token!';
       throw error;
     }
-    if (!userTokenDecoded) {
-      this.signUpConfirmError = 'Invalid registration token!';
+    if (!this.userTokenDecoded) {
+      this.resetPasswordError = 'Invalid registration token!';
       return;
     }
-    if (userTokenDecoded.exp && userTokenDecoded.exp * 1000 < Date.now()) {
-      this.signUpConfirmError = 'Your registration token has expired!';
+    if (this.userTokenDecoded.exp && this.userTokenDecoded.exp * 1000 < Date.now()) {
+      this.resetPasswordError = 'Your registration token has expired!';
       return;
     }
 
-    this.signUpConfirmForm = new FormGroup(
+    this.resetPasswordForm = new FormGroup(
       {
-        firstName: new FormControl(
-          {
-            value: userTokenDecoded.firstname,
-            disabled: !!userTokenDecoded.firstname,
-          },
-          Validators.required,
-        ),
-        lastName: new FormControl(
-          {
-            value: userTokenDecoded.lastname,
-            disabled: !!userTokenDecoded.lastname,
-          },
-          Validators.required,
-        ),
+        firstName: new FormControl({
+          value: this.userTokenDecoded.firstname,
+          disabled: true,
+        }),
+        lastName: new FormControl({
+          value: this.userTokenDecoded.lastname,
+          disabled: true,
+        }),
         email: new FormControl({
-          value: userTokenDecoded.email,
+          value: this.userTokenDecoded.email,
           disabled: true,
         }),
         password: new FormControl(null, Validators.required),
@@ -110,38 +105,38 @@ export class SignUpConfirmComponent implements OnInit, OnDestroy {
     this.unsubscribe$.unsubscribe();
   }
 
-  signUpConfirm() {
-    this.signUpConfirmInProgress = true;
+  resetPassword() {
+    this.resetPasswordInProgress = true;
     this.reCaptchaService
-      .execute('finalizeRegistration')
+      .execute('register')
       .then(() => {
         this.authService
-          .signUpConfirm({
+          .resetPassword({
+            userId: this.userTokenDecoded.sub,
             token: this.activatedRoute.snapshot.params.token,
-            password: this.signUpConfirmForm.get('password').value,
-            firstName: this.signUpConfirmForm.get('firstName').value,
-            lastName: this.signUpConfirmForm.get('lastName').value,
+            firstName: this.userTokenDecoded.firstname,
+            lastName: this.userTokenDecoded.lastname,
+            password: this.resetPasswordForm.get('password').value,
           })
           .pipe(
             tap(() => {
-              this.signUpConfirmSuccess = true;
+              this.resetPasswordSuccess = true;
             }),
-            switchMap(() => this.snackBarService.success('Your account has been confirmed.').afterDismissed()),
+            switchMap(() => this.snackBarService.success('Your password has been reset.').afterDismissed()),
             takeUntil(this.unsubscribe$),
           )
           .subscribe({
             next: () => {
-              this.signUpConfirmInProgress = false;
-              this.router.navigateByUrl('/_login');
+              this.resetPasswordInProgress = false;
             },
             error: (e) => {
-              this.signUpConfirmInProgress = false;
-              this.snackBarService.error(e.error?.message ?? 'An error occurred while confirming your account.');
+              this.snackBarService.error(e.error?.message ?? 'An error occurred while resetting your password.');
+              this.resetPasswordInProgress = false;
             },
           });
       })
       .catch(() => {
-        this.signUpConfirmInProgress = false;
+        this.resetPasswordInProgress = false;
       });
   }
 }

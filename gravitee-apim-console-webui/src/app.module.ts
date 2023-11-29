@@ -41,6 +41,7 @@ import { LoginModule } from './user/login/login.module';
 import { UserComponent } from './user/my-accout/user.component';
 import { SignUpModule } from './auth/sign-up/sign-up.module';
 import { SignUpConfirmModule } from './auth/sign-up-confirm/sign-up-confirm.module';
+import { ResetPasswordModule } from './auth/reset-password/reset-password.module';
 
 @NgModule({
   declarations: [AppComponent, UserComponent],
@@ -64,6 +65,7 @@ import { SignUpConfirmModule } from './auth/sign-up-confirm/sign-up-confirm.modu
     LoginModule,
     SignUpModule,
     SignUpConfirmModule,
+    ResetPasswordModule,
     GioSideNavModule,
     GioTopNavModule,
   ],
