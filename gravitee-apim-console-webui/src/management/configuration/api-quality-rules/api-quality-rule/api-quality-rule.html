@@ -18,7 +18,7 @@
 <div class="gv-forms" layout="column">
   <div class="gv-forms-header">
     <h1>{{$ctrl.createMode ? 'New' : 'Edit'}} quality rule</h1>
-    <a ui-sref="management.settings.apiQuality.list">Back to quality rules</a>
+    <a ng-click="$ctrl.backToList()">Back to quality rules</a>
   </div>
   <form name="$ctrl.qualityRuleForm" ng-submit="$ctrl.save()">
     <div class="gv-form">

@@ -20,6 +20,8 @@ import { SettingsNavigationComponent } from '../configuration/settings-navigatio
 import { SettingsAnalyticsComponent } from '../configuration/analytics/settings-analytics.component';
 import { SettingsAnalyticsDashboardComponent } from '../configuration/analytics/dashboard/settings-analytics-dashboard.component';
 import { ApiPortalHeaderComponent } from '../configuration/api-portal-header/api-portal-header.component';
+import { ApiQualityRulesComponent } from '../configuration/api-quality-rules/api-quality-rules.component';
+import { ApiQualityRuleComponent } from '../configuration/api-quality-rules/api-quality-rule/api-quality-rule.component';
 
 export const settingsRoutes: Routes = [
   {
@@ -77,6 +79,46 @@ export const settingsRoutes: Routes = [
           perms: {
             only: ['environment-api_header-r'],
             unauthorizedFallbackTo: 'management.settings.apiQuality.list',
+          },
+        },
+      },
+      {
+        path: 'api-quality-rules',
+        component: ApiQualityRulesComponent,
+        data: {
+          menu: null,
+          docs: {
+            page: 'management-configuration-apiquality',
+          },
+          perms: {
+            only: ['environment-quality_rule-r'],
+            unauthorizedFallbackTo: 'management.settings.environment.identityproviders',
+          },
+        },
+      },
+      {
+        path: 'api-quality-rules/new',
+        component: ApiQualityRuleComponent,
+        data: {
+          menu: null,
+          docs: {
+            page: 'management-configuration-apiquality',
+          },
+          perms: {
+            only: ['environment-quality_rule-c'],
+          },
+        },
+      },
+      {
+        path: 'api-quality-rules/:qualityRuleId',
+        component: ApiQualityRuleComponent,
+        data: {
+          menu: null,
+          docs: {
+            page: 'management-configuration-apiquality',
+          },
+          perms: {
+            only: ['environment-quality_rule-u'],
           },
         },
       },

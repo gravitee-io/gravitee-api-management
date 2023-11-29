@@ -75,8 +75,7 @@ export class SettingsNavigationComponent implements OnInit {
           },
           {
             displayName: 'API Quality',
-            targetRoute: 'management.settings.apiQuality.list',
-            baseRoute: 'management.settings.apiQuality',
+            routerLink: './api-quality-rules',
             permissions: ['environment-quality_rule-r'],
           },
           {

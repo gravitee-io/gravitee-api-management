@@ -26,7 +26,7 @@ class QualityRuleService {
     return this.$http.get(`${this.Constants.env.baseURL}/configuration/quality-rules/`);
   }
 
-  get(id: string): IHttpPromise<QualityRule[]> {
+  get(id: string): IHttpPromise<QualityRule> {
     return this.$http.get(`${this.Constants.env.baseURL}/configuration/quality-rules/` + id);
   }
 

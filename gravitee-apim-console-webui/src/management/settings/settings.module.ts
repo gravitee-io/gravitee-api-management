@@ -24,9 +24,18 @@ import { SettingsAnalyticsComponent } from '../configuration/analytics/settings-
 import { SettingsNavigationComponent } from '../configuration/settings-navigation/settings-navigation.component';
 import { SettingsAnalyticsDashboardComponent } from '../configuration/analytics/dashboard/settings-analytics-dashboard.component';
 import { ApiPortalHeaderComponent } from '../configuration/api-portal-header/api-portal-header.component';
+import { ApiQualityRulesComponent } from '../configuration/api-quality-rules/api-quality-rules.component';
+import { ApiQualityRuleComponent } from '../configuration/api-quality-rules/api-quality-rule/api-quality-rule.component';
 
 @NgModule({
   imports: [SettingsRoutingModule, RouterModule, GioSubmenuModule, GioBreadcrumbModule, CommonModule],
-  declarations: [SettingsNavigationComponent, SettingsAnalyticsComponent, SettingsAnalyticsDashboardComponent, ApiPortalHeaderComponent],
+  declarations: [
+    SettingsNavigationComponent,
+    SettingsAnalyticsComponent,
+    SettingsAnalyticsDashboardComponent,
+    ApiPortalHeaderComponent,
+    ApiQualityRulesComponent,
+    ApiQualityRuleComponent,
+  ],
 })
 export class SettingsModule {}
