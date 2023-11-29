@@ -9,91 +9,89 @@ $typography: map.get(gio.$mat-theme, typography);
   @include gio-layout.gio-full-width-content-container;
 }
 
-.login {
-  &__card {
-    max-width: 360px;
-    margin: 100px auto 0 auto;
-    padding: 32px;
+.login__card {
+  max-width: 360px;
+  margin: 100px auto 0 auto;
+  padding: 32px;
 
-    &__header {
-      display: flex;
-      flex-direction: column;
+  &__header {
+    display: flex;
+    flex-direction: column;
 
-      &__logo {
-        width: 200px;
-        padding: 24px 0;
-        align-self: center;
-      }
-
-      &__title {
-        @include mat.typography-level($typography, 'title');
-      }
-
-      &__subtitle {
-        @include gio.subtitle-typography();
-        padding-bottom: 16px;
-      }
+    &__logo {
+      width: 200px;
+      padding: 24px 0;
+      align-self: center;
     }
 
-    &__form {
-      display: flex;
-      flex-direction: column;
+    &__title {
+      @include mat.typography-level($typography, 'title');
+    }
+
+    &__subtitle {
+      @include gio.subtitle-typography();
       padding-bottom: 16px;
+    }
+  }
 
-      &__input {
-        flex: 1 1 auto;
-        padding-bottom: 8px;
-      }
+  &__form {
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 16px;
 
-      &__signUp {
-        padding-top: 16px;
-        text-align: center;
-      }
+    &__input {
+      flex: 1 1 auto;
+      padding-bottom: 8px;
     }
 
-    &__providers {
-      display: flex;
-      flex-direction: column;
+    &__signUp {
+      padding-top: 16px;
+      text-align: center;
+    }
+  }
 
-      &__button {
-        &__wrapper {
-          display: flex;
-          align-items: center;
+  &__providers {
+    display: flex;
+    flex-direction: column;
 
-          &__logo {
-            width: 24px;
-            height: 24px;
-            margin-right: 8px;
+    &__button {
+      &__wrapper {
+        display: flex;
+        align-items: center;
 
-            background-repeat: no-repeat no-repeat;
-            background-position: right top;
-          }
-          &__name {
-            flex: 1 1 auto;
-          }
-        }
+        &__logo {
+          width: 24px;
+          height: 24px;
+          margin-right: 8px;
 
-        // Default color for all providers
-        &--graviteeio_am {
-          color: #383e3f;
-          background-color: #86c3d0;
+          background-repeat: no-repeat no-repeat;
+          background-position: right top;
         }
-        &--google {
-          color: #fff;
-          background-color: #4285f4;
+        &__name {
+          flex: 1 1 auto;
         }
-        &--github {
-          color: #fff;
-          background-color: #444;
-        }
-        &--oidc {
-          color: #fff;
-          background-color: #000000;
-        }
+      }
 
-        & + & {
-          margin-top: 12px;
-        }
+      // Default color for all providers
+      &--graviteeio_am {
+        color: #383e3f;
+        background-color: #86c3d0;
+      }
+      &--google {
+        color: #fff;
+        background-color: #4285f4;
+      }
+      &--github {
+        color: #fff;
+        background-color: #444;
+      }
+      &--oidc {
+        color: #fff;
+        background-color: #000000;
+      }
+
+      & + & {
+        margin-top: 12px;
       }
     }
   }

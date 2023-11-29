@@ -21,12 +21,24 @@ import { AppComponent } from './app.component';
 import { IsLoggedInGuard } from './auth/is-logged-in.guard';
 import { LoginComponent } from './user/login/login.component';
 import { IsNotLoggedInGuard } from './auth/is-not-logged-in.guard';
+import { SignUpComponent } from './auth/sign-up/sign-up.component';
+import { SignUpConfirmComponent } from './auth/sign-up-confirm/sign-up-confirm.component';
 
 const appRoutes: Routes = [
   {
     path: '_login',
     canActivate: [IsNotLoggedInGuard],
     component: LoginComponent,
+  },
+  {
+    path: '_sign-up',
+    canActivate: [IsNotLoggedInGuard],
+    component: SignUpComponent,
+  },
+  {
+    path: '_sign-up-confirm/:token',
+    canActivate: [IsNotLoggedInGuard],
+    component: SignUpConfirmComponent,
   },
   {
     path: '',

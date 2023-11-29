@@ -39,6 +39,8 @@ import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
 import { LoginModule } from './user/login/login.module';
 import { UserComponent } from './user/my-accout/user.component';
+import { SignUpModule } from './auth/sign-up/sign-up.module';
+import { SignUpConfirmModule } from './auth/sign-up-confirm/sign-up-confirm.module';
 
 @NgModule({
   declarations: [AppComponent, UserComponent],
@@ -60,6 +62,8 @@ import { UserComponent } from './user/my-accout/user.component';
     GioPendoModule.forRoot(),
     GioMatConfigModule,
     LoginModule,
+    SignUpModule,
+    SignUpConfirmModule,
     GioSideNavModule,
     GioTopNavModule,
   ],
