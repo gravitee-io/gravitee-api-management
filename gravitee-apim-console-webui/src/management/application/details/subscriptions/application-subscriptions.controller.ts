@@ -17,6 +17,7 @@
 import * as _ from 'lodash';
 import { BehaviorSubject } from 'rxjs';
 import { StateService } from '@uirouter/core';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { PagedResult } from '../../../../entities/pagedResult';
 
@@ -32,6 +33,7 @@ class ApplicationSubscriptionsController {
   private subscribers: any[];
   private application: any;
   private exclusiveSubscriptions = new PagedResult();
+  private activatedRoute: ActivatedRoute;
   private sharedSubscriptions = new PagedResult();
   private filter = new SubscriptionFilter();
   private $filterEvent = new BehaviorSubject<SubscriptionFilter>(new SubscriptionFilter());
@@ -44,25 +46,25 @@ class ApplicationSubscriptionsController {
     REJECTED: 'Rejected',
   };
 
-  constructor(private $state: StateService) {}
+  constructor(private $state: StateService, private readonly ngRouter: Router) {}
 
   $onInit(): void {
-    if (this.$state.params.status) {
-      if (Array.isArray(this.$state.params.status)) {
-        this.filter.status = this.$state.params.status;
+    if (this.activatedRoute.snapshot.queryParams.status) {
+      if (Array.isArray(this.activatedRoute.snapshot.queryParams.status)) {
+        this.filter.status = this.activatedRoute.snapshot.queryParams.status;
       } else {
-        this.filter.status = this.$state.params.status.split(',');
+        this.filter.status = this.activatedRoute.snapshot.queryParams.status.split(',');
       }
     }
-    if (this.$state.params.api) {
-      if (Array.isArray(this.$state.params.api)) {
-        this.filter.apis = this.$state.params.api;
+    if (this.activatedRoute.snapshot.queryParams.api) {
+      if (Array.isArray(this.activatedRoute.snapshot.queryParams.api)) {
+        this.filter.apis = this.activatedRoute.snapshot.queryParams.api;
       } else {
-        this.filter.apis = this.$state.params.api.split(',');
+        this.filter.apis = this.activatedRoute.snapshot.queryParams.api.split(',');
       }
     }
-    if (this.$state.params.api_key) {
-      this.filter.apiKey = this.$state.params.api_key;
+    if (this.activatedRoute.snapshot.queryParams.api_key) {
+      this.filter.apiKey = this.activatedRoute.snapshot.queryParams.api_key;
     }
 
     this.doFilter();
@@ -87,19 +89,19 @@ class ApplicationSubscriptionsController {
   }
 
   doFilter(): void {
-    this.$state.transitionTo(
-      this.$state.current,
-      _.merge(this.$state.params, {
-        status: this.filter.status ? this.filter.status.join(',') : '',
-        api: this.filter.apis ? this.filter.apis.join(',') : '',
-        api_key: this.filter.apiKey ? this.filter.apiKey : '',
-      }),
-      { notify: false },
-    );
-
-    this.$filterEvent.next(this.filter);
+    this.ngRouter
+      .navigate([], {
+        relativeTo: this.activatedRoute,
+        queryParams: {
+          status: this.filter.status ? this.filter.status.join(',') : '',
+          api: this.filter.apis ? this.filter.apis.join(',') : '',
+          api_key: this.filter.apiKey ? this.filter.apiKey : '',
+        },
+        queryParamsHandling: 'merge',
+      })
+      .then((_) => this.$filterEvent.next(this.filter));
   }
 }
-ApplicationSubscriptionsController.$inject = ['$state'];
+ApplicationSubscriptionsController.$inject = ['$state', 'ngRouter'];
 
 export default ApplicationSubscriptionsController;

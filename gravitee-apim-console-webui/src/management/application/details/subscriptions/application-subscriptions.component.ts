@@ -13,13 +13,57 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const ApplicationSubscriptionsComponent: ng.IComponentOptions = {
-  bindings: {
-    application: '<',
-    subscribers: '<',
-  },
-  controller: 'ApplicationSubscriptionsController',
-  template: require('./application-subscriptions.html'),
-};
+import { UpgradeComponent } from '@angular/upgrade/static';
+import { Component, ElementRef, Injector, SimpleChange } from '@angular/core';
+import { combineLatest, Subject } from 'rxjs';
+import { ActivatedRoute } from '@angular/router';
+import { takeUntil } from 'rxjs/operators';
 
-export default ApplicationSubscriptionsComponent;
+import { ApplicationService } from '../../../../services-ngx/application.service';
+
+@Component({
+  template: '',
+  selector: 'application-subscriptions',
+  host: {
+    class: 'bootstrap',
+  },
+})
+export class ApplicationSubscriptionsComponent extends UpgradeComponent {
+  private unsubscribe$ = new Subject<void>();
+
+  constructor(
+    elementRef: ElementRef,
+    injector: Injector,
+    private readonly activatedRoute: ActivatedRoute,
+    private readonly applicationService: ApplicationService,
+  ) {
+    super('applicationSubscriptions', elementRef, injector);
+  }
+
+  ngOnInit() {
+    const applicationId = this.activatedRoute.snapshot.params.applicationId;
+    combineLatest([
+      this.applicationService.getLastApplicationFetch(applicationId),
+      this.applicationService.getSubscribedAPIList(applicationId),
+    ])
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe({
+        next: ([application, subscribedApiList]) => {
+          this.ngOnChanges({
+            application: new SimpleChange(null, application, true),
+            subscribers: new SimpleChange(null, subscribedApiList, true),
+            activatedRoute: new SimpleChange(null, this.activatedRoute, true),
+          });
+
+          super.ngOnInit();
+        },
+      });
+  }
+
+  ngOnDestroy() {
+    this.unsubscribe$.next();
+    this.unsubscribe$.complete();
+
+    super.ngOnDestroy();
+  }
+}

@@ -13,19 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const ApplicationSubscriptionsListComponent: ng.IComponentOptions = {
-  bindings: {
-    listLabel: '<',
-    application: '<',
-    subscribers: '<',
-    filterEvent: '<',
-    queryParamsPrefix: '<',
-    securityTypes: '<',
-    subscriptions: '=',
-    activatedRoute: '<',
-  },
-  controller: 'ApplicationSubscriptionsListController',
-  template: require('./application-subscriptions-list.component.html'),
-};
-
-export default ApplicationSubscriptionsListComponent;
+export interface SubscribedApi {
+  id?: string;
+  name?: string;
+}

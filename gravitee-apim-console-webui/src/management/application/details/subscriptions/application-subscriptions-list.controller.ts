@@ -17,6 +17,7 @@
 import * as _ from 'lodash';
 import { BehaviorSubject } from 'rxjs';
 import { StateService } from '@uirouter/core';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { SubscriptionFilter } from './application-subscriptions.controller';
 
@@ -37,6 +38,7 @@ class ApplicationSubscriptionsListController {
   private filterEvent: BehaviorSubject<SubscriptionFilter>;
   private application: any;
   private securityTypes: string[];
+  private activatedRoute: ActivatedRoute;
 
   private queryParamsPrefix: string;
   private pageQueryParamName: string;
@@ -44,7 +46,7 @@ class ApplicationSubscriptionsListController {
 
   private isFirstFilter = true;
 
-  constructor(private ApplicationService: ApplicationService, private $state: StateService) {
+  constructor(private ApplicationService: ApplicationService, private $state: StateService, private ngRouter: Router) {
     this.onPaginate = this.onPaginate.bind(this);
   }
 
@@ -53,11 +55,11 @@ class ApplicationSubscriptionsListController {
     this.pageQueryParamName = `${this.queryParamsPrefix || ''}page`;
     this.sizeQueryParamName = `${this.queryParamsPrefix || ''}size`;
 
-    if (this.$state.params[this.pageQueryParamName]) {
-      this.query.page = this.$state.params[this.pageQueryParamName];
+    if (this.activatedRoute.snapshot.queryParams[this.pageQueryParamName]) {
+      this.query.page = this.activatedRoute.snapshot.queryParams[this.pageQueryParamName];
     }
-    if (this.$state.params[this.sizeQueryParamName]) {
-      this.query.size = this.$state.params[this.sizeQueryParamName];
+    if (this.activatedRoute.snapshot.queryParams[this.sizeQueryParamName]) {
+      this.query.size = this.activatedRoute.snapshot.queryParams[this.sizeQueryParamName];
     }
 
     this.filterEvent.subscribe((filter) => {
@@ -89,14 +91,17 @@ class ApplicationSubscriptionsListController {
   }
 
   updatePaginationQueryParams(): void {
-    this.$state.transitionTo(
-      this.$state.current,
-      _.merge(this.$state.params, {
-        [this.pageQueryParamName]: this.query.page,
-        [this.sizeQueryParamName]: this.query.size,
-      }),
-      { notify: false },
-    );
+    const params = {
+      ...this.activatedRoute.snapshot.queryParams,
+    };
+    params[this.pageQueryParamName] = this.query.page;
+    params[this.sizeQueryParamName] = this.query.size;
+
+    this.ngRouter.navigate([], {
+      relativeTo: this.activatedRoute,
+      queryParams: params,
+      queryParamsHandling: 'merge',
+    });
   }
 
   buildQuery(): string {
@@ -126,9 +131,9 @@ class ApplicationSubscriptionsListController {
   }
 
   navigateToSubscription(subscriptionId: string): void {
-    this.$state.transitionTo('management.applications.application.subscriptions.subscription', { subscriptionId, ...this.$state.params });
+    this.ngRouter.navigate([subscriptionId]);
   }
 }
-ApplicationSubscriptionsListController.$inject = ['ApplicationService', '$state'];
+ApplicationSubscriptionsListController.$inject = ['ApplicationService', '$state', 'ngRouter'];
 
 export default ApplicationSubscriptionsListController;
