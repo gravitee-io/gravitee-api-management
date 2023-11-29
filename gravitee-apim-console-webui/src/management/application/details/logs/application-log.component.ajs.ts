@@ -1,4 +1,5 @@
 import { StateService } from '@uirouter/core';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import NotificationService from '../../../../services/notification.service';
 
@@ -26,31 +27,33 @@ const ApplicationLogComponentAjs: ng.IComponentOptions = {
     '$state',
     'NotificationService',
     'Constants',
-    function ($state: StateService, NotificationService: NotificationService, Constants: any) {
-      this.Constants = Constants;
-      this.NotificationService = NotificationService;
+    'ngRouter',
+    class {
+      private activatedRoute: ActivatedRoute;
 
-      this.backStateParams = {
-        from: $state.params.from,
-        to: $state.params.to,
-        q: $state.params.q,
-        page: $state.params.page,
-        size: $state.params.size,
-      };
+      constructor(
+        private $state: StateService,
+        private NotificationService: NotificationService,
+        private Constants: any,
+        private ngRouter: Router,
+      ) {}
 
-      this.getMimeType = function (log) {
+      getMimeType(log: any) {
         if (log.headers['Content-Type'] !== undefined) {
           const contentType = log.headers['Content-Type'][0];
           return contentType.split(';', 1)[0];
         }
-
         return null;
-      };
+      }
 
-      this.onCopyBodySuccess = function (evt) {
+      onCopyBodySuccess(evt: any) {
         this.NotificationService.show('Body has been copied to clipboard');
         evt.clearSelection();
-      };
+      }
+
+      goBackToLogList() {
+        this.ngRouter.navigate(['../'], { relativeTo: this.activatedRoute, queryParamsHandling: 'preserve' });
+      }
     },
   ],
   template: require('./application-log.html'),
