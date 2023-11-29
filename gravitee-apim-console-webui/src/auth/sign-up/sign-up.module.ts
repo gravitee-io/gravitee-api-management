@@ -20,28 +20,31 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { GioIconsModule } from '@gravitee/ui-particles-angular';
+import { GioBannerModule, GioIconsModule } from '@gravitee/ui-particles-angular';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { RouterModule } from '@angular/router';
+import { MatSelectModule } from '@angular/material/select';
 
-import { LoginComponent } from './login.component';
+import { SignUpComponent } from './sign-up.component';
 
 @NgModule({
-  declarations: [LoginComponent],
-  exports: [LoginComponent],
+  declarations: [SignUpComponent],
+  exports: [SignUpComponent],
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    RouterModule,
 
     MatFormFieldModule,
     MatInputModule,
     MatCardModule,
     MatButtonModule,
     MatSnackBarModule,
+    MatSelectModule,
 
     GioIconsModule,
-    RouterModule,
+    GioBannerModule,
   ],
 })
-export class LoginModule {}
+export class SignUpModule {}

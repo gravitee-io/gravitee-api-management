@@ -40,6 +40,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   });
   public localLoginDisabled = false;
   public userCreationEnabled = false;
+  public loginInProgress = false;
 
   constructor(
     @Inject('Constants') private readonly constants,
@@ -68,6 +69,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   login() {
+    this.loginInProgress = true;
     const redirect = this.activatedRoute.snapshot.queryParams['redirect'];
 
     from(this.reCaptchaService.execute('login'))
@@ -86,6 +88,9 @@ export class LoginComponent implements OnInit, OnDestroy {
       .subscribe({
         error: () => {
           this.snackBarService.error('Login failed! Check username and password.');
+        },
+        complete: () => {
+          this.loginInProgress = false;
         },
       });
   }

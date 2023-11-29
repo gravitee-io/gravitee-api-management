@@ -25,6 +25,7 @@ import { Constants } from '../entities/Constants';
 import { CsrfInterceptor } from '../shared/interceptors/csrf.interceptor';
 import { HeaderXRequestedWithInterceptor } from '../shared/interceptors/header-x-requested-with.interceptor';
 import { CurrentUserService } from '../services-ngx/current-user.service';
+import { CustomUserFields } from '../entities/customUserFields';
 
 const USER_PROVIDER_ID_SELECTED = 'user-provider-id-selected';
 
@@ -182,6 +183,28 @@ export class AuthService {
         return this.router.navigateByUrl('/_login');
       }),
     );
+  }
+
+  signUpCustomUserFields(): Observable<CustomUserFields> {
+    return this.http.get<CustomUserFields>(`${this.constants.org.baseURL}/configuration/custom-user-fields`);
+  }
+
+  signUp(userToCreate: { firstName: string; lastName: string; email: string; customFields?: Record<string, string> }): Observable<void> {
+    return this.http.post<void>(`${this.constants.org.baseURL}/users/registration`, {
+      firstname: userToCreate.firstName,
+      lastname: userToCreate.lastName,
+      email: userToCreate.email,
+      customFields: userToCreate.customFields,
+    });
+  }
+
+  signUpConfirm(userToConfirm: { token: string; password: string; firstName: string; lastName: string }): Observable<void> {
+    return this.http.post<void>(`${this.constants.org.baseURL}/users/registration/finalize`, {
+      token: userToConfirm.token,
+      password: userToConfirm.password,
+      firstname: userToConfirm.firstName,
+      lastname: userToConfirm.lastName,
+    });
   }
 }
 
