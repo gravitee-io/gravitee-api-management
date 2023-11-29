@@ -1,7 +1,3 @@
-import { StateService } from '@uirouter/core';
-
-import NotificationService from '../../../../services/notification.service';
-
 /*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
@@ -17,42 +13,57 @@ import NotificationService from '../../../../services/notification.service';
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const ApplicationLogComponent: ng.IComponentOptions = {
-  bindings: {
-    log: '<',
+import { UpgradeComponent } from '@angular/upgrade/static';
+import { Component, ElementRef, Injector, SimpleChange } from '@angular/core';
+import { combineLatest, Subject } from 'rxjs';
+import { ActivatedRoute } from '@angular/router';
+import { takeUntil } from 'rxjs/operators';
+
+import { ApplicationService } from '../../../../services-ngx/application.service';
+
+@Component({
+  template: '',
+  selector: 'application-subscription',
+  host: {
+    class: 'bootstrap',
   },
-  controller: [
-    '$state',
-    'NotificationService',
-    'Constants',
-    function ($state: StateService, NotificationService: NotificationService, Constants: any) {
-      this.Constants = Constants;
-      this.NotificationService = NotificationService;
+})
+export class ApplicationLogComponent extends UpgradeComponent {
+  private unsubscribe$ = new Subject<void>();
 
-      this.backStateParams = {
-        from: $state.params.from,
-        to: $state.params.to,
-        q: $state.params.q,
-        page: $state.params.page,
-        size: $state.params.size,
-      };
+  constructor(
+    elementRef: ElementRef,
+    injector: Injector,
+    private readonly activatedRoute: ActivatedRoute,
+    private readonly applicationService: ApplicationService,
+  ) {
+    super('applicationLog', elementRef, injector);
+  }
 
-      this.getMimeType = function (log) {
-        if (log.headers['Content-Type'] !== undefined) {
-          const contentType = log.headers['Content-Type'][0];
-          return contentType.split(';', 1)[0];
-        }
+  ngOnInit() {
+    const applicationId = this.activatedRoute.snapshot.params.applicationId;
+    combineLatest([
+      this.applicationService.getLastApplicationFetch(applicationId),
+      this.applicationService.getSubscribedAPIList(applicationId),
+    ])
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe({
+        next: ([application, subscribedApis]) => {
+          this.ngOnChanges({
+            application: new SimpleChange(null, application, true),
+            apis: new SimpleChange(null, subscribedApis, true),
+            activatedRoute: new SimpleChange(null, this.activatedRoute, true),
+          });
 
-        return null;
-      };
+          super.ngOnInit();
+        },
+      });
+  }
 
-      this.onCopyBodySuccess = function (evt) {
-        this.NotificationService.show('Body has been copied to clipboard');
-        evt.clearSelection();
-      };
-    },
-  ],
-  template: require('./application-log.html'),
-};
+  ngOnDestroy() {
+    this.unsubscribe$.next();
+    this.unsubscribe$.complete();
 
-export default ApplicationLogComponent;
+    super.ngOnDestroy();
+  }
+}

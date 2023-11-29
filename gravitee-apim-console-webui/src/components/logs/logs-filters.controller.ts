@@ -16,6 +16,7 @@
 import { StateService } from '@uirouter/core';
 import { ILogService, IScope, ITimeoutService } from 'angular';
 import * as _ from 'lodash';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { ApiService } from '../../services/api.service';
 import ApplicationService from '../../services/application.service';
@@ -110,6 +111,7 @@ class LogsFiltersController {
   private metadata: any;
   private context: string;
   private displayMode: any;
+  private activatedRoute: ActivatedRoute;
 
   private api: any;
 
@@ -142,13 +144,14 @@ class LogsFiltersController {
     private $log: ILogService,
     private ApiService: ApiService,
     private ApplicationService: ApplicationService,
+    private ngRouter: Router,
   ) {
     this.$scope = $scope;
   }
 
   $onInit() {
     // init filters based on stateParams
-    const q = this.$state.params.q;
+    const q = this.activatedRoute.snapshot.queryParams.q;
     if (q) {
       this.decodeQueryFilters(q);
       _.forEach(this.displayModes, (displayMode) => {
@@ -178,13 +181,13 @@ class LogsFiltersController {
   search() {
     const query = this.buildQuery(this.filters);
     // Update the query parameter
-    this.$state.transitionTo(
-      this.$state.current,
-      _.merge(this.$state.params, {
+    this.ngRouter.navigate([], {
+      relativeTo: this.activatedRoute,
+      queryParams: {
         q: query,
-      }),
-      { notify: false },
-    );
+      },
+      queryParamsHandling: 'merge',
+    });
 
     this.$timeout(() => {
       this.onFiltersChange({ filters: query });
@@ -378,6 +381,6 @@ class LogsFiltersController {
     return applications;
   }
 }
-LogsFiltersController.$inject = ['$scope', '$state', '$timeout', '$log', 'ApiService', 'ApplicationService'];
+LogsFiltersController.$inject = ['$scope', '$state', '$timeout', '$log', 'ApiService', 'ApplicationService', 'ngRouter'];
 
 export default LogsFiltersController;

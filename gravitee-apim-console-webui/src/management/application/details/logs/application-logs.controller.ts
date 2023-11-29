@@ -16,6 +16,7 @@
 import { StateService } from '@uirouter/core';
 import { IScope } from 'angular';
 import * as _ from 'lodash';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import ApplicationService, { LogsQuery } from '../../../../services/application.service';
 
@@ -28,21 +29,26 @@ class ApplicationLogsController {
   private apis;
   private application: any;
   private init: boolean;
+  private activatedRoute: ActivatedRoute;
 
-  constructor(private ApplicationService: ApplicationService, private $state: StateService, private $scope: IScope) {
+  constructor(
+    private ApplicationService: ApplicationService,
+    private $state: StateService,
+    private $scope: IScope,
+    private ngRouter: Router,
+  ) {
     this.ApplicationService = ApplicationService;
 
     this.onPaginate = this.onPaginate.bind(this);
-
-    this.query = new LogsQuery();
-    this.query.page = this.$state.params.page || 1;
-    this.query.size = this.$state.params.size || 15;
   }
 
   $onInit() {
-    this.query.from = this.$state.params.from;
-    this.query.to = this.$state.params.to;
-    this.query.query = this.$state.params.q;
+    this.query = new LogsQuery();
+    this.query.page = this.activatedRoute.snapshot.queryParams.page || 1;
+    this.query.size = this.activatedRoute.snapshot.queryParams.size || 15;
+    this.query.from = this.activatedRoute.snapshot.queryParams.from;
+    this.query.to = this.activatedRoute.snapshot.queryParams.to;
+    this.query.query = this.activatedRoute.snapshot.queryParams.q;
     this.query.field = '-@timestamp';
 
     this.$scope.$watch('$ctrl.query.field', (field) => {
@@ -52,7 +58,7 @@ class ApplicationLogsController {
     });
 
     this.metadata = {
-      apis: this.apis.data,
+      apis: this.apis,
     };
   }
 
@@ -60,7 +66,7 @@ class ApplicationLogsController {
     this.init = true;
     this.query.from = timeframe.from;
     this.query.to = timeframe.to;
-    this.query.page = this.$state.params.page || 1;
+    this.query.page = this.activatedRoute.snapshot.queryParams.page || 1;
     this.refresh();
   }
 
@@ -70,25 +76,27 @@ class ApplicationLogsController {
   }
 
   refresh() {
-    this.$state.transitionTo(
-      this.$state.current,
-      {
-        applicationId: this.application.id,
-        page: this.query.page,
-        size: this.query.size,
-        from: this.query.from,
-        to: this.query.to,
-        q: this.query.query,
-      },
-      { notify: false },
-    );
-    this.ApplicationService.findLogs(this.application.id, this.query).then((logs) => {
-      this.logs = logs.data;
-    });
+    this.ngRouter
+      .navigate([], {
+        relativeTo: this.activatedRoute,
+        queryParams: {
+          applicationId: this.application.id,
+          page: this.query.page,
+          size: this.query.size,
+          from: this.query.from,
+          to: this.query.to,
+          q: this.query.query,
+        },
+        queryParamsHandling: 'merge',
+      })
+      .then((_) => this.ApplicationService.findLogs(this.application.id, this.query))
+      .then((logs) => {
+        this.logs = logs.data;
+      });
   }
 
   filtersChange(filters) {
-    this.query.page = this.$state.params.page || 1;
+    this.query.page = this.activatedRoute.snapshot.queryParams.page || 1;
     this.query.query = filters;
     this.refresh();
   }
@@ -106,7 +114,22 @@ class ApplicationLogsController {
       document.body.removeChild(hiddenElement);
     });
   }
+
+  goToLog(log: any) {
+    this.ngRouter.navigate([log.id], {
+      relativeTo: this.activatedRoute,
+      queryParams: {
+        logId: log.id,
+        timestamp: log.timestamp,
+        from: this.query.from,
+        to: this.query.to,
+        q: this.query.query,
+        page: this.query.page,
+        size: this.query.size,
+      },
+    });
+  }
 }
-ApplicationLogsController.$inject = ['ApplicationService', '$state', '$scope'];
+ApplicationLogsController.$inject = ['ApplicationService', '$state', '$scope', 'ngRouter'];
 
 export default ApplicationLogsController;
