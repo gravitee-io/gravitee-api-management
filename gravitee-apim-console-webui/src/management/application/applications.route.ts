@@ -25,6 +25,7 @@ import { HasApplicationPermissionGuard } from './has-application-permission.guar
 import { ApplicationGeneralComponent } from './details/general/application-general.component';
 import { ApplicationMetadataComponent } from './details/metadata/application-metadata.component';
 import { ApplicationSubscriptionsComponent } from './details/subscriptions/application-subscriptions.component';
+import { ApplicationSubscriptionComponent } from './details/subscriptions/application-subscription.component';
 
 import { ApplicationType } from '../../entities/application';
 import ApplicationService from '../../services/application.service';
@@ -132,60 +133,6 @@ function applicationsConfig($stateProvider) {
             UserService.reloadPermissions();
           },
         ],
-      },
-    })
-    .state('management.applications.application.subscriptions.subscription', {
-      url: '/:subscriptionId?page&size&:shared_page&:shared_size&:api&:status&:api_key',
-      component: 'applicationSubscription',
-      resolve: {
-        subscription: [
-          '$stateParams',
-          'ApplicationService',
-          ($stateParams, ApplicationService: ApplicationService) =>
-            ApplicationService.getSubscription($stateParams.applicationId, $stateParams.subscriptionId).then((response) => response.data),
-        ],
-      },
-      data: {
-        perms: {
-          only: ['application-subscription-r'],
-        },
-        docs: {
-          page: 'management-application-subscriptions',
-        },
-      },
-      params: {
-        status: {
-          type: 'string',
-          dynamic: true,
-        },
-        api: {
-          type: 'string',
-          dynamic: true,
-        },
-        page: {
-          type: 'int',
-          value: 1,
-          dynamic: true,
-        },
-        size: {
-          type: 'int',
-          value: 10,
-          dynamic: true,
-        },
-        shared_page: {
-          type: 'int',
-          value: 1,
-          dynamic: true,
-        },
-        shared_size: {
-          type: 'int',
-          value: 10,
-          dynamic: true,
-        },
-        api_key: {
-          type: 'string',
-          dynamic: true,
-        },
       },
     })
     .state('management.applications.application.subscriptions.subscribe', {
@@ -435,6 +382,10 @@ const applicationRoutes: Routes = [
       {
         path: 'subscriptions',
         component: ApplicationSubscriptionsComponent,
+      },
+      {
+        path: 'subscriptions/:subscriptionId',
+        component: ApplicationSubscriptionComponent,
       },
     ],
   },

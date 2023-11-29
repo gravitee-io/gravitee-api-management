@@ -18,7 +18,7 @@
 <div class="gv-forms" layout="column">
   <application-header application="$ctrl.application"></application-header>
   <div class="gv-forms-header">
-    <a ui-sref="management.applications.application.subscriptions.list($ctrl.backStateParams)">Back to subscriptions</a>
+    <a ng-click="$ctrl.goBackToSubscriptions()">Back to subscriptions</a>
   </div>
 
   <div class="gv-form">

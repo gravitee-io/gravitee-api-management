@@ -131,7 +131,7 @@ class ApplicationSubscriptionsListController {
   }
 
   navigateToSubscription(subscriptionId: string): void {
-    this.ngRouter.navigate([subscriptionId]);
+    this.ngRouter.navigate([subscriptionId], { relativeTo: this.activatedRoute, queryParamsHandling: 'preserve' });
   }
 }
 ApplicationSubscriptionsListController.$inject = ['ApplicationService', '$state', 'ngRouter'];
