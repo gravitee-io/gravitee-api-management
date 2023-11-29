@@ -15,6 +15,7 @@
  */
 import { StateService } from '@uirouter/core';
 import * as _ from 'lodash';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import ApplicationService from '../../../../services/application.service';
 import DashboardService from '../../../../services/dashboard.service';
@@ -23,19 +24,29 @@ class ApplicationAnalyticsController {
   private application: any;
   private dashboard: any;
   private dashboards: any;
+  private activatedRoute: ActivatedRoute;
 
-  constructor(private ApplicationService: ApplicationService, private DashboardService: DashboardService, private $state: StateService) {}
+  constructor(
+    private ApplicationService: ApplicationService,
+    private DashboardService: DashboardService,
+    private $state: StateService,
+    private ngRouter: Router,
+  ) {}
 
   $onInit() {
     this.DashboardService.list('APPLICATION', true).then((response) => {
       this.dashboards = _.filter(response.data, 'enabled');
 
-      const dashboardId = this.$state.params.dashboard;
+      const dashboardId = this.activatedRoute.snapshot.queryParams.dashboard;
       if (dashboardId) {
         this.dashboard = _.find(this.dashboards, { id: dashboardId });
         if (!this.dashboard) {
-          delete this.$state.params.dashboard;
-          this.$state.go(this.$state.current);
+          const params = { ...this.activatedRoute.snapshot.queryParams };
+          delete params.dashboard;
+          this.ngRouter.navigate(['./'], {
+            relativeTo: this.activatedRoute,
+            queryParams: params,
+          });
         }
       } else {
         this.dashboard = this.dashboards[0];
@@ -61,14 +72,20 @@ class ApplicationAnalyticsController {
   }
 
   onDashboardChanged() {
-    this.$state.transitionTo(this.$state.current, _.merge(this.$state.params, { dashboard: this.dashboard.id }), { reload: true });
+    this.ngRouter.navigate(['./'], {
+      relativeTo: this.activatedRoute,
+      queryParams: {
+        ...this.activatedRoute.snapshot.queryParams,
+        dashboard: this.dashboard.id,
+      },
+    });
   }
 
   viewLogs() {
     // update the query parameter
-    this.$state.transitionTo('management.applications.application.logs.list', this.$state.params);
+    this.ngRouter.navigate(['../', 'logs'], { relativeTo: this.activatedRoute });
   }
 }
-ApplicationAnalyticsController.$inject = ['ApplicationService', 'DashboardService', '$state'];
+ApplicationAnalyticsController.$inject = ['ApplicationService', 'DashboardService', '$state', 'ngRouter'];
 
 export default ApplicationAnalyticsController;

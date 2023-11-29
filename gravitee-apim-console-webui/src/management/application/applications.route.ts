@@ -26,6 +26,7 @@ import { ApplicationGeneralComponent } from './details/general/application-gener
 import { ApplicationMetadataComponent } from './details/metadata/application-metadata.component';
 import { ApplicationSubscriptionsComponent } from './details/subscriptions/application-subscriptions.component';
 import { ApplicationSubscriptionComponent } from './details/subscriptions/application-subscription.component';
+import { ApplicationAnalyticsComponent } from './details/analytics/application-analytics.component';
 
 import { ApplicationType } from '../../entities/application';
 import ApplicationService from '../../services/application.service';
@@ -178,37 +179,6 @@ function applicationsConfig($stateProvider) {
         },
         docs: {
           page: 'management-application-members',
-        },
-      },
-    })
-    .state('management.applications.application.analytics', {
-      url: '/analytics?from&to&q&dashboard',
-      component: 'applicationAnalytics',
-      resolve: {},
-      data: {
-        perms: {
-          only: ['application-analytics-r'],
-        },
-        docs: {
-          page: 'management-application-analytics',
-        },
-      },
-      params: {
-        from: {
-          type: 'int',
-          dynamic: true,
-        },
-        to: {
-          type: 'int',
-          dynamic: true,
-        },
-        q: {
-          type: 'string',
-          dynamic: true,
-        },
-        dashboard: {
-          type: 'string',
-          dynamic: true,
         },
       },
     })
@@ -386,6 +356,10 @@ const applicationRoutes: Routes = [
       {
         path: 'subscriptions/:subscriptionId',
         component: ApplicationSubscriptionComponent,
+      },
+      {
+        path: 'analytics',
+        component: ApplicationAnalyticsComponent,
       },
     ],
   },

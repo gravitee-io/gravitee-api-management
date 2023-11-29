@@ -38,6 +38,7 @@ import { ApplicationGeneralNgModule } from './details/general/general-ng/applica
 import { ApplicationGeneralComponent } from './details/general/application-general.component';
 import { ApplicationSubscriptionsComponent } from './details/subscriptions/application-subscriptions.component';
 import { ApplicationSubscriptionComponent } from './details/subscriptions/application-subscription.component';
+import { ApplicationAnalyticsComponent } from './details/analytics/application-analytics.component';
 
 import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioRoleModule } from '../../shared/components/gio-role/gio-role.module';
@@ -78,6 +79,7 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
     ApplicationGeneralComponent,
     ApplicationSubscriptionsComponent,
     ApplicationSubscriptionComponent,
+    ApplicationAnalyticsComponent,
   ],
   exports: [EnvApplicationListComponent],
   entryComponents: [EnvApplicationListComponent],
