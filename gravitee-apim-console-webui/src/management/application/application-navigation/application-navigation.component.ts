@@ -119,6 +119,7 @@ export class ApplicationNavigationComponent implements OnInit, OnDestroy {
       },
       {
         displayName: 'Analytics',
+        routerLink: 'analytics',
         targetRoute: 'management.applications.application.analytics',
         baseRoute: 'management.applications.application.analytics',
         permissions: ['application-analytics-r'],

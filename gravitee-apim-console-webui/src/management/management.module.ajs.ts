@@ -89,7 +89,7 @@ import ApplicationSubscriptionsController from './application/details/subscripti
 import ApplicationSubscriptionsComponentAjs from './application/details/subscriptions/application-subscriptions.component.ajs';
 import ApplicationSubscriptionComponentAjs from './application/details/subscriptions/application-subscription.component.ajs';
 import ApplicationAnalyticsController from './application/details/analytics/application-analytics.controller';
-import ApplicationAnalyticsComponent from './application/details/analytics/application-analytics.component';
+import ApplicationAnalyticsComponentAjs from './application/details/analytics/application-analytics.component.ajs';
 import ApplicationLogsController from './application/details/logs/application-logs.controller';
 import ApplicationLogsComponent from './application/details/logs/application-logs.component';
 import ApplicationLogComponent from './application/details/logs/application-log.component';
@@ -761,7 +761,7 @@ graviteeManagementModule.component('applicationSubscriptions', ApplicationSubscr
 graviteeManagementModule.component('applicationSubscription', ApplicationSubscriptionComponentAjs);
 graviteeManagementModule.component('applicationSubscriptionsList', ApplicationSubscriptionsListComponent);
 graviteeManagementModule.component('applicationMembers', ApplicationMembersComponent);
-graviteeManagementModule.component('applicationAnalytics', ApplicationAnalyticsComponent);
+graviteeManagementModule.component('applicationAnalytics', ApplicationAnalyticsComponentAjs);
 graviteeManagementModule.component('applicationLogs', ApplicationLogsComponent);
 graviteeManagementModule.component('applicationLog', ApplicationLogComponent);
 graviteeManagementModule.controller('DialogAddMemberController', DialogAddMemberController);
