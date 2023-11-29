@@ -173,11 +173,7 @@ public class ExternalAuthenticationResource extends AbstractAuthenticationResour
             // External user is authenticated, connect user (ie: generate cookie).
             super.connectUser(user, httpResponse);
 
-            String url = String.format(
-                "%s/#!/environments/%s",
-                installationAccessQueryService.getConsoleUrl(organizationId),
-                environmentId
-            );
+            String url = String.format("%s/#!/%s", installationAccessQueryService.getConsoleUrl(organizationId), environmentId);
 
             // Redirect the user.
             return Response.temporaryRedirect(new URI(url)).build();

@@ -504,7 +504,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 }
                 subscriptionsUrl =
                     managementURL +
-                    "/#!/environments/" +
+                    "/#!/" +
                     executionContext.getEnvironmentId() +
                     "/apis/" +
                     api.getId() +

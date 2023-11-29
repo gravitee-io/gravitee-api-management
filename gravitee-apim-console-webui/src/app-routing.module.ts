@@ -56,11 +56,11 @@ const appRoutes: Routes = [
           import('./organization/configuration/organization-settings-routing.module').then((m) => m.OrganizationSettingsRoutingModule),
       },
       {
-        path: 'env/:envId',
+        path: ':envId',
         component: AppComponent,
         loadChildren: () => import('./management/management.module').then((m) => m.ManagementModule),
       },
-      { path: '', pathMatch: 'full', redirectTo: 'env/default' },
+      { path: '', pathMatch: 'full', redirectTo: 'default' },
     ],
   },
 ];

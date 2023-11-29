@@ -156,7 +156,7 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
                 .flatMap(crossId -> this.apiSearchService.findIdByEnvironmentIdAndCrossId(environmentId, crossId))
                 .orElse(null);
             String url = String.format(
-                "%s/#!/environments/%s/%s",
+                "%s/#!/%s/%s",
                 installationAccessQueryService.getConsoleUrl(organizationId),
                 environmentId,
                 apiId == null ? "" : URLEncoder.encode(String.format("apis/%s/portal", apiId), StandardCharsets.UTF_8)
