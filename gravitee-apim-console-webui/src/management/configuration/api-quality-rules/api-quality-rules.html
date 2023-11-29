@@ -194,10 +194,7 @@
                   <td md-cell>{{qualityRule.name}}</td>
                   <td md-cell>{{qualityRule.weight}}</td>
                   <td md-cell permission permission-only="'environment-quality_rule-u'">
-                    <ng-md-icon
-                      icon="edit"
-                      ui-sref="management.settings.apiQuality.qualityRule({qualityRuleId: qualityRule.id})"
-                    ></ng-md-icon>
+                    <ng-md-icon icon="edit" ng-click="$ctrl.editRule(qualityRule.id)"></ng-md-icon>
                   </td>
                   <td md-cell permission permission-only="'environment-quality_rule-d'">
                     <ng-md-icon icon="delete" ng-click="$ctrl.delete(qualityRule)"></ng-md-icon>
@@ -218,7 +215,7 @@
   aria-label="Add quality rule"
   class="md-fab md-fab-bottom-right md-fab-scrollable"
   ng-class="{'gv-help-displayed': $ctrl.$rootScope.helpDisplayed}"
-  ui-sref="management.settings.apiQuality.qualityRulenew"
+  ng-click="$ctrl.createNewRule()"
 >
   <md-tooltip md-direction="top" md-visible="false">Add a new quality rule</md-tooltip>
   <ng-md-icon icon="add"></ng-md-icon>

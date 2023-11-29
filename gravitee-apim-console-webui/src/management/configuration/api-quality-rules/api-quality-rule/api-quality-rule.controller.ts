@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { StateService } from '@uirouter/core';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { QualityRule } from '../../../../entities/qualityRule';
 import NotificationService from '../../../../services/notification.service';
@@ -21,24 +21,25 @@ import QualityRuleService from '../../../../services/qualityRule.service';
 
 class ApiQualityRuleController {
   private createMode = false;
-  private qualityRule: QualityRule;
+  private qualityRule: QualityRule = {
+    description: '',
+    name: '',
+    weight: 0,
+  };
 
   constructor(
     private QualityRuleService: QualityRuleService,
     private NotificationService: NotificationService,
-    private $state: StateService,
-    private $location: ng.ILocationService,
-  ) {
-    this.createMode = $location.path().endsWith('new');
-  }
+    private ngRouter: Router,
+    private activatedRoute: ActivatedRoute,
+  ) {}
 
   $onInit() {
-    if (!this.qualityRule) {
-      this.qualityRule = {
-        description: '',
-        name: '',
-        weight: 0,
-      };
+    this.createMode = !this.activatedRoute?.snapshot?.params?.qualityRuleId;
+    if (this.activatedRoute?.snapshot?.params?.qualityRuleId) {
+      this.QualityRuleService.get(this.activatedRoute?.snapshot?.params?.qualityRuleId).then((response) => {
+        this.qualityRule = response.data;
+      });
     }
   }
 
@@ -47,10 +48,13 @@ class ApiQualityRuleController {
     save.then((response) => {
       const qualityRule = response.data;
       this.NotificationService.show('Quality rule ' + qualityRule.name + ' has been saved.');
-      this.$state.go('management.settings.apiQuality.qualityRule', { qualityRuleId: qualityRule.id }, { reload: true });
+      return this.ngRouter.navigate(['../', qualityRule.id], { relativeTo: this.activatedRoute });
     });
   }
+  backToList() {
+    this.ngRouter.navigate(['../'], { relativeTo: this.activatedRoute });
+  }
 }
-ApiQualityRuleController.$inject = ['QualityRuleService', 'NotificationService', '$state', '$location'];
+ApiQualityRuleController.$inject = ['QualityRuleService', 'NotificationService', 'ngRouter'];
 
 export default ApiQualityRuleController;
