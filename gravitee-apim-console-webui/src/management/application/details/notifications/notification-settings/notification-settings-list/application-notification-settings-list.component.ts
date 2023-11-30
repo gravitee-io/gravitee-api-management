@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Subject } from 'rxjs';
+import { ActivatedRoute } from '@angular/router';
 
-import { UIRouterStateParams } from '../../../../../../ajs-upgraded-providers';
 import { ApplicationNotificationSettingsService } from '../../../../../../services-ngx/application-notification-settings.service';
 import { NotificationSettingsListServices } from '../../../../../../components/notifications/notification-settings/notification-settings-list.component';
 
@@ -30,18 +30,19 @@ export class ApplicationNotificationSettingsListComponent implements OnInit {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   constructor(
-    @Inject(UIRouterStateParams) private readonly ajsStateParams,
+    private readonly activatedRoute: ActivatedRoute,
     private readonly applicationNotificationSettingsService: ApplicationNotificationSettingsService,
   ) {}
 
   public ngOnInit() {
     this.notificationSettingsListServices = {
-      reference: { referenceType: 'APPLICATION', referenceId: this.ajsStateParams.applicationId },
-      getList: () => this.applicationNotificationSettingsService.getAll(this.ajsStateParams.applicationId),
-      getNotifiers: () => this.applicationNotificationSettingsService.getNotifiers(this.ajsStateParams.applicationId),
+      reference: { referenceType: 'APPLICATION', referenceId: this.activatedRoute.snapshot.params.applicationId },
+      getList: () => this.applicationNotificationSettingsService.getAll(this.activatedRoute.snapshot.params.applicationId),
+      getNotifiers: () => this.applicationNotificationSettingsService.getNotifiers(this.activatedRoute.snapshot.params.applicationId),
       create: (notificationSettings) =>
-        this.applicationNotificationSettingsService.create(this.ajsStateParams.applicationId, notificationSettings),
-      delete: (notificationId) => this.applicationNotificationSettingsService.delete(this.ajsStateParams.applicationId, notificationId),
+        this.applicationNotificationSettingsService.create(this.activatedRoute.snapshot.params.applicationId, notificationSettings),
+      delete: (notificationId) =>
+        this.applicationNotificationSettingsService.delete(this.activatedRoute.snapshot.params.applicationId, notificationId),
     };
   }
 

@@ -29,6 +29,7 @@ import { ApplicationSubscriptionComponent } from './details/subscriptions/applic
 import { ApplicationAnalyticsComponent } from './details/analytics/application-analytics.component';
 import { ApplicationLogsComponent } from './details/logs/application-logs.component';
 import { ApplicationLogComponent } from './details/logs/application-log.component';
+import { ApplicationNotificationSettingsListComponent } from './details/notifications/notification-settings/notification-settings-list/application-notification-settings-list.component';
 
 import { ApplicationType } from '../../entities/application';
 import ApplicationService from '../../services/application.service';
@@ -223,19 +224,6 @@ function applicationsConfig($stateProvider) {
         },
       },
     })
-    .state('management.applications.application.notification-settings', {
-      url: '/notification-settings',
-      component: 'applicationNotificationSettingsList',
-      data: {
-        perms: {
-          only: ['application-notification-r', 'application-alert-r'],
-        },
-        useAngularMaterial: true,
-        docs: {
-          page: 'management-application-notifications',
-        },
-      },
-    })
     .state('management.applications.application.notification-settings-details', {
       url: '/notification-settings/:notificationId',
       component: 'applicationNotificationSettingsDetails',
@@ -305,6 +293,10 @@ const applicationRoutes: Routes = [
       {
         path: 'logs/:logId',
         component: ApplicationLogComponent,
+      },
+      {
+        path: 'notification-settings',
+        component: ApplicationNotificationSettingsListComponent,
       },
     ],
   },
