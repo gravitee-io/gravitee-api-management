@@ -38,6 +38,7 @@ import { ApisRoutingModule } from './apis-routing.module';
 
 import { SpecificJsonSchemaTypeModule } from '../../shared/components/specific-json-schema-type/specific-json-schema-type.module';
 import { DocumentationModule } from '../../components/documentation/documentation.module';
+import { AlertsModule } from '../../components/alerts/alerts.module';
 
 @NgModule({
   declarations: [ApiV1PoliciesComponent],
@@ -64,6 +65,7 @@ import { DocumentationModule } from '../../components/documentation/documentatio
     ApiCreationV2Module,
     ApiCreationV4Module,
     ApiDocumentationV4Module,
+    AlertsModule,
   ],
 })
 export class ApisModule {}

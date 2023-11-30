@@ -25,12 +25,9 @@
     <ng-container matColumnDef="hostname">
       <th mat-header-cell *matHeaderCellDef id="hostname">Name</th>
       <td mat-cell *matCellDef="let element">
-        <a
-          [routerLink]="['.', element.id]"
-          title="{{ element.hostname }}"
-          data-testid="instance-list-row-instance-details-link"
-          >{{ element.hostname }}</a
-        >
+        <a [routerLink]="['.', element.id]" title="{{ element.hostname }}" data-testid="instance-list-row-instance-details-link">{{
+          element.hostname
+        }}</a>
       </td>
     </ng-container>
 
