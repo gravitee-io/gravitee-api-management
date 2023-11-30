@@ -21,7 +21,6 @@ import { ActivatedRoute } from '@angular/router';
 import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
@@ -168,12 +167,12 @@ export class GvAlertComponent implements OnInit, OnDestroy {
       this.durations = [1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
       this.translateService
         .get([
-          i18n('application.alerts.type.status'),
-          i18n('application.alerts.type.response_time'),
-          i18n('application.alerts.timeUnits.seconds'),
-          i18n('application.alerts.timeUnits.minutes'),
-          i18n('application.alerts.timeUnits.hours'),
-          i18n('application.alerts.phrase.api.all'),
+          'application.alerts.type.status',
+          'application.alerts.type.response_time',
+          'application.alerts.timeUnits.seconds',
+          'application.alerts.timeUnits.minutes',
+          'application.alerts.timeUnits.hours',
+          'application.alerts.phrase.api.all',
         ])
         .subscribe(translations => {
           this.statusLabel = '' + Object.values(translations)[0];
@@ -265,7 +264,7 @@ export class GvAlertComponent implements OnInit, OnDestroy {
       })
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe(created => {
-        this.notificationService.success(i18n('application.alerts.add.success'));
+        this.notificationService.success('application.alerts.add.success');
         this.resetAddAlert();
         this.resetAddAlertStatus();
         this.alertCreated.emit(created);
@@ -362,7 +361,7 @@ export class GvAlertComponent implements OnInit, OnDestroy {
       })
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe(() => {
-        this.notificationService.success(i18n('application.alerts.delete.success'));
+        this.notificationService.success('application.alerts.delete.success');
         this.alertDeleted.emit(this.alert);
       });
   }
@@ -407,7 +406,7 @@ export class GvAlertComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe(updated => {
         this.alert = updated;
-        this.notificationService.success(i18n('application.alerts.update.success'));
+        this.notificationService.success('application.alerts.update.success');
         this.mode = AlertMode.READING;
       });
   }

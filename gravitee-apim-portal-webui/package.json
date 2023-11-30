@@ -5,7 +5,6 @@
   "scripts": {
     "build": "NODE_OPTIONS=--max_old_space_size=8192 ng build",
     "build:prod": "NODE_OPTIONS=--max_old_space_size=8192 ng build --configuration production",
-    "generate:i18n": "ngx-translate-extract -i ./src -o ./src/assets/i18n/*.json -c -s --fi '  ' -f namespaced-json -m i18n",
     "lint": "ng lint && npm run prettier",
     "lint:fix": "ng lint --fix && npm run prettier:fix && npm run lint:license:fix",
     "lint:license": "license-check-and-add check -f license-check-config.json",
@@ -74,8 +73,6 @@
     "@angular/compiler-cli": "15.2.10",
     "@angular/language-service": "15.2.10",
     "@babel/preset-env": "7.16.11",
-    "@biesbjerg/ngx-translate-extract": "7.0.4",
-    "@biesbjerg/ngx-translate-extract-marker": "1.0.0",
     "@ngneat/spectator": "14.0.0",
     "@types/jest": "28.1.8",
     "@types/js-yaml": "4.0.5",

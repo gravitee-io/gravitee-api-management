@@ -15,7 +15,6 @@
  */
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 
 import { GvButtonCreateApplicationComponent } from '../../components/gv-button-create-application/gv-button-create-application.component';
 import { GvHeaderItemComponent } from '../../components/gv-header-item/gv-header-item.component';
@@ -47,7 +46,7 @@ const routes: Routes = [
     path: 'mine',
     component: ApplicationsComponent,
     data: {
-      title: i18n('route.myApplications'),
+      title: 'route.myApplications',
       icon: 'devices:server',
       animation: { type: 'slide', group: 'apps', index: 1 },
       menu: {
@@ -63,7 +62,7 @@ const routes: Routes = [
     path: 'subscriptions',
     component: SubscriptionsComponent,
     data: {
-      title: i18n('route.mySubscriptions'),
+      title: 'route.mySubscriptions',
       icon: 'finance:share',
       animation: { type: 'slide', group: 'apps', index: 2 },
       menu: {
@@ -80,7 +79,7 @@ const routes: Routes = [
     component: ApplicationCreationComponent,
     canActivate: [FeatureGuardService, PermissionGuardService],
     data: {
-      title: i18n('route.applicationCreation'),
+      title: 'route.applicationCreation',
       expectedFeature: FeatureEnum.applicationCreation,
       animation: { type: 'fade' },
       expectedPermissions: ['APPLICATION-C'],
@@ -104,7 +103,7 @@ const routes: Routes = [
         component: ApplicationGeneralComponent,
         data: {
           icon: 'general:clipboard',
-          title: i18n('route.catalogApi'),
+          title: 'route.catalogApi',
           animation: { type: 'slide', group: 'app', index: 1 },
           expectedPermissions: [],
         },
@@ -117,7 +116,7 @@ const routes: Routes = [
         component: ApplicationMetadataComponent,
         data: {
           icon: 'home:book-open',
-          title: i18n('route.metadata'),
+          title: 'route.metadata',
           animation: { type: 'slide', group: 'app', index: 2 },
           expectedPermissions: ['METADATA-R'],
         },
@@ -127,7 +126,7 @@ const routes: Routes = [
         component: ApplicationSubscriptionsComponent,
         data: {
           icon: 'home:key',
-          title: i18n('route.subscriptions'),
+          title: 'route.subscriptions',
           animation: { type: 'slide', group: 'app', index: 3 },
           expectedPermissions: ['SUBSCRIPTION-R'],
         },
@@ -137,7 +136,7 @@ const routes: Routes = [
         component: ApplicationMembersComponent,
         data: {
           icon: 'communication:group',
-          title: i18n('route.members'),
+          title: 'route.members',
           animation: { type: 'slide', group: 'app', index: 4 },
           expectedPermissions: ['MEMBER-R'],
         },
@@ -148,7 +147,7 @@ const routes: Routes = [
         data: {
           icon: 'shopping:chart-line#1',
           menu: { slots: { right: GvSelectDashboardComponent } },
-          title: i18n('route.analyticsApplication'),
+          title: 'route.analyticsApplication',
           animation: { type: 'slide', group: 'app', index: 5 },
           expectedPermissions: ['ANALYTICS-R'],
         },
@@ -161,7 +160,7 @@ const routes: Routes = [
         component: ApplicationLogsComponent,
         data: {
           icon: 'communication:clipboard-list',
-          title: i18n('route.logsApplication'),
+          title: 'route.logsApplication',
           animation: { type: 'slide', group: 'app', index: 6 },
           expectedPermissions: ['LOG-R'],
         },
@@ -171,7 +170,7 @@ const routes: Routes = [
         component: ApplicationNotificationsComponent,
         data: {
           icon: 'general:notifications#2',
-          title: i18n('route.notifications'),
+          title: 'route.notifications',
           animation: { type: 'slide', group: 'app', index: 7 },
           expectedPermissions: ['NOTIFICATION-R'],
         },
@@ -182,7 +181,7 @@ const routes: Routes = [
         canActivate: [FeatureGuardService],
         data: {
           icon: 'home:alarm-clock',
-          title: i18n('route.alerts'),
+          title: 'route.alerts',
           expectedFeature: FeatureEnum.alert,
           animation: { type: 'slide', group: 'app', index: 8 },
           expectedPermissions: ['ALERT-R'],

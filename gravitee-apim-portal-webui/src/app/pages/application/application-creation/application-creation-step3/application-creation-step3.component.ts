@@ -16,7 +16,6 @@
 import { ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { TranslateService } from '@ngx-translate/core';
 import { distinctUntilChanged } from 'rxjs/operators';
 
@@ -130,11 +129,7 @@ export class ApplicationCreationStep3Component implements OnInit {
     }
 
     this.translateService
-      .get([
-        i18n('apiSubscribe.apps.comment'),
-        i18n('applicationCreation.subscription.comment'),
-        i18n('applicationCreation.subscription.remove'),
-      ])
+      .get(['apiSubscribe.apps.comment', 'applicationCreation.subscription.comment', 'applicationCreation.subscription.remove'])
       .toPromise()
       .then(translations => {
         const values = Object.values(translations);
