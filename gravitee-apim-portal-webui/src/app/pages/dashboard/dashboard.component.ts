@@ -15,7 +15,6 @@
  */
 import { Component, HostListener, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { TranslateService } from '@ngx-translate/core';
 import { getApplicationTypeIcon } from '@gravitee/ui-components/src/lib/theme';
 import '@gravitee/ui-components/wc/gv-button';
@@ -125,10 +124,10 @@ export class DashboardComponent implements OnInit {
         },
         {
           field: 'application.name',
-          label: i18n('dashboard.subscriptions.application'),
+          label: 'dashboard.subscriptions.application',
         },
-        { field: 'api.name', tag: 'api.version', label: i18n('dashboard.subscriptions.api') },
-        { field: 'plan.name', label: i18n('dashboard.subscriptions.plan') },
+        { field: 'api.name', tag: 'api.version', label: 'dashboard.subscriptions.api' },
+        { field: 'plan.name', label: 'dashboard.subscriptions.plan' },
       ],
     };
     this.analyticsService.getDefaultStatsOptions().then(result => {

@@ -15,7 +15,6 @@
  */
 import { Component, Input, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 
 import { ApiService, ApplicationService, PortalService } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { NotificationService } from '../../services/notification.service';
@@ -81,7 +80,7 @@ export class GvContactComponent implements OnInit {
 
     const user = this.currentUserService.get().getValue();
     if (user && !user.email) {
-      this.notificationService.warning(i18n('errors.email.required'));
+      this.notificationService.warning('errors.email.required');
       setTimeout(() => {
         this.contactForm.disable();
       }, 0);
@@ -101,7 +100,7 @@ export class GvContactComponent implements OnInit {
       .createTicket({ ticketInput: this.contactForm.getRawValue() })
       .toPromise()
       .then(() => {
-        this.notificationService.success(i18n('gv-contact.success'));
+        this.notificationService.success('gv-contact.success');
         this.reset();
       })
       .finally(() => (this.isSending = false));
