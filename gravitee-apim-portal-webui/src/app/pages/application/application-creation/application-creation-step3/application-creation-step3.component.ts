@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import { ActivatedRoute } from '@angular/router';
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { TranslateService } from '@ngx-translate/core';
 import { distinctUntilChanged, map, takeUntil, tap } from 'rxjs/operators';
 import { Subject } from 'rxjs';
@@ -148,11 +147,7 @@ export class ApplicationCreationStep3Component implements OnInit, OnDestroy {
     }
 
     this.translateService
-      .get([
-        i18n('apiSubscribe.apps.comment'),
-        i18n('applicationCreation.subscription.comment'),
-        i18n('applicationCreation.subscription.remove'),
-      ])
+      .get(['apiSubscribe.apps.comment', 'applicationCreation.subscription.comment', 'applicationCreation.subscription.remove'])
       .toPromise()
       .then(translations => {
         const values = Object.values(translations);

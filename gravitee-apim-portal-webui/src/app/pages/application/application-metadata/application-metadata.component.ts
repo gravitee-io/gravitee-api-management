@@ -15,7 +15,6 @@
  */
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { TranslateService } from '@ngx-translate/core';
 import { FormControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
 
@@ -77,12 +76,12 @@ export class ApplicationMetadataComponent implements OnInit {
 
       this.translateService
         .get([
-          i18n('application.metadata.key'),
-          i18n('application.metadata.name'),
-          i18n('application.metadata.format'),
-          i18n('application.metadata.value'),
-          i18n('application.metadata.list.remove.title'),
-          i18n('application.metadata.list.add.title'),
+          'application.metadata.key',
+          'application.metadata.name',
+          'application.metadata.format',
+          'application.metadata.value',
+          'application.metadata.list.remove.title',
+          'application.metadata.list.add.title',
         ])
         .toPromise()
         .then(translations => {
@@ -443,7 +442,7 @@ export class ApplicationMetadataComponent implements OnInit {
           return this.loadMetadataTable();
         })
         .then(() => {
-          this.notificationService.success(i18n('application.metadata.update.success'));
+          this.notificationService.success('application.metadata.update.success');
         })
         .finally(() => {
           event.target.loading = false;
