@@ -65,6 +65,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
@@ -416,6 +417,7 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         Api api = new Api();
         api.setId(API_ID);
         apiEntity.setId(API_ID);
+        apiEntity.setGroups(Set.of("my_group_id"));
         when(apiService.createWithApiDefinition(eq(GraviteeContext.getExecutionContext()), any(), any(), any())).thenReturn(apiEntity);
 
         UserEntity admin = new UserEntity();
@@ -426,6 +428,11 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         user.setId("user");
         user.setSource(SOURCE);
         user.setSourceId(API_ID);
+
+        GroupEntity knownGroup = new GroupEntity();
+        knownGroup.setId("my_group_id");
+        knownGroup.setName("MY Group");
+        when(groupService.findByName(GraviteeContext.getExecutionContext().getEnvironmentId(), "My Group")).thenReturn(List.of(knownGroup));
 
         apiDuplicatorService.createWithImportedDefinition(GraviteeContext.getExecutionContext(), toBeImport);
 
@@ -447,13 +454,18 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
                 })
             );
 
+        verify(groupService, times(2)).findByName(GraviteeContext.getExecutionContext().getEnvironmentId(), "My Group");
+
         // check find plans by API has been called once to remove potential pre-existing plans on target API
         verify(planService, times(2)).findByApi(eq(GraviteeContext.getExecutionContext()), any());
         // check planService has been called twice to create 2 plans, with same IDs as API definition
         verify(planService, times(1))
             .createOrUpdatePlan(eq(GraviteeContext.getExecutionContext()), argThat(plan -> plan.getId().equals(plan1newId)));
         verify(planService, times(1))
-            .createOrUpdatePlan(eq(GraviteeContext.getExecutionContext()), argThat(plan -> plan.getId().equals(plan2newId)));
+            .createOrUpdatePlan(
+                eq(GraviteeContext.getExecutionContext()),
+                argThat(plan -> plan.getId().equals(plan2newId) && plan.getExcludedGroups().contains(knownGroup.getId()))
+            );
         // check that plan service verifies we are not updated a plan that does not belong to us
         verify(planService, times(1)).anyPlanMismatchWithApi(eq(List.of(plan1newId, plan2newId)), any(String.class));
         verifyNoMoreInteractions(planService);
