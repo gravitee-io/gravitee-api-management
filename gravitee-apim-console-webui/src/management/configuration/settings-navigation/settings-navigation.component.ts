@@ -90,8 +90,7 @@ export class SettingsNavigationComponent implements OnInit {
           },
           {
             displayName: 'Client Registration',
-            targetRoute: 'management.settings.clientregistrationproviders.list',
-            baseRoute: 'management.settings.clientregistrationproviders',
+            routerLink: './client-registration-providers',
             permissions: ['environment-client_registration_provider-r'],
           },
           {
