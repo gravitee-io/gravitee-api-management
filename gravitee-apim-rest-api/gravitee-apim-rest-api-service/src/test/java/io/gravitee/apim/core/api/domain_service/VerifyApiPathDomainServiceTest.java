@@ -21,8 +21,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import inmemory.ApiDefinitionParserDomainServiceJacksonImpl;
 import inmemory.ApiHostValidatorDomainServiceGoogleImpl;
 import io.gravitee.apim.core.api.exception.InvalidPathsException;
 import io.gravitee.apim.core.api.model.Api;
@@ -32,7 +30,6 @@ import io.gravitee.apim.core.api.model.Path;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.installation.model.RestrictedDomain;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
-import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
@@ -66,7 +63,6 @@ class VerifyApiPathDomainServiceTest {
     InstallationAccessQueryService installationAccessQueryService;
 
     VerifyApiPathDomainService service;
-    private ObjectMapper objectMapper = GraviteeJacksonMapper.getInstance();
 
     public static Stream<Arguments> sanitizePathParams() {
         return Stream.of(
@@ -92,12 +88,7 @@ class VerifyApiPathDomainServiceTest {
     @BeforeEach
     void setup() {
         service =
-            new VerifyApiPathDomainService(
-                apiSearchService,
-                installationAccessQueryService,
-                new ApiDefinitionParserDomainServiceJacksonImpl(),
-                new ApiHostValidatorDomainServiceGoogleImpl()
-            );
+            new VerifyApiPathDomainService(apiSearchService, installationAccessQueryService, new ApiHostValidatorDomainServiceGoogleImpl());
     }
 
     @AfterEach
@@ -409,13 +400,7 @@ class VerifyApiPathDomainServiceTest {
         );
         apiDefV2.setProxy(proxy);
 
-        return Api
-            .builder()
-            .id(apiId)
-            .environmentId(environmentId)
-            .definitionVersion(DefinitionVersion.V2)
-            .definition(objectMapper.writeValueAsString(apiDefV2))
-            .build();
+        return Api.builder().id(apiId).environmentId(environmentId).definitionVersion(DefinitionVersion.V2).apiDefinition(apiDefV2).build();
     }
 
     @SneakyThrows
@@ -439,7 +424,7 @@ class VerifyApiPathDomainServiceTest {
             .id(apiId)
             .environmentId(environmentId)
             .definitionVersion(DefinitionVersion.V4)
-            .definition(objectMapper.writeValueAsString(apiDefV4))
+            .apiDefinitionV4(apiDefV4)
             .build();
     }
 }
