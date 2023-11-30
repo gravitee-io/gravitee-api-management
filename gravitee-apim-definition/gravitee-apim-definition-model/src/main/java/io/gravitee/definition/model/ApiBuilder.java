@@ -88,6 +88,7 @@ public class ApiBuilder {
     public Api build() {
         var api = new Api();
         api.setDefinitionVersion(definitionVersion);
+        api.setExecutionMode(ExecutionMode.V3);
         api.setId(apiId);
         api.setName(name);
         api.setVersion(apiVersion);

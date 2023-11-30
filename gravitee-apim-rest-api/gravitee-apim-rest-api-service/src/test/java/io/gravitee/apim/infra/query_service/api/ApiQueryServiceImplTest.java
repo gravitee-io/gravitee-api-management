@@ -55,7 +55,7 @@ class ApiQueryServiceImplTest {
     }
 
     private void givenMatchingApis(Stream<Api> apis) {
-        when(apiRepository.search(any(), any(), any())).thenReturn(ApiAdapter.INSTANCE.fromEntityStream(apis));
+        when(apiRepository.search(any(), any(), any())).thenReturn(ApiAdapter.INSTANCE.toRepositoryStream(apis));
     }
 
     private Api anApi() {
