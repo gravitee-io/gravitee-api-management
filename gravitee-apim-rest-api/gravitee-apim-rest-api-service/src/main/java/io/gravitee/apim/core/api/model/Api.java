@@ -65,12 +65,6 @@ public class Api {
      */
     private DefinitionVersion definitionVersion;
 
-    /**
-     * The api JSON definition
-     */
-    @Deprecated(forRemoval = true)
-    private String definition;
-
     private io.gravitee.definition.model.v4.Api apiDefinitionV4;
     private io.gravitee.definition.model.Api apiDefinition;
 
