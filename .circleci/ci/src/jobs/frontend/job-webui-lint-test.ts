@@ -18,6 +18,7 @@ import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/C
 import { CommandParameterLiteral } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Parameters/types/CustomParameterLiterals.types';
 import { NodeLtsExecutor } from '../../executors';
 import { NotifyOnFailureCommand, WebuiInstallCommand } from '../../commands';
+import { config } from '../../config';
 
 export class WebuiLintTestJob {
   private static jobName = 'job-webui-lint-test';
@@ -25,6 +26,7 @@ export class WebuiLintTestJob {
   private static customParametersList = new parameters.CustomParametersList<CommandParameterLiteral>([
     new parameters.CustomParameter('apim-ui-project', 'string', '', 'the name of the UI project to build'),
     new parameters.CustomParameter('resource_class', 'string', 'medium', 'Resource class to use for executor'),
+    new parameters.CustomParameter('node_version', 'string', config.executor.node.version, 'Node version to use for executor'),
   ]);
 
   public static create(dynamicConfig: Config): Job {
@@ -67,7 +69,7 @@ export class WebuiLintTestJob {
 
     return new reusable.ParameterizedJob(
       WebuiLintTestJob.jobName,
-      NodeLtsExecutor.create('<< parameters.resource_class >>'),
+      NodeLtsExecutor.create('<< parameters.resource_class >>', '<< parameters.node_version >>'),
       WebuiLintTestJob.customParametersList,
       steps,
     );
