@@ -31,10 +31,9 @@ import { ApplicationLogsComponent } from './details/logs/application-logs.compon
 import { ApplicationLogComponent } from './details/logs/application-log.component';
 import { ApplicationNotificationSettingsListComponent } from './details/notifications/notification-settings/notification-settings-list/application-notification-settings-list.component';
 import { ApplicationNotificationSettingsDetailsComponent } from './details/notifications/notification-settings/notification-settings-details/application-notification-settings-details.component';
+import { ApplicationCreationComponent } from './creation/steps/application-creation.component';
 
-import { ApplicationType } from '../../entities/application';
 import ApplicationService from '../../services/application.service';
-import ApplicationTypesService from '../../services/applicationTypes.service';
 import EnvironmentService from '../../services/environment.service';
 import GroupService from '../../services/group.service';
 import { HasEnvironmentPermissionGuard } from '../has-environment-permission.guard';
@@ -43,28 +42,6 @@ export default applicationsConfig;
 
 function applicationsConfig($stateProvider) {
   $stateProvider
-    .state('management.applications.create', {
-      url: '/create',
-      component: 'createApplication',
-      resolve: {
-        enabledApplicationTypes: [
-          'ApplicationTypesService',
-          (ApplicationTypesService: ApplicationTypesService) =>
-            ApplicationTypesService.getEnabledApplicationTypes().then((response) =>
-              response.data.map((appType) => new ApplicationType(appType)),
-            ),
-        ],
-        groups: ['GroupService', (GroupService: GroupService) => GroupService.list().then((response) => response.data)],
-      },
-      data: {
-        perms: {
-          only: ['environment-application-c'],
-        },
-        docs: {
-          page: 'management-create-application',
-        },
-      },
-    })
     .state('management.applications.application', {
       abstract: true,
       url: '/:applicationId',
@@ -242,6 +219,11 @@ const applicationRoutes: Routes = [
         page: 'management-applications',
       },
     },
+  },
+  {
+    path: 'create',
+    component: ApplicationCreationComponent,
+    canActivate: [HasEnvironmentPermissionGuard],
   },
   {
     path: ':applicationId',

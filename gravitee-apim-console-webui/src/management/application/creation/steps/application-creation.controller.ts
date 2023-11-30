@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { ApplicationType } from '../../../../entities/application';
 import { ApiService } from '../../../../services/api.service';
@@ -25,6 +26,8 @@ import { PlanSecurityType } from '../../../../entities/plan';
 class ApplicationCreationController {
   application: any;
   enabledApplicationTypes: ApplicationType[];
+  private activatedRoute: ActivatedRoute;
+
   private steps: any[];
   private selectedStep = 0;
   private selectedAPIs: any[] = [];
@@ -42,6 +45,7 @@ class ApplicationCreationController {
     private NotificationService: NotificationService,
     private $q,
     private ApiService: ApiService,
+    private ngRouter: Router,
   ) {}
 
   $onInit() {
@@ -57,7 +61,7 @@ class ApplicationCreationController {
 
   previous() {
     if (this.selectedStep === 0) {
-      this.$state.go('management.applications.list');
+      this.ngRouter.navigate(['../'], { relativeTo: this.activatedRoute });
     } else {
       this.goToStep(this.selectedStep - 1);
     }
@@ -83,7 +87,7 @@ class ApplicationCreationController {
       await this.ApplicationService.subscribe(application.id, plan.id, this.messageByPlan[plan.id]);
     }
     this.NotificationService.show('Application ' + this.application.name + ' has been created');
-    this.$state.go('management.applications.application.general', { applicationId: application.id }, { reload: true });
+    this.ngRouter.navigate(['../', application.id], { relativeTo: this.activatedRoute });
   }
 
   clientRegistrationEnabled() {
@@ -177,6 +181,7 @@ ApplicationCreationController.$inject = [
   'NotificationService',
   '$q',
   'ApiService',
+  'ngRouter',
 ];
 
 export default ApplicationCreationController;
