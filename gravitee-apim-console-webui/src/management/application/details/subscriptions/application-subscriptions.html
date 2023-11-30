@@ -16,7 +16,31 @@
 
 -->
 <div class="application-subscriptions gv-forms gv-forms-fluid" layout="column">
-  <application-header application="$ctrl.application"></application-header>
+  <div layout="column" flex>
+    <div layout="row" layout-align="start center">
+      <div class="gravitee-application-header-image" layout="column" layout-align="center center"></div>
+      <div flex="70">
+        <h1>
+          {{$ctrl.application.name}}
+          <md-button ng-if="!$ctrl.hideSubscribeLink" class="md-primary" ng-click="$ctrl.goToSubscribe()">Subscribe to APIs</md-button>
+        </h1>
+        <md-content flex class="gravitee-api-header-description">
+          <div>Type: {{::$ctrl.application.type}}</div>
+        </md-content>
+      </div>
+
+      <div flex="30" style="text-align: right">
+        <p style="padding: 0; margin: 0">
+          <span>{{$ctrl.application.owner.displayName}}<md-tooltip md-direction="left">Owner</md-tooltip></span>
+          <span><ng-md-icon icon="person"></ng-md-icon></span>
+        </p>
+        <p style="padding: 0; margin: 0">
+          <span>{{$ctrl.application.created_at | humanDateFilter}}<md-tooltip md-direction="left">Created at</md-tooltip></span>
+          <span><ng-md-icon icon="timer"></ng-md-icon></span>
+        </p>
+      </div>
+    </div>
+  </div>
 
   <form ng-submit="$ctrl.doFilter()" name="$ctrl.subscriptionsFiltersForm">
     <div layout-gt-sm="row">

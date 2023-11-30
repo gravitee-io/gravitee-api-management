@@ -15,6 +15,7 @@
  */
 import * as _ from 'lodash';
 import { IHttpPromise } from 'angular';
+import { ActivatedRoute } from '@angular/router';
 
 import { ApiService } from '../../../../services/api.service';
 import ApplicationService from '../../../../services/application.service';
@@ -35,6 +36,7 @@ class ApplicationSubscribeController {
   private apis = [];
   private plans = [];
   private subscribedPlans = [];
+  private activatedRoute: ActivatedRoute;
 
   constructor(
     private ApiService: ApiService,
