@@ -19,12 +19,7 @@
   <div layout="row" layout-align="start center">
     <div class="gravitee-application-header-image" layout="column" layout-align="center center"></div>
     <div flex="70">
-      <h1>
-        {{$ctrl.application.name}}
-        <md-button ng-if="!$ctrl.hideSubscribeLink" class="md-primary" ui-sref="management.applications.application.subscriptions.subscribe"
-          >Subscribe to APIs</md-button
-        >
-      </h1>
+      <h1>{{$ctrl.application.name}}</h1>
       <md-content flex class="gravitee-api-header-description">
         <div>Type: {{::$ctrl.application.type}}</div>
       </md-content>
