@@ -30,7 +30,7 @@ function applicationsNotificationsRouterConfig($stateProvider) {
     })
     .state('management.alerts.activity', {
       url: '/activity',
-      template: require('../../../components/alerts/activity/alerts-activity.html'),
+      template: require('../../alerts/activity/alerts-activity.html'),
       controller: 'AlertsActivityController',
       controllerAs: '$ctrl',
       resolve: {

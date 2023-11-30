@@ -142,8 +142,7 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
       mainMenuItems.push({
         icon: 'gio:alarm',
         displayName: 'Alerts',
-        targetRoute: 'management.alerts.list',
-        baseRoute: 'management.alerts',
+        routerLink: './alerts',
         permissions: ['environment-alert-r'],
         licenseOptions: alertEngineLicenseOptions,
         iconRight$: alertEngineIconRight$,

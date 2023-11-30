@@ -426,7 +426,7 @@ import { IfMatchEtagInterceptor } from '../shared/interceptors/if-match-etag.int
 import SearchAndSelectComponent from '../components/search-and-select/search-and-select.component';
 import { SearchAndSelectController } from '../components/search-and-select/search-and-select.controller';
 import AlertTabsController from '../components/alerts/alertTabs/alert-tabs-component';
-import AlertsActivityController from '../components/alerts/activity/alerts-activity.controller';
+import AlertsActivityComponentAjs from './alerts/activity/alerts-activity.component.ajs';
 import { ApiV2Service } from '../services-ngx/api-v2.service';
 import { OrgNavigationComponent } from '../organization/configuration/navigation/org-navigation.component';
 import { ClientRegistrationProviderComponent } from './configuration/client-registration-providers/client-registration-provider/client-registration-provider.component';
@@ -598,7 +598,7 @@ graviteeManagementModule.controller('DialogEditPolicyController', DialogEditPoli
 graviteeManagementModule.controller('LoginController', LoginController);
 graviteeManagementModule.component('analyticsDashboardComponentAjs', AnalyticsDashboardComponentAjs);
 graviteeManagementModule.component('gvAlertDashboard', AlertsDashboardComponent);
-graviteeManagementModule.controller('AlertsActivityController', AlertsActivityController);
+graviteeManagementModule.component('alertsActivityComponentAjs', AlertsActivityComponentAjs);
 graviteeManagementModule.component('apiAlertsDashboardComponentAjs', ApiAlertsDashboardComponentAjs);
 graviteeManagementModule.controller('CategoriesController', CategoriesController);
 graviteeManagementModule.controller('CategoryController', CategoryController);
