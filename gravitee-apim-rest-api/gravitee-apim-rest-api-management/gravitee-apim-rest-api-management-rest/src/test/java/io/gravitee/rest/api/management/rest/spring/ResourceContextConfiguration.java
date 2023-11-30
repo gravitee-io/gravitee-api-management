@@ -29,7 +29,6 @@ import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryS
 import io.gravitee.apim.core.parameters.domain_service.ParametersDomainService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
-import io.gravitee.apim.infra.domain_service.api.ApiDefinitionParserDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.api.ApiHostValidatorDomainServiceImpl;
 import io.gravitee.apim.infra.json.jackson.JacksonSpringConfiguration;
 import io.gravitee.apim.infra.sanitizer.SanitizerSpringConfiguration;
@@ -502,12 +501,7 @@ public class ResourceContextConfiguration {
         ApiQueryService apiQueryService,
         InstallationAccessQueryService installationAccessQueryService
     ) {
-        return new VerifyApiPathDomainService(
-            apiQueryService,
-            installationAccessQueryService,
-            new ApiDefinitionParserDomainServiceImpl(objectMapper()),
-            new ApiHostValidatorDomainServiceImpl()
-        );
+        return new VerifyApiPathDomainService(apiQueryService, installationAccessQueryService, new ApiHostValidatorDomainServiceImpl());
     }
 
     @Bean

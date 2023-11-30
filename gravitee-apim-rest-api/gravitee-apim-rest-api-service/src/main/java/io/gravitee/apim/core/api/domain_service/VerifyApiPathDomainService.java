@@ -37,18 +37,15 @@ public class VerifyApiPathDomainService {
 
     private final ApiQueryService apiSearchService;
     private final InstallationAccessQueryService installationAccessQueryService;
-    private final ApiDefinitionParserDomainService apiDefinitionParserDomainService;
     private final ApiHostValidatorDomainService apiHostValidatorDomainService;
 
     public VerifyApiPathDomainService(
         final ApiQueryService apiSearchService,
         final InstallationAccessQueryService installationAccessQueryService,
-        final ApiDefinitionParserDomainService apiDefinitionParserDomainService,
         final ApiHostValidatorDomainService apiHostValidatorDomainService
     ) {
         this.apiSearchService = apiSearchService;
         this.installationAccessQueryService = installationAccessQueryService;
-        this.apiDefinitionParserDomainService = apiDefinitionParserDomainService;
         this.apiHostValidatorDomainService = apiHostValidatorDomainService;
     }
 
@@ -108,9 +105,7 @@ public class VerifyApiPathDomainService {
                     paths
                         .stream()
                         .filter(path -> path.getHost() != null && !path.getHost().isEmpty())
-                        .forEach(path -> {
-                            checkPathNotYetRegistered(path.getPath(), registeredPathWithHosts.get(path.getHost()));
-                        });
+                        .forEach(path -> checkPathNotYetRegistered(path.getPath(), registeredPathWithHosts.get(path.getHost())));
                 }
 
                 // Extract all paths without host
@@ -131,48 +126,45 @@ public class VerifyApiPathDomainService {
     }
 
     private List<Path> extractPaths(final Api api) {
-        if (api.getDefinition() != null) {
-            if (api.getDefinitionVersion() != null && DefinitionVersion.V4.name().equals(api.getDefinitionVersion().name())) {
-                return apiDefinitionParserDomainService
-                    .readV4ApiDefinition(api.getDefinition())
-                    .getListeners()
-                    .stream()
-                    .filter(HttpListener.class::isInstance)
-                    .map(HttpListener.class::cast)
-                    .flatMap(httpListener ->
-                        httpListener
-                            .getPaths()
-                            .stream()
-                            .map(path ->
-                                Path
-                                    .builder()
-                                    .host(path.getHost())
-                                    .path(path.getPath())
-                                    .overrideAccess(path.isOverrideAccess())
-                                    .build()
-                                    .sanitize()
-                            )
-                    )
-                    .collect(Collectors.toList());
-            } else {
-                return apiDefinitionParserDomainService
-                    .readV2ApiDefinition(api.getDefinition())
-                    .getProxy()
-                    .getVirtualHosts()
-                    .stream()
-                    .map(virtualHost ->
-                        Path
-                            .builder()
-                            .host(virtualHost.getHost())
-                            .path(virtualHost.getPath())
-                            .overrideAccess(virtualHost.isOverrideEntrypoint())
-                            .build()
-                            .sanitize()
-                    )
-                    .collect(Collectors.toList());
-            }
+        if (api.getDefinitionVersion() != null && api.getDefinitionVersion() == DefinitionVersion.V4) {
+            return api
+                .getApiDefinitionV4()
+                .getListeners()
+                .stream()
+                .filter(HttpListener.class::isInstance)
+                .map(HttpListener.class::cast)
+                .flatMap(httpListener ->
+                    httpListener
+                        .getPaths()
+                        .stream()
+                        .map(path ->
+                            Path
+                                .builder()
+                                .host(path.getHost())
+                                .path(path.getPath())
+                                .overrideAccess(path.isOverrideAccess())
+                                .build()
+                                .sanitize()
+                        )
+                )
+                .collect(Collectors.toList());
+        } else {
+            return api
+                .getApiDefinition()
+                .getProxy()
+                .getVirtualHosts()
+                .stream()
+                .map(virtualHost ->
+                    Path
+                        .builder()
+                        .host(virtualHost.getHost())
+                        .path(virtualHost.getPath())
+                        .overrideAccess(virtualHost.isOverrideEntrypoint())
+                        .build()
+                        .sanitize()
+                )
+                .collect(Collectors.toList());
         }
-        return null;
     }
 
     private void checkPathNotYetRegistered(final String path, final List<String> registeredPaths) {
