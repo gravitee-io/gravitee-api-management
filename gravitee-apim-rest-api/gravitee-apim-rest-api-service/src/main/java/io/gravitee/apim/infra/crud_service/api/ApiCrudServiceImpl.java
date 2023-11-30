@@ -18,17 +18,9 @@ package io.gravitee.apim.infra.crud_service.api;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.apim.core.api_key.crud_service.ApiKeyCrudService;
-import io.gravitee.apim.core.api_key.model.ApiKeyEntity;
 import io.gravitee.apim.infra.adapter.ApiAdapter;
-import io.gravitee.apim.infra.adapter.ApiKeyAdapter;
-import io.gravitee.apim.infra.adapter.PageAdapter;
-import io.gravitee.apim.infra.crud_service.documentation.PageCrudServiceImpl;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -49,7 +41,7 @@ public class ApiCrudServiceImpl implements ApiCrudService {
         try {
             var foundApi = apiRepository.findById(id);
             if (foundApi.isPresent()) {
-                return ApiAdapter.INSTANCE.toEntity(foundApi.get());
+                return ApiAdapter.INSTANCE.toCoreModel(foundApi.get());
             }
         } catch (TechnicalException e) {
             logger.error("An error occurred while finding Api by id {}", id, e);

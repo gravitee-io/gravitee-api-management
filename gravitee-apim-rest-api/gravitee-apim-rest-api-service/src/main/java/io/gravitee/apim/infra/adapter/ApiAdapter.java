@@ -17,28 +17,36 @@ package io.gravitee.apim.infra.adapter;
 
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiCRD;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import java.io.IOException;
 import java.util.stream.Stream;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 import org.mapstruct.ValueMapping;
 import org.mapstruct.factory.Mappers;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Mapper
 public interface ApiAdapter {
+    Logger LOGGER = LoggerFactory.getLogger(ApiAdapter.class);
     ApiAdapter INSTANCE = Mappers.getMapper(ApiAdapter.class);
 
-    @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
-    Api toEntity(io.gravitee.repository.management.model.Api criteria);
+    @Mapping(target = "apiDefinitionV4", expression = "java(deserializeApiDefinitionV4(source))")
+    @Mapping(target = "apiDefinition", expression = "java(deserializeApiDefinitionV2(source))")
+    Api toCoreModel(io.gravitee.repository.management.model.Api source);
 
-    Stream<Api> toEntityStream(Stream<io.gravitee.repository.management.model.Api> criteria);
+    Stream<Api> toCoreModelStream(Stream<io.gravitee.repository.management.model.Api> source);
 
-    @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
-    io.gravitee.repository.management.model.Api fromEntity(Api criteria);
+    @Mapping(target = "mode", source = "definitionContext.mode")
+    @Mapping(target = "origin", source = "definitionContext.origin")
+    @Mapping(target = "definition", expression = "java(serializeApiDefinition(source))")
+    io.gravitee.repository.management.model.Api toRepository(Api source);
 
-    Stream<io.gravitee.repository.management.model.Api> fromEntityStream(Stream<Api> criteria);
+    Stream<io.gravitee.repository.management.model.Api> toRepositoryStream(Stream<Api> source);
 
     @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
     @Mapping(source = "version", target = "apiVersion")
@@ -54,4 +62,48 @@ public interface ApiAdapter {
     @Mapping(source = "lifecycleState", target = "apiLifecycleState")
     @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
     Api fromApiEntity(GenericApiEntity apiEntity);
+
+    default io.gravitee.definition.model.v4.Api deserializeApiDefinitionV4(io.gravitee.repository.management.model.Api api) {
+        if (api.getDefinitionVersion() == DefinitionVersion.V4) {
+            try {
+                return GraviteeJacksonMapper.getInstance().readValue(api.getDefinition(), io.gravitee.definition.model.v4.Api.class);
+            } catch (IOException ioe) {
+                LOGGER.error("Unexpected error while deserializing V4 API definition", ioe);
+                return null;
+            }
+        } else {
+            return null;
+        }
+    }
+
+    default io.gravitee.definition.model.Api deserializeApiDefinitionV2(io.gravitee.repository.management.model.Api api) {
+        if (api.getDefinitionVersion() != DefinitionVersion.V4) {
+            try {
+                return GraviteeJacksonMapper.getInstance().readValue(api.getDefinition(), io.gravitee.definition.model.Api.class);
+            } catch (IOException ioe) {
+                LOGGER.error("Unexpected error while deserializing V2 API definition", ioe);
+                return null;
+            }
+        } else {
+            return null;
+        }
+    }
+
+    default String serializeApiDefinition(Api api) {
+        if (api.getDefinitionVersion() == DefinitionVersion.V4) {
+            try {
+                return GraviteeJacksonMapper.getInstance().writeValueAsString(api.getApiDefinitionV4());
+            } catch (IOException ioe) {
+                LOGGER.error("Unexpected error while serializing V4 API definition", ioe);
+                return null;
+            }
+        } else {
+            try {
+                return GraviteeJacksonMapper.getInstance().writeValueAsString(api.getApiDefinition());
+            } catch (IOException ioe) {
+                LOGGER.error("Unexpected error while serializing V2 API definition", ioe);
+                return null;
+            }
+        }
+    }
 }

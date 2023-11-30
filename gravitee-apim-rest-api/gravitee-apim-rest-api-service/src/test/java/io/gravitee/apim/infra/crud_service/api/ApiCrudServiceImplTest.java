@@ -19,10 +19,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
-import io.gravitee.definition.model.DefinitionContext;
+import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.LifecycleState;
 import java.util.Optional;
@@ -50,29 +50,35 @@ public class ApiCrudServiceImplTest {
     class Get {
 
         @Test
-        void should_get_a_page() throws TechnicalException {
-            var existingApi = Api
+        void should_get_an_api() throws TechnicalException {
+            var existingApi = io.gravitee.repository.management.model.Api
                 .builder()
                 .id(API_ID)
+                .definitionVersion(DefinitionVersion.V4)
+                .definition(
+                    """
+                    {"id":"my-api","name":"My Api","type":"proxy","apiVersion":"1.0.0","definitionVersion":"4.0.0","tags":["tag1"],"listeners":[{"type":"http","entrypoints":[{"type":"http-proxy","qos":"auto","configuration":{}}],"paths":[{"path":"/http_proxy"}]}],"endpointGroups":[{"name":"default-group","type":"http-proxy","loadBalancer":{"type":"round-robin"},"sharedConfiguration":{},"endpoints":[{"name":"default-endpoint","type":"http-proxy","secondary":false,"weight":1,"inheritConfiguration":true,"configuration":{"target":"https://api.gravitee.io/echo"},"services":{}}],"services":{}}],"analytics":{"enabled":false},"flowExecution":{"mode":"default","matchRequired":false},"flows":[]}
+                    """
+                )
                 .apiLifecycleState(ApiLifecycleState.PUBLISHED)
                 .lifecycleState(LifecycleState.STARTED)
                 .build();
             when(apiRepository.findById(API_ID)).thenReturn(Optional.of(existingApi));
 
-            var expectedApi = io.gravitee.apim.core.api.model.Api
-                .builder()
-                .id(API_ID)
-                .apiLifecycleState(io.gravitee.apim.core.api.model.Api.ApiLifecycleState.PUBLISHED)
-                .lifecycleState(io.gravitee.apim.core.api.model.Api.LifecycleState.STARTED)
-                .definitionContext(new DefinitionContext())
-                .build();
-
-            var foundPage = service.get(API_ID);
-            Assertions.assertThat(foundPage).usingRecursiveComparison().isEqualTo(expectedApi);
+            var result = service.get(API_ID);
+            Assertions
+                .assertThat(result)
+                .extracting(Api::getId, Api::getApiLifecycleState, Api::getLifecycleState, Api::getDefinitionVersion)
+                .containsExactly(
+                    API_ID,
+                    io.gravitee.apim.core.api.model.Api.ApiLifecycleState.PUBLISHED,
+                    io.gravitee.apim.core.api.model.Api.LifecycleState.STARTED,
+                    DefinitionVersion.V4
+                );
         }
 
         @Test
-        void should_throw_exception_if_page_not_found() throws TechnicalException {
+        void should_throw_exception_if_api_not_found() throws TechnicalException {
             when(apiRepository.findById(API_ID)).thenReturn(Optional.empty());
 
             Assertions.assertThatThrownBy(() -> service.get(API_ID)).isInstanceOf(ApiNotFoundException.class);
