@@ -147,7 +147,10 @@
           },
           "enabled" : true
         } ]
-      }
+      },
+      "excluded_groups": [
+        "My Group"
+      ]
     },
     {
       "id" : "plan-id4",
@@ -173,5 +176,6 @@
         } ]
       }
     }
-  ]
+  ],
+  "groups": ["My Group"]
 }
