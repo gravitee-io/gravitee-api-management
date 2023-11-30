@@ -146,18 +146,6 @@
             "testMatch": ["**/__tests__/**/*.[t]s?(x)", "**/?(*.)+(spec).[t]s?(x)"]
           }
         },
-        "e2e": {
-          "builder": "@angular-devkit/build-angular:protractor",
-          "options": {
-            "protractorConfig": "e2e/protractor.conf.js",
-            "devServerTarget": "gravitee-portal-webui:serve"
-          },
-          "configurations": {
-            "production": {
-              "devServerTarget": "gravitee-portal-webui:serve:production"
-            }
-          }
-        },
         "lint": {
           "builder": "@angular-eslint/builder:lint",
           "options": {
