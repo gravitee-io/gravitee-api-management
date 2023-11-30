@@ -123,7 +123,6 @@ class EditPageComponentController implements IController {
   }
 
   $onInit() {
-    debugger;
     this.apiId = this.activatedRoute.snapshot.params.apiId;
     this.page = this.resolvedPage;
     this.tabs = this.tabs.filter((tab) => !tab.isUnavailable());

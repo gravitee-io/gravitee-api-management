@@ -43,7 +43,6 @@ export const settingsRoutes: Routes = [
         path: 'analytics',
         component: SettingsAnalyticsComponent,
         data: {
-          menu: null,
           docs: {
             page: 'management-configuration-analytics',
           },
@@ -57,7 +56,6 @@ export const settingsRoutes: Routes = [
         path: 'analytics/dashboard/:type/new',
         component: SettingsAnalyticsDashboardComponent,
         data: {
-          menu: null,
           docs: {
             page: 'management-configuration-dashboard',
           },
@@ -70,7 +68,6 @@ export const settingsRoutes: Routes = [
         path: 'analytics/dashboard/:type/:dashboardId',
         component: SettingsAnalyticsDashboardComponent,
         data: {
-          menu: null,
           docs: {
             page: 'management-configuration-dashboard',
           },
@@ -83,7 +80,6 @@ export const settingsRoutes: Routes = [
         path: 'api-portal-header',
         component: ApiPortalHeaderComponent,
         data: {
-          menu: null,
           docs: {
             page: 'management-configuration-apiportalheader',
           },
@@ -97,7 +93,6 @@ export const settingsRoutes: Routes = [
         path: 'api-quality-rules',
         component: ApiQualityRulesComponent,
         data: {
-          menu: null,
           docs: {
             page: 'management-configuration-apiquality',
           },
@@ -111,7 +106,6 @@ export const settingsRoutes: Routes = [
         path: 'api-quality-rules/new',
         component: ApiQualityRuleComponent,
         data: {
-          menu: null,
           docs: {
             page: 'management-configuration-apiquality',
           },
@@ -124,7 +118,6 @@ export const settingsRoutes: Routes = [
         path: 'api-quality-rules/:qualityRuleId',
         component: ApiQualityRuleComponent,
         data: {
-          menu: null,
           docs: {
             page: 'management-configuration-apiquality',
           },
@@ -137,7 +130,6 @@ export const settingsRoutes: Routes = [
         path: 'identity-providers',
         component: IdentityProvidersComponent,
         data: {
-          menu: null,
           docs: {
             page: 'management-configuration-identityproviders',
           },
@@ -151,7 +143,6 @@ export const settingsRoutes: Routes = [
         path: 'categories',
         component: CategoriesComponent,
         data: {
-          menu: null,
           docs: {
             page: 'management-configuration-categories',
           },
@@ -165,7 +156,6 @@ export const settingsRoutes: Routes = [
         path: 'categories/new',
         component: CategoryComponent,
         data: {
-          menu: null,
           docs: {
             page: 'management-configuration-categories',
           },
@@ -178,7 +168,6 @@ export const settingsRoutes: Routes = [
         path: 'categories/:categoryId',
         component: CategoryComponent,
         data: {
-          menu: null,
           docs: {
             page: 'management-configuration-categories',
           },
@@ -191,7 +180,6 @@ export const settingsRoutes: Routes = [
         path: 'client-registration-providers',
         component: ClientRegistrationProvidersComponent,
         data: {
-          menu: null,
           docs: {
             page: 'management-configuration-client-registration-providers',
           },
@@ -205,7 +193,6 @@ export const settingsRoutes: Routes = [
         path: 'client-registration-providers/new',
         component: ClientRegistrationProviderComponent,
         data: {
-          menu: null,
           docs: {
             page: 'management-configuration-client-registration-provider',
           },
@@ -218,7 +205,6 @@ export const settingsRoutes: Routes = [
         path: 'client-registration-providers/:providerId',
         component: ClientRegistrationProviderComponent,
         data: {
-          menu: null,
           docs: {
             page: 'management-configuration-client-registration-provider',
           },
@@ -284,7 +270,6 @@ export const settingsRoutes: Routes = [
         path: 'groups',
         component: GroupsComponent,
         data: {
-          menu: null,
           docs: {
             page: 'management-configuration-groups',
           },
@@ -298,7 +283,6 @@ export const settingsRoutes: Routes = [
         path: 'groups/new',
         component: GroupComponent,
         data: {
-          menu: null,
           docs: {
             page: 'management-configuration-group',
           },
@@ -311,7 +295,6 @@ export const settingsRoutes: Routes = [
         path: 'groups/:groupId',
         component: GroupComponent,
         data: {
-          menu: null,
           docs: {
             page: 'management-configuration-group',
           },
@@ -319,6 +302,11 @@ export const settingsRoutes: Routes = [
             only: ['environment-group-r'],
           },
         },
+      },
+      {
+        path: '',
+        pathMatch: 'full',
+        redirectTo: 'analytics',
       },
     ],
   },
