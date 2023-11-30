@@ -112,6 +112,7 @@ export class ApplicationNavigationComponent implements OnInit, OnDestroy {
       },
       {
         displayName: 'Members',
+        routerLink: 'members',
         targetRoute: 'management.applications.application.members',
         baseRoute: 'management.applications.application.members',
         permissions: ['application-member-r'],

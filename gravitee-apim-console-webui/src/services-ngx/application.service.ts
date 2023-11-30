@@ -24,6 +24,7 @@ import { Application, ApplicationType } from '../entities/application/applicatio
 import { SubscribedApi } from '../entities/application/SubscribedApi';
 import { ApplicationSubscription } from '../entities/subscription/subscription';
 import { ApplicationLog } from '../entities/application/ApplicationLog';
+import { MembershipListItem } from '../entities/role/membershipListItem';
 
 @Injectable({
   providedIn: 'root',
@@ -135,6 +136,10 @@ export class ApplicationService {
       filter((application) => !!application),
       shareReplay({ bufferSize: 1, refCount: true }),
     );
+  }
+
+  getMembers(applicationId: string): Observable<MembershipListItem[]> {
+    return this.http.get<MembershipListItem[]>(`${this.constants.env.baseURL}/applications/${applicationId}/members`);
   }
 
   getSubscribedAPIList(applicationId: string): Observable<SubscribedApi[]> {
