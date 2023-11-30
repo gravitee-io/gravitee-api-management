@@ -29,6 +29,8 @@ import { ApiQualityRuleComponent } from '../configuration/api-quality-rules/api-
 import { IdentityProvidersComponent } from '../configuration/identityProviders/identity-providers.component';
 import { CategoriesComponent } from '../configuration/categories/categories.component';
 import { CategoryComponent } from '../configuration/categories/category/category.component';
+import { GroupsComponent } from '../configuration/groups/groups.component';
+import { GroupComponent } from '../configuration/groups/group/group.component';
 
 @NgModule({
   imports: [SettingsRoutingModule, RouterModule, GioSubmenuModule, GioBreadcrumbModule, CommonModule],
@@ -42,6 +44,8 @@ import { CategoryComponent } from '../configuration/categories/category/category
     IdentityProvidersComponent,
     CategoriesComponent,
     CategoryComponent,
+    GroupsComponent,
+    GroupComponent,
   ],
 })
 export class SettingsModule {}

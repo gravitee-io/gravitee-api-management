@@ -25,6 +25,8 @@ import { ApiQualityRuleComponent } from '../configuration/api-quality-rules/api-
 import { IdentityProvidersComponent } from '../configuration/identityProviders/identity-providers.component';
 import { CategoriesComponent } from '../configuration/categories/categories.component';
 import { CategoryComponent } from '../configuration/categories/category/category.component';
+import { GroupsComponent } from '../configuration/groups/groups.component';
+import { GroupComponent } from '../configuration/groups/group/group.component';
 
 export const settingsRoutes: Routes = [
   {
@@ -176,6 +178,46 @@ export const settingsRoutes: Routes = [
           },
           perms: {
             only: ['environment-category-u', 'environment-category-d'],
+          },
+        },
+      },
+      {
+        path: 'groups',
+        component: GroupsComponent,
+        data: {
+          menu: null,
+          docs: {
+            page: 'management-configuration-groups',
+          },
+          perms: {
+            only: ['environment-group-r'],
+            unauthorizedFallbackTo: 'management.settings.notification-settings',
+          },
+        },
+      },
+      {
+        path: 'groups/new',
+        component: GroupComponent,
+        data: {
+          menu: null,
+          docs: {
+            page: 'management-configuration-group',
+          },
+          perms: {
+            only: ['environment-group-r'],
+          },
+        },
+      },
+      {
+        path: 'groups/:groupId',
+        component: GroupComponent,
+        data: {
+          menu: null,
+          docs: {
+            page: 'management-configuration-group',
+          },
+          perms: {
+            only: ['environment-group-r'],
           },
         },
       },

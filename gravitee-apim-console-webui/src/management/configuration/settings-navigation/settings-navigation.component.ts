@@ -154,8 +154,7 @@ export class SettingsNavigationComponent implements OnInit {
           },
           {
             displayName: 'Groups',
-            targetRoute: 'management.settings.groups.list',
-            baseRoute: 'management.settings.groups',
+            routerLink: './groups',
             permissions: ['environment-group-r'],
           },
         ],
