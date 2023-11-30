@@ -16,8 +16,8 @@
 package inmemory;
 
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
+import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
