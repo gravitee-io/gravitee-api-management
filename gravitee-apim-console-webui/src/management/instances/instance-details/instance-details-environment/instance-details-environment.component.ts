@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { formatDate } from '@angular/common';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { ActivatedRoute } from '@angular/router';
 
-import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { Instance } from '../../../../entities/instance/instance';
 import { InstanceService } from '../../../../services-ngx/instance.service';
 import { GioTableWrapperFilters } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
@@ -69,11 +69,11 @@ export class InstanceDetailsEnvironmentComponent implements OnInit, OnDestroy {
   public propertiesTableUnpaginatedLength: number;
   private unsubscribe$ = new Subject<void>();
 
-  constructor(@Inject(UIRouterStateParams) private readonly ajsStateParams, private readonly instanceService: InstanceService) {}
+  constructor(private readonly activatedRoute: ActivatedRoute, private readonly instanceService: InstanceService) {}
 
   ngOnInit(): void {
     this.instanceService
-      .get(this.ajsStateParams.instanceId)
+      .get(this.activatedRoute.snapshot.params.instanceId)
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe((instance) => {
         this.instance = instance;

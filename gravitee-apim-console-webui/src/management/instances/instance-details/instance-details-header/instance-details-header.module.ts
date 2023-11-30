@@ -18,12 +18,13 @@ import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatTabsModule } from '@angular/material/tabs';
+import { RouterModule } from '@angular/router';
 
 import { InstanceDetailsHeaderComponent } from './instance-details-header.component';
 
 @NgModule({
   declarations: [InstanceDetailsHeaderComponent],
   exports: [InstanceDetailsHeaderComponent],
-  imports: [CommonModule, MatCardModule, MatTabsModule],
+  imports: [CommonModule, RouterModule, MatCardModule, MatTabsModule],
 })
 export class InstanceDetailsHeaderModule {}

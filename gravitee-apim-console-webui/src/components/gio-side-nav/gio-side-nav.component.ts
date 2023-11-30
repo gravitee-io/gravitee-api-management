@@ -29,7 +29,8 @@ interface MenuItem {
   // @Deprecated
   targetRoute?: string;
   routerLink?: string;
-  baseRoute: string | string[];
+  // @Deprecated
+  baseRoute?: string | string[];
   displayName: string;
   permissions?: string[];
   licenseOptions?: LicenseOptions;
@@ -111,9 +112,8 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
       },
       {
         icon: 'gio:cloud-server',
-        targetRoute: 'management.instances-list',
-        baseRoute: ['management.instances-list', 'management.instances.detail'],
         displayName: 'Gateways',
+        routerLink: './gateways',
         permissions: ['environment-instance-r'],
       },
       {

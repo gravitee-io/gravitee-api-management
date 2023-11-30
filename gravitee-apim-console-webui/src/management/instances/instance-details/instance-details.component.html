@@ -17,5 +17,7 @@
 -->
 <div class="gio-instance-details">
   <instance-details-header [instance]="instance"></instance-details-header>
-  <div ui-view class="instances-detail__content"></div>
+  <div class="instances-detail__content">
+    <router-outlet></router-outlet>
+  </div>
 </div>

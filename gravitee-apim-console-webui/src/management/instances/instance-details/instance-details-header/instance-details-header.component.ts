@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-import { Component, Inject, Input, OnInit } from '@angular/core';
-import { StateService } from '@uirouter/core';
+import { Component, Input, OnInit } from '@angular/core';
 
-import { UIRouterState } from '../../../../ajs-upgraded-providers';
 import { Instance } from '../../../../entities/instance/instance';
 
 interface MenuItem {
-  targetRoute?: string;
-  baseRoute?: string;
   displayName: string;
+  routerLink: string;
   testId?: string;
 }
 
@@ -38,30 +35,18 @@ export class InstanceDetailsHeaderComponent implements OnInit {
 
   public tabMenuItems: MenuItem[] = [];
 
-  constructor(@Inject(UIRouterState) private readonly ajsState: StateService) {}
-
   ngOnInit(): void {
     this.tabMenuItems = [
       {
         displayName: 'Environment',
-        targetRoute: 'management.instance.environment',
-        baseRoute: 'management.instance.environment',
+        routerLink: 'environment',
         testId: 'instances-detail-environment',
       },
       {
         displayName: 'Monitoring',
-        targetRoute: 'management.instance.monitoring',
-        baseRoute: 'management.instance.monitoring',
+        routerLink: 'monitoring',
         testId: 'instances-detail-monitoring',
       },
     ];
-  }
-
-  navigateTo(route: string) {
-    this.ajsState.go(route);
-  }
-
-  isActive(route: string): boolean {
-    return this.ajsState.includes(route);
   }
 }

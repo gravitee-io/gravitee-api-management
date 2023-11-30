@@ -16,7 +16,7 @@
 
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
-import { UIRouterModule } from '@uirouter/angular';
+import { RouterModule } from '@angular/router';
 
 import { InstanceDetailsComponent } from './instance-details.component';
 import { InstanceDetailsHeaderModule } from './instance-details-header/instance-details-header.module';
@@ -26,6 +26,6 @@ import { InstanceDetailsEnvironmentModule } from './instance-details-environment
 @NgModule({
   declarations: [InstanceDetailsComponent],
   exports: [InstanceDetailsComponent],
-  imports: [CommonModule, InstanceDetailsHeaderModule, InstanceDetailsMonitoringModule, InstanceDetailsEnvironmentModule, UIRouterModule],
+  imports: [CommonModule, RouterModule, InstanceDetailsHeaderModule, InstanceDetailsMonitoringModule, InstanceDetailsEnvironmentModule],
 })
 export class InstanceDetailsModule {}

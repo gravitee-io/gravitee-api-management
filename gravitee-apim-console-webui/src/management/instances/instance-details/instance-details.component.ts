@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
+import { ActivatedRoute } from '@angular/router';
 
-import { UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { InstanceService } from '../../../services-ngx/instance.service';
 import { Instance } from '../../../entities/instance/instance';
 
@@ -29,11 +29,11 @@ export class InstanceDetailsComponent implements OnInit, OnDestroy {
   public instance: Instance;
   private unsubscribe$ = new Subject<void>();
 
-  constructor(@Inject(UIRouterStateParams) private readonly ajsStateParams, private readonly instanceService: InstanceService) {}
+  constructor(private readonly activatedRoute: ActivatedRoute, private readonly instanceService: InstanceService) {}
 
   ngOnInit(): void {
     this.instanceService
-      .get(this.ajsStateParams.instanceId)
+      .get(this.activatedRoute.snapshot.params.instanceId)
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe((instance) => {
         this.instance = instance;

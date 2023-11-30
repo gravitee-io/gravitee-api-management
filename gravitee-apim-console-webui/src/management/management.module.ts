@@ -42,6 +42,10 @@ import { GioSideNavModule } from '../components/gio-side-nav/gio-side-nav.module
 import { GioTopNavModule } from '../components/gio-top-nav/gio-top-nav.module';
 import { ContextualDocComponentComponent } from '../components/contextual/contextual-doc.component';
 import { UserComponent } from '../user/my-accout/user.component';
+import { InstanceListComponent } from './instances/instance-list/instance-list.component';
+import { InstanceDetailsComponent } from './instances/instance-details/instance-details.component';
+import { InstanceDetailsEnvironmentComponent } from './instances/instance-details/instance-details-environment/instance-details-environment.component';
+import { InstanceDetailsMonitoringComponent } from './instances/instance-details/instance-details-monitoring/instance-details-monitoring.component';
 
 const managementRoutes: Routes = [
   {
@@ -94,6 +98,61 @@ const managementRoutes: Routes = [
       {
         path: 'applications',
         loadChildren: () => import('./application/applications.route').then((m) => m.ApplicationsRouteModule),
+      },
+      {
+        path: 'gateways',
+        component: InstanceListComponent,
+        data: {
+          perms: {
+            only: ['environment-instance-r'],
+          },
+          docs: {
+            page: 'management-gateways',
+          },
+        },
+      },
+      {
+        path: 'gateways',
+        component: InstanceListComponent,
+        data: {
+          perms: {
+            only: ['environment-instance-r'],
+          },
+          docs: {
+            page: 'management-gateways',
+          },
+        },
+      },
+      {
+        path: 'gateways/:instanceId',
+        component: InstanceDetailsComponent,
+        data: {
+          perms: {
+            only: ['environment-instance-r'],
+          },
+        },
+        children: [
+          {
+            path: 'environment',
+            component: InstanceDetailsEnvironmentComponent,
+            data: {
+              docs: {
+                page: 'management-gateway-environment',
+              },
+              useAngularMaterial: true,
+            },
+          },
+          {
+            path: 'monitoring',
+            component: InstanceDetailsMonitoringComponent,
+            data: {
+              docs: {
+                page: 'management-gateway-monitoring',
+              },
+              useAngularMaterial: true,
+            },
+          },
+        ],
       },
 
       { path: '', pathMatch: 'full', redirectTo: 'home' },

@@ -15,32 +15,21 @@
  */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { ActivatedRoute } from '@angular/router';
 
 import { InstanceDetailsMonitoringComponent } from './instance-details-monitoring.component';
 import { InstanceDetailsMonitoringModule } from './instance-details-monitoring.module';
 
-import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { GioHttpTestingModule } from '../../../../shared/testing';
 
 describe('InstanceMonitoringComponent', () => {
   let fixture: ComponentFixture<InstanceDetailsMonitoringComponent>;
   const instanceId = '5bc17c57-b350-460d-817c-57b350060db3';
 
-  const fakeAjsState = {
-    go: jest.fn(),
-    includes: jest.fn(),
-  };
-
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, InstanceDetailsMonitoringModule],
-      providers: [
-        { provide: UIRouterStateParams, useValue: { instanceId } },
-        {
-          provide: UIRouterState,
-          useValue: fakeAjsState,
-        },
-      ],
+      providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: { instanceId } } } }],
     });
     fixture = TestBed.createComponent(InstanceDetailsMonitoringComponent);
   });
