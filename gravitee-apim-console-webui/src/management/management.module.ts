@@ -39,6 +39,7 @@ import { InstanceDetailsComponent } from './instances/instance-details/instance-
 import { InstanceDetailsEnvironmentComponent } from './instances/instance-details/instance-details-environment/instance-details-environment.component';
 import { InstanceDetailsMonitoringComponent } from './instances/instance-details/instance-details-monitoring/instance-details-monitoring.component';
 import { EnvAuditComponent } from './audit/env-audit.component';
+import { MessagesComponent } from './messages/messages.component';
 
 import { GioPermissionModule } from '../shared/components/gio-permission/gio-permission.module';
 import { NotificationsModule } from '../components/notifications/notifications.module';
@@ -170,6 +171,15 @@ const managementRoutes: Routes = [
           },
           docs: {
             page: 'management-audit',
+          },
+        },
+      },
+      {
+        path: 'messages',
+        component: MessagesComponent,
+        data: {
+          docs: {
+            page: 'management-messages',
           },
         },
       },

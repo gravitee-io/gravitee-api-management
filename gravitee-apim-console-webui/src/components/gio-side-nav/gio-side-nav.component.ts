@@ -126,9 +126,8 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
       },
       {
         icon: 'gio:message-text',
-        targetRoute: 'management.messages',
-        baseRoute: 'management.messages',
         displayName: 'Messages',
+        routerLink: './messages',
         permissions: ['environment-message-c'],
       },
       {
