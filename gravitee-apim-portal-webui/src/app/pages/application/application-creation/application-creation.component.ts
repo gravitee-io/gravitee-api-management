@@ -20,7 +20,6 @@ import '@gravitee/ui-components/wc/gv-option';
 import '@gravitee/ui-components/wc/gv-switch';
 import '@gravitee/ui-components/wc/gv-file-upload';
 import { TranslateService } from '@ngx-translate/core';
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { ActivatedRoute, Router } from '@angular/router';
 import { getApplicationTypeIcon } from '@gravitee/ui-components/src/lib/theme';
 
@@ -116,13 +115,13 @@ export class ApplicationCreationComponent implements OnInit {
 
   async ngOnInit() {
     const stepsTitle: any[] = [
-      i18n('applicationCreation.step.general'),
-      i18n('applicationCreation.step.security'),
-      i18n('applicationCreation.step.subscription'),
-      i18n('applicationCreation.step.validate'),
+      'applicationCreation.step.general',
+      'applicationCreation.step.security',
+      'applicationCreation.step.subscription',
+      'applicationCreation.step.validate',
     ];
     if (this.canConfigureSharedApiKey()) {
-      stepsTitle.splice(3, 0, i18n('applicationCreation.step.apiKeyMode'));
+      stepsTitle.splice(3, 0, 'applicationCreation.step.apiKeyMode');
     }
 
     this._allSteps = await Promise.all(
@@ -258,7 +257,7 @@ export class ApplicationCreationComponent implements OnInit {
   async stepThreeState(): Promise<StepState> {
     if (this.subscribeList) {
       const description = await this.translateService
-        .get(i18n('applicationCreation.subscription.description'), { count: this.subscribeList.length })
+        .get('applicationCreation.subscription.description', { count: this.subscribeList.length })
         .toPromise();
       const valid = this.hasValidSubscriptions();
       return { description, valid, invalid: !valid };
@@ -273,7 +272,7 @@ export class ApplicationCreationComponent implements OnInit {
 
   async stepFourState(): Promise<StepState> {
     if (this.apiKeyMode !== ApiKeyModeEnum.UNSPECIFIED) {
-      this.apiKeyModeTitle = await this.translateService.get(i18n(`apiKeyMode.${this.apiKeyMode.toLowerCase()}.title`)).toPromise();
+      this.apiKeyModeTitle = await this.translateService.get(`apiKeyMode.${this.apiKeyMode.toLowerCase()}.title`).toPromise();
       const valid = [ApiKeyModeEnum.SHARED, ApiKeyModeEnum.EXCLUSIVE].includes(this.apiKeyMode);
       return { description: this.apiKeyModeTitle, valid, invalid: !valid };
     }

@@ -26,7 +26,6 @@ import { Observable } from 'rxjs';
 import { Router } from '@angular/router';
 import { tap } from 'rxjs/operators';
 import { Injectable } from '@angular/core';
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 
 import { CurrentUserService } from '../services/current-user.service';
 import { NotificationService } from '../services/notification.service';
@@ -106,7 +105,7 @@ export class ApiRequestInterceptor implements HttpInterceptor {
 
             if (err.status === 0) {
               if (!silentCall) {
-                this.notificationService.error(i18n('errors.server.unavailable'));
+                this.notificationService.error('errors.server.unavailable');
               }
             } else if (err.status === 401) {
               this.currentUserService.revokeUser();

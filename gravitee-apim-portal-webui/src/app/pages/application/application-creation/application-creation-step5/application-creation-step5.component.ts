@@ -15,7 +15,6 @@
  */
 import { Component, Input, OnInit } from '@angular/core';
 import { FormGroup } from '@angular/forms';
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { TranslateService } from '@ngx-translate/core';
 
 import { Api, Application, Plan } from '../../../../../../projects/portal-webclient-sdk/src/lib';
@@ -92,10 +91,10 @@ export class ApplicationCreationStep5Component implements OnInit {
   ngOnInit(): void {
     this.translateService
       .get([
-        i18n('applicationCreation.subscription.comment'),
-        i18n('applicationCreation.subscription.validation.type'),
-        i18n('applicationCreation.subscription.validation.auto'),
-        i18n('applicationCreation.subscription.validation.manual'),
+        'applicationCreation.subscription.comment',
+        'applicationCreation.subscription.validation.type',
+        'applicationCreation.subscription.validation.auto',
+        'applicationCreation.subscription.validation.manual',
       ])
       .toPromise()
       .then(translations => {

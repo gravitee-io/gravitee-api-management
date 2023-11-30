@@ -19,7 +19,6 @@ import '@gravitee/ui-components/wc/gv-list';
 import '@gravitee/ui-components/wc/gv-rating-list';
 import '@gravitee/ui-components/wc/gv-confirm';
 import { ActivatedRoute, Router } from '@angular/router';
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { TranslateService } from '@ngx-translate/core';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { getPictureDisplayName } from '@gravitee/ui-components/src/lib/item';
@@ -108,18 +107,18 @@ export class ApplicationSubscriptionsComponent implements OnInit {
           },
           {
             field: 'api',
-            label: i18n('application.subscriptions.api'),
+            label: 'application.subscriptions.api',
             tag: item => this.metadata[item.api] && this.metadata[item.api].version,
             format: item => this.metadata[item] && this.metadata[item].name,
           },
           {
             field: 'plan',
-            label: i18n('application.subscriptions.plan'),
+            label: 'application.subscriptions.plan',
             format: item => this.metadata[item] && this.metadata[item].name,
           },
           {
             field: 'plan',
-            label: i18n('application.subscriptions.security_type'),
+            label: 'application.subscriptions.security_type',
             type: () => 'div',
             attributes: {
               innerHTML: item => {
@@ -131,16 +130,16 @@ export class ApplicationSubscriptionsComponent implements OnInit {
               },
             },
           },
-          { field: 'created_at', type: 'date', label: i18n('application.subscriptions.created_at'), width: '160px' },
+          { field: 'created_at', type: 'date', label: 'application.subscriptions.created_at', width: '160px' },
           {
             field: 'subscribed_by',
-            label: i18n('application.subscriptions.subscribed_by'),
+            label: 'application.subscriptions.subscribed_by',
             format: item => this.metadata[item] && this.metadata[item].name,
             width: '190px',
           },
           {
             field: 'status',
-            label: i18n('application.subscriptions.status'),
+            label: 'application.subscriptions.status',
             width: '80px',
             format: key => {
               const statusKey = 'common.status.' + key.toUpperCase();
@@ -165,7 +164,7 @@ export class ApplicationSubscriptionsComponent implements OnInit {
             attributes: {
               link: true,
               href: item => `/catalog/api/${item.api}`,
-              title: i18n('application.subscriptions.navigateToApi'),
+              title: 'application.subscriptions.navigateToApi',
               icon: 'communication:share',
               onClick: item => this.goToApi(item.api),
             },
@@ -304,7 +303,7 @@ export class ApplicationSubscriptionsComponent implements OnInit {
       .closeSubscription({ subscriptionId })
       .toPromise()
       .then(() => {
-        this.notificationService.success(i18n('application.subscriptions.success.close'));
+        this.notificationService.success('application.subscriptions.success.close');
         this.search(false);
       });
   }
@@ -314,7 +313,7 @@ export class ApplicationSubscriptionsComponent implements OnInit {
       .renewKeySubscription({ subscriptionId })
       .toPromise()
       .then(() => {
-        this.notificationService.success(i18n('application.subscriptions.success.renew'));
+        this.notificationService.success('application.subscriptions.success.renew');
         this.search(true);
       });
   }
@@ -324,7 +323,7 @@ export class ApplicationSubscriptionsComponent implements OnInit {
       .revokeKeySubscription({ subscriptionId, apiKey })
       .toPromise()
       .then(() => {
-        this.notificationService.success(i18n('application.subscriptions.apiKey.success.revoke'));
+        this.notificationService.success('application.subscriptions.apiKey.success.revoke');
         this.search(true);
       });
   }
@@ -334,7 +333,7 @@ export class ApplicationSubscriptionsComponent implements OnInit {
       .renewSharedKey({ applicationId: this.application.id })
       .toPromise()
       .then(() => {
-        this.notificationService.success(i18n('application.shared-key.renew.success'));
+        this.notificationService.success('application.shared-key.renew.success');
         this.search(true);
       });
   }
@@ -344,7 +343,7 @@ export class ApplicationSubscriptionsComponent implements OnInit {
       .revokeSharedKey({ applicationId: this.application.id, apiKey: this.sharedAPIKey.id })
       .toPromise()
       .then(() => {
-        this.notificationService.success(i18n('application.shared-key.revoke.success'));
+        this.notificationService.success('application.shared-key.revoke.success');
         this.search(true);
       });
   }
