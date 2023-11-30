@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
@@ -57,17 +56,17 @@ import { PermissionGuardService } from './services/permission-guard.service';
 import { TicketsHistoryComponent } from './components/gv-tickets-history/tickets-history.component';
 
 export const routes: Routes = [
-  { path: '', component: HomepageComponent, data: { title: i18n('route.homepage'), menu: false, animation: { type: 'fade' } } },
+  { path: '', component: HomepageComponent, data: { title: 'route.homepage', menu: false, animation: { type: 'fade' } } },
   {
     path: 'dashboard',
     component: DashboardComponent,
-    data: { title: i18n('route.dashboard'), expectedRole: Role.AUTH_USER, animation: { type: 'fade' }, menu: {} },
+    data: { title: 'route.dashboard', expectedRole: Role.AUTH_USER, animation: { type: 'fade' }, menu: {} },
     canActivate: [AuthGuardService],
   },
   {
     path: 'catalog',
     data: {
-      title: i18n('route.catalog'),
+      title: 'route.catalog',
       menu: { hiddenPaths: ['categories/:categoryId', 'api/'] },
       fallbackRedirectTo: 'catalog/all',
     },
@@ -91,7 +90,7 @@ export const routes: Routes = [
             data: {
               menu: { slots: { 'right-transition': GvSearchApiComponent } },
               icon: 'general:clipboard',
-              title: i18n('route.catalogApi'),
+              title: 'route.catalogApi',
               animation: { type: 'slide', group: 'api', index: 1 },
             },
             resolve: {
@@ -104,7 +103,7 @@ export const routes: Routes = [
             data: {
               menu: { slots: { 'right-transition': GvSearchApiComponent } },
               icon: 'home:library',
-              title: i18n('route.catalogApiDocumentation'),
+              title: 'route.catalogApiDocumentation',
               animation: { type: 'fade' },
             },
           },
@@ -115,7 +114,7 @@ export const routes: Routes = [
             data: {
               menu: { slots: { 'right-transition': GvSearchApiComponent } },
               icon: 'communication:contact#1',
-              title: i18n('route.catalogApiContact'),
+              title: 'route.catalogApiContact',
               expectedFeature: FeatureEnum.contact,
               expectedRole: Role.AUTH_USER,
               animation: { type: 'slide', group: 'api', index: 3 },
@@ -125,7 +124,7 @@ export const routes: Routes = [
             path: 'tickets',
             component: TicketsHistoryComponent,
             data: {
-              title: i18n('route.tickets'),
+              title: 'route.tickets',
               icon: 'communication:snoozed-mail',
               expectedFeature: FeatureEnum.contact,
               expectedRole: Role.AUTH_USER,
@@ -137,7 +136,7 @@ export const routes: Routes = [
             component: ApiSubscribeComponent,
             canActivate: [SubscribeGuardService],
             data: {
-              title: i18n('route.catalogApiSubscribe'),
+              title: 'route.catalogApiSubscribe',
             },
           },
         ],
@@ -148,7 +147,7 @@ export const routes: Routes = [
         canActivate: [FeatureGuardService],
         data: {
           expectedFeature: FeatureEnum.categoryMode,
-          title: i18n('route.catalogCategories'),
+          title: 'route.catalogCategories',
           icon: 'layout:layout-arrange',
           menu: { slots: { 'right-transition': GvSearchApiComponent } },
           animation: { type: 'slide', group: 'catalog', index: 1 },
@@ -159,7 +158,7 @@ export const routes: Routes = [
         component: FilteredCatalogComponent,
         resolve: { category: CategoryResolver },
         data: {
-          title: i18n('route.catalogCategory'),
+          title: 'route.catalogCategory',
           menu: { hide: true, slots: { top: GvHeaderItemComponent, 'right-transition': GvSearchApiComponent } },
         },
       },
@@ -167,7 +166,7 @@ export const routes: Routes = [
         path: 'all',
         component: FilteredCatalogComponent,
         data: {
-          title: i18n('route.catalogAll'),
+          title: 'route.catalogAll',
           icon: 'code:git#2',
           menu: { slots: { 'right-transition': GvSearchApiComponent } },
           filterApiQuery: FilterApiQuery.ALL,
@@ -178,7 +177,7 @@ export const routes: Routes = [
         path: 'featured',
         component: FilteredCatalogComponent,
         data: {
-          title: i18n('route.catalogFeatured'),
+          title: 'route.catalogFeatured',
           icon: 'home:flower#2',
           menu: { slots: { 'right-transition': GvSearchApiComponent } },
           filterApiQuery: FilterApiQuery.FEATURED,
@@ -190,7 +189,7 @@ export const routes: Routes = [
         component: FilteredCatalogComponent,
         canActivate: [FeatureGuardService],
         data: {
-          title: i18n('route.catalogStarred'),
+          title: 'route.catalogStarred',
           icon: 'general:star',
           menu: { slots: { 'right-transition': GvSearchApiComponent } },
           filterApiQuery: FilterApiQuery.STARRED,
@@ -202,7 +201,7 @@ export const routes: Routes = [
         path: 'trendings',
         component: FilteredCatalogComponent,
         data: {
-          title: i18n('route.catalogTrending'),
+          title: 'route.catalogTrending',
           icon: 'home:fireplace',
           menu: { slots: { 'right-transition': GvSearchApiComponent } },
           filterApiQuery: FilterApiQuery.TRENDINGS,
@@ -220,7 +219,7 @@ export const routes: Routes = [
         component: LoginComponent,
         canActivate: [AuthGuardService],
         data: {
-          title: i18n('route.login'),
+          title: 'route.login',
           expectedRole: Role.GUEST,
           animation: { type: 'fade' },
         },
@@ -230,7 +229,7 @@ export const routes: Routes = [
         component: UserAccountComponent,
         canActivate: [AuthGuardService],
         data: {
-          title: i18n('route.user'),
+          title: 'route.user',
           icon: 'general:user',
           expectedRole: Role.AUTH_USER,
           animation: { type: 'slide', group: 'user', index: 1 },
@@ -241,7 +240,7 @@ export const routes: Routes = [
         component: UserContactComponent,
         canActivate: [AuthGuardService, FeatureGuardService],
         data: {
-          title: i18n('route.contact'),
+          title: 'route.contact',
           icon: 'communication:contact#1',
           expectedFeature: FeatureEnum.contact,
           expectedRole: Role.AUTH_USER,
@@ -253,7 +252,7 @@ export const routes: Routes = [
         component: TicketsHistoryComponent,
         canActivate: [AuthGuardService, FeatureGuardService],
         data: {
-          title: i18n('route.tickets'),
+          title: 'route.tickets',
           icon: 'communication:snoozed-mail',
           expectedFeature: FeatureEnum.contact,
           expectedRole: Role.AUTH_USER,
@@ -265,7 +264,7 @@ export const routes: Routes = [
         component: UserNotificationComponent,
         canActivate: [AuthGuardService, FeatureGuardService],
         data: {
-          title: i18n('route.notifications'),
+          title: 'route.notifications',
           icon: 'general:notifications#2',
           expectedRole: Role.AUTH_USER,
           animation: { type: 'slide', group: 'user', index: 4 },
@@ -276,7 +275,7 @@ export const routes: Routes = [
         component: LogoutComponent,
         canActivate: [AuthGuardService],
         data: {
-          title: i18n('route.logout'),
+          title: 'route.logout',
           separator: true,
           icon: 'home:door-open',
           expectedRole: Role.AUTH_USER,
@@ -322,15 +321,15 @@ export const routes: Routes = [
     loadChildren: () => import('./pages/applications/applications.module').then(m => m.ApplicationsModule),
     canActivate: [AuthGuardService, PermissionGuardService],
     data: {
-      title: i18n('route.applications'),
+      title: 'route.applications',
       menu: { hiddenPaths: ['creation'] },
       expectedRole: Role.AUTH_USER,
       animation: {},
       expectedPermissions: ['APPLICATION-R'],
     },
   },
-  { path: 'cookies', component: CookiesComponent, data: { title: i18n('route.cookies') } },
-  { path: '**', component: NotFoundComponent, data: { title: i18n('route.notFound') } },
+  { path: 'cookies', component: CookiesComponent, data: { title: 'route.cookies' } },
+  { path: '**', component: NotFoundComponent, data: { title: 'route.notFound' } },
 ];
 
 @NgModule({

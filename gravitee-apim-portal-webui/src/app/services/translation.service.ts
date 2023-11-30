@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import { Injectable } from '@angular/core';
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { addTranslations, setLanguage } from '@gravitee/ui-components/src/lib/i18n';
 import { TranslateService } from '@ngx-translate/core';
 import { Title } from '@angular/platform-browser';
@@ -36,7 +35,7 @@ export class TranslationService {
       this.translateService.use(environment.locales.includes(browserLang) ? browserLang : defaultLang).subscribe(translations => {
         setLanguage(this.translateService.currentLang);
         addTranslations(this.translateService.currentLang, translations, this.translateService.currentLang);
-        this.translateService.get(i18n('site.title')).subscribe(title => this.titleService.setTitle(title));
+        this.translateService.get('site.title').subscribe(title => this.titleService.setTitle(title));
         resolve(true);
       });
     });
