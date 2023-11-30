@@ -27,6 +27,8 @@ import { CategoriesComponent } from '../configuration/categories/categories.comp
 import { CategoryComponent } from '../configuration/categories/category/category.component';
 import { GroupsComponent } from '../configuration/groups/groups.component';
 import { GroupComponent } from '../configuration/groups/group/group.component';
+import { ClientRegistrationProvidersComponent } from '../configuration/client-registration-providers/client-registration-providers.component';
+import { ClientRegistrationProviderComponent } from '../configuration/client-registration-providers/client-registration-provider/client-registration-provider.component';
 
 export const settingsRoutes: Routes = [
   {
@@ -178,6 +180,50 @@ export const settingsRoutes: Routes = [
           },
           perms: {
             only: ['environment-category-u', 'environment-category-d'],
+          },
+        },
+      },
+      {
+        path: 'client-registration-providers',
+        component: ClientRegistrationProvidersComponent,
+        data: {
+          menu: null,
+          docs: {
+            page: 'management-configuration-client-registration-providers',
+          },
+          perms: {
+            only: ['environment-client_registration_provider-r'],
+            unauthorizedFallbackTo: 'management.settings.documentation.list',
+          },
+        },
+      },
+      {
+        path: 'client-registration-providers/new',
+        component: ClientRegistrationProviderComponent,
+        data: {
+          menu: null,
+          docs: {
+            page: 'management-configuration-client-registration-provider',
+          },
+          perms: {
+            only: ['environment-client_registration_provider-c'],
+          },
+        },
+      },
+      {
+        path: 'client-registration-providers/:providerId',
+        component: ClientRegistrationProviderComponent,
+        data: {
+          menu: null,
+          docs: {
+            page: 'management-configuration-client-registration-provider',
+          },
+          perms: {
+            only: [
+              'environment-client_registration_provider-r',
+              'environment-client_registration_provider-u',
+              'environment-client_registration_provider-d',
+            ],
           },
         },
       },

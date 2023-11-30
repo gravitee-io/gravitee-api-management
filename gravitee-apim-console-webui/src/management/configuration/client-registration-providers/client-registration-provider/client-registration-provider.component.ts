@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { StateService } from '@uirouter/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { EMPTY, Subject } from 'rxjs';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { catchError, takeUntil, tap } from 'rxjs/operators';
+import { ActivatedRoute, Router } from '@angular/router';
 
-import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { ClientRegistrationProvidersService } from '../../../../services-ngx/client-registration-providers.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { ClientRegistrationProvider } from '../../../../entities/client-registration-provider/clientRegistrationProvider';
@@ -49,16 +48,16 @@ export class ClientRegistrationProviderComponent implements OnInit, OnDestroy {
   public formInitialValues: unknown;
 
   constructor(
-    @Inject(UIRouterStateParams) private ajsStateParams,
-    @Inject(UIRouterState) private readonly ajsState: StateService,
+    private readonly router: Router,
+    private readonly activatedRoute: ActivatedRoute,
     private readonly clientRegistrationProvidersService: ClientRegistrationProvidersService,
     private readonly snackBarService: SnackBarService,
   ) {}
 
   ngOnInit(): void {
-    if (this.ajsStateParams.id) {
+    if (this.activatedRoute?.snapshot?.params?.providerId) {
       this.clientRegistrationProvidersService
-        .get(this.ajsStateParams.id)
+        .get(this.activatedRoute.snapshot.params.providerId)
         .pipe(
           tap((clientRegistrationProvider) => {
             this.updateMode = true;
@@ -85,7 +84,7 @@ export class ClientRegistrationProviderComponent implements OnInit, OnDestroy {
     const providerFormValueToSave = this.providerForm.value;
     const createUpdate$ = this.updateMode
       ? this.clientRegistrationProvidersService
-          .update({ ...providerFormValueToSave, id: this.ajsStateParams.id })
+          .update({ ...providerFormValueToSave, id: this.activatedRoute.snapshot.params.providerId })
           .pipe(
             tap((clientRegistrationProvider) =>
               this.snackBarService.success(`Client registration provider  ${clientRegistrationProvider.name} has been updated.`),
@@ -106,11 +105,7 @@ export class ClientRegistrationProviderComponent implements OnInit, OnDestroy {
           return EMPTY;
         }),
         tap((clientRegistrationProvider) => {
-          this.ajsState.go(
-            'management.settings.clientregistrationproviders.clientregistrationprovider',
-            { id: clientRegistrationProvider.id },
-            { reload: true },
-          );
+          this.router.navigate(['../', clientRegistrationProvider.id], { relativeTo: this.activatedRoute });
         }),
         takeUntil(this.unsubscribe$),
       )

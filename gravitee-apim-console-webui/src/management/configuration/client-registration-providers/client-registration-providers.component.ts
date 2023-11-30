@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { StateService } from '@uirouter/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { combineLatest, EMPTY, Observable, Subject } from 'rxjs';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { GioConfirmDialogComponent, GioConfirmDialogData, GioLicenseService, LicenseOptions } from '@gravitee/ui-particles-angular';
 import { MatDialog } from '@angular/material/dialog';
+import { ActivatedRoute, Router } from '@angular/router';
 
-import { UIRouterState } from '../../../ajs-upgraded-providers';
 import { ClientRegistrationProvidersService } from '../../../services-ngx/client-registration-providers.service';
 import { ClientRegistrationProvider } from '../../../entities/client-registration-provider/clientRegistrationProvider';
 import { PortalSettingsService } from '../../../services-ngx/portal-settings.service';
@@ -55,7 +54,8 @@ export class ClientRegistrationProvidersComponent implements OnInit, OnDestroy {
   private settings: PortalSettings;
 
   constructor(
-    @Inject(UIRouterState) private readonly ajsState: StateService,
+    private readonly router: Router,
+    private readonly activatedRoute: ActivatedRoute,
     private readonly clientRegistrationProvidersService: ClientRegistrationProvidersService,
     private readonly portalSettingsService: PortalSettingsService,
     private readonly snackBarService: SnackBarService,
@@ -95,11 +95,11 @@ export class ClientRegistrationProvidersComponent implements OnInit, OnDestroy {
   }
 
   onAddProvider() {
-    this.ajsState.go('management.settings.clientregistrationproviders.create');
+    return this.router.navigate(['new'], { relativeTo: this.activatedRoute });
   }
 
   onEditActionClicked(provider: ProvidersTableDS) {
-    this.ajsState.go('management.settings.clientregistrationproviders.clientregistrationprovider', { id: provider.id });
+    return this.router.navigate([provider.id], { relativeTo: this.activatedRoute });
   }
 
   onRemoveActionClicked(provider: ProvidersTableDS) {
