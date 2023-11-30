@@ -15,7 +15,9 @@
  */
 package io.gravitee.definition.model.v4;
 
+import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
+import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
@@ -32,6 +34,8 @@ public class ApiBuilder {
     private String apiId;
     private String name = "an-api";
     private String apiVersion = "1.0.0";
+    private ApiType type = ApiType.PROXY;
+    private Analytics analytics = Analytics.builder().enabled(false).build();
 
     private List<Listener> listeners;
     private List<EndpointGroup> endpointGroups;
@@ -39,6 +43,7 @@ public class ApiBuilder {
     private Map<String, String> properties;
     private Set<String> tags;
     private List<Plan> plans;
+    private List<Flow> flows;
 
     public ApiBuilder() {
         this(Collections.emptyList(), Collections.emptyList());
@@ -99,6 +104,21 @@ public class ApiBuilder {
         return this;
     }
 
+    public ApiBuilder analytics(Analytics analytics) {
+        this.analytics = analytics;
+        return this;
+    }
+
+    public ApiBuilder type(ApiType type) {
+        this.type = type;
+        return this;
+    }
+
+    public ApiBuilder flows(List<Flow> flows) {
+        this.flows = flows;
+        return this;
+    }
+
     public Api build() {
         var api = new Api();
         api.setId(apiId);
@@ -107,6 +127,9 @@ public class ApiBuilder {
         api.setListeners(listeners);
         api.setEndpointGroups(endpointGroups);
         api.setTags(tags);
+        api.setType(type);
+        api.setAnalytics(analytics);
+        api.setFlows(flows);
 
         if (plans != null) {
             api.setPlans(plans);

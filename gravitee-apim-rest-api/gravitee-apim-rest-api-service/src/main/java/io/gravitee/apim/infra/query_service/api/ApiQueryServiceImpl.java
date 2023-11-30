@@ -45,7 +45,7 @@ public class ApiQueryServiceImpl implements ApiQueryService {
 
     @Override
     public Stream<Api> search(ApiSearchCriteria apiCriteria, Sortable sortable, ApiFieldFilter apiFieldFilter) {
-        return ApiAdapter.INSTANCE.toEntityStream(
+        return ApiAdapter.INSTANCE.toCoreModelStream(
             this.apiRepository.search(
                     apiCriteria == null ? null : ApiSearchCriteriaAdapter.INSTANCE.toCriteriaForRepository(apiCriteria),
                     sortable == null ? null : SortableAdapter.INSTANCE.toSortableForRepository(sortable),
@@ -57,7 +57,7 @@ public class ApiQueryServiceImpl implements ApiQueryService {
     @Override
     public Optional<Api> findByEnvironmentIdAndCrossId(String environmentId, String crossId) {
         try {
-            return apiRepository.findByEnvironmentIdAndCrossId(environmentId, crossId).map(ApiAdapter.INSTANCE::toEntity);
+            return apiRepository.findByEnvironmentIdAndCrossId(environmentId, crossId).map(ApiAdapter.INSTANCE::toCoreModel);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(e);
         }
