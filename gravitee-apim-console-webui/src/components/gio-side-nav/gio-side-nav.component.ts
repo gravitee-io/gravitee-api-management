@@ -132,9 +132,8 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
       },
       {
         icon: 'gio:bar-chart-2',
-        targetRoute: 'management.analytics',
-        baseRoute: 'management.analytics',
         displayName: 'Analytics',
+        routerLink: './analytics/dashboard',
         permissions: ['environment-platform-r'],
       },
     ];

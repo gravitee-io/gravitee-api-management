@@ -319,7 +319,8 @@ class DashboardTimeframeController {
         relativeTo: this.activatedRoute,
         queryParams: {
           ...this.activatedRoute.snapshot.queryParams,
-          ...this.current,
+          from: this.current.from,
+          to: this.current.to,
         },
       });
     });

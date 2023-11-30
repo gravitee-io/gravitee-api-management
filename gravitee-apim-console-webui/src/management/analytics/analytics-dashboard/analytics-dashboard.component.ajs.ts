@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { EventService } from '../../../services/event.service';
+import DashboardService from '../../../services/dashboard.service';
 
-class AnalyticsDashboardController {
+class AnalyticsDashboardControllerAjs {
   private eventLabels: any;
   private eventTypes: any[];
   private selectedAPIs: any[];
@@ -28,6 +30,8 @@ class AnalyticsDashboardController {
   private events: any;
   private query: any;
   private dashboard: any;
+  private dashboards: any;
+  private activatedRoute: ActivatedRoute;
 
   constructor(
     private eventService: EventService,
@@ -36,42 +40,14 @@ class AnalyticsDashboardController {
     private ApplicationService,
     private $scope,
     private Constants,
-    private $state,
-    private dashboards,
+    private dashboardService: DashboardService,
+    private ngRouter: Router,
   ) {
     this.eventLabels = {};
     this.eventTypes = [];
     this.selectedAPIs = [];
     this.selectedApplications = [];
     this.selectedEventTypes = [];
-    this.dashboards = _.filter(this.dashboards, 'enabled');
-
-    const dashboardId = this.$state.params.dashboard;
-    if (dashboardId) {
-      this.dashboard = _.find(this.dashboards, { id: dashboardId });
-      if (!this.dashboard) {
-        delete this.$state.params.dashboard;
-        this.$state.go(this.$state.current);
-      }
-    } else {
-      this.dashboard = this.dashboards[0];
-    }
-
-    _.forEach(this.dashboards, (dashboard) => {
-      if (dashboard.definition) {
-        dashboard.definition = JSON.parse(dashboard.definition);
-      }
-      _.forEach(dashboard.definition, (widget) => {
-        _.merge(widget, {
-          chart: {
-            service: {
-              caller: this.AnalyticsService,
-              function: this.AnalyticsService.analytics,
-            },
-          },
-        });
-      });
-    });
 
     // init events
     this.eventLabels.start_api = 'Start';
@@ -81,11 +57,56 @@ class AnalyticsDashboardController {
     this.eventTypes = ['START_API', 'STOP_API', 'PUBLISH_API', 'UNPUBLISH_API'];
 
     this.initPagination();
-    this.searchEvents = this.searchEvents.bind(this);
+  }
+
+  $onInit() {
+    this.dashboardService.list('PLATFORM').then((response) => {
+      this.dashboards = _.filter(response.data, 'enabled');
+
+      const dashboardId = this.activatedRoute.snapshot.queryParams.dashboard;
+      if (dashboardId) {
+        this.dashboard = _.find(this.dashboards, { id: dashboardId });
+        if (!this.dashboard) {
+          this.ngRouter.navigate(['.'], {
+            relativeTo: this.activatedRoute,
+            queryParams: {
+              ...this.activatedRoute.snapshot.queryParams,
+              dashboard: undefined,
+            },
+          });
+        }
+      } else {
+        this.dashboard = this.dashboards[0];
+      }
+
+      _.forEach(this.dashboards, (dashboard) => {
+        if (dashboard.definition) {
+          dashboard.definition = JSON.parse(dashboard.definition);
+        }
+        _.forEach(dashboard.definition, (widget) => {
+          _.merge(widget, {
+            chart: {
+              service: {
+                caller: this.AnalyticsService,
+                function: this.AnalyticsService.analytics,
+              },
+            },
+          });
+        });
+      });
+
+      this.searchEvents = this.searchEvents.bind(this);
+    });
   }
 
   onDashboardChanged(dashboardId: string) {
-    this.$state.transitionTo(this.$state.current, _.merge(this.$state.params, { dashboard: dashboardId }), { reload: true });
+    this.ngRouter.navigate(['.'], {
+      relativeTo: this.activatedRoute,
+      queryParams: {
+        ...this.activatedRoute.snapshot.queryParams,
+        dashboard: dashboardId,
+      },
+    });
   }
 
   onTimeframeChange(timeframe) {
@@ -142,19 +163,41 @@ class AnalyticsDashboardController {
   }
 
   viewLogs() {
-    // Update the query parameter
-    this.$state.transitionTo('management.logs', this.$state.params);
+    this.ngRouter.navigate(['../logs'], {
+      relativeTo: this.activatedRoute,
+      queryParams: {
+        ...this.activatedRoute.snapshot.queryParams,
+      },
+    });
+  }
+
+  gotToApiAnalytics(params: { apiId: string; from: string; to: string }) {
+    this.ngRouter.navigate(['../../apis', params.apiId, 'v2', 'analytics-overview'], {
+      relativeTo: this.activatedRoute,
+      queryParams: {
+        from: params.from,
+        to: params.to,
+      },
+    });
   }
 }
-AnalyticsDashboardController.$inject = [
+AnalyticsDashboardControllerAjs.$inject = [
   'eventService',
   'AnalyticsService',
   'ApiService',
   'ApplicationService',
   '$scope',
   'Constants',
-  '$state',
-  'dashboards',
+  'DashboardService',
+  'ngRouter',
 ];
 
-export default AnalyticsDashboardController;
+const AnalyticsDashboardComponentAjs: ng.IComponentOptions = {
+  bindings: {
+    activatedRoute: '<',
+  },
+  template: require('./analytics-dashboard.html'),
+  controller: AnalyticsDashboardControllerAjs,
+};
+
+export default AnalyticsDashboardComponentAjs;

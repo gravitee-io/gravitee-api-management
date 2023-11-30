@@ -179,7 +179,7 @@ function managementRouterConfig($stateProvider) {
     })
     .state('management.analytics', {
       url: '/platform?from&to&q&dashboard',
-      template: require('./dashboard-ajs/analytics-dashboard/analytics-dashboard.html'),
+      template: require('./analytics/analytics-dashboard/analytics-dashboard.html'),
       controller: 'AnalyticsDashboardController',
       controllerAs: '$ctrl',
       resolve: {

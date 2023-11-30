@@ -229,8 +229,9 @@ class LogsTimeframeController {
       await this.ngRouter.navigate(['.'], {
         relativeTo: this.activatedRoute,
         queryParams: {
-          ...this.current,
           ...this.activatedRoute.snapshot.queryParams,
+          from: this.current.from,
+          to: this.current.to,
         },
       });
     });
