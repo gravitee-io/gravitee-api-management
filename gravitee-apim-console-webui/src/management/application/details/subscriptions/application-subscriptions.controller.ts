@@ -101,6 +101,10 @@ class ApplicationSubscriptionsController {
       })
       .then((_) => this.$filterEvent.next(this.filter));
   }
+
+  goToSubscribe() {
+    this.ngRouter.navigate(['subscribe'], { relativeTo: this.activatedRoute });
+  }
 }
 ApplicationSubscriptionsController.$inject = ['$state', 'ngRouter'];
 

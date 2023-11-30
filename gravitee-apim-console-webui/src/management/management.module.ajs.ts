@@ -296,7 +296,7 @@ import QuickTimeRangeController from '../components/quick-time-range/quick-time-
 import UserAutocompleteComponent from '../components/user-autocomplete/user-autocomplete.component';
 import UserAutocompleteController from '../components/user-autocomplete/user-autocomplete.controller';
 
-import ApplicationSubscribeComponent from './application/details/subscribe/application-subscribe.component';
+import ApplicationSubscribeComponentAjs from './application/details/subscribe/application-subscribe.component.ajs';
 import ApplicationSubscribeController from './application/details/subscribe/application-subscribe.controller';
 import ApiKeyModeChoiceDialogController from '../components/dialog/apiKeyMode/api-key-mode-choice-dialog.controller';
 
@@ -743,7 +743,7 @@ graviteeManagementModule.directive('ngBanner', downgradeComponent({ component: G
 
 graviteeManagementModule.directive('ngEnvApplicationList', downgradeComponent({ component: EnvApplicationListComponent }));
 
-graviteeManagementModule.component('applicationSubscribe', ApplicationSubscribeComponent);
+graviteeManagementModule.component('applicationSubscribe', ApplicationSubscribeComponentAjs);
 graviteeManagementModule.controller('ApplicationSubscribeController', ApplicationSubscribeController);
 graviteeManagementModule.controller('ApiKeyModeChoiceDialogController', ApiKeyModeChoiceDialogController);
 

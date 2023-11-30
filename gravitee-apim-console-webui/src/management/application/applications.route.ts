@@ -32,6 +32,7 @@ import { ApplicationLogComponent } from './details/logs/application-log.componen
 import { ApplicationNotificationSettingsListComponent } from './details/notifications/notification-settings/notification-settings-list/application-notification-settings-list.component';
 import { ApplicationNotificationSettingsDetailsComponent } from './details/notifications/notification-settings/notification-settings-details/application-notification-settings-details.component';
 import { ApplicationCreationComponent } from './creation/steps/application-creation.component';
+import { ApplicationSubscribeComponent } from './details/subscribe/application-subscribe.component';
 
 import ApplicationService from '../../services/application.service';
 import EnvironmentService from '../../services/environment.service';
@@ -115,24 +116,6 @@ function applicationsConfig($stateProvider) {
             UserService.reloadPermissions();
           },
         ],
-      },
-    })
-    .state('management.applications.application.subscriptions.subscribe', {
-      url: '/subscribe',
-      component: 'applicationSubscribe',
-      resolve: {
-        groups: ['GroupService', (GroupService: GroupService) => GroupService.list().then((response) => response.data)],
-        subscriptions: [
-          '$stateParams',
-          'ApplicationService',
-          ($stateParams, ApplicationService: ApplicationService) =>
-            ApplicationService.listSubscriptions($stateParams.applicationId, '?expand=security').then((response) => response.data),
-        ],
-      },
-      data: {
-        perms: {
-          only: ['application-subscription-r'],
-        },
       },
     })
     .state('management.applications.application.members', {
@@ -247,6 +230,10 @@ const applicationRoutes: Routes = [
       {
         path: 'subscriptions',
         component: ApplicationSubscriptionsComponent,
+      },
+      {
+        path: 'subscriptions/subscribe',
+        component: ApplicationSubscribeComponent,
       },
       {
         path: 'subscriptions/:subscriptionId',
