@@ -26,6 +26,7 @@
       <gio-table-wrapper
         *ngIf="filteredInformationItemsDS"
         [length]="informationTableUnpaginatedLength"
+        [filters]="informationTableFilters"
         (filtersChange)="onInformationFiltersChanged($event)"
       >
         <table
@@ -40,7 +41,7 @@
           <ng-container matColumnDef="icon">
             <th mat-header-cell *matHeaderCellDef></th>
             <td mat-cell *matCellDef="let info">
-              <mat-icon [svgIcon]="info.icon"></mat-icon>
+              <mat-icon *ngIf="info.icon" [svgIcon]="info.icon"></mat-icon>
             </td>
           </ng-container>
 
@@ -74,6 +75,7 @@
       <gio-table-wrapper
         *ngIf="filteredPluginsItemsDS"
         [length]="pluginsTableUnpaginatedLength"
+        [filters]="pluginsTableFilters"
         (filtersChange)="onPluginsFiltersChanged($event)"
       >
         <table mat-table [dataSource]="filteredPluginsItemsDS" matSort class="plugins-table" id="pluginsTable" aria-label="Plugin table">
@@ -81,7 +83,7 @@
           <ng-container matColumnDef="icon">
             <th mat-header-cell *matHeaderCellDef></th>
             <td mat-cell *matCellDef="let plugin">
-              <mat-icon [svgIcon]="plugin.icon"></mat-icon>
+              <mat-icon *ngIf="plugin.icon" [svgIcon]="plugin.icon"></mat-icon>
             </td>
           </ng-container>
 
@@ -121,6 +123,7 @@
       <gio-table-wrapper
         *ngIf="filteredPropertiesItemsDS"
         [length]="propertiesTableUnpaginatedLength"
+        [filters]="propertiesTableFilters"
         (filtersChange)="onPropertiesFiltersChanged($event)"
       >
         <table

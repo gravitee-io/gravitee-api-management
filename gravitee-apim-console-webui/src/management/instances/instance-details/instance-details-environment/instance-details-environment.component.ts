@@ -57,16 +57,28 @@ export class InstanceDetailsEnvironmentComponent implements OnInit, OnDestroy {
   public filteredInformationItemsDS: InformationItemDS;
   public informationTableDisplayedColumns = ['icon', 'type', 'value'];
   public informationTableUnpaginatedLength: number;
+  public informationTableFilters: GioTableWrapperFilters = {
+    pagination: { index: 1, size: 10 },
+    searchTerm: '',
+  };
 
   public pluginsItemsDS: PluginItemDS;
   public filteredPluginsItemsDS: PluginItemDS;
   public pluginsTableDisplayedColumns = ['icon', 'id', 'name', 'version'];
   public pluginsTableUnpaginatedLength: number;
+  public pluginsTableFilters: GioTableWrapperFilters = {
+    pagination: { index: 1, size: 10 },
+    searchTerm: '',
+  };
 
   public propertiesItemsDS: SystemPropertyItemDS;
   public filteredPropertiesItemsDS: SystemPropertyItemDS;
   public propertiesTableDisplayedColumns = ['name', 'value'];
   public propertiesTableUnpaginatedLength: number;
+  public propertiesTableFilters: GioTableWrapperFilters = {
+    pagination: { index: 1, size: 10 },
+    searchTerm: '',
+  };
   private unsubscribe$ = new Subject<void>();
 
   constructor(private readonly activatedRoute: ActivatedRoute, private readonly instanceService: InstanceService) {}
@@ -83,6 +95,10 @@ export class InstanceDetailsEnvironmentComponent implements OnInit, OnDestroy {
         this.initInformationTable();
         this.initPluginsTable();
         this.initPropertiesTable();
+
+        this.onInformationFiltersChanged(this.informationTableFilters);
+        this.onPluginsFiltersChanged(this.pluginsTableFilters);
+        this.onPropertiesFiltersChanged(this.propertiesTableFilters);
       });
   }
 
@@ -94,7 +110,7 @@ export class InstanceDetailsEnvironmentComponent implements OnInit, OnDestroy {
   private initInformationTable() {
     this.informationItemsDS = [
       {
-        icon: 'gio:computer',
+        icon: 'gio:building',
         type: 'Hostname',
         value: this.instance.hostname,
       },
@@ -141,7 +157,7 @@ export class InstanceDetailsEnvironmentComponent implements OnInit, OnDestroy {
 
     if (this.instance.tenant) {
       this.informationItemsDS.push({
-        icon: 'gio:shuffle',
+        icon: 'gio:data-transfer-both',
         type: 'Tenant',
         value: this.instance.tenant,
       });
@@ -170,9 +186,6 @@ export class InstanceDetailsEnvironmentComponent implements OnInit, OnDestroy {
         value: formatDate(this.instance.stopped_at, 'medium', 'en-US'),
       });
     }
-
-    this.filteredInformationItemsDS = this.informationItemsDS;
-    this.informationTableUnpaginatedLength = this.filteredInformationItemsDS.length;
   }
 
   private getIconFromState(state: string): string {
@@ -195,7 +208,7 @@ export class InstanceDetailsEnvironmentComponent implements OnInit, OnDestroy {
 
   private initPluginsTable() {
     const pluginIcon = {
-      policy: 'gio:shuffle',
+      policy: 'gio:data-transfer-both',
       service: 'gio:layers',
       service_discovery: 'gio:layers',
       repository: 'gio:folder',
@@ -217,8 +230,6 @@ export class InstanceDetailsEnvironmentComponent implements OnInit, OnDestroy {
       };
       return pluginItem;
     });
-    this.filteredPluginsItemsDS = this.pluginsItemsDS;
-    this.pluginsTableUnpaginatedLength = this.filteredPluginsItemsDS?.length;
   }
 
   private initPropertiesTable() {
@@ -227,24 +238,25 @@ export class InstanceDetailsEnvironmentComponent implements OnInit, OnDestroy {
         const propertyItem = { name, value };
         return propertyItem;
       });
-      this.filteredPropertiesItemsDS = this.propertiesItemsDS;
-      this.propertiesTableUnpaginatedLength = this.filteredPropertiesItemsDS.length;
     }
   }
 
   onInformationFiltersChanged(filters: GioTableWrapperFilters) {
+    this.informationTableFilters = filters;
     const filtered = gioTableFilterCollection(this.informationItemsDS, filters);
     this.filteredInformationItemsDS = filtered.filteredCollection;
     this.informationTableUnpaginatedLength = filtered.unpaginatedLength;
   }
 
   onPluginsFiltersChanged(filters: GioTableWrapperFilters) {
+    this.pluginsTableFilters = filters;
     const filtered = gioTableFilterCollection(this.pluginsItemsDS, filters);
     this.filteredPluginsItemsDS = filtered.filteredCollection;
     this.pluginsTableUnpaginatedLength = filtered.unpaginatedLength;
   }
 
   onPropertiesFiltersChanged(filters: GioTableWrapperFilters) {
+    this.propertiesTableFilters = filters;
     const filtered = gioTableFilterCollection(this.propertiesItemsDS, filters);
     this.filteredPropertiesItemsDS = filtered.filteredCollection;
     this.propertiesTableUnpaginatedLength = filtered.unpaginatedLength;
