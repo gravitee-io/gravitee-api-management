@@ -31,7 +31,6 @@ import {
 } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { Title } from '@angular/platform-browser';
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import {
   ActivatedRoute,
   NavigationEnd,
@@ -133,7 +132,7 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
 
   async ngOnInit() {
     this.homepageTitle =
-      this.configurationService.get('portal.homepageTitle') || (await this.translateService.get(i18n('homepage.title')).toPromise());
+      this.configurationService.get('portal.homepageTitle') || (await this.translateService.get('homepage.title').toPromise());
     this.googleAnalyticsService.load();
     this.currentUserService.get().subscribe(newCurrentUser => {
       this.currentUser = newCurrentUser;
@@ -258,7 +257,7 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   private _setBrowserTitle(currentRoute: ActivatedRoute) {
-    this.translateService.get(i18n('site.title')).subscribe(siteTitle => {
+    this.translateService.get('site.title').subscribe(siteTitle => {
       const data = currentRoute.snapshot.data;
       if (data && data.title) {
         this.translateService.get(data.title).subscribe(title => this.titleService.setTitle(`${title} | ${siteTitle}`));

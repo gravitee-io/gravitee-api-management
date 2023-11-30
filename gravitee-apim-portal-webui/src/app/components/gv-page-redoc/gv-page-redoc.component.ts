@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import { Component, HostListener, Input, OnDestroy, ViewChild, OnInit } from '@angular/core';
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { getCssVar } from '@gravitee/ui-components/src/lib/style';
 
 import { NotificationService } from '../../services/notification.service';
@@ -114,7 +113,7 @@ export class GvPageRedocComponent implements OnInit, OnDestroy {
 
   _redocCallback(errors) {
     if (errors) {
-      this.notificationService.error(i18n('gv-page.swagger.badFormat'));
+      this.notificationService.error('gv-page.swagger.badFormat');
     }
     this.isLoaded = true;
     setTimeout(() => {

@@ -15,7 +15,7 @@
  */
 import { Component, OnInit } from '@angular/core';
 import { CookieService } from 'ngx-cookie-service';
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
+
 import '@gravitee/ui-components/wc/gv-switch';
 
 import { CookieEnum } from '../../model/cookie.enum';
@@ -44,14 +44,14 @@ export class CookiesComponent implements OnInit {
     this.googleAnalyticsService.disableGA();
     this.cookieService.set(CookieEnum.googleAnalytics, '0', 365, '/');
     this.gaCookieEnabled = false;
-    this.notificationService.success(i18n('cookies.success.disable'), { cookieName: 'Google Analytics' }, null, true);
+    this.notificationService.success('cookies.success.disable', { cookieName: 'Google Analytics' }, null, true);
   }
 
   _enableGA() {
     this.cookieService.set(CookieEnum.googleAnalytics, '1', 365, '/');
     this.googleAnalyticsService.enableGA();
     this.gaCookieEnabled = true;
-    this.notificationService.success(i18n('cookies.success.enable'), { cookieName: 'Google Analytics' }, null, true);
+    this.notificationService.success('cookies.success.enable', { cookieName: 'Google Analytics' }, null, true);
   }
 
   displayGACookie() {

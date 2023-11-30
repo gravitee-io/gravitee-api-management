@@ -15,7 +15,6 @@
  */
 import { Injectable, Injector } from '@angular/core';
 import { OAuthService } from 'angular-oauth2-oidc';
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { Router } from '@angular/router';
 
 import { AuthenticationService, PortalService } from '../../../projects/portal-webclient-sdk/src/lib';
@@ -72,7 +71,7 @@ export class AuthService {
           });
         },
         () => {
-          this.notificationService.error(i18n('login.notification.error'));
+          this.notificationService.error('login.notification.error');
           resolve(false);
         },
         () => resolve(true),

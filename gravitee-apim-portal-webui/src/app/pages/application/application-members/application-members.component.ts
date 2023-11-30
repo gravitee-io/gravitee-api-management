@@ -15,7 +15,6 @@
  */
 import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { TranslateService } from '@ngx-translate/core';
 import { FormControl, FormGroup } from '@angular/forms';
 
@@ -159,10 +158,10 @@ export class ApplicationMembersComponent implements OnInit {
 
       this.translateService
         .get([
-          i18n('application.members.list.member'),
-          i18n('application.members.list.role'),
-          i18n('application.members.list.remove.message'),
-          i18n('application.members.list.remove.title'),
+          'application.members.list.member',
+          'application.members.list.role',
+          'application.members.list.remove.message',
+          'application.members.list.remove.title',
         ])
         .toPromise()
         .then(translations => {
@@ -324,7 +323,7 @@ export class ApplicationMembersComponent implements OnInit {
       })
       .toPromise()
       .then(() => this.loadMembersTable())
-      .then(() => this.notificationService.success(i18n('application.members.list.remove.success')));
+      .then(() => this.notificationService.success('application.members.list.remove.success'));
   }
 
   addMember() {
@@ -339,7 +338,7 @@ export class ApplicationMembersComponent implements OnInit {
       })
       .toPromise()
       .then(() => {
-        this.notificationService.success(i18n('application.members.add.success'));
+        this.notificationService.success('application.members.add.success');
         this.loadMembersTable();
         this.resetAddMember();
       });
@@ -361,7 +360,7 @@ export class ApplicationMembersComponent implements OnInit {
       })
       .toPromise()
       .then(() => this.router.navigate(['applications']))
-      .then(() => this.notificationService.success(i18n('application.members.transferOwnership.success')));
+      .then(() => this.notificationService.success('application.members.transferOwnership.success'));
   }
 
   updateMember(member: Member, { detail }) {
@@ -376,7 +375,7 @@ export class ApplicationMembersComponent implements OnInit {
       })
       .toPromise()
       .then(() => {
-        this.notificationService.success(i18n('application.members.list.success'));
+        this.notificationService.success('application.members.list.success');
         if (this.currentUser.exist() && this.currentUser.getUser().id === member.user.id) {
           this.isReadOnly().then(isReadOnly => {
             this.readonly = isReadOnly;
