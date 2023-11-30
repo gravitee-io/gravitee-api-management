@@ -157,10 +157,14 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
         List<String> filteredFieldsList = (List<String>) apiEntity.getMetadata().get(METADATA_FILTERED_FIELDS_LIST);
 
         if (filteredFieldsList != null) {
+            Set<GroupEntity> apiGroupEntities = null;
             if (!filteredFieldsList.contains("groups")) {
                 if (apiEntity.getGroups() != null && !apiEntity.getGroups().isEmpty()) {
-                    Set<GroupEntity> groupEntities = applicationContext.getBean(GroupService.class).findByIds(apiEntity.getGroups());
-                    jsonGenerator.writeObjectField("groups", groupEntities.stream().map(GroupEntity::getName).collect(Collectors.toSet()));
+                    apiGroupEntities = applicationContext.getBean(GroupService.class).findByIds(apiEntity.getGroups());
+                    jsonGenerator.writeObjectField(
+                        "groups",
+                        apiGroupEntities.stream().map(GroupEntity::getName).collect(Collectors.toSet())
+                    );
                 }
             }
 
@@ -238,6 +242,16 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
                 Set<PlanEntity> plansToAdd = plans == null
                     ? Collections.emptySet()
                     : plans.stream().filter(p -> !PlanStatus.CLOSED.equals(p.getStatus())).collect(Collectors.toSet());
+                if (!filteredFieldsList.contains("groups") && apiGroupEntities != null) {
+                    Map<String, String> apiGroupNameByIds = apiGroupEntities
+                        .stream()
+                        .collect(Collectors.toMap(GroupEntity::getId, GroupEntity::getName));
+                    plansToAdd.forEach(p -> {
+                        if (p.getExcludedGroups() != null) {
+                            p.setExcludedGroups(p.getExcludedGroups().stream().map(apiGroupNameByIds::get).collect(Collectors.toList()));
+                        }
+                    });
+                }
                 jsonGenerator.writeObjectField("plans", plansToAdd);
             }
 

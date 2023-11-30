@@ -248,12 +248,19 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
     }
 
     private ApiEntity prepareUpdateImportApiWithMembers(String apiId, UserEntity admin, UserEntity user) {
+        return prepareUpdateImportApiWithMembersAndGroups(apiId, admin, user, null);
+    }
+
+    private ApiEntity prepareUpdateImportApiWithMembersAndGroups(String apiId, UserEntity admin, UserEntity user, String groupId) {
         ApiEntity apiEntity = new ApiEntity();
         Api api = new Api();
         api.setId(apiId);
         api.setApiLifecycleState(ApiLifecycleState.CREATED);
         apiEntity.setId(apiId);
         apiEntity.setLifecycleState(io.gravitee.rest.api.model.api.ApiLifecycleState.CREATED);
+        if (groupId != null) {
+            apiEntity.setGroups(Set.of(groupId));
+        }
         when(apiService.update(eq(GraviteeContext.getExecutionContext()), eq(API_ID), any())).thenReturn(apiEntity);
 
         RoleEntity poRole = new RoleEntity();
@@ -502,7 +509,7 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         String toBeImport = Resources.toString(url, Charsets.UTF_8);
         UserEntity admin = new UserEntity();
         UserEntity user = new UserEntity();
-        ApiEntity apiEntity = prepareUpdateImportApiWithMembers(API_ID, admin, user);
+        ApiEntity apiEntity = prepareUpdateImportApiWithMembersAndGroups(API_ID, admin, user, "my_group_id");
         apiEntity.setId("id-api");
         apiEntity.setCrossId("api-cross-id");
         // plan1 is present both in existing api and in imported api definition
@@ -525,14 +532,24 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
 
         when(apiIdsCalculatorService.recalculateApiDefinitionIds(any(), any(), any())).then(AdditionalAnswers.returnsSecondArg());
 
+        GroupEntity knownGroup = new GroupEntity();
+        knownGroup.setId("my_group_id");
+        knownGroup.setName("MY Group");
+        when(groupService.findByName(GraviteeContext.getExecutionContext().getEnvironmentId(), "My Group")).thenReturn(List.of(knownGroup));
+
         apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), apiEntity.getId(), toBeImport);
+
+        verify(groupService, times(2)).findByName(GraviteeContext.getExecutionContext().getEnvironmentId(), "My Group");
 
         verify(planService, times(2)).findByApi(GraviteeContext.getExecutionContext(), apiEntity.getId());
         // plan1, plan2 and plan4 has to be created or updated
         verify(planService, times(1))
             .createOrUpdatePlan(eq(GraviteeContext.getExecutionContext()), argThat(plan -> plan.getId().equals("plan-id1")));
         verify(planService, times(1))
-            .createOrUpdatePlan(eq(GraviteeContext.getExecutionContext()), argThat(plan -> plan.getId().equals("plan-id2")));
+            .createOrUpdatePlan(
+                eq(GraviteeContext.getExecutionContext()),
+                argThat(plan -> plan.getId().equals("plan-id2") && plan.getExcludedGroups().contains(knownGroup.getId()))
+            );
         verify(planService, times(1))
             .createOrUpdatePlan(eq(GraviteeContext.getExecutionContext()), argThat(plan -> plan.getId().equals("plan-id4")));
         // plan3 has to be deleted cause no more in imported file
