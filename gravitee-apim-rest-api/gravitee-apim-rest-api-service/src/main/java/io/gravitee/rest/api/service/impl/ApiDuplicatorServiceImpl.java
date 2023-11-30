@@ -640,9 +640,32 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
             plansToImport.forEach(planEntity -> {
                 planEntity.setApi(apiEntity.getId());
+                replacePlanGroupNameById(executionContext, apiEntity, planEntity);
                 planService.createOrUpdatePlan(executionContext, planEntity);
                 apiEntity.getPlans().add(planEntity);
             });
+        }
+    }
+
+    private void replacePlanGroupNameById(final ExecutionContext executionContext, ApiEntity apiEntity, PlanEntity planEntity) {
+        if (apiEntity.getGroups() != null && planEntity.getExcludedGroups() != null) {
+            Set<String> groupNames = new HashSet<>(planEntity.getExcludedGroups());
+            planEntity.getExcludedGroups().clear();
+            for (String name : groupNames) {
+                List<GroupEntity> groupEntities = groupService.findByName(executionContext.getEnvironmentId(), name);
+                GroupEntity group;
+                if (!groupEntities.isEmpty()) {
+                    group = groupEntities.get(0);
+                    planEntity.getExcludedGroups().add(group.getId());
+                } else {
+                    LOGGER.warn(
+                        "Group {} does not exist and can't be added to plan {} [{}]",
+                        name,
+                        planEntity.getName(),
+                        planEntity.getId()
+                    );
+                }
+            }
         }
     }
 
