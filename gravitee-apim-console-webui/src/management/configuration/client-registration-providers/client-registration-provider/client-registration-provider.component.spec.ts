@@ -18,10 +18,11 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
+import { RouterTestingModule } from '@angular/router/testing';
+import { ActivatedRoute } from '@angular/router';
 
 import { ClientRegistrationProviderComponent } from './client-registration-provider.component';
 
-import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { ClientRegistrationProvidersModule } from '../client-registration-providers.module';
 import {
@@ -31,9 +32,6 @@ import {
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ClientRegistrationProvider', () => {
-  const fakeAjsState = {
-    go: jest.fn(),
-  };
   let httpTestingController: HttpTestingController;
   const PROVIDER = fakeClientRegistrationProvider();
 
@@ -42,15 +40,9 @@ describe('ClientRegistrationProvider', () => {
 
   function initComponent(clientProviderId?: string) {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ClientRegistrationProvidersModule],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, ClientRegistrationProvidersModule, RouterTestingModule],
       providers: [
-        { provide: UIRouterState, useValue: fakeAjsState },
-        {
-          provide: UIRouterStateParams,
-          useValue: {
-            id: clientProviderId,
-          },
-        },
+        { provide: ActivatedRoute, useValue: { snapshot: { params: { providerId: clientProviderId } } } },
         {
           provide: GioPermissionService,
           useValue: {
