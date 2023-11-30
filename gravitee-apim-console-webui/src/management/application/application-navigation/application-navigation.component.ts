@@ -17,7 +17,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { GioMenuService } from '@gravitee/ui-particles-angular';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { castArray } from 'lodash';
+import { castArray, flatMap } from 'lodash';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
@@ -46,7 +46,6 @@ export class ApplicationNavigationComponent implements OnInit, OnDestroy {
   public subMenuItems: MenuItem[] = [];
   public hasBreadcrumb = false;
   public selectedItemWithTabs: MenuItem = undefined;
-  public isMenuTabAvailable = false;
   private unsubscribe$ = new Subject();
 
   constructor(
@@ -142,6 +141,8 @@ export class ApplicationNavigationComponent implements OnInit, OnDestroy {
         permissions: ['application-notification-r', 'application-alert-r'],
       },
     ]);
+
+    this.selectedItemWithTabs = this.subMenuItems.find((item) => item.tabs && this.isTabActive(item.tabs));
   }
 
   ngOnDestroy(): void {
@@ -163,15 +164,6 @@ export class ApplicationNavigationComponent implements OnInit, OnDestroy {
     return [item.routerLink, ...castArray(item.baseRoute)]
       .filter((r) => !!r)
       .some((routerLink) => {
-        // TODO: Implement into new navigation
-        this.subMenuItems.map((selectedItem) => {
-          if (selectedItem.baseRoute === item.baseRoute) {
-            this.selectedItemWithTabs = selectedItem;
-            this.isMenuTabAvailable = true;
-          } else {
-            this.isMenuTabAvailable = false;
-          }
-        });
         return this.router.isActive(this.router.createUrlTree([routerLink], { relativeTo: this.activatedRoute }), {
           paths: item.routerLinkActiveOptions?.exact ? 'exact' : 'subset',
           queryParams: 'subset',
@@ -191,5 +183,9 @@ export class ApplicationNavigationComponent implements OnInit, OnDestroy {
     });
 
     return breadcrumbItems;
+  }
+
+  private isTabActive(tabs: MenuItem[]): boolean {
+    return flatMap(tabs, (tab) => tab).some((tab) => this.isActive(tab));
   }
 }

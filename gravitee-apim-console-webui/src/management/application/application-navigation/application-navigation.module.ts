@@ -15,7 +15,7 @@
  */
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
-import { GioBreadcrumbModule, GioSubmenuModule } from '@gravitee/ui-particles-angular';
+import { GioBreadcrumbModule, GioIconsModule, GioSubmenuModule } from '@gravitee/ui-particles-angular';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterModule } from '@angular/router';
@@ -24,7 +24,7 @@ import { ApplicationNavigationComponent } from './application-navigation.compone
 import { ApplicationNavigationTabsComponent } from './application-navigation-tabs/application-navigation-tabs.component';
 
 @NgModule({
-  imports: [CommonModule, GioSubmenuModule, GioBreadcrumbModule, RouterModule, MatTabsModule, MatTooltipModule],
+  imports: [CommonModule, GioSubmenuModule, GioBreadcrumbModule, RouterModule, MatTabsModule, MatTooltipModule, GioIconsModule],
   declarations: [ApplicationNavigationComponent, ApplicationNavigationTabsComponent],
   exports: [ApplicationNavigationComponent],
   entryComponents: [ApplicationNavigationComponent],

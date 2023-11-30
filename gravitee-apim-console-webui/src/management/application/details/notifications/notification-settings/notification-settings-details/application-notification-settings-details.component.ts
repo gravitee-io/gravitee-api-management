@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subject } from 'rxjs';
+import { ActivatedRoute } from '@angular/router';
 
-import { UIRouterStateParams } from '../../../../../../ajs-upgraded-providers';
 import { ApplicationNotificationSettingsService } from '../../../../../../services-ngx/application-notification-settings.service';
 import { NotificationSettings } from '../../../../../../entities/notification/notificationSettings';
 import { NotificationSettingsDetailsServices } from '../../../../../../components/notifications/notification-settings/notification-settings-details/notification-settings-details.component';
@@ -31,26 +31,22 @@ export class ApplicationNotificationSettingsDetailsComponent implements OnInit, 
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   constructor(
+    private readonly activatedRoute: ActivatedRoute,
     private readonly applicationNotificationSettingsService: ApplicationNotificationSettingsService,
-    @Inject(UIRouterStateParams) private readonly ajsStateParams,
   ) {}
 
   public ngOnInit() {
+    const applicationId = this.activatedRoute.snapshot.params.applicationId;
+    const notificationId = this.activatedRoute.snapshot.params.notificationId;
+
     this.notificationSettingsDetailsServices = {
-      reference: { referenceType: 'APPLICATION', referenceId: this.ajsStateParams.applicationId },
+      reference: { referenceType: 'APPLICATION', referenceId: applicationId },
       getHooks: () => this.applicationNotificationSettingsService.getHooks(),
       getSingleNotificationSetting: () =>
-        this.applicationNotificationSettingsService.getSingleNotificationSetting(
-          this.ajsStateParams.applicationId,
-          this.ajsStateParams.notificationId,
-        ),
-      getNotifiers: () => this.applicationNotificationSettingsService.getNotifiers(this.ajsStateParams.applicationId),
+        this.applicationNotificationSettingsService.getSingleNotificationSetting(applicationId, notificationId),
+      getNotifiers: () => this.applicationNotificationSettingsService.getNotifiers(applicationId),
       update: (notificationConfig: NotificationSettings) =>
-        this.applicationNotificationSettingsService.update(
-          this.ajsStateParams.applicationId,
-          this.ajsStateParams.notificationId,
-          notificationConfig,
-        ),
+        this.applicationNotificationSettingsService.update(applicationId, notificationId, notificationConfig),
     };
   }
 

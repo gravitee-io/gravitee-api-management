@@ -36,9 +36,9 @@
     </gio-breadcrumb>
 
     <application-navigation-tabs
-      *ngIf="isMenuTabAvailable"
+      *ngIf="selectedItemWithTabs"
       class="application-navigation__content__tabs"
-      [tabMenuItems]="this.selectedItemWithTabs?.tabs"
+      [tabMenuItems]="this.selectedItemWithTabs.tabs"
       [menuItemHeader]="this.selectedItemWithTabs?.header"
     ></application-navigation-tabs>
 
