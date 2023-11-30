@@ -30,6 +30,7 @@ import { ApplicationAnalyticsComponent } from './details/analytics/application-a
 import { ApplicationLogsComponent } from './details/logs/application-logs.component';
 import { ApplicationLogComponent } from './details/logs/application-log.component';
 import { ApplicationNotificationSettingsListComponent } from './details/notifications/notification-settings/notification-settings-list/application-notification-settings-list.component';
+import { ApplicationNotificationSettingsDetailsComponent } from './details/notifications/notification-settings/notification-settings-details/application-notification-settings-details.component';
 
 import { ApplicationType } from '../../entities/application';
 import ApplicationService from '../../services/application.service';
@@ -223,19 +224,6 @@ function applicationsConfig($stateProvider) {
           page: 'management-application-transferownership',
         },
       },
-    })
-    .state('management.applications.application.notification-settings-details', {
-      url: '/notification-settings/:notificationId',
-      component: 'applicationNotificationSettingsDetails',
-      data: {
-        docs: {
-          perms: {
-            only: ['application-notification-r'],
-          },
-          page: 'management-application-notifications',
-        },
-        useAngularMaterial: true,
-      },
     });
 }
 
@@ -297,6 +285,10 @@ const applicationRoutes: Routes = [
       {
         path: 'notification-settings',
         component: ApplicationNotificationSettingsListComponent,
+      },
+      {
+        path: 'notification-settings/:notificationId',
+        component: ApplicationNotificationSettingsDetailsComponent,
       },
     ],
   },
