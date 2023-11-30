@@ -51,11 +51,6 @@ import io.gravitee.apim.core.documentation.use_case.ApiGetDocumentationPagesUseC
 import io.gravitee.apim.core.documentation.use_case.ApiPublishDocumentationPageUseCase;
 import io.gravitee.apim.core.documentation.use_case.ApiUnpublishDocumentationPageUseCase;
 import io.gravitee.apim.core.documentation.use_case.ApiUpdateDocumentationPageUseCase;
-import io.gravitee.apim.core.documentation.usecase.ApiCreateDocumentationPageUsecase;
-import io.gravitee.apim.core.documentation.usecase.ApiGetDocumentationPageUsecase;
-import io.gravitee.apim.core.documentation.usecase.ApiGetDocumentationPagesUsecase;
-import io.gravitee.apim.core.documentation.usecase.ApiPublishDocumentationPageUsecase;
-import io.gravitee.apim.core.documentation.usecase.ApiUpdateDocumentationPageUsecase;
 import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
 import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
 import io.gravitee.apim.core.integration.domain_service.IntegrationDomainService;
