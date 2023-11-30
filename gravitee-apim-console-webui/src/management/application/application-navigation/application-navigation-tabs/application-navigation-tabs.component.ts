@@ -13,11 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, Input } from '@angular/core';
-import { StateService } from '@uirouter/core';
-import { castArray } from 'lodash';
+import { Component, Input } from '@angular/core';
 
-import { UIRouterState } from '../../../../ajs-upgraded-providers';
 import { MenuItem } from '../application-navigation.component';
 import { MenuItemHeader } from '../../../api/api-navigation/MenuGroupItem';
 
@@ -32,14 +29,4 @@ export class ApplicationNavigationTabsComponent {
 
   @Input()
   public menuItemHeader: MenuItemHeader;
-
-  constructor(@Inject(UIRouterState) private readonly ajsState: StateService) {}
-
-  navigateTo(route: string) {
-    this.ajsState.go(route);
-  }
-
-  isActive(baseRoute: MenuItem['baseRoute']): boolean {
-    return castArray(baseRoute).some((baseRoute) => this.ajsState.includes(baseRoute));
-  }
 }
