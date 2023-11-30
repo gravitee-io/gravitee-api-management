@@ -16,6 +16,7 @@
 import { StateService } from '@uirouter/core';
 import * as angular from 'angular';
 import * as _ from 'lodash';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import ApplicationService from '../../../../services/application.service';
 import GroupService from '../../../../services/group.service';
@@ -38,6 +39,8 @@ class ApplicationMembersController {
   private userFilterFn;
   private defaultUsersList: string[];
 
+  private activatedRoute: ActivatedRoute;
+
   constructor(
     private ApplicationService: ApplicationService,
     private NotificationService: NotificationService,
@@ -46,6 +49,7 @@ class ApplicationMembersController {
     private RoleService: RoleService,
     private GroupService: GroupService,
     private UserService: UserService,
+    private ngRouter: Router,
   ) {
     RoleService.list('APPLICATION').then((roles) => {
       this.roles = roles;
@@ -147,7 +151,7 @@ class ApplicationMembersController {
       .then(
         (application) => {
           if (application) {
-            this.$state.go('management.applications.application.members', { applicationId: this.application.id }, { reload: true });
+            this.ngRouter.navigate([], { relativeTo: this.activatedRoute });
           }
         },
         () => {
@@ -213,7 +217,7 @@ class ApplicationMembersController {
 
     this.ApplicationService.transferOwnership(this.application.id, ownership).then(() => {
       this.NotificationService.show('API ownership changed !');
-      this.$state.go('management.applications.list');
+      this.ngRouter.navigate(['../..'], { relativeTo: this.activatedRoute });
     });
   }
 }
@@ -225,6 +229,7 @@ ApplicationMembersController.$inject = [
   'RoleService',
   'GroupService',
   'UserService',
+  'ngRouter',
 ];
 
 export default ApplicationMembersController;

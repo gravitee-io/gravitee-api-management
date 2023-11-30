@@ -33,6 +33,7 @@ import { ApplicationNotificationSettingsListComponent } from './details/notifica
 import { ApplicationNotificationSettingsDetailsComponent } from './details/notifications/notification-settings/notification-settings-details/application-notification-settings-details.component';
 import { ApplicationCreationComponent } from './creation/steps/application-creation.component';
 import { ApplicationSubscribeComponent } from './details/subscribe/application-subscribe.component';
+import { ApplicationMembersComponent } from './details/members/application-members.component';
 
 import ApplicationService from '../../services/application.service';
 import EnvironmentService from '../../services/environment.service';
@@ -116,34 +117,6 @@ function applicationsConfig($stateProvider) {
             UserService.reloadPermissions();
           },
         ],
-      },
-    })
-    .state('management.applications.application.members', {
-      url: '/members',
-      component: 'applicationMembers',
-      resolve: {
-        members: [
-          '$stateParams',
-          'ApplicationService',
-          ($stateParams, ApplicationService: ApplicationService) =>
-            ApplicationService.getMembers($stateParams.applicationId).then((response) => response.data),
-        ],
-        resolvedGroups: [
-          'GroupService',
-          (GroupService: GroupService) => {
-            return GroupService.list().then((response) => {
-              return response.data;
-            });
-          },
-        ],
-      },
-      data: {
-        perms: {
-          only: ['application-member-r'],
-        },
-        docs: {
-          page: 'management-application-members',
-        },
       },
     })
     .state('management.applications.application.membersng', {
@@ -258,6 +231,10 @@ const applicationRoutes: Routes = [
       {
         path: 'notification-settings/:notificationId',
         component: ApplicationNotificationSettingsDetailsComponent,
+      },
+      {
+        path: 'members',
+        component: ApplicationMembersComponent,
       },
     ],
   },
