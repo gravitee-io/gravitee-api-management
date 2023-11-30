@@ -20,6 +20,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import fixtures.core.model.ApiFixtures;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiFieldFilter;
 import io.gravitee.apim.core.api.model.ApiSearchCriteria;
@@ -50,8 +51,7 @@ class ApiQueryServiceImplTest {
         var res = service
             .search(ApiSearchCriteria.builder().build(), Sortable.builder().build(), ApiFieldFilter.builder().build())
             .toList();
-        assertThat(res).hasSize(1);
-        assertThat(res.get(0)).isEqualTo(api);
+        assertThat(res).hasSize(1).containsExactly(api);
     }
 
     private void givenMatchingApis(Stream<Api> apis) {
@@ -59,6 +59,6 @@ class ApiQueryServiceImplTest {
     }
 
     private Api anApi() {
-        return Api.builder().id("api-id").build();
+        return ApiFixtures.aProxyApiV4();
     }
 }
