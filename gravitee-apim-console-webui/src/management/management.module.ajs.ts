@@ -73,7 +73,7 @@ import ApiPrimaryOwnerModeService from '../services/apiPrimaryOwnerMode.service'
 import ApplicationService from '../services/application.service';
 import ApplicationTypesService from '../services/applicationTypes.service';
 
-import ApplicationCreationComponent from './application/creation/steps/application-creation.component';
+import ApplicationCreationComponentAjs from './application/creation/steps/application-creation.component.ajs';
 import ApplicationCreationController from './application/creation/steps/application-creation.controller';
 import ApplicationCreationStep1Component from './application/creation/steps/application-creation-step1.component';
 import ApplicationCreationStep2Component from './application/creation/steps/application-creation-step2.component';
@@ -747,7 +747,7 @@ graviteeManagementModule.component('applicationSubscribe', ApplicationSubscribeC
 graviteeManagementModule.controller('ApplicationSubscribeController', ApplicationSubscribeController);
 graviteeManagementModule.controller('ApiKeyModeChoiceDialogController', ApiKeyModeChoiceDialogController);
 
-graviteeManagementModule.component('createApplication', ApplicationCreationComponent);
+graviteeManagementModule.component('createApplication', ApplicationCreationComponentAjs);
 graviteeManagementModule.controller('ApplicationCreationController', ApplicationCreationController);
 graviteeManagementModule.component('applicationCreationStep1', ApplicationCreationStep1Component);
 graviteeManagementModule.component('applicationCreationStep2', ApplicationCreationStep2Component);
