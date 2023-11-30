@@ -471,6 +471,7 @@ components:
             enum:
                 - MESSAGE
                 - PROXY
+                - FEDERATED
         ListenerType:
             type: string
             description: Listener type.
