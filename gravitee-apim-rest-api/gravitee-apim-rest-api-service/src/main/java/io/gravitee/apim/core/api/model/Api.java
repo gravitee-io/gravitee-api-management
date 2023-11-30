@@ -18,19 +18,14 @@ package io.gravitee.apim.core.api.model;
 import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
-import io.gravitee.definition.model.v4.listener.Listener;
-import io.gravitee.definition.model.v4.property.Property;
-import java.util.ArrayList;
-import java.util.Date;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Set;
 import lombok.Builder;
 import lombok.Data;
-import lombok.experimental.SuperBuilder;
 
 @Data
-@SuperBuilder
+@Builder(toBuilder = true)
 public class Api {
 
     /**
@@ -69,10 +64,16 @@ public class Api {
      * The api definition version.
      */
     private DefinitionVersion definitionVersion;
+
     /**
      * The api JSON definition
      */
+    @Deprecated(forRemoval = true)
     private String definition;
+
+    private io.gravitee.definition.model.v4.Api apiDefinitionV4;
+    private io.gravitee.definition.model.Api apiDefinition;
+
     /**
      * The api type.
      */
@@ -80,15 +81,15 @@ public class Api {
     /**
      * The api deployment date
      */
-    private Date deployedAt;
+    private ZonedDateTime deployedAt;
     /**
      * The Api creation date
      */
-    private Date createdAt;
+    private ZonedDateTime createdAt;
     /**
      * The Api last updated date
      */
-    private Date updatedAt;
+    private ZonedDateTime updatedAt;
     /**
      * The api visibility
      */
@@ -99,10 +100,6 @@ public class Api {
      */
     @Builder.Default
     private LifecycleState lifecycleState = LifecycleState.STOPPED;
-
-    private List<Listener> listeners;
-
-    private List<EndpointGroup> endpointGroups;
 
     /**
      * The api picture
@@ -120,11 +117,6 @@ public class Api {
      */
     private List<String> labels;
 
-    @Builder.Default
-    private List<Property> properties = new ArrayList<>();
-
-    /**
-     */
     private boolean disableMembershipNotifications;
 
     @Builder.Default
@@ -155,5 +147,36 @@ public class Api {
         UNPUBLISHED,
         DEPRECATED,
         ARCHIVED,
+    }
+
+    public Api setApiDefinitionV4(io.gravitee.definition.model.v4.Api apiDefinitionV4) {
+        this.apiDefinitionV4 = apiDefinitionV4;
+        this.definitionVersion = apiDefinitionV4.getDefinitionVersion();
+        return this;
+    }
+
+    public Api setApiDefinition(io.gravitee.definition.model.Api apiDefinition) {
+        this.apiDefinition = apiDefinition;
+        this.definitionVersion = apiDefinition.getDefinitionVersion();
+        return this;
+    }
+
+    public static class ApiBuilder {
+
+        public ApiBuilder apiDefinition(io.gravitee.definition.model.Api apiDefinition) {
+            this.apiDefinition = apiDefinition;
+            if (apiDefinition != null) {
+                this.definitionVersion = apiDefinition.getDefinitionVersion();
+            }
+            return this;
+        }
+
+        public ApiBuilder apiDefinitionV4(io.gravitee.definition.model.v4.Api apiDefinitionV4) {
+            this.apiDefinitionV4 = apiDefinitionV4;
+            if (apiDefinitionV4 != null) {
+                this.definitionVersion = apiDefinitionV4.getDefinitionVersion();
+            }
+            return this;
+        }
     }
 }

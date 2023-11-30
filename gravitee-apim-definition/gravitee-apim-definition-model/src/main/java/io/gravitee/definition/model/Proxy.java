@@ -18,11 +18,17 @@ package io.gravitee.definition.model;
 import com.fasterxml.jackson.annotation.*;
 import java.io.Serializable;
 import java.util.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Proxy implements Serializable {
 
     @JsonProperty("virtual_hosts")
@@ -41,9 +47,11 @@ public class Proxy implements Serializable {
     private Logging logging;
 
     @JsonProperty("strip_context_path")
+    @Builder.Default
     private boolean stripContextPath = false;
 
     @JsonProperty("preserve_host")
+    @Builder.Default
     private boolean preserveHost = false;
 
     @JsonProperty("servers")
