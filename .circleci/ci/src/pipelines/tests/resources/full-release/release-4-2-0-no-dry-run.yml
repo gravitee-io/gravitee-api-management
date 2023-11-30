@@ -230,8 +230,12 @@ jobs:
         type: string
         default: ""
         description: the name of the image
+      node_version:
+        type: string
+        default: "16.10"
+        description: Node version to use for executor
     docker:
-      - image: cimg/node:16.10
+      - image: cimg/node:<< parameters.node_version >>
     resource_class: large
     steps:
       - checkout
@@ -614,6 +618,7 @@ workflows:
           name: Build APIM Portal and publish image
           apim-ui-project: gravitee-apim-portal-webui
           docker-image-name: apim-portal-ui
+          node_version: "18.18"
           requires:
             - Setup
       - job-webui-publish-artifactory:
