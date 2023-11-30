@@ -95,8 +95,7 @@ export class SettingsNavigationComponent implements OnInit {
           },
           {
             displayName: 'Documentation',
-            targetRoute: 'management.settings.documentation.list',
-            baseRoute: 'management.settings.documentation',
+            routerLink: './documentation',
             permissions: ['environment-documentation-c', 'environment-documentation-u', 'environment-documentation-d'],
           },
           {

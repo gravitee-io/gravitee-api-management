@@ -20,10 +20,7 @@
     <div layout="row" layout-align="space-between center" ng-if="!renameFolder">
       <h3>
         <span ng-repeat="folder in $ctrl.breadcrumb">
-          <a ng-if="$ctrl.apiId && !$last" ui-sref="management.apis.documentation({apiId: $ctrl.apiId, parent: folder.id})"
-            >{{folder.name}}</a
-          >
-          <a ng-if="!$ctrl.apiId && !$last" ui-sref="management.settings.documentation.list({parent: folder.id})">{{folder.name}}</a>
+          <a ng-if="!$last" ng-click="$ctrl.goToFolder(folder.id)">{{folder.name}}</a>
           <span ng-if="$ctrl.apiId && $last">{{folder.name}}</span>
           <span ng-if="!$ctrl.apiId && $last">{{folder.name}}</span>
           <span ng-if="$first || !$last ">&nbsp;/&nbsp;</span>

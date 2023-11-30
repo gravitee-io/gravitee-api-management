@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { StateService } from '@uirouter/core';
 import { IController, IScope } from 'angular';
 import * as _ from 'lodash';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -47,13 +46,14 @@ class DocumentationManagementComponentController implements IController {
   constructor(
     private readonly NotificationService: NotificationService,
     private readonly DocumentationService: DocumentationService,
-    private $state: StateService,
     private $scope: IDocumentationManagementScope,
     private readonly $mdDialog: angular.material.IDialogService,
     private readonly ngRouter: Router,
   ) {}
 
   $onInit() {
+    this.ngRouter.routeReuseStrategy.shouldReuseRoute = () => false;
+
     // remove the ROOT page
     this.pages = this.filterROOTAndSystemPages(this.pages);
 
@@ -399,46 +399,37 @@ class DocumentationManagementComponentController implements IController {
   }
 
   newPage(type: string) {
-    if (this.apiId) {
-      this.ngRouter.navigate(['new'], {
-        queryParams: { type: type, parent: this.rootDir },
-        relativeTo: this.activatedRoute,
-      });
-    } else {
-      this.$state.go('management.settings.documentation.new', { type: type, parent: this.rootDir });
-    }
+    this.ngRouter.navigate(['new'], {
+      queryParams: { type: type, parent: this.rootDir },
+      relativeTo: this.activatedRoute,
+    });
   }
 
   openUrl(page: any) {
     if ('FOLDER' === page.type || 'SYSTEM_FOLDER' === page.type) {
-      if (this.apiId) {
-        this.ngRouter.navigate(['.'], {
-          queryParams: { type: page.type, parent: page.id },
-          relativeTo: this.activatedRoute,
-        });
-      } else {
-        return this.$state.go('management.settings.documentation.list', { parent: page.id });
-      }
-    } else {
-      if (this.apiId) {
-        this.ngRouter.navigate(['./', page.id], {
-          queryParams: { type: page.type },
-          relativeTo: this.activatedRoute,
-        });
-      } else {
-        return this.$state.go('management.settings.documentation.edit', { pageId: page.id, type: page.type, tab: 'content' });
-      }
-    }
-  }
-
-  importPages() {
-    if (this.apiId) {
-      this.ngRouter.navigate(['import'], {
+      this.ngRouter.navigate(['.'], {
+        queryParams: { type: page.type, parent: page.id },
         relativeTo: this.activatedRoute,
       });
     } else {
-      this.$state.go('management.settings.documentation.import');
+      this.ngRouter.navigate(['.', page.id], {
+        queryParams: { type: page.type },
+        relativeTo: this.activatedRoute,
+      });
     }
+  }
+
+  goToFolder(folderId: string) {
+    this.ngRouter.navigate(['.'], {
+      queryParams: { type: 'FOLDER', parent: folderId },
+      relativeTo: this.activatedRoute,
+    });
+  }
+
+  importPages() {
+    this.ngRouter.navigate(['import'], {
+      relativeTo: this.activatedRoute,
+    });
   }
 
   fetch() {
@@ -488,14 +479,7 @@ class DocumentationManagementComponentController implements IController {
     };
   }
 }
-DocumentationManagementComponentController.$inject = [
-  'NotificationService',
-  'DocumentationService',
-  '$state',
-  '$scope',
-  '$mdDialog',
-  'ngRouter',
-];
+DocumentationManagementComponentController.$inject = ['NotificationService', 'DocumentationService', '$scope', '$mdDialog', 'ngRouter'];
 
 export const DocumentationManagementComponentAjs: ng.IComponentOptions = {
   bindings: {
