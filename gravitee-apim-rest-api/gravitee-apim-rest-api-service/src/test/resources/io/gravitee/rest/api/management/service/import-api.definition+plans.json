@@ -144,7 +144,11 @@
           },
           "enabled" : true
         } ]
-      }
+      },
+      "excluded_groups": [
+        "My Group"
+      ]
     }
-  ]
+  ],
+  "groups" : ["My Group"]
 }
