@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import { ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit } from '@angular/core';
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { TranslateService } from '@ngx-translate/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -77,7 +76,7 @@ export class UserNotificationComponent implements OnInit, OnDestroy {
           attributes: {
             onClick: item => this.markAsRead(item.id),
             shape: 'code:check',
-            title: i18n('user.notifications.read'),
+            title: 'user.notifications.read',
           },
         },
       ],

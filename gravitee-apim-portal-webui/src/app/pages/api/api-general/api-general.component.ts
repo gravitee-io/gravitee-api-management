@@ -16,7 +16,6 @@
 import { Component, HostListener, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Params, PRIMARY_OUTLET, Router } from '@angular/router';
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { TranslateService } from '@ngx-translate/core';
 
 import {
@@ -128,11 +127,11 @@ export class ApiGeneralComponent implements OnInit {
         if (this.hasRatingFeature) {
           this.translateService
             .get([
-              i18n('apiGeneral.ratingsSortOptions.newest'),
-              i18n('apiGeneral.ratingsSortOptions.oldest'),
-              i18n('apiGeneral.ratingsSortOptions.best'),
-              i18n('apiGeneral.ratingsSortOptions.worst'),
-              i18n('apiGeneral.ratingsSortOptions.answers'),
+              'apiGeneral.ratingsSortOptions.newest',
+              'apiGeneral.ratingsSortOptions.oldest',
+              'apiGeneral.ratingsSortOptions.best',
+              'apiGeneral.ratingsSortOptions.worst',
+              'apiGeneral.ratingsSortOptions.answers',
             ])
             .toPromise()
             .then(translations => {
@@ -324,7 +323,7 @@ export class ApiGeneralComponent implements OnInit {
           .toPromise()
           .then(api => (this.currentApi = api));
       })
-      .then(() => this.notificationService.info(i18n('apiGeneral.ratingUpdated')));
+      .then(() => this.notificationService.info('apiGeneral.ratingUpdated'));
   }
 
   @HostListener(':gv-rating-list:delete', ['$event.detail'])
@@ -334,7 +333,7 @@ export class ApiGeneralComponent implements OnInit {
       .deleteApiRating({ apiId, ratingId: rating.id })
       .toPromise()
       .then(() => {
-        this.notificationService.info(i18n('apiGeneral.ratingDeleted'));
+        this.notificationService.info('apiGeneral.ratingDeleted');
       })
       .finally(() => {
         this._updateRatings();
@@ -351,7 +350,7 @@ export class ApiGeneralComponent implements OnInit {
       .deleteApiRatingAnswer({ apiId: this.apiId, ratingId: rating.id, answerId: answer.id })
       .toPromise()
       .then(() => {
-        this.notificationService.info(i18n('apiGeneral.ratingAnswerDeleted'));
+        this.notificationService.info('apiGeneral.ratingAnswerDeleted');
       })
       .finally(() => {
         this._updateRatings();
@@ -365,7 +364,7 @@ export class ApiGeneralComponent implements OnInit {
       .createApiRatingAnswer({ apiId: this.apiId, ratingId: rating.id, ratingAnswerInput })
       .toPromise()
       .then(() => {
-        this.notificationService.info(i18n('apiGeneral.ratingAnswerCreated'));
+        this.notificationService.info('apiGeneral.ratingAnswerCreated');
       })
       .finally(() => {
         this._updateRatings();
@@ -392,7 +391,7 @@ export class ApiGeneralComponent implements OnInit {
       .toPromise()
       .then(_res => {
         this.ratingForm = null;
-        this.notificationService.info(i18n('apiGeneral.ratingCreated'));
+        this.notificationService.info('apiGeneral.ratingCreated');
         this._updateRatings();
         this.apiService
           .getApiByApiId({ apiId })
@@ -447,14 +446,14 @@ export class ApiGeneralComponent implements OnInit {
     let queryParams;
     const queryParamMap = this.route.snapshot.queryParamMap;
     if (queryParamMap.has(SearchQueryParam.QUERY)) {
-      label = await this.translateService.get(i18n('apiGeneral.backToSearch')).toPromise();
+      label = await this.translateService.get('apiGeneral.backToSearch').toPromise();
       url = '/catalog/search';
       queryParams = this.route.snapshot.queryParams;
     } else if (queryParamMap.has(SearchQueryParam.CATEGORY)) {
       const categoryId = queryParamMap.get(SearchQueryParam.CATEGORY);
       try {
         const category = await this.portalService.getCategoryByCategoryId({ categoryId }).toPromise();
-        label = await this.translateService.get(i18n('apiGeneral.backToCategory'), { name: category.name }).toPromise();
+        label = await this.translateService.get('apiGeneral.backToCategory', { name: category.name }).toPromise();
         url = `/catalog/categories/${categoryId}`;
       } catch (err) {
         if (err && err.interceptorFuture) {
@@ -465,7 +464,7 @@ export class ApiGeneralComponent implements OnInit {
       const applicationId = queryParamMap.get(SearchQueryParam.APPLICATION);
       try {
         const application = await this.applicationService.getApplicationByApplicationId({ applicationId }).toPromise();
-        label = await this.translateService.get(i18n('apiGeneral.backToApplication'), { name: application.name }).toPromise();
+        label = await this.translateService.get('apiGeneral.backToApplication', { name: application.name }).toPromise();
         url = `/applications/${applicationId}`;
       } catch (err) {
         if (err && err.interceptorFuture) {
@@ -475,7 +474,7 @@ export class ApiGeneralComponent implements OnInit {
     } else if (queryParamMap.has(SearchQueryParam.API_QUERY)) {
       const apiQuery = queryParamMap.get(SearchQueryParam.API_QUERY) as FilterApiQuery;
       if (Object.values(FilterApiQuery).includes(apiQuery)) {
-        label = await this.translateService.get(i18n('apiGeneral.backToCatalog')).toPromise();
+        label = await this.translateService.get('apiGeneral.backToCatalog').toPromise();
         url = `/catalog/${apiQuery.toLowerCase()}`;
       }
     }

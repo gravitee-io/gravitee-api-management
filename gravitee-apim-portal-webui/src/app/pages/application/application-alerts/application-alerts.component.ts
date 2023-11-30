@@ -16,7 +16,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
+
 import '@gravitee/ui-components/wc/gv-autocomplete';
 import '@gravitee/ui-components/wc/gv-button';
 import '@gravitee/ui-components/wc/gv-confirm';
@@ -80,7 +80,7 @@ export class ApplicationAlertsComponent implements OnInit {
               .then(status => {
                 this.status = status;
                 if (!this.isAlertingEnabled) {
-                  this.notificationService.warning(i18n('application.alerts.disabled'));
+                  this.notificationService.warning('application.alerts.disabled');
                 } else {
                   this.resetAlerts();
                 }
@@ -110,7 +110,7 @@ export class ApplicationAlertsComponent implements OnInit {
   onAddAlert(alert: Alert) {
     this.alerts.push(alert);
     if (this.alerts.length === 10) {
-      this.notificationService.info(i18n('application.alerts.maximum'));
+      this.notificationService.info('application.alerts.maximum');
     }
   }
 

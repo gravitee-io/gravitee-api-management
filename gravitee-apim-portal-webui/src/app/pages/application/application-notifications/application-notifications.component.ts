@@ -16,7 +16,6 @@
 import { Component, OnInit } from '@angular/core';
 import '@gravitee/ui-components/wc/gv-switch';
 import { ActivatedRoute } from '@angular/router';
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 
 import { ApplicationService } from '../../../../../projects/portal-webclient-sdk/src/lib';
 import { NotificationService } from '../../../services/notification.service';
@@ -74,7 +73,7 @@ export class ApplicationNotificationsComponent implements OnInit {
       .updateApplicationNotifications({ applicationId, notificationInput: { hooks: this.hooks } })
       .toPromise()
       .then(_ => {
-        this.notificationService.success(i18n('application.notifications.saveSuccess'));
+        this.notificationService.success('application.notifications.saveSuccess');
       });
   }
 }
