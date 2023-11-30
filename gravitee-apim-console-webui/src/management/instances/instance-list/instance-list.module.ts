@@ -19,7 +19,7 @@ import { NgModule } from '@angular/core';
 import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { UIRouterModule } from '@uirouter/angular';
+import { RouterModule } from '@angular/router';
 
 import { InstanceListComponent } from './instance-list.component';
 
@@ -28,6 +28,6 @@ import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrap
 @NgModule({
   declarations: [InstanceListComponent],
   exports: [InstanceListComponent],
-  imports: [CommonModule, MatTableModule, MatIconModule, MatTooltipModule, GioTableWrapperModule, UIRouterModule],
+  imports: [CommonModule, MatTableModule, MatIconModule, MatTooltipModule, GioTableWrapperModule, RouterModule],
 })
 export class InstanceListModule {}

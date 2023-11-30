@@ -115,18 +115,6 @@ const managementRoutes: Routes = [
         },
       },
       {
-        path: 'gateways',
-        component: InstanceListComponent,
-        data: {
-          perms: {
-            only: ['environment-instance-r'],
-          },
-          docs: {
-            page: 'management-gateways',
-          },
-        },
-      },
-      {
         path: 'gateways/:instanceId',
         component: InstanceDetailsComponent,
         data: {
