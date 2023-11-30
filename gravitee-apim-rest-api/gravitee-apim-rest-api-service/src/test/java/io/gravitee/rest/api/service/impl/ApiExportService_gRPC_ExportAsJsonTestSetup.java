@@ -281,6 +281,7 @@ public class ApiExportService_gRPC_ExportAsJsonTestSetup {
         publishedPlan.setSecurity(PlanSecurityType.API_KEY);
         publishedPlan.setValidation(PlanValidationType.AUTO);
         publishedPlan.setStatus(PlanStatus.PUBLISHED);
+        publishedPlan.setExcludedGroups(List.of("my-group"));
         Map<String, List<Rule>> paths = new HashMap<>();
         Rule rule = new Rule();
         rule.setEnabled(true);
