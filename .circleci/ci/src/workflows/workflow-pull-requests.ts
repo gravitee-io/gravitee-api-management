@@ -264,12 +264,14 @@ export class PullRequestsWorkflow {
           context: config.jobContext,
           'apim-ui-project': config.dockerImages.portal.project,
           resource_class: 'large',
+          node_version: '18.18',
         }),
         new workflow.WorkflowJob(webuiBuildJob, {
           name: 'Build APIM Portal and publish image',
           context: config.jobContext,
           'apim-ui-project': config.dockerImages.portal.project,
           'docker-image-name': config.dockerImages.portal.image,
+          node_version: '18.18',
         }),
         new workflow.WorkflowJob(sonarCloudAnalysisJob, {
           name: 'Sonar - gravitee-apim-portal-webui',

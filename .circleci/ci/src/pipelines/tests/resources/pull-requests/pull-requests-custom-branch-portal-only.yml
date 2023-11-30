@@ -143,8 +143,12 @@ jobs:
         type: string
         default: medium
         description: Resource class to use for executor
+      node_version:
+        type: string
+        default: "16.10"
+        description: Node version to use for executor
     docker:
-      - image: cimg/node:16.10
+      - image: cimg/node:<< parameters.node_version >>
     resource_class: << parameters.resource_class >>
     steps:
       - checkout
@@ -181,8 +185,12 @@ jobs:
         type: string
         default: ""
         description: the name of the image
+      node_version:
+        type: string
+        default: "16.10"
+        description: Node version to use for executor
     docker:
-      - image: cimg/node:16.10
+      - image: cimg/node:<< parameters.node_version >>
     resource_class: large
     steps:
       - checkout
@@ -260,12 +268,14 @@ workflows:
             - cicd-orchestrator
           apim-ui-project: gravitee-apim-portal-webui
           resource_class: large
+          node_version: "18.18"
       - job-webui-build:
           name: Build APIM Portal and publish image
           context:
             - cicd-orchestrator
           apim-ui-project: gravitee-apim-portal-webui
           docker-image-name: apim-portal-ui
+          node_version: "18.18"
       - job-sonarcloud-analysis:
           name: Sonar - gravitee-apim-portal-webui
           context:
