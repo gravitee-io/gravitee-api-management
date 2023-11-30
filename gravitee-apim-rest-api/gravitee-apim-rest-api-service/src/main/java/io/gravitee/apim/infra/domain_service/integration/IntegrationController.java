@@ -37,7 +37,9 @@ public class IntegrationController extends AbstractService<IntegrationController
 
     private final Map<IntegrationCommandType, CommandHandler<IntegrationCommand<?>, IntegrationReply>> integrationCommandHandlers;
 
-    public IntegrationController(Map<IntegrationCommandType, CommandHandler<IntegrationCommand<?>, IntegrationReply>> integrationCommandHandlers) {
+    public IntegrationController(
+        Map<IntegrationCommandType, CommandHandler<IntegrationCommand<?>, IntegrationReply>> integrationCommandHandlers
+    ) {
         this.integrationCommandHandlers = integrationCommandHandlers;
     }
 
