@@ -510,6 +510,8 @@ jobs:
             - << parameters.apim-ui-project >>/coverage/lcov.info
       - store_artifacts:
           path: << parameters.apim-ui-project >>/coverage/lcov.info
+      - store_test_results:
+          path: << parameters.apim-ui-project >>/coverage/junit.xml
   job-webui-build:
     parameters:
       apim-ui-project:
