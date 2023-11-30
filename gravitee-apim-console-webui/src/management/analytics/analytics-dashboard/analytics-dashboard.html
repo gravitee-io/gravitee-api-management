@@ -35,6 +35,7 @@
         on-timeframe-change="$ctrl.onTimeframeChange(timeframe)"
         on-view-log-click="$ctrl.viewLogs()"
         access-logs="true"
+        activated-route="$ctrl.activatedRoute"
       ></gv-dashboard>
     </div>
 
@@ -70,7 +71,7 @@
                   <td md-cell>{{$ctrl.getEventLabel(event.type)}}</td>
                   <td md-cell>
                     <a
-                      ui-sref="management.apis.analytics-overview-v2({ apiId: event.properties.api_id, from: $ctrl.$state.params.from, to: $ctrl.$state.params.to} )"
+                      ng-click="$ctrl.gotToApiAnalytics({ apiId: event.properties.api_id, from: $ctrl.$state.params.from, to: $ctrl.$state.params.to})"
                     >
                       {{event.properties.api_name}} <small>({{event.properties.api_version}})</small>
                     </a>

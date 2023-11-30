@@ -1,7 +1,3 @@
-import { StateService } from '@uirouter/core';
-
-import NotificationService from '../../../services/notification.service';
-
 /*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
@@ -17,23 +13,37 @@ import NotificationService from '../../../services/notification.service';
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const PlatformLogComponent: ng.IComponentOptions = {
+import { Router } from '@angular/router';
+
+import NotificationService from '../../../services/notification.service';
+import AnalyticsService from '../../../services/analytics.service';
+
+const PlatformLogComponentAjs: ng.IComponentOptions = {
   bindings: {
-    log: '<',
+    activatedRoute: '<',
   },
   controller: [
-    '$state',
+    'ngRouter',
     'NotificationService',
     'Constants',
-    function ($state: StateService, NotificationService: NotificationService, Constants: any) {
+    'AnalyticsService',
+    function (ngRouter: Router, NotificationService: NotificationService, Constants: any, AnalyticsService: AnalyticsService) {
       this.Constants = Constants;
       this.NotificationService = NotificationService;
+      this.ngRouter = ngRouter;
+      this.AnalyticsService = AnalyticsService;
 
       this.$onInit = () => {
-        this.headersAsList(this.log.clientRequest);
-        this.headersAsList(this.log.proxyRequest);
-        this.headersAsList(this.log.clientResponse);
-        this.headersAsList(this.log.proxyResponse);
+        this.AnalyticsService.getLog(this.activatedRoute.snapshot.params.logId, this.activatedRoute.snapshot.queryParams.timestamp).then(
+          (response) => {
+            this.log = response.data;
+
+            this.headersAsList(this.log.clientRequest);
+            this.headersAsList(this.log.proxyRequest);
+            this.headersAsList(this.log.clientResponse);
+            this.headersAsList(this.log.proxyResponse);
+          },
+        );
       };
 
       this.headersAsList = (obj) => {
@@ -53,12 +63,17 @@ const PlatformLogComponent: ng.IComponentOptions = {
         }
       };
 
-      this.backStateParams = {
-        from: $state.params.from,
-        to: $state.params.to,
-        q: $state.params.q,
-        page: $state.params.page,
-        size: $state.params.size,
+      this.goToLogs = () => {
+        this.ngRouter.navigate(['../'], {
+          relativeTo: this.activatedRoute,
+          queryParams: {
+            from: this.activatedRoute.snapshot.queryParams.from,
+            to: this.activatedRoute.snapshot.queryParams.to,
+            q: this.activatedRoute.snapshot.queryParams.q,
+            page: this.activatedRoute.snapshot.queryParams.page,
+            size: this.activatedRoute.snapshot.queryParams.size,
+          },
+        });
       };
 
       this.getMimeType = function (log) {
@@ -79,4 +94,4 @@ const PlatformLogComponent: ng.IComponentOptions = {
   template: require('./platform-log.html'),
 };
 
-export default PlatformLogComponent;
+export default PlatformLogComponentAjs;

@@ -134,10 +134,9 @@ import IdentityPictureDirective from '../components/identityPicture/identityPict
 import ImageDirective from '../components/image/image.directive';
 import { EventService } from '../services/event.service';
 import AnalyticsService from '../services/analytics.service';
-import AnalyticsDashboardController from '../management/dashboard-ajs/analytics-dashboard/analytics-dashboard.controller';
-import PlatformLogsController from '../management/platform/logs/platform-logs.controller';
-import PlatformLogsComponent from '../management/platform/logs/platform-logs.component';
-import PlatformLogComponent from '../management/platform/logs/platform-log.component';
+import PlatformLogsController from './analytics/logs/platform-logs.controller';
+import PlatformLogsComponentAjs from './analytics/logs/platform-logs.component.ajs';
+import PlatformLogComponentAjs from './analytics/logs/platform-log.component.ajs';
 
 import CategoriesController from '../management/configuration/categories/categories.controller';
 import CategoryController from './configuration/categories/category/category.controller';
@@ -448,6 +447,7 @@ import { ApplicationGeneralTransferOwnershipComponent } from './application/deta
 import SupportTicketsListComponentAjs from './support/tickets-list.component.ajs';
 import SettingsAnalyticsComponentAjs from './configuration/analytics/settings-analytics.component.ajs';
 import ApplicationGeneralComponentAjs from './application/details/general/application-general.component.ajs';
+import AnalyticsDashboardComponentAjs from './analytics/analytics-dashboard/analytics-dashboard.component.ajs';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -596,7 +596,7 @@ graviteeManagementModule.controller('DialogAddPropertyController', DialogAddProp
 graviteeManagementModule.controller('UserController', UserController);
 graviteeManagementModule.controller('DialogEditPolicyController', DialogEditPolicyController);
 graviteeManagementModule.controller('LoginController', LoginController);
-graviteeManagementModule.controller('AnalyticsDashboardController', AnalyticsDashboardController);
+graviteeManagementModule.component('analyticsDashboardComponentAjs', AnalyticsDashboardComponentAjs);
 graviteeManagementModule.component('gvAlertDashboard', AlertsDashboardComponent);
 graviteeManagementModule.controller('AlertsActivityController', AlertsActivityController);
 graviteeManagementModule.component('apiAlertsDashboardComponentAjs', ApiAlertsDashboardComponentAjs);
@@ -916,8 +916,8 @@ graviteeManagementModule.component('settingsAnalyticsDashboardAjs', SettingsAnal
 graviteeManagementModule.controller('DialogQueryFilterInformationController', DialogQueryFilterInformationController);
 
 // Platform Analytics
-graviteeManagementModule.component('platformLogs', PlatformLogsComponent);
-graviteeManagementModule.component('platformLog', PlatformLogComponent);
+graviteeManagementModule.component('platformLogsComponentAjs', PlatformLogsComponentAjs);
+graviteeManagementModule.component('platformLogComponentAjs', PlatformLogComponentAjs);
 graviteeManagementModule.controller('PlatformLogsController', PlatformLogsController);
 
 // User-Autocomplete

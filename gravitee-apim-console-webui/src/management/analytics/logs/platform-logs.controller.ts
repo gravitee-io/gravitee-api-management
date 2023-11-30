@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { StateService } from '@uirouter/core';
 import { IScope } from 'angular';
 import * as _ from 'lodash';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { ApiService } from '../../../services/api.service';
+import ApplicationService from '../../../services/application.service';
 import AnalyticsService, { LogsQuery } from '../../../services/analytics.service';
 
 class PlatformLogsController {
@@ -27,28 +28,28 @@ class PlatformLogsController {
     apis?: any[];
     applications?: any[];
   };
-  private apis;
-  private applications;
   private init: boolean;
+  private activatedRoute: ActivatedRoute;
+  private isLoaded = false;
 
   constructor(
     private ApiService: ApiService,
     private AnalyticsService: AnalyticsService,
     private Constants,
-    private $state: StateService,
+    private ApplicationService: ApplicationService,
+    private ngRouter: Router,
     private $scope: IScope,
   ) {
-    this.onPaginate = this.onPaginate.bind(this);
-
     this.query = new LogsQuery();
-    this.query.page = this.$state.params.page || 1;
-    this.query.size = this.$state.params.size || 15;
   }
 
   $onInit() {
-    this.query.from = this.$state.params.from;
-    this.query.to = this.$state.params.to;
-    this.query.query = this.$state.params.q;
+    this.onPaginate = this.onPaginate.bind(this);
+    this.query.page = this.activatedRoute.snapshot.queryParams.page || 1;
+    this.query.size = this.activatedRoute.snapshot.queryParams.size || 15;
+    this.query.from = this.activatedRoute.snapshot.queryParams.from;
+    this.query.to = this.activatedRoute.snapshot.queryParams.to;
+    this.query.query = this.activatedRoute.snapshot.queryParams.q;
     this.query.field = '-@timestamp';
 
     this.$scope.$watch('$ctrl.query.field', (field) => {
@@ -57,17 +58,22 @@ class PlatformLogsController {
       }
     });
 
-    this.metadata = {
-      apis: this.apis.data.data,
-      applications: this.applications.data,
-    };
+    Promise.all([this.ApiService.list(null, false, 1, null, null, null, 10), this.ApplicationService.list(['owner', 'picture'])]).then(
+      ([apis, applications]) => {
+        this.metadata = {
+          apis: apis.data.data,
+          applications: applications.data,
+        };
+        this.isLoaded = true;
+      },
+    );
   }
 
   timeframeChange(timeframe) {
     this.init = true;
     this.query.from = timeframe.from;
     this.query.to = timeframe.to;
-    this.query.page = this.$state.params.page || 1;
+    this.query.page = this.activatedRoute.snapshot.queryParams.page || 1;
     this.refresh();
   }
 
@@ -77,17 +83,17 @@ class PlatformLogsController {
   }
 
   refresh() {
-    this.$state.transitionTo(
-      this.$state.current,
-      {
+    this.ngRouter.navigate(['.'], {
+      relativeTo: this.activatedRoute,
+      queryParams: {
         page: this.query.page,
         size: this.query.size,
         from: this.query.from,
         to: this.query.to,
         q: this.query.query,
       },
-      { notify: false },
-    );
+      queryParamsHandling: 'merge',
+    });
 
     this.AnalyticsService.findLogs(this.query).then((logs) => {
       this.logs = logs.data;
@@ -95,7 +101,7 @@ class PlatformLogsController {
   }
 
   filtersChange(filters) {
-    this.query.page = this.$state.params.page || 1;
+    this.query.page = this.activatedRoute.snapshot.queryParams.page || 1;
     this.query.query = filters;
     this.refresh();
   }
@@ -113,7 +119,21 @@ class PlatformLogsController {
       document.body.removeChild(hiddenElement);
     });
   }
+
+  showLogDetails(log) {
+    this.ngRouter.navigate(['.', log.id], {
+      relativeTo: this.activatedRoute,
+      queryParams: {
+        timestamp: log.timestamp,
+        from: this.query.from,
+        to: this.query.to,
+        q: this.query.query,
+        page: this.query.page,
+        size: this.query.size,
+      },
+    });
+  }
 }
-PlatformLogsController.$inject = ['ApiService', 'AnalyticsService', 'Constants', '$state', '$scope'];
+PlatformLogsController.$inject = ['ApiService', 'AnalyticsService', 'Constants', 'ApplicationService', 'ngRouter', '$scope'];
 
 export default PlatformLogsController;

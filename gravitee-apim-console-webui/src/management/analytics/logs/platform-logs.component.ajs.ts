@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const PlatformLogsComponent: ng.IComponentOptions = {
+const PlatformLogsComponentAjs: ng.IComponentOptions = {
   bindings: {
-    applications: '<',
-    apis: '<',
+    activatedRoute: '<',
   },
   controller: 'PlatformLogsController',
   template: require('./platform-logs.html'),
 };
 
-export default PlatformLogsComponent;
+export default PlatformLogsComponentAjs;
