@@ -25,7 +25,7 @@ import { DocumentationService } from '../../services/documentation.service';
   template: '',
   selector: 'ng-documentation-management',
   host: {
-    class: 'bootstrap',
+    class: 'bootstrap gv-sub-content',
   },
 })
 export class DocumentationManagementComponent extends UpgradeComponent {
