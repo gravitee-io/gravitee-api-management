@@ -19,7 +19,7 @@
   <div class="gv-forms-header">
     <h1 ng-if="$ctrl.updateMode">{{$ctrl.group.name}}</h1>
     <h1 ng-if="!$ctrl.updateMode">Create a group</h1>
-    <a ui-sref="management.settings.groups.list">Back to groups</a>
+    <a ng-click="$ctrl.backToList()">Back to groups</a>
   </div>
 
   <form name="formGroup" class="gv-form" ng-submit="$ctrl.update()">

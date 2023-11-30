@@ -202,8 +202,8 @@ import ConsoleSettingsService from '../services/consoleSettings.service';
 import PortalSettingsService from '../services/portalSettings.service';
 import PortalConfigService from '../services/portalConfig.service';
 // Groups
-import GroupsComponent from '../management/configuration/groups/groups.component';
-import GroupComponent from './configuration/groups/group/group.component';
+import GroupsComponentAjs from './configuration/groups/groups.component.ajs';
+import GroupComponentAjs from './configuration/groups/group/group.component.ajs';
 import GroupService from '../services/group.service';
 // Dictionaries
 import DictionaryService from '../services/dictionary.service';
@@ -604,8 +604,8 @@ graviteeManagementModule.controller('CategoriesController', CategoriesController
 graviteeManagementModule.controller('CategoryController', CategoryController);
 graviteeManagementModule.controller('DeleteCategoryDialogController', DeleteCategoryDialogController);
 graviteeManagementModule.controller('DeleteAPICategoryDialogController', DeleteAPICategoryDialogController);
-graviteeManagementModule.component('groups', GroupsComponent);
-graviteeManagementModule.component('group', GroupComponent);
+graviteeManagementModule.component('settingsGroupsAjs', GroupsComponentAjs);
+graviteeManagementModule.component('settingsGroupEditAjs', GroupComponentAjs);
 graviteeManagementModule.controller('DialogAddGroupMemberController', DialogAddGroupMemberController);
 graviteeManagementModule.controller('DialogTransferOwnershipController', DialogTransferOwnershipController);
 graviteeManagementModule.controller('RegistrationController', RegistrationController);
