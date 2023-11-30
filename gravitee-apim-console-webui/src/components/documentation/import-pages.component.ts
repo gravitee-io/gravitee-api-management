@@ -25,7 +25,7 @@ import FetcherService from '../../services/fetcher.service';
   template: '',
   selector: 'documentation-import-pages',
   host: {
-    class: 'bootstrap',
+    class: 'bootstrap gv-sub-content',
   },
 })
 export class DocumentationImportPagesComponent extends UpgradeComponent {

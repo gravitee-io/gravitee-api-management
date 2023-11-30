@@ -27,7 +27,7 @@ import { GroupService } from '../../services-ngx/group.service';
   template: '',
   selector: 'documentation-edit-page',
   host: {
-    class: 'bootstrap',
+    class: 'bootstrap gv-sub-content',
   },
 })
 export class DocumentationEditPageComponent extends UpgradeComponent {

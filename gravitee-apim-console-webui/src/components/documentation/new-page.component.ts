@@ -26,7 +26,7 @@ import CategoryService from '../../services/category.service';
   template: '',
   selector: 'documentation-new-page',
   host: {
-    class: 'bootstrap',
+    class: 'bootstrap gv-sub-content',
   },
 })
 export class DocumentationNewPageComponent extends UpgradeComponent {

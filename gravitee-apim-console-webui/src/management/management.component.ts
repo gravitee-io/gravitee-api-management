@@ -42,7 +42,6 @@ import { filter, map, startWith, takeUntil } from 'rxjs/operators';
     `
       .wrapper {
         display: grid;
-        /*grid-gap: 20px;*/
         grid-template-rows: 70px calc(100vh - 70px);
         grid-template-columns: min-content auto;
         grid-template-areas:
