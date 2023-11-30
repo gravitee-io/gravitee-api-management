@@ -34,6 +34,11 @@ import { TicketComponent } from './support/ticket.component';
 import { TicketDetailComponent } from './support/ticket-detail.component';
 import { TicketsListComponent } from './support/tickets-list.component';
 import { InstancesModule } from './instances/instances.module';
+import { InstanceListComponent } from './instances/instance-list/instance-list.component';
+import { InstanceDetailsComponent } from './instances/instance-details/instance-details.component';
+import { InstanceDetailsEnvironmentComponent } from './instances/instance-details/instance-details-environment/instance-details-environment.component';
+import { InstanceDetailsMonitoringComponent } from './instances/instance-details/instance-details-monitoring/instance-details-monitoring.component';
+import { EnvAuditComponent } from './audit/env-audit.component';
 
 import { GioPermissionModule } from '../shared/components/gio-permission/gio-permission.module';
 import { NotificationsModule } from '../components/notifications/notifications.module';
@@ -42,17 +47,15 @@ import { GioSideNavModule } from '../components/gio-side-nav/gio-side-nav.module
 import { GioTopNavModule } from '../components/gio-top-nav/gio-top-nav.module';
 import { ContextualDocComponentComponent } from '../components/contextual/contextual-doc.component';
 import { UserComponent } from '../user/my-accout/user.component';
-import { InstanceListComponent } from './instances/instance-list/instance-list.component';
-import { InstanceDetailsComponent } from './instances/instance-details/instance-details.component';
-import { InstanceDetailsEnvironmentComponent } from './instances/instance-details/instance-details-environment/instance-details-environment.component';
-import { InstanceDetailsMonitoringComponent } from './instances/instance-details/instance-details-monitoring/instance-details-monitoring.component';
+import { ApimFeature } from '../shared/components/gio-license/gio-license-data';
+import { HasLicenseGuard } from '../shared/components/gio-license/has-license.guard';
 
 const managementRoutes: Routes = [
   {
     path: '',
     component: ManagementComponent,
     canActivate: [HasEnvironmentPermissionGuard],
-    canActivateChild: [HasEnvironmentPermissionGuard],
+    canActivateChild: [HasEnvironmentPermissionGuard, HasLicenseGuard],
     canDeactivate: [HasEnvironmentPermissionGuard],
     resolve: {
       environmentResolver: EnvironmentResolver,
@@ -153,6 +156,22 @@ const managementRoutes: Routes = [
             },
           },
         ],
+      },
+      {
+        path: 'audit',
+        component: EnvAuditComponent,
+        data: {
+          requireLicense: {
+            license: { feature: ApimFeature.APIM_AUDIT_TRAIL },
+            redirect: '/',
+          },
+          perms: {
+            only: ['environment-audit-r'],
+          },
+          docs: {
+            page: 'management-audit',
+          },
+        },
       },
 
       { path: '', pathMatch: 'full', redirectTo: 'home' },

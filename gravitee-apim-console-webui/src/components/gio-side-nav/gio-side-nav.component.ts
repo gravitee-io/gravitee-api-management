@@ -118,9 +118,8 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
       },
       {
         icon: 'gio:verified',
-        targetRoute: 'management.audit',
-        baseRoute: 'management.audit',
         displayName: 'Audit',
+        routerLink: './audit',
         permissions: ['environment-audit-r'],
         licenseOptions: auditLicenseOptions,
         iconRight$: auditIconRight$,
