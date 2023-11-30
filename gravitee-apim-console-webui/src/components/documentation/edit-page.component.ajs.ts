@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { StateService } from '@uirouter/core';
 import angular, { IController, IScope } from 'angular';
 import * as _ from 'lodash';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -67,8 +66,6 @@ class EditPageComponentController implements IController {
     private readonly NotificationService: NotificationService,
     private readonly DocumentationService: DocumentationService,
     private readonly UserService: UserService,
-    private readonly $mdDialog: angular.material.IDialogService,
-    private $state: StateService,
     private $scope: IPageScope,
     private ngRouter: Router,
   ) {
@@ -126,10 +123,11 @@ class EditPageComponentController implements IController {
   }
 
   $onInit() {
+    debugger;
     this.apiId = this.activatedRoute.snapshot.params.apiId;
     this.page = this.resolvedPage;
     this.tabs = this.tabs.filter((tab) => !tab.isUnavailable());
-    const indexOfTab = this.tabs.findIndex((tab) => tab.name === this.$state.params.tab);
+    const indexOfTab = this.tabs.findIndex((tab) => tab.name === this.activatedRoute.snapshot.queryParams.tab);
     this.selectedTab = indexOfTab > -1 ? indexOfTab : 0;
     this.currentTab = this.tabs[this.selectedTab].name;
     if (this.resolvedPage.messages && this.resolvedPage.messages.length > 0) {
@@ -146,7 +144,7 @@ class EditPageComponentController implements IController {
     this.pageList = this.DocumentationService.buildPageList(this.pageResources, true, folderSituation);
     this.pagesToLink = this.DocumentationService.buildPageList(this.pagesToLink, false, folderSituation);
     if (this.DocumentationService.supportedTypes(folderSituation).indexOf(this.page.type) < 0) {
-      this.$state.go('management.settings.documentation.list');
+      this.cancel();
     }
 
     this.initEditor();
@@ -212,15 +210,7 @@ class EditPageComponentController implements IController {
         } else {
           this.NotificationService.show("'" + this.page.name + "' has been updated");
         }
-        if (this.apiId) {
-          this.ngRouter.navigate(['../', this.page.id], { queryParams: { tab: this.currentTab }, relativeTo: this.activatedRoute });
-        } else {
-          this.$state.go(
-            'management.settings.documentation.edit',
-            { pageId: this.page.id, type: this.page.type, tab: this.currentTab },
-            { reload: true },
-          );
-        }
+        this.ngRouter.navigate(['../', this.page.id], { queryParams: { tab: this.currentTab }, relativeTo: this.activatedRoute });
       })
       .catch((err) => {
         this.error = { ...err.data, title: 'Sorry, unable to update page' };
@@ -232,19 +222,11 @@ class EditPageComponentController implements IController {
   }
 
   cancel() {
-    if (this.apiId) {
-      this.ngRouter.navigate(['../'], { queryParams: { parent: this.page.parentId }, relativeTo: this.activatedRoute });
-    } else {
-      this.$state.go('management.settings.documentation.list', { parent: this.page.parentId });
-    }
+    this.ngRouter.navigate(['../'], { queryParams: { parent: this.page.parentId }, relativeTo: this.activatedRoute });
   }
 
   reset() {
-    if (this.apiId) {
-      this.ngRouter.navigate(['../', this.page.id], { relativeTo: this.activatedRoute });
-    } else {
-      this.$state.go('management.settings.documentation.edit', { pageId: this.page.id, type: this.page.type }, { reload: true });
-    }
+    this.ngRouter.navigate(['../', this.page.id], { relativeTo: this.activatedRoute });
   }
 
   toggleRename() {
@@ -268,18 +250,10 @@ class EditPageComponentController implements IController {
 
   selectTab(idx: number) {
     this.changeTab(idx);
-    if (this.apiId) {
-      this.ngRouter.navigate(['../', this.page.id], {
-        queryParams: { tab: this.currentTab, type: this.page.type },
-        relativeTo: this.activatedRoute,
-      });
-    } else {
-      this.$state.transitionTo(
-        'management.settings.documentation.edit',
-        { pageId: this.page.id, type: this.page.type, tab: this.currentTab },
-        { notify: false },
-      );
-    }
+    this.ngRouter.navigate(['../', this.page.id], {
+      queryParams: { tab: this.currentTab, type: this.page.type },
+      relativeTo: this.activatedRoute,
+    });
   }
 
   changeTab(idx: number) {
@@ -300,15 +274,7 @@ class EditPageComponentController implements IController {
       : 'This page is not published yet and will not be visible to other users';
   }
 }
-EditPageComponentController.$inject = [
-  'NotificationService',
-  'DocumentationService',
-  'UserService',
-  '$mdDialog',
-  '$state',
-  '$scope',
-  'ngRouter',
-];
+EditPageComponentController.$inject = ['NotificationService', 'DocumentationService', 'UserService', '$scope', 'ngRouter'];
 
 export const DocumentationEditPageComponentAjs: ng.IComponentOptions = {
   bindings: {

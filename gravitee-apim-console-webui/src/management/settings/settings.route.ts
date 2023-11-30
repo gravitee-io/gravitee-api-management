@@ -29,6 +29,10 @@ import { GroupsComponent } from '../configuration/groups/groups.component';
 import { GroupComponent } from '../configuration/groups/group/group.component';
 import { ClientRegistrationProvidersComponent } from '../configuration/client-registration-providers/client-registration-providers.component';
 import { ClientRegistrationProviderComponent } from '../configuration/client-registration-providers/client-registration-provider/client-registration-provider.component';
+import { DocumentationManagementComponent } from '../../components/documentation/documentation-management.component';
+import { DocumentationNewPageComponent } from '../../components/documentation/new-page.component';
+import { DocumentationImportPagesComponent } from '../../components/documentation/import-pages.component';
+import { DocumentationEditPageComponent } from '../../components/documentation/edit-page.component';
 
 export const settingsRoutes: Routes = [
   {
@@ -224,6 +228,55 @@ export const settingsRoutes: Routes = [
               'environment-client_registration_provider-u',
               'environment-client_registration_provider-d',
             ],
+          },
+        },
+      },
+      {
+        path: 'documentation/new',
+        component: DocumentationNewPageComponent,
+        data: {
+          docs: {
+            page: 'management-configuration-portal-pages',
+          },
+          perms: {
+            only: ['environment-documentation-c'],
+          },
+        },
+      },
+      {
+        path: 'documentation/import',
+        component: DocumentationImportPagesComponent,
+        data: {
+          docs: {
+            page: 'management-configuration-portal-pages',
+          },
+          perms: {
+            only: ['environment-documentation-u'],
+          },
+        },
+      },
+      {
+        path: 'documentation/:pageId',
+        component: DocumentationEditPageComponent,
+        data: {
+          docs: {
+            page: 'management-configuration-portal-pages',
+          },
+          perms: {
+            only: ['environment-documentation-u'],
+          },
+        },
+      },
+      {
+        path: 'documentation',
+        component: DocumentationManagementComponent,
+        data: {
+          docs: {
+            page: 'management-configuration-portal-pages',
+          },
+          perms: {
+            only: ['environment-documentation-c', 'environment-documentation-u', 'environment-documentation-d'],
+            unauthorizedFallbackTo: 'management.settings.metadata',
           },
         },
       },

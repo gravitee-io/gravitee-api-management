@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { StateService } from '@uirouter/core';
 import angular, { IController, IScope } from 'angular';
 import * as _ from 'lodash';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -38,7 +37,6 @@ class ImportPagesComponentController implements IController {
   constructor(
     private readonly NotificationService: NotificationService,
     private readonly DocumentationService: DocumentationService,
-    private $state: StateService,
     private $scope: IPageScope,
     private ngRouter: Router,
   ) {}
@@ -87,11 +85,7 @@ class ImportPagesComponentController implements IController {
             this.NotificationService.show("'" + response.data.length + "' elements has been created.");
           }
         }
-        if (this.apiId) {
-          this.ngRouter.navigate(['..'], { relativeTo: this.activatedRoute });
-        } else {
-          this.$state.go('management.settings.documentation.list');
-        }
+        this.ngRouter.navigate(['..'], { relativeTo: this.activatedRoute });
       })
       .finally(() => {
         this.importInProgress = false;
@@ -99,14 +93,10 @@ class ImportPagesComponentController implements IController {
   }
 
   cancel() {
-    if (this.apiId) {
-      this.ngRouter.navigate(['..'], { relativeTo: this.activatedRoute });
-    } else {
-      this.$state.go('management.settings.documentation.list');
-    }
+    this.ngRouter.navigate(['..'], { relativeTo: this.activatedRoute });
   }
 }
-ImportPagesComponentController.$inject = ['NotificationService', 'DocumentationService', '$state', '$scope', 'ngRouter'];
+ImportPagesComponentController.$inject = ['NotificationService', 'DocumentationService', '$scope', 'ngRouter'];
 
 export const DocumentationImportPagesComponentAjs: ng.IComponentOptions = {
   bindings: {

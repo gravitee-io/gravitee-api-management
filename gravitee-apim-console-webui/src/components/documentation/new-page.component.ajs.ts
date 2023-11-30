@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { StateService } from '@uirouter/core';
 import { IController, IPromise, IScope } from 'angular';
 import * as _ from 'lodash';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -48,7 +47,6 @@ class NewPageComponentController implements IController {
     private readonly NotificationService: NotificationService,
     private readonly DocumentationService: DocumentationService,
     private readonly Constants,
-    private $state: StateService,
     private $scope: IPageScope,
     private readonly ngRouter: Router,
   ) {
@@ -72,7 +70,7 @@ class NewPageComponentController implements IController {
     this.pagesToLink = this.DocumentationService.buildPageList(this.pagesToLink, false, folderSituation);
 
     if (this.DocumentationService.supportedTypes(folderSituation).indexOf(this.page.type) < 0) {
-      this.$state.go('management.settings.documentation.list', { parent: this.activatedRoute.snapshot.queryParams.parent });
+      this.cancel();
     }
 
     const q = new DocumentationQuery();
@@ -171,22 +169,17 @@ class NewPageComponentController implements IController {
   }
 
   gotoParent() {
-    if (this.apiId) {
-      this.ngRouter.navigate(['..'], { queryParams: { parent: this.$state.params.parent }, relativeTo: this.activatedRoute });
-    } else {
-      this.$state.go('management.settings.documentation.list', { parent: this.$state.params.parent });
-    }
+    this.ngRouter.navigate(['..'], {
+      queryParams: { parent: this.activatedRoute.snapshot.queryParams.parent },
+      relativeTo: this.activatedRoute,
+    });
   }
 
   gotoEdit(page: any) {
-    if (this.apiId) {
-      this.ngRouter.navigate(['../', page.id], { queryParams: { type: page.type }, relativeTo: this.activatedRoute });
-    } else {
-      this.$state.go('management.settings.documentation.edit', { pageId: page.id, type: page.type });
-    }
+    this.ngRouter.navigate(['../', page.id], { queryParams: { type: page.type }, relativeTo: this.activatedRoute });
   }
 }
-NewPageComponentController.$inject = ['NotificationService', 'DocumentationService', 'Constants', '$state', '$scope', 'ngRouter'];
+NewPageComponentController.$inject = ['NotificationService', 'DocumentationService', 'Constants', '$scope', 'ngRouter'];
 
 export const DocumentationNewPageComponentAjs: ng.IComponentOptions = {
   bindings: {

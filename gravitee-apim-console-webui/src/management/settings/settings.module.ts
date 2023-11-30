@@ -31,9 +31,10 @@ import { CategoriesComponent } from '../configuration/categories/categories.comp
 import { CategoryComponent } from '../configuration/categories/category/category.component';
 import { GroupsComponent } from '../configuration/groups/groups.component';
 import { GroupComponent } from '../configuration/groups/group/group.component';
+import { DocumentationModule } from '../../components/documentation/documentation.module';
 
 @NgModule({
-  imports: [SettingsRoutingModule, RouterModule, GioSubmenuModule, GioBreadcrumbModule, CommonModule],
+  imports: [SettingsRoutingModule, RouterModule, GioSubmenuModule, GioBreadcrumbModule, CommonModule, DocumentationModule],
   declarations: [
     SettingsNavigationComponent,
     SettingsAnalyticsComponent,
