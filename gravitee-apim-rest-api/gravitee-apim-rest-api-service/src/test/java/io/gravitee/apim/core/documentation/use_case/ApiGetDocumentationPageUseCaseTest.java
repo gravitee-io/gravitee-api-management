@@ -75,7 +75,7 @@ class ApiGetDocumentationPageUseCaseTest {
 
     @Test
     void should_return_page_used_as_general_conditions() {
-        initApiServices(List.of(Api.builder().id(API_ID).definition("4.0.0").build()));
+        initApiServices(List.of(Api.builder().id(API_ID).build()));
         initPageServices(
             List.of(Page.builder().id(PAGE_ID).referenceType(Page.ReferenceType.API).referenceId(API_ID).type(Page.Type.MARKDOWN).build())
         );

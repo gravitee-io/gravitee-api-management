@@ -119,7 +119,7 @@ class ApiGetDocumentationPagesUseCaseTest {
 
         @Test
         void should_calculate_if_pages_used_as_general_conditions() {
-            initApiServices(List.of(Api.builder().id(API_ID).definition("4.0.0").build()));
+            initApiServices(List.of(Api.builder().id(API_ID).build()));
             initPageServices(
                 List.of(
                     Page

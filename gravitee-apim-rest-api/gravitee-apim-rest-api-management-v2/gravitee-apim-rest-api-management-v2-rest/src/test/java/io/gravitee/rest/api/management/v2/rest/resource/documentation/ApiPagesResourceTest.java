@@ -133,7 +133,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
         @BeforeEach
         void setUp() {
-            apiCrudServiceInMemory.initWith(List.of(Api.builder().id("api-id").definition("4.0.0").build()));
+            apiCrudServiceInMemory.initWith(List.of(Api.builder().id("api-id").build()));
         }
 
         @Test
