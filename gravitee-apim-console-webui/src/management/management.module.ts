@@ -40,9 +40,6 @@ import { InstanceDetailsEnvironmentComponent } from './instances/instance-detail
 import { InstanceDetailsMonitoringComponent } from './instances/instance-details/instance-details-monitoring/instance-details-monitoring.component';
 import { EnvAuditComponent } from './audit/env-audit.component';
 import { MessagesComponent } from './messages/messages.component';
-import { AnalyticsDashboardComponent } from './analytics/analytics-dashboard/analytics-dashboard.component';
-import { PlatformLogsComponent } from './analytics/logs/platform-logs.component';
-import { PlatformLogComponent } from './analytics/logs/platform-log.component';
 
 import { GioPermissionModule } from '../shared/components/gio-permission/gio-permission.module';
 import { NotificationsModule } from '../components/notifications/notifications.module';
@@ -158,6 +155,11 @@ const managementRoutes: Routes = [
               useAngularMaterial: true,
             },
           },
+          {
+            path: '',
+            pathMatch: 'full',
+            redirectTo: 'environment',
+          },
         ],
       },
       {
@@ -186,38 +188,11 @@ const managementRoutes: Routes = [
         },
       },
       {
-        path: 'analytics/dashboard',
-        component: AnalyticsDashboardComponent,
+        path: 'analytics',
+        loadChildren: () => import('./analytics/env-analytics.module').then((m) => m.EnvAnalyticsModule),
         data: {
           perms: {
             only: ['environment-platform-r'],
-          },
-          docs: {
-            page: 'management-dashboard-analytics',
-          },
-        },
-      },
-      {
-        path: 'analytics/logs',
-        component: PlatformLogsComponent,
-        data: {
-          perms: {
-            only: ['environment-platform-r'],
-          },
-          docs: {
-            page: 'management-api-logs',
-          },
-        },
-      },
-      {
-        path: 'analytics/logs/:logId',
-        component: PlatformLogComponent,
-        data: {
-          perms: {
-            only: ['environment-platform-r'],
-          },
-          docs: {
-            page: 'management-api-log',
           },
         },
       },
@@ -264,16 +239,7 @@ const managementRoutes: Routes = [
     GioTopNavModule,
     RouterModule.forChild(managementRoutes),
   ],
-  declarations: [
-    ManagementComponent,
-    ContextualDocComponentComponent,
-    TicketComponent,
-    TicketDetailComponent,
-    TicketsListComponent,
-    AnalyticsDashboardComponent,
-    PlatformLogsComponent,
-    PlatformLogComponent,
-  ],
+  declarations: [ManagementComponent, ContextualDocComponentComponent, TicketComponent, TicketDetailComponent, TicketsListComponent],
   exports: [RouterModule],
 })
 export class ManagementModule {}
