@@ -15,11 +15,6 @@
  */
 import { Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import '@gravitee/ui-components/wc/gv-chart-line';
-import '@gravitee/ui-components/wc/gv-chart-pie';
-import '@gravitee/ui-components/wc/gv-chart-map';
-import '@gravitee/ui-components/wc/gv-stats';
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { TranslateService } from '@ngx-translate/core';
 
 import { GvAnalyticsFiltersComponent } from '../../../components/gv-analytics-filters/gv-analytics-filters.component';
@@ -28,7 +23,10 @@ import { AnalyticsService } from '../../../services/analytics.service';
 import { ScrollService } from '../../../services/scroll.service';
 import { SearchQueryParam } from '../../../utils/search-query-param.enum';
 import { ConfigurationService } from '../../../services/configuration.service';
-
+import '@gravitee/ui-components/wc/gv-chart-line';
+import '@gravitee/ui-components/wc/gv-chart-pie';
+import '@gravitee/ui-components/wc/gv-chart-map';
+import '@gravitee/ui-components/wc/gv-stats';
 @Component({
   selector: 'app-application-logs',
   templateUrl: './application-logs.component.html',
@@ -96,32 +94,32 @@ export class ApplicationLogsComponent implements OnInit, OnDestroy {
       this.options = {
         selectable: true,
         data: [
-          { field: 'timestamp', type: 'datetime', label: i18n('application.logs.date'), style: 'color: #40A9FF', width: '200px' },
+          { field: 'timestamp', type: 'datetime', label: 'application.logs.date', style: 'color: #40A9FF', width: '200px' },
           {
             tag: 'status',
-            label: i18n('application.logs.status'),
+            label: 'application.logs.status',
             style: ({ status }) => {
               const color = this.getStatusColor(status);
               return `--gv-tag--bdc: ${color}; --gv-tag--c: ${color};`;
             },
           },
-          { field: 'api', label: i18n('application.logs.api'), format: item => metadata[item].name },
-          { field: 'plan', label: i18n('application.logs.plan'), format: item => metadata[item].name },
+          { field: 'api', label: 'application.logs.api', format: item => metadata[item].name },
+          { field: 'plan', label: 'application.logs.plan', format: item => metadata[item].name },
           {
             field: 'method',
-            label: i18n('application.logs.method'),
+            label: 'application.logs.method',
             format: item => item.toUpperCase(),
             style: ({ method }) => 'color:' + this.getMethodColor(method),
           },
           {
             field: 'path',
-            label: i18n('application.logs.path'),
+            label: 'application.logs.path',
             width: '350px',
             style: () => '--gv-table-cell--d: block; height: auto; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;',
           },
           {
             field: 'responseTime',
-            label: i18n('application.logs.responseTime'),
+            label: 'application.logs.responseTime',
             headerStyle: () => 'justify-content: flex-end',
             format: item => item + ' ms',
             style: () => 'text-align: right',

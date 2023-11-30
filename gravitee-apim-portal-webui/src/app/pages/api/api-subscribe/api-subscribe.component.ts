@@ -14,13 +14,6 @@
  * limitations under the License.
  */
 import { Component, HostListener, OnInit } from '@angular/core';
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
-import '@gravitee/ui-components/wc/gv-stepper';
-import '@gravitee/ui-components/wc/gv-plans';
-import '@gravitee/ui-components/wc/gv-option';
-import '@gravitee/ui-components/wc/gv-code';
-import '@gravitee/ui-components/wc/gv-list';
-import '@gravitee/ui-components/wc/gv-schema-form-group';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
@@ -47,7 +40,12 @@ import {
   SubscriptionService,
   SubscriptionsResponse,
 } from '../../../../../projects/portal-webclient-sdk/src/lib';
-
+import '@gravitee/ui-components/wc/gv-stepper';
+import '@gravitee/ui-components/wc/gv-plans';
+import '@gravitee/ui-components/wc/gv-option';
+import '@gravitee/ui-components/wc/gv-code';
+import '@gravitee/ui-components/wc/gv-list';
+import '@gravitee/ui-components/wc/gv-schema-form-group';
 const StatusEnum = Subscription.StatusEnum;
 const SecurityEnum = Plan.SecurityEnum;
 
@@ -139,7 +137,7 @@ export class ApiSubscribeComponent implements OnInit {
       general_conditions_content_revision: new FormControl(null),
     });
     this.translateService
-      .get([i18n('apiSubscribe.apps.comment'), i18n('apiSubscribe.plan'), i18n('apiSubscribe.apps.missingClientId')])
+      .get(['apiSubscribe.apps.comment', 'apiSubscribe.plan', 'apiSubscribe.apps.missingClientId'])
       .toPromise()
       .then(_translations => {
         const translations = Object.values(_translations);
@@ -155,12 +153,7 @@ export class ApiSubscribeComponent implements OnInit {
 
     if (this.canConfigureSharedApiKey()) {
       this.translateService
-        .get([
-          i18n('apiKeyMode.exclusive.title'),
-          i18n('apiKeyMode.exclusive.description'),
-          i18n('apiKeyMode.shared.title'),
-          i18n('apiKeyMode.shared.description'),
-        ])
+        .get(['apiKeyMode.exclusive.title', 'apiKeyMode.exclusive.description', 'apiKeyMode.shared.title', 'apiKeyMode.shared.description'])
         .toPromise()
         .then(_translations => {
           const translations: string[] = Object.values(_translations);
@@ -266,13 +259,9 @@ export class ApiSubscribeComponent implements OnInit {
       })
       .catch(() => (this.connectedApps = []));
 
-    const stepsTitle: any[] = [
-      i18n('apiSubscribe.choosePlan.title'),
-      i18n('apiSubscribe.chooseApp.title'),
-      i18n('apiSubscribe.validate.title'),
-    ];
+    const stepsTitle: any[] = ['apiSubscribe.choosePlan.title', 'apiSubscribe.chooseApp.title', 'apiSubscribe.validate.title'];
     if (this.canConfigureSharedApiKey()) {
-      stepsTitle.splice(2, 0, i18n('apiSubscribe.chooseKeyMode.title'));
+      stepsTitle.splice(2, 0, 'apiSubscribe.chooseKeyMode.title');
     }
 
     this._allSteps = await Promise.all(

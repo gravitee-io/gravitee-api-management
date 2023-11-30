@@ -21,7 +21,6 @@ import '@gravitee/ui-components/wc/gv-confirm';
 import '@gravitee/ui-components/wc/gv-file-upload';
 import { getPictureDisplayName } from '@gravitee/ui-components/src/lib/item';
 import { ActivatedRoute, Router } from '@angular/router';
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { TranslateService } from '@ngx-translate/core';
 import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 
@@ -242,7 +241,7 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
       .then(application => {
         this.application = application;
         this.reset();
-        this.notificationService.success(i18n('application.success.save'));
+        this.notificationService.success('application.success.save');
         this.eventService.dispatch(new GvEvent(GvHeaderItemComponent.RELOAD_EVENT));
       })
       .finally(() => (this.isSaving = false));
@@ -259,7 +258,7 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
       .toPromise()
       .then(() => {
         this.router.navigate(['applications']);
-        this.notificationService.success(i18n('application.success.delete'));
+        this.notificationService.success('application.success.delete');
       })
       .finally(() => (this.isDeleting = false));
   }
@@ -272,7 +271,7 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
       .then(application => {
         this.application = application;
         this.reset();
-        this.notificationService.success(i18n('application.success.renewSecret'));
+        this.notificationService.success('application.success.renewSecret');
       })
       .finally(() => (this.isRenewing = false));
   }
