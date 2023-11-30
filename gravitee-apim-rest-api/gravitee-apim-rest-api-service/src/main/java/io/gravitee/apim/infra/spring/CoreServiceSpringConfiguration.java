@@ -15,7 +15,6 @@
  */
 package io.gravitee.apim.infra.spring;
 
-import io.gravitee.apim.core.api.domain_service.ApiDefinitionParserDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiHostValidatorDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
@@ -118,15 +117,9 @@ public class CoreServiceSpringConfiguration {
     public VerifyApiPathDomainService verifyApiPathDomainService(
         ApiQueryService apiSearchService,
         InstallationAccessQueryService installationAccessQueryService,
-        ApiDefinitionParserDomainService apiDefinitionParserDomainService,
         ApiHostValidatorDomainService apiHostValidatorDomainService
     ) {
-        return new VerifyApiPathDomainService(
-            apiSearchService,
-            installationAccessQueryService,
-            apiDefinitionParserDomainService,
-            apiHostValidatorDomainService
-        );
+        return new VerifyApiPathDomainService(apiSearchService, installationAccessQueryService, apiHostValidatorDomainService);
     }
 
     @Bean

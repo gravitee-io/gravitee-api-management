@@ -21,14 +21,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-import io.gravitee.apim.core.api.domain_service.ApiDefinitionParserDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiHostValidatorDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.exception.InvalidPathsException;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
-import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.ConnectorFeature;
@@ -48,13 +48,20 @@ import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
-import io.gravitee.rest.api.service.v4.exception.*;
+import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointDuplicatedException;
+import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointInvalidDlqException;
+import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointMissingException;
+import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointMissingTypeException;
+import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointUnsupportedDlqException;
+import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointUnsupportedListenerTypeException;
+import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointUnsupportedQosException;
+import io.gravitee.rest.api.service.v4.exception.ListenersDuplicatedException;
+import io.gravitee.rest.api.service.v4.exception.TcpListenerInvalidHostsConfigurationException;
 import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -94,9 +101,6 @@ class ListenerValidationServiceImplTest {
     @Mock
     ApiHostValidatorDomainService apiHostValidatorDomainService;
 
-    @Mock
-    ApiDefinitionParserDomainService apiDefinitionParserDomainService;
-
     @BeforeEach
     void setUp() throws Exception {
         lenient().when(installationAccessQueryService.getGatewayRestrictedDomains(any())).thenReturn(List.of());
@@ -105,12 +109,7 @@ class ListenerValidationServiceImplTest {
             .thenAnswer(invocation -> invocation.getArgument(1));
         listenerValidationService =
             new ListenerValidationServiceImpl(
-                new VerifyApiPathDomainService(
-                    apiQueryService,
-                    installationAccessQueryService,
-                    apiDefinitionParserDomainService,
-                    apiHostValidatorDomainService
-                ),
+                new VerifyApiPathDomainService(apiQueryService, installationAccessQueryService, apiHostValidatorDomainService),
                 entrypointService,
                 endpointService,
                 corsValidationService
