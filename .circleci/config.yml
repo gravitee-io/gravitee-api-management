@@ -2118,6 +2118,7 @@ workflows:
                   name: Build APIM Portal and publish image
                   apim-ui-project: gravitee-apim-portal-webui
                   docker-image-name: apim-portal-ui
+                  executor-name: node-18
                   requires:
                       - Setup
             - job-webui-publish-artifactory:
@@ -2235,6 +2236,7 @@ workflows:
                   name: Build APIM Portal and publish image
                   apim-ui-project: gravitee-apim-portal-webui
                   docker-image-name: apim-portal-ui
+                  executor-name: node-18
                   requires:
                       - Setup
             - job-webui-publish-artifactory:
@@ -2430,6 +2432,7 @@ workflows:
                   context: cicd-orchestrator
                   apim-ui-project: gravitee-apim-portal-webui
                   docker-image-name: apim-portal-ui
+                  executor-name: node-18
                   requires:
                       - Setup
             - job-publish-pr-env-urls:
