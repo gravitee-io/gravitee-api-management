@@ -122,7 +122,10 @@
         ]
       },
       "flows": [],
-      "comment_required": false
+      "comment_required": false,
+      "excluded_groups": [
+        "My Group"
+      ]
     }
   ],
   "id": "id-api",

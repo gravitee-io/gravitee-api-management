@@ -283,6 +283,7 @@ public class ApiExportService_ExportAsJsonTestSetup {
         publishedPlan.setSecurity(PlanSecurityType.API_KEY);
         publishedPlan.setValidation(PlanValidationType.AUTO);
         publishedPlan.setStatus(PlanStatus.PUBLISHED);
+        publishedPlan.setExcludedGroups(List.of("my-group"));
         Map<String, List<Rule>> paths = new HashMap<>();
         io.gravitee.definition.model.Rule rule = new io.gravitee.definition.model.Rule();
         rule.setEnabled(true);
