@@ -65,6 +65,10 @@ export class WebuiLintTestJob {
       new commands.StoreArtifacts({
         path: '<< parameters.apim-ui-project >>/coverage/lcov.info',
       }),
+      // For Test tab in CircleCI UI
+      new commands.StoreTestResults({
+        path: '<< parameters.apim-ui-project >>/coverage/junit.xml',
+      }),
     ];
 
     return new reusable.ParameterizedJob(
