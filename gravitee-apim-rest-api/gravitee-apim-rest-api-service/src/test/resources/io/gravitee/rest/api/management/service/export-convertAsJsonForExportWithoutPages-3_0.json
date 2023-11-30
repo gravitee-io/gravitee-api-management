@@ -5,12 +5,12 @@
   "execution_mode": "v3",
   "resources": [],
   "properties": [],
-  "flow_mode": "DEFAULT",
   "primaryOwner": {
     "id": "johndoe",
     "displayName": "johndoe-sourceId",
     "type": "USER"
   },
+  "flow_mode": "DEFAULT",
   "groups": [
     "My Group"
   ],
@@ -21,86 +21,6 @@
       "roles": [
         "API_PRIMARY_OWNER"
       ]
-    }
-  ],
-  "pages" : [
-    {
-      "name" : "My Folder",
-      "type" : "FOLDER",
-      "order" : 1,
-      "visibility": "PUBLIC",
-      "published" : false,
-      "homepage" : false,
-      "excludedAccessControls": false
-    },
-    {
-      "name" : "My Title",
-      "type" : "MARKDOWN",
-      "content" : "Read the doc",
-      "order" : 1,
-      "visibility": "PUBLIC",
-      "published" : false,
-      "homepage" : false,
-      "excludedAccessControls": false
-    },
-    {
-      "name" : "My Swagger",
-      "type" : "SWAGGER",
-      "content" : "Read the doc",
-      "order" : 1,
-      "visibility": "PUBLIC",
-      "published" : false,
-      "homepage" : false,
-      "excludedAccessControls": false
-    },
-    {
-      "name": "Aside",
-      "type": "SYSTEM_FOLDER",
-      "order": 1,
-      "visibility": "PUBLIC",
-      "published": true,
-      "homepage": false,
-      "excludedAccessControls": false
-    },
-    {
-      "name": "My Link",
-      "type": "LINK",
-      "content" : "Read the doc",
-      "order": 1,
-      "visibility": "PUBLIC",
-      "published": false,
-      "homepage": false,
-      "excludedAccessControls": false
-    },
-    {
-      "name": "My Translation",
-      "type": "TRANSLATION",
-      "content" : "Lire la documentation",
-      "order": 1,
-      "visibility": "PUBLIC",
-      "published": false,
-      "homepage": false,
-      "excludedAccessControls": false
-    },
-    {
-      "name": "My Template",
-      "type": "MARKDOWN_TEMPLATE",
-      "content" : "Read the doc",
-      "order": 1,
-      "visibility": "PUBLIC",
-      "published": false,
-      "homepage": false,
-      "excludedAccessControls": false
-    },
-    {
-      "name": "My asciidoc",
-      "type": "ASCIIDOC",
-      "content" : "Read the asciidoc",
-      "order": 1,
-      "visibility": "PUBLIC",
-      "published": false,
-      "homepage": false,
-      "excludedAccessControls": false
     }
   ],
   "plans": [
@@ -148,7 +68,6 @@
       "apiId": "id-api"
     }
   ],
-  "id": "id-api",
   "path_mappings": [],
   "proxy": {
     "virtual_hosts": [
