@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { duration } from 'moment/moment';
 import { isNil, isNumber, round } from 'lodash';
 import { delay, mergeMap, repeat, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { of, Subject } from 'rxjs';
+import { ActivatedRoute } from '@angular/router';
 
-import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { MonitoringData } from '../../../../entities/instance/monitoringData';
 import { Instance } from '../../../../entities/instance/instance';
 import { InstanceService } from '../../../../services-ngx/instance.service';
@@ -38,11 +38,11 @@ export class InstanceDetailsMonitoringComponent implements OnInit, OnDestroy {
   private monitoringPolling;
   private unsubscribe$ = new Subject<void>();
 
-  constructor(@Inject(UIRouterStateParams) private readonly ajsStateParams, private readonly instanceService: InstanceService) {}
+  constructor(private readonly activatedRoute: ActivatedRoute, private readonly instanceService: InstanceService) {}
 
   ngOnInit(): void {
     this.instanceService
-      .get(this.ajsStateParams.instanceId)
+      .get(this.activatedRoute.snapshot.params.instanceId)
       .pipe(
         tap((instance) => {
           this.instance = instance;
@@ -53,7 +53,7 @@ export class InstanceDetailsMonitoringComponent implements OnInit, OnDestroy {
             return of();
           }
           return of({}).pipe(
-            mergeMap((_) => this.instanceService.getMonitoringData(this.ajsStateParams.instanceId, this.instance.id)),
+            mergeMap((_) => this.instanceService.getMonitoringData(this.activatedRoute.snapshot.params.instanceId, this.instance.id)),
             tap((monitoringData) => (this.monitoringData = monitoringData)),
             delay(5000),
             repeat(),

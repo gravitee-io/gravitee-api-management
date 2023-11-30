@@ -30,8 +30,10 @@
     <a
       mat-tab-link
       *ngFor="let menuItem of this.tabMenuItems"
-      (click)="navigateTo(menuItem.targetRoute)"
-      [active]="isActive(menuItem.baseRoute)"
+      [routerLink]="menuItem.routerLink"
+      routerLinkActive
+      #rla="routerLinkActive"
+      [active]="rla.isActive"
       [attr.data-testid]="menuItem.testId"
       class="gio-instance-details-header__navigation-tabs__link"
       >{{ menuItem.displayName }}</a
