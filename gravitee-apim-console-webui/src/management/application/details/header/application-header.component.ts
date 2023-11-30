@@ -17,11 +17,6 @@ const ApplicationHeaderComponent: ng.IComponentOptions = {
   bindings: {
     application: '<',
   },
-  controller: function () {
-    this.$onInit = function () {
-      this.hideSubscribeLink = this.application.status === 'ARCHIVED';
-    };
-  },
   template: require('./application-header.html'),
 };
 
