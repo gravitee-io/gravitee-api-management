@@ -46,7 +46,6 @@ import { PlatformLogComponent } from './analytics/logs/platform-log.component';
 
 import { GioPermissionModule } from '../shared/components/gio-permission/gio-permission.module';
 import { NotificationsModule } from '../components/notifications/notifications.module';
-import { AlertsModule } from '../components/alerts/alerts.module';
 import { GioSideNavModule } from '../components/gio-side-nav/gio-side-nav.module';
 import { GioTopNavModule } from '../components/gio-top-nav/gio-top-nav.module';
 import { ContextualDocComponentComponent } from '../components/contextual/contextual-doc.component';
@@ -222,6 +221,19 @@ const managementRoutes: Routes = [
           },
         },
       },
+      {
+        path: 'alerts',
+        loadChildren: () => import('./alerts/env-alerts.module').then((m) => m.EnvAlertModule),
+        data: {
+          requireLicense: {
+            license: { feature: ApimFeature.ALERT_ENGINE },
+            redirect: '/',
+          },
+          perms: {
+            only: ['environment-alert-r'],
+          },
+        },
+      },
 
       { path: '', pathMatch: 'full', redirectTo: 'home' },
     ],
@@ -246,7 +258,6 @@ const managementRoutes: Routes = [
     ClientRegistrationProvidersModule,
     ApiLoggingModule,
     NotificationsModule,
-    AlertsModule,
     EnvironmentNotificationSettingsModule,
     EnvironmentMetadataModule,
     GioSideNavModule,

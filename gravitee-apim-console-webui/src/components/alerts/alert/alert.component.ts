@@ -53,12 +53,20 @@ export class AlertComponent extends UpgradeComponent {
     const apiId = this.activatedRoute.snapshot.params.apiId;
     const alertId = this.activatedRoute.snapshot.params.alertId;
 
+    const statusPromise = apiId
+      ? this.ajsAlertService.getStatus(AlertScope.API, apiId).then((response) => response.data)
+      : this.ajsAlertService.getStatus(AlertScope.ENVIRONMENT).then((response) => response.data);
+
+    const alertsPromise = apiId
+      ? this.ajsAlertService.listAlerts(AlertScope.API, true, apiId).then((response) => response.data)
+      : this.ajsAlertService.listAlerts(AlertScope.ENVIRONMENT, true).then((response) => response.data);
+
     Promise.all([
-      this.ajsAlertService.getStatus(AlertScope.API, apiId).then((response) => response.data),
+      statusPromise,
       this.ajsNotifierService.list().then((response) => response.data),
-      this.ajsAlertService.listAlerts(AlertScope.API, true, apiId).then((response) => response.data),
+      alertsPromise,
       Promise.resolve(alertId ? 'detail' : 'create'),
-      this.apiService.get(apiId).toPromise(),
+      apiId ? this.apiService.get(apiId).toPromise() : Promise.resolve(null),
     ]).then(([status, notifiers, alerts, mode, resolvedApi]) => {
       // Hack to Force the binding between Angular and AngularJS
       this.ngOnChanges({

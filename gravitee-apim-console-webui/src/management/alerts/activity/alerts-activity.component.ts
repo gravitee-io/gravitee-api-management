@@ -13,14 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-class AlertsActivityController {
-  private hasConfiguredAlerts: boolean;
-  private hasAlertingPlugin: boolean;
+import { Component, ElementRef, Injector } from '@angular/core';
+import { UpgradeComponent } from '@angular/upgrade/static';
 
-  constructor(private configuredAlerts, private alertingStatus) {
-    this.hasConfiguredAlerts = configuredAlerts?.length > 0;
-    this.hasAlertingPlugin = alertingStatus?.available_plugins > 0;
+@Component({
+  template: '',
+  selector: 'platform-log',
+  host: {
+    class: 'bootstrap gv-sub-content',
+  },
+})
+export class AlertsActivityComponent extends UpgradeComponent {
+  constructor(elementRef: ElementRef, injector: Injector) {
+    super('alertsActivityComponentAjs', elementRef, injector);
   }
 }
-AlertsActivityController.$inject = ['configuredAlerts', 'alertingStatus'];
-export default AlertsActivityController;
