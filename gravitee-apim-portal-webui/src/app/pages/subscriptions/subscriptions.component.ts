@@ -16,7 +16,6 @@
 import { ChangeDetectorRef, Component, HostListener, NgZone, OnDestroy, OnInit } from '@angular/core';
 import '@gravitee/ui-components/wc/gv-table';
 import { TranslateService } from '@ngx-translate/core';
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { ActivatedRoute, Router } from '@angular/router';
 import { getApplicationTypeIcon } from '@gravitee/ui-components/src/lib/theme';
 import { getPictureDisplayName } from '@gravitee/ui-components/src/lib/item';
@@ -90,8 +89,8 @@ export class SubscriptionsComponent implements OnInit, OnDestroy {
     this.applications = [];
     this.subsByApplication = {};
     this.subs = [];
-    this.emptyKeyApplications = i18n('subscriptions.applications.init');
-    this.emptyKeySubscriptions = i18n('subscriptions.subscriptions.init');
+    this.emptyKeyApplications = 'subscriptions.applications.init';
+    this.emptyKeySubscriptions = 'subscriptions.subscriptions.init';
     this.apikeyHeader = this.configurationService.get('portal.apikeyHeader');
     this.options = {
       selectable: true,
@@ -108,16 +107,16 @@ export class SubscriptionsComponent implements OnInit, OnDestroy {
         },
         {
           field: 'name',
-          label: i18n('subscriptions.applications.name'),
+          label: 'subscriptions.applications.name',
         },
-        { field: 'owner.display_name', label: i18n('subscriptions.applications.owner') },
+        { field: 'owner.display_name', label: 'subscriptions.applications.owner' },
         {
           type: 'gv-button',
           width: '30px',
           attributes: {
             link: true,
             href: item => `/applications/${item.id}`,
-            title: i18n('subscriptions.applications.navigate'),
+            title: 'subscriptions.applications.navigate',
             icon: 'communication:share',
             onClick: item => this.goToApplication(item.id),
           },
@@ -141,18 +140,18 @@ export class SubscriptionsComponent implements OnInit, OnDestroy {
         {
           field: item => this.subscriptionsMetadata[item.subscription.api].name,
           tag: item => this.subscriptionsMetadata[item.subscription.api] && this.subscriptionsMetadata[item.subscription.api].version,
-          label: i18n('subscriptions.subscriptions.api'),
+          label: 'subscriptions.subscriptions.api',
         },
-        { field: 'plan.name', label: i18n('subscriptions.subscriptions.plan') },
-        { field: 'subscription.start_at', type: 'date', label: i18n('subscriptions.subscriptions.start_date') },
-        { field: 'subscription.end_at', type: 'date', label: i18n('subscriptions.subscriptions.end_date') },
+        { field: 'plan.name', label: 'subscriptions.subscriptions.plan' },
+        { field: 'subscription.start_at', type: 'date', label: 'subscriptions.subscriptions.start_date' },
+        { field: 'subscription.end_at', type: 'date', label: 'subscriptions.subscriptions.end_date' },
         {
           type: 'gv-button',
           width: '25px',
           attributes: {
             link: true,
             href: item => `/applications/${this.selectedApplicationId}/subscriptions?subscription=${item.subscription.id}`,
-            title: i18n('subscriptions.subscriptions.navigate'),
+            title: 'subscriptions.subscriptions.navigate',
             icon: 'communication:share',
             onClick: item => this.goToSubscription(item.subscription.id),
           },
@@ -249,7 +248,7 @@ export class SubscriptionsComponent implements OnInit, OnDestroy {
   }
 
   onFocusOut() {
-    this.emptyKeySubscriptions = i18n('subscriptions.subscriptions.init');
+    this.emptyKeySubscriptions = 'subscriptions.subscriptions.init';
     this.subs = [];
   }
 
@@ -282,7 +281,7 @@ export class SubscriptionsComponent implements OnInit, OnDestroy {
       this.subs = [];
     }
     if (!this.subs || !this.subs.length) {
-      this.emptyKeySubscriptions = i18n('subscriptions.subscriptions.empty');
+      this.emptyKeySubscriptions = 'subscriptions.subscriptions.empty';
     }
   }
 

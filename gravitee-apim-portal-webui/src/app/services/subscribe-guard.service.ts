@@ -15,7 +15,6 @@
  */
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, Router, RouterStateSnapshot } from '@angular/router';
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 
 import { CurrentUserService } from './current-user.service';
 import { NotificationService } from './notification.service';
@@ -32,7 +31,7 @@ export class SubscribeGuardService {
       const redirectUrl = state.url;
       this.router
         .navigate(['/user/login'], { replaceUrl: true, queryParams: { redirectUrl } })
-        .then(() => this.notificationService.warning(i18n('apiSubscribe.errors.notConnected')));
+        .then(() => this.notificationService.warning('apiSubscribe.errors.notConnected'));
       return false;
     }
     return true;

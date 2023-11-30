@@ -19,7 +19,6 @@ import '@gravitee/ui-components/wc/gv-table';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 
 import { ScrollService } from '../../services/scroll.service';
 import { ConfigurationService } from '../../services/configuration.service';
@@ -174,13 +173,13 @@ export class TicketsHistoryComponent implements OnInit, OnDestroy {
 
   private initTableOptions() {
     const data: any[] = [
-      { field: 'created_at', type: 'datetime', label: i18n('tickets.date'), width: '200px' },
-      { field: 'application', label: i18n('tickets.application') },
-      { field: 'subject', label: i18n('tickets.subject') },
+      { field: 'created_at', type: 'datetime', label: 'tickets.date', width: '200px' },
+      { field: 'application', label: 'tickets.application' },
+      { field: 'subject', label: 'tickets.subject' },
     ];
 
     if (!this.api) {
-      data.splice(1, 0, { field: 'api', label: i18n('tickets.api') });
+      data.splice(1, 0, { field: 'api', label: 'tickets.api' });
     }
 
     this.options = {

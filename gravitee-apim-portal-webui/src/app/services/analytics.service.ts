@@ -15,7 +15,6 @@
  */
 import { Injectable } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { ActivatedRoute } from '@angular/router';
 
 import { SearchQueryParam } from '../utils/search-query-param.enum';
@@ -105,11 +104,11 @@ export class AnalyticsService {
   constructor(private translateService: TranslateService, private route: ActivatedRoute) {
     translateService
       .get([
-        i18n('analytics.timeframes.minutes'),
-        i18n('analytics.timeframes.hour'),
-        i18n('analytics.timeframes.hours'),
-        i18n('analytics.timeframes.day'),
-        i18n('analytics.timeframes.days'),
+        'analytics.timeframes.minutes',
+        'analytics.timeframes.hour',
+        'analytics.timeframes.hours',
+        'analytics.timeframes.day',
+        'analytics.timeframes.days',
       ])
       .toPromise()
       .then(translatedTimeframes => {

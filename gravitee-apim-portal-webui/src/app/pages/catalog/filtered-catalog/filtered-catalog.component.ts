@@ -14,13 +14,6 @@
  * limitations under the License.
  */
 import { Component, HostListener, OnInit } from '@angular/core';
-import '@gravitee/ui-components/wc/gv-promote';
-import '@gravitee/ui-components/wc/gv-card-list';
-import '@gravitee/ui-components/wc/gv-card-full';
-import '@gravitee/ui-components/wc/gv-card';
-import '@gravitee/ui-components/wc/gv-select';
-import '@gravitee/ui-components/wc/gv-option';
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 
@@ -39,6 +32,12 @@ import { ApiLabelsPipe } from '../../../pipes/api-labels.pipe';
 import { ConfigurationService } from '../../../services/configuration.service';
 import { FeatureEnum } from '../../../model/feature.enum';
 import { createPromiseList } from '../../../utils/utils';
+import '@gravitee/ui-components/wc/gv-promote';
+import '@gravitee/ui-components/wc/gv-card-list';
+import '@gravitee/ui-components/wc/gv-card-full';
+import '@gravitee/ui-components/wc/gv-card';
+import '@gravitee/ui-components/wc/gv-select';
+import '@gravitee/ui-components/wc/gv-option';
 
 @Component({
   selector: 'app-all',
@@ -91,7 +90,7 @@ export class FilteredCatalogComponent implements OnInit {
   ngOnInit() {
     this.emptyIcon = this.activatedRoute.snapshot.data.icon || 'general:sad';
     this.translateService
-      .get(i18n('catalog.defaultCategory'))
+      .get('catalog.defaultCategory')
       .toPromise()
       .then(
         label =>
@@ -144,9 +143,9 @@ export class FilteredCatalogComponent implements OnInit {
       {
         id: FilteredCatalogComponent.DEFAULT_DISPLAY,
         icon: 'layout:layout-4-blocks',
-        title: i18n('catalog.display.cards'),
+        title: 'catalog.display.cards',
       },
-      { id: 'list', icon: 'layout:layout-horizontal', title: i18n('catalog.display.list') },
+      { id: 'list', icon: 'layout:layout-horizontal', title: 'catalog.display.list' },
     ].map(option => {
       this.translateService.get(option.title).subscribe(title => (option.title = title));
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -379,7 +378,7 @@ export class FilteredCatalogComponent implements OnInit {
   async updateEmptyState(data = []) {
     const isEmpty = data.filter(Boolean).length === 0;
     if (isEmpty) {
-      const key = this.inCategory() ? i18n('catalog.categories.emptyMessage') : `catalog.${this.filterApiQuery}.emptyMessage`;
+      const key = this.inCategory() ? 'catalog.categories.emptyMessage' : `catalog.${this.filterApiQuery}.emptyMessage`;
       this.emptyMessage = await this.translateService.get(key).toPromise();
       this.empty = true;
     } else {

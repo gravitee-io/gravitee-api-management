@@ -16,7 +16,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import '@gravitee/ui-components/wc/gv-file-upload';
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 
 import { AppComponent } from '../../../app.component';
 import { CurrentUserService } from '../../../services/current-user.service';
@@ -189,7 +188,7 @@ export class UserAccountComponent implements OnInit, OnDestroy {
       .toPromise()
       .then(user => {
         this.currentUserService.set(user);
-        this.notificationService.success(i18n('user.account.success'));
+        this.notificationService.success('user.account.success');
       })
       .finally(() => (this.isSaving = false));
   }
