@@ -92,6 +92,7 @@
     "jest-junit": "16.0.0",
     "license-check-and-add": "4.0.3",
     "ng-packagr": "^15.2.2",
+    "path": "^0.12.7",
     "prettier": "2.8.4",
     "ts-node": "8.10.2",
     "typescript": "4.8.4"
