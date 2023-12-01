@@ -15,8 +15,7 @@
  */
 import { Component, Input } from '@angular/core';
 
-import { MenuItem } from '../application-navigation.component';
-import { MenuItemHeader } from '../../../api/api-navigation/MenuGroupItem';
+import { MenuItem, MenuItemHeader } from '../application-navigation.component';
 
 @Component({
   selector: 'application-navigation-tabs',

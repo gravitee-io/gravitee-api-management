@@ -21,19 +21,21 @@ import { castArray, flatMap } from 'lodash';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
-import { MenuItemHeader } from '../../api/api-navigation/MenuGroupItem';
 import { Application } from '../../../entities/application/application';
 import { ApplicationService } from '../../../services-ngx/application.service';
 
 export interface MenuItem {
-  targetRoute?: string;
-  baseRoute?: string | string[];
   displayName: string;
   permissions?: string[];
   tabs?: MenuItem[];
   header?: MenuItemHeader;
   routerLink?: string;
   routerLinkActiveOptions?: { exact: boolean };
+}
+
+export interface MenuItemHeader {
+  title?: string;
+  subtitle?: string;
 }
 
 @Component({
@@ -71,8 +73,6 @@ export class ApplicationNavigationComponent implements OnInit, OnDestroy {
       {
         displayName: 'Global settings',
         routerLink: 'general',
-        targetRoute: 'management.applications.application.general',
-        baseRoute: 'management.applications.application.general',
         permissions: ['application-definition-r'],
       },
       // {
@@ -99,46 +99,31 @@ export class ApplicationNavigationComponent implements OnInit, OnDestroy {
       {
         displayName: 'Metadata',
         routerLink: 'metadata',
-        targetRoute: 'management.applications.application.metadata',
-        baseRoute: 'management.applications.application.metadata',
         permissions: ['application-metadata-r'],
       },
       {
         displayName: 'Subscriptions',
         routerLink: 'subscriptions',
-        targetRoute: 'management.applications.application.subscriptions.list',
-        baseRoute: 'management.applications.application.subscriptions',
         permissions: ['application-subscription-r'],
       },
       {
         displayName: 'Members',
         routerLink: 'members',
-        targetRoute: 'management.applications.application.members',
-        baseRoute: 'management.applications.application.members',
         permissions: ['application-member-r'],
       },
       {
         displayName: 'Analytics',
         routerLink: 'analytics',
-        targetRoute: 'management.applications.application.analytics',
-        baseRoute: 'management.applications.application.analytics',
         permissions: ['application-analytics-r'],
       },
       {
         displayName: 'Logs',
         routerLink: 'logs',
-        targetRoute: 'management.applications.application.logs.list',
-        baseRoute: 'management.applications.application.logs',
         permissions: ['application-log-r'],
       },
       {
         displayName: 'Notification settings',
         routerLink: 'notification-settings',
-        targetRoute: 'management.applications.application.notification-settings',
-        baseRoute: [
-          'management.applications.application.notification-settings',
-          'management.applications.application.notification-settings-details',
-        ],
         permissions: ['application-notification-r', 'application-alert-r'],
       },
     ]);
@@ -162,7 +147,7 @@ export class ApplicationNavigationComponent implements OnInit, OnDestroy {
     if (!item.routerLink) {
       return false;
     }
-    return [item.routerLink, ...castArray(item.baseRoute)]
+    return [item.routerLink, ...castArray(item.routerLink)]
       .filter((r) => !!r)
       .some((routerLink) => {
         return this.router.isActive(this.router.createUrlTree([routerLink], { relativeTo: this.activatedRoute }), {
