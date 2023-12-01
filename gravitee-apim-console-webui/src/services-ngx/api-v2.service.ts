@@ -17,6 +17,7 @@ import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable, BehaviorSubject, of } from 'rxjs';
 import { filter, shareReplay, switchMap, tap } from 'rxjs/operators';
+import { IRootScopeService } from 'angular';
 
 import { Constants } from '../entities/Constants';
 import {
@@ -31,6 +32,7 @@ import {
   UpdateApi,
 } from '../entities/management-api-v2';
 import { ApiTransferOwnership } from '../entities/management-api-v2/api/apiTransferOwnership';
+import { AjsRootScope } from '../ajs-upgraded-providers';
 
 @Injectable({
   providedIn: 'root',
@@ -38,7 +40,11 @@ import { ApiTransferOwnership } from '../entities/management-api-v2/api/apiTrans
 export class ApiV2Service {
   private lastApiFetch$: BehaviorSubject<Api | null> = new BehaviorSubject<Api | null>(null);
 
-  constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
+  constructor(
+    private readonly http: HttpClient,
+    @Inject('Constants') private readonly constants: Constants,
+    @Inject(AjsRootScope) private readonly ajsRootScope: IRootScopeService,
+  ) {}
 
   create(newApi: CreateApi): Observable<Api> {
     return this.http.post<Api>(`${this.constants.env.v2BaseURL}/apis`, newApi);
@@ -56,6 +62,9 @@ export class ApiV2Service {
     return this.http.put<Api>(`${this.constants.env.v2BaseURL}/apis/${apiId}`, api).pipe(
       tap((api) => {
         this.lastApiFetch$.next(api);
+        if (api.definitionVersion !== 'V4') {
+          this.ajsRootScope.$broadcast('apiChangeSuccess', { apiId });
+        }
       }),
     );
   }

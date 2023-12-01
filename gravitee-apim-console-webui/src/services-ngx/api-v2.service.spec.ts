@@ -22,19 +22,24 @@ import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
 import {
   ApiTransferOwnership,
   DuplicateApiOptions,
+  fakeApiV2,
   fakeApiV4,
   fakeBaseApplication,
   fakeCreateApiV4,
+  fakeUpdateApiV2,
   fakeUpdateApiV4,
 } from '../entities/management-api-v2';
+import { AjsRootScope } from '../ajs-upgraded-providers';
 
 describe('ApiV2Service', () => {
   let httpTestingController: HttpTestingController;
   let apiV2Service: ApiV2Service;
+  const fakeRootScope = { $broadcast: jest.fn(), $on: jest.fn() };
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [GioHttpTestingModule],
+      providers: [{ provide: AjsRootScope, useValue: fakeRootScope }],
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);
@@ -42,6 +47,7 @@ describe('ApiV2Service', () => {
   });
 
   afterEach(() => {
+    jest.clearAllMocks();
     httpTestingController.verify();
   });
 
@@ -82,13 +88,34 @@ describe('ApiV2Service', () => {
   });
 
   describe('update', () => {
-    it('should call the API', (done) => {
+    it('should update api V2', (done) => {
+      const apiId = 'apiId';
+      const fakeApi = fakeApiV2();
+      const fakeUpdateApi = fakeUpdateApiV2();
+
+      apiV2Service.update(apiId, fakeUpdateApi).subscribe((api) => {
+        expect(api.name).toEqual(fakeApi.name);
+        expect(fakeRootScope.$broadcast).toHaveBeenCalledWith('apiChangeSuccess', { apiId: apiId });
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}`,
+        method: 'PUT',
+      });
+      expect(req.request.body).toEqual(fakeUpdateApi);
+
+      req.flush(fakeApiV2());
+    });
+
+    it('should update api V4', (done) => {
       const apiId = 'apiId';
       const fakeApi = fakeApiV4();
       const fakeUpdateApi = fakeUpdateApiV4();
 
       apiV2Service.update(apiId, fakeUpdateApi).subscribe((api) => {
         expect(api.name).toEqual(fakeApi.name);
+        expect(fakeRootScope.$broadcast).not.toHaveBeenCalled();
         done();
       });
 
