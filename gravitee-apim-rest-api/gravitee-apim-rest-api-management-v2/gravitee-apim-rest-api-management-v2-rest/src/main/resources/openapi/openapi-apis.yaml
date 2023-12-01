@@ -2959,6 +2959,8 @@ components:
                     type: array
                     items:
                         type: string
+                tls:
+                   $ref: "#/components/schemas/TlsV4"
             discriminator:
                 propertyName: type
                 mapping:
@@ -2973,6 +2975,35 @@ components:
                 - HTTP
                 - SUBSCRIPTION
                 - TCP
+        TlsV4:
+            type: object
+            description: list of TLS X509 key/pair or client certificate to deploy with the API
+            properties:
+                clientPemCertificates:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/TlsClientPemCertificateV4"
+                pemKeyPairs:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/TlsPemKeyPairV4"
+        TlsClientPemCertificateV4:
+            type: object
+            properties:
+                certificate:
+                    type: string
+            required:
+                - certificate
+        TlsPemKeyPairV4:
+            type: object
+            properties:
+                certificateChain:
+                    type: string
+                privateKey:
+                    type: string
+            required:
+                - certificateChain
+                - privateKey
         LoadBalancer:
             type: object
             properties:

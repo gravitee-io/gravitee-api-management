@@ -31,6 +31,7 @@ import io.gravitee.gateway.reactor.handler.DefaultTcpAcceptor;
 import io.gravitee.gateway.reactor.handler.TcpAcceptor;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
+import io.gravitee.node.api.server.ServerManager;
 import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import java.util.List;
@@ -71,9 +72,12 @@ class TcpApiReactorFactoryTest {
     @Mock
     RequestTimeoutConfiguration timeoutConfig;
 
+    @Mock
+    private ServerManager serverManager;
+
     @BeforeEach
     void before() {
-        cut = new TcpApiReactorFactory(configuration, node, entrypoints, endpoints, timeoutConfig);
+        cut = new TcpApiReactorFactory(configuration, node, entrypoints, endpoints, timeoutConfig, serverManager);
     }
 
     static Stream<Arguments> apis() {

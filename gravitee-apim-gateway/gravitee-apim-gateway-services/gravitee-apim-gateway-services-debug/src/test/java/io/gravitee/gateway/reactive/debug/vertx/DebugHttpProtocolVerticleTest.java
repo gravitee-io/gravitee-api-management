@@ -23,6 +23,10 @@ import static org.mockito.Mockito.*;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.reactive.reactor.HttpRequestDispatcher;
+import io.gravitee.node.api.certificate.KeyStoreLoaderOptions;
+import io.gravitee.node.api.certificate.TrustStoreLoaderOptions;
+import io.gravitee.node.certificates.DefaultKeyStoreLoaderFactoryRegistry;
+import io.gravitee.node.vertx.cert.VertxTLSOptionsRegistry;
 import io.gravitee.node.vertx.server.http.VertxHttpServer;
 import io.gravitee.node.vertx.server.http.VertxHttpServerFactory;
 import io.gravitee.node.vertx.server.http.VertxHttpServerOptions;
@@ -45,7 +49,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(VertxExtension.class)
-public class DebugHttpProtocolVerticleTest {
+class DebugHttpProtocolVerticleTest {
 
     private VertxHttpServerOptions httpOptions;
     private HttpRequestDispatcher mockRequestDispatcher;
@@ -58,8 +62,20 @@ public class DebugHttpProtocolVerticleTest {
         int randomPort = socket.getLocalPort();
         socket.close();
 
-        final VertxHttpServerFactory vertxHttpServerFactory = new VertxHttpServerFactory(io.vertx.rxjava3.core.Vertx.newInstance(vertx));
-        httpOptions = VertxHttpServerOptions.builder().id("UnitTest").port(randomPort).build();
+        final VertxHttpServerFactory vertxHttpServerFactory = new VertxHttpServerFactory(
+            io.vertx.rxjava3.core.Vertx.newInstance(vertx),
+            new VertxTLSOptionsRegistry(),
+            new DefaultKeyStoreLoaderFactoryRegistry<>(),
+            new DefaultKeyStoreLoaderFactoryRegistry<>()
+        );
+        httpOptions =
+            VertxHttpServerOptions
+                .builder()
+                .id("UnitTest")
+                .port(randomPort)
+                .keyStoreLoaderOptions(KeyStoreLoaderOptions.builder().build())
+                .trustStoreLoaderOptions(TrustStoreLoaderOptions.builder().build())
+                .build();
         vertxHttpServer = vertxHttpServerFactory.create(httpOptions);
 
         mockRequestDispatcher = spy(new DummyHttpRequestDispatcher());

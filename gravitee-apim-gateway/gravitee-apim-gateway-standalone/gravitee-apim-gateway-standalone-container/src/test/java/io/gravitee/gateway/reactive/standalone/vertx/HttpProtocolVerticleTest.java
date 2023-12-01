@@ -24,6 +24,8 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.reactive.reactor.HttpRequestDispatcher;
 import io.gravitee.node.api.server.DefaultServerManager;
 import io.gravitee.node.api.server.ServerManager;
+import io.gravitee.node.certificates.DefaultKeyStoreLoaderFactoryRegistry;
+import io.gravitee.node.vertx.cert.VertxTLSOptionsRegistry;
 import io.gravitee.node.vertx.server.http.VertxHttpServerFactory;
 import io.gravitee.node.vertx.server.http.VertxHttpServerOptions;
 import io.reactivex.rxjava3.core.Completable;
@@ -56,7 +58,12 @@ class HttpProtocolVerticleTest {
         socket.close();
 
         final ServerManager serverManager = new DefaultServerManager();
-        final VertxHttpServerFactory vertxHttpServerFactory = new VertxHttpServerFactory(io.vertx.rxjava3.core.Vertx.newInstance(vertx));
+        final VertxHttpServerFactory vertxHttpServerFactory = new VertxHttpServerFactory(
+            io.vertx.rxjava3.core.Vertx.newInstance(vertx),
+            new VertxTLSOptionsRegistry(),
+            new DefaultKeyStoreLoaderFactoryRegistry<>(),
+            new DefaultKeyStoreLoaderFactoryRegistry<>()
+        );
         httpOptions = VertxHttpServerOptions.builder().id("UnitTest").port(randomPort).build();
         serverManager.register(vertxHttpServerFactory.create(httpOptions));
 

@@ -52,6 +52,7 @@ import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
 import io.gravitee.gateway.reactor.handler.context.ApiTemplateVariableProviderFactory;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.node.api.Node;
+import io.gravitee.node.api.server.ServerManager;
 import io.gravitee.plugin.apiservice.ApiServicePluginManager;
 import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
@@ -69,14 +70,22 @@ import org.springframework.core.env.Environment;
 @Configuration
 public class ApiHandlerConfiguration {
 
-    @Autowired
-    private ApplicationContext applicationContext;
+    private final ApplicationContext applicationContext;
+
+    private final Node node;
+
+    private final io.gravitee.node.api.configuration.Configuration configuration;
 
     @Autowired
-    private Node node;
-
-    @Autowired
-    private io.gravitee.node.api.configuration.Configuration configuration;
+    public ApiHandlerConfiguration(
+        ApplicationContext applicationContext,
+        Node node,
+        io.gravitee.node.api.configuration.Configuration configuration
+    ) {
+        this.applicationContext = applicationContext;
+        this.node = node;
+        this.configuration = configuration;
+    }
 
     @Lazy
     @Bean
@@ -227,14 +236,16 @@ public class ApiHandlerConfiguration {
     ReactorFactory<io.gravitee.gateway.reactive.handlers.api.v4.Api> tcpApiReactorFactory(
         EntrypointConnectorPluginManager entrypointConnectorPluginManager,
         EndpointConnectorPluginManager endpointConnectorPluginManager,
-        RequestTimeoutConfiguration requestTimeoutConfiguration
+        RequestTimeoutConfiguration requestTimeoutConfiguration,
+        ServerManager serverManager
     ) {
         return new TcpApiReactorFactory(
             configuration,
             node,
             entrypointConnectorPluginManager,
             endpointConnectorPluginManager,
-            requestTimeoutConfiguration
+            requestTimeoutConfiguration,
+            serverManager
         );
     }
 }

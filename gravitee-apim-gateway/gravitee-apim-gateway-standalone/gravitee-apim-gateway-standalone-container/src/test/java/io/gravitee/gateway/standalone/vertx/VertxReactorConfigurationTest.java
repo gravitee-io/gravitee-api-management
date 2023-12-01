@@ -22,6 +22,7 @@ import static org.mockito.Mockito.*;
 import io.gravitee.node.api.server.ServerManager;
 import io.gravitee.node.certificates.KeyStoreLoaderManager;
 import io.gravitee.node.certificates.TrustStoreLoaderManager;
+import io.gravitee.node.vertx.cert.VertxTLSOptionsRegistry;
 import io.gravitee.node.vertx.server.VertxServer;
 import io.gravitee.node.vertx.server.VertxServerFactory;
 import io.gravitee.node.vertx.server.VertxServerOptions;
@@ -75,7 +76,7 @@ class VertxReactorConfigurationTest {
         environment.setProperty("servers[0].type", "http");
         environment.setProperty("servers[1].type", "http");
 
-        final ServerManager serverManager = cut.serverManager(serverFactory, environment, trustStoreLoaderManager, keyStoreLoaderManager);
+        final ServerManager serverManager = cut.serverManager(serverFactory, environment, new VertxTLSOptionsRegistry());
 
         assertThat(serverManager.servers()).isNotNull();
         assertThat(serverManager.servers()).containsExactly(vertxServer1, vertxServer2);
@@ -89,7 +90,7 @@ class VertxReactorConfigurationTest {
 
         environment.setProperty("servers[0].type", "http");
 
-        cut.serverManager(serverFactory, environment, trustStoreLoaderManager, keyStoreLoaderManager);
+        cut.serverManager(serverFactory, environment, new VertxTLSOptionsRegistry());
 
         verify(serverFactory).create(optionsCaptor.capture());
 
@@ -105,7 +106,7 @@ class VertxReactorConfigurationTest {
         environment.setProperty("servers[0].type", "http");
         environment.setProperty("servers[0].port", "1234");
 
-        cut.serverManager(serverFactory, environment, trustStoreLoaderManager, keyStoreLoaderManager);
+        cut.serverManager(serverFactory, environment, new VertxTLSOptionsRegistry());
 
         verify(serverFactory).create(optionsCaptor.capture());
 
@@ -118,7 +119,7 @@ class VertxReactorConfigurationTest {
 
         when(serverFactory.create(any(VertxServerOptions.class))).thenReturn(vertxServer);
 
-        final ServerManager serverManager = cut.serverManager(serverFactory, environment, trustStoreLoaderManager, keyStoreLoaderManager);
+        final ServerManager serverManager = cut.serverManager(serverFactory, environment, new VertxTLSOptionsRegistry());
 
         assertThat(serverManager.servers()).isNotNull();
         assertThat(serverManager.servers()).containsExactly(vertxServer);
@@ -130,7 +131,7 @@ class VertxReactorConfigurationTest {
 
         when(serverFactory.create(any(VertxServerOptions.class))).thenReturn(vertxServer);
 
-        cut.serverManager(serverFactory, environment, trustStoreLoaderManager, keyStoreLoaderManager);
+        cut.serverManager(serverFactory, environment, new VertxTLSOptionsRegistry());
 
         verify(serverFactory).create(optionsCaptor.capture());
 
@@ -145,7 +146,7 @@ class VertxReactorConfigurationTest {
 
         when(serverFactory.create(any(VertxServerOptions.class))).thenReturn(vertxServer);
 
-        cut.serverManager(serverFactory, environment, trustStoreLoaderManager, keyStoreLoaderManager);
+        cut.serverManager(serverFactory, environment, new VertxTLSOptionsRegistry());
 
         verify(serverFactory).create(optionsCaptor.capture());
 
@@ -162,7 +163,7 @@ class VertxReactorConfigurationTest {
         when(serverFactory.create(any(VertxHttpServerOptions.class))).thenReturn(httpVertxServer);
         when(serverFactory.create(any(VertxTcpServerOptions.class))).thenReturn(tcpVertxServer);
 
-        final ServerManager serverManager = cut.serverManager(serverFactory, environment, trustStoreLoaderManager, keyStoreLoaderManager);
+        final ServerManager serverManager = cut.serverManager(serverFactory, environment, new VertxTLSOptionsRegistry());
 
         assertThat(serverManager.servers()).isNotNull();
         assertThat(serverManager.servers()).containsExactlyInAnyOrder(httpVertxServer, tcpVertxServer);

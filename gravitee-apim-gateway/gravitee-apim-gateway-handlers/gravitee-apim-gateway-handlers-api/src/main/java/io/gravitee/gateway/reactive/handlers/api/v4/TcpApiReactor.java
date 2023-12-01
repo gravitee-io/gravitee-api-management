@@ -24,8 +24,10 @@ import static io.reactivex.rxjava3.core.Observable.interval;
 
 import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.common.component.Lifecycle;
-import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.definition.model.v4.listener.Listener;
+import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
+import io.gravitee.definition.model.v4.listener.tls.Tls;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.connector.entrypoint.EntrypointConnector;
@@ -42,12 +44,18 @@ import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointManager;
 import io.gravitee.gateway.reactive.core.v4.entrypoint.DefaultEntrypointConnectorResolver;
 import io.gravitee.gateway.reactive.core.v4.invoker.EndpointInvoker;
 import io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.LoggingHook;
+import io.gravitee.gateway.reactive.handlers.api.v4.certificates.ApiKeyStoreLoaderManager;
+import io.gravitee.gateway.reactive.handlers.api.v4.certificates.loaders.ApiKeyStoreLoader;
+import io.gravitee.gateway.reactive.handlers.api.v4.certificates.loaders.ApiTrustStoreLoader;
 import io.gravitee.gateway.reactive.reactor.ApiReactor;
 import io.gravitee.gateway.reactor.handler.Acceptor;
 import io.gravitee.gateway.reactor.handler.DefaultTcpAcceptor;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.node.api.Node;
+import io.gravitee.node.api.certificate.KeyStoreLoader;
 import io.gravitee.node.api.configuration.Configuration;
+import io.gravitee.node.api.server.ServerManager;
+import io.gravitee.node.vertx.server.VertxServer;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.ArrayList;
@@ -55,6 +63,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
@@ -68,6 +77,7 @@ public class TcpApiReactor extends AbstractLifecycleComponent<ReactorHandler> im
 
     private final Api api;
     private final Node node;
+    private final ApiKeyStoreLoaderManager apiKeyStoreLoaderManager;
     private final DefaultEntrypointConnectorResolver entrypointConnectorResolver;
     private final EndpointManager endpointManager;
     private final EndpointInvoker defaultInvoker;
@@ -87,12 +97,14 @@ public class TcpApiReactor extends AbstractLifecycleComponent<ReactorHandler> im
         Node node,
         Configuration configuration,
         DeploymentContext deploymentContext,
+        ApiKeyStoreLoaderManager apiKeyStoreLoaderManager,
         EntrypointConnectorPluginManager entrypointConnectorPluginManager,
         EndpointManager endpointManager,
         RequestTimeoutConfiguration requestTimeoutConfiguration
     ) {
         this.api = api;
         this.node = node;
+        this.apiKeyStoreLoaderManager = apiKeyStoreLoaderManager;
         this.requestTimeoutConfiguration = requestTimeoutConfiguration;
         this.entrypointConnectorResolver =
             new DefaultEntrypointConnectorResolver(api.getDefinition(), deploymentContext, entrypointConnectorPluginManager);
@@ -205,6 +217,9 @@ public class TcpApiReactor extends AbstractLifecycleComponent<ReactorHandler> im
     @Override
     protected void doStart() throws Exception {
         long startTime = System.currentTimeMillis();
+
+        apiKeyStoreLoaderManager.start();
+
         endpointManager.start();
         if (tracingEnabled) {
             invokerHooks.add(new TracingHook("invoker"));
@@ -255,6 +270,7 @@ public class TcpApiReactor extends AbstractLifecycleComponent<ReactorHandler> im
 
         entrypointConnectorResolver.stop();
         endpointManager.stop();
+        apiKeyStoreLoaderManager.stop();
 
         lifecycleState = Lifecycle.State.STOPPED;
 

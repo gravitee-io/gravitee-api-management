@@ -21,11 +21,13 @@ import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.reactive.core.context.DefaultDeploymentContext;
 import io.gravitee.gateway.reactive.core.v4.endpoint.DefaultEndpointManager;
+import io.gravitee.gateway.reactive.handlers.api.v4.certificates.ApiKeyStoreLoaderManager;
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
+import io.gravitee.node.api.server.ServerManager;
 import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +40,7 @@ public class TcpApiReactorFactory implements ReactorFactory<Api> {
     private final EntrypointConnectorPluginManager entrypointConnectorPluginManager;
     private final EndpointConnectorPluginManager endpointConnectorPluginManager;
     private final RequestTimeoutConfiguration requestTimeoutConfiguration;
+    private final ServerManager serverManager;
 
     @Override
     public boolean support(final Class<? extends Reactable> clazz) {
@@ -68,6 +71,7 @@ public class TcpApiReactorFactory implements ReactorFactory<Api> {
             node,
             configuration,
             deploymentContext,
+            new ApiKeyStoreLoaderManager(serverManager, ListenerType.TCP, api),
             entrypointConnectorPluginManager,
             endpointManager,
             requestTimeoutConfiguration

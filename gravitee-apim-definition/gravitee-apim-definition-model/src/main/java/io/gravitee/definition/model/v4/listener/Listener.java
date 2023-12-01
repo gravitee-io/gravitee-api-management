@@ -19,6 +19,7 @@ import static io.gravitee.definition.model.v4.listener.Listener.HTTP_LABEL;
 import static io.gravitee.definition.model.v4.listener.Listener.SUBSCRIPTION_LABEL;
 import static io.gravitee.definition.model.v4.listener.Listener.TCP_LABEL;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -26,6 +27,7 @@ import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
+import io.gravitee.definition.model.v4.listener.tls.Tls;
 import io.swagger.v3.oas.annotations.media.DiscriminatorMapping;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotEmpty;
@@ -82,6 +84,8 @@ public abstract class Listener implements Serializable {
 
     private List<String> servers;
 
+    private Tls tls;
+
     protected Listener(ListenerType type) {
         this.type = type;
     }
@@ -90,11 +94,18 @@ public abstract class Listener implements Serializable {
         this.type = type;
         this.entrypoints = b.entrypoints;
         this.servers = b.servers;
+        this.tls = b.tls;
     }
 
     protected Listener(ListenerBuilder<?, ?> b) {
         this.type = b.type;
         this.entrypoints = b.entrypoints;
         this.servers = b.servers;
+        this.tls = b.tls;
+    }
+
+    @JsonIgnoreProperties
+    public boolean containsTlsConfig() {
+        return tls != null && (tls.hasKeyPairs() || tls.hasClientCertificates());
     }
 }
