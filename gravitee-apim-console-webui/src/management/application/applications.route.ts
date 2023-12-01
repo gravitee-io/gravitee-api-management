@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { StateParams, StateService } from '@uirouter/core';
-import * as _ from 'lodash';
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
@@ -34,130 +32,11 @@ import { ApplicationNotificationSettingsDetailsComponent } from './details/notif
 import { ApplicationCreationComponent } from './creation/steps/application-creation.component';
 import { ApplicationSubscribeComponent } from './details/subscribe/application-subscribe.component';
 import { ApplicationMembersComponent } from './details/members/application-members.component';
+import { ApplicationGeneralMembersComponent } from './details/user-group-access/members/application-general-members.component';
+import { ApplicationGeneralGroupsComponent } from './details/user-group-access/groups/application-general-groups.component';
+import { ApplicationGeneralTransferOwnershipComponent } from './details/user-group-access/transfer-ownership/application-general-transfer-ownership.component';
 
-import ApplicationService from '../../services/application.service';
-import EnvironmentService from '../../services/environment.service';
 import { HasEnvironmentPermissionGuard } from '../has-environment-permission.guard';
-
-export default applicationsConfig;
-
-function applicationsConfig($stateProvider) {
-  $stateProvider
-    .state('management.applications.application', {
-      abstract: true,
-      url: '/:applicationId',
-      template: require('./details/application.html'),
-      controller: [
-        'application',
-        function (application) {
-          this.application = application;
-        },
-      ],
-      controllerAs: '$ctrl',
-      resolve: {
-        application: [
-          '$stateParams',
-          'ApplicationService',
-          '$state',
-          'EnvironmentService',
-          'Constants',
-          (
-            $stateParams: StateParams,
-            ApplicationService: ApplicationService,
-            $state: StateService,
-            EnvironmentService: EnvironmentService,
-            Constants: any,
-          ) =>
-            ApplicationService.get($stateParams.applicationId)
-              .then((response) => response.data)
-              .catch((err) => {
-                if (err && err.interceptorFuture) {
-                  $state.go('management.applications.list', {
-                    environmentId: EnvironmentService.getFirstHridOrElseId(Constants.org.currentEnv.id),
-                  });
-                }
-              }),
-        ],
-        applicationType: [
-          '$stateParams',
-          'ApplicationService',
-          ($stateParams: StateParams, ApplicationService: ApplicationService) =>
-            ApplicationService.getApplicationType($stateParams.applicationId)
-              .then((response) => response.data)
-              .catch((err) => {
-                if (err && err.interceptorFuture) {
-                  err.interceptorFuture.cancel(); // avoid a duplicated notification with the same error
-                }
-              }),
-        ],
-        resolvedApplicationPermissions: [
-          '$stateParams',
-          'ApplicationService',
-          ($stateParams: StateParams, ApplicationService: ApplicationService) =>
-            ApplicationService.getPermissions($stateParams.applicationId).catch((err) => {
-              if (err && err.interceptorFuture) {
-                err.interceptorFuture.cancel(); // avoid a duplicated notification with the same error
-              }
-            }),
-        ],
-        onEnter: [
-          'UserService',
-          'resolvedApplicationPermissions',
-          function (UserService, resolvedApplicationPermissions) {
-            UserService.currentUser.userApplicationPermissions = [];
-            if (resolvedApplicationPermissions && resolvedApplicationPermissions.data) {
-              _.forEach(_.keys(resolvedApplicationPermissions.data), (permission) => {
-                _.forEach(resolvedApplicationPermissions.data[permission], (right) => {
-                  const permissionName = 'APPLICATION-' + permission + '-' + right;
-                  UserService.currentUser.userApplicationPermissions.push(_.toLower(permissionName));
-                });
-              });
-            }
-            UserService.reloadPermissions();
-          },
-        ],
-      },
-    })
-    .state('management.applications.application.membersng', {
-      url: '/membersng',
-      component: 'applicationGeneralMembersNg',
-      data: {
-        perms: {
-          only: ['application-member-r'],
-        },
-        useAngularMaterial: true,
-        docs: {
-          page: 'management-application-members',
-        },
-      },
-    })
-    .state('management.applications.application.groupsng', {
-      url: '/groupsng',
-      component: 'applicationGeneralGroupsNg',
-      data: {
-        perms: {
-          only: ['application-definition-r'],
-        },
-        useAngularMaterial: true,
-        docs: {
-          page: 'management-application-groups',
-        },
-      },
-    })
-    .state('management.applications.application.transferownershipng', {
-      url: '/transferownershipng',
-      component: 'applicationGeneralTransferOwnershipNg',
-      data: {
-        perms: {
-          only: ['application-definition-r'],
-        },
-        useAngularMaterial: true,
-        docs: {
-          page: 'management-application-transferownership',
-        },
-      },
-    });
-}
 
 const applicationRoutes: Routes = [
   {
@@ -322,6 +201,42 @@ const applicationRoutes: Routes = [
           },
           docs: {
             page: 'management-application-members',
+          },
+        },
+      },
+      {
+        path: 'members-ng',
+        component: ApplicationGeneralMembersComponent,
+        data: {
+          perms: {
+            only: ['application-member-r'],
+          },
+          docs: {
+            page: 'management-application-members',
+          },
+        },
+      },
+      {
+        path: 'groups-ng',
+        component: ApplicationGeneralGroupsComponent,
+        data: {
+          perms: {
+            only: ['application-definition-r'],
+          },
+          docs: {
+            page: 'management-application-groups',
+          },
+        },
+      },
+      {
+        path: 'transfer-ownership-ng',
+        component: ApplicationGeneralTransferOwnershipComponent,
+        data: {
+          perms: {
+            only: ['application-definition-r'],
+          },
+          docs: {
+            page: 'management-application-transferownership',
           },
         },
       },

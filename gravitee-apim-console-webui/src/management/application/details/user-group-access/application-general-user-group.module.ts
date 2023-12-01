@@ -27,7 +27,6 @@ import { MatSelectModule } from '@angular/material/select';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
-import { UIRouterModule } from '@uirouter/angular';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
@@ -35,6 +34,7 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { RouterModule } from '@angular/router';
 
 import { ApplicationGeneralGroupsComponent } from './groups/application-general-groups.component';
 import { ApplicationGeneralMembersComponent } from './members/application-general-members.component';
@@ -50,7 +50,7 @@ import { GioTableWrapperModule } from '../../../../shared/components/gio-table-w
   exports: [ApplicationGeneralGroupsComponent, ApplicationGeneralMembersComponent, ApplicationGeneralTransferOwnershipComponent],
   imports: [
     CommonModule,
-    UIRouterModule,
+    RouterModule,
     ReactiveFormsModule,
 
     MatButtonModule,
