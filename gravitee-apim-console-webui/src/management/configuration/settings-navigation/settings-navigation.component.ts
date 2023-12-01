@@ -115,8 +115,7 @@ export class SettingsNavigationComponent implements OnInit {
           },
           {
             displayName: 'Top APIs',
-            targetRoute: 'management.settings.top-apis',
-            baseRoute: 'management.settings.top-apis',
+            routerLink: './top-apis',
             permissions: ['environment-top_apis-r'],
           },
         ],

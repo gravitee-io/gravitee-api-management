@@ -36,6 +36,7 @@ import { DocumentationEditPageComponent } from '../../components/documentation/e
 import { EnvironmentMetadataComponent } from '../configuration/metadata/environment-metadata.component';
 import { PortalComponent } from '../configuration/portal/portal.component';
 import { PortalThemeComponent } from '../configuration/portal-theme/portalTheme.component';
+import { TopApisComponent } from '../configuration/top-apis/top-apis.component';
 
 export const settingsRoutes: Routes = [
   {
@@ -305,6 +306,19 @@ export const settingsRoutes: Routes = [
           perms: {
             only: ['environment-theme-r'],
             unauthorizedFallbackTo: 'management.settings.top-apis',
+          },
+        },
+      },
+      {
+        path: 'top-apis',
+        component: TopApisComponent,
+        data: {
+          docs: {
+            page: 'management-configuration-top_apis',
+          },
+          perms: {
+            only: ['environment-top_apis-r'],
+            unauthorizedFallbackTo: 'management.settings.api_logging',
           },
         },
       },
