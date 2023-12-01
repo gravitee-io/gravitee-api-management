@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 import { Component, Inject, Input, OnInit } from '@angular/core';
-import { StateService } from '@uirouter/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { Constants } from '../../entities/Constants';
-import { UIRouterState } from '../../ajs-upgraded-providers';
 import { User } from '../../entities/user/user';
 import { CurrentUserService } from '../../services-ngx/current-user.service';
 import { AuthService } from '../../auth/auth.service';
@@ -41,7 +39,6 @@ export class GioUserMenuComponent implements OnInit {
   public newsletterProposed: boolean;
 
   constructor(
-    @Inject(UIRouterState) private readonly ajsState: StateService,
     @Inject('Constants') public readonly constants: Constants,
     public readonly router: Router,
     public readonly activatedRoute: ActivatedRoute,

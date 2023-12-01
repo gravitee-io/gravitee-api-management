@@ -26,7 +26,7 @@ import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/materia
 
 import { ApiGeneralInfoPromoteDialogComponent } from './api-general-info-promote-dialog.component';
 
-import { CurrentUserService, UIRouterState } from '../../../../../ajs-upgraded-providers';
+import { CurrentUserService } from '../../../../../ajs-upgraded-providers';
 import { User } from '../../../../../entities/user';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
 import { ApiGeneralInfoModule } from '../api-general-info.module';
@@ -40,9 +40,6 @@ describe('ApiPortalDetailsPromoteDialogComponent', () => {
   });
   const currentUser = new User();
   currentUser.userPermissions = ['api-definition-u', 'api-definition-d', 'api-definition-c'];
-  const fakeAjsState = {
-    go: jest.fn().mockReturnValue({}),
-  };
 
   let fixture: ComponentFixture<ApiGeneralInfoPromoteDialogComponent>;
   let loader: HarnessLoader;
@@ -52,7 +49,6 @@ describe('ApiPortalDetailsPromoteDialogComponent', () => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiGeneralInfoModule, MatIconTestingModule, MatDialogModule],
       providers: [
-        { provide: UIRouterState, useValue: fakeAjsState },
         { provide: CurrentUserService, useValue: { currentUser } },
         { provide: MatDialogRef, useValue: {} },
         { provide: MAT_DIALOG_DATA, useValue: { api } },

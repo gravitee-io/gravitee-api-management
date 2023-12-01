@@ -20,11 +20,10 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatTableHarness } from '@angular/material/table/testing';
 import { SimpleChange } from '@angular/core';
 import { MatPaginatorHarness } from '@angular/material/paginator/testing';
+import { RouterTestingModule } from '@angular/router/testing';
 
 import { GioTopApisTableModule } from './gio-top-apis-table.module';
 import { GioTopApisTableComponent, TopApisData } from './gio-top-apis-table.component';
-
-import { UIRouterState } from '../../../../ajs-upgraded-providers';
 
 describe('GioStatsTableComponent', () => {
   const data: TopApisData = {
@@ -75,17 +74,13 @@ describe('GioStatsTableComponent', () => {
       },
     },
   };
-  const fakeAjsState = {
-    go: jest.fn(),
-  };
 
   let fixture: ComponentFixture<GioTopApisTableComponent>;
   let loader: HarnessLoader;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioTopApisTableModule],
-      providers: [{ provide: UIRouterState, useValue: fakeAjsState }],
+      imports: [NoopAnimationsModule, GioTopApisTableModule, RouterTestingModule],
     });
   });
 

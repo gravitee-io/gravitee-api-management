@@ -22,7 +22,7 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 
 import { HomeOverviewComponent } from './home-overview.component';
 
-import { CurrentUserService, UIRouterState } from '../../../ajs-upgraded-providers';
+import { CurrentUserService } from '../../../ajs-upgraded-providers';
 import { User } from '../../../entities/user';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { HomeModule } from '../home.module';
@@ -39,15 +39,7 @@ describe('HomeOverviewComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, HomeModule, MatIconTestingModule],
-      providers: [
-        { provide: CurrentUserService, useValue: { currentUser } },
-        {
-          provide: UIRouterState,
-          useValue: {
-            go: jest.fn(),
-          },
-        },
-      ],
+      providers: [{ provide: CurrentUserService, useValue: { currentUser } }],
     });
   });
 

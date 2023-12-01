@@ -15,13 +15,10 @@
  */
 import { Meta, moduleMetadata, componentWrapperDecorator } from '@storybook/angular';
 import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
-import { action } from '@storybook/addon-actions';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { GioApiResponseStatusComponent } from './gio-api-response-status.component';
 import { GioApiResponseStatusModule } from './gio-api-response-status.module';
-
-import { UIRouterState } from '../../../../ajs-upgraded-providers';
 
 export default {
   title: 'Home / Components / API response status',
@@ -29,7 +26,6 @@ export default {
   decorators: [
     moduleMetadata({
       imports: [GioApiResponseStatusModule, BrowserAnimationsModule],
-      providers: [{ provide: UIRouterState, useValue: { go: (...args) => action('Ajs state go')(args) } }],
     }),
     componentWrapperDecorator((story) => `<div style="height:400px;width: 400px">${story}</div>`),
   ],

@@ -18,13 +18,14 @@ import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { MatCardModule } from '@angular/material/card';
 import { MatSortModule } from '@angular/material/sort';
+import { RouterModule } from '@angular/router';
 
 import { GioTopApisTableComponent } from './gio-top-apis-table.component';
 
 import { GioTableWrapperModule } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 
 @NgModule({
-  imports: [CommonModule, MatTableModule, MatCardModule, MatSortModule, GioTableWrapperModule],
+  imports: [CommonModule, RouterModule, MatTableModule, MatCardModule, MatSortModule, GioTableWrapperModule],
   declarations: [GioTopApisTableComponent],
   exports: [GioTopApisTableComponent],
 })

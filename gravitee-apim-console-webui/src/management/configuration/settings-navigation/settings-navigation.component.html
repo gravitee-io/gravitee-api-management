@@ -21,8 +21,8 @@
       <ng-container *ngFor="let group of this.groupItems">
         <gio-submenu-group [title]="group.title" *ngIf="group.items && group.items.length > 0">
           <ng-container *ngFor="let item of group.items">
-            <a [routerLink]="item.routerLink">
-              <gio-submenu-item tabIndex="1" [active]="isActive(item.baseRoute)">{{ item.displayName }}</gio-submenu-item>
+            <a [routerLink]="item.routerLink" routerLinkActive #rla="routerLinkActive">
+              <gio-submenu-item tabIndex="1" [active]="rla.isActive">{{ item.displayName }}</gio-submenu-item>
             </a>
           </ng-container>
         </gio-submenu-group>

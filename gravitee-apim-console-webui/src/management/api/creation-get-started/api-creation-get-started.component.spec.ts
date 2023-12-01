@@ -26,16 +26,12 @@ import { ApiCreationGetStartedComponent } from './api-creation-get-started.compo
 import { ApiCreationGetStartedModule } from './api-creation-get-started.module';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
-import { CurrentUserService, UIRouterState } from '../../../ajs-upgraded-providers';
+import { CurrentUserService } from '../../../ajs-upgraded-providers';
 import { fakeInstallation } from '../../../entities/installation/installation.fixture';
 import { User } from '../../../entities/user';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 
 describe('ApiCreationGetStartedComponent', () => {
-  const fakeAjsState = {
-    go: jest.fn(),
-  };
-
   let fixture: ComponentFixture<ApiCreationGetStartedComponent>;
   let rootLoader: HarnessLoader;
   let component: ApiCreationGetStartedComponent;
@@ -45,7 +41,6 @@ describe('ApiCreationGetStartedComponent', () => {
     TestBed.configureTestingModule({
       imports: [GioPermissionModule, GioHttpTestingModule, ApiCreationGetStartedModule, MatIconTestingModule, NoopAnimationsModule],
       providers: [
-        { provide: UIRouterState, useValue: fakeAjsState },
         {
           provide: CurrentUserService,
           useValue: { currentUser },

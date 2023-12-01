@@ -15,8 +15,6 @@
  */
 import { CUSTOM_ELEMENTS_SCHEMA, Directive, Input, NgModule } from '@angular/core';
 
-import { UIRouterState } from '../../ajs-upgraded-providers';
-
 @Directive({
   selector: '[uiSrefStatus]',
   exportAs: 'uiSrefStatus',
@@ -36,14 +34,6 @@ export class UisRefStatusMockDirective {
 @NgModule({
   declarations: [UisRefStatusMockDirective],
   exports: [UisRefStatusMockDirective],
-  providers: [
-    {
-      provide: UIRouterState,
-      useValue: {
-        reload: () => ({}),
-      },
-    },
-  ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class GioUiRouterTestingModule {}
