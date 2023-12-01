@@ -40,7 +40,7 @@ public abstract class AbstractApiKeyStoreLoader implements KeyStoreLoader {
     protected final String password;
 
     protected AbstractApiKeyStoreLoader(Api api, List<Tls> tlsData) {
-        this.id = "%s-%d" + api.getId() + api.getDeployedAt().toInstant().toEpochMilli();
+        this.id = "%s-%d".formatted(api.getId(), api.getDeployedAt().toInstant().toEpochMilli());
         this.tlsData = tlsData;
         this.password = UUID.randomUUID().toString();
     }
