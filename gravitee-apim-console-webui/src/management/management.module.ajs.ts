@@ -307,7 +307,7 @@ import PortalThemeController from './configuration/portal-theme/portalTheme.cont
 import PortalThemeComponentAjs from './configuration/portal-theme/portalTheme.component.ajs';
 import PortalThemeService from '../services/portalTheme.service';
 
-import CustomUserFieldsComponent from './configuration/custom-user-fields/custom-user-fields.component';
+import CustomUserFieldsComponentAjs from './configuration/custom-user-fields/custom-user-fields.component.ajs';
 import CustomUserFieldsController from './configuration/custom-user-fields/custom-user-fields.controller';
 import CustomUserFieldsService from '../services/custom-user-fields.service';
 import NewFieldDialogController from './configuration/custom-user-fields/dialog/new.custom-user-field.dialog.controller';
@@ -708,7 +708,7 @@ graviteeManagementModule.factory('ngCockpitService', downgradeInjectable(Cockpit
 graviteeManagementModule.component('settingsPortalAjs', PortalSettingsComponentAjs);
 graviteeManagementModule.component('settingsAnalyticsAjs', SettingsAnalyticsComponentAjs);
 graviteeManagementModule.directive('gvMetadataValidator', () => MetadataValidatorDirective);
-graviteeManagementModule.component('customUserFields', CustomUserFieldsComponent);
+graviteeManagementModule.component('customUserFieldsAjs', CustomUserFieldsComponentAjs);
 graviteeManagementModule.component('ticketDetail', TicketDetailComponentAjs);
 
 graviteeManagementModule.component('apiCreationV2ComponentAjs', ApiCreationV2ComponentAjs);

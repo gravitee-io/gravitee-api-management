@@ -13,14 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const CustomUserFieldsComponent: ng.IComponentOptions = {
-  bindings: {
-    fields: '<',
-    fieldFormats: '<',
-    predefinedKeys: '<',
-  },
-  controller: 'CustomUserFieldsController',
-  template: require('./custom-user-fields.html'),
-};
+import { Component, ElementRef, Injector, SimpleChange } from '@angular/core';
+import { UpgradeComponent } from '@angular/upgrade/static';
+import { ActivatedRoute } from '@angular/router';
 
-export default CustomUserFieldsComponent;
+@Component({
+  template: '',
+  selector: 'settings-custom-user-fields',
+  host: {
+    class: 'bootstrap gv-sub-content',
+  },
+})
+export class CustomUserFieldsComponent extends UpgradeComponent {
+  constructor(elementRef: ElementRef, injector: Injector, private readonly activatedRoute: ActivatedRoute) {
+    super('customUserFieldsAjs', elementRef, injector);
+  }
+
+  ngOnInit() {
+    // Hack to Force the binding between Angular and AngularJS
+    this.ngOnChanges({
+      activatedRoute: new SimpleChange(null, this.activatedRoute, true),
+    });
+
+    super.ngOnInit();
+  }
+}

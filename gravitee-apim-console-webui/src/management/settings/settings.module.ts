@@ -40,6 +40,7 @@ import { TopApisComponent } from '../configuration/top-apis/top-apis.component';
 import { ApiLoggingModule } from '../configuration/api-logging/api-logging.module';
 import { DictionariesComponent } from '../configuration/dictionaries/dictionaries.component';
 import { DictionaryComponent } from '../configuration/dictionaries/dictionary.component';
+import { CustomUserFieldsComponent } from '../configuration/custom-user-fields/custom-user-fields.component';
 
 @NgModule({
   imports: [
@@ -70,6 +71,7 @@ import { DictionaryComponent } from '../configuration/dictionaries/dictionary.co
     TopApisComponent,
     DictionariesComponent,
     DictionaryComponent,
+    CustomUserFieldsComponent,
   ],
 })
 export class SettingsModule {}

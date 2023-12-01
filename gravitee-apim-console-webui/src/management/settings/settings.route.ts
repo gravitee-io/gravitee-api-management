@@ -40,6 +40,7 @@ import { TopApisComponent } from '../configuration/top-apis/top-apis.component';
 import { ApiLoggingComponent } from '../configuration/api-logging/api-logging.component';
 import { DictionariesComponent } from '../configuration/dictionaries/dictionaries.component';
 import { DictionaryComponent } from '../configuration/dictionaries/dictionary.component';
+import { CustomUserFieldsComponent } from '../configuration/custom-user-fields/custom-user-fields.component';
 
 export const settingsRoutes: Routes = [
   {
@@ -373,6 +374,19 @@ export const settingsRoutes: Routes = [
           },
           perms: {
             only: ['environment-dictionary-c', 'environment-dictionary-r', 'environment-dictionary-u', 'environment-dictionary-d'],
+          },
+        },
+      },
+      {
+        path: 'custom-user-fields',
+        component: CustomUserFieldsComponent,
+        data: {
+          docs: {
+            page: 'management-configuration-custom-user-fields',
+          },
+          perms: {
+            only: ['organization-custom_user_fields-r'],
+            unauthorizedFallbackTo: 'management.settings.groups.list',
           },
         },
       },
