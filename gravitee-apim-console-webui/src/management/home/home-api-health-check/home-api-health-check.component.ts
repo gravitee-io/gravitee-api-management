@@ -13,18 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, Validators } from '@angular/forms';
-import { StateService } from '@uirouter/core';
 import { get, has, isEqual, isNumber } from 'lodash';
 import { BehaviorSubject, combineLatest, Observable, of, Subject } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, map, startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { HealthAvailabilityTimeFrameOption } from './health-availability-time-frame/health-availability-time-frame.component';
 
-import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { Api, ApiOrigin, ApiState } from '../../../entities/api';
-import { Constants } from '../../../entities/Constants';
 import { PagedResult } from '../../../entities/pagedResult';
 import { ApiService } from '../../../services-ngx/api.service';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
@@ -77,12 +75,7 @@ export class HomeApiHealthCheckComponent implements OnInit, OnDestroy {
   private filters$ = new BehaviorSubject<GioTableWrapperFilters>(this.filters);
   private refreshAvailability$ = new BehaviorSubject<void>(undefined);
 
-  constructor(
-    @Inject(UIRouterStateParams) private ajsStateParams,
-    @Inject(UIRouterState) private readonly ajsState: StateService,
-    @Inject('Constants') private readonly constants: Constants,
-    private readonly apiService: ApiService,
-  ) {}
+  constructor(private readonly router: Router, private readonly activatedRoute: ActivatedRoute, private readonly apiService: ApiService) {}
 
   ngOnInit(): void {
     this.filters$
@@ -91,7 +84,15 @@ export class HomeApiHealthCheckComponent implements OnInit, OnDestroy {
         distinctUntilChanged(isEqual),
         tap(({ pagination, searchTerm, sort }) => {
           // Change url params
-          this.ajsState.go('home.apiHealthCheck', { q: searchTerm, page: pagination.index, size: pagination.size, order: toOrder(sort) });
+          this.router.navigate(['.'], {
+            relativeTo: this.activatedRoute,
+            queryParams: {
+              q: searchTerm,
+              page: pagination.index,
+              size: pagination.size,
+              order: toOrder(sort),
+            },
+          });
         }),
         switchMap(({ pagination, searchTerm, sort }) =>
           this.apiService
@@ -121,7 +122,9 @@ export class HomeApiHealthCheckComponent implements OnInit, OnDestroy {
   }
 
   onViewHealthCheckClicked(api: ApisTableDS) {
-    this.ajsState.go('management.apis.healthcheck-dashboard-v2', { apiId: api.id });
+    this.router.navigate(['../../', 'apis', api.id, 'v2', 'healthcheck-dashboard'], {
+      relativeTo: this.activatedRoute,
+    });
   }
 
   onRefreshClicked() {
@@ -134,10 +137,14 @@ export class HomeApiHealthCheckComponent implements OnInit, OnDestroy {
   }
 
   private initFilters() {
-    const initialSearchValue = this.ajsStateParams.q ?? this.filters.searchTerm;
-    const initialPageNumber = this.ajsStateParams.page ? Number(this.ajsStateParams.page) : this.filters.pagination.index;
-    const initialPageSize = this.ajsStateParams.size ? Number(this.ajsStateParams.size) : this.filters.pagination.size;
-    const initialSort = toSort(this.ajsStateParams.order, this.filters.sort);
+    const initialSearchValue = this.activatedRoute.snapshot.queryParams?.q ?? this.filters.searchTerm;
+    const initialPageNumber = this.activatedRoute.snapshot.queryParams?.page
+      ? Number(this.activatedRoute.snapshot.queryParams.page)
+      : this.filters.pagination.index;
+    const initialPageSize = this.activatedRoute.snapshot.queryParams?.size
+      ? Number(this.activatedRoute.snapshot.queryParams.size)
+      : this.filters.pagination.size;
+    const initialSort = toSort(this.activatedRoute.snapshot.queryParams?.order, this.filters.sort);
     this.filters = {
       searchTerm: initialSearchValue,
       sort: initialSort,

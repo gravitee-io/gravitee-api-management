@@ -21,10 +21,11 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 import { InteractivityChecker } from '@angular/cdk/a11y';
+import { ActivatedRoute } from '@angular/router';
 
 import { ApiPortalDocumentationMetadataComponent } from './api-portal-documentation-metadata.component';
 
-import { CurrentUserService, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
+import { CurrentUserService } from '../../../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
 import { Metadata } from '../../../../../entities/metadata/metadata';
 import { fakeMetadata } from '../../../../../entities/metadata/metadata.fixture';
@@ -47,7 +48,7 @@ describe('ApiPortalDocumentationMetadataComponent', () => {
     await TestBed.configureTestingModule({
       declarations: [ApiPortalDocumentationMetadataComponent],
       providers: [
-        { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
+        { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
         { provide: CurrentUserService, useValue: { currentUser } },
       ],
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiGeneralDocumentationModule, MatIconTestingModule],

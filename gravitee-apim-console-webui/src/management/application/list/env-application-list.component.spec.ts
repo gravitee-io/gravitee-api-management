@@ -28,7 +28,7 @@ import { ActivatedRoute } from '@angular/router';
 import { EnvApplicationListComponent } from './env-application-list.component';
 
 import { ApplicationsModule } from '../applications.module';
-import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
+import { CurrentUserService, UIRouterState } from '../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { fakePagedResult } from '../../../entities/pagedResult';
 import { User as DeprecatedUser } from '../../../entities/user';
@@ -166,7 +166,6 @@ describe('EnvApplicationListComponent', () => {
         ],
         providers: [
           { provide: UIRouterState, useValue: { go: jest.fn() } },
-          { provide: UIRouterStateParams, useValue: { status: 'ARCHIVED' } },
           { provide: CurrentUserService, useValue: { currentUser } },
         ],
       }).overrideProvider(InteractivityChecker, {

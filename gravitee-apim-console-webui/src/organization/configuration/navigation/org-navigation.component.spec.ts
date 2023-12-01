@@ -22,7 +22,7 @@ import { OrgNavigationComponent } from './org-navigation.component';
 
 import { OrganizationSettingsModule } from '../organization-settings.module';
 import { GioHttpTestingModule } from '../../../shared/testing';
-import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
+import { UIRouterState } from '../../../ajs-upgraded-providers';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { GioUiRouterTestingModule } from '../../../shared/testing/gio-uirouter-testing-module';
 
@@ -46,7 +46,6 @@ describe('OrgNavigationComponent', () => {
       ],
       providers: [
         { provide: UIRouterState, useValue: fakeUiRouter },
-        { provide: UIRouterStateParams, useValue: { includes: () => true } },
         {
           provide: GioPermissionService,
           useValue: {
