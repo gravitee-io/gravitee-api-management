@@ -76,7 +76,7 @@ jobs:
                                 if [ "x${CIRCLE_PULL_REQUEST}" == "x" ]; then
                                   echo "No opened pull request for this branch -> try to find the base branch with commits."
                                   # Loop over the last 100 commits maximum and find the first commit that is on a branch matching `origin/master` or `origin/[0-9].[0-9].x`
-                                  MAX_COMMITS=100
+                                  MAX_COMMITS=200
                                 
                                   # Define the pattern for matching branch names: origin/master or origin/[0-9].[0-9].x
                                   PATTERN="origin/master|origin/[0-9]+\.[0-9]+\.x"
