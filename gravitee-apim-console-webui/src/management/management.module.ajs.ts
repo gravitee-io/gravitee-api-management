@@ -202,9 +202,9 @@ import GroupComponentAjs from './configuration/groups/group/group.component.ajs'
 import GroupService from '../services/group.service';
 // Dictionaries
 import DictionaryService from '../services/dictionary.service';
-import DictionariesComponent from '../management/configuration/dictionaries/dictionaries.component';
+import DictionariesComponentAjs from './configuration/dictionaries/dictionaries.component.ajs';
 import DictionariesController from '../management/configuration/dictionaries/dictionaries.controller';
-import DictionaryComponent from '../management/configuration/dictionaries/dictionary.component';
+import DictionaryComponentAjs from './configuration/dictionaries/dictionary.component.ajs';
 import DictionaryController from '../management/configuration/dictionaries/dictionary.controller';
 import DialogDictionaryAddPropertyController from '../management/configuration/dictionaries/add-property.dialog.controller';
 // Settings - Identity providers
@@ -830,8 +830,8 @@ graviteeManagementModule.directive('ngMessages', downgradeComponent({ component:
 
 // Dictionaries
 graviteeManagementModule.service('DictionaryService', DictionaryService);
-graviteeManagementModule.component('dictionaries', DictionariesComponent);
-graviteeManagementModule.component('dictionary', DictionaryComponent);
+graviteeManagementModule.component('settingsDictionariesAjs', DictionariesComponentAjs);
+graviteeManagementModule.component('settingsDictionaryAjs', DictionaryComponentAjs);
 graviteeManagementModule.controller('DictionariesController', DictionariesController);
 graviteeManagementModule.controller('DictionaryController', DictionaryController);
 graviteeManagementModule.controller('DialogDictionaryAddPropertyController', DialogDictionaryAddPropertyController);

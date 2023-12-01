@@ -38,6 +38,8 @@ import { ClientRegistrationProvidersModule } from '../configuration/client-regis
 import { PortalThemeComponent } from '../configuration/portal-theme/portalTheme.component';
 import { TopApisComponent } from '../configuration/top-apis/top-apis.component';
 import { ApiLoggingModule } from '../configuration/api-logging/api-logging.module';
+import { DictionariesComponent } from '../configuration/dictionaries/dictionaries.component';
+import { DictionaryComponent } from '../configuration/dictionaries/dictionary.component';
 
 @NgModule({
   imports: [
@@ -66,6 +68,8 @@ import { ApiLoggingModule } from '../configuration/api-logging/api-logging.modul
     PortalComponent,
     PortalThemeComponent,
     TopApisComponent,
+    DictionariesComponent,
+    DictionaryComponent,
   ],
 })
 export class SettingsModule {}

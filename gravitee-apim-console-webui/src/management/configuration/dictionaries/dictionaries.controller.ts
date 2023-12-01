@@ -13,13 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { StateService } from '@uirouter/core';
 import { IScope } from 'angular';
+import { ActivatedRoute, Router } from '@angular/router';
+
+import DictionaryService from '../../../services/dictionary.service';
 
 class DictionariesController {
-  constructor(private $state: StateService, private $rootScope: IScope) {
+  private dictionaries: any;
+  private activatedRoute: ActivatedRoute;
+  constructor(private DictionaryService: DictionaryService, private $rootScope: IScope, private ngRouter: Router) {
     this.$rootScope = $rootScope;
   }
+
+  $onInit() {
+    this.DictionaryService.list().then((response) => (this.dictionaries = response.data));
+  }
+
+  goTo(dictionaryId: string) {
+    this.ngRouter.navigate([dictionaryId], { relativeTo: this.activatedRoute });
+  }
+  newDictionary() {
+    this.ngRouter.navigate(['new'], { relativeTo: this.activatedRoute });
+  }
 }
-DictionariesController.$inject = ['$state', '$rootScope'];
+DictionariesController.$inject = ['DictionaryService', '$rootScope', 'ngRouter'];
 export default DictionariesController;

@@ -38,6 +38,8 @@ import { PortalComponent } from '../configuration/portal/portal.component';
 import { PortalThemeComponent } from '../configuration/portal-theme/portalTheme.component';
 import { TopApisComponent } from '../configuration/top-apis/top-apis.component';
 import { ApiLoggingComponent } from '../configuration/api-logging/api-logging.component';
+import { DictionariesComponent } from '../configuration/dictionaries/dictionaries.component';
+import { DictionaryComponent } from '../configuration/dictionaries/dictionary.component';
 
 export const settingsRoutes: Routes = [
   {
@@ -333,6 +335,44 @@ export const settingsRoutes: Routes = [
           perms: {
             only: ['organization-settings-r'],
             unauthorizedFallbackTo: 'management.settings.dictionaries.list',
+          },
+        },
+      },
+      {
+        path: 'dictionaries',
+        component: DictionariesComponent,
+        data: {
+          docs: {
+            page: 'management-configuration-dictionaries',
+          },
+          perms: {
+            only: ['environment-dictionary-r'],
+            unauthorizedFallbackTo: 'management.settings.customUserFields',
+          },
+        },
+      },
+      {
+        path: 'dictionaries/new',
+        component: DictionaryComponent,
+        data: {
+          docs: {
+            page: 'management-configuration-dictionary',
+          },
+          perms: {
+            only: ['environment-dictionary-c'],
+          },
+        },
+      },
+      {
+        path: 'dictionaries/:dictionaryId',
+        component: DictionaryComponent,
+        data: {
+          menu: null,
+          docs: {
+            page: 'management-configuration-dictionary',
+          },
+          perms: {
+            only: ['environment-dictionary-c', 'environment-dictionary-r', 'environment-dictionary-u', 'environment-dictionary-d'],
           },
         },
       },

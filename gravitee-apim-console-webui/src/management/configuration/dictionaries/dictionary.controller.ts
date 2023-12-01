@@ -14,16 +14,12 @@
  * limitations under the License.
  */
 
-import { StateService } from '@uirouter/core';
 import angular from 'angular';
 import * as _ from 'lodash';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import DictionaryService from '../../../services/dictionary.service';
 import NotificationService from '../../../services/notification.service';
-
-interface IDictionaryScope extends ng.IScope {
-  formDictionary: any;
-}
 
 class DictionaryController {
   private dictionary: any;
@@ -43,14 +39,14 @@ class DictionaryController {
   private query: any;
   private selectAll: boolean;
   private formDictionary: any;
+  private activatedRoute: ActivatedRoute;
 
   constructor(
-    private $scope: IDictionaryScope,
-    private $state: StateService,
     private $mdEditDialog,
     private $mdDialog: angular.material.IDialogService,
     private NotificationService: NotificationService,
     private DictionaryService: DictionaryService,
+    private ngRouter: Router,
   ) {
     this.types = [
       {
@@ -105,20 +101,27 @@ class DictionaryController {
   }
 
   $onInit() {
-    // If provider method isn't defined then set it to GET by default (same behavior as in the backend)
-    if (this.dictionary?.provider?.configuration) {
-      this.dictionary.provider.configuration.method = this.dictionary.provider.configuration.method ?? 'GET';
+    this.updateMode = !!this.activatedRoute?.snapshot?.params?.dictionaryId;
+    if (this.activatedRoute?.snapshot?.params?.dictionaryId) {
+      this.DictionaryService.get(this.activatedRoute.snapshot.params.dictionaryId).then((response) => {
+        this.dictionary = response.data;
+
+        // If provider method isn't defined then set it to GET by default (same behavior as in the backend)
+        if (this.dictionary?.provider?.configuration) {
+          this.dictionary.provider.configuration.method = this.dictionary.provider.configuration.method ?? 'GET';
+        }
+
+        this.initialDictionary = _.cloneDeep(this.dictionary);
+        this.dictProperties = this.computeProperties();
+
+        this.query = {
+          limit: 10,
+          page: 1,
+          total:
+            (this.initialDictionary && this.initialDictionary.properties && Object.keys(this.initialDictionary.properties).length) || 0,
+        };
+      });
     }
-
-    this.updateMode = this.dictionary && this.dictionary.id;
-    this.initialDictionary = _.cloneDeep(this.dictionary);
-    this.dictProperties = this.computeProperties();
-
-    this.query = {
-      limit: 10,
-      page: 1,
-      total: (this.initialDictionary && this.initialDictionary.properties && Object.keys(this.initialDictionary.properties).length) || 0,
-    };
   }
 
   getPropertiesPage = (reverse: boolean) => {
@@ -145,7 +148,7 @@ class DictionaryController {
     if (!this.updateMode) {
       this.DictionaryService.create(this.dictionary).then((response: any) => {
         this.NotificationService.show('Dictionary ' + this.dictionary.name + ' has been created');
-        this.$state.go('management.settings.dictionaries.dictionary', { dictionaryId: response.data.id }, { reload: true });
+        this.ngRouter.navigate(['../', response.data.id], { relativeTo: this.activatedRoute });
       });
     } else {
       this.DictionaryService.update(this.dictionary).then((response) => {
@@ -172,7 +175,7 @@ class DictionaryController {
         if (response) {
           this.DictionaryService.delete(this.dictionary).then(() => {
             this.NotificationService.show('Dictionary ' + this.dictionary.name + ' has been deleted');
-            this.$state.go('management.settings.dictionaries.list', {}, { reload: true });
+            this.ngRouter.navigate(['..'], { relativeTo: this.activatedRoute });
           });
         }
       });
@@ -310,7 +313,11 @@ class DictionaryController {
   getHttpMethods() {
     return ['GET', 'DELETE', 'PATCH', 'POST', 'PUT', 'OPTIONS', 'TRACE', 'HEAD'];
   }
+
+  backToList() {
+    this.ngRouter.navigate(['..'], { relativeTo: this.activatedRoute });
+  }
 }
-DictionaryController.$inject = ['$scope', '$state', '$mdEditDialog', '$mdDialog', 'NotificationService', 'DictionaryService'];
+DictionaryController.$inject = ['$mdEditDialog', '$mdDialog', 'NotificationService', 'DictionaryService', 'ngRouter'];
 
 export default DictionaryController;
