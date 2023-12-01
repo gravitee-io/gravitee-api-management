@@ -19,18 +19,15 @@ import { TestBed } from '@angular/core/testing';
 import { ApiMemberService } from './api-member.service';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
-import { AjsRootScope } from '../ajs-upgraded-providers';
 import { ApiMember, ApiMembership } from '../entities/api';
 
 describe('ApiMemberService', () => {
   let httpTestingController: HttpTestingController;
   let apiMemberService: ApiMemberService;
-  const fakeRootScope = { $broadcast: jest.fn(), $on: jest.fn() };
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [GioHttpTestingModule],
-      providers: [{ provide: AjsRootScope, useValue: fakeRootScope }],
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);

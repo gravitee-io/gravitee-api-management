@@ -19,7 +19,6 @@ import { TestBed } from '@angular/core/testing';
 import { PlanService } from './plan.service';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
-import { AjsRootScope } from '../ajs-upgraded-providers';
 import { fakePlan } from '../entities/plan/plan.fixture';
 import { fakeApi } from '../entities/api/Api.fixture';
 import { NewPlan, PlanSecurityType } from '../entities/plan';
@@ -27,12 +26,10 @@ import { NewPlan, PlanSecurityType } from '../entities/plan';
 describe('PlanService', () => {
   let httpTestingController: HttpTestingController;
   let planService: PlanService;
-  const fakeRootScope = { $broadcast: jest.fn(), $on: jest.fn() };
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [GioHttpTestingModule],
-      providers: [{ provide: AjsRootScope, useValue: fakeRootScope }],
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);
@@ -40,7 +37,6 @@ describe('PlanService', () => {
   });
 
   afterEach(() => {
-    fakeRootScope.$broadcast.mockClear();
     httpTestingController.verify();
   });
 
@@ -104,7 +100,6 @@ describe('PlanService', () => {
 
       planService.update(api, plan).subscribe((response) => {
         expect(response).toMatchObject(plan);
-        expect(fakeRootScope.$broadcast).toHaveBeenCalledWith('apiChangeSuccess', { api });
         done();
       });
 
@@ -122,7 +117,6 @@ describe('PlanService', () => {
 
       planService.update(api, plan).subscribe((response) => {
         expect(response).toMatchObject(plan);
-        expect(fakeRootScope.$broadcast).not.toHaveBeenCalled();
         done();
       });
 
@@ -145,7 +139,6 @@ describe('PlanService', () => {
 
       planService.create(api, plan).subscribe((response) => {
         expect(response).toMatchObject(plan);
-        expect(fakeRootScope.$broadcast).toHaveBeenCalledWith('apiChangeSuccess', { api });
         done();
       });
 
@@ -183,7 +176,6 @@ describe('PlanService', () => {
 
       planService.publish(api, plan).subscribe((response) => {
         expect(response).toMatchObject(plan);
-        expect(fakeRootScope.$broadcast).toHaveBeenCalledWith('apiChangeSuccess', { api });
         done();
       });
 
@@ -202,7 +194,6 @@ describe('PlanService', () => {
 
       planService.publish(api, plan).subscribe((response) => {
         expect(response).toMatchObject(plan);
-        expect(fakeRootScope.$broadcast).not.toHaveBeenCalled();
         done();
       });
 
@@ -223,7 +214,6 @@ describe('PlanService', () => {
 
       planService.deprecate(api, plan).subscribe((response) => {
         expect(response).toMatchObject(plan);
-        expect(fakeRootScope.$broadcast).toHaveBeenCalledWith('apiChangeSuccess', { api });
         done();
       });
 
@@ -242,7 +232,6 @@ describe('PlanService', () => {
 
       planService.deprecate(api, plan).subscribe((response) => {
         expect(response).toMatchObject(plan);
-        expect(fakeRootScope.$broadcast).not.toHaveBeenCalled();
         done();
       });
 
@@ -263,7 +252,6 @@ describe('PlanService', () => {
 
       planService.close(api, plan).subscribe((response) => {
         expect(response).toMatchObject(plan);
-        expect(fakeRootScope.$broadcast).toHaveBeenCalledWith('apiChangeSuccess', { api });
         done();
       });
 
@@ -282,7 +270,6 @@ describe('PlanService', () => {
 
       planService.close(api, plan).subscribe((response) => {
         expect(response).toMatchObject(plan);
-        expect(fakeRootScope.$broadcast).not.toHaveBeenCalled();
         done();
       });
 

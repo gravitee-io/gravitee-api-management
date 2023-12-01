@@ -33,7 +33,6 @@ import { Environment } from '../../../entities/environment/environment';
 import { Api } from '../../../entities/api/Api';
 import { fakeApi } from '../../../entities/api/Api.fixture';
 import { GioTableWrapperHarness } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.harness';
-import { AjsRootScope } from '../../../ajs-upgraded-providers';
 
 describe('OrgSettingsAuditComponent', () => {
   let fixture: ComponentFixture<OrgSettingsAuditComponent>;
@@ -43,7 +42,6 @@ describe('OrgSettingsAuditComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, MatIconTestingModule, GioHttpTestingModule, OrganizationSettingsModule],
-      providers: [{ provide: AjsRootScope, useValue: null }],
     });
   });
 

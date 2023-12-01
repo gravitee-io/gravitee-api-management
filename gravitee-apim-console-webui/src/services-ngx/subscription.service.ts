@@ -16,10 +16,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { IScope } from 'angular';
 
 import { Constants } from '../entities/Constants';
-import { AjsRootScope } from '../ajs-upgraded-providers';
 import { ApplicationSubscription, Subscription } from '../entities/subscription/subscription';
 import { PagedResult } from '../entities/pagedResult';
 
@@ -27,11 +25,7 @@ import { PagedResult } from '../entities/pagedResult';
   providedIn: 'root',
 })
 export class SubscriptionService {
-  constructor(
-    private readonly http: HttpClient,
-    @Inject('Constants') private readonly constants: Constants,
-    @Inject(AjsRootScope) private readonly ajsRootScope: IScope,
-  ) {}
+  constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
 
   public getApiSubscriptionsByPlan(apiId: string, planId): Observable<PagedResult<Subscription>> {
     return this.http.get<PagedResult<Subscription>>(
