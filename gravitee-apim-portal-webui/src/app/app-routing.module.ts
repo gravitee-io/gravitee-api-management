@@ -21,17 +21,14 @@ import { FilterApiQuery } from '../../projects/portal-webclient-sdk/src/lib';
 import { ApiContactComponent } from './pages/api/api-contact/api-contact.component';
 import { ApiDocumentationComponent } from './pages/api/api-documentation/api-documentation.component';
 import { ApiGeneralComponent } from './pages/api/api-general/api-general.component';
-import { ApiHomepageResolver } from './resolvers/api-homepage.resolver';
-import { ApiInformationsResolver } from './resolvers/api-informations.resolver';
-import { ApiResolver } from './resolvers/api.resolver';
+import { apiInformationResolver } from './resolvers/api-informations.resolver';
+import { apiResolver } from './resolvers/api.resolver';
 import { ApiSubscribeComponent } from './pages/api/api-subscribe/api-subscribe.component';
-import { AuthGuardService } from './services/auth-guard.service';
 import { CatalogSearchComponent } from './pages/catalog/search/catalog-search.component';
 import { CategoriesComponent } from './pages/catalog/categories/categories.component';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { DocumentationComponent } from './pages/documentation/documentation.component';
 import { FeatureEnum } from './model/feature.enum';
-import { FeatureGuardService } from './services/feature-guard.service';
 import { FilteredCatalogComponent } from './pages/catalog/filtered-catalog/filtered-catalog.component';
 import { GvHeaderItemComponent } from './components/gv-header-item/gv-header-item.component';
 import { GvSearchApiComponent } from './components/gv-search-api/gv-search-api.component';
@@ -50,10 +47,13 @@ import { UserAccountComponent } from './pages/user/user-account/user-account.com
 import { UserContactComponent } from './pages/user/user-contact/user-contact.component';
 import { UserNotificationComponent } from './pages/user/user-notification/user-notification.component';
 import { CookiesComponent } from './pages/cookies/cookies.component';
-import { CategoryResolver } from './resolvers/category.resolver';
-import { PermissionsResolver } from './resolvers/permissions-resolver.service';
-import { PermissionGuardService } from './services/permission-guard.service';
+import { categoryResolver } from './resolvers/category.resolver';
 import { TicketsHistoryComponent } from './components/gv-tickets-history/tickets-history.component';
+import { apiHomepageResolver } from './resolvers/api-homepage.resolver';
+import { authGuard } from './services/auth-guard.service';
+import { permissionsResolver } from './resolvers/permissions-resolver.service';
+import { featureGuard } from './services/feature-guard.service';
+import { permissionGuard } from './services/permission-guard.service';
 
 export const routes: Routes = [
   { path: '', component: HomepageComponent, data: { title: 'route.homepage', menu: false, animation: { type: 'fade' } } },
@@ -61,7 +61,7 @@ export const routes: Routes = [
     path: 'dashboard',
     component: DashboardComponent,
     data: { title: 'route.dashboard', expectedRole: Role.AUTH_USER, animation: { type: 'fade' }, menu: {} },
-    canActivate: [AuthGuardService],
+    canActivate: [authGuard],
   },
   {
     path: 'catalog',
@@ -79,9 +79,9 @@ export const routes: Routes = [
           menu: { slots: { top: GvHeaderItemComponent }, hiddenPaths: ['subscribe'] },
         },
         resolve: {
-          api: ApiResolver,
-          apiInformations: ApiInformationsResolver,
-          permissions: PermissionsResolver,
+          api: apiResolver,
+          apiInformations: apiInformationResolver,
+          permissions: permissionsResolver,
         },
         children: [
           {
@@ -94,7 +94,7 @@ export const routes: Routes = [
               animation: { type: 'slide', group: 'api', index: 1 },
             },
             resolve: {
-              apiHomepage: ApiHomepageResolver,
+              apiHomepage: apiHomepageResolver,
             },
           },
           {
@@ -110,7 +110,7 @@ export const routes: Routes = [
           {
             path: 'contact',
             component: ApiContactComponent,
-            canActivate: [AuthGuardService, FeatureGuardService],
+            canActivate: [authGuard, featureGuard],
             data: {
               menu: { slots: { 'right-transition': GvSearchApiComponent } },
               icon: 'communication:contact#1',
@@ -144,7 +144,7 @@ export const routes: Routes = [
       {
         path: 'categories',
         component: CategoriesComponent,
-        canActivate: [FeatureGuardService],
+        canActivate: [featureGuard],
         data: {
           expectedFeature: FeatureEnum.categoryMode,
           title: 'route.catalogCategories',
@@ -156,7 +156,7 @@ export const routes: Routes = [
       {
         path: 'categories/:categoryId',
         component: FilteredCatalogComponent,
-        resolve: { category: CategoryResolver },
+        resolve: { category: categoryResolver },
         data: {
           title: 'route.catalogCategory',
           menu: { hide: true, slots: { top: GvHeaderItemComponent, 'right-transition': GvSearchApiComponent } },
@@ -187,7 +187,7 @@ export const routes: Routes = [
       {
         path: 'starred',
         component: FilteredCatalogComponent,
-        canActivate: [FeatureGuardService],
+        canActivate: [featureGuard],
         data: {
           title: 'route.catalogStarred',
           icon: 'general:star',
@@ -217,7 +217,7 @@ export const routes: Routes = [
       {
         path: 'login',
         component: LoginComponent,
-        canActivate: [AuthGuardService],
+        canActivate: [authGuard],
         data: {
           title: 'route.login',
           expectedRole: Role.GUEST,
@@ -227,7 +227,7 @@ export const routes: Routes = [
       {
         path: 'account',
         component: UserAccountComponent,
-        canActivate: [AuthGuardService],
+        canActivate: [authGuard],
         data: {
           title: 'route.user',
           icon: 'general:user',
@@ -238,7 +238,7 @@ export const routes: Routes = [
       {
         path: 'contact',
         component: UserContactComponent,
-        canActivate: [AuthGuardService, FeatureGuardService],
+        canActivate: [authGuard, featureGuard],
         data: {
           title: 'route.contact',
           icon: 'communication:contact#1',
@@ -250,7 +250,7 @@ export const routes: Routes = [
       {
         path: 'tickets',
         component: TicketsHistoryComponent,
-        canActivate: [AuthGuardService, FeatureGuardService],
+        canActivate: [authGuard, featureGuard],
         data: {
           title: 'route.tickets',
           icon: 'communication:snoozed-mail',
@@ -262,7 +262,7 @@ export const routes: Routes = [
       {
         path: 'notifications',
         component: UserNotificationComponent,
-        canActivate: [AuthGuardService, FeatureGuardService],
+        canActivate: [authGuard, featureGuard],
         data: {
           title: 'route.notifications',
           icon: 'general:notifications#2',
@@ -273,7 +273,7 @@ export const routes: Routes = [
       {
         path: 'logout',
         component: LogoutComponent,
-        canActivate: [AuthGuardService],
+        canActivate: [authGuard],
         data: {
           title: 'route.logout',
           separator: true,
@@ -284,25 +284,25 @@ export const routes: Routes = [
       {
         path: 'registration',
         component: RegistrationComponent,
-        canActivate: [AuthGuardService],
+        canActivate: [authGuard],
         data: { expectedRole: Role.GUEST, animation: { type: 'fade' } },
       },
       {
         path: 'registration/confirm/:token',
         component: RegistrationConfirmationComponent,
-        canActivate: [AuthGuardService],
+        canActivate: [authGuard],
         data: { expectedRole: Role.GUEST, animation: { type: 'fade' } },
       },
       {
         path: 'resetPassword',
         component: ResetPasswordComponent,
-        canActivate: [AuthGuardService],
+        canActivate: [authGuard],
         data: { expectedRole: Role.GUEST, animation: { type: 'fade' } },
       },
       {
         path: 'resetPassword/confirm/:token',
         component: ResetPasswordConfirmationComponent,
-        canActivate: [AuthGuardService],
+        canActivate: [authGuard],
         data: { expectedRole: Role.GUEST, animation: { type: 'fade' } },
       },
     ],
@@ -319,7 +319,7 @@ export const routes: Routes = [
   {
     path: 'applications',
     loadChildren: () => import('./pages/applications/applications.module').then(m => m.ApplicationsModule),
-    canActivate: [AuthGuardService, PermissionGuardService],
+    canActivate: [authGuard, permissionGuard],
     data: {
       title: 'route.applications',
       menu: { hiddenPaths: ['creation'] },

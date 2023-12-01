@@ -13,34 +13,51 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Injectable } from '@angular/core';
-import { ActivatedRouteSnapshot, CanActivate, Router, UrlTree } from '@angular/router';
+import { inject } from '@angular/core';
+import { ActivatedRouteSnapshot, CanActivateFn, Router, UrlTree } from '@angular/router';
 import { OAuthService } from 'angular-oauth2-oidc';
 
 import { Role } from '../model/role.enum';
 
 import { CurrentUserService } from './current-user.service';
 
-@Injectable({ providedIn: 'root' })
-export class AuthGuardService implements CanActivate {
-  constructor(private currentUserService: CurrentUserService, private router: Router, private oauthService: OAuthService) {}
-
-  canActivate(route: ActivatedRouteSnapshot): Promise<boolean | UrlTree> {
-    if (route && route.data) {
-      const expectedRole = route.data.expectedRole;
-      if (expectedRole) {
-        return new Promise(resolve => {
-          const user = this.currentUserService.get().getValue();
-          if ((expectedRole === Role.AUTH_USER && user == null) || (expectedRole === Role.GUEST && user)) {
-            // 📝 Check OAuth state to find redirectUrl if exist
-            resolve(this.router.parseUrl(decodeURIComponent(this.oauthService.state ?? '/')));
-          } else {
-            resolve(true);
-          }
-        });
-      }
-      return Promise.resolve(true);
+/**
+ * Checks whether the user can activate a route based on authentication and expected user role.
+ *
+ * @param {ActivatedRouteSnapshot} route - The activated route snapshot.
+ * @param {CurrentUserService} currentUserService - Service to get the current user information.
+ * @param {Router} router - The router service.
+ * @param {OAuthService} oauthService - The OAuth service for authentication and authorization.
+ *
+ * @return {Promise<boolean | UrlTree>} A promise that resolves to either `true` if the user can activate the route or a `UrlTree` object representing a redirect URL.
+ */
+export function canActivateBasedOnAuth(
+  route: ActivatedRouteSnapshot,
+  currentUserService: CurrentUserService,
+  router: Router,
+  oauthService: OAuthService,
+): Promise<boolean | UrlTree> {
+  if (route && route.data) {
+    const expectedRole = route.data.expectedRole;
+    if (expectedRole) {
+      return new Promise(resolve => {
+        const user = currentUserService.get().getValue();
+        if ((expectedRole === Role.AUTH_USER && user == null) || (expectedRole === Role.GUEST && user)) {
+          // 📝 Check OAuth state to find redirectUrl if exist
+          resolve(router.parseUrl(decodeURIComponent(oauthService.state ?? '/')));
+        } else {
+          resolve(true);
+        }
+      });
     }
     return Promise.resolve(true);
   }
+  return Promise.resolve(true);
 }
+
+export const authGuard = ((route: ActivatedRouteSnapshot): Promise<boolean | UrlTree> => {
+  const currentUserService: CurrentUserService = inject(CurrentUserService);
+  const router: Router = inject(Router);
+  const oauthService: OAuthService = inject(OAuthService);
+  return canActivateBasedOnAuth(route, currentUserService, router, oauthService);
+}) satisfies CanActivateFn;
