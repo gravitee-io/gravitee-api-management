@@ -36,7 +36,7 @@
           <tbody md-body>
             <tr md-row ng-repeat="dictionary in $ctrl.dictionaries | orderBy: name">
               <td md-cell>
-                <a ui-sref="management.settings.dictionaries.dictionary({dictionaryId: dictionary.id})"> {{dictionary.id}} </a>
+                <a ng-click="$ctrl.goTo(dictionary.id)"> {{dictionary.id}} </a>
               </td>
               <td md-cell>{{dictionary.name}}</td>
               <td md-cell>{{dictionary.description}}</td>
@@ -83,7 +83,7 @@
     aria-label="Add dictionary"
     class="md-fab md-fab-bottom-right md-fab-scrollable"
     ng-class="{'gv-help-displayed': $ctrl.$rootScope.helpDisplayed}"
-    ui-sref="management.settings.dictionaries.new"
+    ng-click="$ctrl.newDictionary()"
   >
     <md-tooltip md-direction="top" md-visible="false">Add a new dictionary</md-tooltip>
     <ng-md-icon icon="add"></ng-md-icon>

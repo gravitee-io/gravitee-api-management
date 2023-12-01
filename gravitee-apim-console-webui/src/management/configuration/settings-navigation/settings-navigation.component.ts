@@ -130,8 +130,7 @@ export class SettingsNavigationComponent implements OnInit {
           },
           {
             displayName: 'Dictionaries',
-            targetRoute: 'management.settings.dictionaries.list',
-            baseRoute: 'management.settings.dictionaries',
+            routerLink: './dictionaries',
             permissions: ['environment-dictionary-r'],
           },
         ],

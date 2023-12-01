@@ -13,12 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const DictionariesComponent: ng.IComponentOptions = {
-  bindings: {
-    dictionaries: '<',
-  },
-  controller: 'DictionariesController',
-  template: require('./dictionaries.html'),
-};
+import { Component, ElementRef, Injector, SimpleChange } from '@angular/core';
+import { UpgradeComponent } from '@angular/upgrade/static';
+import { ActivatedRoute } from '@angular/router';
 
-export default DictionariesComponent;
+@Component({
+  template: '',
+  selector: 'settings-dictionaries',
+  host: {
+    class: 'bootstrap gv-sub-content',
+  },
+})
+export class DictionariesComponent extends UpgradeComponent {
+  constructor(elementRef: ElementRef, injector: Injector, private readonly activatedRoute: ActivatedRoute) {
+    super('settingsDictionariesAjs', elementRef, injector);
+  }
+
+  ngOnInit() {
+    // Hack to Force the binding between Angular and AngularJS
+    this.ngOnChanges({
+      activatedRoute: new SimpleChange(null, this.activatedRoute, true),
+    });
+
+    super.ngOnInit();
+  }
+}
