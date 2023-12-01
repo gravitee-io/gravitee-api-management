@@ -13,50 +13,51 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Injectable } from '@angular/core';
-import { ActivatedRouteSnapshot, CanActivate, Router, UrlTree } from '@angular/router';
+import { inject } from '@angular/core';
+import { ActivatedRouteSnapshot, CanActivateFn, Router, UrlTree } from '@angular/router';
 
 import { CurrentUserService } from './current-user.service';
 
-@Injectable({ providedIn: 'root' })
-export class PermissionGuardService implements CanActivate {
-  constructor(private router: Router, private currentUserService: CurrentUserService) {}
-
-  canActivate(route: ActivatedRouteSnapshot): boolean | UrlTree {
-    let canActivate: boolean | UrlTree = true;
-    const routePermissions = route.data.permissions || {};
-    const userPermissions = (this.currentUserService.get().getValue() && this.currentUserService.get().getValue().permissions) || {};
-    // concat permission permission related to the current page with the user permission
-    // otherwise some permission validations may fails.
-    const permissions = { ...routePermissions, ...userPermissions };
-    if (permissions && route.data && route.data.expectedPermissions) {
-      const expectedPermissions = route.data.expectedPermissions;
-      const expectedPermissionsObject = {};
-      expectedPermissions.map(perm => {
-        const splittedPerms = perm.split('-');
-        if (expectedPermissionsObject[splittedPerms[0]]) {
-          expectedPermissionsObject[splittedPerms[0]].push(splittedPerms[1]);
-        } else {
-          expectedPermissionsObject[splittedPerms[0]] = [splittedPerms[1]];
-        }
-      });
-      Object.keys(expectedPermissionsObject).forEach(perm => {
-        const applicationRights = permissions[perm];
-        if (!applicationRights || (applicationRights && !this.includesAll(applicationRights, expectedPermissionsObject[perm]))) {
-          canActivate = this.router.parseUrl('/');
-        }
-      });
-    }
-    return canActivate;
-  }
-
-  includesAll(applicationRights, expectedRights): boolean {
-    let includesAll = true;
-    expectedRights.forEach(r => {
-      if (!applicationRights.includes(r)) {
-        includesAll = false;
+export function checkPermission(route: ActivatedRouteSnapshot, currentUserService: CurrentUserService, router: Router) {
+  let canActivate: boolean | UrlTree = true;
+  const routePermissions = route.data.permissions || {};
+  const userPermissions = (currentUserService.get().getValue() && currentUserService.get().getValue().permissions) || {};
+  // concat permission permission related to the current page with the user permission
+  // otherwise some permission validations may fails.
+  const permissions = { ...routePermissions, ...userPermissions };
+  if (permissions && route.data && route.data.expectedPermissions) {
+    const expectedPermissions = route.data.expectedPermissions;
+    const expectedPermissionsObject = {};
+    expectedPermissions.map(perm => {
+      const splittedPerms = perm.split('-');
+      if (expectedPermissionsObject[splittedPerms[0]]) {
+        expectedPermissionsObject[splittedPerms[0]].push(splittedPerms[1]);
+      } else {
+        expectedPermissionsObject[splittedPerms[0]] = [splittedPerms[1]];
       }
     });
-    return includesAll;
+    Object.keys(expectedPermissionsObject).forEach(perm => {
+      const applicationRights = permissions[perm];
+      if (!applicationRights || (applicationRights && !includesAll(applicationRights, expectedPermissionsObject[perm]))) {
+        canActivate = router.parseUrl('/');
+      }
+    });
   }
+  return canActivate;
+}
+
+export const permissionGuard = ((route: ActivatedRouteSnapshot): boolean | UrlTree => {
+  const currentUserService: CurrentUserService = inject(CurrentUserService);
+  const router: Router = inject(Router);
+  return checkPermission(route, currentUserService, router);
+}) satisfies CanActivateFn;
+
+function includesAll(applicationRights: string[], expectedRights: string[]): boolean {
+  let includesAll = true;
+  expectedRights.forEach(r => {
+    if (!applicationRights.includes(r)) {
+      includesAll = false;
+    }
+  });
+  return includesAll;
 }
