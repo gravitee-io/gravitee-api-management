@@ -37,6 +37,7 @@ import { EnvironmentMetadataComponent } from '../configuration/metadata/environm
 import { PortalComponent } from '../configuration/portal/portal.component';
 import { PortalThemeComponent } from '../configuration/portal-theme/portalTheme.component';
 import { TopApisComponent } from '../configuration/top-apis/top-apis.component';
+import { ApiLoggingComponent } from '../configuration/api-logging/api-logging.component';
 
 export const settingsRoutes: Routes = [
   {
@@ -319,6 +320,19 @@ export const settingsRoutes: Routes = [
           perms: {
             only: ['environment-top_apis-r'],
             unauthorizedFallbackTo: 'management.settings.api_logging',
+          },
+        },
+      },
+      {
+        path: 'api-logging',
+        component: ApiLoggingComponent,
+        data: {
+          docs: {
+            page: 'management-configuration-apilogging',
+          },
+          perms: {
+            only: ['organization-settings-r'],
+            unauthorizedFallbackTo: 'management.settings.dictionaries.list',
           },
         },
       },
