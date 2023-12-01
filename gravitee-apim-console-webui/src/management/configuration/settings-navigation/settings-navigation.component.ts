@@ -13,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnInit } from '@angular/core';
-import { StateService } from '@uirouter/core';
+import { Component, OnInit } from '@angular/core';
 import { takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { GioMenuService } from '@gravitee/ui-particles-angular';
-import { castArray } from 'lodash';
+import { ActivatedRoute, Router } from '@angular/router';
 
-import { UIRouterState } from '../../../ajs-upgraded-providers';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 
 interface MenuItem {
@@ -49,7 +47,8 @@ export class SettingsNavigationComponent implements OnInit {
   private unsubscribe$ = new Subject();
 
   constructor(
-    @Inject(UIRouterState) private readonly ajsState: StateService,
+    private readonly router: Router,
+    private readonly activatedRoute: ActivatedRoute,
     private readonly permissionService: GioPermissionService,
     private readonly gioMenuService: GioMenuService,
   ) {}
@@ -169,8 +168,13 @@ export class SettingsNavigationComponent implements OnInit {
     });
   }
 
-  isActive(baseRoute: MenuItem['baseRoute']): boolean {
-    return castArray(baseRoute).some((baseRoute) => this.ajsState.includes(baseRoute));
+  isActive(item: MenuItem): boolean {
+    return this.router.isActive(this.router.createUrlTree([item.routerLink], { relativeTo: this.activatedRoute }), {
+      paths: 'subset',
+      queryParams: 'subset',
+      fragment: 'ignored',
+      matrixParams: 'ignored',
+    });
   }
 
   public computeBreadcrumbItems(): string[] {
@@ -178,7 +182,7 @@ export class SettingsNavigationComponent implements OnInit {
 
     this.groupItems.forEach((groupItem) => {
       groupItem.items.forEach((item) => {
-        if (this.isActive(item.baseRoute)) {
+        if (this.isActive(item)) {
           breadcrumbItems.push(groupItem.title);
           breadcrumbItems.push(item.displayName);
         }

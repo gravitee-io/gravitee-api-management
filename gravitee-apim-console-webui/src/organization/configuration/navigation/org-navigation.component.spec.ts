@@ -22,17 +22,12 @@ import { OrgNavigationComponent } from './org-navigation.component';
 
 import { OrganizationSettingsModule } from '../organization-settings.module';
 import { GioHttpTestingModule } from '../../../shared/testing';
-import { UIRouterState } from '../../../ajs-upgraded-providers';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { GioUiRouterTestingModule } from '../../../shared/testing/gio-uirouter-testing-module';
 
 describe('OrgNavigationComponent', () => {
   let fixture: ComponentFixture<OrgNavigationComponent>;
   let component: OrgNavigationComponent;
-  const fakeUiRouter = {
-    go: jest.fn(),
-    includes: jest.fn(),
-  };
 
   function createComponent(hasAnyMatching: boolean) {
     TestBed.configureTestingModule({
@@ -45,7 +40,6 @@ describe('OrgNavigationComponent', () => {
         UIRouterModule.forRoot({ useHash: true }),
       ],
       providers: [
-        { provide: UIRouterState, useValue: fakeUiRouter },
         {
           provide: GioPermissionService,
           useValue: {

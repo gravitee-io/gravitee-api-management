@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterViewInit, Component, Inject, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { AfterViewInit, Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { sortBy, toNumber } from 'lodash';
-import { StateService } from '@uirouter/angularjs';
+import { ActivatedRoute, Router } from '@angular/router';
 
-import { UIRouterState } from '../../../../ajs-upgraded-providers';
 import { GioTableWrapperFilters } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { gioTableFilterCollection } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
 
@@ -49,7 +48,7 @@ export class GioTopApisTableComponent implements AfterViewInit, OnChanges {
 
   totalLength: number;
 
-  constructor(@Inject(UIRouterState) private readonly ajsState: StateService) {}
+  constructor(private readonly router: Router, private readonly activatedRoute: ActivatedRoute) {}
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.data) this.buildDataSource();
@@ -59,8 +58,8 @@ export class GioTopApisTableComponent implements AfterViewInit, OnChanges {
   }
 
   navigateToApi(apiKey: string): void {
-    this.ajsState.go('management.apis.analytics-overview-v2', {
-      apiId: apiKey,
+    this.router.navigate(['../../', 'apis', apiKey, 'v2', 'analytics-overview'], {
+      relativeTo: this.activatedRoute,
     });
   }
 

@@ -15,13 +15,10 @@
  */
 import { Meta, moduleMetadata } from '@storybook/angular';
 import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
-import { action } from '@storybook/addon-actions';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { GioTopApisTableComponent } from './gio-top-apis-table.component';
 import { GioTopApisTableModule } from './gio-top-apis-table.module';
-
-import { UIRouterState } from '../../../../ajs-upgraded-providers';
 
 export default {
   title: 'Home / Components / Top APIs table',
@@ -29,7 +26,6 @@ export default {
   decorators: [
     moduleMetadata({
       imports: [GioTopApisTableModule, BrowserAnimationsModule],
-      providers: [{ provide: UIRouterState, useValue: { go: (...args) => action('Ajs state go')(args) } }],
     }),
   ],
   render: ({ data }) => ({

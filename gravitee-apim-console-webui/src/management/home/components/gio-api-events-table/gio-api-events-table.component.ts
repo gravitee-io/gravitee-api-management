@@ -13,13 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { isEqual, toNumber } from 'lodash';
-import { StateService } from '@uirouter/angularjs';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { distinctUntilChanged, map, startWith, switchMap, tap } from 'rxjs/operators';
 
-import { UIRouterState } from '../../../../ajs-upgraded-providers';
 import { GioTableWrapperFilters } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { EventService } from '../../../../services-ngx/event.service';
 import { TimeRangeParams } from '../gio-quick-time-range/gio-quick-time-range.component';
@@ -99,7 +97,7 @@ export class GioApiEventsTableComponent implements OnChanges {
     }),
   );
 
-  constructor(private readonly eventService: EventService, @Inject(UIRouterState) private readonly ajsState: StateService) {}
+  constructor(private readonly eventService: EventService) {}
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.timeRangeParams) {
@@ -108,10 +106,5 @@ export class GioApiEventsTableComponent implements OnChanges {
   }
   onFiltersChanged(filters: GioTableWrapperFilters) {
     this.filters$.next({ ...this.filters$.value, ...filters });
-  }
-  navigateToApi(apiKey: string): void {
-    this.ajsState.go('management.apis.ng.analytics-overview-v2', {
-      apiId: apiKey,
-    });
   }
 }

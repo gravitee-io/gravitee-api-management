@@ -29,16 +29,12 @@ import { InteractivityChecker } from '@angular/cdk/a11y';
 import { ClientRegistrationProvidersComponent } from './client-registration-providers.component';
 import { ClientRegistrationProvidersModule } from './client-registration-providers.module';
 
-import { UIRouterState } from '../../../ajs-upgraded-providers';
 import { fakeClientRegistrationProvider } from '../../../entities/client-registration-provider/clientRegistrationProvider.fixture';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { PortalSettings } from '../../../entities/portal/portalSettings';
 
 describe('ClientRegistrationProviders', () => {
-  const fakeAjsState = {
-    go: jest.fn(),
-  };
   const providers = [fakeClientRegistrationProvider(), fakeClientRegistrationProvider()];
   let httpTestingController: HttpTestingController;
 
@@ -85,7 +81,6 @@ describe('ClientRegistrationProviders', () => {
         ClientRegistrationProvidersModule,
       ],
       providers: [
-        { provide: UIRouterState, useValue: fakeAjsState },
         {
           provide: 'Constants',
           useValue: CONSTANTS_TESTING,

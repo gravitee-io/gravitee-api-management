@@ -20,17 +20,6 @@
 import { InjectionToken, Injector } from '@angular/core';
 import { IScope } from 'angular';
 
-export const UIRouterState = new InjectionToken('UIRouterState');
-
-function uiRouterStateServiceFactory(i: any) {
-  return i.get('$state');
-}
-export const uiRouterStateProvider = {
-  provide: UIRouterState,
-  useFactory: uiRouterStateServiceFactory,
-  deps: ['$injector'],
-};
-
 export const CurrentUserService = new InjectionToken('CurrentUserService');
 
 function currentUserServiceFactory(i: any) {

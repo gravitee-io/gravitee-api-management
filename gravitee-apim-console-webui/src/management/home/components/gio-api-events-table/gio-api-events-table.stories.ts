@@ -15,7 +15,6 @@
  */
 import { Meta, moduleMetadata } from '@storybook/angular';
 import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
-import { action } from '@storybook/addon-actions';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { of } from 'rxjs';
 import { delay } from 'rxjs/operators';
@@ -24,7 +23,6 @@ import { UIRouterModule } from '@uirouter/angular';
 import { GioApiEventsTableComponent } from './gio-api-events-table.component';
 import { GioApiEventsTableModule } from './gio-api-events-table.module';
 
-import { UIRouterState } from '../../../../ajs-upgraded-providers';
 import { EventService } from '../../../../services-ngx/event.service';
 import { GioUiRouterTestingModule } from '../../../../shared/testing/gio-uirouter-testing-module';
 
@@ -204,7 +202,6 @@ export default {
         }),
       ],
       providers: [
-        { provide: UIRouterState, useValue: { go: (...args) => action('Ajs state go')(args) } },
         {
           provide: EventService,
           useValue: {

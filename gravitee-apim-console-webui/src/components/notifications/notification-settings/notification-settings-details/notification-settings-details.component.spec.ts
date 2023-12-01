@@ -34,7 +34,7 @@ import { NotificationSettingsDetailsServices } from './notification-settings-det
 import { User } from '../../../../entities/user';
 import { GioHttpTestingModule } from '../../../../shared/testing';
 import { GioUiRouterTestingModule } from '../../../../shared/testing/gio-uirouter-testing-module';
-import { CurrentUserService, UIRouterState } from '../../../../ajs-upgraded-providers';
+import { CurrentUserService } from '../../../../ajs-upgraded-providers';
 import { fakeHooks } from '../../../../entities/notification/hooks.fixture';
 import { fakeNotificationSettings } from '../../../../entities/notification/notificationSettings.fixture';
 import { fakeNotifier } from '../../../../entities/notification/notifier.fixture';
@@ -71,10 +71,7 @@ describe('NotificationSettingsDetailsComponent', () => {
           useHash: true,
         }),
       ],
-      providers: [
-        { provide: UIRouterState, useValue: { $current: { parent: { name: 'test' } } } },
-        { provide: CurrentUserService, useValue: { currentUser } },
-      ],
+      providers: [{ provide: CurrentUserService, useValue: { currentUser } }],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {
