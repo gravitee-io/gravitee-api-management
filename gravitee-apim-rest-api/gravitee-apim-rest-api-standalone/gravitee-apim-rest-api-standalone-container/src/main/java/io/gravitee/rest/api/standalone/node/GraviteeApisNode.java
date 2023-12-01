@@ -17,6 +17,8 @@ package io.gravitee.rest.api.standalone.node;
 
 import io.gravitee.apim.core.integration.domain_service.IntegrationDomainService;
 import io.gravitee.common.component.LifecycleComponent;
+import io.gravitee.exchange.api.controller.ExchangeController;
+import io.gravitee.exchange.controller.core.cluster.ControllerClusterManager;
 import io.gravitee.node.api.NodeMetadataResolver;
 import io.gravitee.node.container.AbstractNode;
 import io.gravitee.node.services.initializer.spring.InitializerConfiguration;
@@ -70,6 +72,8 @@ public class GraviteeApisNode extends AbstractNode {
         components.add(AlertEventProducerManager.class);
         components.add(ScheduledCommandService.class);
         components.add(IntegrationDomainService.class);
+        components.add(ControllerClusterManager.class);
+        components.add(ExchangeController.class);
 
         // Keep it at the end
         components.addAll(UpgraderConfiguration.getComponents());

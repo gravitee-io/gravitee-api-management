@@ -21,23 +21,26 @@ import io.gravitee.apim.core.integration.domain_service.IntegrationDomainService
 import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.model.IntegrationEntity;
 import io.gravitee.apim.infra.adapter.IntegrationAdapter;
-import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.exchange.api.command.CommandStatus;
+import io.gravitee.exchange.api.controller.ExchangeController;
+import io.gravitee.exchange.controller.embedded.channel.EmbeddedChannel;
 import io.gravitee.integration.api.DeploymentType;
 import io.gravitee.integration.api.Entity;
+import io.gravitee.integration.api.IntegrationProvider;
 import io.gravitee.integration.api.IntegrationProviderFactory;
+import io.gravitee.integration.api.command.IntegrationProviderCommandHandlerFactory;
 import io.gravitee.integration.api.command.fetch.FetchCommand;
 import io.gravitee.integration.api.command.fetch.FetchCommandPayload;
 import io.gravitee.integration.api.command.fetch.FetchReply;
 import io.gravitee.integration.api.command.list.ListCommand;
-import io.gravitee.integration.api.command.list.ListCommandPayload;
 import io.gravitee.integration.api.command.list.ListReply;
 import io.gravitee.plugin.integrationprovider.internal.DefaultIntegrationProviderPluginManager;
 import io.reactivex.rxjava3.core.Single;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -47,23 +50,12 @@ import org.springframework.stereotype.Service;
  */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class IntegrationDomainServiceImpl extends AbstractService<IntegrationDomainService> implements IntegrationDomainService {
 
-    private final IntegrationController integrationController;
-
+    private final ExchangeController exchangeController;
     private final DefaultIntegrationProviderPluginManager integrationProviderPluginManager;
-
     private final IntegrationCrudService integrationCrudService;
-
-    public IntegrationDomainServiceImpl(
-        IntegrationController integrationController,
-        DefaultIntegrationProviderPluginManager integrationProviderPluginManager,
-        IntegrationCrudService integrationCrudService
-    ) {
-        this.integrationController = integrationController;
-        this.integrationProviderPluginManager = integrationProviderPluginManager;
-        this.integrationCrudService = integrationCrudService;
-    }
 
     @Override
     public void doStart() throws Exception {
@@ -76,12 +68,6 @@ public class IntegrationDomainServiceImpl extends AbstractService<IntegrationDom
     @Override
     public void startIntegration(Integration integration) {
         try {
-            var integrationProvider = integrationProviderPluginManager.getIntegrationProvider(integration.getId());
-            if (integrationProvider != null && integrationProvider.lifecycleState() == Lifecycle.State.STARTED) {
-                log.warn("Integration provider {} already started. Skipped.", integration.getProvider());
-                return;
-            }
-
             IntegrationProviderFactory<?> integrationProviderFactory = integrationProviderPluginManager.getIntegrationProviderFactory(
                 integration.getProvider().toLowerCase()
             );
@@ -91,12 +77,11 @@ public class IntegrationDomainServiceImpl extends AbstractService<IntegrationDom
                 return;
             }
 
-            integrationProvider =
-                integrationProviderFactory.createIntegrationProvider(
-                    integration.getId(),
-                    DeploymentType.valueOf(integration.getDeploymentType().name()),
-                    integration.getConfiguration()
-                );
+            IntegrationProvider integrationProvider = integrationProviderFactory.createIntegrationProvider(
+                integration.getId(),
+                DeploymentType.valueOf(integration.getDeploymentType().name()),
+                integration.getConfiguration()
+            );
 
             if (integrationProvider == null) {
                 log.warn("Integration provider {} cannot be started. Skipped.", integration.getProvider());
@@ -105,7 +90,15 @@ public class IntegrationDomainServiceImpl extends AbstractService<IntegrationDom
 
             integrationProvider.start();
 
-            integrationProviderPluginManager.registerIntegrationProvider(integration.getId(), integrationProvider);
+            exchangeController
+                .register(
+                    EmbeddedChannel
+                        .builder()
+                        .targetId(integration.getId())
+                        .commandHandlers(IntegrationProviderCommandHandlerFactory.buildHandlers(integrationProvider))
+                        .build()
+                )
+                .blockingAwait();
         } catch (Exception e) {
             log.warn("Unable to properly start the integration provider {}: {}. Skipped.", integration.getProvider(), e.getMessage());
         }
@@ -113,15 +106,12 @@ public class IntegrationDomainServiceImpl extends AbstractService<IntegrationDom
 
     @Override
     public Single<List<IntegrationEntity>> getIntegrationEntities(Integration integration) {
-        ListCommandPayload listCommandPayload = new ListCommandPayload(integration.getId(), DeploymentType.valueOf(integration.getDeploymentType().name()));
-        ListCommand listCommand = new ListCommand(listCommandPayload);
+        ListCommand listCommand = new ListCommand();
 
-        return sendListCommand(listCommand, integration.getId(), DeploymentType.valueOf(integration.getDeploymentType().name()))
+        return sendListCommand(listCommand, integration.getId())
             .flatMap(listReply -> {
                 if (listReply.getCommandStatus() == CommandStatus.SUCCEEDED) {
-                    return Single.just(
-                        listReply.getPayload().entities().stream().map(IntegrationAdapter.INSTANCE::toEntity).collect(Collectors.toList())
-                    );
+                    return Single.just(listReply.getPayload().entities().stream().map(IntegrationAdapter.INSTANCE::toEntity).toList());
                 }
                 return Single.just(Collections.emptyList());
             });
@@ -129,21 +119,15 @@ public class IntegrationDomainServiceImpl extends AbstractService<IntegrationDom
 
     @Override
     public Single<List<IntegrationEntity>> fetchEntities(Integration integration, List<IntegrationEntity> integrationEntities) {
-        List<Entity> entities = integrationEntities.stream().map(IntegrationAdapter.INSTANCE::toEntityApi).collect(Collectors.toList());
+        List<Entity> entities = integrationEntities.stream().map(IntegrationAdapter.INSTANCE::toEntityApi).toList();
 
-        FetchCommandPayload fetchCommandPayload = new FetchCommandPayload(
-            integration.getId(),
-            entities,
-            DeploymentType.valueOf(integration.getDeploymentType().name())
-        );
+        FetchCommandPayload fetchCommandPayload = new FetchCommandPayload(entities);
         FetchCommand fetchCommand = new FetchCommand(fetchCommandPayload);
 
-        return sendFetchCommand(fetchCommand, integration.getId(), DeploymentType.valueOf(integration.getDeploymentType().name()))
+        return sendFetchCommand(fetchCommand, integration.getId())
             .flatMap(fetchReply -> {
                 if (fetchReply.getCommandStatus() == CommandStatus.SUCCEEDED) {
-                    return Single.just(
-                        fetchReply.getPayload().entities().stream().map(IntegrationAdapter.INSTANCE::toEntity).collect(Collectors.toList())
-                    );
+                    return Single.just(fetchReply.getPayload().entities().stream().map(IntegrationAdapter.INSTANCE::toEntity).toList());
                 }
                 return Single.just(Collections.emptyList());
             });
@@ -152,9 +136,9 @@ public class IntegrationDomainServiceImpl extends AbstractService<IntegrationDom
     @Override
     public void importEntities(List<String> entitiesId) {}
 
-    private Single<ListReply> sendListCommand(ListCommand listCommand, String integrationId, DeploymentType deploymentType) {
-        return integrationController
-            .sendCommand(listCommand, integrationId, deploymentType)
+    private Single<ListReply> sendListCommand(ListCommand listCommand, String integrationId) {
+        return exchangeController
+            .sendCommand(listCommand, integrationId)
             .cast(ListReply.class)
             .switchIfEmpty(
                 Single.defer(() ->
@@ -178,9 +162,9 @@ public class IntegrationDomainServiceImpl extends AbstractService<IntegrationDom
             );
     }
 
-    private Single<FetchReply> sendFetchCommand(FetchCommand fetchCommand, String integrationId, DeploymentType deploymentType) {
-        return integrationController
-            .sendCommand(fetchCommand, integrationId, deploymentType)
+    private Single<FetchReply> sendFetchCommand(FetchCommand fetchCommand, String integrationId) {
+        return exchangeController
+            .sendCommand(fetchCommand, integrationId)
             .cast(FetchReply.class)
             .switchIfEmpty(
                 Single.defer(() ->

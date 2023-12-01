@@ -192,7 +192,16 @@
 			<artifactId>gravitee-exchange-api</artifactId>
 			<version>1.0.0-SNAPSHOT</version>
 		</dependency>
-
+		<dependency>
+			<groupId>io.gravitee.exchange</groupId>
+			<artifactId>gravitee-exchange-controller-core</artifactId>
+			<version>1.0.0-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>io.gravitee.exchange</groupId>
+			<artifactId>gravitee-exchange-controller-embedded</artifactId>
+			<version>1.0.0-SNAPSHOT</version>
+		</dependency>
 		<!-- Lucene -->
 		<dependency>
 			<groupId>org.apache.lucene</groupId>
