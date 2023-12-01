@@ -25,15 +25,15 @@ describe('Login Feature', () => {
 
   it(`should launch the login page`, () => {
     cy.url().should('contain', 'login');
-    cy.get('.title').should('be.visible');
-    cy.get('.title').contains('Sign In');
+    cy.get('.card__header__title').should('be.visible');
+    cy.get('.card__header__title').contains('Sign In');
   });
 
   it(`should be able to login`, () => {
-    cy.get('#input_0').type(ADMIN_USER.username);
-    cy.get('#input_1').type(ADMIN_USER.password);
+    cy.getByDataTestId('username-input').type(ADMIN_USER.username);
+    cy.getByDataTestId('password-input').type(ADMIN_USER.password);
 
-    cy.get('.btn').click();
+    cy.getByDataTestId('sign-in-button').click();
     cy.url().should('contain', '/home/overview');
     cy.contains('Overview').should('be.visible');
     cy.contains('APIs health-check').should('be.visible');

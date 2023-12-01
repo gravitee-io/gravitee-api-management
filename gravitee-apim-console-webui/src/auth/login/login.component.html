@@ -26,17 +26,23 @@
   <form *ngIf="!localLoginDisabled" class="card__form" [formGroup]="loginForm" (ngSubmit)="login()">
     <mat-form-field class="card__form__input">
       <mat-label>Username</mat-label>
-      <input matInput type="text" formControlName="username" autofocus />
+      <input matInput type="text" formControlName="username" autofocus data-testid="username-input" />
       <mat-error *ngIf="loginForm.get('username').hasError('required')">Username is required.</mat-error>
     </mat-form-field>
 
     <mat-form-field class="card__form__input">
       <mat-label>Password</mat-label>
-      <input matInput type="password" formControlName="password" />
+      <input matInput type="password" formControlName="password" data-testid="password-input" />
       <mat-error *ngIf="loginForm.get('password').hasError('required')">Password is required.</mat-error>
     </mat-form-field>
 
-    <button type="submit" class="card__form__button" mat-raised-button [disabled]="loginForm.invalid || loginInProgress">
+    <button
+      type="submit"
+      class="card__form__button"
+      mat-raised-button
+      [disabled]="loginForm.invalid || loginInProgress"
+      data-testid="sign-in-button"
+    >
       <mat-icon svgIcon="gio:login"></mat-icon>
       Sign in
     </button>
