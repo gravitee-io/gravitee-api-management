@@ -15,22 +15,16 @@
  */
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
-import { IScope } from 'angular';
 import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
-import { AjsRootScope } from '../ajs-upgraded-providers';
 import { ConnectorListItem } from '../entities/connector/connector-list-item';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ConnectorService {
-  constructor(
-    private readonly http: HttpClient,
-    @Inject('Constants') private readonly constants: Constants,
-    @Inject(AjsRootScope) private readonly ajsRootScope: IScope,
-  ) {}
+  constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
 
   public list(expandSchema = false, expandIcon = false): Observable<ConnectorListItem[]> {
     let queryParams = new HttpParams();

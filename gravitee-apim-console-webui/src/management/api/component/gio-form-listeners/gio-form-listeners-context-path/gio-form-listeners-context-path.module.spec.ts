@@ -26,7 +26,6 @@ import { GioFormListenersContextPathModule } from './gio-form-listeners-context-
 import { GioFormListenersContextPathHarness } from './gio-form-listeners-context-path.harness';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
-import { AjsRootScope } from '../../../../../ajs-upgraded-providers';
 import { PortalSettings } from '../../../../../entities/portal/portalSettings';
 
 @Component({
@@ -62,7 +61,6 @@ describe('GioFormListenersContextPathModule', () => {
           provide: 'Constants',
           useValue: fakeConstants,
         },
-        { provide: AjsRootScope, useValue: { $broadcast: jest.fn() } },
       ],
     });
     fixture = TestBed.createComponent(TestComponent);

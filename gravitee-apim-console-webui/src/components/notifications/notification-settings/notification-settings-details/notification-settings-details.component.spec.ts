@@ -34,7 +34,7 @@ import { NotificationSettingsDetailsServices } from './notification-settings-det
 import { User } from '../../../../entities/user';
 import { GioHttpTestingModule } from '../../../../shared/testing';
 import { GioUiRouterTestingModule } from '../../../../shared/testing/gio-uirouter-testing-module';
-import { AjsRootScope, CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { fakeHooks } from '../../../../entities/notification/hooks.fixture';
 import { fakeNotificationSettings } from '../../../../entities/notification/notificationSettings.fixture';
 import { fakeNotifier } from '../../../../entities/notification/notifier.fixture';
@@ -76,7 +76,6 @@ describe('NotificationSettingsDetailsComponent', () => {
       providers: [
         { provide: UIRouterStateParams, useValue: { apiId: API_ID, notificationId: NOTIFICATION_ID } },
         { provide: UIRouterState, useValue: { $current: { parent: { name: 'test' } } } },
-        { provide: AjsRootScope, useValue: null },
         { provide: CurrentUserService, useValue: { currentUser } },
       ],
     })

@@ -25,7 +25,6 @@ import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
 import { fakeApi } from '../entities/api/Api.fixture';
 import { fakeFlowSchema } from '../entities/flow/flowSchema.fixture';
 import { fakeUpdateApi } from '../entities/api/UpdateApi.fixture';
-import { AjsRootScope } from '../ajs-upgraded-providers';
 import { fakeGroupMember } from '../entities/group/groupMember.fixture';
 import { fakeMetadata, fakeNewMetadata, fakeUpdateMetadata } from '../entities/metadata/metadata.fixture';
 import { fakeEvent } from '../entities/event/event.fixture';
@@ -33,12 +32,10 @@ import { fakeEvent } from '../entities/event/event.fixture';
 describe('ApiService', () => {
   let httpTestingController: HttpTestingController;
   let apiService: ApiService;
-  const fakeRootScope = { $broadcast: jest.fn(), $on: jest.fn() };
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [GioHttpTestingModule],
-      providers: [{ provide: AjsRootScope, useValue: fakeRootScope }],
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);

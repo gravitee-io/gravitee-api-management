@@ -27,7 +27,6 @@ import {
   uiRouterStateProvider,
   uiRouterStateParamsProvider,
   currentUserProvider,
-  ajsRootScopeProvider,
   portalSettingsProvider,
   ajsScopeProvider,
 } from './ajs-upgraded-providers';
@@ -68,7 +67,6 @@ import { AuthModule } from './auth/auth.module';
     uiRouterStateProvider,
     uiRouterStateParamsProvider,
     currentUserProvider,
-    ajsRootScopeProvider,
     ajsScopeProvider,
     portalSettingsProvider,
     {

@@ -17,14 +17,12 @@ import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { catchError, mapTo } from 'rxjs/operators';
-import { IScope } from 'angular';
 import { AbstractControl, AsyncValidatorFn, ValidationErrors } from '@angular/forms';
 
 import { Api, ApiMetrics, ApiQualityMetrics, ApiStateEntity, UpdateApi } from '../entities/api';
 import { Constants } from '../entities/Constants';
 import { FlowSchema } from '../entities/flow/flowSchema';
 import { PagedResult } from '../entities/pagedResult';
-import { AjsRootScope } from '../ajs-upgraded-providers';
 import { GroupMember } from '../entities/group/groupMember';
 import { ApiHealthAverage } from '../entities/api/ApiHealthAverage';
 import { Metadata, NewMetadata, UpdateMetadata } from '../entities/metadata/metadata';
@@ -39,11 +37,7 @@ export interface ContextPathValidatorParams {
   providedIn: 'root',
 })
 export class ApiService {
-  constructor(
-    private readonly http: HttpClient,
-    @Inject('Constants') private readonly constants: Constants,
-    @Inject(AjsRootScope) private readonly ajsRootScope: IScope,
-  ) {}
+  constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
 
   get(apiId: string): Observable<Api> {
     return this.http.get<Api>(`${this.constants.env.baseURL}/apis/${apiId}`);

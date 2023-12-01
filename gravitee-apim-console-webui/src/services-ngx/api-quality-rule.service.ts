@@ -16,21 +16,15 @@
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { IScope } from 'angular';
 
 import { Constants } from '../entities/Constants';
-import { AjsRootScope } from '../ajs-upgraded-providers';
 import { ApiQualityRule } from '../entities/apiQualityRule';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ApiQualityRuleService {
-  constructor(
-    private readonly http: HttpClient,
-    @Inject('Constants') private readonly constants: Constants,
-    @Inject(AjsRootScope) private readonly ajsRootScope: IScope,
-  ) {}
+  constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
 
   getQualityRules(apiId: string): Observable<ApiQualityRule[]> {
     return this.http.get<ApiQualityRule[]>(`${this.constants.env.baseURL}/apis/${apiId}/quality-rules`);

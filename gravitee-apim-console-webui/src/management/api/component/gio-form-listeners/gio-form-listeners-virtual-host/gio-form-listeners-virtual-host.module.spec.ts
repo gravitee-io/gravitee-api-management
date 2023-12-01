@@ -25,7 +25,6 @@ import { GioFormListenersVirtualHostModule } from './gio-form-listeners-virtual-
 import { GioFormListenersVirtualHostHarness } from './gio-form-listeners-virtual-host.harness';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
-import { AjsRootScope } from '../../../../../ajs-upgraded-providers';
 
 @Component({
   template: `
@@ -67,7 +66,6 @@ describe('GioFormListenersVirtualHostModule', () => {
           provide: 'Constants',
           useValue: fakeConstants,
         },
-        { provide: AjsRootScope, useValue: { $broadcast: jest.fn() } },
       ],
     });
     fixture = TestBed.createComponent(TestComponent);
