@@ -54,7 +54,6 @@ import FetcherService from '../services/fetcher.service';
 import NotifierService from '../services/notifier.service';
 import ServiceDiscoveryService from '../services/serviceDiscovery.service';
 import LoginController from '../auth/login/login.controller';
-import { LogoutComponent } from '../user/logout/logout.component';
 
 import DiffDirective from '../components/diff/diff.directive';
 // Api
@@ -144,9 +143,6 @@ import CategoryService from '../services/category.service';
 import DeleteCategoryDialogController from '../management/configuration/categories/delete.category.dialog.controller';
 import DeleteAPICategoryDialogController from './configuration/categories/category/delete-api-category.dialog.controller';
 import DialogAddGroupMemberController from './configuration/groups/group/addMemberDialog.controller';
-import RegistrationController from '../user/registration/registration.controller';
-import ConfirmController from '../user/registration/confirm/confirm.controller';
-import ResetPasswordController from '../user/resetPassword/resetPassword.controller';
 import SubscriptionService from '../services/subscription.service';
 import EmptyStateDirective from '../components/emptystate/emptystate.directive';
 import TagService from '../services/tag.service';
@@ -173,7 +169,7 @@ import RoleService from '../services/role.service';
 import UserService from '../services/user.service';
 import UserController from '../user/my-accout/user.controller';
 import UserComponentAjs from '../user/my-accout/user.component.ajs';
-import { TasksComponent } from './tasks/tasks.component';
+import { TasksComponent } from '../user/tasks/tasks.component';
 // Notification Settings
 import NotificationsComponentAjs from '../components/notifications/notifications.component.ajs';
 import NotificationSettingsService from '../services/notificationSettings.service';
@@ -190,7 +186,7 @@ import { ApiHealthcheckLogComponentAjs } from './api/proxy/health-check-dashboar
 
 // Ticket
 import TicketService from '../services/ticket.service';
-import SupportTicketComponentAjs from '../management/support/ticket.component.ajs';
+import SupportTicketComponentAjs from '../user/support/ticket.component.ajs';
 // Audit
 import AuditService from '../services/audit.service';
 import { ApiAuditComponentAjs } from './api/audit/general/audit.component.ajs';
@@ -285,7 +281,7 @@ import DashboardService from '../services/dashboard.service';
 import SettingsAnalyticsDashboardComponentAjs from './configuration/analytics/dashboard/settings-analytics-dashboard.components.ajs';
 // Tokens
 import TokenService from '../services/token.service';
-import DialogGenerateTokenController from '../user/token/generateTokenDialog.controller';
+import DialogGenerateTokenController from '../user/my-accout/token/generateTokenDialog.controller';
 // Newsletter
 import NewsletterReminderComponent from '../components/newsletter-subcription/newsletter-reminder.component';
 // Quick Time Range
@@ -321,7 +317,7 @@ import NewFieldDialogController from './configuration/custom-user-fields/dialog/
 import DeleteFieldDialogController from './configuration/custom-user-fields/dialog/delete.custom-user-field.dialog.controller';
 import UpdateFieldDialogController from './configuration/custom-user-fields/dialog/update.custom-user-field.dialog.controller';
 import FlowService from '../services/flow.service';
-import TicketDetailComponentAjs from './support/ticket-detail.component.ajs';
+import TicketDetailComponentAjs from '../user/support/ticket-detail.component.ajs';
 import SpelService from '../services/spel.service';
 import AlertsDashboardComponent from '../components/alerts/dashboard/alerts-dashboard.component';
 import WidgetChartCountComponent from '../components/widget/count/widget-chart-count.component';
@@ -414,8 +410,8 @@ import { GioBannerComponent } from '@gravitee/ui-particles-angular';
 import { GioPendoService } from '@gravitee/ui-analytics';
 import ApplicationSubscriptionsListComponent from '../management/application/details/subscriptions/application-subscriptions-list.component';
 import ApplicationSubscriptionsListController from '../management/application/details/subscriptions/application-subscriptions-list.controller';
-import ApiKeysComponent from '../management/api-key/api-keys.component';
-import ApiKeysController from '../management/api-key/api-keys.controller';
+import ApiKeysComponent from './application/components/api-key/api-keys.component';
+import ApiKeysController from './application/components/api-key/api-keys.controller';
 import { EnvAuditComponent } from './audit/env-audit.component';
 import { EnvApplicationListComponent } from './application/list/env-application-list.component';
 import { GioSideNavComponent } from '../components/gio-side-nav/gio-side-nav.component';
@@ -444,7 +440,7 @@ import { ApplicationGeneralNgComponent } from './application/details/general/gen
 import { ApplicationGeneralMembersComponent } from './application/details/user-group-access/members/application-general-members.component';
 import { ApplicationGeneralGroupsComponent } from './application/details/user-group-access/groups/application-general-groups.component';
 import { ApplicationGeneralTransferOwnershipComponent } from './application/details/user-group-access/transfer-ownership/application-general-transfer-ownership.component';
-import SupportTicketsListComponentAjs from './support/tickets-list.component.ajs';
+import SupportTicketsListComponentAjs from '../user/support/tickets-list.component.ajs';
 import SettingsAnalyticsComponentAjs from './configuration/analytics/settings-analytics.component.ajs';
 import ApplicationGeneralComponentAjs from './application/details/general/application-general.component.ajs';
 import AnalyticsDashboardComponentAjs from './analytics/analytics-dashboard/analytics-dashboard.component.ajs';
@@ -608,9 +604,6 @@ graviteeManagementModule.component('settingsGroupsAjs', GroupsComponentAjs);
 graviteeManagementModule.component('settingsGroupEditAjs', GroupComponentAjs);
 graviteeManagementModule.controller('DialogAddGroupMemberController', DialogAddGroupMemberController);
 graviteeManagementModule.controller('DialogTransferOwnershipController', DialogTransferOwnershipController);
-graviteeManagementModule.controller('RegistrationController', RegistrationController);
-graviteeManagementModule.controller('ConfirmController', ConfirmController);
-graviteeManagementModule.controller('ResetPasswordController', ResetPasswordController);
 graviteeManagementModule.controller('NewsletterSubscriptionController', NewsletterSubscriptionController);
 graviteeManagementModule.controller('MetadataController', MetadataController);
 graviteeManagementModule.controller('DeleteMetadataDialogController', DeleteMetadataDialogController);
@@ -808,8 +801,6 @@ graviteeManagementModule.directive(
 );
 graviteeManagementModule.directive('ngApplicationMetadata', downgradeComponent({ component: ApplicationMetadataComponent }));
 graviteeManagementModule.directive('ngApplicationGeneralNg', downgradeComponent({ component: ApplicationGeneralNgComponent }));
-
-graviteeManagementModule.component('logout', LogoutComponent);
 
 graviteeManagementModule.component('apiAnalyticsLogsComponentAjs', ApiAnalyticsLogsComponentAjs);
 graviteeManagementModule.component('gvLogsTimeframe', LogsTimeframeComponent);
