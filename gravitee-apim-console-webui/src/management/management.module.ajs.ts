@@ -230,7 +230,7 @@ import TopApiService from '../services/top-api.service';
 import TopApisComponent from '../management/configuration/top-apis/top-apis.component';
 import AddTopApiDialogController from '../management/configuration/top-apis/dialog/add.top-api.dialog.controller';
 import DeleteTopApiDialogController from '../management/configuration/top-apis/dialog/delete.top-api.dialog.controller';
-import PortalSettingsComponent from './configuration/portal/portal.component';
+import PortalSettingsComponentAjs from './configuration/portal/portal.component.ajs';
 
 import RouterService from '../services/router.service';
 
@@ -716,7 +716,7 @@ graviteeManagementModule.component('theme', PortalThemeComponent);
 graviteeManagementModule.component('topApis', TopApisComponent);
 graviteeManagementModule.factory('ngCockpitService', downgradeInjectable(CockpitService));
 
-graviteeManagementModule.component('portalSettings', PortalSettingsComponent);
+graviteeManagementModule.component('settingsPortalAjs', PortalSettingsComponentAjs);
 graviteeManagementModule.component('settingsAnalyticsAjs', SettingsAnalyticsComponentAjs);
 graviteeManagementModule.directive('gvMetadataValidator', () => MetadataValidatorDirective);
 graviteeManagementModule.component('customUserFields', CustomUserFieldsComponent);

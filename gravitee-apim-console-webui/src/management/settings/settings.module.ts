@@ -33,6 +33,8 @@ import { GroupsComponent } from '../configuration/groups/groups.component';
 import { GroupComponent } from '../configuration/groups/group/group.component';
 import { DocumentationModule } from '../../components/documentation/documentation.module';
 import { EnvironmentMetadataModule } from '../configuration/metadata/environment-metadata.module';
+import { PortalComponent } from '../configuration/portal/portal.component';
+import { ClientRegistrationProvidersModule } from '../configuration/client-registration-providers/client-registration-providers.module';
 
 @NgModule({
   imports: [
@@ -43,6 +45,7 @@ import { EnvironmentMetadataModule } from '../configuration/metadata/environment
     CommonModule,
     DocumentationModule,
     EnvironmentMetadataModule,
+    ClientRegistrationProvidersModule,
   ],
   declarations: [
     SettingsNavigationComponent,
@@ -56,6 +59,7 @@ import { EnvironmentMetadataModule } from '../configuration/metadata/environment
     CategoryComponent,
     GroupsComponent,
     GroupComponent,
+    PortalComponent,
   ],
 })
 export class SettingsModule {}

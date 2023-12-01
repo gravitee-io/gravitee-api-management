@@ -37,7 +37,6 @@ import { ApplicationMembersComponent } from './details/members/application-membe
 
 import ApplicationService from '../../services/application.service';
 import EnvironmentService from '../../services/environment.service';
-import GroupService from '../../services/group.service';
 import { HasEnvironmentPermissionGuard } from '../has-environment-permission.guard';
 
 export default applicationsConfig;

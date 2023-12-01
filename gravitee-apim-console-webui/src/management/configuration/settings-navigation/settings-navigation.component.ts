@@ -105,8 +105,7 @@ export class SettingsNavigationComponent implements OnInit {
           },
           {
             displayName: 'Settings',
-            targetRoute: 'management.settings.portal',
-            baseRoute: 'management.settings.portal',
+            routerLink: './portal',
             permissions: ['environment-settings-r'],
           },
           {
