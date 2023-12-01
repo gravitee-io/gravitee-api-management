@@ -278,11 +278,6 @@ public class TcpApiReactor extends AbstractLifecycleComponent<ReactorHandler> im
     }
 
     @Override
-    public ReactorHandler stop() throws Exception {
-        return this;
-    }
-
-    @Override
     @SuppressWarnings("java:S6204") // no using toList() as it messes with generics
     public List<Acceptor<?>> acceptors() {
         return api
