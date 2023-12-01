@@ -40,6 +40,7 @@ import { UIRouterModule } from '@uirouter/angular';
 import { MatOptionModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { RouterModule } from '@angular/router';
 
 import { ClientRegistrationProvidersComponent } from './client-registration-providers.component';
 import { ClientRegistrationProviderComponent } from './client-registration-provider/client-registration-provider.component';
@@ -53,6 +54,7 @@ import { GioPermissionModule } from '../../../shared/components/gio-permission/g
     CommonModule,
     ReactiveFormsModule,
     UIRouterModule,
+    RouterModule,
 
     MatButtonModule,
     MatCardModule,

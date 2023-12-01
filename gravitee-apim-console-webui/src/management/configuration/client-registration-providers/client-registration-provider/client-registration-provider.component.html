@@ -17,7 +17,7 @@
 -->
 <form *ngIf="providerForm" [formGroup]="providerForm" (ngSubmit)="onSubmit()" gioFormFocusInvalid>
   <h1>
-    <gio-go-back-button [ajsGo]="{ to: 'management.settings.clientregistrationproviders.list' }"></gio-go-back-button>
+    <gio-go-back-button routerLink="../"></gio-go-back-button>
     {{ updateMode ? 'Update client registration provider' : 'New client registration provider' }}
   </h1>
 
