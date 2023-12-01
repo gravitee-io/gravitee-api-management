@@ -33,6 +33,7 @@ import { DocumentationManagementComponent } from '../../components/documentation
 import { DocumentationNewPageComponent } from '../../components/documentation/new-page.component';
 import { DocumentationImportPagesComponent } from '../../components/documentation/import-pages.component';
 import { DocumentationEditPageComponent } from '../../components/documentation/edit-page.component';
+import { EnvironmentMetadataComponent } from '../configuration/metadata/environment-metadata.component';
 
 export const settingsRoutes: Routes = [
   {
@@ -263,6 +264,19 @@ export const settingsRoutes: Routes = [
           perms: {
             only: ['environment-documentation-c', 'environment-documentation-u', 'environment-documentation-d'],
             unauthorizedFallbackTo: 'management.settings.metadata',
+          },
+        },
+      },
+      {
+        path: 'metadata',
+        component: EnvironmentMetadataComponent,
+        data: {
+          docs: {
+            page: 'management-configuration-metadata',
+          },
+          perms: {
+            only: ['environment-metadata-r'],
+            unauthorizedFallbackTo: 'management.settings.portal',
           },
         },
       },
