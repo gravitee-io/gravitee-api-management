@@ -16,11 +16,13 @@
 import { Injectable } from '@angular/core';
 import { ActivatedRoute, NavigationExtras, Route, Router, Routes } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
+import { OAuthService } from 'angular-oauth2-oidc';
 
-import { FeatureGuardService } from './feature-guard.service';
-import { AuthGuardService } from './auth-guard.service';
 import { CurrentUserService } from './current-user.service';
-import { PermissionGuardService } from './permission-guard.service';
+import { canAccessFeature } from './feature-guard.service';
+import { checkPermission } from './permission-guard.service';
+import { canActivateBasedOnAuth } from './auth-guard.service';
+import { ConfigurationService } from './configuration.service';
 
 export interface INavRoute {
   path: string;
@@ -36,12 +38,11 @@ export interface INavRoute {
 })
 export class NavRouteService {
   constructor(
-    private router: Router,
-    private translateService: TranslateService,
-    private featureGuardService: FeatureGuardService,
-    private currentUserService: CurrentUserService,
-    private authGuardService: AuthGuardService,
-    private permissionGuardService: PermissionGuardService,
+    private readonly router: Router,
+    private readonly translateService: TranslateService,
+    private readonly currentUserService: CurrentUserService,
+    private readonly config: ConfigurationService,
+    private readonly oauthService: OAuthService,
   ) {}
 
   async getUserNav(): Promise<INavRoute[]> {
@@ -50,7 +51,7 @@ export class NavRouteService {
     const managementRoute: Promise<INavRoute> = this.getManagementNav();
     const userRoutes: Promise<INavRoute[]> = this.getChildrenNav(userRoute, parentPath, []);
 
-    return Promise.all([managementRoute, userRoutes]).then(values => {
+    return Promise.all([managementRoute, userRoutes]).then((values: [INavRoute, INavRoute[]]) => {
       const routesArray = values[1];
 
       if (routesArray.length > 1 && values[0]) {
@@ -114,10 +115,10 @@ export class NavRouteService {
             newChild.data = { ...data, ...child.data };
             return newChild;
           })
-          .filter(child => this.featureGuardService.canActivate(child) === true)
-          .filter(child => this.permissionGuardService.canActivate(child) === true)
+          .filter(child => canAccessFeature(child, this.config, this.router) === true)
+          .filter(child => checkPermission(child, this.currentUserService, this.router) === true)
           .map(async child => {
-            const hasAuth = await this.authGuardService.canActivate(child);
+            const hasAuth = await canActivateBasedOnAuth(child, this.currentUserService, this.router, this.oauthService);
             if (hasAuth === true) {
               let path = `${_parentPath}/${child.path}`;
               // remove trailing slash to allow empty path

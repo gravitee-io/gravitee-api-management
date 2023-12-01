@@ -22,8 +22,6 @@ import { TranslateService } from '@ngx-translate/core';
 import { UserTestingModule } from '../test/user-testing-module';
 
 import { NavRouteService } from './nav-route.service';
-import { FeatureGuardService } from './feature-guard.service';
-import { AuthGuardService } from './auth-guard.service';
 import { CurrentUserService } from './current-user.service';
 
 describe('NavRouteService', () => {
@@ -46,16 +44,13 @@ describe('NavRouteService', () => {
         },
       ]),
     ],
-    providers: [mockProvider(FeatureGuardService), mockProvider(ActivatedRoute)],
+    providers: [mockProvider(ActivatedRoute)],
   });
   let routeService: NavRouteService;
-  let featureGuardService: FeatureGuardService;
   beforeEach(() => {
     service = createService();
     service.inject(CurrentUserService);
-    service.inject(AuthGuardService);
     service.inject(TranslateService);
-    featureGuardService = service.inject(FeatureGuardService);
     routeService = service.service;
   });
 
@@ -75,14 +70,12 @@ describe('NavRouteService', () => {
   });
 
   it('should get null children nav if parent does not have data.menu', async () => {
-    featureGuardService.canActivate = jest.fn(() => true);
     const catalog = routeService.getRouteByPath('catalog');
     const routes = await routeService.getChildrenNav(catalog);
     expect(routes).toEqual(null);
   });
 
   it('should get children nav if parent have data.menu and child have data.title', async () => {
-    featureGuardService.canActivate = jest.fn(() => true);
     const catalog = routeService.getRouteByPath('catalogWithChildren');
     const routes = await routeService.getChildrenNav(catalog);
     expect(routes.length).toEqual(1);

@@ -89,7 +89,7 @@ export class ApiSubscribeComponent implements OnInit {
   availableApplications: { label: string; value: string }[];
   apiKeyModeOptions: { id: string; title: string; description: string }[];
   connectedApps: any[];
-  apiId: any;
+  apiId: string;
   skeleton: boolean;
   code: any;
   apiSample: any;

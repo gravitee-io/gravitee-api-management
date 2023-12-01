@@ -13,21 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Injectable } from '@angular/core';
-import { ActivatedRouteSnapshot, CanActivate, Router, UrlTree } from '@angular/router';
+import { inject } from '@angular/core';
+import { ActivatedRouteSnapshot, CanActivateFn, Router, UrlTree } from '@angular/router';
 
 import { ConfigurationService } from './configuration.service';
 
-@Injectable({ providedIn: 'root' })
-export class FeatureGuardService implements CanActivate {
-  constructor(private config: ConfigurationService, private router: Router) {}
-
-  canActivate(route: ActivatedRouteSnapshot): boolean | UrlTree {
-    if (route.data && route.data.expectedFeature) {
-      if (!this.config.hasFeature(route.data.expectedFeature)) {
-        return this.router.parseUrl(route.data.fallbackRedirectTo);
-      }
+/**
+ * Checks if the user has access to a specific feature based on the provided route and configuration.
+ *
+ * @param {ActivatedRouteSnapshot} route - The current route.
+ * @param {ConfigurationService} config - The configuration service used to check for feature access.
+ * @param {Router} router - The router instance used for navigation.
+ *
+ * @return {boolean | UrlTree} - Returns true if the user has access to the feature. If the user does not have access,
+ *                                it returns a UrlTree that represents the fallback redirect URL.
+ */
+export function canAccessFeature(route: ActivatedRouteSnapshot, config: ConfigurationService, router: Router) {
+  if (route.data && route.data.expectedFeature) {
+    if (!config.hasFeature(route.data.expectedFeature)) {
+      return router.parseUrl(route.data.fallbackRedirectTo);
     }
-    return true;
   }
+  return true;
 }
+
+export const featureGuard = ((route: ActivatedRouteSnapshot): boolean | UrlTree => {
+  const config: ConfigurationService = inject(ConfigurationService);
+  const router: Router = inject(Router);
+  return canAccessFeature(route, config, router);
+}) satisfies CanActivateFn;
