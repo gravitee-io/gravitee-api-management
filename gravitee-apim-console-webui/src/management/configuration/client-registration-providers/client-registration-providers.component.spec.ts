@@ -29,7 +29,7 @@ import { InteractivityChecker } from '@angular/cdk/a11y';
 import { ClientRegistrationProvidersComponent } from './client-registration-providers.component';
 import { ClientRegistrationProvidersModule } from './client-registration-providers.module';
 
-import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
+import { UIRouterState } from '../../../ajs-upgraded-providers';
 import { fakeClientRegistrationProvider } from '../../../entities/client-registration-provider/clientRegistrationProvider.fixture';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
@@ -86,7 +86,6 @@ describe('ClientRegistrationProviders', () => {
       ],
       providers: [
         { provide: UIRouterState, useValue: fakeAjsState },
-        { provide: UIRouterStateParams, useValue: {} },
         {
           provide: 'Constants',
           useValue: CONSTANTS_TESTING,

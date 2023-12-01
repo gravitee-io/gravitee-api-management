@@ -31,17 +31,6 @@ export const uiRouterStateProvider = {
   deps: ['$injector'],
 };
 
-export const UIRouterStateParams = new InjectionToken('UIRouterStateParams');
-
-function uiRouterStateParamsServiceFactory(i: any) {
-  return i.get('$stateParams');
-}
-export const uiRouterStateParamsProvider = {
-  provide: UIRouterStateParams,
-  useFactory: uiRouterStateParamsServiceFactory,
-  deps: ['$injector'],
-};
-
 export const CurrentUserService = new InjectionToken('CurrentUserService');
 
 function currentUserServiceFactory(i: any) {

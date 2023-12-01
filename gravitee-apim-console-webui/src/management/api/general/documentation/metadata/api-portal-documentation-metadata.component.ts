@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 
 import { MetadataSaveServices } from '../../../../../components/gio-metadata/gio-metadata.component';
 import { ApiService } from '../../../../../services-ngx/api.service';
-import { UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 
 @Component({
   selector: 'api-portal-documentation-metadata',
@@ -28,15 +28,15 @@ export class ApiPortalDocumentationMetadataComponent implements OnInit {
   metadataSaveServices: MetadataSaveServices;
   description: string;
 
-  constructor(private readonly apiService: ApiService, @Inject(UIRouterStateParams) private readonly ajsStateParams) {}
+  constructor(private readonly apiService: ApiService, private readonly activatedRoute: ActivatedRoute) {}
 
   ngOnInit() {
     this.metadataSaveServices = {
       type: 'API',
-      list: () => this.apiService.listMetadata(this.ajsStateParams.apiId),
-      create: (newMetadata) => this.apiService.createMetadata(this.ajsStateParams.apiId, newMetadata),
-      update: (updateMetadata) => this.apiService.updateMetadata(this.ajsStateParams.apiId, updateMetadata),
-      delete: (metadataKey) => this.apiService.deleteMetadata(this.ajsStateParams.apiId, metadataKey),
+      list: () => this.apiService.listMetadata(this.activatedRoute.snapshot.params.apiId),
+      create: (newMetadata) => this.apiService.createMetadata(this.activatedRoute.snapshot.params.apiId, newMetadata),
+      update: (updateMetadata) => this.apiService.updateMetadata(this.activatedRoute.snapshot.params.apiId, updateMetadata),
+      delete: (metadataKey) => this.apiService.deleteMetadata(this.activatedRoute.snapshot.params.apiId, metadataKey),
     };
     this.description = `Create API metadata to retrieve custom information about your API`;
   }

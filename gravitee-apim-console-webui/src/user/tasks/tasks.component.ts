@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { Subject } from 'rxjs';
-import { StateService } from '@uirouter/angularjs';
 import { MatDialog } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import {
   TasksAcceptPromotionDialogComponent,
@@ -29,7 +29,6 @@ import {
 import { TaskService } from '../../services-ngx/task.service';
 import { PagedResult } from '../../entities/pagedResult';
 import { PromotionApprovalTaskData, Task } from '../../entities/task/task';
-import { UIRouterState, UIRouterStateParams } from '../../ajs-upgraded-providers';
 import { PromotionService } from '../../services-ngx/promotion.service';
 import { SnackBarService } from '../../services-ngx/snack-bar.service';
 import { Workflow } from '../../entities/workflow/workflow';
@@ -56,10 +55,10 @@ export class TasksComponent implements OnInit, OnDestroy {
   loading = false;
 
   constructor(
+    private readonly router: Router,
+    private readonly activatedRoute: ActivatedRoute,
     private readonly taskService: TaskService,
     private readonly promotionService: PromotionService,
-    @Inject(UIRouterState) private readonly ajsState: StateService,
-    @Inject(UIRouterStateParams) private readonly ajsStateParams,
     private readonly matDialog: MatDialog,
     private readonly snackBarService: SnackBarService,
   ) {}
@@ -98,18 +97,13 @@ export class TasksComponent implements OnInit, OnDestroy {
   }
 
   go(task: TaskData): void {
-    const currentEnvironmentId = this.ajsStateParams.environmentId;
+    const currentEnvironmentId = this.activatedRoute.snapshot.params.environmentId;
 
     switch (task.type) {
       case 'SUBSCRIPTION_APPROVAL': {
         const { api: apiId, id } = task.data as any;
         const taskEnvironmentId = this.tasks.metadata[apiId]?.environmentId;
-
-        this.ajsState.go('management.apis.subscription.edit', {
-          apiId,
-          subscriptionId: id,
-          environmentId: taskEnvironmentId || currentEnvironmentId,
-        });
+        this.router.navigate([taskEnvironmentId || currentEnvironmentId, 'apis', apiId, 'subscriptions', id]);
         break;
       }
       case 'IN_REVIEW':
@@ -117,15 +111,12 @@ export class TasksComponent implements OnInit, OnDestroy {
         const { referenceId } = task.data as Workflow;
         const taskEnvironmentId = this.tasks.metadata[referenceId]?.environmentId;
 
-        this.ajsState.go('management.apis.general', {
-          apiId: referenceId,
-          environmentId: taskEnvironmentId || currentEnvironmentId,
-        });
+        this.router.navigate([taskEnvironmentId || currentEnvironmentId, 'apis', referenceId]);
         break;
       }
       case 'USER_REGISTRATION_APPROVAL': {
         const { id } = task.data as any;
-        this.ajsState.go('organization.user-edit', { userId: id });
+        this.router.navigate(['_organization', 'users', id]);
         break;
       }
     }

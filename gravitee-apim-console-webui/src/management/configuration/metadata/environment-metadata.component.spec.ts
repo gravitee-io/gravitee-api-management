@@ -26,7 +26,7 @@ import { EnvironmentMetadataComponent } from './environment-metadata.component';
 import { EnvironmentMetadataModule } from './environment-metadata.module';
 
 import { User } from '../../../entities/user';
-import { CurrentUserService, UIRouterStateParams } from '../../../ajs-upgraded-providers';
+import { CurrentUserService } from '../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { GioMetadataHarness } from '../../../components/gio-metadata/gio-metadata.harness';
 import { GioMetadataDialogHarness } from '../../../components/gio-metadata/dialog/gio-metadata-dialog.harness';
@@ -38,7 +38,6 @@ describe('EnvironmentMetadataComponent', () => {
   let loader: HarnessLoader;
   let rootLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
-  const API_ID = 'my-api';
 
   const init = async () => {
     const currentUser = new User();
@@ -46,10 +45,7 @@ describe('EnvironmentMetadataComponent', () => {
 
     await TestBed.configureTestingModule({
       declarations: [EnvironmentMetadataComponent],
-      providers: [
-        { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
-        { provide: CurrentUserService, useValue: { currentUser } },
-      ],
+      providers: [{ provide: CurrentUserService, useValue: { currentUser } }],
       imports: [NoopAnimationsModule, GioHttpTestingModule, EnvironmentMetadataModule, MatIconTestingModule],
     })
       .overrideProvider(InteractivityChecker, {

@@ -25,13 +25,11 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { LoginModule } from './login.module';
 import { LoginComponent } from './login.component';
 
-import { UIRouterStateParams, CurrentUserService } from '../../ajs-upgraded-providers';
+import { CurrentUserService } from '../../ajs-upgraded-providers';
 import { User } from '../../entities/user';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../shared/testing';
 
 describe('LoginComponent', () => {
-  const API_ID = 'apiId';
-
   let fixture: ComponentFixture<LoginComponent>;
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
@@ -42,10 +40,7 @@ describe('LoginComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule, LoginModule],
-      providers: [
-        { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
-        { provide: CurrentUserService, useValue: { currentUser } },
-      ],
+      providers: [{ provide: CurrentUserService, useValue: { currentUser } }],
     });
   });
 

@@ -19,6 +19,7 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { TasksComponent } from './tasks.component';
 import { TasksModule } from './tasks.module';
@@ -26,14 +27,9 @@ import { TasksHarness } from './tasks.harness';
 
 import { PagedResult } from '../../entities/pagedResult';
 import { Task } from '../../entities/task/task';
-import { UIRouterState, UIRouterStateParams } from '../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../shared/testing';
 
 describe('TasksComponent', () => {
-  const fakeAjsState = {
-    go: jest.fn(),
-  };
-
   const responseData = {
     data: [
       {
@@ -151,17 +147,21 @@ describe('TasksComponent', () => {
   let fixture: ComponentFixture<TasksComponent>;
   let harness: TasksHarness;
   let httpTestingController: HttpTestingController;
+  let routerNavigateSpy: jest.SpyInstance;
 
   const init = async () => {
     await TestBed.configureTestingModule({
       declarations: [TasksComponent],
       imports: [NoopAnimationsModule, TasksModule, MatIconTestingModule, GioHttpTestingModule],
       providers: [
-        { provide: UIRouterState, useValue: fakeAjsState },
         {
-          provide: UIRouterStateParams,
+          provide: ActivatedRoute,
           useValue: {
-            environmentId: 'DEFAULT',
+            snapshot: {
+              params: {
+                environmentId: 'DEFAULT',
+              },
+            },
           },
         },
       ],
@@ -171,6 +171,8 @@ describe('TasksComponent', () => {
     fixture.detectChanges();
     harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, TasksHarness);
     httpTestingController = TestBed.inject(HttpTestingController);
+    const router = TestBed.inject(Router);
+    routerNavigateSpy = jest.spyOn(router, 'navigate');
 
     fixture.detectChanges();
   };
@@ -223,11 +225,13 @@ describe('TasksComponent', () => {
       expect(await tasks[0].getText()).toContain('Subscription');
       const validateButton = await tasks[0].getHarness(MatButtonHarness);
       await validateButton.click();
-      expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.subscription.edit', {
-        apiId: responseData.data[0].data.api,
-        subscriptionId: responseData.data[0].data.id,
-        environmentId: 'TaskEnvironmentId',
-      });
+      expect(routerNavigateSpy).toHaveBeenCalledWith([
+        'TaskEnvironmentId',
+        'apis',
+        responseData.data[0].data.api,
+        'subscriptions',
+        responseData.data[0].data.id,
+      ]);
     });
   });
 });

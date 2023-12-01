@@ -34,7 +34,7 @@ import { NotificationSettingsDetailsServices } from './notification-settings-det
 import { User } from '../../../../entities/user';
 import { GioHttpTestingModule } from '../../../../shared/testing';
 import { GioUiRouterTestingModule } from '../../../../shared/testing/gio-uirouter-testing-module';
-import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+import { CurrentUserService, UIRouterState } from '../../../../ajs-upgraded-providers';
 import { fakeHooks } from '../../../../entities/notification/hooks.fixture';
 import { fakeNotificationSettings } from '../../../../entities/notification/notificationSettings.fixture';
 import { fakeNotifier } from '../../../../entities/notification/notifier.fixture';
@@ -53,8 +53,6 @@ class TestComponent {
 
 describe('NotificationSettingsDetailsComponent', () => {
   let fixture: ComponentFixture<TestComponent>;
-  const API_ID = 'apiId';
-  const NOTIFICATION_ID = 'f7889b1c-2b4c-435d-889b-1c2b4c235da9';
   const currentUser = new User();
   currentUser.userPermissions = ['api-notification-u', 'api-notification-d', 'api-notification-c'];
   let httpTestingController: HttpTestingController;
@@ -74,7 +72,6 @@ describe('NotificationSettingsDetailsComponent', () => {
         }),
       ],
       providers: [
-        { provide: UIRouterStateParams, useValue: { apiId: API_ID, notificationId: NOTIFICATION_ID } },
         { provide: UIRouterState, useValue: { $current: { parent: { name: 'test' } } } },
         { provide: CurrentUserService, useValue: { currentUser } },
       ],

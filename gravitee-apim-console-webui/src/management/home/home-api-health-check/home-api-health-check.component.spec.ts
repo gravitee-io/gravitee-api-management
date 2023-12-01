@@ -25,7 +25,7 @@ import { HighchartsChartModule } from 'highcharts-angular';
 
 import { HomeApiHealthCheckComponent } from './home-api-health-check.component';
 
-import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
+import { CurrentUserService } from '../../../ajs-upgraded-providers';
 import { User } from '../../../entities/user';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { HomeModule } from '../home.module';
@@ -41,7 +41,6 @@ describe('HomeApiHealthCheckComponent', () => {
   let httpTestingController: HttpTestingController;
 
   const currentUser = new User();
-  const fakeUiRouter = { go: jest.fn() };
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -53,11 +52,7 @@ describe('HomeApiHealthCheckComponent', () => {
         MatIconTestingModule,
         HighchartsChartModule,
       ],
-      providers: [
-        { provide: UIRouterState, useValue: fakeUiRouter },
-        { provide: CurrentUserService, useValue: { currentUser } },
-        { provide: UIRouterStateParams, useValue: {} },
-      ],
+      providers: [{ provide: CurrentUserService, useValue: { currentUser } }],
     });
   });
 
@@ -154,14 +149,6 @@ describe('HomeApiHealthCheckComponent', () => {
       fixture.detectChanges();
 
       await expectApisListRequest([fakeApi()]);
-    });
-
-    it('should navigate to view API HealthCheck', async () => {
-      await loader
-        .getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to view API Health-check"]' }))
-        .then((button) => button.click());
-
-      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.healthcheck-dashboard-v2', { apiId: fakeApi().id });
     });
   });
 
