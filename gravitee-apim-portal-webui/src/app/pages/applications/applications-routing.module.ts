@@ -20,11 +20,7 @@ import { GvButtonCreateApplicationComponent } from '../../components/gv-button-c
 import { GvHeaderItemComponent } from '../../components/gv-header-item/gv-header-item.component';
 import { GvSelectDashboardComponent } from '../../components/gv-select-dashboard/gv-select-dashboard.component';
 import { FeatureEnum } from '../../model/feature.enum';
-import { ApplicationTypeResolver } from '../../resolvers/application-type.resolver';
-import { ApplicationResolver } from '../../resolvers/application.resolver';
-import { DashboardsResolver } from '../../resolvers/dashboards.resolver';
-import { EnabledApplicationTypesResolver } from '../../resolvers/enabled-application-types.resolver';
-import { FeatureGuardService } from '../../services/feature-guard.service';
+import { enabledApplicationTypesResolver } from '../../resolvers/enabled-application-types.resolver';
 import { ApplicationAnalyticsComponent } from '../application/application-analytics/application-analytics.component';
 import { ApplicationCreationComponent } from '../application/application-creation/application-creation.component';
 import { ApplicationGeneralComponent } from '../application/application-general/application-general.component';
@@ -34,9 +30,13 @@ import { ApplicationMetadataComponent } from '../application/application-metadat
 import { ApplicationNotificationsComponent } from '../application/application-notifications/application-notifications.component';
 import { ApplicationSubscriptionsComponent } from '../application/application-subscriptions/application-subscriptions.component';
 import { SubscriptionsComponent } from '../subscriptions/subscriptions.component';
-import { PermissionsResolver } from '../../resolvers/permissions-resolver.service';
 import { ApplicationAlertsComponent } from '../application/application-alerts/application-alerts.component';
-import { PermissionGuardService } from '../../services/permission-guard.service';
+import { applicationResolver } from '../../resolvers/application.resolver';
+import { featureGuard } from '../../services/feature-guard.service';
+import { permissionGuard } from '../../services/permission-guard.service';
+import { permissionsResolver } from '../../resolvers/permissions-resolver.service';
+import { applicationTypeResolver } from '../../resolvers/application-type.resolver';
+import { dashboardResolver } from '../../resolvers/dashboards.resolver';
 
 import { ApplicationsComponent } from './applications.component';
 
@@ -77,7 +77,7 @@ const routes: Routes = [
   {
     path: 'creation',
     component: ApplicationCreationComponent,
-    canActivate: [FeatureGuardService, PermissionGuardService],
+    canActivate: [featureGuard, permissionGuard],
     data: {
       title: 'route.applicationCreation',
       expectedFeature: FeatureEnum.applicationCreation,
@@ -85,7 +85,7 @@ const routes: Routes = [
       expectedPermissions: ['APPLICATION-C'],
     },
     resolve: {
-      enabledApplicationTypes: EnabledApplicationTypesResolver,
+      enabledApplicationTypes: enabledApplicationTypesResolver,
     },
   },
   {
@@ -94,8 +94,8 @@ const routes: Routes = [
       menu: { slots: { top: GvHeaderItemComponent }, animation: { type: 'fade' } },
     },
     resolve: {
-      application: ApplicationResolver,
-      permissions: PermissionsResolver,
+      application: applicationResolver,
+      permissions: permissionsResolver,
     },
     children: [
       {
@@ -108,7 +108,7 @@ const routes: Routes = [
           expectedPermissions: [],
         },
         resolve: {
-          applicationType: ApplicationTypeResolver,
+          applicationType: applicationTypeResolver,
         },
       },
       {
@@ -152,7 +152,7 @@ const routes: Routes = [
           expectedPermissions: ['ANALYTICS-R'],
         },
         resolve: {
-          dashboards: DashboardsResolver,
+          dashboards: dashboardResolver,
         },
       },
       {
@@ -178,7 +178,7 @@ const routes: Routes = [
       {
         path: 'alerts',
         component: ApplicationAlertsComponent,
-        canActivate: [FeatureGuardService],
+        canActivate: [featureGuard],
         data: {
           icon: 'home:alarm-clock',
           title: 'route.alerts',

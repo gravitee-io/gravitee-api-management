@@ -18,10 +18,10 @@ import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 
 import { Api, Application, PortalService, User } from '../../../../projects/portal-webclient-sdk/src/lib';
-import { ApplicationResolver } from '../../resolvers/application.resolver';
 import { CurrentUserService } from '../../services/current-user.service';
 import { EventService } from '../../services/event.service';
 import { NavRouteService } from '../../services/nav-route.service';
+import { applicationResolver } from '../../resolvers/application.resolver';
 
 @Component({
   selector: 'app-gv-header-item',
@@ -46,7 +46,6 @@ export class GvHeaderItemComponent implements OnInit, OnDestroy {
     public currentUserService: CurrentUserService,
     public portalService: PortalService,
     public eventService: EventService,
-    private applicationResolver: ApplicationResolver,
   ) {}
 
   ngOnInit() {
@@ -86,7 +85,10 @@ export class GvHeaderItemComponent implements OnInit, OnDestroy {
       } else if (params.applicationId && (force || params.applicationId !== this.itemId)) {
         this.itemId = params.applicationId;
         if (force) {
-          this.currentRoute.snapshot.data.application = this.applicationResolver.resolve(this.currentRoute).toPromise();
+          this.currentRoute.snapshot.data.application = applicationResolver(
+            this.currentRoute,
+            this.router.routerState.snapshot,
+          ).toPromise();
         }
         this.item = this.currentRoute.snapshot.data.application;
       } else if (params.categoryId && params.categoryId !== this.itemId) {

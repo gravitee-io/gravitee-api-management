@@ -13,39 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Injectable } from '@angular/core';
-import { ActivatedRouteSnapshot, Resolve } from '@angular/router';
+import { inject } from '@angular/core';
+import { ActivatedRouteSnapshot, ResolveFn, RouterStateSnapshot } from '@angular/router';
 
 import { PermissionsResponse, PermissionsService } from '../../../projects/portal-webclient-sdk/src/lib';
 import { CurrentUserService } from '../services/current-user.service';
 import { ConfigurationService } from '../services/configuration.service';
 import { FeatureEnum } from '../model/feature.enum';
 
-@Injectable({ providedIn: 'root' })
-export class PermissionsResolver implements Resolve<PermissionsResponse | void> {
-  constructor(
-    private permissionsService: PermissionsService,
-    private currentUserService: CurrentUserService,
-    private configurationService: ConfigurationService,
-  ) {}
-
-  resolve(route: ActivatedRouteSnapshot) {
-    if (this.currentUserService.exist()) {
-      const params = route.params;
-      if (params.applicationId) {
-        const applicationId = params.applicationId;
-        return this.permissionsService
-          .getCurrentUserPermissions({ applicationId })
-          .toPromise()
-          .catch(() => ({}));
-      } else if (params.apiId && this.configurationService.hasFeature(FeatureEnum.rating)) {
-        const apiId = params.apiId;
-        return this.permissionsService
-          .getCurrentUserPermissions({ apiId })
-          .toPromise()
-          .catch(() => ({}));
-      }
+export const permissionsResolver = ((
+  route: ActivatedRouteSnapshot,
+  state: RouterStateSnapshot,
+  permissionsService: PermissionsService = inject(PermissionsService),
+  currentUserService: CurrentUserService = inject(CurrentUserService),
+  configurationService: ConfigurationService = inject(ConfigurationService),
+): Promise<PermissionsResponse | void> => {
+  if (currentUserService.exist()) {
+    const params = route.params;
+    if (params.applicationId) {
+      const applicationId = params.applicationId;
+      return permissionsService
+        .getCurrentUserPermissions({ applicationId })
+        .toPromise()
+        .catch(() => ({}));
+    } else if (params.apiId && configurationService.hasFeature(FeatureEnum.rating)) {
+      const apiId = params.apiId;
+      return permissionsService
+        .getCurrentUserPermissions({ apiId })
+        .toPromise()
+        .catch(() => ({}));
     }
-    return Promise.resolve({});
   }
-}
+  return Promise.resolve({});
+}) satisfies ResolveFn<PermissionsResponse | void>;

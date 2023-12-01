@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Injectable } from '@angular/core';
-import { ActivatedRouteSnapshot, Resolve } from '@angular/router';
+import { inject } from '@angular/core';
+import { ActivatedRouteSnapshot, ResolveFn, RouterStateSnapshot } from '@angular/router';
 
 import { ApplicationService, ApplicationType } from '../../../projects/portal-webclient-sdk/src/lib';
 
-@Injectable({ providedIn: 'root' })
-export class ApplicationTypeResolver implements Resolve<ApplicationType> {
-  constructor(private applicationService: ApplicationService) {}
-
-  resolve(route: ActivatedRouteSnapshot) {
-    const applicationId = route.params.applicationId;
-    return this.applicationService.getApplicationType({ applicationId });
-  }
-}
+export const applicationTypeResolver = ((
+  route: ActivatedRouteSnapshot,
+  state: RouterStateSnapshot,
+  applicationService: ApplicationService = inject(ApplicationService),
+) => {
+  const applicationId = route.params.applicationId;
+  return applicationService.getApplicationType({ applicationId });
+}) satisfies ResolveFn<ApplicationType>;
