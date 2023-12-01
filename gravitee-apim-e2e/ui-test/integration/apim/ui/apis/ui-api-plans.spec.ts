@@ -37,7 +37,7 @@ describe('API Plans Feature', () => {
 
   beforeEach(() => {
     cy.loginInAPIM(ADMIN_USER.username, ADMIN_USER.password);
-    cy.visit('/#!/environments/default/apis/');
+    cy.visit('/#!/default/apis/');
     cy.url().should('include', '/apis/');
     cy.contains(api.name).should('exist', { timeout: 60000 });
   });
@@ -178,7 +178,7 @@ describe('API Plans Feature', () => {
     cy.contains(`${planName}-Keyless`).should('be.visible');
     cy.getByDataTestId('api_plans_design_plan_button').first().click();
     cy.url().should('include', 'policy-studio/');
-    cy.visit('/#!/environments/default/apis/');
+    cy.visit('/#!/default/apis/');
     cy.getByDataTestId('api_list_edit_button').first().click();
     ApiDetails.plansMenuItem().click();
     cy.get('[type="button"]').contains('STAGING').click();

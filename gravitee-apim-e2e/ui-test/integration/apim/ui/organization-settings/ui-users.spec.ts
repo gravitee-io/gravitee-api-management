@@ -19,7 +19,7 @@ import faker from '@faker-js/faker';
 describe('Users', () => {
   beforeEach(() => {
     cy.loginInAPIM(ADMIN_USER.username, ADMIN_USER.password);
-    cy.visit('/#!/organization/users');
+    cy.visit('/#!/_organization/users');
   });
 
   it('should create a new user', () => {

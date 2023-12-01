@@ -25,7 +25,7 @@ describe('API creation workflow', () => {
   describe('Create a V4 Proxy REST API', function () {
     before(() => {
       cy.loginInAPIM(ADMIN_USER.username, ADMIN_USER.password);
-      cy.visit('/#!/environments/default/apis/new');
+      cy.visit('/#!/default/apis/new');
       cy.getByDataTestId('api_create_v4_button').should('be.visible');
     });
 
@@ -81,7 +81,7 @@ describe('API creation workflow', () => {
 
         // open new API in API Management
         cy.getByDataTestId('open_api_in_api_management_button').click();
-        cy.url().should('include', `/${apiId}/general`);
+        cy.url().should('include', `/${apiId}`);
       });
     });
 
