@@ -25,7 +25,6 @@
 // Not encapsulated because used when encapsulation is .mat
 @import 'components/contextual/contextual-doc.component';
 @import 'management/application/creation/steps/application-creation';
-@import 'components/newsletter-subcription/newsletter-reminder';
 @import 'management/submenu';
 
 // Try to encapsulate all scss with .bootstrap class
@@ -57,7 +56,6 @@
   @import 'management/application/components/api-key/api-keys';
 
   @import 'user/my-accout/user';
-  @import 'user/newsletter/newsletter-subscription';
 }
 
 @import '../node_modules/@fontsource/libre-franklin/scss/mixins';
