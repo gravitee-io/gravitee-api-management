@@ -210,7 +210,7 @@
         <gravitee-policy-traffic-shadowing.version>2.0.1</gravitee-policy-traffic-shadowing.version>
         <gravitee-policy-transform-avro-json.version>2.0.2</gravitee-policy-transform-avro-json.version>
         <gravitee-policy-transformheaders.version>3.0.2</gravitee-policy-transformheaders.version>
-        <gravitee-policy-transformqueryparams.version>1.7.1</gravitee-policy-transformqueryparams.version>
+        <gravitee-policy-transformqueryparams.version>1.8.0</gravitee-policy-transformqueryparams.version>
         <gravitee-policy-url-rewriting.version>1.6.1</gravitee-policy-url-rewriting.version>
         <gravitee-policy-xml-json.version>2.0.1</gravitee-policy-xml-json.version>
         <gravitee-policy-xml-threat-protection.version>1.4.1</gravitee-policy-xml-threat-protection.version>
