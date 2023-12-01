@@ -180,10 +180,19 @@ class ApiHistoryControllerAjs {
     this.ApiService.get(this.activatedRoute.snapshot.params.apiId).then((api) => {
       this.api = api.data;
 
+<<<<<<< HEAD:gravitee-apim-console-webui/src/management/api/audit/history/apiHistory.controller.ajs.ts
       this.eventPage = -1;
       this.events = [];
       this.appendNextPage();
     });
+=======
+  init() {
+    this.$scope.$parent.apiCtrl.checkAPISynchronization(this.api.id);
+
+    this.eventPage = -1;
+    this.events = [];
+    this.appendNextPage();
+>>>>>>> 77b1153570 (fix: use apiId when checking state):gravitee-apim-console-webui/src/management/api/audit/history/apiHistory.controller.ts
   }
 
   appendNextPage() {
