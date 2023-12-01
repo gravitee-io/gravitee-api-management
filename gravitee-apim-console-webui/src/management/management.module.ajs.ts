@@ -282,8 +282,6 @@ import SettingsAnalyticsDashboardComponentAjs from './configuration/analytics/da
 // Tokens
 import TokenService from '../services/token.service';
 import DialogGenerateTokenController from '../user/my-accout/token/generateTokenDialog.controller';
-// Newsletter
-import NewsletterReminderComponent from '../components/newsletter-subcription/newsletter-reminder.component';
 // Quick Time Range
 import QuickTimeRangeComponent from '../components/quick-time-range/quick-time-range.component';
 import QuickTimeRangeController from '../components/quick-time-range/quick-time-range.controller';
@@ -309,7 +307,6 @@ import PortalThemeController from './configuration/portal-theme/portalTheme.cont
 import PortalThemeComponentAjs from './configuration/portal-theme/portalTheme.component.ajs';
 import PortalThemeService from '../services/portalTheme.service';
 
-import NewsletterSubscriptionController from '../user/newsletter/newsletter-subscription.controller';
 import CustomUserFieldsComponent from './configuration/custom-user-fields/custom-user-fields.component';
 import CustomUserFieldsController from './configuration/custom-user-fields/custom-user-fields.controller';
 import CustomUserFieldsService from '../services/custom-user-fields.service';
@@ -604,7 +601,6 @@ graviteeManagementModule.component('settingsGroupsAjs', GroupsComponentAjs);
 graviteeManagementModule.component('settingsGroupEditAjs', GroupComponentAjs);
 graviteeManagementModule.controller('DialogAddGroupMemberController', DialogAddGroupMemberController);
 graviteeManagementModule.controller('DialogTransferOwnershipController', DialogTransferOwnershipController);
-graviteeManagementModule.controller('NewsletterSubscriptionController', NewsletterSubscriptionController);
 graviteeManagementModule.controller('MetadataController', MetadataController);
 graviteeManagementModule.controller('DeleteMetadataDialogController', DeleteMetadataDialogController);
 graviteeManagementModule.controller('NewMetadataDialogController', NewMetadataDialogController);
@@ -812,7 +808,6 @@ graviteeManagementModule.component('gvSearchAndSelect', SearchAndSelectComponent
 graviteeManagementModule.controller('SearchAndSelectController', SearchAndSelectController);
 
 graviteeManagementModule.component('gvAudit', AuditComponent);
-graviteeManagementModule.component('gvNewsletterReminder', NewsletterReminderComponent);
 graviteeManagementModule.component('gvContextualDoc', ContextualDocComponentAjs);
 graviteeManagementModule.controller('ContextualDocController', ContextualDocController);
 
