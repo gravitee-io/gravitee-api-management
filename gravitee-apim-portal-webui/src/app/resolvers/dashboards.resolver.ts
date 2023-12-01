@@ -13,16 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Injectable } from '@angular/core';
-import { ActivatedRouteSnapshot, Resolve } from '@angular/router';
+import { inject } from '@angular/core';
+import { ActivatedRouteSnapshot, ResolveFn, RouterStateSnapshot } from '@angular/router';
+import { Observable } from 'rxjs';
 
 import { Dashboard, PortalService } from '../../../projects/portal-webclient-sdk/src/lib';
 
-@Injectable({ providedIn: 'root' })
-export class DashboardsResolver implements Resolve<Array<Dashboard>> {
-  constructor(private portalService: PortalService) {}
-
-  resolve(_route: ActivatedRouteSnapshot) {
-    return this.portalService.getDashboards();
-  }
-}
+export const dashboardResolver = ((
+  route: ActivatedRouteSnapshot,
+  state: RouterStateSnapshot,
+  portalService: PortalService = inject(PortalService),
+): Observable<Dashboard[]> => portalService.getDashboards()) satisfies ResolveFn<Dashboard[]>;

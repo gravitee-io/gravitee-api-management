@@ -18,23 +18,28 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 
 import { ApiStatesPipe } from '../../../pipes/api-states.pipe';
 import { ApiLabelsPipe } from '../../../pipes/api-labels.pipe';
 import { TranslateTestingModule } from '../../../test/translate-testing-module';
+import { Api } from '../../../../../projects/portal-webclient-sdk/src/lib';
 
 import { ApiSubscribeComponent } from './api-subscribe.component';
 
 describe('ApiSubscribeComponent', () => {
+  const apiId = 'apiId';
+  const api: Api = { id: apiId, name: 'api1', description: 'description', version: '1', owner: {}, entrypoints: ['entrypoint1'] };
+
   const createComponent = createComponentFactory({
     component: ApiSubscribeComponent,
     imports: [HttpClientTestingModule, RouterTestingModule, TranslateTestingModule, FormsModule, ReactiveFormsModule],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    providers: [ApiStatesPipe, ApiLabelsPipe],
+    providers: [ApiStatesPipe, ApiLabelsPipe, { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId }, data: { api } } } }],
   });
 
   let spectator: Spectator<ApiSubscribeComponent>;
-  let component;
+  let component: ApiSubscribeComponent;
 
   beforeEach(() => {
     spectator = createComponent();
@@ -43,5 +48,7 @@ describe('ApiSubscribeComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+    expect(component.apiId).toEqual(apiId);
+    expect(component.api).toEqual(api);
   });
 });

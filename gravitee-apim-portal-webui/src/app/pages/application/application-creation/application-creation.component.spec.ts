@@ -18,6 +18,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterTestingModule } from '@angular/router/testing';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 
 import { ApiLabelsPipe } from '../../../pipes/api-labels.pipe';
 import { ApiStatesPipe } from '../../../pipes/api-states.pipe';
@@ -25,16 +26,20 @@ import { ApiStatesPipe } from '../../../pipes/api-states.pipe';
 import { ApplicationCreationComponent } from './application-creation.component';
 
 describe('ApplicationCreationComponent', () => {
+  const enabledApplicationTypes = [
+    { id: 'type1', name: 'type1' },
+    { id: 'type2', name: 'type2' },
+  ];
   const createComponent = createComponentFactory({
     component: ApplicationCreationComponent,
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [HttpClientTestingModule, RouterTestingModule, FormsModule, ReactiveFormsModule],
     declarations: [ApiStatesPipe, ApiLabelsPipe],
-    providers: [ApiStatesPipe, ApiLabelsPipe],
+    providers: [ApiStatesPipe, ApiLabelsPipe, { provide: ActivatedRoute, useValue: { snapshot: { data: { enabledApplicationTypes } } } }],
   });
 
   let spectator: Spectator<ApplicationCreationComponent>;
-  let component;
+  let component: ApplicationCreationComponent;
 
   beforeEach(() => {
     spectator = createComponent();
