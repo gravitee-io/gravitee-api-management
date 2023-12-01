@@ -155,7 +155,7 @@ export class ApplicationCreationComponent implements OnInit {
       description: new FormControl(null, [Validators.required]),
       domain: new FormControl(null),
       picture: new FormControl(null),
-      settings: new FormGroup(null, [Validators.required]),
+      settings: new FormGroup({}, [Validators.required]) as FormGroup,
     });
   }
 

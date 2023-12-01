@@ -20,7 +20,6 @@ import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { ConfigurationService } from '../../services/configuration.service';
-import { FeatureGuardService } from '../../services/feature-guard.service';
 import { NotificationService } from '../../services/notification.service';
 
 import { LoginComponent } from './login.component';
@@ -30,7 +29,7 @@ describe('LoginComponent', () => {
     component: LoginComponent,
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [RouterTestingModule, FormsModule, ReactiveFormsModule, HttpClientTestingModule],
-    providers: [mockProvider(NotificationService), mockProvider(FeatureGuardService), mockProvider(ConfigurationService)],
+    providers: [mockProvider(NotificationService), mockProvider(ConfigurationService)],
   });
 
   let spectator: Spectator<LoginComponent>;
