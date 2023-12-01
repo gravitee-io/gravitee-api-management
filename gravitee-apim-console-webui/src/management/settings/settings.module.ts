@@ -37,6 +37,7 @@ import { PortalComponent } from '../configuration/portal/portal.component';
 import { ClientRegistrationProvidersModule } from '../configuration/client-registration-providers/client-registration-providers.module';
 import { PortalThemeComponent } from '../configuration/portal-theme/portalTheme.component';
 import { TopApisComponent } from '../configuration/top-apis/top-apis.component';
+import { ApiLoggingModule } from '../configuration/api-logging/api-logging.module';
 
 @NgModule({
   imports: [
@@ -48,6 +49,7 @@ import { TopApisComponent } from '../configuration/top-apis/top-apis.component';
     DocumentationModule,
     EnvironmentMetadataModule,
     ClientRegistrationProvidersModule,
+    ApiLoggingModule,
   ],
   declarations: [
     SettingsNavigationComponent,
