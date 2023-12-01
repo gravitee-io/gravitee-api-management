@@ -25,6 +25,5 @@ import { GioGoBackComponent } from './gio-go-back-button.component';
   imports: [CommonModule, MatButtonModule, MatIconModule, MatTooltipModule],
   declarations: [GioGoBackComponent],
   exports: [GioGoBackComponent],
-  entryComponents: [GioGoBackComponent],
 })
 export class GioGoBackButtonModule {}

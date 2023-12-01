@@ -16,13 +16,10 @@
 import { MatButtonModule } from '@angular/material/button';
 import { Meta, moduleMetadata } from '@storybook/angular';
 import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
-import { action } from '@storybook/addon-actions';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { GioGoBackComponent } from './gio-go-back-button.component';
 import { GioGoBackButtonModule } from './gio-go-back-button.module';
-
-import { UIRouterState } from '../../../ajs-upgraded-providers';
 
 export default {
   title: 'Shared / Go back button',
@@ -30,7 +27,6 @@ export default {
   decorators: [
     moduleMetadata({
       imports: [BrowserAnimationsModule, MatButtonModule, GioGoBackButtonModule],
-      providers: [{ provide: UIRouterState, useValue: { go: (...args) => action('Ajs state go')(args) } }],
     }),
   ],
   render: () => ({}),
@@ -38,6 +34,6 @@ export default {
 
 export const insideH1: Story = {
   render: () => ({
-    template: `<h1><gio-go-back-button [ajsGo]="{ to: 'state', params: { id: '42' } }"></gio-go-back-button> Title 1</h1>`,
+    template: `<h1><gio-go-back-button></gio-go-back-button> Title 1</h1>`,
   }),
 };

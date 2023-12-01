@@ -13,25 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input } from '@angular/core';
-import { RawParams, StateOrName, TransitionOptions } from '@uirouter/angularjs';
-
-export type Tags = Array<string>;
+import { Component } from '@angular/core';
 
 @Component({
   selector: 'gio-go-back-button',
   template: require('./gio-go-back-button.component.html'),
   styles: [require('./gio-go-back-button.component.scss')],
-  host: {},
 })
-export class GioGoBackComponent {
-  @Input()
-  ajsGo?: { to: StateOrName; params?: RawParams; options?: TransitionOptions };
-
-  goBack() {
-    if (this.ajsGo) {
-      // eslint-disable-next-line
-      console.error('Deprecated: use native angular router instead !');
-    }
-  }
-}
+export class GioGoBackComponent {}
