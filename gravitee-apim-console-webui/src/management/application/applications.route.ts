@@ -179,6 +179,14 @@ const applicationRoutes: Routes = [
     path: 'create',
     component: ApplicationCreationComponent,
     canActivate: [HasEnvironmentPermissionGuard],
+    data: {
+      perms: {
+        only: ['environment-application-c'],
+      },
+      docs: {
+        page: 'management-create-application',
+      },
+    },
   },
   {
     path: ':applicationId',
@@ -194,46 +202,128 @@ const applicationRoutes: Routes = [
       {
         path: 'general',
         component: ApplicationGeneralComponent,
+        data: {
+          perms: {
+            only: ['application-definition-r'],
+          },
+          docs: {
+            page: 'management-application',
+          },
+        },
       },
       {
         path: 'metadata',
         component: ApplicationMetadataComponent,
+        data: {
+          perms: {
+            only: ['application-metadata-r'],
+          },
+          docs: {
+            page: 'management-application-metadata',
+          },
+        },
       },
       {
         path: 'subscriptions',
         component: ApplicationSubscriptionsComponent,
+        data: {
+          perms: {
+            only: ['application-subscription-r'],
+          },
+          docs: {
+            page: 'management-application-subscriptions',
+          },
+        },
       },
       {
         path: 'subscriptions/subscribe',
         component: ApplicationSubscribeComponent,
+        data: {
+          perms: {
+            only: ['application-subscription-r'],
+          },
+        },
       },
       {
         path: 'subscriptions/:subscriptionId',
         component: ApplicationSubscriptionComponent,
+        data: {
+          perms: {
+            only: ['application-subscription-r'],
+          },
+          docs: {
+            page: 'management-application-subscriptions',
+          },
+        },
       },
       {
         path: 'analytics',
         component: ApplicationAnalyticsComponent,
+        data: {
+          perms: {
+            only: ['application-analytics-r'],
+          },
+          docs: {
+            page: 'management-application-analytics',
+          },
+        },
       },
       {
         path: 'logs',
         component: ApplicationLogsComponent,
+        data: {
+          perms: {
+            only: ['application-log-r'],
+          },
+          docs: {
+            page: 'management-application-logs',
+          },
+        },
       },
       {
         path: 'logs/:logId',
         component: ApplicationLogComponent,
+        data: {
+          perms: {
+            only: ['application-log-r'],
+          },
+        },
       },
       {
         path: 'notification-settings',
         component: ApplicationNotificationSettingsListComponent,
+        data: {
+          perms: {
+            only: ['application-notification-r', 'application-alert-r'],
+          },
+          docs: {
+            page: 'management-application-notifications',
+          },
+        },
       },
       {
         path: 'notification-settings/:notificationId',
         component: ApplicationNotificationSettingsDetailsComponent,
+        data: {
+          docs: {
+            perms: {
+              only: ['application-notification-r'],
+            },
+            page: 'management-application-notifications',
+          },
+        },
       },
       {
         path: 'members',
         component: ApplicationMembersComponent,
+        data: {
+          perms: {
+            only: ['application-member-r'],
+          },
+          docs: {
+            page: 'management-application-members',
+          },
+        },
       },
     ],
   },
