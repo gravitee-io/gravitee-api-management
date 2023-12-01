@@ -100,8 +100,7 @@ export class SettingsNavigationComponent implements OnInit {
           },
           {
             displayName: 'Metadata',
-            targetRoute: 'management.settings.metadata',
-            baseRoute: 'management.settings.metadata',
+            routerLink: './metadata',
             permissions: ['environment-metadata-r'],
           },
           {

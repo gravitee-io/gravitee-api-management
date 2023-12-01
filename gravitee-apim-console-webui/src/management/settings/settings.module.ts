@@ -32,9 +32,18 @@ import { CategoryComponent } from '../configuration/categories/category/category
 import { GroupsComponent } from '../configuration/groups/groups.component';
 import { GroupComponent } from '../configuration/groups/group/group.component';
 import { DocumentationModule } from '../../components/documentation/documentation.module';
+import { EnvironmentMetadataModule } from '../configuration/metadata/environment-metadata.module';
 
 @NgModule({
-  imports: [SettingsRoutingModule, RouterModule, GioSubmenuModule, GioBreadcrumbModule, CommonModule, DocumentationModule],
+  imports: [
+    SettingsRoutingModule,
+    RouterModule,
+    GioSubmenuModule,
+    GioBreadcrumbModule,
+    CommonModule,
+    DocumentationModule,
+    EnvironmentMetadataModule,
+  ],
   declarations: [
     SettingsNavigationComponent,
     SettingsAnalyticsComponent,

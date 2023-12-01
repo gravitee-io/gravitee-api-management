@@ -13,24 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 
 import { MetadataSaveServices } from '../../../components/gio-metadata/gio-metadata.component';
-import { UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { EnvironmentMetadataService } from '../../../services-ngx/environment-metadata.service';
 
 @Component({
   selector: 'environment-metadata',
   template: require('./environment-metadata.component.html'),
+  styles: [require('./environment-metadata.component.scss')],
 })
 export class EnvironmentMetadataComponent implements OnInit {
   metadataSaveServices: MetadataSaveServices;
   description: string;
 
-  constructor(
-    private readonly environmentMetadataService: EnvironmentMetadataService,
-    @Inject(UIRouterStateParams) private readonly ajsStateParams,
-  ) {}
+  constructor(private readonly environmentMetadataService: EnvironmentMetadataService, private readonly activatedRoute: ActivatedRoute) {}
 
   ngOnInit() {
     this.metadataSaveServices = {
