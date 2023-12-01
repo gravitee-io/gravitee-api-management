@@ -13,12 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const PortalThemeComponent: ng.IComponentOptions = {
-  bindings: {
-    views: '<',
-  },
-  controller: 'PortalThemeController',
-  template: require('./portalTheme.html'),
-};
+import { Component, ElementRef, Injector, SimpleChange } from '@angular/core';
+import { UpgradeComponent } from '@angular/upgrade/static';
+import { ActivatedRoute } from '@angular/router';
 
-export default PortalThemeComponent;
+@Component({
+  template: '',
+  selector: 'settings-theme',
+  host: {
+    class: 'bootstrap gv-sub-content',
+  },
+})
+export class PortalThemeComponent extends UpgradeComponent {
+  constructor(elementRef: ElementRef, injector: Injector, private readonly activatedRoute: ActivatedRoute) {
+    super('settingsThemeAjs', elementRef, injector);
+  }
+
+  ngOnInit() {
+    // Hack to Force the binding between Angular and AngularJS
+    this.ngOnChanges({
+      activatedRoute: new SimpleChange(null, this.activatedRoute, true),
+    });
+
+    super.ngOnInit();
+  }
+}

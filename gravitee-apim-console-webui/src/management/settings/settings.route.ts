@@ -35,6 +35,7 @@ import { DocumentationImportPagesComponent } from '../../components/documentatio
 import { DocumentationEditPageComponent } from '../../components/documentation/edit-page.component';
 import { EnvironmentMetadataComponent } from '../configuration/metadata/environment-metadata.component';
 import { PortalComponent } from '../configuration/portal/portal.component';
+import { PortalThemeComponent } from '../configuration/portal-theme/portalTheme.component';
 
 export const settingsRoutes: Routes = [
   {
@@ -291,6 +292,19 @@ export const settingsRoutes: Routes = [
           perms: {
             only: ['environment-settings-r'],
             unauthorizedFallbackTo: 'management.settings.theme',
+          },
+        },
+      },
+      {
+        path: 'theme',
+        component: PortalThemeComponent,
+        data: {
+          docs: {
+            page: 'management-configuration-portal-theme',
+          },
+          perms: {
+            only: ['environment-theme-r'],
+            unauthorizedFallbackTo: 'management.settings.top-apis',
           },
         },
       },
