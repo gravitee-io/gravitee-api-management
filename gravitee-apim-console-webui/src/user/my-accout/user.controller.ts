@@ -120,7 +120,7 @@ class UserController {
       .show({
         controller: 'DialogGenerateTokenController',
         controllerAs: 'ctrl',
-        template: require('../token/generateToken.dialog.html'),
+        template: require('./token/generateToken.dialog.html'),
         clickOutsideToClose: false,
         escapeToClose: false,
         locals: {

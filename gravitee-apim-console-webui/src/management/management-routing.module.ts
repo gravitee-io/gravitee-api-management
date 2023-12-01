@@ -19,10 +19,6 @@ import { RouterModule, Routes } from '@angular/router';
 import { ManagementComponent } from './management.component';
 import { HasEnvironmentPermissionGuard } from './has-environment-permission.guard';
 import { EnvironmentResolver } from './environement.resolver';
-import { TasksComponent } from './tasks/tasks.component';
-import { TicketComponent } from './support/ticket.component';
-import { TicketDetailComponent } from './support/ticket-detail.component';
-import { TicketsListComponent } from './support/tickets-list.component';
 import { InstanceListComponent } from './instances/instance-list/instance-list.component';
 import { InstanceDetailsComponent } from './instances/instance-details/instance-details.component';
 import { InstanceDetailsEnvironmentComponent } from './instances/instance-details/instance-details-environment/instance-details-environment.component';
@@ -30,6 +26,10 @@ import { InstanceDetailsMonitoringComponent } from './instances/instance-details
 import { EnvAuditComponent } from './audit/env-audit.component';
 import { MessagesComponent } from './messages/messages.component';
 
+import { TicketsListComponent } from '../user/support/tickets-list.component';
+import { TicketDetailComponent } from '../user/support/ticket-detail.component';
+import { TicketComponent } from '../user/support/ticket.component';
+import { TasksComponent } from '../user/tasks/tasks.component';
 import { UserComponent } from '../user/my-accout/user.component';
 import { ApimFeature } from '../shared/components/gio-license/gio-license-data';
 import { HasLicenseGuard } from '../shared/components/gio-license/has-license.guard';

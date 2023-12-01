@@ -21,14 +21,14 @@ import { RouterModule } from '@angular/router';
 
 import { EnvAuditModule } from './audit/env-audit.module';
 import { MessagesModule } from './messages/messages.module';
-import { TasksModule } from './tasks/tasks.module';
 import { ManagementComponent } from './management.component';
-import { TicketComponent } from './support/ticket.component';
-import { TicketDetailComponent } from './support/ticket-detail.component';
-import { TicketsListComponent } from './support/tickets-list.component';
 import { InstancesModule } from './instances/instances.module';
 import { ManagementRoutingModule } from './management-routing.module';
 
+import { TasksModule } from '../user/tasks/tasks.module';
+import { TicketComponent } from '../user/support/ticket.component';
+import { TicketDetailComponent } from '../user/support/ticket-detail.component';
+import { TicketsListComponent } from '../user/support/tickets-list.component';
 import { GioPermissionModule } from '../shared/components/gio-permission/gio-permission.module';
 import { NotificationsModule } from '../components/notifications/notifications.module';
 import { GioSideNavModule } from '../components/gio-side-nav/gio-side-nav.module';
