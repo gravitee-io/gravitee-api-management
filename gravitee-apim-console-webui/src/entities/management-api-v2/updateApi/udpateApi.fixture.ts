@@ -17,6 +17,7 @@ import { isFunction } from 'lodash';
 
 import { UpdateBaseApi } from './updateBaseApi';
 import { UpdateApiV4 } from './updateApiV4';
+import { UpdateApiV2 } from './updateApiV2';
 
 export function fakeUpdateBaseApi(modifier?: Partial<UpdateBaseApi> | ((base: UpdateBaseApi) => UpdateBaseApi)): UpdateBaseApi {
   const base: UpdateBaseApi = {
@@ -25,6 +26,109 @@ export function fakeUpdateBaseApi(modifier?: Partial<UpdateBaseApi> | ((base: Up
     apiVersion: '1.0',
     definitionVersion: 'V2',
     groups: ['f1194262-9157-4986-9942-629157f98682'],
+  };
+
+  if (isFunction(modifier)) {
+    return modifier(base);
+  }
+
+  return {
+    ...base,
+    ...modifier,
+  };
+}
+
+export function fakeUpdateApiV2(modifier?: Partial<UpdateApiV2> | ((base: UpdateApiV2) => UpdateApiV2)): UpdateApiV2 {
+  const base: UpdateApiV2 = {
+    ...fakeUpdateBaseApi({ ...modifier }),
+    definitionVersion: 'V2',
+    proxy: {
+      virtualHosts: [
+        {
+          path: '/planets',
+          overrideEntrypoint: true,
+        },
+      ],
+      stripContextPath: false,
+      preserveHost: false,
+      logging: {
+        mode: 'PROXY',
+        content: 'PAYLOADS',
+        scope: 'REQUEST_RESPONSE',
+      },
+      groups: [
+        {
+          name: 'default-group',
+          endpoints: [
+            {
+              name: 'default',
+              target: 'https://api.le-systeme-solaire.net/rest/',
+              weight: 1,
+              backup: false,
+              type: 'HTTP',
+              inherit: true,
+            },
+          ],
+          loadBalancer: {
+            type: 'ROUND_ROBIN',
+          },
+          httpClientOptions: {
+            connectTimeout: 5000,
+            idleTimeout: 60000,
+            keepAlive: true,
+            readTimeout: 10000,
+            pipelining: false,
+            maxConcurrentConnections: 100,
+            useCompression: true,
+            followRedirects: false,
+          },
+        },
+      ],
+    },
+    flowMode: 'DEFAULT',
+    flows: [
+      {
+        name: '',
+        pathOperator: {
+          path: '/',
+          operator: 'STARTS_WITH',
+        },
+        condition: '',
+        consumers: [],
+        methods: [],
+        pre: [
+          {
+            name: 'Mock',
+            description: 'Saying hello to the world',
+            enabled: true,
+            policy: 'mock',
+            configuration: { content: 'Hello world', status: '200' },
+          },
+        ],
+        post: [],
+        enabled: true,
+      },
+    ],
+    services: {
+      healthCheck: {
+        enabled: true,
+        schedule: '0 */1 * * * *',
+        steps: [
+          {
+            name: 'default-step',
+            request: {
+              path: '/',
+              method: 'GET',
+              fromRoot: true,
+            },
+            response: {
+              assertions: ['#response.status == 200'],
+            },
+          },
+        ],
+      },
+    },
+    pathMappings: ['/product/:id'],
   };
 
   if (isFunction(modifier)) {
