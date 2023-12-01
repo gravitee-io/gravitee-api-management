@@ -23,7 +23,7 @@ import { GioPendoModule, GIO_PENDO_SETTINGS_TOKEN } from '@gravitee/ui-analytics
 import { GioMatConfigModule } from '@gravitee/ui-particles-angular';
 import * as angular from 'angular';
 
-import { currentUserProvider, portalSettingsProvider, ajsScopeProvider } from './ajs-upgraded-providers';
+import { currentUserProvider, portalSettingsProvider } from './ajs-upgraded-providers';
 import { Constants } from './entities/Constants';
 import { httpInterceptorProviders } from './shared/interceptors/http-interceptors';
 import { GioSideNavModule } from './components/gio-side-nav/gio-side-nav.module';
@@ -59,7 +59,6 @@ import { AuthModule } from './auth/auth.module';
   providers: [
     httpInterceptorProviders,
     currentUserProvider,
-    ajsScopeProvider,
     portalSettingsProvider,
     {
       provide: GIO_PENDO_SETTINGS_TOKEN,
