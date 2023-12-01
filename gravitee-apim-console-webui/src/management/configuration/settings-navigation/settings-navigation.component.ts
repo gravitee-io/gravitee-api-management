@@ -140,8 +140,7 @@ export class SettingsNavigationComponent implements OnInit {
         items: [
           {
             displayName: 'User Fields',
-            targetRoute: 'management.settings.customUserFields',
-            baseRoute: 'management.settings.customUserFields',
+            routerLink: './custom-user-fields',
             permissions: ['organization-custom_user_fields-r'],
           },
           {

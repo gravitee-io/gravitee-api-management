@@ -14,35 +14,42 @@
  * limitations under the License.
  */
 
-import { StateService } from '@uirouter/angularjs';
-
 import NotificationService from '../../../services/notification.service';
 import UserService from '../../../services/user.service';
+import CustomUserFieldsService from '../../../services/custom-user-fields.service';
 
 class CustomUserFieldsController {
   private canCreate: boolean;
   private canUpdate: boolean;
   private canDelete: boolean;
 
-  private fieldFormats: [string];
-  private predefinedKeys: [string];
+  private fieldFormats: string[];
+  private predefinedKeys: string[];
 
   private fields: any;
 
   constructor(
     private $mdDialog: angular.material.IDialogService,
+    private CustomUserFieldsService: CustomUserFieldsService,
     private NotificationService: NotificationService,
     private UserService: UserService,
-    private $state: StateService,
-  ) {
+  ) {}
+
+  $onInit = () => {
     const permissionPrefix = 'organization-custom_user_fields';
     this.canCreate = this.UserService.isUserHasPermissions([permissionPrefix + '-c']);
     this.canUpdate = this.UserService.isUserHasPermissions([permissionPrefix + '-u']);
     this.canDelete = this.UserService.isUserHasPermissions([permissionPrefix + '-d']);
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  $onInit = () => {};
+    Promise.all([
+      this.CustomUserFieldsService.list(),
+      this.CustomUserFieldsService.listFormats(),
+      this.CustomUserFieldsService.listPredefinedKeys(),
+    ]).then(([fieldsResponse, fieldFormats, predefinedKeys]) => {
+      this.fields = fieldsResponse.data;
+      this.fieldFormats = fieldFormats;
+      this.predefinedKeys = predefinedKeys;
+    });
+  };
 
   newField() {
     this.$mdDialog
@@ -57,7 +64,7 @@ class CustomUserFieldsController {
       })
       .then((savedMetadata) => {
         this.NotificationService.show(`Field '${savedMetadata.key}' created with success`);
-        this.$state.reload();
+        this.$onInit();
       })
       .catch(() => {
         // don't display error in console
@@ -78,7 +85,7 @@ class CustomUserFieldsController {
       })
       .then((savedMetadata) => {
         this.NotificationService.show(`Field '${savedMetadata.key}' updated with success`);
-        this.$state.reload();
+        this.$onInit();
       })
       .catch(() => {
         // don't display error in console
@@ -97,7 +104,7 @@ class CustomUserFieldsController {
       })
       .then((savedMetadata) => {
         this.NotificationService.show(`Field '${savedMetadata.key}' deleted with success`);
-        this.$state.reload();
+        this.$onInit();
       })
       .catch(() => {
         // don't display error in console
@@ -108,6 +115,6 @@ class CustomUserFieldsController {
     return this.canDelete;
   }
 }
-CustomUserFieldsController.$inject = ['$mdDialog', 'NotificationService', 'UserService', '$state'];
+CustomUserFieldsController.$inject = ['$mdDialog', 'CustomUserFieldsService', 'NotificationService', 'UserService'];
 
 export default CustomUserFieldsController;
