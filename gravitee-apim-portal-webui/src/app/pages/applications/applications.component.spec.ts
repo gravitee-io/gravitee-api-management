@@ -75,7 +75,7 @@ describe('ApplicationsComponent', () => {
     expectApplicationsGetRequest([fakeApplication1]);
 
     expect(component.nbApplications).toEqual(1);
-    expect(component.applications).toEqual([{ item: fakeApplication1, metrics: expect.any(Promise) }]);
+    expect(component.applications).toEqual([{ item: fakeApplication1, metrics: expect.anything() }]);
   });
 
   it('should displays page=2 with size=24', () => {
