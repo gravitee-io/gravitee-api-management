@@ -31,6 +31,9 @@ class TopApisController {
     this.$rootScope = $rootScope;
   }
 
+  $onInit() {
+    this.refreshTopApis();
+  }
   refreshTopApis() {
     this.TopApiService.list().then((response) => {
       this.topApis = response.data;

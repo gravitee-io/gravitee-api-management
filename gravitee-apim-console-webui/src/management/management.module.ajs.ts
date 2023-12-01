@@ -223,7 +223,7 @@ import DialogAddNotificationSettingsController from '../components/notifications
 
 import TopApisController from './configuration/top-apis/top-apis.controller';
 import TopApiService from '../services/top-api.service';
-import TopApisComponent from '../management/configuration/top-apis/top-apis.component';
+import TopApisComponentAjs from './configuration/top-apis/top-apis.component.ajs';
 import AddTopApiDialogController from '../management/configuration/top-apis/dialog/add.top-api.dialog.controller';
 import DeleteTopApiDialogController from '../management/configuration/top-apis/dialog/delete.top-api.dialog.controller';
 import PortalSettingsComponentAjs from './configuration/portal/portal.component.ajs';
@@ -702,7 +702,7 @@ graviteeManagementModule.component('moved', MovedComponent);
 
 graviteeManagementModule.directive('ngEnvironmentMetadata', downgradeComponent({ component: EnvironmentMetadataComponent }));
 graviteeManagementModule.component('settingsThemeAjs', PortalThemeComponentAjs);
-graviteeManagementModule.component('topApis', TopApisComponent);
+graviteeManagementModule.component('settingsTopApis', TopApisComponentAjs);
 graviteeManagementModule.factory('ngCockpitService', downgradeInjectable(CockpitService));
 
 graviteeManagementModule.component('settingsPortalAjs', PortalSettingsComponentAjs);

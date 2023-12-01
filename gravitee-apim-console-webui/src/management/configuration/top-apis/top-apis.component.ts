@@ -13,12 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const TopApisComponent: ng.IComponentOptions = {
-  bindings: {
-    topApis: '<',
-  },
-  controller: 'TopApisController',
-  template: require('./top-apis.html'),
-};
+import { Component, ElementRef, Injector, SimpleChange } from '@angular/core';
+import { UpgradeComponent } from '@angular/upgrade/static';
+import { ActivatedRoute } from '@angular/router';
 
-export default TopApisComponent;
+@Component({
+  template: '',
+  selector: 'settings-top-apis',
+  host: {
+    class: 'bootstrap gv-sub-content',
+  },
+})
+export class TopApisComponent extends UpgradeComponent {
+  constructor(elementRef: ElementRef, injector: Injector, private readonly activatedRoute: ActivatedRoute) {
+    super('settingsTopApis', elementRef, injector);
+  }
+
+  ngOnInit() {
+    // Hack to Force the binding between Angular and AngularJS
+    this.ngOnChanges({
+      activatedRoute: new SimpleChange(null, this.activatedRoute, true),
+    });
+
+    super.ngOnInit();
+  }
+}
