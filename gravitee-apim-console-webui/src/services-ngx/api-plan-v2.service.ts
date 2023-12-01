@@ -16,15 +16,22 @@
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { tap } from 'rxjs/operators';
+import { IRootScopeService } from 'angular';
 
 import { Constants } from '../entities/Constants';
 import { ApiPlansResponse, CreatePlan, Plan, PlanMode, PlanStatus, UpdatePlan } from '../entities/management-api-v2';
+import { AjsRootScope } from '../ajs-upgraded-providers';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ApiPlanV2Service {
-  constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
+  constructor(
+    private readonly http: HttpClient,
+    @Inject('Constants') private readonly constants: Constants,
+    @Inject(AjsRootScope) private readonly ajsRootScope: IRootScopeService,
+  ) {}
   list(
     apiId: string,
     securities?: string[],
@@ -53,7 +60,13 @@ export class ApiPlanV2Service {
   }
 
   public update(apiId: string, planId: string, plan: UpdatePlan): Observable<Plan> {
-    return this.http.put<Plan>(`${this.constants.env.v2BaseURL}/apis/${apiId}/plans/${planId}`, plan);
+    return this.http.put<Plan>(`${this.constants.env.v2BaseURL}/apis/${apiId}/plans/${planId}`, plan).pipe(
+      tap((plan) => {
+        if (plan.definitionVersion === 'V2') {
+          this.ajsRootScope.$broadcast('apiChangeSuccess', { apiId });
+        }
+      }),
+    );
   }
 
   public publish(apiId: string, planId: string): Observable<Plan> {

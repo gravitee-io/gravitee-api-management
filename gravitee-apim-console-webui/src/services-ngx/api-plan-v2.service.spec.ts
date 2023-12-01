@@ -29,16 +29,19 @@ import {
   PlanMode,
   PlanStatus,
 } from '../entities/management-api-v2';
+import { AjsRootScope } from '../ajs-upgraded-providers';
 
 describe('ApiPlanV2Service', () => {
   let httpTestingController: HttpTestingController;
   let apiPlanV2Service: ApiPlanV2Service;
   const API_ID = 'api-id';
   const PLAN_ID = 'plan-id';
+  const fakeRootScope = { $broadcast: jest.fn(), $on: jest.fn() };
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [GioHttpTestingModule],
+      providers: [{ provide: AjsRootScope, useValue: fakeRootScope }],
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);
@@ -46,6 +49,7 @@ describe('ApiPlanV2Service', () => {
   });
 
   afterEach(() => {
+    jest.clearAllMocks();
     httpTestingController.verify();
   });
 
@@ -197,6 +201,7 @@ describe('ApiPlanV2Service', () => {
 
       apiPlanV2Service.update(API_ID, PLAN_ID, updatePlan).subscribe((response) => {
         expect(response).toMatchObject(plan);
+        expect(fakeRootScope.$broadcast).toHaveBeenCalledWith('apiChangeSuccess', { apiId: API_ID });
         done();
       });
 
@@ -214,6 +219,7 @@ describe('ApiPlanV2Service', () => {
 
       apiPlanV2Service.update(API_ID, PLAN_ID, updatePlan).subscribe((response) => {
         expect(response).toMatchObject(plan);
+        expect(fakeRootScope.$broadcast).not.toHaveBeenCalled();
         done();
       });
 
