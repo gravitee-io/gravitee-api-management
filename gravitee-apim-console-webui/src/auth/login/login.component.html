@@ -54,10 +54,7 @@
       mat-raised-button
     >
       <span class="card__providers__button__wrapper">
-        <span
-          class="card__providers__button__wrapper__logo"
-          [style.background-image]="'url(\'assets/logo_' + (provider.type | lowercase) + '-idp.svg\')'"
-        ></span>
+        <mat-icon class="card__providers__button__wrapper__logo" [svgIcon]="'idp-' + provider.type | lowercase"></mat-icon>
         <span class="card__providers__button__wrapper__name">{{ provider.name }}</span>
       </span>
     </button>

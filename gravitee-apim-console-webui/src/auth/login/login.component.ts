@@ -18,6 +18,9 @@ import { from, Subject } from 'rxjs';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { switchMap, takeUntil } from 'rxjs/operators';
 import { ActivatedRoute } from '@angular/router';
+import { MatIconRegistry } from '@angular/material/icon';
+import { DomSanitizer } from '@angular/platform-browser';
+import { uniq } from 'lodash';
 
 import { ReCaptchaService } from '../../services-ngx/re-captcha.service';
 import { IdentityProvider } from '../../entities/identity-provider';
@@ -48,15 +51,23 @@ export class LoginComponent implements OnInit, OnDestroy {
     private readonly reCaptchaService: ReCaptchaService,
     private readonly snackBarService: SnackBarService,
     private readonly authService: AuthService,
+    private readonly iconRegistry: MatIconRegistry,
+    private readonly sanitizer: DomSanitizer,
   ) {
     this.userCreationEnabled = constants.org.settings.management?.userCreation?.enabled ?? false;
     this.localLoginDisabled = !(constants.org.settings.authentication?.localLogin?.enabled ?? true);
+    this.identityProviders = this.constants.org.identityProviders ?? [];
+
+    uniq(this.identityProviders.map((i) => i.type)).forEach((type) => {
+      this.iconRegistry.addSvgIcon(
+        `idp-${type.toLowerCase()}`,
+        this.sanitizer.bypassSecurityTrustResourceUrl('assets/logo_' + type.toLowerCase() + '-idp.svg'),
+      );
+    });
   }
 
   ngOnInit(): void {
     this.reCaptchaService.displayBadge();
-
-    this.identityProviders = this.constants.org.identityProviders ?? [];
 
     if (this.localLoginDisabled === true && this.identityProviders.length === 0) {
       this.snackBarService.error('No login method available. Please contact your administrator.');
