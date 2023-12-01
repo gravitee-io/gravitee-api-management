@@ -13,22 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Injectable } from '@angular/core';
-import { ActivatedRouteSnapshot, Resolve } from '@angular/router';
+import { inject } from '@angular/core';
+import { ActivatedRouteSnapshot, ResolveFn, RouterStateSnapshot } from '@angular/router';
 
 import { ApiService, Page } from '../../../projects/portal-webclient-sdk/src/lib';
 
-@Injectable({ providedIn: 'root' })
-export class ApiHomepageResolver implements Resolve<Page> {
-  constructor(private apiService: ApiService) {}
-
-  resolve(route: ActivatedRouteSnapshot) {
-    const apiId = route.params.apiId;
-    return this.apiService
-      .getPagesByApiId({ apiId, homepage: true })
-      .toPromise()
-      .then(response => {
-        return response.data[0];
-      });
-  }
-}
+export const apiHomepageResolver = ((
+  route: ActivatedRouteSnapshot,
+  state: RouterStateSnapshot,
+  apiService: ApiService = inject(ApiService),
+): Promise<Page> =>
+  apiService
+    .getPagesByApiId({ apiId: route.params.apiId, homepage: true })
+    .toPromise()
+    .then(response => response.data[0])) satisfies ResolveFn<Page>;

@@ -13,17 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Injectable } from '@angular/core';
-import { ActivatedRouteSnapshot, Resolve } from '@angular/router';
+import { inject } from '@angular/core';
+import { ActivatedRouteSnapshot, ResolveFn, RouterStateSnapshot } from '@angular/router';
+import { Observable } from 'rxjs';
 
 import { Api, ApiService } from '../../../projects/portal-webclient-sdk/src/lib';
 
-@Injectable({ providedIn: 'root' })
-export class ApiResolver implements Resolve<Api> {
-  constructor(private apiService: ApiService) {}
-
-  resolve(route: ActivatedRouteSnapshot) {
-    const apiId = route.params.apiId;
-    return this.apiService.getApiByApiId({ apiId });
-  }
-}
+export const apiResolver = ((
+  route: ActivatedRouteSnapshot,
+  state: RouterStateSnapshot,
+  apiService: ApiService = inject(ApiService),
+): Observable<Api> => apiService.getApiByApiId({ apiId: route.params.apiId })) satisfies ResolveFn<Api>;
