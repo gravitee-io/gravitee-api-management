@@ -24,8 +24,11 @@ import { GioIconsModule } from '@gravitee/ui-particles-angular';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { RouterModule } from '@angular/router';
+import { MatIconModule } from '@angular/material/icon';
 
 import { LoginComponent } from './login.component';
+
+import { GioFormCardGroupModule } from '../../shared/components/gio-form-card-group/gio-form-card-group.module';
 
 @NgModule({
   declarations: [LoginComponent],
@@ -39,9 +42,11 @@ import { LoginComponent } from './login.component';
     MatCardModule,
     MatButtonModule,
     MatSnackBarModule,
+    MatIconModule,
 
     GioIconsModule,
     RouterModule,
+    GioFormCardGroupModule,
   ],
 })
 export class LoginModule {}
