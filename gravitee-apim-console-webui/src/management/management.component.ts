@@ -28,7 +28,7 @@ import { filter, map, startWith, takeUntil } from 'rxjs/operators';
         class="header"
       ></gio-top-nav>
       <gio-side-nav class="sidebar"></gio-side-nav>
-      <div class="content"><router-outlet></router-outlet></div>
+      <div class="content gio-toc-scrolling-container"><router-outlet></router-outlet></div>
       <gio-contextual-doc
         class="documentation"
         *ngIf="openContextualDoc"
