@@ -41,6 +41,8 @@ import { ApiLoggingComponent } from '../configuration/api-logging/api-logging.co
 import { DictionariesComponent } from '../configuration/dictionaries/dictionaries.component';
 import { DictionaryComponent } from '../configuration/dictionaries/dictionary.component';
 import { CustomUserFieldsComponent } from '../configuration/custom-user-fields/custom-user-fields.component';
+import { EnvironmentNotificationSettingsListComponent } from '../configuration/notifications/notification-settings/notification-settings-list/environment-notification-settings-list.component';
+import { EnvironmentNotificationSettingsDetailsComponent } from '../configuration/notifications/notification-settings/notification-settings-details/environment-notification-settings-details.component';
 
 export const settingsRoutes: Routes = [
   {
@@ -424,6 +426,27 @@ export const settingsRoutes: Routes = [
           },
           perms: {
             only: ['environment-group-r'],
+          },
+        },
+      },
+      {
+        path: 'notifications',
+        component: EnvironmentNotificationSettingsListComponent,
+        data: {
+          docs: {
+            page: 'management-configuration-notifications',
+          },
+          perms: {
+            unauthorizedFallbackTo: 'management.home',
+          },
+        },
+      },
+      {
+        path: 'notifications/:notificationId',
+        component: EnvironmentNotificationSettingsDetailsComponent,
+        data: {
+          docs: {
+            page: 'management-configuration-notifications',
           },
         },
       },

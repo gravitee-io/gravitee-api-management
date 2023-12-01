@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Subject } from 'rxjs';
+import { ActivatedRoute } from '@angular/router';
 
-import { UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { EnvironmentNotificationSettingsService } from '../../../../../services-ngx/environment-notification-settings.service';
 import { NotificationSettings } from '../../../../../entities/notification/notificationSettings';
 import { NotificationSettingsDetailsServices } from '../../../../../components/notifications/notification-settings/notification-settings-details/notification-settings-details.component';
@@ -32,17 +32,17 @@ export class EnvironmentNotificationSettingsDetailsComponent implements OnInit {
 
   constructor(
     private readonly environmentNotificationSettingsService: EnvironmentNotificationSettingsService,
-    @Inject(UIRouterStateParams) private readonly ajsStateParams,
+    private readonly activatedRoute: ActivatedRoute,
   ) {}
 
   public ngOnInit() {
     this.notificationSettingsDetailsServices = {
-      reference: { referenceType: 'PORTAL', referenceId: this.ajsStateParams.applicationId },
+      reference: { referenceType: 'PORTAL', referenceId: this.activatedRoute?.snapshot?.params?.applicationId },
       update: (notificationConfig: NotificationSettings) =>
-        this.environmentNotificationSettingsService.update(this.ajsStateParams.notificationId, notificationConfig),
+        this.environmentNotificationSettingsService.update(this.activatedRoute?.snapshot?.params?.notificationId, notificationConfig),
       getHooks: () => this.environmentNotificationSettingsService.getHooks(),
       getSingleNotificationSetting: () =>
-        this.environmentNotificationSettingsService.getSingleNotificationSetting(this.ajsStateParams.notificationId),
+        this.environmentNotificationSettingsService.getSingleNotificationSetting(this.activatedRoute?.snapshot?.params?.notificationId),
       getNotifiers: () => this.environmentNotificationSettingsService.getNotifiers(),
     };
   }
