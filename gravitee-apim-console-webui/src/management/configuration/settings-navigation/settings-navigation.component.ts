@@ -22,10 +22,6 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 
 interface MenuItem {
-  // @deprecated
-  targetRoute?: string;
-  // @deprecated
-  baseRoute?: string | string[];
   routerLink?: string;
   displayName: string;
   permissions?: string[];
