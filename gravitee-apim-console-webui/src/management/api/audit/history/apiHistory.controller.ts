@@ -196,7 +196,7 @@ class ApiHistoryController {
   }
 
   init() {
-    this.$scope.$parent.apiCtrl.checkAPISynchronization(this.api);
+    this.$scope.$parent.apiCtrl.checkAPISynchronization(this.api.id);
 
     this.eventPage = -1;
     this.events = [];
