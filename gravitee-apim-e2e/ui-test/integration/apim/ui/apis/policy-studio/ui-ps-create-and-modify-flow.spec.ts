@@ -100,7 +100,7 @@ describe('Create and modify a flow in Policy Studio', () => {
     const flowPath = faker.lorem.word();
 
     it('should create a common flow using the "+" icon', () => {
-      PolicyStudio.openPolicyStudio(v4api.id)
+      PolicyStudio.openPolicyStudio(v4api.id, true)
         .addCommonFlow()
         .enterName(flowName)
         .clickOnCreateButton()
@@ -121,7 +121,7 @@ describe('Create and modify a flow in Policy Studio', () => {
     });
 
     it('should edit flow details of a common flow using pen icon', () => {
-      PolicyStudio.openPolicyStudio(v4api.id)
+      PolicyStudio.openPolicyStudio(v4api.id, true)
         .editFlowDetails(flowName)
         .setPath(flowPath)
         .clickOnSaveButtonInDialog()

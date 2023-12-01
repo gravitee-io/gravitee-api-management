@@ -42,7 +42,7 @@ describe('API Info Page functionality', () => {
 
   beforeEach(() => {
     cy.loginInAPIM(ADMIN_USER.username, ADMIN_USER.password);
-    cy.visit('/#!/environments/default/apis/');
+    cy.visit('/#!/default/apis/');
     cy.url().should('include', '/apis/');
   });
 
@@ -113,7 +113,7 @@ describe('API Info Page functionality', () => {
   });
 
   it('Verify Info Page Elements', () => {
-    cy.visit(`/#!/environments/DEFAULT/apis/${v4infoApi.id}/general`);
+    cy.visit(`/#!/DEFAULT/apis/${v4infoApi.id}`);
     apiDetails.infoMenuItem().click();
     apiDetails.policyStudioMenuItem().should('be.visible');
     apiDetails.infoMenuItem().should('be.visible');
@@ -128,7 +128,7 @@ describe('API Info Page functionality', () => {
   });
 
   it('Edit Info Page and Verify changes', () => {
-    cy.visit(`/#!/environments/DEFAULT/apis/${v4infoApi.id}/general`);
+    cy.visit(`/#!/DEFAULT/apis/${v4infoApi.id}`);
     cy.getByDataTestId('api_info_namefield').scrollIntoView().clear().type(`${apiName}`);
     cy.getByDataTestId('api_info_versionfield').clear().type(`${apiVersion}`);
     cy.getByDataTestId('api_info_descriptionfield').clear().type(`${apiDescription}`);
@@ -137,12 +137,12 @@ describe('API Info Page functionality', () => {
     cy.getByDataTestId('api_info_namefield').scrollIntoView().should('have.value', apiName);
     cy.getByDataTestId('api_info_versionfield').should('have.value', apiVersion);
     cy.getByDataTestId('api_info_descriptionfield').should('have.value', apiDescription);
-    cy.visit('/#!/environments/default/apis/');
+    cy.visit('/#!/default/apis/');
     cy.contains(apiName, { timeout: 60000 }).should('be.visible');
   });
 
   it('Export API and verify json download (v4)', () => {
-    cy.visit(`/#!/environments/DEFAULT/apis/${v4infoApi.id}/general`);
+    cy.visit(`/#!/DEFAULT/apis/${v4infoApi.id}`);
     cy.getByDataTestId('api_info_export_menu').click();
     const downloadsFolder = Cypress.config('downloadsFolder');
     cy.readFile(path.join(downloadsFolder, `${apiFileName}.json`)).should((file) => {
@@ -152,7 +152,7 @@ describe('API Info Page functionality', () => {
   });
 
   it('Duplicate API and verify duplicate', () => {
-    cy.visit(`/#!/environments/DEFAULT/apis/${v4infoApi.id}/general`);
+    cy.visit(`/#!/DEFAULT/apis/${v4infoApi.id}`);
     cy.getByDataTestId('api_info_duplicate_menu', { timeout: 60000 }).click();
     cy.getByDataTestId('api_info_duplicate_path').type(`${apiFileName}-duplicate`);
     cy.getByDataTestId('api_info_duplicate_version').type(`${apiVersion}`);
@@ -166,12 +166,12 @@ describe('API Info Page functionality', () => {
       duplicateApi = interception.response.body;
     });
     cy.contains('API duplicated successfully').should('be.visible');
-    cy.visit('/#!/environments/default/apis/');
+    cy.visit('/#!/default/apis/');
     cy.contains(`${apiFileName}-duplicate`).should('be.visible');
   });
 
   it('Verify Promote pop-up on info page (v2)', () => {
-    cy.visit(`/#!/environments/DEFAULT/apis/${api.id}/general`);
+    cy.visit(`/#!/DEFAULT/apis/${api.id}`);
     cy.getByDataTestId('api_info_promote').click();
     cy.contains('Meet Cockpit').should('be.visible');
     cy.getByDataTestId('api_info_promote_ok').click();
@@ -180,11 +180,18 @@ describe('API Info Page functionality', () => {
   // Danger Zone
 
   it('Danger Zone - Start and Stop the API (without and with published plan)', () => {
-    cy.visit(`/#!/environments/DEFAULT/apis/${v4infoApi.id}/general`);
+    cy.visit(`/#!/DEFAULT/apis/${v4infoApi.id}`);
     cy.getByDataTestId('api_info_dangerzone_start_api').click();
     cy.getByDataTestId('confirm-dialog').click();
     cy.contains('can not be started without at least one published plan');
-    cy.visit(`/#!/environments/DEFAULT/apis/${v4dangerzoneApi.id}/general`);
+
+    cy.visit(`/#!/DEFAULT/apis/`);
+    cy.getByDataTestId('search').type(`${v4dangerzoneApi.id}{enter}`);
+    cy.getByDataTestId('api_list_table_row').should('have.length', 1);
+    cy.getByDataTestId('api_list_table_row').should('contain.text', v4dangerzoneApi.name);
+    cy.getByDataTestId('api_list_edit_button').first().click();
+
+    cy.url().should('include', v4dangerzoneApi.id);
     cy.contains(`${v4dangerzoneApi.name}`).should('be.visible');
     cy.getByDataTestId('api_info_dangerzone_start_api').click();
     cy.getByDataTestId('confirm-dialog').click();
@@ -195,7 +202,7 @@ describe('API Info Page functionality', () => {
   });
 
   it('Danger Zone - Publish and Unpublish the API', () => {
-    cy.visit(`/#!/environments/DEFAULT/apis/${v4dangerzoneApi.id}/general`);
+    cy.visit(`/#!/DEFAULT/apis/${v4dangerzoneApi.id}`);
     cy.getByDataTestId('api_info_dangerzone_publish_api').click();
     cy.getByDataTestId('confirm-dialog').click();
     cy.contains('The API has been publish with success.');
@@ -205,7 +212,7 @@ describe('API Info Page functionality', () => {
   });
 
   it('Danger Zone - Make Public and Make Private the API', () => {
-    cy.visit(`/#!/environments/DEFAULT/apis/${v4dangerzoneApi.id}/general`);
+    cy.visit(`/#!/DEFAULT/apis/${v4dangerzoneApi.id}`);
     cy.getByDataTestId('api_info_dangerzone_make_public', { timeout: 60000 }).click();
     cy.getByDataTestId('confirm-dialog').click();
     cy.contains('The API has been Make Public with success.');
@@ -215,7 +222,7 @@ describe('API Info Page functionality', () => {
   });
 
   it('Danger Zone - Deprecate the API', () => {
-    cy.visit(`/#!/environments/DEFAULT/apis/${v4dangerzoneApi.id}/general`);
+    cy.visit(`/#!/DEFAULT/apis/${v4dangerzoneApi.id}`);
     cy.getByDataTestId('api_info_dangerzone_deprecate_api').click();
     cy.getByDataTestId('confirm-dialog').click();
     cy.contains('The API has been deprecate with success.');
@@ -228,7 +235,7 @@ describe('API Info Page functionality', () => {
   });
 
   it('Danger Zone - Delete the API', () => {
-    cy.visit(`/#!/environments/DEFAULT/apis/${v4dangerzoneApi.id}/general`);
+    cy.visit(`/#!/DEFAULT/apis/${v4dangerzoneApi.id}`);
     cy.getByDataTestId('api_dangerzone_delete_api').click();
     cy.getByDataTestId('confirm-input-dialog').type(`${v4dangerzoneApi.name}`);
     cy.getByDataTestId('confirm-dialog').click();

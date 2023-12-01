@@ -45,7 +45,7 @@ describe('API metadata screen', () => {
 
   beforeEach(function () {
     cy.loginInAPIM(API_PUBLISHER_USER.username, API_PUBLISHER_USER.password);
-    cy.visit(`/#!/environments/${envId}/apis/${api.id}/metadata`);
+    cy.visit(`/#!/${envId}/apis/${api.id}/metadata`);
     cy.get('h2', { timeout: 40000 }).contains('API metadata').should('be.visible');
   });
 

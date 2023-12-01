@@ -48,7 +48,7 @@ describe('Task screen', () => {
   describe('Check appearance for different kind of tasks', () => {
     beforeEach(() => {
       cy.loginInAPIM(ADMIN_USER.username, ADMIN_USER.password);
-      cy.visit(`/#!/environments/${envId}/tasks`);
+      cy.visit(`/#!/${envId}/tasks`);
       cy.url().should('include', 'tasks');
     });
 

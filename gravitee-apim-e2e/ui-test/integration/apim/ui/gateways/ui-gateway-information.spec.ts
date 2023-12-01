@@ -18,8 +18,8 @@ import { ADMIN_USER, API_PUBLISHER_USER } from '@fakers/users/users';
 describe('Get Gateway instance information as admin', () => {
   beforeEach(() => {
     cy.loginInAPIM(ADMIN_USER.username, ADMIN_USER.password);
-    cy.visit('/#!/environments/DEFAULT/instances');
-    cy.url().should('contain', 'instances');
+    cy.visit('/#!/DEFAULT/gateways');
+    cy.url().should('contain', 'gateways');
   });
 
   it('should display all important UI elements', function () {
@@ -55,7 +55,7 @@ describe('Get Gateway instance information as non-admin', () => {
   });
 
   it('should not access', function () {
-    cy.visit('/#!/environments/DEFAULT/instances');
+    cy.visit('/#!/DEFAULT/instances');
     cy.contains('Gateways').should('not.exist');
   });
 });

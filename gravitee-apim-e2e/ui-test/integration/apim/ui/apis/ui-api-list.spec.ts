@@ -27,7 +27,7 @@ describe('API List feature', { defaultCommandTimeout: 10000 }, () => {
   describe('Verifying page elements', () => {
     beforeEach(() => {
       cy.loginInAPIM(ADMIN_USER.username, ADMIN_USER.password);
-      cy.visit('/#!/environments/default/apis/');
+      cy.visit('/#!/default/apis/');
       cy.getByDataTestId('api_list_addApi_button', { timeout: 60000 }).should('be.visible').and('contain.text', 'Add API');
     });
 
@@ -117,7 +117,7 @@ describe('API List feature', { defaultCommandTimeout: 10000 }, () => {
 
     beforeEach(() => {
       cy.loginInAPIM(ADMIN_USER.username, ADMIN_USER.password);
-      cy.visit(`/#!/environments/default/apis/`);
+      cy.visit(`/#!/default/apis/`);
       cy.getByDataTestId('api_list_addApi_button', { timeout: 60000 }).should('be.visible').and('contain.text', 'Add API');
     });
 
@@ -169,16 +169,12 @@ describe('API List feature', { defaultCommandTimeout: 10000 }, () => {
         cy.getByDataTestId('search').type(`definition_version: 2.0.0{enter}`);
         cy.getByDataTestId('api_list_table_row').should('have.length', noOfApis);
         cy.getByDataTestId('api_list_table_row').should('contain.text', 'admin');
-        cy.getByDataTestId('api_list_edit_button').first().click();
-        cy.url().should('include', '/general');
       });
 
       it(`should display ${noOfApis} APIs when searching for v4 APIs`, function () {
         cy.getByDataTestId('search').type(`definition_version: 4.0.0{enter}`);
         cy.getByDataTestId('api_list_table_row').should('have.length', noOfApis);
         cy.getByDataTestId('api_list_table_row').should('contain.text', 'api1');
-        cy.getByDataTestId('api_list_edit_button').first().click();
-        cy.url().should('include', '/general');
       });
     });
 
