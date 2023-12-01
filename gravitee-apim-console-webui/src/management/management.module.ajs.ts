@@ -310,7 +310,7 @@ import DialogQueryFilterInformationController from './configuration/analytics/da
 import ReCaptchaService from '../services/reCaptcha.service';
 
 import PortalThemeController from './configuration/portal-theme/portalTheme.controller';
-import PortalThemeComponent from './configuration/portal-theme/portalTheme.component';
+import PortalThemeComponentAjs from './configuration/portal-theme/portalTheme.component.ajs';
 import PortalThemeService from '../services/portalTheme.service';
 
 import NewsletterSubscriptionController from '../user/newsletter/newsletter-subscription.controller';
@@ -712,7 +712,7 @@ graviteeManagementModule.component('settingsCategoryEditAjs', CategoryComponentA
 graviteeManagementModule.component('moved', MovedComponent);
 
 graviteeManagementModule.directive('ngEnvironmentMetadata', downgradeComponent({ component: EnvironmentMetadataComponent }));
-graviteeManagementModule.component('theme', PortalThemeComponent);
+graviteeManagementModule.component('settingsThemeAjs', PortalThemeComponentAjs);
 graviteeManagementModule.component('topApis', TopApisComponent);
 graviteeManagementModule.factory('ngCockpitService', downgradeInjectable(CockpitService));
 

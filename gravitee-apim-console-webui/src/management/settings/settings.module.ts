@@ -35,6 +35,7 @@ import { DocumentationModule } from '../../components/documentation/documentatio
 import { EnvironmentMetadataModule } from '../configuration/metadata/environment-metadata.module';
 import { PortalComponent } from '../configuration/portal/portal.component';
 import { ClientRegistrationProvidersModule } from '../configuration/client-registration-providers/client-registration-providers.module';
+import { PortalThemeComponent } from '../configuration/portal-theme/portalTheme.component';
 
 @NgModule({
   imports: [
@@ -60,6 +61,7 @@ import { ClientRegistrationProvidersModule } from '../configuration/client-regis
     GroupsComponent,
     GroupComponent,
     PortalComponent,
+    PortalThemeComponent,
   ],
 })
 export class SettingsModule {}

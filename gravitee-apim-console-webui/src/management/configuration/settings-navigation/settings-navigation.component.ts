@@ -110,8 +110,7 @@ export class SettingsNavigationComponent implements OnInit {
           },
           {
             displayName: 'Theme',
-            targetRoute: 'management.settings.theme',
-            baseRoute: 'management.settings.theme',
+            routerLink: './theme',
             permissions: ['environment-theme-r'],
           },
           {
