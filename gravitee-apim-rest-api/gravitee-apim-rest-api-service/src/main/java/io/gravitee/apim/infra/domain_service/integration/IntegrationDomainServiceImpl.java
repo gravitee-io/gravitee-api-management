@@ -28,10 +28,10 @@ import io.gravitee.integration.api.DeploymentType;
 import io.gravitee.integration.api.Entity;
 import io.gravitee.integration.api.IntegrationProviderFactory;
 import io.gravitee.integration.api.command.fetch.FetchCommand;
-import io.gravitee.integration.api.command.fetch.FetchPayload;
+import io.gravitee.integration.api.command.fetch.FetchCommandPayload;
 import io.gravitee.integration.api.command.fetch.FetchReply;
 import io.gravitee.integration.api.command.list.ListCommand;
-import io.gravitee.integration.api.command.list.ListPayload;
+import io.gravitee.integration.api.command.list.ListCommandPayload;
 import io.gravitee.integration.api.command.list.ListReply;
 import io.gravitee.plugin.integrationprovider.internal.DefaultIntegrationProviderPluginManager;
 import io.reactivex.rxjava3.core.Single;
@@ -113,14 +113,14 @@ public class IntegrationDomainServiceImpl extends AbstractService<IntegrationDom
 
     @Override
     public Single<List<IntegrationEntity>> getIntegrationEntities(Integration integration) {
-        ListPayload listPayload = new ListPayload(integration.getId(), DeploymentType.valueOf(integration.getDeploymentType().name()));
-        ListCommand listCommand = new ListCommand(listPayload);
+        ListCommandPayload listCommandPayload = new ListCommandPayload(integration.getId(), DeploymentType.valueOf(integration.getDeploymentType().name()));
+        ListCommand listCommand = new ListCommand(listCommandPayload);
 
         return sendListCommand(listCommand, integration.getId(), DeploymentType.valueOf(integration.getDeploymentType().name()))
             .flatMap(listReply -> {
                 if (listReply.getCommandStatus() == CommandStatus.SUCCEEDED) {
                     return Single.just(
-                        listReply.getEntities().stream().map(IntegrationAdapter.INSTANCE::toEntity).collect(Collectors.toList())
+                        listReply.getPayload().entities().stream().map(IntegrationAdapter.INSTANCE::toEntity).collect(Collectors.toList())
                     );
                 }
                 return Single.just(Collections.emptyList());
@@ -131,18 +131,18 @@ public class IntegrationDomainServiceImpl extends AbstractService<IntegrationDom
     public Single<List<IntegrationEntity>> fetchEntities(Integration integration, List<IntegrationEntity> integrationEntities) {
         List<Entity> entities = integrationEntities.stream().map(IntegrationAdapter.INSTANCE::toEntityApi).collect(Collectors.toList());
 
-        FetchPayload fetchPayload = new FetchPayload(
+        FetchCommandPayload fetchCommandPayload = new FetchCommandPayload(
             integration.getId(),
             entities,
             DeploymentType.valueOf(integration.getDeploymentType().name())
         );
-        FetchCommand fetchCommand = new FetchCommand(fetchPayload);
+        FetchCommand fetchCommand = new FetchCommand(fetchCommandPayload);
 
         return sendFetchCommand(fetchCommand, integration.getId(), DeploymentType.valueOf(integration.getDeploymentType().name()))
             .flatMap(fetchReply -> {
                 if (fetchReply.getCommandStatus() == CommandStatus.SUCCEEDED) {
                     return Single.just(
-                        fetchReply.getEntities().stream().map(IntegrationAdapter.INSTANCE::toEntity).collect(Collectors.toList())
+                        fetchReply.getPayload().entities().stream().map(IntegrationAdapter.INSTANCE::toEntity).collect(Collectors.toList())
                     );
                 }
                 return Single.just(Collections.emptyList());
@@ -163,7 +163,7 @@ public class IntegrationDomainServiceImpl extends AbstractService<IntegrationDom
                             .builder()
                             .commandId(listCommand.getId())
                             .commandStatus(CommandStatus.ERROR)
-                            .message("Command received no reply")
+                            .errorDetails("Command received no reply")
                             .build()
                     )
                 )
@@ -173,7 +173,7 @@ public class IntegrationDomainServiceImpl extends AbstractService<IntegrationDom
                     .builder()
                     .commandId(listCommand.getId())
                     .commandStatus(CommandStatus.ERROR)
-                    .message(throwable.getMessage())
+                    .errorDetails(throwable.getMessage())
                     .build()
             );
     }
@@ -189,7 +189,7 @@ public class IntegrationDomainServiceImpl extends AbstractService<IntegrationDom
                             .builder()
                             .commandId(fetchCommand.getId())
                             .commandStatus(CommandStatus.ERROR)
-                            .message("Command received no reply")
+                            .errorDetails("Command received no reply")
                             .build()
                     )
                 )
@@ -199,7 +199,7 @@ public class IntegrationDomainServiceImpl extends AbstractService<IntegrationDom
                     .builder()
                     .commandId(fetchCommand.getId())
                     .commandStatus(CommandStatus.ERROR)
-                    .message(throwable.getMessage())
+                    .errorDetails(throwable.getMessage())
                     .build()
             );
     }
