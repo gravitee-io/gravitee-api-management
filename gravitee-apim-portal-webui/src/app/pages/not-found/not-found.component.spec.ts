@@ -21,7 +21,6 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 
 import { NotificationService } from '../../services/notification.service';
-import { FeatureGuardService } from '../../services/feature-guard.service';
 import { ConfigurationService } from '../../services/configuration.service';
 
 import { NotFoundComponent } from './not-found.component';
@@ -31,7 +30,7 @@ describe('NotFoundComponent', () => {
     component: NotFoundComponent,
     imports: [RouterTestingModule, FormsModule, ReactiveFormsModule, HttpClientTestingModule],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    providers: [mockProvider(NotificationService), mockProvider(FeatureGuardService), mockProvider(ConfigurationService)],
+    providers: [mockProvider(NotificationService), mockProvider(ConfigurationService)],
   });
 
   let spectator: Spectator<NotFoundComponent>;

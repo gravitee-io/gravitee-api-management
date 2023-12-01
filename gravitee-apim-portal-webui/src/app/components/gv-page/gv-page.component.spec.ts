@@ -17,7 +17,6 @@ import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
-import { BrowserDynamicTestingModule } from '@angular/platform-browser-dynamic/testing';
 
 import { GvPageSwaggerUIComponent } from '../gv-page-swaggerui/gv-page-swaggerui.component';
 import { GvPageRedocComponent } from '../gv-page-redoc/gv-page-redoc.component';
@@ -33,16 +32,6 @@ describe('GvPageComponent', () => {
     declarations: [GvPageMarkdownComponent, GvPageRedocComponent, GvPageSwaggerUIComponent, GvPageContentSlotDirective, SafePipe],
     imports: [HttpClientTestingModule, RouterTestingModule],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    overrideModules: [
-      [
-        BrowserDynamicTestingModule,
-        {
-          set: {
-            entryComponents: [GvPageMarkdownComponent, GvPageRedocComponent, GvPageSwaggerUIComponent],
-          },
-        },
-      ],
-    ],
   });
 
   let spectator: Spectator<GvPageComponent>;
