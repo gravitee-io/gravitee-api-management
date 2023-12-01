@@ -13,17 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Injectable } from '@angular/core';
-import { ActivatedRouteSnapshot, Resolve } from '@angular/router';
+import { inject } from '@angular/core';
+import { ActivatedRouteSnapshot, ResolveFn, RouterStateSnapshot } from '@angular/router';
+import { Observable } from 'rxjs';
 
 import { Category, PortalService } from '../../../projects/portal-webclient-sdk/src/lib';
 
-@Injectable({ providedIn: 'root' })
-export class CategoryResolver implements Resolve<Category> {
-  constructor(private portalService: PortalService) {}
-
-  resolve(route: ActivatedRouteSnapshot) {
-    const categoryId = route.params.categoryId;
-    return this.portalService.getCategoryByCategoryId({ categoryId });
-  }
-}
+export const categoryResolver = ((
+  route: ActivatedRouteSnapshot,
+  state: RouterStateSnapshot,
+  portalService: PortalService = inject(PortalService),
+): Observable<Category> => portalService.getCategoryByCategoryId({ categoryId: route.params.categoryId })) satisfies ResolveFn<Category>;
