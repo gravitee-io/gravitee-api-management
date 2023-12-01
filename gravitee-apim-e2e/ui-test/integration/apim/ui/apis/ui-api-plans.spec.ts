@@ -13,22 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ADMIN_USER, API_PUBLISHER_USER } from '@fakers/users/users';
+import { ADMIN_USER } from '@fakers/users/users';
 import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
-import { PlansFaker } from '@gravitee/fixtures/management/PlansFaker';
 import faker from '@faker-js/faker';
 import { Visibility } from '@gravitee/management-webclient-sdk/src/lib/models';
 import { ApiImport } from '@model/api-imports';
 
 import apiDetails from 'ui-test/support/PageObjects/Apis/ApiDetails';
 
-describe('API Plans Feature', { retries: 2 }, () => {
-  beforeEach(() => {
-    cy.loginInAPIM(ADMIN_USER.username, ADMIN_USER.password);
-    cy.visit('/#!/environments/default/apis/');
-    cy.url().should('include', '/apis/');
-  });
-
+describe('API Plans Feature', () => {
   before(() => {
     cy.log('Import (create) v2 API');
     cy.request({
@@ -40,6 +33,13 @@ describe('API Plans Feature', { retries: 2 }, () => {
       expect(response.status).to.eq(200);
       api = response.body;
     });
+  });
+
+  beforeEach(() => {
+    cy.loginInAPIM(ADMIN_USER.username, ADMIN_USER.password);
+    cy.visit('/#!/environments/default/apis/');
+    cy.url().should('include', '/apis/');
+    cy.contains(api.name).should('exist', { timeout: 60000 });
   });
 
   const ApiDetails = new apiDetails();
@@ -63,6 +63,7 @@ describe('API Plans Feature', { retries: 2 }, () => {
     ApiDetails.plansMenuItem().click();
     cy.getByDataTestId('api_plans_add_plan_button').click();
     cy.contains('API Key').click();
+    cy.url().should('include', '/new?selectedPlanMenuItem=API_KEY');
     cy.getByDataTestId('api_plans_name_field').type(`${planName}-APIKey`);
     cy.getByDataTestId('api_plans_description_field').type(`${planDescription} API Key`);
     cy.getByDataTestId('api_plans_nextstep').click();
@@ -74,6 +75,7 @@ describe('API Plans Feature', { retries: 2 }, () => {
     cy.get('[type="submit"]').contains('Create').click();
     cy.contains('Configuration successfully saved!').should('be.visible');
     cy.get('[type="button"]').contains('STAGING').click();
+    cy.url().should('include', '/plans?status=STAGING');
     cy.contains(`${planName}-APIKey`).should('be.visible');
     cy.getByDataTestId('api_plans_close_plan_button').first().click();
     cy.get(`[placeholder="${planName}-APIKey"]`).type(`${planName}-APIKey`);
@@ -87,6 +89,7 @@ describe('API Plans Feature', { retries: 2 }, () => {
     ApiDetails.plansMenuItem().click();
     cy.getByDataTestId('api_plans_add_plan_button').click();
     cy.contains('OAuth2').click();
+    cy.url().should('include', '/new?selectedPlanMenuItem=OAUTH2');
     cy.getByDataTestId('api_plans_name_field').type(`${planName}-OAuth2`);
     cy.getByDataTestId('api_plans_description_field').type(`${planDescription} OAuth2`);
     cy.getByDataTestId('api_plans_nextstep').click();
@@ -100,6 +103,7 @@ describe('API Plans Feature', { retries: 2 }, () => {
     cy.get('[type="submit"]').contains('Create').click();
     cy.contains('Configuration successfully saved!').should('be.visible');
     cy.get('[type="button"]').contains('STAGING').click();
+    cy.url().should('include', '/plans?status=STAGING');
     cy.contains(`${planName}-OAuth2`).should('be.visible');
     cy.getByDataTestId('api_plans_close_plan_button').first().click();
     cy.get(`[placeholder="${planName}-OAuth2"]`).type(`${planName}-OAuth2`);
@@ -113,6 +117,7 @@ describe('API Plans Feature', { retries: 2 }, () => {
     ApiDetails.plansMenuItem().click();
     cy.getByDataTestId('api_plans_add_plan_button').click();
     cy.contains('JWT').click();
+    cy.url().should('include', '/new?selectedPlanMenuItem=JWT');
     cy.getByDataTestId('api_plans_name_field').type(`${planName}-JWT`);
     cy.getByDataTestId('api_plans_description_field').type(`${planDescription} JWT`);
     cy.getByDataTestId('api_plans_nextstep').click();
@@ -124,6 +129,7 @@ describe('API Plans Feature', { retries: 2 }, () => {
     cy.get('[type="submit"]').contains('Create').click();
     cy.contains('Configuration successfully saved!').should('be.visible');
     cy.get('[type="button"]').contains('STAGING').click();
+    cy.url().should('include', '/plans?status=STAGING');
     cy.contains(`${planName}-JWT`).should('be.visible');
     cy.getByDataTestId('api_plans_close_plan_button').first().click();
     cy.get(`[placeholder="${planName}-JWT"]`).type(`${planName}-JWT`);
@@ -137,6 +143,7 @@ describe('API Plans Feature', { retries: 2 }, () => {
     ApiDetails.plansMenuItem().click();
     cy.getByDataTestId('api_plans_add_plan_button').click();
     cy.contains('Keyless (public)').click();
+    cy.url().should('include', '/new?selectedPlanMenuItem=KEY_LESS');
     cy.getByDataTestId('api_plans_name_field').type(`${planName}-Keyless`);
     cy.getByDataTestId('api_plans_description_field').type(`${planDescription} Keyless`);
     cy.getByDataTestId('api_plans_nextstep').click();
@@ -146,6 +153,7 @@ describe('API Plans Feature', { retries: 2 }, () => {
     cy.get('[type="submit"]').contains('Create').click();
     cy.contains('Configuration successfully saved!').should('be.visible');
     cy.get('[type="button"]').contains('STAGING').click();
+    cy.url().should('include', '/plans?status=STAGING');
     cy.contains(`${planName}-Keyless`).should('be.visible');
     cy.getByDataTestId('api_plans_close_plan_button').first().click();
     cy.get(`[placeholder="${planName}-Keyless"]`).type(`${planName}-Keyless`);
@@ -159,12 +167,14 @@ describe('API Plans Feature', { retries: 2 }, () => {
     ApiDetails.plansMenuItem().click();
     cy.getByDataTestId('api_plans_add_plan_button').click();
     cy.contains('Keyless (public)').click();
+    cy.url().should('include', '/new?selectedPlanMenuItem=KEY_LESS');
     cy.getByDataTestId('api_plans_name_field').type(`${planName}-Keyless`);
     cy.getByDataTestId('api_plans_description_field').type(`${planDescription} Keyless`);
     cy.getByDataTestId('api_plans_nextstep').click();
     cy.get('[type="submit"]').contains('Create').click();
     cy.contains('Configuration successfully saved!').should('be.visible');
     cy.get('[type="button"]').contains('STAGING').click();
+    cy.url().should('include', '/plans?status=STAGING');
     cy.contains(`${planName}-Keyless`).should('be.visible');
     cy.getByDataTestId('api_plans_design_plan_button').first().click();
     cy.url().should('include', 'policy-studio/');
@@ -172,7 +182,8 @@ describe('API Plans Feature', { retries: 2 }, () => {
     cy.getByDataTestId('api_list_edit_button').first().click();
     ApiDetails.plansMenuItem().click();
     cy.get('[type="button"]').contains('STAGING').click();
-    cy.getByDataTestId('api_plans_close_plan_button').click();
+    cy.url().should('include', '/plans?status=STAGING');
+    cy.getByDataTestId('api_plans_close_plan_button').first().click();
     cy.get(`[placeholder="${planName}-Keyless"]`).type(`${planName}-Keyless`);
     cy.getByDataTestId('confirm-dialog').click();
     cy.contains(`The plan ${planName}-Keyless has been closed with success.`).should('be.visible');
@@ -184,18 +195,21 @@ describe('API Plans Feature', { retries: 2 }, () => {
     ApiDetails.plansMenuItem().click();
     cy.getByDataTestId('api_plans_add_plan_button').click();
     cy.contains('Keyless (public)').click();
+    cy.url().should('include', '/new?selectedPlanMenuItem=KEY_LESS');
     cy.getByDataTestId('api_plans_name_field').type(`${planName}-Keyless`);
     cy.getByDataTestId('api_plans_description_field').type(`${planDescription} Keyless`);
     cy.getByDataTestId('api_plans_nextstep').click();
     cy.get('[type="submit"]').contains('Create').click();
     cy.contains('Configuration successfully saved!').should('be.visible');
     cy.get('[type="button"]').contains('STAGING').click();
+    cy.url().should('include', '/plans?status=STAGING');
     cy.contains(`${planName}-Keyless`).should('be.visible');
     cy.getByDataTestId('api_plans_edit_plan_button').first().click();
     cy.getByDataTestId('api_plans_name_field').type('EDIT');
     cy.get('[type="submit"]').contains('Save').click();
     cy.contains('Configuration successfully saved!').should('be.visible');
     cy.get('[type="button"]').contains('STAGING').click();
+    cy.url().should('include', '/plans?status=STAGING');
     cy.contains(`${planName}-KeylessEDIT`).should('be.visible');
     cy.getByDataTestId('api_plans_close_plan_button').first().click();
     cy.get(`[placeholder="${planName}-KeylessEDIT"]`).type(`${planName}-KeylessEDIT`);
@@ -209,18 +223,21 @@ describe('API Plans Feature', { retries: 2 }, () => {
     ApiDetails.plansMenuItem().click();
     cy.getByDataTestId('api_plans_add_plan_button').click();
     cy.contains('Keyless (public)').click();
+    cy.url().should('include', '/new?selectedPlanMenuItem=KEY_LESS');
     cy.getByDataTestId('api_plans_name_field').type(`${planName}-Keyless`);
     cy.getByDataTestId('api_plans_description_field').type(`${planDescription} Keyless`);
     cy.getByDataTestId('api_plans_nextstep').click();
     cy.get('[type="submit"]').contains('Create').click();
     cy.contains('Configuration successfully saved!').should('be.visible');
     cy.get('[type="button"]').contains('STAGING').click();
+    cy.url().should('include', '/plans?status=STAGING');
     cy.contains(`${planName}-Keyless`).should('be.visible');
     cy.getByDataTestId('api_plans_publish_plan_button').first().click();
     cy.getByDataTestId('confirm-dialog').click();
     cy.contains(`The plan ${planName}-Keyless has been published with success.`).should('be.visible');
     cy.contains(`${planName}-Keyless`).should('not.exist');
     cy.get('[type="button"]').contains('PUBLISHED').click();
+    cy.url().should('include', '/plans?status=PUBLISHED');
     cy.contains(`${planName}-Keyless`).should('be.visible');
     cy.getByDataTestId('api_plans_close_plan_button').first().click();
     cy.get(`[placeholder="${planName}-Keyless"]`).type(`${planName}-Keyless`);
@@ -234,12 +251,14 @@ describe('API Plans Feature', { retries: 2 }, () => {
     ApiDetails.plansMenuItem().click();
     cy.getByDataTestId('api_plans_add_plan_button').click();
     cy.contains('Keyless (public)').click();
+    cy.url().should('include', '/new?selectedPlanMenuItem=KEY_LESS');
     cy.getByDataTestId('api_plans_name_field').type(`${planName}-Keyless`);
     cy.getByDataTestId('api_plans_description_field').type(`${planDescription} Keyless`);
     cy.getByDataTestId('api_plans_nextstep').click();
     cy.get('[type="submit"]').contains('Create').click();
     cy.contains('Configuration successfully saved!').should('be.visible');
     cy.get('[type="button"]').contains('STAGING').click();
+    cy.url().should('include', '/plans?status=STAGING');
     cy.contains(`${planName}-Keyless`).should('be.visible');
     cy.getByDataTestId('api_plans_publish_plan_button').first().click();
     cy.getByDataTestId('confirm-dialog').click();
@@ -252,6 +271,7 @@ describe('API Plans Feature', { retries: 2 }, () => {
     cy.getByDataTestId('confirm-dialog').click();
     cy.contains(`The plan ${planName}-Keyless has been deprecated with success.`).should('be.visible');
     cy.get('[type="button"]').contains('DEPRECATED').click();
+    cy.url().should('include', '/plans?status=DEPRECATED');
     cy.contains(`${planName}-Keyless`).should('be.visible');
     cy.getByDataTestId('api_plans_close_plan_button').first().click();
     cy.get(`[placeholder="${planName}-Keyless"]`).type(`${planName}-Keyless`);
