@@ -157,8 +157,7 @@ export class SettingsNavigationComponent implements OnInit {
       items: [
         {
           displayName: 'Notification settings',
-          targetRoute: 'management.settings.notification-settings',
-          baseRoute: ['management.settings.notification-settings', 'management.settings.notification-settings-details'],
+          routerLink: './notifications',
           permissions: ['environment-notification-r'],
         },
       ],

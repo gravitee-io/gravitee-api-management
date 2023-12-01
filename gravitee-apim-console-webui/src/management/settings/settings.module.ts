@@ -41,6 +41,7 @@ import { ApiLoggingModule } from '../configuration/api-logging/api-logging.modul
 import { DictionariesComponent } from '../configuration/dictionaries/dictionaries.component';
 import { DictionaryComponent } from '../configuration/dictionaries/dictionary.component';
 import { CustomUserFieldsComponent } from '../configuration/custom-user-fields/custom-user-fields.component';
+import { EnvironmentNotificationSettingsModule } from '../configuration/notifications/notification-settings/environment-notification-settings.module';
 
 @NgModule({
   imports: [
@@ -53,6 +54,7 @@ import { CustomUserFieldsComponent } from '../configuration/custom-user-fields/c
     EnvironmentMetadataModule,
     ClientRegistrationProvidersModule,
     ApiLoggingModule,
+    EnvironmentNotificationSettingsModule,
   ],
   declarations: [
     SettingsNavigationComponent,
