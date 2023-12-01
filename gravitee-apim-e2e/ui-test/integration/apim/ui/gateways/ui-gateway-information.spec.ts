@@ -31,7 +31,7 @@ describe('Get Gateway instance information as admin', () => {
 
   it('should redirect to instance overview showing information of selected gateway', () => {
     cy.getByDataTestId('instance-list-row-instance-details-link').first().trigger('click');
-    cy.url().should('contain', 'environment');
+    cy.url().should('contain', 'gateways');
     cy.contains('Information');
     cy.contains('Plugins');
     cy.contains('System properties');
