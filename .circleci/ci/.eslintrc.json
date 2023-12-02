@@ -1,0 +1,24 @@
+{
+    "env": {
+        "es6": true,
+        "node": true
+    },
+    "ignorePatterns": ["dist/**/*"],
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+        "project": "./tsconfig.json"
+    },
+    "extends": ["eslint:recommended", "prettier", "plugin:@typescript-eslint/recommended"],
+    "plugins": ["@typescript-eslint", "unused-imports"],
+    "rules": {
+        "unused-imports/no-unused-imports": "error"
+    },
+    "overrides": [
+        {
+            "files": ["src/**/*.ts"],
+            "rules": {
+                "@typescript-eslint/no-namespace": "off"
+            }
+        }
+    ]
+}
