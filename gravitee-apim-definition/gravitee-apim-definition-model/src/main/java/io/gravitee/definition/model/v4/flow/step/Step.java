@@ -42,6 +42,7 @@ public class Step implements Serializable {
 
     private String description;
 
+    @Builder.Default
     private boolean enabled = true;
 
     @JsonProperty(required = true)
