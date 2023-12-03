@@ -18,11 +18,13 @@ package io.gravitee.definition.model.flow;
 import java.io.Serializable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode
 public class Consumer implements Serializable {
 
     private ConsumerType consumerType;

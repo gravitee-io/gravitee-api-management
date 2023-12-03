@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.management.model.flow;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -26,10 +28,12 @@ import lombok.ToString;
  * @author GraviteeSource Team
  */
 @NoArgsConstructor
+@AllArgsConstructor
 @Getter
 @Setter
 @EqualsAndHashCode
 @ToString
+@Builder(toBuilder = true)
 public class FlowStep {
 
     /**
@@ -53,6 +57,7 @@ public class FlowStep {
     /**
      * Step state
      */
+    @Builder.Default
     private boolean enabled = true;
 
     /**
