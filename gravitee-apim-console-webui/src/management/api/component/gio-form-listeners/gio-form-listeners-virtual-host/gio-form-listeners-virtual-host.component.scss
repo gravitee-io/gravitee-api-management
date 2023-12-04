@@ -6,4 +6,14 @@
     display: table-cell;
     width: 220px;
   }
+
+  &__field {
+    &__host {
+      display: inline-block;
+      max-width: 200px;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+  }
 }
