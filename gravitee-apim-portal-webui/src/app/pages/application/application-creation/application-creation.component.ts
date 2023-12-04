@@ -59,7 +59,9 @@ type ApplicationFormType = FormGroup<{
   description: FormControl<string>;
   domain: FormControl<string>;
   picture: FormControl<string>;
-  settings: AppFormType | OAuthFormType;
+  settings: FormControl<
+    { app: { type: string; client_id: string } } | { oauth: { redirect_uris: any[]; grant_types: any[]; application_type: string } }
+  >;
 }>;
 
 @Component({
@@ -158,7 +160,7 @@ export class ApplicationCreationComponent implements OnInit {
       description: new FormControl(null, [Validators.required]),
       domain: new FormControl(null),
       picture: new FormControl(null),
-      settings: new FormGroup({}, [Validators.required]) as FormGroup,
+      settings: new FormControl(null, [Validators.required]),
     });
   }
 
