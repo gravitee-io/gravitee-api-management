@@ -13,12 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service;
+package io.gravitee.rest.api.management.rest.provider;
 
-import io.gravitee.rest.api.model.DebugApiEntity;
-import io.gravitee.rest.api.model.EventEntity;
-import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.apim.core.exception.NotFoundDomainException;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 
-public interface DebugApiService {
-    EventEntity debug(ExecutionContext executionContext, String apiId, String userId, DebugApiEntity debugApiEntity);
+public class NotFoundDomainExceptionMapper extends AbstractExceptionMapper<NotFoundDomainException> {
+
+    @Override
+    public Response toResponse(NotFoundDomainException exception) {
+        final Response.Status error = Response.Status.NOT_FOUND;
+        return Response.status(error).type(MediaType.APPLICATION_JSON_TYPE).entity(convert(exception, error.getStatusCode())).build();
+    }
 }

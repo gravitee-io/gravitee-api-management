@@ -21,6 +21,7 @@ import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Predicate;
 
 public class ApiCrudServiceInMemory implements ApiCrudService, InMemoryAlternative<Api> {
 
@@ -30,6 +31,11 @@ public class ApiCrudServiceInMemory implements ApiCrudService, InMemoryAlternati
     public Api get(String id) {
         var foundApi = apis.stream().filter(api -> id.equals(api.getId())).findFirst();
         return foundApi.orElseThrow(() -> new ApiNotFoundException(id));
+    }
+
+    @Override
+    public boolean existsById(String id) {
+        return apis.stream().anyMatch(api -> id.equals(api.getId()));
     }
 
     @Override

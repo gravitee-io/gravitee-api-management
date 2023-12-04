@@ -16,6 +16,7 @@
 package io.gravitee.apim.infra.spring;
 
 import io.gravitee.apim.core.api.domain_service.ApiHostValidatorDomainService;
+import io.gravitee.apim.core.api.domain_service.ApiPolicyValidatorDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.api_key.crud_service.ApiKeyCrudService;
@@ -38,6 +39,7 @@ import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService
 import io.gravitee.apim.core.notification.domain_service.TriggerNotificationDomainService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
+import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.apim.core.sanitizer.HtmlSanitizer;
 import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
@@ -178,5 +180,10 @@ public class CoreServiceSpringConfiguration {
     @Bean
     DocumentationValidationDomainService documentationValidationDomainService(HtmlSanitizer htmlSanitizer) {
         return new DocumentationValidationDomainService(htmlSanitizer);
+    }
+
+    @Bean
+    public ApiPolicyValidatorDomainService apiPolicyValidatorDomainService(PolicyValidationDomainService policyValidationDomainService) {
+        return new ApiPolicyValidatorDomainService(policyValidationDomainService);
     }
 }

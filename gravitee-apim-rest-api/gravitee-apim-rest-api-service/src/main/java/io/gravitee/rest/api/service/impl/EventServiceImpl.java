@@ -63,8 +63,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -168,17 +166,6 @@ public class EventServiceImpl extends TransactionalService implements EventServi
     }
 
     @Override
-    public EventEntity createDebugApiEvent(
-        ExecutionContext executionContext,
-        Set<String> environmentsIds,
-        EventType type,
-        DebugApi debugApi,
-        Map<String, String> properties
-    ) {
-        return createEvent(executionContext, environmentsIds, type, debugApi, properties);
-    }
-
-    @Override
     public EventEntity createDictionaryEvent(
         ExecutionContext executionContext,
         Set<String> environmentsIds,
@@ -238,7 +225,8 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         return eventProperties;
     }
 
-    private EventEntity createEvent(
+    @Override
+    public EventEntity createEvent(
         ExecutionContext executionContext,
         final Set<String> environmentsIds,
         EventType type,

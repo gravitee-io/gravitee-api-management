@@ -48,4 +48,14 @@ public class ApiCrudServiceImpl implements ApiCrudService {
         }
         throw new ApiNotFoundException(id);
     }
+
+    @Override
+    public boolean existsById(String id) {
+        try {
+            return apiRepository.existById(id);
+        } catch (TechnicalException e) {
+            logger.error("An error occurred while finding Api by id {}", id, e);
+        }
+        return false;
+    }
 }

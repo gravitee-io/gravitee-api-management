@@ -17,6 +17,7 @@ package io.gravitee.apim.infra.spring;
 
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
+import io.gravitee.apim.core.api.domain_service.ApiPolicyValidatorDomainService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.DeployApiDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
@@ -31,6 +32,7 @@ import io.gravitee.apim.core.api_key.use_case.RevokeApplicationSubscriptionApiKe
 import io.gravitee.apim.core.api_key.use_case.RevokeSubscriptionApiKeyUseCase;
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
 import io.gravitee.apim.core.console.use_case.GetConsoleCustomizationUseCase;
+import io.gravitee.apim.core.debug.use_case.DebugApiUseCase;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
@@ -47,6 +49,8 @@ import io.gravitee.apim.core.documentation.use_case.ApiPublishDocumentationPageU
 import io.gravitee.apim.core.documentation.use_case.ApiUnpublishDocumentationPageUseCase;
 import io.gravitee.apim.core.documentation.use_case.ApiUpdateDocumentationPageUseCase;
 import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
+import io.gravitee.apim.core.event.crud_service.EventCrudService;
+import io.gravitee.apim.core.gateway.query_service.InstanceQueryService;
 import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService;
 import io.gravitee.apim.core.log.crud_service.ConnectionLogsCrudService;
 import io.gravitee.apim.core.log.crud_service.MessageLogCrudService;
@@ -289,5 +293,15 @@ public class UsecaseSpringConfiguration {
             apiMetadataDomainService,
             deployApiDomainService
         );
+    }
+
+    @Bean
+    public DebugApiUseCase debugApiUseCase(
+        ApiPolicyValidatorDomainService apiPolicyValidatorDomainService,
+        ApiCrudService apiCrudService,
+        InstanceQueryService instanceQueryService,
+        EventCrudService eventCrudService
+    ) {
+        return new DebugApiUseCase(apiPolicyValidatorDomainService, apiCrudService, instanceQueryService, eventCrudService);
     }
 }

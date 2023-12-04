@@ -17,7 +17,20 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import com.fasterxml.jackson.databind.JavaType;
 import io.gravitee.rest.api.management.rest.mapper.ObjectMapperResolver;
-import io.gravitee.rest.api.management.rest.provider.*;
+import io.gravitee.rest.api.management.rest.provider.BadRequestExceptionMapper;
+import io.gravitee.rest.api.management.rest.provider.ByteArrayOutputStreamWriter;
+import io.gravitee.rest.api.management.rest.provider.ConstraintValidationExceptionMapper;
+import io.gravitee.rest.api.management.rest.provider.EnumParamConverterProvider;
+import io.gravitee.rest.api.management.rest.provider.ManagementExceptionMapper;
+import io.gravitee.rest.api.management.rest.provider.NotAllowedDomainExceptionMapper;
+import io.gravitee.rest.api.management.rest.provider.NotAllowedExceptionMapper;
+import io.gravitee.rest.api.management.rest.provider.NotFoundDomainExceptionMapper;
+import io.gravitee.rest.api.management.rest.provider.NotFoundExceptionMapper;
+import io.gravitee.rest.api.management.rest.provider.PayloadInputBodyReader;
+import io.gravitee.rest.api.management.rest.provider.TechnicalDomainExceptionMapper;
+import io.gravitee.rest.api.management.rest.provider.ThrowableMapper;
+import io.gravitee.rest.api.management.rest.provider.UnrecognizedPropertyExceptionMapper;
+import io.gravitee.rest.api.management.rest.provider.ValidationDomainExceptionMapper;
 import io.gravitee.rest.api.management.rest.resource.auth.CockpitAuthenticationResource;
 import io.gravitee.rest.api.management.rest.resource.auth.ExternalAuthenticationResource;
 import io.gravitee.rest.api.management.rest.resource.organization.OrganizationsResource;
@@ -103,6 +116,10 @@ public class GraviteeManagementApplication extends ResourceConfig {
         register(NotAllowedExceptionMapper.class);
         register(BadRequestExceptionMapper.class);
         register(EnumParamConverterProvider.class);
+        register(ValidationDomainExceptionMapper.class);
+        register(NotAllowedDomainExceptionMapper.class);
+        register(NotFoundDomainExceptionMapper.class);
+        register(TechnicalDomainExceptionMapper.class);
 
         register(SecurityContextFilter.class);
         register(PermissionsFilter.class);

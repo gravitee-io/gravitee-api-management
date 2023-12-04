@@ -30,7 +30,6 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.definition.model.debug.DebugApi;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventLatestRepository;
@@ -411,41 +410,6 @@ public class EventServiceTest {
 
         assertEquals(2L, eventPageEntity.getTotalElements());
         assertEquals("event1", eventPageEntity.getContent().get(0).getId());
-    }
-
-    @Test
-    public void createDebugApiEvent_shouldCreateEvent_withoutPayload() throws TechnicalException {
-        when(eventRepository.create(any())).thenAnswer(i -> i.getArguments()[0]);
-
-        eventService.createDebugApiEvent(
-            GraviteeContext.getExecutionContext(),
-            Set.of(),
-            io.gravitee.rest.api.model.EventType.DEBUG_API,
-            null,
-            Map.of()
-        );
-
-        verify(eventRepository, times(1)).create(argThat(e -> e.getPayload() == null));
-        verifyNoMoreInteractions(eventRepository);
-    }
-
-    @Test
-    public void createDebugApiEvent_shouldCreateEvent_withPayload() throws TechnicalException, JsonProcessingException {
-        String jsonValue = "serialized json value";
-        DebugApi debugApi = mock(DebugApi.class);
-        when(objectMapper.writeValueAsString(debugApi)).thenReturn(jsonValue);
-        when(eventRepository.create(any())).thenAnswer(i -> i.getArguments()[0]);
-
-        eventService.createDebugApiEvent(
-            GraviteeContext.getExecutionContext(),
-            Set.of(),
-            io.gravitee.rest.api.model.EventType.DEBUG_API,
-            debugApi,
-            Map.of()
-        );
-
-        verify(eventRepository, times(1)).create(argThat(e -> jsonValue.equals(e.getPayload())));
-        verifyNoMoreInteractions(eventRepository);
     }
 
     @Test

@@ -19,13 +19,20 @@ import static java.lang.String.format;
 import static java.util.Collections.singletonList;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import io.gravitee.apim.core.debug.use_case.DebugApiUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.LoggingContent;
+import io.gravitee.definition.model.LoggingMode;
+import io.gravitee.definition.model.LoggingScope;
+import io.gravitee.definition.model.Plan;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
+import io.gravitee.definition.model.debug.DebugApi;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.rest.api.exception.InvalidImageException;
+import io.gravitee.rest.api.management.rest.mapper.DebugApiMapper;
 import io.gravitee.rest.api.management.rest.resource.param.LifecycleAction;
 import io.gravitee.rest.api.management.rest.resource.param.ReviewAction;
 import io.gravitee.rest.api.management.rest.resource.param.kubernetes.v1alpha1.ApiExportParam;
@@ -61,7 +68,6 @@ import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.security.utils.ImageUtils;
 import io.gravitee.rest.api.service.ApiDuplicatorService;
 import io.gravitee.rest.api.service.ApiExportService;
-import io.gravitee.rest.api.service.DebugApiService;
 import io.gravitee.rest.api.service.JsonPatchService;
 import io.gravitee.rest.api.service.MessageService;
 import io.gravitee.rest.api.service.NotifierService;
@@ -154,7 +160,7 @@ public class ApiResource extends AbstractResource {
     protected ApiExportService apiExportService;
 
     @Inject
-    protected DebugApiService debugApiService;
+    protected DebugApiUseCase debugApiUseCase;
 
     @PathParam("api")
     @Parameter(name = "api", required = true, description = "The ID of the API")
@@ -411,8 +417,20 @@ public class ApiResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
     @GraviteeLicenseFeature("apim-debug-mode")
     public Response debugAPI(@Parameter(name = "request") @Valid final DebugApiEntity debugApiEntity) {
-        EventEntity apiEntity = debugApiService.debug(GraviteeContext.getExecutionContext(), api, getAuthenticatedUser(), debugApiEntity);
-        return Response.ok(apiEntity).build();
+        return Response
+            .ok(
+                debugApiUseCase
+                    .execute(
+                        DebugApiUseCase.Input
+                            .builder()
+                            .apiId(api)
+                            .debugApi(DebugApiMapper.INSTANCE.fromEntity(debugApiEntity))
+                            .auditInfo(getAuditInfo())
+                            .build()
+                    )
+                    .debugApiEvent()
+            )
+            .build();
     }
 
     @GET

@@ -20,6 +20,7 @@ import static org.mockito.Mockito.mock;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
+import io.gravitee.apim.core.api.domain_service.ApiPolicyValidatorDomainService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.DeployApiDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
@@ -535,5 +536,10 @@ public class ResourceContextConfiguration {
     @Bean
     public ApiMetadataDomainService apiMetadataDomainService() {
         return mock(ApiMetadataDomainService.class);
+    }
+
+    @Bean
+    public ApiPolicyValidatorDomainService apiPolicyValidatorDomainService() {
+        return mock(ApiPolicyValidatorDomainService.class);
     }
 }

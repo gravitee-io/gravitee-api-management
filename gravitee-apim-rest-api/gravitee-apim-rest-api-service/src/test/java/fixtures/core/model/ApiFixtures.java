@@ -36,10 +36,11 @@ public class ApiFixtures {
 
     private ApiFixtures() {}
 
+    public static final String MY_API = "my-api";
     private static final Supplier<Api.ApiBuilder> BASE = () ->
         Api
             .builder()
-            .id("my-api")
+            .id(MY_API)
             .name("My Api")
             .environmentId("environment-id")
             .crossId("my-api-crossId")
@@ -66,7 +67,7 @@ public class ApiFixtures {
             .apiDefinitionV4(
                 io.gravitee.definition.model.v4.Api
                     .builder()
-                    .id("my-api")
+                    .id(MY_API)
                     .name("My Api")
                     .analytics(Analytics.builder().enabled(false).build())
                     .type(ApiType.PROXY)
@@ -115,7 +116,7 @@ public class ApiFixtures {
             .apiDefinition(
                 ApiBuilder
                     .anApiV2()
-                    .id("my-id")
+                    .id(MY_API)
                     .name("api-name")
                     .apiVersion("1.0.0")
                     .tags(Set.of("tag1"))

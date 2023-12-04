@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.service;
 
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.definition.model.debug.DebugApi;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Dictionary;
 import io.gravitee.rest.api.model.EventEntity;
@@ -28,8 +27,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
-import java.util.function.Predicate;
 
 /**
  * @author Titouan COMPIEGNE
@@ -67,19 +64,19 @@ public interface EventService {
         String dictionaryId
     );
 
-    EventEntity createDebugApiEvent(
-        ExecutionContext executionContext,
-        final Set<String> environmentsIds,
-        EventType type,
-        DebugApi debugApi,
-        Map<String, String> properties
-    );
-
     EventEntity createOrganizationEvent(
         ExecutionContext executionContext,
         final Set<String> environmentsIds,
         EventType type,
         OrganizationEntity organizationEntity
+    );
+
+    EventEntity createEvent(
+        ExecutionContext executionContext,
+        Set<String> environmentsIds,
+        EventType type,
+        Object object,
+        Map<String, String> properties
     );
 
     void deleteApiEvents(final ExecutionContext executionContext, String apiId);

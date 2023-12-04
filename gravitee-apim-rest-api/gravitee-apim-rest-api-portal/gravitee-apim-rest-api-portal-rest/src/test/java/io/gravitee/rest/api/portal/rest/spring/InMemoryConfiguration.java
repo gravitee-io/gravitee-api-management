@@ -17,6 +17,8 @@ package io.gravitee.rest.api.portal.rest.spring;
 
 import inmemory.*;
 import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
+import io.gravitee.apim.core.event.crud_service.EventCrudService;
+import io.gravitee.apim.core.gateway.query_service.InstanceQueryService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -111,5 +113,15 @@ public class InMemoryConfiguration {
     @Bean
     public PageRevisionCrudServiceInMemory pageRevisionCrudServiceInMemory() {
         return new PageRevisionCrudServiceInMemory();
+    }
+
+    @Bean
+    public InstanceQueryService instanceQueryService() {
+        return new InstanceQueryServiceInMemory();
+    }
+
+    @Bean
+    public EventCrudService eventCrudService() {
+        return new EventCrudInMemory();
     }
 }
