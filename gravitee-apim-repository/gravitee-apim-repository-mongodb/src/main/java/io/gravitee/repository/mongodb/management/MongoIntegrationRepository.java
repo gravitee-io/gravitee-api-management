@@ -89,6 +89,11 @@ public class MongoIntegrationRepository implements IntegrationRepository {
         return internalRepository.findAll().stream().map(this::map).collect(Collectors.toSet());
     }
 
+    @Override
+    public Set<Integration> findAllByEnvironment(String environmentId) throws TechnicalException {
+        return internalRepository.findByEnvironmentId(environmentId).stream().map(this::map).collect(Collectors.toSet());
+    }
+
     private Integration map(IntegrationMongo integrationMongo) {
         return mapper.map(integrationMongo);
     }

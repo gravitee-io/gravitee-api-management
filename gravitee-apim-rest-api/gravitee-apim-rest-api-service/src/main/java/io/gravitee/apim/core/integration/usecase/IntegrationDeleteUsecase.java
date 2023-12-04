@@ -13,22 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.integration.crud_service;
+package io.gravitee.apim.core.integration.usecase;
 
+import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
 import io.gravitee.apim.core.integration.model.Integration;
-import java.util.Set;
+import lombok.Builder;
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author Remi Baptiste (remi.baptiste at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface IntegrationCrudService {
-    Integration createIntegration(Integration integration);
-    Integration get(String id);
+@RequiredArgsConstructor
+public class IntegrationDeleteUsecase {
 
-    Set<Integration> findAll();
+    private final IntegrationCrudService integrationCrudService;
 
-    Set<Integration> findByEnvironment(String environmentId);
+    public Output execute(Input input) {
+        var integrationIdToDelete = input.integrationId();
 
-    Integration deleteIntegration(String id);
+        Integration integrationDeleted = integrationCrudService.deleteIntegration(integrationIdToDelete);
+
+        //TODO manage the integration provider
+
+        return new Output(integrationDeleted);
+    }
+
+    @Builder
+    public record Input(String integrationId) {}
+
+    public record Output(Integration deletedIntegration) {}
 }

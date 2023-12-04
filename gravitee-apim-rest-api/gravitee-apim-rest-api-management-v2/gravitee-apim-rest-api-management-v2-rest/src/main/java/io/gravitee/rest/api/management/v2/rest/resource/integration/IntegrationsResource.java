@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.v2.rest.resource.integration;
 
 import io.gravitee.apim.core.integration.usecase.IntegrationCreateUsecase;
+import io.gravitee.apim.core.integration.usecase.IntegrationsGetUsecase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.IntegrationMapper;
 import io.gravitee.rest.api.management.v2.rest.model.CreateIntegration;
@@ -28,8 +29,10 @@ import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
@@ -50,12 +53,16 @@ public class IntegrationsResource extends AbstractResource {
     @Inject
     private IntegrationCreateUsecase integrationCreateUsecase;
 
+    @Inject
+    private IntegrationsGetUsecase integrationsGetUsecase;
+
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_INTEGRATION, acls = { RolePermissionAction.CREATE }) })
-    public Response createIntegration(@Valid @NotNull final CreateIntegration integration) {
+    public Response createIntegration(@PathParam("envId") String environmentId, @Valid @NotNull final CreateIntegration integration) {
         var newIntegrationEntity = IntegrationMapper.INSTANCE.map(integration);
+        newIntegrationEntity.setEnvironmentId(environmentId);
 
         var createdIntegration = integrationCreateUsecase
             .execute(IntegrationCreateUsecase.Input.builder().integration(newIntegrationEntity).build())
@@ -65,6 +72,17 @@ public class IntegrationsResource extends AbstractResource {
             .created(this.getLocationHeader(createdIntegration.getId()))
             .entity(IntegrationMapper.INSTANCE.map(createdIntegration))
             .build();
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_INTEGRATION, acls = { RolePermissionAction.CREATE }) })
+    public Response listIntegrations(@PathParam("envId") String environmentId) {
+        var integrations = integrationsGetUsecase
+            .execute(IntegrationsGetUsecase.Input.builder().environmentId(environmentId).build())
+            .integrations();
+
+        return Response.ok().entity(IntegrationMapper.INSTANCE.map(integrations)).build();
     }
 
     @Path("{integrationId}")

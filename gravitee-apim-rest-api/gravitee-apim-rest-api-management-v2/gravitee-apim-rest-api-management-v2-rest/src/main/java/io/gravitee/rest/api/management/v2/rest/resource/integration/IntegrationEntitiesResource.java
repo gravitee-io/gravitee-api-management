@@ -59,7 +59,8 @@ public class IntegrationEntitiesResource extends AbstractResource {
         integrationGetEntitiesUsecase
             .execute(IntegrationGetEntitiesUsecase.Input.builder().integrationId(integrationId).build())
             .entities()
-            .doOnSuccess(integrationEntities -> log.info("received entities {}", integrationEntities))
+            .toList()
+            .doOnSuccess(entity -> log.info("received entities {}", entity))
             .subscribe(response::resume, response::resume);
     }
 
@@ -80,8 +81,7 @@ public class IntegrationEntitiesResource extends AbstractResource {
                     .userId(userDetails.getUsername())
                     .build()
             )
-            .status()
-            .doOnSuccess(status -> log.info("received entities {}", status))
-            .subscribe(response::resume, response::resume);
+            .completable()
+            .subscribe(() -> response.resume("Import done"), response::resume);
     }
 }

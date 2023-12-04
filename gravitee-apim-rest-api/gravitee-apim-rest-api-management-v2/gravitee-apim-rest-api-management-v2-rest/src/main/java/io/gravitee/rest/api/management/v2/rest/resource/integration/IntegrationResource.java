@@ -15,11 +15,13 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.integration;
 
+import io.gravitee.apim.core.integration.usecase.IntegrationDeleteUsecase;
 import io.gravitee.apim.core.integration.usecase.IntegrationGetUsecase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.IntegrationMapper;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
@@ -42,6 +44,9 @@ public class IntegrationResource extends AbstractResource {
     @Inject
     private IntegrationGetUsecase integrationGetUsecase;
 
+    @Inject
+    private IntegrationDeleteUsecase integrationDeleteUsecase;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getIntegrationById(@PathParam("integrationId") String integrationId) {
@@ -50,6 +55,13 @@ public class IntegrationResource extends AbstractResource {
             .integration();
 
         return Response.ok(IntegrationMapper.INSTANCE.map(integration)).build();
+    }
+
+    @DELETE
+    public Response deleteIntegration(@PathParam("integrationId") String integrationId) {
+        integrationDeleteUsecase.execute(IntegrationDeleteUsecase.Input.builder().integrationId(integrationId).build());
+
+        return Response.noContent().build();
     }
 
     @Path("entities")

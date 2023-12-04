@@ -55,9 +55,11 @@ import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
 import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
 import io.gravitee.apim.core.integration.domain_service.IntegrationDomainService;
 import io.gravitee.apim.core.integration.usecase.IntegrationCreateUsecase;
+import io.gravitee.apim.core.integration.usecase.IntegrationDeleteUsecase;
 import io.gravitee.apim.core.integration.usecase.IntegrationGetEntitiesUsecase;
 import io.gravitee.apim.core.integration.usecase.IntegrationGetUsecase;
 import io.gravitee.apim.core.integration.usecase.IntegrationImportUsecase;
+import io.gravitee.apim.core.integration.usecase.IntegrationsGetUsecase;
 import io.gravitee.apim.core.event.crud_service.EventCrudService;
 import io.gravitee.apim.core.gateway.query_service.InstanceQueryService;
 import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService;
@@ -382,6 +384,11 @@ public class UsecaseSpringConfiguration {
     }
 
     @Bean
+    public IntegrationDeleteUsecase integrationDeleteUsecase(IntegrationCrudService integrationCrudService) {
+        return new IntegrationDeleteUsecase(integrationCrudService);
+    }
+
+    @Bean
     public IntegrationGetEntitiesUsecase integrationGetEntitiesUsecase(
         IntegrationDomainService integrationDomainService,
         IntegrationCrudService integrationCrudService
@@ -397,5 +404,10 @@ public class UsecaseSpringConfiguration {
         PageService pageService
     ) {
         return new IntegrationImportUsecase(integrationDomainService, integrationCrudService, apiService, pageService);
+    }
+
+    @Bean
+    public IntegrationsGetUsecase integrationsGetUsecase(IntegrationCrudService integrationCrudService) {
+        return new IntegrationsGetUsecase(integrationCrudService);
     }
 }

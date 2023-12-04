@@ -1218,9 +1218,9 @@ paths:
         post:
             tags:
                 - Integration
-            summary: Get a list of entities for a specific Integration
+            summary: Import a list of entities for a specific Integration
             description: |-
-                Get a list of entities for a specific Integration.
+                Import a list of entities for a specific Integration.
 
                 User must have at least one management (create, update, or delete) permission on the Integration to access it.
             operationId: importIntegrationEntities

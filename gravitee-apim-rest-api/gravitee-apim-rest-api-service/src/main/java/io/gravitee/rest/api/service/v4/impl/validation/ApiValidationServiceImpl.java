@@ -221,6 +221,12 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         this.validateApiType(null, apiEntity.getType());
         // Validate and clean lifecycle state. In creation, lifecycle state can't be set.
         apiEntity.setLifecycleState(null);
+
+        if (apiEntity.getType() == ApiType.FEDERATED) {
+            //No need to validate the other part if the Api is federated
+            return;
+        }
+
         // Validate and clean tags
         apiEntity.setTags(tagsValidationService.validateAndSanitize(executionContext, null, apiEntity.getTags()));
         // Validate and clean groups

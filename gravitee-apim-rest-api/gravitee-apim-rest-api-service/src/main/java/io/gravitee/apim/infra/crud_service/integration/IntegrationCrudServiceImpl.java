@@ -17,11 +17,11 @@ package io.gravitee.apim.infra.crud_service.integration;
 
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
+import io.gravitee.apim.core.integration.exception.IntegrationNotFoundException;
 import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.infra.adapter.IntegrationAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.IntegrationRepository;
-import io.gravitee.rest.api.service.exceptions.IntegrationNotFoundException;
 import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -80,5 +80,32 @@ public class IntegrationCrudServiceImpl implements IntegrationCrudService {
             logger.error("An error occurred while finding all Integrations", e);
         }
         return Collections.emptySet();
+    }
+
+    @Override
+    public Set<Integration> findByEnvironment(String environmentId) {
+        try {
+            var integrations = integrationRepository.findAllByEnvironment(environmentId);
+            if (integrations != null) {
+                return integrations.stream().map(IntegrationAdapter.INSTANCE::toEntity).collect(Collectors.toSet());
+            }
+        } catch (TechnicalException e) {
+            logger.error("An error occurred while finding Integrations by environment", e);
+        }
+        return Collections.emptySet();
+    }
+
+    @Override
+    public Integration deleteIntegration(String id) {
+        try {
+            var foundIntegration = integrationRepository.findById(id);
+            if (foundIntegration.isPresent()) {
+                integrationRepository.delete(id);
+                return IntegrationAdapter.INSTANCE.toEntity(foundIntegration.get());
+            }
+        } catch (TechnicalException e) {
+            logger.error("An error occurred while finding Integration by id {}", id, e);
+        }
+        throw new IntegrationNotFoundException(id);
     }
 }

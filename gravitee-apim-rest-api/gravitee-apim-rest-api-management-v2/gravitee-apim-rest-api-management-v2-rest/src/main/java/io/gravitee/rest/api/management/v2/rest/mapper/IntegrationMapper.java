@@ -19,6 +19,7 @@ import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.rest.api.management.v2.rest.model.CreateIntegration;
 import io.gravitee.rest.api.management.v2.rest.model.IntegrationEntity;
 import java.util.List;
+import java.util.Set;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
@@ -38,6 +39,8 @@ public interface IntegrationMapper {
     Integration map(CreateIntegration createIntegration);
 
     io.gravitee.rest.api.management.v2.rest.model.Integration map(Integration createdIntegration);
+
+    List<io.gravitee.rest.api.management.v2.rest.model.Integration> map(Set<Integration> createdIntegration);
 
     List<IntegrationEntity> map(List<io.gravitee.apim.core.integration.model.IntegrationEntity> entities);
 

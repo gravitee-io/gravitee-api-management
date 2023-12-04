@@ -19,8 +19,7 @@ package io.gravitee.apim.core.integration.usecase;
 import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
 import io.gravitee.apim.core.integration.domain_service.IntegrationDomainService;
 import io.gravitee.apim.core.integration.model.IntegrationEntity;
-import io.reactivex.rxjava3.core.Single;
-import java.util.List;
+import io.reactivex.rxjava3.core.Flowable;
 import lombok.Builder;
 
 /**
@@ -49,5 +48,5 @@ public class IntegrationGetEntitiesUsecase {
     @Builder
     public record Input(String integrationId) {}
 
-    public record Output(Single<List<IntegrationEntity>> entities) {}
+    public record Output(Flowable<IntegrationEntity> entities) {}
 }

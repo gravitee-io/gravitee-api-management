@@ -36,10 +36,9 @@ import io.gravitee.integration.api.command.fetch.FetchReply;
 import io.gravitee.integration.api.command.list.ListCommand;
 import io.gravitee.integration.api.command.list.ListReply;
 import io.gravitee.plugin.integrationprovider.internal.DefaultIntegrationProviderPluginManager;
+import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -105,36 +104,35 @@ public class IntegrationDomainServiceImpl extends AbstractService<IntegrationDom
     }
 
     @Override
-    public Single<List<IntegrationEntity>> getIntegrationEntities(Integration integration) {
+    public Flowable<IntegrationEntity> getIntegrationEntities(Integration integration) {
         ListCommand listCommand = new ListCommand();
 
         return sendListCommand(listCommand, integration.getId())
+            .toFlowable()
             .flatMap(listReply -> {
                 if (listReply.getCommandStatus() == CommandStatus.SUCCEEDED) {
-                    return Single.just(listReply.getPayload().entities().stream().map(IntegrationAdapter.INSTANCE::toEntity).toList());
+                    return listReply.getPayload().entities().map(IntegrationAdapter.INSTANCE::toEntity);
                 }
-                return Single.just(Collections.emptyList());
+                return Flowable.empty();
             });
     }
 
     @Override
-    public Single<List<IntegrationEntity>> fetchEntities(Integration integration, List<IntegrationEntity> integrationEntities) {
+    public Flowable<IntegrationEntity> fetchEntities(Integration integration, List<IntegrationEntity> integrationEntities) {
         List<Entity> entities = integrationEntities.stream().map(IntegrationAdapter.INSTANCE::toEntityApi).toList();
 
         FetchCommandPayload fetchCommandPayload = new FetchCommandPayload(entities);
         FetchCommand fetchCommand = new FetchCommand(fetchCommandPayload);
 
         return sendFetchCommand(fetchCommand, integration.getId())
+            .toFlowable()
             .flatMap(fetchReply -> {
                 if (fetchReply.getCommandStatus() == CommandStatus.SUCCEEDED) {
-                    return Single.just(fetchReply.getPayload().entities().stream().map(IntegrationAdapter.INSTANCE::toEntity).toList());
+                    return fetchReply.getPayload().entities().map(IntegrationAdapter.INSTANCE::toEntity);
                 }
-                return Single.just(Collections.emptyList());
+                return Flowable.empty();
             });
     }
-
-    @Override
-    public void importEntities(List<String> entitiesId) {}
 
     private Single<ListReply> sendListCommand(ListCommand listCommand, String integrationId) {
         return exchangeController

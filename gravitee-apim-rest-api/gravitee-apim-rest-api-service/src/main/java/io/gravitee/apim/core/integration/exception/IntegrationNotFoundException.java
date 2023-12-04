@@ -13,36 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service.exceptions;
 
-import static java.util.Collections.singletonMap;
+package io.gravitee.apim.core.integration.exception;
 
-import java.util.Map;
+import io.gravitee.apim.core.exception.NotFoundDomainException;
+import io.gravitee.apim.core.exception.TechnicalDomainException;
 
 /**
  * @author Remi Baptiste (remi.baptiste at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class IntegrationNotFoundException extends AbstractNotFoundException {
+public class IntegrationNotFoundException extends NotFoundDomainException {
 
-    private final String integrationName;
-
-    public IntegrationNotFoundException(String integrationName) {
-        this.integrationName = integrationName;
-    }
-
-    @Override
-    public String getMessage() {
-        return "Integration [" + integrationName + "] cannot be found.";
-    }
-
-    @Override
-    public String getTechnicalCode() {
-        return "integration.notFound";
-    }
-
-    @Override
-    public Map<String, String> getParameters() {
-        return singletonMap("integration", integrationName);
+    public IntegrationNotFoundException(String integrationId) {
+        super("Integration not found", integrationId);
     }
 }
