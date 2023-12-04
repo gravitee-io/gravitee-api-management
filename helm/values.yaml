@@ -1521,5 +1521,5 @@ initContainers:
 
 # For enterprise plugin only, you will need a license
 license:
-  name: licensekey
+  name: licensekey-apim
 #  key: <put here your license.key file encoded in base64>
