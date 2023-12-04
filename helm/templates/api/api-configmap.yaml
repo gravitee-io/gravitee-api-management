@@ -99,14 +99,14 @@ data:
         url: {{ .Values.api.ingress.management.scheme }}://{{ index .Values.api.ingress.management.hosts 0 }}
       {{- end }}
         proxyPath:
-          management: {{ regexFind "/[a-zA-Z-_.~]+" .Values.api.ingress.management.path }}
-          portal: {{ regexFind "/[a-zA-Z-_.~]+" .Values.api.ingress.portal.path }}
+          management: {{ regexFind "/[a-zA-Z0-9-\\/_.~]+" .Values.api.ingress.management.path }}
+          portal: {{ regexFind "/[a-zA-Z0-9-\\/_.~]+" .Values.api.ingress.portal.path }}
       {{- if ne (include "installation.type" .) "multi-tenant" }}
       standalone:
         console:
-          url: https://{{ index .Values.ui.ingress.hosts 0 }}{{ regexFind "/[a-zA-Z-_.~]+" .Values.ui.ingress.path }}
+          url: https://{{ index .Values.ui.ingress.hosts 0 }}{{ regexFind "/[a-zA-Z0-9-\\/_.~]+" .Values.ui.ingress.path }}
         portal:
-          url: https://{{ index .Values.portal.ingress.hosts 0 }}{{ regexFind "/[a-zA-Z-_.~]+" .Values.portal.ingress.path }}
+          url: https://{{ index .Values.portal.ingress.hosts 0 }}{{ regexFind "/[a-zA-Z0-9-\\/_.~]+" .Values.portal.ingress.path }}
       {{ else }}
       multi-tenant:
         {{- toYaml (index .Values "installation" "multi-tenant") | nindent 8 }}
