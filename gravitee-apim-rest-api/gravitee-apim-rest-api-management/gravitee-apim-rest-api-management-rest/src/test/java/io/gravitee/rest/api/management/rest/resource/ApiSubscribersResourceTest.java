@@ -18,12 +18,14 @@ package io.gravitee.rest.api.management.rest.resource;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.rest.api.management.rest.model.wrapper.ApplicationListItemPagedResult;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.UserEntity;
@@ -124,6 +126,63 @@ public class ApiSubscribersResourceTest extends AbstractResourceTest {
     @Test
     public void shouldNotFilterOnSubscriptionStatus() {
         envTarget(API_ID).path("subscribers").request().get();
+        verify(subscriptionService)
+            .search(eq(GraviteeContext.getExecutionContext()), argThat(query -> CollectionUtils.isEmpty(query.getStatuses())));
+    }
+
+    @Test
+    public void shouldGetApiSubscribersWithPagination() {
+        SubscriptionEntity subA1 = new SubscriptionEntity();
+        subA1.setApplication("A");
+        subA1.setApi(API_ID);
+        SubscriptionEntity subB1 = new SubscriptionEntity();
+        subB1.setApplication("B");
+        subB1.setApi(API_ID);
+        SubscriptionEntity subC1 = new SubscriptionEntity();
+        subC1.setApplication("C");
+        subC1.setApi(API_ID);
+        doReturn(Arrays.asList(subB1, subC1, subA1)).when(subscriptionService).search(eq(GraviteeContext.getExecutionContext()), any());
+
+        ApplicationListItem appA = new ApplicationListItem();
+        appA.setId("A");
+        ApplicationListItem appB = new ApplicationListItem();
+        appB.setId("B");
+        ApplicationListItem appC = new ApplicationListItem();
+        appC.setId("C");
+        Page<ApplicationListItem> applications = new Page(Arrays.asList(appA, appB, appC), 1, 10, 42);
+
+        doReturn(applications)
+            .when(applicationService)
+            .search(
+                eq(GraviteeContext.getExecutionContext()),
+                argThat(q -> q.getIds().containsAll(Arrays.asList("A", "B", "C"))),
+                eq(new SortableImpl("name", true)),
+                argThat(pageable -> pageable.getPageNumber() == 1 && pageable.getPageSize() == 20)
+            );
+
+        final Response response = envTarget(API_ID).path("subscribers/_paged").request().get();
+        assertEquals(OK_200, response.getStatus());
+
+        final ApplicationListItemPagedResult applicationsResponse = response.readEntity(ApplicationListItemPagedResult.class);
+        assertNotNull(applicationsResponse);
+        assertEquals(3, applicationsResponse.getData().size());
+    }
+
+    @Test
+    public void shouldGetNoSubscribersWithPagination() {
+        doReturn(Collections.emptyList()).when(subscriptionService).search(eq(GraviteeContext.getExecutionContext()), any());
+
+        final Response response = envTarget(API_ID).path("subscribers/_paged").request().get();
+        assertEquals(OK_200, response.getStatus());
+
+        final ApplicationListItemPagedResult applicationsResponse = response.readEntity(ApplicationListItemPagedResult.class);
+        assertNotNull(applicationsResponse);
+        assertNull(applicationsResponse.getData());
+    }
+
+    @Test
+    public void shouldNotFilterOnSubscriptionStatusWithPagination() {
+        envTarget(API_ID).path("subscribers/_paged").request().get();
         verify(subscriptionService)
             .search(eq(GraviteeContext.getExecutionContext()), argThat(query -> CollectionUtils.isEmpty(query.getStatuses())));
     }

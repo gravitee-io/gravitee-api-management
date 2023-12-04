@@ -20,6 +20,7 @@ import static io.gravitee.rest.api.model.SubscriptionStatus.*;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.model.Pageable;
+import io.gravitee.rest.api.management.rest.model.wrapper.ApplicationListItemPagedResult;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.application.ApplicationExcludeFilter;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
@@ -45,6 +46,7 @@ import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
@@ -79,9 +81,10 @@ public class ApiSubscribersResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @Deprecated
     @Operation(
         summary = "List subscribers for the API",
-        description = "User must have the MANAGE_SUBSCRIPTIONS permission to use this service"
+        description = "Deprecated. Consider using GET /subscribers/_paged instead. User must have the API_SUBSCRIPTIONS READ permission to use this service"
     )
     @ApiResponse(
         responseCode = "200",
@@ -139,5 +142,63 @@ public class ApiSubscribersResource extends AbstractResource {
         }
 
         return subscribersApplicationPage.getContent();
+    }
+
+    @GET
+    @Path("/_paged")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(
+        summary = "List subscribers for the API with pagination",
+        description = "List all subscriber of the given API with pagination. User must have the API_SUBSCRIPTIONS READ permission to use this service"
+    )
+    @ApiResponse(
+        responseCode = "200",
+        description = "Paged result of API subscribers",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApplicationListItemPagedResult.class))
+    )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
+    public ApplicationListItemPagedResult getApiSubscribersPaged(
+        @QueryParam("query") final String query,
+        @QueryParam("exclude") final List<ApplicationExcludeFilter> exclude,
+        @Valid @BeanParam Pageable pageable
+    ) {
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        if (
+            !hasPermission(executionContext, RolePermission.API_SUBSCRIPTION, api, RolePermissionAction.READ) &&
+            !hasPermission(executionContext, RolePermission.API_LOG, api, RolePermissionAction.READ)
+        ) {
+            throw new ForbiddenAccessException();
+        }
+
+        SubscriptionQuery subscriptionQuery = new SubscriptionQuery();
+        subscriptionQuery.setApi(api);
+
+        Collection<SubscriptionEntity> subscriptions = subscriptionService.search(executionContext, subscriptionQuery);
+
+        Set<String> applicationIds = subscriptions.stream().map(SubscriptionEntity::getApplication).collect(Collectors.toSet());
+
+        if (applicationIds.isEmpty()) {
+            return new ApplicationListItemPagedResult();
+        }
+
+        ApplicationQuery applicationQuery = new ApplicationQuery();
+        if (exclude != null && !exclude.isEmpty()) {
+            applicationQuery.setExcludeFilters(exclude);
+        }
+        applicationQuery.setIds(applicationIds);
+        if (query != null && !query.isEmpty()) {
+            applicationQuery.setName(query);
+        }
+
+        Sortable sortable = new SortableImpl("name", true);
+
+        Page<ApplicationListItem> subscribersApplicationPage = applicationService.search(
+            executionContext,
+            applicationQuery,
+            sortable,
+            pageable.toPageable()
+        );
+
+        return new ApplicationListItemPagedResult(subscribersApplicationPage, pageable.getSize());
     }
 }
