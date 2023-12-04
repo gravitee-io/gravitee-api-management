@@ -104,9 +104,7 @@
 
   <div class="empty-list" ng-if="$ctrl.exclusiveSubscriptions.data.length === 0 && $ctrl.sharedSubscriptions.data.length === 0">
     <gravitee-empty-state icon="vpn_key" model="Subscription" message="Application's subscriptions will appear here"></gravitee-empty-state>
-    <md-button class="subscribe-button md-raised" ui-sref="management.applications.application.subscriptions.subscribe"
-      >Start playing with APIs</md-button
-    >
+    <md-button class="subscribe-button md-raised" ng-click="$ctrl.goToSubscribe()">Start playing with APIs</md-button>
   </div>
 
   <div ng-if="$ctrl.areSharedApiKeysDisplayed()">
