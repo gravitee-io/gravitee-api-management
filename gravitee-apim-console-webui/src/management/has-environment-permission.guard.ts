@@ -21,17 +21,33 @@ import { Observable, of } from 'rxjs';
 import { ManagementComponent } from './management.component';
 
 import { GioPermissionService } from '../shared/components/gio-permission/gio-permission.service';
+import { EnvironmentService } from '../services-ngx/environment.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class HasEnvironmentPermissionGuard implements CanActivate, CanActivateChild, CanDeactivate<ManagementComponent> {
-  constructor(private readonly gioPermissionService: GioPermissionService, private readonly router: Router) {}
+  constructor(
+    private readonly gioPermissionService: GioPermissionService,
+    private readonly environmentService: EnvironmentService,
+    private router: Router,
+  ) {}
 
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
-    return this.gioPermissionService
-      .loadEnvironmentPermissions(route.params.envId)
-      .pipe(switchMap(() => this.canActivateChild(route, state)));
+    const currentEnv = route.params.envId;
+
+    return this.environmentService.list().pipe(
+      switchMap((environments) => {
+        const currentEnvironment = environments.find((e) => e.id === currentEnv || e.hrids?.includes(currentEnv));
+
+        if (!currentEnvironment) {
+          this.router.navigate([environments[0].id]);
+        }
+
+        return this.gioPermissionService.loadEnvironmentPermissions(route.params.envId);
+      }),
+      switchMap(() => this.canActivateChild(route, state)),
+    );
   }
 
   canActivateChild(route: ActivatedRouteSnapshot, _state: RouterStateSnapshot): Observable<boolean> {

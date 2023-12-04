@@ -60,7 +60,7 @@ const appRoutes: Routes = [
         component: AppComponent,
         loadChildren: () => import('./management/management.module').then((m) => m.ManagementModule),
       },
-      { path: '', pathMatch: 'full', redirectTo: 'DEFAULT' },
+      { path: '', pathMatch: 'full', redirectTo: 'default' },
     ],
   },
 ];
