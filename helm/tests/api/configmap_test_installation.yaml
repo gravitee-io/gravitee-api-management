@@ -134,3 +134,21 @@ tests:
       - matchRegex:
           path: data.[gravitee.yml]
           pattern: "installation:[\\S\\s\\n]*api:[\\S\\s\\n]*url: https://mapi.example.com"
+
+  - it: Override api.ingress.[management/portal].ingess.path
+    template: api/api-configmap.yaml
+    set:
+      installation:
+        type: multi-tenant
+        api:
+          url: https://mapi.example.com
+      api:
+        ingress:
+          management:
+            path: /4p1/man4gement(/|$)(.*)
+          portal:
+            path: /Api/p0rtal(/|$)(.*)
+    asserts:
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: "installation:[\\S\\s\\n]*api:[\\S\\s\\n]*url: https://mapi.example.com[\\S\\s\\n]*proxyPath:[\\S\\s\\n]*management: /4p1/man4gement[\\S\\s\\n]*portal: /Api/p0rtal"
