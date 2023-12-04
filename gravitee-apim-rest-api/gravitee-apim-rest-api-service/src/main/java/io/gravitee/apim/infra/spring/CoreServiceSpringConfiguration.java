@@ -33,14 +33,18 @@ import io.gravitee.apim.core.documentation.domain_service.DocumentationValidatio
 import io.gravitee.apim.core.documentation.domain_service.HomepageDomainService;
 import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
+import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
+import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService;
 import io.gravitee.apim.core.notification.domain_service.TriggerNotificationDomainService;
 import io.gravitee.apim.core.parameters.query_service.ParametersQueryService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
+import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.PlanValidatorDomainService;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import io.gravitee.apim.core.plugin.domain_service.PolicyValidationDomainService;
+import io.gravitee.apim.core.plugin.query_service.EntrypointPluginQueryService;
 import io.gravitee.apim.core.sanitizer.HtmlSanitizer;
 import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
@@ -190,5 +194,30 @@ public class CoreServiceSpringConfiguration {
         PageCrudService pageCrudService
     ) {
         return new PlanValidatorDomainService(parametersQueryService, policyValidationDomainService, pageCrudService);
+    }
+
+    @Bean
+    FlowValidationDomainService flowValidationDomainService(
+        PolicyValidationDomainService policyValidationDomainService,
+        EntrypointPluginQueryService entrypointPluginQueryService
+    ) {
+        return new FlowValidationDomainService(policyValidationDomainService, entrypointPluginQueryService);
+    }
+
+    @Bean
+    public CreatePlanDomainService planDomainService(
+        PlanValidatorDomainService planValidatorDomainService,
+        FlowValidationDomainService flowValidationDomainService,
+        PlanCrudService planCrudService,
+        FlowCrudService flowCrudService,
+        AuditDomainService auditDomainService
+    ) {
+        return new CreatePlanDomainService(
+            planValidatorDomainService,
+            flowValidationDomainService,
+            planCrudService,
+            flowCrudService,
+            auditDomainService
+        );
     }
 }

@@ -13,23 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.management.v2.rest.model;
+package io.gravitee.apim.core.api.model.crd;
 
-import jakarta.validation.constraints.NotNull;
-import java.time.OffsetDateTime;
+import io.gravitee.apim.core.plan.model.Plan;
+import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.plan.PlanMode;
+import io.gravitee.definition.model.v4.plan.PlanSecurity;
+import io.gravitee.definition.model.v4.plan.PlanStatus;
+import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Set;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Builder;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Getter
-@Setter
+@Data
+@Builder(toBuilder = true)
 public class PlanCRD {
 
     private String id;
+
+    private String name;
 
     private String description;
 
@@ -41,28 +48,27 @@ public class PlanCRD {
 
     private boolean commentRequired;
 
+    private String crossId;
+
     private List<String> excludedGroups;
 
     private String generalConditions;
 
-    private int order;
+    private Integer order;
 
-    private OffsetDateTime publishedAt;
+    private ZonedDateTime publishedAt;
 
     private String selectionRule;
 
-    @NotNull
     private PlanStatus status;
 
-    private List<String> tags;
+    private Set<String> tags;
 
-    @NotNull
-    private PlanType type;
+    private Plan.PlanType type;
 
-    private PlanValidation validation;
+    private Plan.PlanValidationType validation;
 
-    private List<FlowV4> flows;
+    private List<Flow> flows;
 
-    @NotNull
     private PlanMode mode;
 }

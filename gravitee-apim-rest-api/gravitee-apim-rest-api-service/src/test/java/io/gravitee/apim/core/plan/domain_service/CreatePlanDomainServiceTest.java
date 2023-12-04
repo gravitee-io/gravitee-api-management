@@ -98,7 +98,8 @@ class CreatePlanDomainServiceTest {
     FlowCrudServiceInMemory flowCrudService = new FlowCrudServiceInMemory();
     AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     PageCrudServiceInMemory pageCrudService = new PageCrudServiceInMemory();
-    CreatePlanDomainServiceImpl service;
+
+    CreatePlanDomainService service;
 
     @BeforeAll
     static void beforeAll() {
@@ -115,7 +116,7 @@ class CreatePlanDomainServiceTest {
     @BeforeEach
     void setUp() {
         service =
-            new CreatePlanDomainServiceImpl(
+            new CreatePlanDomainService(
                 new PlanValidatorDomainService(parametersQueryService, policyValidationDomainService, pageCrudService),
                 new FlowValidationDomainService(policyValidationDomainService, new EntrypointPluginQueryServiceInMemory()),
                 planCrudService,

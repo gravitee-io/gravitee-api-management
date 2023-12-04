@@ -18,14 +18,15 @@ package io.gravitee.apim.core.api.use_case;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.DeployApiDomainService;
-import io.gravitee.apim.core.api.model.ApiCRD;
-import io.gravitee.apim.core.api.model.ApiCRDStatus;
+import io.gravitee.apim.core.api.model.crd.ApiCRD;
+import io.gravitee.apim.core.api.model.crd.ApiCRDStatus;
+import io.gravitee.apim.core.api.model.crd.PlanCRD;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
+import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.definition.model.DefinitionContext;
-import io.gravitee.rest.api.model.v4.plan.BasePlanEntity;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.stream.Collectors;
 
@@ -78,8 +79,8 @@ public class ImportCRDUseCase {
             var planNameIdMapping = input.crd
                 .getPlans()
                 .stream()
-                .map(plan -> createPlanDomainService.create(plan.toBuilder().apiId(api.getId()).build(), input.auditInfo))
-                .collect(Collectors.toMap(BasePlanEntity::getName, BasePlanEntity::getId));
+                .map(planCRD -> createPlanDomainService.create(initPlanFromCRD(planCRD), planCRD.getFlows(), api, input.auditInfo))
+                .collect(Collectors.toMap(Plan::getName, Plan::getId));
 
             if (input.crd.getDefinitionContext().getSyncFrom().equals(DefinitionContext.ORIGIN_MANAGEMENT)) {
                 deployApiDomainService.deploy(api, "Import via Kubernetes operator", input.auditInfo);
@@ -97,5 +98,29 @@ public class ImportCRDUseCase {
         } catch (Exception e) {
             throw new TechnicalManagementException(e);
         }
+    }
+
+    private Plan initPlanFromCRD(PlanCRD planCRD) {
+        return Plan
+            .builder()
+            .id(planCRD.getId())
+            .name(planCRD.getName())
+            .description(planCRD.getDescription())
+            .security(planCRD.getSecurity())
+            .characteristics(planCRD.getCharacteristics())
+            .commentMessage(planCRD.getCommentMessage())
+            .commentRequired(planCRD.isCommentRequired())
+            .crossId(planCRD.getCrossId())
+            .excludedGroups(planCRD.getExcludedGroups())
+            .generalConditions(planCRD.getGeneralConditions())
+            .order(planCRD.getOrder())
+            .publishedAt(planCRD.getPublishedAt())
+            .selectionRule(planCRD.getSelectionRule())
+            .status(planCRD.getStatus())
+            .tags(planCRD.getTags())
+            .type(planCRD.getType())
+            .validation(planCRD.getValidation())
+            .mode(planCRD.getMode())
+            .build();
     }
 }

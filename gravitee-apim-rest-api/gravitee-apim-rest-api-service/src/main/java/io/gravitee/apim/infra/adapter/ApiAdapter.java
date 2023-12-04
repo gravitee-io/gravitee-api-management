@@ -16,7 +16,7 @@
 package io.gravitee.apim.infra.adapter;
 
 import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.apim.core.api.model.ApiCRD;
+import io.gravitee.apim.core.api.model.crd.ApiCRD;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
@@ -52,11 +52,6 @@ public interface ApiAdapter {
     @Mapping(source = "version", target = "apiVersion")
     @Mapping(target = "metadata", ignore = true)
     ApiEntity toApiEntity(ApiCRD api);
-
-    @Mapping(source = "state", target = "lifecycleState")
-    @Mapping(source = "lifecycleState", target = "apiLifecycleState")
-    @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
-    Api fromApiEntity(ApiEntity apiEntity);
 
     @Mapping(source = "state", target = "lifecycleState")
     @Mapping(source = "lifecycleState", target = "apiLifecycleState")

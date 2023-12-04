@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.api.model;
+package io.gravitee.apim.core.api.model.crd;
 
+import io.gravitee.apim.core.api.model.ApiMetadata;
 import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.Property;
 import io.gravitee.definition.model.ResponseTemplate;
@@ -22,17 +23,22 @@ import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.resource.Resource;
-import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
+@AllArgsConstructor
+@NoArgsConstructor
 @Data
+@Builder(toBuilder = true)
 public class ApiCRD {
 
     private String crossId;
@@ -61,7 +67,7 @@ public class ApiCRD {
 
     private List<Resource> resources = List.of();
 
-    private List<PlanEntity> plans = List.of();
+    private List<PlanCRD> plans = List.of();
 
     private List<Flow> flows = List.of();
 
