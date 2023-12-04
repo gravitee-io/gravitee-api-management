@@ -76,6 +76,12 @@ const PlatformLogComponentAjs: ng.IComponentOptions = {
         });
       };
 
+      this.goToSubscription = (apiId: string, subscriptionId: string) => {
+        this.ngRouter.navigate(['../../apis', apiId, 'subscriptions', subscriptionId], {
+          relativeTo: this.activatedRoute,
+        });
+      };
+
       this.getMimeType = function (log) {
         if (log.headers['Content-Type'] !== undefined) {
           const contentType = log.headers['Content-Type'][0];
