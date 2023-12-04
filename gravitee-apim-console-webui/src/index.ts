@@ -46,6 +46,12 @@ fetchData().then(({ constants, build }) => {
   angular.module('gravitee-management').constant('Build', build);
 
   angular.module('gravitee-management').constant('Constants', constants);
+
+  const initAppTitle = ($rootScope) => {
+    $rootScope.consoleTitle = constants.org.settings.management.title;
+  };
+  initAppTitle.$inject = ['$rootScope'];
+  angular.module('gravitee-management').run(initAppTitle);
 });
 
 function fetchData(): Promise<{ constants: Constants; build: any }> {
@@ -77,17 +83,17 @@ function fetchData(): Promise<{ constants: Constants; build: any }> {
         fetch(`${constants.v2BaseURL}/ui/customization`, requestConfig).then((r) => (r.status === 200 ? r.json() : null)),
         fetch(`${constants.org.baseURL}/social-identities`, requestConfig).then((r) => r.json()),
       ]).then(([consoleResponse, uiCustomizationResponse, identityProvidersResponse]) => {
+        constants.org.settings = consoleResponse;
+        constants.org.identityProviders = identityProvidersResponse;
+
         if (uiCustomizationResponse) {
           customizeUI(uiCustomizationResponse);
           constants.isOEM = true;
           constants.customization = uiCustomizationResponse;
-          if (uiCustomizationResponse.data.title) {
-            constants.org.settings.management.title = uiCustomizationResponse.data.title;
+          if (uiCustomizationResponse.title) {
+            constants.org.settings.management.title = uiCustomizationResponse.title;
           }
         }
-
-        constants.org.settings = consoleResponse;
-        constants.org.identityProviders = identityProvidersResponse;
         return { constants, build };
       });
     })
@@ -121,7 +127,7 @@ function prepareConstants(bootstrap: { baseURL: string; organizationId: string }
       baseURL: `${bootstrap.baseURL}/organizations/${bootstrap.organizationId}`,
       v2BaseURL: `${bootstrap.baseURL}/v2/organizations/${bootstrap.organizationId}`,
       currentEnv: null,
-      settings: null,
+      settings: {},
       environments: null,
     },
     env: {
