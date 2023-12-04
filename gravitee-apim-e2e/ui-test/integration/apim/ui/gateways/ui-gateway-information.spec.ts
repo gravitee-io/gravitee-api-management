@@ -30,7 +30,7 @@ describe('Get Gateway instance information as admin', () => {
   });
 
   it('should redirect to instance overview showing information of selected gateway', () => {
-    cy.getByDataTestId('instance-list-row-instance-details-link').first().trigger('click');
+    cy.getByDataTestId('instance-list-row-instance-details-link').first().click();
     cy.url().should('contain', 'gateways');
     cy.contains('Information');
     cy.contains('Plugins');
@@ -38,8 +38,8 @@ describe('Get Gateway instance information as admin', () => {
   });
 
   it('should display monitoring information of selected gateway', () => {
-    cy.getByDataTestId('instance-list-row-instance-details-link').first().trigger('click');
-    cy.getByDataTestId('instances-detail-monitoring').trigger('click');
+    cy.getByDataTestId('instance-list-row-instance-details-link').click();
+    cy.getByDataTestId('instances-detail-monitoring').click();
     cy.getByDataTestId('instance-monitoring_jvm-box').contains('JVM').should('be.visible');
     cy.getByDataTestId('instance-monitoring_cpu-box').scrollIntoView().contains('CPU').should('be.visible');
     cy.getByDataTestId('instance-monitoring_process-box').contains('Process').should('be.visible');
@@ -55,7 +55,7 @@ describe('Get Gateway instance information as non-admin', () => {
   });
 
   it('should not access', function () {
-    cy.visit('/#!/DEFAULT/instances');
+    cy.visit('/#!/DEFAULT/gateways');
     cy.contains('Gateways').should('not.exist');
   });
 });
