@@ -32,22 +32,29 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Benoit BORDIGONI (benoit.bordigoni at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RequiredArgsConstructor
+
 @Slf4j
-public class ApiKeyStoreLoaderManager {
+public class ApiKeyStoreLoaderManager<T extends VertxServer<?, ?>> {
 
     private final List<KeyStoreLoader> apiKeyStoreLoaders = new ArrayList<>();
     private final List<KeyStoreLoader> apiTrustStoreLoaders = new ArrayList<>();
     private final ServerManager serverManager;
+    private final Class<T> serverClass;
     private final ListenerType listenerType;
     private final Api api;
+
+    public ApiKeyStoreLoaderManager(ServerManager serverManager, Class<T> serverClass, ListenerType listenerType, Api api) {
+        this.serverManager = serverManager;
+        this.serverClass = serverClass;
+        this.listenerType = listenerType;
+        this.api = api;
+    }
 
     public void start() {
         List<Listener> listeners = api.getDefinition().getListeners().stream().filter(l -> l.getType() == listenerType).toList();
@@ -67,7 +74,7 @@ public class ApiKeyStoreLoaderManager {
 
         if (!deployOnAllServers.isEmpty()) {
             serverManager
-                .servers()
+                .servers(serverClass)
                 .stream()
                 .map(s -> (VertxServer<?, ?>) s)
                 .forEach(server -> createKeyStoreLoadersForServer(server, deployOnAllServers.stream().map(Listener::getTls).toList()));

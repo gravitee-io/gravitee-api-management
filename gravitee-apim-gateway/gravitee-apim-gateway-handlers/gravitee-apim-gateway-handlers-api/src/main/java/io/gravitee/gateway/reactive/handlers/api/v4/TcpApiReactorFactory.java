@@ -28,6 +28,7 @@ import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.node.api.server.ServerManager;
+import io.gravitee.node.vertx.server.tcp.VertxTcpServer;
 import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import lombok.RequiredArgsConstructor;
@@ -71,7 +72,7 @@ public class TcpApiReactorFactory implements ReactorFactory<Api> {
             node,
             configuration,
             deploymentContext,
-            new ApiKeyStoreLoaderManager(serverManager, ListenerType.TCP, api),
+            new ApiKeyStoreLoaderManager<>(serverManager, VertxTcpServer.class, ListenerType.TCP, api),
             entrypointConnectorPluginManager,
             endpointManager,
             requestTimeoutConfiguration

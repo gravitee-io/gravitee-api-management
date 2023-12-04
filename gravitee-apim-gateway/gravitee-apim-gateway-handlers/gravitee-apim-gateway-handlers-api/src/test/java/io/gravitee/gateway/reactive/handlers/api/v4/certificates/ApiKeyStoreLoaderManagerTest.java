@@ -38,13 +38,11 @@ import io.gravitee.node.api.certificate.KeyStoreLoader;
 import io.gravitee.node.api.server.DefaultServerManager;
 import io.gravitee.node.certificates.KeyStoreLoaderManager;
 import io.gravitee.node.certificates.TrustStoreLoaderManager;
+import io.gravitee.node.vertx.server.http.VertxHttpServer;
 import io.gravitee.node.vertx.server.tcp.VertxTcpServer;
-import io.gravitee.repository.ratelimit.api.RateLimitRepository;
-import io.gravitee.repository.ratelimit.model.RateLimit;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -67,6 +65,7 @@ class ApiKeyStoreLoaderManagerTest {
 
     private static final String SERVER1_ID = "tcp_1";
     private static final String SERVER2_ID = "tcp_2";
+    private static final String HTTP_SERVER_ID = "http";
 
     @Mock
     VertxTcpServer server1;
@@ -75,10 +74,16 @@ class ApiKeyStoreLoaderManagerTest {
     VertxTcpServer server2;
 
     @Mock
+    VertxHttpServer http_server;
+
+    @Mock
     Api api;
 
     @Mock
     private KeyStoreLoaderManager kslm1;
+
+    @Mock
+    private KeyStoreLoaderManager kslm_http;
 
     @Mock
     private KeyStoreLoaderManager kslm2;
@@ -89,7 +94,10 @@ class ApiKeyStoreLoaderManagerTest {
     @Mock
     private TrustStoreLoaderManager tslm2;
 
-    private ApiKeyStoreLoaderManager cut;
+    @Mock
+    private TrustStoreLoaderManager tslm_http;
+
+    private ApiKeyStoreLoaderManager<VertxTcpServer> cut;
 
     @BeforeEach
     void begin() {
@@ -105,6 +113,10 @@ class ApiKeyStoreLoaderManagerTest {
         lenient().when(server2.keyStoreLoaderManager()).thenReturn(kslm2);
         lenient().when(server2.trustStoreLoaderManager()).thenReturn(tslm2);
 
+        lenient().when(http_server.id()).thenReturn(HTTP_SERVER_ID);
+        lenient().when(http_server.keyStoreLoaderManager()).thenReturn(kslm_http);
+        lenient().when(http_server.trustStoreLoaderManager()).thenReturn(tslm_http);
+
         // set no-op as handler to avoid crashes
         Answer<Void> answer = invocation -> {
             ((KeyStoreLoader) invocation.getArgument(0)).setEventHandler(ignore -> {});
@@ -112,12 +124,15 @@ class ApiKeyStoreLoaderManagerTest {
         };
         lenient().doAnswer(answer).when(kslm1).registerLoader(any(ApiKeyStoreLoader.class));
         lenient().doAnswer(answer).when(kslm2).registerLoader(any(ApiKeyStoreLoader.class));
+        lenient().doAnswer(answer).when(tslm_http).registerLoader(any(ApiKeyStoreLoader.class));
         lenient().doAnswer(answer).when(tslm1).registerLoader(any(ApiTrustStoreLoader.class));
         lenient().doAnswer(answer).when(tslm2).registerLoader(any(ApiTrustStoreLoader.class));
+        lenient().doAnswer(answer).when(tslm_http).registerLoader(any(ApiTrustStoreLoader.class));
 
         serverManager.register(server1);
         serverManager.register(server2);
-        cut = new ApiKeyStoreLoaderManager(serverManager, ListenerType.TCP, api);
+        serverManager.register(http_server);
+        cut = new ApiKeyStoreLoaderManager<>(serverManager, VertxTcpServer.class, ListenerType.TCP, api);
     }
 
     record Expectations(int server1KeyStoreLoader, int server1TrustStoreLoader, int server2KeyStoreLoader, int server2TrustStoreLoader) {
@@ -369,8 +384,10 @@ class ApiKeyStoreLoaderManagerTest {
         assertThat(cut.getApiTrustStoreLoaders()).hasSize(expect.trustStoreLoaderSum());
         verify(kslm1, times(expect.server1KeyStoreLoader())).registerLoader(any(ApiKeyStoreLoader.class));
         verify(kslm2, times(expect.server2KeyStoreLoader())).registerLoader(any(ApiKeyStoreLoader.class));
+        verify(kslm_http, never()).registerLoader(any(ApiKeyStoreLoader.class));
         verify(tslm1, times(expect.server1TrustStoreLoader())).registerLoader(any(ApiTrustStoreLoader.class));
         verify(tslm2, times(expect.server2TrustStoreLoader())).registerLoader(any(ApiTrustStoreLoader.class));
+        verify(tslm_http, never()).registerLoader(any(ApiTrustStoreLoader.class));
         cut.stop();
         assertThat(cut.getApiKeyStoreLoaders()).isEmpty();
         assertThat(cut.getApiTrustStoreLoaders()).isEmpty();

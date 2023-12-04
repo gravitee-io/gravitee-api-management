@@ -53,6 +53,8 @@ public class TcpProtocolVerticle extends AbstractVerticle {
             .fromIterable(servers)
             .concatMapCompletable(gioServer -> {
                 log.info("Starting TCP server...");
+                gioServer.keyStoreLoaderManager().start();
+                gioServer.trustStoreLoaderManager().start();
                 NetServer tcpServer = gioServer.newInstance();
                 tcpServerMap.put(gioServer, tcpServer);
 
