@@ -15,7 +15,7 @@
  */
 
 import { IPromise, IScope } from 'angular';
-import { StateService } from '@uirouter/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import '@gravitee/ui-components/wc/gv-chart-bar';
 
 import { ITimeframe, TimeframeRanges } from '../../quick-time-range/quick-time-range.component';
@@ -30,7 +30,7 @@ class AlertsDashboardComponent implements ng.IComponentController {
   private static CRITICAL_COLOR = '#d73a49';
 
   private customTimeframe: any;
-  private timeframe: ITimeframe;
+  private timeframe: ITimeframe = TimeframeRanges.LAST_MINUTE;
 
   private alerts: IAlertTriggerAnalytics[] = [];
   private eventsBySeverity: Record<string, number>;
@@ -41,17 +41,17 @@ class AlertsDashboardComponent implements ng.IComponentController {
   private hasAlertingPlugin: boolean;
   private series: IPromise<unknown>;
   private options: any;
+  private activatedRoute: ActivatedRoute;
 
   constructor(
     private $scope: IScope,
     private AlertService: AlertService,
     private UserService: UserService,
-    private $state: StateService,
+    private ngRouter: Router,
     private Constants: Constants,
   ) {}
 
   $onInit() {
-    this.timeframe = TimeframeRanges.LAST_MINUTE;
     this.options = {
       name: 'Severity',
       data: [
@@ -69,9 +69,11 @@ class AlertsDashboardComponent implements ng.IComponentController {
         },
       ],
     };
+  }
 
+  $onChanges() {
     if (this.hasAlertingPlugin && this.hasConfiguredAlerts) {
-      this.refresh();
+      this.refresh(this.timeframe);
     }
   }
 
@@ -96,10 +98,8 @@ class AlertsDashboardComponent implements ng.IComponentController {
     }
   }
 
-  refresh(timeframe?: ITimeframe) {
-    if (timeframe) {
-      this.timeframe = timeframe;
-    }
+  refresh(timeframe: ITimeframe) {
+    this.timeframe = timeframe;
     const now = Date.now();
 
     this.customTimeframe = {
@@ -113,8 +113,8 @@ class AlertsDashboardComponent implements ng.IComponentController {
 
   getContextualInformationFromReferenceType(): {
     scope: Scope;
-    alertCreationUiRef: string;
-    uiRef: string;
+    alertCreationRouteSegment: string;
+    alertEditRouteSegment: string;
     permission: string;
     hasPermission: boolean;
   } {
@@ -122,24 +122,24 @@ class AlertsDashboardComponent implements ng.IComponentController {
       case 'API':
         return {
           scope: Scope.API,
-          alertCreationUiRef: 'management.apis.alerts.alertnew',
-          uiRef: 'management.apis.editalert({alertId: alert.id, tab: "history"})',
+          alertCreationRouteSegment: '../alerts/new',
+          alertEditRouteSegment: '../alerts',
           permission: 'api-alert-r',
           hasPermission: this.UserService.currentUser?.userApiPermissions.includes('api-alert-r'),
         };
       case 'APPLICATION':
         return {
           scope: Scope.APPLICATION,
-          alertCreationUiRef: '',
-          uiRef: '',
+          alertCreationRouteSegment: '',
+          alertEditRouteSegment: '',
           permission: 'application-alert-r',
           hasPermission: this.UserService.currentUser?.userApplicationPermissions.includes('application-alert-r'),
         };
       default:
         return {
           scope: Scope.ENVIRONMENT,
-          alertCreationUiRef: 'management.alerts.alertnew',
-          uiRef: 'management.editalert({alertId: alert.id, tab: "history"})',
+          alertCreationRouteSegment: '../list/new',
+          alertEditRouteSegment: '../list',
           permission: 'environment-alert-r',
           hasPermission: this.UserService.currentUser?.userEnvironmentPermissions.includes('environment-alert-r'),
         };
@@ -147,7 +147,15 @@ class AlertsDashboardComponent implements ng.IComponentController {
   }
 
   goToAlertCreation() {
-    this.$state.go(this.getContextualInformationFromReferenceType().alertCreationUiRef);
+    this.ngRouter.navigate([this.getContextualInformationFromReferenceType().alertCreationRouteSegment], {
+      relativeTo: this.activatedRoute,
+    });
+  }
+
+  goToHistory(alert: Alert) {
+    this.ngRouter.navigate([this.getContextualInformationFromReferenceType().alertEditRouteSegment, alert.id], {
+      relativeTo: this.activatedRoute,
+    });
   }
 
   isAlertCritical(alert: Alert) {
@@ -181,8 +189,9 @@ const AlertDashBoardComponent: ng.IComponentOptions = {
     referenceId: '<',
     hasConfiguredAlerts: '<',
     hasAlertingPlugin: '<',
+    activatedRoute: '<',
   },
   controller: AlertsDashboardComponent,
 };
-AlertsDashboardComponent.$inject = ['$scope', 'AlertService', 'UserService', '$state', 'Constants'];
+AlertsDashboardComponent.$inject = ['$scope', 'AlertService', 'UserService', 'ngRouter', 'Constants'];
 export default AlertDashBoardComponent;

@@ -83,7 +83,7 @@
                   <md-card-header-text>
                     <span class="md-title" title="{{alert.name}}">{{alert.name}}</span>
                     <md-tooltip md-direction="top">{{alert.name}}</md-tooltip>
-                    <a ui-sref="{{$ctrl.getContextualInformationFromReferenceType().uiRef}}">View history</a>
+                    <a ng-click="$ctrl.goToHistory(alert)">View history</a>
                   </md-card-header-text>
                 </md-card-header>
 

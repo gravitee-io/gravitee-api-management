@@ -37,7 +37,9 @@ class AlertsActivityController {
 AlertsActivityController.$inject = ['AlertService'];
 
 const AlertsActivityComponentAjs: ng.IComponentOptions = {
-  bindings: {},
+  bindings: {
+    activatedRoute: '<',
+  },
   controller: AlertsActivityController,
   template: require('./alerts-activity.html'),
 };

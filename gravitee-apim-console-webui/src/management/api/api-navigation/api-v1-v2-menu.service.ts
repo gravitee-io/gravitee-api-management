@@ -301,7 +301,7 @@ export class ApiV1V2MenuService implements ApiMenuService {
 
       analyticsGroup.items.push({
         displayName: 'Alerts',
-        routerLink: 'v2/analytics-alerts',
+        routerLink: 'analytics-alerts',
         license: alertEngineLicenseOptions,
         iconRight$: alertEngineIconRight$,
       });

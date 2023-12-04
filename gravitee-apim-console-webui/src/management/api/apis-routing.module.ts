@@ -477,6 +477,22 @@ const apisRoutes: Routes = [
           },
         },
       },
+      {
+        path: 'analytics-alerts',
+        component: ApiAlertsDashboardComponent,
+        data: {
+          requireLicense: {
+            license: { feature: ApimFeature.ALERT_ENGINE },
+            redirect: '/',
+          },
+          apiPermissions: {
+            only: ['api-alert-r'],
+          },
+          docs: {
+            page: 'management-api-alerts',
+          },
+        },
+      },
 
       /**
        * V1 Api state only
@@ -693,22 +709,6 @@ const apisRoutes: Routes = [
           },
           docs: {
             page: 'management-api-pathMappings',
-          },
-        },
-      },
-      {
-        path: 'v2/analytics-alerts',
-        component: ApiAlertsDashboardComponent,
-        data: {
-          requireLicense: {
-            license: { feature: ApimFeature.ALERT_ENGINE },
-            redirect: '/',
-          },
-          apiPermissions: {
-            only: ['api-alert-r'],
-          },
-          docs: {
-            page: 'management-api-alerts',
           },
         },
       },
