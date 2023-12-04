@@ -17,7 +17,7 @@
 /**
  * Provider to temporarily ensure compatibility between AngularJs and Angular
  */
-import { InjectionToken } from '@angular/core';
+import { InjectionToken, Injector } from '@angular/core';
 
 export const CurrentUserService = new InjectionToken('CurrentUserService');
 
@@ -28,4 +28,11 @@ export const currentUserProvider = {
   provide: CurrentUserService,
   useFactory: currentUserServiceFactory,
   deps: ['$injector'],
+};
+
+// Used to provide the $scope to the AngularJS components
+export const ajsScopeProvider = {
+  deps: ['$injector'],
+  provide: '$scope',
+  useFactory: (injector: Injector) => injector.get('$rootScope').$new(),
 };
