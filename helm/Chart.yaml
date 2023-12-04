@@ -19,8 +19,6 @@ annotations:
   # List of changes for the release in artifacthub.io
   # https://artifacthub.io/packages/helm/graviteeio/apim?modal=changelog
   artifacthub.io/changes: |
-    - Add unknownExpireAfter in management-api configuration
-    - Allow users to define extra manifests
-    - Make optional HTTP2 request processing via `gateway.http.alpn` set at `true` by default.
-    - "fix 'gravitee.yml' > 'services.metrics' definition from helm `values.yaml`"
     - Update regex for portal and console base_href
+    - 'fix: license deleted after helm upgrade https://github.com/gravitee-io/issues/issues/9411'
+
