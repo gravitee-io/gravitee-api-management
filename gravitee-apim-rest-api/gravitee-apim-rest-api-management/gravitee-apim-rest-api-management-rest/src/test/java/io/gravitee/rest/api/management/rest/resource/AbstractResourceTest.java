@@ -21,6 +21,7 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
+import io.gravitee.apim.core.debug.use_case.DebugApiUseCase;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.rest.api.management.rest.JerseySpringTest;
@@ -227,7 +228,7 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     protected ApiDuplicatorService apiDuplicatorService;
 
     @Autowired
-    protected DebugApiService debugApiService;
+    protected DebugApiUseCase debugApiUseCase;
 
     @Autowired
     protected TokenService tokenService;

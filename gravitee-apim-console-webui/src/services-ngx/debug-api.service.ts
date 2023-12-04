@@ -75,6 +75,7 @@ export class DebugApiService {
       disable_membership_notifications: api.disable_membership_notifications,
       flow_mode: api.flow_mode,
       gravitee: api.gravitee,
+      execution_mode: api.execution_mode,
       request,
     });
   }

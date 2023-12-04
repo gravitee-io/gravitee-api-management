@@ -15,21 +15,41 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import static io.gravitee.apim.core.gateway.model.Instance.DEBUG_PLUGIN_ID;
+import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
+import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static jakarta.ws.rs.client.Entity.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import fixtures.core.model.ApiFixtures;
+import inmemory.ApiCrudServiceInMemory;
+import inmemory.InMemoryAlternative;
+import inmemory.InstanceQueryServiceInMemory;
+import io.gravitee.apim.core.gateway.model.Instance;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.node.api.license.NodeLicenseService;
 import io.gravitee.rest.api.model.DebugApiEntity;
+import io.gravitee.rest.api.model.EventEntity;
+import io.gravitee.rest.api.model.EventType;
+import io.gravitee.rest.api.model.PlanEntity;
+import io.gravitee.rest.api.model.PlanSecurityType;
+import io.gravitee.rest.api.model.PlanStatus;
+import io.gravitee.rest.api.model.PluginEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import java.util.Collections;
 import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Stream;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -41,10 +61,14 @@ public class ApiResourceDebugTest extends AbstractResourceTest {
 
     private static final String API = "my-api";
 
-    private DebugApiEntity debugApiEntity;
-
     @Inject
     private NodeLicenseService nodeLicenseService;
+
+    @Inject
+    private ApiCrudServiceInMemory apiCrudServiceInMemory;
+
+    @Inject
+    private InstanceQueryServiceInMemory instanceQueryServiceInMemory;
 
     @Override
     protected String contextPath() {
@@ -54,29 +78,74 @@ public class ApiResourceDebugTest extends AbstractResourceTest {
     @Before
     public void init() throws Exception {
         GraviteeContext.setCurrentEnvironment("DEFAULT");
-        debugApiEntity = new DebugApiEntity();
-        debugApiEntity.setId(API);
-        debugApiEntity.setName(API);
-        debugApiEntity.setVersion("1");
-        Proxy proxy = new Proxy();
-        proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/test")));
-        debugApiEntity.setProxy(proxy);
-        debugApiEntity.setUpdatedAt(new Date());
+    }
+
+    @After
+    public void tearDown() {
+        Stream.of(apiCrudServiceInMemory, instanceQueryServiceInMemory).forEach(InMemoryAlternative::reset);
     }
 
     @Test
     public void shouldReturnUnauthorizedWithoutLicense() {
         when(nodeLicenseService.isFeatureMissing("apim-debug-mode")).thenReturn(true);
         when(permissionService.hasPermission(any(), any(), any())).thenReturn(true);
-        final Response response = envTarget(API).path("_debug").request().post(json(debugApiEntity));
+        final Response response = envTarget(API).path("_debug").request().post(json(null));
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
     }
 
     @Test
-    public void shouldReturnOKWithLicense() {
+    public void shouldNotDebugApiNotFound() {
         when(nodeLicenseService.isFeatureMissing("apim-debug-mode")).thenReturn(false);
-        when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
-        final Response response = envTarget(API).path("_debug").request().post(json(debugApiEntity));
-        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        final Response response = envTarget(API + "/_debug")
+            .request()
+            .post(
+                Entity.entity(
+                    DebugApiEntity
+                        .builder()
+                        .graviteeDefinitionVersion("2.0.0")
+                        .proxy(Proxy.builder().virtualHosts(List.of(new VirtualHost("/"))).build())
+                        .build(),
+                    MediaType.APPLICATION_JSON
+                )
+            );
+        assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
+    }
+
+    @Test
+    public void shouldDebugApi() {
+        when(nodeLicenseService.isFeatureMissing("apim-debug-mode")).thenReturn(false);
+        apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aProxyApiV2().toBuilder().id(API).build()));
+        instanceQueryServiceInMemory.initWith(
+            List.of(
+                Instance
+                    .builder()
+                    .id("gateway")
+                    .startedAt(new Date())
+                    .clusterPrimaryNode(true)
+                    .environments(Set.of("DEFAULT"))
+                    .plugins(Set.of(PluginEntity.builder().id(DEBUG_PLUGIN_ID).build()))
+                    .tags(List.of())
+                    .build()
+            )
+        );
+
+        final Response response = envTarget(API + "/_debug")
+            .request()
+            .post(
+                Entity.entity(
+                    DebugApiEntity
+                        .builder()
+                        .graviteeDefinitionVersion("2.0.0")
+                        .proxy(Proxy.builder().virtualHosts(List.of(new VirtualHost("/"))).build())
+                        .plans(
+                            Set.of(PlanEntity.builder().id("plan").status(PlanStatus.PUBLISHED).security(PlanSecurityType.KEY_LESS).build())
+                        )
+                        .build(),
+                    MediaType.APPLICATION_JSON
+                )
+            );
+        assertThat(response.getStatus()).isEqualTo(OK_200);
+        final EventEntity eventEntity = response.readEntity(EventEntity.class);
+        assertThat(eventEntity).extracting(EventEntity::getType).isEqualTo(EventType.DEBUG_API);
     }
 }

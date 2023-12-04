@@ -19,6 +19,8 @@ import static io.gravitee.rest.api.model.MembershipMemberType.USER;
 import static io.gravitee.rest.api.model.MembershipReferenceType.API;
 import static io.gravitee.rest.api.model.MembershipReferenceType.GROUP;
 
+import io.gravitee.apim.core.audit.model.AuditActor;
+import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.node.api.license.NodeLicenseService;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.MembershipEntity;
@@ -32,6 +34,7 @@ import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
@@ -258,5 +261,16 @@ public abstract class AbstractResource {
         } catch (java.text.ParseException e) {
             return null;
         }
+    }
+
+    protected AuditInfo getAuditInfo() {
+        var executionContext = GraviteeContext.getExecutionContext();
+        var user = getAuthenticatedUserDetails();
+        return AuditInfo
+            .builder()
+            .organizationId(executionContext.getOrganizationId())
+            .environmentId(executionContext.getEnvironmentId())
+            .actor(AuditActor.builder().userId(user.getUsername()).userSource(user.getSource()).userSourceId(user.getSourceId()).build())
+            .build();
     }
 }

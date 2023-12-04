@@ -23,6 +23,7 @@ import io.gravitee.apim.core.api.domain_service.DeployApiDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
+import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.apim.infra.json.jackson.JacksonSpringConfiguration;
 import io.gravitee.apim.infra.sanitizer.SanitizerSpringConfiguration;
 import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
@@ -268,5 +269,10 @@ public class ResourceContextConfiguration {
     @Bean
     public ApiMetadataDomainService apiMetadataDomainService() {
         return mock(ApiMetadataDomainService.class);
+    }
+
+    @Bean
+    public PolicyValidationDomainService policyDomainService() {
+        return mock(PolicyValidationDomainService.class);
     }
 }

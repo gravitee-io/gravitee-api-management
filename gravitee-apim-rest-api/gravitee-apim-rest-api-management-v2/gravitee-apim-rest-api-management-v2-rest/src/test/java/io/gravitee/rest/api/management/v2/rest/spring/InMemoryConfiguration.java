@@ -24,7 +24,9 @@ import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.ConnectionLogsCrudServiceInMemory;
 import inmemory.EnvironmentCrudServiceInMemory;
+import inmemory.EventCrudInMemory;
 import inmemory.InstallationAccessQueryServiceInMemory;
+import inmemory.InstanceQueryServiceInMemory;
 import inmemory.MessageLogCrudServiceInMemory;
 import inmemory.PageCrudServiceInMemory;
 import inmemory.PageQueryServiceInMemory;
@@ -36,6 +38,8 @@ import inmemory.SubscriptionCrudServiceInMemory;
 import inmemory.SubscriptionQueryServiceInMemory;
 import inmemory.TriggerNotificationDomainServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
+import io.gravitee.apim.core.event.crud_service.EventCrudService;
+import io.gravitee.apim.core.gateway.query_service.InstanceQueryService;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -148,5 +152,15 @@ public class InMemoryConfiguration {
     @Bean
     public ParametersDomainServiceInMemory parametersDomainServiceInMemory() {
         return new ParametersDomainServiceInMemory();
+    }
+
+    @Bean
+    public InstanceQueryService instanceQueryService() {
+        return new InstanceQueryServiceInMemory();
+    }
+
+    @Bean
+    public EventCrudService eventCrudService() {
+        return new EventCrudInMemory();
     }
 }

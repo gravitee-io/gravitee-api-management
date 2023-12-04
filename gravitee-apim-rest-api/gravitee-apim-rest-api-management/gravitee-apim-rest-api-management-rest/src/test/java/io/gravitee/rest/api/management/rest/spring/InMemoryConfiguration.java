@@ -115,4 +115,14 @@ public class InMemoryConfiguration {
     public PageRevisionCrudServiceInMemory pageRevisionCrudServiceInMemory() {
         return new PageRevisionCrudServiceInMemory();
     }
+
+    @Bean
+    public InstanceQueryServiceInMemory instanceQueryServiceInMemory() {
+        return new InstanceQueryServiceInMemory();
+    }
+
+    @Bean
+    public EventCrudInMemory debugEventDomainServiceInMemory() {
+        return new EventCrudInMemory();
+    }
 }

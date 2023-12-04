@@ -52,6 +52,7 @@ public class CoreRulesTest extends AbstractApimArchitectureTest {
                     "io.gravitee.rest.api.model..",
                     // Common and Exceptions are an accepted case of reusability
                     "io.gravitee.definition.model..",
+                    "io.gravitee.common..",
                     "io.gravitee.rest.api.service.common..",
                     "io.gravitee.rest.api.service.exceptions..",
                     "io.gravitee.rest.api.service.notification.."

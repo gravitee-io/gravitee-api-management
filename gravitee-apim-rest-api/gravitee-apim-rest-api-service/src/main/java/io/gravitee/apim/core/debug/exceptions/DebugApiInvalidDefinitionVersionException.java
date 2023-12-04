@@ -13,42 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service.exceptions;
+package io.gravitee.apim.core.debug.exceptions;
 
-import static java.util.Collections.singletonMap;
-
-import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import java.util.Map;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DebugApiInvalidDefinitionVersionException extends AbstractManagementException {
-
-    private final String apiId;
+public class DebugApiInvalidDefinitionVersionException extends ValidationDomainException {
 
     public DebugApiInvalidDefinitionVersionException(String apiId) {
-        this.apiId = apiId;
-    }
-
-    @Override
-    public int getHttpStatusCode() {
-        return HttpStatusCode.BAD_REQUEST_400;
-    }
-
-    @Override
-    public String getMessage() {
-        return "Only API with V2 definition can be debugged.";
-    }
-
-    @Override
-    public String getTechnicalCode() {
-        return "debugApi.invalidDefinitionVersion";
-    }
-
-    @Override
-    public Map<String, String> getParameters() {
-        return singletonMap("apiId", apiId);
+        super("Only API with V2 definition can be debugged.", Map.of("apiId", apiId));
     }
 }

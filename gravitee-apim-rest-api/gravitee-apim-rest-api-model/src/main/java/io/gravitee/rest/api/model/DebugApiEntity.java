@@ -18,26 +18,18 @@ package io.gravitee.rest.api.model;
 import io.gravitee.definition.model.HttpRequest;
 import io.gravitee.definition.model.HttpResponse;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 
+@SuperBuilder(toBuilder = true)
+@Getter
+@Setter
+@NoArgsConstructor
 public class DebugApiEntity extends ApiEntity {
 
     private HttpRequest request;
 
     private HttpResponse response;
-
-    public HttpRequest getRequest() {
-        return request;
-    }
-
-    public void setRequest(HttpRequest request) {
-        this.request = request;
-    }
-
-    public HttpResponse getResponse() {
-        return response;
-    }
-
-    public void setResponse(HttpResponse response) {
-        this.response = response;
-    }
 }
