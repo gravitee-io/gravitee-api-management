@@ -64,6 +64,11 @@ public interface ApiAdapter {
     Api fromApiEntity(GenericApiEntity apiEntity);
 
     default io.gravitee.definition.model.v4.Api deserializeApiDefinitionV4(io.gravitee.repository.management.model.Api api) {
+        if (api.getDefinition() == null) {
+            // This can happen when filter the definition using ApiFieldFilter
+            return null;
+        }
+
         if (api.getDefinitionVersion() == DefinitionVersion.V4) {
             try {
                 return GraviteeJacksonMapper.getInstance().readValue(api.getDefinition(), io.gravitee.definition.model.v4.Api.class);
@@ -71,12 +76,17 @@ public interface ApiAdapter {
                 LOGGER.error("Unexpected error while deserializing V4 API definition", ioe);
                 return null;
             }
-        } else {
-            return null;
         }
+
+        return null;
     }
 
     default io.gravitee.definition.model.Api deserializeApiDefinitionV2(io.gravitee.repository.management.model.Api api) {
+        if (api.getDefinition() == null) {
+            // This can happen when filter the definition using ApiFieldFilter
+            return null;
+        }
+
         if (api.getDefinitionVersion() != DefinitionVersion.V4) {
             try {
                 return GraviteeJacksonMapper.getInstance().readValue(api.getDefinition(), io.gravitee.definition.model.Api.class);
@@ -84,9 +94,9 @@ public interface ApiAdapter {
                 LOGGER.error("Unexpected error while deserializing V2 API definition", ioe);
                 return null;
             }
-        } else {
-            return null;
         }
+
+        return null;
     }
 
     default String serializeApiDefinition(Api api) {

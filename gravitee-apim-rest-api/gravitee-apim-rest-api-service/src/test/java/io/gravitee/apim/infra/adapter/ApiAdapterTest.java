@@ -38,120 +38,191 @@ import java.util.Set;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class ApiAdapterTest {
 
-    @Test
-    void should_convert_from_v4_repository_to_core_model() {
-        var repository = apiV4().build();
+    @Nested
+    class RepositoryToModel {
 
-        var api = ApiAdapter.INSTANCE.toCoreModel(repository);
+        @Test
+        void should_convert_from_v4_repository_to_core_model() {
+            var repository = apiV4().build();
 
-        SoftAssertions.assertSoftly(soft -> {
-            soft.assertThat(api.getId()).isEqualTo("my-id");
-            soft.assertThat(api.getEnvironmentId()).isEqualTo("env-id");
-            soft.assertThat(api.getGroups()).containsExactly("group-1");
-            soft.assertThat(api.getCategories()).containsExactly("category-1");
-            soft.assertThat(api.getLabels()).containsExactly("label-1");
-            soft.assertThat(api.getCrossId()).isEqualTo("cross-id");
-            soft.assertThat(api.getDescription()).isEqualTo("api-description");
-            soft.assertThat(api.getVersion()).isEqualTo("1.0.0");
-            soft.assertThat(api.getDefinitionContext()).isEqualTo(new DefinitionContext("management", "fully_managed"));
-            soft.assertThat(api.getDefinitionVersion()).isEqualTo(DefinitionVersion.V4);
-            soft.assertThat(api.getApiDefinition()).isNull();
-            soft
-                .assertThat(api.getApiDefinitionV4())
-                .isEqualTo(
-                    io.gravitee.definition.model.v4.Api
-                        .builder()
-                        .id("my-id")
-                        .name("api-name")
-                        .analytics(Analytics.builder().enabled(false).build())
-                        .type(ApiType.PROXY)
-                        .tags(Set.of("tag1"))
-                        .listeners(
-                            List.of(
-                                HttpListener
-                                    .builder()
-                                    .paths(List.of(Path.builder().path("/http_proxy").build()))
-                                    .entrypoints(List.of(Entrypoint.builder().type("http-proxy").configuration("{}").build()))
-                                    .build()
+            var api = ApiAdapter.INSTANCE.toCoreModel(repository);
+
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(api.getId()).isEqualTo("my-id");
+                soft.assertThat(api.getEnvironmentId()).isEqualTo("env-id");
+                soft.assertThat(api.getGroups()).containsExactly("group-1");
+                soft.assertThat(api.getCategories()).containsExactly("category-1");
+                soft.assertThat(api.getLabels()).containsExactly("label-1");
+                soft.assertThat(api.getCrossId()).isEqualTo("cross-id");
+                soft.assertThat(api.getDescription()).isEqualTo("api-description");
+                soft.assertThat(api.getVersion()).isEqualTo("1.0.0");
+                soft.assertThat(api.getDefinitionContext()).isEqualTo(new DefinitionContext("management", "fully_managed"));
+                soft.assertThat(api.getDefinitionVersion()).isEqualTo(DefinitionVersion.V4);
+                soft.assertThat(api.getApiDefinition()).isNull();
+                soft
+                    .assertThat(api.getApiDefinitionV4())
+                    .isEqualTo(
+                        io.gravitee.definition.model.v4.Api
+                            .builder()
+                            .id("my-id")
+                            .name("api-name")
+                            .analytics(Analytics.builder().enabled(false).build())
+                            .type(ApiType.PROXY)
+                            .tags(Set.of("tag1"))
+                            .listeners(
+                                List.of(
+                                    HttpListener
+                                        .builder()
+                                        .paths(List.of(Path.builder().path("/http_proxy").build()))
+                                        .entrypoints(List.of(Entrypoint.builder().type("http-proxy").configuration("{}").build()))
+                                        .build()
+                                )
                             )
-                        )
-                        .endpointGroups(
-                            List.of(
-                                EndpointGroup
-                                    .builder()
-                                    .name("default-group")
-                                    .type("http-proxy")
-                                    .sharedConfiguration("{}")
-                                    .endpoints(
-                                        List.of(
-                                            Endpoint
-                                                .builder()
-                                                .name("default-endpoint")
-                                                .type("http-proxy")
-                                                .inheritConfiguration(true)
-                                                .configuration("{\"target\":\"https://api.gravitee.io/echo\"}")
-                                                .build()
+                            .endpointGroups(
+                                List.of(
+                                    EndpointGroup
+                                        .builder()
+                                        .name("default-group")
+                                        .type("http-proxy")
+                                        .sharedConfiguration("{}")
+                                        .endpoints(
+                                            List.of(
+                                                Endpoint
+                                                    .builder()
+                                                    .name("default-endpoint")
+                                                    .type("http-proxy")
+                                                    .inheritConfiguration(true)
+                                                    .configuration("{\"target\":\"https://api.gravitee.io/echo\"}")
+                                                    .build()
+                                            )
                                         )
-                                    )
-                                    .build()
+                                        .build()
+                                )
                             )
-                        )
-                        .flows(List.of())
-                        .build()
-                );
-            soft.assertThat(api.getType()).isEqualTo(ApiType.PROXY);
-            soft.assertThat(api.getName()).isEqualTo("api-name");
-            soft.assertThat(api.getDeployedAt()).isEqualTo(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneOffset.UTC));
-            soft.assertThat(api.getCreatedAt()).isEqualTo(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneOffset.UTC));
-            soft.assertThat(api.getVisibility()).isEqualTo(io.gravitee.apim.core.api.model.Api.Visibility.PUBLIC);
-            soft.assertThat(api.getLifecycleState()).isEqualTo(io.gravitee.apim.core.api.model.Api.LifecycleState.STARTED);
-            soft.assertThat(api.getUpdatedAt()).isEqualTo(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC));
-            soft.assertThat(api.getPicture()).isEqualTo("my-picture");
-            soft.assertThat(api.isDisableMembershipNotifications()).isTrue();
-            soft.assertThat(api.getApiLifecycleState()).isEqualTo(io.gravitee.apim.core.api.model.Api.ApiLifecycleState.PUBLISHED);
-            soft.assertThat(api.getBackground()).isEqualTo("my-background");
-        });
-    }
+                            .flows(List.of())
+                            .build()
+                    );
+                soft.assertThat(api.getType()).isEqualTo(ApiType.PROXY);
+                soft.assertThat(api.getName()).isEqualTo("api-name");
+                soft.assertThat(api.getDeployedAt()).isEqualTo(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft.assertThat(api.getCreatedAt()).isEqualTo(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft.assertThat(api.getVisibility()).isEqualTo(io.gravitee.apim.core.api.model.Api.Visibility.PUBLIC);
+                soft.assertThat(api.getLifecycleState()).isEqualTo(io.gravitee.apim.core.api.model.Api.LifecycleState.STARTED);
+                soft.assertThat(api.getUpdatedAt()).isEqualTo(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft.assertThat(api.getPicture()).isEqualTo("my-picture");
+                soft.assertThat(api.isDisableMembershipNotifications()).isTrue();
+                soft.assertThat(api.getApiLifecycleState()).isEqualTo(io.gravitee.apim.core.api.model.Api.ApiLifecycleState.PUBLISHED);
+                soft.assertThat(api.getBackground()).isEqualTo("my-background");
+            });
+        }
 
-    @Test
-    void should_convert_from_v2_repository_to_core_model() {
-        var repository = apiV2().build();
+        @Test
+        void should_convert_from_v4_repository_to_core_model_with_null_definition() {
+            var repository = apiV4().definition(null).build();
 
-        var api = ApiAdapter.INSTANCE.toCoreModel(repository);
+            var api = ApiAdapter.INSTANCE.toCoreModel(repository);
 
-        SoftAssertions.assertSoftly(soft -> {
-            soft.assertThat(api.getId()).isEqualTo("my-id");
-            soft.assertThat(api.getEnvironmentId()).isEqualTo("env-id");
-            soft.assertThat(api.getGroups()).containsExactly("group-1");
-            soft.assertThat(api.getCategories()).containsExactly("category-1");
-            soft.assertThat(api.getLabels()).containsExactly("label-1");
-            soft.assertThat(api.getCrossId()).isEqualTo("cross-id");
-            soft.assertThat(api.getDescription()).isEqualTo("api-description");
-            soft.assertThat(api.getVersion()).isEqualTo("1.0.0");
-            soft.assertThat(api.getDefinitionContext()).isEqualTo(new DefinitionContext("management", "fully_managed"));
-            soft.assertThat(api.getDefinitionVersion()).isEqualTo(DefinitionVersion.V2);
-            soft.assertThat(api.getApiDefinitionV4()).isNull();
-            soft
-                .assertThat(api.getApiDefinition())
-                // V2 Api definition is defining a equals/hashcode checking only the id
-                .isEqualTo(ApiBuilder.anApiV2().id("my-id").name("api-name").apiVersion("1.0.0").build());
-            soft.assertThat(api.getType()).isEqualTo(ApiType.PROXY);
-            soft.assertThat(api.getName()).isEqualTo("api-name");
-            soft.assertThat(api.getDeployedAt()).isEqualTo(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneOffset.UTC));
-            soft.assertThat(api.getCreatedAt()).isEqualTo(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneOffset.UTC));
-            soft.assertThat(api.getVisibility()).isEqualTo(io.gravitee.apim.core.api.model.Api.Visibility.PUBLIC);
-            soft.assertThat(api.getLifecycleState()).isEqualTo(io.gravitee.apim.core.api.model.Api.LifecycleState.STARTED);
-            soft.assertThat(api.getUpdatedAt()).isEqualTo(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC));
-            soft.assertThat(api.getPicture()).isEqualTo("my-picture");
-            soft.assertThat(api.isDisableMembershipNotifications()).isTrue();
-            soft.assertThat(api.getApiLifecycleState()).isEqualTo(io.gravitee.apim.core.api.model.Api.ApiLifecycleState.PUBLISHED);
-            soft.assertThat(api.getBackground()).isEqualTo("my-background");
-        });
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(api.getId()).isEqualTo("my-id");
+                soft.assertThat(api.getEnvironmentId()).isEqualTo("env-id");
+                soft.assertThat(api.getGroups()).containsExactly("group-1");
+                soft.assertThat(api.getCategories()).containsExactly("category-1");
+                soft.assertThat(api.getLabels()).containsExactly("label-1");
+                soft.assertThat(api.getCrossId()).isEqualTo("cross-id");
+                soft.assertThat(api.getDescription()).isEqualTo("api-description");
+                soft.assertThat(api.getVersion()).isEqualTo("1.0.0");
+                soft.assertThat(api.getDefinitionContext()).isEqualTo(new DefinitionContext("management", "fully_managed"));
+                soft.assertThat(api.getDefinitionVersion()).isEqualTo(DefinitionVersion.V4);
+                soft.assertThat(api.getApiDefinition()).isNull();
+                soft.assertThat(api.getApiDefinitionV4()).isNull();
+                soft.assertThat(api.getType()).isEqualTo(ApiType.PROXY);
+                soft.assertThat(api.getName()).isEqualTo("api-name");
+                soft.assertThat(api.getDeployedAt()).isEqualTo(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft.assertThat(api.getCreatedAt()).isEqualTo(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft.assertThat(api.getVisibility()).isEqualTo(io.gravitee.apim.core.api.model.Api.Visibility.PUBLIC);
+                soft.assertThat(api.getLifecycleState()).isEqualTo(io.gravitee.apim.core.api.model.Api.LifecycleState.STARTED);
+                soft.assertThat(api.getUpdatedAt()).isEqualTo(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft.assertThat(api.getPicture()).isEqualTo("my-picture");
+                soft.assertThat(api.isDisableMembershipNotifications()).isTrue();
+                soft.assertThat(api.getApiLifecycleState()).isEqualTo(io.gravitee.apim.core.api.model.Api.ApiLifecycleState.PUBLISHED);
+                soft.assertThat(api.getBackground()).isEqualTo("my-background");
+            });
+        }
+
+        @Test
+        void should_convert_from_v2_repository_to_core_model() {
+            var repository = apiV2().build();
+
+            var api = ApiAdapter.INSTANCE.toCoreModel(repository);
+
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(api.getId()).isEqualTo("my-id");
+                soft.assertThat(api.getEnvironmentId()).isEqualTo("env-id");
+                soft.assertThat(api.getGroups()).containsExactly("group-1");
+                soft.assertThat(api.getCategories()).containsExactly("category-1");
+                soft.assertThat(api.getLabels()).containsExactly("label-1");
+                soft.assertThat(api.getCrossId()).isEqualTo("cross-id");
+                soft.assertThat(api.getDescription()).isEqualTo("api-description");
+                soft.assertThat(api.getVersion()).isEqualTo("1.0.0");
+                soft.assertThat(api.getDefinitionContext()).isEqualTo(new DefinitionContext("management", "fully_managed"));
+                soft.assertThat(api.getDefinitionVersion()).isEqualTo(DefinitionVersion.V2);
+                soft.assertThat(api.getApiDefinitionV4()).isNull();
+                soft
+                    .assertThat(api.getApiDefinition())
+                    // V2 Api definition is defining a equals/hashcode checking only the id
+                    .isEqualTo(ApiBuilder.anApiV2().id("my-id").name("api-name").apiVersion("1.0.0").build());
+                soft.assertThat(api.getType()).isEqualTo(ApiType.PROXY);
+                soft.assertThat(api.getName()).isEqualTo("api-name");
+                soft.assertThat(api.getDeployedAt()).isEqualTo(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft.assertThat(api.getCreatedAt()).isEqualTo(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft.assertThat(api.getVisibility()).isEqualTo(io.gravitee.apim.core.api.model.Api.Visibility.PUBLIC);
+                soft.assertThat(api.getLifecycleState()).isEqualTo(io.gravitee.apim.core.api.model.Api.LifecycleState.STARTED);
+                soft.assertThat(api.getUpdatedAt()).isEqualTo(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft.assertThat(api.getPicture()).isEqualTo("my-picture");
+                soft.assertThat(api.isDisableMembershipNotifications()).isTrue();
+                soft.assertThat(api.getApiLifecycleState()).isEqualTo(io.gravitee.apim.core.api.model.Api.ApiLifecycleState.PUBLISHED);
+                soft.assertThat(api.getBackground()).isEqualTo("my-background");
+            });
+        }
+
+        @Test
+        void should_convert_from_v2_repository_to_core_model_with_null_definition() {
+            var repository = apiV2().definition(null).build();
+
+            var api = ApiAdapter.INSTANCE.toCoreModel(repository);
+
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(api.getId()).isEqualTo("my-id");
+                soft.assertThat(api.getEnvironmentId()).isEqualTo("env-id");
+                soft.assertThat(api.getGroups()).containsExactly("group-1");
+                soft.assertThat(api.getCategories()).containsExactly("category-1");
+                soft.assertThat(api.getLabels()).containsExactly("label-1");
+                soft.assertThat(api.getCrossId()).isEqualTo("cross-id");
+                soft.assertThat(api.getDescription()).isEqualTo("api-description");
+                soft.assertThat(api.getVersion()).isEqualTo("1.0.0");
+                soft.assertThat(api.getDefinitionContext()).isEqualTo(new DefinitionContext("management", "fully_managed"));
+                soft.assertThat(api.getDefinitionVersion()).isNull();
+                soft.assertThat(api.getApiDefinitionV4()).isNull();
+                soft.assertThat(api.getApiDefinition()).isNull();
+                soft.assertThat(api.getType()).isEqualTo(ApiType.PROXY);
+                soft.assertThat(api.getName()).isEqualTo("api-name");
+                soft.assertThat(api.getDeployedAt()).isEqualTo(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft.assertThat(api.getCreatedAt()).isEqualTo(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft.assertThat(api.getVisibility()).isEqualTo(io.gravitee.apim.core.api.model.Api.Visibility.PUBLIC);
+                soft.assertThat(api.getLifecycleState()).isEqualTo(io.gravitee.apim.core.api.model.Api.LifecycleState.STARTED);
+                soft.assertThat(api.getUpdatedAt()).isEqualTo(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft.assertThat(api.getPicture()).isEqualTo("my-picture");
+                soft.assertThat(api.isDisableMembershipNotifications()).isTrue();
+                soft.assertThat(api.getApiLifecycleState()).isEqualTo(io.gravitee.apim.core.api.model.Api.ApiLifecycleState.PUBLISHED);
+                soft.assertThat(api.getBackground()).isEqualTo("my-background");
+            });
+        }
     }
 
     @Test
