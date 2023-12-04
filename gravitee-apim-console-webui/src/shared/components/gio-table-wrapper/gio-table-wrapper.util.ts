@@ -24,7 +24,11 @@ export const gioTableFilterCollection = <T>(
   options?: {
     searchTermIgnoreKeys?: string[];
   },
-): { unpaginatedLength: number; filteredCollection: T[] } => {
+): { unpaginatedLength?: number; filteredCollection?: T[] } => {
+  if (!collection) {
+    return {};
+  }
+
   let sortedCollection: T[] = cloneDeep(collection);
 
   if (filters?.searchTerm) {
