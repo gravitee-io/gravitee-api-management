@@ -418,7 +418,6 @@ import { ApplicationNavigationComponent } from './application/application-naviga
 import { IfMatchEtagInterceptor } from '../shared/interceptors/if-match-etag.interceptor';
 import SearchAndSelectComponent from '../components/search-and-select/search-and-select.component';
 import { SearchAndSelectController } from '../components/search-and-select/search-and-select.controller';
-import AlertTabsController from '../components/alerts/alertTabs/alert-tabs-component';
 import AlertsActivityComponentAjs from './alerts/activity/alerts-activity.component.ajs';
 import { ApiV2Service } from '../services-ngx/api-v2.service';
 import { OrgNavigationComponent } from '../organization/configuration/navigation/org-navigation.component';
@@ -864,7 +863,6 @@ graviteeManagementModule.directive('ngClientRegistrationProvider', downgradeComp
 graviteeManagementModule.directive('ngApiLogging', downgradeComponent({ component: ApiLoggingComponent }));
 // Alerts
 graviteeManagementModule.service('AlertService', AlertService);
-graviteeManagementModule.controller('AlertTabsController', AlertTabsController);
 graviteeManagementModule.component('alertsComponentAjs', AlertsComponentAjs);
 graviteeManagementModule.component('alertComponentAjs', AlertComponentAjs);
 graviteeManagementModule.component('gvAlertNotification', AlertNotificationComponent);
