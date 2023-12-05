@@ -20,7 +20,7 @@ import '@angular/compiler';
 import * as angular from 'angular';
 import * as _ from 'lodash';
 import './index.scss';
-import './management/management.module.ajs';
+import './app.module.ajs';
 import { enableProdMode } from '@angular/core';
 import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 import { loadDefaultTranslations } from '@gravitee/ui-components/src/lib/i18n';

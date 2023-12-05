@@ -27,283 +27,283 @@ import * as hljs from 'highlight.js';
 import * as CodeMirror from 'codemirror';
 import * as moment from 'moment';
 import * as tinycolor from 'tinycolor2';
-import AutofocusDirective from '../components/autofocus/autofocus.directive';
-import GvModelDirective from '../libraries/gv-model.directive';
-import { ApiService } from '../services/api.service';
-import CorsService from '../services/cors.service';
-import { ApiV1PoliciesComponentAjs } from './api/policy-studio-v1/policies/policies.component.ajs';
-import AddPoliciesPathController from './api/policy-studio-v1/policies/addPoliciesPath.controller';
-import { ApiV1ResourcesComponentAjs } from './api/proxy/resources-v1/resources.component.ajs';
-import { ApiV1PropertiesComponentAjs } from './api/proxy/properties-v1/properties.component.ajs';
-import { ApiHistoryComponentAjs } from './api/audit/history/apiHistory.component.ajs';
-import DialogAddPropertyController from './api/proxy/properties-v1/add-property.dialog.controller';
-import DialogEditPolicyController from './api/policy-studio-v1/policies/dialog/policyDialog.controller';
-import FileContentDirective from '../components/filecontent/filecontent.directive';
-import FileLoaderDirective from '../components/dialog/fileloader/fileloader.directive';
+import AutofocusDirective from './components/autofocus/autofocus.directive';
+import GvModelDirective from './libraries/gv-model.directive';
+import { ApiService } from './services/api.service';
+import CorsService from './services/cors.service';
+import { ApiV1PoliciesComponentAjs } from './management/api/policy-studio-v1/policies/policies.component.ajs';
+import AddPoliciesPathController from './management/api/policy-studio-v1/policies/addPoliciesPath.controller';
+import { ApiV1ResourcesComponentAjs } from './management/api/proxy/resources-v1/resources.component.ajs';
+import { ApiV1PropertiesComponentAjs } from './management/api/proxy/properties-v1/properties.component.ajs';
+import { ApiHistoryComponentAjs } from './management/api/audit/history/apiHistory.component.ajs';
+import DialogAddPropertyController from './management/api/proxy/properties-v1/add-property.dialog.controller';
+import DialogEditPolicyController from './management/api/policy-studio-v1/policies/dialog/policyDialog.controller';
+import FileContentDirective from './components/filecontent/filecontent.directive';
+import FileLoaderDirective from './components/dialog/fileloader/fileloader.directive';
 
-import { DocumentationService } from '../services/documentation.service';
-import NotificationService from '../services/notification.service';
+import { DocumentationService } from './services/documentation.service';
+import NotificationService from './services/notification.service';
 
-import ConnectorService from '../services/connector.service';
-import PolicyService from '../services/policy.service';
-import PortalService from '../services/portal.service';
-import ResourceService from '../services/resource.service';
-import FetcherService from '../services/fetcher.service';
-import NotifierService from '../services/notifier.service';
-import ServiceDiscoveryService from '../services/serviceDiscovery.service';
+import ConnectorService from './services/connector.service';
+import PolicyService from './services/policy.service';
+import PortalService from './services/portal.service';
+import ResourceService from './services/resource.service';
+import FetcherService from './services/fetcher.service';
+import NotifierService from './services/notifier.service';
+import ServiceDiscoveryService from './services/serviceDiscovery.service';
 
-import DiffDirective from './api/audit/history/diff/diff.directive';
+import DiffDirective from './management/api/audit/history/diff/diff.directive';
 // Api
-import ApiCreationV2ComponentAjs from './api/creation-v2/steps/api-creation-v2.component.ajs';
-import ApiCreationV2ControllerAjs from './api/creation-v2/steps/api-creation-v2.controller.ajs';
-import ApiCreationStep1Component from './api/creation-v2/steps/api-creation-step1.component';
-import ApiCreationStep2Component from './api/creation-v2/steps/api-creation-step2.component';
-import ApiCreationStep3Component from './api/creation-v2/steps/api-creation-step3.component';
-import ApiCreationStep4Component from './api/creation-v2/steps/api-creation-step4.component';
-import ApiCreationStep5Component from './api/creation-v2/steps/api-creation-step5.component';
+import ApiCreationV2ComponentAjs from './management/api/creation-v2/steps/api-creation-v2.component.ajs';
+import ApiCreationV2ControllerAjs from './management/api/creation-v2/steps/api-creation-v2.controller.ajs';
+import ApiCreationStep1Component from './management/api/creation-v2/steps/api-creation-step1.component';
+import ApiCreationStep2Component from './management/api/creation-v2/steps/api-creation-step2.component';
+import ApiCreationStep3Component from './management/api/creation-v2/steps/api-creation-step3.component';
+import ApiCreationStep4Component from './management/api/creation-v2/steps/api-creation-step4.component';
+import ApiCreationStep5Component from './management/api/creation-v2/steps/api-creation-step5.component';
 // API Plan
-import ApiPlanComponent from '../management/application/components/api-plan/api-plan.component';
+import ApiPlanComponent from './management/application/components/api-plan/api-plan.component';
 // API PrimaryOwner Mode
-import ApiPrimaryOwnerModeService from '../services/apiPrimaryOwnerMode.service';
+import ApiPrimaryOwnerModeService from './services/apiPrimaryOwnerMode.service';
 // Applications
-import ApplicationService from '../services/application.service';
-import ApplicationTypesService from '../services/applicationTypes.service';
+import ApplicationService from './services/application.service';
+import ApplicationTypesService from './services/applicationTypes.service';
 
-import ApplicationCreationComponentAjs from './application/creation/steps/application-creation.component.ajs';
-import ApplicationCreationController from './application/creation/steps/application-creation.controller';
-import ApplicationCreationStep1Component from './application/creation/steps/application-creation-step1.component';
-import ApplicationCreationStep2Component from './application/creation/steps/application-creation-step2.component';
-import ApplicationCreationStep2Controller from './application/creation/steps/application-creation-step2.controller';
-import ApplicationCreationStep3Component from './application/creation/steps/application-creation-step3.component';
-import ApplicationCreationStep4Component from './application/creation/steps/application-creation-step4.component';
+import ApplicationCreationComponentAjs from './management/application/creation/steps/application-creation.component.ajs';
+import ApplicationCreationController from './management/application/creation/steps/application-creation.controller';
+import ApplicationCreationStep1Component from './management/application/creation/steps/application-creation-step1.component';
+import ApplicationCreationStep2Component from './management/application/creation/steps/application-creation-step2.component';
+import ApplicationCreationStep2Controller from './management/application/creation/steps/application-creation-step2.controller';
+import ApplicationCreationStep3Component from './management/application/creation/steps/application-creation-step3.component';
+import ApplicationCreationStep4Component from './management/application/creation/steps/application-creation-step4.component';
 
-import ApplicationHeaderComponent from './application/details/header/application-header.component';
-import ApplicationGeneralController from './application/details/general/application-general.controller';
-import ApplicationMembersController from './application/details/members/application-members.controller';
-import ApplicationMembersComponentAjs from './application/details/members/application-members.component.ajs';
-import ApplicationSubscriptionsController from './application/details/subscriptions/application-subscriptions.controller';
-import ApplicationSubscriptionsComponentAjs from './application/details/subscriptions/application-subscriptions.component.ajs';
-import ApplicationSubscriptionComponentAjs from './application/details/subscriptions/application-subscription.component.ajs';
-import ApplicationAnalyticsController from './application/details/analytics/application-analytics.controller';
-import ApplicationAnalyticsComponentAjs from './application/details/analytics/application-analytics.component.ajs';
-import ApplicationLogsController from './application/details/logs/application-logs.controller';
-import ApplicationLogsComponentAjs from './application/details/logs/application-logs.component.ajs';
-import ApplicationLogComponentAjs from './application/details/logs/application-log.component.ajs';
-import DialogAddMemberController from './application/details/members/addMemberDialog.controller';
-import DialogTransferApplicationController from './application/details/members/transferApplicationDialog.controller';
+import ApplicationHeaderComponent from './management/application/details/header/application-header.component';
+import ApplicationGeneralController from './management/application/details/general/application-general.controller';
+import ApplicationMembersController from './management/application/details/members/application-members.controller';
+import ApplicationMembersComponentAjs from './management/application/details/members/application-members.component.ajs';
+import ApplicationSubscriptionsController from './management/application/details/subscriptions/application-subscriptions.controller';
+import ApplicationSubscriptionsComponentAjs from './management/application/details/subscriptions/application-subscriptions.component.ajs';
+import ApplicationSubscriptionComponentAjs from './management/application/details/subscriptions/application-subscription.component.ajs';
+import ApplicationAnalyticsController from './management/application/details/analytics/application-analytics.controller';
+import ApplicationAnalyticsComponentAjs from './management/application/details/analytics/application-analytics.component.ajs';
+import ApplicationLogsController from './management/application/details/logs/application-logs.controller';
+import ApplicationLogsComponentAjs from './management/application/details/logs/application-logs.component.ajs';
+import ApplicationLogComponentAjs from './management/application/details/logs/application-log.component.ajs';
+import DialogAddMemberController from './management/application/details/members/addMemberDialog.controller';
+import DialogTransferApplicationController from './management/application/details/members/transferApplicationDialog.controller';
 // Analytics / widgets
-import WidgetComponent from '../components/dashboard/widget/widget.component';
-import WidgetDataTableComponent from '../components/dashboard/widget/table/widget-data-table.component';
-import WidgetChartLineComponent from '../components/dashboard/widget/line/widget-chart-line.component';
-import WidgetChartPieComponent from '../components/dashboard/widget/pie/widget-chart-pie.component';
-import WidgetChartMapComponent from '../components/dashboard/widget/map/widget-chart-map.component';
-import WidgetDataStatsComponent from '../components/dashboard/widget/stats/widget-data-stats.component';
-import WidgetDataTableConfigurationComponent from '../components/dashboard/widget/table/widget-data-table-configuration.component';
-import WidgetChartLineConfigurationComponent from '../components/dashboard/widget/line/widget-chart-line-configuration.component';
-import WidgetChartMapConfigurationComponent from '../components/dashboard/widget/map/widget-chart-map-configuration.component';
-import WidgetChartPieConfigurationComponent from '../components/dashboard/widget/pie/widget-chart-pie-configuration.component';
-import WidgetDataStatsConfigurationComponent from '../components/dashboard/widget/stats/widget-data-stats-configuration.component';
+import WidgetComponent from './components/dashboard/widget/widget.component';
+import WidgetDataTableComponent from './components/dashboard/widget/table/widget-data-table.component';
+import WidgetChartLineComponent from './components/dashboard/widget/line/widget-chart-line.component';
+import WidgetChartPieComponent from './components/dashboard/widget/pie/widget-chart-pie.component';
+import WidgetChartMapComponent from './components/dashboard/widget/map/widget-chart-map.component';
+import WidgetDataStatsComponent from './components/dashboard/widget/stats/widget-data-stats.component';
+import WidgetDataTableConfigurationComponent from './components/dashboard/widget/table/widget-data-table-configuration.component';
+import WidgetChartLineConfigurationComponent from './components/dashboard/widget/line/widget-chart-line-configuration.component';
+import WidgetChartMapConfigurationComponent from './components/dashboard/widget/map/widget-chart-map-configuration.component';
+import WidgetChartPieConfigurationComponent from './components/dashboard/widget/pie/widget-chart-pie-configuration.component';
+import WidgetDataStatsConfigurationComponent from './components/dashboard/widget/stats/widget-data-stats-configuration.component';
 
-import DashboardComponent from '../components/dashboard/dashboard.component';
-import DashboardFilterComponent from '../components/dashboard/dashboard-filter.component';
-import DashboardFilterController from '../components/dashboard/dashboard-filter.controller';
-import DashboardTimeframeComponent from '../components/dashboard/dashboard-timeframe.component';
-import DashboardTimeframeController from '../components/dashboard/dashboard-timeframe.controller';
-import ContextualDocComponentAjs from '../components/contextual/contextual-doc.component.ajs';
-import ContextualDocController from '../components/contextual/contextual-doc.controller';
+import DashboardComponent from './components/dashboard/dashboard.component';
+import DashboardFilterComponent from './components/dashboard/dashboard-filter.component';
+import DashboardFilterController from './components/dashboard/dashboard-filter.controller';
+import DashboardTimeframeComponent from './components/dashboard/dashboard-timeframe.component';
+import DashboardTimeframeController from './components/dashboard/dashboard-timeframe.controller';
+import ContextualDocComponentAjs from './components/contextual/contextual-doc.component.ajs';
+import ContextualDocController from './components/contextual/contextual-doc.controller';
 // Logs
-import { ApiAnalyticsLogsComponentAjs } from './api/analytics/logs/analytics-logs.component.ajs';
-import LogsTimeframeComponent from '../components/logs/logs-timeframe.component';
-import LogsTimeframeController from '../components/logs/logs-timeframe.controller';
-import LogsFiltersComponent from '../components/logs/logs-filters.component';
-import LogsFiltersController from '../components/logs/logs-filters.controller';
+import { ApiAnalyticsLogsComponentAjs } from './management/api/analytics/logs/analytics-logs.component.ajs';
+import LogsTimeframeComponent from './components/logs/logs-timeframe.component';
+import LogsTimeframeController from './components/logs/logs-timeframe.controller';
+import LogsFiltersComponent from './components/logs/logs-filters.component';
+import LogsFiltersController from './components/logs/logs-filters.controller';
 
-import { ApiAnalyticsLogComponentAjs } from './api/analytics/logs/analytics-log.component.ajs';
+import { ApiAnalyticsLogComponentAjs } from './management/api/analytics/logs/analytics-log.component.ajs';
 // Others
-import EnvironmentService from '../services/environment.service';
-import OrganizationService from '../services/organization.service';
-import InstallationService from '../services/installation.service';
+import EnvironmentService from './services/environment.service';
+import OrganizationService from './services/organization.service';
+import InstallationService from './services/installation.service';
 
-import ErrorController from '../components/documentation/error/error.controller';
-import IdentityPictureDirective from '../components/identityPicture/identityPicture.directive';
-import ImageDirective from '../components/image/image.directive';
-import { EventService } from '../services/event.service';
-import AnalyticsService from '../services/analytics.service';
-import PlatformLogsController from './analytics/logs/platform-logs.controller';
-import PlatformLogsComponentAjs from './analytics/logs/platform-logs.component.ajs';
-import PlatformLogComponentAjs from './analytics/logs/platform-log.component.ajs';
+import ErrorController from './components/documentation/error/error.controller';
+import IdentityPictureDirective from './components/identityPicture/identityPicture.directive';
+import ImageDirective from './components/image/image.directive';
+import { EventService } from './services/event.service';
+import AnalyticsService from './services/analytics.service';
+import PlatformLogsController from './management/analytics/logs/platform-logs.controller';
+import PlatformLogsComponentAjs from './management/analytics/logs/platform-logs.component.ajs';
+import PlatformLogComponentAjs from './management/analytics/logs/platform-log.component.ajs';
 
-import CategoriesController from './settings/categories/categories.controller';
-import CategoryController from './settings/categories/category/category.controller';
-import CategoryService from '../services/category.service';
-import DeleteCategoryDialogController from './settings/categories/delete.category.dialog.controller';
-import DeleteAPICategoryDialogController from './settings/categories/category/delete-api-category.dialog.controller';
-import DialogAddGroupMemberController from './settings/groups/group/addMemberDialog.controller';
-import SubscriptionService from '../services/subscription.service';
-import EmptyStateDirective from '../components/emptystate/emptystate.directive';
-import TagService from '../services/tag.service';
-import MetadataService from '../services/metadata.service';
-import ChartDirective from './api/proxy/health-check-dashboard/chart/chart.directive';
-import FileChooserDialogController from '../components/dialog/fileChooserDialog.controller';
-import DialogConfirmController from '../components/dialog/confirmDialog.controller';
-import DialogConfirmAndValidateController from '../components/dialog/confirmAndValidateDialog.controller';
-import DialogDynamicProviderHttpController from './api/proxy/properties-v1/dynamic-provider-http-dialog.controller';
-import TenantService from '../services/tenant.service';
+import CategoriesController from './management/settings/categories/categories.controller';
+import CategoryController from './management/settings/categories/category/category.controller';
+import CategoryService from './services/category.service';
+import DeleteCategoryDialogController from './management/settings/categories/delete.category.dialog.controller';
+import DeleteAPICategoryDialogController from './management/settings/categories/category/delete-api-category.dialog.controller';
+import DialogAddGroupMemberController from './management/settings/groups/group/addMemberDialog.controller';
+import SubscriptionService from './services/subscription.service';
+import EmptyStateDirective from './components/emptystate/emptystate.directive';
+import TagService from './services/tag.service';
+import MetadataService from './services/metadata.service';
+import ChartDirective from './management/api/proxy/health-check-dashboard/chart/chart.directive';
+import FileChooserDialogController from './components/dialog/fileChooserDialog.controller';
+import DialogConfirmController from './components/dialog/confirmDialog.controller';
+import DialogConfirmAndValidateController from './components/dialog/confirmAndValidateDialog.controller';
+import DialogDynamicProviderHttpController from './management/api/proxy/properties-v1/dynamic-provider-http-dialog.controller';
+import TenantService from './services/tenant.service';
 
-import CategoriesComponentAjs from './settings/categories/categories.component.ajs';
-import CategoryComponentAjs from './settings/categories/category/category.component.ajs';
+import CategoriesComponentAjs from './management/settings/categories/categories.component.ajs';
+import CategoryComponentAjs from './management/settings/categories/category/category.component.ajs';
 
-import RoleService from '../services/role.service';
+import RoleService from './services/role.service';
 
 // User
-import UserService from '../services/user.service';
-import UserController from '../user/my-accout/user.controller';
-import UserComponentAjs from '../user/my-accout/user.component.ajs';
+import UserService from './services/user.service';
+import UserController from './user/my-accout/user.controller';
+import UserComponentAjs from './user/my-accout/user.component.ajs';
 // Notification Settings
-import NotificationSettingsService from '../services/notificationSettings.service';
-import NotificationTemplatesService from '../services/notificationTemplates.service';
+import NotificationSettingsService from './services/notificationSettings.service';
+import NotificationTemplatesService from './services/notificationTemplates.service';
 
 // Documentation
-import '../components/documentation/documentation.module.ajs';
+import './components/documentation/documentation.module.ajs';
 
 // Healthcheck
-import ProgressBarComponent from './api/proxy/health-check-dashboard/progressbar/progress-bar.component';
-import HealthCheckMetricComponent from './api/proxy/health-check-dashboard/healthcheckmetric/healthcheck-metric.component';
-import { ApiHealthcheckDashboardComponentAjs } from './api/proxy/health-check-dashboard/healthcheck-dashboard.component.ajs';
-import { ApiHealthcheckLogComponentAjs } from './api/proxy/health-check-dashboard/healthcheck-log.component.ajs';
+import ProgressBarComponent from './management/api/proxy/health-check-dashboard/progressbar/progress-bar.component';
+import HealthCheckMetricComponent from './management/api/proxy/health-check-dashboard/healthcheckmetric/healthcheck-metric.component';
+import { ApiHealthcheckDashboardComponentAjs } from './management/api/proxy/health-check-dashboard/healthcheck-dashboard.component.ajs';
+import { ApiHealthcheckLogComponentAjs } from './management/api/proxy/health-check-dashboard/healthcheck-log.component.ajs';
 
 // Ticket
-import TicketService from '../services/ticket.service';
-import SupportTicketComponentAjs from '../user/support/ticket.component.ajs';
+import TicketService from './services/ticket.service';
+import SupportTicketComponentAjs from './user/support/ticket.component.ajs';
 // Audit
-import AuditService from '../services/audit.service';
-import { ApiAuditComponentAjs } from './api/audit/general/audit.component.ajs';
-import AuditComponent from '../components/audit/audit.component';
+import AuditService from './services/audit.service';
+import { ApiAuditComponentAjs } from './management/api/audit/general/audit.component.ajs';
+import AuditComponent from './components/audit/audit.component';
 // Configuration
-import ConsoleSettingsService from '../services/consoleSettings.service';
-import PortalSettingsService from '../services/portalSettings.service';
-import PortalConfigService from '../services/portalConfig.service';
+import ConsoleSettingsService from './services/consoleSettings.service';
+import PortalSettingsService from './services/portalSettings.service';
+import PortalConfigService from './services/portalConfig.service';
 // Groups
-import GroupsComponentAjs from './settings/groups/groups.component.ajs';
-import GroupComponentAjs from './settings/groups/group/group.component.ajs';
-import GroupService from '../services/group.service';
+import GroupsComponentAjs from './management/settings/groups/groups.component.ajs';
+import GroupComponentAjs from './management/settings/groups/group/group.component.ajs';
+import GroupService from './services/group.service';
 // Dictionaries
-import DictionaryService from '../services/dictionary.service';
-import DictionariesComponentAjs from './settings/dictionaries/dictionaries.component.ajs';
-import DictionariesController from './settings/dictionaries/dictionaries.controller';
-import DictionaryComponentAjs from './settings/dictionaries/dictionary.component.ajs';
-import DictionaryController from './settings/dictionaries/dictionary.controller';
-import DialogDictionaryAddPropertyController from './settings/dictionaries/add-property.dialog.controller';
+import DictionaryService from './services/dictionary.service';
+import DictionariesComponentAjs from './management/settings/dictionaries/dictionaries.component.ajs';
+import DictionariesController from './management/settings/dictionaries/dictionaries.controller';
+import DictionaryComponentAjs from './management/settings/dictionaries/dictionary.component.ajs';
+import DictionaryController from './management/settings/dictionaries/dictionary.controller';
+import DialogDictionaryAddPropertyController from './management/settings/dictionaries/add-property.dialog.controller';
 // Settings - Identity providers
-import IdentityProvidersComponentAjs from './settings/identityProviders/identity-providers.component.ajs';
-import IdentityProviderService from '../services/identityProvider.service';
+import IdentityProvidersComponentAjs from './management/settings/identityProviders/identity-providers.component.ajs';
+import IdentityProviderService from './services/identityProvider.service';
 // Others
-import StringService from '../services/string.service';
+import StringService from './services/string.service';
 
-import interceptorConfig from './management.interceptor.ajs';
+import interceptorConfig from './app.interceptor.ajs';
 
 import { permission, uiPermission } from 'angular-permission';
 
-import TopApisController from './settings/top-apis/top-apis.controller';
-import TopApiService from '../services/top-api.service';
-import TopApisComponentAjs from './settings/top-apis/top-apis.component.ajs';
-import AddTopApiDialogController from './settings/top-apis/dialog/add.top-api.dialog.controller';
-import DeleteTopApiDialogController from './settings/top-apis/dialog/delete.top-api.dialog.controller';
-import PortalSettingsComponentAjs from './settings/portal/portal.component.ajs';
+import TopApisController from './management/settings/top-apis/top-apis.controller';
+import TopApiService from './services/top-api.service';
+import TopApisComponentAjs from './management/settings/top-apis/top-apis.component.ajs';
+import AddTopApiDialogController from './management/settings/top-apis/dialog/add.top-api.dialog.controller';
+import DeleteTopApiDialogController from './management/settings/top-apis/dialog/delete.top-api.dialog.controller';
+import PortalSettingsComponentAjs from './management/settings/portal/portal.component.ajs';
 
-import RouterService from '../services/router.service';
+import RouterService from './services/router.service';
 
-import MessageService from '../services/message.service';
+import MessageService from './services/message.service';
 
-import ApiPortalHeaderComponentAjs from './settings/api-portal-header/api-portal-header.component.ajs';
-import ApiHeaderService from '../services/apiHeader.service';
+import ApiPortalHeaderComponentAjs from './management/settings/api-portal-header/api-portal-header.component.ajs';
+import ApiHeaderService from './services/apiHeader.service';
 
-import UpdateApiPortalHeaderDialogController from './settings/api-portal-header/update.api-portal-header.dialog.controller';
-import NewApiPortalHeaderDialogController from './settings/api-portal-header/new.api-portal-header.dialog.controller';
-import Base64Service from '../services/base64.service';
+import UpdateApiPortalHeaderDialogController from './management/settings/api-portal-header/update.api-portal-header.dialog.controller';
+import NewApiPortalHeaderDialogController from './management/settings/api-portal-header/new.api-portal-header.dialog.controller';
+import Base64Service from './services/base64.service';
 // Alerts
-import AlertService from '../services/alert.service';
-import AlertsComponentAjs from '../components/alerts/alerts.component.ajs';
-import AlertComponentAjs from '../components/alerts/alert/alert.component.ajs';
-import AlertNotificationsComponent from '../components/alerts/alert/notifications/alert-notifications';
-import AlertNotificationComponent from '../components/alerts/alert/notifications/alert-notification';
-import AlertHistoryComponent from '../components/alerts/alert/history/alert-history.component';
-import AlertTriggerDampeningComponent from '../components/alerts/alert/triggers/trigger-dampening.component';
-import AlertTriggerWindowComponent from '../components/alerts/alert/triggers/trigger-window.component';
-import AlertTriggerFiltersComponent from '../components/alerts/alert/triggers/trigger-filters.component';
-import AlertTriggerFilterComponent from '../components/alerts/alert/triggers/trigger-filter.component';
-import AlertTriggerConditionComponent from '../components/alerts/alert/triggers/trigger-condition.component';
-import AlertTriggerConditionThresholdComponent from '../components/alerts/alert/triggers/conditions/trigger-condition-threshold.component';
-import AlertTriggerConditionThresholdRangeComponent from '../components/alerts/alert/triggers/conditions/trigger-condition-threshold-range.component';
-import AlertTriggerConditionStringComponent from '../components/alerts/alert/triggers/conditions/trigger-condition-string.component';
-import AlertTriggerConditionCompareComponent from '../components/alerts/alert/triggers/conditions/trigger-condition-compare.component';
-import AlertTriggerMetricsSimpleConditionComponent from '../components/alerts/alert/triggers/trigger-metrics-simple-condition.component';
-import AlertTriggerMetricsAggregationComponent from '../components/alerts/alert/triggers/trigger-metrics-aggregation.component';
-import AlertTriggerMissingDataComponent from '../components/alerts/alert/triggers/trigger-missing-data.component';
-import AlertTriggerMetricsRateComponent from '../components/alerts/alert/triggers/trigger-metrics-rate.component';
-import AlertTriggerApiHealthCheckEndpointStatusChangedComponent from '../components/alerts/alert/triggers/trigger-api-hc-endpoint-status-changed.component';
-import AlertTriggerNodeLifecycleChangedComponent from '../components/alerts/alert/triggers/trigger-node-lifecycle-changed.component';
-import AlertTriggerNodeHealthcheckComponent from '../components/alerts/alert/triggers/trigger-node-healthcheck.component';
-import AlertTriggerApplicationQuotaComponent from '../components/alerts/alert/triggers/trigger-application-quota.component';
-import AlertTriggerProjectionsComponent from '../components/alerts/alert/triggers/projections/trigger-projections.component';
-import AlertTriggerProjectionComponent from '../components/alerts/alert/triggers/projections/trigger-projection.component';
-import AlertTriggerTimeframesComponent from '../components/alerts/alert/triggers/trigger-timeframe.component';
+import AlertService from './services/alert.service';
+import AlertsComponentAjs from './components/alerts/alerts.component.ajs';
+import AlertComponentAjs from './components/alerts/alert/alert.component.ajs';
+import AlertNotificationsComponent from './components/alerts/alert/notifications/alert-notifications';
+import AlertNotificationComponent from './components/alerts/alert/notifications/alert-notification';
+import AlertHistoryComponent from './components/alerts/alert/history/alert-history.component';
+import AlertTriggerDampeningComponent from './components/alerts/alert/triggers/trigger-dampening.component';
+import AlertTriggerWindowComponent from './components/alerts/alert/triggers/trigger-window.component';
+import AlertTriggerFiltersComponent from './components/alerts/alert/triggers/trigger-filters.component';
+import AlertTriggerFilterComponent from './components/alerts/alert/triggers/trigger-filter.component';
+import AlertTriggerConditionComponent from './components/alerts/alert/triggers/trigger-condition.component';
+import AlertTriggerConditionThresholdComponent from './components/alerts/alert/triggers/conditions/trigger-condition-threshold.component';
+import AlertTriggerConditionThresholdRangeComponent from './components/alerts/alert/triggers/conditions/trigger-condition-threshold-range.component';
+import AlertTriggerConditionStringComponent from './components/alerts/alert/triggers/conditions/trigger-condition-string.component';
+import AlertTriggerConditionCompareComponent from './components/alerts/alert/triggers/conditions/trigger-condition-compare.component';
+import AlertTriggerMetricsSimpleConditionComponent from './components/alerts/alert/triggers/trigger-metrics-simple-condition.component';
+import AlertTriggerMetricsAggregationComponent from './components/alerts/alert/triggers/trigger-metrics-aggregation.component';
+import AlertTriggerMissingDataComponent from './components/alerts/alert/triggers/trigger-missing-data.component';
+import AlertTriggerMetricsRateComponent from './components/alerts/alert/triggers/trigger-metrics-rate.component';
+import AlertTriggerApiHealthCheckEndpointStatusChangedComponent from './components/alerts/alert/triggers/trigger-api-hc-endpoint-status-changed.component';
+import AlertTriggerNodeLifecycleChangedComponent from './components/alerts/alert/triggers/trigger-node-lifecycle-changed.component';
+import AlertTriggerNodeHealthcheckComponent from './components/alerts/alert/triggers/trigger-node-healthcheck.component';
+import AlertTriggerApplicationQuotaComponent from './components/alerts/alert/triggers/trigger-application-quota.component';
+import AlertTriggerProjectionsComponent from './components/alerts/alert/triggers/projections/trigger-projections.component';
+import AlertTriggerProjectionComponent from './components/alerts/alert/triggers/projections/trigger-projection.component';
+import AlertTriggerTimeframesComponent from './components/alerts/alert/triggers/trigger-timeframe.component';
 
-import EntrypointService from '../services/entrypoint.service';
+import EntrypointService from './services/entrypoint.service';
 
-import SelectFolderDialogController from '../components/documentation/dialog/selectfolder.controller';
-import SelectPageDialogController from '../components/documentation/dialog/selectpage.controller';
+import SelectFolderDialogController from './components/documentation/dialog/selectfolder.controller';
+import SelectPageDialogController from './components/documentation/dialog/selectpage.controller';
 // Settings - Client Registration
 
-import DashboardService from '../services/dashboard.service';
-import SettingsAnalyticsDashboardComponentAjs from './settings/analytics/dashboard/settings-analytics-dashboard.components.ajs';
+import DashboardService from './services/dashboard.service';
+import SettingsAnalyticsDashboardComponentAjs from './management/settings/analytics/dashboard/settings-analytics-dashboard.components.ajs';
 // Tokens
-import TokenService from '../services/token.service';
-import DialogGenerateTokenController from '../user/my-accout/token/generateTokenDialog.controller';
+import TokenService from './services/token.service';
+import DialogGenerateTokenController from './user/my-accout/token/generateTokenDialog.controller';
 // Quick Time Range
-import QuickTimeRangeComponent from '../components/alerts/quick-time-range/quick-time-range.component';
-import QuickTimeRangeController from '../components/alerts/quick-time-range/quick-time-range.controller';
+import QuickTimeRangeComponent from './components/alerts/quick-time-range/quick-time-range.component';
+import QuickTimeRangeController from './components/alerts/quick-time-range/quick-time-range.controller';
 
 // User-Autocomplete
-import UserAutocompleteComponent from '../components/user-autocomplete/user-autocomplete.component';
-import UserAutocompleteController from '../components/user-autocomplete/user-autocomplete.controller';
+import UserAutocompleteComponent from './components/user-autocomplete/user-autocomplete.component';
+import UserAutocompleteController from './components/user-autocomplete/user-autocomplete.controller';
 
-import ApplicationSubscribeComponentAjs from './application/details/subscribe/application-subscribe.component.ajs';
-import ApplicationSubscribeController from './application/details/subscribe/application-subscribe.controller';
-import ApiKeyModeChoiceDialogController from '../components/dialog/apiKeyMode/api-key-mode-choice-dialog.controller';
+import ApplicationSubscribeComponentAjs from './management/application/details/subscribe/application-subscribe.component.ajs';
+import ApplicationSubscribeController from './management/application/details/subscribe/application-subscribe.controller';
+import ApiKeyModeChoiceDialogController from './components/dialog/apiKeyMode/api-key-mode-choice-dialog.controller';
 
-import QualityRuleService from '../services/qualityRule.service';
-import ApiQualityRulesComponentAjs from './settings/api-quality-rules/api-quality-rules.component.ajs';
-import ApiQualityRuleComponentAjs from './settings/api-quality-rules/api-quality-rule/api-quality-rule-component.ajs';
-import ApiQualityRuleController from './settings/api-quality-rules/api-quality-rule/api-quality-rule.controller';
-import DeleteApiQualityRuleDialogController from './settings/api-quality-rules/api-quality-rule/delete-api-quality-rule.dialog.controller';
-import DialogQueryFilterInformationController from './settings/analytics/dashboard/query-filter-information.dialog.controller';
+import QualityRuleService from './services/qualityRule.service';
+import ApiQualityRulesComponentAjs from './management/settings/api-quality-rules/api-quality-rules.component.ajs';
+import ApiQualityRuleComponentAjs from './management/settings/api-quality-rules/api-quality-rule/api-quality-rule-component.ajs';
+import ApiQualityRuleController from './management/settings/api-quality-rules/api-quality-rule/api-quality-rule.controller';
+import DeleteApiQualityRuleDialogController from './management/settings/api-quality-rules/api-quality-rule/delete-api-quality-rule.dialog.controller';
+import DialogQueryFilterInformationController from './management/settings/analytics/dashboard/query-filter-information.dialog.controller';
 
-import ReCaptchaService from '../services/reCaptcha.service';
+import ReCaptchaService from './services/reCaptcha.service';
 
-import PortalThemeController from './settings/portal-theme/portalTheme.controller';
-import PortalThemeComponentAjs from './settings/portal-theme/portalTheme.component.ajs';
-import PortalThemeService from '../services/portalTheme.service';
+import PortalThemeController from './management/settings/portal-theme/portalTheme.controller';
+import PortalThemeComponentAjs from './management/settings/portal-theme/portalTheme.component.ajs';
+import PortalThemeService from './services/portalTheme.service';
 
-import CustomUserFieldsComponentAjs from './settings/custom-user-fields/custom-user-fields.component.ajs';
-import CustomUserFieldsController from './settings/custom-user-fields/custom-user-fields.controller';
-import CustomUserFieldsService from '../services/custom-user-fields.service';
-import NewFieldDialogController from './settings/custom-user-fields/dialog/new.custom-user-field.dialog.controller';
-import DeleteFieldDialogController from './settings/custom-user-fields/dialog/delete.custom-user-field.dialog.controller';
-import UpdateFieldDialogController from './settings/custom-user-fields/dialog/update.custom-user-field.dialog.controller';
-import FlowService from '../services/flow.service';
-import TicketDetailComponentAjs from '../user/support/ticket-detail.component.ajs';
-import SpelService from '../services/spel.service';
-import AlertsDashboardComponent from '../components/alerts/dashboard/alerts-dashboard.component';
-import WidgetChartCountComponent from '../components/dashboard/widget/count/widget-chart-count.component';
+import CustomUserFieldsComponentAjs from './management/settings/custom-user-fields/custom-user-fields.component.ajs';
+import CustomUserFieldsController from './management/settings/custom-user-fields/custom-user-fields.controller';
+import CustomUserFieldsService from './services/custom-user-fields.service';
+import NewFieldDialogController from './management/settings/custom-user-fields/dialog/new.custom-user-field.dialog.controller';
+import DeleteFieldDialogController from './management/settings/custom-user-fields/dialog/delete.custom-user-field.dialog.controller';
+import UpdateFieldDialogController from './management/settings/custom-user-fields/dialog/update.custom-user-field.dialog.controller';
+import FlowService from './services/flow.service';
+import TicketDetailComponentAjs from './user/support/ticket-detail.component.ajs';
+import SpelService from './services/spel.service';
+import AlertsDashboardComponent from './components/alerts/dashboard/alerts-dashboard.component';
+import WidgetChartCountComponent from './components/dashboard/widget/count/widget-chart-count.component';
 
-import { PromotionService } from '../services/promotion.service';
+import { PromotionService } from './services/promotion.service';
 
 (<any>window).jQuery = jQuery;
 
 import * as angular from 'angular';
 
-import { ApiAlertsDashboardComponentAjs } from './api/analytics/alerts/api-alerts-dashboard.component.ajs';
+import { ApiAlertsDashboardComponentAjs } from './management/api/analytics/alerts/api-alerts-dashboard.component.ajs';
 
 (<any>window).traverse = traverse;
 
@@ -343,9 +343,9 @@ require('dragular');
 require('v-accordion');
 
 require('angular-schema-form');
-require('../libraries/angular-schema-form/boostrap-decorator');
-require('../libraries/angular-schema-form/codemirror-decorator');
-require('../libraries/angular-ui-codemirror/ui-codemirror');
+require('./libraries/angular-schema-form/boostrap-decorator');
+require('./libraries/angular-schema-form/codemirror-decorator');
+require('./libraries/angular-ui-codemirror/ui-codemirror');
 
 require('ngclipboard');
 require('angular-ui-validate');
@@ -368,28 +368,28 @@ require('highcharts/modules/no-data-to-display')(Highcharts);
 require('highcharts/modules/map')(Highcharts);
 
 require('@highcharts/map-collection/custom/world');
-import { DebugApiService } from '../services/debugApi.service';
+import { DebugApiService } from './services/debugApi.service';
 import { downgradeInjectable } from '@angular/upgrade/static';
-import DialogTransferOwnershipController from './settings/groups/group/transferOwnershipDialog.controller';
+import DialogTransferOwnershipController from './management/settings/groups/group/transferOwnershipDialog.controller';
 
 import { upgradeModule } from '@uirouter/angular-hybrid';
 import uiRouter from '@uirouter/angularjs';
-import ApplicationSubscriptionsListComponent from '../management/application/details/subscriptions/application-subscriptions-list.component';
-import ApplicationSubscriptionsListController from '../management/application/details/subscriptions/application-subscriptions-list.controller';
-import ApiKeysComponent from './application/components/api-key/api-keys.component';
-import ApiKeysController from './application/components/api-key/api-keys.controller';
-import { IfMatchEtagInterceptor } from '../shared/interceptors/if-match-etag.interceptor';
-import SearchAndSelectComponent from '../components/logs/search-and-select/search-and-select.component';
-import { SearchAndSelectController } from '../components/logs/search-and-select/search-and-select.controller';
-import AlertsActivityComponentAjs from './alerts/activity/alerts-activity.component.ajs';
-import { ApiV2Service } from '../services-ngx/api-v2.service';
-import { GioPermissionService } from '../shared/components/gio-permission/gio-permission.service';
-import { ApiAnalyticsOverviewComponentAjs } from './api/analytics/overview/analytics-overview.component.ajs';
+import ApplicationSubscriptionsListComponent from './management/application/details/subscriptions/application-subscriptions-list.component';
+import ApplicationSubscriptionsListController from './management/application/details/subscriptions/application-subscriptions-list.controller';
+import ApiKeysComponent from './management/application/components/api-key/api-keys.component';
+import ApiKeysController from './management/application/components/api-key/api-keys.controller';
+import { IfMatchEtagInterceptor } from './shared/interceptors/if-match-etag.interceptor';
+import SearchAndSelectComponent from './components/logs/search-and-select/search-and-select.component';
+import { SearchAndSelectController } from './components/logs/search-and-select/search-and-select.controller';
+import AlertsActivityComponentAjs from './management/alerts/activity/alerts-activity.component.ajs';
+import { ApiV2Service } from './services-ngx/api-v2.service';
+import { GioPermissionService } from './shared/components/gio-permission/gio-permission.service';
+import { ApiAnalyticsOverviewComponentAjs } from './management/api/analytics/overview/analytics-overview.component.ajs';
 import { Router } from '@angular/router';
-import SupportTicketsListComponentAjs from '../user/support/tickets-list.component.ajs';
-import SettingsAnalyticsComponentAjs from './settings/analytics/settings-analytics.component.ajs';
-import ApplicationGeneralComponentAjs from './application/details/general/application-general.component.ajs';
-import AnalyticsDashboardComponentAjs from './analytics/analytics-dashboard/analytics-dashboard.component.ajs';
+import SupportTicketsListComponentAjs from './user/support/tickets-list.component.ajs';
+import SettingsAnalyticsComponentAjs from './management/settings/analytics/settings-analytics.component.ajs';
+import ApplicationGeneralComponentAjs from './management/application/details/general/application-general.component.ajs';
+import AnalyticsDashboardComponentAjs from './management/analytics/analytics-dashboard/analytics-dashboard.component.ajs';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import NotificationService from '../services/notification.service';
-import ReCaptchaService from '../services/reCaptcha.service';
-import { CsrfInterceptor } from '../shared/interceptors/csrf.interceptor';
+import NotificationService from './services/notification.service';
+import ReCaptchaService from './services/reCaptcha.service';
+import { CsrfInterceptor } from './shared/interceptors/csrf.interceptor';
 
 function interceptorConfig($httpProvider: angular.IHttpProvider, Constants) {
   $httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
