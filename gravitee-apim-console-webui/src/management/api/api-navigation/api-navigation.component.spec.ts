@@ -24,10 +24,9 @@ import { ActivatedRoute } from '@angular/router';
 import { ApiNavigationModule } from './api-navigation.module';
 import { ApiNavigationComponent } from './api-navigation.component';
 
-import { CurrentUserService } from '../../../ajs-upgraded-providers';
-import { User as DeprecatedUser } from '../../../entities/user';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { fakeApiV1, fakeApiV4 } from '../../../entities/management-api-v2';
+import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ApiNavigationComponent', () => {
   const API_ID = 'apiId';
@@ -35,8 +34,6 @@ describe('ApiNavigationComponent', () => {
   let fixture: ComponentFixture<ApiNavigationComponent>;
   let apiNgNavigationComponent: ApiNavigationComponent;
   let httpTestingController: HttpTestingController;
-  const currentUser = new DeprecatedUser();
-  currentUser.userPermissions = ['environment-api-c'];
 
   afterEach(() => {
     jest.clearAllMocks();
@@ -57,7 +54,10 @@ describe('ApiNavigationComponent', () => {
               },
             },
           },
-          { provide: CurrentUserService, useValue: { currentUser } },
+          {
+            provide: GioTestingPermissionProvider,
+            useValue: ['environment-api-c'],
+          },
           { provide: 'Constants', useValue: CONSTANTS_TESTING },
           { provide: 'LicenseConfiguration', useValue: LICENSE_CONFIGURATION_TESTING },
         ],

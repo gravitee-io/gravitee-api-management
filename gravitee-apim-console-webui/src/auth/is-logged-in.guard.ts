@@ -26,6 +26,7 @@ import { CurrentUserService } from '../services-ngx/current-user.service';
 import UserService from '../services/user.service';
 import { User } from '../entities/user';
 import { GioPermissionService } from '../shared/components/gio-permission/gio-permission.service';
+import { GioRoleService } from '../shared/components/gio-role/gio-role.service';
 
 @Injectable({
   providedIn: 'root',
@@ -37,6 +38,7 @@ export class IsLoggedInGuard implements CanActivate {
     private readonly router: Router,
     private readonly gioPendoService: GioPendoService,
     private readonly permissionService: GioPermissionService,
+    private readonly roleService: GioRoleService,
     @Inject('Constants') private readonly constants,
     @Inject(AjsCurrentUserService) private ajsCurrentUserService: UserService,
   ) {}
@@ -56,6 +58,7 @@ export class IsLoggedInGuard implements CanActivate {
 
         // Load Organization permissions
         this.permissionService.loadOrganizationPermissions(user);
+        this.roleService.loadCurrentUserRoles(user);
 
         // Init Analytics with Pendo
         this.gioPendoService.initialize(

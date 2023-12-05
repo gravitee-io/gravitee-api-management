@@ -34,9 +34,8 @@ import { PropertiesAddDialogHarness } from './properties-add-dialog/properties-a
 import { PropertiesImportDialogHarness } from './properties-import-dialog/properties-import-dialog.harness';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
-import { User } from '../../../../../entities/user';
-import { CurrentUserService } from '../../../../../ajs-upgraded-providers';
 import { Api, fakeApiV4 } from '../../../../../entities/management-api-v2/api';
+import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ApiPropertiesComponent', () => {
   const API_ID = 'apiId';
@@ -46,17 +45,14 @@ describe('ApiPropertiesComponent', () => {
   let loader: HarnessLoader;
   let rootLoader: HarnessLoader;
 
-  const currentUser = new User();
-  currentUser.userPermissions = ['api-definition-u'];
-
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiPropertiesModule, MatIconTestingModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
         {
-          provide: CurrentUserService,
-          useValue: { currentUser },
+          provide: GioTestingPermissionProvider,
+          useValue: ['api-definition-u'],
         },
       ],
     })

@@ -34,11 +34,10 @@ import { NotificationSettingsListServices } from './notification-settings-list.c
 
 import { fakeNotifier } from '../../entities/notification/notifier.fixture';
 import { fakeNotificationSettings } from '../../entities/notification/notificationSettings.fixture';
-import { CurrentUserService } from '../../ajs-upgraded-providers';
 import { GioHttpTestingModule } from '../../shared/testing';
-import { User } from '../../entities/user';
 import { ApplicationNotificationSettingsService } from '../../services-ngx/application-notification-settings.service';
 import { NotificationSettings } from '../../entities/notification/notificationSettings';
+import { GioTestingPermissionProvider } from '../../shared/components/gio-permission/gio-permission.service';
 
 @Component({
   selector: 'test-component',
@@ -52,8 +51,6 @@ class TestComponent {
 
 describe('NotificationsSettingsListComponent', () => {
   let fixture: ComponentFixture<TestComponent>;
-  const currentUser = new User();
-  currentUser.userPermissions = ['api-notification-u', 'api-notification-d', 'api-notification-c'];
   let httpTestingController: HttpTestingController;
   let loader: HarnessLoader;
   let rootLoader: HarnessLoader;
@@ -63,7 +60,13 @@ describe('NotificationsSettingsListComponent', () => {
       await TestBed.configureTestingModule({
         declarations: [TestComponent],
         imports: [NoopAnimationsModule, GioHttpTestingModule, NotificationSettingsListModule, MatIconTestingModule, MatCardModule],
-        providers: [{ provide: CurrentUserService, useValue: { currentUser } }, ApplicationNotificationSettingsService],
+        providers: [
+          {
+            provide: GioTestingPermissionProvider,
+            useValue: ['api-notification-u', 'api-notification-d', 'api-notification-c'],
+          },
+          ApplicationNotificationSettingsService,
+        ],
       })
         .overrideProvider(InteractivityChecker, {
           useValue: {

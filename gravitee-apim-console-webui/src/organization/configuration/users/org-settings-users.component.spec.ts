@@ -27,12 +27,10 @@ import { ActivatedRoute } from '@angular/router';
 import { OrgSettingsUsersComponent } from './org-settings-users.component';
 
 import { OrganizationSettingsModule } from '../organization-settings.module';
-import { CurrentUserService } from '../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { User } from '../../../entities/user/user';
 import { fakePagedResult } from '../../../entities/pagedResult';
 import { fakeAdminUser } from '../../../entities/user/user.fixture';
-import { User as DeprecatedUser } from '../../../entities/user';
 import { GioTableWrapperHarness } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.harness';
 
 describe('OrgSettingsUsersComponent', () => {
@@ -44,7 +42,6 @@ describe('OrgSettingsUsersComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, OrganizationSettingsModule, GioHttpTestingModule],
-      providers: [{ provide: CurrentUserService, useValue: { currentUser: new DeprecatedUser() } }],
     }).overrideProvider(InteractivityChecker, {
       useValue: {
         isFocusable: () => true, // This checks focus trap, set it to true to  avoid the warning

@@ -29,15 +29,11 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { ApiProxyHealthCheckFormComponent } from './api-proxy-health-check-form.component';
 import { ApiProxyHealthCheckFormModule } from './api-proxy-health-check-form.module';
 
-import { CurrentUserService } from '../../../../../ajs-upgraded-providers';
-import { User } from '../../../../../entities/user';
 import { GioHttpTestingModule } from '../../../../../shared/testing';
 import { HealthCheck } from '../../../../../entities/health-check';
+import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ApiProxyHealthCheckFormComponent', () => {
-  const currentUser = new User();
-  currentUser.userPermissions = ['api-definition-u'];
-
   let fixture: ComponentFixture<ApiProxyHealthCheckFormComponent>;
   let loader: HarnessLoader;
   let component: ApiProxyHealthCheckFormComponent;
@@ -46,7 +42,7 @@ describe('ApiProxyHealthCheckFormComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiProxyHealthCheckFormModule, MatIconTestingModule],
-      providers: [{ provide: CurrentUserService, useValue: { currentUser } }],
+      providers: [{ provide: GioTestingPermissionProvider, useValue: ['api-definition-u'] }],
     }).overrideProvider(InteractivityChecker, {
       useValue: {
         isFocusable: () => true, // This checks focus trap, set it to true to  avoid the warning

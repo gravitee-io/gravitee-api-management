@@ -26,10 +26,9 @@ import { ApiProxyEndpointListComponent } from './api-proxy-endpoint-list.compone
 import { ApiProxyEndpointListHarness } from './api-proxy-endpoint-list.harness';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
-import { CurrentUserService } from '../../../../../ajs-upgraded-providers';
-import { User } from '../../../../../entities/user';
 import { ApiProxyEndpointModule } from '../api-proxy-endpoints.module';
 import { ApiV2, fakeApiV2 } from '../../../../../entities/management-api-v2';
+import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ApiProxyEndpointListComponent', () => {
   const API_ID = 'apiId';
@@ -39,16 +38,13 @@ describe('ApiProxyEndpointListComponent', () => {
   let httpTestingController: HttpTestingController;
   let endpointsGroupHarness: ApiProxyEndpointListHarness;
 
-  const currentUser = new User();
-  currentUser.userPermissions = ['api-definition-u', 'api-definition-r'];
-
   const initComponent = async (api: ApiV2) => {
     TestBed.configureTestingModule({
       declarations: [ApiProxyEndpointListComponent],
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiProxyEndpointModule, MatIconTestingModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
-        { provide: CurrentUserService, useValue: { currentUser } },
+        { provide: GioTestingPermissionProvider, useValue: ['api-definition-u', 'api-definition-r'] },
       ],
     }).overrideProvider(InteractivityChecker, {
       useValue: {

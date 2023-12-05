@@ -32,14 +32,13 @@ import { ApiEntrypointsV4GeneralHarness } from './api-entrypoints-v4-general.har
 import { ApiEntrypointsV4AddDialogHarness } from './edit/api-entrypoints-v4-add-dialog.harness';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
-import { CurrentUserService } from '../../../ajs-upgraded-providers';
 import { Api, ApiV4, ConnectorPlugin, fakeApiV4, UpdateApiV4 } from '../../../entities/management-api-v2';
 import { GioFormListenersContextPathHarness } from '../component/gio-form-listeners/gio-form-listeners-context-path/gio-form-listeners-context-path.harness';
 import { PortalSettings } from '../../../entities/portal/portalSettings';
 import { GioFormListenersVirtualHostHarness } from '../component/gio-form-listeners/gio-form-listeners-virtual-host/gio-form-listeners-virtual-host.harness';
-import { User as DeprecatedUser } from '../../../entities/user';
 import { RestrictedDomain } from '../../../entities/restricted-domain/restrictedDomain';
 import { fakeRestrictedDomain, fakeRestrictedDomains } from '../../../entities/restricted-domain/restrictedDomain.fixture';
+import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ApiProxyV4EntrypointsComponent', () => {
   const API_ID = 'apiId';
@@ -62,9 +61,6 @@ describe('ApiProxyV4EntrypointsComponent', () => {
   };
 
   const init = async (permissions: string[] = ['api-definition-u', 'api-definition-r']) => {
-    const currentUser = new DeprecatedUser();
-    currentUser.userPermissions = permissions;
-
     await TestBed.configureTestingModule({
       imports: [
         NoopAnimationsModule,
@@ -76,7 +72,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       ],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
-        { provide: CurrentUserService, useValue: { currentUser } },
+        { provide: GioTestingPermissionProvider, useValue: permissions },
       ],
     }).overrideProvider(InteractivityChecker, {
       useValue: {

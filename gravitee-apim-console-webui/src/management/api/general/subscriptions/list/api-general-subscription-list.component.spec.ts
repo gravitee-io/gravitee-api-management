@@ -31,9 +31,7 @@ import { ApiGeneralSubscriptionListComponent } from './api-general-subscription-
 import { ApiGeneralSubscriptionListHarness } from './api-general-subscription-list.harness';
 
 import { ApiGeneralSubscriptionsModule } from '../api-general-subscriptions.module';
-import { CurrentUserService } from '../../../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
-import { User as DeprecatedUser } from '../../../../../entities/user';
 import {
   Api,
   ApiKeyMode,
@@ -53,6 +51,7 @@ import { fakeApplication } from '../../../../../entities/application/Application
 import { ApiPortalSubscriptionCreationDialogHarness } from '../components/dialogs/creation/api-portal-subscription-creation-dialog.harness';
 import { PlanSecurityType } from '../../../../../entities/plan';
 import { ApplicationSubscription } from '../../../../../entities/subscription/subscription';
+import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
 
 @Component({
   template: ` <api-general-subscription-list #apiGeneralSubscriptionList></api-general-subscription-list> `,
@@ -68,7 +67,6 @@ describe('ApiGeneralSubscriptionListComponent', () => {
   const anAPI = fakeApiV4({ id: API_ID });
   const aPlan = fakePlanV4({ id: PLAN_ID, apiId: API_ID });
   const anApplication = fakeApplication({ id: APPLICATION_ID, owner: { displayName: 'Gravitee.io' } });
-  const currentUser = new DeprecatedUser();
 
   let fixture: ComponentFixture<TestComponent>;
   let loader: HarnessLoader;
@@ -80,7 +78,6 @@ describe('ApiGeneralSubscriptionListComponent', () => {
       declarations: [TestComponent],
       imports: [ApiGeneralSubscriptionsModule, NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule],
       providers: [
-        { provide: CurrentUserService, useValue: { currentUser } },
         {
           provide: InteractivityChecker,
           useValue: {
@@ -652,9 +649,7 @@ describe('ApiGeneralSubscriptionListComponent', () => {
       },
     }).compileComponents();
     if (permissions.length > 0) {
-      const newCurrentUser = new DeprecatedUser();
-      newCurrentUser.userPermissions = permissions;
-      await TestBed.overrideProvider(CurrentUserService, { useValue: { currentUser: newCurrentUser } }).compileComponents();
+      await TestBed.overrideProvider(GioTestingPermissionProvider, { useValue: permissions }).compileComponents();
     }
     fixture = TestBed.createComponent(TestComponent);
     httpTestingController = TestBed.inject(HttpTestingController);

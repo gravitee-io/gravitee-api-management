@@ -35,24 +35,13 @@ import { Tag } from '../../../entities/tag/tag';
 import { fakeTag } from '../../../entities/tag/tag.fixture';
 import { Group } from '../../../entities/group/group';
 import { fakeGroup } from '../../../entities/group/group.fixture';
-import { CurrentUserService } from '../../../ajs-upgraded-providers';
-import { User as DeprecatedUser } from '../../../entities/user';
 import { PortalSettings } from '../../../entities/portal/portalSettings';
 import { fakePortalSettings } from '../../../entities/portal/portalSettings.fixture';
 import { Entrypoint } from '../../../entities/entrypoint/entrypoint';
 import { fakeEntrypoint } from '../../../entities/entrypoint/entrypoint.fixture';
+import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 
 describe('OrgSettingsTagsComponent', () => {
-  const currentUser = new DeprecatedUser();
-  currentUser.userPermissions = [
-    'organization-tag-c',
-    'organization-tag-u',
-    'organization-tag-d',
-    'organization-entrypoint-c',
-    'organization-entrypoint-u',
-    'organization-entrypoint-d',
-  ];
-
   let fixture: ComponentFixture<OrgSettingsTagsComponent>;
   let loader: HarnessLoader;
   let rootLoader: HarnessLoader;
@@ -69,8 +58,15 @@ describe('OrgSettingsTagsComponent', () => {
       ],
       providers: [
         {
-          provide: CurrentUserService,
-          useValue: { currentUser: currentUser },
+          provide: GioTestingPermissionProvider,
+          useValue: [
+            'organization-tag-c',
+            'organization-tag-u',
+            'organization-tag-d',
+            'organization-entrypoint-c',
+            'organization-entrypoint-u',
+            'organization-entrypoint-d',
+          ],
         },
       ],
     }).overrideProvider(InteractivityChecker, {

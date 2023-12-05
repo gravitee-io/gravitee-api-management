@@ -17,12 +17,10 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { GioRoleDirective } from './gio-role.directive';
-import { GioRoleService } from './gio-role.service';
 
 @NgModule({
   imports: [CommonModule],
   declarations: [GioRoleDirective],
   exports: [GioRoleDirective],
-  providers: [GioRoleService],
 })
 export class GioRoleModule {}

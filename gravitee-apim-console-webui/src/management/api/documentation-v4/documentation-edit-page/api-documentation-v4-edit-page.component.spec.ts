@@ -32,7 +32,6 @@ import { ApiDocumentationV4EditPageHarness } from './api-documentation-v4-edit-p
 import { ApiDocumentationV4EditPageComponent } from './api-documentation-v4-edit-page.component';
 
 import { ApiDocumentationV4Module } from '../api-documentation-v4.module';
-import { CurrentUserService } from '../../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { Breadcrumb, Page } from '../../../../entities/management-api-v2/documentation/page';
 import { ApiDocumentationV4ContentEditorHarness } from '../components/api-documentation-v4-content-editor/api-documentation-v4-content-editor.harness';
@@ -40,7 +39,7 @@ import { ApiDocumentationV4BreadcrumbHarness } from '../components/api-documenta
 import { fakeFolder, fakeMarkdown } from '../../../../entities/management-api-v2/documentation/page.fixture';
 import { ApiDocumentationV4PageTitleHarness } from '../components/api-documentation-v4-page-title/api-documentation-v4-page-title.harness';
 import { fakeApiV4 } from '../../../../entities/management-api-v2';
-import { User } from '../../../../entities/user';
+import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 
 interface InitInput {
   pages?: Page[];
@@ -60,17 +59,14 @@ describe('ApiDocumentationV4EditPageComponent', () => {
     parentId: string,
     pageId: string,
     portalUrl = 'portal.url',
-    userPermissions = ['api-documentation-u', 'api-documentation-c', 'api-documentation-r', 'api-documentation-d'],
+    apiPermissions = ['api-documentation-u', 'api-documentation-c', 'api-documentation-r', 'api-documentation-d'],
   ) => {
-    const currentUser = new User();
-    currentUser.userPermissions = userPermissions;
-
     await TestBed.configureTestingModule({
       declarations: [ApiDocumentationV4EditPageComponent],
       imports: [NoopAnimationsModule, ApiDocumentationV4Module, MatIconTestingModule, FormsModule, GioHttpTestingModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID, pageId }, queryParams: { parentId } } } },
-        { provide: CurrentUserService, useValue: { currentUser } },
+        { provide: GioTestingPermissionProvider, useValue: apiPermissions },
         {
           provide: 'Constants',
           useFactory: () => {

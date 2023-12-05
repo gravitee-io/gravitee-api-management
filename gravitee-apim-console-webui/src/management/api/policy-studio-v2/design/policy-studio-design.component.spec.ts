@@ -26,12 +26,11 @@ import { PolicyStudioDesignModule } from './policy-studio-design.module';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { fakePolicyListItem } from '../../../../entities/policy';
 import { fakeResourceListItem } from '../../../../entities/resource/resourceListItem.fixture';
-import { CurrentUserService } from '../../../../ajs-upgraded-providers';
-import { User } from '../../../../entities/user';
 import { fakeFlowSchema } from '../../../../entities/flow/flowSchema.fixture';
 import { PolicyStudioService } from '../policy-studio.service';
 import { ApiDefinition, toApiDefinition } from '../models/ApiDefinition';
 import { fakeApiV2 } from '../../../../entities/management-api-v2';
+import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 
 describe('PolicyStudioDesignComponent', () => {
   let fixture: ComponentFixture<PolicyStudioDesignComponent>;
@@ -39,9 +38,6 @@ describe('PolicyStudioDesignComponent', () => {
   let httpTestingController: HttpTestingController;
   let policyStudioService: PolicyStudioService;
   let apiDefinition: ApiDefinition;
-
-  const currentUser = new User();
-  currentUser.userApiPermissions = ['api-plan-r', 'api-plan-u'];
 
   const apiFlowSchema = fakeFlowSchema();
   const policies = [fakePolicyListItem()];
@@ -56,8 +52,8 @@ describe('PolicyStudioDesignComponent', () => {
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: api.id } } } },
         {
-          provide: CurrentUserService,
-          useValue: { currentUser },
+          provide: GioTestingPermissionProvider,
+          useValue: ['api-plan-r', 'api-plan-u'],
         },
         {
           provide: GioLicenseService,

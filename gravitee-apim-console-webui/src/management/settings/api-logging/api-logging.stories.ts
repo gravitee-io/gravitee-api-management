@@ -22,10 +22,6 @@ import { ApiLoggingComponent } from './api-logging.component';
 import { ApiLoggingModule } from './api-logging.module';
 
 import { ConsoleSettingsService } from '../../../services-ngx/console-settings.service';
-import { User } from '../../../entities/user';
-
-const currentUser = new User();
-currentUser.userPermissions = ['organization-settings-r'];
 
 export default {
   title: 'Environment / Settings / API Logging ',

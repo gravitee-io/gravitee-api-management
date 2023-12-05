@@ -22,8 +22,6 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 
 import { HomeOverviewComponent } from './home-overview.component';
 
-import { CurrentUserService } from '../../../ajs-upgraded-providers';
-import { User } from '../../../entities/user';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { HomeModule } from '../home.module';
 import { GioQuickTimeRangeHarness } from '../components/gio-quick-time-range/gio-quick-time-range.harness';
@@ -34,12 +32,9 @@ describe('HomeOverviewComponent', () => {
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
-  const currentUser = new User();
-
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, HomeModule, MatIconTestingModule],
-      providers: [{ provide: CurrentUserService, useValue: { currentUser } }],
     });
   });
 

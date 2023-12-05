@@ -28,18 +28,14 @@ import { GioPolicyStudioLayoutComponent } from './gio-policy-studio-layout.compo
 import { toApiDefinition, toApiPlansDefinition } from './models/ApiDefinition';
 import { PolicyStudioService } from './policy-studio.service';
 
-import { User } from '../../../entities/user';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
-import { CurrentUserService } from '../../../ajs-upgraded-providers';
 import { fakeApiV2, fakePlanV2 } from '../../../entities/management-api-v2';
+import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 
 describe('GioPolicyStudioLayoutComponent', () => {
   let fixture: ComponentFixture<GioPolicyStudioLayoutComponent>;
   let component: GioPolicyStudioLayoutComponent;
   let httpTestingController: HttpTestingController;
-
-  const currentUser = new User();
-  currentUser.userApiPermissions = ['api-plan-r', 'api-plan-u'];
 
   const api = fakeApiV2();
   const plans = [fakePlanV2()];
@@ -61,8 +57,8 @@ describe('GioPolicyStudioLayoutComponent', () => {
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: api.id } } } },
         {
-          provide: CurrentUserService,
-          useValue: { currentUser },
+          provide: GioTestingPermissionProvider,
+          useValue: ['api-plan-r', 'api-plan-u'],
         },
         {
           provide: 'LicenseConfiguration',

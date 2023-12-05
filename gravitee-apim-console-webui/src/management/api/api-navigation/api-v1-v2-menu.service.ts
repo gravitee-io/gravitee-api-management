@@ -21,17 +21,16 @@ import { MenuGroupItem, MenuItem } from './MenuGroupItem';
 import { ApiMenuService } from './ApiMenuService';
 
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
-import { CurrentUserService } from '../../../ajs-upgraded-providers';
-import UserService from '../../../services/user.service';
 import { Constants } from '../../../entities/Constants';
 import { ApiV1, ApiV2, DefinitionVersion } from '../../../entities/management-api-v2';
 import { ApimFeature, UTMTags } from '../../../shared/components/gio-license/gio-license-data';
+import { GioRoleService } from '../../../shared/components/gio-role/gio-role.service';
 
 @Injectable()
 export class ApiV1V2MenuService implements ApiMenuService {
   constructor(
     private readonly permissionService: GioPermissionService,
-    @Inject(CurrentUserService) private readonly currentUserService: UserService,
+    private readonly roleService: GioRoleService,
     @Inject('Constants') private readonly constants: Constants,
     private readonly gioLicenseService: GioLicenseService,
   ) {}
@@ -143,7 +142,7 @@ export class ApiV1V2MenuService implements ApiMenuService {
         },
       );
     }
-    if (this.currentUserService.currentUser.isOrganizationAdmin() || this.permissionService.hasAnyMatching(['api-member-u'])) {
+    if (this.roleService.isOrganizationAdmin() || this.permissionService.hasAnyMatching(['api-member-u'])) {
       userAndGroupAccessMenuItems.tabs.push({
         displayName: 'Transfer ownership',
         routerLink: 'transfer-ownership',

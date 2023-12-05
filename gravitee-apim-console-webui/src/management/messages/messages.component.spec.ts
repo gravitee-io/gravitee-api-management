@@ -26,20 +26,17 @@ import { MessagesComponent } from './messages.component';
 import { MessagesHarness } from './messages.harness';
 import { MessagesModule } from './messages.module';
 
-import { CurrentUserService } from '../../ajs-upgraded-providers';
 import { RoleService } from '../../services-ngx/role.service';
 import { fakeRole } from '../../entities/role/role.fixture';
-import { User } from '../../entities/user';
 import { HttpMessagePayload, TextMessagePayload } from '../../entities/message/messagePayload';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../shared/testing';
+import { GioTestingPermissionProvider } from '../../shared/components/gio-permission/gio-permission.service';
 
 describe('MigratedMessagesComponent', () => {
   let fixture: ComponentFixture<MessagesComponent>;
   let harness: MessagesHarness;
   let httpTestingController: HttpTestingController;
   const fakeRoles = [fakeRole({ name: 'ADMIN' }), fakeRole({ name: 'USER' }), fakeRole({ name: 'REVIEWER' })];
-  const currentUser = new User();
-  currentUser.userPermissions = ['api-message-c', 'environment-message-c'];
 
   const init = async (apiId?: string) => {
     await TestBed.configureTestingModule({
@@ -55,7 +52,7 @@ describe('MigratedMessagesComponent', () => {
           },
         },
         { provide: RoleService, useValue: { list: () => of(fakeRoles) } },
-        { provide: CurrentUserService, useValue: { currentUser } },
+        { provide: GioTestingPermissionProvider, useValue: ['api-message-c', 'environment-message-c'] },
       ],
     })
       .overrideProvider(InteractivityChecker, {

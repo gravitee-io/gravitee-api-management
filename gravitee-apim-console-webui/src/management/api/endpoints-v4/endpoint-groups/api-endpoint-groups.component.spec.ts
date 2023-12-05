@@ -29,8 +29,7 @@ import { ApiEndpointGroupsModule } from './api-endpoint-groups.module';
 
 import { ApiV4, EndpointGroupV4, fakeApiV4, fakeConnectorPlugin } from '../../../../entities/management-api-v2';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
-import { CurrentUserService } from '../../../../ajs-upgraded-providers';
-import { User as DeprecatedUser } from '../../../../entities/user';
+import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ApiEndpointGroupsComponent', () => {
   const API_ID = 'apiId';
@@ -80,14 +79,11 @@ describe('ApiEndpointGroupsComponent', () => {
   let componentHarness: ApiEndpointGroupsHarness;
 
   const initComponent = async (api: ApiV4, permissions: string[] = ['api-definition-u', 'api-definition-c', 'api-definition-r']) => {
-    const currentUser = new DeprecatedUser();
-    currentUser.userPermissions = permissions;
-
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiEndpointGroupsModule, MatIconTestingModule, GioLicenseTestingModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
-        { provide: CurrentUserService, useValue: { currentUser } },
+        { provide: GioTestingPermissionProvider, useValue: permissions },
       ],
     }).overrideProvider(InteractivityChecker, {
       useValue: {

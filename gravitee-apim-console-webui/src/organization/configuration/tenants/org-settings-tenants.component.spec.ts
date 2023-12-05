@@ -27,47 +27,36 @@ import { OrgSettingsTenantsComponent } from './org-settings-tenants.component';
 
 import { OrganizationSettingsModule } from '../organization-settings.module';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
-import { CurrentUserService } from '../../../ajs-upgraded-providers';
-import { User } from '../../../entities/user';
 import { fakeTenant } from '../../../entities/tenant/tenant.fixture';
 import { GioTableWrapperHarness } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.harness';
 import { Tenant } from '../../../entities/tenant/tenant';
+import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 
 describe('OrgSettingsTenantsComponent', () => {
-  const currentUser = new User();
-  currentUser.userPermissions = [];
-  currentUser.userApiPermissions = [];
-  currentUser.userEnvironmentPermissions = [];
-  currentUser.userApplicationPermissions = [];
-
   let fixture: ComponentFixture<OrgSettingsTenantsComponent>;
   let httpTestingController: HttpTestingController;
+  let permissionsService: GioPermissionService;
   let loader: HarnessLoader;
   let rootLoader: HarnessLoader;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule],
-      providers: [
-        {
-          provide: CurrentUserService,
-          useValue: { currentUser },
-        },
-      ],
     }).overrideProvider(InteractivityChecker, {
       useValue: {
         isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
       },
     });
     httpTestingController = TestBed.inject(HttpTestingController);
+    permissionsService = TestBed.inject(GioPermissionService);
     fixture = TestBed.createComponent(OrgSettingsTenantsComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
-    fixture.detectChanges();
   });
 
   it('should display tenants in table', async () => {
-    currentUser.userPermissions = ['organization-tenant-c', 'organization-tenant-u', 'organization-tenant-d'];
+    permissionsService._setPermissions(['organization-tenant-c', 'organization-tenant-u', 'organization-tenant-d']);
+    fixture.detectChanges();
 
     const tenants = [
       fakeTenant({ id: 'tenant-1', name: 'Tenant 1', description: 'Tenant 1 description' }),
@@ -85,7 +74,8 @@ describe('OrgSettingsTenantsComponent', () => {
   });
 
   it('should filter tenants displayed in table', async () => {
-    currentUser.userPermissions = ['organization-tenant-c', 'organization-tenant-u', 'organization-tenant-d'];
+    permissionsService._setPermissions(['organization-tenant-c', 'organization-tenant-u', 'organization-tenant-d']);
+    fixture.detectChanges();
 
     const tenants = [
       fakeTenant({ id: 'tenant-1', name: 'Tenant 1', description: 'Tenant 1 description' }),
@@ -104,10 +94,12 @@ describe('OrgSettingsTenantsComponent', () => {
   });
 
   it('should create a new tenant', async () => {
-    currentUser.userPermissions = ['organization-tenant-c'];
+    permissionsService._setPermissions(['organization-tenant-c']);
+    fixture.detectChanges();
+
     respondToGetTenants([fakeTenant()]);
 
-    const addButton = await rootLoader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to add a tenant"]' }));
+    const addButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to add a tenant"]' }));
     await addButton.click();
 
     const nameInput = await rootLoader.getHarness(MatInputHarness.with({ selector: '[formControlName=name]' }));
@@ -142,7 +134,9 @@ describe('OrgSettingsTenantsComponent', () => {
   });
 
   it('should edit a tenant', async () => {
-    currentUser.userPermissions = ['organization-tenant-u'];
+    permissionsService._setPermissions(['organization-tenant-u']);
+    fixture.detectChanges();
+
     respondToGetTenants([fakeTenant({ id: 'tenant-1', name: 'Tenant 1', description: 'Tenant 1 description' })]);
 
     fixture.detectChanges();
@@ -183,7 +177,9 @@ describe('OrgSettingsTenantsComponent', () => {
   });
 
   it('should delete a tenant', async () => {
-    currentUser.userPermissions = ['organization-tenant-d'];
+    permissionsService._setPermissions(['organization-tenant-d']);
+    fixture.detectChanges();
+
     respondToGetTenants([fakeTenant({ id: 'tenant-1', name: 'Tenant 1', description: 'Tenant 1 description' })]);
 
     fixture.detectChanges();

@@ -26,8 +26,6 @@ import { ActivatedRoute, Router } from '@angular/router';
 
 import { ApiGeneralPlanEditComponent } from './api-general-plan-edit.component';
 
-import { CurrentUserService } from '../../../../../ajs-upgraded-providers';
-import { User } from '../../../../../entities/user';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
 import { ApiGeneralPlansModule } from '../api-general-plans.module';
 import { fakeTag } from '../../../../../entities/tag/tag.fixture';
@@ -45,12 +43,10 @@ import {
   PlanStatus,
   PlanV2,
 } from '../../../../../entities/management-api-v2';
+import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ApiGeneralPlanEditComponent', () => {
   const API_ID = 'my-api';
-  const currentUser = new User();
-
-  currentUser.userPermissions = ['api-plan-u'];
 
   let fixture: ComponentFixture<ApiGeneralPlanEditComponent>;
   let loader: HarnessLoader;
@@ -61,7 +57,7 @@ describe('ApiGeneralPlanEditComponent', () => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiGeneralPlansModule, MatIconTestingModule],
       providers: [
-        { provide: CurrentUserService, useValue: { currentUser } },
+        { provide: GioTestingPermissionProvider, useValue: ['api-plan-u'] },
         {
           provide: ActivatedRoute,
           useValue: {

@@ -25,10 +25,8 @@ import { Component } from '@angular/core';
 import { ApiGeneralGroupMembersComponent } from './api-general-group-members.component';
 import { ApiGeneralGroupMembersHarness } from './api-general-group-members.harness';
 
-import { User } from '../../../../../../entities/user';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../../shared/testing';
 import { ApiGeneralUserGroupModule } from '../../api-general-user-group.module';
-import { CurrentUserService } from '../../../../../../services-ngx/current-user.service';
 import { MembersResponse } from '../../../../../../entities/management-api-v2';
 import { fakeMember } from '../../../../../../entities/management-api-v2/member/member.fixture';
 import { GroupData } from '../api-general-members.component';
@@ -51,13 +49,10 @@ describe('ApiGeneralGroupMembersComponent', () => {
   let httpTestingController: HttpTestingController;
   let loader: HarnessLoader;
 
-  const currentUser = new User();
-
   beforeEach(async () => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule, ApiGeneralUserGroupModule],
       declarations: [ApiGeneralGroupMembersComponent, TestComponent],
-      providers: [{ provide: CurrentUserService, useValue: { currentUser } }],
     }).overrideProvider(InteractivityChecker, {
       useValue: {
         isFocusable: () => true, // This checks focus trap, set it to true to  avoid the warning

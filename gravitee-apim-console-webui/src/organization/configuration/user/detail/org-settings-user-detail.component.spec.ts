@@ -33,10 +33,7 @@ import { OrgSettingsUserDetailComponent } from './org-settings-user-detail.compo
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { OrganizationSettingsModule } from '../../organization-settings.module';
-import { CurrentUserService } from '../../../../ajs-upgraded-providers';
-import { User } from '../../../../entities/user/user';
 import { fakeUser } from '../../../../entities/user/user.fixture';
-import { User as DeprecatedUser } from '../../../../entities/user';
 import { Role } from '../../../../entities/role/role';
 import { fakeRole } from '../../../../entities/role/role.fixture';
 import { Environment } from '../../../../entities/environment/environment';
@@ -50,6 +47,8 @@ import { UserMembership } from '../../../../entities/user/userMembership';
 import { GioTableWrapperHarness } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.harness';
 import { Token } from '../../../../entities/user/userTokens';
 import { fakeUserToken } from '../../../../entities/user/userToken.fixture';
+import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { User } from '../../../../entities/user/user';
 
 describe('OrgSettingsUserDetailComponent', () => {
   let fixture: ComponentFixture<OrgSettingsUserDetailComponent>;
@@ -58,14 +57,14 @@ describe('OrgSettingsUserDetailComponent', () => {
   let httpTestingController: HttpTestingController;
 
   beforeEach(async () => {
-    const currentUser = new DeprecatedUser();
-    currentUser.userPermissions = ['organization-user-u', 'organization-user-d', 'organization-user-c'];
-
     await TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule, MatIconTestingModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { userId: 'userId' } } } },
-        { provide: CurrentUserService, useValue: { currentUser } },
+        {
+          provide: GioTestingPermissionProvider,
+          useValue: ['organization-user-u', 'organization-user-d', 'organization-user-c'],
+        },
       ],
     })
       .overrideProvider(InteractivityChecker, {

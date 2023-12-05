@@ -30,16 +30,12 @@ import { ActivatedRoute } from '@angular/router';
 import { ApiProxyCorsComponent } from './api-proxy-cors.component';
 import { ApiProxyCorsModule } from './api-proxy-cors.module';
 
-import { CurrentUserService } from '../../../../ajs-upgraded-providers';
-import { User } from '../../../../entities/user';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { ApiV2, fakeApiV2 } from '../../../../entities/management-api-v2';
+import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ApiProxyEntrypointsComponent', () => {
   const API_ID = 'apiId';
-
-  const currentUser = new User();
-  currentUser.userPermissions = ['api-definition-u'];
 
   let fixture: ComponentFixture<ApiProxyCorsComponent>;
   let loader: HarnessLoader;
@@ -51,7 +47,7 @@ describe('ApiProxyEntrypointsComponent', () => {
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiProxyCorsModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
-        { provide: CurrentUserService, useValue: { currentUser } },
+        { provide: GioTestingPermissionProvider, useValue: ['api-definition-u'] },
       ],
     }).overrideProvider(InteractivityChecker, {
       useValue: {

@@ -30,23 +30,20 @@ import { ActivatedRoute } from '@angular/router';
 import { ApiProxyGroupEndpointEditComponent } from './api-proxy-group-endpoint-edit.component';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../../../shared/testing';
-import { CurrentUserService } from '../../../../../../../ajs-upgraded-providers';
 import { ApiProxyGroupEndpointModule } from '../api-proxy-group-endpoint.module';
 import { ConnectorListItem } from '../../../../../../../entities/connector/connector-list-item';
 import { fakeConnectorListItem } from '../../../../../../../entities/connector/connector-list-item.fixture';
 import { fakeTenant } from '../../../../../../../entities/tenant/tenant.fixture';
 import { SnackBarService } from '../../../../../../../services-ngx/snack-bar.service';
-import { User } from '../../../../../../../entities/user';
 import { ApiV2, fakeApiV2 } from '../../../../../../../entities/management-api-v2';
 import { EndpointHttpConfigHarness } from '../../../components/endpoint-http-config/endpoint-http-config.harness';
+import { GioTestingPermissionProvider } from '../../../../../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ApiProxyGroupEndpointEditComponent', () => {
   const API_ID = 'apiId';
   const DEFAULT_GROUP_NAME = 'default-group';
   const DEFAULT_ENDPOINT_NAME = 'endpoint#1';
   const tenants = [fakeTenant({ id: 'tenant#1', name: 'tenant#1-name' }), fakeTenant({ id: 'tenant#2', name: 'tenant#2' })];
-  const currentUser = new User();
-  currentUser.userPermissions = ['api-definition-u'];
 
   let fixture: ComponentFixture<ApiProxyGroupEndpointEditComponent>;
   let loader: HarnessLoader;
@@ -62,7 +59,7 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
           provide: ActivatedRoute,
           useValue: { snapshot: { params: { apiId: API_ID, groupName: DEFAULT_GROUP_NAME, endpointName: DEFAULT_ENDPOINT_NAME } } },
         },
-        { provide: CurrentUserService, useValue: { currentUser } },
+        { provide: GioTestingPermissionProvider, useValue: ['api-definition-u'] },
       ],
     });
 

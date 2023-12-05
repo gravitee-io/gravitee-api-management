@@ -28,9 +28,8 @@ import { ApiProxyResponseTemplatesEditComponent } from './api-proxy-response-tem
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
 import { ApiProxyResponseTemplatesModule } from '../api-proxy-response-templates.module';
-import { CurrentUserService } from '../../../../../ajs-upgraded-providers';
-import { User } from '../../../../../entities/user';
 import { ApiV2, fakeApiV2 } from '../../../../../entities/management-api-v2';
+import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ApiProxyResponseTemplatesComponent', () => {
   const API_ID = 'apiId';
@@ -39,15 +38,15 @@ describe('ApiProxyResponseTemplatesComponent', () => {
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
-  const currentUser = new User();
-  currentUser.userPermissions = ['api-response_templates-c', 'api-response_templates-u', 'api-response_templates-d'];
-
   const initTestingComponent = (responseTemplateId?: string) => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiProxyResponseTemplatesModule, MatIconTestingModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID, responseTemplateId } } } },
-        { provide: CurrentUserService, useValue: { currentUser } },
+        {
+          provide: GioTestingPermissionProvider,
+          useValue: ['api-response_templates-c', 'api-response_templates-u', 'api-response_templates-d'],
+        },
       ],
     });
     fixture = TestBed.createComponent(ApiProxyResponseTemplatesEditComponent);

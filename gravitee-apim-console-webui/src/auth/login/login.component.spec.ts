@@ -25,8 +25,6 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { LoginModule } from './login.module';
 import { LoginComponent } from './login.component';
 
-import { CurrentUserService } from '../../ajs-upgraded-providers';
-import { User } from '../../entities/user';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../shared/testing';
 
 describe('LoginComponent', () => {
@@ -34,13 +32,9 @@ describe('LoginComponent', () => {
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
-  const currentUser = new User();
-  currentUser.userPermissions = ['api-definition-u'];
-
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule, LoginModule],
-      providers: [{ provide: CurrentUserService, useValue: { currentUser } }],
     });
   });
 

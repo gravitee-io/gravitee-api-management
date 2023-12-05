@@ -33,8 +33,6 @@ import { ApiGeneralPlanListComponent } from './api-general-plan-list.component';
 
 import { ApiGeneralPlansModule } from '../api-general-plans.module';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
-import { CurrentUserService } from '../../../../../ajs-upgraded-providers';
-import { User as DeprecatedUser } from '../../../../../entities/user';
 import { Subscription } from '../../../../../entities/subscription/subscription';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import {
@@ -47,12 +45,11 @@ import {
   Plan,
   PLAN_STATUS,
 } from '../../../../../entities/management-api-v2';
+import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ApiGeneralPlanListComponent', () => {
   const API_ID = 'api#1';
   const anAPi = fakeApiV2({ id: API_ID });
-  const currentUser = new DeprecatedUser();
-  currentUser.userPermissions = ['api-plan-u', 'api-plan-r', 'api-plan-d'];
 
   let fixture: ComponentFixture<ApiGeneralPlanListComponent>;
   let component: ApiGeneralPlanListComponent;
@@ -65,7 +62,7 @@ describe('ApiGeneralPlanListComponent', () => {
     await TestBed.configureTestingModule({
       imports: [ApiGeneralPlansModule, NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule],
       providers: [
-        { provide: CurrentUserService, useValue: { currentUser } },
+        { provide: GioTestingPermissionProvider, useValue: ['api-plan-u', 'api-plan-r', 'api-plan-d'] },
         {
           provide: InteractivityChecker,
           useValue: {

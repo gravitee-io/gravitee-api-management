@@ -18,9 +18,8 @@ import { Component, Input } from '@angular/core';
 
 import { GioPermissionModule } from './gio-permission.module';
 import { GioPermissionCheckOptions } from './gio-permission.directive';
+import { GioTestingPermissionProvider } from './gio-permission.service';
 
-import { CurrentUserService } from '../../../ajs-upgraded-providers';
-import { User } from '../../../entities/user';
 import { GioHttpTestingModule } from '../../testing';
 
 @Component({ template: `<div *gioPermission="permissions">A Content</div>` })
@@ -31,34 +30,25 @@ class TestPermissionComponent {
 
 describe('GioPermissionDirective', () => {
   let fixture: ComponentFixture<TestPermissionComponent>;
-  const currentUser = new User();
-  currentUser.userPermissions = [];
-  currentUser.userApiPermissions = [];
-  currentUser.userEnvironmentPermissions = [];
-  currentUser.userApplicationPermissions = [];
 
   function prepareTestPermissionComponent(permission: GioPermissionCheckOptions) {
     fixture = TestBed.configureTestingModule({
       declarations: [TestPermissionComponent],
       imports: [GioHttpTestingModule, GioPermissionModule],
-      providers: [{ provide: CurrentUserService, useValue: { currentUser } }],
+      providers: [
+        {
+          provide: GioTestingPermissionProvider,
+          useValue: ['api-rating-r', 'api-rating-c'],
+        },
+      ],
     }).createComponent(TestPermissionComponent);
 
     fixture.componentInstance.permissions = permission;
     fixture.detectChanges();
   }
 
-  afterEach(() => {
-    currentUser.userPermissions = [];
-    currentUser.userApiPermissions = [];
-    currentUser.userEnvironmentPermissions = [];
-    currentUser.userApplicationPermissions = [];
-  });
-
   describe('anyOf', () => {
     it('should hide element if permission is not matching', () => {
-      currentUser.userApiPermissions = ['api-rating-r', 'api-rating-c'];
-
       prepareTestPermissionComponent({ anyOf: ['api-rating-u'] });
       fixture.detectChanges();
 
@@ -67,8 +57,6 @@ describe('GioPermissionDirective', () => {
     });
 
     it('should display element if permission is matching', () => {
-      currentUser.userApiPermissions = ['api-rating-r', 'api-rating-c'];
-
       prepareTestPermissionComponent({ anyOf: ['api-rating-r'] });
       fixture.detectChanges();
 
@@ -77,8 +65,6 @@ describe('GioPermissionDirective', () => {
     });
 
     it('should display element if at least one permission is matching', () => {
-      currentUser.userApiPermissions = ['api-rating-r', 'api-rating-c'];
-
       prepareTestPermissionComponent({ anyOf: ['api-rating-r', 'api-rating-u'] });
       fixture.detectChanges();
 
@@ -89,8 +75,6 @@ describe('GioPermissionDirective', () => {
 
   describe('noneOf', () => {
     it('should hide element if no permission is matching', () => {
-      currentUser.userApiPermissions = ['api-rating-r', 'api-rating-c'];
-
       prepareTestPermissionComponent({ noneOf: ['api-rating-u'] });
       fixture.detectChanges();
 
@@ -99,8 +83,6 @@ describe('GioPermissionDirective', () => {
     });
 
     it('should display element if a permission is matching', () => {
-      currentUser.userApiPermissions = ['api-rating-r', 'api-rating-c'];
-
       prepareTestPermissionComponent({ noneOf: ['api-rating-r'] });
       fixture.detectChanges();
 
@@ -109,8 +91,6 @@ describe('GioPermissionDirective', () => {
     });
 
     it('should display element if at least one permission is matching', () => {
-      currentUser.userApiPermissions = ['api-rating-r', 'api-rating-c'];
-
       prepareTestPermissionComponent({ noneOf: ['api-rating-r', 'api-rating-u'] });
       fixture.detectChanges();
 

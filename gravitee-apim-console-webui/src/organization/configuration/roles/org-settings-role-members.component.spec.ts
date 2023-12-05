@@ -27,37 +27,28 @@ import { OrgSettingsRoleMembersComponent } from './org-settings-role-members.com
 
 import { OrganizationSettingsModule } from '../organization-settings.module';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
-import { CurrentUserService } from '../../../ajs-upgraded-providers';
 import { MembershipListItem } from '../../../entities/role/membershipListItem';
 import { fakeMembershipListItem } from '../../../entities/role/membershipListItem.fixture';
-import { User } from '../../../entities/user';
 import { GioTableWrapperHarness } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.harness';
 import { GioUsersSelectorHarness } from '../../../shared/components/gio-users-selector/gio-users-selector.harness';
 import { fakeSearchableUser } from '../../../entities/user/searchableUser.fixture';
+import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 
 describe('OrgSettingsRoleMembersComponent', () => {
   const roleScope = 'ORGANIZATION';
   const role = 'USER';
 
-  const currentUser = new User();
-  currentUser.userPermissions = [];
-  currentUser.userApiPermissions = [];
-  currentUser.userEnvironmentPermissions = [];
-  currentUser.userApplicationPermissions = [];
-
   let fixture: ComponentFixture<OrgSettingsRoleMembersComponent>;
   let component: OrgSettingsRoleMembersComponent;
   let httpTestingController: HttpTestingController;
+  let permissionsService: GioPermissionService;
   let loader: HarnessLoader;
   let rootLoader: HarnessLoader;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule],
-      providers: [
-        { provide: ActivatedRoute, useValue: { snapshot: { params: { roleScope, role } } } },
-        { provide: CurrentUserService, useValue: { currentUser } },
-      ],
+      providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: { roleScope, role } } } }],
     }).overrideProvider(InteractivityChecker, {
       useValue: {
         isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
@@ -65,6 +56,7 @@ describe('OrgSettingsRoleMembersComponent', () => {
       },
     });
     httpTestingController = TestBed.inject(HttpTestingController);
+    permissionsService = TestBed.inject(GioPermissionService);
     fixture = TestBed.createComponent(OrgSettingsRoleMembersComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
@@ -98,7 +90,7 @@ describe('OrgSettingsRoleMembersComponent', () => {
 
   describe('onDeleteMemberClicked', () => {
     beforeEach(() => {
-      currentUser.userPermissions = ['organization-role-u'];
+      permissionsService._setPermissions(['organization-role-u']);
     });
 
     it('should delete member', async () => {
@@ -128,7 +120,7 @@ describe('OrgSettingsRoleMembersComponent', () => {
 
   describe('onAddMemberClicked', () => {
     beforeEach(() => {
-      currentUser.userPermissions = ['organization-role-u'];
+      permissionsService._setPermissions(['organization-role-u']);
     });
 
     it('should add members', async () => {

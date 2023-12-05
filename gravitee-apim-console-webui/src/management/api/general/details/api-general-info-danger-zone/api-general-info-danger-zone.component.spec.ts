@@ -31,14 +31,11 @@ import { ApiGeneralInfoDangerZoneComponent } from './api-general-info-danger-zon
 
 import { ApiGeneralInfoModule } from '../api-general-info.module';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
-import { CurrentUserService } from '../../../../../ajs-upgraded-providers';
-import { User } from '../../../../../entities/user';
 import { Api, fakeApiV2, fakeApiV4 } from '../../../../../entities/management-api-v2';
+import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ApiGeneralInfoDangerZoneComponent', () => {
   const API_ID = 'apiId';
-  const currentUser = new User();
-  currentUser.userPermissions = ['api-definition-u', 'api-definition-d'];
 
   let fixture: ComponentFixture<ApiGeneralInfoDangerZoneComponent>;
   let loader: HarnessLoader;
@@ -51,7 +48,7 @@ describe('ApiGeneralInfoDangerZoneComponent', () => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiGeneralInfoModule, MatIconTestingModule],
       providers: [
-        { provide: CurrentUserService, useValue: { currentUser } },
+        { provide: GioTestingPermissionProvider, useValue: ['api-definition-u', 'api-definition-d'] },
         {
           provide: 'LicenseConfiguration',
           useValue: LICENSE_CONFIGURATION_TESTING,

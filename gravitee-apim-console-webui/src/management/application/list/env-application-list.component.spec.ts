@@ -27,13 +27,12 @@ import { ActivatedRoute } from '@angular/router';
 import { EnvApplicationListComponent } from './env-application-list.component';
 
 import { ApplicationsModule } from '../applications.module';
-import { CurrentUserService } from '../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { fakePagedResult } from '../../../entities/pagedResult';
-import { User as DeprecatedUser } from '../../../entities/user';
 import { GioTableWrapperHarness } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.harness';
 import { Application } from '../../../entities/application/application';
 import { fakeApplication } from '../../../entities/application/Application.fixture';
+import { GioTestingRoleProvider } from '../../../shared/components/gio-role/gio-role.service';
 
 describe('EnvApplicationListComponent', () => {
   let fixture: ComponentFixture<EnvApplicationListComponent>;
@@ -43,12 +42,9 @@ describe('EnvApplicationListComponent', () => {
 
   describe('with ACTIVE status', () => {
     beforeEach(() => {
-      const currentUser = new DeprecatedUser();
-      currentUser.roles = [{ scope: 'ORGANIZATION', name: 'ADMIN' }];
-
       TestBed.configureTestingModule({
         imports: [NoopAnimationsModule, ApplicationsModule, GioHttpTestingModule],
-        providers: [{ provide: CurrentUserService, useValue: { currentUser } }],
+        providers: [{ provide: GioTestingRoleProvider, useValue: [{ scope: 'ORGANIZATION', name: 'ADMIN' }] }],
       }).overrideProvider(InteractivityChecker, {
         useValue: {
           isFocusable: () => true, // This checks focus trap, set it to true to  avoid the warning
@@ -151,12 +147,9 @@ describe('EnvApplicationListComponent', () => {
 
   describe('with ARCHIVED status', () => {
     beforeEach(() => {
-      const currentUser = new DeprecatedUser();
-      currentUser.roles = [{ scope: 'ORGANIZATION', name: 'ADMIN' }];
-
       TestBed.configureTestingModule({
         imports: [NoopAnimationsModule, ApplicationsModule, GioHttpTestingModule],
-        providers: [{ provide: CurrentUserService, useValue: { currentUser } }],
+        providers: [{ provide: GioTestingRoleProvider, useValue: [{ scope: 'ORGANIZATION', name: 'ADMIN' }] }],
       }).overrideProvider(InteractivityChecker, {
         useValue: {
           isFocusable: () => true, // This checks focus trap, set it to true to  avoid the warning

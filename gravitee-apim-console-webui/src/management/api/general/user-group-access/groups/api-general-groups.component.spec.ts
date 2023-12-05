@@ -26,26 +26,22 @@ import { ApiGeneralGroupsHarness } from './api-general-groups.harness';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
 import { ApiGeneralUserGroupModule } from '../api-general-user-group.module';
-import { CurrentUserService } from '../../../../../ajs-upgraded-providers';
-import { User } from '../../../../../entities/user';
 import { Api, fakeApiV1, fakeApiV2, fakeApiV4, fakeGroup, Group } from '../../../../../entities/management-api-v2';
+import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ApiPortalGroupsComponent', () => {
   const API_ID = 'api-id';
-
-  const currentUser = new User();
 
   let fixture: ComponentFixture<ApiGeneralGroupsComponent>;
   let harness: ApiGeneralGroupsHarness;
   let httpTestingController: HttpTestingController;
 
-  const init = async (userPermissions: string[]) => {
-    currentUser.userPermissions = userPermissions;
+  const init = async (permissions: string[]) => {
     await TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiGeneralUserGroupModule, MatIconTestingModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
-        { provide: CurrentUserService, useValue: { currentUser } },
+        { provide: GioTestingPermissionProvider, useValue: permissions },
       ],
     })
       .overrideProvider(InteractivityChecker, {

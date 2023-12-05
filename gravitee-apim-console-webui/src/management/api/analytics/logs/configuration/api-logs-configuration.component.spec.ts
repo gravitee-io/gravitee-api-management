@@ -26,18 +26,15 @@ import { ActivatedRoute } from '@angular/router';
 
 import { ApiLogsConfigurationComponent } from './api-logs-configuration.component';
 
-import { CurrentUserService } from '../../../../../ajs-upgraded-providers';
 import { ApiLogsModule } from '../api-logs.module';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
 import { GioFormCardGroupHarness } from '../../../../../shared/components/gio-form-card-group/gio-form-card-group.harness';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
-import { User } from '../../../../../entities/user';
 import { ApiV2, fakeApiV2 } from '../../../../../entities/management-api-v2';
+import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ApiLogsConfigurationComponent', () => {
   const API_ID = 'my-api';
-  const currentUser = new User();
-  currentUser.userPermissions = ['api-log-u'];
   let fixture: ComponentFixture<ApiLogsConfigurationComponent>;
   let component: ApiLogsConfigurationComponent;
   let loader: HarnessLoader;
@@ -49,8 +46,8 @@ describe('ApiLogsConfigurationComponent', () => {
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
         {
-          provide: CurrentUserService,
-          useValue: { currentUser },
+          provide: GioTestingPermissionProvider,
+          useValue: ['api-log-u'],
         },
       ],
     });
