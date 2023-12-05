@@ -18,12 +18,16 @@ package io.gravitee.rest.api.model.settings;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.gravitee.rest.api.model.annotations.ParameterKey;
 import io.gravitee.rest.api.model.parameters.Key;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Getter
+@Setter
 public class Management {
 
     @ParameterKey(Key.CONSOLE_SUPPORT_ENABLED)
@@ -44,51 +48,6 @@ public class Management {
     @ParameterKey(Key.CONSOLE_SYSTEM_ROLE_EDITION_ENABLED)
     private Enabled systemRoleEdition;
 
-    public Enabled getSupport() {
-        return support;
-    }
-
-    public void setSupport(Enabled support) {
-        this.support = support;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getUrl() {
-        return url;
-    }
-
-    public void setUrl(String url) {
-        this.url = url;
-    }
-
-    public Enabled getUserCreation() {
-        return userCreation;
-    }
-
-    public void setUserCreation(Enabled userCreation) {
-        this.userCreation = userCreation;
-    }
-
-    public Enabled getAutomaticValidation() {
-        return automaticValidation;
-    }
-
-    public void setAutomaticValidation(Enabled automaticValidation) {
-        this.automaticValidation = automaticValidation;
-    }
-
-    public Enabled getSystemRoleEdition() {
-        return systemRoleEdition;
-    }
-
-    public void setSystemRoleEdition(Enabled systemRoleEdition) {
-        this.systemRoleEdition = systemRoleEdition;
-    }
+    @ParameterKey(Key.INSTALLATION_TYPE)
+    private String installationType;
 }
