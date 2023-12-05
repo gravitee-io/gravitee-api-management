@@ -252,20 +252,6 @@ class UserService {
     );
   }
 
-  logout(): ng.IPromise<any> {
-    return this.$http.post(`${this.Constants.org.baseURL}/user/logout`, {}).then(() => {
-      this.removeCurrentUserData();
-    });
-  }
-
-  removeCurrentUserData() {
-    this.currentUser = new User();
-    this.currentUser.authenticated = false;
-    this.isLogout = true;
-    this.$window.localStorage.removeItem('satellizer_token');
-    this.$window.localStorage.removeItem('newsletterProposed');
-  }
-
   currentUserPicture(): string {
     if (this.currentUser && this.currentUser.id) {
       return `${this.Constants.org.baseURL}/user/avatar?${this.StringService.hashCode(this.currentUser.id)}`;
