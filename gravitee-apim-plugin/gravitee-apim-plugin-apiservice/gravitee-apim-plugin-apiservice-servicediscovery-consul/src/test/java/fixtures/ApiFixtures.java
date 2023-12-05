@@ -15,7 +15,8 @@
  */
 package fixtures;
 
-import io.gravitee.definition.model.v4.ApiBuilder;
+import static fixtures.definition.ApiDefinitionFixtures.anApiV4;
+
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.endpointgroup.service.EndpointGroupServices;
 import io.gravitee.definition.model.v4.service.Service;
@@ -29,8 +30,8 @@ public class ApiFixtures {
 
     public static Api anApiWithServiceDiscovery(Service discovery) {
         return new Api(
-            ApiBuilder
-                .anApiV4()
+            anApiV4()
+                .toBuilder()
                 .endpointGroups(
                     List.of(
                         EndpointGroup
@@ -46,8 +47,8 @@ public class ApiFixtures {
 
     public static Api anApiWithDefaultGroup(String type) {
         return new Api(
-            ApiBuilder
-                .anApiV4()
+            anApiV4()
+                .toBuilder()
                 .endpointGroups(
                     List.of(EndpointGroup.builder().name("default-group").type(type).endpoints(Collections.emptyList()).build())
                 )
