@@ -355,7 +355,6 @@ require('codemirror/addon/display/placeholder.js');
 
 require('angular-material-icons');
 require('angular-material-data-table');
-require('angular-cookies');
 require('angular-messages');
 
 require('dragular');
@@ -428,7 +427,6 @@ angular.module('gravitee-management', [
   'ngMdIcons',
   'ui.codemirror',
   'md.data.table',
-  'ngCookies',
   'dragularModule',
   'ngMessages',
   'vAccordion',
