@@ -13,30 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ILocationService } from 'angular';
 
 import NotificationService from '../services/notification.service';
 import ReCaptchaService from '../services/reCaptcha.service';
-import UserService from '../services/user.service';
 import { CsrfInterceptor } from '../shared/interceptors/csrf.interceptor';
-
-export class Future {
-  private timeouts = [];
-  private delay: number;
-
-  constructor(delay = 0) {
-    this.delay = delay;
-  }
-
-  push(fn) {
-    this.timeouts.push(setTimeout(() => fn(), this.delay));
-  }
-
-  cancel() {
-    this.timeouts.forEach((timeout) => clearTimeout(timeout));
-    this.timeouts = [];
-  }
-}
 
 function interceptorConfig($httpProvider: angular.IHttpProvider, Constants) {
   $httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
@@ -46,79 +26,6 @@ function interceptorConfig($httpProvider: angular.IHttpProvider, Constants) {
   // Explicitly disable automatic csrf handling as it will not work for cross-domain (using custom csrf interceptor).
   $httpProvider.defaults.xsrfCookieName = 'none';
   $httpProvider.defaults.xsrfHeaderName = 'none';
-
-  let sessionExpired;
-
-  const interceptorUnauthorized = (
-    $q: angular.IQService,
-    $injector: angular.auto.IInjectorService,
-    $location: ILocationService,
-    $state,
-  ): angular.IHttpInterceptor => ({
-    responseError: function (error) {
-      const interceptorFuture = new Future();
-      if (error.config && !error.config.tryItMode) {
-        const unauthorizedError = !error || error.status === 401;
-        let errorMessage = '';
-
-        const notificationService = $injector.get('NotificationService') as NotificationService;
-        const userService = $injector.get('UserService') as UserService;
-        const $timeout = $injector.get('$timeout');
-        if (unauthorizedError) {
-          if (error.config.headers.Authorization) {
-            sessionExpired = false;
-            errorMessage = 'Wrong user or password';
-          } else {
-            // if on portal home do not redirect
-            error.config.forceSessionExpired =
-              $location.path() !== '' &&
-              $location.path() !== '/' &&
-              $location.path() !== '/login' &&
-              !$location.path().startsWith('/registration') &&
-              !$location.path().startsWith('/resetPassword') &&
-              !error.config.url.startsWith(
-                Constants.env.baseURL.endsWith('/') ? Constants.env.baseURL + 'user' : Constants.env.baseURL + '/user/',
-              );
-            if (error.config.forceSessionExpired || (!sessionExpired && !error.config.silentCall)) {
-              sessionExpired = true;
-              // session expired
-              notificationService.showError(error, 'Session expired, redirecting to home...');
-              const redirectUri = $location.path();
-              $timeout(() => {
-                userService.removeCurrentUserData();
-                $injector.get('$rootScope').$broadcast('graviteeUserRefresh', {});
-                $injector.get('$rootScope').$broadcast('graviteeUserCancelScheduledServices');
-                $injector.get('$rootScope').$broadcast('graviteeLogout', { redirectUri: redirectUri });
-              }, 2000);
-            }
-          }
-        } else {
-          if (error.status === 500) {
-            errorMessage = error.data ? error.data.message : 'Unexpected error';
-          } else if (error.status === 503) {
-            if (error.data && error.data.message) {
-              document.getElementsByTagName('body').item(0).innerText = error.data.message;
-            }
-            errorMessage = error.data ? error.data.message : 'Server unavailable';
-          }
-        }
-        if (!sessionExpired && error && error.status > 0 && !error.config.silentCall) {
-          interceptorFuture.push(() => notificationService.showError(error, errorMessage));
-          if (error.status === 403) {
-            // if the user try to access a forbidden resource (after redirection for example), do not stay on login form
-            interceptorFuture.push(() => $state.go('management'));
-          }
-        }
-      }
-
-      if (interceptorFuture) {
-        error.interceptorFuture = interceptorFuture;
-      }
-
-      return $q.reject(error);
-    },
-  });
-  interceptorUnauthorized.$inject = ['$q', '$injector', '$location', '$state'];
 
   const interceptorTimeout = function ($q: angular.IQService, $injector: angular.auto.IInjectorService): angular.IHttpInterceptor {
     return {
@@ -217,7 +124,6 @@ function interceptorConfig($httpProvider: angular.IHttpProvider, Constants) {
     $httpProvider.interceptors.unshift(noSatellizerAuthorizationInterceptor);
     $httpProvider.interceptors.push(csrfInterceptor);
     $httpProvider.interceptors.push(reCaptchaInterceptor);
-    $httpProvider.interceptors.push(interceptorUnauthorized);
     $httpProvider.interceptors.push(interceptorTimeout);
     $httpProvider.interceptors.push(replaceEnvInterceptor);
   }

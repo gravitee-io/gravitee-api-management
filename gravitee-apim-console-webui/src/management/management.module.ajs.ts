@@ -53,7 +53,6 @@ import ResourceService from '../services/resource.service';
 import FetcherService from '../services/fetcher.service';
 import NotifierService from '../services/notifier.service';
 import ServiceDiscoveryService from '../services/serviceDiscovery.service';
-import LoginController from '../auth/login/login.controller';
 
 import DiffDirective from '../components/diff/diff.directive';
 // Api
@@ -214,8 +213,7 @@ import IdentityProviderService from '../services/identityProvider.service';
 import StringService from '../services/string.service';
 import AuthenticationService from '../services/authentication.service';
 
-import interceptorConfig from './management.interceptor';
-import delegatorConfig from './management.delegator';
+import interceptorConfig from './management.interceptor.ajs';
 
 import { permission, uiPermission } from 'angular-permission';
 
@@ -327,7 +325,6 @@ import * as angular from 'angular';
 
 const ngInfiniteScroll = require('ng-infinite-scroll');
 import { ApiAlertsDashboardComponentAjs } from './api/analytics/alerts/api-alerts-dashboard.component.ajs';
-import MovedComponent from './configuration/moved/moved.component';
 
 (<any>window).traverse = traverse;
 
@@ -486,7 +483,7 @@ const includeSpinnerConfig = (cfpLoadingBarProvider) => {
   cfpLoadingBarProvider.includeSpinner = false;
 };
 includeSpinnerConfig.$inject = ['cfpLoadingBarProvider'];
-// graviteeManagementModule.config(includeSpinnerConfig);
+graviteeManagementModule.config(includeSpinnerConfig);
 
 const localStorageConfig = (localStorageServiceProvider) => {
   localStorageServiceProvider.setPrefix('gravitee');
@@ -494,15 +491,7 @@ const localStorageConfig = (localStorageServiceProvider) => {
 localStorageConfig.$inject = ['localStorageServiceProvider'];
 graviteeManagementModule.config(localStorageConfig);
 
-// graviteeManagementModule.config(config);
-// graviteeManagementModule.config(routerConfig);
-// graviteeManagementModule.config(authenticationConfig);
-// graviteeManagementModule.config(managementRouterConfig);
-// graviteeManagementModule.config(applicationRouterConfig);
-// graviteeManagementModule.config(configurationRouterConfig);
-// graviteeManagementModule.config(globalNotificationsRouterConfig);
 graviteeManagementModule.config(interceptorConfig);
-graviteeManagementModule.config(delegatorConfig);
 
 // Hack to disable location provider. Now we only use angular
 const disableAjsLocationProvider = ($provide) => {
@@ -587,7 +576,6 @@ graviteeManagementModule.component('apiV1ResourcesComponentAjs', ApiV1ResourcesC
 graviteeManagementModule.controller('DialogAddPropertyController', DialogAddPropertyController);
 graviteeManagementModule.controller('UserController', UserController);
 graviteeManagementModule.controller('DialogEditPolicyController', DialogEditPolicyController);
-graviteeManagementModule.controller('LoginController', LoginController);
 graviteeManagementModule.component('analyticsDashboardComponentAjs', AnalyticsDashboardComponentAjs);
 graviteeManagementModule.component('gvAlertDashboard', AlertsDashboardComponent);
 graviteeManagementModule.component('alertsActivityComponentAjs', AlertsActivityComponentAjs);
@@ -697,7 +685,6 @@ graviteeManagementModule.controller('ErrorController', ErrorController);
 
 graviteeManagementModule.component('settingsCategoriesAjs', CategoriesComponentAjs);
 graviteeManagementModule.component('settingsCategoryEditAjs', CategoryComponentAjs);
-graviteeManagementModule.component('moved', MovedComponent);
 
 graviteeManagementModule.directive('ngEnvironmentMetadata', downgradeComponent({ component: EnvironmentMetadataComponent }));
 graviteeManagementModule.component('settingsThemeAjs', PortalThemeComponentAjs);
