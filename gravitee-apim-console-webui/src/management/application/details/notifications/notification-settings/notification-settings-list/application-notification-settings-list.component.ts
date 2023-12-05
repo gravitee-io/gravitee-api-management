@@ -19,7 +19,7 @@ import { Subject } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
 
 import { ApplicationNotificationSettingsService } from '../../../../../../services-ngx/application-notification-settings.service';
-import { NotificationSettingsListServices } from '../../../../../../components/notifications/notification-settings/notification-settings-list.component';
+import { NotificationSettingsListServices } from '../../../../../../components/notification-settings/notification-settings-list.component';
 
 @Component({
   selector: 'application-notification-settings-list',

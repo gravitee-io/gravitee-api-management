@@ -32,13 +32,13 @@ import { of } from 'rxjs';
 import { NotificationSettingsListModule } from './notification-settings-list.module';
 import { NotificationSettingsListServices } from './notification-settings-list.component';
 
-import { fakeNotifier } from '../../../entities/notification/notifier.fixture';
-import { fakeNotificationSettings } from '../../../entities/notification/notificationSettings.fixture';
-import { CurrentUserService } from '../../../ajs-upgraded-providers';
-import { GioHttpTestingModule } from '../../../shared/testing';
-import { User } from '../../../entities/user';
-import { ApplicationNotificationSettingsService } from '../../../services-ngx/application-notification-settings.service';
-import { NotificationSettings } from '../../../entities/notification/notificationSettings';
+import { fakeNotifier } from '../../entities/notification/notifier.fixture';
+import { fakeNotificationSettings } from '../../entities/notification/notificationSettings.fixture';
+import { CurrentUserService } from '../../ajs-upgraded-providers';
+import { GioHttpTestingModule } from '../../shared/testing';
+import { User } from '../../entities/user';
+import { ApplicationNotificationSettingsService } from '../../services-ngx/application-notification-settings.service';
+import { NotificationSettings } from '../../entities/notification/notificationSettings';
 
 @Component({
   selector: 'test-component',

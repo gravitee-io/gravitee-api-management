@@ -20,10 +20,10 @@ import { takeUntil, tap } from 'rxjs/operators';
 import { combineLatest, Observable, Subject } from 'rxjs';
 import { groupBy, map } from 'lodash';
 
-import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
-import { Hooks } from '../../../../entities/notification/hooks';
-import { NotificationSettings } from '../../../../entities/notification/notificationSettings';
-import { Notifier } from '../../../../entities/notification/notifier';
+import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+import { Hooks } from '../../../entities/notification/hooks';
+import { NotificationSettings } from '../../../entities/notification/notificationSettings';
+import { Notifier } from '../../../entities/notification/notifier';
 
 export interface NotificationSettingsDetailsServices {
   reference: {
