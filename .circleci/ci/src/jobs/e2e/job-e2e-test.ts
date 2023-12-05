@@ -54,7 +54,15 @@ fi
 if [ -z "<< parameters.apim_client_tag >>" ]; then
   APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=${dockerImageTag} APIM_CLIENT_TAG=${dockerImageTag} npm run test:api:<< parameters.database >>
 else 
-  APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=${dockerImageTag} APIM_CLIENT_TAG=<< parameters.apim_client_tag >> npm run test:api:<< parameters.database >>
+  if [[ "<< parameters.apim_client_tag >>" == *"@"* ]]; then
+    echo "Using custom registry for client"
+    CLIENT_REGISTRY=$(echo "<< parameters.apim_client_tag >>" | cut -f1 -d@)
+    CLIENT_TAG=$(echo "<< parameters.apim_client_tag >>" | cut -f2 -d@)
+    APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=${dockerImageTag} APIM_CLIENT_REGISTRY=\${CLIENT_REGISTRY} APIM_CLIENT_TAG=\${CLIENT_TAG} npm run test:api:<< parameters.database >>
+  else
+    echo "Using ACR registry for client"
+    APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=${dockerImageTag} APIM_CLIENT_REGISTRY=graviteeio.azurecr.io APIM_CLIENT_TAG=<< parameters.apim_client_tag >> npm run test:api:<< parameters.database >>
+  fi
 fi`,
       }),
       new reusable.ReusedCommand(dockerAzureLogoutCmd),

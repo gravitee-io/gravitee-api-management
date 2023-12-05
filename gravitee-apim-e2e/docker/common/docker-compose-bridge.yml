@@ -89,7 +89,7 @@ services:
       - apim
 
   gateway_client:
-    image: ${APIM_REGISTRY:-graviteeio}/apim-gateway:${APIM_CLIENT_TAG:-3}
+    image: ${APIM_CLIENT_REGISTRY:-graviteeio}/apim-gateway:${APIM_CLIENT_TAG:-3}
     container_name: gravitee-apim-e2e-gateway-client
     restart: always
     ports:

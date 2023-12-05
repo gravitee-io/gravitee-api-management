@@ -50,7 +50,7 @@ describe('Pull requests workflow tests', () => {
       });
 
       const expected = fs.readFileSync(`./src/pipelines/tests/resources/pull-requests/${expectedFileName}`, 'utf-8');
-      expect(expected).toStrictEqual(result.stringify());
+      expect(result.stringify()).toStrictEqual(expected);
     },
   );
 });
