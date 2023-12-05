@@ -29,8 +29,7 @@
       <td mat-cell *matCellDef="let element">
         <a
           *ngIf="element.apiId"
-          [uiSref]="'management.apis.ng.analytics-overview-v2'"
-          [uiParams]="{ apiId: element.apiId, from: timeRangeParams?.from, to: timeRangeParams?.to }"
+          (click)="navigateToApiAnalyticsOverview({ apiId: element.apiId, from: timeRangeParams?.from, to: timeRangeParams?.to })"
           >{{ element.apiName }} ({{ element.apiVersion }})</a
         >
       </td>

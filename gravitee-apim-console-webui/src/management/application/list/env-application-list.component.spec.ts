@@ -22,7 +22,6 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
-import { UIRouterModule } from '@uirouter/angular';
 import { ActivatedRoute } from '@angular/router';
 
 import { EnvApplicationListComponent } from './env-application-list.component';
@@ -156,14 +155,7 @@ describe('EnvApplicationListComponent', () => {
       currentUser.roles = [{ scope: 'ORGANIZATION', name: 'ADMIN' }];
 
       TestBed.configureTestingModule({
-        imports: [
-          NoopAnimationsModule,
-          ApplicationsModule,
-          GioHttpTestingModule,
-          UIRouterModule.forRoot({
-            useHash: true,
-          }),
-        ],
+        imports: [NoopAnimationsModule, ApplicationsModule, GioHttpTestingModule],
         providers: [{ provide: CurrentUserService, useValue: { currentUser } }],
       }).overrideProvider(InteractivityChecker, {
         useValue: {

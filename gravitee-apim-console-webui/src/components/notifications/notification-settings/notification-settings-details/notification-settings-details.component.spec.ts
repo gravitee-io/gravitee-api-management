@@ -19,7 +19,6 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { UIRouterModule } from '@uirouter/angular';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
@@ -33,7 +32,6 @@ import { NotificationSettingsDetailsServices } from './notification-settings-det
 
 import { User } from '../../../../entities/user';
 import { GioHttpTestingModule } from '../../../../shared/testing';
-import { GioUiRouterTestingModule } from '../../../../shared/testing/gio-uirouter-testing-module';
 import { CurrentUserService } from '../../../../ajs-upgraded-providers';
 import { fakeHooks } from '../../../../entities/notification/hooks.fixture';
 import { fakeNotificationSettings } from '../../../../entities/notification/notificationSettings.fixture';
@@ -61,16 +59,7 @@ describe('NotificationSettingsDetailsComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [TestComponent],
-      imports: [
-        NoopAnimationsModule,
-        GioHttpTestingModule,
-        GioUiRouterTestingModule,
-        NotificationSettingsListModule,
-        MatIconTestingModule,
-        UIRouterModule.forRoot({
-          useHash: true,
-        }),
-      ],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, NotificationSettingsListModule, MatIconTestingModule],
       providers: [{ provide: CurrentUserService, useValue: { currentUser } }],
     })
       .overrideProvider(InteractivityChecker, {

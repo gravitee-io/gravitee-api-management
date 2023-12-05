@@ -27,7 +27,6 @@ import { MatSelectModule } from '@angular/material/select';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
-import { UIRouterModule } from '@uirouter/angular';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
@@ -56,7 +55,6 @@ import { GioTableWrapperModule } from '../../../../shared/components/gio-table-w
   exports: [ApiGeneralGroupsComponent, ApiGeneralMembersComponent, ApiGeneralTransferOwnershipComponent],
   imports: [
     CommonModule,
-    UIRouterModule,
     ReactiveFormsModule,
 
     MatButtonModule,

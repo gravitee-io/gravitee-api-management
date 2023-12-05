@@ -20,7 +20,6 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatTableHarness } from '@angular/material/table/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
-import { UIRouterModule } from '@uirouter/angular';
 
 import { InstanceListComponent } from './instance-list.component';
 import { InstanceListModule } from './instance-list.module';
@@ -36,15 +35,7 @@ describe('InstanceListComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [
-        NoopAnimationsModule,
-        MatIconTestingModule,
-        GioHttpTestingModule,
-        UIRouterModule.forRoot({
-          useHash: true,
-        }),
-        InstanceListModule,
-      ],
+      imports: [NoopAnimationsModule, MatIconTestingModule, GioHttpTestingModule, InstanceListModule],
     });
   });
 

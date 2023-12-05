@@ -22,12 +22,10 @@ import { MatTableHarness } from '@angular/material/table/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { MatSortHeaderHarness } from '@angular/material/sort/testing';
 import { By } from '@angular/platform-browser';
-import { UIRouterModule } from '@uirouter/angular';
 
 import { ApiListModule } from './api-list.module';
 import { ApiListComponent } from './api-list.component';
 
-import { GioUiRouterTestingModule } from '../../../shared/testing/gio-uirouter-testing-module';
 import { CurrentUserService } from '../../../ajs-upgraded-providers';
 import { User as DeprecatedUser } from '../../../entities/user';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
@@ -49,16 +47,7 @@ describe('ApisListComponent', () => {
   describe('without quality score', () => {
     beforeEach(async () => {
       await TestBed.configureTestingModule({
-        imports: [
-          ApiListModule,
-          MatIconTestingModule,
-          GioUiRouterTestingModule,
-          NoopAnimationsModule,
-          GioHttpTestingModule,
-          UIRouterModule.forRoot({
-            useHash: true,
-          }),
-        ],
+        imports: [ApiListModule, MatIconTestingModule, NoopAnimationsModule, GioHttpTestingModule],
         providers: [
           { provide: CurrentUserService, useValue: { currentUser } },
           { provide: 'Constants', useValue: fakeConstants },
@@ -403,16 +392,7 @@ describe('ApisListComponent', () => {
       withQualityEnabled.env.settings.apiQualityMetrics.enabled = true;
 
       await TestBed.configureTestingModule({
-        imports: [
-          ApiListModule,
-          MatIconTestingModule,
-          GioUiRouterTestingModule,
-          NoopAnimationsModule,
-          GioHttpTestingModule,
-          UIRouterModule.forRoot({
-            useHash: true,
-          }),
-        ],
+        imports: [ApiListModule, MatIconTestingModule, NoopAnimationsModule, GioHttpTestingModule],
         providers: [
           { provide: CurrentUserService, useValue: { currentUser } },
           { provide: 'Constants', useValue: withQualityEnabled },

@@ -18,13 +18,11 @@ import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { of } from 'rxjs';
 import { delay } from 'rxjs/operators';
-import { UIRouterModule } from '@uirouter/angular';
 
 import { GioApiEventsTableComponent } from './gio-api-events-table.component';
 import { GioApiEventsTableModule } from './gio-api-events-table.module';
 
 import { EventService } from '../../../../services-ngx/event.service';
-import { GioUiRouterTestingModule } from '../../../../shared/testing/gio-uirouter-testing-module';
 
 export const SEARCH_RESPONSE = {
   content: [
@@ -193,14 +191,7 @@ export default {
   component: GioApiEventsTableComponent,
   decorators: [
     moduleMetadata({
-      imports: [
-        GioApiEventsTableModule,
-        BrowserAnimationsModule,
-        GioUiRouterTestingModule,
-        UIRouterModule.forRoot({
-          useHash: true,
-        }),
-      ],
+      imports: [GioApiEventsTableModule, BrowserAnimationsModule],
       providers: [
         {
           provide: EventService,

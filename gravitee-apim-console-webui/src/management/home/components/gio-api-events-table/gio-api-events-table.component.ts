@@ -17,6 +17,7 @@ import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { isEqual, toNumber } from 'lodash';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { distinctUntilChanged, map, startWith, switchMap, tap } from 'rxjs/operators';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { GioTableWrapperFilters } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { EventService } from '../../../../services-ngx/event.service';
@@ -97,7 +98,11 @@ export class GioApiEventsTableComponent implements OnChanges {
     }),
   );
 
-  constructor(private readonly eventService: EventService) {}
+  constructor(
+    private readonly eventService: EventService,
+    private readonly router: Router,
+    private readonly activatedRoute: ActivatedRoute,
+  ) {}
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.timeRangeParams) {
@@ -106,5 +111,15 @@ export class GioApiEventsTableComponent implements OnChanges {
   }
   onFiltersChanged(filters: GioTableWrapperFilters) {
     this.filters$.next({ ...this.filters$.value, ...filters });
+  }
+
+  navigateToApiAnalyticsOverview(params: { apiId: string; from: number; to: number }): void {
+    this.router.navigate(['../../', 'apis', params.apiId, 'v2', 'analytics-overview'], {
+      relativeTo: this.activatedRoute,
+      queryParams: {
+        from: params.from,
+        to: params.to,
+      },
+    });
   }
 }

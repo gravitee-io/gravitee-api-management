@@ -35,7 +35,6 @@ import { NotificationSettingsListServices } from './notification-settings-list.c
 import { fakeNotifier } from '../../../entities/notification/notifier.fixture';
 import { fakeNotificationSettings } from '../../../entities/notification/notificationSettings.fixture';
 import { CurrentUserService } from '../../../ajs-upgraded-providers';
-import { GioUiRouterTestingModule } from '../../../shared/testing/gio-uirouter-testing-module';
 import { GioHttpTestingModule } from '../../../shared/testing';
 import { User } from '../../../entities/user';
 import { ApplicationNotificationSettingsService } from '../../../services-ngx/application-notification-settings.service';
@@ -63,14 +62,7 @@ describe('NotificationsSettingsListComponent', () => {
     beforeEach(async () => {
       await TestBed.configureTestingModule({
         declarations: [TestComponent],
-        imports: [
-          NoopAnimationsModule,
-          GioHttpTestingModule,
-          GioUiRouterTestingModule,
-          NotificationSettingsListModule,
-          MatIconTestingModule,
-          MatCardModule,
-        ],
+        imports: [NoopAnimationsModule, GioHttpTestingModule, NotificationSettingsListModule, MatIconTestingModule, MatCardModule],
         providers: [{ provide: CurrentUserService, useValue: { currentUser } }, ApplicationNotificationSettingsService],
       })
         .overrideProvider(InteractivityChecker, {

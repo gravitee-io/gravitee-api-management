@@ -32,7 +32,6 @@ import { HomeModule } from '../home.module';
 import { Api } from '../../../entities/api';
 import { fakePagedResult } from '../../../entities/pagedResult';
 import { fakeApi } from '../../../entities/api/Api.fixture';
-import { GioUiRouterTestingModule } from '../../../shared/testing/gio-uirouter-testing-module';
 import { GioQuickTimeRangeHarness } from '../components/gio-quick-time-range/gio-quick-time-range.harness';
 
 describe('HomeApiHealthCheckComponent', () => {
@@ -44,14 +43,7 @@ describe('HomeApiHealthCheckComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [
-        NoopAnimationsModule,
-        GioUiRouterTestingModule,
-        GioHttpTestingModule,
-        HomeModule,
-        MatIconTestingModule,
-        HighchartsChartModule,
-      ],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, HomeModule, MatIconTestingModule, HighchartsChartModule],
       providers: [{ provide: CurrentUserService, useValue: { currentUser } }],
     });
   });

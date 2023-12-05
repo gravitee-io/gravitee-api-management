@@ -28,7 +28,6 @@ import {
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatTabsModule } from '@angular/material/tabs';
-import { UIRouterModule } from '@uirouter/angular';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -64,7 +63,6 @@ import { ApiNavigationDisabledComponent } from './api-navigation-disabled/api-na
     GioLoaderModule,
     GioLicenseModule,
     MatSnackBarModule,
-    UIRouterModule,
     RouterModule,
     GioMenuModule,
   ],

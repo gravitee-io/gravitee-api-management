@@ -17,13 +17,12 @@ import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { GioLicenseModule, GioMenuModule, GioSubmenuModule } from '@gravitee/ui-particles-angular';
 import { MatSelectModule } from '@angular/material/select';
-import { UIRouterModule } from '@uirouter/angular';
 import { RouterModule } from '@angular/router';
 
 import { GioSideNavComponent } from './gio-side-nav.component';
 
 @NgModule({
-  imports: [CommonModule, GioMenuModule, MatSelectModule, GioSubmenuModule, GioLicenseModule, UIRouterModule, RouterModule],
+  imports: [CommonModule, GioMenuModule, MatSelectModule, GioSubmenuModule, GioLicenseModule, RouterModule],
   declarations: [GioSideNavComponent],
   exports: [GioSideNavComponent],
   entryComponents: [GioSideNavComponent],

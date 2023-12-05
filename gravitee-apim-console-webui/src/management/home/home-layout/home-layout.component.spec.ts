@@ -18,7 +18,6 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { UIRouterModule } from '@uirouter/angular';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTabNavBarHarness } from '@angular/material/tabs/testing';
 
@@ -39,15 +38,7 @@ describe('HomeLayoutComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       declarations: [HomeLayoutComponent],
-      imports: [
-        NoopAnimationsModule,
-        GioHttpTestingModule,
-        HomeModule,
-        UIRouterModule.forRoot({
-          useHash: true,
-        }),
-        MatTabsModule,
-      ],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, HomeModule, MatTabsModule],
       providers: [{ provide: CurrentUserService, useValue: { currentUser } }],
     });
   });
