@@ -53,7 +53,7 @@ import FetcherService from '../services/fetcher.service';
 import NotifierService from '../services/notifier.service';
 import ServiceDiscoveryService from '../services/serviceDiscovery.service';
 
-import DiffDirective from '../components/diff/diff.directive';
+import DiffDirective from './api/audit/history/diff/diff.directive';
 // Api
 import ApiCreationV2ComponentAjs from './api/creation-v2/steps/api-creation-v2.component.ajs';
 import ApiCreationV2ControllerAjs from './api/creation-v2/steps/api-creation-v2.controller.ajs';
@@ -508,6 +508,7 @@ graviteeManagementModule.directive('apiHealthcheckDashboardChart', () => new Cha
 graviteeManagementModule.component('apiHealthcheckDashboardComponentAjs', ApiHealthcheckDashboardComponentAjs);
 
 graviteeManagementModule.component('apiV1PropertiesComponentAjs', ApiV1PropertiesComponentAjs);
+graviteeManagementModule.directive('apiHistoryDiff', () => DiffDirective);
 graviteeManagementModule.component('apiHistoryComponentAjs', ApiHistoryComponentAjs);
 graviteeManagementModule.component('apiV1ResourcesComponentAjs', ApiV1ResourcesComponentAjs);
 graviteeManagementModule.controller('DialogAddPropertyController', DialogAddPropertyController);
@@ -591,7 +592,6 @@ graviteeManagementModule.directive('filecontent', () => FileContentDirective);
 graviteeManagementModule.directive('fileloader', () => FileLoaderDirective);
 graviteeManagementModule.directive('noDirtyCheck', () => new FormDirective());
 graviteeManagementModule.directive('autofocus', () => new AutofocusDirective());
-graviteeManagementModule.directive('graviteeDiff', () => DiffDirective);
 graviteeManagementModule.directive('graviteeIdentityPicture', () => new IdentityPictureDirective());
 graviteeManagementModule.directive('gvModel', () => new GvModelDirective());
 graviteeManagementModule.directive('graviteeImage', () => new ImageDirective());
