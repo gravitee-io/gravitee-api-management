@@ -38,7 +38,7 @@ describe('SafePipe', () => {
   });
 
   it('should safe HTML', () => {
-    spectator = createPipe(`{{ '<div>foo</div>' | safe:'html' }}`);
+    spectator = createPipe(`<div [innerHTML]="'foo' | safe: 'html'"></div>`);
     expect(spectator.element.innerHTML).toContain('foo');
   });
 
@@ -58,7 +58,7 @@ describe('SafePipe', () => {
   });
 
   it('should safe style', () => {
-    spectator = createPipe(`{{ '<style>.foo { display: none;}</style>' | safe:'style' }}`);
+    spectator = createPipe("&#123;&#123; '<style>.foo { display: none;}</style>' | safe:'style' &#125;&#125;");
     expect(spectator.element).toBeDefined();
   });
 
