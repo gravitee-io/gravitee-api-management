@@ -16,10 +16,10 @@
 package io.gravitee.apim.plugin.apiservice.servicediscovery.consul;
 
 import static fixtures.ApiFixtures.anApiWithServiceDiscovery;
+import static fixtures.definition.ApiDefinitionFixtures.anApiV4;
 import static io.gravitee.apim.plugin.apiservice.servicediscovery.consul.ConsulServiceDiscoveryService.CONSUL_SERVICE_DISCOVERY_ID;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.definition.model.v4.ApiBuilder;
 import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
@@ -80,7 +80,7 @@ class ConsulServiceDiscoveryServiceFactoryTest {
 
     @Test
     void should_not_create_the_service_when_no_group_defined() {
-        when(deploymentContext.getComponent(Api.class)).thenReturn(new Api(ApiBuilder.anApiV4().build()));
+        when(deploymentContext.getComponent(Api.class)).thenReturn(new Api(anApiV4()));
 
         var result = new ConsulServiceDiscoveryServiceFactory().createService(deploymentContext);
 
