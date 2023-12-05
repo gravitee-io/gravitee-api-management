@@ -368,7 +368,6 @@ require('../libraries/angular-ui-codemirror/ui-codemirror');
 require('ngclipboard');
 require('angular-ui-validate');
 require('angular-timeline');
-require('angular-utf8-base64');
 require('ng-file-upload');
 require('md-steppers');
 require('angular-ui-tree');
@@ -434,7 +433,6 @@ angular.module('gravitee-management', [
   'ngclipboard',
   'ui.validate',
   'angular-timeline',
-  'utf8-base64',
   'ngFileUpload',
   'md-steppers',
   'ui.tree',
