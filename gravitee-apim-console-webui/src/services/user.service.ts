@@ -45,7 +45,6 @@ class UserService {
     private ApiService: ApiService,
     private EnvironmentService: EnvironmentService,
     private $location: ILocationService,
-    private $cookies,
     private $window,
     private StringService: StringService,
     private Base64Service: Base64Service,
@@ -264,7 +263,6 @@ class UserService {
     this.currentUser.authenticated = false;
     this.isLogout = true;
     this.$window.localStorage.removeItem('satellizer_token');
-    this.$cookies.remove('Auth-Graviteeio-APIM');
     this.$window.localStorage.removeItem('newsletterProposed');
   }
 
@@ -375,7 +373,6 @@ UserService.$inject = [
   'ApiService',
   'EnvironmentService',
   '$location',
-  '$cookies',
   '$window',
   'StringService',
   'Base64Service',
