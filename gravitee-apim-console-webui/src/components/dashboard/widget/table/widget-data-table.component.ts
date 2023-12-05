@@ -16,7 +16,7 @@
 import { StateService } from '@uirouter/core';
 import * as _ from 'lodash';
 
-import AnalyticsService from '../../../services/analytics.service';
+import AnalyticsService from '../../../../services/analytics.service';
 
 const WidgetDataTableComponent: ng.IComponentOptions = {
   template: require('./widget-data-table.html'),

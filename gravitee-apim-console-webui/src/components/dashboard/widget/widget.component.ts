@@ -15,9 +15,9 @@
  */
 import * as _ from 'lodash';
 
-import AnalyticsService from '../../services/analytics.service';
-import { ApiService } from '../../services/api.service';
-import { EventService } from '../../services/event.service';
+import AnalyticsService from '../../../services/analytics.service';
+import { ApiService } from '../../../services/api.service';
+import { EventService } from '../../../services/event.service';
 
 const WidgetComponent: ng.IComponentOptions = {
   template: require('./widget.html'),

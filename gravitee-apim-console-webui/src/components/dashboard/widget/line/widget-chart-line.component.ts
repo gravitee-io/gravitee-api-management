@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import AnalyticsService from '../../../services/analytics.service';
-import { EventService } from '../../../services/event.service';
+import AnalyticsService from '../../../../services/analytics.service';
+import { EventService } from '../../../../services/event.service';
 // eslint:disable-next-line:no-var-requires
 require('@gravitee/ui-components/wc/gv-chart-line');
 
