@@ -20,7 +20,7 @@
     <gio-menu-header>
       <gio-menu-selector
         tabIndex="1"
-        [selectedItemValue]="this.constants.org.currentEnv.id"
+        [selectedItemValue]="currentEnvironmentId"
         selectorTitle="Environment"
         [selectorItems]="environments"
         (selectChange)="this.changeCurrentEnv($event)"

@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 import { Component, Inject, OnInit } from '@angular/core';
-import { StateService } from '@uirouter/core';
+import { StateParams, StateService } from '@uirouter/core';
 import { GioLicenseService, LicenseOptions, SelectorItem } from '@gravitee/ui-particles-angular';
 import { map } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 import { castArray } from 'lodash';
 
-import { CurrentUserService, PortalSettingsService, UIRouterState } from '../../ajs-upgraded-providers';
+import { CurrentUserService, PortalSettingsService, UIRouterState, UIRouterStateParams } from '../../ajs-upgraded-providers';
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
 import { Constants } from '../../entities/Constants';
 import UserService from '../../services/user.service';
@@ -48,9 +48,11 @@ export class GioSideNavComponent implements OnInit {
   public footerMenuItems: MenuItem[] = [];
 
   public environments: SelectorItem[] = [];
+  public currentEnvironmentId: string;
 
   constructor(
     @Inject(UIRouterState) private readonly ajsState: StateService,
+    @Inject(UIRouterStateParams) private readonly ajsStateParams: StateParams,
     private readonly permissionService: GioPermissionService,
     @Inject(PortalSettingsService) private readonly portalConfigService: PortalConfigService,
     @Inject(CurrentUserService) private readonly currentUserService: UserService,
@@ -62,6 +64,13 @@ export class GioSideNavComponent implements OnInit {
     this.mainMenuItems = this.buildMainMenuItems();
     this.footerMenuItems = this.buildFooterMenuItems();
     this.environments = this.constants.org.environments.map((env) => ({ value: env.id, displayValue: env.name }));
+
+    const currentEnvironment = this.constants.org.environments.find(
+      (environment) =>
+        environment.id === this.ajsStateParams.environmentId ||
+        (environment.hrids && environment.hrids.includes(this.ajsStateParams.environmentId)),
+    );
+    this.currentEnvironmentId = currentEnvironment ? currentEnvironment.id : this.constants.org.currentEnv.id;
 
     // FIXME: to remove after migration. This allow to get the current environment when user "Go back to APIM" from organisation settings
     this.updateCurrentEnv();
