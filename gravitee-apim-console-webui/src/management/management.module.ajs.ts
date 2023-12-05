@@ -168,7 +168,7 @@ import '../components/documentation/documentation.module.ajs';
 
 // Healthcheck
 import ProgressBarComponent from '../components/progressbar/progress-bar.component';
-import HealthCheckMetricComponent from '../components/healthcheckmetric/healthcheck-metric.component';
+import HealthCheckMetricComponent from './api/proxy/health-check-dashboard/healthcheckmetric/healthcheck-metric.component';
 import { ApiHealthcheckDashboardComponentAjs } from './api/proxy/health-check-dashboard/healthcheck-dashboard.component.ajs';
 import { ApiHealthcheckLogComponentAjs } from './api/proxy/health-check-dashboard/healthcheck-log.component.ajs';
 
@@ -503,6 +503,7 @@ graviteeManagementModule.component('apiAnalyticsOverviewComponentAjs', ApiAnalyt
 graviteeManagementModule.component('apiV1PoliciesComponentAjs', ApiV1PoliciesComponentAjs);
 graviteeManagementModule.controller('AddPoliciesPathController', AddPoliciesPathController);
 graviteeManagementModule.directive('apiHealthcheckDashboardChart', () => new ChartDirective());
+graviteeManagementModule.component('gvHealthcheckMetric', HealthCheckMetricComponent);
 graviteeManagementModule.component('apiHealthcheckDashboardComponentAjs', ApiHealthcheckDashboardComponentAjs);
 
 graviteeManagementModule.component('apiV1PropertiesComponentAjs', ApiV1PropertiesComponentAjs);
@@ -688,7 +689,6 @@ graviteeManagementModule.controller('ContextualDocController', ContextualDocCont
 // Healthcheck
 graviteeManagementModule.component('apiHealthcheckLogComponentAjs', ApiHealthcheckLogComponentAjs);
 graviteeManagementModule.component('progressBar', ProgressBarComponent);
-graviteeManagementModule.component('gvHealthcheckMetric', HealthCheckMetricComponent);
 
 // Configuration
 graviteeManagementModule.service('ConsoleSettingsService', ConsoleSettingsService);
