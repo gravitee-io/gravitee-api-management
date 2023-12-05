@@ -40,7 +40,7 @@ public class Properties implements Serializable {
 
     @Builder
     public Properties(List<Property> propertiesList) {
-        this.propertiesList = propertiesList;
+        setProperties(propertiesList);
     }
 
     public void setProperties(List<Property> properties) {

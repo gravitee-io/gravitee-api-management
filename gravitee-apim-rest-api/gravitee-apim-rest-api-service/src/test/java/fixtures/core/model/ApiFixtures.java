@@ -16,8 +16,9 @@
 package fixtures.core.model;
 
 import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.definition.model.ApiBuilder;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.ExecutionMode;
+import io.gravitee.definition.model.FlowMode;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
@@ -30,6 +31,7 @@ import io.gravitee.definition.model.v4.listener.http.Path;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -118,12 +120,15 @@ public class ApiFixtures {
             .type(ApiType.PROXY)
             .definitionVersion(DefinitionVersion.V2)
             .apiDefinition(
-                ApiBuilder
-                    .anApiV2()
+                io.gravitee.definition.model.Api
+                    .builder()
                     .id(MY_API)
                     .name("api-name")
-                    .apiVersion("1.0.0")
+                    .version("1.0.0")
                     .tags(Set.of("tag1"))
+                    .definitionVersion(DefinitionVersion.V2)
+                    .executionMode(ExecutionMode.V3)
+                    .flowMode(FlowMode.DEFAULT)
                     .proxy(
                         Proxy
                             .builder()
@@ -147,6 +152,7 @@ public class ApiFixtures {
                             )
                             .build()
                     )
+                    .plans(Map.of())
                     .build()
             )
             .build();

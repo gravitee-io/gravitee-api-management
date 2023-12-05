@@ -21,7 +21,11 @@ import io.gravitee.definition.model.HttpRequest;
 import io.gravitee.definition.model.HttpResponse;
 import java.io.Serializable;
 import java.util.List;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
+@NoArgsConstructor
+@SuperBuilder
 public class DebugApi extends Api implements Serializable {
 
     @JsonProperty("request")
