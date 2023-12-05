@@ -159,7 +159,7 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
                 "%s/#!/environments/%s/%s",
                 installationAccessQueryService.getConsoleUrl(organizationId),
                 environmentId,
-                apiId == null ? "" : URLEncoder.encode(String.format("apis/%s/portal", apiId), StandardCharsets.UTF_8)
+                apiId == null ? "home" : URLEncoder.encode(String.format("apis/%s/portal", apiId), StandardCharsets.UTF_8)
             );
 
             // Redirect the user.
