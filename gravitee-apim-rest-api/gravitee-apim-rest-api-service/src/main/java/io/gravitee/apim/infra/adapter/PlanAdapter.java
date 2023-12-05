@@ -16,6 +16,7 @@
 package io.gravitee.apim.infra.adapter;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import io.gravitee.apim.core.api.model.crd.PlanCRD;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Rule;
@@ -30,6 +31,8 @@ import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -69,6 +72,21 @@ public interface PlanAdapter {
     io.gravitee.rest.api.model.BasePlanEntity toEntityV2(io.gravitee.repository.management.model.Plan plan);
 
     NewPlanEntity entityToNewPlanEntity(PlanEntity entity);
+
+    PlanEntity toEntityV4(PlanCRD source);
+    io.gravitee.definition.model.v4.plan.Plan toApiDefinition(PlanCRD source);
+
+    default Map<String, io.gravitee.definition.model.v4.plan.Plan> toApiDefinition(Map<String, PlanCRD> source) {
+        return source
+            .values()
+            .stream()
+            .map(planCRD -> Map.entry(planCRD.getId(), PlanAdapter.INSTANCE.toApiDefinition(planCRD)))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
+
+    default Set<PlanEntity> toPlanEntityV4(Map<String, PlanCRD> source) {
+        return source.values().stream().map(PlanAdapter.INSTANCE::toEntityV4).collect(Collectors.toSet());
+    }
 
     default GenericPlanEntity toGenericEntity(io.gravitee.repository.management.model.Plan plan, DefinitionVersion definitionVersion) {
         return definitionVersion == DefinitionVersion.V4 ? PlanAdapter.INSTANCE.toEntityV4(plan) : PlanAdapter.INSTANCE.toEntityV2(plan);

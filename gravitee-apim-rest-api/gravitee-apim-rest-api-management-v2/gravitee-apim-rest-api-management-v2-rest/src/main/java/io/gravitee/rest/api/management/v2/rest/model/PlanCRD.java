@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.model;
 
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -29,7 +30,11 @@ import lombok.Setter;
 @Setter
 public class PlanCRD {
 
+    @NotNull
+    @NotEmpty
     private String id;
+
+    private String name;
 
     private String description;
 

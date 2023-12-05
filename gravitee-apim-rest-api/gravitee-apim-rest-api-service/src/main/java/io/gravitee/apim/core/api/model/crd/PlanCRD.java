@@ -54,7 +54,7 @@ public class PlanCRD {
 
     private String generalConditions;
 
-    private Integer order;
+    private int order;
 
     private ZonedDateTime publishedAt;
 
@@ -68,7 +68,8 @@ public class PlanCRD {
 
     private Plan.PlanValidationType validation;
 
-    private List<Flow> flows;
+    @Builder.Default
+    private List<Flow> flows = List.of();
 
     private PlanMode mode;
 }

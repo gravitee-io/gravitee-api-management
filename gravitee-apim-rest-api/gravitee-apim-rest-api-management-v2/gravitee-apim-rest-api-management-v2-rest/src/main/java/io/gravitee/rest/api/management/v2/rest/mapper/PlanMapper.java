@@ -80,9 +80,8 @@ public interface PlanMapper {
     @Named("toPlanEntity")
     PlanEntity map(PlanV4 plan);
 
-    @Mapping(target = "name", expression = "java(planName)")
     @Mapping(target = "security", qualifiedByName = "mapToPlanSecurityV4")
-    io.gravitee.apim.core.api.model.crd.PlanCRD fromPlanCRD(PlanCRD plan, String planName);
+    io.gravitee.apim.core.api.model.crd.PlanCRD fromPlanCRD(PlanCRD plan);
 
     @Mapping(target = "security.configuration", qualifiedByName = "serializeConfiguration")
     UpdatePlanEntity map(UpdatePlanV4 plan);

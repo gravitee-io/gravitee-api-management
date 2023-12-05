@@ -17,11 +17,12 @@ package io.gravitee.apim.core.api.model.crd;
 
 import io.gravitee.apim.core.api.model.ApiMetadata;
 import io.gravitee.definition.model.DefinitionContext;
-import io.gravitee.definition.model.Property;
 import io.gravitee.definition.model.ResponseTemplate;
+import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.listener.Listener;
+import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +42,8 @@ import lombok.NoArgsConstructor;
 @Builder(toBuilder = true)
 public class ApiCRD {
 
+    private String id;
+
     private String crossId;
 
     private String name;
@@ -59,25 +62,27 @@ public class ApiCRD {
 
     private DefinitionContext definitionContext;
 
-    private Map<String, Map<String, ResponseTemplate>> responseTemplates = Map.of();
+    private Map<String, Map<String, ResponseTemplate>> responseTemplates;
 
-    private Set<String> tags = Set.of();
+    private Set<String> tags;
 
-    private Set<String> labels = Set.of();
+    private Set<String> labels;
 
-    private List<Resource> resources = List.of();
+    private List<Resource> resources;
 
-    private List<PlanCRD> plans = List.of();
+    private Map<String, PlanCRD> plans;
 
-    private List<Flow> flows = List.of();
+    private List<Flow> flows;
 
-    private List<Property> properties = List.of();
+    private List<Property> properties;
 
-    private List<ApiMetadata> metadata = List.of();
+    private List<ApiMetadata> metadata;
 
     private List<Listener> listeners;
 
     private List<EndpointGroup> endpointGroups;
+
+    private Analytics analytics;
 
     public String getDefinitionVersion() {
         return "V4";

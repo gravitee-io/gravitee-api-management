@@ -30,11 +30,13 @@ import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Mapper
+@Mapper(uses = { PlanAdapter.class })
 public interface ApiAdapter {
     Logger LOGGER = LoggerFactory.getLogger(ApiAdapter.class);
     ApiAdapter INSTANCE = Mappers.getMapper(ApiAdapter.class);
 
+    @Mapping(target = "definitionContext.mode", source = "mode")
+    @Mapping(target = "definitionContext.origin", source = "origin")
     @Mapping(target = "apiDefinitionV4", expression = "java(deserializeApiDefinitionV4(source))")
     @Mapping(target = "apiDefinition", expression = "java(deserializeApiDefinitionV2(source))")
     Api toCoreModel(io.gravitee.repository.management.model.Api source);
@@ -47,6 +49,9 @@ public interface ApiAdapter {
     io.gravitee.repository.management.model.Api toRepository(Api source);
 
     Stream<io.gravitee.repository.management.model.Api> toRepositoryStream(Stream<Api> source);
+
+    @Mapping(target = "apiVersion", source = "version")
+    io.gravitee.definition.model.v4.Api toApiDefinition(ApiCRD source);
 
     @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
     @Mapping(source = "version", target = "apiVersion")

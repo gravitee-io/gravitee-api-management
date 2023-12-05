@@ -28,6 +28,7 @@ import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -78,9 +79,17 @@ public class ImportCRDUseCase {
 
             var planNameIdMapping = input.crd
                 .getPlans()
+                .entrySet()
                 .stream()
-                .map(planCRD -> createPlanDomainService.create(initPlanFromCRD(planCRD), planCRD.getFlows(), api, input.auditInfo))
-                .collect(Collectors.toMap(Plan::getName, Plan::getId));
+                .map(entry ->
+                    Map.entry(
+                        entry.getKey(),
+                        createPlanDomainService
+                            .create(initPlanFromCRD(entry.getValue()), entry.getValue().getFlows(), api, input.auditInfo)
+                            .getId()
+                    )
+                )
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
             if (input.crd.getDefinitionContext().getSyncFrom().equals(DefinitionContext.ORIGIN_MANAGEMENT)) {
                 deployApiDomainService.deploy(api, "Import via Kubernetes operator", input.auditInfo);

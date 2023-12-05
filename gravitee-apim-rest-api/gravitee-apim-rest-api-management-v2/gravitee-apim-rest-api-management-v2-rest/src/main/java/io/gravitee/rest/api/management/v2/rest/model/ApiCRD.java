@@ -35,6 +35,11 @@ import lombok.Data;
 @Data
 public class ApiCRD {
 
+    @NotNull
+    @NotEmpty
+    private String id;
+
+    @NotNull
     @NotEmpty
     private String crossId;
 
