@@ -23,6 +23,7 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
+import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
@@ -72,6 +73,9 @@ class ApiAdapterTest {
                             .builder()
                             .id("my-id")
                             .name("api-name")
+                            .apiVersion("1.0.0")
+                            .definitionVersion(DefinitionVersion.V4)
+                            .flowExecution(new FlowExecution())
                             .analytics(Analytics.builder().enabled(false).build())
                             .type(ApiType.PROXY)
                             .tags(Set.of("tag1"))
