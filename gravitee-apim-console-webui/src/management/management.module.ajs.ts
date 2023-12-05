@@ -167,7 +167,7 @@ import NotificationTemplatesService from '../services/notificationTemplates.serv
 import '../components/documentation/documentation.module.ajs';
 
 // Healthcheck
-import ProgressBarComponent from '../components/progressbar/progress-bar.component';
+import ProgressBarComponent from './api/proxy/health-check-dashboard/progressbar/progress-bar.component';
 import HealthCheckMetricComponent from './api/proxy/health-check-dashboard/healthcheckmetric/healthcheck-metric.component';
 import { ApiHealthcheckDashboardComponentAjs } from './api/proxy/health-check-dashboard/healthcheck-dashboard.component.ajs';
 import { ApiHealthcheckLogComponentAjs } from './api/proxy/health-check-dashboard/healthcheck-log.component.ajs';
