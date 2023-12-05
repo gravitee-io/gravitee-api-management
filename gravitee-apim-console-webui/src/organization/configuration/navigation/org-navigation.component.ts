@@ -189,6 +189,7 @@ export class OrgNavigationComponent implements OnInit {
   }
 
   goBack() {
-    this.router.navigate(['/']);
+    // Reloads current environment if exists, otherwise loads the default root path
+    this.router.navigate([this.constants.org.currentEnv?.id ?? '/']);
   }
 }
